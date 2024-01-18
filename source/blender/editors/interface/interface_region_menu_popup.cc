@@ -42,6 +42,8 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
+using blender::StringRef;
+
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
  * \{ */
@@ -86,25 +88,19 @@ int ui_but_menu_step(uiBut *but, int direction)
  * \note This is stored for each unique menu title.
  * \{ */
 
-static uint ui_popup_string_hash(const char *str, const bool use_sep)
+static uint ui_popup_string_hash(const StringRef str, const bool use_sep)
 {
   /* sometimes button contains hotkey, sometimes not, strip for proper compare */
-  int hash;
-  const char *delimit = use_sep ? strrchr(str, UI_SEP_CHAR) : nullptr;
+  const size_t sep_index = use_sep ? str.find_first_of(UI_SEP_CHAR) : StringRef::not_found;
+  const StringRef before_hotkey = sep_index == StringRef::not_found ? str :
+                                                                      str.substr(0, sep_index);
 
-  if (delimit) {
-    hash = BLI_ghashutil_strhash_n(str, delimit - str);
-  }
-  else {
-    hash = BLI_ghashutil_strhash(str);
-  }
-
-  return hash;
+  return blender::get_default_hash(before_hotkey);
 }
 
-uint ui_popup_menu_hash(const char *str)
+uint ui_popup_menu_hash(const StringRef str)
 {
-  return BLI_ghashutil_strhash(str);
+  return blender::get_default_hash(str);
 }
 
 /* but == nullptr read, otherwise set */
@@ -169,7 +165,7 @@ struct uiPopupMenu {
   ARegion *butregion;
 
   /* Menu hash is created from this, to keep a memory of recently opened menus. */
-  const char *title;
+  StringRef title;
 
   int mx, my;
   bool popup, slideout;
@@ -183,8 +179,8 @@ struct uiPopupMenu {
  */
 static void ui_popup_menu_create_block(bContext *C,
                                        uiPopupMenu *pup,
-                                       const char *title,
-                                       const char *block_name)
+                                       const StringRef title,
+                                       const StringRef block_name)
 {
   const uiStyle *style = UI_style_get_dpi();
 
@@ -198,7 +194,7 @@ static void ui_popup_menu_create_block(bContext *C,
    * for the same storage of the menu memory. Using idname instead (or in combination with the
    * label) for the hash could be looked at to solve this. */
   pup->block->flag |= UI_BLOCK_POPUP_MEMORY;
-  if (title && title[0]) {
+  if (!title.is_empty()) {
     pup->block->puphash = ui_popup_menu_hash(title);
   }
   pup->layout = UI_block_layout(
@@ -767,11 +763,11 @@ void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block)
   }
 }
 
-bool UI_popup_block_name_exists(const bScreen *screen, const char *name)
+bool UI_popup_block_name_exists(const bScreen *screen, const blender::StringRef name)
 {
   LISTBASE_FOREACH (const ARegion *, region, &screen->regionbase) {
     LISTBASE_FOREACH (const uiBlock *, block, &region->uiblocks) {
-      if (STREQ(block->name, name)) {
+      if (block->name == name) {
         return true;
       }
     }

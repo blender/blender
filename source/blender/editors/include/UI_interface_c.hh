@@ -782,7 +782,7 @@ void uiPupBlockOperator(bContext *C,
 
 void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block);
 
-bool UI_popup_block_name_exists(const bScreen *screen, const char *name);
+bool UI_popup_block_name_exists(const bScreen *screen, blender::StringRef name);
 
 /* Blocks
  *
@@ -796,7 +796,7 @@ bool UI_popup_block_name_exists(const bScreen *screen, const char *name);
 
 uiBlock *UI_block_begin(const bContext *C,
                         ARegion *region,
-                        const char *name,
+                        std::string name,
                         eUIEmbossType emboss);
 void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2]);
 void UI_block_end(const bContext *C, uiBlock *block);
