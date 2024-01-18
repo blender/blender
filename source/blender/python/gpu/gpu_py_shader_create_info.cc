@@ -932,7 +932,7 @@ PyDoc_STRVAR(
     "   :type source: str\n"
     "\n"
     "   .. seealso:: `GLSL Cross Compilation "
-    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__\n");
+    "<https://developer.blender.org/docs/features/gpu/glsl_cross_compilation/>`__\n");
 static PyObject *pygpu_shader_info_vertex_source(BPyGPUShaderCreateInfo *self, PyObject *o)
 {
   const char *vertex_source = PyUnicode_AsUTF8(o);
@@ -977,7 +977,7 @@ PyDoc_STRVAR(
     "   :type source: str\n"
     "\n"
     "   .. seealso:: `GLSL Cross Compilation "
-    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__\n");
+    "<https://developer.blender.org/docs/features/gpu/glsl_cross_compilation/>`__\n");
 static PyObject *pygpu_shader_info_compute_source(BPyGPUShaderCreateInfo *self, PyObject *o)
 {
   const char *compute_source = PyUnicode_AsUTF8(o);
@@ -1018,7 +1018,7 @@ PyDoc_STRVAR(
     "   :type source: str\n"
     "\n"
     "   .. seealso:: `GLSL Cross Compilation "
-    "<https://wiki.blender.org/wiki/EEVEE_%26_Viewport/GPU_Module/GLSL_Cross_Compilation>`__\n");
+    "<https://developer.blender.org/docs/features/gpu/glsl_cross_compilation/>`__\n");
 static PyObject *pygpu_shader_info_fragment_source(BPyGPUShaderCreateInfo *self, PyObject *o)
 {
   const char *fragment_source = PyUnicode_AsUTF8(o);

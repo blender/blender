@@ -7,7 +7,7 @@
 # assumes you have dependencies installed already
 
 # See this page for more info:
-#   https://wiki.blender.org/wiki/Building_Blender/Linux/Generic_Distro/CMake
+#   https://developer.blender.org/docs/handbook/building_blender/linux/
 
 # grab blender
 mkdir ~/blender-git

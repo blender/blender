@@ -295,7 +295,7 @@ Advantages include:
 
 This is marked advanced because to run Blender as a Python module requires a special build option.
 For instructions on building see
-`Building Blender as a Python module <https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule>`__.
+`Building Blender as a Python module <https://developer.blender.org/docs/handbook/building_blender/python_module/>`__.
 
 
 Python Safety (Build Option)

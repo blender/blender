@@ -6,7 +6,7 @@
  * \ingroup editorui
  *
  * API for simple creation of grid UIs, supporting typically needed features.
- * https://wiki.blender.org/wiki/Source/Interface/Views/Grid_Views
+ * https://developer.blender.org/docs/features/interface/views/grid_views/
  */
 
 #pragma once
