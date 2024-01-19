@@ -68,9 +68,6 @@ struct PaintStroke {
   Brush *brush;
   UnifiedPaintSettings *ups;
 
-  /* used for lines and curves */
-  ListBase line;
-
   /* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
    * to smooth the stroke */
   PaintSample samples[PAINT_MAX_INPUT_SAMPLES];
@@ -990,8 +987,6 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
     WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke->stroke_cursor));
   }
 
-  BLI_freelistN(&stroke->line);
-
   MEM_delete(stroke);
 }
 
@@ -1147,7 +1142,6 @@ wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
 {
   static EnumPropertyItem modal_items[] = {
       {PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel and undo a stroke in progress"},
-
       {0}};
 
   static const char *name = "Paint Stroke Modal";
