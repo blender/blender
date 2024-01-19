@@ -174,7 +174,7 @@ KeyingScreen::KeyingScreen(Context &context,
       size.y,
       1,
       Result::texture_format(ResultType::Color, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
+      GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
       nullptr);
   const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
   GPU_texture_image_bind(texture_, image_unit);
