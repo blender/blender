@@ -506,8 +506,6 @@ static void grease_pencil_geom_batch_ensure(Object &object,
             "fill_color", bke::AttrDomain::Curve, ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
     const VArray<int> materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
-    const VArray<float> hardness = *attributes.lookup_or_default<float>(
-        "hardness", bke::AttrDomain::Curve, 1.0f);
     const Span<uint3> triangles = info.drawing.triangles();
     const Span<int> verts_start_offsets = verts_start_offsets_per_visible_drawing[drawing_i];
     const Span<int> tris_start_offsets = tris_start_offsets_per_visible_drawing[drawing_i];

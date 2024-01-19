@@ -54,6 +54,7 @@ vec3 gpencil_lighting(void)
   return clamp(light_accum, 0.0, 1e10);
 }
 
+/* TODO: Remove this once we can render textures. */
 vec4 debug_texture(vec2 uv)
 {
   vec4 col = vec4(mod(uv.xy, 1.0), 0.0, 1.0);
@@ -67,6 +68,7 @@ void main()
     bool premul = flag_test(gp_interp_flat.mat_flag, GP_STROKE_TEXTURE_PREMUL);
     col = texture_read_as_linearrgb(gpStrokeTexture, premul, gp_interp.uv);
 
+    /* TODO: Remove this once we can render textures. */
     /* Debug color. (Because textures are not yet implemented) */
     col = debug_texture(gp_interp.uv);
   }
