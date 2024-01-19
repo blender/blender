@@ -11,7 +11,7 @@ __all__ = (
     "object_add_grid_scale",
     "object_add_grid_scale_apply_operator",
     "world_to_camera_view",
-    "object_verify_active_shape_key_is_editable",
+    "object_report_if_active_shape_key_is_locked",
 )
 
 
