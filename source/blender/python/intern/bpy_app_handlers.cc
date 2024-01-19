@@ -394,8 +394,12 @@ void bpy_app_generic_callback(Main * /*main*/,
          * dangling pointers to external render engines (when exception
          * happens during rendering) which will break logic of render pipeline
          * which expects to be the only user of render engine when rendering
-         * is finished.
-         */
+         * is finished. */
+
+        /* Note the handler called, the exception itself typically has the function name. */
+        PySys_WriteStderr("Error in bpy.app.handlers.%s[%d]:\n",
+                          app_cb_info_fields[POINTER_AS_INT(arg)].name,
+                          int(pos));
         PyErr_PrintEx(0);
         PyErr_Clear();
       }
