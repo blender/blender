@@ -20,7 +20,6 @@
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
-#include "BLI_time.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.h"

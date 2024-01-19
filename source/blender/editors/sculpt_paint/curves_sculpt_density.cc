@@ -27,7 +27,6 @@
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
-#include "BLI_time.h"
 
 #include "GEO_add_curves_on_mesh.hh"
 
