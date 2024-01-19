@@ -15,6 +15,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_time.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
@@ -34,8 +35,6 @@
 #include "GPU_immediate.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "PIL_time.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -799,7 +798,7 @@ static void wm_xr_fly_init(wmOperator *op, const wmXrData *xr)
       op->customdata = MEM_callocN(sizeof(XrFlyData), __func__));
 
   WM_xr_session_state_viewer_pose_rotation_get(xr, data->viewer_rot);
-  data->time_prev = PIL_check_seconds_timer();
+  data->time_prev = BLI_check_seconds_timer();
 }
 
 static void wm_xr_fly_uninit(wmOperator *op)
@@ -953,7 +952,7 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
   GHOST_XrPose nav_pose;
   float nav_mat[4][4], delta[4][4], out[4][4];
 
-  const double time_now = PIL_check_seconds_timer();
+  const double time_now = BLI_check_seconds_timer();
 
   mode = (eXrFlyMode)RNA_enum_get(op->ptr, "mode");
   turn = ELEM(mode, XR_FLY_TURNLEFT, XR_FLY_TURNRIGHT);

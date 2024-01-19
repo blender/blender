@@ -29,6 +29,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_memarena.h"
 #include "BLI_string.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_uvproject.h"
 #include "BLI_vector.hh"
@@ -54,8 +55,6 @@
 
 #include "GEO_uv_pack.hh"
 #include "GEO_uv_parametrizer.hh"
-
-#include "PIL_time.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -806,7 +805,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
   ms->iterations = RNA_int_get(op->ptr, "iterations");
   ms->i = 0;
   ms->handle = construct_param_handle_multi(scene, objects, objects_len, &options);
-  ms->lasttime = PIL_check_seconds_timer();
+  ms->lasttime = BLI_check_seconds_timer();
 
   blender::geometry::uv_parametrizer_stretch_begin(ms->handle);
   if (ms->blend != 0.0f) {
@@ -832,7 +831,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
   ms->i++;
   RNA_int_set(op->ptr, "iterations", ms->i);
 
-  if (interactive && (PIL_check_seconds_timer() - ms->lasttime > 0.5)) {
+  if (interactive && (BLI_check_seconds_timer() - ms->lasttime > 0.5)) {
     char str[UI_MAX_DRAW_STR];
 
     blender::geometry::uv_parametrizer_flush(ms->handle);
@@ -843,7 +842,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
       ED_workspace_status_text(C, RPT_("Press + and -, or scroll wheel to set blending"));
     }
 
-    ms->lasttime = PIL_check_seconds_timer();
+    ms->lasttime = BLI_check_seconds_timer();
 
     for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
       Object *obedit = ms->objects_edit[ob_index];
@@ -971,11 +970,11 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, const wmEvent *ev
       break;
     case TIMER:
       if (ms->timer == event->customdata) {
-        double start = PIL_check_seconds_timer();
+        double start = BLI_check_seconds_timer();
 
         do {
           minimize_stretch_iteration(C, op, true);
-        } while (PIL_check_seconds_timer() - start < 0.01);
+        } while (BLI_check_seconds_timer() - start < 0.01);
       }
       break;
   }

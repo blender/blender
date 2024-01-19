@@ -18,8 +18,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-#include "PIL_time.h"
 
 #include "BKE_global.h"
 #include "BKE_movieclip.h"

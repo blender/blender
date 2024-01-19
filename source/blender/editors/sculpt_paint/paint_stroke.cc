@@ -14,9 +14,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_rand.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -49,7 +48,7 @@
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
 struct PaintSample {
@@ -460,7 +459,7 @@ static bool paint_brush_update(bContext *C,
 
   if ((do_random || do_random_mask) && stroke->rng == nullptr) {
     /* Lazy initialization. */
-    uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+    uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
     rng_seed ^= uint(POINTER_AS_INT(brush));
     stroke->rng = BLI_rng_new(rng_seed);
   }

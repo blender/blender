@@ -41,6 +41,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
@@ -69,8 +70,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "PIL_time.h"
 
 #include "RE_texture.h"
 

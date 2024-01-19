@@ -13,6 +13,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 
 #include "DNA_image_types.h"
 #include "DNA_userdef_types.h"
@@ -29,8 +30,6 @@
 #include "GPU_capabilities.h"
 #include "GPU_state.h"
 #include "GPU_texture.h"
-
-#include "PIL_time.h"
 
 using namespace blender::bke::image::partial_update;
 
@@ -572,7 +571,7 @@ void BKE_image_free_anim_gputextures(Main *bmain)
 void BKE_image_free_old_gputextures(Main *bmain)
 {
   static int lasttime = 0;
-  int ctime = int(PIL_check_seconds_timer());
+  int ctime = int(BLI_check_seconds_timer());
 
   /*
    * Run garbage collector once for every collecting period of time

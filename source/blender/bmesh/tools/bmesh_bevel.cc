@@ -40,7 +40,7 @@ using blender::Vector;
 
 // #define BEVEL_DEBUG_TIME
 #ifdef BEVEL_DEBUG_TIME
-#  include "PIL_time.h"
+#  include "BLI_time.h"
 #endif
 
 #define BEVEL_EPSILON_D 1e-6
@@ -7764,7 +7764,7 @@ void BM_mesh_bevel(BMesh *bm,
   }
 
 #ifdef BEVEL_DEBUG_TIME
-  double start_time = PIL_check_seconds_timer();
+  double start_time = BLI_check_seconds_timer();
 #endif
 
   /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful anyway. */
@@ -7932,7 +7932,7 @@ void BM_mesh_bevel(BMesh *bm,
   BLI_memarena_free(bp.mem_arena);
 
 #ifdef BEVEL_DEBUG_TIME
-  double end_time = PIL_check_seconds_timer();
+  double end_time = BLI_check_seconds_timer();
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
 #endif
 }

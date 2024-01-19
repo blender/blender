@@ -17,9 +17,8 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
@@ -194,7 +193,7 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
 
   menu = ui_popup_block_create(C, nullptr, nullptr, nullptr, ui_block_func_PIE, pie, nullptr);
   menu->popup = true;
-  menu->towardstime = PIL_check_seconds_timer();
+  menu->towardstime = BLI_check_seconds_timer();
 
   UI_popup_handlers_add(C, &window->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
   WM_event_add_mousemove(window);

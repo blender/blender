@@ -50,7 +50,7 @@
 // #  define DEBUG_PRINT
 // #  define DEBUG_TIME
 #  ifdef DEBUG_TIME
-#    include "PIL_time_utildefines.h"
+#    include "BLI_time_utildefines.h"
 #  endif
 
 #  include "BLI_array_store.h"

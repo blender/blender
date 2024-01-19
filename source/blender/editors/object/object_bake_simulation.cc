@@ -13,9 +13,8 @@
 #include "BLI_serialize.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_time.h"
 #include "BLI_vector.hh"
-
-#include "PIL_time.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

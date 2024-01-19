@@ -36,6 +36,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_time.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
@@ -100,8 +101,6 @@
 #include "UI_string_search.hh"
 #include "UI_view2d.hh"
 #include "interface_intern.hh"
-
-#include "PIL_time.h"
 
 /* we may want to make this optional, disable for now. */
 // #define USE_OP_RESET_BUT
@@ -6150,7 +6149,7 @@ static char *progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*
   /* create tooltip text and associate it with the job */
   char elapsed_str[32];
   char remaining_str[32] = "Unknown";
-  const double elapsed = PIL_check_seconds_timer() - WM_jobs_starttime(wm, owner);
+  const double elapsed = BLI_check_seconds_timer() - WM_jobs_starttime(wm, owner);
   BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
 
   if (progress) {

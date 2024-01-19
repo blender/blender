@@ -49,7 +49,7 @@
 
 /* for timing... */
 #if 0
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #else
 #  define TIMEIT_BENCH(expr, id) (expr)
 #endif

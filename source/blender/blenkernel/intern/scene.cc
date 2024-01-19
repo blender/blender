@@ -46,6 +46,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLO_readfile.h"
@@ -108,8 +109,6 @@
 #include "BLO_read_write.hh"
 
 #include "engines/eevee/eevee_lightcache.h"
-
-#include "PIL_time.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"

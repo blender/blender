@@ -4,7 +4,7 @@
 
 #include "pipeline.h"
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "BKE_global.h"
 
@@ -29,7 +29,7 @@ void AbstractBuilderPipeline::build()
 {
   double start_time = 0.0;
   if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
-    start_time = PIL_check_seconds_timer();
+    start_time = BLI_check_seconds_timer();
   }
 
   build_step_sanity_check();
@@ -38,7 +38,7 @@ void AbstractBuilderPipeline::build()
   build_step_finalize();
 
   if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
-    printf("Depsgraph built in %f seconds.\n", PIL_check_seconds_timer() - start_time);
+    printf("Depsgraph built in %f seconds.\n", BLI_check_seconds_timer() - start_time);
   }
 }
 

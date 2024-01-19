@@ -28,8 +28,6 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "CLG_log.h"
 
 #include "BLI_fileops.h"
@@ -39,6 +37,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
@@ -487,7 +486,7 @@ static int pupdate_time()
 {
   static double time_last;
 
-  double time = PIL_check_seconds_timer();
+  double time = BLI_check_seconds_timer();
 
   g_playanim.total_time += (time - time_last);
   time_last = time;
@@ -2023,7 +2022,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 #endif
 
         while (pupdate_time()) {
-          PIL_sleep_ms(1);
+          BLI_sleep_ms(1);
         }
         g_playanim.total_time -= g_playanim.swap_time;
         playanim_toscreen(&ps, ps.picture, ibuf);
@@ -2054,7 +2053,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       }
       playanim_change_frame(&ps);
       if (!has_event) {
-        PIL_sleep_ms(1);
+        BLI_sleep_ms(1);
       }
       if (ps.wait) {
         continue;

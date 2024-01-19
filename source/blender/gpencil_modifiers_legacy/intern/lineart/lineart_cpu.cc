@@ -16,10 +16,9 @@
 #include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
 #include "BLI_task.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
-
-#include "PIL_time.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
@@ -2572,7 +2571,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
+    t_start = BLI_check_seconds_timer();
   }
 
   int thread_count = ld->thread_count;
@@ -2682,7 +2681,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art loading time: %lf\n", t_elapsed);
     printf("Discarded %d object from bound box check\n", bound_box_discard_count);
   }
@@ -4716,7 +4715,7 @@ void lineart_main_add_triangles(LineartData *ld)
 {
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
+    t_start = BLI_check_seconds_timer();
   }
 
   /* Initialize per-thread data for thread task scheduling information and storing intersection
@@ -4739,7 +4738,7 @@ void lineart_main_add_triangles(LineartData *ld)
   lineart_destroy_isec_thread(&d);
 
   if (G.debug_value == 4000) {
-    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art intersection time: %f\n", t_elapsed);
   }
 }
@@ -5006,7 +5005,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
+    t_start = BLI_check_seconds_timer();
   }
 
   bool use_render_camera_override = false;
@@ -5180,7 +5179,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
   if (G.debug_value == 4000) {
     lineart_count_and_print_render_buffer_memory(ld);
 
-    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art total time: %lf\n", t_elapsed);
   }
 

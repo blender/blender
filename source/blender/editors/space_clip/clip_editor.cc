@@ -26,6 +26,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -51,8 +52,6 @@
 #include "UI_view2d.hh"
 
 #include "clip_intern.h" /* own include */
-
-#include "PIL_time.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Operator Poll Functions

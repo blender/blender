@@ -19,6 +19,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
@@ -41,8 +42,6 @@
 #include "RE_multires_bake.h"
 #include "RE_pipeline.h"
 #include "RE_texture.h"
-
-#include "PIL_time.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

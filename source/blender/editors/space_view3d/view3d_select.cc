@@ -104,7 +104,7 @@
 
 #include "view3d_intern.h" /* own include */
 
-// #include "PIL_time_utildefines.h"
+// #include "BLI_time_utildefines.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Public Utilities

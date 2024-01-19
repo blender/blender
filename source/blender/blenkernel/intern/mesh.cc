@@ -35,6 +35,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
@@ -61,8 +62,6 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
-
-#include "PIL_time.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -96,7 +95,7 @@ static void mesh_init_data(ID *id)
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
-  mesh->face_sets_color_seed = BLI_hash_int(PIL_check_seconds_timer_i() & UINT_MAX);
+  mesh->face_sets_color_seed = BLI_hash_int(BLI_check_seconds_timer_i() & UINT_MAX);
 }
 
 static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)

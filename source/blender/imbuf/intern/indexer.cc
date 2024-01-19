@@ -19,12 +19,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #ifdef _WIN32
 #  include "BLI_winstuff.h"
 #endif
-
-#include "PIL_time.h"
 
 #include "IMB_anim.h"
 #include "IMB_imbuf.h"
@@ -1127,7 +1126,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
   AVFrame *in_frame = av_frame_alloc();
   AVPacket *packet = av_packet_alloc();
 
-  const double start = PIL_check_seconds_timer();
+  const double start = BLI_check_seconds_timer();
   int frames_decoded = 0;
 
   while (av_read_frame(context->iFormatCtx, packet) >= 0) {
@@ -1153,7 +1152,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
       frames_decoded++;
     }
 
-    const double end = PIL_check_seconds_timer();
+    const double end = BLI_check_seconds_timer();
 
     if (end > start + time_period) {
       break;

@@ -15,9 +15,8 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_kdopbvh.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "BLT_translation.h"
 
@@ -444,7 +443,7 @@ static void object_overlay_mode_transfer_animation_start(bContext *C, Object *ob
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob_dst_eval = DEG_get_evaluated_object(depsgraph, ob_dst);
-  ob_dst_eval->runtime->overlay_mode_transfer_start_time = PIL_check_seconds_timer();
+  ob_dst_eval->runtime->overlay_mode_transfer_start_time = BLI_check_seconds_timer();
 }
 
 static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base_dst)

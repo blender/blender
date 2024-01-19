@@ -978,7 +978,7 @@ void DRW_cache_free_old_batches(Main *bmain)
   using namespace blender::draw;
   Scene *scene;
   static int lasttime = 0;
-  int ctime = int(PIL_check_seconds_timer());
+  int ctime = int(BLI_check_seconds_timer());
 
   if (U.vbotimeout == 0 || (ctime - lasttime) < U.vbocollectrate || ctime == lasttime) {
     return;

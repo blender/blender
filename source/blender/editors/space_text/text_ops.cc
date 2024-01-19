@@ -19,10 +19,9 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
+#include "BLI_time.h"
 
 #include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -3520,7 +3519,7 @@ static int text_line_number_invoke(bContext *C, wmOperator * /*op*/, const wmEve
     return OPERATOR_PASS_THROUGH;
   }
 
-  time = PIL_check_seconds_timer();
+  time = BLI_check_seconds_timer();
   if (last_jump < time - 1) {
     jump_to = 0;
   }

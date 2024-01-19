@@ -13,8 +13,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "PIL_time.h"
-#include "PIL_time_utildefines.h"
+#include "BLI_time.h"
+#include "BLI_time_utildefines.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"

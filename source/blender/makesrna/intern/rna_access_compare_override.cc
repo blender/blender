@@ -29,7 +29,7 @@
 // #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #  include <stdio.h>
 #endif
 
@@ -656,7 +656,7 @@ bool RNA_struct_override_matches(Main *bmain,
   if (!root_path) {
     _delta_time_diffing = 0.0f;
     _num_delta_time_diffing = 0;
-    _timeit_time_global = PIL_check_seconds_timer();
+    _timeit_time_global = BLI_check_seconds_timer();
   }
 #endif
 
@@ -788,7 +788,7 @@ bool RNA_struct_override_matches(Main *bmain,
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
     if (!root_path) {
-      _timeit_time_diffing = PIL_check_seconds_timer();
+      _timeit_time_diffing = BLI_check_seconds_timer();
     }
 #endif
 
@@ -805,7 +805,7 @@ bool RNA_struct_override_matches(Main *bmain,
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
     if (!root_path) {
-      const float _delta_time = float(PIL_check_seconds_timer() - _timeit_time_diffing);
+      const float _delta_time = float(BLI_check_seconds_timer() - _timeit_time_diffing);
       _delta_time_diffing += _delta_time;
       _num_delta_time_diffing++;
     }
@@ -936,7 +936,7 @@ bool RNA_struct_override_matches(Main *bmain,
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
   if (!root_path) {
-    const float _delta_time = float(PIL_check_seconds_timer() - _timeit_time_global);
+    const float _delta_time = float(BLI_check_seconds_timer() - _timeit_time_global);
     _sum_time_global += _delta_time;
     _num_time_global++;
     _sum_time_diffing += _delta_time_diffing;

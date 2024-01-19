@@ -363,6 +363,8 @@ set(SRC
   BLI_task.hh
   BLI_tempfile.h
   BLI_threads.h
+  BLI_time.h
+  BLI_time_utildefines.h
   BLI_timecode.h
   BLI_timeit.hh
   BLI_timer.h
@@ -383,8 +385,6 @@ set(SRC
   BLI_voxel.h
   BLI_winstuff.h
   BLI_winstuff_com.hh
-  PIL_time.h
-  PIL_time_utildefines.h
 
   # Without these files listed, they aren't known to CMake.
   ../../../extern/json/include/json.hpp

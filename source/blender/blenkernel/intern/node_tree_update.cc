@@ -8,10 +8,9 @@
 #include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
+#include "BLI_time.h"
 #include "BLI_timeit.hh"
 #include "BLI_vector_set.hh"
-
-#include "PIL_time.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_modifier_types.h"

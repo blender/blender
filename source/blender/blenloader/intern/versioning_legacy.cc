@@ -49,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
@@ -73,8 +74,6 @@
 #include "BLO_readfile.h"
 
 #include "readfile.hh"
-
-#include "PIL_time.h"
 
 #include <cerrno>
 
@@ -2593,7 +2592,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->pd) {
-        ob->pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+        ob->pd->seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
       }
     }
   }

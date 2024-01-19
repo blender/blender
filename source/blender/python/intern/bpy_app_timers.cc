@@ -6,9 +6,10 @@
  * \ingroup pythonintern
  */
 
+#include "BLI_time.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
-#include "PIL_time.h"
+
 #include <Python.h>
 
 #include "BPY_extern.h"

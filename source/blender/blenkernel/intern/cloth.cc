@@ -38,7 +38,7 @@
 
 #include "SIM_mass_spring.h"
 
-// #include "PIL_time.h"  /* timing for debug prints */
+// #include "BLI_time.h"  /* timing for debug prints */
 
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
