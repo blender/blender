@@ -517,16 +517,8 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   uiLayout *layout;
   const bContextStore *previous_ctx = CTX_store_get(C);
   {
-    uiStringInfo label = {BUT_GET_LABEL, nullptr};
-
-    /* highly unlikely getting the label ever fails */
-    UI_but_string_info_get(C, but, &label, nullptr);
-
-    pup = UI_popup_menu_begin(C, label.strinfo ? label.strinfo : "", ICON_NONE);
+    pup = UI_popup_menu_begin(C, UI_but_string_get_label(*but).c_str(), ICON_NONE);
     layout = UI_popup_menu_layout(pup);
-    if (label.strinfo) {
-      MEM_freeN(label.strinfo);
-    }
 
     set_layout_context_from_button(C, layout, but);
     uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);

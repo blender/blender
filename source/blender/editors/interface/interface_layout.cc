@@ -6114,7 +6114,7 @@ wmOperatorType *UI_but_operatortype_get_from_enum_menu(uiBut *but, PropertyRNA *
   return nullptr;
 }
 
-MenuType *UI_but_menutype_get(uiBut *but)
+MenuType *UI_but_menutype_get(const uiBut *but)
 {
   if (but->menu_create_func == ui_item_menutype_func) {
     return (MenuType *)but->poin;
@@ -6122,7 +6122,7 @@ MenuType *UI_but_menutype_get(uiBut *but)
   return nullptr;
 }
 
-PanelType *UI_but_paneltype_get(uiBut *but)
+PanelType *UI_but_paneltype_get(const uiBut *but)
 {
   if (but->menu_create_func == ui_item_paneltype_func) {
     return (PanelType *)but->poin;

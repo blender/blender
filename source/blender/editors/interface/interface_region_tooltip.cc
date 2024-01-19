@@ -586,15 +586,9 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
      *
      * Either way case it's useful to show the shortcut.
      */
-    char *shortcut = nullptr;
+    std::string shortcut = UI_but_string_get_operator_keymap(*C, *but);
 
-    {
-      uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, nullptr};
-      UI_but_string_info_get(C, but, &op_keymap, nullptr);
-      shortcut = op_keymap.strinfo;
-    }
-
-    if (shortcut == nullptr) {
+    if (shortcut.empty()) {
       const ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
       const char *tool_attr = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
       if (tool_attr != nullptr) {
@@ -619,14 +613,14 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                            shortcut_brush,
                                            ARRAY_SIZE(shortcut_brush)))
           {
-            shortcut = BLI_strdup(shortcut_brush);
+            shortcut = shortcut_brush;
           }
           WM_operator_properties_free(&op_props);
         }
       }
     }
 
-    if (shortcut == nullptr) {
+    if (shortcut.empty()) {
       /* Check for direct access to the tool. */
       char shortcut_toolbar[128] = "";
       if (WM_key_event_operator_string(C,
@@ -676,14 +670,13 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       }
     }
 
-    if (shortcut != nullptr) {
+    if (!shortcut.empty()) {
       UI_tooltip_text_field_add(data,
-                                BLI_sprintfN(TIP_("Shortcut: %s"), shortcut),
+                                BLI_sprintfN(TIP_("Shortcut: %s"), shortcut.c_str()),
                                 nullptr,
                                 UI_TIP_STYLE_NORMAL,
                                 UI_TIP_LC_VALUE,
                                 true);
-      MEM_freeN(shortcut);
     }
   }
 
@@ -826,93 +819,91 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                                                 uiButExtraOpIcon *extra_icon,
                                                                 const bool is_label)
 {
-  uiStringInfo but_label = {BUT_GET_LABEL, nullptr};
-  uiStringInfo but_tip_label = {BUT_GET_TIP_LABEL, nullptr};
-  uiStringInfo but_tip = {BUT_GET_TIP, nullptr};
-  uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, nullptr};
-  uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, nullptr};
-  uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, nullptr};
-  uiStringInfo prop_keymap = {BUT_GET_PROP_KEYMAP, nullptr};
-  uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, nullptr};
-  uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, nullptr};
-
   char buf[512];
 
   wmOperatorType *optype = extra_icon ? UI_but_extra_operator_icon_optype_get(extra_icon) :
                                         but->optype;
   PropertyRNA *rnaprop = extra_icon ? nullptr : but->rnaprop;
 
-  /* create tooltip data */
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
   /* Menus already show shortcuts, don't show them in the tool-tips. */
-  if (ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block)) {
-    op_keymap.type = BUT_GET_NOP;
-    prop_keymap.type = BUT_GET_NOP;
-  }
+  const bool is_menu = ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block);
+
+  std::string but_label;
+  std::string but_tip;
+  std::string but_tip_label;
+  std::string op_keymap;
+  std::string prop_keymap;
+  std::string rna_struct;
+  std::string rna_prop;
+  std::string enum_label;
+  std::string enum_tip;
 
   if (extra_icon) {
     if (is_label) {
-      UI_but_extra_icon_string_info_get(
-          C, extra_icon, &but_tip_label, &but_label, &enum_label, nullptr);
+      but_label = UI_but_extra_icon_string_get_label(*extra_icon);
     }
     else {
-      UI_but_extra_icon_string_info_get(
-          C, extra_icon, &but_label, &but_tip_label, &but_tip, &op_keymap, nullptr);
+      but_label = UI_but_extra_icon_string_get_label(*extra_icon);
+      but_tip = UI_but_extra_icon_string_get_tooltip(*C, *extra_icon);
+      if (!is_menu) {
+        op_keymap = UI_but_extra_icon_string_get_operator_keymap(*C, *extra_icon);
+      }
     }
   }
   else {
+    const std::optional<EnumPropertyItem> enum_item = UI_but_rna_enum_item_get(*C, *but);
     if (is_label) {
-      UI_but_string_info_get(C, but, &but_tip_label, &but_label, &enum_label, nullptr);
+      but_tip_label = UI_but_string_get_tooltip_label(*but);
+      but_label = UI_but_string_get_label(*but);
+      enum_label = enum_item ? enum_item->name : "";
     }
     else {
-      UI_but_string_info_get(C,
-                             but,
-                             &but_label,
-                             &but_tip_label,
-                             &but_tip,
-                             &enum_label,
-                             &enum_tip,
-                             &op_keymap,
-                             &prop_keymap,
-                             &rna_struct,
-                             &rna_prop,
-                             nullptr);
+      but_label = UI_but_string_get_label(*but);
+      but_tip_label = UI_but_string_get_tooltip_label(*but);
+      but_tip = UI_but_string_get_tooltip(*C, *but);
+      enum_label = enum_item ? enum_item->name : "";
+      enum_tip = enum_item ? enum_item->description : "";
+      if (!is_menu) {
+        op_keymap = UI_but_string_get_operator_keymap(*C, *but);
+        prop_keymap = UI_but_string_get_property_keymap(*C, *but);
+      }
+      rna_struct = UI_but_string_get_rna_struct_identifier(*but);
+      rna_prop = UI_but_string_get_rna_property_identifier(*but);
     }
   }
 
   /* Label: If there is a custom tooltip label, use that to override the label to display.
    * Otherwise fallback to the regular label. */
-  if (but_tip_label.strinfo) {
+  if (!but_tip_label.empty()) {
     UI_tooltip_text_field_add(
-        data, BLI_strdup(but_tip_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+        data, BLI_strdup(but_tip_label.c_str()), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
   }
   /* Regular (non-custom) label. Only show when the button doesn't already show the label. Check
    * prefix instead of comparing because the button may include the shortcut. Buttons with dynamic
    * tool-tips also don't get their default label here since they can already provide more accurate
    * and specific tool-tip content. */
-  else if (but_label.strinfo && !STRPREFIX(but->drawstr, but_label.strinfo) && !but->tip_func) {
+  else if (!but_label.empty() && !STRPREFIX(but->drawstr, but_label.c_str()) && !but->tip_func) {
     UI_tooltip_text_field_add(
-        data, BLI_strdup(but_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+        data, BLI_strdup(but_label.c_str()), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
   }
 
   /* Tip */
-  if (but_tip.strinfo) {
-    {
-      if (enum_label.strinfo) {
-        UI_tooltip_text_field_add(data,
-                                  BLI_sprintfN("%s:  ", but_tip.strinfo),
-                                  BLI_strdup(enum_label.strinfo),
-                                  UI_TIP_STYLE_HEADER,
-                                  UI_TIP_LC_NORMAL);
-      }
-      else {
-        UI_tooltip_text_field_add(data,
-                                  BLI_sprintfN("%s.", but_tip.strinfo),
-                                  nullptr,
-                                  UI_TIP_STYLE_HEADER,
-                                  UI_TIP_LC_NORMAL);
-      }
+  if (!but_tip.empty()) {
+    if (!enum_label.empty()) {
+      UI_tooltip_text_field_add(data,
+                                BLI_sprintfN("%s:  ", but_tip.c_str()),
+                                BLI_strdup(enum_label.c_str()),
+                                UI_TIP_STYLE_HEADER,
+                                UI_TIP_LC_NORMAL);
+    }
+    else {
+      UI_tooltip_text_field_add(data,
+                                BLI_sprintfN("%s.", but_tip.c_str()),
+                                nullptr,
+                                UI_TIP_STYLE_HEADER,
+                                UI_TIP_LC_NORMAL);
     }
 
     /* special case enum rna buttons */
@@ -925,21 +916,21 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     }
   }
   /* When there is only an enum label (no button label or tip), draw that as header. */
-  else if (enum_label.strinfo && !(but_label.strinfo && but_label.strinfo[0])) {
+  else if (!enum_label.empty() && but_label.empty()) {
     UI_tooltip_text_field_add(
-        data, BLI_strdup(enum_label.strinfo), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+        data, BLI_strdup(enum_label.c_str()), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
   }
 
   /* Enum field label & tip. */
-  if (enum_tip.strinfo) {
+  if (!enum_tip.empty()) {
     UI_tooltip_text_field_add(
-        data, BLI_strdup(enum_tip.strinfo), nullptr, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
+        data, BLI_strdup(enum_tip.c_str()), nullptr, UI_TIP_STYLE_NORMAL, UI_TIP_LC_VALUE);
   }
 
   /* Operator shortcut. */
-  if (op_keymap.strinfo) {
+  if (!op_keymap.empty()) {
     UI_tooltip_text_field_add(data,
-                              BLI_sprintfN(TIP_("Shortcut: %s"), op_keymap.strinfo),
+                              BLI_sprintfN(TIP_("Shortcut: %s"), op_keymap.c_str()),
                               nullptr,
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_VALUE,
@@ -947,9 +938,9 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   }
 
   /* Property context-toggle shortcut. */
-  if (prop_keymap.strinfo) {
+  if (!prop_keymap.empty()) {
     UI_tooltip_text_field_add(data,
-                              BLI_sprintfN(TIP_("Shortcut: %s"), prop_keymap.strinfo),
+                              BLI_sprintfN(TIP_("Shortcut: %s"), prop_keymap.c_str()),
                               nullptr,
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_VALUE,
@@ -1065,13 +1056,13 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     }
   }
 
-  if ((U.flag & USER_TOOLTIPS_PYTHON) && !optype && rna_struct.strinfo) {
+  if ((U.flag & USER_TOOLTIPS_PYTHON) && !optype && !rna_struct.empty()) {
     {
       UI_tooltip_text_field_add(
           data,
-          (rna_prop.strinfo) ?
-              BLI_sprintfN(TIP_("Python: %s.%s"), rna_struct.strinfo, rna_prop.strinfo) :
-              BLI_sprintfN(TIP_("Python: %s"), rna_struct.strinfo),
+          rna_prop.empty() ?
+              BLI_sprintfN(TIP_("Python: %s"), rna_struct.c_str()) :
+              BLI_sprintfN(TIP_("Python: %s.%s"), rna_struct.c_str(), rna_prop.c_str()),
           nullptr,
           UI_TIP_STYLE_MONO,
           UI_TIP_LC_PYTHON,
@@ -1087,35 +1078,6 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
           UI_TIP_STYLE_MONO,
           UI_TIP_LC_PYTHON);
     }
-  }
-
-  /* Free strinfo's... */
-  if (but_label.strinfo) {
-    MEM_freeN(but_label.strinfo);
-  }
-  if (but_tip_label.strinfo) {
-    MEM_freeN(but_tip_label.strinfo);
-  }
-  if (but_tip.strinfo) {
-    MEM_freeN(but_tip.strinfo);
-  }
-  if (enum_label.strinfo) {
-    MEM_freeN(enum_label.strinfo);
-  }
-  if (enum_tip.strinfo) {
-    MEM_freeN(enum_tip.strinfo);
-  }
-  if (op_keymap.strinfo) {
-    MEM_freeN(op_keymap.strinfo);
-  }
-  if (prop_keymap.strinfo) {
-    MEM_freeN(prop_keymap.strinfo);
-  }
-  if (rna_struct.strinfo) {
-    MEM_freeN(rna_struct.strinfo);
-  }
-  if (rna_prop.strinfo) {
-    MEM_freeN(rna_prop.strinfo);
   }
 
   if (data->fields_len == 0) {
