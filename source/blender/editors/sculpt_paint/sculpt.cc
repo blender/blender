@@ -2411,7 +2411,7 @@ float SCULPT_brush_strength_factor(
   avg *= 1.0f - mask;
 
   /* Auto-masking. */
-  avg *= auto_mask::factor_get(cache->automasking, ss, vertex, automask_data);
+  avg *= auto_mask::factor_get(cache->automasking.get(), ss, vertex, automask_data);
 
   return avg;
 }
@@ -2447,7 +2447,7 @@ void SCULPT_brush_strength_color(
 
   /* Auto-masking. */
   const float automasking_factor = auto_mask::factor_get(
-      cache->automasking, ss, vertex, automask_data);
+      cache->automasking.get(), ss, vertex, automask_data);
 
   const float masks_combined = falloff * paint_mask * automasking_factor;
 
@@ -3362,7 +3362,8 @@ static void do_brush_action(Sculpt *sd,
       /* Initialize auto-masking cache. */
       if (auto_mask::is_enabled(sd, ss, brush)) {
         ss->cache->automasking = auto_mask::cache_init(sd, brush, ob);
-        ss->last_automasking_settings_hash = auto_mask::settings_hash(ob, ss->cache->automasking);
+        ss->last_automasking_settings_hash = auto_mask::settings_hash(*ob,
+                                                                      *ss->cache->automasking);
       }
       /* Initialize surface smooth cache. */
       if ((brush->sculpt_tool == SCULPT_TOOL_SMOOTH) &&
@@ -5597,10 +5598,6 @@ static void sculpt_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
     smooth_brush_toggle_off(C, &sd->paint, ss->cache);
     /* Refresh the brush pointer in case we switched brush in the toggle function. */
     brush = BKE_paint_brush(&sd->paint);
-  }
-
-  if (auto_mask::is_enabled(sd, ss, brush)) {
-    auto_mask::cache_free(ss->cache->automasking);
   }
 
   BKE_pbvh_node_color_buffer_free(ss->pbvh);
