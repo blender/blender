@@ -114,7 +114,7 @@ static void modify_stroke_color(Object &ob,
   curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
     const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i]);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
-    const ColorGeometry4f material_color = (gp_style ? gp_style->fill_rgba :
+    const ColorGeometry4f material_color = (gp_style ? ColorGeometry4f(gp_style->fill_rgba) :
                                                        ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
 
     const IndexRange points = points_by_curve[curve_i];
@@ -150,7 +150,7 @@ static void modify_fill_color(Object &ob,
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
     const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i]);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
-    const ColorGeometry4f material_color = (gp_style ? gp_style->fill_rgba :
+    const ColorGeometry4f material_color = (gp_style ? ColorGeometry4f(gp_style->fill_rgba) :
                                                        ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
 
     apply_color_factor(fill_colors.span[curve_i], material_color, cmd.hsv);
