@@ -1845,9 +1845,11 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
 /* sculpt_ops.cc */
 
+namespace blender::ed::sculpt_paint {
+
 void SCULPT_OT_brush_stroke(wmOperatorType *ot);
 
-/* end sculpt_ops.cc */
+}
 
 inline bool SCULPT_tool_is_paint(int tool)
 {

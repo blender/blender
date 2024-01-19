@@ -51,6 +51,8 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
+namespace blender::ed::sculpt_paint {
+
 struct PaintSample {
   float mouse[2];
   float pressure;
@@ -211,7 +213,6 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
 {
-  using namespace blender::ed::sculpt_paint;
   switch (mode) {
     case PAINT_MODE_SCULPT:
       if (ELEM(brush->sculpt_tool,
@@ -679,7 +680,6 @@ static float paint_space_stroke_spacing(bContext *C,
                                         float size_pressure,
                                         float spacing_pressure)
 {
-  using namespace blender::ed::sculpt_paint;
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -1035,7 +1035,6 @@ static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
 
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
-  using namespace blender::ed::sculpt_paint;
   if ((br->flag & BRUSH_SPACE) == 0) {
     return false;
   }
@@ -1501,7 +1500,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
     if (paint_supports_smooth_stroke(br, mode)) {
       stroke->stroke_cursor = WM_paint_cursor_activate(
-          SPACE_TYPE_ANY, RGN_TYPE_ANY, PAINT_brush_tool_poll, paint_draw_smooth_cursor, stroke);
+          SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_smooth_cursor, stroke);
     }
 
     stroke->stroke_init = true;
@@ -1527,7 +1526,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
       if (br->flag & BRUSH_LINE) {
         stroke->stroke_cursor = WM_paint_cursor_activate(
-            SPACE_TYPE_ANY, RGN_TYPE_ANY, PAINT_brush_tool_poll, paint_draw_line_cursor, stroke);
+            SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_line_cursor, stroke);
       }
 
       first_dab = true;
@@ -1704,7 +1703,7 @@ bool paint_stroke_started(PaintStroke *stroke)
   return stroke->stroke_started;
 }
 
-bool PAINT_brush_tool_poll(bContext *C)
+bool paint_brush_tool_poll(bContext *C)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   Object *ob = CTX_data_active_object(C);
@@ -1723,3 +1722,5 @@ bool PAINT_brush_tool_poll(bContext *C)
   }
   return false;
 }
+
+}  // namespace blender::ed::sculpt_paint

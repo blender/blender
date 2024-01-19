@@ -1266,7 +1266,7 @@ static bool stencil_control_poll(bContext *C)
   Paint *paint;
   Brush *br;
 
-  if (!paint_supports_texture(mode)) {
+  if (!blender::ed::sculpt_paint::paint_supports_texture(mode)) {
     return false;
   }
 

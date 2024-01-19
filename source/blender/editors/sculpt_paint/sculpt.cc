@@ -3959,7 +3959,7 @@ bool SCULPT_mode_poll_view3d(bContext *C)
 
 bool SCULPT_poll(bContext *C)
 {
-  return SCULPT_mode_poll(C) && PAINT_brush_tool_poll(C);
+  return SCULPT_mode_poll(C) && blender::ed::sculpt_paint::paint_brush_tool_poll(C);
 }
 
 static const char *sculpt_tool_name(Sculpt *sd)
@@ -5441,6 +5441,8 @@ bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)
   return false;
 }
 
+namespace blender::ed::sculpt_paint {
+
 static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
 {
   /* Don't start the stroke until `mval` goes over the mesh.
@@ -5487,7 +5489,6 @@ static void sculpt_stroke_update_step(bContext *C,
                                       PaintStroke *stroke,
                                       PointerRNA *itemptr)
 {
-  using namespace blender::ed::sculpt_paint;
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Object *ob = CTX_data_active_object(C);
@@ -5574,7 +5575,6 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 
 static void sculpt_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
 {
-  using namespace blender::ed::sculpt_paint;
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -5809,7 +5809,7 @@ enum {
   SCULPT_TOPOLOGY_ID_DEFAULT,
 };
 
-static void SCULPT_fake_neighbor_init(SculptSession *ss, const float max_dist)
+static void fake_neighbor_init(SculptSession *ss, const float max_dist)
 {
   const int totvert = SCULPT_vertex_count_get(ss);
   ss->fake_neighbors.fake_neighbor_index = static_cast<int *>(
@@ -5821,7 +5821,7 @@ static void SCULPT_fake_neighbor_init(SculptSession *ss, const float max_dist)
   ss->fake_neighbors.current_max_distance = max_dist;
 }
 
-static void SCULPT_fake_neighbor_add(SculptSession *ss, PBVHVertRef v_a, PBVHVertRef v_b)
+static void fake_neighbor_add(SculptSession *ss, PBVHVertRef v_a, PBVHVertRef v_b)
 {
   int v_index_a = BKE_pbvh_vertex_to_index(ss->pbvh, v_a);
   int v_index_b = BKE_pbvh_vertex_to_index(ss->pbvh, v_b);
@@ -5869,8 +5869,6 @@ static void do_fake_neighbor_search_task(SculptSession *ss,
 
 static PBVHVertRef fake_neighbor_search(Object *ob, const PBVHVertRef vertex, float max_distance)
 {
-  using namespace blender;
-  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
 
   const float3 center = SCULPT_vertex_co_get(ss, vertex);
@@ -5921,6 +5919,8 @@ struct SculptTopologyIDFloodFillData {
   int next_id;
 };
 
+}  // namespace blender::ed::sculpt_paint
+
 void SCULPT_boundary_info_ensure(Object *object)
 {
   using namespace blender;
@@ -5947,6 +5947,7 @@ void SCULPT_boundary_info_ensure(Object *object)
 
 void SCULPT_fake_neighbors_ensure(Object *ob, const float max_dist)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -5960,7 +5961,7 @@ void SCULPT_fake_neighbors_ensure(Object *ob, const float max_dist)
   }
 
   SCULPT_topology_islands_ensure(ob);
-  SCULPT_fake_neighbor_init(ss, max_dist);
+  fake_neighbor_init(ss, max_dist);
 
   for (int i = 0; i < totvert; i++) {
     const PBVHVertRef from_v = BKE_pbvh_index_to_vertex(ss->pbvh, i);
@@ -5970,7 +5971,7 @@ void SCULPT_fake_neighbors_ensure(Object *ob, const float max_dist)
       const PBVHVertRef to_v = fake_neighbor_search(ob, from_v, max_dist);
       if (to_v.i != PBVH_REF_NONE) {
         /* Add the fake neighbor if available. */
-        SCULPT_fake_neighbor_add(ss, from_v, to_v);
+        fake_neighbor_add(ss, from_v, to_v);
       }
     }
   }
@@ -5992,6 +5993,7 @@ void SCULPT_fake_neighbors_disable(Object *ob)
 
 void SCULPT_fake_neighbors_free(Object *ob)
 {
+  using namespace blender::ed::sculpt_paint;
   SculptSession *ss = ob->sculpt;
   sculpt_pose_fake_neighbors_free(ss);
 }
