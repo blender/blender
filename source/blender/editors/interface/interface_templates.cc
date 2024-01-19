@@ -11,6 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
@@ -7199,12 +7201,11 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   /* File path. */
   char root[FILE_MAX];
   BLI_path_split_dir_part(path, root, FILE_MAX);
-  UI_tooltip_text_field_add(tip, BLI_strdup(root), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
-  UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, root, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
 
   if (!BLI_exists(path)) {
-    UI_tooltip_text_field_add(
-        tip, BLI_strdup(N_("File Not Found")), nullptr, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
+    UI_tooltip_text_field_add(tip, N_("File Not Found"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     return;
   }
 
@@ -7228,12 +7229,9 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   }
 
   if (version_st[0]) {
-    UI_tooltip_text_field_add(tip,
-                              BLI_sprintfN("Blender %s", version_st),
-                              nullptr,
-                              UI_TIP_STYLE_NORMAL,
-                              UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(
+        tip, fmt::format("Blender {}", version_st), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
   }
 
   BLI_stat_t status;
@@ -7247,23 +7245,20 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
       day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
     }
     UI_tooltip_text_field_add(tip,
-                              BLI_sprintfN("%s: %s%s%s",
-                                           N_("Modified"),
-                                           day_string.c_str(),
-                                           (is_today || is_yesterday) ? "" : date_st,
-                                           (is_today || is_yesterday) ? time_st : ""),
-                              nullptr,
+                              fmt::format("{}: {}{}{}",
+                                          N_("Modified"),
+                                          day_string,
+                                          (is_today || is_yesterday) ? "" : date_st,
+                                          (is_today || is_yesterday) ? time_st : ""),
+                              {},
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_NORMAL);
 
     if (status.st_size > 0) {
       char size[16];
       BLI_filelist_entry_size_to_string(nullptr, status.st_size, false, size);
-      UI_tooltip_text_field_add(tip,
-                                BLI_sprintfN("%s: %s", N_("Size"), size),
-                                nullptr,
-                                UI_TIP_STYLE_NORMAL,
-                                UI_TIP_LC_NORMAL);
+      UI_tooltip_text_field_add(
+          tip, fmt::format("{}: {}", N_("Size"), size), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
     }
   }
 
@@ -7279,8 +7274,8 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   if (thumb) {
     float scale = (72.0f * UI_SCALE_FAC) / float(MAX2(thumb->x, thumb->y));
     short size[2] = {short(float(thumb->x) * scale), short(float(thumb->y) * scale)};
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
     UI_tooltip_image_field_add(tip, thumb, size);
     IMB_freeImBuf(thumb);
   }

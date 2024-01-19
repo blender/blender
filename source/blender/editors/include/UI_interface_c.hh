@@ -1809,11 +1809,11 @@ void UI_but_func_tooltip_custom_set(uiBut *but,
  * \param suffix: Allocated text (transfer ownership to `data`) or null.
  */
 void UI_tooltip_text_field_add(uiTooltipData *data,
-                               char *text,
-                               char *suffix,
+                               std::string text,
+                               std::string suffix,
                                const uiTooltipStyle style,
                                const uiTooltipColorID color_id,
-                               const bool is_pad = false) ATTR_NONNULL(1);
+                               const bool is_pad = false);
 
 /**
  * \param image: Image buffer (duplicated, ownership is *not* transferred to `data`).
