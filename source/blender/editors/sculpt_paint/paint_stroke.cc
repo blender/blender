@@ -13,8 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
-#include "BLI_rand.h"
-#include "BLI_time.h"
+#include "BLI_rand.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
@@ -62,7 +61,7 @@ struct PaintStroke {
   void *mode_data;
   void *stroke_cursor;
   wmTimer *timer;
-  RNG *rng;
+  std::optional<RandomNumberGenerator> rng;
 
   /* Cached values */
   ViewContext vc;
@@ -458,24 +457,22 @@ static bool paint_brush_update(bContext *C,
     }
   }
 
-  if ((do_random || do_random_mask) && stroke->rng == nullptr) {
+  if ((do_random || do_random_mask) && !stroke->rng) {
     /* Lazy initialization. */
-    uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
-    rng_seed ^= uint(POINTER_AS_INT(brush));
-    stroke->rng = BLI_rng_new(rng_seed);
+    stroke->rng = RandomNumberGenerator::from_random_seed();
   }
 
   if (do_random) {
     if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
       ups->brush_rotation += -brush->mtex.random_angle / 2.0f +
-                             brush->mtex.random_angle * BLI_rng_get_float(stroke->rng);
+                             brush->mtex.random_angle * stroke->rng->get_float();
     }
   }
 
   if (do_random_mask) {
     if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
       ups->brush_rotation_sec += -brush->mask_mtex.random_angle / 2.0f +
-                                 brush->mask_mtex.random_angle * BLI_rng_get_float(stroke->rng);
+                                 brush->mask_mtex.random_angle * stroke->rng->get_float();
     }
   }
 
@@ -910,7 +907,7 @@ PaintStroke *paint_stroke_new(bContext *C,
                               int event_type)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PaintStroke *stroke = MEM_cnew<PaintStroke>(__func__);
+  PaintStroke *stroke = MEM_new<PaintStroke>(__func__);
   ToolSettings *toolsettings = CTX_data_tool_settings(C);
   UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
   Paint *p = BKE_paint_get_active_from_context(C);
@@ -989,17 +986,13 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
     WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
   }
 
-  if (stroke->rng) {
-    BLI_rng_free(stroke->rng);
-  }
-
   if (stroke->stroke_cursor) {
     WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke->stroke_cursor));
   }
 
   BLI_freelistN(&stroke->line);
 
-  MEM_SAFE_FREE(stroke);
+  MEM_delete(stroke);
 }
 
 static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
