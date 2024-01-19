@@ -46,7 +46,8 @@ class PixelateOperation : public NodeOperation {
   {
     Result &input_image = get_input("Color");
     Result &output_image = get_result("Color");
-    if (input_image.is_single_value()) {
+    const int pixel_size = get_pixel_size();
+    if (input_image.is_single_value() || pixel_size == 1) {
       input_image.pass_through(output_image);
       return;
     }
@@ -54,7 +55,7 @@ class PixelateOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_pixelate");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1i(shader, "pixel_size", get_pixel_size());
+    GPU_shader_uniform_1i(shader, "pixel_size", pixel_size);
 
     input_image.bind_as_texture(shader, "input_tx");
 
