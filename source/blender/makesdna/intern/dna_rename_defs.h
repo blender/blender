@@ -219,6 +219,7 @@ DNA_STRUCT_RENAME_ELEM(bTheme, ttopbar, space_topbar)
 DNA_STRUCT_RENAME_ELEM(bTheme, tuserpref, space_preferences)
 DNA_STRUCT_RENAME_ELEM(bTheme, tv3d, space_view3d)
 DNA_STRUCT_RENAME_ELEM(bUserAssetLibrary, path, dirpath)
+DNA_STRUCT_RENAME_ELEM(UserDef, autokey_flag, keying_flag)
 /* NOTE: Keep sorted! */
 
 /* Write with a different name, old Blender versions crash loading files with non-NULL

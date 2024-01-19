@@ -1592,7 +1592,7 @@ static void drawTransformPixel(const bContext * /*C*/, ARegion *region, void *ar
      *   for objects that will be auto-keyframed (no point otherwise),
      *   AND only for the active region (as showing all is too overwhelming)
      */
-    if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
+    if ((U.keying_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
       if (region == t->region) {
         if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
           if (ob && blender::animrig::autokeyframe_cfra_can_key(scene, &ob->id)) {

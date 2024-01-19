@@ -1330,7 +1330,7 @@ static void autokeyframe_pose(
     const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
         eRotationModes(pchan->rotmode));
 
-    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+    if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       rna_paths = get_affected_rna_paths_from_transform_mode(
           tmode, scene->toolsettings, rotation_path, targetless_ik);
     }

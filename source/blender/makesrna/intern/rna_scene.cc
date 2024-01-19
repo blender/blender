@@ -3842,7 +3842,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                            "Mode of automatic keyframe insertion for Objects, Bones and Masks");
 
   prop = RNA_def_property(srna, "use_record_with_nla", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_LAYERED_RECORD);
+  RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", AUTOKEY_FLAG_LAYERED_RECORD);
   RNA_def_property_ui_text(
       prop,
       "Layered",
@@ -3850,14 +3850,14 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "to allow non-destructive tweaking");
 
   prop = RNA_def_property(srna, "use_keyframe_insert_keyingset", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_ONLYKEYINGSET);
+  RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", AUTOKEY_FLAG_ONLYKEYINGSET);
   RNA_def_property_ui_text(prop,
                            "Auto Keyframe Insert Keying Set",
                            "Automatic keyframe insertion using active Keying Set only");
   RNA_def_property_ui_icon(prop, ICON_KEYINGSET, 0);
 
   prop = RNA_def_property(srna, "use_keyframe_cycle_aware", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_CYCLEAWARE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", KEYING_FLAG_CYCLEAWARE);
   RNA_def_property_ui_text(
       prop,
       "Cycle-Aware Keying",

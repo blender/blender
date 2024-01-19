@@ -147,7 +147,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
   }
 
   /* Init key-framing flag. */
-  flag = ANIM_get_keyframing_flags(scene, true);
+  flag = ANIM_get_keyframing_flags(scene);
   KeyframeSettings settings = get_keyframe_settings(true);
   settings.keyframe_type = eBezTriple_KeyframeType(ts->keyframe_type);
 
