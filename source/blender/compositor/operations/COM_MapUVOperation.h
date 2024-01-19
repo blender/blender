@@ -24,7 +24,7 @@ class MapUVOperation : public MultiThreadedOperation {
   int image_height_;
 
   float alpha_;
-
+  bool nearest_neighbour_;
   std::function<void(float x, float y, float *out)> uv_input_read_fn_;
 
  public:
@@ -59,6 +59,11 @@ class MapUVOperation : public MultiThreadedOperation {
   void set_alpha(float alpha)
   {
     alpha_ = alpha;
+  }
+
+  void set_nearest_neighbour(bool nearest_neighbour)
+  {
+    nearest_neighbour_ = nearest_neighbour;
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
