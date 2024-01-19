@@ -95,6 +95,8 @@ typedef enum ModifierType {
   eModifierType_VolumeToMesh = 60,
   eModifierType_GreasePencilOpacity = 61,
   eModifierType_GreasePencilSubdiv = 62,
+  eModifierType_GreasePencilColor = 63,
+  eModifierType_GreasePencilTint = 64,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -2563,3 +2565,45 @@ typedef struct GreasePencilSubdivModifierData {
 typedef enum GreasePencilSubdivModifierFlag {
   MOD_GREASE_PENCIL_SUBDIV_OPEN_INFLUENCE_PANEL = (1 << 0),
 } GreasePencilSubdivModifierFlag;
+
+typedef struct GreasePencilColorModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** GreasePencilModifierColorMode */
+  char color_mode;
+  char _pad1[3];
+  /** HSV factors. */
+  float hsv[3];
+  void *_pad2;
+} GreasePencilColorModifierData;
+
+typedef struct GreasePencilTintModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** GreasePencilTintModifierFlag */
+  short flag;
+  /** GreasePencilModifierColorMode */
+  char color_mode;
+  /** GreasePencilTintModifierMode */
+  char tint_mode;
+  float factor;
+  /** Influence distance from the gradient object. */
+  float radius;
+  /** Simple tint color. */
+  float color[3];
+  /** Object for gradient direction. */
+  struct Object *object;
+  /** Color ramp for the gradient. */
+  struct ColorBand *color_ramp;
+  void *_pad;
+} GreasePencilTintModifierData;
+
+typedef enum GreasePencilTintModifierMode {
+  MOD_GREASE_PENCIL_TINT_UNIFORM = 0,
+  MOD_GREASE_PENCIL_TINT_GRADIENT = 1,
+} GreasePencilTintModifierMode;
+
+typedef enum GreasePencilTintModifierFlag {
+  /* Use vertex group as factors instead of influence. */
+  MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR = (1 << 0),
+} GreasePencilTintModifierFlag;
