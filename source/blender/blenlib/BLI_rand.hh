@@ -25,6 +25,12 @@ class RandomNumberGenerator {
   }
 
   /**
+   * Creates a random number generator with a somewhat random seed. This can be used when
+   * determinism is not necessary or not desired.
+   */
+  static RandomNumberGenerator from_random_seed();
+
+  /**
    * Set the seed for future random numbers.
    */
   void seed(uint32_t seed)

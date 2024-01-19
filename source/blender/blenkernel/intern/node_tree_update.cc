@@ -1189,7 +1189,7 @@ class NodeTreeMainUpdater {
     }
 
     /* Used to generate new unique IDs if necessary. */
-    RandomNumberGenerator rng(PIL_check_seconds_timer_i() & UINT_MAX);
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
     Map<int32_t, bNestedNodePath> new_path_by_id;
     for (const bNestedNodePath &path : nested_node_paths) {
