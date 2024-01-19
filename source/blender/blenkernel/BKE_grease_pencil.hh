@@ -409,9 +409,9 @@ class Layer : public ::GreasePencilLayer {
   bool has_drawing_at(const int frame_number) const;
 
   /**
-   * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
+   * \returns the key of the active frame at \a frame_number or std::nullopt if there is no frame.
    */
-  FramesMapKey frame_key_at(int frame_number) const;
+  std::optional<FramesMapKey> frame_key_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.

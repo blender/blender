@@ -156,15 +156,15 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
 
   /* If auto-key is on and the drawing at the current frame starts before the current frame a new
    * keyframe needs to be inserted. */
-  if (blender::animrig::is_autokey_on(scene) &&
-      active_layer.frame_key_at(current_frame) < current_frame)
+  if (blender::animrig::is_autokey_on(scene) && active_layer.frame_key_at(current_frame) &&
+      *active_layer.frame_key_at(current_frame) < current_frame)
   {
     const ToolSettings *ts = CTX_data_tool_settings(C);
     if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
        * current frame. */
       grease_pencil.insert_duplicate_frame(
-          active_layer, active_layer.frame_key_at(current_frame), current_frame, false);
+          active_layer, *active_layer.frame_key_at(current_frame), current_frame, false);
     }
     else {
       /* Otherwise we just insert a blank keyframe at the current frame. */
