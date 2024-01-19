@@ -102,6 +102,22 @@ static float sculpt_calc_radius(ViewContext *vc,
   }
 }
 
+bool ED_sculpt_report_if_shape_key_is_locked(const Object *ob, ReportList *reports)
+{
+  SculptSession *ss = ob->sculpt;
+
+  BLI_assert(ss);
+
+  if (ss->shapekey_active && (ss->shapekey_active->flag & KEYBLOCK_LOCKED_SHAPE) != 0) {
+    if (reports) {
+      BKE_reportf(reports, RPT_ERROR, "The active shape key of %s is locked", ob->id.name + 2);
+    }
+    return true;
+  }
+
+  return false;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Sculpt PBVH Abstraction API
  *
@@ -5647,6 +5663,11 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   if (SCULPT_tool_is_mask(brush->sculpt_tool)) {
     MultiresModifierData *mmd = BKE_sculpt_multires_active(ss->scene, ob);
     BKE_sculpt_mask_layers_ensure(CTX_data_depsgraph_pointer(C), CTX_data_main(C), ob, mmd);
+  }
+  if (!SCULPT_tool_is_attribute_only(brush->sculpt_tool) &&
+      ED_sculpt_report_if_shape_key_is_locked(ob, op->reports))
+  {
+    return OPERATOR_CANCELLED;
   }
 
   stroke = paint_stroke_new(C,

@@ -23,7 +23,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_scene.h"
@@ -452,4 +452,5 @@ ModifierTypeInfo modifierType_Wave = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

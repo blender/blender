@@ -329,6 +329,7 @@ void OBJECT_OT_shape_key_clear(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_retime(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
+void OBJECT_OT_shape_key_lock(struct wmOperatorType *ot);
 
 /* `object_collection.cc` */
 

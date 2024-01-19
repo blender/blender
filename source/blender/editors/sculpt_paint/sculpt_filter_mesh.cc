@@ -34,6 +34,7 @@
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
+#include "ED_sculpt.hh"
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
@@ -967,6 +968,11 @@ static int sculpt_mesh_filter_start(bContext *C, wmOperator *op)
   const bool needs_topology_info = sculpt_mesh_filter_needs_pmap(filter_type) || use_automasking;
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
+
+  if (ED_sculpt_report_if_shape_key_is_locked(ob, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
+
   SculptSession *ss = ob->sculpt;
 
   const eMeshFilterDeformAxis deform_axis = eMeshFilterDeformAxis(

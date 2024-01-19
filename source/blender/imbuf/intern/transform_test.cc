@@ -133,7 +133,7 @@ TEST(imbuf_transform, nearest_very_large_scale)
 
   /* Check result: leftmost red, middle green, two rightmost pixels blue and black.
    * If the transform code internally does not have enough precision while stepping
-   * through the scanline, the rightmost side will not come out correctly. */
+   * through the scan-line, the rightmost side will not come out correctly. */
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
   EXPECT_EQ(got[0], col_r);
   EXPECT_EQ(got[res->x / 2], col_g);

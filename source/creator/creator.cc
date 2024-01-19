@@ -195,7 +195,7 @@ static void callback_clg_fatal(void *fp)
 /** \name Blender as a Stand-Alone Python Module (bpy)
  *
  * While not officially supported, this can be useful for Python developers.
- * See: https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule
+ * See: https://developer.blender.org/docs/handbook/building_blender/python_module/
  * \{ */
 
 #ifdef WITH_PYTHON_MODULE

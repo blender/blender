@@ -23,6 +23,7 @@ struct BMeshNormalsUpdate_Params;
 struct Base;
 struct Depsgraph;
 struct ID;
+struct KeyBlock;
 struct MDeformVert;
 struct Mesh;
 struct Object;
@@ -553,6 +554,8 @@ int ED_mesh_color_add(
 
 void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char selectmode);
+
+KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me);
 
 /**
  * Returns the pinned mesh, the mesh from the pinned object, or the mesh from the active object.

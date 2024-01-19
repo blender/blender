@@ -47,7 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -2294,4 +2294,5 @@ ModifierTypeInfo modifierType_Nodes = {
     /*panel_register*/ blender::panel_register,
     /*blend_write*/ blender::blend_write,
     /*blend_read*/ blender::blend_read,
+    /*foreach_cache*/ nullptr,
 };

@@ -80,7 +80,7 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   SpanAttributeWriter<float> stroke_hardnesses = attributes.lookup_or_add_for_write_span<float>(
       "hardness", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_point_aspect_ratios =
-      attributes.lookup_or_add_for_write_span<float>("point_aspect_ratio", AttrDomain::Curve);
+      attributes.lookup_or_add_for_write_span<float>("aspect_ratio", AttrDomain::Curve);
   SpanAttributeWriter<float2> stroke_fill_translations =
       attributes.lookup_or_add_for_write_span<float2>("fill_translation", AttrDomain::Curve);
   SpanAttributeWriter<float> stroke_fill_rotations =

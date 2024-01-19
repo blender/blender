@@ -708,7 +708,7 @@ class TOPBAR_MT_help(Menu):
                 "wm.url_open",
                 text="Developer Documentation",
                 icon='URL',
-            ).url = "https://wiki.blender.org/wiki/Main_Page"
+            ).url = "https://developer.blender.org/docs/"
             layout.operator("wm.url_open", text="Developer Community").url = "https://devtalk.blender.org"
             layout.operator("wm.url_open_preset", text="Python API Reference").type = 'API'
             layout.operator("wm.operator_cheat_sheet", icon='TEXT')

@@ -58,7 +58,7 @@ struct MainIDRelationsEntryItem {
   /* Session uuid of the `id_pointer`. */
   uint session_uuid;
 
-  int usage_flag; /* Using IDWALK_ enums, defined in BKE_lib_query.h */
+  int usage_flag; /* Using IDWALK_ enums, defined in BKE_lib_query.hh */
 };
 
 struct MainIDRelationsEntry {

@@ -131,6 +131,7 @@ enum {
   KEYBLOCK_MUTE = (1 << 0),
   KEYBLOCK_SEL = (1 << 1),
   KEYBLOCK_LOCKED = (1 << 2),
+  KEYBLOCK_LOCKED_SHAPE = (1 << 3),
 };
 
 #define KEYELEM_FLOAT_LEN_COORD 3

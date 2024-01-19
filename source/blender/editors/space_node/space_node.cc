@@ -32,7 +32,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"

@@ -27,7 +27,7 @@
 
 #include "BKE_cachefile.h"
 #include "BKE_context.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -462,4 +462,5 @@ ModifierTypeInfo modifierType_MeshSequenceCache = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

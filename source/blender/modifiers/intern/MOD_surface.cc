@@ -234,4 +234,5 @@ ModifierTypeInfo modifierType_Surface = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

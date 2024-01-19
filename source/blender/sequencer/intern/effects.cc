@@ -265,11 +265,11 @@ static void do_alphaover_effect(
 
   for (int pixel_idx = 0; pixel_idx < width * height; pixel_idx++) {
     if (src1[3] <= 0.0f) {
-      /* Alpha of zero. No color addition will happen as the colors are premultipled. */
+      /* Alpha of zero. No color addition will happen as the colors are pre-multiplied. */
       memcpy(dst, src2, sizeof(T) * 4);
     }
     else if (fac == 1.0f && alpha_opaque(src1[3])) {
-      /* No change to src1 as fac == 1 and fully opaque. */
+      /* No change to `src1` as `fac == 1` and fully opaque. */
       memcpy(dst, src1, sizeof(T) * 4);
     }
     else {

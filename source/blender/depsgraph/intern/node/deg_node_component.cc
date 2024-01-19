@@ -333,7 +333,7 @@ DEG_COMPONENT_NODE_DEFINE(Shading, SHADING, ID_RECALC_SHADING);
 DEG_COMPONENT_NODE_DEFINE(Transform, TRANSFORM, ID_RECALC_TRANSFORM);
 DEG_COMPONENT_NODE_DEFINE(ObjectFromLayer, OBJECT_FROM_LAYER, 0);
 DEG_COMPONENT_NODE_DEFINE(Hierarchy, HIERARCHY, 0);
-DEG_COMPONENT_NODE_DEFINE(Dupli, DUPLI, 0);
+DEG_COMPONENT_NODE_DEFINE(Instancing, INSTANCING, 0);
 DEG_COMPONENT_NODE_DEFINE(Synchronization, SYNCHRONIZATION, 0);
 DEG_COMPONENT_NODE_DEFINE(Audio, AUDIO, 0);
 DEG_COMPONENT_NODE_DEFINE(Armature, ARMATURE, 0);
@@ -368,7 +368,7 @@ void deg_register_component_depsnodes()
   register_node_typeinfo(&DNTI_TRANSFORM);
   register_node_typeinfo(&DNTI_OBJECT_FROM_LAYER);
   register_node_typeinfo(&DNTI_HIERARCHY);
-  register_node_typeinfo(&DNTI_DUPLI);
+  register_node_typeinfo(&DNTI_INSTANCING);
   register_node_typeinfo(&DNTI_SYNCHRONIZATION);
   register_node_typeinfo(&DNTI_AUDIO);
   register_node_typeinfo(&DNTI_ARMATURE);

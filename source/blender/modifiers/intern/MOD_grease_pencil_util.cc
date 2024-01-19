@@ -18,7 +18,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
 
 #include "BLO_read_write.hh"
@@ -172,7 +172,7 @@ void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropDecorate(row, false);
   uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, "Custom Curve", ICON_NONE);
   if (use_custom_curve) {
-    uiTemplateCurveMapping(row, ptr, "custom_curve", 0, false, false, false, false);
+    uiTemplateCurveMapping(layout, ptr, "custom_curve", 0, false, false, false, false);
   }
 }
 

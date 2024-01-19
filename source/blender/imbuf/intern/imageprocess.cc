@@ -132,7 +132,7 @@ void bilinear_interpolation_color(const ImBuf *in, uchar outI[4], float outF[4],
   }
 }
 
-/* function assumes out to be zero'ed, only does RGBA */
+/* Function assumes out to be zeroed, only does RGBA. */
 /* BILINEAR INTERPOLATION */
 
 void bilinear_interpolation_color_wrap(

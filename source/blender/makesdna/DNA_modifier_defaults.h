@@ -808,4 +808,9 @@
     .hardness_factor = 1.0f, \
   }
 
+#define _DNA_DEFAULT_GreasePencilSubdivModifierData \
+  { \
+    .level = 1, \
+  }
+
 /* clang-format off */

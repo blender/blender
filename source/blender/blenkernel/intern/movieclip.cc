@@ -51,7 +51,7 @@
 #include "BKE_idtype.h"
 #include "BKE_image.h" /* openanim */
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
@@ -142,10 +142,10 @@ static void movie_clip_foreach_cache(ID *id,
   MovieClip *movie_clip = (MovieClip *)id;
   IDCacheKey key{};
   key.id_session_uuid = id->session_uuid;
-  key.offset_in_ID = offsetof(MovieClip, cache);
+  key.identifier = offsetof(MovieClip, cache);
   function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
 
-  key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
+  key.identifier = offsetof(MovieClip, tracking.camera.intrinsics);
   function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
 }
 

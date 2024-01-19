@@ -47,7 +47,7 @@
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mball_tessellate.h"

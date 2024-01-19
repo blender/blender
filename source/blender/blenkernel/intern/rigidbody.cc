@@ -50,7 +50,7 @@
 #include "BKE_scene.h"
 #ifdef WITH_BULLET
 #  include "BKE_lib_id.hh"
-#  include "BKE_lib_query.h"
+#  include "BKE_lib_query.hh"
 #endif
 
 #include "DEG_depsgraph.hh"

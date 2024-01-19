@@ -91,7 +91,7 @@ They are only loaded on startup if selected from the user preferences.
 The only difference between add-ons and built-in Python modules is that add-ons must contain a ``bl_info`` variable
 which Blender uses to read metadata such as name, author, category and project link.
 The User Preferences add-on listing uses ``bl_info`` to display information about each add-on.
-`See Add-ons <https://wiki.blender.org/index.php/Dev:Py/Scripts/Guidelines/Addons>`__
+`See Add-ons <https://developer.blender.org/docs/handbook/addons/guidelines/>`__
 for details on the ``bl_info`` dictionary.
 
 

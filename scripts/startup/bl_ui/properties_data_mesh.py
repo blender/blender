@@ -73,6 +73,9 @@ class MESH_MT_shape_key_context_menu(Menu):
         props.all = True
         props.apply_mix = True
         layout.separator()
+        layout.operator("object.shape_key_lock", icon='LOCKED', text="Lock All").action = 'LOCK'
+        layout.operator("object.shape_key_lock", icon='UNLOCKED', text="Unlock All").action = 'UNLOCK'
+        layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 
@@ -132,6 +135,7 @@ class MESH_UL_shape_keys(UIList):
             else:
                 row.label(text="")
             row.prop(key_block, "mute", text="", emboss=False)
+            row.prop(key_block, "lock_shape", text="", emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)

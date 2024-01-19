@@ -612,7 +612,10 @@ class _ext_global:
 
     # Store a map of `preferences.filepaths.extension_repos` -> `module_id`.
     # Only needed to detect renaming between `bpy.app.handlers.extension_repos_update_{pre & post}` events.
-    idmap = {}
+    #
+    # The first dictionary is for enabled repositories, the second for disabled repositories
+    # which can be ignored in most cases and is only needed for a module rename.
+    idmap_pair = {}, {}
 
     # The base package created by `JunctionModuleHandle`.
     module_handle = None
@@ -624,12 +627,14 @@ _ext_base_pkg_idname = "bl_ext"
 
 def _extension_preferences_idmap():
     repos_idmap = {}
+    repos_idmap_disabled = {}
     if _preferences.experimental.use_extension_repos:
         for repo in _preferences.filepaths.extension_repos:
-            if not repo.enabled:
-                continue
-            repos_idmap[repo.as_pointer()] = repo.module
-    return repos_idmap
+            if repo.enabled:
+                repos_idmap[repo.as_pointer()] = repo.module
+            else:
+                repos_idmap_disabled[repo.as_pointer()] = repo.module
+    return repos_idmap, repos_idmap_disabled
 
 
 def _extension_dirpath_from_preferences():
@@ -654,24 +659,161 @@ def _extension_dirpath_from_handle():
         repos_info[module_id] = dirpath
     return repos_info
 
+
+# Ensure the add-ons follow changes to repositories, enabling, disabling and module renaming.
+def _initialize_extension_repos_post_addons_prepare(
+        module_handle,
+        *,
+        submodules_del,
+        submodules_add,
+        submodules_rename_module,
+        submodules_del_disabled,
+        submodules_rename_module_disabled,
+):
+    addons_to_enable = []
+    if not (
+            submodules_del or
+            submodules_add or
+            submodules_rename_module or
+            submodules_del_disabled or
+            submodules_rename_module_disabled
+    ):
+        return addons_to_enable
+
+    # All preferences info.
+    # Map: `repo_id -> {submodule_id -> addon, ...}`.
+    addon_userdef_info = {}
+    module_prefix = _ext_base_pkg_idname + "."
+    for addon in _preferences.addons:
+        module = addon.module
+        if not module.startswith(module_prefix):
+            continue
+        module_id, submodule_id = module[len(module_prefix):].partition(".")[0::2]
+        try:
+            addon_userdef_info[module_id][submodule_id] = addon
+        except KeyError:
+            addon_userdef_info[module_id] = {submodule_id: addon}
+
+    # All run-time info.
+    # Map: `module_id -> {submodule_id -> module, ...}`.
+    addon_runtime_info = {}
+    for module_id, repo_module in module_handle.submodule_items():
+        extensions_info = {}
+        for submodule_id in dir(repo_module):
+            if submodule_id.startswith("_"):
+                continue
+            mod = getattr(repo_module, submodule_id)
+            # Filter out non add-on, non-modules.
+            if not hasattr(mod, "__addon_enabled__"):
+                continue
+            extensions_info[submodule_id] = mod
+        addon_runtime_info[module_id] = extensions_info
+        del extensions_info
+
+    # Apply changes to add-ons.
+    if submodules_add:
+        # Re-enable add-ons that exist in the user preferences,
+        # this lets the add-ons state be restored when toggling a repository.
+        for module_id, _dirpath in submodules_add:
+            repo_userdef = addon_userdef_info.get(module_id, {})
+            repo_runtime = addon_runtime_info.get(module_id, {})
+
+            for submodule_id, addon in repo_userdef.items():
+                module_name_next = "%s.%s.%s" % (_ext_base_pkg_idname, module_id, submodule_id)
+                # Only default & persistent add-ons are kept for re-activation.
+                default_set = True
+                persistent = True
+                addons_to_enable.append((module_name_next, addon, default_set, persistent))
+
+    for module_id_prev, module_id_next in submodules_rename_module:
+        repo_userdef = addon_userdef_info.get(module_id_prev, {})
+        repo_runtime = addon_runtime_info.get(module_id_prev, {})
+        for submodule_id, mod in repo_runtime.items():
+            if not getattr(mod, "__addon_enabled__", False):
+                continue
+            module_name_prev = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_prev, submodule_id)
+            module_name_next = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_next, submodule_id)
+            disable(module_name_prev, default_set=False)
+            addon = repo_userdef.get(submodule_id)
+            default_set = addon is not None
+            persistent = getattr(mod, "__addon_persistent__", False)
+            addons_to_enable.append((module_name_next, addon, default_set, persistent))
+
+    for module_id_prev, module_id_next in submodules_rename_module_disabled:
+        repo_userdef = addon_userdef_info.get(module_id_prev, {})
+        repo_runtime = addon_runtime_info.get(module_id_prev, {})
+        for submodule_id, addon in repo_userdef.items():
+            mod = repo_runtime.get(submodule_id)
+            if mod is not None and getattr(mod, "__addon_enabled__", False):
+                continue
+            # Either there is no run-time data or the module wasn't enabled.
+            # Rename the add-on without enabling it so the next time it's enabled it's preferences are kept.
+            module_name_next = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_next, submodule_id)
+            addon.module = module_name_next
+
+    if submodules_del:
+        repo_module_map = {repo.module: repo for repo in _preferences.filepaths.extension_repos}
+        for module_id in submodules_del:
+            repo_userdef = addon_userdef_info.get(module_id, {})
+            repo_runtime = addon_runtime_info.get(module_id, {})
+
+            repo = repo_module_map.get(module_id)
+            default_set = True
+            if repo and not repo.enabled:
+                # The repository exists but has been disabled, keep the add-on preferences
+                # because the user may want to re-enable the repository temporarily.
+                default_set = False
+
+            for submodule_id, mod in repo_runtime.items():
+                module_name_prev = "%s.%s.%s" % (_ext_base_pkg_idname, module_id, submodule_id)
+                disable(module_name_prev, default_set=default_set)
+            del repo
+        del repo_module_map
+
+    if submodules_del_disabled:
+        for module_id_prev in submodules_del_disabled:
+            repo_userdef = addon_userdef_info.get(module_id_prev, {})
+            for submodule_id in repo_userdef.keys():
+                module_name_prev = "%s.%s.%s" % (_ext_base_pkg_idname, module_id_prev, submodule_id)
+                disable(module_name_prev, default_set=True)
+
+    return addons_to_enable
+
+
+# Enable add-ons after the modules have been manipulated.
+def _initialize_extension_repos_post_addons_restore(addons_to_enable):
+    if not addons_to_enable:
+        return
+
+    for (module_name_next, addon, default_set, persistent) in addons_to_enable:
+        # Ensure the preferences are kept.
+        if addon is not None:
+            addon.module = module_name_next
+        enable(module_name_next, default_set=default_set, persistent=persistent)
+    # Needed for module rename.
+    modules._is_first = True
+
+
 # Use `bpy.app.handlers.extension_repos_update_{pre/post}` to track changes to extension repositories
 # and sync the changes to the Python module.
 
 
 @_bpy.app.handlers.persistent
 def _initialize_extension_repos_pre(*_):
-    _ext_global.idmap = _extension_preferences_idmap()
+    _ext_global.idmap_pair = _extension_preferences_idmap()
 
 
 @_bpy.app.handlers.persistent
-def _initialize_extension_repos_post(*_):
+def _initialize_extension_repos_post(*_, is_first=False):
+    do_addons = not is_first
+
     # Map `module_id` -> `dirpath`.
     repos_info_prev = _extension_dirpath_from_handle()
     repos_info_next = _extension_dirpath_from_preferences()
 
     # Map `repo.as_pointer()` -> `module_id`.
-    repos_idmap_prev = _ext_global.idmap
-    repos_idmap_next = _extension_preferences_idmap()
+    repos_idmap_prev, repos_idmap_prev_disabled = _ext_global.idmap_pair
+    repos_idmap_next, repos_idmap_next_disabled = _extension_preferences_idmap()
 
     # Map `module_id` -> `repo.as_pointer()`.
     repos_idmap_next_reverse = {value: key for key, value in repos_idmap_next.items()}
@@ -689,10 +831,6 @@ def _initialize_extension_repos_post(*_):
     for repo_id_prev, module_id_prev in list(repos_idmap_prev.items()):
         if module_id_prev not in repos_info_prev:
             del repos_idmap_prev[repo_id_prev]
-
-    # NOTE(@ideasman42): supporting renaming at all is something we might limit to extensions
-    # which have no add-ons loaded as supporting renaming add-ons in-place seems error prone as the add-on
-    # may define internal variables based on the full package path.
 
     submodules_add = []  # List of module names to add: `(module_id, dirpath)`.
     submodules_del = []  # List of module names to remove: `module_id`.
@@ -732,7 +870,38 @@ def _initialize_extension_repos_post(*_):
         if (module_id not in repos_info_next) and (module_id not in renamed_prev):
             submodules_del.append(module_id)
 
-    # Apply changes to the `_ext_base_pkg_idname` named module so it matches extension data from the preferences.
+    if do_addons:
+        submodules_del_disabled = []  # A version of `submodules_del` for disabled repositories.
+        submodules_rename_module_disabled = []  # A version of `submodules_rename_module` for disabled repositories.
+
+        # Detect deleted modules.
+        for repo_id_prev, module_id_prev in repos_idmap_prev_disabled.items():
+            if (
+                    (repo_id_prev not in repos_idmap_next_disabled) and
+                    (repo_id_prev not in repos_idmap_next)
+            ):
+                submodules_del_disabled.append(module_id_prev)
+
+        # Detect rename of disabled modules.
+        for repo_id_next, module_id_next in repos_idmap_next_disabled.items():
+            module_id_prev = repos_idmap_prev_disabled.get(repo_id_next)
+            if module_id_prev is None:
+                continue
+            # Detect rename.
+            if module_id_next != module_id_prev:
+                submodules_rename_module_disabled.append((module_id_prev, module_id_next))
+
+        addons_to_enable = _initialize_extension_repos_post_addons_prepare(
+            _ext_global.module_handle,
+            submodules_del=submodules_del,
+            submodules_add=submodules_add,
+            submodules_rename_module=submodules_rename_module,
+            submodules_del_disabled=submodules_del_disabled,
+            submodules_rename_module_disabled=submodules_rename_module_disabled,
+        )
+        del submodules_del_disabled, submodules_rename_module_disabled
+
+        # Apply changes to the `_ext_base_pkg_idname` named module so it matches extension data from the preferences.
     module_handle = _ext_global.module_handle
     for module_id in submodules_del:
         module_handle.unregister_submodule(module_id)
@@ -743,7 +912,11 @@ def _initialize_extension_repos_post(*_):
     for module_id, dirpath in submodules_rename_dirpath:
         module_handle.rename_directory(module_id, dirpath)
 
-    _ext_global.idmap.clear()
+    _ext_global.idmap_pair[0].clear()
+    _ext_global.idmap_pair[1].clear()
+
+    if do_addons:
+        _initialize_extension_repos_post_addons_restore(addons_to_enable)
 
     # Force refreshing if directory paths change.
     if submodules_del or submodules_add or submodules_rename_dirpath:
@@ -759,7 +932,7 @@ def _initialize_extensions_repos_once():
     # Setup repositories for the first time.
     # Intentionally don't call `_initialize_extension_repos_pre` as this is the first time,
     # the previous state is not useful to read.
-    _initialize_extension_repos_post()
+    _initialize_extension_repos_post(is_first=True)
 
     # Internal handlers intended for Blender's own handling of repositories.
     _bpy.app.handlers._extension_repos_update_pre.append(_initialize_extension_repos_pre)

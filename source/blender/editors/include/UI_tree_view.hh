@@ -6,7 +6,7 @@
  * \ingroup editorui
  *
  * API for simple creation of tree UIs supporting typically needed features.
- * https://wiki.blender.org/wiki/Source/Interface/Views/Tree_Views
+ * https://developer.blender.org/docs/features/interface/views/tree_views/
  */
 
 #pragma once

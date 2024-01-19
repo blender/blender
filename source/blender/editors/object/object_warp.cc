@@ -22,6 +22,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_object.hh"
 #include "ED_transverts.hh"
 
 #include "object_intern.h"
@@ -167,6 +168,10 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
   float center_view[3];
 
   float min, max;
+
+  if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
 
   ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
   if (tvs.transverts == nullptr) {

@@ -530,7 +530,7 @@ struct uiBlock {
 
   ListBase dynamic_listeners; /* #uiBlockDynamicListener */
 
-  char name[UI_MAX_NAME_STR];
+  std::string name;
 
   float winmat[4][4];
 
@@ -979,8 +979,11 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
 /* `interface_region_popover.cc` */
 
-uiPopupBlockHandle *ui_popover_panel_create(
-    bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg);
+uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
+                                            ARegion *butregion,
+                                            uiBut *but,
+                                            uiMenuCreateFunc menu_func,
+                                            const PanelType *panel_type);
 
 /* `interface_region_menu_pie.cc` */
 

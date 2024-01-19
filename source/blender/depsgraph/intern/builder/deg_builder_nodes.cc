@@ -73,7 +73,7 @@
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_light.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
@@ -833,13 +833,17 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_texture(object->pd->tex);
   }
 
-  /* Object dupligroup. */
+  /* Object instancing. */
   if (object->instance_collection != nullptr) {
     build_object_instance_collection(object, is_visible);
-    OperationNode *op_node = add_operation_node(
-        &object->id, NodeType::DUPLI, OperationCode::DUPLI);
-    op_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
+
+    OperationNode *instancer_node = add_operation_node(
+        &object->id, NodeType::INSTANCING, OperationCode::INSTANCER);
+    instancer_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
   }
+  OperationNode *instance_node = add_operation_node(
+      &object->id, NodeType::INSTANCING, OperationCode::INSTANCE);
+  instance_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
 
   build_object_light_linking(object);
 
@@ -1179,6 +1183,10 @@ void DepsgraphNodeBuilder::build_object_shading(Object *object)
       NodeType::SHADING,
       OperationCode::SHADING,
       [object_cow](::Depsgraph *depsgraph) { BKE_object_eval_shading(depsgraph, object_cow); });
+
+  OperationNode *done_node = add_operation_node(
+      &object->id, NodeType::SHADING, OperationCode::SHADING_DONE);
+  done_node->set_as_exit();
 }
 
 void DepsgraphNodeBuilder::build_animdata(ID *id)

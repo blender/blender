@@ -109,7 +109,10 @@ class USERPREF_MT_save_load(Menu):
         if prefs.use_preferences_save:
             layout.operator("wm.save_userpref", text="Save Preferences")
         sub_revert = layout.column(align=True)
-        sub_revert.active = prefs.is_dirty
+        # NOTE: regarding `factory_startup`. To correctly show the active state of this menu item,
+        # the user preferences themselves would need to have a `factory_startup` state.
+        # Since showing an active menu item whenever factory-startup is used is not such a problem, leave this as-is.
+        sub_revert.active = prefs.is_dirty or bpy.app.factory_startup
         sub_revert.operator("wm.read_userpref", text="Revert to Saved Preferences")
 
         layout.operator_context = 'INVOKE_AREA'

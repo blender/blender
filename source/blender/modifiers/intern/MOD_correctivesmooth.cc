@@ -858,4 +858,5 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /*panel_register*/ panel_register,
     /*blend_write*/ blend_write,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

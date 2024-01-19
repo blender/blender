@@ -28,7 +28,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

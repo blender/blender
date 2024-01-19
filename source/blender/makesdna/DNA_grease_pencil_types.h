@@ -462,7 +462,7 @@ typedef struct GreasePencil {
   blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
   blender::Span<blender::bke::greasepencil::TreeNode *> nodes_for_write();
 
-  /* Return the index of the layer if it's found, otherwise std::nullopt. */
+  /* Return the index of the layer if it's found, otherwise `std::nullopt`. */
   std::optional<int> get_layer_index(const blender::bke::greasepencil::Layer &layer) const;
 
   /* Active layer functions. */

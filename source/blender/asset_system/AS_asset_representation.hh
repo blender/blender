@@ -8,7 +8,7 @@
  * \brief Main runtime representation of an asset.
  *
  * Abstraction to reference an asset, with necessary data for display & interaction.
- * https://wiki.blender.org/wiki/Source/Architecture/Asset_System/Back_End#Asset_Representation
+ * https://developer.blender.org/docs/features/asset_system/backend/#asset-representation
  */
 
 #pragma once

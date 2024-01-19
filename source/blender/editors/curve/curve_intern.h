@@ -86,6 +86,7 @@ void FONT_OT_text_copy(struct wmOperatorType *ot);
 void FONT_OT_text_cut(struct wmOperatorType *ot);
 void FONT_OT_text_paste(struct wmOperatorType *ot);
 void FONT_OT_text_paste_from_file(struct wmOperatorType *ot);
+void FONT_OT_text_insert_unicode(struct wmOperatorType *ot);
 
 void FONT_OT_selection_set(struct wmOperatorType *ot);
 void FONT_OT_select_word(struct wmOperatorType *ot);

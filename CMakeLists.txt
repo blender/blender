@@ -110,7 +110,7 @@ enable_testing()
 # -----------------------------------------------------------------------------
 # Test Compiler Support
 #
-# Keep in sync with: https://wiki.blender.org/wiki/Building_Blender
+# Keep in sync with: https://developer.blender.org/docs/handbook/building_blender/
 
 if(CMAKE_COMPILER_IS_GNUCC)
   if("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "11.0.0")

@@ -1714,7 +1714,7 @@ def argparse_create():
         "NOTE: To build with system package libraries instead of the precompiled ones when both are available,\n"
         "the `WITH_LIBS_PRECOMPILED` option must be disabled in CMake.\n"
         "\n"
-        "See https://wiki.blender.org/wiki/Building_Blender for more details.\n"
+        "See https://developer.blender.org/docs/handbook/building_blender/ for more details.\n"
         "\n"
     )
 

@@ -4,7 +4,7 @@
 
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_interface.hh"
 

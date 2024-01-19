@@ -1593,7 +1593,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
   if (block->rect.xmin != block->rect.xmax) {
     return;
   }
-  if (STREQ(block->name, "splash")) {
+  if (block->name == "splash") {
     return;
   }
 
@@ -3571,9 +3571,9 @@ void UI_blocklist_free_inactive(const bContext *C, ARegion *region)
       else {
         if (region->runtime.block_name_map != nullptr) {
           uiBlock *b = static_cast<uiBlock *>(
-              BLI_ghash_lookup(region->runtime.block_name_map, block->name));
+              BLI_ghash_lookup(region->runtime.block_name_map, block->name.c_str()));
           if (b == block) {
-            BLI_ghash_remove(region->runtime.block_name_map, b->name, nullptr, nullptr);
+            BLI_ghash_remove(region->runtime.block_name_map, b->name.c_str(), nullptr, nullptr);
           }
         }
         BLI_remlink(lb, block);
@@ -3594,7 +3594,7 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
     if (region->runtime.block_name_map == nullptr) {
       region->runtime.block_name_map = BLI_ghash_str_new(__func__);
     }
-    oldblock = (uiBlock *)BLI_ghash_lookup(region->runtime.block_name_map, block->name);
+    oldblock = (uiBlock *)BLI_ghash_lookup(region->runtime.block_name_map, block->name.c_str());
 
     if (oldblock) {
       oldblock->active = false;
@@ -3604,13 +3604,17 @@ void UI_block_region_set(uiBlock *block, ARegion *region)
 
     /* at the beginning of the list! for dynamical menus/blocks */
     BLI_addhead(lb, block);
-    BLI_ghash_reinsert(region->runtime.block_name_map, block->name, block, nullptr, nullptr);
+    BLI_ghash_reinsert(region->runtime.block_name_map,
+                       const_cast<char *>(block->name.c_str()),
+                       block,
+                       nullptr,
+                       nullptr);
   }
 
   block->oldblock = oldblock;
 }
 
-uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eUIEmbossType emboss)
+uiBlock *UI_block_begin(const bContext *C, ARegion *region, std::string name, eUIEmbossType emboss)
 {
   wmWindow *window = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
@@ -3636,7 +3640,7 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, eU
     STRNCPY(block->display_device, IMB_colormanagement_display_get_default_name());
   }
 
-  STRNCPY(block->name, name);
+  block->name = std::move(name);
 
   if (region) {
     UI_block_region_set(block, region);
@@ -4481,18 +4485,14 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   }
 }
 
-static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *but_p)
+static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *arg)
 {
-  uiBut *but = static_cast<uiBut *>(but_p);
-  const char *panel_type = static_cast<const char *>(but->func_argN);
-  PanelType *pt = WM_paneltype_find(panel_type, true);
-  if (pt) {
-    ui_item_paneltype_func(C, layout, pt);
+  PanelType *panel_type = static_cast<PanelType *>(arg);
+  if (panel_type) {
+    ui_item_paneltype_func(C, layout, panel_type);
   }
   else {
-    char msg[256];
-    SNPRINTF(msg, RPT_("Missing Panel: %s"), panel_type);
-    uiItemL(layout, msg, ICON_NONE);
+    uiItemL(layout, RPT_("Missing Panel"), ICON_NONE);
   }
 }
 
@@ -6788,19 +6788,15 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
      * Pie menus are an exception as they already have a shortcut on display
      * however this is only used within the context of the pie menu. */
     else if (type == BUT_GET_OP_KEYMAP) {
-      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
-        char buf[128];
-        if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
-          tmp = buf;
-        }
+      char buf[128];
+      if (ui_but_event_operator_string(C, but, buf, sizeof(buf))) {
+        tmp = buf;
       }
     }
     else if (type == BUT_GET_PROP_KEYMAP) {
-      if (!(ui_block_is_menu(but->block) && !ui_block_is_pie_menu(but->block))) {
-        char buf[128];
-        if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
-          tmp = buf;
-        }
+      char buf[128];
+      if (ui_but_event_property_operator_string(C, but, buf, sizeof(buf))) {
+        tmp = buf;
       }
     }
 

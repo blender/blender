@@ -244,6 +244,8 @@ void ShadowPipeline::render(View &view)
 void ForwardPipeline::sync()
 {
   camera_forward_ = inst_.camera.forward();
+  has_opaque_ = false;
+  has_transparent_ = false;
 
   DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
   DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
@@ -340,6 +342,7 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
   /* TODO(fclem): To skip it, we need to know if the transparent BSDF is fully white AND if there
    * is no mix shader (could do better constant folding but that's expensive). */
 
+  has_opaque_ = true;
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
@@ -350,6 +353,7 @@ PassMain::Sub *ForwardPipeline::material_opaque_add(::Material *blender_mat, GPU
                  "PipelineModule::material_add()");
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ? opaque_single_sided_ps_ :
                                                                           opaque_double_sided_ps_;
+  has_opaque_ = true;
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
@@ -364,6 +368,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
+  has_transparent_ = true;
   float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
@@ -379,6 +384,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
+  has_transparent_ = true;
   float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
@@ -388,6 +394,10 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
 
 void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb)
 {
+  if (!has_transparent_ && !has_opaque_) {
+    return;
+  }
+
   DRW_stats_group_start("Forward.Opaque");
 
   prepass_fb.bind();
@@ -398,15 +408,19 @@ void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &c
   inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
   inst_.irradiance_cache.set_view(view);
 
-  combined_fb.bind();
-  inst_.manager->submit(opaque_ps_, view);
+  if (has_opaque_) {
+    combined_fb.bind();
+    inst_.manager->submit(opaque_ps_, view);
+  }
 
   DRW_stats_group_end();
 
   inst_.volume.draw_resolve(view);
 
-  combined_fb.bind();
-  inst_.manager->submit(transparent_ps_, view);
+  if (has_transparent_) {
+    combined_fb.bind();
+    inst_.manager->submit(transparent_ps_, view);
+  }
 }
 
 /** \} */

@@ -254,7 +254,7 @@ void space_text_wrap_offset(
     *offc = 0;
     for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size_safe(linep->line + j)) {
       int chars;
-      int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
+      const int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
 
       /* Mimic replacement of tabs */
       ch = linep->line[j];
@@ -331,7 +331,7 @@ void space_text_wrap_offset_in_line(
   cursin = BLI_str_utf8_offset_to_column(linein->line, linein->len, cursin);
 
   for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size_safe(linein->line + j)) {
-    int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
+    const int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
 
     /* Mimic replacement of tabs */
     ch = linein->line[j];
@@ -395,10 +395,9 @@ int space_text_get_char_pos(const SpaceText *st, const char *line, int cur)
 
 static const char *txt_utf8_forward_columns(const char *str, int columns, int *padding)
 {
-  int col;
   const char *p = str;
   while (*p) {
-    col = BLI_str_utf8_char_width_safe(p);
+    const int col = BLI_str_utf8_char_width_safe(p);
     if (columns - col < 0) {
       break;
     }
@@ -524,12 +523,12 @@ static void space_text_draw(const SpaceText *st,
 {
   const bool use_syntax = (tdc->syntax_highlight && format);
   FlattenString fs;
-  int columns, size, n, w = 0, padding, amount = 0;
+  int n, w = 0, padding, amount = 0;
   const char *in = nullptr;
 
   for (n = flatten_string(st, &fs, str), str = fs.buf; n > 0; n--) {
-    columns = BLI_str_utf8_char_width_safe(str);
-    size = BLI_str_utf8_size_safe(str);
+    const int columns = BLI_str_utf8_char_width_safe(str);
+    const int size = BLI_str_utf8_size_safe(str);
 
     if (!in) {
       if (w >= cshift) {
@@ -817,7 +816,7 @@ int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, con
   start = 0;
   end = max;
   for (i = 0, j = 0; str[j]; j += BLI_str_utf8_size_safe(str + j)) {
-    int columns = BLI_str_utf8_char_width_safe(str + j); /* = 1 for tab */
+    const int columns = BLI_str_utf8_char_width_safe(str + j); /* = 1 for tab */
 
     /* Mimic replacement of tabs */
     ch = str[j];

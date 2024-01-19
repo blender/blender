@@ -34,7 +34,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_nla.h"
 
 #include "BLO_read_write.hh"

@@ -45,7 +45,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -1898,7 +1898,7 @@ static void find_bbone_segment_index_curved(const bPoseChannel *pchan,
    * reduce the gradient slope to the ideal value (the one you get for points directly on
    * the curve), using heuristic blend strength falloff coefficients based on the distances
    * to the boundary plane before and after mapping. See PR #110758 for more details, or
-   * https://wiki.blender.org/wiki/Source/Animation/B-Bone_Vertex_Mapping#Curved_Mapping */
+   * https://developer.blender.org/docs/features/animation/b-bone_vertex_mapping/#curved-mapping */
   const float segment_scale = pchan->runtime.bbone_arc_length_reciprocal;
 
   for (int i = stack_top; i >= 0; --i) {

@@ -248,7 +248,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         layout.prop(scene, "sync_mode", text="Sync")
         col = layout.column(heading="Audio")
         col.prop(scene, "use_audio_scrub", text="Scrubbing")
-        col.prop(scene, "use_audio", text="Mute")
+        col.prop(scene, "use_audio")
 
         col = layout.column(heading="Playback")
         col.prop(scene, "lock_frame_selection_to_range", text="Limit to Frame Range")

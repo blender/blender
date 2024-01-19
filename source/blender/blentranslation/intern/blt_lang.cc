@@ -232,8 +232,18 @@ void BLT_lang_free()
 }
 
 #ifdef WITH_INTERNATIONAL
-#  define ULANGUAGE \
-    ((U.language >= ULANGUAGE_AUTO && U.language < num_locales) ? U.language : ULANGUAGE_ENGLISH)
+static uint lang_from_userdef()
+{
+  const uint language = uint(U.language);
+  if ((language >= ULANGUAGE_AUTO) && (language < num_locales)) {
+    return language;
+  }
+  return uint(ULANGUAGE_ENGLISH);
+}
+#endif
+
+#ifdef WITH_INTERNATIONAL
+#  define ULANGUAGE lang_from_userdef()
 #  define LOCALE(_id) (locales ? locales[(_id)] : "")
 #endif
 

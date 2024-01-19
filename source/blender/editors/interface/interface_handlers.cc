@@ -4304,6 +4304,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
   uiBlockHandleCreateFunc handlefunc = nullptr;
   uiMenuCreateFunc menufunc = nullptr;
   uiMenuCreateFunc popoverfunc = nullptr;
+  PanelType *popover_panel_type = nullptr;
   void *arg = nullptr;
 
   switch (but->type) {
@@ -4319,15 +4320,21 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
       }
       break;
     case UI_BTYPE_MENU:
-    case UI_BTYPE_POPOVER:
       BLI_assert(but->menu_create_func);
-      if ((but->type == UI_BTYPE_POPOVER) || ui_but_menu_draw_as_popover(but)) {
+      if (ui_but_menu_draw_as_popover(but)) {
         popoverfunc = but->menu_create_func;
+        const char *idname = static_cast<const char *>(but->func_argN);
+        popover_panel_type = WM_paneltype_find(idname, false);
       }
       else {
         menufunc = but->menu_create_func;
+        arg = but->poin;
       }
-      arg = but->poin;
+      break;
+    case UI_BTYPE_POPOVER:
+      BLI_assert(but->menu_create_func);
+      popoverfunc = but->menu_create_func;
+      popover_panel_type = reinterpret_cast<PanelType *>(but->poin);
       break;
     case UI_BTYPE_COLOR:
       ui_but_v3_get(but, data->origvec);
@@ -4336,6 +4343,8 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 
       if (ui_but_menu_draw_as_popover(but)) {
         popoverfunc = but->menu_create_func;
+        const char *idname = static_cast<const char *>(but->func_argN);
+        popover_panel_type = WM_paneltype_find(idname, false);
       }
       else {
         handlefunc = ui_block_func_COLOR;
@@ -4364,7 +4373,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
     }
   }
   else if (popoverfunc) {
-    data->menu = ui_popover_panel_create(C, data->region, but, popoverfunc, arg);
+    data->menu = ui_popover_panel_create(C, data->region, but, popoverfunc, popover_panel_type);
     if (but->block->handle) {
       data->menu->popup = but->block->handle->popup;
     }

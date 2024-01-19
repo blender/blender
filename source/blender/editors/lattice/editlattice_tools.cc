@@ -25,6 +25,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
@@ -48,7 +49,7 @@ static bool make_regular_poll(bContext *C)
   return (ob && ob->type == OB_LATTICE);
 }
 
-static int make_regular_exec(bContext *C, wmOperator * /*op*/)
+static int make_regular_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -64,6 +65,10 @@ static int make_regular_exec(bContext *C, wmOperator * /*op*/)
       Lattice *lt = static_cast<Lattice *>(ob->data);
 
       if (lt->editlatt->latt == nullptr) {
+        continue;
+      }
+
+      if (ED_object_edit_report_if_shape_key_is_locked(ob, op->reports)) {
         continue;
       }
 
@@ -218,6 +223,10 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
     /* get lattice - we need the "edit lattice" from the lattice... confusing... */
     lt = (Lattice *)obedit->data;
     lt = lt->editlatt->latt;
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      continue;
+    }
 
     numU = lt->pntsu;
     numV = lt->pntsv;

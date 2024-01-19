@@ -782,7 +782,7 @@ void uiPupBlockOperator(bContext *C,
 
 void UI_popup_block_close(bContext *C, wmWindow *win, uiBlock *block);
 
-bool UI_popup_block_name_exists(const bScreen *screen, const char *name);
+bool UI_popup_block_name_exists(const bScreen *screen, blender::StringRef name);
 
 /* Blocks
  *
@@ -796,7 +796,7 @@ bool UI_popup_block_name_exists(const bScreen *screen, const char *name);
 
 uiBlock *UI_block_begin(const bContext *C,
                         ARegion *region,
-                        const char *name,
+                        std::string name,
                         eUIEmbossType emboss);
 void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_xy[2]);
 void UI_block_end(const bContext *C, uiBlock *block);
@@ -1413,16 +1413,24 @@ void UI_but_unit_type_set(uiBut *but, int unit_type);
 int UI_but_unit_type_get(const uiBut *but);
 
 enum uiStringInfoType {
-  BUT_GET_RNAPROP_IDENTIFIER = 1,
+  /**
+   * Ignore this item, use when accessing the data should be done conditionally.
+   */
+  BUT_GET_NOP = 0,
+
+  BUT_GET_RNAPROP_IDENTIFIER,
   BUT_GET_RNASTRUCT_IDENTIFIER,
   BUT_GET_RNAENUM_IDENTIFIER,
   BUT_GET_LABEL,
-  /** Query the result of #uiBut::tip_label_func(). Meant to allow overriding the label to be
-   * displayed in the tooltip. */
+  /**
+   * Query the result of #uiBut::tip_label_func().
+   * Meant to allow overriding the label to be displayed in the tool-tip.
+   */
   BUT_GET_TIP_LABEL,
   BUT_GET_RNA_LABEL,
   BUT_GET_RNAENUM_LABEL,
-  BUT_GET_RNA_LABEL_CONTEXT, /* Context specified in CTX_XXX_ macros are just unreachable! */
+  /** Context specified in `CTX_*_` macros are just unreachable! */
+  BUT_GET_RNA_LABEL_CONTEXT,
   BUT_GET_TIP,
   BUT_GET_RNA_TIP,
   BUT_GET_RNAENUM_TIP,

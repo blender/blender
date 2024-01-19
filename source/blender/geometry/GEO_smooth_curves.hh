@@ -15,7 +15,7 @@ namespace blender::geometry {
  *
  * \param iterations: Number of times to repeat the smoothing.
  * \param smooth_ends: Smooth the first and last value.
- * \param keep_shape: Changes the gaussian kernal to avoid severe deformations.
+ * \param keep_shape: Changes the gaussian kernel to avoid severe deformations.
  * \param is_cyclic: Propagate smoothing across the ends of the input as if they were connected.
  */
 void gaussian_blur_1D(const GSpan src,
@@ -27,7 +27,7 @@ void gaussian_blur_1D(const GSpan src,
                       GMutableSpan dst);
 
 /**
- * Smoothes the \a attribute_data using a 1D gaussian blur.
+ * Smooths the \a attribute_data using a 1D gaussian blur.
  */
 void smooth_curve_attribute(const IndexMask &curves_to_smooth,
                             const OffsetIndices<int> points_by_curve,

@@ -20,7 +20,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
@@ -531,4 +531,5 @@ ModifierTypeInfo modifierType_DataTransfer = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

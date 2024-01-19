@@ -45,7 +45,7 @@ void main()
     return;
   }
 
-  float center_size = texture_load(size_tx, texel).x * base_size;
+  float center_size = max(0.0, texture_load(size_tx, texel).x * base_size);
 
   /* Go over the window of the given search radius and accumulate the colors multiplied by their
    * respective weights as well as the weights themselves, but only if both the size of the center
@@ -55,7 +55,7 @@ void main()
   vec4 accumulated_weight = vec4(0.0);
   for (int y = -search_radius; y <= search_radius; y++) {
     for (int x = -search_radius; x <= search_radius; x++) {
-      float candidate_size = texture_load(size_tx, texel + ivec2(x, y)).x * base_size;
+      float candidate_size = max(0.0, texture_load(size_tx, texel + ivec2(x, y)).x * base_size);
 
       /* Skip accumulation if either the x or y distances of the candidate pixel are larger than
        * either the center or candidate pixel size. Note that the max and min functions here denote

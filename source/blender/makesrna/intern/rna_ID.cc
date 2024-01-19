@@ -220,7 +220,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_idprop.h"
 #  include "BKE_idtype.h"
 #  include "BKE_lib_override.hh"
-#  include "BKE_lib_query.h"
+#  include "BKE_lib_query.hh"
 #  include "BKE_lib_remap.hh"
 #  include "BKE_library.hh"
 #  include "BKE_material.h"
