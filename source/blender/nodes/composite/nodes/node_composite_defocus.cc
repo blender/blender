@@ -108,7 +108,7 @@ class DefocusOperation : public NodeOperation {
   {
     Result &input = get_input("Image");
     Result &output = get_result("Image");
-    if (input.is_single_value()) {
+    if (input.is_single_value() || node_storage(bnode()).maxblur < 1.0f) {
       input.pass_through(output);
       return;
     }
