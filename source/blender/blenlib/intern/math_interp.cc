@@ -6,8 +6,8 @@
  * \ingroup bli
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "BLI_math_base.h"
 #include "BLI_math_interp.hh"

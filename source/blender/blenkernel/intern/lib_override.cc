@@ -2752,7 +2752,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
       BLI_assert(is_in_partial_resync_hierarchy);
       return;
     }
-    else if (!is_in_partial_resync_hierarchy) {
+    if (!is_in_partial_resync_hierarchy) {
       /* This ID is not tagged for resync, and is part of a loop where none of the other IDs are
        * tagged for resync, nothing else to do. */
       return;
@@ -2795,7 +2795,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     }
     /* Else, if it is not being processed as part of a resync hierarchy, nothing more to do either,
      * its current status and the one of its whole dependency tree is also assumed valid. */
-    else if (!is_in_partial_resync_hierarchy) {
+    if (!is_in_partial_resync_hierarchy) {
       return;
     }
 
@@ -3619,13 +3619,11 @@ void BKE_lib_override_library_main_resync(Main *bmain,
             level_reprocess_count);
         break;
       }
-      else {
-        CLOG_INFO(&LOG_RESYNC,
-                  4,
-                  "Applying reprocess %d for resyncing at library level %d",
-                  level_reprocess_count,
-                  library_indirect_level);
-      }
+      CLOG_INFO(&LOG_RESYNC,
+                4,
+                "Applying reprocess %d for resyncing at library level %d",
+                level_reprocess_count,
+                library_indirect_level);
     }
     library_indirect_level--;
   }

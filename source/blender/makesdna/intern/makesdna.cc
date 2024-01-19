@@ -171,7 +171,7 @@ static void dna_write(FILE *file, const void *pntr, const int size);
 /**
  * Report all structures found so far, and print their lengths.
  */
-void print_struct_sizes(void);
+void print_struct_sizes();
 
 /** \} */
 

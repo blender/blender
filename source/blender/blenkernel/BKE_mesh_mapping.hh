@@ -119,7 +119,7 @@ void BKE_mesh_vert_corner_tri_map_create(MeshElemMap **r_map,
                                          int **r_mem,
                                          int totvert,
                                          const blender::int3 *corner_tris,
-                                         int tottris,
+                                         int tris_num,
                                          const int *corner_verts,
                                          int corners_num);
 /**

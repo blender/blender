@@ -96,7 +96,7 @@ void ED_slider_factor_bounds_set(tSlider *slider, float lower_bound, float upper
 bool ED_slider_allow_increments_get(tSlider *slider);
 void ED_slider_allow_increments_set(tSlider *slider, bool value);
 
-void ED_slider_mode_set(tSlider *slider, SliderMode unit);
+void ED_slider_mode_set(tSlider *slider, SliderMode mode);
 SliderMode ED_slider_mode_get(tSlider *slider);
 void ED_slider_unit_set(tSlider *slider, const char *unit);
 

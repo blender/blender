@@ -144,7 +144,7 @@ static const char *to_string(const Type &type)
   return "unknown";
 }
 
-static const int to_component_count(const Type &type)
+static int to_component_count(const Type &type)
 {
   switch (type) {
     case Type::FLOAT:
@@ -200,7 +200,7 @@ static const int to_component_count(const Type &type)
   return -1;
 }
 
-static const Type to_component_type(const Type &type)
+static Type to_component_type(const Type &type)
 {
   switch (type) {
     case Type::FLOAT:

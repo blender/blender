@@ -135,7 +135,7 @@ void neighbor_coords_average(SculptSession *ss, float result[3], PBVHVertRef ver
 }
 
 float neighbor_mask_average(SculptSession *ss,
-                            const SculptMaskWriteInfo mask_write,
+                            const SculptMaskWriteInfo write_info,
                             PBVHVertRef vertex)
 {
   float avg = 0.0f;
@@ -144,7 +144,7 @@ float neighbor_mask_average(SculptSession *ss,
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES:
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
-        avg += mask_write.layer[ni.vertex.i];
+        avg += write_info.layer[ni.vertex.i];
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -160,7 +160,7 @@ float neighbor_mask_average(SculptSession *ss,
     case PBVH_BMESH:
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         BMVert *vert = reinterpret_cast<BMVert *>(vertex.i);
-        avg += BM_ELEM_CD_GET_FLOAT(vert, mask_write.bm_offset);
+        avg += BM_ELEM_CD_GET_FLOAT(vert, write_info.bm_offset);
         total++;
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);

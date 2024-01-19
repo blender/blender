@@ -556,9 +556,7 @@ float perlin_fbm(
     return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
                        mix(sum, sum2, rmd);
   }
-  else {
-    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
-  }
+  return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
 }
 
 /* Explicit instantiation for Wave Texture. */
@@ -1909,7 +1907,7 @@ VoronoiOutput fractal_voronoi_x_fx(const VoronoiParams &params,
       output = octave;
       break;
     }
-    else if (i <= params.detail) {
+    if (i <= params.detail) {
       max_amplitude += amplitude;
       output.distance += octave.distance * amplitude;
       output.color += octave.color * amplitude;
@@ -1960,7 +1958,7 @@ float fractal_voronoi_distance_to_edge(const VoronoiParams &params, const T coor
       distance = octave_distance;
       break;
     }
-    else if (i <= params.detail) {
+    if (i <= params.detail) {
       max_amplitude = mix(max_amplitude, params.max_distance / scale, amplitude);
       distance = mix(distance, math::min(distance, octave_distance / scale), amplitude);
       scale *= params.lacunarity;

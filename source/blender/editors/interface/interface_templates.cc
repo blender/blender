@@ -7238,7 +7238,7 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   if (BLI_stat(path, &status) != -1) {
     char date_st[FILELIST_DIRENTRY_DATE_LEN], time_st[FILELIST_DIRENTRY_TIME_LEN];
     bool is_today, is_yesterday;
-    std::string day_string = ("");
+    std::string day_string;
     BLI_filelist_entry_datetime_to_string(
         nullptr, int64_t(status.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
     if (is_today || is_yesterday) {

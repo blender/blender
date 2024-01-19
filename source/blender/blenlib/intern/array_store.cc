@@ -102,6 +102,8 @@
 /* Only for #BLI_array_store_is_valid. */
 #include "BLI_ghash.h"
 
+struct BChunkList;
+
 /* -------------------------------------------------------------------- */
 /** \name Defines
  *
@@ -236,9 +238,9 @@
 /** \name Internal Structs
  * \{ */
 
-typedef uint32_t hash_key;
+using hash_key = uint32_t;
 
-typedef struct BArrayInfo {
+struct BArrayInfo {
   size_t chunk_stride;
   // uint chunk_count;  /* UNUSED (other values are derived from this) */
 
@@ -256,13 +258,13 @@ typedef struct BArrayInfo {
   size_t accum_steps;
   size_t accum_read_ahead_len;
 #endif
-} BArrayInfo;
+};
 
-typedef struct BArrayMemory {
+struct BArrayMemory {
   BLI_mempool *chunk_list; /* #BChunkList. */
   BLI_mempool *chunk_ref;  /* #BChunkRef. */
   BLI_mempool *chunk;      /* #BChunk. */
-} BArrayMemory;
+};
 
 /**
  * Main storage for all states.
@@ -294,10 +296,10 @@ struct BArrayState {
   /** linked list in #BArrayStore.states. */
   BArrayState *next, *prev;
   /** Shared chunk list, this reference must hold a #BChunkList::users. */
-  struct BChunkList *chunk_list;
+  BChunkList *chunk_list;
 };
 
-typedef struct BChunkList {
+struct BChunkList {
   /** List of #BChunkRef's. */
   ListBase chunk_refs;
   /** Result of `BLI_listbase_count(chunks)`, store for reuse. */
@@ -307,10 +309,10 @@ typedef struct BChunkList {
 
   /** Number of #BArrayState using this. */
   int users;
-} BChunkList;
+};
 
 /** A chunk of memory in an array (unit of de-duplication). */
-typedef struct BChunk {
+struct BChunk {
   const uchar *data;
   size_t data_len;
   /** number of #BChunkList using this. */
@@ -319,15 +321,15 @@ typedef struct BChunk {
 #ifdef USE_HASH_TABLE_KEY_CACHE
   hash_key key;
 #endif
-} BChunk;
+};
 
 /**
  * Links to store #BChunk data in #BChunkList.chunk_refs.
  */
-typedef struct BChunkRef {
+struct BChunkRef {
   BChunkRef *next, *prev;
   BChunk *link;
-} BChunkRef;
+};
 
 /**
  * Single linked list used when putting chunks into a temporary table,
@@ -337,10 +339,10 @@ typedef struct BChunkRef {
  * to allow talking down the chunks in-order until a mismatch is found,
  * this avoids having to do so many table lookups.
  */
-typedef struct BTableRef {
+struct BTableRef {
   BTableRef *next;
   const BChunkRef *cref;
-} BTableRef;
+};
 
 /** \} */
 

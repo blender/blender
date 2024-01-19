@@ -21,8 +21,6 @@
 
 #include "FN_field.hh"
 
-#include "BLT_translation.h"
-
 #include "CLG_log.h"
 
 #include "attribute_access_intern.hh"

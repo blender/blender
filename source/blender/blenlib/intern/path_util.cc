@@ -882,15 +882,15 @@ bool BLI_path_parent_dir(char *path)
   return true;
 }
 
-bool BLI_path_parent_dir_until_exists(char *dir)
+bool BLI_path_parent_dir_until_exists(char *path)
 {
   bool valid_path = true;
 
   /* Loop as long as cur path is not a dir, and we can get a parent path. */
-  while ((BLI_access(dir, R_OK) != 0) && (valid_path = BLI_path_parent_dir(dir))) {
+  while ((BLI_access(path, R_OK) != 0) && (valid_path = BLI_path_parent_dir(path))) {
     /* Pass. */
   }
-  return (valid_path && dir[0]);
+  return (valid_path && path[0]);
 }
 
 /**

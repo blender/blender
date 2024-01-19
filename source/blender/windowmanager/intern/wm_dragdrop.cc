@@ -877,9 +877,9 @@ const char *WM_drag_get_single_path(const wmDrag *drag, int file_type)
     return nullptr;
   }
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
-  auto const file_types = path_data->file_types;
+  const blender::Span<int> file_types = path_data->file_types;
 
-  auto itr = std::find_if(
+  const auto *itr = std::find_if(
       file_types.begin(), file_types.end(), [file_type](const int file_fype_test) {
         return file_fype_test & file_type;
       });

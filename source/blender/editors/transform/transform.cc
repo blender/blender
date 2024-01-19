@@ -558,11 +558,8 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
     if (value == TFM_MODAL_EDIT_SNAP_SOURCE_OFF) {
       return true;
     }
-    else if (!ELEM(value,
-                   TFM_MODAL_CANCEL,
-                   TFM_MODAL_CONFIRM,
-                   TFM_MODAL_ADD_SNAP,
-                   TFM_MODAL_REMOVE_SNAP))
+    if (!ELEM(
+            value, TFM_MODAL_CANCEL, TFM_MODAL_CONFIRM, TFM_MODAL_ADD_SNAP, TFM_MODAL_REMOVE_SNAP))
     {
       return false;
     }

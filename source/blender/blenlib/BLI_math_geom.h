@@ -128,7 +128,10 @@ float volume_tri_tetrahedron_signed_v3(const float v1[3], const float v2[3], con
  * (depends on face winding)
  * Copied from BM_edge_is_convex().
  */
-bool is_edge_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
+bool is_edge_convex_v3(const float v1[3],
+                       const float v2[3],
+                       const float f1_no[3],
+                       const float f2_no[3]);
 /**
  * Evaluate if entire quad is a proper convex quad
  */
@@ -759,7 +762,7 @@ bool isect_ray_tri_watertight_v3(const float ray_origin[3],
                                  const float v0[3],
                                  const float v1[3],
                                  const float v2[3],
-                                 float *r_dist,
+                                 float *r_lambda,
                                  float r_uv[2]);
 /**
  * Slower version which calculates #IsectRayPrecalc each time.

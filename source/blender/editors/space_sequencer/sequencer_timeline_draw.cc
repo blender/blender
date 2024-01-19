@@ -1047,12 +1047,10 @@ static uchar mute_overlap_alpha_factor_get(const ListBase *channels, const Seque
     return MUTE_ALPHA;
   }
   /* Draw background semi-transparent when overlapping strips. */
-  else if (seq->flag & SEQ_OVERLAP) {
+  if (seq->flag & SEQ_OVERLAP) {
     return OVERLAP_ALPHA;
   }
-  else {
-    return 255;
-  }
+  return 255;
 }
 
 static void draw_strip_color_band(TimelineDrawContext *timeline_ctx,
@@ -1115,10 +1113,10 @@ static void draw_strip_background(TimelineDrawContext *timeline_ctx,
   }
 }
 
-typedef enum {
+enum TransitionType {
   STRIP_TRANSITION_IN,
   STRIP_TRANSITION_OUT,
-} TransitionType;
+};
 
 static void draw_seq_transition_strip_half(TimelineDrawContext *timeline_ctx,
                                            const StripDrawContext *strip_ctx,
