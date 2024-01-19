@@ -166,7 +166,7 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
   /* BLI_bilinear_interpolation functions use `floor(uv)` and `floor(uv)+1`
    * texels. For proper mapping between pixel and texel spaces, need to
    * subtract 0.5. Same for bicubic. */
-  if constexpr (Filter == IMB_FILTER_BILINEAR || Filter == IMB_FILTER_BICUBIC) {
+  if constexpr (ELEM(Filter, IMB_FILTER_BILINEAR, IMB_FILTER_BICUBIC)) {
     u -= 0.5f;
     v -= 0.5f;
   }

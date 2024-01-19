@@ -187,18 +187,18 @@ static void bicubic_interpolation(
   }
   else {
     if (components == 1) {
-      output[0] = (uchar)(out[0] + 0.5f);
+      output[0] = uchar(out[0] + 0.5f);
     }
     else if (components == 3) {
-      output[0] = (uchar)(out[0] + 0.5f);
-      output[1] = (uchar)(out[1] + 0.5f);
-      output[2] = (uchar)(out[2] + 0.5f);
+      output[0] = uchar(out[0] + 0.5f);
+      output[1] = uchar(out[1] + 0.5f);
+      output[2] = uchar(out[2] + 0.5f);
     }
     else {
-      output[0] = (uchar)(out[0] + 0.5f);
-      output[1] = (uchar)(out[1] + 0.5f);
-      output[2] = (uchar)(out[2] + 0.5f);
-      output[3] = (uchar)(out[3] + 0.5f);
+      output[0] = uchar(out[0] + 0.5f);
+      output[1] = uchar(out[1] + 0.5f);
+      output[2] = uchar(out[2] + 0.5f);
+      output[3] = uchar(out[3] + 0.5f);
     }
   }
 }
@@ -235,7 +235,7 @@ BLI_INLINE void bilinear_interpolation_fl(const float *float_buffer,
 
   x1 = (int)uf;
   x2 = x1 + 1;
-  y1 = (int)vf;
+  y1 = int(vf);
   y2 = y1 + 1;
 
   const float *row1, *row2, *row3, *row4;
@@ -376,9 +376,9 @@ void BLI_bilinear_interpolation_char(
   _mm_storeu_ps((float *)xcoord, _mm_castsi128_ps(x1234));
   _mm_storeu_ps((float *)ycoord, _mm_castsi128_ps(y1234));
   int sample1 = ((const int *)buffer)[ycoord[0] * (int64_t)width + xcoord[0]];
-  int sample2 = ((const int *)buffer)[ycoord[1] * (int64_t)width + xcoord[1]];
-  int sample3 = ((const int *)buffer)[ycoord[2] * (int64_t)width + xcoord[2]];
-  int sample4 = ((const int *)buffer)[ycoord[3] * (int64_t)width + xcoord[3]];
+  int sample2 = ((const int *)buffer)[ycoord[1] * int64_t(width) + xcoord[1]];
+  int sample3 = ((const int *)buffer)[ycoord[2] * int64_t(width) + xcoord[2]];
+  int sample4 = ((const int *)buffer)[ycoord[3] * int64_t(width) + xcoord[3]];
   __m128i samples1234 = _mm_set_epi32(sample4, sample3, sample2, sample1);
   /* Set samples to black for the ones that were actually invalid. */
   samples1234 = _mm_andnot_si128(invalid_1234, samples1234);
@@ -577,7 +577,7 @@ void BLI_ewa_imp2radangle(
     *a = sqrtf(A > C ? A : C);
     *b = 0.0f;
     *ecc = 1e10f;
-    *th = 0.5f * (atan2f(B, A - C) + (float)M_PI);
+    *th = 0.5f * (atan2f(B, A - C) + float(M_PI));
   }
   else {
     const float AmC = A - C, ApC = A + C, F2 = F * 2.0f;
@@ -594,7 +594,7 @@ void BLI_ewa_imp2radangle(
       *ecc = *a / *b;
     }
     /* Increase theta by `0.5 * pi` (angle of major axis). */
-    *th = 0.5f * (atan2f(B, AmC) + (float)M_PI);
+    *th = 0.5f * (atan2f(B, AmC) + float(M_PI));
   }
 }
 
@@ -645,15 +645,15 @@ void BLI_ewa_filter(const int width,
 
   ue = ff * sqrtf(C);
   ve = ff * sqrtf(A);
-  d = (float)(EWA_MAXIDX + 1) / (F * ff2);
+  d = float(EWA_MAXIDX + 1) / (F * ff2);
   A *= d;
   B *= d;
   C *= d;
 
-  U0 = uv[0] * (float)width;
-  V0 = uv[1] * (float)height;
-  u1 = (int)floorf(U0 - ue);
-  u2 = (int)ceilf(U0 + ue);
+  U0 = uv[0] * float(width);
+  V0 = uv[1] * float(height);
+  u1 = int(floorf(U0 - ue));
+  u2 = int(ceilf(U0 + ue));
   v1 = (int)floorf(V0 - ve);
   v2 = (int)ceilf(V0 + ve);
 
@@ -661,17 +661,17 @@ void BLI_ewa_filter(const int width,
   /* NOTE: if eccentricity gets clamped (see above),
    * the ue/ve limits can also be lowered accordingly
    */
-  if (U0 - (float)u1 > EWA_MAXIDX) {
-    u1 = (int)U0 - EWA_MAXIDX;
+  if (U0 - float(u1) > EWA_MAXIDX) {
+    u1 = int(U0) - EWA_MAXIDX;
   }
-  if ((float)u2 - U0 > EWA_MAXIDX) {
-    u2 = (int)U0 + EWA_MAXIDX;
+  if (float(u2) - U0 > EWA_MAXIDX) {
+    u2 = int(U0) + EWA_MAXIDX;
   }
-  if (V0 - (float)v1 > EWA_MAXIDX) {
-    v1 = (int)V0 - EWA_MAXIDX;
+  if (V0 - float(v1) > EWA_MAXIDX) {
+    v1 = int(V0) - EWA_MAXIDX;
   }
   if ((float)v2 - V0 > EWA_MAXIDX) {
-    v2 = (int)V0 + EWA_MAXIDX;
+    v2 = int(V0) + EWA_MAXIDX;
   }
 
   /* Early output check for cases the whole region is outside of the buffer. */
@@ -683,7 +683,7 @@ void BLI_ewa_filter(const int width,
   U0 -= 0.5f;
   V0 -= 0.5f;
   DDQ = 2.0f * A;
-  U = (float)u1 - U0;
+  U = float(u1) - U0;
   ac1 = A * (2.0f * U + 1.0f);
   ac2 = A * U * U;
   BU = B * U;
@@ -695,9 +695,9 @@ void BLI_ewa_filter(const int width,
     float DQ = ac1 + B * V;
     float Q = (C * V + BU) * V + ac2;
     for (u = u1; u <= u2; u++) {
-      if (Q < (float)(EWA_MAXIDX + 1)) {
+      if (Q < float(EWA_MAXIDX + 1)) {
         float tc[4];
-        const float wt = EWA_WTS[(Q < 0.0f) ? 0 : (uint)Q];
+        const float wt = EWA_WTS[(Q < 0.0f) ? 0 : uint(Q)];
         read_pixel_cb(userdata, u, v, tc);
         madd_v3_v3fl(result, tc, wt);
         result[3] += use_alpha ? tc[3] * wt : 0.0f;

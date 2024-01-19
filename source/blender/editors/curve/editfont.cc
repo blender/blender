@@ -666,7 +666,7 @@ static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_
     return;
   }
 
-  uint val = strtoul(edit_string, NULL, 16);
+  uint val = strtoul(edit_string, nullptr, 16);
   if (val > 31 && val < 0x10FFFF) {
     Object *obedit = CTX_data_edit_object(C);
     if (obedit) {
