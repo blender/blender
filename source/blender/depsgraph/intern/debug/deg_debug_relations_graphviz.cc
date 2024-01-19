@@ -412,6 +412,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::AUDIO:
     case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK:
+    case NodeType::SCENE:
     case NodeType::VISIBILITY:
     case NodeType::NTREE_OUTPUT:
     case NodeType::NTREE_GEOMETRY_PREPROCESS: {
