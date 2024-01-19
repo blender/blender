@@ -2651,6 +2651,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 13)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
@@ -2663,7 +2664,6 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
-
   }
 
   /**
