@@ -58,7 +58,7 @@ vec3 gpencil_lighting(void)
 vec4 debug_texture(vec2 uv)
 {
   vec4 col = vec4(mod(uv.xy, 1.0), 0.0, 1.0);
-  return col * min(length(uv.xy * 2 - 1), 1);
+  return col * min(length(uv.xy * 2.0 - 1.0), 1.0);
 }
 
 void main()
