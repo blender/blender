@@ -53,7 +53,7 @@
 namespace blender::ed::sculpt_paint {
 
 struct PaintSample {
-  float mouse[2];
+  float2 mouse;
   float pressure;
 };
 
@@ -75,9 +75,9 @@ struct PaintStroke {
   int cur_sample;
   int tot_samples;
 
-  float last_mouse_position[2];
-  float last_world_space_position[3];
-  float last_scene_spacing_delta[3];
+  float2 last_mouse_position;
+  float3 last_world_space_position;
+  float3 last_scene_spacing_delta;
 
   bool stroke_over_mesh;
   /* space distance covered so far */
@@ -95,7 +95,7 @@ struct PaintStroke {
   bool stroke_init;
   /* check if various brush mapping variables have been initialized */
   bool brush_init;
-  float initial_mouse[2];
+  float2 initial_mouse;
   /* cached_pressure stores initial pressure for size pressure influence mainly */
   float cached_size_pressure;
   /* last pressure will store last pressure value for use in interpolation for space strokes */
@@ -113,7 +113,7 @@ struct PaintStroke {
 
   /* line constraint */
   bool constrain_line;
-  float constrained_pos[2];
+  float2 constrained_pos;
 
   StrokeGetLocation get_location;
   StrokeTestStart test_start;
