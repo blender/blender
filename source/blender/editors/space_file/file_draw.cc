@@ -116,16 +116,14 @@ void ED_file_path_button(bScreen *screen,
   UI_block_func_set(block, nullptr, nullptr, nullptr);
 }
 
-struct file_tooltip_data {
+struct FileTooltipData {
   const SpaceFile *sfile;
   const FileDirEntry *file;
 };
 
-static file_tooltip_data *file_tooltip_data_create(const SpaceFile *sfile,
-                                                   const FileDirEntry *file)
+static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const FileDirEntry *file)
 {
-  file_tooltip_data *data = (file_tooltip_data *)MEM_mallocN(sizeof(file_tooltip_data),
-                                                             "tooltip_data");
+  FileTooltipData *data = (FileTooltipData *)MEM_mallocN(sizeof(FileTooltipData), __func__);
   data->sfile = sfile;
   data->file = file;
   return data;
@@ -133,7 +131,7 @@ static file_tooltip_data *file_tooltip_data_create(const SpaceFile *sfile,
 
 static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, void *argN)
 {
-  file_tooltip_data *file_data = static_cast<file_tooltip_data *>(argN);
+  FileTooltipData *file_data = static_cast<FileTooltipData *>(argN);
   const SpaceFile *sfile = file_data->sfile;
   const FileList *files = sfile->files;
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
