@@ -417,18 +417,15 @@ void WM_drag_free_list(ListBase *lb)
   }
 }
 
-static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox *drop)
+static std::string dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox *drop)
 {
-  char *tooltip = nullptr;
   if (drop->tooltip) {
-    tooltip = drop->tooltip(C, drag, xy, drop);
+    return drop->tooltip(C, drag, xy, drop);
   }
-  if (!tooltip && drop->ot) {
-    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr).c_str());
+  if (drop->ot) {
+    return WM_operatortype_name(drop->ot, drop->ptr);
   }
-  /* XXX Doing translation here might not be ideal, but later we have no more
-   *     access to ot (and hence op context)... */
-  return tooltip;
+  return {};
 }
 
 static wmDropBox *dropbox_active(bContext *C,
@@ -925,7 +922,7 @@ int WM_drag_get_path_file_type(const wmDrag *drag)
 
 /* ************** draw ***************** */
 
-static void wm_drop_operator_draw(const char *name, int x, int y)
+static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
@@ -940,7 +937,7 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
-static void wm_drop_redalert_draw(const char *redalert_str, int x, int y)
+static void wm_drop_redalert_draw(const blender::StringRef redalert_str, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const bTheme *btheme = UI_GetTheme();
@@ -1058,14 +1055,14 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int iconsize = UI_ICON_SIZE;
   int padding = 4 * UI_SCALE_FAC;
 
-  char *tooltip = nullptr;
+  std::string tooltip;
   if (drag->drop_state.active_dropbox) {
     tooltip = dropbox_tooltip(C, drag, xy, drag->drop_state.active_dropbox);
   }
 
   const bool has_disabled_info = drag->drop_state.disabled_info &&
                                  drag->drop_state.disabled_info[0];
-  if (!tooltip && !has_disabled_info) {
+  if (tooltip.empty() && !has_disabled_info) {
     return;
   }
 
@@ -1095,9 +1092,8 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     }
   }
 
-  if (tooltip) {
+  if (!tooltip.empty()) {
     wm_drop_operator_draw(tooltip, x, y);
-    MEM_freeN(tooltip);
   }
   else if (has_disabled_info) {
     wm_drop_redalert_draw(drag->drop_state.disabled_info, x, y);

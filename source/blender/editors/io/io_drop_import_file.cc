@@ -223,19 +223,19 @@ static bool drop_import_file_poll(bContext *C, wmDrag *drag, const wmEvent * /*e
   return !drop_import_file_poll_file_handlers(C, paths, true).is_empty();
 }
 
-static char *drop_import_file_tooltip(bContext *C,
-                                      wmDrag *drag,
-                                      const int /*xy*/[2],
-                                      wmDropBox * /*drop*/)
+static std::string drop_import_file_tooltip(bContext *C,
+                                            wmDrag *drag,
+                                            const int /*xy*/[2],
+                                            wmDropBox * /*drop*/)
 {
   const auto paths = WM_drag_get_paths(drag);
   const auto file_handlers = drop_import_file_poll_file_handlers(C, paths, true);
   if (file_handlers.size() == 1) {
     wmOperatorType *ot = WM_operatortype_find(file_handlers[0]->import_operator, false);
-    return BLI_strdup(TIP_(ot->name));
+    return TIP_(ot->name);
   }
 
-  return BLI_strdup(TIP_("Multiple file handlers can be used, drop to pick which to use"));
+  return TIP_("Multiple file handlers can be used, drop to pick which to use");
 }
 
 void ED_dropbox_drop_import_file()

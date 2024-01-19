@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
@@ -2925,27 +2927,27 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 /** \name Drop Named Material on Object Operator
  * \{ */
 
-char *ED_object_ot_drop_named_material_tooltip(bContext *C, const char *name, const int mval[2])
+std::string ED_object_ot_drop_named_material_tooltip(bContext *C,
+                                                     const char *name,
+                                                     const int mval[2])
 {
   int mat_slot = 0;
   Object *ob = ED_view3d_give_material_slot_under_cursor(C, mval, &mat_slot);
   if (ob == nullptr) {
-    return BLI_strdup("");
+    return {};
   }
   mat_slot = max_ii(mat_slot, 1);
 
   Material *prev_mat = BKE_object_material_get(ob, mat_slot);
 
-  char *result;
   if (prev_mat) {
-    const char *tooltip = TIP_("Drop %s on %s (slot %d, replacing %s)");
-    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot, prev_mat->id.name + 2);
+    return fmt::format(TIP_("Drop {} on {} (slot {}, replacing {})"),
+                       name,
+                       ob->id.name + 2,
+                       mat_slot,
+                       prev_mat->id.name + 2);
   }
-  else {
-    const char *tooltip = TIP_("Drop %s on %s (slot %d)");
-    result = BLI_sprintfN(tooltip, name, ob->id.name + 2, mat_slot);
-  }
-  return result;
+  return fmt::format(TIP_("Drop {} on {} (slot {})"), name, ob->id.name + 2, mat_slot);
 }
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2996,23 +2998,23 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 /** \name Drop Geometry Nodes on Object Operator
  * \{ */
 
-char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
-                                               PointerRNA *properties,
-                                               const int mval[2])
+std::string ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
+                                                     PointerRNA *properties,
+                                                     const int mval[2])
 {
   const Object *ob = ED_view3d_give_object_under_cursor(C, mval);
   if (ob == nullptr) {
-    return BLI_strdup("");
+    return {};
   }
 
   const uint32_t session_uuid = RNA_int_get(properties, "session_uuid");
   const ID *id = BKE_libblock_find_session_uuid(CTX_data_main(C), ID_NT, session_uuid);
   if (!id) {
-    return BLI_strdup("");
+    return {};
   }
 
-  const char *tooltip = TIP_("Add modifier with node group \"%s\" on object \"%s\"");
-  return BLI_sprintfN(tooltip, id->name, ob->id.name);
+  return fmt::format(
+      TIP_("Add modifier with node group \"{}\" on object \"{}\""), id->name, ob->id.name);
 }
 
 static bool check_geometry_node_group_sockets(wmOperator *op, const bNodeTree *tree)

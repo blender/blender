@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_string_ref.hh"
 
@@ -248,10 +250,12 @@ Base *ED_object_add_duplicate(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, eDupli_ID_Flags dupflag);
 
 void ED_object_parent(Object *ob, Object *parent, int type, const char *substr);
-char *ED_object_ot_drop_named_material_tooltip(bContext *C, const char *name, const int mval[2]);
-char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
-                                               PointerRNA *properties,
-                                               const int mval[2]);
+std::string ED_object_ot_drop_named_material_tooltip(bContext *C,
+                                                     const char *name,
+                                                     const int mval[2]);
+std::string ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
+                                                     PointerRNA *properties,
+                                                     const int mval[2]);
 
 /* bitflags for enter/exit editmode */
 enum {

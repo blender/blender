@@ -590,10 +590,10 @@ static bool view3d_mat_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
   return view3d_drop_id_in_main_region_poll(C, drag, event, ID_MA);
 }
 
-static char *view3d_mat_drop_tooltip(bContext *C,
-                                     wmDrag *drag,
-                                     const int xy[2],
-                                     wmDropBox * /*drop*/)
+static std::string view3d_mat_drop_tooltip(bContext *C,
+                                           wmDrag *drag,
+                                           const int xy[2],
+                                           wmDropBox * /*drop*/)
 {
   const char *name = WM_drag_get_item_name(drag);
   ARegion *region = CTX_wm_region(C);
@@ -618,12 +618,12 @@ static bool view3d_object_data_drop_poll(bContext *C, wmDrag *drag, const wmEven
   return false;
 }
 
-static char *view3d_object_data_drop_tooltip(bContext * /*C*/,
-                                             wmDrag * /*drag*/,
-                                             const int /*xy*/[2],
-                                             wmDropBox * /*drop*/)
+static std::string view3d_object_data_drop_tooltip(bContext * /*C*/,
+                                                   wmDrag * /*drag*/,
+                                                   const int /*xy*/[2],
+                                                   wmDropBox * /*drop*/)
 {
-  return BLI_strdup(TIP_("Create object instance from object-data"));
+  return TIP_("Create object instance from object-data");
 }
 
 static bool view3d_ima_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
@@ -726,10 +726,10 @@ static bool view3d_geometry_nodes_drop_poll(bContext *C, wmDrag *drag, const wmE
   return true;
 }
 
-static char *view3d_geometry_nodes_drop_tooltip(bContext *C,
-                                                wmDrag * /*drag*/,
-                                                const int xy[2],
-                                                wmDropBox *drop)
+static std::string view3d_geometry_nodes_drop_tooltip(bContext *C,
+                                                      wmDrag * /*drag*/,
+                                                      const int xy[2],
+                                                      wmDropBox *drop)
 {
   ARegion *region = CTX_wm_region(C);
   int mval[2] = {xy[0] - region->winrct.xmin, xy[1] - region->winrct.ymin};
