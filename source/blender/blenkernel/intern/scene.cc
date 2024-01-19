@@ -2355,7 +2355,7 @@ bool BKE_scene_validate_setscene(Main *bmain, Scene *sce)
   for (a = 0, sce_iter = sce; sce_iter->set; sce_iter = sce_iter->set, a++) {
     /* more iterations than scenes means we have a cycle */
     if (a > totscene) {
-      /* the tested scene gets zero'ed, that's typically current scene */
+      /* The tested scene gets zeroed, that's typically current scene. */
       sce->set = nullptr;
       return false;
     }

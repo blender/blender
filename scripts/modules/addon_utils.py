@@ -881,7 +881,6 @@ def _initialize_extension_repos_post(*_, is_first=False):
                     (repo_id_prev not in repos_idmap_next)
             ):
                 submodules_del_disabled.append(module_id_prev)
-        print(submodules_del_disabled)
 
         # Detect rename of disabled modules.
         for repo_id_next, module_id_next in repos_idmap_next_disabled.items():
