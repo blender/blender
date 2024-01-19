@@ -8,7 +8,6 @@ from bpy.props import (
     BoolProperty,
     EnumProperty,
 )
-from bpy_extras.object_utils import object_report_if_active_shape_key_is_locked
 
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
@@ -22,6 +21,8 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
         return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
+        from bpy_extras.object_utils import object_report_if_active_shape_key_is_locked
+
         if object_report_if_active_shape_key_is_locked(context.object, self):
             return {'CANCELLED'}
 
@@ -88,6 +89,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
 
     @staticmethod
     def extrude_region(operator, context, use_vert_normals, dissolve_and_intersect):
+        from bpy_extras.object_utils import object_report_if_active_shape_key_is_locked
+
         if object_report_if_active_shape_key_is_locked(context.object, operator):
             return {'CANCELLED'}
 
@@ -187,6 +190,8 @@ class VIEW3D_OT_edit_mesh_extrude_manifold_normal(Operator):
         return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
+        from bpy_extras.object_utils import object_report_if_active_shape_key_is_locked
+
         if object_report_if_active_shape_key_is_locked(context.object, self):
             return {'CANCELLED'}
         bpy.ops.mesh.extrude_manifold(
