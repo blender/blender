@@ -23,7 +23,7 @@ parser.add_argument(
     help="Task that is contains the release notes information (e.g. #77348)")
 parser.add_argument(
     "--format",
-    help="Format the result in `text`, `steam`, `wiki` or `html`",
+    help="Format the result in `text`, `steam`, `markdown` or `html`",
     default="text")
 args = parser.parse_args()
 
