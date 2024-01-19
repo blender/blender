@@ -2542,11 +2542,10 @@ typedef enum GreasePencilModifierColorMode {
 } GreasePencilModifierColorMode;
 
 typedef enum GreasePencilOpacityModifierFlag {
-  MOD_GREASE_PENCIL_OPACITY_OPEN_INFLUENCE_PANEL = (1 << 0),
   /* Use vertex group as opacity factors instead of influence. */
-  MOD_GREASE_PENCIL_OPACITY_USE_WEIGHT_AS_FACTOR = (1 << 1),
+  MOD_GREASE_PENCIL_OPACITY_USE_WEIGHT_AS_FACTOR = (1 << 0),
   /* Set the opacity for every point in a stroke, otherwise multiply existing opacity. */
-  MOD_GREASE_PENCIL_OPACITY_USE_UNIFORM_OPACITY = (1 << 2),
+  MOD_GREASE_PENCIL_OPACITY_USE_UNIFORM_OPACITY = (1 << 1),
 } GreasePencilOpacityModifierFlag;
 
 typedef struct GreasePencilSubdivModifierData {
