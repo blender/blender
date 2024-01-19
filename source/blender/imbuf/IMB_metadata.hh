@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct IDProperty;
 struct ImBuf;
 struct anim;
@@ -31,8 +27,8 @@ struct anim;
  * Ensure that the metadata property is a valid #IDProperty object.
  * This is a no-op when *metadata != NULL.
  */
-void IMB_metadata_ensure(struct IDProperty **metadata);
-void IMB_metadata_free(struct IDProperty *metadata);
+void IMB_metadata_ensure(IDProperty **metadata);
+void IMB_metadata_free(IDProperty *metadata);
 
 /**
  * Read the field from the image info into the field.
@@ -43,7 +39,7 @@ void IMB_metadata_free(struct IDProperty *metadata);
  * \param len: length of value buffer allocated by user.
  * \return 1 (true) if metadata is present and value for the key found, 0 (false) otherwise.
  */
-bool IMB_metadata_get_field(struct IDProperty *metadata,
+bool IMB_metadata_get_field(IDProperty *metadata,
                             const char *key,
                             char *value,
                             size_t value_maxncpy);
@@ -56,15 +52,11 @@ bool IMB_metadata_get_field(struct IDProperty *metadata,
  * \param key: the key of the field
  * \param value: the data to be written to the field. zero terminated string
  */
-void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const char *value);
+void IMB_metadata_set_field(IDProperty *metadata, const char *key, const char *value);
 
-void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb);
-struct IDProperty *IMB_anim_load_metadata(struct anim *anim);
+void IMB_metadata_copy(ImBuf *dimb, ImBuf *simb);
+IDProperty *IMB_anim_load_metadata(anim *anim);
 
 /* Invoke callback for every value stored in the metadata. */
 typedef void (*IMBMetadataForeachCb)(const char *field, const char *value, void *userdata);
-void IMB_metadata_foreach(struct ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata);
-
-#ifdef __cplusplus
-}
-#endif
+void IMB_metadata_foreach(ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata);

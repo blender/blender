@@ -6,9 +6,7 @@
 #include "BKE_node.hh"
 #include "COM_SMAAAreaTexture.h"
 
-extern "C" {
 #include "IMB_colormanagement.hh"
-}
 
 namespace blender::compositor {
 

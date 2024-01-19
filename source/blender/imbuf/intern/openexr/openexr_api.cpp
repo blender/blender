@@ -95,7 +95,6 @@
 using namespace Imf;
 using namespace Imath;
 
-extern "C" {
 /* prototype */
 static struct ExrPass *imb_exr_get_pass(ListBase *lb, char *passname);
 static bool exr_has_multiview(MultiPartInputFile &file);
@@ -107,7 +106,6 @@ static void imb_exr_type_by_channels(ChannelList &channels,
                                      bool *r_singlelayer,
                                      bool *r_multilayer,
                                      bool *r_multiview);
-}
 
 /* Memory Input Stream */
 
@@ -378,8 +376,6 @@ static half float_to_half_safe(const float value)
 {
   return half(clamp_f(value, -HALF_MAX, HALF_MAX));
 }
-
-extern "C" {
 
 bool imb_is_a_openexr(const uchar *mem, const size_t size)
 {
@@ -743,9 +739,6 @@ void *IMB_exr_get_handle_name(const char *name)
 }
 
 /* multiview functions */
-} /* extern "C" */
-
-extern "C" {
 
 void IMB_exr_add_view(void *handle, const char *name)
 {
@@ -2315,5 +2308,3 @@ void imb_exitopenexr()
   /* Tells OpenEXR to free thread pool, also ensures there is no running tasks. */
   Imf::setGlobalThreadCount(0);
 }
-
-} /* export "C" */

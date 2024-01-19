@@ -17,9 +17,9 @@
 #include "../generic/py_capi_utils.h"
 
 /* #include "IMB_imbuf_types.hh" */
-extern "C" const char *imb_ext_image[];
-extern "C" const char *imb_ext_movie[];
-extern "C" const char *imb_ext_audio[];
+extern const char *imb_ext_image[];
+extern const char *imb_ext_movie[];
+extern const char *imb_ext_audio[];
 
 /*----------------------------MODULE INIT-------------------------*/
 static PyModuleDef _bpy_path_module_def = {

@@ -41,8 +41,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "IMB_allocimbuf.hh"
-
 #ifdef WITH_FFMPEG
 extern "C" {
 #  include <libavcodec/avcodec.h>

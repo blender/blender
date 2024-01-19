@@ -56,6 +56,7 @@ set(SRC
 
   IMB_colormanagement.hh
   IMB_imbuf.hh
+  IMB_imbuf_enums.h
   IMB_imbuf_types.hh
   IMB_metadata.hh
   IMB_moviecache.hh

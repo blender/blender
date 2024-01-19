@@ -68,7 +68,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf.hh"
+#include "IMB_imbuf_enums.h"
 
 #include "DNA_defaults.h"
 
