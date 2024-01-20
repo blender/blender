@@ -283,7 +283,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
                                           day_string,
                                           (is_today || is_yesterday) ? "" : date_st,
                                           (is_today || is_yesterday) ? time_st : ""),
-                              nullptr,
+                              {},
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_NORMAL);
 
