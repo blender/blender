@@ -25,7 +25,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.h"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 // static CLG_LogRef LOG = {"bke.idtype"};
 

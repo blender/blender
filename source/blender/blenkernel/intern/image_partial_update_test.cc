@@ -7,7 +7,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_image.h"
 #include "BKE_image_partial_update.hh"
 #include "BKE_main.hh"

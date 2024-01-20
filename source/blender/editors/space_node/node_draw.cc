@@ -38,7 +38,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"

@@ -12,10 +12,7 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+struct AssetTypeInfo;
 struct BPathForeachPathData;
 struct BlendDataReader;
 struct BlendLibReader;
@@ -50,65 +47,55 @@ enum {
   IDTYPE_FLAGS_NO_MEMFILE_UNDO = 1 << 5,
 };
 
-typedef struct IDCacheKey {
+struct IDCacheKey {
   /* The session UUID of the ID owning the cached data. */
   unsigned int id_session_uuid;
   /* Value uniquely identifying the cache within its ID.
    * Typically the offset of its member in the data-block struct, but can be anything. */
   size_t identifier;
-} IDCacheKey;
+};
 
 uint BKE_idtype_cache_key_hash(const void *key_v);
 bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v);
 
 /* ********** Prototypes for #IDTypeInfo callbacks. ********** */
 
-typedef void (*IDTypeInitDataFunction)(struct ID *id);
+typedef void (*IDTypeInitDataFunction)(ID *id);
 
 /** \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more). */
-typedef void (*IDTypeCopyDataFunction)(struct Main *bmain,
-                                       struct ID *id_dst,
-                                       const struct ID *id_src,
-                                       int flag);
+typedef void (*IDTypeCopyDataFunction)(Main *bmain, ID *id_dst, const ID *id_src, int flag);
 
-typedef void (*IDTypeFreeDataFunction)(struct ID *id);
+typedef void (*IDTypeFreeDataFunction)(ID *id);
 
 /** \param flags: See BKE_lib_id.hh's LIB_ID_MAKELOCAL_... flags. */
-typedef void (*IDTypeMakeLocalFunction)(struct Main *bmain, struct ID *id, int flags);
+typedef void (*IDTypeMakeLocalFunction)(Main *bmain, ID *id, int flags);
 
-typedef void (*IDTypeForeachIDFunction)(struct ID *id, struct LibraryForeachIDData *data);
+typedef void (*IDTypeForeachIDFunction)(ID *id, LibraryForeachIDData *data);
 
 typedef enum eIDTypeInfoCacheCallbackFlags {
   /** Indicates to the callback that cache may be stored in the .blend file,
    * so its pointer should not be cleared at read-time. */
   IDTYPE_CACHE_CB_FLAGS_PERSISTENT = 1 << 0,
 } eIDTypeInfoCacheCallbackFlags;
-typedef void (*IDTypeForeachCacheFunctionCallback)(struct ID *id,
-                                                   const struct IDCacheKey *cache_key,
-                                                   void **cache_p,
-                                                   uint flags,
-                                                   void *user_data);
-typedef void (*IDTypeForeachCacheFunction)(struct ID *id,
+typedef void (*IDTypeForeachCacheFunctionCallback)(
+    ID *id, const IDCacheKey *cache_key, void **cache_p, uint flags, void *user_data);
+typedef void (*IDTypeForeachCacheFunction)(ID *id,
                                            IDTypeForeachCacheFunctionCallback function_callback,
                                            void *user_data);
 
-typedef void (*IDTypeForeachPathFunction)(struct ID *id, struct BPathForeachPathData *bpath_data);
+typedef void (*IDTypeForeachPathFunction)(ID *id, BPathForeachPathData *bpath_data);
 
-typedef struct ID **(*IDTypeEmbeddedOwnerPointerGetFunction)(struct ID *id);
+typedef ID **(*IDTypeEmbeddedOwnerPointerGetFunction)(ID *id);
 
-typedef void (*IDTypeBlendWriteFunction)(struct BlendWriter *writer,
-                                         struct ID *id,
-                                         const void *id_address);
-typedef void (*IDTypeBlendReadDataFunction)(struct BlendDataReader *reader, struct ID *id);
-typedef void (*IDTypeBlendReadAfterLiblinkFunction)(struct BlendLibReader *reader, struct ID *id);
+typedef void (*IDTypeBlendWriteFunction)(BlendWriter *writer, ID *id, const void *id_address);
+typedef void (*IDTypeBlendReadDataFunction)(BlendDataReader *reader, ID *id);
+typedef void (*IDTypeBlendReadAfterLiblinkFunction)(BlendLibReader *reader, ID *id);
 
-typedef void (*IDTypeBlendReadUndoPreserve)(struct BlendLibReader *reader,
-                                            struct ID *id_new,
-                                            struct ID *id_old);
+typedef void (*IDTypeBlendReadUndoPreserve)(BlendLibReader *reader, ID *id_new, ID *id_old);
 
-typedef void (*IDTypeLibOverrideApplyPost)(struct ID *id_dst, struct ID *id_src);
+typedef void (*IDTypeLibOverrideApplyPost)(ID *id_dst, ID *id_src);
 
-typedef struct IDTypeInfo {
+struct IDTypeInfo {
   /* ********** General IDType data. ********** */
 
   /**
@@ -145,7 +132,7 @@ typedef struct IDTypeInfo {
   /**
    * Information and callbacks for assets, based on the type of asset.
    */
-  struct AssetTypeInfo *asset_type_info;
+  AssetTypeInfo *asset_type_info;
 
   /* ********** ID management callbacks ********** */
 
@@ -229,7 +216,7 @@ typedef struct IDTypeInfo {
    * \note Currently needed for some update operation on point caches.
    */
   IDTypeLibOverrideApplyPost lib_override_apply_post;
-} IDTypeInfo;
+};
 
 /* ********** Declaration of each IDTypeInfo. ********** */
 
@@ -284,8 +271,8 @@ extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 void BKE_idtype_init(void);
 
 /* General helpers. */
-const struct IDTypeInfo *BKE_idtype_get_info_from_idcode(short id_code);
-const struct IDTypeInfo *BKE_idtype_get_info_from_id(const struct ID *id);
+const IDTypeInfo *BKE_idtype_get_info_from_idcode(short id_code);
+const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id);
 
 /**
  * Convert an \a idcode into a name.
@@ -382,10 +369,6 @@ short BKE_idtype_idcode_iter_step(int *index);
 /**
  * Wrapper around #IDTypeInfo foreach_cache that also handles embedded IDs.
  */
-void BKE_idtype_id_foreach_cache(struct ID *id,
+void BKE_idtype_id_foreach_cache(ID *id,
                                  IDTypeForeachCacheFunctionCallback function_callback,
                                  void *user_data);
-
-#ifdef __cplusplus
-}
-#endif

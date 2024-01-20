@@ -56,7 +56,7 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.h"

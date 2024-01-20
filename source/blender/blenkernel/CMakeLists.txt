@@ -405,7 +405,7 @@ set(SRC
   BKE_icons.h
   BKE_idprop.h
   BKE_idprop.hh
-  BKE_idtype.h
+  BKE_idtype.hh
   BKE_image.h
   BKE_image_format.h
   BKE_image_partial_update.hh

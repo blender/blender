@@ -17,7 +17,7 @@
 
 #include "BKE_action.h" /* XXX: BKE_pose_channel_find_name */
 #include "BKE_customdata.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_main.hh"
 
 #include "DNA_object_types.h"

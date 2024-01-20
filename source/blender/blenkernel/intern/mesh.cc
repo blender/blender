@@ -49,7 +49,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_key.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

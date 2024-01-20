@@ -45,7 +45,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_layer.h"

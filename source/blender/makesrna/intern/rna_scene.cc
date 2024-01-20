@@ -35,7 +35,7 @@
 
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_paint.hh"
 #include "BKE_volume.hh"
 

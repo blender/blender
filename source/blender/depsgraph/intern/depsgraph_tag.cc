@@ -30,7 +30,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.h"

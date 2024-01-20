@@ -54,7 +54,7 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

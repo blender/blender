@@ -62,7 +62,7 @@
 #include "BKE_screen.hh" /* BKE_ST_MAXNAME */
 #include "BKE_unit.hh"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "BLF_api.h"
 

@@ -35,7 +35,7 @@
 #  include "BKE_displist.h"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
-#  include "BKE_idtype.h"
+#  include "BKE_idtype.hh"
 #  include "BKE_image.h"
 #  include "BKE_lattice.hh"
 #  include "BKE_lib_remap.hh"

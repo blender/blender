@@ -61,7 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_idprop.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_image_format.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

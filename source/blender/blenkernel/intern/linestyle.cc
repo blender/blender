@@ -29,7 +29,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_freestyle.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_linestyle.h"
