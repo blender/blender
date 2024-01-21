@@ -9,10 +9,6 @@
 
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct Main;
 struct ReportList;
@@ -23,11 +19,11 @@ struct bContext;
 /**
  * Initialize a copy operation.
  */
-void BKE_copybuffer_copy_begin(struct Main *bmain_src);
+void BKE_copybuffer_copy_begin(Main *bmain_src);
 /**
  * Mark an ID to be copied. Should only be called after a call to #BKE_copybuffer_copy_begin.
  */
-void BKE_copybuffer_copy_tag_ID(struct ID *id);
+void BKE_copybuffer_copy_tag_ID(ID *id);
 /**
  * Finalize a copy operation into given .blend file 'buffer'.
  *
@@ -35,9 +31,7 @@ void BKE_copybuffer_copy_tag_ID(struct ID *id);
  *
  * \return true on success, false otherwise.
  */
-bool BKE_copybuffer_copy_end(struct Main *bmain_src,
-                             const char *filename,
-                             struct ReportList *reports);
+bool BKE_copybuffer_copy_end(Main *bmain_src, const char *filename, ReportList *reports);
 /**
  * Paste data-blocks from the given .blend file 'buffer' (i.e. append them).
  *
@@ -48,9 +42,9 @@ bool BKE_copybuffer_copy_end(struct Main *bmain_src,
  *
  * \return true on success, false otherwise.
  */
-bool BKE_copybuffer_read(struct Main *bmain_dst,
+bool BKE_copybuffer_read(Main *bmain_dst,
                          const char *libname,
-                         struct ReportList *reports,
+                         ReportList *reports,
                          uint64_t id_types_mask);
 /**
  * Paste data-blocks from the given .blend file 'buffer'  (i.e. append them).
@@ -66,12 +60,5 @@ bool BKE_copybuffer_read(struct Main *bmain_dst,
  * \return Number of IDs directly pasted from the buffer
  * (does not includes indirectly linked ones).
  */
-int BKE_copybuffer_paste(struct bContext *C,
-                         const char *libname,
-                         int flag,
-                         struct ReportList *reports,
-                         uint64_t id_types_mask);
-
-#ifdef __cplusplus
-}
-#endif
+int BKE_copybuffer_paste(
+    bContext *C, const char *libname, int flag, ReportList *reports, uint64_t id_types_mask);

@@ -24,7 +24,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_moviecache.hh"
 
-#include "BKE_blender_copybuffer.h" /* own include */
+#include "BKE_blender_copybuffer.hh" /* own include */
 #include "BKE_blendfile.hh"
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
