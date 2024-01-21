@@ -14,7 +14,7 @@
 
 #include "RNA_define.hh"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"

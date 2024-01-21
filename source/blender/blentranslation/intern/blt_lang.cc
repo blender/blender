@@ -25,7 +25,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 #include "IMB_thumbs.hh"
 

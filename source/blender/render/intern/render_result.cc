@@ -24,7 +24,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_image.h"

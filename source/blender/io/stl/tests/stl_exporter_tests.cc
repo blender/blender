@@ -4,7 +4,7 @@
 
 #include "tests/blendfile_loading_base_test.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_main.hh"
 
 #include "BLI_fileops.h"

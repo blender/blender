@@ -5,7 +5,7 @@
 
 #include "CLG_log.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"

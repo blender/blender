@@ -33,7 +33,7 @@
 #include "BPy_ViewMap.h"
 #include "BPy_ViewShape.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "DNA_scene_types.h"
 #include "FRS_freestyle.h"
 #include "RNA_access.hh"

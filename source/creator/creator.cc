@@ -32,7 +32,7 @@
 #include "BLI_utildefines.h"
 
 /* Mostly initialization functions. */
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender.h"
 #include "BKE_brush.hh"
 #include "BKE_cachefile.h"

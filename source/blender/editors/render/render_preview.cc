@@ -42,7 +42,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"

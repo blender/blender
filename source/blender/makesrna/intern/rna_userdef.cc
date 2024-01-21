@@ -29,7 +29,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_addon.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_callbacks.h"
 #include "BKE_sound.h"
 #include "BKE_studiolight.h"

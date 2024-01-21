@@ -5,7 +5,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.h"
 

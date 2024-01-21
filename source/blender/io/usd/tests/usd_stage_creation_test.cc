@@ -11,7 +11,7 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 namespace blender::io::usd {
 

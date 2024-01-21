@@ -8,7 +8,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph_query.hh"

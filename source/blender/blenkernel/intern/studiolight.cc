@@ -8,7 +8,7 @@
 
 #include "BKE_studiolight.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_icons.h"
 
 #include "BLI_dynstr.h"

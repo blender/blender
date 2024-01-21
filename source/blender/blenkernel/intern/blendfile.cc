@@ -30,7 +30,7 @@
 #include "IMB_colormanagement.hh"
 
 #include "BKE_addon.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender.h"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"

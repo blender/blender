@@ -20,7 +20,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 #include "ED_fileselect.hh"
 

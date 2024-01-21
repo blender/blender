@@ -25,7 +25,7 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_context.hh"

@@ -22,7 +22,7 @@
 #include "BLI_tempfile.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h" /* own include */
+#include "BKE_appdir.hh" /* own include */
 #include "BKE_blender_version.h"
 
 #include "BLT_translation.h"
