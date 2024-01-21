@@ -284,6 +284,36 @@ class Any {
     }
   }
 
+  /**
+   * Like #emplace but does *not* actually construct the value. The caller is responsible for
+   * calling the constructor before the value is used.
+   */
+  template<typename T> void *allocate()
+  {
+    this->reset();
+    return this->allocate_on_empty<T>();
+  }
+
+  /**
+   * Like #emplace_on_empty but does *not* actually construct the value. The caller is responsible
+   * for calling the constructor before the value is used.
+   */
+  template<typename T> void *allocate_on_empty()
+  {
+    BLI_assert(!this->has_value());
+    static_assert(is_allowed_v<T>);
+    info_ = &this->template get_info<T>();
+    if constexpr (is_inline_v<T>) {
+      return buffer_.ptr();
+    }
+    else {
+      /* Using #malloc so that the #unique_ptr can free the memory. */
+      T *value = static_cast<T *>(malloc(sizeof(T)));
+      new (&buffer_) std::unique_ptr<T>(value);
+      return value;
+    }
+  }
+
   /** Return true when the value that is currently stored is a #T. */
   template<typename T> bool is() const
   {

@@ -558,14 +558,16 @@ static void execute_multi_function_on_value_variant(const MultiFunction &fn,
     for (const int i : input_values.index_range()) {
       SocketValueVariant &input_variant = *input_values[i];
       input_variant.convert_to_single();
-      const GPointer value = input_variant.get_single_ptr();
-      params.add_readonly_single_input(value);
+      const void *value = input_variant.get_single_ptr_raw();
+      const CPPType &cpp_type = fn.param_type(params.next_param_index()).data_type().single_type();
+      params.add_readonly_single_input(GPointer{cpp_type, value});
     }
     for (const int i : output_values.index_range()) {
       SocketValueVariant &output_variant = *output_values[i];
       const CPPType &cpp_type = fn.param_type(params.next_param_index()).data_type().single_type();
-      void *value = output_variant.new_single_for_write(cpp_type);
-      cpp_type.destruct(value);
+      const eNodeSocketDatatype socket_type =
+          bke::geo_nodes_base_cpp_type_to_socket_type(cpp_type).value();
+      void *value = output_variant.allocate_single(socket_type);
       params.add_uninitialized_single_output(GMutableSpan{cpp_type, value, 1});
     }
     fn.call(mask, params, context);
