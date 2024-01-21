@@ -9,8 +9,7 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
-#endif
+extern "C" {KUSTUTA SEE ÄRA 
 
 struct ClothModifierData;
 struct Depsgraph;
