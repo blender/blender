@@ -23,7 +23,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_blender.h" /* own include */
-#include "BKE_blender_user_menu.h"
+#include "BKE_blender_user_menu.hh"
 #include "BKE_blender_version.h" /* own include */
 #include "BKE_blendfile.hh"
 #include "BKE_brush.hh"

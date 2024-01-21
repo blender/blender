@@ -341,7 +341,7 @@ set(SRC
   BKE_blender.h
   BKE_blender_copybuffer.h
   BKE_blender_undo.h
-  BKE_blender_user_menu.h
+  BKE_blender_user_menu.hh
   BKE_blender_version.h
   BKE_blendfile.hh
   BKE_blendfile_link_append.hh

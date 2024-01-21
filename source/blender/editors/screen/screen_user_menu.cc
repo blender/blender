@@ -21,7 +21,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_blender_user_menu.h"
+#include "BKE_blender_user_menu.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_screen.hh"
