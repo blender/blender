@@ -340,7 +340,7 @@ set(SRC
   BKE_bake_items_socket.hh
   BKE_blender.h
   BKE_blender_copybuffer.hh
-  BKE_blender_undo.h
+  BKE_blender_undo.hh
   BKE_blender_user_menu.hh
   BKE_blender_version.h
   BKE_blendfile.hh

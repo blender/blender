@@ -21,7 +21,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_blender_undo.h"
+#include "BKE_blender_undo.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
