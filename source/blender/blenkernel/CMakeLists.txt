@@ -332,7 +332,7 @@ set(SRC
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
-  BKE_autoexec.h
+  BKE_autoexec.hh
   BKE_bake_geometry_nodes_modifier.hh
   BKE_bake_items.hh
   BKE_bake_items_paths.hh

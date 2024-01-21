@@ -7,16 +7,8 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \param path: The path to check against.
  * \return Success
  */
 bool BKE_autoexec_match(const char *path);
-
-#ifdef __cplusplus
-}
-#endif
