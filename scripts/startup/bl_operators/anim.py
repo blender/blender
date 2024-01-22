@@ -593,7 +593,7 @@ class ARMATURE_OT_collection_remove_unused(Operator):
     bl_idname = "armature.collection_remove_unused"
     bl_label = "Remove Unused Bone Collections"
     bl_description = ("Remove all bone collections that have neither bones nor children.\n"
-        "This is done recursively, so bone collections that only have unused children are also removed")
+                      "This is done recursively, so bone collections that only have unused children are also removed")
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
