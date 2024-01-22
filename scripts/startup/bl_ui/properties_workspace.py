@@ -91,7 +91,7 @@ def addon_category_name(addon):
     if not module:
         return addon.module
     info = addon_utils.module_bl_info(module)
-    return (iface_("%s: %s") % (iface_(info["category"]), iface_(info["name"])))
+    return "%s: %s" % (iface_(info["category"]), iface_(info["name"]))
 
 
 class WORKSPACE_UL_addons_items(bpy.types.UIList):
