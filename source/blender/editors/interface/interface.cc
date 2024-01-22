@@ -3720,10 +3720,10 @@ static void ui_but_build_drawstr_float(uiBut *but, double value)
     const int precision = ui_but_calc_float_precision(but, value);
 
     if (U.factor_display_type == USER_FACTOR_AS_FACTOR) {
-      but->drawstr += fmt::format("{}{:.{}f}", but->str, value, precision);
+      but->drawstr = fmt::format("{}{:.{}f}", but->str, value, precision);
     }
     else {
-      but->drawstr += fmt::format("{}{:.{}f}", but->str, value * 100, std::max(0, precision - 2));
+      but->drawstr = fmt::format("{}{:.{}f}", but->str, value * 100, std::max(0, precision - 2));
     }
   }
   else if (ui_but_is_unit(but)) {
