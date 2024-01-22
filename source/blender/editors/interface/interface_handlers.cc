@@ -506,7 +506,7 @@ struct uiAfterFunc {
   std::optional<bContextStore> context;
 
   char undostr[BKE_UNDO_STR_MAX];
-  char drawstr[UI_MAX_DRAW_STR];
+  std::string drawstr;
 };
 
 static void button_activate_init(bContext *C,
@@ -794,7 +794,7 @@ static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
   }
 
   if (context_but) {
-    ui_but_drawstr_without_sep_char(context_but, after->drawstr, sizeof(after->drawstr));
+    after->drawstr = ui_but_drawstr_without_sep_char(context_but);
   }
 }
 
@@ -909,7 +909,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
     after->context = *but->context;
   }
 
-  ui_but_drawstr_without_sep_char(but, after->drawstr, sizeof(after->drawstr));
+  after->drawstr = ui_but_drawstr_without_sep_char(but);
 
   but->optype = nullptr;
   but->opcontext = wmOperatorCallContext(0);
@@ -929,11 +929,11 @@ static void ui_apply_but_undo(uiBut *but)
 
   /* define which string to use for undo */
   if (but->type == UI_BTYPE_MENU) {
-    str = but->drawstr;
+    str = but->drawstr.empty() ? nullptr : but->drawstr.c_str();
     str_len_clip = ui_but_drawstr_len_without_sep_char(but);
   }
-  else if (but->drawstr[0]) {
-    str = but->drawstr;
+  else if (!but->drawstr.empty()) {
+    str = but->drawstr.c_str();
     str_len_clip = ui_but_drawstr_len_without_sep_char(but);
   }
   else {
@@ -1042,7 +1042,7 @@ static void ui_apply_but_funcs_after(bContext *C)
                                                        after.opcontext,
                                                        (after.opptr) ? &opptr : nullptr,
                                                        nullptr,
-                                                       after.drawstr);
+                                                       after.drawstr.c_str());
     }
 
     if (after.opptr) {
@@ -2946,7 +2946,7 @@ void ui_but_clipboard_free()
 
 static int ui_text_position_from_hidden(uiBut *but, int pos)
 {
-  const char *butstr = (but->editstr) ? but->editstr : but->drawstr;
+  const char *butstr = (but->editstr) ? but->editstr : but->drawstr.c_str();
   const char *strpos = butstr;
   const char *str_end = butstr + strlen(butstr);
   for (int i = 0; i < pos; i++) {
@@ -2958,7 +2958,7 @@ static int ui_text_position_from_hidden(uiBut *but, int pos)
 
 static int ui_text_position_to_hidden(uiBut *but, int pos)
 {
-  const char *butstr = (but->editstr) ? but->editstr : but->drawstr;
+  const char *butstr = (but->editstr) ? but->editstr : but->drawstr.c_str();
   return BLI_strnlen_utf8(butstr, pos);
 }
 
@@ -2970,7 +2970,7 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
     return;
   }
 
-  char *butstr = (but->editstr) ? but->editstr : but->drawstr;
+  char *butstr = (but->editstr) ? but->editstr : but->drawstr.data();
 
   if (restore) {
     /* restore original string */
@@ -4616,7 +4616,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY, EVT_BUT_OPEN) &&
         (event->val == KM_PRESS))
     {
-      but->drawstr[0] = 0;
+      but->drawstr.clear();
       hotkey_but->modifier_key = 0;
       button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
       return WM_UI_HANDLER_BREAK;

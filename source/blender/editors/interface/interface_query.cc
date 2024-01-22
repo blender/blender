@@ -590,18 +590,18 @@ bool ui_but_contains_password(const uiBut *but)
 size_t ui_but_drawstr_len_without_sep_char(const uiBut *but)
 {
   if (but->flag & UI_BUT_HAS_SEP_CHAR) {
-    const char *str_sep = strrchr(but->drawstr, UI_SEP_CHAR);
-    if (str_sep != nullptr) {
-      return (str_sep - but->drawstr);
+    const size_t sep_index = but->drawstr.find(UI_SEP_CHAR);
+    if (sep_index != std::string::npos) {
+      return sep_index;
     }
   }
-  return strlen(but->drawstr);
+  return but->drawstr.size();
 }
 
-size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxncpy)
+blender::StringRef ui_but_drawstr_without_sep_char(const uiBut *but)
 {
   size_t str_len_clip = ui_but_drawstr_len_without_sep_char(but);
-  return BLI_strncpy_rlen(str, but->drawstr, min_zz(str_len_clip + 1, str_maxncpy));
+  return blender::StringRef(but->drawstr).substr(0, str_len_clip);
 }
 
 size_t ui_but_tip_len_only_first_line(const uiBut *but)

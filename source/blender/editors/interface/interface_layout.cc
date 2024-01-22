@@ -1312,7 +1312,7 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
   block->flag |= UI_BLOCK_POPUP_HOLD;
 
   char direction = UI_DIR_DOWN;
-  if (!but->drawstr[0]) {
+  if (but->drawstr.empty()) {
     switch (RGN_ALIGN_ENUM_FROM_MASK(butregion->alignment)) {
       case RGN_ALIGN_LEFT:
         direction = UI_DIR_RIGHT;
@@ -6265,7 +6265,7 @@ static void ui_layout_introspect_button(DynStr *ds, uiButtonItem *bitem)
 {
   uiBut *but = bitem->but;
   BLI_dynstr_appendf(ds, "'type':%d, ", int(but->type));
-  BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr);
+  BLI_dynstr_appendf(ds, "'draw_string':'''%s''', ", but->drawstr.c_str());
   /* Not exactly needed, rna has this. */
   BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");
 

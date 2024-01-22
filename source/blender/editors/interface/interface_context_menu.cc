@@ -375,8 +375,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
 {
   BLI_assert(ui_but_is_user_menu_compatible(C, but));
 
-  char drawstr[sizeof(but->drawstr)];
-  ui_but_drawstr_without_sep_char(but, drawstr, sizeof(drawstr));
+  std::string drawstr = ui_but_drawstr_without_sep_char(but);
 
   /* Used for USER_MENU_TYPE_MENU. */
   MenuType *mt = nullptr;
@@ -401,12 +400,12 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
                    idname);
           char *expr_result = nullptr;
           if (BPY_run_string_as_string(C, expr_imports, expr, nullptr, &expr_result)) {
-            STRNCPY(drawstr, expr_result);
+            drawstr = expr_result;
             MEM_freeN(expr_result);
           }
           else {
             BLI_assert(0);
-            STRNCPY(drawstr, idname);
+            drawstr = idname;
           }
         }
 #else
@@ -416,7 +415,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
     }
     ED_screen_user_menu_item_add_operator(
         &um->items,
-        drawstr,
+        drawstr.c_str(),
         but->optype,
         but->opptr ? static_cast<const IDProperty *>(but->opptr->data) : nullptr,
         "",
@@ -434,7 +433,7 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
     MEM_freeN(member_id_data_path);
   }
   else if ((mt = UI_but_menutype_get(but))) {
-    ED_screen_user_menu_item_add_menu(&um->items, drawstr, mt);
+    ED_screen_user_menu_item_add_menu(&um->items, drawstr.c_str(), mt);
   }
   else if ((ot = UI_but_operatortype_get_from_enum_menu(but, &prop))) {
     ED_screen_user_menu_item_add_operator(&um->items,

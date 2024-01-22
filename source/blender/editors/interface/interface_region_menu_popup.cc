@@ -247,7 +247,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
   }
   else if (pup->but) {
     /* Minimum width to enforce. */
-    if (pup->but->drawstr[0]) {
+    if (!pup->but->drawstr.empty()) {
       minwidth = BLI_rctf_size_x(&pup->but->rect);
     }
     else {

@@ -1801,8 +1801,7 @@ static bool ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
    * if this fails it only means edit-source fails - campbell */
   if (BLI_rctf_compare(&but_a->rect, &but_b->rect, FLT_EPSILON) && (but_a->type == but_b->type) &&
       (but_a->rnaprop == but_b->rnaprop) && (but_a->optype == but_b->optype) &&
-      (but_a->unit_type == but_b->unit_type) &&
-      STREQLEN(but_a->drawstr, but_b->drawstr, UI_MAX_DRAW_STR))
+      (but_a->unit_type == but_b->unit_type) && but_a->drawstr == but_b->drawstr)
   {
     return true;
   }
