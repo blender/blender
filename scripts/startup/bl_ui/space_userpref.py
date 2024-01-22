@@ -2075,6 +2075,18 @@ class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
 # -----------------------------------------------------------------------------
 # Add-On Panels
 
+# Only a popover.
+class USERPREF_PT_addons_filter(Panel):
+    bl_label = "Add-ons Filter"
+
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 12
+
+    def draw(self, context):
+        USERPREF_PT_addons._draw_addon_header_for_extensions_popover(self.layout, context)
+
+
 class AddOnPanel:
     bl_space_type = 'PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -2118,6 +2130,49 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         for l in lines[1:]:
             box.label(text=l)
 
+    @staticmethod
+    def _draw_addon_header(layout, prefs, wm):
+        split = layout.split(factor=0.6)
+
+        row = split.row()
+        row.prop(wm, "addon_support", expand=True)
+
+        row = split.row(align=True)
+        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
+        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
+
+        row = layout.row()
+        row.prop(prefs.view, "show_addons_enabled_only")
+        row.prop(wm, "addon_filter", text="")
+        row.prop(wm, "addon_search", text="", icon='VIEWZOOM')
+
+    @staticmethod
+    def _draw_addon_header_for_extensions(layout, prefs, wm):
+        row = layout.row()
+        row.prop(wm, "addon_search", text="", icon='VIEWZOOM')
+        row.popover("USERPREF_PT_addons_filter", text="", icon='FILTER')
+        # See `_draw_addon_header_for_extensions_popover` for most content.
+
+    @staticmethod
+    def _draw_addon_header_for_extensions_popover(layout, context):
+
+        wm = context.window_manager
+        prefs = context.preferences
+
+        row = layout.row()
+        row.prop(wm, "addon_support", expand=True)
+
+        row = layout.row()
+        row.prop(wm, "addon_filter", text="")
+
+        row = layout.row()
+        row.prop(prefs.view, "show_addons_enabled_only")
+
+        # Not filter, we could expose elsewhere.
+        row = layout.row()
+        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
+        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
+
     def draw(self, context):
         import os
         import addon_utils
@@ -2127,6 +2182,9 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         wm = context.window_manager
         prefs = context.preferences
         used_ext = {ext.module for ext in prefs.addons}
+
+        # Experimental UI changes proposed in: #117285.
+        use_extension_repos = prefs.experimental.use_extension_repos
 
         addon_user_dirs = tuple(
             p for p in (
@@ -2142,19 +2200,10 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             for mod in addon_utils.modules(refresh=False)
         ]
 
-        split = layout.split(factor=0.6)
-
-        row = split.row()
-        row.prop(wm, "addon_support", expand=True)
-
-        row = split.row(align=True)
-        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
-        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
-
-        row = layout.row()
-        row.prop(prefs.view, "show_addons_enabled_only")
-        row.prop(wm, "addon_filter", text="")
-        row.prop(wm, "addon_search", text="", icon='VIEWZOOM')
+        if use_extension_repos:
+            self._draw_addon_header_for_extensions(layout, prefs, wm)
+        else:
+            self._draw_addon_header(layout, prefs, wm)
 
         col = layout.column()
 
@@ -2226,11 +2275,12 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                     emboss=False,
                 ).module = module_name
 
-                row.operator(
-                    "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
-                    icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
-                    emboss=False,
-                ).module = module_name
+                if not use_extension_repos:
+                    row.operator(
+                        "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+                        icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
+                        emboss=False,
+                    ).module = module_name
 
                 sub = row.row()
                 sub.active = is_enabled
@@ -2319,6 +2369,12 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                                     traceback.print_exc()
                                     box_prefs.label(text="Error (see console)", icon='ERROR')
                                 del addon_preferences_class.layout
+                if use_extension_repos:
+                    row.operator(
+                        "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+                        icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
+                        emboss=False,
+                    ).module = module_name
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
@@ -2720,6 +2776,7 @@ classes = (
 
     # Popovers.
     USERPREF_PT_ndof_settings,
+    USERPREF_PT_addons_filter,
 
     USERPREF_PT_experimental_new_features,
     USERPREF_PT_experimental_prototypes,
