@@ -85,16 +85,18 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
                 ).owner_id = module_name
 
 
-def addon_category_name(addon):
-    import addon_utils
-    module = WORKSPACE_PT_addons.addon_map.get(addon.module)
-    if not module:
-        return addon.module
-    info = addon_utils.module_bl_info(module)
-    return "%s: %s" % (iface_(info["category"]), iface_(info["name"]))
-
-
 class WORKSPACE_UL_addons_items(bpy.types.UIList):
+
+    @staticmethod
+    def _ui_label_from_addon(addon):
+        # Return: `Category: Addon Name` when the add-on is known, otherwise it's module name.
+        import addon_utils
+        module = WORKSPACE_PT_addons.addon_map.get(addon.module)
+        if not module:
+            return addon.module
+        info = addon_utils.module_bl_info(module)
+        return "%s: %s" % (iface_(info["category"]), iface_(info["name"]))
+
     @staticmethod
     def _filter_addons_by_category_name(pattern, bitflag, addons, reverse=False):
         # Set FILTER_ITEM for addons which category and name matches filter_name one (case-insensitive).
@@ -114,7 +116,7 @@ class WORKSPACE_UL_addons_items(bpy.types.UIList):
         flags = [0] * len(addons)
 
         for i, addon in enumerate(addons):
-            name = addon_category_name(addon)
+            name = WORKSPACE_UL_addons_items._ui_label_from_addon(addon)
             # This is similar to a logical XOR.
             if bool(name and pattern_regex.match(name)) is not reverse:
                 flags[i] |= bitflag
@@ -124,7 +126,7 @@ class WORKSPACE_UL_addons_items(bpy.types.UIList):
     def _sort_addons_by_category_name(addons):
         # Re-order addons using their categories and names (case-insensitive).
         # return a list mapping org_idx -> new_idx, or an empty list if no sorting has been done.
-        _sort = [(idx, addon_category_name(addon)) for idx, addon in enumerate(addons)]
+        _sort = [(idx, WORKSPACE_UL_addons_items._ui_label_from_addon(addon)) for idx, addon in enumerate(addons)]
         return bpy.types.UI_UL_list.sort_items_helper(_sort, lambda e: e[1].lower())
 
     def filter_items(self, _context, data, property):
@@ -150,7 +152,7 @@ class WORKSPACE_UL_addons_items(bpy.types.UIList):
         row = layout.row()
         row.active = context.workspace.use_filter_by_owner
         row.emboss = 'NONE'
-        row.label(text=addon_category_name(addon))
+        row.label(text=WORKSPACE_UL_addons_items._ui_label_from_addon(addon))
         row = row.row()
         row.alignment = 'RIGHT'
         is_enabled = addon.module in WORKSPACE_PT_addons.owner_ids
