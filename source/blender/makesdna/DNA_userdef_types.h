@@ -1295,7 +1295,7 @@ typedef enum eKeying_Flag {
   KEYING_FLAG_XYZ2RGB = (1 << 3),
   KEYING_FLAG_CYCLEAWARE = (1 << 8),
 
-  /* Autokey options. */
+  /* Auto-key options. */
   AUTOKEY_FLAG_INSERTAVAILABLE = (1 << 0),
   AUTOKEY_FLAG_INSERTNEEDED = (1 << 1),
   AUTOKEY_FLAG_ONLYKEYINGSET = (1 << 6),

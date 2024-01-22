@@ -2455,7 +2455,7 @@ int ui_handler_panel_region(bContext *C,
       continue;
     }
     /* We can't expand or collapse panels without headers, they would disappear. Layout panels can
-     * be expanded and collpased though. */
+     * be expanded and collapsed though. */
     const bool has_panel_header = !(panel->type->flag & PANEL_TYPE_NO_HEADER);
 
     int mx = event->xy[0];

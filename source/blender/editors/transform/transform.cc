@@ -528,7 +528,7 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
   ED_area_status_text(t->area, nullptr);
 
   if (t->spacetype == SPACE_VIEW3D) {
-    /* if autokeying is enabled, send notifiers that keyframes were added */
+    /* If auto-keying is enabled, send notifiers that keyframes were added. */
     if (blender::animrig::is_autokey_on(t->scene)) {
       WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
     }
@@ -1504,8 +1504,10 @@ static void drawTransformView(const bContext * /*C*/, ARegion *region, void *arg
   }
 }
 
-/* just draw a little warning message in the top-right corner of the viewport
- * to warn that autokeying is enabled */
+/**
+ * Just draw a little warning message in the top-right corner of the viewport
+ * to warn that auto-keying is enabled.
+ */
 static void drawAutoKeyWarning(TransInfo *t, ARegion *region)
 {
   const char *printable = IFACE_("Auto Keying On");

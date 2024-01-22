@@ -121,7 +121,7 @@ struct IDTypeInfo {
 
   /** The user visible name for this data-block, also used as default name for a new data-block. */
   const char *name;
-  /** Plural version of the user-visble name. */
+  /** Plural version of the user-visible name. */
   const char *name_plural;
   /** Translation context to use for UI messages related to that type of data-block. */
   const char *translation_context;
