@@ -2656,7 +2656,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 13)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == CMP_NODE_MAP_UV) {
             node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
           }
