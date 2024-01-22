@@ -389,28 +389,6 @@ static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const f
   srgb_to_linearrgb_v4(col->color, values);
 }
 
-/* Int8 Attribute. */
-
-static int rna_ByteIntAttributeValue_get(PointerRNA *ptr)
-{
-  int8_t *value = (int8_t *)ptr->data;
-  return int(*value);
-}
-
-static void rna_ByteIntAttributeValue_set(PointerRNA *ptr, const int new_value)
-{
-  int8_t *value = (int8_t *)ptr->data;
-  if (new_value > INT8_MAX) {
-    *value = INT8_MAX;
-  }
-  else if (new_value < INT8_MIN) {
-    *value = INT8_MIN;
-  }
-  else {
-    *value = int8_t(new_value);
-  }
-}
-
 /* Attribute Group */
 
 static PointerRNA rna_AttributeGroup_new(
@@ -1044,8 +1022,7 @@ static void rna_def_attribute_int8(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "8-bit Integer Attribute Value", "8-bit value in geometry attribute");
   prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
-  RNA_def_property_int_funcs(
-      prop, "rna_ByteIntAttributeValue_get", "rna_ByteIntAttributeValue_set", nullptr);
+  RNA_def_property_int_sdna(prop, nullptr, "i");
 }
 
 static void rna_def_attribute_int2(BlenderRNA *brna)
