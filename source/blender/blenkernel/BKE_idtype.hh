@@ -48,8 +48,8 @@ enum {
 };
 
 struct IDCacheKey {
-  /* The session UUID of the ID owning the cached data. */
-  unsigned int id_session_uuid;
+  /* The session UID of the ID owning the cached data. */
+  unsigned int id_session_uid;
   /* Value uniquely identifying the cache within its ID.
    * Typically the offset of its member in the data-block struct, but can be anything. */
   size_t identifier;

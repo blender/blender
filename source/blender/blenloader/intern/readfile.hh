@@ -118,11 +118,11 @@ struct FileData {
   /** Used for undo. */
   ListBase *old_mainlist;
   /**
-   * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
+   * IDMap using UID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
-  IDNameLib_Map *old_idmap_uuid;
+  IDNameLib_Map *old_idmap_uid;
   /**
-   * IDMap using uuids as keys of the IDs read (or moved) in the new main(s).
+   * IDMap using uids as keys of the IDs read (or moved) in the new main(s).
    *
    * Used during undo to ensure that the ID pointers from the 'no undo' IDs remain valid (these
    * IDs are re-used from old main even if their content is not the same as in the memfile undo
@@ -130,7 +130,7 @@ struct FileData {
    *
    * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
    * read memfile. */
-  IDNameLib_Map *new_idmap_uuid;
+  IDNameLib_Map *new_idmap_uid;
 
   BlendFileReadReport *reports;
 };

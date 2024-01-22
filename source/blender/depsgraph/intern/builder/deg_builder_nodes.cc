@@ -150,7 +150,7 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-  BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+  BLI_assert(id->session_uid != MAIN_ID_SESSION_UID_UNSET);
 
   const ID_Type id_type = GS(id->name);
   IDNode *id_node = nullptr;
@@ -158,7 +158,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   IDComponentsMask previously_visible_components_mask = 0;
   uint32_t previous_eval_flags = 0;
   DEGCustomDataMeshMasks previous_customdata_masks;
-  IDInfo *id_info = id_info_hash_.lookup_default(id->session_uuid, nullptr);
+  IDInfo *id_info = id_info_hash_.lookup_default(id->session_uid, nullptr);
   if (id_info != nullptr) {
     id_cow = id_info->id_cow;
     previously_visible_components_mask = id_info->previously_visible_components_mask;
@@ -397,8 +397,8 @@ void DepsgraphNodeBuilder::begin_build()
     id_info->previously_visible_components_mask = id_node->visible_components_mask;
     id_info->previous_eval_flags = id_node->eval_flags;
     id_info->previous_customdata_masks = id_node->customdata_masks;
-    BLI_assert(!id_info_hash_.contains(id_node->id_orig_session_uuid));
-    id_info_hash_.add_new(id_node->id_orig_session_uuid, id_info);
+    BLI_assert(!id_info_hash_.contains(id_node->id_orig_session_uid));
+    id_info_hash_.add_new(id_node->id_orig_session_uid, id_info);
     id_node->id_cow = nullptr;
   }
 

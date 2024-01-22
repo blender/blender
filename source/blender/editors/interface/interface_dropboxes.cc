@@ -93,7 +93,7 @@ static bool ui_drop_material_poll(bContext *C, wmDrag *drag, const wmEvent * /*e
 static void ui_drop_material_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   const ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, ID_MA);
-  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
 }
 
 static std::string ui_drop_material_tooltip(bContext *C,

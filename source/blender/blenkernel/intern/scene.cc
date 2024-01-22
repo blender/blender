@@ -498,8 +498,8 @@ static void scene_foreach_toolsettings_id_pointer_process(
       ID *id_old = *id_old_p;
       /* Old data has not been remapped to new values of the pointers, if we want to keep the old
        * pointer here we need its new address. */
-      ID *id_old_new = id_old != nullptr ? BLO_read_get_new_id_address_from_session_uuid(
-                                               reader, id_old->session_uuid) :
+      ID *id_old_new = id_old != nullptr ? BLO_read_get_new_id_address_from_session_uid(
+                                               reader, id_old->session_uid) :
                                            nullptr;
       /* The new address may be the same as the old one, in which case there is nothing to do. */
       if (id_old_new == id_old) {
@@ -521,10 +521,10 @@ static void scene_foreach_toolsettings_id_pointer_process(
        * There is a nasty twist here though: a previous call to 'undo_preserve' on the Scene ID may
        * have modified it, even though the undo step detected it as unmodified. In such case, the
        * value of `*id_p` may end up also pointing to an invalid (no more in newly read Main) ID,
-       * so it also needs to be checked from its `session_uuid`. */
+       * so it also needs to be checked from its `session_uid`. */
       ID *id = *id_p;
       ID *id_new = id != nullptr ?
-                       BLO_read_get_new_id_address_from_session_uuid(reader, id->session_uuid) :
+                       BLO_read_get_new_id_address_from_session_uid(reader, id->session_uid) :
                        nullptr;
       if (id_new != id) {
         *id_p = id_new;
@@ -964,7 +964,7 @@ static void scene_foreach_cache(ID *id,
 {
   Scene *scene = (Scene *)id;
   IDCacheKey key{};
-  key.id_session_uuid = id->session_uuid;
+  key.id_session_uid = id->session_uid;
   key.identifier = offsetof(Scene, eevee.light_cache_data);
 
   function_callback(id,

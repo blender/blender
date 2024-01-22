@@ -22,7 +22,7 @@ class ModifierComputeContext : public ComputeContext {
   static constexpr const char *s_static_type = "MODIFIER";
 
   /**
-   * Use modifier name instead of something like `session_uuid` for now because:
+   * Use modifier name instead of something like `session_uid` for now because:
    * - It's more obvious that the name matches between the original and evaluated object.
    * - We might want that the context hash is consistent between sessions in the future.
    */

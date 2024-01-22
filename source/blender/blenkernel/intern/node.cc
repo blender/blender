@@ -398,7 +398,7 @@ static void node_foreach_cache(ID *id,
 {
   bNodeTree *nodetree = reinterpret_cast<bNodeTree *>(id);
   IDCacheKey key = {0};
-  key.id_session_uuid = id->session_uuid;
+  key.id_session_uid = id->session_uid;
   key.identifier = offsetof(bNodeTree, previews);
 
   /* TODO: see also `direct_link_nodetree()` in `readfile.cc`. */

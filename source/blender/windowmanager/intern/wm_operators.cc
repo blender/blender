@@ -1564,7 +1564,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
   }
 
   /* Lookup an already existing ID. */
-  id = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_Type(idcode));
+  id = WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_Type(idcode));
 
   if (!id) {
     /* Print error with the name if the name is available. */

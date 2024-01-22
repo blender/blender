@@ -685,7 +685,7 @@ Curve *BKE_object_to_curve(Object *object, Depsgraph *depsgraph, bool apply_modi
 
 void BKE_object_to_curve_clear(Object *object);
 
-void BKE_object_check_uuids_unique_and_report(const Object *object);
+void BKE_object_check_uids_unique_and_report(const Object *object);
 
 /**
  * Return the last subsurf modifier of an object, this does not check whether modifiers on top of

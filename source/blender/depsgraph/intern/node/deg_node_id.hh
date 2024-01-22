@@ -71,7 +71,7 @@ struct IDNode : public Node {
    * Is used on relations update to map evaluated state from old nodes to the new ones, without
    * relying on pointers (which are not guaranteed to be unique) and without dereferencing id_orig
    * which could be "stale" pointer. */
-  uint id_orig_session_uuid;
+  uint id_orig_session_uid;
 
   /* Evaluated data-block.
    * Will be covered by the copy-on-write system if the ID Type needs it. */

@@ -493,7 +493,7 @@ typedef struct ID {
    * A session-wide unique identifier for a given ID, that remain the same across potential
    * re-allocations (e.g. due to undo/redo steps).
    */
-  unsigned int session_uuid;
+  unsigned int session_uid;
 
   IDProperty *properties;
 
@@ -914,7 +914,7 @@ enum {
    * processing, because it is a 'NO_UNDO' type of ID.
    *
    * \note: Also means that such ID does not need to be lib-linked during undo readfile process. It
-   * does need to be relinked in a different way however, doing a `session_uuid`-based lookup into
+   * does need to be relinked in a different way however, doing a `session_uid`-based lookup into
    * the newly read main database.
    *
    * RESET_AFTER_USE
@@ -941,7 +941,7 @@ enum {
    * RESET_NEVER
    *
    * Don't allow assigning this to non-temporary members (since it's likely to cause errors).
-   * When set #ID.session_uuid isn't initialized, since the data isn't part of the session.
+   * When set #ID.session_uid isn't initialized, since the data isn't part of the session.
    */
   LIB_TAG_TEMP_MAIN = 1 << 20,
   /** General ID management info, for freeing or copying behavior e.g. */

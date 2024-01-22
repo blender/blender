@@ -121,7 +121,7 @@ static void sound_foreach_cache(ID *id,
 {
   bSound *sound = (bSound *)id;
   IDCacheKey key{};
-  key.id_session_uuid = id->session_uuid;
+  key.id_session_uid = id->session_uid;
   key.identifier = offsetof(bSound, waveform);
 
   function_callback(id, &key, &sound->waveform, 0, user_data);

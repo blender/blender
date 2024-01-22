@@ -470,17 +470,17 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
               bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p))
       {
         *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
-        (*entry_p)->session_uuid = self_id->session_uuid;
+        (*entry_p)->session_uid = self_id->session_uid;
       }
       else {
-        BLI_assert((*entry_p)->session_uuid == self_id->session_uuid);
+        BLI_assert((*entry_p)->session_uid == self_id->session_uid);
       }
       MainIDRelationsEntryItem *to_id_entry = static_cast<MainIDRelationsEntryItem *>(
           BLI_mempool_alloc(bmain_relations->entry_items_pool));
       to_id_entry->next = (*entry_p)->to_ids;
       to_id_entry->id_pointer.to = id_pointer;
-      to_id_entry->session_uuid = (*id_pointer != nullptr) ? (*id_pointer)->session_uuid :
-                                                             MAIN_ID_SESSION_UUID_UNSET;
+      to_id_entry->session_uid = (*id_pointer != nullptr) ? (*id_pointer)->session_uid :
+                                                            MAIN_ID_SESSION_UID_UNSET;
       to_id_entry->usage_flag = cb_flag;
       (*entry_p)->to_ids = to_id_entry;
     }
@@ -491,16 +491,16 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
               bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p))
       {
         *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
-        (*entry_p)->session_uuid = (*id_pointer)->session_uuid;
+        (*entry_p)->session_uid = (*id_pointer)->session_uid;
       }
       else {
-        BLI_assert((*entry_p)->session_uuid == (*id_pointer)->session_uuid);
+        BLI_assert((*entry_p)->session_uid == (*id_pointer)->session_uid);
       }
       MainIDRelationsEntryItem *from_id_entry = static_cast<MainIDRelationsEntryItem *>(
           BLI_mempool_alloc(bmain_relations->entry_items_pool));
       from_id_entry->next = (*entry_p)->from_ids;
       from_id_entry->id_pointer.from = self_id;
-      from_id_entry->session_uuid = self_id->session_uuid;
+      from_id_entry->session_uid = self_id->session_uid;
       from_id_entry->usage_flag = cb_flag;
       (*entry_p)->from_ids = from_id_entry;
     }
@@ -533,10 +533,10 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     MainIDRelationsEntry **entry_p;
     if (!BLI_ghash_ensure_p(bmain->relations->relations_from_pointers, id, (void ***)&entry_p)) {
       *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
-      (*entry_p)->session_uuid = id->session_uuid;
+      (*entry_p)->session_uid = id->session_uid;
     }
     else {
-      BLI_assert((*entry_p)->session_uuid == id->session_uuid);
+      BLI_assert((*entry_p)->session_uid == id->session_uid);
     }
 
     BKE_library_foreach_ID_link(

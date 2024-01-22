@@ -18,7 +18,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_session_uuid.h"
+#include "BLI_session_uid.h"
 #include "BLI_string.h"
 
 #ifdef WIN32
@@ -67,7 +67,7 @@ struct SeqIndexBuildContext {
   Depsgraph *depsgraph;
   Scene *scene;
   Sequence *seq, *orig_seq;
-  SessionUUID orig_seq_uuid;
+  SessionUID orig_seq_uid;
 };
 
 int SEQ_rendersize_to_proxysize(int render_size)
@@ -477,7 +477,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     context->depsgraph = depsgraph;
     context->scene = scene;
     context->orig_seq = seq;
-    context->orig_seq_uuid = seq->runtime.session_uuid;
+    context->orig_seq_uid = seq->runtime.session_uid;
     context->seq = nseq;
 
     context->view_id = i; /* only for images */

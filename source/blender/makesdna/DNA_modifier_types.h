@@ -12,7 +12,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 
 #ifdef __cplusplus
 namespace blender {
@@ -138,7 +138,7 @@ typedef struct ModifierData {
   char *error;
 
   /** Runtime field which contains unique identifier of the modifier. */
-  SessionUUID session_uuid;
+  SessionUID session_uid;
 
   /** Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;

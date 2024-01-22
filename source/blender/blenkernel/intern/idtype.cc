@@ -32,7 +32,7 @@
 uint BKE_idtype_cache_key_hash(const void *key_v)
 {
   const IDCacheKey *key = static_cast<const IDCacheKey *>(key_v);
-  size_t hash = BLI_ghashutil_uinthash(key->id_session_uuid);
+  size_t hash = BLI_ghashutil_uinthash(key->id_session_uid);
   hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_uinthash(uint(key->identifier)));
   return uint(hash);
 }
@@ -41,7 +41,7 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
 {
   const IDCacheKey *key_a = static_cast<const IDCacheKey *>(key_a_v);
   const IDCacheKey *key_b = static_cast<const IDCacheKey *>(key_b_v);
-  return (key_a->id_session_uuid != key_b->id_session_uuid) ||
+  return (key_a->id_session_uid != key_b->id_session_uid) ||
          (key_a->identifier != key_b->identifier);
 }
 

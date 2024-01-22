@@ -782,9 +782,9 @@ void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
   }
 
   ID_Type asset_id_type = asset_drag->asset->get_id_type();
-  /* Try to find the imported ID. For this to work either a "session_uuid" or "name" property must
+  /* Try to find the imported ID. For this to work either a "session_uid" or "name" property must
    * have been defined (see #WM_operator_properties_id_lookup()). */
-  ID *id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
+  ID *id = WM_operator_properties_id_lookup_from_name_or_session_uid(
       bmain, drop->ptr, asset_id_type);
   if (id != nullptr) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will

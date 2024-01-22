@@ -206,9 +206,9 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
   }
 
   /* Conceptually, an ID made local is not the same as the linked one anymore. Reflect that by
-   * regenerating its session UUID. */
+   * regenerating its session UID. */
   if ((id->tag & LIB_TAG_TEMP_MAIN) == 0) {
-    BKE_lib_libblock_session_uuid_renew(id);
+    BKE_lib_libblock_session_uid_renew(id);
   }
 
   if (ID_IS_ASSET(id)) {
@@ -1021,7 +1021,7 @@ void BKE_libblock_management_main_add(Main *bmain, void *idv)
   bmain->is_memfile_undo_written = false;
   BKE_main_unlock(bmain);
 
-  BKE_lib_libblock_session_uuid_ensure(id);
+  BKE_lib_libblock_session_uid_ensure(id);
 }
 
 void BKE_libblock_management_main_remove(Main *bmain, void *idv)
@@ -1268,11 +1268,11 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
     }
 
-    /* We also need to ensure a valid `session_uuid` for some non-main data (like embedded IDs).
+    /* We also need to ensure a valid `session_uid` for some non-main data (like embedded IDs).
      * IDs not allocated however should not need those (this would e.g. avoid generating session
-     * uuids for depsgraph CoW IDs, if it was using this function). */
+     * uids for depsgraph CoW IDs, if it was using this function). */
     if ((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
-      BKE_lib_libblock_session_uuid_ensure(id);
+      BKE_lib_libblock_session_uid_ensure(id);
     }
   }
 
@@ -1301,26 +1301,26 @@ void BKE_libblock_runtime_reset_remapping_status(ID *id)
   id->runtime.remap.skipped_indirect = 0;
 }
 
-/* ********** ID session-wise UUID management. ********** */
-static uint global_session_uuid = 0;
+/* ********** ID session-wise UID management. ********** */
+static uint global_session_uid = 0;
 
-void BKE_lib_libblock_session_uuid_ensure(ID *id)
+void BKE_lib_libblock_session_uid_ensure(ID *id)
 {
-  if (id->session_uuid == MAIN_ID_SESSION_UUID_UNSET) {
+  if (id->session_uid == MAIN_ID_SESSION_UID_UNSET) {
     BLI_assert((id->tag & LIB_TAG_TEMP_MAIN) == 0); /* Caller must ensure this. */
-    id->session_uuid = atomic_add_and_fetch_uint32(&global_session_uuid, 1);
+    id->session_uid = atomic_add_and_fetch_uint32(&global_session_uid, 1);
     /* In case overflow happens, still assign a valid ID. This way opening files many times works
      * correctly. */
-    if (UNLIKELY(id->session_uuid == MAIN_ID_SESSION_UUID_UNSET)) {
-      id->session_uuid = atomic_add_and_fetch_uint32(&global_session_uuid, 1);
+    if (UNLIKELY(id->session_uid == MAIN_ID_SESSION_UID_UNSET)) {
+      id->session_uid = atomic_add_and_fetch_uint32(&global_session_uid, 1);
     }
   }
 }
 
-void BKE_lib_libblock_session_uuid_renew(ID *id)
+void BKE_lib_libblock_session_uid_renew(ID *id)
 {
-  id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
-  BKE_lib_libblock_session_uuid_ensure(id);
+  id->session_uid = MAIN_ID_SESSION_UID_UNSET;
+  BKE_lib_libblock_session_uid_ensure(id);
 }
 
 void *BKE_id_new(Main *bmain, const short type, const char *name)
@@ -1477,12 +1477,12 @@ ID *BKE_libblock_find_name(Main *bmain, const short type, const char *name)
   return static_cast<ID *>(BLI_findstring(lb, name, offsetof(ID, name) + 2));
 }
 
-ID *BKE_libblock_find_session_uuid(Main *bmain, const short type, const uint32_t session_uuid)
+ID *BKE_libblock_find_session_uid(Main *bmain, const short type, const uint32_t session_uid)
 {
   ListBase *lb = which_libbase(bmain, type);
   BLI_assert(lb != nullptr);
   LISTBASE_FOREACH (ID *, id, lb) {
-    if (id->session_uuid == session_uuid) {
+    if (id->session_uid == session_uid) {
       return id;
     }
   }

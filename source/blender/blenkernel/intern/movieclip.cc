@@ -141,7 +141,7 @@ static void movie_clip_foreach_cache(ID *id,
 {
   MovieClip *movie_clip = (MovieClip *)id;
   IDCacheKey key{};
-  key.id_session_uuid = id->session_uuid;
+  key.id_session_uid = id->session_uid;
   key.identifier = offsetof(MovieClip, cache);
   function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
 

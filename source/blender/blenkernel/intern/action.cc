@@ -28,7 +28,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_session_uuid.h"
+#include "BLI_session_uid.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -593,9 +593,9 @@ void action_groups_clear_tempflags(bAction *act)
 
 /* *************** Pose channels *************** */
 
-void BKE_pose_channel_session_uuid_generate(bPoseChannel *pchan)
+void BKE_pose_channel_session_uid_generate(bPoseChannel *pchan)
 {
-  pchan->runtime.session_uuid = BLI_session_uuid_generate();
+  pchan->runtime.session_uid = BLI_session_uid_generate();
 }
 
 bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
@@ -629,7 +629,7 @@ bPoseChannel *BKE_pose_channel_ensure(bPose *pose, const char *name)
   /* If not, create it and add it */
   chan = static_cast<bPoseChannel *>(MEM_callocN(sizeof(bPoseChannel), "verifyPoseChannel"));
 
-  BKE_pose_channel_session_uuid_generate(chan);
+  BKE_pose_channel_session_uid_generate(chan);
 
   STRNCPY(chan->name, name);
 
@@ -793,7 +793,7 @@ void BKE_pose_copy_data_ex(bPose **dst,
     }
 
     if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
-      BKE_pose_channel_session_uuid_generate(pchan);
+      BKE_pose_channel_session_uid_generate(pchan);
     }
 
     /* warning, O(n2) here, if done without the hash, but these are rarely used features. */
@@ -1033,9 +1033,9 @@ void BKE_pose_channel_runtime_reset(bPoseChannel_Runtime *runtime)
 
 void BKE_pose_channel_runtime_reset_on_copy(bPoseChannel_Runtime *runtime)
 {
-  const SessionUUID uuid = runtime->session_uuid;
+  const SessionUID uid = runtime->session_uid;
   memset(runtime, 0, sizeof(*runtime));
-  runtime->session_uuid = uuid;
+  runtime->session_uid = uid;
 }
 
 void BKE_pose_channel_runtime_free(bPoseChannel_Runtime *runtime)
@@ -1778,31 +1778,31 @@ void what_does_obaction(Object *ob,
   }
 }
 
-void BKE_pose_check_uuids_unique_and_report(const bPose *pose)
+void BKE_pose_check_uids_unique_and_report(const bPose *pose)
 {
   if (pose == nullptr) {
     return;
   }
 
-  GSet *used_uuids = BLI_gset_new(
-      BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
+  GSet *used_uids = BLI_gset_new(
+      BLI_session_uid_ghash_hash, BLI_session_uid_ghash_compare, "sequencer used uids");
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    const SessionUUID *session_uuid = &pchan->runtime.session_uuid;
-    if (!BLI_session_uuid_is_generated(session_uuid)) {
-      printf("Pose channel %s does not have UUID generated.\n", pchan->name);
+    const SessionUID *session_uid = &pchan->runtime.session_uid;
+    if (!BLI_session_uid_is_generated(session_uid)) {
+      printf("Pose channel %s does not have UID generated.\n", pchan->name);
       continue;
     }
 
-    if (BLI_gset_lookup(used_uuids, session_uuid) != nullptr) {
-      printf("Pose channel %s has duplicate UUID generated.\n", pchan->name);
+    if (BLI_gset_lookup(used_uids, session_uid) != nullptr) {
+      printf("Pose channel %s has duplicate UID generated.\n", pchan->name);
       continue;
     }
 
-    BLI_gset_insert(used_uuids, (void *)session_uuid);
+    BLI_gset_insert(used_uids, (void *)session_uid);
   }
 
-  BLI_gset_free(used_uuids, nullptr);
+  BLI_gset_free(used_uids, nullptr);
 }
 
 void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
@@ -1868,7 +1868,7 @@ void BKE_pose_blend_read_data(BlendDataReader *reader, ID *id_owner, bPose *pose
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     BKE_pose_channel_runtime_reset(&pchan->runtime);
-    BKE_pose_channel_session_uuid_generate(pchan);
+    BKE_pose_channel_session_uid_generate(pchan);
 
     pchan->bone = nullptr;
     BLO_read_data_address(reader, &pchan->parent);

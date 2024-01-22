@@ -58,10 +58,10 @@ void ObjectRuntimeBackup::backup_modifier_runtime_data(Object *object)
       continue;
     }
 
-    const SessionUUID &session_uuid = modifier_data->session_uuid;
-    BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
+    const SessionUID &session_uid = modifier_data->session_uid;
+    BLI_assert(BLI_session_uid_is_generated(&session_uid));
 
-    modifier_runtime_data.add(session_uuid, ModifierDataBackup(modifier_data));
+    modifier_runtime_data.add(session_uid, ModifierDataBackup(modifier_data));
     modifier_data->runtime = nullptr;
   }
 }
@@ -70,10 +70,10 @@ void ObjectRuntimeBackup::backup_pose_channel_runtime_data(Object *object)
 {
   if (object->pose != nullptr) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      const SessionUUID &session_uuid = pchan->runtime.session_uuid;
-      BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
+      const SessionUID &session_uid = pchan->runtime.session_uid;
+      BLI_assert(BLI_session_uid_is_generated(&session_uid));
 
-      pose_channel_runtime_data.add(session_uuid, pchan->runtime);
+      pose_channel_runtime_data.add(session_uid, pchan->runtime);
       BKE_pose_channel_runtime_reset(&pchan->runtime);
     }
   }
@@ -149,10 +149,10 @@ void ObjectRuntimeBackup::restore_to_object(Object *object)
 void ObjectRuntimeBackup::restore_modifier_runtime_data(Object *object)
 {
   LISTBASE_FOREACH (ModifierData *, modifier_data, &object->modifiers) {
-    const SessionUUID &session_uuid = modifier_data->session_uuid;
-    BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
+    const SessionUID &session_uid = modifier_data->session_uid;
+    BLI_assert(BLI_session_uid_is_generated(&session_uid));
 
-    optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(session_uuid);
+    optional<ModifierDataBackup> backup = modifier_runtime_data.pop_try(session_uid);
     if (backup.has_value()) {
       modifier_data->runtime = backup->runtime;
     }
@@ -178,8 +178,8 @@ void ObjectRuntimeBackup::restore_pose_channel_runtime_data(Object *object)
 {
   if (object->pose != nullptr) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
-      const SessionUUID &session_uuid = pchan->runtime.session_uuid;
-      optional<bPoseChannel_Runtime> runtime = pose_channel_runtime_data.pop_try(session_uuid);
+      const SessionUID &session_uid = pchan->runtime.session_uid;
+      optional<bPoseChannel_Runtime> runtime = pose_channel_runtime_data.pop_try(session_uid);
       if (runtime.has_value()) {
         pchan->runtime = *runtime;
       }

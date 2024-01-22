@@ -202,7 +202,7 @@ static void volume_foreach_cache(ID *id,
 {
   Volume *volume = (Volume *)id;
   IDCacheKey key = {
-      /*id_session_uuid*/ id->session_uuid,
+      /*id_session_uid*/ id->session_uid,
       /*identifier*/ 1,
   };
 

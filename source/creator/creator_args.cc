@@ -659,7 +659,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-no-threads");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-time");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-pretty");
-  BLI_args_print_arg_doc(ba, "--debug-depsgraph-uuid");
+  BLI_args_print_arg_doc(ba, "--debug-depsgraph-uid");
   BLI_args_print_arg_doc(ba, "--debug-ghost");
   BLI_args_print_arg_doc(ba, "--debug-wintab");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
@@ -1107,7 +1107,7 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_no_threads[] =
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_pretty[] =
     "\n\t"
     "Enable colors for dependency graph debug messages.";
-static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uuid[] =
+static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uid[] =
     "\n\t"
     "Verify validness of session-wide identifiers assigned to ID datablocks.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
@@ -2461,9 +2461,9 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                (void *)G_DEBUG_DEPSGRAPH_PRETTY);
   BLI_args_add(ba,
                nullptr,
-               "--debug-depsgraph-uuid",
-               CB_EX(arg_handle_debug_mode_generic_set, depsgraph_uuid),
-               (void *)G_DEBUG_DEPSGRAPH_UUID);
+               "--debug-depsgraph-uid",
+               CB_EX(arg_handle_debug_mode_generic_set, depsgraph_uid),
+               (void *)G_DEBUG_DEPSGRAPH_UID);
   BLI_args_add(ba,
                nullptr,
                "--debug-gpu-force-workarounds",

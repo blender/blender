@@ -27,9 +27,9 @@ struct MemFileChunk {
    * detect unchanged IDs).
    * Defined when writing the next step (i.e. last undo step has those always false). */
   bool is_identical_future;
-  /** Session UUID of the ID being currently written (MAIN_ID_SESSION_UUID_UNSET when not writing
+  /** Session UID of the ID being currently written (MAIN_ID_SESSION_UID_UNSET when not writing
    * ID-related data). Used to find matching chunks in previous memundo step. */
-  uint id_session_uuid;
+  uint id_session_uid;
 };
 
 struct MemFile {
@@ -41,11 +41,11 @@ struct MemFileWriteData {
   MemFile *written_memfile;
   MemFile *reference_memfile;
 
-  uint current_id_session_uuid;
+  uint current_id_session_uid;
   MemFileChunk *reference_current_chunk;
 
-  /** Maps an ID session uuid to its first reference MemFileChunk, if existing. */
-  blender::Map<uint, MemFileChunk *> id_session_uuid_mapping;
+  /** Maps an ID session uid to its first reference MemFileChunk, if existing. */
+  blender::Map<uint, MemFileChunk *> id_session_uid_mapping;
 };
 
 struct MemFileUndoData {

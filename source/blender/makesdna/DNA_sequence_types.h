@@ -18,8 +18,8 @@
 #include "DNA_color_types.h"
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_session_uuid_types.h" /* for #SessionUUID */
-#include "DNA_vec_types.h"          /* for #rctf */
+#include "DNA_session_uid_types.h" /* for #SessionUID */
+#include "DNA_vec_types.h"         /* for #rctf */
 
 struct Ipo;
 struct MovieClip;
@@ -139,7 +139,7 @@ typedef struct SeqRetimingKey {
 } SeqRetimingKey;
 
 typedef struct SequenceRuntime {
-  SessionUUID session_uuid;
+  SessionUID session_uid;
 } SequenceRuntime;
 
 /**

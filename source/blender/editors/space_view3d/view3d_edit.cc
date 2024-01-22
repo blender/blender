@@ -692,7 +692,7 @@ static int drop_world_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  World *world = (World *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
+  World *world = (World *)WM_operator_properties_id_lookup_from_name_or_session_uid(
       bmain, op->ptr, ID_WO);
   if (world == nullptr) {
     return OPERATOR_CANCELLED;

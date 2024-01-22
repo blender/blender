@@ -715,9 +715,9 @@ static bool view3d_geometry_nodes_drop_poll(bContext *C, wmDrag *drag, const wmE
       return false;
     }
     if (wmDropBox *drop_box = drag->drop_state.active_dropbox) {
-      const uint32_t uuid = RNA_int_get(drop_box->ptr, "session_uuid");
+      const uint32_t uid = RNA_int_get(drop_box->ptr, "session_uid");
       const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(
-          BKE_libblock_find_session_uuid(CTX_data_main(C), ID_NT, uuid));
+          BKE_libblock_find_session_uid(CTX_data_main(C), ID_NT, uid));
       if (node_tree) {
         return node_tree->type == NTREE_GEOMETRY;
       }
@@ -763,7 +763,7 @@ static void view3d_ob_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropB
 {
   ID *id = WM_drag_get_local_ID(drag, ID_OB);
 
-  RNA_int_set(drop->ptr, "session_uuid", id->session_uuid);
+  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
   /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
   BLI_assert(drag->type != WM_DRAG_ASSET);
 
@@ -797,7 +797,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uuid", id->session_uuid);
+  RNA_int_set(drop->ptr, "session_uid", id->session_uid);
 
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
@@ -821,7 +821,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
 static void view3d_collection_drop_copy_local_id(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, ID_GR);
-  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
 }
 
 /* Mostly the same logic as #view3d_ob_drop_copy_external_asset(), just different enough to make
@@ -843,7 +843,7 @@ static void view3d_collection_drop_copy_external_asset(bContext *C, wmDrag *drag
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_int_set(drop->ptr, "session_uuid", int(id->session_uuid));
+  RNA_int_set(drop->ptr, "session_uid", int(id->session_uid));
 
   /* Make an object active, just use the first one in the collection. */
   CollectionObject *cobject = static_cast<CollectionObject *>(collection->gobject.first);

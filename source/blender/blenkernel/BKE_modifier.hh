@@ -421,8 +421,8 @@ void BKE_modifier_free(ModifierData *md);
  */
 void BKE_modifier_remove_from_list(Object *ob, ModifierData *md);
 
-/* Generate new UUID for the given modifier. */
-void BKE_modifier_session_uuid_generate(ModifierData *md);
+/* Generate new UID for the given modifier. */
+void BKE_modifier_session_uid_generate(ModifierData *md);
 
 void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md);
 
@@ -472,7 +472,7 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *user_dat
 
 ModifierData *BKE_modifiers_findby_type(const Object *ob, ModifierType type);
 ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name);
-ModifierData *BKE_modifiers_findby_session_uuid(const Object *ob, const SessionUUID *session_uuid);
+ModifierData *BKE_modifiers_findby_session_uid(const Object *ob, const SessionUID *session_uid);
 void BKE_modifiers_clear_errors(Object *ob);
 /**
  * used for buttons, to find out if the 'draw deformed in edit-mode option is there.
@@ -584,7 +584,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
  */
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval);
 
-void BKE_modifier_check_uuids_unique_and_report(const Object *object);
+void BKE_modifier_check_uids_unique_and_report(const Object *object);
 
 void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase);
 void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob);

@@ -350,7 +350,7 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   ListBase nseqbase = {nullptr, nullptr};
   /* NOTE: SEQ_sequence_base_dupli_recursive() takes care of generating
-   * new UUIDs for sequences in the new list. */
+   * new UIDs for sequences in the new list. */
   SEQ_sequence_base_dupli_recursive(
       scene_src, scene_dst, &nseqbase, &scene_src->ed->seqbase, 0, 0);
 

@@ -44,14 +44,14 @@ void SEQ_relations_invalidate_cache_in_range(Scene *scene,
  */
 void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame);
 /**
- * A debug and development function which checks whether sequences have unique UUIDs.
+ * A debug and development function which checks whether sequences have unique UIDs.
  * Errors will be reported to the console.
  */
-void SEQ_relations_check_uuids_unique_and_report(const Scene *scene);
+void SEQ_relations_check_uids_unique_and_report(const Scene *scene);
 /**
- * Generate new UUID for the given sequence.
+ * Generate new UID for the given sequence.
  */
-void SEQ_relations_session_uuid_generate(Sequence *sequence);
+void SEQ_relations_session_uid_generate(Sequence *sequence);
 
 void SEQ_cache_cleanup(Scene *scene);
 void SEQ_cache_iterate(

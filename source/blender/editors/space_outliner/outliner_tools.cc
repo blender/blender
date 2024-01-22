@@ -1056,7 +1056,7 @@ struct OutlinerLibOverrideData {
    * solving broken overrides while not losing *all* of your overrides. */
   bool do_resync_hierarchy_enforce;
 
-  /** A set of the selected tree elements' ID 'uuid'. Used to clear 'system override' flags on
+  /** A set of the selected tree elements' ID 'uid'. Used to clear 'system override' flags on
    * their newly-created liboverrides in post-process step of override hierarchy creation. */
   Set<uint> selected_id_uid;
 
@@ -1067,7 +1067,7 @@ struct OutlinerLibOverrideData {
    * override), or an actual already existing override. */
   Map<ID *, Vector<OutlinerLiboverrideDataIDRoot>> id_hierarchy_roots;
 
-  /** All 'session_uuid' of all hierarchy root IDs used or created by the operation. */
+  /** All 'session_uid' of all hierarchy root IDs used or created by the operation. */
   Set<uint> id_hierarchy_roots_uid;
 
   void id_root_add(ID *id_hierarchy_root_reference,
@@ -1125,10 +1125,10 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
 
   /* Only process a given ID once. Otherwise, all kind of weird things can happen if e.g. a
    * selected sub-collection is part of more than one override hierarchies. */
-  if (data->selected_id_uid.contains(id_root_reference->session_uuid)) {
+  if (data->selected_id_uid.contains(id_root_reference->session_uid)) {
     return;
   }
-  data->selected_id_uid.add(id_root_reference->session_uuid);
+  data->selected_id_uid.add(id_root_reference->session_uid);
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
     id_root_reference->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
@@ -1157,7 +1157,7 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
     Collection *root_collection = reinterpret_cast<Collection *>(id_root_reference);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (root_collection, object_iter) {
       if (id_root_reference->lib == object_iter->id.lib && object_iter->type == OB_ARMATURE) {
-        data->selected_id_uid.add(object_iter->id.session_uuid);
+        data->selected_id_uid.add(object_iter->id.session_uid);
       }
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -1357,7 +1357,7 @@ static void id_override_library_create_hierarchy(
           BLI_assert(id_hierarchy_root_override == id_hierarchy_root_reference);
         }
         data_idroot.id_hierarchy_root_override = id_hierarchy_root_override;
-        data.id_hierarchy_roots_uid.add(id_hierarchy_root_override->session_uuid);
+        data.id_hierarchy_roots_uid.add(id_hierarchy_root_override->session_uid);
       }
     }
     else if (ID_IS_OVERRIDABLE_LIBRARY(data_idroot.id_root_reference)) {
@@ -1423,12 +1423,12 @@ static void id_override_library_create_hierarchy_process(bContext *C,
     }
     if (id_iter->override_library->hierarchy_root != nullptr &&
         !data.id_hierarchy_roots_uid.contains(
-            id_iter->override_library->hierarchy_root->session_uuid))
+            id_iter->override_library->hierarchy_root->session_uid))
     {
       continue;
     }
-    if (data.selected_id_uid.contains(id_iter->override_library->reference->session_uuid) ||
-        data.selected_id_uid.contains(id_iter->session_uuid))
+    if (data.selected_id_uid.contains(id_iter->override_library->reference->session_uid) ||
+        data.selected_id_uid.contains(id_iter->session_uid))
     {
       id_iter->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
     }
