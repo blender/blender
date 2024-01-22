@@ -857,7 +857,7 @@ enum {
 
 typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
 
-static bool path_has_trailing_slash(const char *path)
+[[maybe_unused]] static bool path_has_trailing_slash(const char *path)
 {
   const int path_len = strlen(path);
   if (path_len == 0) {
