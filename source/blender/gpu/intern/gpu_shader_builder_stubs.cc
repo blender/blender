@@ -43,15 +43,15 @@ UserDef U;
 /** \name Stubs of BLI_imbuf_types.h
  * \{ */
 
-extern "C" void IMB_freeImBuf(ImBuf * /*ibuf*/)
+void IMB_freeImBuf(ImBuf * /*ibuf*/)
 {
   BLI_assert_unreachable();
 }
 
-extern "C" struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
-                                        unsigned int /*y*/,
-                                        unsigned char /*planes*/,
-                                        unsigned int /*flags*/)
+struct ImBuf *IMB_allocImBuf(unsigned int /*x*/,
+                             unsigned int /*y*/,
+                             unsigned char /*planes*/,
+                             unsigned int /*flags*/)
 {
   BLI_assert_unreachable();
   return nullptr;
@@ -214,27 +214,27 @@ extern void DRW_deferred_shader_remove(struct GPUMaterial * /*mat*/)
 /* -------------------------------------------------------------------- */
 /** \name Stubs of IMB_imbuf.hh
  * \{ */
-extern "C" struct ImBuf *IMB_ibImageFromMemory(const unsigned char * /*mem*/,
-                                               size_t /*size*/,
-                                               int /*flags*/,
-                                               char /*colorspace*/[IM_MAX_SPACE],
-                                               const char * /*descr*/)
+struct ImBuf *IMB_ibImageFromMemory(const unsigned char * /*mem*/,
+                                    size_t /*size*/,
+                                    int /*flags*/,
+                                    char /*colorspace*/[IM_MAX_SPACE],
+                                    const char * /*descr*/)
 {
   BLI_assert_unreachable();
   return nullptr;
 }
 
-extern "C" struct ImBuf *IMB_allocFromBuffer(const uint8_t * /*rect*/,
-                                             const float * /*rectf*/,
-                                             unsigned int /*w*/,
-                                             unsigned int /*h*/,
-                                             unsigned int /*channels*/)
+struct ImBuf *IMB_allocFromBuffer(const uint8_t * /*rect*/,
+                                  const float * /*rectf*/,
+                                  unsigned int /*w*/,
+                                  unsigned int /*h*/,
+                                  unsigned int /*channels*/)
 {
   BLI_assert_unreachable();
   return nullptr;
 }
 
-extern "C" bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, int /*flags*/)
+bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, int /*flags*/)
 {
   BLI_assert_unreachable();
   return false;
