@@ -165,10 +165,7 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
         # editable or not. That means this menu has to do the disabling for it.
         sub = layout.column()
         sub.enabled = not active_bcoll_is_locked
-        props = sub.operator(
-            "armature.collection_add", text="Add Child Collection"
-        )
-        props.parent_index = arm.collections.active_index
+        sub.operator("armature.collection_add", text="Add Child Collection")
         sub.operator("armature.collection_remove")
 
         layout.separator()
