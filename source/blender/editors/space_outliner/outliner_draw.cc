@@ -91,7 +91,7 @@ static void outliner_tree_dimensions_impl(SpaceOutliner *space_outliner,
                                           int *height)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
-    *width = MAX2(*width, te->xend);
+    *width = std::max(*width, int(te->xend));
     if (height != nullptr) {
       *height += UI_UNIT_Y;
     }

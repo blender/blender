@@ -286,8 +286,8 @@ eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
   short overlapy = std::min(top_a, top_b) - std::max(bottom_a, bottom_b);
 
   /* Minimum overlap required. */
-  const short minx = MIN3(AREAJOINTOLERANCEX, right_a - left_a, right_b - left_b);
-  const short miny = MIN3(AREAJOINTOLERANCEY, top_a - bottom_a, top_b - bottom_b);
+  const short minx = std::min({int(AREAJOINTOLERANCEX), right_a - left_a, right_b - left_b});
+  const short miny = std::min({int(AREAJOINTOLERANCEY), top_a - bottom_a, top_b - bottom_b});
 
   if (top_a == bottom_b && overlapx >= minx) {
     return eScreenDir(1); /* sa_a to bottom of sa_b = N */

@@ -191,6 +191,10 @@ if(WIN32)
   )
 endif()
 
+if(WIN32)
+  add_definitions(-DNOMINMAX)
+endif()
+
 # no need to compile object files for inline headers.
 set_source_files_properties(
   intern/colormanagement_inline.cc

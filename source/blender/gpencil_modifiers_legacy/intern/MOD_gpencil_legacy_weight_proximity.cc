@@ -108,8 +108,8 @@ static void deform_stroke(GpencilModifierData *md,
     return;
   }
 
-  const float dist_max = MAX2(mmd->dist_start, mmd->dist_end);
-  const float dist_min = MIN2(mmd->dist_start, mmd->dist_end);
+  const float dist_max = std::max(mmd->dist_start, mmd->dist_end);
+  const float dist_min = std::min(mmd->dist_start, mmd->dist_end);
   const int target_def_nr = BKE_object_defgroup_name_index(ob, mmd->target_vgname);
 
   if (target_def_nr == -1) {

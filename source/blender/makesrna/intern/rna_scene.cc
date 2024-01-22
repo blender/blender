@@ -707,6 +707,8 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"
@@ -1053,7 +1055,7 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
   data->r.sfra = value;
 
   if (value > data->r.efra) {
-    data->r.efra = MIN2(value, MAXFRAME);
+    data->r.efra = std::min(value, MAXFRAME);
   }
 }
 
@@ -1064,7 +1066,7 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
   data->r.efra = value;
 
   if (data->r.sfra > value) {
-    data->r.sfra = MAX2(value, MINFRAME);
+    data->r.sfra = std::max(value, MINFRAME);
   }
 }
 
@@ -1100,7 +1102,7 @@ static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
   data->r.psfra = value;
 
   if (value > data->r.pefra) {
-    data->r.pefra = MIN2(value, MAXFRAME);
+    data->r.pefra = std::min(value, MAXFRAME);
   }
 }
 
@@ -1118,7 +1120,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
   data->r.pefra = value;
 
   if (data->r.psfra > value) {
-    data->r.psfra = MAX2(value, MINAFRAME);
+    data->r.psfra = std::max(value, MINAFRAME);
   }
 }
 

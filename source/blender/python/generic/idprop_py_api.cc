@@ -6,6 +6,8 @@
  * \ingroup pygen
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "MEM_guardedalloc.h"
@@ -1900,7 +1902,7 @@ static PyObject *BPy_IDArray_slice(BPy_IDArray *self, int begin, int end)
     end = prop->len + end + 1;
   }
   CLAMP(end, 0, prop->len);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
 
@@ -1949,7 +1951,7 @@ static int BPy_IDArray_ass_slice(BPy_IDArray *self, int begin, int end, PyObject
 
   CLAMP(begin, 0, prop->len);
   CLAMP(end, 0, prop->len);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   size = (end - begin);
   alloc_len = size * elem_size;

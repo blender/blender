@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -1131,7 +1132,7 @@ static bool vfont_to_curve(Object *ob,
         current_line_length += twidth;
       }
       else {
-        longest_line_length = MAX2(current_line_length, longest_line_length);
+        longest_line_length = std::max(current_line_length, longest_line_length);
         current_line_length = 0.0f;
       }
 
@@ -1190,7 +1191,7 @@ static bool vfont_to_curve(Object *ob,
   }
 
   current_line_length += xof + twidth - MARGIN_X_MIN;
-  longest_line_length = MAX2(current_line_length, longest_line_length);
+  longest_line_length = std::max(current_line_length, longest_line_length);
 
   cu->lines = 1;
   for (i = 0; i <= slen; i++) {

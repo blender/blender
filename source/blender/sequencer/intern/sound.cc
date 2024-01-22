@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -63,7 +64,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
       int old = seq->len;
       float fac;
 
-      seq->len = MAX2(1, round((info.length - seq->sound->offset_time) * FPS));
+      seq->len = std::max(1, int(round((info.length - seq->sound->offset_time) * FPS)));
       fac = float(seq->len) / float(old);
       old = seq->startofs;
       seq->startofs *= fac;

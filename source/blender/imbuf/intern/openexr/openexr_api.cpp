@@ -2260,7 +2260,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
 
       for (int w = 0; w < dest_w; w++) {
         /* For each destination pixel find single corresponding source pixel. */
-        int source_x = int(MIN2((w / scale_factor), dw.max.x - 1));
+        int source_x = int(std::min<int>((w / scale_factor), dw.max.x - 1));
         float *dest_px = &ibuf->float_buffer.data[(h * dest_w + w) * 4];
         dest_px[0] = pixels[source_x].r;
         dest_px[1] = pixels[source_x].g;

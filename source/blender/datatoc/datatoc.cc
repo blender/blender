@@ -6,14 +6,12 @@
  * \ingroup datatoc
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 /* #define VERBOSE */
-
-#define MAX2(x, y) ((x) > (y) ? (x) : (y))
-#define MAX3(x, y, z) MAX2(MAX2((x), (y)), (z))
 
 #define STRPREFIX(a, b) (strncmp((a), (b), strlen(b)) == 0)
 
@@ -30,7 +28,7 @@ static char *arg_basename(char *string)
     lfslash++;
   }
 
-  return MAX3(string, lfslash, lbslash);
+  return std::max({string, lfslash, lbslash});
 }
 
 /**

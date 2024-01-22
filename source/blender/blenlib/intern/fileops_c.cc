@@ -6,6 +6,7 @@
  * \ingroup bli
  */
 
+#include <algorithm>
 #include <cstdlib> /* malloc */
 #include <cstring>
 
@@ -106,7 +107,7 @@ int64_t BLI_read(int fd, void *buf, size_t nbytes)
                                buf,
 #ifdef WIN32
                                /* Read must not exceed INT_MAX on WIN32, clamp. */
-                               MIN2(nbytes, INT_MAX)
+                               std::min<size_t>(nbytes, INT_MAX)
 #else
                                nbytes
 #endif

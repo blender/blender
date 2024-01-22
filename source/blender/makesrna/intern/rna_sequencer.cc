@@ -111,6 +111,8 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_movieclip.h"
@@ -501,7 +503,7 @@ static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  seq->anim_startofs = MIN2(value, seq->len + seq->anim_startofs);
+  seq->anim_startofs = std::min(value, seq->len + seq->anim_startofs);
 
   SEQ_add_reload_new_file(G.main, scene, seq, false);
   do_sequence_frame_change_update(scene, seq);
@@ -512,7 +514,7 @@ static void rna_Sequence_anim_endofs_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  seq->anim_endofs = MIN2(value, seq->len + seq->anim_endofs);
+  seq->anim_endofs = std::min(value, seq->len + seq->anim_endofs);
 
   SEQ_add_reload_new_file(G.main, scene, seq, false);
   do_sequence_frame_change_update(scene, seq);

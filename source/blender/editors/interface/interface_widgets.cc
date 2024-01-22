@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <climits>
 #include <cstdlib>
 #include <cstring>
@@ -2846,7 +2847,7 @@ static void ui_hsv_cursor(const float x,
   immUniform1f("outlineWidth", U.pixelsize);
 
   /* Alpha of outline colors just strong enough to give good contrast. */
-  const float fg = MIN2(1.0f - hsv[2] + 0.2, 0.8f);
+  const float fg = std::min(1.0f - hsv[2] + 0.2f, 0.8f);
   const float bg = hsv[2] / 2.0f;
 
   immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, bg);

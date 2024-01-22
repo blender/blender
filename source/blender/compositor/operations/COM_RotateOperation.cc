@@ -57,10 +57,10 @@ void RotateOperation::get_area_rotation_bounds(const rcti &area,
   const float y2 = center_y + (sine * dxmax + cosine * dymin);
   const float y3 = center_y + (sine * dxmin + cosine * dymax);
   const float y4 = center_y + (sine * dxmax + cosine * dymax);
-  const float minx = MIN2(x1, MIN2(x2, MIN2(x3, x4)));
-  const float maxx = std::max(x1, MAX2(x2, std::max(x3, x4)));
-  const float miny = MIN2(y1, std::min(y2, MIN2(y3, y4)));
-  const float maxy = std::max(y1, MAX2(y2, std::max(y3, y4)));
+  const float minx = std::min(x1, std::min(x2, std::min(x3, x4)));
+  const float maxx = std::max(x1, std::max(x2, std::max(x3, x4)));
+  const float miny = std::min(y1, std::min(y2, std::min(y3, y4)));
+  const float maxy = std::max(y1, std::max(y2, std::max(y3, y4)));
 
   r_bounds.xmin = floor(minx);
   r_bounds.xmax = ceil(maxx);

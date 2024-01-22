@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -691,7 +692,7 @@ static void outliner_restore_scrolling_position(SpaceOutliner *space_outliner,
       int ys_new = te_new->ys;
       int ys_old = focus->ys;
 
-      float y_move = MIN2(ys_new - ys_old, -v2d->cur.ymax);
+      float y_move = std::min(float(ys_new - ys_old), -v2d->cur.ymax);
       BLI_rctf_translate(&v2d->cur, 0, y_move);
     }
     else {

@@ -41,6 +41,8 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "AS_asset_library.h"
 #  include "AS_asset_representation.hh"
 
@@ -307,7 +309,7 @@ static void rna_AssetMetaData_active_tag_range(
 {
   const AssetMetaData *asset_data = static_cast<const AssetMetaData *>(ptr->data);
   *min = *softmin = 0;
-  *max = *softmax = MAX2(asset_data->tot_tags - 1, 0);
+  *max = *softmax = std::max(int(asset_data->tot_tags - 1), 0);
 }
 
 static void rna_AssetMetaData_catalog_id_get(PointerRNA *ptr, char *value)

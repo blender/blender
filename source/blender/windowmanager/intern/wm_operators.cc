@@ -9,6 +9,7 @@
  * as well as some generic operators and shared operator properties.
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cfloat>
@@ -1245,18 +1246,18 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
   UI_block_flag_enable(block, block_flags);
 
   const uiStyle *style = UI_style_get_dpi();
-  int text_width = MAX2(
+  int text_width = std::max(
       120 * UI_SCALE_FAC,
       BLF_width(style->widget.uifont_id, confirm.title, ARRAY_SIZE(confirm.title)));
   if (confirm.message[0]) {
-    text_width = MAX2(
+    text_width = std::max(
         text_width,
-        BLF_width(style->widget.uifont_id, confirm.message, ARRAY_SIZE(confirm.message)));
+        int(BLF_width(style->widget.uifont_id, confirm.message, ARRAY_SIZE(confirm.message))));
   }
   if (confirm.message2[0]) {
-    text_width = MAX2(
+    text_width = std::max(
         text_width,
-        BLF_width(style->widget.uifont_id, confirm.message2, ARRAY_SIZE(confirm.message2)));
+        int(BLF_width(style->widget.uifont_id, confirm.message2, ARRAY_SIZE(confirm.message2))));
   }
 
   const bool small = confirm.size == WM_WARNING_SIZE_SMALL;

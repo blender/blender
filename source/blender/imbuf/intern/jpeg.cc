@@ -7,6 +7,7 @@
  */
 
 /* This little block needed for linking to Blender... */
+#include <algorithm>
 #include <csetjmp>
 #include <cstdio>
 
@@ -428,7 +429,7 @@ static ImBuf *ibJpegImageFromCinfo(
       }
 
       ibuf->ftype = IMB_FTYPE_JPG;
-      ibuf->foptions.quality = MIN2(ibuf_quality, 100);
+      ibuf->foptions.quality = std::min<char>(ibuf_quality, 100);
     }
     jpeg_destroy((j_common_ptr)cinfo);
   }

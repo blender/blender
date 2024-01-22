@@ -6,6 +6,7 @@
  * \ingroup RNA
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cfloat>
 #include <cinttypes>
@@ -85,7 +86,7 @@ static const char *path_basename(const char *path)
     lfslash++;
   }
 
-  return MAX3(path, lfslash, lbslash);
+  return std::max({path, lfslash, lbslash});
 }
 
 /* forward declarations */

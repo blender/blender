@@ -9,6 +9,7 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -2718,7 +2719,7 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
     totchild = int(float(totchild) * float(part->disp) / 100.0f);
   }
 
-  totparent = MIN2(totparent, totchild);
+  totparent = std::min(totparent, totchild);
 
   if (totchild == 0) {
     return false;
@@ -3356,7 +3357,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
     copy_v3_v3(rotmat[2], hairmat[0]);
 
     if (part->draw & PART_ABS_PATH_TIME) {
-      birthtime = MAX2(pind.birthtime, part->path_start);
+      birthtime = std::max(pind.birthtime, part->path_start);
       dietime = std::min(pind.dietime, part->path_end);
     }
     else {

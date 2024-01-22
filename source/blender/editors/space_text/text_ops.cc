@@ -6,6 +6,7 @@
  * \ingroup sptext
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
 #include <sstream>
@@ -1790,7 +1791,7 @@ static int space_text_get_cursor_rel(
         curs = j;
       }
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         if (found) {
           /* exact cursor position was found, check if it's */
@@ -1985,7 +1986,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
     while (chars--) {
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         *charp = endj;
 
@@ -2072,7 +2073,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
 
     while (chars--) {
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         if (chop) {
           endj = BLI_str_find_prev_char_utf8((*linep)->line + j, (*linep)->line) - (*linep)->line;
@@ -3164,7 +3165,7 @@ static void space_text_cursor_set_to_pos_wrapped(
           curs = j;
         }
         if (i + columns - start > max) {
-          end = MIN2(end, i);
+          end = std::min(end, i);
 
           if (found) {
             /* exact cursor position was found, check if it's still on needed line

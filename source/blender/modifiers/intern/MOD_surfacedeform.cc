@@ -1367,7 +1367,7 @@ static void deformVert(void *__restrict userdata,
 
   int max_verts = 0;
   for (int j = 0; j < sdbind_num; j++) {
-    max_verts = MAX2(max_verts, sdbind[j].verts_num);
+    max_verts = std::max(max_verts, int(sdbind[j].verts_num));
   }
 
   /* Allocate a `coords_buffer` that fits all the temp-data. */

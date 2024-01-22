@@ -14,6 +14,7 @@
  * - Links to web sites.
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "CLG_log.h"
@@ -181,7 +182,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*ar
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
+  const int text_points_max = std::max(style->widget.points, style->widgetlabel.points);
   int splash_width = text_points_max * 45 * UI_SCALE_FAC;
   CLAMP_MAX(splash_width, CTX_wm_window(C)->sizex * 0.7f);
   int splash_height;

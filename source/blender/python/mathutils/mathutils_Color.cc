@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -431,7 +433,7 @@ static PyObject *Color_slice(ColorObject *self, int begin, int end)
     end = (COLOR_SIZE + 1) + end;
   }
   CLAMP(end, 0, COLOR_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -456,7 +458,7 @@ static int Color_ass_slice(ColorObject *self, int begin, int end, PyObject *seq)
     end = (COLOR_SIZE + 1) + end;
   }
   CLAMP(end, 0, COLOR_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   if ((size = mathutils_array_parse(col, 0, COLOR_SIZE, seq, "mathutils.Color[begin:end] = []")) ==
       -1)

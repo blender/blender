@@ -994,7 +994,7 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
 
       if (bpath_data->flag & BKE_BPATH_FOREACH_PATH_SKIP_MULTIFILE) {
         /* only operate on one path */
-        len = MIN2(1u, len);
+        len = std::min(1u, len);
       }
 
       for (i = 0; i < len; i++, se++) {

@@ -6,6 +6,7 @@
  * \ingroup spfile
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -163,7 +164,7 @@ static void fsmenu_entry_generate_name(FSMenuEntry *fsentry, char *name, size_t 
     len += 1;
   }
 
-  BLI_strncpy(name, &fsentry->path[offset], MIN2(len, name_size));
+  BLI_strncpy(name, &fsentry->path[offset], std::min(size_t(len), name_size));
   if (!name[0]) {
     name[0] = '/';
     name[1] = '\0';

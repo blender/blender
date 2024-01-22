@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -96,7 +97,7 @@ static void idp_repr_fn_recursive(ReprState *state, const IDProperty *prop)
 
   switch (prop->type) {
     case IDP_STRING: {
-      STR_APPEND_STR_LEN_QUOTE(IDP_String(prop), uint(MAX2(0, prop->len - 1)));
+      STR_APPEND_STR_LEN_QUOTE(IDP_String(prop), uint(std::max(0, prop->len - 1)));
       break;
     }
     case IDP_INT: {

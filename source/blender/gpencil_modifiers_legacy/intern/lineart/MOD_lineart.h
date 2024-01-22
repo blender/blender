@@ -13,6 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
+#include <algorithm>
 #include <math.h>
 
 #ifdef __cplusplus
@@ -743,7 +744,7 @@ BLI_INLINE int lineart_intersect_seg_seg(const double a1[2],
 
   if (LRT_DOUBLE_CLOSE_ENOUGH(b1[0], b2[0])) {
     y = interpd(a2[1], a1[1], ratio);
-    if (y > MAX2(b1[1], b2[1]) || y < MIN2(b1[1], b2[1])) {
+    if (y > std::max(b1[1], b2[1]) || y < std::min(b1[1], b2[1])) {
       return 0;
     }
   }

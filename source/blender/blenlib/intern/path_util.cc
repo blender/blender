@@ -104,7 +104,7 @@ int BLI_path_sequence_decode(const char *path,
         BLI_strncpy(tail, &path[nume + 1], tail_maxncpy);
       }
       if (head) {
-        BLI_strncpy(head, path, MIN2(head_maxncpy, nums + 1));
+        BLI_strncpy(head, path, std::min<size_t>(head_maxncpy, nums + 1));
       }
       if (r_digits_len) {
         *r_digits_len = nume - nums + 1;
@@ -119,7 +119,7 @@ int BLI_path_sequence_decode(const char *path,
   if (head) {
     /* Name_end points to last character of head,
      * make it +1 so null-terminator is nicely placed. */
-    BLI_strncpy(head, path, MIN2(head_maxncpy, name_end + 1));
+    BLI_strncpy(head, path, std::min<size_t>(head_maxncpy, name_end + 1));
   }
   if (r_digits_len) {
     *r_digits_len = 0;

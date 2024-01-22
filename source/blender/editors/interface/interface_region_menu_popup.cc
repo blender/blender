@@ -8,6 +8,7 @@
  * PopUp Menu Region
  */
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
@@ -592,7 +593,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
       msg_next = strchr(msg, '\n');
       if (msg_next) {
         msg_next++;
-        BLI_strncpy(buf, msg, MIN2(sizeof(buf), msg_next - msg));
+        BLI_strncpy(buf, msg, std::min(sizeof(buf), size_t(msg_next - msg)));
         msg = buf;
       }
       uiItemL(layout, msg, icon);

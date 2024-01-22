@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -1662,7 +1663,7 @@ float BKE_gpencil_stroke_segment_length(const bGPDstroke *gps,
     return 0.0f;
   }
 
-  int index = MAX2(start_index, 0) + 1;
+  int index = std::max(start_index, 0) + 1;
   int last_index = std::min(end_index, gps->totpoints - 1) + 1;
 
   float *last_pt = &gps->points[index - 1].x;
@@ -1804,7 +1805,7 @@ bool BKE_gpencil_stroke_close(bGPDstroke *gps)
   }
 
   /* Calc number of points required using the average distance. */
-  int tot_newpoints = MAX2(dist_close / dist_avg, 1);
+  int tot_newpoints = std::max<int>(dist_close / dist_avg, 1);
 
   /* Resize stroke array. */
   int old_tot = gps->totpoints;
@@ -2531,7 +2532,7 @@ static void gpencil_generate_edgeloops(Object *ob,
 
     /* Create Stroke. */
     bGPDstroke *gps_stroke = BKE_gpencil_stroke_add(
-        gpf_stroke, MAX2(stroke_mat_index, 0), array_len + 1, thickness * thickness, false);
+        gpf_stroke, std::max(stroke_mat_index, 0), array_len + 1, thickness * thickness, false);
 
     /* Create dvert data. */
     if (use_vgroups && !dverts.is_empty()) {
@@ -3710,7 +3711,7 @@ void BKE_gpencil_stroke_uniform_subdivide(bGPdata *gpd,
                    (float *)&sp_next->vertex_color,
                    0.5f);
     if (sp->dw && sp_next->dw) {
-      new_sp->totweight = MIN2(sp->totweight, sp_next->totweight);
+      new_sp->totweight = std::min(sp->totweight, sp_next->totweight);
       new_sp->dw = (MDeformWeight *)MEM_callocN(sizeof(MDeformWeight) * new_sp->totweight,
                                                 __func__);
       for (uint32_t i = 0; i < new_sp->totweight; ++i) {

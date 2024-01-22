@@ -17,6 +17,7 @@
  * For now it's not a priority, so leave as-is.
  */
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>

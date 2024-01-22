@@ -7,6 +7,7 @@
  * \brief Functions to paint images in 2D and 3D.
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -1375,7 +1376,7 @@ static void uv_image_outset(const ProjPaintState *ps,
       len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
 
       /* Clamp the length factor, see: #62236. */
-      len_fact = MIN2(len_fact, 10.0f);
+      len_fact = std::min(len_fact, 10.0f);
 
       mul_v2_fl(no, ps->seam_bleed_px * len_fact);
 

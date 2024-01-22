@@ -1050,7 +1050,7 @@ static int match_format(const char *name, AVFormatContext *pFormatCtx)
 
   namelen = strlen(name);
   while ((p = strchr(names, ','))) {
-    len = MAX2(p - names, namelen);
+    len = std::max(int(p - names), namelen);
     if (!BLI_strncasecmp(name, names, len)) {
       return 1;
     }
@@ -1174,7 +1174,7 @@ static int ffmpeg_generic_seek_workaround(anim *anim,
   /* Step backward frame by frame until we find the key frame we are looking for. */
   while (current_pts != 0) {
     current_pts = *requested_pts - int64_t(round(offset * ffmpeg_steps_per_frame_get(anim)));
-    current_pts = MAX2(current_pts, 0);
+    current_pts = std::max(current_pts, int64_t(0));
 
     /* Seek to timestamp. */
     if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) < 0)

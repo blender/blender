@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "BLI_listbase.h"
@@ -421,7 +422,7 @@ void outliner_scroll_view(SpaceOutliner *space_outliner, ARegion *region, int de
 {
   int tree_width, tree_height;
   outliner_tree_dimensions(space_outliner, &tree_width, &tree_height);
-  int y_min = MIN2(region->v2d.cur.ymin, -tree_height);
+  int y_min = std::min(int(region->v2d.cur.ymin), -tree_height);
 
   region->v2d.cur.ymax += delta_y;
   region->v2d.cur.ymin += delta_y;

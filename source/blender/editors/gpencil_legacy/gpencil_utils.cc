@@ -6,6 +6,7 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -1770,7 +1771,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
     point2D.m_xy[0] = float(x + 64);
     gpencil_stroke_convertcoords_tpoint(scene, region, ob, &point2D, nullptr, p2);
     /* Clip extreme zoom level (and avoid division by zero). */
-    distance = MAX2(len_v3v3(p1, p2), 0.001f);
+    distance = std::max(len_v3v3(p1, p2), 0.001f);
 
     /* Handle layer thickness change. */
     float brush_size = float(brush->size);

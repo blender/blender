@@ -106,8 +106,8 @@ void BokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data
     int maxx = x + pixel_size;
     miny = std::max(miny, input_rect.ymin);
     minx = std::max(minx, input_rect.xmin);
-    maxy = MIN2(maxy, input_rect.ymax);
-    maxx = MIN2(maxx, input_rect.xmax);
+    maxy = std::min(maxy, input_rect.ymax);
+    maxx = std::min(maxx, input_rect.xmax);
 
     int step = get_step();
     int offsetadd = get_offset_add() * COM_DATA_TYPE_COLOR_CHANNELS;
@@ -340,9 +340,9 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
       multiplier_accum[3] = 1.0f;
     }
     const int miny = std::max(y - pixel_size, image_rect.ymin);
-    const int maxy = MIN2(y + pixel_size, image_rect.ymax);
+    const int maxy = std::min(y + pixel_size, image_rect.ymax);
     const int minx = std::max(x - pixel_size, image_rect.xmin);
-    const int maxx = MIN2(x + pixel_size, image_rect.xmax);
+    const int maxx = std::min(x + pixel_size, image_rect.xmax);
     const int step = get_step();
     const int elem_stride = image_input->elem_stride * step;
     const int row_stride = image_input->row_stride * step;

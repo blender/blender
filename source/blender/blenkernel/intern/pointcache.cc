@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -408,7 +409,7 @@ static void ptcache_particle_interpolate(int index,
     return;
   }
 
-  cfra = MIN2(cfra, pa->dietime);
+  cfra = std::min(cfra, pa->dietime);
   cfra1 = std::min(cfra1, pa->dietime);
   cfra2 = std::min(cfra2, pa->dietime);
 
@@ -442,7 +443,7 @@ static void ptcache_particle_interpolate(int index,
   }
 
   if (cfra > pa->time) {
-    cfra1 = MAX2(cfra1, pa->time);
+    cfra1 = std::max(cfra1, pa->time);
   }
 
   dfra = cfra2 - cfra1;
@@ -2194,7 +2195,7 @@ static int ptcache_read(PTCacheID *pid, int cfra)
 
       if (totpoint != pid_totpoint) {
         pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
-        totpoint = MIN2(totpoint, pid_totpoint);
+        totpoint = std::min(totpoint, pid_totpoint);
       }
     }
 
@@ -2251,7 +2252,7 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
 
       if (totpoint != pid_totpoint) {
         pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
-        totpoint = MIN2(totpoint, pid_totpoint);
+        totpoint = std::min(totpoint, pid_totpoint);
       }
     }
 
@@ -3227,7 +3228,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
         cache->flag |= PTCACHE_BAKING;
       }
       else {
-        endframe = MIN2(endframe, cache->endframe);
+        endframe = std::min(endframe, cache->endframe);
       }
 
       cache->flag &= ~PTCACHE_BAKED;
@@ -3267,13 +3268,13 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
             BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
           }
 
-          startframe = MIN2(startframe, cache->startframe);
+          startframe = std::min(startframe, cache->startframe);
 
           if (bake || render) {
             cache->flag |= PTCACHE_BAKING;
 
             if (bake) {
-              endframe = MAX2(endframe, cache->endframe);
+              endframe = std::max(endframe, cache->endframe);
             }
           }
 

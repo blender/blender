@@ -10,6 +10,7 @@
  * collections/objects/object-data in current scene.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -1656,7 +1657,7 @@ static void blendfile_library_relocate_remap(Main *bmain,
       old_id->name[dot_pos] = '~';
     }
     else {
-      len = MIN2(len, MAX_ID_NAME - 7);
+      len = std::min<size_t>(len, MAX_ID_NAME - 7);
       BLI_strncpy(&old_id->name[len], "~000", 7);
     }
 

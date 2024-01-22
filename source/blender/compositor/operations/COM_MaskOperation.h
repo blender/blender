@@ -83,7 +83,7 @@ class MaskOperation : public MultiThreadedOperation {
 
   void set_motion_blur_samples(int samples)
   {
-    raster_mask_handle_tot_ = MIN2(MAX2(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
+    raster_mask_handle_tot_ = std::min(std::max(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX);
   }
   void set_motion_blur_shutter(float shutter)
   {

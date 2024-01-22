@@ -6,10 +6,10 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+#include <cmath>
 #include <cstdarg>
 #include <cstddef>
-
-#include <cmath>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
@@ -1075,8 +1075,8 @@ static void do_physical_effector(EffectorCache *eff,
       copy_v3_v3(force, point->vel);
       fac = normalize_v3(force) * point->vel_to_sec;
 
-      strength = MIN2(strength, 2.0f);
-      damp = MIN2(damp, 2.0f);
+      strength = std::min(strength, 2.0f);
+      damp = std::min(damp, 2.0f);
 
       mul_v3_fl(force, -efd->falloff * fac * (strength * fac + damp));
       break;

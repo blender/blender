@@ -9,6 +9,8 @@
  * tools operating on meshes
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -1049,12 +1051,12 @@ static uint mirror_facehash(const void *ptr)
   uint v0, v1;
 
   if (mf->v4) {
-    v0 = MIN4(mf->v1, mf->v2, mf->v3, mf->v4);
-    v1 = MAX4(mf->v1, mf->v2, mf->v3, mf->v4);
+    v0 = std::min({mf->v1, mf->v2, mf->v3, mf->v4});
+    v1 = std::max({mf->v1, mf->v2, mf->v3, mf->v4});
   }
   else {
-    v0 = MIN3(mf->v1, mf->v2, mf->v3);
-    v1 = MAX3(mf->v1, mf->v2, mf->v3);
+    v0 = std::min({mf->v1, mf->v2, mf->v3});
+    v1 = std::min({mf->v1, mf->v2, mf->v3});
   }
 
   return ((v0 * 39) ^ (v1 * 31));

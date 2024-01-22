@@ -311,7 +311,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
   }
 
   if (thumb && params->display != FILE_IMGDISPLAY) {
-    float scale = (96.0f * UI_SCALE_FAC) / float(MAX2(thumb->x, thumb->y));
+    float scale = (96.0f * UI_SCALE_FAC) / float(std::max(thumb->x, thumb->y));
     short size[2] = {short(float(thumb->x) * scale), short(float(thumb->y) * scale)};
     UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
     UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
@@ -1281,7 +1281,8 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (do_drag) {
         const uiStyle *style = UI_style_get();
         const int str_width = UI_fontstyle_string_width(&style->widget, file->name);
-        const int drag_width = MIN2(str_width + icon_ofs, column_width - ATTRIBUTE_COLUMN_PADDING);
+        const int drag_width = std::min(str_width + icon_ofs,
+                                        int(column_width - ATTRIBUTE_COLUMN_PADDING));
         if (drag_width > 0) {
           uiBut *drag_but = uiDefBut(block,
                                      UI_BTYPE_LABEL,

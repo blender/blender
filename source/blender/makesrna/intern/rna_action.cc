@@ -30,6 +30,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "BLI_math_base.h"
 
 #  include "BKE_fcurve.h"
@@ -224,7 +226,7 @@ static void rna_Action_active_pose_marker_set(PointerRNA *ptr,
 static int rna_Action_active_pose_marker_index_get(PointerRNA *ptr)
 {
   bAction *act = (bAction *)ptr->data;
-  return MAX2(act->active_marker - 1, 0);
+  return std::max(act->active_marker - 1, 0);
 }
 
 static void rna_Action_active_pose_marker_index_set(PointerRNA *ptr, int value)

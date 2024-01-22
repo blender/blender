@@ -142,8 +142,8 @@ using IndexMaskSegment = OffsetSpan<int64_t, int16_t>;
  *   various sources. Those generally need additional memory which is provided with by an
  *   #IndexMaskMemory.
  *
- *   Some of the `IndexMask::from_*` functions are have an `IndexMask universe` input. When
- *   provided, the function will only consider the indices in the "universe". The term comes from
+ *   Some of the `IndexMask::from_*` functions have an `IndexMask universe` input. When provided,
+ *   the function will only consider the indices in the "universe". The term comes from
  *   mathematics: https://en.wikipedia.org/wiki/Universe_(mathematics).
  *
  * Iteration:
@@ -472,7 +472,7 @@ inline void init_empty_mask(IndexMaskData &data)
   data.indices_num_ = 0;
   data.segments_num_ = 0;
   data.cumulative_segment_sizes_ = cumulative_sizes_for_empty_mask;
-  /* Intentionally leave some pointer uninitialized which must not be accessed on empty masks
+  /* Intentionally leave some pointers uninitialized which must not be accessed on empty masks
    * anyway. */
 }
 

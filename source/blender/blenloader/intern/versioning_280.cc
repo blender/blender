@@ -9,6 +9,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cfloat>
 #include <cstring>
 
@@ -3312,8 +3313,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Calculate window width/height from screen vertices */
       int win_width = 0, win_height = 0;
       LISTBASE_FOREACH (ScrVert *, vert, &screen->vertbase) {
-        win_width = MAX2(win_width, vert->vec.x);
-        win_height = MAX2(win_height, vert->vec.y);
+        win_width = std::max<int>(win_width, vert->vec.x);
+        win_height = std::max<int>(win_height, vert->vec.y);
       }
 
       for (ScrArea *area = static_cast<ScrArea *>(screen->areabase.first), *area_next; area;

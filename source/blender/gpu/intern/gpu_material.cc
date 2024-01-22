@@ -8,6 +8,7 @@
  * Manages materials, lights and textures.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -433,8 +434,8 @@ static void compute_sss_kernel(GPUSssKernelData *kd, const float radii[3], int s
 {
   float rad[3];
   /* Minimum radius */
-  rad[0] = MAX2(radii[0], 1e-15f);
-  rad[1] = MAX2(radii[1], 1e-15f);
+  rad[0] = std::max(radii[0], 1e-15f);
+  rad[1] = std::max(radii[1], 1e-15f);
   rad[2] = std::max(radii[2], 1e-15f);
 
   kd->avg_inv_radius = 3.0f / (rad[0] + rad[1] + rad[2]);
@@ -448,7 +449,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, const float radii[3], int s
   /* XXX 0.6f Out of nowhere to match cycles! Empirical! Can be tweak better. */
   mul_v3_v3fl(d, l, 0.6f / s);
   mul_v3_v3fl(rad, d, BURLEY_TRUNCATE);
-  kd->max_radius = MAX3(rad[0], rad[1], rad[2]);
+  kd->max_radius = std::max({rad[0], rad[1], rad[2]});
 
   copy_v3_v3(kd->param, d);
 

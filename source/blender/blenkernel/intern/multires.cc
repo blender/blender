@@ -358,11 +358,11 @@ void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
   mmd->totlvl = lvl;
 
   if (ob->mode != OB_MODE_SCULPT) {
-    mmd->lvl = CLAMPIS(MAX2(mmd->lvl, lvl), 0, mmd->totlvl);
+    mmd->lvl = CLAMPIS(std::max<char>(mmd->lvl, lvl), 0, mmd->totlvl);
   }
 
-  mmd->sculptlvl = CLAMPIS(MAX2(mmd->sculptlvl, lvl), 0, mmd->totlvl);
-  mmd->renderlvl = CLAMPIS(MAX2(mmd->renderlvl, lvl), 0, mmd->totlvl);
+  mmd->sculptlvl = CLAMPIS(std::max<char>(mmd->sculptlvl, lvl), 0, mmd->totlvl);
+  mmd->renderlvl = CLAMPIS(std::max<char>(mmd->renderlvl, lvl), 0, mmd->totlvl);
 }
 
 static void multires_ccg_mark_as_modified(SubdivCCG *subdiv_ccg, MultiresModifiedFlags flags)

@@ -13,6 +13,8 @@
 /* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */
 #define PY_SSIZE_T_CLEAN
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "RNA_types.hh"
@@ -3268,7 +3270,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
     RNA_def_property_translation_context(prop, translation_context);
   }
   RNA_def_property_range(prop, min, max);
-  RNA_def_property_ui_range(prop, std::max(soft_min, min), MIN2(soft_max, max), step, 3);
+  RNA_def_property_ui_range(prop, std::max(soft_min, min), std::min(soft_max, max), step, 3);
 
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);
@@ -3467,7 +3469,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   if (translation_context) {
     RNA_def_property_translation_context(prop, translation_context);
   }
-  RNA_def_property_ui_range(prop, std::max(soft_min, min), MIN2(soft_max, max), step, 3);
+  RNA_def_property_ui_range(prop, std::max(soft_min, min), std::min(soft_max, max), step, 3);
 
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);
@@ -3643,7 +3645,8 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
   if (translation_context) {
     RNA_def_property_translation_context(prop, translation_context);
   }
-  RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
+  RNA_def_property_ui_range(
+      prop, std::max(soft_min, min), std::min(soft_max, max), step, precision);
 
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);
@@ -3859,7 +3862,8 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
   if (translation_context) {
     RNA_def_property_translation_context(prop, translation_context);
   }
-  RNA_def_property_ui_range(prop, MAX2(soft_min, min), MIN2(soft_max, max), step, precision);
+  RNA_def_property_ui_range(
+      prop, std::max(soft_min, min), std::min(soft_max, max), step, precision);
 
   if (tags_enum.base.is_set) {
     RNA_def_property_tags(prop, tags_enum.base.value);

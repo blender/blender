@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -2508,7 +2510,7 @@ static PyObject *Matrix_slice(MatrixObject *self, int begin, int end)
 
   CLAMP(begin, 0, self->row_num);
   CLAMP(end, 0, self->row_num);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -2532,7 +2534,7 @@ static int Matrix_ass_slice(MatrixObject *self, int begin, int end, PyObject *va
 
   CLAMP(begin, 0, self->row_num);
   CLAMP(end, 0, self->row_num);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   /* non list/tuple cases */
   if (!(value_fast = PySequence_Fast(value, "matrix[begin:end] = value"))) {

@@ -6,6 +6,7 @@
  * \ingroup render
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
@@ -1035,7 +1036,7 @@ static int imagewraposa_aniso(Tex *tex,
   if (tex->imaflag & TEX_FILTER_MIN) {
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
-    const float addval = (0.5f * tex->filtersize) / float(MIN2(ibuf->x, ibuf->y));
+    const float addval = (0.5f * tex->filtersize) / float(std::min(ibuf->x, ibuf->y));
     if (addval > minx) {
       minx = addval;
     }
@@ -1438,7 +1439,7 @@ int imagewraposa(Tex *tex,
   if (tex->imaflag & TEX_FILTER_MIN) {
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
-    float addval = (0.5f * tex->filtersize) / float(MIN2(ibuf->x, ibuf->y));
+    float addval = (0.5f * tex->filtersize) / float(std::min(ibuf->x, ibuf->y));
 
     if (addval > minx) {
       minx = addval;
@@ -1641,7 +1642,7 @@ int imagewraposa(Tex *tex,
       maxd = 0.5f;
     }
 
-    pixsize = 1.0f / float(MIN2(ibuf->x, ibuf->y));
+    pixsize = 1.0f / float(std::min(ibuf->x, ibuf->y));
 
     curmap = 0;
     previbuf = curibuf = ibuf;
@@ -1651,7 +1652,7 @@ int imagewraposa(Tex *tex,
       }
       previbuf = curibuf;
       curibuf = ibuf->mipmap[curmap];
-      pixsize = 1.0f / float(MIN2(curibuf->x, curibuf->y));
+      pixsize = 1.0f / float(std::min(curibuf->x, curibuf->y));
       curmap++;
     }
 

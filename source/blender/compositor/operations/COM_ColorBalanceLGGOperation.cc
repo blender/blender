@@ -71,7 +71,7 @@ void ColorBalanceLGGOperation::update_memory_buffer_row(PixelCursor &p)
   for (; p.out < p.row_end; p.next()) {
     const float *in_factor = p.ins[0];
     const float *in_color = p.ins[1];
-    const float fac = MIN2(1.0f, in_factor[0]);
+    const float fac = std::min(1.0f, in_factor[0]);
     const float fac_m = 1.0f - fac;
     p.out[0] = fac_m * in_color[0] +
                fac * colorbalance_lgg(in_color[0], lift_[0], gamma_inv_[0], gain_[0]);

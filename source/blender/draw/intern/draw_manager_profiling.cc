@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include <algorithm>
+
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -178,7 +180,7 @@ void DRW_stats_reset()
 
         timer->time_average = timer->time_average * (1.0 - GPU_TIMER_FALLOFF) +
                               time * GPU_TIMER_FALLOFF;
-        timer->time_average = MIN2(timer->time_average, 1000000000);
+        timer->time_average = std::min(timer->time_average, uint64_t(1000000000));
       }
       else {
         timer->time_average = lvl_time[timer->lvl + 1];

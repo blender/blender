@@ -6,6 +6,7 @@
  * \ingroup edphys
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -4637,7 +4638,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
           mul_v3_fl(key3[0].co, weight[0]);
 
           /* TODO: interpolating the weight would be nicer */
-          thkey->weight = (ppa->hair + MIN2(k, ppa->totkey - 1))->weight;
+          thkey->weight = (ppa->hair + std::min(k, ppa->totkey - 1))->weight;
 
           if (maxw > 1) {
             key3[1].time = key3[0].time;

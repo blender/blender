@@ -34,8 +34,8 @@ void EllipseMaskOperation::execute_pixel_sampled(float output[4],
   float input_mask[4];
   float input_value[4];
 
-  float rx = x / MAX2(this->get_width() - 1.0f, FLT_EPSILON);
-  float ry = y / MAX2(this->get_height() - 1.0f, FLT_EPSILON);
+  float rx = x / std::max(this->get_width() - 1.0f, FLT_EPSILON);
+  float ry = y / std::max(this->get_height() - 1.0f, FLT_EPSILON);
 
   const float dy = (ry - data_->y) / aspect_ratio_;
   const float dx = rx - data_->x;
@@ -138,8 +138,8 @@ void EllipseMaskOperation::apply_mask(MemoryBuffer *output,
 {
   const MemoryBuffer *input_mask = inputs[0];
   const MemoryBuffer *input_value = inputs[1];
-  const float op_last_x = MAX2(this->get_width() - 1.0f, FLT_EPSILON);
-  const float op_last_y = MAX2(this->get_height() - 1.0f, FLT_EPSILON);
+  const float op_last_x = std::max(this->get_width() - 1.0f, FLT_EPSILON);
+  const float op_last_y = std::max(this->get_height() - 1.0f, FLT_EPSILON);
   const float half_w = data_->width / 2.0f;
   const float half_h = data_->height / 2.0f;
   const float tx = half_w * half_w;

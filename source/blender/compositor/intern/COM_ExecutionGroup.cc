@@ -438,8 +438,8 @@ inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
   else {
     const uint minx = x_chunk * chunk_size_ + viewer_border_.xmin;
     const uint miny = y_chunk * chunk_size_ + viewer_border_.ymin;
-    const uint width = MIN2(uint(viewer_border_.xmax), width_);
-    const uint height = MIN2(uint(viewer_border_.ymax), height_);
+    const uint width = std::min(uint(viewer_border_.xmax), width_);
+    const uint height = std::min(uint(viewer_border_.ymax), height_);
     BLI_rcti_init(r_rect,
                   std::min(minx, width_),
                   std::min(minx + chunk_size_, width),

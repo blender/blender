@@ -792,7 +792,7 @@ static bool file_walk_select_selection_set(bContext *C,
 
   /* do the actual selection */
   if (fill) {
-    FileSelection sel = {MIN2(active, last_sel), MAX2(active, last_sel)};
+    FileSelection sel = {std::min(active, last_sel), std::max(active, last_sel)};
 
     /* fill selection between last and first selected file */
     filelist_entries_select_index_range_set(

@@ -799,10 +799,10 @@ static void calc_clay_surface_task_cb(Object *ob,
     float plane_dist = dist_signed_to_plane_v3(vd.co, plane);
     float plane_dist_abs = fabsf(plane_dist);
     if (plane_dist > 0.0f) {
-      csd->plane_dist[0] = MIN2(csd->plane_dist[0], plane_dist_abs);
+      csd->plane_dist[0] = std::min(csd->plane_dist[0], plane_dist_abs);
     }
     else {
-      csd->plane_dist[1] = MIN2(csd->plane_dist[1], plane_dist_abs);
+      csd->plane_dist[1] = std::min(csd->plane_dist[1], plane_dist_abs);
     }
     BKE_pbvh_vertex_iter_end;
   }

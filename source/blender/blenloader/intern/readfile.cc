@@ -698,7 +698,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh8_from_bh4(&bhead, &bhead4);
           }
           else {
-            /* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
+            /* std::min is only to quiet '-Warray-bounds' compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead4));
             memcpy(&bhead, &bhead4, std::min(sizeof(bhead), sizeof(bhead4)));
           }
@@ -721,7 +721,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh4_from_bh8(&bhead, &bhead8, (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0);
           }
           else {
-            /* MIN2 is only to quiet `-Warray-bounds` compiler warning. */
+            /* std::min is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead8));
             memcpy(&bhead, &bhead8, std::min(sizeof(bhead), sizeof(bhead8)));
           }

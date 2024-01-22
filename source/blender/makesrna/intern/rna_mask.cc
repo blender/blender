@@ -35,6 +35,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "DNA_movieclip_types.h"
 
 #  include "BKE_mask.h"
@@ -461,7 +463,7 @@ static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)
   data->sfra = value;
 
   if (data->sfra >= data->efra) {
-    data->efra = MIN2(data->sfra, MAXFRAME);
+    data->efra = std::min(data->sfra, MAXFRAME);
   }
 }
 
@@ -472,7 +474,7 @@ static void rna_Mask_end_frame_set(PointerRNA *ptr, int value)
   data->efra = value;
 
   if (data->sfra >= data->efra) {
-    data->sfra = MAX2(data->efra, MINFRAME);
+    data->sfra = std::max(data->efra, MINFRAME);
   }
 }
 
