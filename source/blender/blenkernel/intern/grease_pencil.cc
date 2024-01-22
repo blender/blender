@@ -635,6 +635,14 @@ LayerMask::~LayerMask()
   }
 }
 
+void LayerRuntime::clear()
+{
+  frames_.clear_and_shrink();
+  sorted_keys_cache_.tag_dirty();
+  masks_.clear_and_shrink();
+  trans_data_ = {};
+}
+
 Layer::Layer()
 {
   new (&this->base) TreeNode(GP_LAYER_TREE_LEAF);
@@ -885,6 +893,47 @@ void Layer::tag_frames_map_keys_changed()
 {
   this->tag_frames_map_changed();
   this->runtime->sorted_keys_cache_.tag_dirty();
+}
+
+void Layer::prepare_for_dna_write()
+{
+  /* Re-create the frames storage only if it was tagged dirty. */
+  if ((frames_storage.flag & GP_LAYER_FRAMES_STORAGE_DIRTY) == 0) {
+    return;
+  }
+
+  MEM_SAFE_FREE(frames_storage.keys);
+  MEM_SAFE_FREE(frames_storage.values);
+
+  const size_t frames_num = size_t(frames().size());
+  frames_storage.num = int(frames_num);
+  frames_storage.keys = MEM_cnew_array<int>(frames_num, __func__);
+  frames_storage.values = MEM_cnew_array<GreasePencilFrame>(frames_num, __func__);
+  const Span<int> sorted_keys_data = sorted_keys();
+  for (const int64_t i : sorted_keys_data.index_range()) {
+    frames_storage.keys[i] = sorted_keys_data[i];
+    frames_storage.values[i] = frames().lookup(sorted_keys_data[i]);
+  }
+
+  /* Reset the flag. */
+  frames_storage.flag &= ~GP_LAYER_FRAMES_STORAGE_DIRTY;
+}
+
+void Layer::update_from_dna_read()
+{
+  /* Re-create frames data in runtime map. */
+  /* NOTE: Avoid re-allocating runtime data to reduce 'false positive' change detections from
+   * memfile undo. */
+  if (runtime) {
+    runtime->clear();
+  }
+  else {
+    runtime = MEM_new<blender::bke::greasepencil::LayerRuntime>(__func__);
+  }
+  Map<int, GreasePencilFrame> &frames = frames_for_write();
+  for (int i = 0; i < frames_storage.num; i++) {
+    frames.add_new(frames_storage.keys[i], frames_storage.values[i]);
+  }
 }
 
 LayerGroup::LayerGroup()
@@ -1152,6 +1201,38 @@ void LayerGroup::tag_nodes_cache_dirty() const
   this->runtime->nodes_cache_mutex_.tag_dirty();
   if (this->base.parent) {
     this->base.parent->wrap().tag_nodes_cache_dirty();
+  }
+}
+
+void LayerGroup::prepare_for_dna_write()
+{
+  LISTBASE_FOREACH (TreeNode *, child, &children) {
+    switch (child->type) {
+      case GP_LAYER_TREE_LEAF: {
+        child->as_layer().prepare_for_dna_write();
+        break;
+      }
+      case GP_LAYER_TREE_GROUP: {
+        child->as_group().prepare_for_dna_write();
+        break;
+      }
+    }
+  }
+}
+
+void LayerGroup::update_from_dna_read()
+{
+  LISTBASE_FOREACH (TreeNode *, child, &children) {
+    switch (child->type) {
+      case GP_LAYER_TREE_LEAF: {
+        child->as_layer().update_from_dna_read();
+        break;
+      }
+      case GP_LAYER_TREE_GROUP: {
+        child->as_group().update_from_dna_read();
+        break;
+      }
+    }
   }
 }
 
@@ -2432,18 +2513,17 @@ static void read_layer(BlendDataReader *reader,
   BLO_read_int32_array(reader, node->frames_storage.num, &node->frames_storage.keys);
   BLO_read_data_address(reader, &node->frames_storage.values);
 
-  /* Re-create frames data in runtime map. */
-  node->wrap().runtime = MEM_new<blender::bke::greasepencil::LayerRuntime>(__func__);
-  for (int i = 0; i < node->frames_storage.num; i++) {
-    node->wrap().frames_for_write().add_new(node->frames_storage.keys[i],
-                                            node->frames_storage.values[i]);
-  }
-
   /* Read layer masks. */
   BLO_read_list(reader, &node->masks);
   LISTBASE_FOREACH (GreasePencilLayerMask *, mask, &node->masks) {
     BLO_read_data_address(reader, &mask->layer_name);
   }
+
+  /* NOTE: Ideally this should be cleared on write, to reduce false 'changes' detection in memfile
+   * undo system. This is not easily doable currently though, since modifying to actual data during
+   * write is not an option (a shallow copy of the #Layer data would be needed then). */
+  node->runtime = nullptr;
+  node->wrap().update_from_dna_read();
 }
 
 static void read_layer_tree_group(BlendDataReader *reader,
@@ -2487,32 +2567,12 @@ static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader
   /* Read active layer. */
   BLO_read_data_address(reader, &grease_pencil.active_layer);
   read_layer_tree_group(reader, grease_pencil.root_group_ptr, nullptr);
+
+  grease_pencil.root_group_ptr->wrap().update_from_dna_read();
 }
 
 static void write_layer(BlendWriter *writer, GreasePencilLayer *node)
 {
-  using namespace blender::bke::greasepencil;
-
-  /* Re-create the frames storage only if it was tagged dirty. */
-  if ((node->frames_storage.flag & GP_LAYER_FRAMES_STORAGE_DIRTY) != 0) {
-    MEM_SAFE_FREE(node->frames_storage.keys);
-    MEM_SAFE_FREE(node->frames_storage.values);
-
-    const Layer &layer = node->wrap();
-    node->frames_storage.num = layer.frames().size();
-    node->frames_storage.keys = MEM_cnew_array<int>(node->frames_storage.num, __func__);
-    node->frames_storage.values = MEM_cnew_array<GreasePencilFrame>(node->frames_storage.num,
-                                                                    __func__);
-    const Span<int> sorted_keys = layer.sorted_keys();
-    for (const int i : sorted_keys.index_range()) {
-      node->frames_storage.keys[i] = sorted_keys[i];
-      node->frames_storage.values[i] = layer.frames().lookup(sorted_keys[i]);
-    }
-
-    /* Reset the flag. */
-    node->frames_storage.flag &= ~GP_LAYER_FRAMES_STORAGE_DIRTY;
-  }
-
   BLO_write_struct(writer, GreasePencilLayer, node);
   BLO_write_string(writer, node->base.name);
 
@@ -2548,6 +2608,7 @@ static void write_layer_tree_group(BlendWriter *writer, GreasePencilLayerTreeGro
 
 static void write_layer_tree(GreasePencil &grease_pencil, BlendWriter *writer)
 {
+  grease_pencil.root_group_ptr->wrap().prepare_for_dna_write();
   write_layer_tree_group(writer, grease_pencil.root_group_ptr);
 }
 

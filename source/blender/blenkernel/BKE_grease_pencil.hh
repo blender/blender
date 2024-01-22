@@ -333,6 +333,10 @@ class LayerRuntime {
 
   /* Runtime data used for frame transformations. */
   LayerTransformData trans_data_;
+
+ public:
+  /* Reset all runtime data. */
+  void clear();
 };
 
 /**
@@ -433,6 +437,16 @@ class Layer : public ::GreasePencilLayer {
    */
   void tag_frames_map_keys_changed();
 
+  /**
+   * Prepare the DNA #GreasePencilLayer data before blendfile writing.
+   */
+  void prepare_for_dna_write();
+
+  /**
+   * Update from DNA #GreasePencilLayer data after blendfile reading.
+   */
+  void update_from_dna_read();
+
  private:
   using SortedKeysIterator = const int *;
 
@@ -527,6 +541,16 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * Print the nodes. For debugging purposes.
    */
   void print_nodes(StringRefNull header) const;
+
+  /**
+   * Prepare the DNA #GreasePencilLayerTreeGroup data before blendfile writing.
+   */
+  void prepare_for_dna_write();
+
+  /**
+   * Update from DNA #GreasePencilLayerTreeGroup data after blendfile reading.
+   */
+  void update_from_dna_read();
 
  protected:
   /**
