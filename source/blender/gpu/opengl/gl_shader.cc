@@ -1236,8 +1236,6 @@ GLuint GLShader::create_shader_stage(GLenum gl_stage,
   }
 
   debug::object_label(gl_stage, shader, name);
-
-  glAttachShader(program_active_->program_id, shader);
   return shader;
 }
 
@@ -1291,10 +1289,11 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
     Vector<const char *> sources;
     sources.append("version");
     sources.append(source.c_str());
-    geometry_shader_from_glsl(sources);
     if (!constants.types.is_empty()) {
       geometry_sources_ = sources;
     }
+
+    geometry_shader_from_glsl(sources);
   }
 
   if (!program_link()) {
@@ -1518,7 +1517,25 @@ GLShader::GLProgram::~GLProgram()
 
 bool GLShader::program_link()
 {
+  BLI_assert(program_active_ != nullptr);
+  if (program_active_->program_id == 0) {
+    program_active_->program_id = glCreateProgram();
+    debug::object_label(GL_PROGRAM, program_active_->program_id, name);
+  }
   GLuint program_id = program_active_->program_id;
+
+  if (program_active_->vert_shader) {
+    glAttachShader(program_id, program_active_->vert_shader);
+  }
+  if (program_active_->geom_shader) {
+    glAttachShader(program_id, program_active_->geom_shader);
+  }
+  if (program_active_->frag_shader) {
+    glAttachShader(program_id, program_active_->frag_shader);
+  }
+  if (program_active_->compute_shader) {
+    glAttachShader(program_id, program_active_->compute_shader);
+  }
   glLinkProgram(program_id);
 
   GLint status;
@@ -1564,8 +1581,6 @@ GLuint GLShader::program_get()
 
   program_active_ = &program_cache_.lookup_or_add_default(constants.values);
   if (!program_active_->program_id) {
-    program_active_->program_id = glCreateProgram();
-    debug::object_label(GL_PROGRAM, program_active_->program_id, name);
     MutableSpan<const char *> no_sources;
     if (!vertex_sources_.is_empty()) {
       program_active_->vert_shader = create_shader_stage(
