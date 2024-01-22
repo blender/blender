@@ -146,8 +146,7 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
 
   uint64_t hash() const override
   {
-    /* Some random constant hash. */
-    return 8466507837;
+    return get_default_hash_2(end_selection_, cost_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
