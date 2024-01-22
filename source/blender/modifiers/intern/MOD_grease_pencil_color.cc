@@ -217,9 +217,6 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  const GreasePencilModifierColorMode color_mode = GreasePencilModifierColorMode(
-      RNA_enum_get(ptr, "color_mode"));
-
   uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
 
   uiItemR(layout, ptr, "hue", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
