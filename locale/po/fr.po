@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
-"PO-Revision-Date: 2024-01-09 06:40+0000\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"PO-Revision-Date: 2024-01-16 09:55+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -1105,6 +1105,14 @@ msgstr "Os d’édition actif de l’armature"
 
 msgid "Catalog Path"
 msgstr "Chemin du catalogue"
+
+
+msgid "User Asset Libraries"
+msgstr "Bibliothèques d’assets utilisateur"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Collection de bibliothèques de l’utilisateur"
 
 
 msgid "Asset Library Reference"
@@ -3947,6 +3955,10 @@ msgstr "Indice de cette collection dans la liste d’enfants de sa parente. Note
 
 msgid "Index"
 msgstr "Indice"
+
+
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Indice de cette collection d’os dans le tableau armature.collections_all. Note : pour trouver cet indice il faut parcourir toutes les collections d’os, y accéder avec précaution"
 
 
 msgid "Is Editable"
@@ -10067,6 +10079,14 @@ msgid "Show options for whether channels related to certain types of data are in
 msgstr "Afficher les options pour choisir quels canaux inclure, selon le type de données auxquels ils sont liés"
 
 
+msgid "Variable Fallback As Error"
+msgstr "Variable de repli comme erreur"
+
+
+msgid "Include drivers that relied on any fallback values for their evaluation in the Only Show Errors filter, even if the driver evaluation succeeded"
+msgstr "Inclure les contrôleurs utilisant des valeurs de repli pour leur évaluation dans le filtre Afficher les erreurs uniquement, même si l’évaluation du contrôleur a réussi"
+
+
 msgid "Collapse Summary"
 msgstr "Replier le résumé"
 
@@ -10427,6 +10447,14 @@ msgid "RNA Path (from ID-block) to property used"
 msgstr "Chemin RNA (depuis le bloc ID) pour la propriété utilisée"
 
 
+msgid "Fallback"
+msgstr "Repli"
+
+
+msgid "The value to use if the data path can't be resolved"
+msgstr "Valeur à utiliser si le chemin de données ne peut pas être résolu"
+
+
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
 msgstr "Bloc ID dans lequel la propriété utilisée peut être trouvée (la propriété Type d’ID (id_type) doit être définie au préalable)"
 
@@ -10438,6 +10466,14 @@ msgstr "Type d’ID"
 
 msgid "Type of ID-block that can be used"
 msgstr "Type de bloc ID pouvant être utilisé"
+
+
+msgid "Is Fallback Used"
+msgstr "Le repli est utilisé"
+
+
+msgid "Indicates that the most recent variable evaluation used the fallback value"
+msgstr "Indique que l’évaluation de variable la plus récente a utilisé une valeur de repli"
 
 
 msgid "Rotation Mode"
@@ -10478,6 +10514,14 @@ msgstr "Rotation W"
 
 msgid "Average Scale"
 msgstr "Échelle moyenne"
+
+
+msgid "Use Fallback"
+msgstr "Utiliser une valeur de repli"
+
+
+msgid "Use the fallback value if the data path can't be resolved, instead of failing to evaluate the driver"
+msgstr "Utiliser la valeur de repli si le chemin de données ne peut être résolu, au lieu d’échouer dans l’évaluation du contrôleur"
 
 
 msgid "Driver Variable"
@@ -14850,6 +14894,10 @@ msgstr "Créer un système de particules traceuses"
 
 msgid "Use Viscosity"
 msgstr "Utiliser la viscosité"
+
+
+msgid "Simulate fluids with high viscosity using a special solver"
+msgstr "Simuler les fluides à haute viscosité en utilisant un solveur spécial"
 
 
 msgid "Display Type"
@@ -19631,6 +19679,14 @@ msgid "Preview image and icon of this data-block (always None if not supported f
 msgstr "Image et icône d’aperçu de ce bloc de données (toujours None si non pris en charge par ce type de données)"
 
 
+msgid "Session UID"
+msgstr "UID de session"
+
+
+msgid "A session-wide unique identifier for the data block that remains the same across renames and internal reallocations. It does change when reloading the file"
+msgstr "Identifiant unique sur toute la session pour le bloc de données, qui reste le même lors des renommages et des réallocations internes. Change quand même lors du rechargement du fichier"
+
+
 msgid "Tag"
 msgstr "Étiquette"
 
@@ -19754,6 +19810,18 @@ msgstr "Position des axes"
 
 msgid "The position for the axes on the bone. Increasing the value moves it closer to the tip; decreasing moves it closer to the root"
 msgstr "Position des axes sur l’os. Augmenter cette valeur pour les rapprocher de la pointe ; la diminuer pour les rapprocher de la racine"
+
+
+msgid "Bone Collections (Roots)"
+msgstr "Collections d’os (racines)"
+
+
+msgid "Bone Collections (All)"
+msgstr "Collections d’os (toutes)"
+
+
+msgid "List of all bone collections of the armature"
+msgstr "Liste de toutes les collections d’os de l’armature"
 
 
 msgid "Octahedral"
@@ -29099,14 +29167,6 @@ msgstr "Réglages des unités"
 
 msgid "Unit editing settings"
 msgstr "Réglages des unités d’édition"
-
-
-msgid "Audio Muted"
-msgstr "Audio silencieux"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "La lecture de l’audio de l’éditeur de séquences sera rendue silencieuse"
 
 
 msgid "Audio Scrubbing"
@@ -44771,6 +44831,10 @@ msgid "Pixelate"
 msgstr "Pixelliser"
 
 
+msgid "Pixel Size"
+msgstr "Taille de pixel"
+
+
 msgid "Plane Track Deform"
 msgstr "Déformation de suivi de plan"
 
@@ -47080,6 +47144,14 @@ msgstr "Sortie de simulation"
 
 msgid "Output data from the simulation zone"
 msgstr "Données de sortie pour la zone de simulation"
+
+
+msgid "Sort Elements"
+msgstr "Trier les éléments"
+
+
+msgid "Rearrange geometry elements, changing their indices"
+msgstr "Réordonner les éléments de géométrie, en changeant leurs indices"
 
 
 msgid "Spline Length"
@@ -50100,6 +50172,10 @@ msgid "Nodes Modifier Bake"
 msgstr "Précalcul de modificateur Nœuds"
 
 
+msgid "Bake ID"
+msgstr "ID de précalcul"
+
+
 msgid "Bake Mode"
 msgstr "Mode de précalcul"
 
@@ -51821,14 +51897,6 @@ msgid "Add a new bone collection"
 msgstr "Ajouter une nouvelle collection d’os"
 
 
-msgid "Parent Index"
-msgstr "Indice du parent"
-
-
-msgid "Index of the parent bone collection, or -1 if the new bone collection should be a root"
-msgstr "Indice de la collection d’os parente, ou -1 si la nouvelle collection d’os devrait àtre une racine"
-
-
 msgctxt "Operator"
 msgid "Add Selected Bones to Collection"
 msgstr "Ajouter les os sélectionnés à la collection"
@@ -51911,6 +51979,10 @@ msgstr "Afficher toutes les collections d’os"
 msgctxt "Operator"
 msgid "Solo Visibility"
 msgstr "Cacher les autres"
+
+
+msgid "Hide all other bone collections and show the active one. Note that it is necessary to also show the ancestors of the active bone collection in order to ensure its visibility"
+msgstr "Cacher toutes les autres collections d’os et afficher l’active. Note : il faut aussi afficher les ancêtres de la collection d’os active pour s’assurer qu’elle soit visible"
 
 
 msgctxt "Operator"
@@ -54674,6 +54746,10 @@ msgid "Draw a freehand curve"
 msgstr "Dessiner une courbe à main levée"
 
 
+msgid "As NURBS"
+msgstr "Comme NURBS"
+
+
 msgid "Error distance threshold (in object units)"
 msgstr "Seuil d’erreur de distance (en unités objet)"
 
@@ -55855,20 +55931,8 @@ msgstr "Convertir la rotation en Euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export STL (legacy)"
-msgstr "Exporter STL (obsolète)"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Enregistrer des données de maillage triangulé STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Enregistrer le fichier en format ASCII"
+msgid "Export PLY"
+msgstr "Exporter PLY"
 
 
 msgid "X Forward"
@@ -55915,6 +55979,39 @@ msgid "-Z Up"
 msgstr "-Z haut"
 
 
+msgid "ASCII"
+msgstr "ASCII"
+
+
+msgid "Apply Modifiers"
+msgstr "Appliquer les modificateurs"
+
+
+msgid "Selection Only"
+msgstr "Sélection uniquement"
+
+
+msgid "Export selected objects only"
+msgstr "N’exporter que les objets sélectionnés"
+
+
+msgctxt "Operator"
+msgid "Export STL (legacy)"
+msgstr "Exporter STL (obsolète)"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Enregistrer des données de maillage triangulé STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Enregistrer le fichier en format ASCII"
+
+
 msgid "Batch Mode"
 msgstr "Mode groupé"
 
@@ -55935,10 +56032,6 @@ msgid "Export in this reference space"
 msgstr "Exporter dans cet espace de référence"
 
 
-msgid "Apply Modifiers"
-msgstr "Appliquer les modificateurs"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Appliquer les modificateurs avant l’enregistrement"
 
@@ -55949,14 +56042,6 @@ msgstr "Unité de scène"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Appliquer l’unité (telle que définie par l’échelle d’unité) de la scène actuelle aux données exportées"
-
-
-msgid "Selection Only"
-msgstr "Sélection uniquement"
-
-
-msgid "Export selected objects only"
-msgstr "N’exporter que les objets sélectionnés"
 
 
 msgctxt "Operator"
@@ -57147,6 +57232,18 @@ msgstr "Enregistrer les réglages d’export"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Enregistrer les réglages d’export dans le projet Blender"
+
+
+msgid "Material Groups"
+msgstr "Groupes de matériaux"
+
+
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Générer un groupe OBJ pour chaque partie de la géométrie utilisant un matériau différent"
+
+
+msgid "Smooth Groups"
+msgstr "Groupes de lissage"
 
 
 msgctxt "Operator"
@@ -61885,6 +61982,19 @@ msgstr "Adoucir les extrémités"
 
 
 msgctxt "Operator"
+msgid "Subdivide and Smooth"
+msgstr "Subdiviser et adoucir"
+
+
+msgid "Subdivide strokes and smooth them"
+msgstr "Subdiviser les traits et les adoucir"
+
+
+msgid "Subdivide Stroke"
+msgstr "Subdiviser le trait"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Ajouter un emplacement de rendu"
 
@@ -62736,6 +62846,11 @@ msgstr "Utiliser le canal alpha pour la transparence"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importer PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL (legacy)"
 msgstr "Importer STL (obsolète)"
 
@@ -62984,6 +63099,10 @@ msgstr "Niveau de log"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Dans le format glTF, les normales, UV et autres attributs discontinus de sommets sont censés être stockés en tant que sommets à part, ce qui est nécessaire pour le rendu sur les cartes graphiques ordinaires. Cette option tente de combiner les sommets coïncidents quand c’est possible. Ne peut pas actuellement combiner des sommets ayant des normales différentes"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importer les groupes OBJ comme groupes de sommets"
 
 
 msgctxt "Operator"
@@ -68736,10 +68855,6 @@ msgid "Delete baked data of a single bake node or simulation"
 msgstr "Supprimer les données précalculées d’un seul nœud de précalcul ou simulation"
 
 
-msgid "Bake ID"
-msgstr "ID de précalcul"
-
-
 msgid "Nested node id of the node"
 msgstr "Identifiant imbriqué du nœud"
 
@@ -70567,14 +70682,6 @@ msgid "Name of the collection to select"
 msgstr "Nom de la collection à sélectionner"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Rendre et afficher les faces plates, en utilisant les normales de face"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Rendre et afficher les faces lissées, en utilisant les normales de sommet interpolées"
-
-
 msgctxt "Operator"
 msgid "Shade Smooth by Angle"
 msgstr "Lisser l’ombrage selon l’angle"
@@ -70755,6 +70862,10 @@ msgstr "Réinitialiser les clés de forme"
 
 msgid "Clear weights for all shape keys"
 msgstr "Effacer les poids pour toutes les clés de forme"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Action de verrouillage à exécuter sur les groupes de sommets"
 
 
 msgctxt "Operator"
@@ -71238,10 +71349,6 @@ msgstr "Changer le verrouillage sur les groupes de sommets"
 
 msgid "Change the lock state of all or some vertex groups of active object"
 msgstr "Modifier l’état de verrouillage de certains ou de tous les groupes de sommets de l’objet actif"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Action de verrouillage à exécuter sur les groupes de sommets"
 
 
 msgid "Unlock all vertex groups if there is at least one locked group, lock all in other case"
@@ -75755,6 +75862,10 @@ msgid "Editing"
 msgstr "Édition"
 
 
+msgid "Extensions"
+msgstr "Extensions"
+
+
 msgid "Add-ons"
 msgstr "Add-ons"
 
@@ -75765,10 +75876,6 @@ msgstr "Ensemble de raccourcis"
 
 msgid "File Paths"
 msgstr "Chemins de fichiers"
-
-
-msgid "Extensions"
-msgstr "Extensions"
 
 
 msgid "Experimental"
@@ -77150,6 +77257,14 @@ msgid "After removing the Strip, delete the associated data also"
 msgstr "Après la suppression de la bande, effacer également les données associées"
 
 
+msgid "Use Retiming Data"
+msgstr "Utiliser les données de reminutage"
+
+
+msgid "Operate on retiming data instead of strips"
+msgstr "Opérer sur les données de reminutage au lieu des bandes"
+
+
 msgid "Duplicate the selected strips"
 msgstr "Dupliquer les bandes sélectionnées"
 
@@ -77561,8 +77676,34 @@ msgid "Set render size and aspect from active sequence"
 msgstr "Définir les taille et proportions du rendu d’après la séquence active"
 
 
+msgctxt "Operator"
+msgid "Add Freeze Frame And Slide"
+msgstr "Ajouter un arrêt sur image et glisser"
+
+
+msgid "Add freeze frame and move it"
+msgstr "Ajouter un arrêt sur image et le déplacer"
+
+
+msgid "Add Freeze Frame"
+msgstr "Ajouter un arrêt sur image"
+
+
 msgid "Add freeze frame"
 msgstr "Ajouter un arrêt sur image"
+
+
+msgctxt "Operator"
+msgid "Add Speed Transition And Slide"
+msgstr "Ajouter une transition de vitesse et glisser"
+
+
+msgid "Add smooth transition between 2 retimed segments and change its duration"
+msgstr "Ajouter une transition douce entre deux segments reminutés et changer sa durée"
+
+
+msgid "Add Speed Transition"
+msgstr "Ajouter une transition de vitesse"
 
 
 msgid "Add smooth transition between 2 retimed segments"
@@ -80625,6 +80766,22 @@ msgid "Rotated to a minimal rectangle, either vertical or horizontal"
 msgstr "Tournés vers un rectangle minimal, vertical ou horizontal"
 
 
+msgid "Axis-aligned (Horizontal)"
+msgstr "Alignés sur l’axe (horizontal)"
+
+
+msgid "Rotate islands to be aligned horizontally"
+msgstr "Tourner les îlots pour les aligner horizontalement"
+
+
+msgid "Axis-aligned (Vertical)"
+msgstr "Alignés sur l’axe (vertical)"
+
+
+msgid "Rotate islands to be aligned vertically"
+msgstr "Tourner les îlots pour les aligner verticalement"
+
+
 msgid "Scale islands to fill unit square"
 msgstr "Redimensionner les îlots pour remplir le carré unitaire"
 
@@ -82488,10 +82645,6 @@ msgid "Clear Recent Files List"
 msgstr "Nettoyer la liste des fichiers récents"
 
 
-msgid "Clear the Recent Files List"
-msgstr "Nettoyer la liste des fichiers récents"
-
-
 msgctxt "Operator"
 msgid "Export COLLADA"
 msgstr "Exporter COLLADA"
@@ -83426,10 +83579,6 @@ msgid "Export Material Groups"
 msgstr "Exporter les groupes de matériaux"
 
 
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Générer un groupe OBJ pour chaque partie de la géométrie utilisant un matériau différent"
-
-
 msgid "Export Materials"
 msgstr "Exporter les matériaux"
 
@@ -83563,10 +83712,6 @@ msgid "Character used to separate objects name into hierarchical structure"
 msgstr "Caractère utilisé pour séparer les noms d’objets en une structure hiérarchique"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importer les groupes OBJ comme groupes de sommets"
-
-
 msgid "Split By Group"
 msgstr "Séparer par groupes"
 
@@ -83672,11 +83817,6 @@ msgid "Open a path in a file browser"
 msgstr "Ouvrir un chemin dans un navigateur de fichiers"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporter PLY"
-
-
 msgid "Save the scene to a PLY file"
 msgstr "Enregistrer la scène dans un fichier PLY"
 
@@ -83719,11 +83859,6 @@ msgstr "Exporter les normales de sommets"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Exporter les normales de sommets spécifiques si disponibles, sinon exporter des normales calculées"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importer PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -86767,6 +86902,10 @@ msgstr "Diagnostiques"
 
 msgid "Helpers"
 msgstr "Facilitateurs"
+
+
+msgid "High Viscosity Solver"
+msgstr "Solveur haute viscosité"
 
 
 msgid "Show options for the properties editor"
@@ -91574,6 +91713,14 @@ msgid "Translate the names of new data-blocks (objects, materials...)"
 msgstr "Traduire les noms des nouveaux blocs de données (objets, matériaux, etc.)"
 
 
+msgid "Translate Reports"
+msgstr "Traduire les rapports"
+
+
+msgid "Translate additional information, such as error messages"
+msgstr "Traduire les informations supplémentaires, telles que les messages d’erreur"
+
+
 msgid "Translate Tooltips"
 msgstr "Traduire les infobulles"
 
@@ -94618,10 +94765,6 @@ msgstr "Proportion de pixel Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Proportion verticale – pour une sortie anamorphique ou à pixels non-carrés"
-
-
-msgid "Pixel Size"
-msgstr "Taille de pixel"
 
 
 msgid "Pixel size for viewport rendering"
@@ -111129,6 +111272,10 @@ msgid "Add a new Variant Slot"
 msgstr "Ajouter un nouvel emplacement de variante"
 
 
+msgid "Curves as NURBS"
+msgstr "Courbes en tant que NURBS"
+
+
 msgctxt "Operator"
 msgid "Lightwave Point Cache (.mdd)"
 msgstr "Cache de points Lightwave (.mdd)"
@@ -111790,8 +111937,16 @@ msgid "Cannot do anything in mode %r"
 msgstr "Impossible d’agir en mode %r"
 
 
+msgid "Armature has no active Bone collection, nothing to solo"
+msgstr "L’armature n’a aucune collection d’os active, rien à passer en solo"
+
+
 msgid "Could not find material or light using Shader Node Tree - %s"
 msgstr "Impossible de trouver le matériau ou l’éclairage utilisant l’arborescence de nœuds de shader – %s"
+
+
+msgid "Bone collection %r not found"
+msgstr "Collection d’os %r introuvable"
 
 
 msgid "Could not find scene using Compositor Node Tree - %s"
@@ -112088,22 +112243,6 @@ msgstr "Aucune séquence sélectionnée"
 
 msgid "Current frame not within strip framerange"
 msgstr "La frame actuelle n’est pas dans l’intervalle de frames de la bande"
-
-
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "Fournir un format d’arguments de l’éditeur de texte dans les préférences Chemins de fichiers → Applications, voir l’infobulle de ce champ pour plus d’informations"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "Le format d’arguments de l’éditeur de texte doit contenir $filepath"
-
-
-msgid "Exception parsing template: %r"
-msgstr "Exception à l’analyse syntaxique du modèle : %r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "Exception à l’exécution de l’éditeur externe : %r"
 
 
 msgid "Reload Start-Up file to restore settings"
@@ -115393,6 +115532,10 @@ msgid "Cursor Value to Selection"
 msgstr "Valeur du curseur vers sélection"
 
 
+msgid "Drivers:"
+msgstr "Contrôleurs :"
+
+
 msgctxt "Operator"
 msgid "Decimate (Ratio)"
 msgstr "Décimer (proportion)"
@@ -115900,10 +116043,6 @@ msgstr "Sortir du groupe"
 msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Manuel en ligne"
-
-
-msgid "Inputs:"
-msgstr "Entrées :"
 
 
 msgid "Previews"
@@ -116868,31 +117007,6 @@ msgid "Unused Data-Blocks"
 msgstr "Blocs de données inutilisés"
 
 
-msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Blocs de données inutilisés, récursivement"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Blocs de données liés inutilisés"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Linked Data-Blocks"
-msgstr "Blocs de données liés inutilisés, récursivement"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Blocs de données locaux inutilisés"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Local Data-Blocks"
-msgstr "Blocs de données locaux inutilisés, récursivement"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Nouveau"
@@ -117146,6 +117260,10 @@ msgid "Hinting"
 msgstr "Optimisation"
 
 
+msgid "Reports"
+msgstr "Rapports"
+
+
 msgid "New Data"
 msgstr "Nouvelles données"
 
@@ -117234,16 +117352,16 @@ msgid "Auto-Keyframing"
 msgstr "Insertion auto"
 
 
+msgid "Enable in New Scenes"
+msgstr "Activer dans les nouvelles scènes"
+
+
 msgid "Show Warning"
 msgstr "Afficher un avertissement"
 
 
 msgid "Only Insert Available"
 msgstr "N’insérer que si disponible"
-
-
-msgid "Enable in New Scenes"
-msgstr "Activer dans les nouvelles scènes"
 
 
 msgid "Unselected Opacity"
@@ -117580,6 +117698,10 @@ msgstr "Documentation"
 
 msgid "Preferences:"
 msgstr "Préférences :"
+
+
+msgid "warning"
+msgstr "avertissement"
 
 
 msgid "Error (see console)"
@@ -119397,6 +119519,10 @@ msgid "Reproject"
 msgstr "Reprojeter"
 
 
+msgid "No Materials"
+msgstr "Aucun matériau"
+
+
 msgid "Mirror Points"
 msgstr "Inverser les points en miroir"
 
@@ -120970,6 +121096,10 @@ msgid "Milligrams"
 msgstr "Milligrammes"
 
 
+msgid "Tons"
+msgstr "Tonnes"
+
+
 msgid "Centum weights"
 msgstr "Quintaux"
 
@@ -121898,14 +122028,6 @@ msgstr "Os séparés"
 
 msgid "Unselectable bone in chain"
 msgstr "Os non-sélectionnable dans la chaîne"
-
-
-msgid "parent_index should not be less than -1: %d"
-msgstr "parent_index ne devrait pas être inférieur à -1 : %d"
-
-
-msgid "parent_index (%d) should be less than the number of bone collections (%d)"
-msgstr "parent_index (%d) devrait être inférieur au nombre de collections d’os (%d)"
 
 
 msgid "Bone collection with index %d not found on Armature %s"
@@ -122956,6 +123078,10 @@ msgid "Skin_shadow"
 msgstr "Peau_ombre"
 
 
+msgid "Material '%s' could not be found"
+msgstr "Le matériau « %s » est introuvable"
+
+
 msgid "Failed to set value"
 msgstr "Impossible d’assigner la valeur"
 
@@ -122972,10 +123098,6 @@ msgid "Error evaluating number, see Info editor for details"
 msgstr "Erreur lors de l’évaluation du nombre, voir l’éditeur infos pour plus de détails"
 
 
-msgid "Missing Panel: %s"
-msgstr "Panneau manquant : %s"
-
-
 msgid "Missing Menu: %s"
 msgstr "Menu manquant : %s"
 
@@ -122983,6 +123105,10 @@ msgstr "Menu manquant : %s"
 msgctxt "WindowManager"
 msgid "Search"
 msgstr "Rechercher"
+
+
+msgid "Unknown Property."
+msgstr "Propriété inconnue."
 
 
 msgid "Non-Keyboard Shortcut"
@@ -123171,18 +123297,6 @@ msgid "Online Python Reference"
 msgstr "Référence Python en ligne (en)"
 
 
-msgid "Drop %s on slot %d (replacing %s) of %s"
-msgstr "Déposer %s sur l’emplacement %d (remplaçant %s) de %s"
-
-
-msgid "Drop %s on slot %d (active slot) of %s"
-msgstr "Déposer %s sur l’emplacement %d (emplacement actif) de %s"
-
-
-msgid "Drop %s on slot %d of %s"
-msgstr "Déposer %s sur l’emplacement %d de %s"
-
-
 msgid "Expected an array of numbers: [n, n, ...]"
 msgstr "Un tableau de nombres est attendu : [n, n, ...]"
 
@@ -123357,44 +123471,8 @@ msgid "Internal error!"
 msgstr "Erreur interne !"
 
 
-msgid "Shortcut: %s"
-msgstr "Raccourci : %s"
-
-
-msgid "Python: %s"
-msgstr "Python : %s"
-
-
-msgid "Shortcut Cycle: %s"
-msgstr "Raccourci pour alterner : %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Maj-cliquer/glisser pour en sélectionner plusieurs)"
-
-
-msgid "Value: %s"
-msgstr "Valeur : %s"
-
-
-msgid "Radians: %f"
-msgstr "Radians : %f"
-
-
-msgid "Expression: %s"
-msgstr "Expression : %s"
-
-
-msgid "Library: %s"
-msgstr "Bibliothèque : %s"
-
-
-msgid "Disabled: %s"
-msgstr "Désactivé : %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python : %s.%s"
 
 
 msgctxt "Operator"
@@ -123429,6 +123507,14 @@ msgstr "Déplacer le calque {} au-dessus de {}"
 
 msgid "Move layer {} below {}"
 msgstr "Déplacer le calque {} en dessous de {}"
+
+
+msgid "Layer is locked or not visible"
+msgstr "Le calque est verrouillé ou invisible"
+
+
+msgid "Layer Group is locked"
+msgstr "Le groupe de calques est verrouillé"
 
 
 msgid "Add to linking collection"
@@ -123847,6 +123933,14 @@ msgid "Can't edit external library data"
 msgstr "Impossible d’éditer les données de bibliothèque externe"
 
 
+msgid "Operator cannot redo"
+msgstr "L’opérateur ne peut pas être refait"
+
+
+msgid "File Not Found"
+msgstr "Fichier introuvable"
+
+
 msgid "Today"
 msgstr "Aujourd’hui"
 
@@ -124130,10 +124224,6 @@ msgid "Triangulated Mesh"
 msgstr "Maillage triangulé"
 
 
-msgid "Curves as NURBS"
-msgstr "Courbes en tant que NURBS"
-
-
 msgid "PBR Extensions"
 msgstr "Extensions PBR"
 
@@ -124146,20 +124236,8 @@ msgid "Object Groups"
 msgstr "Groupes d’objets"
 
 
-msgid "Material Groups"
-msgstr "Groupes de matériaux"
-
-
-msgid "Smooth Groups"
-msgstr "Groupes de lissage"
-
-
 msgid "Smooth Group Bitflags"
 msgstr "Drapeaux de groupes de lissage"
-
-
-msgid "ASCII"
-msgstr "ASCII"
 
 
 msgid "Batch"
@@ -125371,18 +125449,6 @@ msgstr "Objet (sans inverse)"
 
 msgid "Object (Keep Transform Without Inverse)"
 msgstr "Objet (conserver transformation sans inverse)"
-
-
-msgid "Drop %s on %s (slot %d, replacing %s)"
-msgstr "Déposer %s sur %s (emplacement %d, remplace %s)"
-
-
-msgid "Drop %s on %s (slot %d)"
-msgstr "Déposer %s sur %s (emplacement %d)"
-
-
-msgid "Add modifier with node group \"%s\" on object \"%s\""
-msgstr "Ajouter un modificateur avec le groupe de nœuds « %s » à l’objet « %s »"
 
 
 msgid "Select either 1 or 3 vertices to parent to"
@@ -131667,6 +131733,10 @@ msgid "Style module '%s' could not be removed"
 msgstr "Le module de style « %s » n’a pu être supprimé"
 
 
+msgid "Could not move layer from index '%d' to '%d'"
+msgstr "Impossible de déplacer le calque de l’indice %d vers %d"
+
+
 msgid "Sequence type must be 'META'"
 msgstr "Le type de la séquence doit être 'META'"
 
@@ -131777,6 +131847,10 @@ msgstr "Enregistrement du gestionnaire de fichier : « %s » est trop long, l
 
 msgid "Script directory not found"
 msgstr "Dossier de scripts introuvable"
+
+
+msgid "Asset Library not found"
+msgstr "Bibliothèque d’assets introuvable"
 
 
 msgid "Extension repository not found"
@@ -132228,16 +132302,8 @@ msgid "Output Attributes"
 msgstr "Attributs de sortie"
 
 
-msgid "Internal Dependencies"
-msgstr "Dépendances internes"
-
-
 msgid "Can not load the baked data"
 msgstr "Impossible de charger les données précalculées"
-
-
-msgid "No group output attributes connected"
-msgstr "Aucun attribut connecté à la sortie de groupe"
 
 
 msgid "No named attributes used"
@@ -134316,6 +134382,14 @@ msgid "Forward the output of the simulation input node directly to the output no
 msgstr "Transmettre directement la sortie du nœud entrée de simulation au nœud de sortie et ignorer les nœuds dans la zone de simulation"
 
 
+msgid "Domain and geometry type combination is unsupported"
+msgstr "La combinaison de domaine et de type de géométrie n’est pas prise en charge"
+
+
+msgid "Sort Weight"
+msgstr "Poids de tri"
+
+
 msgid "All geometry groups as separate instances"
 msgstr "Tous les groupes de géométries en instances séparées"
 
@@ -135288,10 +135362,6 @@ msgid "Trusted Source [Untrusted Path]"
 msgstr "Source de confiance [chemin non-fiable]"
 
 
-msgid "Remove all items from the Recent Files list"
-msgstr "Supprimer tous les élément de la liste des fichiers récents"
-
-
 msgid "Remove All"
 msgstr "Tout supprimer"
 
@@ -135306,10 +135376,6 @@ msgstr "Enregistrer sous…"
 
 msgid "Don't Save"
 msgstr "Ne pas enregistrer"
-
-
-msgid "File Not Found"
-msgstr "Fichier introuvable"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"

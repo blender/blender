@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -3948,6 +3948,11 @@ msgid "Export BVH"
 msgstr "Exporteer BVH"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exporteer PLY"
+
+
 msgid "Apply Modifiers"
 msgstr "Pas Aanpassers Toe"
 
@@ -4484,6 +4489,11 @@ msgstr "Importeer SVG"
 msgctxt "Operator"
 msgid "Import Images as Planes"
 msgstr "Importeer Afbeeldingen als Vlakken"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importeer PLY"
 
 
 msgctxt "Operator"
@@ -6309,16 +6319,6 @@ msgstr "Objecteigenschappen"
 
 msgid "Open a Blender file"
 msgstr "Open een Blender Bestand"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporteer PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importeer PLY"
 
 
 msgid "All Types"
@@ -8967,10 +8967,6 @@ msgid "Copy All to Selected"
 msgstr "Kopieer Alles naar Geselecteerd"
 
 
-msgid "Value: %s"
-msgstr "Waarde: %s"
-
-
 msgid "Double click to rename"
 msgstr "Dubbelklik om te hernoemen"
 
@@ -8989,6 +8985,10 @@ msgstr "Verwijder punten"
 
 msgid "Choose Screen layout"
 msgstr "Kies Scherm indeling"
+
+
+msgid "File Not Found"
+msgstr "Bestand Niet Gevonden"
 
 
 msgid "Today"
@@ -9546,10 +9546,6 @@ msgstr "Opslaan Als..."
 
 msgid "Don't Save"
 msgstr "Niet Opslaan"
-
-
-msgid "File Not Found"
-msgstr "Bestand Niet Gevonden"
 
 
 msgid "unable to open the file"
