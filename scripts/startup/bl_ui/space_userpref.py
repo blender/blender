@@ -7,6 +7,7 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
+    UIList,
 )
 from bpy.app.translations import (
     contexts as i18n_contexts,
@@ -1582,7 +1583,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         layout.prop(active_library, "use_relative_path")
 
 
-class USERPREF_UL_asset_libraries(bpy.types.UIList):
+class USERPREF_UL_asset_libraries(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         asset_library = item
 
@@ -1593,7 +1594,7 @@ class USERPREF_UL_asset_libraries(bpy.types.UIList):
             layout.prop(asset_library, "name", text="", emboss=False)
 
 
-class USERPREF_UL_extension_repos(bpy.types.UIList):
+class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
 

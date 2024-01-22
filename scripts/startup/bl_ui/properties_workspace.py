@@ -5,6 +5,7 @@
 import bpy
 from bpy.types import (
     Panel,
+    UIList,
 )
 from bpy.app.translations import pgettext_iface as iface_
 
@@ -85,7 +86,7 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
                 ).owner_id = module_name
 
 
-class WORKSPACE_UL_addons_items(bpy.types.UIList):
+class WORKSPACE_UL_addons_items(UIList):
 
     @staticmethod
     def _ui_label_from_addon(addon):
