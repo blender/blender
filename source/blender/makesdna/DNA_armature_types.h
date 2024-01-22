@@ -301,6 +301,11 @@ typedef struct BoneCollection {
    * \see is_visible
    */
   bool is_visible_with_ancestors() const;
+
+  /**
+   * Return whether this collection is marked as 'solo'.
+   */
+  bool is_solo() const;
 #endif
 } BoneCollection;
 
@@ -334,8 +339,14 @@ typedef enum eArmature_Flag {
    * from the tail, set = drawn from the head). Only controls the parent side of
    * the line; the child side is always drawn to the head of the bone. */
   ARM_DRAW_RELATION_FROM_HEAD = (1 << 5), /* Cleared in versioning of pre-2.80 files. */
-  ARM_FLAG_UNUSED_6 = (1 << 6),           /* cleared */
-  ARM_FLAG_UNUSED_7 = (1 << 7),           /* cleared */
+  /**
+   * Whether any bone collection is marked with the 'solo' flag.
+   * When this is the case, bone collection visibility flags don't matter any more, and only ones
+   * that have their 'solo' flag set will be visible.
+   *
+   * \see eBoneCollection_Flag::BONE_COLLECTION_SOLO */
+  ARM_BCOLL_SOLO_ACTIVE = (1 << 6), /* Cleared in versioning of pre-2.80 files. */
+  ARM_FLAG_UNUSED_7 = (1 << 7),     /* cleared */
   ARM_MIRROR_EDIT = (1 << 8),
   ARM_FLAG_UNUSED_9 = (1 << 9),
   /** Made option negative, for backwards compatibility. */
@@ -510,8 +521,21 @@ typedef enum eBoneCollection_Flag {
    * runtime struct yet, and the addition of one more flag doesn't seem worth
    * the effort. */
   BONE_COLLECTION_ANCESTORS_VISIBLE = (1 << 3),
+
+  /**
+   * Whether this bone collection is marked as 'solo'.
+   *
+   * If no bone collections have this flag set, visibility is determined by
+   * BONE_COLLECTION_VISIBLE.
+   *
+   * If there is any bone collection with the BONE_COLLECTION_SOLO flag enabled, all bone
+   * collections are effectively hidden, except other collections with this flag enabled.
+   *
+   * \see eArmature_Flag::ARM_BCOLL_SOLO_ACTIVE
+   */
+  BONE_COLLECTION_SOLO = (1 << 4),
 } eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_ANCESTORS_VISIBLE)
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_SOLO)
 
 #ifdef __cplusplus
 

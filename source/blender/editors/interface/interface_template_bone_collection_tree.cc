@@ -236,12 +236,21 @@ class BoneCollectionItem : public AbstractTreeViewItem {
 
     /* Visibility eye icon. */
     {
+      const bool is_solo_active = armature_.flag & ARM_BCOLL_SOLO_ACTIVE;
       uiLayout *visibility_sub = uiLayoutRow(sub, true);
-      uiLayoutSetActive(visibility_sub, bone_collection_.is_visible_ancestors());
+      uiLayoutSetActive(visibility_sub,
+                        !is_solo_active && bone_collection_.is_visible_ancestors());
 
       const int icon = bone_collection_.is_visible() ? ICON_HIDE_OFF : ICON_HIDE_ON;
       PointerRNA bcoll_ptr = rna_pointer();
       uiItemR(visibility_sub, &bcoll_ptr, "is_visible", UI_ITEM_R_ICON_ONLY, "", icon);
+    }
+
+    /* Solo icon. */
+    {
+      const int icon = bone_collection_.is_solo() ? ICON_SOLO_ON : ICON_SOLO_OFF;
+      PointerRNA bcoll_ptr = rna_pointer();
+      uiItemR(sub, &bcoll_ptr, "is_solo", UI_ITEM_R_ICON_ONLY, "", icon);
     }
   }
 
