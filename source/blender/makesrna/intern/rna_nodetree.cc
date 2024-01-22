@@ -3324,7 +3324,7 @@ static void rna_Node_ItemArray_remove(ID *id,
     return;
   }
   const int remove_index = item_to_remove - *ref.items;
-  blender::nodes::socket_items::remove_item(
+  blender::dna::array::remove_index(
       ref.items, ref.items_num, ref.active_index, remove_index, Accessor::destruct_item);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -3336,8 +3336,7 @@ static void rna_Node_ItemArray_remove(ID *id,
 template<typename Accessor> static void rna_Node_ItemArray_clear(ID *id, bNode *node, Main *bmain)
 {
   blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
-  blender::nodes::socket_items::clear_items(
-      ref.items, ref.items_num, ref.active_index, Accessor::destruct_item);
+  blender::dna::array::clear(ref.items, ref.items_num, ref.active_index, Accessor::destruct_item);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -3354,7 +3353,7 @@ static void rna_Node_ItemArray_move(
   if (from_index < 0 || to_index < 0 || from_index >= items_num || to_index >= items_num) {
     return;
   }
-  blender::nodes::socket_items::move_item(*ref.items, items_num, from_index, to_index);
+  blender::dna::array::move_index(*ref.items, items_num, from_index, to_index);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
