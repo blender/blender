@@ -332,6 +332,9 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
                                                    GPUMaterial *gpumat,
                                                    bool has_motion)
 {
+  BLI_assert_msg(GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false,
+                 "Forward Transparent should be registered directly without calling "
+                 "PipelineModule::material_add()");
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
                             (has_motion ? prepass_single_sided_moving_ps_ :
                                           prepass_single_sided_static_ps_) :

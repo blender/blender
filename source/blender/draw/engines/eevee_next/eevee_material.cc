@@ -173,7 +173,11 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
       blender_mat, ntree, pipeline_type, geometry_type, use_deferred_compilation);
 
   const bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_OCCUPANCY, MAT_PIPE_VOLUME_MATERIAL);
-  const bool is_forward = ELEM(pipeline_type, MAT_PIPE_FORWARD, MAT_PIPE_PREPASS_OVERLAP);
+  const bool is_forward = ELEM(pipeline_type,
+                               MAT_PIPE_FORWARD,
+                               MAT_PIPE_PREPASS_FORWARD,
+                               MAT_PIPE_PREPASS_FORWARD_VELOCITY,
+                               MAT_PIPE_PREPASS_OVERLAP);
 
   switch (GPU_material_status(matpass.gpumat)) {
     case GPU_MAT_SUCCESS: {
