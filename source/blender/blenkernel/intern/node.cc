@@ -1284,29 +1284,6 @@ static void ntree_set_typeinfo(bNodeTree *ntree, bNodeTreeType *typeinfo)
   BKE_ntree_update_tag_all(ntree);
 }
 
-/* Build a set of built-in node types to check for known types. */
-static blender::Set<int> get_known_node_types_set()
-{
-  blender::Set<int> result;
-  NODE_TYPES_BEGIN (ntype) {
-    result.add(ntype->type);
-  }
-  NODE_TYPES_END;
-  return result;
-}
-
-static bool can_read_node_type(const int type)
-{
-  /* Can always read custom node types. */
-  if (type == NODE_CUSTOM) {
-    return true;
-  }
-
-  /* Check known built-in types. */
-  static blender::Set<int> known_types = get_known_node_types_set();
-  return known_types.contains(type);
-}
-
 static void node_set_typeinfo(const bContext *C,
                               bNodeTree *ntree,
                               bNode *node,
@@ -1314,19 +1291,6 @@ static void node_set_typeinfo(const bContext *C,
 {
   /* for nodes saved in older versions storage can get lost, make undefined then */
   if (node->flag & NODE_INIT) {
-    /* If the integer type is unknown then this is a node from a newer Blender version.
-     * These cannot be read reliably so replace the idname with an undefined type. This keeps links
-     * and socket names but discards storage and other type-specific data.
-     */
-    if (!can_read_node_type(node->type)) {
-      node->type = NODE_CUSTOM;
-      /* This type name is arbitrary, it just has to be unique enough to not match a future node
-       * idname. Includes the old type identifier for debugging purposes. */
-      const std::string old_idname = node->idname;
-      BLI_snprintf(node->idname, sizeof(node->idname), "Undefined[%s]", old_idname.c_str());
-      typeinfo = nullptr;
-    }
-
     if (typeinfo && typeinfo->storagename[0] && !node->storage) {
       typeinfo = nullptr;
     }
@@ -4218,8 +4182,57 @@ void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
 
 namespace blender::bke {
 
+/* Build a set of built-in node types to check for known types. */
+static blender::Set<int> get_known_node_types_set()
+{
+  blender::Set<int> result;
+  NODE_TYPES_BEGIN (ntype) {
+    result.add(ntype->type);
+  }
+  NODE_TYPES_END;
+  return result;
+}
+
+static bool can_read_node_type(const int type)
+{
+  /* Can always read custom node types. */
+  if (type == NODE_CUSTOM) {
+    return true;
+  }
+
+  /* Check known built-in types. */
+  static blender::Set<int> known_types = get_known_node_types_set();
+  return known_types.contains(type);
+}
+
+static void node_replace_undefined_types(bNode *node)
+{
+  /* If the integer type is unknown then this node cannot be read. */
+  if (!can_read_node_type(node->type)) {
+    node->type = NODE_CUSTOM;
+    /* This type name is arbitrary, it just has to be unique enough to not match a future node
+     * idname. Includes the old type identifier for debugging purposes. */
+    const std::string old_idname = node->idname;
+    BLI_snprintf(node->idname, sizeof(node->idname), "Undefined[%s]", old_idname.c_str());
+    node->typeinfo = &NodeTypeUndefined;
+  }
+}
+
 void ntreeUpdateAllNew(Main *main)
 {
+  /* Replace unknown node types with "Undefined".
+   * This happens when loading files from newer Blender versions. Such nodes cannot be read
+   * reliably so replace the idname with an undefined type. This keeps links and socket names but
+   * discards storage and other type-specific data.
+   *
+   * Replacement has to happen after after-liblink-versioning, since some node types still get
+   * replaced in those late versioning steps. */
+  FOREACH_NODETREE_BEGIN (main, ntree, owner_id) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      node_replace_undefined_types(node);
+    }
+  }
+  FOREACH_NODETREE_END;
   /* Update all new node trees on file read or append, to add/remove sockets
    * in groups nodes if the group changed, and handle any update flags that
    * might have been set in file reading or versioning. */
