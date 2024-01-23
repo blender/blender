@@ -6,6 +6,8 @@
  * \ingroup bgpencil
  */
 
+#include <algorithm>
+
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -245,7 +247,7 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
     HPDF_Page_SetLineJoin(page_, HPDF_ROUND_JOIN);
     const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
     const float estimated_width = (radius * 2.0f) + gpl->line_change;
-    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+    const float final_width = (avg_pressure == 1.0f) ? std::max(defined_width, estimated_width) :
                                                        estimated_width;
     HPDF_Page_SetLineWidth(page_, std::max(final_width, 1.0f));
   }

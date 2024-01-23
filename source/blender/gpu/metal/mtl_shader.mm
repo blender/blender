@@ -8,7 +8,7 @@
 
 #include "BKE_global.h"
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "BLI_string.h"
 #include <algorithm>

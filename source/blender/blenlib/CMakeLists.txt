@@ -132,7 +132,7 @@ set(SRC
   intern/scanfill.c
   intern/scanfill_utils.c
   intern/serialize.cc
-  intern/session_uuid.c
+  intern/session_uid.c
   intern/smaa_textures.c
   intern/sort.c
   intern/sort_utils.c
@@ -335,7 +335,7 @@ set(SRC
   BLI_resource_scope.hh
   BLI_scanfill.h
   BLI_serialize.hh
-  BLI_session_uuid.h
+  BLI_session_uid.h
   BLI_set.hh
   BLI_set_slots.hh
   BLI_shared_cache.hh
@@ -363,6 +363,8 @@ set(SRC
   BLI_task.hh
   BLI_tempfile.h
   BLI_threads.h
+  BLI_time.h
+  BLI_time_utildefines.h
   BLI_timecode.h
   BLI_timeit.hh
   BLI_timer.h
@@ -383,8 +385,6 @@ set(SRC
   BLI_voxel.h
   BLI_winstuff.h
   BLI_winstuff_com.hh
-  PIL_time.h
-  PIL_time_utildefines.h
 
   # Without these files listed, they aren't known to CMake.
   ../../../extern/json/include/json.hpp
@@ -544,7 +544,7 @@ if(WITH_GTESTS)
     tests/BLI_pool_test.cc
     tests/BLI_ressource_strings.h
     tests/BLI_serialize_test.cc
-    tests/BLI_session_uuid_test.cc
+    tests/BLI_session_uid_test.cc
     tests/BLI_set_test.cc
     tests/BLI_span_test.cc
     tests/BLI_stack_cxx_test.cc

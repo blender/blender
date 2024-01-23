@@ -40,8 +40,8 @@
 #include "WM_api.hh"
 #include "wm_cursors.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
@@ -1350,7 +1350,7 @@ static bool paint_cursor_context_init(bContext *C,
     copy_v3_fl(pcontext->outline_col, 0.8f);
   }
 
-  const bool is_brush_tool = PAINT_brush_tool_poll(C);
+  const bool is_brush_tool = blender::ed::sculpt_paint::paint_brush_tool_poll(C);
   if (!is_brush_tool) {
     /* Use a default color for tools that are not brushes. */
     pcontext->outline_alpha = 0.8f;
@@ -1796,7 +1796,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                                     pcontext->radius);
   }
 
-  const bool is_brush_tool = PAINT_brush_tool_poll(pcontext->C);
+  const bool is_brush_tool = paint_brush_tool_poll(pcontext->C);
 
   /* Pose brush updates and rotation origins. */
 

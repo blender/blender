@@ -11,8 +11,6 @@
 #include "BLI_timeit.hh"
 #include "BLI_vector_set.hh"
 
-#include "PIL_time.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"

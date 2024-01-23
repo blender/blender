@@ -20,7 +20,7 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -85,7 +85,7 @@ static void color_filter_task(Object *ob,
   SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Color);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      *ob, ss->filter_cache->automasking, *node);
+      *ob, ss->filter_cache->automasking.get(), *node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -98,7 +98,8 @@ static void color_filter_task(Object *ob,
     float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
-    fade *= auto_mask::factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
+    fade *= auto_mask::factor_get(
+        ss->filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }

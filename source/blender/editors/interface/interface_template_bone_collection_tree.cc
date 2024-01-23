@@ -10,6 +10,7 @@
 
 #include "BLT_translation.h"
 
+#include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "UI_interface.hh"
@@ -31,6 +32,7 @@ using namespace blender::animrig;
 class BoneCollectionTreeView : public AbstractTreeView {
  protected:
   bArmature &armature_;
+  Set<BoneCollection *> bcolls_with_selected_bones_;
 
  public:
   explicit BoneCollectionTreeView(bArmature &armature);
@@ -38,6 +40,10 @@ class BoneCollectionTreeView : public AbstractTreeView {
 
  private:
   void build_tree_node_recursive(TreeViewItemContainer &parent, const int bcoll_index);
+
+  /** Iterate over each bone, and if it is selected, add its bone collections to
+   * bcolls_with_selected_bones_. */
+  void build_bcolls_with_selected_bones();
 };
 
 /**
@@ -190,12 +196,14 @@ class BoneCollectionItem : public AbstractTreeViewItem {
   bArmature &armature_;
   int bcoll_index_;
   BoneCollection &bone_collection_;
+  bool has_any_selected_bones_;
 
  public:
-  BoneCollectionItem(bArmature &armature, const int bcoll_index)
+  BoneCollectionItem(bArmature &armature, const int bcoll_index, const bool has_any_selected_bones)
       : armature_(armature),
         bcoll_index_(bcoll_index),
-        bone_collection_(*armature.collection_array[bcoll_index])
+        bone_collection_(*armature.collection_array[bcoll_index]),
+        has_any_selected_bones_(has_any_selected_bones)
   {
     this->label_ = bone_collection_.name;
   }
@@ -213,9 +221,16 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     /* Performance note: this check potentially loops over all bone collections the active bone is
      * assigned to. And this happens for each redraw of each bone collection in the armature. */
     {
-      const bool contains_active_bone = ANIM_armature_bonecoll_contains_active_bone(
-          &armature_, &bone_collection_);
-      const int icon = contains_active_bone ? ICON_DOT : ICON_BLANK1;
+      int icon;
+      if (ANIM_armature_bonecoll_contains_active_bone(&armature_, &bone_collection_)) {
+        icon = ICON_LAYER_ACTIVE;
+      }
+      else if (has_any_selected_bones_) {
+        icon = ICON_LAYER_USED;
+      }
+      else {
+        icon = ICON_BLANK1;
+      }
       uiItemL(sub, "", icon);
     }
 
@@ -313,6 +328,8 @@ BoneCollectionTreeView::BoneCollectionTreeView(bArmature &armature) : armature_(
 
 void BoneCollectionTreeView::build_tree()
 {
+  build_bcolls_with_selected_bones();
+
   for (int bcoll_index = 0; bcoll_index < armature_.collection_root_count; bcoll_index++) {
     build_tree_node_recursive(*this, bcoll_index);
   }
@@ -322,8 +339,9 @@ void BoneCollectionTreeView::build_tree_node_recursive(TreeViewItemContainer &pa
                                                        const int bcoll_index)
 {
   BoneCollection *bcoll = armature_.collection_array[bcoll_index];
-  BoneCollectionItem &bcoll_tree_item = parent.add_tree_item<BoneCollectionItem>(armature_,
-                                                                                 bcoll_index);
+  const bool has_any_selected_bones = bcolls_with_selected_bones_.contains(bcoll);
+  BoneCollectionItem &bcoll_tree_item = parent.add_tree_item<BoneCollectionItem>(
+      armature_, bcoll_index, has_any_selected_bones);
   bcoll_tree_item.set_collapsed(false);
 
   for (int child_index = bcoll->child_index; child_index < bcoll->child_index + bcoll->child_count;
@@ -331,6 +349,36 @@ void BoneCollectionTreeView::build_tree_node_recursive(TreeViewItemContainer &pa
   {
     build_tree_node_recursive(bcoll_tree_item, child_index);
   }
+}
+
+void BoneCollectionTreeView::build_bcolls_with_selected_bones()
+{
+  bcolls_with_selected_bones_.clear();
+
+  /* Armature Edit mode. */
+  if (armature_.edbo) {
+    LISTBASE_FOREACH (EditBone *, ebone, armature_.edbo) {
+      if ((ebone->flag & BONE_SELECTED) == 0) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (BoneCollectionReference *, ref, &ebone->bone_collections) {
+        bcolls_with_selected_bones_.add(ref->bcoll);
+      }
+    }
+    return;
+  }
+
+  /* Any other mode. */
+  ANIM_armature_foreach_bone(&armature_.bonebase, [&](const Bone *bone) {
+    if ((bone->flag & BONE_SELECTED) == 0) {
+      return;
+    }
+
+    LISTBASE_FOREACH (const BoneCollectionReference *, ref, &bone->runtime.collections) {
+      bcolls_with_selected_bones_.add(ref->bcoll);
+    }
+  });
 }
 
 BoneCollectionDragController::BoneCollectionDragController(BoneCollectionTreeView &tree_view,

@@ -218,7 +218,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BKE_anim_data.h"
 #  include "BKE_global.h" /* XXX, remove me */
 #  include "BKE_idprop.h"
-#  include "BKE_idtype.h"
+#  include "BKE_idtype.hh"
 #  include "BKE_lib_override.hh"
 #  include "BKE_lib_query.hh"
 #  include "BKE_lib_remap.hh"
@@ -2196,7 +2196,6 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
   prop = RNA_def_property(srna, "session_uid", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "session_uuid");
   RNA_def_property_ui_text(
       prop,
       "Session UID",

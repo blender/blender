@@ -906,7 +906,7 @@ void zbuf_accumulate_vecblur(NodeBlurData *nbd,
           dz2[3] += bfac * dr->colpoin[3];
 
           *rw += bfac;
-          *rm = MAX2(*rm, bfac);
+          *rm = std::max(*rm, bfac);
         }
       }
     }

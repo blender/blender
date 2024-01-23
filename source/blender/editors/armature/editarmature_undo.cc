@@ -75,6 +75,7 @@ struct UndoArmature {
   ListBase /* EditBone */ ebones;
   BoneCollection **collection_array;
   int collection_array_num;
+  int collection_root_count;
   size_t undo_size;
 };
 
@@ -103,6 +104,7 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
                                                           uarm->collection_array,
                                                           uarm->collection_array_num,
                                                           true);
+  arm->collection_root_count = uarm->collection_root_count;
 
   /* Always do a lookup-by-name and assignment. Even when the name of the active collection is
    * still the same, the order may have changed and thus the index needs to be updated. */
@@ -137,6 +139,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
                                                           arm->collection_array_num,
                                                           false);
   STRNCPY(uarm->active_collection_name, arm->active_collection_name);
+  uarm->collection_root_count = arm->collection_root_count;
 
   /* Point the new edit bones at the new collections. */
   remap_ebone_bone_collection_references(&uarm->ebones, bcoll_map);

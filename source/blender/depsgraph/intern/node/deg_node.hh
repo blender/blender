@@ -87,6 +87,10 @@ enum class NodeType {
    * not have very distinctive update procedure. */
   GENERIC_DATABLOCK,
 
+  /* Scene evaluation, for dependencies to other evaluation which might require accumulated custom
+   * data masks. */
+  SCENE,
+
   /* Component which is used to define visibility relation between IDs, on the ID level.
    *
    * Consider two ID nodes NodeA and NodeB, with the relation between visibility components going

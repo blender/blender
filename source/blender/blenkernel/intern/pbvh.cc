@@ -22,6 +22,7 @@
 #include "BLI_rand.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
+#include "BLI_time.h"
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -36,8 +37,6 @@
 #include "BKE_subdiv_ccg.hh"
 
 #include "DRW_pbvh.hh"
-
-#include "PIL_time.h"
 
 #include "bmesh.hh"
 

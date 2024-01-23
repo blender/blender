@@ -22,7 +22,7 @@
 
 #include "GPU_capabilities.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"
 

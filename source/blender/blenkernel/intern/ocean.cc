@@ -30,8 +30,8 @@
 #include "BKE_ocean.h"
 #include "ocean_intern.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_texture.h"
 

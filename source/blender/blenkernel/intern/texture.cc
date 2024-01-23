@@ -36,7 +36,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "BKE_main.hh"
 
@@ -44,7 +44,7 @@
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_icons.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lib_id.hh"

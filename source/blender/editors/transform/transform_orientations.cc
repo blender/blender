@@ -653,10 +653,8 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
           handle_armature_parent_orientation(ob, r_mat);
           break;
         }
-        else {
-          handle_object_parent_orientation(ob, r_mat);
-          break;
-        }
+        handle_object_parent_orientation(ob, r_mat);
+        break;
       }
       /* No break; we define 'parent' as 'normal' otherwise. */
       ATTR_FALLTHROUGH;

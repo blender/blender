@@ -52,7 +52,7 @@ struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
     }
   }
 
-  ~SnapCache_EditMesh()
+  ~SnapCache_EditMesh() override
   {
     this->clear();
   }
@@ -430,20 +430,20 @@ class SnapData_EditMesh : public SnapData {
   SnapData_EditMesh(SnapObjectContext *sctx, BMesh *bm, const float4x4 &obmat)
       : SnapData(sctx, obmat), bm(bm){};
 
-  void get_vert_co(const int index, const float **r_co)
+  void get_vert_co(const int index, const float **r_co) override
   {
     BMVert *eve = BM_vert_at_index(this->bm, index);
     *r_co = eve->co;
   }
 
-  void get_edge_verts_index(const int index, int r_v_index[2])
+  void get_edge_verts_index(const int index, int r_v_index[2]) override
   {
     BMEdge *eed = BM_edge_at_index(this->bm, index);
     r_v_index[0] = BM_elem_index_get(eed->v1);
     r_v_index[1] = BM_elem_index_get(eed->v2);
   }
 
-  void copy_vert_no(const int index, float r_no[3])
+  void copy_vert_no(const int index, float r_no[3]) override
   {
     BMVert *eve = BM_vert_at_index(this->bm, index);
     copy_v3_v3(r_no, eve->no);

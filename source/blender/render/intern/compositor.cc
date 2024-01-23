@@ -21,8 +21,7 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "DEG_depsgraph_query.hh"
 

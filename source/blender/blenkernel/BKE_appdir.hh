@@ -14,10 +14,6 @@
 
 #include "BLI_compiler_attrs.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ListBase;
 
 /**
@@ -112,7 +108,7 @@ bool BKE_appdir_app_template_any(void);
 bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
     ATTR_NONNULL(1);
 bool BKE_appdir_app_template_has_userpref(const char *app_template) ATTR_NONNULL(1);
-void BKE_appdir_app_templates(struct ListBase *templates) ATTR_NONNULL(1);
+void BKE_appdir_app_templates(ListBase *templates) ATTR_NONNULL(1);
 
 /**
  * Initialize path to program executable.
@@ -190,7 +186,3 @@ enum {
 #define BLENDER_HISTORY_FILE "recent-files.txt"
 #define BLENDER_RECENT_SEARCHES_FILE "recent-searches.txt"
 #define BLENDER_PLATFORM_SUPPORT_FILE "platform_support.txt"
-
-#ifdef __cplusplus
-}
-#endif

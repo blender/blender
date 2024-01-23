@@ -23,6 +23,7 @@
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_string.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -51,11 +52,11 @@
 
 #include "GPU_state.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_moviecache.h"
-#include "IMB_openexr.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_moviecache.hh"
+#include "IMB_openexr.hh"
 
 #include "RE_pipeline.h"
 
@@ -81,8 +82,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "PIL_time.h"
 
 #include "RE_engine.h"
 
@@ -540,7 +539,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vpd->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vpd->timer_lastdraw = PIL_check_seconds_timer();
+    vpd->timer_lastdraw = BLI_check_seconds_timer();
   }
 
   vpd->sima = sima;
@@ -650,7 +649,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
   }
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
-    double time = PIL_check_seconds_timer();
+    double time = BLI_check_seconds_timer();
     float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
     zfac = 1.0f + ((delta / 20.0f) * time_step);
@@ -1703,7 +1702,7 @@ static int image_match_len_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+  ImBufAnim *anim = ((ImageAnim *)ima->anims.first)->anim;
   if (!anim) {
     return OPERATOR_CANCELLED;
   }

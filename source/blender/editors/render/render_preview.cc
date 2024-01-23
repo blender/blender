@@ -8,6 +8,7 @@
 
 /* global includes */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -23,9 +24,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "BLO_readfile.h"
 
@@ -43,7 +43,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -72,9 +72,9 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_thumbs.hh"
 
 #include "BIF_glutil.hh"
 
@@ -1384,8 +1384,8 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   }
 
   /* Scaling down must never assign zero width/height, see: #89868. */
-  ex = MAX2(1, short(scaledx));
-  ey = MAX2(1, short(scaledy));
+  ex = std::max(short(1), short(scaledx));
+  ey = std::max(short(1), short(scaledy));
 
   dx = (w - ex) / 2;
   dy = (h - ey) / 2;

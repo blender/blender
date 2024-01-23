@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lattice.hh"
 
 #include "MEM_guardedalloc.h"

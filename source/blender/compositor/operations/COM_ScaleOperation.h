@@ -54,14 +54,14 @@ class ScaleOperation : public BaseScaleOperation {
 
   static float scale_coord(const float coord, const float center, const float relative_scale)
   {
-    return center + (coord - center) * MAX2(relative_scale, MIN_RELATIVE_SCALE);
+    return center + (coord - center) * std::max(relative_scale, MIN_RELATIVE_SCALE);
   }
 
   static float scale_coord_inverted(const float coord,
                                     const float center,
                                     const float relative_scale)
   {
-    return center + (coord - center) / MAX2(relative_scale, MIN_RELATIVE_SCALE);
+    return center + (coord - center) / std::max(relative_scale, MIN_RELATIVE_SCALE);
   }
 
   static void get_scale_offset(const rcti &input_canvas,

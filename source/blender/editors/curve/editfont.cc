@@ -731,17 +731,17 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   if (windows_layout) {
     confirm = uiDefIconTextBut(
-        block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, nullptr);
+        block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, nullptr);
     uiLayoutColumn(split, false);
   }
 
   cancel = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, "Cancel", 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, nullptr);
+      block, UI_BTYPE_BUT, 0, 0, "Cancel", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, nullptr);
 
   if (!windows_layout) {
     uiLayoutColumn(split, false);
     confirm = uiDefIconTextBut(
-        block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, nullptr);
+        block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, nullptr);
   }
 
   UI_block_func_set(block, nullptr, nullptr, nullptr);

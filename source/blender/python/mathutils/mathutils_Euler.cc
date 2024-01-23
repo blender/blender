@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -517,7 +519,7 @@ static PyObject *Euler_slice(EulerObject *self, int begin, int end)
     end = (EULER_SIZE + 1) + end;
   }
   CLAMP(end, 0, EULER_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -542,7 +544,7 @@ static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
     end = (EULER_SIZE + 1) + end;
   }
   CLAMP(end, 0, EULER_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   if ((size = mathutils_array_parse(eul, 0, EULER_SIZE, seq, "mathutils.Euler[begin:end] = []")) ==
       -1)

@@ -166,7 +166,7 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
   {
   }
 
-  std::string socket_name(const bNodeSocket &socket) const
+  std::string socket_name(const bNodeSocket &socket) const override
   {
     if (socket.type == SOCK_GEOMETRY) {
       std::stringstream ss;
@@ -180,7 +180,7 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
       ss << "]";
       return ss.str();
     }
-    else if (nodes::socket_type_supports_fields(eNodeSocketDatatype(socket.type))) {
+    if (nodes::socket_type_supports_fields(eNodeSocketDatatype(socket.type))) {
       std::stringstream ss;
       ss << socket.identifier << " [";
       bits::foreach_1_index(result_.propagated_fields_by_socket[socket.index_in_tree()],
@@ -699,7 +699,7 @@ bool update_anonymous_attribute_relations(bNodeTree &tree)
   tree.ensure_topology_cache();
 
   if (tree.has_available_link_cycle()) {
-    const bool changed = tree.runtime->anonymous_attribute_inferencing.get() != nullptr;
+    const bool changed = bool(tree.runtime->anonymous_attribute_inferencing);
     tree.runtime->anonymous_attribute_inferencing.reset();
     return changed;
   }

@@ -85,18 +85,16 @@
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 
-#include "IMB_allocimbuf.h"
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "IMB_openexr.h"
+#include "IMB_allocimbuf.hh"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "IMB_openexr.hh"
 
 using namespace Imf;
 using namespace Imath;
 
-extern "C" {
 /* prototype */
 static struct ExrPass *imb_exr_get_pass(ListBase *lb, char *passname);
 static bool exr_has_multiview(MultiPartInputFile &file);
@@ -108,7 +106,6 @@ static void imb_exr_type_by_channels(ChannelList &channels,
                                      bool *r_singlelayer,
                                      bool *r_multilayer,
                                      bool *r_multiview);
-}
 
 /* Memory Input Stream */
 
@@ -379,8 +376,6 @@ static half float_to_half_safe(const float value)
 {
   return half(clamp_f(value, -HALF_MAX, HALF_MAX));
 }
-
-extern "C" {
 
 bool imb_is_a_openexr(const uchar *mem, const size_t size)
 {
@@ -744,9 +739,6 @@ void *IMB_exr_get_handle_name(const char *name)
 }
 
 /* multiview functions */
-} /* extern "C" */
-
-extern "C" {
 
 void IMB_exr_add_view(void *handle, const char *name)
 {
@@ -2268,7 +2260,7 @@ ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
 
       for (int w = 0; w < dest_w; w++) {
         /* For each destination pixel find single corresponding source pixel. */
-        int source_x = int(MIN2((w / scale_factor), dw.max.x - 1));
+        int source_x = int(std::min<int>((w / scale_factor), dw.max.x - 1));
         float *dest_px = &ibuf->float_buffer.data[(h * dest_w + w) * 4];
         dest_px[0] = pixels[source_x].r;
         dest_px[1] = pixels[source_x].g;
@@ -2316,5 +2308,3 @@ void imb_exitopenexr()
   /* Tells OpenEXR to free thread pool, also ensures there is no running tasks. */
   Imf::setGlobalThreadCount(0);
 }
-
-} /* export "C" */

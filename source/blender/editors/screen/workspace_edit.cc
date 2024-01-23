@@ -14,7 +14,7 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"

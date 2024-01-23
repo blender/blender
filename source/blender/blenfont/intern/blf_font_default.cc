@@ -15,7 +15,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

@@ -24,7 +24,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -34,10 +34,10 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_openexr.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_openexr.hh"
 
 #include "GPU_texture.h"
 

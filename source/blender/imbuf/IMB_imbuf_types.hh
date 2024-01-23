@@ -8,11 +8,12 @@
 
 #include "BLI_sys_types.h"
 
-struct GPUTexture;
+#include "IMB_imbuf_enums.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct ColormanageCache;
+struct ColorSpace;
+struct GPUTexture;
+struct IDProperty;
 
 /** \file
  * \ingroup imbuf
@@ -33,7 +34,7 @@ extern "C" {
 #define IMB_MIPMAP_LEVELS 20
 #define IMB_FILEPATH_SIZE 1024
 
-typedef struct DDSData {
+struct DDSData {
   /** DDS fourcc info */
   unsigned int fourcc;
   /** The number of mipmaps in the dds file */
@@ -42,7 +43,7 @@ typedef struct DDSData {
   unsigned char *data;
   /** The size of the compressed data */
   unsigned int size;
-} DDSData;
+};
 
 /**
  * \ingroup imbuf
@@ -50,39 +51,6 @@ typedef struct DDSData {
  *
  * Also; add new variables to the end to save pain!
  */
-
-/* WARNING: Keep explicit value assignments here,
- * this file is included in areas where not all format defines are set
- * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
- * See #46524. */
-
-/** #ImBuf.ftype flag, main image types. */
-enum eImbFileType {
-  IMB_FTYPE_PNG = 1,
-  IMB_FTYPE_TGA = 2,
-  IMB_FTYPE_JPG = 3,
-  IMB_FTYPE_BMP = 4,
-  IMB_FTYPE_OPENEXR = 5,
-  IMB_FTYPE_IMAGIC = 6,
-  IMB_FTYPE_PSD = 7,
-#ifdef WITH_OPENJPEG
-  IMB_FTYPE_JP2 = 8,
-#endif
-  IMB_FTYPE_RADHDR = 9,
-  IMB_FTYPE_TIF = 10,
-#ifdef WITH_CINEON
-  IMB_FTYPE_CINEON = 11,
-  IMB_FTYPE_DPX = 12,
-#endif
-
-  IMB_FTYPE_DDS = 13,
-#ifdef WITH_WEBP
-  IMB_FTYPE_WEBP = 14,
-#endif
-};
-
-/* Only for readability. */
-#define IMB_FTYPE_NONE 0
 
 /**
  * #ImBuf::foptions.flag, type specific options.
@@ -119,18 +87,18 @@ enum eImbFileType {
 #define TIF_COMPRESS_LZW (1 << 5)
 #define TIF_COMPRESS_PACKBITS (1 << 4)
 
-typedef struct ImbFormatOptions {
+struct ImbFormatOptions {
   short flag;
   /** Quality serves dual purpose as quality number for JPEG or compression amount for PNG. */
   char quality;
-} ImbFormatOptions;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Imbuf Component flags
  * \brief These flags determine the components of an ImBuf struct.
  * \{ */
 
-typedef enum eImBufFlags {
+enum eImBufFlags {
   IB_rect = 1 << 0,
   IB_test = 1 << 1,
   IB_mem = 1 << 4,
@@ -150,7 +118,7 @@ typedef enum eImBufFlags {
   IB_thumbnail = 1 << 16,
   IB_multiview = 1 << 17,
   IB_halffloat = 1 << 18,
-} eImBufFlags;
+};
 
 /** \} */
 
@@ -160,7 +128,7 @@ typedef enum eImBufFlags {
 
 /* Specialization of an ownership whenever a bare pointer is provided to the ImBuf buffers
  * assignment API. */
-typedef enum ImBufOwnership {
+enum ImBufOwnership {
   /* The ImBuf simply shares pointer with data owned by someone else, and will not perform any
    * memory management when the ImBuf frees the buffer. */
   IB_DO_NOT_TAKE_OWNERSHIP = 0,
@@ -168,38 +136,38 @@ typedef enum ImBufOwnership {
   /* The ImBuf takes ownership of the buffer data, and will use MEM_freeN() to free this memory
    * when the ImBuf needs to free the data. */
   IB_TAKE_OWNERSHIP = 1,
-} ImBufOwnership;
+};
 
 /* Different storage specialization.
  *
- * NOTE: Avoid direct assignments and allocations, use the buffer utilities from the IMB_imbuf.h
+ * NOTE: Avoid direct assignments and allocations, use the buffer utilities from the IMB_imbuf.hh
  * instead.
  *
  * Accessing the data pointer directly is fine and is an expected way of accessing it. */
 
-typedef struct ImBufByteBuffer {
+struct ImBufByteBuffer {
   uint8_t *data;
   ImBufOwnership ownership;
 
-  struct ColorSpace *colorspace;
-} ImBufByteBuffer;
+  ColorSpace *colorspace;
+};
 
-typedef struct ImBufFloatBuffer {
+struct ImBufFloatBuffer {
   float *data;
   ImBufOwnership ownership;
 
-  struct ColorSpace *colorspace;
-} ImBufFloatBuffer;
+  ColorSpace *colorspace;
+};
 
-typedef struct ImBufGPU {
+struct ImBufGPU {
   /* Texture which corresponds to the state of the ImBug on the GPU.
    *
    * Allocation is supposed to happen outside of the ImBug module from a proper GPU context.
    * De-referencing the ImBuf or its GPU texture can happen from any state. */
   /* TODO(sergey): This should become a list of textures, to support having high-res ImBuf on GPU
    * without hitting hardware limitations. */
-  struct GPUTexture *texture;
-} ImBufGPU;
+  GPUTexture *texture;
+};
 
 /** \} */
 
@@ -207,7 +175,7 @@ typedef struct ImBufGPU {
 /** \name Image Buffer
  * \{ */
 
-typedef struct ImBuf {
+struct ImBuf {
   /* dimensions */
   /** Width and Height of our image buffer.
    * Should be 'unsigned int' since most formats use this.
@@ -254,7 +222,7 @@ typedef struct ImBuf {
 
   /* mipmapping */
   /** MipMap levels, a series of halved images */
-  struct ImBuf *mipmap[IMB_MIPMAP_LEVELS];
+  ImBuf *mipmap[IMB_MIPMAP_LEVELS];
   int miptot, miplevel;
 
   /* externally used data */
@@ -263,7 +231,7 @@ typedef struct ImBuf {
   /** used to set imbuf to dirty and other stuff */
   int userflags;
   /** image metadata */
-  struct IDProperty *metadata;
+  IDProperty *metadata;
   /** temporary storage */
   void *userdata;
 
@@ -291,13 +259,13 @@ typedef struct ImBuf {
   /** array of per-display display buffers dirty flags */
   unsigned int *display_buffer_flags;
   /** cache used by color management */
-  struct ColormanageCache *colormanage_cache;
+  ColormanageCache *colormanage_cache;
   int colormanage_flag;
   rcti invalid_rect;
 
   /* information for compressed textures */
-  struct DDSData dds_data;
-} ImBuf;
+  DDSData dds_data;
+};
 
 /**
  * \brief userflags: Flags used internally by blender for image-buffers.
@@ -365,7 +333,3 @@ enum {
 };
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

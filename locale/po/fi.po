@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5909,6 +5909,10 @@ msgid "Pixelate"
 msgstr "Pikselöi"
 
 
+msgid "Pixel Size"
+msgstr "Pikselin koko"
+
+
 msgid "Alpha Convert"
 msgstr "Alfamuunnos"
 
@@ -6775,6 +6779,10 @@ msgid "Animation settings"
 msgstr "Animaatioasetukset"
 
 
+msgid "Material Groups"
+msgstr "Materiaaliryhmät"
+
+
 msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Poista valitut tiedostot"
@@ -7433,10 +7441,6 @@ msgstr "Kangas"
 
 msgid "XYZ"
 msgstr "XYZ"
-
-
-msgid "Pixel Size"
-msgstr "Pikselin koko"
 
 
 msgid "3D"
@@ -9000,26 +9004,6 @@ msgid "Internal error!"
 msgstr "Sisäinen virhe!"
 
 
-msgid "Shortcut: %s"
-msgstr "Pikakomento: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Arvo: %s"
-
-
-msgid "Library: %s"
-msgstr "Kirjasto: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "Napsauta"
@@ -9100,6 +9084,10 @@ msgstr "Poista pisteitä"
 
 msgid "Stop this job"
 msgstr "Lopeta tämä työ"
+
+
+msgid "File Not Found"
+msgstr "Tiedostoa ei löydy"
 
 
 msgid "Today"
@@ -9257,10 +9245,6 @@ msgstr "Vienti asetukset"
 
 msgid "Grouping"
 msgstr "Ryhmittäminen"
-
-
-msgid "Material Groups"
-msgstr "Materiaaliryhmät"
 
 
 msgid "Data Types"
@@ -11065,10 +11049,6 @@ msgstr "Salli toteutus"
 
 msgid "Don't Save"
 msgstr "Älä tallenna"
-
-
-msgid "File Not Found"
-msgstr "Tiedostoa ei löydy"
 
 
 msgid "Enable scripts"

@@ -326,22 +326,22 @@ set(SRC
   BKE_anim_visualization.h
   BKE_animsys.h
   BKE_anonymous_attribute_id.hh
-  BKE_appdir.h
+  BKE_appdir.hh
   BKE_armature.hh
   BKE_asset.hh
   BKE_attribute.h
   BKE_attribute.hh
   BKE_attribute_math.hh
-  BKE_autoexec.h
+  BKE_autoexec.hh
   BKE_bake_geometry_nodes_modifier.hh
   BKE_bake_items.hh
   BKE_bake_items_paths.hh
   BKE_bake_items_serialize.hh
   BKE_bake_items_socket.hh
   BKE_blender.h
-  BKE_blender_copybuffer.h
-  BKE_blender_undo.h
-  BKE_blender_user_menu.h
+  BKE_blender_copybuffer.hh
+  BKE_blender_undo.hh
+  BKE_blender_user_menu.hh
   BKE_blender_version.h
   BKE_blendfile.hh
   BKE_blendfile_link_append.hh
@@ -405,7 +405,7 @@ set(SRC
   BKE_icons.h
   BKE_idprop.h
   BKE_idprop.hh
-  BKE_idtype.h
+  BKE_idtype.hh
   BKE_image.h
   BKE_image_format.h
   BKE_image_partial_update.hh

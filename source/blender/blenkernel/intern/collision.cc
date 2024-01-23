@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cloth_types.h"
@@ -896,7 +898,7 @@ static int cloth_selfcollision_response_static(ClothModifierData *clmd,
       VECADDMUL(ib[2], collpair->normal, double(u3) * -impulse);
 
       if ((magrelVel < 0.1f * d * time_multiplier) && (d > ALMOST_ZERO)) {
-        repulse = MIN2(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
+        repulse = std::min(d / time_multiplier, 0.1f * d * time_multiplier - magrelVel);
 
         if (impulse > ALMOST_ZERO) {
           repulse = min_ff(repulse, 5.0 * impulse);
@@ -1720,7 +1722,7 @@ int cloth_bvh_collision(
 
   BKE_collision_objects_free(collobjs);
 
-  return MIN2(ret, 1);
+  return std::min(ret, 1);
 }
 
 BLI_INLINE void max_v3_v3v3(float r[3], const float a[3], const float b[3])

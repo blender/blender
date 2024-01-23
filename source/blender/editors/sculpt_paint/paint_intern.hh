@@ -27,7 +27,6 @@ struct ImagePool;
 struct MTex;
 struct Object;
 struct Paint;
-struct PaintStroke;
 struct PointerRNA;
 struct RegionView3D;
 struct Scene;
@@ -42,6 +41,9 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 struct VertProjHandle;
+namespace blender::ed::sculpt_paint {
+struct PaintStroke;
+}
 
 struct CoNo {
   float co[3];
@@ -49,6 +51,8 @@ struct CoNo {
 };
 
 /* paint_stroke.cc */
+
+namespace blender::ed::sculpt_paint {
 
 using StrokeGetLocation = bool (*)(bContext *C,
                                    float location[3],
@@ -86,7 +90,6 @@ bool paint_supports_dynamic_size(Brush *br, enum ePaintMode mode);
 bool paint_supports_dynamic_tex_coords(Brush *br, enum ePaintMode mode);
 bool paint_supports_smooth_stroke(Brush *br, enum ePaintMode mode);
 bool paint_supports_texture(enum ePaintMode mode);
-bool paint_supports_jitter(enum ePaintMode mode);
 
 /**
  * Called in paint_ops.cc, on each regeneration of key-maps.
@@ -103,7 +106,10 @@ float paint_stroke_distance_get(PaintStroke *stroke);
 void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data);
 bool paint_stroke_started(PaintStroke *stroke);
 
-bool PAINT_brush_tool_poll(bContext *C);
+bool paint_brush_tool_poll(bContext *C);
+
+}  // namespace blender::ed::sculpt_paint
+
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
  */

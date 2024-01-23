@@ -59,7 +59,7 @@
 #include "ED_view3d.hh"
 
 /* For IMB_BlendMode only. */
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "BKE_ccg.h"
 #include "bmesh.hh"

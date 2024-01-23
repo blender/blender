@@ -6,10 +6,13 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -36,6 +39,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_time.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
@@ -54,7 +58,7 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -82,10 +86,10 @@
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "IMB_thumbs.hh"
 
 #include "RE_engine.h"
 
@@ -100,8 +104,6 @@
 #include "UI_string_search.hh"
 #include "UI_view2d.hh"
 #include "interface_intern.hh"
-
-#include "PIL_time.h"
 
 /* we may want to make this optional, disable for now. */
 // #define USE_OP_RESET_BUT
@@ -6150,7 +6152,7 @@ static char *progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*
   /* create tooltip text and associate it with the job */
   char elapsed_str[32];
   char remaining_str[32] = "Unknown";
-  const double elapsed = PIL_check_seconds_timer() - WM_jobs_starttime(wm, owner);
+  const double elapsed = BLI_check_seconds_timer() - WM_jobs_starttime(wm, owner);
   BLI_timecode_string_from_time_simple(elapsed_str, sizeof(elapsed_str), elapsed);
 
   if (progress) {
@@ -7200,12 +7202,11 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   /* File path. */
   char root[FILE_MAX];
   BLI_path_split_dir_part(path, root, FILE_MAX);
-  UI_tooltip_text_field_add(tip, BLI_strdup(root), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
-  UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, root, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
 
   if (!BLI_exists(path)) {
-    UI_tooltip_text_field_add(
-        tip, BLI_strdup(N_("File Not Found")), nullptr, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
+    UI_tooltip_text_field_add(tip, N_("File Not Found"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     return;
   }
 
@@ -7229,42 +7230,36 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   }
 
   if (version_st[0]) {
-    UI_tooltip_text_field_add(tip,
-                              BLI_sprintfN("Blender %s", version_st),
-                              nullptr,
-                              UI_TIP_STYLE_NORMAL,
-                              UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(
+        tip, fmt::format("Blender {}", version_st), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
   }
 
   BLI_stat_t status;
   if (BLI_stat(path, &status) != -1) {
     char date_st[FILELIST_DIRENTRY_DATE_LEN], time_st[FILELIST_DIRENTRY_TIME_LEN];
     bool is_today, is_yesterday;
-    std::string day_string = ("");
+    std::string day_string;
     BLI_filelist_entry_datetime_to_string(
         nullptr, int64_t(status.st_mtime), false, time_st, date_st, &is_today, &is_yesterday);
     if (is_today || is_yesterday) {
       day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
     }
     UI_tooltip_text_field_add(tip,
-                              BLI_sprintfN("%s: %s%s%s",
-                                           N_("Modified"),
-                                           day_string.c_str(),
-                                           (is_today || is_yesterday) ? "" : date_st,
-                                           (is_today || is_yesterday) ? time_st : ""),
-                              nullptr,
+                              fmt::format("{}: {}{}{}",
+                                          N_("Modified"),
+                                          day_string,
+                                          (is_today || is_yesterday) ? "" : date_st,
+                                          (is_today || is_yesterday) ? time_st : ""),
+                              {},
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_NORMAL);
 
     if (status.st_size > 0) {
       char size[16];
       BLI_filelist_entry_size_to_string(nullptr, status.st_size, false, size);
-      UI_tooltip_text_field_add(tip,
-                                BLI_sprintfN("%s: %s", N_("Size"), size),
-                                nullptr,
-                                UI_TIP_STYLE_NORMAL,
-                                UI_TIP_LC_NORMAL);
+      UI_tooltip_text_field_add(
+          tip, fmt::format("{}: {}", N_("Size"), size), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
     }
   }
 
@@ -7278,10 +7273,10 @@ static void uiTemplateRecentFiles_tooltip_func(bContext * /*C*/, uiTooltipData *
   }
 
   if (thumb) {
-    float scale = (72.0f * UI_SCALE_FAC) / float(MAX2(thumb->x, thumb->y));
+    float scale = (72.0f * UI_SCALE_FAC) / float(std::max(thumb->x, thumb->y));
     short size[2] = {short(float(thumb->x) * scale), short(float(thumb->y) * scale)};
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
     UI_tooltip_image_field_add(tip, thumb, size);
     IMB_freeImBuf(thumb);
   }

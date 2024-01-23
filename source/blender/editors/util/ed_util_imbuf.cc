@@ -6,6 +6,8 @@
  * \ingroup edutil
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector_types.hh"
@@ -24,9 +26,9 @@
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
@@ -124,10 +126,10 @@ static void image_sample_rect_color_ubyte(const ImBuf *ibuf,
   }
   mul_v4_fl(r_col_linear, 1.0 / float(col_tot));
 
-  r_col[0] = MIN2(col_accum_ub[0] / col_tot, 255);
-  r_col[1] = MIN2(col_accum_ub[1] / col_tot, 255);
-  r_col[2] = MIN2(col_accum_ub[2] / col_tot, 255);
-  r_col[3] = MIN2(col_accum_ub[3] / col_tot, 255);
+  r_col[0] = std::min<uchar>(col_accum_ub[0] / col_tot, 255);
+  r_col[1] = std::min<uchar>(col_accum_ub[1] / col_tot, 255);
+  r_col[2] = std::min<uchar>(col_accum_ub[2] / col_tot, 255);
+  r_col[3] = std::min<uchar>(col_accum_ub[3] / col_tot, 255);
 }
 
 static void image_sample_rect_color_float(ImBuf *ibuf, const rcti *rect, float r_col[4])

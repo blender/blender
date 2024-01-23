@@ -13,11 +13,11 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "imbuf.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "imbuf.hh"
 
-#include "IMB_filter.h"
+#include "IMB_filter.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 

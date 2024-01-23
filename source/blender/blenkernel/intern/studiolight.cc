@@ -8,7 +8,7 @@
 
 #include "BKE_studiolight.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_icons.h"
 
 #include "BLI_dynstr.h"
@@ -25,9 +25,9 @@
 
 #include "DNA_listBase.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_openexr.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_openexr.hh"
 
 #include "GPU_texture.h"
 

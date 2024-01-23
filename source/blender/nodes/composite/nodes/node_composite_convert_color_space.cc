@@ -13,7 +13,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "GPU_shader.h"
 

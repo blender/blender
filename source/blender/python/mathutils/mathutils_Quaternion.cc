@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -969,7 +971,7 @@ static PyObject *Quaternion_slice(QuaternionObject *self, int begin, int end)
     end = (QUAT_SIZE + 1) + end;
   }
   CLAMP(end, 0, QUAT_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -994,7 +996,7 @@ static int Quaternion_ass_slice(QuaternionObject *self, int begin, int end, PyOb
     end = (QUAT_SIZE + 1) + end;
   }
   CLAMP(end, 0, QUAT_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   if ((size = mathutils_array_parse(
            quat, 0, QUAT_SIZE, seq, "mathutils.Quaternion[begin:end] = []")) == -1)

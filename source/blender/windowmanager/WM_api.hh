@@ -901,33 +901,33 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
                                     short sort);
 
 /**
- * Tries to pass \a id to an operator via either a "session_uuid" or a "name" property defined in
+ * Tries to pass \a id to an operator via either a "session_uid" or a "name" property defined in
  * the properties of \a ptr. The former is preferred, since it works properly with linking and
  * library overrides (which may both result in multiple IDs with the same name and type).
  *
  * Also see #WM_operator_properties_id_lookup() and
- * #WM_operator_properties_id_lookup_from_name_or_session_uuid()
+ * #WM_operator_properties_id_lookup_from_name_or_session_uid()
  */
 void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id);
 /**
- * Tries to find an ID in \a bmain. There needs to be either a "session_uuid" int or "name" string
+ * Tries to find an ID in \a bmain. There needs to be either a "session_uid" int or "name" string
  * property defined and set. The former has priority. See #WM_operator_properties_id_lookup() for a
  * helper to add the properties.
  */
-ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
-                                                               PointerRNA *ptr,
-                                                               enum ID_Type type);
+ID *WM_operator_properties_id_lookup_from_name_or_session_uid(Main *bmain,
+                                                              PointerRNA *ptr,
+                                                              enum ID_Type type);
 /**
- * Check if either the "session_uuid" or "name" property is set inside \a ptr. If this is the case
- * the ID can be looked up by #WM_operator_properties_id_lookup_from_name_or_session_uuid().
+ * Check if either the "session_uid" or "name" property is set inside \a ptr. If this is the case
+ * the ID can be looked up by #WM_operator_properties_id_lookup_from_name_or_session_uid().
  */
 bool WM_operator_properties_id_lookup_is_set(PointerRNA *ptr);
 /**
- * Adds "name" and "session_uuid" properties so the caller can tell the operator which ID to act
- * on. See #WM_operator_properties_id_lookup_from_name_or_session_uuid(). Both properties will be
+ * Adds "name" and "session_uid" properties so the caller can tell the operator which ID to act
+ * on. See #WM_operator_properties_id_lookup_from_name_or_session_uid(). Both properties will be
  * hidden in the UI and not be saved over consecutive operator calls.
  *
- * \note New operators should probably use "session_uuid" only (set \a add_name_prop to #false),
+ * \note New operators should probably use "session_uid" only (set \a add_name_prop to #false),
  * since this works properly with linked data and/or library overrides (in both cases, multiple IDs
  * with the same name and type may be present). The "name" property is only kept to not break
  * compatibility with old scripts using some previously existing operators.

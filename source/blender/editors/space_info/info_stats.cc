@@ -749,10 +749,10 @@ static void stats_row(int col1,
                       int height)
 {
   *y -= height;
-  BLF_draw_default(col1, *y, 0.0f, key, 128);
+  BLF_draw_default_shadowed(col1, *y, 0.0f, key, 128);
   char values[128];
   SNPRINTF(values, (value2) ? "%s / %s" : "%s", value1, value2);
-  BLF_draw_default(col2, *y, 0.0f, values, sizeof(values));
+  BLF_draw_default_shadowed(col2, *y, 0.0f, values, sizeof(values));
 }
 
 void ED_info_draw_stats(
@@ -771,10 +771,6 @@ void ED_info_draw_stats(
   const int font_id = BLF_default();
 
   UI_FontThemeColor(font_id, TH_TEXT_HI);
-  BLF_enable(font_id, BLF_SHADOW);
-  const float shadow_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  BLF_shadow(font_id, 5, shadow_color);
-  BLF_shadow_offset(font_id, 1, -1);
 
   /* Translated labels for each stat row. */
   enum {
@@ -885,6 +881,4 @@ void ED_info_draw_stats(
     stats_row(col1, labels[FACES], col2, stats_fmt.totfacesel, stats_fmt.totface, y, height);
     stats_row(col1, labels[TRIS], col2, stats_fmt.tottrisel, stats_fmt.tottri, y, height);
   }
-
-  BLF_disable(font_id, BLF_SHADOW);
 }

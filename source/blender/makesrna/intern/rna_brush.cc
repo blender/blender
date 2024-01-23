@@ -28,7 +28,7 @@
 
 #include "rna_internal.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "WM_types.hh"
 

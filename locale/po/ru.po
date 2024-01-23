@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -24656,14 +24656,6 @@ msgid "Unit editing settings"
 msgstr "Настройки единиц измерения"
 
 
-msgid "Audio Muted"
-msgstr "Без звука"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "Воспроизведение аудио из видеоредактора будет отключено"
-
-
 msgid "Audio Scrubbing"
 msgstr "Звук в перемотке"
 
@@ -37564,6 +37556,10 @@ msgid "Pixelate"
 msgstr "Пикселизация"
 
 
+msgid "Pixel Size"
+msgstr "Размер пикселя"
+
+
 msgid "Plane Track Deform"
 msgstr "Деформация трека-плоскости"
 
@@ -44087,12 +44083,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Преобразовать вращения по Эйлеру ZYX"
 
 
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Сохранить файл в формате ASCII"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Экспортировать PLY"
 
 
 msgid "X Forward"
@@ -44139,6 +44132,26 @@ msgid "-Z Up"
 msgstr "Вверх по −Z"
 
 
+msgid "Apply Modifiers"
+msgstr "Применить модификаторы"
+
+
+msgid "Selection Only"
+msgstr "Только выделенное"
+
+
+msgid "Export selected objects only"
+msgstr "Экспортировать только выделенные объекты"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Сохранить файл в формате ASCII"
+
+
 msgid "Batch Mode"
 msgstr "Пакетный режим"
 
@@ -44151,10 +44164,6 @@ msgid "Each object as a file"
 msgstr "Каждый объект в отдельном файле"
 
 
-msgid "Apply Modifiers"
-msgstr "Применить модификаторы"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Применить модификаторы перед сохранением"
 
@@ -44165,14 +44174,6 @@ msgstr "Единицы сцены"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Применить текущие единицы сцены (заданные масштабом единиц) к экспортируемым данным"
-
-
-msgid "Selection Only"
-msgstr "Только выделенное"
-
-
-msgid "Export selected objects only"
-msgstr "Экспортировать только выделенные объекты"
 
 
 msgctxt "Operator"
@@ -44731,6 +44732,14 @@ msgstr "Запомнить настройки экспорта"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Сохранить настройки экспорта glTF в файле Blender"
+
+
+msgid "Material Groups"
+msgstr "Группы материалов"
+
+
+msgid "Smooth Groups"
+msgstr "Группы сглаживания"
 
 
 msgctxt "Operator"
@@ -48006,6 +48015,11 @@ msgid "Use alpha channel for transparency"
 msgstr "Использовать альфа-канал для прозрачности"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Импортировать PLY"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "Загрузить треугольники меша из файла STL"
 
@@ -48182,6 +48196,10 @@ msgstr "Уровень логирования"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF требует, чтобы прерывистые нормали, UV и другие атрибуты вершин хранились как отдельные вершины, как это требуется для рендеринга на типичном графическом оборудовании. Эта опция пытается объединить совмещенные вершины, где это возможно. В настоящее время нельзя комбинировать вершины с разными нормалями"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Импортировать группы OBJ как группы вершин"
 
 
 msgctxt "Operator"
@@ -53925,14 +53943,6 @@ msgid "Name of the collection to select"
 msgstr "Имя коллекции для выделения"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Рендерить и отображать грани равномерно с использованием нормалей граней"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Рендерить и отображать грани гладко с использованием нормалей вершин"
-
-
 msgctxt "Operator"
 msgid "Add Effect"
 msgstr "Добавить эффект"
@@ -54051,6 +54061,10 @@ msgstr "Сбросить ключи формы"
 
 msgid "Clear weights for all shape keys"
 msgstr "Сбросить веса для всех ключей формы"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Действие блокировки, выполняемое для групп вершин"
 
 
 msgctxt "Operator"
@@ -54416,10 +54430,6 @@ msgstr "Максимальное количество деформирующих
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Изменить блокировку на группы вершин"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Действие блокировки, выполняемое для групп вершин"
 
 
 msgid "Unlock all vertex groups if there is at least one locked group, lock all in other case"
@@ -62902,10 +62912,6 @@ msgid "Export MTL library using PBR extensions (roughness, metallic, sheen, coat
 msgstr "Экспортировать библиотеку MTL, используя расширения PBR (шероховатость, металлик, ткань, покрытие, анизотропию, передачу)"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Импортировать группы OBJ как группы вершин"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Открыть"
@@ -62972,16 +62978,6 @@ msgstr "Тег интерфейса"
 
 msgid "Open a path in a file browser"
 msgstr "Открыть путь в файловом менеджере"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Экспортировать PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Импортировать PLY"
 
 
 msgctxt "Operator"
@@ -70106,10 +70102,6 @@ msgstr "Формат пикселя Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Вертикальная составляющая формата пикселя для широкоэкранного вывода или неквадратных пикселей"
-
-
-msgid "Pixel Size"
-msgstr "Размер пикселя"
 
 
 msgid "Pixel size for viewport rendering"
@@ -82839,10 +82831,6 @@ msgid "Online Manual"
 msgstr "Онлайн-руководство"
 
 
-msgid "Inputs:"
-msgstr "Входы:"
-
-
 msgctxt "Operator"
 msgid "Backdrop Zoom In"
 msgstr "Увеличить подложку"
@@ -83486,31 +83474,6 @@ msgid "Unused Data-Blocks"
 msgstr "Неиспользуемые блоки данных"
 
 
-msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Рекурсивные неиспользуемые блоки данных"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Неиспользуемые связанные блоки данных"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Linked Data-Blocks"
-msgstr "Рекурсивные неиспользуемые связанные блоки данных"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Неиспользуемые локальные датаблоки"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Local Data-Blocks"
-msgstr "Неиспользуемые локальные датаблоки рекурсивно"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Создать"
@@ -83763,16 +83726,16 @@ msgid "Only Insert Needed"
 msgstr "Вставлять только нужные"
 
 
+msgid "Enable in New Scenes"
+msgstr "Включать в новых сценах"
+
+
 msgid "Show Warning"
 msgstr "Показывать предупреждения"
 
 
 msgid "Only Insert Available"
 msgstr "Вставлять только доступные"
-
-
-msgid "Enable in New Scenes"
-msgstr "Включать в новых сценах"
 
 
 msgid "Default Smoothing Mode"
@@ -87094,40 +87057,8 @@ msgid "Internal error!"
 msgstr "Внутренняя ошибка!"
 
 
-msgid "Shortcut: %s"
-msgstr "Сочетание клавиш: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Shift-нажать мышью/перетащить, чтобы выделить несколько)"
-
-
-msgid "Value: %s"
-msgstr "Значение: %s"
-
-
-msgid "Radians: %f"
-msgstr "Радианы: %f"
-
-
-msgid "Expression: %s"
-msgstr "Выражение: %s"
-
-
-msgid "Library: %s"
-msgstr "Библиотека: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Отключено: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -87595,14 +87526,6 @@ msgstr "Ошибка во время экспорта (смотрите конс
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Ошибки парсинга документа (см. консоль Blender)"
-
-
-msgid "Material Groups"
-msgstr "Группы материалов"
-
-
-msgid "Smooth Groups"
-msgstr "Группы сглаживания"
 
 
 msgid "Rigging"

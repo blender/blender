@@ -53,24 +53,24 @@ struct CurvesUniformBufPool;
 #define USE_PROFILE
 
 #ifdef USE_PROFILE
-#  include "PIL_time.h"
+#  include "BLI_time.h"
 
 #  define PROFILE_TIMER_FALLOFF 0.04
 
 #  define PROFILE_START(time_start) \
-    double time_start = PIL_check_seconds_timer(); \
+    double time_start = BLI_check_seconds_timer(); \
     ((void)0)
 
 #  define PROFILE_END_ACCUM(time_accum, time_start) \
     { \
-      time_accum += (PIL_check_seconds_timer() - time_start) * 1e3; \
+      time_accum += (BLI_check_seconds_timer() - time_start) * 1e3; \
     } \
     ((void)0)
 
 /* exp average */
 #  define PROFILE_END_UPDATE(time_update, time_start) \
     { \
-      double _time_delta = (PIL_check_seconds_timer() - time_start) * 1e3; \
+      double _time_delta = (BLI_check_seconds_timer() - time_start) * 1e3; \
       time_update = (time_update * (1.0 - PROFILE_TIMER_FALLOFF)) + \
                     (_time_delta * PROFILE_TIMER_FALLOFF); \
     } \

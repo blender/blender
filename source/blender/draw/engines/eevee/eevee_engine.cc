@@ -22,7 +22,7 @@
 
 #include "GPU_context.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "eevee_private.h"
 
@@ -668,7 +668,7 @@ RenderEngineType DRW_engine_viewport_eevee_type = {
     /*next*/ nullptr,
     /*prev*/ nullptr,
     /*idname*/ EEVEE_ENGINE,
-    /*name*/ N_("EEVEE (Legacy)"),
+    /*name*/ N_("EEVEE"),
     /*flag*/ RE_INTERNAL | RE_USE_PREVIEW | RE_USE_STEREO_VIEWPORT | RE_USE_GPU_CONTEXT,
     /*update*/ nullptr,
     /*render*/ &DRW_render_to_image,

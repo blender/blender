@@ -63,4 +63,14 @@ Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease
                                                             const IndexMask &layer_mask,
                                                             int frame);
 
+struct DrawingInfo {
+  bke::greasepencil::Drawing *drawing;
+  /* Frame on which this drawing starts. */
+  int start_frame_number;
+};
+
+Vector<DrawingInfo> get_drawing_infos_for_write(GreasePencil &grease_pencil,
+                                                const IndexMask &layer_mask,
+                                                int frame);
+
 }  // namespace blender::modifier::greasepencil

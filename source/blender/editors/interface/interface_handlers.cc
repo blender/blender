@@ -30,12 +30,11 @@
 #include "BLI_string.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "PIL_time.h"
-
 #include "BKE_animsys.h"
-#include "BKE_blender_undo.h"
+#include "BKE_blender_undo.hh"
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
@@ -50,7 +49,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -507,7 +506,7 @@ struct uiAfterFunc {
   std::optional<bContextStore> context;
 
   char undostr[BKE_UNDO_STR_MAX];
-  char drawstr[UI_MAX_DRAW_STR];
+  std::string drawstr;
 };
 
 static void button_activate_init(bContext *C,
@@ -795,7 +794,7 @@ static void ui_handle_afterfunc_add_operator_ex(wmOperatorType *ot,
   }
 
   if (context_but) {
-    ui_but_drawstr_without_sep_char(context_but, after->drawstr, sizeof(after->drawstr));
+    after->drawstr = ui_but_drawstr_without_sep_char(context_but);
   }
 }
 
@@ -910,7 +909,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
     after->context = *but->context;
   }
 
-  ui_but_drawstr_without_sep_char(but, after->drawstr, sizeof(after->drawstr));
+  after->drawstr = ui_but_drawstr_without_sep_char(but);
 
   but->optype = nullptr;
   but->opcontext = wmOperatorCallContext(0);
@@ -930,11 +929,11 @@ static void ui_apply_but_undo(uiBut *but)
 
   /* define which string to use for undo */
   if (but->type == UI_BTYPE_MENU) {
-    str = but->drawstr;
+    str = but->drawstr.empty() ? nullptr : but->drawstr.c_str();
     str_len_clip = ui_but_drawstr_len_without_sep_char(but);
   }
-  else if (but->drawstr[0]) {
-    str = but->drawstr;
+  else if (!but->drawstr.empty()) {
+    str = but->drawstr.c_str();
     str_len_clip = ui_but_drawstr_len_without_sep_char(but);
   }
   else {
@@ -1043,7 +1042,7 @@ static void ui_apply_but_funcs_after(bContext *C)
                                                        after.opcontext,
                                                        (after.opptr) ? &opptr : nullptr,
                                                        nullptr,
-                                                       after.drawstr);
+                                                       after.drawstr.c_str());
     }
 
     if (after.opptr) {
@@ -2947,7 +2946,7 @@ void ui_but_clipboard_free()
 
 static int ui_text_position_from_hidden(uiBut *but, int pos)
 {
-  const char *butstr = (but->editstr) ? but->editstr : but->drawstr;
+  const char *butstr = (but->editstr) ? but->editstr : but->drawstr.c_str();
   const char *strpos = butstr;
   const char *str_end = butstr + strlen(butstr);
   for (int i = 0; i < pos; i++) {
@@ -2959,7 +2958,7 @@ static int ui_text_position_from_hidden(uiBut *but, int pos)
 
 static int ui_text_position_to_hidden(uiBut *but, int pos)
 {
-  const char *butstr = (but->editstr) ? but->editstr : but->drawstr;
+  const char *butstr = (but->editstr) ? but->editstr : but->drawstr.c_str();
   return BLI_strnlen_utf8(butstr, pos);
 }
 
@@ -2971,7 +2970,7 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
     return;
   }
 
-  char *butstr = (but->editstr) ? but->editstr : but->drawstr;
+  char *butstr = (but->editstr) ? but->editstr : but->drawstr.data();
 
   if (restore) {
     /* restore original string */
@@ -4399,7 +4398,7 @@ static void ui_block_open_end(bContext *C, uiBut *but, uiHandleButtonData *data)
     but->editval = nullptr;
     but->editvec = nullptr;
 
-    but->block->auto_open_last = PIL_check_seconds_timer();
+    but->block->auto_open_last = BLI_check_seconds_timer();
   }
 
   if (data->menu) {
@@ -4617,7 +4616,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY, EVT_BUT_OPEN) &&
         (event->val == KM_PRESS))
     {
-      but->drawstr[0] = 0;
+      but->drawstr.clear();
       hotkey_but->modifier_key = 0;
       button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
       return WM_UI_HANDLER_BREAK;
@@ -8648,7 +8647,7 @@ static void button_activate_init(bContext *C,
    * want to allow auto opening adjacent menus even if no button is activated
    * in between going over to the other button, but only for a short while */
   if (type == BUTTON_ACTIVATE_OVER && but->block->auto_open == true) {
-    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer()) {
+    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_check_seconds_timer()) {
       but->block->auto_open = false;
     }
   }
@@ -8694,7 +8693,7 @@ static void button_activate_init(bContext *C,
   if (UI_but_has_tooltip_label(but)) {
     /* Show a label for this button. */
     bScreen *screen = WM_window_get_active_screen(data->window);
-    if ((PIL_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
+    if ((BLI_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
       WM_tooltip_immediate_init(C, CTX_wm_window(C), data->area, region, ui_but_tooltip_init);
       if (screen->tool_tip) {
         screen->tool_tip->pass = 1;
@@ -9975,7 +9974,7 @@ static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu,
       menu->towardstime = DBL_MAX; /* unlimited time */
     }
     else {
-      menu->towardstime = PIL_check_seconds_timer();
+      menu->towardstime = BLI_check_seconds_timer();
     }
   }
 }
@@ -10055,7 +10054,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
   }
 
   /* 1 second timer */
-  if (PIL_check_seconds_timer() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
+  if (BLI_check_seconds_timer() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
     menu->dotowards = false;
   }
 

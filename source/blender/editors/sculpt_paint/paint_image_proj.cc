@@ -7,6 +7,7 @@
  * \brief Functions to paint images in 2D and 3D.
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -35,8 +36,8 @@
 
 #include "BLT_translation.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -103,7 +104,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 // #include "bmesh_tools.hh"
 
@@ -1375,7 +1376,7 @@ static void uv_image_outset(const ProjPaintState *ps,
       len_fact = UNLIKELY(len_fact < FLT_EPSILON) ? FLT_MAX : (1.0f / len_fact);
 
       /* Clamp the length factor, see: #62236. */
-      len_fact = MIN2(len_fact, 10.0f);
+      len_fact = std::min(len_fact, 10.0f);
 
       mul_v2_fl(no, ps->seam_bleed_px * len_fact);
 
@@ -4226,16 +4227,14 @@ static bool project_paint_check_face_paintable(const ProjPaintState *ps,
     }
     return ps->select_poly_eval && ps->select_poly_eval[face_i];
   }
-  else {
-    int orig_index;
-    const int face_i = ps->corner_tri_faces_eval[tri_i];
-    if ((face_lookup->index_mp_to_orig != nullptr) &&
-        ((orig_index = (face_lookup->index_mp_to_orig[face_i])) != ORIGINDEX_NONE))
-    {
-      return !(face_lookup->hide_poly_orig && face_lookup->hide_poly_orig[orig_index]);
-    }
-    return !(ps->hide_poly_eval && ps->hide_poly_eval[face_i]);
+  int orig_index;
+  const int face_i = ps->corner_tri_faces_eval[tri_i];
+  if ((face_lookup->index_mp_to_orig != nullptr) &&
+      ((orig_index = (face_lookup->index_mp_to_orig[face_i])) != ORIGINDEX_NONE))
+  {
+    return !(face_lookup->hide_poly_orig && face_lookup->hide_poly_orig[orig_index]);
   }
+  return !(ps->hide_poly_eval && ps->hide_poly_eval[face_i]);
 }
 
 struct ProjPaintFaceCoSS {

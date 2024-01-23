@@ -292,7 +292,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_NT));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_NT));
   if (!node_group) {
     return OPERATOR_CANCELLED;
   }
@@ -511,7 +511,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
 
   Object *object = reinterpret_cast<Object *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_OB));
 
   if (!object) {
     return OPERATOR_CANCELLED;
@@ -597,7 +597,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   bNodeTree &ntree = *snode.edittree;
 
   Collection *collection = reinterpret_cast<Collection *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_GR));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_GR));
 
   if (!collection) {
     return OPERATOR_CANCELLED;
@@ -808,7 +808,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
 
-  ID *mask = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_MSK);
+  ID *mask = WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MSK);
   if (!mask) {
     return OPERATOR_CANCELLED;
   }
@@ -861,7 +861,7 @@ static int node_add_material_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
 
   Material *material = reinterpret_cast<Material *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_MA));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MA));
 
   if (!material) {
     return OPERATOR_CANCELLED;

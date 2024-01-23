@@ -142,7 +142,7 @@ static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, b
     return (layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER) != 0;
   }
 
-  if (v3d->local_collections_uuid & layer_collection->local_collections_bits) {
+  if (v3d->local_collections_uid & layer_collection->local_collections_bits) {
     return (layer_collection->runtime_flag & LAYER_COLLECTION_HIDE_VIEWPORT) == 0;
   }
 
@@ -590,6 +590,7 @@ static void rna_def_object_base(BlenderRNA *brna)
   prop = RNA_def_property(srna, "hide_viewport", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BASE_HIDDEN);
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE); /* The update callback does tagging. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_icon(prop, ICON_HIDE_OFF, -1);
   RNA_def_property_ui_text(prop, "Hide in Viewport", "Temporarily hide in viewport");

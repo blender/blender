@@ -16,8 +16,8 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 namespace blender::imbuf::transform {
 
@@ -368,8 +368,6 @@ static void transform_scanlines_filter(const TransformContext &ctx, IndexRange y
 
 }  // namespace blender::imbuf::transform
 
-extern "C" {
-
 using namespace blender::imbuf::transform;
 using namespace blender;
 
@@ -407,5 +405,4 @@ void IMB_transform(const ImBuf *src,
       transform_scanlines_filter<IMB_FILTER_BICUBIC>(ctx, y_range);
     }
   });
-}
 }

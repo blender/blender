@@ -42,7 +42,7 @@
 
 #  include "DEG_depsgraph.hh"
 
-#  include "IMB_imbuf.h"
+#  include "IMB_imbuf.hh"
 
 #  include "WM_api.hh"
 

@@ -11,7 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus

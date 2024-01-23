@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <optional>
 #include <string>
 
@@ -80,8 +81,8 @@ struct CryptomatteHash {
   {
     uint32_t mantissa = hash & ((1 << 23) - 1);
     uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
-    exponent = MAX2(exponent, uint32_t(1));
-    exponent = MIN2(exponent, uint32_t(254));
+    exponent = std::max(exponent, uint32_t(1));
+    exponent = std::min(exponent, uint32_t(254));
     exponent = exponent << 23;
     uint32_t sign = (hash >> 31);
     sign = sign << 31;

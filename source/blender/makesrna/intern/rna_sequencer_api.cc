@@ -38,8 +38,8 @@
 #  include "BKE_report.h"
 #  include "BKE_sound.h"
 
-#  include "IMB_imbuf.h"
-#  include "IMB_imbuf_types.h"
+#  include "IMB_imbuf.hh"
+#  include "IMB_imbuf_types.hh"
 
 #  include "SEQ_add.hh"
 #  include "SEQ_edit.hh"

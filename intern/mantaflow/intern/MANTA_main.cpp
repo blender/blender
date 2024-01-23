@@ -6,6 +6,7 @@
  * \ingroup intern_mantaflow
  */
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -830,7 +831,7 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   string cacheDirectory(fds->cache_directory);
 
   float viscosity = fds->viscosity_base * pow(10.0f, -fds->viscosity_exponent);
-  float domainSize = MAX3(fds->global_size[0], fds->global_size[1], fds->global_size[2]);
+  float domainSize = std::max({fds->global_size[0], fds->global_size[1], fds->global_size[2]});
 
   string vdbCompressionMethod = "Compression_None";
   if (fds->openvdb_compression == VDB_COMPRESSION_NONE) {

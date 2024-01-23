@@ -10,6 +10,7 @@
  * \ingroup bli
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -1069,7 +1070,7 @@ int BLI_str_utf8_offset_from_index(const char *str, const size_t str_len, const 
 int BLI_str_utf8_offset_to_column(const char *str, const size_t str_len, const int offset_target)
 {
   BLI_assert(offset_target >= 0);
-  const size_t offset_target_clamp = MIN2(size_t(offset_target), str_len);
+  const size_t offset_target_clamp = std::min(size_t(offset_target), str_len);
   size_t offset = 0;
   int column = 0;
   while (offset < offset_target_clamp) {
@@ -1101,7 +1102,7 @@ int BLI_str_utf8_offset_to_column_with_tabs(const char *str,
                                             const int tab_width)
 {
   BLI_assert(offset_target >= 0);
-  const size_t offset_target_clamp = MIN2(size_t(offset_target), str_len);
+  const size_t offset_target_clamp = std::min(size_t(offset_target), str_len);
   size_t offset = 0;
   int column = 0;
   while (offset < offset_target_clamp) {

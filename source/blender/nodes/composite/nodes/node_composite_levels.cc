@@ -15,7 +15,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "COM_algorithm_parallel_reduction.hh"
 #include "COM_node_operation.hh"

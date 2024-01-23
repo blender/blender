@@ -11,9 +11,9 @@
  * specific to loading vector graphics (such as resolution control), see #109567 for details.
  */
 
-#include "IMB_colormanagement.h"
-#include "IMB_filetype.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf_types.hh"
 #include "nanosvg.h"
 #include "nanosvgrast.h"
 

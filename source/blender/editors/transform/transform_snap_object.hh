@@ -215,7 +215,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 const ID *id,
                                 const blender::float4x4 &obmat,
                                 eSnapMode snap_to_flag,
-                                int polygon);
+                                int face);
 
 eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
                                     Object *ob_eval,
@@ -238,7 +238,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
                             const ID *id,
                             const blender::float4x4 &obmat,
                             eSnapMode snap_to_flag,
-                            int polygon);
+                            int face);
 
 eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
                                 Object *ob_eval,

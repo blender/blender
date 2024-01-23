@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: 2023-12-17 02:53+0000\n"
 "Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -17167,10 +17167,6 @@ msgid "Unit Settings"
 msgstr "Imposta Unità"
 
 
-msgid "Audio Muted"
-msgstr "Audio Disattivato"
-
-
 msgid "Global Gravity"
 msgstr "Gravità Globale"
 
@@ -25940,6 +25936,10 @@ msgid "Pixelate"
 msgstr "Squadrettatura"
 
 
+msgid "Pixel Size"
+msgstr "Dimensione Pixel"
+
+
 msgid "Alpha Convert"
 msgstr "Conversione Alfa"
 
@@ -30505,12 +30505,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Converte le rotazioni nell'euleriana ZYX"
 
 
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Salva il file nel formato di file ASCII"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Esporta PLY"
 
 
 msgid "X Forward"
@@ -30557,6 +30554,26 @@ msgid "-Z Up"
 msgstr "-Z In Alto"
 
 
+msgid "Apply Modifiers"
+msgstr "Applica Modificatori"
+
+
+msgid "Selection Only"
+msgstr "Solo Selezione"
+
+
+msgid "Export selected objects only"
+msgstr "Esporta solo gli oggetti selezionati"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Salva il file nel formato di file ASCII"
+
+
 msgid "Batch Mode"
 msgstr "Modo Batch"
 
@@ -30569,24 +30586,12 @@ msgid "Each object as a file"
 msgstr "Ogni oggetto come un file"
 
 
-msgid "Apply Modifiers"
-msgstr "Applica Modificatori"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Applica i modificatori prima di salvare"
 
 
 msgid "Scene Unit"
 msgstr "Unità Scena"
-
-
-msgid "Selection Only"
-msgstr "Solo Selezione"
-
-
-msgid "Export selected objects only"
-msgstr "Esporta solo gli oggetti selezionati"
 
 
 msgctxt "Operator"
@@ -30776,6 +30781,10 @@ msgstr "Converte tutte le facce in triangoli"
 
 msgid "General"
 msgstr "Generale"
+
+
+msgid "Material Groups"
+msgstr "Gruppi Materiale"
 
 
 msgid "Compress"
@@ -32645,6 +32654,11 @@ msgid "Shadeless"
 msgstr "Senza ombre"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importa PLY"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "Carica i dati di una mesh triangolata da un file STL"
 
@@ -32716,6 +32730,10 @@ msgstr "Specifica orientamento e scala, anzichè usare quelli inclusi nel file F
 
 msgid "Use Pre/Post Rotation"
 msgstr "Usa Pre/Post Rotazione"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa gruppi OBJ come gruppo di vertici"
 
 
 msgctxt "Operator"
@@ -36880,14 +36898,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Filtra il nome usando i caratteri jolly stile unix '*', '?' e '[abc]'"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Renderizza e mostra le facce uniformi, usando le normali delle facce"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Renderizza e mostra le facce levigate, usando l'interpolazione delle normali dei vertici"
-
-
 msgctxt "Operator"
 msgid "Add Shape Key"
 msgstr "Agg. Chiave Forma"
@@ -36908,6 +36918,10 @@ msgstr "Pulisci Chiavi Forma"
 
 msgid "Clear weights for all shape keys"
 msgstr "Cancella pesi per tutte le chiavi forma"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Blocca l'azione da eseguire sui gruppi vertici"
 
 
 msgctxt "Operator"
@@ -37227,10 +37241,6 @@ msgstr "Numero massimo di pesi di deformazione"
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Cambia il Blocco Sui Gruppi Vertici"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Blocca l'azione da eseguire sui gruppi vertici"
 
 
 msgid "Lock all vertex groups"
@@ -43277,10 +43287,6 @@ msgid "Print memory statistics to the console"
 msgstr "Stampa la statistica della memoria nella console"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa gruppi OBJ come gruppo di vertici"
-
-
 msgid "Open a Blender file"
 msgstr "Apre un file Blender"
 
@@ -43325,16 +43331,6 @@ msgstr "Aggiunge o rimuove una Preimpostazione Operatore"
 
 msgid "Open a path in a file browser"
 msgstr "Apre un percorso nel file browser"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Esporta PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importa PLY"
 
 
 msgctxt "Operator"
@@ -48148,10 +48144,6 @@ msgstr "Aspetto pixel Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Proporzione verticale - per produrre pixel non-quadrati o anamorfici"
-
-
-msgid "Pixel Size"
-msgstr "Dimensione Pixel"
 
 
 msgid "Pixel size for viewport rendering"
@@ -55195,10 +55187,6 @@ msgid "Online Manual"
 msgstr "Manuale Online"
 
 
-msgid "Inputs:"
-msgstr "Ingressi:"
-
-
 msgctxt "Operator"
 msgid "Backdrop Zoom In"
 msgstr "Ingrandisci Sfondo"
@@ -55757,16 +55745,16 @@ msgid "Auto-Keyframing"
 msgstr "Keyframing Automatico"
 
 
+msgid "Enable in New Scenes"
+msgstr "Abilita in Scene Nuove"
+
+
 msgid "Show Warning"
 msgstr "Mostra Avvisi"
 
 
 msgid "Only Insert Available"
 msgstr "Inserisce Solo Se Disponibile"
-
-
-msgid "Enable in New Scenes"
-msgstr "Abilita in Scene Nuove"
 
 
 msgid "Default Interpolation"
@@ -57928,40 +57916,8 @@ msgid "Internal error!"
 msgstr "Errore Interno!"
 
 
-msgid "Shortcut: %s"
-msgstr "Scorciatoia: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Shift-Click/Trascina per selezione multipla)"
-
-
-msgid "Value: %s"
-msgstr "Valore: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radianti: %f"
-
-
-msgid "Expression: %s"
-msgstr "Espressione: %s"
-
-
-msgid "Library: %s"
-msgstr "Libreria: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Disabilitato: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -58182,6 +58138,10 @@ msgid "Browse ID data to be linked"
 msgstr "Naviga Dati ID da collegare"
 
 
+msgid "File Not Found"
+msgstr "File Non Trovato"
+
+
 msgid "Modified"
 msgstr "Modificato"
 
@@ -58350,10 +58310,6 @@ msgstr "Opzioni Esportazione"
 
 msgid "Object Groups"
 msgstr "Gruppi Oggetto"
-
-
-msgid "Material Groups"
-msgstr "Gruppi Materiale"
 
 
 msgid "Rigging"
@@ -61560,10 +61516,6 @@ msgstr "Permetti Esecuzione"
 
 msgid "Don't Save"
 msgstr "Non Salvare"
-
-
-msgid "File Not Found"
-msgstr "File Non Trovato"
 
 
 msgid "unable to open the file"

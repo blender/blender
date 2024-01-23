@@ -20,9 +20,8 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "BKE_cryptomatte.hh"
 #include "BKE_material.h"
@@ -953,7 +952,7 @@ void GPU_pass_release(GPUPass *pass)
 void GPU_pass_cache_garbage_collect()
 {
   const int shadercollectrate = 60; /* hardcoded for now. */
-  int ctime = int(PIL_check_seconds_timer());
+  int ctime = int(BLI_check_seconds_timer());
 
   BLI_spin_lock(&pass_cache_spin);
   GPUPass *next, **prev_pass = &pass_cache;

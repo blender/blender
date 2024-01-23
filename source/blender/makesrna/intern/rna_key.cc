@@ -38,6 +38,7 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
 #  include <stddef.h>
 
 #  include "DNA_object_types.h"
@@ -491,11 +492,11 @@ static void rna_ShapeKey_NurbInfo_step(NurbInfo *r_info,
   rna_ShapeKey_NurbInfo_init(r_info, nu);
 
   if (input_elem) {
-    r_info->nurb_index = MIN2(r_info->nurb_size, *p_raw_index / r_info->nurb_elem_step);
+    r_info->nurb_index = std::min(r_info->nurb_size, *p_raw_index / r_info->nurb_elem_step);
     *p_raw_index -= r_info->nurb_size * r_info->nurb_elem_step;
   }
   else {
-    r_info->nurb_index = MIN2(r_info->nurb_size, *p_raw_index);
+    r_info->nurb_index = std::min(r_info->nurb_size, *p_raw_index);
     *p_raw_index -= r_info->nurb_size;
   }
 

@@ -6,6 +6,7 @@
  * \ingroup sptext
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
 #include <sstream>
@@ -19,10 +20,9 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
+#include "BLI_time.h"
 
 #include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -1791,7 +1791,7 @@ static int space_text_get_cursor_rel(
         curs = j;
       }
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         if (found) {
           /* exact cursor position was found, check if it's */
@@ -1986,7 +1986,7 @@ static void txt_wrap_move_bol(SpaceText *st, ARegion *region, const bool sel)
 
     while (chars--) {
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         *charp = endj;
 
@@ -2073,7 +2073,7 @@ static void txt_wrap_move_eol(SpaceText *st, ARegion *region, const bool sel)
 
     while (chars--) {
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         if (chop) {
           endj = BLI_str_find_prev_char_utf8((*linep)->line + j, (*linep)->line) - (*linep)->line;
@@ -3165,7 +3165,7 @@ static void space_text_cursor_set_to_pos_wrapped(
           curs = j;
         }
         if (i + columns - start > max) {
-          end = MIN2(end, i);
+          end = std::min(end, i);
 
           if (found) {
             /* exact cursor position was found, check if it's still on needed line
@@ -3520,7 +3520,7 @@ static int text_line_number_invoke(bContext *C, wmOperator * /*op*/, const wmEve
     return OPERATOR_PASS_THROUGH;
   }
 
-  time = PIL_check_seconds_timer();
+  time = BLI_check_seconds_timer();
   if (last_jump < time - 1) {
     jump_to = 0;
   }

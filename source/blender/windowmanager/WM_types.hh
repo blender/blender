@@ -1224,10 +1224,10 @@ struct wmDragGreasePencilLayer {
   GreasePencilLayer *layer;
 };
 
-using WMDropboxTooltipFunc = char *(*)(bContext *C,
-                                       wmDrag *drag,
-                                       const int xy[2],
-                                       wmDropBox *drop);
+using WMDropboxTooltipFunc = std::string (*)(bContext *C,
+                                             wmDrag *drag,
+                                             const int xy[2],
+                                             wmDropBox *drop);
 
 struct wmDragActiveDropState {
   wmDragActiveDropState();

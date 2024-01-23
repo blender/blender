@@ -13,10 +13,8 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
-#include "BLI_rand.h"
+#include "BLI_rand.hh"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -41,7 +39,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
@@ -49,11 +47,13 @@
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
+namespace blender::ed::sculpt_paint {
+
 struct PaintSample {
-  float mouse[2];
+  float2 mouse;
   float pressure;
 };
 
@@ -61,15 +61,12 @@ struct PaintStroke {
   void *mode_data;
   void *stroke_cursor;
   wmTimer *timer;
-  RNG *rng;
+  std::optional<RandomNumberGenerator> rng;
 
   /* Cached values */
   ViewContext vc;
   Brush *brush;
   UnifiedPaintSettings *ups;
-
-  /* used for lines and curves */
-  ListBase line;
 
   /* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
    * to smooth the stroke */
@@ -78,9 +75,9 @@ struct PaintStroke {
   int cur_sample;
   int tot_samples;
 
-  float last_mouse_position[2];
-  float last_world_space_position[3];
-  float last_scene_spacing_delta[3];
+  float2 last_mouse_position;
+  float3 last_world_space_position;
+  float3 last_scene_spacing_delta;
 
   bool stroke_over_mesh;
   /* space distance covered so far */
@@ -98,7 +95,7 @@ struct PaintStroke {
   bool stroke_init;
   /* check if various brush mapping variables have been initialized */
   bool brush_init;
-  float initial_mouse[2];
+  float2 initial_mouse;
   /* cached_pressure stores initial pressure for size pressure influence mainly */
   float cached_size_pressure;
   /* last pressure will store last pressure value for use in interpolation for space strokes */
@@ -116,7 +113,7 @@ struct PaintStroke {
 
   /* line constraint */
   bool constrain_line;
-  float constrained_pos[2];
+  float2 constrained_pos;
 
   StrokeGetLocation get_location;
   StrokeTestStart test_start;
@@ -212,7 +209,6 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
 {
-  using namespace blender::ed::sculpt_paint;
   switch (mode) {
     case PAINT_MODE_SCULPT:
       if (ELEM(brush->sculpt_tool,
@@ -458,24 +454,22 @@ static bool paint_brush_update(bContext *C,
     }
   }
 
-  if ((do_random || do_random_mask) && stroke->rng == nullptr) {
+  if ((do_random || do_random_mask) && !stroke->rng) {
     /* Lazy initialization. */
-    uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
-    rng_seed ^= uint(POINTER_AS_INT(brush));
-    stroke->rng = BLI_rng_new(rng_seed);
+    stroke->rng = RandomNumberGenerator::from_random_seed();
   }
 
   if (do_random) {
     if (brush->mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
       ups->brush_rotation += -brush->mtex.random_angle / 2.0f +
-                             brush->mtex.random_angle * BLI_rng_get_float(stroke->rng);
+                             brush->mtex.random_angle * stroke->rng->get_float();
     }
   }
 
   if (do_random_mask) {
     if (brush->mask_mtex.brush_angle_mode & MTEX_ANGLE_RANDOM) {
       ups->brush_rotation_sec += -brush->mask_mtex.random_angle / 2.0f +
-                                 brush->mask_mtex.random_angle * BLI_rng_get_float(stroke->rng);
+                                 brush->mask_mtex.random_angle * stroke->rng->get_float();
     }
   }
 
@@ -680,7 +674,6 @@ static float paint_space_stroke_spacing(bContext *C,
                                         float size_pressure,
                                         float spacing_pressure)
 {
-  using namespace blender::ed::sculpt_paint;
   Paint *paint = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -911,7 +904,7 @@ PaintStroke *paint_stroke_new(bContext *C,
                               int event_type)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  PaintStroke *stroke = MEM_cnew<PaintStroke>(__func__);
+  PaintStroke *stroke = MEM_new<PaintStroke>(__func__);
   ToolSettings *toolsettings = CTX_data_tool_settings(C);
   UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
   Paint *p = BKE_paint_get_active_from_context(C);
@@ -990,17 +983,11 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
     WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
   }
 
-  if (stroke->rng) {
-    BLI_rng_free(stroke->rng);
-  }
-
   if (stroke->stroke_cursor) {
     WM_paint_cursor_end(static_cast<wmPaintCursor *>(stroke->stroke_cursor));
   }
 
-  BLI_freelistN(&stroke->line);
-
-  MEM_SAFE_FREE(stroke);
+  MEM_delete(stroke);
 }
 
 static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
@@ -1036,7 +1023,6 @@ static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
 
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
 {
-  using namespace blender::ed::sculpt_paint;
   if ((br->flag & BRUSH_SPACE) == 0) {
     return false;
   }
@@ -1156,7 +1142,6 @@ wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
 {
   static EnumPropertyItem modal_items[] = {
       {PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0, "Cancel", "Cancel and undo a stroke in progress"},
-
       {0}};
 
   static const char *name = "Paint Stroke Modal";
@@ -1502,7 +1487,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
     if (paint_supports_smooth_stroke(br, mode)) {
       stroke->stroke_cursor = WM_paint_cursor_activate(
-          SPACE_TYPE_ANY, RGN_TYPE_ANY, PAINT_brush_tool_poll, paint_draw_smooth_cursor, stroke);
+          SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_smooth_cursor, stroke);
     }
 
     stroke->stroke_init = true;
@@ -1528,7 +1513,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
       if (br->flag & BRUSH_LINE) {
         stroke->stroke_cursor = WM_paint_cursor_activate(
-            SPACE_TYPE_ANY, RGN_TYPE_ANY, PAINT_brush_tool_poll, paint_draw_line_cursor, stroke);
+            SPACE_TYPE_ANY, RGN_TYPE_ANY, paint_brush_tool_poll, paint_draw_line_cursor, stroke);
       }
 
       first_dab = true;
@@ -1705,7 +1690,7 @@ bool paint_stroke_started(PaintStroke *stroke)
   return stroke->stroke_started;
 }
 
-bool PAINT_brush_tool_poll(bContext *C)
+bool paint_brush_tool_poll(bContext *C)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   Object *ob = CTX_data_active_object(C);
@@ -1724,3 +1709,5 @@ bool PAINT_brush_tool_poll(bContext *C)
   }
   return false;
 }
+
+}  // namespace blender::ed::sculpt_paint

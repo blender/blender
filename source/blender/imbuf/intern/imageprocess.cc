@@ -20,9 +20,9 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 void IMB_convert_rgba_to_abgr(ImBuf *ibuf)
 {

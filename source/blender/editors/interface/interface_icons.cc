@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -39,7 +40,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -47,9 +48,9 @@
 #include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_thumbs.hh"
 
 #include "BIF_glutil.hh"
 
@@ -798,10 +799,10 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
       const int blur_size = 2 / resolution_divider;
       for (int bx = 0; bx < icon_width; bx++) {
         const int asx = std::max(bx - blur_size, 0);
-        const int aex = MIN2(bx + blur_size + 1, icon_width);
+        const int aex = std::min(bx + blur_size + 1, icon_width);
         for (int by = 0; by < icon_height; by++) {
           const int asy = std::max(by - blur_size, 0);
-          const int aey = MIN2(by + blur_size + 1, icon_height);
+          const int aey = std::min(by + blur_size + 1, icon_height);
 
           /* blur alpha channel */
           const int write_offset = by * (ICON_GRID_W + 2 * ICON_MONO_BORDER_OUTSET) + bx;
@@ -2584,7 +2585,7 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
   return nullptr;
 #else
   const int ALERT_IMG_SIZE = 256;
-  icon = eAlertIcon(MIN2(icon, ALERT_ICON_MAX - 1));
+  icon = eAlertIcon(std::min<int>(icon, ALERT_ICON_MAX - 1));
   const int left = icon * ALERT_IMG_SIZE;
   const rcti crop = {left, left + ALERT_IMG_SIZE - 1, 0, ALERT_IMG_SIZE - 1};
   ImBuf *ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_alert_icons_png,

@@ -13,6 +13,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
@@ -180,7 +181,7 @@ struct uiBut {
 
   std::string str;
 
-  char drawstr[UI_MAX_DRAW_STR] = "";
+  std::string drawstr;
 
   char *placeholder = nullptr;
 
@@ -1254,7 +1255,7 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
  */
 void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     rcti *rect,
-                                    const char *name,
+                                    blender::StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
                                     eFontStyle_Align text_align,
@@ -1428,8 +1429,7 @@ uiBut *ui_list_find_mouse_over_ex(const ARegion *region, const int xy[2])
 
 bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
-size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxncpy)
-    ATTR_NONNULL(1, 2);
+blender::StringRef ui_but_drawstr_without_sep_char(const uiBut *but) ATTR_NONNULL();
 size_t ui_but_drawstr_len_without_sep_char(const uiBut *but);
 size_t ui_but_tip_len_only_first_line(const uiBut *but);
 

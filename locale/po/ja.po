@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: 2024-01-12 02:56+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -29356,14 +29356,6 @@ msgid "Unit editing settings"
 msgstr "単位編集の設定"
 
 
-msgid "Audio Muted"
-msgstr "消音"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "シーケンスエディターの音声の再生を消音します"
-
-
 msgid "Audio Scrubbing"
 msgstr "オーディオスクラビング"
 
@@ -45096,6 +45088,10 @@ msgid "Pixelate"
 msgstr "ピクセル化"
 
 
+msgid "Pixel Size"
+msgstr "ピクセルサイズ"
+
+
 msgid "Plane Track Deform"
 msgstr "平面トラック変形"
 
@@ -50410,6 +50406,10 @@ msgstr "このツリーのアクティブノード"
 
 msgid "Nodes Modifier Bake"
 msgstr "ノードモディファイアーをベイク"
+
+
+msgid "Bake ID"
+msgstr "ベイクID"
 
 
 msgid "Bake Mode"
@@ -56095,16 +56095,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "回転をオイラー ZYX に変換します"
 
 
-msgid "Save STL triangle mesh data"
-msgstr "STL 三角形メッシュデータを保存します"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "ファイルをASCIIファイル形式で保存します"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLYをエクスポート"
 
 
 msgid "X Forward"
@@ -56151,6 +56144,34 @@ msgid "-Z Up"
 msgstr "-Zが上"
 
 
+msgid "ASCII"
+msgstr "ASCII"
+
+
+msgid "Apply Modifiers"
+msgstr "モディファイアーを適用"
+
+
+msgid "Selection Only"
+msgstr "選択物のみ"
+
+
+msgid "Export selected objects only"
+msgstr "選択されたオブジェクトのみエクスポートします"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "STL 三角形メッシュデータを保存します"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "ファイルをASCIIファイル形式で保存します"
+
+
 msgid "Batch Mode"
 msgstr "バッチモード"
 
@@ -56171,10 +56192,6 @@ msgid "Export in this reference space"
 msgstr "この参照空間でエクスポートします"
 
 
-msgid "Apply Modifiers"
-msgstr "モディファイアーを適用"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "保存前にモディファイアーを適用します"
 
@@ -56185,14 +56202,6 @@ msgstr "シーンの単位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "現在のシーンの単位（「単位の倍率」で定義）をエクスポートするデータに適用します"
-
-
-msgid "Selection Only"
-msgstr "選択物のみ"
-
-
-msgid "Export selected objects only"
-msgstr "選択されたオブジェクトのみエクスポートします"
 
 
 msgctxt "Operator"
@@ -57396,6 +57405,18 @@ msgstr "エクスポート設定を維持"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "glTFエクスポート設定を Blender プロジェクト内に格納します"
+
+
+msgid "Material Groups"
+msgstr "マテリアルグループ"
+
+
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "マテリアルで分けた形状の部分毎に OBJ グループを生成します"
+
+
+msgid "Smooth Groups"
+msgstr "スムーズグループ"
 
 
 msgctxt "Operator"
@@ -62963,6 +62984,11 @@ msgid "Use alpha channel for transparency"
 msgstr "透過にアルファチャンネルを使用します"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLYをインポート"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "STL 三角形メッシュデータを読み込みます"
 
@@ -63225,6 +63251,10 @@ msgstr ""
 "glTF フォーマットでは法線や UV，その他の頂点の属性が非連続でないといけません．\n"
 "このオプションは，同じ位置の頂点を可能な場合に結合しようとします．\n"
 "現在，違う法線の頂点は結合できません"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "OBJグループを頂点グループとしてインポートします"
 
 
 msgctxt "Operator"
@@ -68956,10 +68986,6 @@ msgid "Delete baked data of a single bake node or simulation"
 msgstr "単一ベイクノードまたはシミュレーションのベイクデータを削除します"
 
 
-msgid "Bake ID"
-msgstr "ベイクID"
-
-
 msgid "Nested node id of the node"
 msgstr "そのノードの入れ子のノード ID"
 
@@ -70797,14 +70823,6 @@ msgid "Name of the collection to select"
 msgstr "選択するコレクション名"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "面の法線を使用し，面を均一に表示・レンダリングします"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "補間した頂点の法線を使用し，面をスムーズに表示・レンダリングします"
-
-
 msgid "Set the sharpness of mesh edges based on the angle between the neighboring faces"
 msgstr "メッシュの辺のシャープさを，辺を共有する面間の角度を元に設定します"
 
@@ -70980,6 +70998,10 @@ msgstr "シェイプキーをクリア"
 
 msgid "Clear weights for all shape keys"
 msgstr "全シェイプキーのウェイトを消去します"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "頂点グループに実行するアクションをロックします"
 
 
 msgctxt "Operator"
@@ -71467,10 +71489,6 @@ msgstr "頂点グループのロックを変更"
 
 msgid "Change the lock state of all or some vertex groups of active object"
 msgstr "アクティブオブジェクトの頂点グループのロック状態を変更します"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "頂点グループに実行するアクションをロックします"
 
 
 msgid "Unlock all vertex groups if there is at least one locked group, lock all in other case"
@@ -75997,6 +76015,10 @@ msgid "Editing"
 msgstr "編集"
 
 
+msgid "Extensions"
+msgstr "エクステンション"
+
+
 msgid "Add-ons"
 msgstr "アドオン"
 
@@ -76007,10 +76029,6 @@ msgstr "キーマップ"
 
 msgid "File Paths"
 msgstr "ファイルパス"
-
-
-msgid "Extensions"
-msgstr "エクステンション"
 
 
 msgid "Experimental"
@@ -83691,10 +83709,6 @@ msgid "Export Material Groups"
 msgstr "マテリアルグループをエクスポート"
 
 
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "マテリアルで分けた形状の部分毎に OBJ グループを生成します"
-
-
 msgid "Export Materials"
 msgstr "マテリアルをエクスポート"
 
@@ -83826,10 +83840,6 @@ msgid "Path Separator"
 msgstr "パスセパレータ"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "OBJグループを頂点グループとしてインポートします"
-
-
 msgid "Split By Group"
 msgstr "グループで分離"
 
@@ -83937,11 +83947,6 @@ msgid "Open a path in a file browser"
 msgstr "ファイルブラウザーでパスを開きます"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLYをエクスポート"
-
-
 msgid "Save the scene to a PLY file"
 msgstr "PLY ファイルへシーンを保存します"
 
@@ -83984,11 +83989,6 @@ msgstr "頂点の法線をエクスポート"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "可能であれば指定の頂点の法線をエクスポートします．無効時は計算した法線をエクスポートします"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLYをインポート"
 
 
 msgid "Import an PLY file as an object"
@@ -94943,10 +94943,6 @@ msgstr "ピクセルアスペクトY"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "垂直アスペクト比―アナモルフィックまたは非正方形ピクセルの出力用"
-
-
-msgid "Pixel Size"
-msgstr "ピクセルサイズ"
 
 
 msgid "Pixel size for viewport rendering"
@@ -110867,6 +110863,10 @@ msgid "Add a new Variant Slot"
 msgstr "新規バリアントスロットを追加"
 
 
+msgid "Curves as NURBS"
+msgstr "カーブをNURBSに"
+
+
 msgctxt "Operator"
 msgid "Lightwave Point Cache (.mdd)"
 msgstr "Lightwaveポイントキャッシュ (.mdd)"
@@ -111826,22 +111826,6 @@ msgstr "シーケンスが未選択です"
 
 msgid "Current frame not within strip framerange"
 msgstr "現在のフレームはストリップのフレーム範囲内ではありません"
-
-
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "テキストエディターの引数フォーマットをプリファレンスのファイルパス→アプリケーションで指定できます．詳細は入力フィールドのツールチップを参照してください"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "テキストエディターの引数フォーマットには「$filepath」が必要です"
-
-
-msgid "Exception parsing template: %r"
-msgstr "テンプレート解析例外：%r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "外部エディター実行例外：%r"
 
 
 msgid "Reload Start-Up file to restore settings"
@@ -115587,10 +115571,6 @@ msgid "Online Manual"
 msgstr "オンラインマニュアル"
 
 
-msgid "Inputs:"
-msgstr "入力:"
-
-
 msgid "Previews"
 msgstr "プレビュー"
 
@@ -116544,31 +116524,6 @@ msgid "Unused Data-Blocks"
 msgstr "未使用データブロック"
 
 
-msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "未使用データブロックを再帰"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "未使用リンクデータブロック"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Linked Data-Blocks"
-msgstr "未使用リンクデータブロックを再帰"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "未使用ローカルデータブロック"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Local Data-Blocks"
-msgstr "未使用ローカルデータブロックを再帰"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "新規"
@@ -116905,16 +116860,16 @@ msgid "Auto-Keyframing"
 msgstr "自動キーフレーム"
 
 
+msgid "Enable in New Scenes"
+msgstr "新規シーンで有効"
+
+
 msgid "Show Warning"
 msgstr "警告を表示"
 
 
 msgid "Only Insert Available"
 msgstr "利用可能項目のみ挿入"
-
-
-msgid "Enable in New Scenes"
-msgstr "新規シーンで有効"
 
 
 msgid "Unselected Opacity"
@@ -122086,10 +122041,6 @@ msgid "Error evaluating number, see Info editor for details"
 msgstr "数値の評価エラー．詳細は情報エディターを参照してください"
 
 
-msgid "Missing Panel: %s"
-msgstr "欠けているパネル：%s"
-
-
 msgid "Missing Menu: %s"
 msgstr "欠けているメニュー：%s"
 
@@ -122280,18 +122231,6 @@ msgid "Online Python Reference"
 msgstr "Blender PythonAPI リファレンス"
 
 
-msgid "Drop %s on slot %d (replacing %s) of %s"
-msgstr "「%s」をスロット「%d」に（%s を置換して）ドロップ（%s 内）"
-
-
-msgid "Drop %s on slot %d (active slot) of %s"
-msgstr "「%s」をスロット「%d」（アクティブ）にドロップ（%s 内）"
-
-
-msgid "Drop %s on slot %d of %s"
-msgstr "「%s」をスロット「%d」にドロップ（%s 内）"
-
-
 msgid "Expected an array of numbers: [n, n, ...]"
 msgstr "[n, n, ...]の数値配列が必要です"
 
@@ -122462,44 +122401,8 @@ msgid "Internal error!"
 msgstr "内部エラー！"
 
 
-msgid "Shortcut: %s"
-msgstr "ショートカット: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Shortcut Cycle: %s"
-msgstr "切り替え: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Shift＋クリック/ドラッグで複数選択)"
-
-
-msgid "Value: %s"
-msgstr "値: %s"
-
-
-msgid "Radians: %f"
-msgstr "ラジアン: %f"
-
-
-msgid "Expression: %s"
-msgstr "式: %s"
-
-
-msgid "Library: %s"
-msgstr "ライブラリ: %s"
-
-
-msgid "Disabled: %s"
-msgstr "無効: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -122934,6 +122837,10 @@ msgid "Can't edit external library data"
 msgstr "外部ライブラリデータは編集できません"
 
 
+msgid "File Not Found"
+msgstr "ファイルが見つかりません"
+
+
 msgid "Today"
 msgstr "今日"
 
@@ -123213,10 +123120,6 @@ msgid "Triangulated Mesh"
 msgstr "メッシュの三角面化"
 
 
-msgid "Curves as NURBS"
-msgstr "カーブをNURBSに"
-
-
 msgid "PBR Extensions"
 msgstr "PBRエクステンション"
 
@@ -123229,20 +123132,8 @@ msgid "Object Groups"
 msgstr "オブジェクトグループ"
 
 
-msgid "Material Groups"
-msgstr "マテリアルグループ"
-
-
-msgid "Smooth Groups"
-msgstr "スムーズグループ"
-
-
 msgid "Smooth Group Bitflags"
 msgstr "スムーズグループビットフラグ"
-
-
-msgid "ASCII"
-msgstr "ASCII"
 
 
 msgid "No filename given"
@@ -124446,18 +124337,6 @@ msgstr "オブジェクト(逆行列なし)"
 
 msgid "Object (Keep Transform Without Inverse)"
 msgstr "オブジェクト(逆行列なしでトランスフォーム維持)"
-
-
-msgid "Drop %s on %s (slot %d, replacing %s)"
-msgstr "「%s」を「%s」にドロップ（スロット %d，「%s」を置き換え）"
-
-
-msgid "Drop %s on %s (slot %d)"
-msgstr "「%s」を「%s」にドロップ（スロット %d）"
-
-
-msgid "Add modifier with node group \"%s\" on object \"%s\""
-msgstr "ノードグループ「%s」のあるモディファイアーをオブジェクト「%s」に追加しました"
 
 
 msgid "Select either 1 or 3 vertices to parent to"
@@ -131217,16 +131096,8 @@ msgid "Output Attributes"
 msgstr "出力属性"
 
 
-msgid "Internal Dependencies"
-msgstr "内部依存"
-
-
 msgid "Can not load the baked data"
 msgstr "ベイクデータを読み込みできません"
-
-
-msgid "No group output attributes connected"
-msgstr "つながるグループ出力属性がありません"
 
 
 msgid "No named attributes used"
@@ -134302,10 +134173,6 @@ msgstr "名前を付けて保存..."
 
 msgid "Don't Save"
 msgstr "保存しない"
-
-
-msgid "File Not Found"
-msgstr "ファイルが見つかりません"
 
 
 msgid "Save the current file in the desired location but do not make the saved file active"

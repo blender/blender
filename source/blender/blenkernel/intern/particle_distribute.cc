@@ -127,7 +127,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   size[(axis + 2) % 3] = int(ceil(delta[(axis + 2) % 3] / d));
 
   /* float errors grrr. */
-  size[(axis + 1) % 3] = MIN2(size[(axis + 1) % 3], res);
+  size[(axis + 1) % 3] = std::min(size[(axis + 1) % 3], res);
   size[(axis + 2) % 3] = std::min(size[(axis + 2) % 3], res);
 
   size[0] = std::max(size[0], 1);
@@ -1122,7 +1122,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     maxweight /= totarea;
   }
   else {
-    float min = 1.0f / float(MIN2(totelem, totpart));
+    float min = 1.0f / float(std::min(totelem, totpart));
     for (i = 0; i < totelem; i++) {
       element_weight[i] = min;
     }

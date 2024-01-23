@@ -1141,7 +1141,7 @@ bool ED_view3d_navigation_do(bContext *C,
 
     return true;
   }
-  else if (vod->rv3d->rflag & RV3D_NAVIGATING) {
+  if (vod->rv3d->rflag & RV3D_NAVIGATING) {
     /* Add a fake confirmation. */
     vod->rv3d->rflag &= ~RV3D_NAVIGATING;
     return true;

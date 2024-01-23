@@ -87,6 +87,8 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "BLI_math_base.h"
 
 #  include "BKE_anim_data.h"
@@ -503,7 +505,7 @@ static void rna_KeyingSet_active_ksPath_set(PointerRNA *ptr,
 static int rna_KeyingSet_active_ksPath_index_get(PointerRNA *ptr)
 {
   KeyingSet *ks = (KeyingSet *)ptr->data;
-  return MAX2(ks->active_path - 1, 0);
+  return std::max(ks->active_path - 1, 0);
 }
 
 static void rna_KeyingSet_active_ksPath_index_set(PointerRNA *ptr, int value)

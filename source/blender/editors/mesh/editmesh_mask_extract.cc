@@ -201,7 +201,7 @@ static int geometry_extract_apply(bContext *C,
 
   ushort local_view_bits = 0;
   if (v3d && v3d->localvd) {
-    local_view_bits = v3d->local_view_uuid;
+    local_view_bits = v3d->local_view_uid;
   }
   Object *new_ob = ED_object_add_type(
       C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);
@@ -495,7 +495,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "new_object")) {
     ushort local_view_bits = 0;
     if (v3d && v3d->localvd) {
-      local_view_bits = v3d->local_view_uuid;
+      local_view_bits = v3d->local_view_uid;
     }
     Object *new_ob = ED_object_add_type(
         C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);

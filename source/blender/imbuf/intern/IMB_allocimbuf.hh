@@ -4,13 +4,8 @@
 
 /** \file
  * \ingroup imbuf
- * \brief Header file for `allocimbuf.cc`.
  */
 #pragma once
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct ImBuf;
 
@@ -29,9 +24,5 @@ void imb_mmap_unlock(void);
 #  define imb_mmap_unlock()
 #endif
 
-bool imb_addencodedbufferImBuf(struct ImBuf *ibuf);
-bool imb_enlargeencodedbufferImBuf(struct ImBuf *ibuf);
-
-#ifdef __cplusplus
-}
-#endif
+bool imb_addencodedbufferImBuf(ImBuf *ibuf);
+bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf);

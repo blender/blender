@@ -221,7 +221,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               int *corner_verts,
                               int *corner_edges,
                               uint corners_num,
-                              int *face_offsets,
+                              const int *face_offsets,
                               uint faces_num,
                               MDeformVert *dverts, /* assume verts_num length */
                               const bool do_verbose,

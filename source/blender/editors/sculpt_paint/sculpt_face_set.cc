@@ -203,7 +203,7 @@ static void do_draw_face_sets_brush_faces(Object *ob,
           ss, &test, brush->falloff_shape);
 
       auto_mask::NodeData automask_data = auto_mask::node_begin(
-          *ob, ss->cache->automasking, *node);
+          *ob, ss->cache->automasking.get(), *node);
 
       bool changed = false;
 
@@ -269,7 +269,7 @@ static void do_draw_face_sets_brush_grids(Object *ob,
           ss, &test, brush->falloff_shape);
 
       auto_mask::NodeData automask_data = auto_mask::node_begin(
-          *ob, ss->cache->automasking, *node);
+          *ob, ss->cache->automasking.get(), *node);
 
       bool changed = false;
 
@@ -414,7 +414,8 @@ static void do_relax_face_sets_brush_task(Object *ob,
   }
 
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
-  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, ss->cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     auto_mask::node_update(automask_data, vd);

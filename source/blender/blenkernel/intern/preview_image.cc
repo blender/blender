@@ -31,8 +31,8 @@
 
 #include "GPU_texture.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_thumbs.hh"
 
 #include "atomic_ops.h"
 

@@ -363,11 +363,14 @@ class DOPESHEET_MT_view(Menu):
 
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
+        layout.separator()
 
+        layout.operator("action.view_selected")
+        layout.operator("action.view_all")
+        layout.operator("action.view_frame")
         layout.separator()
 
         layout.prop(st.dopesheet, "use_multi_word_filter", text="Multi-Word Match Search")
-
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
@@ -380,31 +383,24 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "show_interpolation")
         layout.prop(st, "show_extremes")
         layout.prop(st, "use_auto_merge_keyframes")
-
         layout.separator()
+
         layout.prop(st, "show_markers")
-
-        layout.separator()
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")
-
         layout.separator()
+
         layout.operator("anim.previewrange_set")
         layout.operator("anim.previewrange_clear")
         layout.operator("action.previewrange_set")
-
         layout.separator()
-        layout.operator("action.view_all")
-        layout.operator("action.view_selected")
-        layout.operator("action.view_frame")
 
         # Add this to show key-binding (reverse action in dope-sheet).
-        layout.separator()
         props = layout.operator("wm.context_set_enum", text="Toggle Graph Editor", icon='GRAPH')
         props.data_path = "area.type"
         props.value = 'GRAPH_EDITOR'
-
         layout.separator()
+
         layout.menu("INFO_MT_area")
 
 

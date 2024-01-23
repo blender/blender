@@ -8,6 +8,8 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
+
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -63,7 +65,7 @@
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
@@ -227,8 +229,8 @@ static void seq_convert_transform_crop(const Scene *scene,
     old_image_center_y = image_size_y / 2 - c->bottom + t->yofs;
 
     /* Preserve original image size. */
-    t->scale_x = t->scale_y = MAX2(float(image_size_x) / float(scene->r.xsch),
-                                   float(image_size_y) / float(scene->r.ysch));
+    t->scale_x = t->scale_y = std::max(float(image_size_x) / float(scene->r.xsch),
+                                       float(image_size_y) / float(scene->r.ysch));
 
     /* Convert crop. */
     if ((seq->flag & use_crop_flag) != 0) {
@@ -311,8 +313,8 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   }
 
   /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
-  const float scale_to_fit_factor = MIN2(float(scene->r.xsch) / float(image_size_x),
-                                         float(scene->r.ysch) / float(image_size_y));
+  const float scale_to_fit_factor = std::min(float(scene->r.xsch) / float(image_size_x),
+                                             float(scene->r.ysch) / float(image_size_y));
   t->scale_x *= scale_to_fit_factor;
   t->scale_y *= scale_to_fit_factor;
   c->top /= scale_to_fit_factor;

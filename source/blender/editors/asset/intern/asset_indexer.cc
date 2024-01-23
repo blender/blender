@@ -27,7 +27,7 @@
 #include "BLI_uuid.h"
 
 #include "AS_asset_catalog.hh"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
 

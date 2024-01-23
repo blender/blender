@@ -37,8 +37,8 @@
 #include "BKE_vfont.hh"
 #include "BKE_volume.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BLO_read_write.hh"
 

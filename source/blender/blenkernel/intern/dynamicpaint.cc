@@ -66,8 +66,8 @@
 #include "DEG_depsgraph_query.hh"
 
 /* for image output */
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_texture.h"
 

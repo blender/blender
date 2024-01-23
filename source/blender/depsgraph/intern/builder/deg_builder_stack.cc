@@ -12,7 +12,7 @@
 #include <ios>
 #include <iostream>
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "DNA_ID.h"
 #include "DNA_action_types.h"

@@ -18,11 +18,10 @@
 #include "DNA_lightprobe_types.h"
 
 #include "BLI_threads.h"
+#include "BLI_time.h"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "PIL_time.h"
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
@@ -143,7 +142,7 @@ class LightBake {
     DEG_evaluate_on_framechange(depsgraph_, frame_);
 
     if (delay_ms_ > 0) {
-      PIL_sleep_ms(delay_ms_);
+      BLI_sleep_ms(delay_ms_);
     }
 
     context_enable();

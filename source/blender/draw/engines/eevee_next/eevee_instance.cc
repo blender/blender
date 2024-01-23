@@ -17,7 +17,7 @@
 #include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 #include "RE_pipeline.h"
 
 #include "eevee_engine.h"

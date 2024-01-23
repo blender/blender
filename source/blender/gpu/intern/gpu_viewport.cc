@@ -15,7 +15,7 @@
 
 #include "BKE_colortools.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "DNA_vec_types.h"
 

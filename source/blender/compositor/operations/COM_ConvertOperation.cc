@@ -6,7 +6,7 @@
 
 #include "BLI_color.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 

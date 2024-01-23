@@ -25,8 +25,8 @@
 
 #include "BLF_api.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

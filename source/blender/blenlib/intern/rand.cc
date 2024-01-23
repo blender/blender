@@ -18,14 +18,13 @@
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 
 /* defines BLI_INLINE */
 #include "BLI_compiler_compat.h"
 
 #include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
-
-#include "PIL_time.h"
 
 extern "C" uchar BLI_noise_hash_uchar_512[512]; /* `noise.cc` */
 #define hash BLI_noise_hash_uchar_512
@@ -367,7 +366,7 @@ namespace blender {
 
 RandomNumberGenerator RandomNumberGenerator::from_random_seed()
 {
-  const double time = PIL_check_seconds_timer() * 1000000.0;
+  const double time = BLI_check_seconds_timer() * 1000000.0;
   return RandomNumberGenerator(*reinterpret_cast<const uint32_t *>(&time));
 }
 

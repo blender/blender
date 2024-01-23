@@ -55,8 +55,8 @@ struct MainIDRelationsEntryItem {
     /* For `to_ids` list, an ID used by the hashed ID. */
     struct ID **to;
   } id_pointer;
-  /* Session uuid of the `id_pointer`. */
-  uint session_uuid;
+  /* Session uid of the `id_pointer`. */
+  uint session_uid;
 
   int usage_flag; /* Using IDWALK_ enums, defined in BKE_lib_query.hh */
 };
@@ -67,8 +67,8 @@ struct MainIDRelationsEntry {
   /* Linked list of IDs used by that ID. */
   struct MainIDRelationsEntryItem *to_ids;
 
-  /* Session uuid of the ID matching that entry. */
-  uint session_uuid;
+  /* Session uid of the ID matching that entry. */
+  uint session_uid;
 
   /* Runtime tags, users should ensure those are reset after usage. */
   uint tags;
@@ -105,7 +105,7 @@ struct MainIDRelations {
   /* Mapping from an ID pointer to all of its parents (IDs using it) and children (IDs it uses).
    * Values are `MainIDRelationsEntry` pointers. */
   struct GHash *relations_from_pointers;
-  /* NOTE: we could add more mappings when needed (e.g. from session uuid?). */
+  /* NOTE: we could add more mappings when needed (e.g. from session uid?). */
 
   short flag;
 

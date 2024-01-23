@@ -1459,7 +1459,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
     RNA_def_property_update(prop, 0, "rna_Armature_update_data");
   }
   RNA_def_property_float_sdna(prop, nullptr, "rad_head");
-  /* XXX: range is 0 to limit, where `limit = 10000.0f * MAX2(1.0, view3d->grid)`. */
+  /* XXX: range is 0 to limit, where `limit = 10000.0f * std::max(1.0, view3d->grid)`. */
   // RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
   RNA_def_property_ui_text(
@@ -1473,7 +1473,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
     RNA_def_property_update(prop, 0, "rna_Armature_update_data");
   }
   RNA_def_property_float_sdna(prop, nullptr, "rad_tail");
-  /* XXX range is 0 to limit, where limit = `10000.0f * MAX2(1.0, view3d->grid)`. */
+  /* XXX range is 0 to limit, where limit = `10000.0f * std::max(1.0, view3d->grid)`. */
   // RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_range(prop, 0.01, 100, 0.1, 3);
   RNA_def_property_ui_text(

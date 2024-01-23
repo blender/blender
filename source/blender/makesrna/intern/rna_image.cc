@@ -60,8 +60,8 @@ static const EnumPropertyItem image_source_items[] = {
 
 #  include "GPU_texture.h"
 
-#  include "IMB_imbuf.h"
-#  include "IMB_imbuf_types.h"
+#  include "IMB_imbuf.hh"
+#  include "IMB_imbuf_types.hh"
 
 #  include "ED_node.hh"
 
@@ -575,7 +575,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   }
 
   if (BKE_image_has_anim(ima)) {
-    anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+    ImBufAnim *anim = ((ImageAnim *)ima->anims.first)->anim;
     if (anim) {
       duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
     }

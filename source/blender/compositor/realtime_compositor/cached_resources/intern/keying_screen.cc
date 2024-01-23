@@ -13,7 +13,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
@@ -174,7 +174,7 @@ KeyingScreen::KeyingScreen(Context &context,
       size.y,
       1,
       Result::texture_format(ResultType::Color, context.get_precision()),
-      GPU_TEXTURE_USAGE_SHADER_READ,
+      GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE,
       nullptr);
   const int image_unit = GPU_shader_get_sampler_binding(shader, "output_img");
   GPU_texture_image_bind(texture_, image_unit);

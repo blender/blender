@@ -1569,6 +1569,25 @@ void outliner_item_select(bContext *C,
   }
 }
 
+static Collection *outliner_collection_get_for_recursive(bContext *C, TreeElement *te)
+{
+  /* If we're recursing, we need to know the collection of the selected item in order
+   * to prevent selecting across collection boundaries. (Object hierarchies might cross
+   * collection boundaries, i.e., children may be in different collections from their
+   * parents.) */
+  Collection *parent_collection = nullptr;
+  if (te->store_elem->type == TSE_LAYER_COLLECTION) {
+    parent_collection = static_cast<LayerCollection *>(te->directdata)->collection;
+  }
+  else if (te->store_elem->type == TSE_SOME_ID && te->idcode == ID_OB) {
+    parent_collection = BKE_collection_object_find(CTX_data_main(C),
+                                                   CTX_data_scene(C),
+                                                   nullptr,
+                                                   reinterpret_cast<Object *>(te->store_elem->id));
+  }
+  return parent_collection;
+}
+
 static bool can_select_recursive(TreeElement *te, Collection *in_collection)
 {
   if (te->store_elem->type == TSE_LAYER_COLLECTION) {
@@ -1679,6 +1698,9 @@ static void do_outliner_range_select(bContext *C,
   /* Select active if under cursor */
   if (active == cursor) {
     outliner_item_select(C, space_outliner, cursor, OL_ITEM_SELECT);
+    if (recurse) {
+      do_outliner_select_recursive(&cursor->subtree, true, in_collection);
+    }
     return;
   }
 
@@ -1690,6 +1712,14 @@ static void do_outliner_range_select(bContext *C,
 
   do_outliner_range_select_recursive(
       &space_outliner->tree, active, cursor, false, recurse, in_collection);
+
+  if (recurse) {
+    do_outliner_select_recursive(&cursor->subtree, true, in_collection);
+    /* Select children of active tree element. This is required when
+     * range selecting from bottom to top, see #117224. */
+    in_collection = outliner_collection_get_for_recursive(C, active);
+    do_outliner_select_recursive(&active->subtree, true, in_collection);
+  }
 }
 
 static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *space_outliner,
@@ -1774,22 +1804,9 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
     TreeStoreElem *activate_tselem = TREESTORE(activate_te);
 
-    /* If we're recursing, we need to know the collection of the selected item in order
-     * to prevent selecting across collection boundaries. (Object hierarchies might cross
-     * collection boundaries, i.e., children may be in different collections from their
-     * parents.) */
     Collection *parent_collection = nullptr;
     if (recurse) {
-      if (activate_tselem->type == TSE_LAYER_COLLECTION) {
-        parent_collection = static_cast<LayerCollection *>(activate_te->directdata)->collection;
-      }
-      else if (activate_tselem->type == TSE_SOME_ID && activate_te->idcode == ID_OB) {
-        parent_collection = BKE_collection_object_find(
-            CTX_data_main(C),
-            CTX_data_scene(C),
-            nullptr,
-            reinterpret_cast<Object *>(activate_tselem->id));
-      }
+      parent_collection = outliner_collection_get_for_recursive(C, activate_te);
     }
 
     /* If we're not recursing (not double clicking), and we are extending or range selecting by
@@ -1804,9 +1821,6 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
     if (use_range) {
       do_outliner_range_select(C, space_outliner, activate_te, extend, recurse, parent_collection);
-      if (recurse) {
-        do_outliner_select_recursive(&activate_te->subtree, true, parent_collection);
-      }
     }
     else {
       const bool is_over_name_icons = outliner_item_is_co_over_name_icons(activate_te,

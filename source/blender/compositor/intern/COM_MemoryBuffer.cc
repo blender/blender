@@ -6,8 +6,8 @@
 
 #include "COM_MemoryProxy.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #define ASSERT_BUFFER_CONTAINS_AREA(buf, area) \
   BLI_assert(BLI_rcti_inside_rcti(&(buf)->get_rect(), &(area)))
@@ -407,8 +407,8 @@ void MemoryBuffer::fill(const rcti &area,
 void MemoryBuffer::fill_from(const MemoryBuffer &src)
 {
   rcti overlap;
-  overlap.xmin = MAX2(rect_.xmin, src.rect_.xmin);
-  overlap.xmax = MIN2(rect_.xmax, src.rect_.xmax);
+  overlap.xmin = std::max(rect_.xmin, src.rect_.xmin);
+  overlap.xmax = std::min(rect_.xmax, src.rect_.xmax);
   overlap.ymin = std::max(rect_.ymin, src.rect_.ymin);
   overlap.ymax = std::min(rect_.ymax, src.rect_.ymax);
   copy_from(&src, overlap);

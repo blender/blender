@@ -6,7 +6,7 @@
  * \ingroup cmpnodes
  */
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

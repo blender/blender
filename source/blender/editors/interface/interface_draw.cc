@@ -29,9 +29,9 @@
 #include "BKE_node.hh"
 #include "BKE_tracking.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BIF_glutil.hh"
 

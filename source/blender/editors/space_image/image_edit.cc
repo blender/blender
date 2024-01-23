@@ -24,7 +24,7 @@
 #include "BKE_main.hh"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "DEG_depsgraph.hh"
 

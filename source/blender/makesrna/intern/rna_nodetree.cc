@@ -48,9 +48,9 @@
 #include "rna_internal.h"
 #include "rna_internal_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "WM_types.hh"
 
@@ -3324,7 +3324,7 @@ static void rna_Node_ItemArray_remove(ID *id,
     return;
   }
   const int remove_index = item_to_remove - *ref.items;
-  blender::nodes::socket_items::remove_item(
+  blender::dna::array::remove_index(
       ref.items, ref.items_num, ref.active_index, remove_index, Accessor::destruct_item);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -3336,8 +3336,7 @@ static void rna_Node_ItemArray_remove(ID *id,
 template<typename Accessor> static void rna_Node_ItemArray_clear(ID *id, bNode *node, Main *bmain)
 {
   blender::nodes::socket_items::SocketItemsRef ref = Accessor::get_items_from_node(*node);
-  blender::nodes::socket_items::clear_items(
-      ref.items, ref.items_num, ref.active_index, Accessor::destruct_item);
+  blender::dna::array::clear(ref.items, ref.items_num, ref.active_index, Accessor::destruct_item);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -3354,7 +3353,7 @@ static void rna_Node_ItemArray_move(
   if (from_index < 0 || to_index < 0 || from_index >= items_num || to_index >= items_num) {
     return;
   }
-  blender::nodes::socket_items::move_item(*ref.items, items_num, from_index, to_index);
+  blender::dna::array::move_index(*ref.items, items_num, from_index, to_index);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   BKE_ntree_update_tag_node_property(ntree, node);
@@ -6930,10 +6929,23 @@ static void def_cmp_map_uv(StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  static const EnumPropertyItem filter_type_items[] = {
+      {CMP_NODE_MAP_UV_FILTERING_NEAREST, "NEAREST", 0, "Nearest", ""},
+      {CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC, "ANISOTROPIC", 0, "Anisotropic", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_FACTOR);
   RNA_def_property_int_sdna(prop, nullptr, "custom1");
   RNA_def_property_range(prop, 0, 100);
   RNA_def_property_ui_text(prop, "Alpha", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "custom2");
+  RNA_def_property_enum_items(prop, filter_type_items);
+  RNA_def_property_ui_text(prop, "Filter Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

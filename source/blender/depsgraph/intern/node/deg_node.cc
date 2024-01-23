@@ -97,6 +97,8 @@ const char *nodeTypeAsString(NodeType type)
       return "ARMATURE";
     case NodeType::GENERIC_DATABLOCK:
       return "GENERIC_DATABLOCK";
+    case NodeType::SCENE:
+      return "SCENE";
     case NodeType::VISIBILITY:
       return "VISIBILITY";
     case NodeType::NTREE_OUTPUT:
@@ -145,6 +147,7 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::AUDIO:
     case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK:
+    case NodeType::SCENE:
     case NodeType::PARTICLE_SYSTEM:
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::POINT_CACHE:
@@ -228,6 +231,7 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::AUDIO:
     case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK:
+    case NodeType::SCENE:
     case NodeType::PARTICLE_SYSTEM:
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::POINT_CACHE:

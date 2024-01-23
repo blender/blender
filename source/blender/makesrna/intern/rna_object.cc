@@ -314,6 +314,8 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
 #  include "DNA_gpencil_legacy_types.h"
@@ -1096,7 +1098,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr,
 static int rna_Object_active_material_index_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  return MAX2(ob->actcol - 1, 0);
+  return std::max<int>(ob->actcol - 1, 0);
 }
 
 static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
@@ -1544,7 +1546,7 @@ static int rna_Object_active_shape_key_index_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
 
-  return MAX2(ob->shapenr - 1, 0);
+  return std::max<int>(ob->shapenr - 1, 0);
 }
 
 static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)

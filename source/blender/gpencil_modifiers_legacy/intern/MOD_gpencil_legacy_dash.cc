@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 
@@ -143,7 +144,7 @@ static bool stroke_dash(const bGPDstroke *gps,
       continue;
     }
 
-    const int size = MIN2(gps->totpoints - new_stroke_offset, seg);
+    const int size = std::min(gps->totpoints - new_stroke_offset, seg);
     if (size == 0) {
       continue;
     }

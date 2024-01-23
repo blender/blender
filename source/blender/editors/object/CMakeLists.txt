@@ -19,6 +19,7 @@ set(INC
   ../../render
   ../../shader_fx
   ../../windowmanager
+  ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna

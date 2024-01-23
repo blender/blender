@@ -10,7 +10,7 @@
 
 #include "BKE_image_partial_update.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"

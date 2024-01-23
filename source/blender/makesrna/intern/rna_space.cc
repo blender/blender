@@ -580,7 +580,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 
 #  include "GPU_material.h"
 
-#  include "IMB_imbuf_types.h"
+#  include "IMB_imbuf_types.hh"
 
 #  include "UI_interface.hh"
 #  include "UI_view2d.hh"

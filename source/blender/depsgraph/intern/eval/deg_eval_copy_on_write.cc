@@ -270,11 +270,11 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 {
   const ID *id_for_copy = id;
 
-  if (G.debug & G_DEBUG_DEPSGRAPH_UUID) {
+  if (G.debug & G_DEBUG_DEPSGRAPH_UID) {
     const ID_Type id_type = GS(id_for_copy->name);
     if (id_type == ID_OB) {
       const Object *object = reinterpret_cast<const Object *>(id_for_copy);
-      BKE_object_check_uuids_unique_and_report(object);
+      BKE_object_check_uids_unique_and_report(object);
     }
   }
 
@@ -303,8 +303,8 @@ bool id_copy_inplace_no_main(const ID *id, ID *newid)
 bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 {
 
-  if (G.debug & G_DEBUG_DEPSGRAPH_UUID) {
-    SEQ_relations_check_uuids_unique_and_report(scene);
+  if (G.debug & G_DEBUG_DEPSGRAPH_UID) {
+    SEQ_relations_check_uids_unique_and_report(scene);
   }
 
 #ifdef NESTED_ID_NASTY_WORKAROUND

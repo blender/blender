@@ -13,9 +13,8 @@
 #include "BLI_serialize.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_time.h"
 #include "BLI_vector.hh"
-
-#include "PIL_time.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -779,7 +778,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *object = reinterpret_cast<Object *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_OB));
   if (object == nullptr) {
     return {};
   }
@@ -891,7 +890,7 @@ static int delete_single_bake_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *object = reinterpret_cast<Object *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_OB));
   if (object == nullptr) {
     return OPERATOR_CANCELLED;
   }

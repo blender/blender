@@ -9,6 +9,7 @@
 
 #include <cstddef>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -41,6 +42,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
@@ -69,8 +71,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "PIL_time.h"
 
 #include "RE_texture.h"
 
@@ -233,7 +233,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
     }
 
     if (psys->particles) {
-      totsaved = MIN2(psys->totpart, totpart);
+      totsaved = std::min(psys->totpart, totpart);
       /* Save old pars. */
       if (totsaved) {
         memcpy(newpars, psys->particles, totsaved * sizeof(ParticleData));
@@ -4405,7 +4405,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           sub_v3_v3v3(size, max, min);
 
           /* Biggest dimension will be used for up-scaling. */
-          max_size = MAX3(size[0] / float(upres), size[1] / float(upres), size[2] / float(upres));
+          max_size = std::max(
+              {size[0] / float(upres), size[1] / float(upres), size[2] / float(upres)});
 
           /* Set particle position. */
           const float posParticle[3] = {posX, posY, posZ};

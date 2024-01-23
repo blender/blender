@@ -23,18 +23,19 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_paint.hh"
 #include "BKE_volume.hh"
 
@@ -706,6 +707,8 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "BLI_string_utils.hh"
 
 #  include "DNA_anim_types.h"
@@ -1052,7 +1055,7 @@ static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
   data->r.sfra = value;
 
   if (value > data->r.efra) {
-    data->r.efra = MIN2(value, MAXFRAME);
+    data->r.efra = std::min(value, MAXFRAME);
   }
 }
 
@@ -1063,7 +1066,7 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
   data->r.efra = value;
 
   if (data->r.sfra > value) {
-    data->r.sfra = MAX2(value, MINFRAME);
+    data->r.sfra = std::max(value, MINFRAME);
   }
 }
 
@@ -1099,7 +1102,7 @@ static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
   data->r.psfra = value;
 
   if (value > data->r.pefra) {
-    data->r.pefra = MIN2(value, MAXFRAME);
+    data->r.pefra = std::min(value, MAXFRAME);
   }
 }
 
@@ -1117,7 +1120,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
   data->r.pefra = value;
 
   if (data->r.psfra > value) {
-    data->r.psfra = MAX2(value, MINAFRAME);
+    data->r.psfra = std::max(value, MINAFRAME);
   }
 }
 
@@ -3842,7 +3845,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                            "Mode of automatic keyframe insertion for Objects, Bones and Masks");
 
   prop = RNA_def_property(srna, "use_record_with_nla", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_LAYERED_RECORD);
+  RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", AUTOKEY_FLAG_LAYERED_RECORD);
   RNA_def_property_ui_text(
       prop,
       "Layered",
@@ -3850,14 +3853,14 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "to allow non-destructive tweaking");
 
   prop = RNA_def_property(srna, "use_keyframe_insert_keyingset", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_ONLYKEYINGSET);
+  RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", AUTOKEY_FLAG_ONLYKEYINGSET);
   RNA_def_property_ui_text(prop,
                            "Auto Keyframe Insert Keying Set",
                            "Automatic keyframe insertion using active Keying Set only");
   RNA_def_property_ui_icon(prop, ICON_KEYINGSET, 0);
 
   prop = RNA_def_property(srna, "use_keyframe_cycle_aware", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "autokey_flag", AUTOKEY_FLAG_CYCLEAWARE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "keying_flag", KEYING_FLAG_CYCLEAWARE);
   RNA_def_property_ui_text(
       prop,
       "Cycle-Aware Keying",

@@ -4,7 +4,7 @@
 
 #include "COM_ColorCorrectionOperation.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 
@@ -54,7 +54,7 @@ void ColorCorrectionOperation::execute_pixel_sampled(float output[4],
   float r, g, b;
 
   float value = input_mask[0];
-  value = MIN2(1.0f, value);
+  value = std::min(1.0f, value);
   const float mvalue = 1.0f - value;
 
   float level_shadows = 0.0;
@@ -204,7 +204,7 @@ void ColorCorrectionOperation::update_memory_buffer_row(PixelCursor &p)
     b = color_correct_powf_safe(b * gain + lift, inv_gamma, b);
 
     /* Mix with mask. */
-    const float value = MIN2(1.0f, in_mask[0]);
+    const float value = std::min(1.0f, in_mask[0]);
     const float value_ = 1.0f - value;
     r = value_ * in_color[0] + value * r;
     g = value_ * in_color[1] + value * g;

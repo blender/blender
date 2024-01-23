@@ -807,10 +807,8 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
           mempool_asan_unlock(iter->pool);
           return NULL;
         }
-        else {
-          mempool_asan_unlock(iter->pool);
-          return ret;
-        }
+        mempool_asan_unlock(iter->pool);
+        return ret;
       }
       /* End `threadsafe` exception. */
 
@@ -824,10 +822,8 @@ void *mempool_iter_threadsafe_step(BLI_mempool_threadsafe_iter *ts_iter)
           mempool_asan_unlock(iter->pool);
           return NULL;
         }
-        else {
-          mempool_asan_unlock(iter->pool);
-          return ret;
-        }
+        mempool_asan_unlock(iter->pool);
+        return ret;
       }
 
       curnode = CHUNK_DATA(iter->curchunk);

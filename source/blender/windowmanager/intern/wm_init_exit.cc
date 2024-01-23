@@ -53,7 +53,7 @@
 #include "BKE_vfont.hh"
 
 #include "BKE_addon.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_mask.h"     /* free mask clipboard */
 #include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_studiolight.h"
@@ -63,7 +63,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
 
-#include "IMB_thumbs.h"
+#include "IMB_thumbs.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

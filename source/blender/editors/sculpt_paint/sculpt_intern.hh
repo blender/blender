@@ -346,8 +346,7 @@ struct Cache {
 
   SculptTransformDisplacementMode transform_displacement_mode;
 
-  /* Auto-masking. */
-  auto_mask::Cache *automasking;
+  std::unique_ptr<auto_mask::Cache> automasking;
   float3 initial_normal;
   float3 view_normal;
 
@@ -525,8 +524,7 @@ struct StrokeCache {
   float3 true_gravity_direction;
   float3 gravity_direction;
 
-  /* Auto-masking. */
-  auto_mask::Cache *automasking;
+  std::unique_ptr<auto_mask::Cache> automasking;
 
   float4x4 stroke_local_mat;
   float multiplane_scrape_angle;
@@ -1287,14 +1285,14 @@ float factor_get(Cache *automasking,
 Cache *active_cache_get(SculptSession *ss);
 
 /* Brush can be null. */
-Cache *cache_init(Sculpt *sd, Brush *brush, Object *ob);
+std::unique_ptr<Cache> cache_init(Sculpt *sd, Brush *brush, Object *ob);
 void cache_free(Cache *automasking);
 
 bool mode_enabled(const Sculpt *sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
 
 bool needs_normal(const SculptSession *ss, const Sculpt *sculpt, const Brush *brush);
-int settings_hash(Object *ob, Cache *automasking);
+int settings_hash(const Object &ob, const Cache &automasking);
 
 bool tool_can_reuse_automask(int sculpt_tool);
 
@@ -1845,9 +1843,11 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
 /* sculpt_ops.cc */
 
+namespace blender::ed::sculpt_paint {
+
 void SCULPT_OT_brush_stroke(wmOperatorType *ot);
 
-/* end sculpt_ops.cc */
+}
 
 inline bool SCULPT_tool_is_paint(int tool)
 {

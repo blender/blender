@@ -39,7 +39,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.hh"

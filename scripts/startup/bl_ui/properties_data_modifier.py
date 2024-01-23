@@ -219,6 +219,8 @@ class OBJECT_MT_modifier_add_color(ModifierAddMenu, Menu):
         layout = self.layout
         ob_type = context.object.type
         if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_COLOR')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_TINT')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_OPACITY')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 

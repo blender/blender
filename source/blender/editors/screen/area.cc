@@ -49,8 +49,8 @@
 
 #include "BLF_api.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
@@ -1317,14 +1317,14 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
         bTheme *theme = UI_GetTheme();
         return theme->space_view3d.header[3] != 255;
       }
-      else if (ELEM(regiontype,
-                    RGN_TYPE_TOOLS,
-                    RGN_TYPE_UI,
-                    RGN_TYPE_TOOL_PROPS,
-                    RGN_TYPE_FOOTER,
-                    RGN_TYPE_TOOL_HEADER,
-                    RGN_TYPE_ASSET_SHELF,
-                    RGN_TYPE_ASSET_SHELF_HEADER))
+      if (ELEM(regiontype,
+               RGN_TYPE_TOOLS,
+               RGN_TYPE_UI,
+               RGN_TYPE_TOOL_PROPS,
+               RGN_TYPE_FOOTER,
+               RGN_TYPE_TOOL_HEADER,
+               RGN_TYPE_ASSET_SHELF,
+               RGN_TYPE_ASSET_SHELF_HEADER))
       {
         return true;
       }

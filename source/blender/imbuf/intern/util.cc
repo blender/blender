@@ -19,12 +19,12 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "IMB_filetype.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "imbuf.h"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "imbuf.hh"
 
-#include "IMB_anim.h"
+#include "IMB_anim.hh"
 
 #ifdef WITH_FFMPEG
 #  include "BLI_string.h" /* BLI_vsnprintf */

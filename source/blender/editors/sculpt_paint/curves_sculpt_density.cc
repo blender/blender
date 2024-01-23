@@ -28,8 +28,6 @@
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 
-#include "PIL_time.h"
-
 #include "GEO_add_curves_on_mesh.hh"
 
 #include "DNA_brush_types.h"

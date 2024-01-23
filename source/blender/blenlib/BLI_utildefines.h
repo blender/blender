@@ -32,76 +32,9 @@ extern "C" {
 /** \name Min/Max Macros
  * \{ */
 
-/* useful for finding bad use of min/max */
-#if 0
-/* gcc only */
-#  define _TYPECHECK(a, b) ((void)(((typeof(a) *)0) == ((typeof(b) *)0)))
-#  define MIN2(x, y) (_TYPECHECK(x, y), (((x) < (y) ? (x) : (y))))
-#  define MAX2(x, y) (_TYPECHECK(x, y), (((x) > (y) ? (x) : (y))))
-#endif
-
-/* min/max */
-#if defined(__GNUC__) || defined(__clang__)
-
-#  define MIN2(a, b) \
-    __extension__({ \
-      typeof(a) a_ = (a); \
-      typeof(b) b_ = (b); \
-      ((a_) < (b_) ? (a_) : (b_)); \
-    })
-
-#  define MAX2(a, b) \
-    __extension__({ \
-      typeof(a) a_ = (a); \
-      typeof(b) b_ = (b); \
-      ((a_) > (b_) ? (a_) : (b_)); \
-    })
-
-#  define MIN3(a, b, c) \
-    __extension__({ \
-      typeof(a) a_ = (a); \
-      typeof(b) b_ = (b); \
-      typeof(c) c_ = (c); \
-      ((a_ < b_) ? ((a_ < c_) ? a_ : c_) : ((b_ < c_) ? b_ : c_)); \
-    })
-
-#  define MAX3(a, b, c) \
-    __extension__({ \
-      typeof(a) a_ = (a); \
-      typeof(b) b_ = (b); \
-      typeof(c) c_ = (c); \
-      ((a_ > b_) ? ((a_ > c_) ? a_ : c_) : ((b_ > c_) ? b_ : c_)); \
-    })
-
-#  define MIN4(a, b, c, d) \
-    __extension__({ \
-      typeof(a) a_ = (a); \
-      typeof(b) b_ = (b); \
-      typeof(c) c_ = (c); \
-      typeof(d) d_ = (d); \
-      ((a_ < b_) ? ((a_ < c_) ? ((a_ < d_) ? a_ : d_) : ((c_ < d_) ? c_ : d_)) : \
-                   ((b_ < c_) ? ((b_ < d_) ? b_ : d_) : ((c_ < d_) ? c_ : d_))); \
-    })
-
-#  define MAX4(a, b, c, d) \
-    __extension__({ \
-      typeof(a) a_ = (a); \
-      typeof(b) b_ = (b); \
-      typeof(c) c_ = (c); \
-      typeof(d) d_ = (d); \
-      ((a_ > b_) ? ((a_ > c_) ? ((a_ > d_) ? a_ : d_) : ((c_ > d_) ? c_ : d_)) : \
-                   ((b_ > c_) ? ((b_ > d_) ? b_ : d_) : ((c_ > d_) ? c_ : d_))); \
-    })
-
-#else
+#ifndef __cplusplus
 #  define MIN2(a, b) ((a) < (b) ? (a) : (b))
 #  define MAX2(a, b) ((a) > (b) ? (a) : (b))
-
-#  define MIN3(a, b, c) (MIN2(MIN2((a), (b)), (c)))
-#  define MIN4(a, b, c, d) (MIN2(MIN2((a), (b)), MIN2((c), (d))))
-
-#  define MAX3(a, b, c) (MAX2(MAX2((a), (b)), (c)))
-#  define MAX4(a, b, c, d) (MAX2(MAX2((a), (b)), MAX2((c), (d))))
 #endif
 
 #define INIT_MINMAX(min, max) \

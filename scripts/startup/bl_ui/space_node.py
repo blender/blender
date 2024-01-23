@@ -3,7 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Header, Menu, Panel
+from bpy.types import (
+    Header,
+    Menu,
+    Panel,
+    UIList,
+)
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
@@ -980,7 +985,7 @@ def draw_socket_item_in_list(uilist, layout, item, icon):
         layout.template_node_socket(color=item.color)
 
 
-class NODE_UL_simulation_zone_items(bpy.types.UIList):
+class NODE_UL_simulation_zone_items(UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)
 
@@ -1052,7 +1057,7 @@ class NODE_PT_simulation_zone_items(Panel):
                 layout.prop(active_item, "attribute_domain")
 
 
-class NODE_UL_repeat_zone_items(bpy.types.UIList):
+class NODE_UL_repeat_zone_items(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)
 
@@ -1122,7 +1127,7 @@ class NODE_PT_repeat_zone_items(Panel):
         layout.prop(output_node, "inspection_index")
 
 
-class NODE_UL_bake_node_items(bpy.types.UIList):
+class NODE_UL_bake_node_items(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)
 

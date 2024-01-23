@@ -177,7 +177,7 @@ void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 /**
  * Build offsets to group the elements of \a indices pointing to the same index.
  */
-void build_reverse_offsets(Span<int> indices, MutableSpan<int> r_map);
+void build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
 
 }  // namespace blender::offset_indices
 

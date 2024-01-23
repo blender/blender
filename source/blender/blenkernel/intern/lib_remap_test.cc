@@ -14,10 +14,10 @@
 
 #include "RNA_define.hh"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -26,7 +26,7 @@
 #include "BKE_object.hh"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "ED_node.hh"
 

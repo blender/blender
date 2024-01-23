@@ -14,7 +14,7 @@
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include <sstream>
 

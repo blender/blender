@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6028,14 +6028,6 @@ msgid "Sync to audio playback, dropping frames"
 msgstr "A lejátszás szinkronban tartása az audióval, képkockák eldobása mellett"
 
 
-msgid "Audio Muted"
-msgstr "Audió némítás"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "Az audió lejátszása a Szekvencia szerkesztőből némításra kerül"
-
-
 msgid "Audio Scrubbing"
 msgstr "Audió csúszkázás"
 
@@ -10385,12 +10377,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Forgatás konvertálása euler ZYX-é"
 
 
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Fájl mentése ASCII fájlformátumba"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLY exportálása"
 
 
 msgid "X Forward"
@@ -10437,16 +10426,8 @@ msgid "-Z Up"
 msgstr "-Z fel"
 
 
-msgid "Batch Mode"
-msgstr "Köteg mód"
-
-
 msgid "Apply Modifiers"
 msgstr "Módosítók elfogadása"
-
-
-msgid "Apply the modifiers before saving"
-msgstr "Módosítók elfogadása mentés előtt"
 
 
 msgid "Selection Only"
@@ -10455,6 +10436,22 @@ msgstr "Csak a kijelölés"
 
 msgid "Export selected objects only"
 msgstr "Csak a kijelölt objektumok exportálása"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Fájl mentése ASCII fájlformátumba"
+
+
+msgid "Batch Mode"
+msgstr "Köteg mód"
+
+
+msgid "Apply the modifiers before saving"
+msgstr "Módosítók elfogadása mentés előtt"
 
 
 msgctxt "Operator"
@@ -10572,6 +10569,14 @@ msgstr "Minden oldallam háromszöggé konvertálása"
 
 msgid "General"
 msgstr "Általános"
+
+
+msgid "Material Groups"
+msgstr "Anyag csoportok"
+
+
+msgid "Smooth Groups"
+msgstr "Simított csoportok"
 
 
 msgid "Compress"
@@ -11025,6 +11030,11 @@ msgstr "Relatív fájlútvonalak"
 
 msgid "Camera Relative"
 msgstr "Relatív kamera"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLY importálása"
 
 
 msgid "Load STL triangle mesh data"
@@ -11552,14 +11562,6 @@ msgid "Select all visible objects grouped by various properties"
 msgstr "Minden, különféle tulajdonságok alapján csoportosított látható objektum kijelölése"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Oldallapok egységes megjelenítése és renderelése az oldallapok normálisának használatával"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Oldallapok simított megjelenítése és renderelése a csúcspontok interpolált normálisainak használatával"
-
-
 msgctxt "Operator"
 msgid "Add Shape Key"
 msgstr "Formakulcs hozzáadása"
@@ -11584,6 +11586,10 @@ msgstr "Formakulcsok törlése"
 
 msgid "Clear weights for all shape keys"
 msgstr "Súlyok törlése minden formakulcsból"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Lezárás akció végrehajtása a csúcspont-csoportnál"
 
 
 msgctxt "Operator"
@@ -11721,10 +11727,6 @@ msgstr "A kijelölt objektumok csúcspont-csoportjainak felülírása az aktív 
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Lezárás megváltoztatása a csúcspont-csoportoknál"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Lezárás akció végrehajtása a csúcspont-csoportnál"
 
 
 msgid "Lock all vertex groups"
@@ -13282,16 +13284,6 @@ msgstr "Operátor puska"
 
 msgid "Set the active operator to its default values"
 msgstr "Az aktív operátor alapértelmezett értékének beállítása"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY exportálása"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLY importálása"
 
 
 msgid "Jump to a different tab inside the properties editor"
@@ -16537,10 +16529,6 @@ msgid "Online Manual"
 msgstr "Online kézikönyv"
 
 
-msgid "Inputs:"
-msgstr "Bemenetek:"
-
-
 msgid "Object Children"
 msgstr "Gyermek objektumok"
 
@@ -17270,18 +17258,6 @@ msgid "Hex triplet for color (#RRGGBB)"
 msgstr "Szín hexa kódja (#RRGGBB)"
 
 
-msgid "Shortcut: %s"
-msgstr "Gyorsbillentyű: %s"
-
-
-msgid "Value: %s"
-msgstr "Érték: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radiánok: %f"
-
-
 msgid "ID-Block:"
 msgstr "ID-Blokk:"
 
@@ -17583,14 +17559,6 @@ msgstr "Adat opciók importálása"
 
 msgid "Export Options"
 msgstr "Opciók exportálása"
-
-
-msgid "Material Groups"
-msgstr "Anyag csoportok"
-
-
-msgid "Smooth Groups"
-msgstr "Simított csoportok"
 
 
 msgctxt "Mesh"

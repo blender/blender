@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2006 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,10 +17,6 @@
 #define EXR_VIEW_MAXNAME 64
 #define EXR_TOT_MAXNAME 64
 #define EXR_PASS_MAXCHAN 24
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct StampData;
 
@@ -54,7 +50,7 @@ bool IMB_exr_begin_write(void *handle,
                          int width,
                          int height,
                          int compress,
-                         const struct StampData *stamp);
+                         const StampData *stamp);
 /**
  * Only used for writing temp. render results (not image files)
  * (FSA and Save Buffers).
@@ -105,7 +101,3 @@ void IMB_exr_close(void *handle);
 void IMB_exr_add_view(void *handle, const char *name);
 
 bool IMB_exr_has_multilayer(void *handle);
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif

@@ -35,6 +35,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_timecode.h"
 #include "BLI_vector.hh"
 
@@ -73,11 +74,10 @@
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "PIL_time.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -202,7 +202,7 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   megs_peak_memory = (peak_memory) / (1024.0 * 1024.0);
 
   BLI_timecode_string_from_time_simple(
-      info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
+      info_time_str, sizeof(info_time_str), BLI_check_seconds_timer() - rs->starttime);
 
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
@@ -791,7 +791,7 @@ void RE_InitState(Render *re,
 
   re->ok = true; /* maybe flag */
 
-  re->i.starttime = PIL_check_seconds_timer();
+  re->i.starttime = BLI_check_seconds_timer();
 
   /* copy render data and render layers for thread safety */
   render_copy_renderdata(&re->r, rd);
@@ -1461,7 +1461,7 @@ static void do_render_full_pipeline(Render *re)
 
   BKE_scene_camera_switch_update(re->scene);
 
-  re->i.starttime = PIL_check_seconds_timer();
+  re->i.starttime = BLI_check_seconds_timer();
 
   /* ensure no images are in memory from previous animated sequences */
   BKE_image_all_free_anim_ibufs(re->main, re->r.cfra);
@@ -1484,7 +1484,7 @@ static void do_render_full_pipeline(Render *re)
     do_render_compositor(re);
   }
 
-  re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
+  re->i.lastframetime = BLI_check_seconds_timer() - re->i.starttime;
 
   re->stats_draw(&re->i);
 
@@ -2159,7 +2159,7 @@ static bool do_write_image_or_movie(Render *re,
   }
 
   render_time = re->i.lastframetime;
-  re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
+  re->i.lastframetime = BLI_check_seconds_timer() - re->i.starttime;
 
   BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
   printf("Time: %s", filepath);

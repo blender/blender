@@ -430,9 +430,9 @@ int BLI_stat(const char *path, struct stat *buffer)
 }
 #endif
 
-bool BLI_is_dir(const char *file)
+bool BLI_is_dir(const char *path)
 {
-  return S_ISDIR(BLI_exists(file));
+  return S_ISDIR(BLI_exists(path));
 }
 
 bool BLI_is_file(const char *path)

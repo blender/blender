@@ -114,6 +114,10 @@ find_package_wrapper(Epoxy REQUIRED)
 # XXX Linking errors with debian static tiff :/
 # find_package_wrapper(TIFF REQUIRED)
 find_package(TIFF)
+# CMake 3.28.1 defines this, it doesn't seem to be used, hide by default in the UI.
+if(DEFINED tiff_DIR)
+  mark_as_advanced(tiff_DIR)
+endif()
 
 if(WITH_VULKAN_BACKEND)
   if((DEFINED LIBDIR) AND (EXISTS "${LIBDIR}/vulkan") AND (EXISTS "${LIBDIR}/shaderc"))
@@ -156,6 +160,11 @@ endfunction()
 if(NOT WITH_SYSTEM_FREETYPE)
   # FreeType compiled with Brotli compression for woff2.
   find_package_wrapper(Freetype REQUIRED)
+  # CMake 3.28.1 defines this, it doesn't seem to be used, hide by default in the UI.
+  if(DEFINED freetype_DIR)
+    mark_as_advanced(freetype_DIR)
+  endif()
+
   if(DEFINED LIBDIR)
     find_package_wrapper(Brotli REQUIRED)
 

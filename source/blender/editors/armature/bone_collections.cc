@@ -111,8 +111,10 @@ static bool active_bone_collection_poll(bContext *C)
   return true;
 }
 
-static int bone_collection_add_exec(bContext *C, wmOperator *op)
+static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::animrig;
+
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
@@ -120,22 +122,18 @@ static int bone_collection_add_exec(bContext *C, wmOperator *op)
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
 
-  const int parent_index = RNA_int_get(op->ptr, "parent_index");
-  if (parent_index < -1) {
-    BKE_reportf(
-        op->reports, RPT_ERROR, "parent_index should not be less than -1: %d", parent_index);
-    return OPERATOR_CANCELLED;
-  }
-  if (parent_index >= armature->collection_array_num) {
-    BKE_reportf(op->reports,
-                RPT_ERROR,
-                "parent_index (%d) should be less than the number of bone collections (%d)",
-                parent_index,
-                armature->collection_array_num);
-    return OPERATOR_CANCELLED;
-  }
+  /* If there is an active bone collection, create the new one as a sibling. */
+  const int parent_index = armature_bonecoll_find_parent_index(
+      armature, armature->runtime.active_collection_index);
 
   BoneCollection *bcoll = ANIM_armature_bonecoll_new(armature, nullptr, parent_index);
+
+  if (armature->runtime.active_collection) {
+    const int active_child_index = armature_bonecoll_child_number_find(
+        armature, armature->runtime.active_collection);
+    armature_bonecoll_child_number_set(armature, bcoll, active_child_index + 1);
+  }
+
   ANIM_armature_bonecoll_active_set(armature, bcoll);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -155,19 +153,6 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  PropertyRNA *prop;
-  prop = RNA_def_int(
-      ot->srna,
-      "parent_index",
-      -1,
-      -1,
-      INT_MAX,
-      "Parent Index",
-      "Index of the parent bone collection, or -1 if the new bone collection should be a root",
-      -1,
-      INT_MAX);
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static int bone_collection_remove_exec(bContext *C, wmOperator * /*op*/)

@@ -29,7 +29,7 @@ class AssetStorage {
 
   StorageT external_assets_;
   /* Store local ID assets separately for efficient lookups.
-   * TODO(Julian): A [ID *, asset] or even [ID.session_uuid, asset] map would be preferable for
+   * TODO(Julian): A [ID *, asset] or even [ID.session_uid, asset] map would be preferable for
    * faster lookups. Not possible until each asset is only represented once in the storage. */
   StorageT local_id_assets_;
 

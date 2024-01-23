@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,7 @@
 #include "BKE_node.hh"
 #include "COM_SMAAAreaTexture.h"
 
-extern "C" {
-#include "IMB_colormanagement.h"
-}
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 

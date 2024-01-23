@@ -14,7 +14,6 @@
 #include "DNA_windowmanager_types.h"
 
 #ifdef WITH_FREESTYLE
-#  include "BKE_customdata.hh"
 #  include "DNA_meshdata_types.h"
 #endif
 

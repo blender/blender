@@ -42,7 +42,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "../imbuf/IMB_imbuf.h"
+#include "../imbuf/IMB_imbuf.hh"
 
 /*
  * Ordering function for sorting lists of files/directories. Returns -1 if

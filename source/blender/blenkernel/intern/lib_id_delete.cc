@@ -25,7 +25,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_asset.hh"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"

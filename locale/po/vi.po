@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
-"PO-Revision-Date: 2024-01-15 02:55+0000\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"PO-Revision-Date: 2024-01-20 16:19+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
 "Language: vi\n"
@@ -952,7 +952,7 @@ msgstr "Bàn Giao Tiếp Python"
 
 
 msgid "Interactive programmatic console for advanced editing and script development"
-msgstr "Bàn giao tiếp lập trình tương tác để biên soạn thâm sâu và xây dựng tập lệnh"
+msgstr "Bàn giao tiếp lập trình tương tác để biên soạn thâm sâu và phát triển tập lệnh"
 
 
 msgid "Info"
@@ -21114,12 +21114,12 @@ msgstr "Vẽ Mặt Ấn Định"
 
 msgctxt "Brush"
 msgid "Multires Displacement Eraser"
-msgstr "Công Cụ Xóa Dịch Hình Đa Phân Giải"
+msgstr "Công Cụ Xóa Dời Hình Đa Phân Giải"
 
 
 msgctxt "Brush"
 msgid "Multires Displacement Smear"
-msgstr "Công Cụ Bôi Nhọ Dịch Hình Đa Phân Giải"
+msgstr "Công Cụ Bôi Nhọ Dời Hình Đa Phân Giải"
 
 
 msgctxt "Brush"
@@ -25579,11 +25579,11 @@ msgstr "Cài đặt về Mỹ Thuật Đường Nét cho nguyên vật liệu"
 
 
 msgid "Max Vertex Displacement"
-msgstr "Dịch Hình Điểm Đỉnh Tối Đa"
+msgstr "Dời Hình Điểm Đỉnh Tối Đa"
 
 
 msgid "The max distance a vertex can be displaced. Displacements over this threshold may cause visibility issues"
-msgstr "Khoảng cách tối đa mà một điểm đỉnh có thể dịch hình được. Sự dịch hình vượt quá ngưỡng này có thể gây ra các vấn đề về tầm nhìn"
+msgstr "Khoảng cách tối đa mà một điểm đỉnh có thể dời hình được. Sự Dời Hình vượt quá ngưỡng này có thể gây ra các vấn đề về tầm nhìn"
 
 
 msgid "Metallic"
@@ -29033,14 +29033,6 @@ msgid "Unit editing settings"
 msgstr "Sắp đặt đơn vị biên soạn"
 
 
-msgid "Audio Muted"
-msgstr "Âm Thanh Bị Chặn"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "Không cho phát âm thanh từ Trình Phối Hình"
-
-
 msgid "Audio Scrubbing"
 msgstr "Rà Quét Âm Thanh"
 
@@ -30652,7 +30644,7 @@ msgstr "Bảng đăng ký của thao tác"
 
 
 msgid "Preset Name"
-msgstr "Tên của Sắp Đặt Trước"
+msgstr "Tên của Sắp Đặt Sẵn"
 
 
 msgid "Name for new preset"
@@ -36842,7 +36834,7 @@ msgstr "Uốn Oằn/Kéo"
 
 
 msgid "Warp parts of a mesh to a new location in a very flexible way thanks to 2 specified objects"
-msgstr "Uốn oằn các phần của khung lưới tới một vị trí mới một cách linh động, nhờ hai đối tượng chỉ định"
+msgstr "Uốn oằn/kéo các phần của khung lưới tới một vị trí mới một cách linh động, nhờ hai đối tượng chỉ định"
 
 
 msgid "Wave"
@@ -44667,6 +44659,10 @@ msgid "Pixelate"
 msgstr "Làm Thô Điểm Ảnh"
 
 
+msgid "Pixel Size"
+msgstr "Kích Thước Điểm Ảnh"
+
+
 msgid "Plane Track Deform"
 msgstr "Biến Dạng Bình Diện Giám Sát"
 
@@ -49984,6 +49980,10 @@ msgid "Nodes Modifier Bake"
 msgstr "Nướng Bộ Điều Chỉnh của các Nút"
 
 
+msgid "Bake ID"
+msgstr "ID của Nướng"
+
+
 msgid "Bake Mode"
 msgstr "Chế Độ Nướng"
 
@@ -51703,14 +51703,6 @@ msgstr "Thêm Bộ Sưu Tập Xương"
 
 msgid "Add a new bone collection"
 msgstr "Thêm một bộ sưu tập xương mới"
-
-
-msgid "Parent Index"
-msgstr "Chỉ Số của Phụ Huynh"
-
-
-msgid "Index of the parent bone collection, or -1 if the new bone collection should be a root"
-msgstr "Chỉ số của bộ sưu tập xương phụ huynh, hoặc -1, nếu bộ sưu tập xương mới phải là một bộ sưu tập gốc"
 
 
 msgctxt "Operator"
@@ -55739,20 +55731,8 @@ msgstr "Chuyển đổi mọi sự xoay chiều thành Euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export STL (legacy)"
-msgstr "Xuất Khẩu STL (lỗi thời)"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Lưu dữ liệu khung lưới tam giác STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Lưu tập tin trong định dạng ASCII (American Standard Code for Information Interchange - Chuẩn Mã Trao Đổi Thông Tin Hoa Kỳ)"
+msgid "Export PLY"
+msgstr "Xuất Khẩu PLY"
 
 
 msgid "X Forward"
@@ -55799,6 +55779,39 @@ msgid "-Z Up"
 msgstr "-Z Lên Trên"
 
 
+msgid "ASCII"
+msgstr "ASCII"
+
+
+msgid "Apply Modifiers"
+msgstr "Áp Dụng Bộ Điều Chỉnh"
+
+
+msgid "Selection Only"
+msgstr "Duy Lựa Chọn"
+
+
+msgid "Export selected objects only"
+msgstr "Chỉ Xuất Khẩu các đối tượng đã chọn mà thôi"
+
+
+msgctxt "Operator"
+msgid "Export STL (legacy)"
+msgstr "Xuất Khẩu STL (lỗi thời)"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Lưu dữ liệu khung lưới tam giác STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Lưu tập tin trong định dạng ASCII (American Standard Code for Information Interchange - Chuẩn Mã Trao Đổi Thông Tin Hoa Kỳ)"
+
+
 msgid "Batch Mode"
 msgstr "Chế Độ Thi Hành Hàng Loạt"
 
@@ -55819,10 +55832,6 @@ msgid "Export in this reference space"
 msgstr "Xuất khẩu trong không gian tham chiếu này"
 
 
-msgid "Apply Modifiers"
-msgstr "Áp Dụng Bộ Điều Chỉnh"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Áp dụng các bộ điều chỉnh trước khi lưu"
 
@@ -55833,14 +55842,6 @@ msgstr "Đơn Vị của Cảnh"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Áp dụng đơn vị của cảnh (những được xác định trong thang đo) vào dữ liệu xuất khẩu"
-
-
-msgid "Selection Only"
-msgstr "Duy Lựa Chọn"
-
-
-msgid "Export selected objects only"
-msgstr "Chỉ Xuất Khẩu các đối tượng đã chọn mà thôi"
 
 
 msgctxt "Operator"
@@ -57027,6 +57028,18 @@ msgstr "Ghi Nhớ các Sắp Đặt về Xuất Khẩu"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Lưu các sắp đặt xuất khẩu glTF trong đề án Blender"
+
+
+msgid "Material Groups"
+msgstr "Các Nhóm Nguyên Vật Liệu"
+
+
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Sinh tạo một nhóm OBJ cho mỗi phần của hình học dùng một nguyên vật liệu khác"
+
+
+msgid "Smooth Groups"
+msgstr "Các Nhóm Mịn"
 
 
 msgctxt "Operator"
@@ -60345,11 +60358,6 @@ msgid "Set start point for cyclic strokes"
 msgstr "Đặt điểm bắt đầu cho các nét tuần hoàn"
 
 
-msgctxt "Operator"
-msgid "Subdivide Stroke"
-msgstr "Phân Chia Nét Vẽ"
-
-
 msgid "Subdivide between continuous selected points of the stroke adding a point half way between them"
 msgstr "Phân chia các điểm nối tiếp nhau của đường nét, thêm một điểm nằm giữa chúng"
 
@@ -62618,6 +62626,11 @@ msgstr "Dùng kênh alpha cho độ trong suốt"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Nhập Khẩu PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL (legacy)"
 msgstr "Nhập Khẩu STL (lỗi thời)"
 
@@ -62869,6 +62882,10 @@ msgstr "Mức Ghi Nhật Ký"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Định dạng glTF đòi hỏi các pháp tuyến phải gián đoạn nhau. Các UV và các thuộc tính điểm đỉnh khác cũng phải được lưu như các điểm đỉnh riêng biệt, như điều kiện đòi hỏi đối với phần cứng về đồ họa tiêu biểu vậy. Tùy chọn này cố gắng kết hợp các điểm đỉnh nằm cùng một vị trí lại làm một, nếu có thể. Hiện tại, phép toán này không thể kết hợp các điểm đỉnh có pháp tuyến khác biệt"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Nhập Khẩu các nhóm OBJ như các nhóm điểm đỉnh"
 
 
 msgctxt "Operator"
@@ -68621,10 +68638,6 @@ msgid "Delete baked data of a single bake node or simulation"
 msgstr "Xóa dữ liệu đã nướng của một nút nướng hoặc mô phỏng"
 
 
-msgid "Bake ID"
-msgstr "ID của Nướng"
-
-
 msgid "Nested node id of the node"
 msgstr "Id lồng nhau của nút"
 
@@ -70452,14 +70465,6 @@ msgid "Name of the collection to select"
 msgstr "Tên của bộ sưu tập để lựa chọn"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Kết xuất và hiển thị các mặt đồng đều, dùng các Pháp Tuyến Mặt"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Kết xuất và hiển thị các mặt mịn màng, sử dụng các Pháp Tuyến Điểm Đỉnh đã được nội suy"
-
-
 msgctxt "Operator"
 msgid "Shade Smooth by Angle"
 msgstr "Tô Bóng Mịn Màng theo Góc Độ"
@@ -70640,6 +70645,10 @@ msgstr "Xóa Hình Mẫu"
 
 msgid "Clear weights for all shape keys"
 msgstr "Xóa trọng lượng cho toàn bộ các hình mẫu"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Hành động khóa sẽ thi hành trên nhóm điểm đỉnh"
 
 
 msgctxt "Operator"
@@ -71123,10 +71132,6 @@ msgstr "Đổi Khóa trên các Nhóm Điểm Đỉnh"
 
 msgid "Change the lock state of all or some vertex groups of active object"
 msgstr "Đổi trạng thái khóa của toàn bộ, hoặc một số, nhóm điểm đỉnh trong đối tượng đang hoạt động"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Hành động khóa sẽ thi hành trên nhóm điểm đỉnh"
 
 
 msgid "Unlock all vertex groups if there is at least one locked group, lock all in other case"
@@ -75640,6 +75645,10 @@ msgid "Editing"
 msgstr "Biên Soạn"
 
 
+msgid "Extensions"
+msgstr "Phần Mở Rộng/Định Dạng"
+
+
 msgid "Add-ons"
 msgstr "Trình Bổ Sung"
 
@@ -75650,10 +75659,6 @@ msgstr "Bố Trí Phím"
 
 msgid "File Paths"
 msgstr "Đường Dẫn Tập Tin"
-
-
-msgid "Extensions"
-msgstr "Phần Mở Rộng/Định Dạng"
 
 
 msgid "Experimental"
@@ -82361,10 +82366,6 @@ msgid "Clear Recent Files List"
 msgstr "Xóa Danh Sách các Tập Tin Gần Đây"
 
 
-msgid "Clear the Recent Files List"
-msgstr "Xóa Danh Sách các Tập Tin Gần Đây"
-
-
 msgctxt "Operator"
 msgid "Export COLLADA"
 msgstr "Xuất Khẩu COLLADA"
@@ -83299,10 +83300,6 @@ msgid "Export Material Groups"
 msgstr "Xuất Khẩu các Nhóm Nguyên Vật Liệu"
 
 
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Sinh tạo một nhóm OBJ cho mỗi phần của hình học dùng một nguyên vật liệu khác"
-
-
 msgid "Export Materials"
 msgstr "Xuất Khẩu các Nguyên Vật Liệu"
 
@@ -83436,10 +83433,6 @@ msgid "Character used to separate objects name into hierarchical structure"
 msgstr "Ký tự dùng để phân tách tên đối tượng thành cấu trúc cấp bậc"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Nhập Khẩu các nhóm OBJ như các nhóm điểm đỉnh"
-
-
 msgid "Split By Group"
 msgstr "Tách Phân theo Nhóm"
 
@@ -83545,11 +83538,6 @@ msgid "Open a path in a file browser"
 msgstr "Mở đường dẫn trong trình duyệt tập tin"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Xuất Khẩu PLY"
-
-
 msgid "Save the scene to a PLY file"
 msgstr "Lưu cảnh ra một tập tin PLY"
 
@@ -83592,11 +83580,6 @@ msgstr "Xuất Khẩu các Pháp Tuyến Điểm Đỉnh"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Xuất khẩu các pháp tuyến điểm đỉnh cụ thể nếu có, xuất khẩu các pháp tuyến đã được tính toán nếu không"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Nhập Khẩu PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -86127,7 +86110,7 @@ msgstr "Bám Dính"
 
 msgctxt "ID"
 msgid "Displacement"
-msgstr "Dịch Hình"
+msgstr "Dời Hình"
 
 
 msgid "Bake Animation"
@@ -86886,7 +86869,7 @@ msgstr "Thư Viện Tài Sản"
 
 
 msgid "Development"
-msgstr "Xây Dựng"
+msgstr "Phát Triển"
 
 
 msgid "Script Directories"
@@ -94443,10 +94426,6 @@ msgstr "Tỷ Lệ Điểm Ảnh Chiều Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Tỷ lệ tương quan chiều dọc - dành cho đầu ra có điểm ảnh tiệm biến (biến dạng) hoặc không vuông"
-
-
-msgid "Pixel Size"
-msgstr "Kích Thước Điểm Ảnh"
 
 
 msgid "Pixel size for viewport rendering"
@@ -110889,6 +110868,10 @@ msgid "Add a new Variant Slot"
 msgstr "Thêm một Khe Biến Thể mới"
 
 
+msgid "Curves as NURBS"
+msgstr "Đường Cong thành NURBS"
+
+
 msgid "untitled"
 msgstr "vô danh"
 
@@ -111845,22 +111828,6 @@ msgid "Current frame not within strip framerange"
 msgstr "Khung hình hiện tại không nằm trong khoảng khung hình của dải"
 
 
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "Cung cấp định dạng đối số của trình biên soạn văn bản trong Cấu Hình Đường Dẫn Tập Tin/Ứng Dụng. Xin xem chú thích công cụ trường đầu vào để biết thêm thông tin nhé"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "Định Dạng Đối Số của Trình Biên Soạn Văn Bản phải có chứa $filepath (đường dẫn tập tin)"
-
-
-msgid "Exception parsing template: %r"
-msgstr "Lỗi ngoại lệ trong khi phân tích mẫu: %r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "Lỗi ngoại lệ khi chạy trình biên soạn bên ngoài: %r"
-
-
 msgid "Reload Start-Up file to restore settings"
 msgstr "Nạp lại Tập Tin Khởi Động để phục hồi các sắp đặt"
 
@@ -112149,7 +112116,7 @@ msgstr "Hướng dẫn sử dụng tham chiếu API cho phiên bản Blender nà
 
 
 msgid "Development Fund"
-msgstr "Quỹ Xây Dựng"
+msgstr "Quỹ Phát Triển"
 
 
 msgid "The donation program to support maintenance and improvements"
@@ -113241,7 +113208,7 @@ msgstr "Đảo Nghịch"
 
 
 msgid "Max Displacement"
-msgstr "Độ Dịch Hình Tối Đa"
+msgstr "Độ Dời Hình Tối Đa"
 
 
 msgid "Render Method"
@@ -113265,7 +113232,7 @@ msgstr "Tùy Chỉnh Tính Hấp Thụ Quang Xạ"
 
 
 msgid "Unsupported displacement method"
-msgstr "Phương pháp dịch hình chưa được hỗ trợ"
+msgstr "Phương pháp dời hình chưa được hỗ trợ"
 
 
 msgid "Transparency Overlap"
@@ -115628,10 +115595,6 @@ msgid "Online Manual"
 msgstr "Hướng Dẫn Sử Dụng Trực Tuyến"
 
 
-msgid "Inputs:"
-msgstr "Đầu Vào:"
-
-
 msgid "Previews"
 msgstr "Xem Trước"
 
@@ -116578,31 +116541,6 @@ msgid "Unused Data-Blocks"
 msgstr "Các Khối Dữ Liệu Không Sử Dụng Đến"
 
 
-msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Các Khối Dữ Liệu Không Sử Dụng Đến một cách Đệ Quy"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Các Khối Dữ Liệu Kết Nối Không Sử Dụng Đến"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Linked Data-Blocks"
-msgstr "Các Khối Dữ Liệu Kết Nối Không Sử Dụng Đến một cách Đệ Quy"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Các Khối Dữ Liệu Không Sử Dụng Đến"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Local Data-Blocks"
-msgstr "Các Khối Dữ Liệu Cục Bộ Không Sử Dụng Đến một cách Đệ Quy"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Mới"
@@ -116934,16 +116872,16 @@ msgid "Auto-Keyframing"
 msgstr "Tự Động Khóa Hóa"
 
 
+msgid "Enable in New Scenes"
+msgstr "Kích Hoạt trong các Cảnh Mới"
+
+
 msgid "Show Warning"
 msgstr "Hiển Thị Cảnh Báo"
 
 
 msgid "Only Insert Available"
 msgstr "Chỉ Chèn Thêm Nếu Có Sẵn"
-
-
-msgid "Enable in New Scenes"
-msgstr "Kích Hoạt trong các Cảnh Mới"
 
 
 msgid "Unselected Opacity"
@@ -119034,7 +118972,7 @@ msgstr "Thả Lỏng Cấu Trúc Liên Kết"
 
 
 msgid "Erase Multires Displacement"
-msgstr "Xóa Dịch Hình Đa Phân Giải"
+msgstr "Xóa Dời Hình Đa Phân Giải"
 
 
 msgctxt "Operator"
@@ -122039,10 +121977,6 @@ msgid "Error evaluating number, see Info editor for details"
 msgstr "Lỗi xảy ra trong khi tính toán con số. Xin xem trình biên soạn thông tin để biết thêm chi tiết"
 
 
-msgid "Missing Panel: %s"
-msgstr "Thiếu Bảng Điều Khiển: %s"
-
-
 msgid "Missing Menu: %s"
 msgstr "Thiếu Trình Đơn: %s"
 
@@ -122238,18 +122172,6 @@ msgid "Online Python Reference"
 msgstr "Tham Chiếu Python Trực Tuyến"
 
 
-msgid "Drop %s on slot %d (replacing %s) of %s"
-msgstr "Thả %s vào khe %d (thay thế %s) của %s"
-
-
-msgid "Drop %s on slot %d (active slot) of %s"
-msgstr "Thả %s vào khe %d (khe đang hoạt động) của %s"
-
-
-msgid "Drop %s on slot %d of %s"
-msgstr "Thả %s vào khe %d của %s"
-
-
 msgid "Expected an array of numbers: [n, n, ...]"
 msgstr "Kỳ vọng một mảng các số: [n, n, ...]"
 
@@ -122416,44 +122338,8 @@ msgid "Internal error!"
 msgstr "Lỗi lầm nội bộ xảy ra!"
 
 
-msgid "Shortcut: %s"
-msgstr "Đường Cắt Ngắn: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Shortcut Cycle: %s"
-msgstr "Quay Vòng/Luân Chuyển Đường Cắt Ngắn: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Shift-Bấm Chuột/Kéo để chọn nhiều)"
-
-
-msgid "Value: %s"
-msgstr "Giá Trị %s"
-
-
-msgid "Radians: %f"
-msgstr "Rad: %f"
-
-
-msgid "Expression: %s"
-msgstr "Biểu Thức: %s"
-
-
-msgid "Library: %s"
-msgstr "Thư Viện: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Tắt: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -122886,6 +122772,10 @@ msgid "Can't edit external library data"
 msgstr "Không thể biên soạn dữ liệu thư viện bên ngoài"
 
 
+msgid "File Not Found"
+msgstr "Không Tìm Thấy Tập Tin"
+
+
 msgid "Today"
 msgstr "Hôm Nay"
 
@@ -123160,10 +123050,6 @@ msgid "Triangulated Mesh"
 msgstr "Khung Lưới Tam Giác Hóa"
 
 
-msgid "Curves as NURBS"
-msgstr "Đường Cong thành NURBS"
-
-
 msgid "PBR Extensions"
 msgstr "Các Định Dạng PBR"
 
@@ -123176,20 +123062,8 @@ msgid "Object Groups"
 msgstr "Nhóm Đối Tượng"
 
 
-msgid "Material Groups"
-msgstr "Các Nhóm Nguyên Vật Liệu"
-
-
-msgid "Smooth Groups"
-msgstr "Các Nhóm Mịn"
-
-
 msgid "Smooth Group Bitflags"
 msgstr "Cờ Bit của Nhóm Mịn"
-
-
-msgid "ASCII"
-msgstr "ASCII"
 
 
 msgid "Batch"
@@ -124401,18 +124275,6 @@ msgstr "Đối Tượng (Không Đảo Nghịch)"
 
 msgid "Object (Keep Transform Without Inverse)"
 msgstr "Đối Tượng (Giữ Nguyên Biến Hóa mà Không Đảo Nghịch)"
-
-
-msgid "Drop %s on %s (slot %d, replacing %s)"
-msgstr "Thả %s trên %s (khe %d, thay thế cho %s)"
-
-
-msgid "Drop %s on %s (slot %d)"
-msgstr "Thả %s trên %s (khe %d)"
-
-
-msgid "Add modifier with node group \"%s\" on object \"%s\""
-msgstr "Cho thêm bộ điều chỉnh với nhóm nút \"%s\" trên đối tượng \"%s\""
 
 
 msgid "Select either 1 or 3 vertices to parent to"
@@ -131170,16 +131032,8 @@ msgid "Output Attributes"
 msgstr "Thuộc Tính Xuất ở Đầu Ra"
 
 
-msgid "Internal Dependencies"
-msgstr "Những Phụ Thuộc Nội Bộ"
-
-
 msgid "Can not load the baked data"
 msgstr "Không thể nạp dữ liệu đã nướng được"
-
-
-msgid "No group output attributes connected"
-msgstr "Không có nhóm thuộc tính đầu ra nào kết nối cả"
 
 
 msgid "No named attributes used"
@@ -134209,10 +134063,6 @@ msgid "Don't Save"
 msgstr "Không Lưu"
 
 
-msgid "File Not Found"
-msgstr "Không Tìm Thấy Tập Tin"
-
-
 msgid "Save the current file in the desired location but do not make the saved file active"
 msgstr "Lưu tập tin hiện tại vào vị trí mong muốn song không đặt tập tin đã lưu lại là tập tin đang hoạt động"
 
@@ -136012,31 +135862,31 @@ msgstr "Đối tượng dùng để xác định không gian dịch chuyển"
 
 
 msgid "Displace Vector"
-msgstr "Véctơ Dịch Hình"
+msgstr "Véctơ Dời Hình"
 
 
 msgid "Vector for displacement"
-msgstr "Vector cho sự dịch hình"
+msgstr "Vector cho sự dời hình"
 
 
 msgid "Surface geometry used to sample the normal for displacement"
-msgstr "Hình học bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dịch hình"
+msgstr "Hình học bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dời hình"
 
 
 msgid "Surface object used to sample the normal for displacement"
-msgstr "Đối tượng bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dịch hình"
+msgstr "Đối tượng bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dời hình"
 
 
 msgid "Surface UV map used to sample the normal for displacement"
-msgstr "Bản đồ UV bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dịch hình"
+msgstr "Bản đồ UV bề mặt sử dụng để lấy mẫu pháp tuyến cho sự dời hình"
 
 
 msgid "Surface Normal Displacement"
-msgstr "Dịch Hình Pháp Tuyến Bề Mặt"
+msgstr "Dời Hình Pháp Tuyến Bề Mặt"
 
 
 msgid "Amount of displacemement along the surface normal"
-msgstr "Lượng dịch hình dọc theo pháp tuyến bề mặt"
+msgstr "Lượng dời hình dọc theo pháp tuyến bề mặt"
 
 
 msgid "Duplicate Hair Curves"

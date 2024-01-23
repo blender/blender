@@ -241,19 +241,19 @@ class SnapData_Mesh : public SnapData {
     this->corner_tris = mesh_eval->corner_tris().data();
   };
 
-  void get_vert_co(const int index, const float **r_co)
+  void get_vert_co(const int index, const float **r_co) override
   {
     *r_co = this->vert_positions[index];
   }
 
-  void get_edge_verts_index(const int index, int r_v_index[2])
+  void get_edge_verts_index(const int index, int r_v_index[2]) override
   {
     const blender::int2 &edge = this->edges[index];
     r_v_index[0] = edge[0];
     r_v_index[1] = edge[1];
   }
 
-  void copy_vert_no(const int index, float r_no[3])
+  void copy_vert_no(const int index, float r_no[3]) override
   {
     copy_v3_v3(r_no, this->vert_normals[index]);
   }

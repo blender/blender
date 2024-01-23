@@ -208,10 +208,10 @@ enum {
   G_DEBUG_DEPSGRAPH_TIME = (1 << 11),       /* depsgraph timing statistics and messages */
   G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12), /* single threaded depsgraph */
   G_DEBUG_DEPSGRAPH_PRETTY = (1 << 13),     /* use pretty colors in depsgraph messages */
-  G_DEBUG_DEPSGRAPH_UUID = (1 << 14),       /* Verify validness of session-wide identifiers
+  G_DEBUG_DEPSGRAPH_UID = (1 << 14),        /* Verify validness of session-wide identifiers
                                              * assigned to ID datablocks */
   G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG |
-                       G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UUID),
+                       G_DEBUG_DEPSGRAPH_TIME | G_DEBUG_DEPSGRAPH_UID),
   G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
   G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
   G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...). */

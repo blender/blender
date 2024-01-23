@@ -46,8 +46,8 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "bmesh.hh"
 

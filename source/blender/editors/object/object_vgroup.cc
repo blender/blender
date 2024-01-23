@@ -3050,9 +3050,9 @@ static std::string vertex_group_lock_description(bContext * /*C*/,
       }
       break;
     default:
-      return nullptr;
+      return {};
   }
-  return nullptr;
+  return {};
 }
 
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)

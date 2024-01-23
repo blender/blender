@@ -24,8 +24,6 @@
 
 #include "DRW_render.hh"
 
-#include "IMB_colormanagement.h"
-
 #include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_evaluator.hh"

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 #include <string>
 
 #include "BLI_compiler_attrs.h"
@@ -1412,47 +1413,30 @@ const bContextStore *UI_but_context_get(const uiBut *but);
 void UI_but_unit_type_set(uiBut *but, int unit_type);
 int UI_but_unit_type_get(const uiBut *but);
 
-enum uiStringInfoType {
-  /**
-   * Ignore this item, use when accessing the data should be done conditionally.
-   */
-  BUT_GET_NOP = 0,
+std::optional<EnumPropertyItem> UI_but_rna_enum_item_get(bContext &C, uiBut &but);
 
-  BUT_GET_RNAPROP_IDENTIFIER,
-  BUT_GET_RNASTRUCT_IDENTIFIER,
-  BUT_GET_RNAENUM_IDENTIFIER,
-  BUT_GET_LABEL,
-  /**
-   * Query the result of #uiBut::tip_label_func().
-   * Meant to allow overriding the label to be displayed in the tool-tip.
-   */
-  BUT_GET_TIP_LABEL,
-  BUT_GET_RNA_LABEL,
-  BUT_GET_RNAENUM_LABEL,
-  /** Context specified in `CTX_*_` macros are just unreachable! */
-  BUT_GET_RNA_LABEL_CONTEXT,
-  BUT_GET_TIP,
-  BUT_GET_RNA_TIP,
-  BUT_GET_RNAENUM_TIP,
-  /** Buttons assigned to an operator (common case). */
-  BUT_GET_OP_KEYMAP,
-  /** Use for properties that are bound to one of the context cycle, etc. keys. */
-  BUT_GET_PROP_KEYMAP,
-};
-
-struct uiStringInfo {
-  uiStringInfoType type;
-  char *strinfo;
-};
-
+std::string UI_but_string_get_rna_property_identifier(const uiBut &but);
+std::string UI_but_string_get_rna_struct_identifier(const uiBut &but);
+std::string UI_but_string_get_label(uiBut &but);
 /**
- * \note Expects pointers to #uiStringInfo structs as parameters.
- * Will fill them with translated strings, when possible.
- * Strings in #uiStringInfo must be MEM_freeN'ed by caller.
+ * Query the result of #uiBut::tip_label_func().
+ * Meant to allow overriding the label to be displayed in the tool-tip.
  */
-void UI_but_string_info_get(bContext *C, uiBut *but, ...) ATTR_SENTINEL(0);
-void UI_but_extra_icon_string_info_get(bContext *C, uiButExtraOpIcon *extra_icon, ...)
-    ATTR_SENTINEL(0);
+std::string UI_but_string_get_tooltip_label(const uiBut &but);
+std::string UI_but_string_get_rna_label(uiBut &but);
+/** Context specified in `CTX_*_` macros are just unreachable! */
+std::string UI_but_string_get_rna_label_context(const uiBut &but);
+std::string UI_but_string_get_tooltip(bContext &C, uiBut &but);
+std::string UI_but_string_get_rna_tooltip(bContext &C, uiBut &but);
+/** Buttons assigned to an operator (common case). */
+std::string UI_but_string_get_operator_keymap(bContext &C, uiBut &but);
+/** Use for properties that are bound to one of the context cycle, etc. keys. */
+std::string UI_but_string_get_property_keymap(bContext &C, uiBut &but);
+
+std::string UI_but_extra_icon_string_get_label(const uiButExtraOpIcon &extra_icon);
+std::string UI_but_extra_icon_string_get_tooltip(bContext &C, const uiButExtraOpIcon &extra_icon);
+std::string UI_but_extra_icon_string_get_operator_keymap(const bContext &C,
+                                                         const uiButExtraOpIcon &extra_icon);
 
 /* Edit i18n stuff. */
 /* Name of the main py op from i18n addon. */
@@ -1826,11 +1810,11 @@ void UI_but_func_tooltip_custom_set(uiBut *but,
  * \param suffix: Allocated text (transfer ownership to `data`) or null.
  */
 void UI_tooltip_text_field_add(uiTooltipData *data,
-                               char *text,
-                               char *suffix,
+                               std::string text,
+                               std::string suffix,
                                const uiTooltipStyle style,
                                const uiTooltipColorID color_id,
-                               const bool is_pad = false) ATTR_NONNULL(1);
+                               const bool is_pad = false);
 
 /**
  * \param image: Image buffer (duplicated, ownership is *not* transferred to `data`).
@@ -1867,8 +1851,8 @@ PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                            const char *opname,
                                            wmOperatorCallContext opcontext,
                                            int icon);
-wmOperatorType *UI_but_extra_operator_icon_optype_get(uiButExtraOpIcon *extra_icon);
-PointerRNA *UI_but_extra_operator_icon_opptr_get(uiButExtraOpIcon *extra_icon);
+wmOperatorType *UI_but_extra_operator_icon_optype_get(const uiButExtraOpIcon *extra_icon);
+PointerRNA *UI_but_extra_operator_icon_opptr_get(const uiButExtraOpIcon *extra_icon);
 
 /**
  * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
@@ -2241,11 +2225,11 @@ wmOperatorType *UI_but_operatortype_get_from_enum_menu(uiBut *but, PropertyRNA *
 /**
  * This is a bit of a hack but best keep it in one place at least.
  */
-MenuType *UI_but_menutype_get(uiBut *but);
+MenuType *UI_but_menutype_get(const uiBut *but);
 /**
  * This is a bit of a hack but best keep it in one place at least.
  */
-PanelType *UI_but_paneltype_get(uiBut *but);
+PanelType *UI_but_paneltype_get(const uiBut *but);
 void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout);
 /**
  * Used for popup panels only.
@@ -3188,7 +3172,7 @@ void UI_fontstyle_draw_simple(
 void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
                                        float x,
                                        float y,
-                                       const char *str,
+                                       blender::StringRef str,
                                        const float col_fg[4],
                                        const float col_bg[4]);
 

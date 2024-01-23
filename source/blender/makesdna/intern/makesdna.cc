@@ -26,6 +26,7 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -171,7 +172,7 @@ static void dna_write(FILE *file, const void *pntr, const int size);
 /**
  * Report all structures found so far, and print their lengths.
  */
-void print_struct_sizes(void);
+void print_struct_sizes();
 
 /** \} */
 
@@ -1042,8 +1043,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             size_native += sizeof(void *) * mul;
             size_32 += 4 * mul;
             size_64 += 8 * mul;
-            max_align_32 = MAX2(max_align_32, 4);
-            max_align_64 = MAX2(max_align_64, 8);
+            max_align_32 = std::max(max_align_32, 4);
+            max_align_64 = std::max(max_align_64, 8);
           }
           else if (cp[0] == '[') {
             /* parsing can cause names "var" and "[3]"
@@ -1097,8 +1098,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
             size_native += mul * types_size_native[type];
             size_32 += mul * types_size_32[type];
             size_64 += mul * types_size_64[type];
-            max_align_32 = MAX2(max_align_32, types_align_32[type]);
-            max_align_64 = MAX2(max_align_64, types_align_64[type]);
+            max_align_32 = std::max<int>(max_align_32, types_align_32[type]);
+            max_align_64 = std::max<int>(max_align_64, types_align_64[type]);
           }
           else {
             size_native = 0;

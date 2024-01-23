@@ -17,7 +17,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BKE_blender_user_menu.h"
+#include "BKE_blender_user_menu.hh"
 #include "BKE_idprop.h"
 
 /* -------------------------------------------------------------------- */

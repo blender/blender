@@ -58,7 +58,7 @@
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
 typedef int8_t eSign;

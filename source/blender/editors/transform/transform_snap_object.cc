@@ -848,10 +848,8 @@ static eSnapMode snap_polygon(SnapObjectContext *sctx, eSnapMode snap_to_flag)
     return snap_polygon_mesh(
         sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
   }
-  else {
-    return snap_polygon_editmesh(
-        sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
-  }
+  return snap_polygon_editmesh(
+      sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
 }
 
 static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_sq_orig)
@@ -870,10 +868,8 @@ static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_s
     return snap_edge_points_mesh(
         sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
   }
-  else {
-    return snap_edge_points_editmesh(
-        sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
-  }
+  return snap_edge_points_editmesh(
+      sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
 }
 
 /* May extend later (for now just snaps to empty or camera center). */

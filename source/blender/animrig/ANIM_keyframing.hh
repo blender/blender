@@ -134,8 +134,8 @@ bool is_autokey_on(const Scene *scene);
 /** Check the mode for auto-keyframing (per scene takes precedence). */
 bool is_autokey_mode(const Scene *scene, eAutokey_Mode mode);
 
-/** Check if a flag is set for auto-key-framing (per scene takes precedence). */
-bool is_autokey_flag(const Scene *scene, eKeyInsert_Flag flag);
+/** Check if a flag is set for keyframing (per scene takes precedence). */
+bool is_keying_flag(const Scene *scene, eKeying_Flag flag);
 
 /**
  * Auto-keyframing feature - checks for whether anything should be done for the current frame.

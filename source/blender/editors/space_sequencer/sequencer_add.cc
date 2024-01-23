@@ -34,7 +34,7 @@
 #include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

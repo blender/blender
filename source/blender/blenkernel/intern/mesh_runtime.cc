@@ -62,7 +62,7 @@ static void free_batch_cache(MeshRuntime &mesh_runtime)
   }
 }
 
-MeshRuntime::MeshRuntime() {}
+MeshRuntime::MeshRuntime() = default;
 
 MeshRuntime::~MeshRuntime()
 {

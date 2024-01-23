@@ -32,7 +32,7 @@
 #include "BKE_deform.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_layer.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -91,7 +91,7 @@ static void outliner_tree_dimensions_impl(SpaceOutliner *space_outliner,
                                           int *height)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
-    *width = MAX2(*width, te->xend);
+    *width = std::max(*width, int(te->xend));
     if (height != nullptr) {
       *height += UI_UNIT_Y;
     }
@@ -1964,8 +1964,8 @@ static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut 
   const ID *id_a = (const ID *)idptr_a->data;
   const ID *id_b = (const ID *)idptr_b->data;
 
-  /* Using session UUID to compare is safer than using the pointer. */
-  return id_a->session_uuid == id_b->session_uuid;
+  /* Using session UID to compare is safer than using the pointer. */
+  return id_a->session_uid == id_b->session_uid;
 }
 
 static void outliner_draw_overrides_restrictbuts(Main *bmain,

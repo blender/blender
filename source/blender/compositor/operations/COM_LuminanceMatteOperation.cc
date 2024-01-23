@@ -4,7 +4,7 @@
 
 #include "COM_LuminanceMatteOperation.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 
@@ -42,7 +42,8 @@ void LuminanceMatteOperation::execute_pixel_sampled(float output[4],
   float alpha;
 
   /* one line thread-friend algorithm:
-   * output[0] = MIN2(input_value[3], MIN2(1.0f, MAX2(0.0f, ((luminance - low) / (high - low))));
+   * output[0] = std::min(input_value[3], std::min(1.0f, std::max(0.0f, ((luminance - low) / (high
+   * - low))));
    */
 
   /* test range */
@@ -73,7 +74,8 @@ void LuminanceMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float luminance = IMB_colormanagement_get_luminance(color);
 
     /* One line thread-friend algorithm:
-     * `it.out[0] = MIN2(color[3], MIN2(1.0f, MAX2(0.0f, ((luminance - low) / (high - low))));`
+     * `it.out[0] = std::min(color[3], std::min(1.0f, std::max(0.0f, ((luminance - low) / (high -
+     * low))));`
      */
 
     /* Test range. */
@@ -95,7 +97,7 @@ void LuminanceMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
      */
 
     /* Don't make something that was more transparent less transparent. */
-    it.out[0] = MIN2(alpha, color[3]);
+    it.out[0] = std::min(alpha, color[3]);
   }
 }
 

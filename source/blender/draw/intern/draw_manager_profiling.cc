@@ -6,6 +6,8 @@
  * \ingroup draw
  */
 
+#include <algorithm>
+
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
@@ -178,7 +180,7 @@ void DRW_stats_reset()
 
         timer->time_average = timer->time_average * (1.0 - GPU_TIMER_FALLOFF) +
                               time * GPU_TIMER_FALLOFF;
-        timer->time_average = MIN2(timer->time_average, 1000000000);
+        timer->time_average = std::min(timer->time_average, uint64_t(1000000000));
       }
       else {
         timer->time_average = lvl_time[timer->lvl + 1];
@@ -194,16 +196,16 @@ void DRW_stats_reset()
 
 static void draw_stat_5row(const rcti *rect, int u, int v, const char *txt, const int size)
 {
-  BLF_draw_default(rect->xmin + (1 + u * 5) * U.widget_unit,
-                   rect->ymax - (3 + v) * U.widget_unit,
-                   0.0f,
-                   txt,
-                   size);
+  BLF_draw_default_shadowed(rect->xmin + (1 + u * 5) * U.widget_unit,
+                            rect->ymax - (3 + v) * U.widget_unit,
+                            0.0f,
+                            txt,
+                            size);
 }
 
 static void draw_stat(const rcti *rect, int u, int v, const char *txt, const int size)
 {
-  BLF_draw_default(
+  BLF_draw_default_shadowed(
       rect->xmin + (1 + u) * U.widget_unit, rect->ymax - (3 + v) * U.widget_unit, 0.0f, txt, size);
 }
 
@@ -217,11 +219,6 @@ void DRW_stats_draw(const rcti *rect)
 
   int fontid = BLF_default();
   UI_FontThemeColor(fontid, TH_TEXT_HI);
-  BLF_enable(fontid, BLF_SHADOW);
-  const float rgba[] = {0.0f, 0.0f, 0.0f, 0.75f};
-  BLF_shadow(fontid, 5, rgba);
-  BLF_shadow_offset(fontid, 0, -1);
-
   BLF_batch_draw_begin();
 
   /* ------------------------------------------ */
@@ -350,5 +347,4 @@ void DRW_stats_draw(const rcti *rect)
   }
 
   BLF_batch_draw_end();
-  BLF_disable(fontid, BLF_SHADOW);
 }

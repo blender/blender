@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -1782,7 +1784,7 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
     end = self->vec_num + end + 1;
   }
   CLAMP(end, 0, self->vec_num);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -1804,7 +1806,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
 
   CLAMP(begin, 0, self->vec_num);
   CLAMP(end, 0, self->vec_num);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   vec_num = (end - begin);
   if (mathutils_array_parse_alloc(&vec, vec_num, seq, "vector[begin:end] = [...]") == -1) {

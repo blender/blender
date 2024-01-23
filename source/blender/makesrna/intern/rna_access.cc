@@ -35,7 +35,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -2276,7 +2276,7 @@ static void rna_property_update(
     if (ptr->owner_id != nullptr && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
       const short id_type = GS(ptr->owner_id->name);
       if (ID_TYPE_IS_COW(id_type)) {
-        DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_PARAMETERS);
       }
     }
     /* End message bus. */

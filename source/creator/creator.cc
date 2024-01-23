@@ -32,7 +32,7 @@
 #include "BLI_utildefines.h"
 
 /* Mostly initialization functions. */
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender.h"
 #include "BKE_brush.hh"
 #include "BKE_cachefile.h"
@@ -41,7 +41,7 @@
 #include "BKE_cpp_types.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.h"
@@ -57,7 +57,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_imbuf.h" /* For #IMB_init. */
+#include "IMB_imbuf.hh" /* For #IMB_init. */
 
 #include "RE_engine.h"
 #include "RE_texture.h"

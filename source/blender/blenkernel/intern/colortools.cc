@@ -26,8 +26,8 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BLO_read_write.hh"
 

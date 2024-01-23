@@ -9,6 +9,7 @@
  * as well as some generic operators and shared operator properties.
  */
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cfloat>
@@ -35,14 +36,13 @@
 
 #include "BLT_translation.h"
 
-#include "PIL_time.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_utils.hh"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
@@ -63,7 +63,7 @@
 #include "BKE_screen.hh" /* BKE_ST_MAXNAME */
 #include "BKE_unit.hh"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "BLF_api.h"
 
@@ -72,7 +72,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_fileselect.hh"
 #include "ED_gpencil_legacy.hh"
@@ -1246,18 +1246,18 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
   UI_block_flag_enable(block, block_flags);
 
   const uiStyle *style = UI_style_get_dpi();
-  int text_width = MAX2(
+  int text_width = std::max(
       120 * UI_SCALE_FAC,
       BLF_width(style->widget.uifont_id, confirm.title, ARRAY_SIZE(confirm.title)));
   if (confirm.message[0]) {
-    text_width = MAX2(
+    text_width = std::max(
         text_width,
-        BLF_width(style->widget.uifont_id, confirm.message, ARRAY_SIZE(confirm.message)));
+        int(BLF_width(style->widget.uifont_id, confirm.message, ARRAY_SIZE(confirm.message))));
   }
   if (confirm.message2[0]) {
-    text_width = MAX2(
+    text_width = std::max(
         text_width,
-        BLF_width(style->widget.uifont_id, confirm.message2, ARRAY_SIZE(confirm.message2)));
+        int(BLF_width(style->widget.uifont_id, confirm.message2, ARRAY_SIZE(confirm.message2))));
   }
 
   const bool small = confirm.size == WM_WARNING_SIZE_SMALL;
@@ -1565,7 +1565,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
   }
 
   /* Lookup an already existing ID. */
-  id = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_Type(idcode));
+  id = WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_Type(idcode));
 
   if (!id) {
     /* Print error with the name if the name is available. */
@@ -3660,7 +3660,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   WM_cursor_wait(true);
 
-  double time_start = PIL_check_seconds_timer();
+  double time_start = BLI_check_seconds_timer();
 
   wm_window_make_drawable(wm, win);
 
@@ -3670,14 +3670,14 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
     iter_steps += 1;
 
     if (time_limit != 0.0) {
-      if ((PIL_check_seconds_timer() - time_start) > time_limit) {
+      if ((BLI_check_seconds_timer() - time_start) > time_limit) {
         break;
       }
       a = 0;
     }
   }
 
-  double time_delta = (PIL_check_seconds_timer() - time_start) * 1000;
+  double time_delta = (BLI_check_seconds_timer() - time_start) * 1000;
 
   RNA_enum_description(redraw_timer_type_items, type, &infostr);
 

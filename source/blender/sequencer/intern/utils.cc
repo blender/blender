@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -38,8 +39,8 @@
 #include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "multiview.hh"
 #include "proxy.hh"
@@ -498,14 +499,14 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
 
   switch (fit_method) {
     case SEQ_SCALE_TO_FIT:
-      transform->scale_x = transform->scale_y = MIN2(float(preview_width) / float(image_width),
-                                                     float(preview_height) / float(image_height));
+      transform->scale_x = transform->scale_y = std::min(
+          float(preview_width) / float(image_width), float(preview_height) / float(image_height));
 
       break;
     case SEQ_SCALE_TO_FILL:
 
-      transform->scale_x = transform->scale_y = MAX2(float(preview_width) / float(image_width),
-                                                     float(preview_height) / float(image_height));
+      transform->scale_x = transform->scale_y = std::max(
+          float(preview_width) / float(image_width), float(preview_height) / float(image_height));
       break;
     case SEQ_STRETCH_TO_FILL:
       transform->scale_x = float(preview_width) / float(image_width);

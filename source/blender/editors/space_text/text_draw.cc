@@ -6,6 +6,8 @@
  * \ingroup sptext
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLF_api.h"
@@ -271,7 +273,7 @@ void space_text_wrap_offset(
 
       while (chars--) {
         if (i + columns - start > max) {
-          end = MIN2(end, i);
+          end = std::min(end, i);
 
           if (chop && linep == linein && i >= cursin) {
             if (i == cursin) {
@@ -348,7 +350,7 @@ void space_text_wrap_offset_in_line(
 
     while (chars--) {
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         if (chop && i >= cursin) {
           if (i == cursin) {
@@ -939,7 +941,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->curl);
   sell_off = space_text_get_span_wrap(
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->sell);
-  lhlstart = MIN2(curl_off, sell_off);
+  lhlstart = std::min(curl_off, sell_off);
   lhlend = std::max(curl_off, sell_off);
 
   if (ltexth > 0) {
@@ -1672,7 +1674,7 @@ void space_text_update_character_width(SpaceText *st)
 
   text_font_begin(&tdc);
   st->runtime->cwidth_px = BLF_fixed_width(tdc.font_id);
-  st->runtime->cwidth_px = MAX2(st->runtime->cwidth_px, char(1));
+  st->runtime->cwidth_px = std::max(st->runtime->cwidth_px, 1);
   text_font_end(&tdc);
 }
 

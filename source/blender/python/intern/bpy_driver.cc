@@ -21,7 +21,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

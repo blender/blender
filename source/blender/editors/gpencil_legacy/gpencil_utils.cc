@@ -6,6 +6,7 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -21,10 +22,10 @@
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_rand.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.h"
 
-#include "PIL_time.h"
+#include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
@@ -1770,7 +1771,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
     point2D.m_xy[0] = float(x + 64);
     gpencil_stroke_convertcoords_tpoint(scene, region, ob, &point2D, nullptr, p2);
     /* Clip extreme zoom level (and avoid division by zero). */
-    distance = MAX2(len_v3v3(p1, p2), 0.001f);
+    distance = std::max(len_v3v3(p1, p2), 0.001f);
 
     /* Handle layer thickness change. */
     float brush_size = float(brush->size);
@@ -2841,7 +2842,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
                                      const int mval[2],
                                      GpRandomSettings *random_settings)
 {
-  int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+  int seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
   /* Use mouse position to get randomness. */
   int ix = mval[0] * seed;
   int iy = mval[1] * seed;
@@ -2887,7 +2888,7 @@ static void gpencil_sbuffer_vertex_color_random(
 {
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
-    int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+    int seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
 
     int ix = int(tpt->m_xy[0] * seed);
     int iy = int(tpt->m_xy[1] * seed);

@@ -9,7 +9,7 @@
 #include "usd_reader_prim.h"
 #include "usd_reader_stage.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_cachefile.h"
 #include "BKE_cdderivedmesh.h"

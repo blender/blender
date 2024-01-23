@@ -45,7 +45,7 @@ typedef struct BoxPack {
  * \param r_tot_x, r_tot_y: set so you can normalize the data.
  */
 void BLI_box_pack_2d(
-    BoxPack *box_array, unsigned int len, bool sort_boxes, float *r_tot_x, float *r_tot_y);
+    BoxPack *boxarray, unsigned int len, bool sort_boxes, float *r_tot_x, float *r_tot_y);
 
 typedef struct FixedSizeBoxPack {
   struct FixedSizeBoxPack *next, *prev;

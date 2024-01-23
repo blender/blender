@@ -54,12 +54,12 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "ED_datafiles.h"
 #include "ED_screen.hh"

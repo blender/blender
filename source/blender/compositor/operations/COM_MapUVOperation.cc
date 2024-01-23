@@ -12,6 +12,7 @@ MapUVOperation::MapUVOperation()
   this->add_input_socket(DataType::Vector);
   this->add_output_socket(DataType::Color);
   alpha_ = 0.0f;
+  nearest_neighbour_ = false;
   flags_.complex = true;
   flags_.can_be_constant = true;
   set_canvas_input_index(UV_INPUT_INDEX);
@@ -56,23 +57,28 @@ void MapUVOperation::execute_pixel_sampled(float output[4],
     return;
   }
 
-  /* EWA filtering */
-  input_color_program_->read_filtered(output, uv[0], uv[1], deriv[0], deriv[1]);
-
-  /* UV to alpha threshold */
-  const float threshold = alpha_ * 0.05f;
-  /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
-   * this calculation is not very well defined, should be looked into if it becomes a problem ...
-   */
-  float du = len_v2(deriv[0]);
-  float dv = len_v2(deriv[1]);
-  float factor = 1.0f - threshold * (du / input_color_program_->get_width() +
-                                     dv / input_color_program_->get_height());
-  if (factor < 0.0f) {
-    alpha = 0.0f;
+  if (nearest_neighbour_) {
+    input_color_program_->read_sampled(output, uv[0], uv[1], PixelSampler::Nearest);
   }
   else {
-    alpha *= factor;
+    /* EWA filtering */
+    input_color_program_->read_filtered(output, uv[0], uv[1], deriv[0], deriv[1]);
+
+    /* UV to alpha threshold */
+    const float threshold = alpha_ * 0.05f;
+    /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
+     * this calculation is not very well defined, should be looked into if it becomes a problem ...
+     */
+    float du = len_v2(deriv[0]);
+    float dv = len_v2(deriv[1]);
+    float factor = 1.0f - threshold * (du / input_color_program_->get_width() +
+                                       dv / input_color_program_->get_height());
+    if (factor < 0.0f) {
+      alpha = 0.0f;
+    }
+    else {
+      alpha *= factor;
+    }
   }
 
   /* "premul" */
@@ -229,24 +235,29 @@ void MapUVOperation::update_memory_buffer_partial(MemoryBuffer *output,
       continue;
     }
 
-    /* EWA filtering. */
-    input_image->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], it.out);
-
-    /* UV to alpha threshold. */
-    const float threshold = alpha_ * 0.05f;
-    /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
-     * this calculation is not very well defined, should be looked into if it becomes a problem ...
-     */
-    const float du = len_v2(deriv[0]);
-    const float dv = len_v2(deriv[1]);
-    const float factor = 1.0f - threshold * (du / image_width_ + dv / image_height_);
-    if (factor < 0.0f) {
-      alpha = 0.0f;
+    if (nearest_neighbour_) {
+      input_image->read_elem_sampled(uv[0], uv[1], PixelSampler::Nearest, it.out);
     }
     else {
-      alpha *= factor;
-    }
+      /* EWA filtering. */
+      input_image->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], it.out);
 
+      /* UV to alpha threshold. */
+      const float threshold = alpha_ * 0.05f;
+      /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
+       * this calculation is not very well defined, should be looked into if it becomes a problem
+       * ...
+       */
+      const float du = len_v2(deriv[0]);
+      const float dv = len_v2(deriv[1]);
+      const float factor = 1.0f - threshold * (du / image_width_ + dv / image_height_);
+      if (factor < 0.0f) {
+        alpha = 0.0f;
+      }
+      else {
+        alpha *= factor;
+      }
+    }
     /* "premul" */
     if (alpha < 1.0f) {
       mul_v4_fl(it.out, alpha);

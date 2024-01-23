@@ -217,9 +217,6 @@ void cache_free(SculptSession *ss)
   if (ss->filter_cache->cloth_sim) {
     cloth::simulation_free(ss->filter_cache->cloth_sim);
   }
-  if (ss->filter_cache->automasking) {
-    auto_mask::cache_free(ss->filter_cache->automasking);
-  }
   MEM_SAFE_FREE(ss->filter_cache->mask_update_it);
   MEM_SAFE_FREE(ss->filter_cache->prev_mask);
   MEM_SAFE_FREE(ss->filter_cache->normal_factor);
@@ -229,7 +226,7 @@ void cache_free(SculptSession *ss)
   MEM_SAFE_FREE(ss->filter_cache->detail_directions);
   MEM_SAFE_FREE(ss->filter_cache->limit_surface_co);
   MEM_SAFE_FREE(ss->filter_cache->pre_smoothed_color);
-  MEM_delete<filter::Cache>(ss->filter_cache);
+  MEM_delete(ss->filter_cache);
   ss->filter_cache = nullptr;
 }
 
@@ -346,7 +343,7 @@ static void mesh_filter_task(Object *ob,
    * boundaries. */
   const bool relax_face_sets = !(ss->filter_cache->iteration_count % 3 == 0);
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      *ob, ss->filter_cache->automasking, *node);
+      *ob, ss->filter_cache->automasking.get(), *node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
@@ -357,7 +354,8 @@ static void mesh_filter_task(Object *ob,
     float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
-    fade *= auto_mask::factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
+    fade *= auto_mask::factor_get(
+        ss->filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
 
     if (fade == 0.0f && filter_type != MESH_FILTER_SURFACE_SMOOTH) {
       /* Surface Smooth can't skip the loop for this vertex as it needs to calculate its
@@ -643,7 +641,7 @@ static void mesh_filter_surface_smooth_displace_task(Object *ob,
   PBVHVertexIter vd;
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      *ob, ss->filter_cache->automasking, *node);
+      *ob, ss->filter_cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     auto_mask::node_update(automask_data, vd);
@@ -651,7 +649,8 @@ static void mesh_filter_surface_smooth_displace_task(Object *ob,
     float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
-    fade *= auto_mask::factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
+    fade *= auto_mask::factor_get(
+        ss->filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }

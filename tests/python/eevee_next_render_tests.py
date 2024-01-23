@@ -25,17 +25,21 @@ def setup():
     eevee.use_volumetric_shadows = True
     eevee.volumetric_tile_size = '2'
     eevee.use_motion_blur = True
+    # Due to an issue in HiZ-buffer set the probbe resolution to 256. When the
+    # probe resolution is to high it will be corrupted as the HiZ buffer isn't
+    # large enough
+    eevee.gi_cubemap_resolution = '256'
 
     # Does not work in edit mode
     try:
         # Simple probe setup
-        bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.5, 0, 1.5))
+        bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.05, 0.0, 0.03))
         cubemap = bpy.context.selected_objects[0]
-        cubemap.scale = (2.5, 2.5, 1.0)
-        cubemap.data.falloff = 0
-        cubemap.data.clip_start = 2.4
+        cubemap.scale = (1.0, 1.0, 1.0)
+        cubemap.data.falloff = 0.0
+        cubemap.data.clip_start = 0.975
 
-        bpy.ops.object.lightprobe_add(type='VOLUME', location=(0, 0, 0.25))
+        bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 0.0))
         grid = bpy.context.selected_objects[0]
         grid.scale = (1.735, 1.735, 1.735)
         grid.data.bake_samples = 256
@@ -141,7 +145,6 @@ def main():
         report.set_fail_threshold(0.051)
 
     ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
-
     sys.exit(not ok)
 
 

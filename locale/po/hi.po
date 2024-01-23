@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-01-22 11:04+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -3673,10 +3673,6 @@ msgid "Only Selected"
 msgstr "केवल चयनित"
 
 
-msgid "Ascii"
-msgstr "ऐस्की"
-
-
 msgid "X Up"
 msgstr "X ऊर्ध्व"
 
@@ -3695,6 +3691,10 @@ msgstr "-Y ऊर्ध्व"
 
 msgid "-Z Up"
 msgstr "-Z ऊर्ध्व"
+
+
+msgid "Ascii"
+msgstr "ऐस्की"
 
 
 msgid "Null"
