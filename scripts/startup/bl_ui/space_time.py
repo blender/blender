@@ -123,35 +123,27 @@ class TIME_MT_view(Menu):
         scene = context.scene
         st = context.space_data
 
-        layout.menu("INFO_MT_area")
-
+        layout.prop(st, "show_region_hud")
         layout.separator()
 
         # NOTE: "action" now, since timeline is in the dopesheet editor, instead of as own editor
-        layout.operator("action.view_frame")
         layout.operator("action.view_all")
-
-        layout.separator()
-
-        layout.menu("TIME_MT_cache")
-
-        layout.separator()
-
-        layout.prop(st.dopesheet, "show_only_errors")
-        layout.prop(scene, "show_keys_from_selected_only")
-
+        layout.operator("action.view_frame")
         layout.separator()
 
         layout.prop(st, "show_markers")
-
-        layout.separator()
-
-        layout.prop(st, "show_locked_time")
         layout.prop(st, "show_seconds")
-
+        layout.prop(st, "show_locked_time")
         layout.separator()
 
-        layout.prop(st, "show_region_hud")
+        layout.prop(scene, "show_keys_from_selected_only")
+        layout.prop(st.dopesheet, "show_only_errors")
+        layout.separator()
+
+        layout.menu("TIME_MT_cache")
+        layout.separator()
+
+        layout.menu("INFO_MT_area")
 
 
 class TIME_MT_cache(Menu):
