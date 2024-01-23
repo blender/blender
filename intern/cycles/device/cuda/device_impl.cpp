@@ -97,17 +97,29 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
   cuda_assert(cuDeviceGetAttribute(
       &pitch_alignment, CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT, cuDevice));
 
-  unsigned int ctx_flags = CU_CTX_LMEM_RESIZE_TO_MAX;
   if (can_map_host) {
-    ctx_flags |= CU_CTX_MAP_HOST;
     init_host_memory();
   }
 
+  int active = 0;
+  unsigned int ctx_flags = 0;
+  cuda_assert(cuDevicePrimaryCtxGetState(cuDevice, &ctx_flags, &active));
+
+  /* Configure primary context only once. */
+  if (active == 0) {
+    ctx_flags |= CU_CTX_LMEM_RESIZE_TO_MAX;
+    result = cuDevicePrimaryCtxSetFlags(cuDevice, ctx_flags);
+    if (result != CUDA_SUCCESS && result != CUDA_ERROR_PRIMARY_CONTEXT_ACTIVE) {
+      set_error(string_printf("Failed to configure CUDA context (%s)", cuewErrorString(result)));
+      return;
+    }
+  }
+
   /* Create context. */
-  result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
+  result = cuDevicePrimaryCtxRetain(&cuContext, cuDevice);
 
   if (result != CUDA_SUCCESS) {
-    set_error(string_printf("Failed to create CUDA context (%s)", cuewErrorString(result)));
+    set_error(string_printf("Failed to retain CUDA context (%s)", cuewErrorString(result)));
     return;
   }
 
@@ -124,7 +136,7 @@ CUDADevice::~CUDADevice()
 {
   texture_info.free();
 
-  cuda_assert(cuCtxDestroy(cuContext));
+  cuda_assert(cuDevicePrimaryCtxRelease(cuDevice));
 }
 
 bool CUDADevice::support_device(const uint /*kernel_features*/)
