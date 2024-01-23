@@ -13,11 +13,11 @@
 #include "DNA_defs.h"
 
 struct GPUTexture;
+struct ImBufAnim;
 struct MovieCache;
 struct PackedFile;
 struct RenderResult;
 struct Scene;
-struct anim;
 
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */
@@ -47,7 +47,7 @@ typedef struct ImageUser {
 
 typedef struct ImageAnim {
   struct ImageAnim *next, *prev;
-  struct anim *anim;
+  struct ImBufAnim *anim;
 } ImageAnim;
 
 typedef struct ImageView {

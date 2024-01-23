@@ -42,7 +42,7 @@ typedef struct anim_index_entry {
   uint64_t pts;
 } anim_index_entry;
 
-struct anim_index {
+struct ImBufAnimIndex {
   char filepath[1024];
 
   int num_entries;
@@ -84,23 +84,23 @@ void IMB_index_builder_proc_frame(anim_index_builder *fp,
 
 void IMB_index_builder_finish(anim_index_builder *fp, int rollback);
 
-struct anim_index *IMB_indexer_open(const char *name);
-uint64_t IMB_indexer_get_seek_pos(struct anim_index *idx, int frame_index);
-uint64_t IMB_indexer_get_seek_pos_pts(struct anim_index *idx, int frame_index);
-uint64_t IMB_indexer_get_seek_pos_dts(struct anim_index *idx, int frame_index);
+struct ImBufAnimIndex *IMB_indexer_open(const char *name);
+uint64_t IMB_indexer_get_seek_pos(struct ImBufAnimIndex *idx, int frame_index);
+uint64_t IMB_indexer_get_seek_pos_pts(struct ImBufAnimIndex *idx, int frame_index);
+uint64_t IMB_indexer_get_seek_pos_dts(struct ImBufAnimIndex *idx, int frame_index);
 
-int IMB_indexer_get_frame_index(struct anim_index *idx, int frameno);
-uint64_t IMB_indexer_get_pts(struct anim_index *idx, int frame_index);
-int IMB_indexer_get_duration(struct anim_index *idx);
+int IMB_indexer_get_frame_index(struct ImBufAnimIndex *idx, int frameno);
+uint64_t IMB_indexer_get_pts(struct ImBufAnimIndex *idx, int frame_index);
+int IMB_indexer_get_duration(struct ImBufAnimIndex *idx);
 
-int IMB_indexer_can_scan(struct anim_index *idx, int old_frame_index, int new_frame_index);
+int IMB_indexer_can_scan(struct ImBufAnimIndex *idx, int old_frame_index, int new_frame_index);
 
-void IMB_indexer_close(struct anim_index *idx);
+void IMB_indexer_close(struct ImBufAnimIndex *idx);
 
-void IMB_free_indices(struct anim *anim);
+void IMB_free_indices(struct ImBufAnim *anim);
 
-struct anim *IMB_anim_open_proxy(struct anim *anim, IMB_Proxy_Size preview_size);
-struct anim_index *IMB_anim_open_index(struct anim *anim, IMB_Timecode_Type tc);
+struct ImBufAnim *IMB_anim_open_proxy(struct ImBufAnim *anim, IMB_Proxy_Size preview_size);
+struct ImBufAnimIndex *IMB_anim_open_index(struct ImBufAnim *anim, IMB_Timecode_Type tc);
 
 int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size);
 int IMB_timecode_to_array_index(IMB_Timecode_Type tc);

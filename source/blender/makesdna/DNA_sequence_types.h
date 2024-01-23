@@ -36,7 +36,7 @@ struct bSound;
 
 typedef struct StripAnim {
   struct StripAnim *next, *prev;
-  struct anim *anim;
+  struct ImBufAnim *anim;
 } StripAnim;
 
 typedef struct StripElem {
@@ -84,7 +84,7 @@ typedef struct StripProxy {
   char dirpath[768];
   /** Custom file. */
   char filename[256];
-  struct anim *anim; /* custom proxy anim file */
+  struct ImBufAnim *anim; /* custom proxy anim file */
 
   short tc; /* time code in use */
 

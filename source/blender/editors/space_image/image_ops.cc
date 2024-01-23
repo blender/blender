@@ -1702,7 +1702,7 @@ static int image_match_len_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+  ImBufAnim *anim = ((ImageAnim *)ima->anims.first)->anim;
   if (!anim) {
     return OPERATOR_CANCELLED;
   }

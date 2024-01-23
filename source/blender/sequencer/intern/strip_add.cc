@@ -392,7 +392,8 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   char colorspace[64] = "\0"; /* MAX_COLORSPACE_NAME */
   bool is_multiview_loaded = false;
   const int totfiles = seq_num_files(scene, load_data->views_format, load_data->use_multiview);
-  anim **anim_arr = static_cast<anim **>(MEM_callocN(sizeof(anim *) * totfiles, "Video files"));
+  ImBufAnim **anim_arr = static_cast<ImBufAnim **>(
+      MEM_callocN(sizeof(ImBufAnim *) * totfiles, "Video files"));
   int i;
   int orig_width = 0;
   int orig_height = 0;
@@ -575,7 +576,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
         if (prefix[0] != '\0') {
           for (i = 0; i < totfiles; i++) {
-            anim *anim;
+            ImBufAnim *anim;
             char filepath_view[FILE_MAX];
 
             seq_multiview_name(scene, i, prefix, ext, filepath_view, sizeof(filepath_view));
@@ -596,7 +597,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
       }
 
       if (is_multiview_loaded == false) {
-        anim *anim;
+        ImBufAnim *anim;
         anim = openanim(filepath,
                         IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
                         seq->streamindex,

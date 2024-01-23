@@ -10,7 +10,7 @@
 
 struct IDProperty;
 struct ImBuf;
-struct anim;
+struct ImBufAnim;
 
 /**
  * The metadata is a list of key/value pairs (both char *) that can me
@@ -55,7 +55,7 @@ bool IMB_metadata_get_field(IDProperty *metadata,
 void IMB_metadata_set_field(IDProperty *metadata, const char *key, const char *value);
 
 void IMB_metadata_copy(ImBuf *dimb, ImBuf *simb);
-IDProperty *IMB_anim_load_metadata(anim *anim);
+IDProperty *IMB_anim_load_metadata(ImBufAnim *anim);
 
 /* Invoke callback for every value stored in the metadata. */
 typedef void (*IMBMetadataForeachCb)(const char *field, const char *value, void *userdata);

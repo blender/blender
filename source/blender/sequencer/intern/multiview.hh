@@ -17,7 +17,7 @@ struct Scene;
  * **********************************************************************
  */
 
-void seq_anim_add_suffix(Scene *scene, anim *anim, int view_id);
+void seq_anim_add_suffix(Scene *scene, ImBufAnim *anim, int view_id);
 void seq_multiview_name(
     Scene *scene, int view_id, const char *prefix, const char *ext, char *r_path, size_t r_size);
 /**

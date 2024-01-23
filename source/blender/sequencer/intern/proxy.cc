@@ -412,7 +412,7 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
-static bool seq_proxy_need_rebuild(Sequence *seq, anim *anim)
+static bool seq_proxy_need_rebuild(Sequence *seq, ImBufAnim *anim)
 {
   if ((seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0) {
     return true;
@@ -608,7 +608,7 @@ void SEQ_proxy_set(Sequence *seq, bool value)
   }
 }
 
-void seq_proxy_index_dir_set(anim *anim, const char *base_dir)
+void seq_proxy_index_dir_set(ImBufAnim *anim, const char *base_dir)
 {
   char dirname[FILE_MAX];
   char filename[FILE_MAXFILE];
