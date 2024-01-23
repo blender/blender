@@ -142,9 +142,9 @@ static Material *gpencil_add_from_curve_material(Main *bmain,
                                                  const float fill_color[4],
                                                  const bool stroke,
                                                  const bool fill,
-                                                 int *r_idx)
+                                                 int *r_index)
 {
-  Material *mat_gp = BKE_gpencil_object_material_new(bmain, ob_gp, "Material", r_idx);
+  Material *mat_gp = BKE_gpencil_object_material_new(bmain, ob_gp, "Material", r_index);
   MaterialGPencilStyle *gp_style = mat_gp->gp_style;
 
   /* Stroke color. */
@@ -267,12 +267,12 @@ static int gpencil_get_stroke_material_fromcurve(
     copy_v4_v4(color_fill, &mat_curve_fill->r);
   }
 
-  int r_idx = gpencil_check_same_material_color(
+  int index = gpencil_check_same_material_color(
       ob_gp, color_stroke, color_fill, *r_do_stroke, *r_do_fill, &mat_gp);
 
-  if ((ob_gp->totcol < r_idx) || (r_idx < 0)) {
+  if ((ob_gp->totcol < index) || (index < 0)) {
     mat_gp = gpencil_add_from_curve_material(
-        bmain, ob_gp, color_stroke, color_fill, *r_do_stroke, *r_do_fill, &r_idx);
+        bmain, ob_gp, color_stroke, color_fill, *r_do_stroke, *r_do_fill, &index);
   }
 
   /* Set fill and stroke depending of curve type (3D or 2D). */
@@ -285,7 +285,7 @@ static int gpencil_get_stroke_material_fromcurve(
     mat_gp->gp_style->flag |= GP_MATERIAL_FILL_SHOW;
   }
 
-  return r_idx;
+  return index;
 }
 
 /* Helper: Convert one spline to grease pencil stroke. */
@@ -333,11 +333,11 @@ static void gpencil_convert_spline(Main *bmain,
    * Notice: The color of the material is the color of viewport and not the final shader color.
    */
   bool do_stroke, do_fill;
-  int r_idx = gpencil_get_stroke_material_fromcurve(bmain, ob_gp, ob_cu, &do_stroke, &do_fill);
-  CLAMP_MIN(r_idx, 0);
+  int index = gpencil_get_stroke_material_fromcurve(bmain, ob_gp, ob_cu, &do_stroke, &do_fill);
+  CLAMP_MIN(index, 0);
 
   /* Assign material index to stroke. */
-  gps->mat_nr = r_idx;
+  gps->mat_nr = index;
 
   /* Add stroke to frame. */
   BLI_addtail(&gpf->strokes, gps);
