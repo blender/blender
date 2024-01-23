@@ -1350,7 +1350,7 @@ class CLIP_MT_view(Menu):
             layout.operator("clip.graph_view_all")
             if sc.view == 'GRAPH':
                 layout.operator("clip.graph_center_current_frame")
-                
+
             layout.operator("view2d.zoom_border", text="Zoom")
             layout.operator_context = 'INVOKE_DEFAULT'
 
