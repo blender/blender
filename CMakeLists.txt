@@ -42,8 +42,8 @@ if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
   set(CMAKE_BUILD_TYPE_INIT "Release")
   # Internal logic caches this variable, avoid showing it by default
   # since it's easy to accidentally set instead of the build type.
-  mark_as_advanced(CMAKE_BUILD_TYPE_INIT)
 endif()
+mark_as_advanced(CMAKE_BUILD_TYPE_INIT)
 
 # Omit superfluous "Up-to-date" messages.
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
