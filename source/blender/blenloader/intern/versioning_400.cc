@@ -1850,6 +1850,42 @@ static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_p
   }
 }
 
+static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
+{
+  using namespace blender;
+  MultiValueMap<bNodeSocket *, bNodeLink *> out_links_per_socket;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    if (link->fromnode->type == GEO_NODE_OBJECT_INFO) {
+      out_links_per_socket.add(link->fromsock, link);
+    }
+  }
+
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (node->type != GEO_NODE_OBJECT_INFO) {
+      continue;
+    }
+    bNodeSocket *scale = nodeFindSocket(node, SOCK_OUT, "Scale");
+    const Span<bNodeLink *> links = out_links_per_socket.lookup(scale);
+    if (links.is_empty()) {
+      continue;
+    }
+    bNode *absolute_value = nodeAddNode(nullptr, &ntree, "ShaderNodeVectorMath");
+    absolute_value->custom1 = NODE_VECTOR_MATH_ABSOLUTE;
+    absolute_value->parent = node->parent;
+    absolute_value->locx = node->locx + 100;
+    absolute_value->locy = node->locy - 50;
+    nodeAddLink(&ntree,
+                node,
+                scale,
+                absolute_value,
+                static_cast<bNodeSocket *>(absolute_value->inputs.first));
+    for (bNodeLink *link : links) {
+      link->fromnode = absolute_value;
+      link->fromsock = static_cast<bNodeSocket *>(absolute_value->outputs.first);
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -2628,6 +2664,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         version_geometry_nodes_use_rotation_socket(*ntree);
         versioning_nodes_dynamic_sockets_2(*ntree);
+        fix_geometry_nodes_object_info_scale(*ntree);
       }
     }
   }
