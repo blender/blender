@@ -1610,6 +1610,12 @@ static void view3d_header_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_MATERIAL:
+      /* For the canvas picker. */
+      if (wmn->data == ND_SHADING_LINKS) {
+        ED_region_tag_redraw(region);
+      }
+      break;
   }
 
     /* From top-bar, which ones are needed? split per header? */
