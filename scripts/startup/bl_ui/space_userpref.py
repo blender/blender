@@ -2284,7 +2284,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
                 sub = row.row()
                 sub.active = is_enabled
-                sub.label(text=iface_("%s: %s") % (iface_(info["category"]), iface_(info["name"])))
+                sub.label(text="%s: %s" % (iface_(info["category"]), iface_(info["name"])))
 
                 if info["warning"]:
                     sub.label(icon='ERROR')
