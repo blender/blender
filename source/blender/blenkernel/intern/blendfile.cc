@@ -468,7 +468,7 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
       BLI_addtail(new_lb, old_id_iter);
       old_id_iter->lib = old_id_new_lib;
       BKE_id_new_name_validate(new_bmain, new_lb, old_id_iter, nullptr, true);
-      BKE_lib_libblock_session_uuid_renew(old_id_iter);
+      BKE_lib_libblock_session_uid_renew(old_id_iter);
 
       /* Remap to itself, to avoid re-processing this ID again. */
       BKE_id_remapper_add(remapper, old_id_iter, old_id_iter);
