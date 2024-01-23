@@ -2028,7 +2028,8 @@ class USERPREF_PT_extensions(ExtensionsPanel, Panel):
 
 
 class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
-    bl_label = "Extension Repositories"
+    bl_label = "Repositories"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
