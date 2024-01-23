@@ -142,7 +142,7 @@ static bool rna_LayerCollection_visible_get(LayerCollection *layer_collection, b
     return (layer_collection->runtime_flag & LAYER_COLLECTION_VISIBLE_VIEW_LAYER) != 0;
   }
 
-  if (v3d->local_collections_uuid & layer_collection->local_collections_bits) {
+  if (v3d->local_collections_uid & layer_collection->local_collections_bits) {
     return (layer_collection->runtime_flag & LAYER_COLLECTION_HIDE_VIEWPORT) == 0;
   }
 

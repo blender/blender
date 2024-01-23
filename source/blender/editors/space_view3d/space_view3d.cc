@@ -325,7 +325,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
     v3dn->localvd = nullptr;
   }
 
-  v3dn->local_collections_uuid = 0;
+  v3dn->local_collections_uid = 0;
   v3dn->flag &= ~(V3D_LOCAL_COLLECTIONS | V3D_XR_SESSION_MIRROR);
 
   if (v3dn->shading.type == OB_RENDER) {

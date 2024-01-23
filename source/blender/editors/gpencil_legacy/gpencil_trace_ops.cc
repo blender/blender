@@ -177,7 +177,7 @@ static void trace_initialize_job_data(TraceJob *trace_job)
   /* Create a new grease pencil object. */
   if (trace_job->ob_gpencil == nullptr) {
     ushort local_view_bits = (trace_job->v3d && trace_job->v3d->localvd) ?
-                                 trace_job->v3d->local_view_uuid :
+                                 trace_job->v3d->local_view_uid :
                                  0;
     trace_job->ob_gpencil = ED_gpencil_add_object(
         trace_job->C, trace_job->ob_active->loc, local_view_bits);

@@ -2093,7 +2093,7 @@ static bool gpencil_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
     ushort local_view_bits = 0;
     if (v3d->localvd) {
-      local_view_bits = v3d->local_view_uuid;
+      local_view_bits = v3d->local_view_uid;
     }
     /* create new default object */
     obact = ED_gpencil_add_object(C, cur, local_view_bits);

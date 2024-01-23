@@ -559,7 +559,7 @@ static void loose_data_instantiate_object_base_instance_init(Main *bmain,
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (v3d != nullptr) {
-    base->local_view_bits |= v3d->local_view_uuid;
+    base->local_view_bits |= v3d->local_view_uid;
   }
 
   if (flag & FILE_AUTOSELECT) {

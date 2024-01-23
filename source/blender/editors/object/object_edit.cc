@@ -415,7 +415,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
     if (toggle) {
-      lc->local_collections_bits ^= v3d->local_collections_uuid;
+      lc->local_collections_bits ^= v3d->local_collections_uid;
       BKE_layer_collection_local_sync(scene, view_layer, v3d);
     }
     else {

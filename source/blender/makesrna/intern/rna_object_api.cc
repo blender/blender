@@ -252,7 +252,7 @@ static bool rna_Object_local_view_get(Object *ob, ReportList *reports, View3D *v
     return false;
   }
 
-  return ((ob->base_local_view_bits & v3d->local_view_uuid) != 0);
+  return ((ob->base_local_view_bits & v3d->local_view_uid) != 0);
 }
 
 static void rna_Object_local_view_set(Object *ob,
@@ -268,7 +268,7 @@ static void rna_Object_local_view_set(Object *ob,
     return; /* Error reported. */
   }
   const short local_view_bits_prev = base->local_view_bits;
-  SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uuid);
+  SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uid);
   if (local_view_bits_prev != base->local_view_bits) {
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
     ScrArea *area = ED_screen_area_find_with_spacedata(screen, (SpaceLink *)v3d, true);

@@ -590,7 +590,7 @@ static void view3d_data_consistency_ensure(wmWindow *win, Scene *scene, ViewLaye
        * be found. */
       Base *base;
       for (base = static_cast<Base *>(view_layer->object_bases.first); base; base = base->next) {
-        if (base->local_view_bits & v3d->local_view_uuid) {
+        if (base->local_view_bits & v3d->local_view_uid) {
           break;
         }
       }
@@ -602,7 +602,7 @@ static void view3d_data_consistency_ensure(wmWindow *win, Scene *scene, ViewLaye
       /* No valid object found for the local view3D, it has to be cleared off. */
       MEM_freeN(v3d->localvd);
       v3d->localvd = nullptr;
-      v3d->local_view_uuid = 0;
+      v3d->local_view_uid = 0;
 
       /* Region-base storage is different depending on whether the space is active or not. */
       ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;

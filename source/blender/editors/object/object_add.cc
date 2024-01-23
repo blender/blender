@@ -498,7 +498,7 @@ bool ED_object_add_generic_get_opts(bContext *C,
 
   if (r_local_view_bits) {
     View3D *v3d = CTX_wm_view3d(C);
-    *r_local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+    *r_local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
   }
 
   /* Location! */
@@ -3177,7 +3177,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       ob->flag |= OB_DONE;
 
       /* Create a new grease pencil object and copy transformations. */
-      ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+      ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
       float loc[3], size[3], rot[3][3], eul[3];
       float matrix[4][4];
       mat4_to_loc_rot_size(loc, rot, size, ob->object_to_world);
@@ -3430,7 +3430,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
         BKE_object_free_curve_cache(newob);
       }
       else if (target == OB_GPENCIL_LEGACY) {
-        ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+        ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
         Object *ob_gpencil = ED_gpencil_add_object(C, newob->loc, local_view_bits);
         copy_v3_v3(ob_gpencil->rot, newob->rot);
         copy_v3_v3(ob_gpencil->scale, newob->scale);
@@ -3473,7 +3473,7 @@ static int object_convert_exec(bContext *C, wmOperator *op)
           /* Create a new grease pencil object and copy transformations.
            * Nurbs Surface are not supported.
            */
-          ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+          ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
           Object *ob_gpencil = ED_gpencil_add_object(C, ob->loc, local_view_bits);
           copy_v3_v3(ob_gpencil->rot, ob->rot);
           copy_v3_v3(ob_gpencil->scale, ob->scale);
