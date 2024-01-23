@@ -16,7 +16,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_paint.hh"
 #include "BKE_undo_system.hh"
 

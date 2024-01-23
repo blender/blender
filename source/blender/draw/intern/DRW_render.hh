@@ -16,7 +16,7 @@
 #include "BLI_string.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_pbvh.hh"
 #include "BKE_scene.h"

@@ -36,7 +36,7 @@
 #  include "RNA_access.hh"
 
 #  include "BKE_idprop.h"
-#  include "BKE_layer.h"
+#  include "BKE_layer.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_node.h"
 #  include "BKE_scene.h"

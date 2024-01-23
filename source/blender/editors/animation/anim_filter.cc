@@ -76,7 +76,7 @@
 #include "BKE_global.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_material.h"

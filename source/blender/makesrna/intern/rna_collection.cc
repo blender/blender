@@ -48,7 +48,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 
 #  include "BKE_collection.h"
 #  include "BKE_global.h"
-#  include "BKE_layer.h"
+#  include "BKE_layer.hh"
 
 #  include "WM_api.hh"
 

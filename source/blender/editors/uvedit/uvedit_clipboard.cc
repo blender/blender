@@ -21,7 +21,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh_mapping.hh" /* UvElementMap */
 #include "BKE_report.h"
 

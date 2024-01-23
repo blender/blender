@@ -16,7 +16,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"

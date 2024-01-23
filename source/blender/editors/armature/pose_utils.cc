@@ -20,7 +20,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 
 #include "BKE_context.hh"

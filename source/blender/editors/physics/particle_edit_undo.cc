@@ -22,7 +22,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_undo_system.hh"

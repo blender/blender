@@ -417,7 +417,7 @@ set(SRC
   BKE_key.h
   BKE_keyconfig.h
   BKE_lattice.hh
-  BKE_layer.h
+  BKE_layer.hh
   BKE_lib_id.hh
   BKE_lib_override.hh
   BKE_lib_query.hh

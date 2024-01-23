@@ -67,7 +67,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"

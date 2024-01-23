@@ -15,7 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

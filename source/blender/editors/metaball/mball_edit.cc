@@ -28,7 +28,7 @@
 #include "RNA_define.hh"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mball.h"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"

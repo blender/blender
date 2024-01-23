@@ -38,7 +38,7 @@
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_light.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"

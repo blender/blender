@@ -12,7 +12,7 @@
 #include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mball_tessellate.h"
 #include "BKE_modifier.hh"

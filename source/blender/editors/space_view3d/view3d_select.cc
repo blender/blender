@@ -55,7 +55,7 @@
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mball.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"

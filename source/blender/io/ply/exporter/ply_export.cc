@@ -6,7 +6,7 @@
  * \ingroup ply
  */
 
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"

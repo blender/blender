@@ -13,7 +13,7 @@
 #include "BKE_collection.h"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"

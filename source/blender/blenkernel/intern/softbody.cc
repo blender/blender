@@ -57,7 +57,7 @@
 #include "BKE_deform.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"

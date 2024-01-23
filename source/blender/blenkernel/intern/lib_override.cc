@@ -33,7 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"

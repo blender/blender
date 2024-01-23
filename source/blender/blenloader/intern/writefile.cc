@@ -104,7 +104,7 @@
 #include "BKE_global.h" /* For #Global `G`. */
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
