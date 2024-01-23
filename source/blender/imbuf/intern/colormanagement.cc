@@ -653,7 +653,6 @@ static void colormanage_free_config()
 void colormanagement_init()
 {
   const char *ocio_env;
-  const char *configdir;
   char configfile[FILE_MAX];
   OCIO_ConstConfigRcPtr *config = nullptr;
 
@@ -669,10 +668,11 @@ void colormanagement_init()
   }
 
   if (config == nullptr) {
-    configdir = BKE_appdir_folder_id(BLENDER_DATAFILES, "colormanagement");
+    const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
+                                                                      "colormanagement");
 
-    if (configdir) {
-      BLI_path_join(configfile, sizeof(configfile), configdir, BCM_CONFIG_FILE);
+    if (configdir.has_value()) {
+      BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
 
       config = OCIO_configCreateFromFile(configfile);
     }

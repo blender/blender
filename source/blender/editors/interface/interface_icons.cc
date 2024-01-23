@@ -950,11 +950,11 @@ static void init_internal_icons()
 {
 #  if 0 /* temp disabled */
   if ((btheme != nullptr) && btheme->tui.iconfile[0]) {
-    char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
+    std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
     char iconfilestr[FILE_MAX];
 
-    if (icondir) {
-      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
+    if (icondir.has_value()) {
+      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), btheme->tui.iconfile);
 
       /* if the image is missing bbuf will just be nullptr */
       bbuf = IMB_loadiffname(iconfilestr, IB_rect, nullptr);
@@ -1054,14 +1054,14 @@ static void init_internal_icons()
 static void init_iconfile_list(ListBase *list)
 {
   BLI_listbase_clear(list);
-  const char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
+  const std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
 
-  if (icondir == nullptr) {
+  if (!icondir.has_value()) {
     return;
   }
 
   direntry *dir;
-  const int totfile = BLI_filelist_dir_contents(icondir, &dir);
+  const int totfile = BLI_filelist_dir_contents(icondir->c_str(), &dir);
 
   int index = 1;
   for (int i = 0; i < totfile; i++) {
@@ -1078,7 +1078,7 @@ static void init_iconfile_list(ListBase *list)
         /* check to see if the image is the right size, continue if not */
         /* copying strings here should go ok, assuming that we never get back
          * a complete path to file longer than 256 chars */
-        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, filename);
+        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), filename);
         bbuf = IMB_loadiffname(iconfilestr, IB_rect);
 
         if (bbuf) {

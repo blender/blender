@@ -1279,13 +1279,15 @@ void wm_homefile_read_ex(bContext *C,
   app_template_system[0] = '\0';
   app_template_config[0] = '\0';
 
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
   if (!use_factory_settings) {
-    if (cfgdir) {
-      BLI_path_join(filepath_startup, sizeof(filepath_startup), cfgdir, BLENDER_STARTUP_FILE);
+    if (cfgdir.has_value()) {
+      BLI_path_join(
+          filepath_startup, sizeof(filepath_startup), cfgdir->c_str(), BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = false;
       if (use_userdef) {
-        BLI_path_join(filepath_userdef, sizeof(filepath_startup), cfgdir, BLENDER_USERPREF_FILE);
+        BLI_path_join(
+            filepath_userdef, sizeof(filepath_startup), cfgdir->c_str(), BLENDER_USERPREF_FILE);
       }
     }
     else {
@@ -1328,8 +1330,9 @@ void wm_homefile_read_ex(bContext *C,
 
     /* note that the path is being set even when 'use_factory_settings == true'
      * this is done so we can load a templates factory-settings */
-    if (!use_factory_settings) {
-      BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template);
+    if (!use_factory_settings && cfgdir.has_value()) {
+      BLI_path_join(
+          app_template_config, sizeof(app_template_config), cfgdir->c_str(), app_template);
       BLI_path_join(
           filepath_startup, sizeof(filepath_startup), app_template_config, BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = false;
@@ -1534,8 +1537,8 @@ void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file
 
 void wm_history_file_read()
 {
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
-  if (!cfgdir) {
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  if (!cfgdir.has_value()) {
     return;
   }
 
@@ -1543,7 +1546,7 @@ void wm_history_file_read()
   LinkNode *l;
   int num;
 
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_HISTORY_FILE);
 
   LinkNode *lines = BLI_file_read_as_lines(filepath);
 
@@ -1597,17 +1600,17 @@ static RecentFile *wm_file_history_find(const char *filepath)
  */
 static void wm_history_file_write()
 {
-  const char *user_config_dir;
   char filepath[FILE_MAX];
   FILE *fp;
 
   /* will be nullptr in background mode */
-  user_config_dir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr);
-  if (!user_config_dir) {
+  const std::optional<std::string> user_config_dir = BKE_appdir_folder_id_create(
+      BLENDER_USER_CONFIG, nullptr);
+  if (!user_config_dir.has_value()) {
     return;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), user_config_dir->c_str(), BLENDER_HISTORY_FILE);
 
   fp = BLI_fopen(filepath, "w");
   if (fp) {
@@ -2093,10 +2096,11 @@ static void wm_autosave_location(char filepath[FILE_MAX])
    * If this is still the case on WIN32 - other features such as copy-paste will also fail.
    * We could support #BLENDER_USER_AUTOSAVE on all platforms or remove it entirely. */
 #ifdef WIN32
+  std::optional<std::string> savedir;
   if (!BLI_exists(tempdir_base)) {
-    const char *savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, nullptr);
-    if (savedir) {
-      tempdir_base = savedir;
+    savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, nullptr);
+    if (savedir.has_value()) {
+      tempdir_base = savedir->c_str();
     }
   }
 #endif
@@ -2277,8 +2281,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   int fileflags;
 
   const char *app_template = U.app_template[0] ? U.app_template : nullptr;
-  const char *const cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, app_template);
-  if (cfgdir == nullptr) {
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG,
+                                                                        app_template);
+  if (!cfgdir.has_value()) {
     BKE_report(op->reports, RPT_ERROR, "Unable to create user config path");
     return OPERATOR_CANCELLED;
   }
@@ -2296,7 +2301,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   /* update keymaps in user preferences */
   WM_keyconfig_update(wm);
 
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_STARTUP_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_STARTUP_FILE);
 
   printf("Writing homefile: \"%s\" ", filepath);
 

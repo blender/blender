@@ -1023,15 +1023,15 @@ void ED_file_exit()
 
 void ED_file_read_bookmarks()
 {
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
 
   fsmenu_free();
 
   fsmenu_read_system(ED_fsmenu_get(), true);
 
-  if (cfgdir) {
+  if (cfgdir.has_value()) {
     char filepath[FILE_MAX];
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+    BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
     fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
   }
 }

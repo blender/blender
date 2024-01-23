@@ -12,6 +12,9 @@
 
 #include <stddef.h>
 
+#include <optional>
+#include <string>
+
 #include "BLI_compiler_attrs.h"
 
 struct ListBase;
@@ -76,25 +79,26 @@ bool BKE_appdir_folder_id_ex(int folder_id,
                              const char *subfolder,
                              char *path,
                              size_t path_maxncpy);
-const char *BKE_appdir_folder_id(int folder_id, const char *subfolder) ATTR_WARN_UNUSED_RESULT;
+std::optional<std::string> BKE_appdir_folder_id(int folder_id,
+                                                const char *subfolder) ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path to a folder in the user area, creating it if it doesn't exist.
  */
-const char *BKE_appdir_folder_id_create(int folder_id,
-                                        const char *subfolder) ATTR_WARN_UNUSED_RESULT;
+std::optional<std::string> BKE_appdir_folder_id_create(int folder_id, const char *subfolder)
+    ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path to a folder in the user area without checking that it actually exists first.
  */
-const char *BKE_appdir_folder_id_user_notest(int folder_id,
-                                             const char *subfolder) ATTR_WARN_UNUSED_RESULT;
+std::optional<std::string> BKE_appdir_folder_id_user_notest(int folder_id, const char *subfolder)
+    ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path of the top-level version-specific local, user or system directory.
  * If check_is_dir, then the result will be NULL if the directory doesn't exist.
  */
-const char *BKE_appdir_resource_path_id_with_version(int folder_id,
-                                                     bool check_is_dir,
-                                                     int version);
-const char *BKE_appdir_resource_path_id(int folder_id, bool check_is_dir);
+std::optional<std::string> BKE_appdir_resource_path_id_with_version(int folder_id,
+                                                                    bool check_is_dir,
+                                                                    int version);
+std::optional<std::string> BKE_appdir_resource_path_id(int folder_id, bool check_is_dir);
 
 /**
  * Check if this is an install with user files kept together

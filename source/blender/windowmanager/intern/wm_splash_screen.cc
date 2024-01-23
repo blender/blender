@@ -216,10 +216,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*ar
 
   MenuType *mt;
   char userpref[FILE_MAX];
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
 
-  if (cfgdir) {
-    BLI_path_join(userpref, sizeof(userpref), cfgdir, BLENDER_USERPREF_FILE);
+  if (cfgdir.has_value()) {
+    BLI_path_join(userpref, sizeof(userpref), cfgdir->c_str(), BLENDER_USERPREF_FILE);
   }
 
   /* Draw setup screen if no preferences have been saved yet. */
