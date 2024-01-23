@@ -1288,11 +1288,8 @@ bool GLShader::finalize(const shader::ShaderCreateInfo *info)
     std::string source = workaround_geometry_shader_source_create(*info);
     Vector<const char *> sources;
     sources.append("version");
+    sources.append("/* Specialization Constants. */\n");
     sources.append(source.c_str());
-    if (!constants.types.is_empty()) {
-      geometry_sources_ = sources;
-    }
-
     geometry_shader_from_glsl(sources);
   }
 
