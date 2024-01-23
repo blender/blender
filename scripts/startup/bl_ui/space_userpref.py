@@ -2164,9 +2164,6 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         row.prop(wm, "addon_support", expand=True)
 
         row = layout.row()
-        row.prop(wm, "addon_filter", text="")
-
-        row = layout.row()
         row.prop(prefs.view, "show_addons_enabled_only")
 
         # Not filter, we could expose elsewhere.
@@ -2234,6 +2231,9 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         search = wm.addon_search.lower()
         support = wm.addon_support
 
+        if use_extension_repos:
+            filter = "All"
+
         # initialized on demand
         user_addon_paths = []
 
@@ -2285,13 +2285,17 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
                 sub = row.row()
                 sub.active = is_enabled
-                sub.label(text="%s: %s" % (iface_(info["category"]), iface_(info["name"])))
+                if use_extension_repos:
+                    sub.label(text=iface_(info["name"]))
+                else:
+                    sub.label(text="%s: %s" % (iface_(info["category"]), iface_(info["name"])))
 
                 if info["warning"]:
                     sub.label(icon='ERROR')
 
                 # icon showing support level.
-                sub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
+                if not use_extension_repos:
+                    sub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
 
                 # Expanded UI (only if additional info is available)
                 if info["show_expanded"]:
