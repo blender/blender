@@ -148,7 +148,7 @@ static int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop
   }
 
   /* Clamp to some min/max width. */
-  return CLAMPIS(
+  return std::clamp(
       estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 3);
 }
 

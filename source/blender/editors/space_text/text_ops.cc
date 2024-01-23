@@ -3340,7 +3340,7 @@ static void text_cursor_set_apply(bContext *C, wmOperator *op, const wmEvent *ev
 
     if (event->type == TIMER) {
       text_cursor_set_to_pos(
-          st, region, CLAMPIS(event->mval[0], 0, region->winx), event->mval[1], true);
+          st, region, std::clamp(event->mval[0], 0, int(region->winx)), event->mval[1], true);
       ED_space_text_scroll_to_cursor(st, region, false);
       WM_event_add_notifier(C, NC_TEXT | ND_CURSOR, st->text);
     }

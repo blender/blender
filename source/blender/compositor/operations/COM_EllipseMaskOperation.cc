@@ -111,7 +111,7 @@ void EllipseMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
       break;
     case CMP_NODE_MASKTYPE_SUBTRACT:
       mask_func = [](const bool is_inside, const float *mask, const float *value) {
-        return is_inside ? CLAMPIS(mask[0] - value[0], 0, 1) : mask[0];
+        return is_inside ? std::clamp(mask[0] - value[0], 0.0f, 1.0f) : mask[0];
       };
       break;
     case CMP_NODE_MASKTYPE_MULTIPLY:

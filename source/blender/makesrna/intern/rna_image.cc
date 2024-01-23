@@ -53,6 +53,8 @@ static const EnumPropertyItem image_source_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "BLI_math_base.h"
 #  include "BLI_math_vector.h"
 
@@ -132,7 +134,7 @@ static void rna_Image_generated_width_set(PointerRNA *ptr, int value)
 {
   Image *ima = (Image *)ptr->data;
   ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-  base_tile->gen_x = CLAMPIS(value, 1, 65536);
+  base_tile->gen_x = std::clamp(value, 1, 65536);
 }
 
 static int rna_Image_generated_height_get(PointerRNA *ptr)
@@ -146,7 +148,7 @@ static void rna_Image_generated_height_set(PointerRNA *ptr, int value)
 {
   Image *ima = (Image *)ptr->data;
   ImageTile *base_tile = BKE_image_get_tile(ima, 0);
-  base_tile->gen_y = CLAMPIS(value, 1, 65536);
+  base_tile->gen_y = std::clamp(value, 1, 65536);
 }
 
 static bool rna_Image_generated_float_get(PointerRNA *ptr)
@@ -180,7 +182,7 @@ void rna_Image_generated_color_set(PointerRNA *ptr, const float values[4])
   Image *ima = (Image *)(ptr->data);
   ImageTile *base_tile = BKE_image_get_tile(ima, 0);
   for (uint i = 0; i < 4; i++) {
-    base_tile->gen_color[i] = CLAMPIS(values[i], 0.0f, FLT_MAX);
+    base_tile->gen_color[i] = std::clamp(values[i], 0.0f, FLT_MAX);
   }
 }
 

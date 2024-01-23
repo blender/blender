@@ -35,7 +35,7 @@ class MathBaseOperation : public MultiThreadedOperation {
   float clamp_when_enabled(float value)
   {
     if (use_clamp_) {
-      return CLAMPIS(value, 0.0f, 1.0f);
+      return std::clamp(value, 0.0f, 1.0f);
     }
     return value;
   }

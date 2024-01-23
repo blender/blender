@@ -780,8 +780,8 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, const 
   int xsam = int(0.5f * sqrtf(ux * ux + uy * uy) + 0.5f);
   int ysam = int(0.5f * sqrtf(vx * vx + vy * vy) + 0.5f);
   const int minsam = AFD->intpol ? 2 : 4;
-  xsam = CLAMPIS(xsam, minsam, ibuf->x * 2);
-  ysam = CLAMPIS(ysam, minsam, ibuf->y * 2);
+  xsam = std::clamp(xsam, minsam, ibuf->x * 2);
+  ysam = std::clamp(ysam, minsam, ibuf->y * 2);
   xsd = 1.0f / xsam;
   ysd = 1.0f / ysam;
   texr->trgba[0] = texr->trgba[1] = texr->trgba[2] = texr->trgba[3] = 0.0f;

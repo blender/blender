@@ -9,6 +9,8 @@
  * an experimental tool for quickly constructing/manipulating faces.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -312,7 +314,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
     mul_m4_v3(vc.obedit->world_to_object, center);
     if (f_reference->len == 3 && RNA_boolean_get(op->ptr, "create_quads")) {
       const float fac = line_point_factor_v3(center, e_act->v1->co, e_act->v2->co);
-      BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, nullptr, CLAMPIS(fac, 0.0f, 1.0f));
+      BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, nullptr, std::clamp(fac, 0.0f, 1.0f));
       copy_v3_v3(v_new->co, center);
       edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);
       BM_vert_select_set(bm, v_new, true);
@@ -477,7 +479,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
     mul_m4_v3(vc.obedit->world_to_object, center);
 
     const float fac = line_point_factor_v3(center, e_act->v1->co, e_act->v2->co);
-    BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, nullptr, CLAMPIS(fac, 0.0f, 1.0f));
+    BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, nullptr, std::clamp(fac, 0.0f, 1.0f));
     copy_v3_v3(v_new->co, center);
 
     edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);

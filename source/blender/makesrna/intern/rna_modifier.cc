@@ -687,6 +687,9 @@ const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#  include <algorithm>
+
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
 #  include "DNA_material_types.h"
@@ -1178,7 +1181,7 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
   UVProjectModifierData *md = (UVProjectModifierData *)ptr->data;
   int a;
 
-  md->projectors_num = CLAMPIS(value, 1, MOD_UVPROJECT_MAXPROJECTORS);
+  md->projectors_num = std::clamp(value, 1, MOD_UVPROJECT_MAXPROJECTORS);
   for (a = md->projectors_num; a < MOD_UVPROJECT_MAXPROJECTORS; a++) {
     md->projectors[a] = nullptr;
   }

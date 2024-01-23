@@ -172,7 +172,7 @@ static float edge_pan_speed(View2DEdgePanData *vpd,
   /* Zoom factor increases speed when zooming in and decreases speed when zooming out. */
   const float zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
                       BLI_rctf_size_x(&region->v2d.cur);
-  const float zoom_factor = 1.0f + CLAMPIS(vpd->zoom_influence, 0.0f, 1.0f) * (zoomx - 1.0f);
+  const float zoom_factor = 1.0f + std::clamp(vpd->zoom_influence, 0.0f, 1.0f) * (zoomx - 1.0f);
 
   return distance_factor * delay_factor * zoom_factor * vpd->max_speed * U.widget_unit *
          float(UI_SCALE_FAC);

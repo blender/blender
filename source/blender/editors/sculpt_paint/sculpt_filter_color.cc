@@ -10,6 +10,7 @@
 
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
 #include "BLT_translation.h"
@@ -92,7 +93,9 @@ static void color_filter_task(Object *ob,
     SCULPT_orig_vert_data_update(&orig_data, &vd);
     auto_mask::node_update(automask_data, vd);
 
-    float orig_color[3], final_color[4], hsv_color[3];
+    float3 orig_color;
+    float4 final_color;
+    float3 hsv_color;
     int hue;
     float brightness, contrast, gain, delta, offset;
     float fade = vd.mask;
@@ -209,7 +212,7 @@ static void color_filter_task(Object *ob,
           blend_color_interpolate_float(final_color, col, smooth_color, fade);
         }
 
-        CLAMP4(final_color, 0.0f, 1.0f);
+        final_color = math::clamp(final_color, 0.0f, 1.0f);
 
         /* Prevent accumulated numeric error from corrupting alpha. */
         if (copy_alpha) {

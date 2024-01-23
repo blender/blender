@@ -6,6 +6,7 @@
  * \ingroup edsculpt
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 
@@ -1160,7 +1161,7 @@ static void paint_stroke_add_sample(
     const Paint *paint, PaintStroke *stroke, float x, float y, float pressure)
 {
   PaintSample *sample = &stroke->samples[stroke->cur_sample];
-  int max_samples = CLAMPIS(paint->num_input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
+  int max_samples = std::clamp(paint->num_input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
 
   sample->mouse[0] = x;
   sample->mouse[1] = y;

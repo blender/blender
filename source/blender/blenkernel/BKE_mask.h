@@ -335,7 +335,7 @@ void BKE_mask_clipboard_paste_to_layer(struct Main *bmain, struct MaskLayer *mas
 
 /* `mask_evaluate.cc` */
 
-unsigned int BKE_mask_spline_resolution(struct MaskSpline *spline, int width, int height);
+int BKE_mask_spline_resolution(struct MaskSpline *spline, int width, int height);
 unsigned int BKE_mask_spline_feather_resolution(struct MaskSpline *spline, int width, int height);
 int BKE_mask_spline_differentiate_calc_total(const struct MaskSpline *spline, unsigned int resol);
 
