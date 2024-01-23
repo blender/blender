@@ -5194,7 +5194,7 @@ static void rna_def_modifier_uvwarp(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "uvlayer_name");
-  RNA_def_property_ui_text(prop, "UV Layer", "UV Layer name");
+  RNA_def_property_ui_text(prop, "UV Map", "UV map name");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_UVWarpModifier_uvlayer_name_set");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
