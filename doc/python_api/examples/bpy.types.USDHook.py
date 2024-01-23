@@ -50,9 +50,9 @@ import pxr.UsdShade as UsdShade
 
 
 class USDHookExample(bpy.types.USDHook):
+    """Example implementation of USD IO hooks"""
     bl_idname = "usd_hook_example"
     bl_label = "Example"
-    bl_description = "Example implementation of USD IO hooks"
 
     @staticmethod
     def on_export(export_context):

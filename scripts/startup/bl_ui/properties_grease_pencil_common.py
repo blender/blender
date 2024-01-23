@@ -884,9 +884,9 @@ class GreasePencilLayerDisplayPanel:
 
 
 class GreasePencilFlipTintColors(Operator):
+    """Switch tint colors"""
     bl_label = "Flip Colors"
     bl_idname = "gpencil.tint_flip"
-    bl_description = "Switch tint colors"
 
     @classmethod
     def poll(cls, context):
