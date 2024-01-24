@@ -18,8 +18,6 @@
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
-#include <iostream>
-
 namespace blender::io::usd {
 
 void USDLightReader::create_object(Main *bmain, const double /*motionSampleTime*/)

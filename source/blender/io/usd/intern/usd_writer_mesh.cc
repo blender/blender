@@ -50,8 +50,6 @@
 
 #include "WM_api.hh"
 
-#include <iostream>
-
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
 
