@@ -584,7 +584,7 @@ class ARMATURE_OT_collection_show_all(Operator):
 
 
 class ARMATURE_OT_collection_remove_unused(Operator):
-    """Remove all bone collections that have neither bones nor children.\n""" \
+    """Remove all bone collections that have neither bones nor children. """ \
         """This is done recursively, so bone collections that only have unused children are also removed"""
 
     bl_idname = "armature.collection_remove_unused"
