@@ -198,7 +198,7 @@ void normals_calc_verts(const Span<float3> vert_positions,
 /** \name Mesh Normal Calculation
  * \{ */
 
-blender::bke::MeshNormalDomain Mesh::normals_domain() const
+blender::bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_face) const
 {
   using namespace blender;
   using namespace blender::bke;
@@ -227,7 +227,7 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
-      face_mix == array_utils::BooleanMix::AllFalse)
+      (face_mix == array_utils::BooleanMix::AllFalse || support_sharp_face))
   {
     return MeshNormalDomain::Point;
   }

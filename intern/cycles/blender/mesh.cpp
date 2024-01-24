@@ -825,7 +825,7 @@ static void create_mesh(Scene *scene,
   const blender::OffsetIndices faces = b_mesh.faces();
   const blender::Span<int> corner_verts = b_mesh.corner_verts();
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
-  const blender::bke::MeshNormalDomain normals_domain = b_mesh.normals_domain();
+  const blender::bke::MeshNormalDomain normals_domain = b_mesh.normals_domain(true);
   int numfaces = (!subdivision) ? b_mesh.corner_tris().size() : faces.size();
 
   bool use_loop_normals = normals_domain == blender::bke::MeshNormalDomain::Corner &&
