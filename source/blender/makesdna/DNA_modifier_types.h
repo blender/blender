@@ -2554,18 +2554,19 @@ typedef enum GreasePencilOpacityModifierFlag {
 typedef struct GreasePencilSubdivModifierData {
   ModifierData modifier;
   GreasePencilModifierInfluenceData influence;
-  /** `GreasePencilSubdivModifierFlag`. */
-  int flag;
-  /** Number of subdivisions. */
+  /** #GreasePencilSubdivideType. */
+  int type;
+  /** Level of subdivisions, will generate 2^level segments. */
   int level;
 
   char _pad[8];
   void *_pad1;
 } GreasePencilSubdivModifierData;
 
-typedef enum GreasePencilSubdivModifierFlag {
-  MOD_GREASE_PENCIL_SUBDIV_OPEN_INFLUENCE_PANEL = (1 << 0),
-} GreasePencilSubdivModifierFlag;
+typedef enum GreasePencilSubdivideType {
+  MOD_GREASE_PENCIL_SUBDIV_CATMULL = 0,
+  MOD_GREASE_PENCIL_SUBDIV_SIMPLE = 1,
+} GreasePencilSubdivideType;
 
 typedef struct GreasePencilColorModifierData {
   ModifierData modifier;
