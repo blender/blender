@@ -440,17 +440,17 @@ static bool bm_face_is_sharp(const BMFace *const &face)
 }
 
 /**
- * Returns whether loop normals are required because of mixed sharp and smooth flags.
+ * Returns which domain of normals is required because of sharp and smooth flags.
  * Similar to #Mesh::normals_domain().
  */
-static bool bm_loop_normals_required(BMesh *bm)
+static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
 {
   if (bm->totface == 0) {
-    return false;
+    return bke::MeshNormalDomain::Point;
   }
 
   if (CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
-    return true;
+    return bke::MeshNormalDomain::Corner;
   }
 
   BM_mesh_elem_table_ensure(bm, BM_FACE);
@@ -458,7 +458,7 @@ static bool bm_loop_normals_required(BMesh *bm)
       Span(bm->ftable, bm->totface));
   const array_utils::BooleanMix face_mix = array_utils::booleans_mix_calc(sharp_faces);
   if (face_mix == array_utils::BooleanMix::AllTrue) {
-    return false;
+    return bke::MeshNormalDomain::Face;
   }
 
   BM_mesh_elem_table_ensure(bm, BM_EDGE);
@@ -466,16 +466,16 @@ static bool bm_loop_normals_required(BMesh *bm)
       Span(bm->etable, bm->totedge));
   const array_utils::BooleanMix edge_mix = array_utils::booleans_mix_calc(sharp_edges);
   if (edge_mix == array_utils::BooleanMix::AllTrue) {
-    return false;
+    return bke::MeshNormalDomain::Face;
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
       face_mix == array_utils::BooleanMix::AllFalse)
   {
-    return false;
+    return bke::MeshNormalDomain::Point;
   }
 
-  return true;
+  return bke::MeshNormalDomain::Corner;
 }
 
 void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_flag)
@@ -499,7 +499,7 @@ void mesh_render_data_update_normals(MeshRenderData &mr, const eMRDataType data_
       /* Use #BMFace.no instead. */
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && !mr.use_simplify_normals &&
-         bm_loop_normals_required(mr.bm)) ||
+         mr.normals_domain == bke::MeshNormalDomain::Corner) ||
         (data_flag & MR_DATA_TAN_LOOP_NOR))
     {
 
@@ -697,6 +697,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->loop_len = bm->totloop;
     mr->face_len = bm->totface;
     mr->tri_len = poly_to_tri_count(mr->face_len, mr->loop_len);
+
+    mr->normals_domain = bmesh_normals_domain(bm);
   }
 
   retrieve_active_attribute_names(*mr, *object, *mr->mesh);
