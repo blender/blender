@@ -15,14 +15,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
 #include "BLI_threads.h"
-#include "BLI_time.h"
-
-/* defines BLI_INLINE */
-#include "BLI_compiler_compat.h"
 
 #include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
