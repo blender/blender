@@ -64,7 +64,7 @@
 
 #include "DRW_select_buffer.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 /* use bmesh operator flags for a few operators */
 #define BMO_ELE_TAG 1

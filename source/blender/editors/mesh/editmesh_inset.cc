@@ -38,7 +38,7 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 struct InsetObjectStore {
   /** Must have a valid edit-mesh. */

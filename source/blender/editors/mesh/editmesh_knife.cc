@@ -66,7 +66,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "mesh_intern.h" /* Own include. */
+#include "mesh_intern.hh" /* Own include. */
 
 using namespace blender;
 

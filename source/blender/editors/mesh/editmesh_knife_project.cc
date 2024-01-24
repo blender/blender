@@ -39,7 +39,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, LinkNode *polys)
 {

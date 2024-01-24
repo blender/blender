@@ -36,7 +36,7 @@
 
 #include "bmesh.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

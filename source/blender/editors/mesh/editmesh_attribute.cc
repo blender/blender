@@ -44,7 +44,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "mesh_intern.h"
+#include "mesh_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Delete Operator

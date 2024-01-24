@@ -36,7 +36,7 @@
 
 #include "intern/bmesh_private.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 #include "tools/bmesh_boolean.hh"
 #include "tools/bmesh_intersect.hh"

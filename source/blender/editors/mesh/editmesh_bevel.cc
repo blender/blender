@@ -43,7 +43,7 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 #define MVAL_PIXEL_MARGIN 5.0f
 
