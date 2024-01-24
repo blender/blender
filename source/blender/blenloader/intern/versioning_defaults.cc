@@ -830,4 +830,15 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       brush->mask_mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
     }
   }
+
+  {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
+      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
+
+      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
+      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
+    }
+  }
 }

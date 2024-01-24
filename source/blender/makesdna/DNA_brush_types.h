@@ -317,6 +317,11 @@ typedef struct Brush {
   int automasking_flags;
   int automasking_boundary_edges_propagation_steps;
 
+  float automasking_start_normal_limit;
+  float automasking_start_normal_falloff;
+  float automasking_view_normal_limit;
+  float automasking_view_normal_falloff;
+
   int elastic_deform_type;
   float elastic_deform_volume_preservation;
 
