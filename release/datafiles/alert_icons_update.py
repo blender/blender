@@ -10,11 +10,11 @@ import sys
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
-if sys.platform == 'darwin':
-    inkscape_bin = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
-else:
-    inkscape_bin = "inkscape"
-inkscape_bin = os.environ.get("INKSCAPE_BIN", inkscape_bin)
+if not (inkscape_bin := os.environ.get("INKSCAPE_BIN")):
+    if sys.platform == 'darwin':
+        inkscape_bin = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
+    else:
+        inkscape_bin = "inkscape"
 
 cmd = (
     inkscape_bin,
