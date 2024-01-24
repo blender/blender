@@ -335,12 +335,38 @@ Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease
   return drawings;
 }
 
-Vector<DrawingInfo> get_drawing_infos_for_write(GreasePencil &grease_pencil,
-                                                const IndexMask &layer_mask,
-                                                const int frame)
+Vector<LayerDrawingInfo> get_drawing_infos_by_layer(GreasePencil &grease_pencil,
+                                                    const IndexMask &layer_mask,
+                                                    const int frame)
 {
   Set<int> drawing_indices;
-  Vector<DrawingInfo> drawing_infos;
+  Vector<LayerDrawingInfo> drawing_infos;
+  for (const int64_t i : layer_mask.index_range()) {
+    const int layer_index = layer_mask[i];
+    const Layer *layer = grease_pencil.layers()[layer_index];
+    const int drawing_index = layer->drawing_index_at(frame);
+    if (drawing_index < 0) {
+      continue;
+    }
+
+    if (!drawing_indices.contains(drawing_index)) {
+      drawing_indices.add(drawing_index);
+      GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(drawing_index);
+      if (drawing_base->type == GP_DRAWING) {
+        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+        drawing_infos.append({&drawing->wrap(), layer_index});
+      }
+    }
+  }
+  return drawing_infos;
+}
+
+Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
+                                                    const IndexMask &layer_mask,
+                                                    const int frame)
+{
+  Set<int> drawing_indices;
+  Vector<FrameDrawingInfo> drawing_infos;
   for (const int64_t i : layer_mask.index_range()) {
     const Layer *layer = grease_pencil.layers()[layer_mask[i]];
     const std::optional<FramesMapKey> start_frame = layer->frame_key_at(frame);
