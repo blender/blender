@@ -314,6 +314,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion2_2;
     options.fastMathEnabled = YES;
+    options.preserveInvariance = YES;
 
     if (@available(macOS 11.00, *)) {
       /* Raster order groups for tile data in struct require Metal 2.3.
