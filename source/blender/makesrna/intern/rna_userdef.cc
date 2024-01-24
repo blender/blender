@@ -6612,7 +6612,10 @@ static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "dirpath");
-  RNA_def_property_ui_text(prop, "Local Directory", "The local directory containing extensions");
+  RNA_def_property_ui_text(prop,
+                           "Local Directory",
+                           "The local directory containing extensions. "
+                           "When unset, a path is used based on the user scripts path");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_string_funcs(
       prop, nullptr, nullptr, "rna_userdef_extension_repo_directory_set");

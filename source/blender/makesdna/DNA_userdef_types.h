@@ -623,6 +623,10 @@ typedef struct bUserExtensionRepo {
    */
   char module[48];
 
+  /**
+   * The "local" directory where extensions are stored.
+   * When unset, use `{BLENDER_USER_SCRIPTS}/extensions/{bUserExtensionRepo::module}`.
+   */
   char dirpath[1024];     /* FILE_MAX */
   char remote_path[1024]; /* FILE_MAX */
 

@@ -68,7 +68,7 @@ def _paths_with_extension_repos():
         for repo in _preferences.filepaths.extension_repos:
             if not repo.enabled:
                 continue
-            dirpath = repo.directory
+            dirpath = repo.directory_or_default
             if not os.path.isdir(dirpath):
                 continue
             addon_paths.append((dirpath, "%s.%s" % (_ext_base_pkg_idname, repo.module)))
@@ -652,7 +652,7 @@ def _extension_dirpath_from_preferences():
         for repo in _preferences.filepaths.extension_repos:
             if not repo.enabled:
                 continue
-            repos_dict[repo.module] = repo.directory
+            repos_dict[repo.module] = repo.directory_or_default
     return repos_dict
 
 
