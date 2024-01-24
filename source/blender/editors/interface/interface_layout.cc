@@ -1636,7 +1636,7 @@ void uiItemsFullEnumO(uiLayout *layout,
 
   if (!ot || !ot->srna) {
     ui_item_disabled(layout, opname);
-    RNA_warning("%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
+    RNA_warning("%s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
     return;
   }
 
