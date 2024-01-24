@@ -31,7 +31,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_report.h"
 
@@ -52,9 +52,11 @@
 #include "UI_view2d.hh"
 
 #include "intern/bmesh_marking.hh"
-#include "uvedit_intern.h"
+#include "uvedit_intern.hh"
 
 #include "bmesh_tools.hh"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Path Select Struct & Properties
@@ -561,9 +563,8 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, nullptr, &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
 
   float co[2];
 
@@ -577,17 +578,17 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
   bool hit_found = false;
   if (uv_selectmode == UV_SELECT_FACE) {
-    if (uv_find_nearest_face_multi(scene, objects, objects_len, co, &hit)) {
+    if (uv_find_nearest_face_multi(scene, objects, co, &hit)) {
       hit_found = true;
     }
   }
   else if (uv_selectmode & UV_SELECT_EDGE) {
-    if (uv_find_nearest_edge_multi(scene, objects, objects_len, co, 0.0f, &hit)) {
+    if (uv_find_nearest_edge_multi(scene, objects, co, 0.0f, &hit)) {
       hit_found = true;
     }
   }
   else {
-    if (uv_find_nearest_vert_multi(scene, objects, objects_len, co, 0.0f, &hit)) {
+    if (uv_find_nearest_vert_multi(scene, objects, co, 0.0f, &hit)) {
       hit_found = true;
     }
   }
@@ -680,8 +681,6 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
       changed = true;
     }
   }
-
-  MEM_freeN(objects);
 
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -802,11 +801,9 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
   const float aspect_y = ED_uvedit_get_aspect_y(CTX_data_edit_object(C));
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-      scene, view_layer, nullptr, &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -845,7 +842,6 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
       found_valid_elements = true;
     }
   }
-  MEM_freeN(objects);
 
   if (!found_valid_elements) {
     BKE_report(

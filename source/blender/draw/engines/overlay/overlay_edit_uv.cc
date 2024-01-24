@@ -15,7 +15,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_image.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mask.h"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
@@ -35,6 +35,8 @@
 #include "UI_resources.hh"
 
 #include "overlay_private.hh"
+
+using blender::Vector;
 
 /* Forward declarations. */
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob);
@@ -422,15 +424,13 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   if ((pd->edit_uv.do_uv_overlay || pd->edit_uv.do_uv_shadow_overlay) &&
       draw_ctx->obact->type == OB_MESH)
   {
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-        draw_ctx->scene, draw_ctx->view_layer, nullptr, &objects_len, draw_ctx->object_mode);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *object_eval = DEG_get_evaluated_object(draw_ctx->depsgraph, objects[ob_index]);
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
+        draw_ctx->scene, draw_ctx->view_layer, nullptr, draw_ctx->object_mode);
+    for (Object *object : objects) {
+      Object *object_eval = DEG_get_evaluated_object(draw_ctx->depsgraph, object);
       DRW_mesh_batch_cache_validate(object_eval, (Mesh *)object_eval->data);
       overlay_edit_uv_cache_populate(vedata, object_eval);
     }
-    MEM_freeN(objects);
   }
 }
 

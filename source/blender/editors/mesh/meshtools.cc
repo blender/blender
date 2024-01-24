@@ -33,7 +33,7 @@
 #include "BKE_deform.h"
 #include "BKE_editmesh.hh"
 #include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -1458,10 +1458,7 @@ MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
   return nullptr;
 }
 
-void EDBM_mesh_stats_multi(Object **objects,
-                           const uint objects_len,
-                           int totelem[3],
-                           int totelem_sel[3])
+void EDBM_mesh_stats_multi(const Span<Object *> objects, int totelem[3], int totelem_sel[3])
 {
   if (totelem) {
     totelem[0] = 0;
@@ -1474,8 +1471,7 @@ void EDBM_mesh_stats_multi(Object **objects,
     totelem_sel[2] = 0;
   }
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     if (totelem) {
@@ -1491,11 +1487,10 @@ void EDBM_mesh_stats_multi(Object **objects,
   }
 }
 
-void EDBM_mesh_elem_index_ensure_multi(Object **objects, const uint objects_len, const char htype)
+void EDBM_mesh_elem_index_ensure_multi(const Span<Object *> objects, const char htype)
 {
   int elem_offset[4] = {0, 0, 0, 0};
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     BM_mesh_elem_index_ensure_ex(bm, htype, elem_offset);

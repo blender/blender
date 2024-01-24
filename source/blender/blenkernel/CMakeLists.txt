@@ -417,7 +417,7 @@ set(SRC
   BKE_key.h
   BKE_keyconfig.h
   BKE_lattice.hh
-  BKE_layer.h
+  BKE_layer.hh
   BKE_lib_id.hh
   BKE_lib_override.hh
   BKE_lib_query.hh
@@ -432,8 +432,8 @@ set(SRC
   BKE_main_namemap.hh
   BKE_mask.h
   BKE_material.h
-  BKE_mball.h
-  BKE_mball_tessellate.h
+  BKE_mball.hh
+  BKE_mball_tessellate.hh
   BKE_mesh.h
   BKE_mesh.hh
   BKE_mesh_boolean_convert.hh

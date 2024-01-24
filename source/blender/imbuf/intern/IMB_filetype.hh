@@ -22,7 +22,7 @@ struct ImBuf;
 
 #define IM_FTYPE_FLOAT 1
 
-typedef struct ImFileType {
+struct ImFileType {
   /** Optional, called once when initializing. */
   void (*init)(void);
   /** Optional, called once when exiting. */
@@ -36,25 +36,22 @@ typedef struct ImFileType {
   bool (*is_a)(const unsigned char *buf, size_t size);
 
   /** Load an image from memory. */
-  struct ImBuf *(*load)(const unsigned char *mem,
-                        size_t size,
-                        int flags,
-                        char colorspace[IM_MAX_SPACE]);
+  ImBuf *(*load)(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE]);
   /** Load an image from a file. */
-  struct ImBuf *(*load_filepath)(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
+  ImBuf *(*load_filepath)(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
   /**
    * Load/Create a thumbnail image from a filepath. `max_thumb_size` is maximum size of either
    * dimension, so can return less on either or both. Should, if possible and performant, return
    * dimensions of the full-size image in r_width & r_height.
    */
-  struct ImBuf *(*load_filepath_thumbnail)(const char *filepath,
-                                           int flags,
-                                           size_t max_thumb_size,
-                                           char colorspace[IM_MAX_SPACE],
-                                           size_t *r_width,
-                                           size_t *r_height);
+  ImBuf *(*load_filepath_thumbnail)(const char *filepath,
+                                    int flags,
+                                    size_t max_thumb_size,
+                                    char colorspace[IM_MAX_SPACE],
+                                    size_t *r_width,
+                                    size_t *r_height);
   /** Save to a file (or memory if #IB_mem is set in `flags` and the format supports it). */
-  bool (*save)(struct ImBuf *ibuf, const char *filepath, int flags);
+  bool (*save)(ImBuf *ibuf, const char *filepath, int flags);
 
   int flag;
 
@@ -62,13 +59,13 @@ typedef struct ImFileType {
   int filetype;
 
   int default_save_role;
-} ImFileType;
+};
 
 extern const ImFileType IMB_FILE_TYPES[];
 extern const ImFileType *IMB_FILE_TYPES_LAST;
 
 const ImFileType *IMB_file_type_from_ftype(int ftype);
-const ImFileType *IMB_file_type_from_ibuf(const struct ImBuf *ibuf);
+const ImFileType *IMB_file_type_from_ibuf(const ImBuf *ibuf);
 
 void imb_filetypes_init(void);
 void imb_filetypes_exit(void);
@@ -82,11 +79,11 @@ void imb_filetypes_exit(void);
  * \{ */
 
 bool imb_is_a_png(const unsigned char *mem, size_t size);
-struct ImBuf *imb_load_png(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
-bool imb_save_png(struct ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_load_png(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
+bool imb_save_png(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -95,11 +92,11 @@ bool imb_save_png(struct ImBuf *ibuf, const char *filepath, int flags);
  * \{ */
 
 bool imb_is_a_tga(const unsigned char *mem, size_t size);
-struct ImBuf *imb_load_tga(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
-bool imb_save_tga(struct ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_load_tga(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
+bool imb_save_tga(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -111,11 +108,11 @@ bool imb_is_a_iris(const unsigned char *mem, size_t size);
 /**
  * Read in a B/W RGB or RGBA iris image file and return an image buffer.
  */
-struct ImBuf *imb_loadiris(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
-bool imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_loadiris(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
+bool imb_saveiris(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -124,14 +121,12 @@ bool imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags);
  * \{ */
 
 bool imb_is_a_jp2(const unsigned char *buf, size_t size);
-struct ImBuf *imb_load_jp2(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
-struct ImBuf *imb_load_jp2_filepath(const char *filepath,
-                                    int flags,
-                                    char colorspace[IM_MAX_SPACE]);
-bool imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_load_jp2(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_load_jp2_filepath(const char *filepath, int flags, char colorspace[IM_MAX_SPACE]);
+bool imb_save_jp2(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -140,17 +135,17 @@ bool imb_save_jp2(struct ImBuf *ibuf, const char *filepath, int flags);
  * \{ */
 
 bool imb_is_a_jpeg(const unsigned char *mem, size_t size);
-bool imb_savejpeg(struct ImBuf *ibuf, const char *filepath, int flags);
-struct ImBuf *imb_load_jpeg(const unsigned char *buffer,
-                            size_t size,
-                            int flags,
-                            char colorspace[IM_MAX_SPACE]);
-struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
-                                 int flags,
-                                 size_t max_thumb_size,
-                                 char colorspace[IM_MAX_SPACE],
-                                 size_t *r_width,
-                                 size_t *r_height);
+bool imb_savejpeg(ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_load_jpeg(const unsigned char *buffer,
+                     size_t size,
+                     int flags,
+                     char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_thumbnail_jpeg(const char *filepath,
+                          int flags,
+                          size_t max_thumb_size,
+                          char colorspace[IM_MAX_SPACE],
+                          size_t *r_width,
+                          size_t *r_height);
 
 /** \} */
 
@@ -159,12 +154,12 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
  * \{ */
 
 bool imb_is_a_bmp(const unsigned char *buf, size_t size);
-struct ImBuf *imb_load_bmp(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_load_bmp(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
-bool imb_save_bmp(struct ImBuf *ibuf, const char *filepath, int flags);
+bool imb_save_bmp(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -173,11 +168,11 @@ bool imb_save_bmp(struct ImBuf *ibuf, const char *filepath, int flags);
  * \{ */
 
 bool imb_is_a_cineon(const unsigned char *buf, size_t size);
-bool imb_save_cineon(struct ImBuf *buf, const char *filepath, int flags);
-struct ImBuf *imb_load_cineon(const unsigned char *mem,
-                              size_t size,
-                              int flags,
-                              char colorspace[IM_MAX_SPACE]);
+bool imb_save_cineon(ImBuf *buf, const char *filepath, int flags);
+ImBuf *imb_load_cineon(const unsigned char *mem,
+                       size_t size,
+                       int flags,
+                       char colorspace[IM_MAX_SPACE]);
 
 /** \} */
 
@@ -186,11 +181,11 @@ struct ImBuf *imb_load_cineon(const unsigned char *mem,
  * \{ */
 
 bool imb_is_a_dpx(const unsigned char *buf, size_t size);
-bool imb_save_dpx(struct ImBuf *ibuf, const char *filepath, int flags);
-struct ImBuf *imb_load_dpx(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
+bool imb_save_dpx(ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_load_dpx(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
 
 /** \} */
 
@@ -199,11 +194,11 @@ struct ImBuf *imb_load_dpx(const unsigned char *mem,
  * \{ */
 
 bool imb_is_a_hdr(const unsigned char *buf, size_t size);
-struct ImBuf *imb_load_hdr(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
-bool imb_save_hdr(struct ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_load_hdr(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
+bool imb_save_hdr(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -221,10 +216,10 @@ bool imb_is_a_tiff(const unsigned char *buf, size_t size);
  *
  * \return A newly allocated #ImBuf structure if successful, otherwise NULL.
  */
-struct ImBuf *imb_load_tiff(const unsigned char *mem,
-                            size_t size,
-                            int flags,
-                            char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_load_tiff(const unsigned char *mem,
+                     size_t size,
+                     int flags,
+                     char colorspace[IM_MAX_SPACE]);
 /**
  * Saves a TIFF file.
  *
@@ -239,7 +234,7 @@ struct ImBuf *imb_load_tiff(const unsigned char *mem,
  *
  * \return 1 if the function is successful, 0 on failure.
  */
-bool imb_save_tiff(struct ImBuf *ibuf, const char *filepath, int flags);
+bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -248,17 +243,17 @@ bool imb_save_tiff(struct ImBuf *ibuf, const char *filepath, int flags);
  * \{ */
 
 bool imb_is_a_webp(const unsigned char *buf, size_t size);
-struct ImBuf *imb_loadwebp(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
-struct ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
-                                               const int flags,
-                                               const size_t max_thumb_size,
-                                               char colorspace[],
-                                               size_t *r_width,
-                                               size_t *r_height);
-bool imb_savewebp(struct ImBuf *ibuf, const char *filepath, int flags);
+ImBuf *imb_loadwebp(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_load_filepath_thumbnail_webp(const char *filepath,
+                                        const int flags,
+                                        const size_t max_thumb_size,
+                                        char colorspace[],
+                                        size_t *r_width,
+                                        size_t *r_height);
+bool imb_savewebp(ImBuf *ibuf, const char *filepath, int flags);
 
 /** \} */
 
@@ -270,10 +265,10 @@ void imb_init_dds();
 
 bool imb_is_a_dds(const unsigned char *buf, size_t size);
 
-struct ImBuf *imb_load_dds(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_load_dds(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
 
 /** \} */
 
@@ -283,10 +278,10 @@ struct ImBuf *imb_load_dds(const unsigned char *mem,
 
 bool imb_is_a_psd(const unsigned char *buf, size_t size);
 
-struct ImBuf *imb_load_psd(const unsigned char *mem,
-                           size_t size,
-                           int flags,
-                           char colorspace[IM_MAX_SPACE]);
+ImBuf *imb_load_psd(const unsigned char *mem,
+                    size_t size,
+                    int flags,
+                    char colorspace[IM_MAX_SPACE]);
 
 /** \} */
 
@@ -294,12 +289,12 @@ struct ImBuf *imb_load_psd(const unsigned char *mem,
 /** \name Format: SVG - Only for thumbnails.
  * \{ */
 
-struct ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
-                                              const int flags,
-                                              const size_t max_thumb_size,
-                                              char colorspace[],
-                                              size_t *r_width,
-                                              size_t *r_height);
+ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
+                                       const int flags,
+                                       const size_t max_thumb_size,
+                                       char colorspace[],
+                                       size_t *r_width,
+                                       size_t *r_height);
 
 /** \} */
 

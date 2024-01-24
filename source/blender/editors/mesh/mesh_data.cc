@@ -44,7 +44,7 @@
 
 #include "GEO_mesh_split_edges.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 using blender::Array;
 using blender::float2;

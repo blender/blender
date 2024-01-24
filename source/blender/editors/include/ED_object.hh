@@ -12,6 +12,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
@@ -60,10 +61,8 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout);
  *   the callers \a filter_fn needs to check of they are editable
  *   (assuming they need to be modified).
  */
-Object **ED_object_array_in_mode_or_selected(bContext *C,
-                                             bool (*filter_fn)(const Object *ob, void *user_data),
-                                             void *filter_user_data,
-                                             uint *r_objects_len);
+blender::Vector<Object *> ED_object_array_in_mode_or_selected(
+    bContext *C, bool (*filter_fn)(const Object *ob, void *user_data), void *filter_user_data);
 
 /* `object_shapekey.cc` */
 

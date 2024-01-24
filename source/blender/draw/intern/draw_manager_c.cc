@@ -30,7 +30,7 @@
 #include "BKE_grease_pencil.h"
 #include "BKE_lattice.hh"
 #include "BKE_main.hh"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"

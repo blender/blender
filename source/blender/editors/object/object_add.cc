@@ -67,7 +67,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
@@ -76,7 +76,7 @@
 #include "BKE_lightprobe.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_nla.h"
@@ -1985,12 +1985,9 @@ static int collection_drop_exec(bContext *C, wmOperator *op)
     translate_m4(delta_mat, UNPACK3(offset));
 
     ObjectsInViewLayerParams params = {0};
-    uint objects_len;
-    Object **objects = BKE_view_layer_array_selected_objects_params(
-        view_layer, nullptr, &objects_len, &params);
-    ED_object_xform_array_m4(objects, objects_len, delta_mat);
-
-    MEM_freeN(objects);
+    blender::Vector<Object *> objects = BKE_view_layer_array_selected_objects_params(
+        view_layer, nullptr, &params);
+    ED_object_xform_array_m4(objects.data(), objects.size(), delta_mat);
   }
 
   return OPERATOR_FINISHED;
@@ -4192,9 +4189,8 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
   if (RNA_property_is_set(op->ptr, prop_matrix)) {
     ObjectsInViewLayerParams params = {0};
-    uint objects_len;
-    Object **objects = BKE_view_layer_array_selected_objects_params(
-        view_layer, nullptr, &objects_len, &params);
+    blender::Vector<Object *> objects = BKE_view_layer_array_selected_objects_params(
+        view_layer, nullptr, &params);
 
     float matrix[4][4];
     RNA_property_float_get_array(op->ptr, prop_matrix, &matrix[0][0]);
@@ -4208,9 +4204,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
     invert_m4(mat_src_unit);
     mul_m4_m4m4(final_delta, mat_dst_unit, mat_src_unit);
 
-    ED_object_xform_array_m4(objects, objects_len, final_delta);
-
-    MEM_freeN(objects);
+    ED_object_xform_array_m4(objects.data(), objects.size(), final_delta);
   }
   else if (CTX_wm_region_view3d(C)) {
     int mval[2];

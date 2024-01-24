@@ -31,7 +31,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
 
@@ -54,7 +54,9 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Edit Armature Join
@@ -682,12 +684,10 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
   /* set wait cursor in case this takes a while */
   WM_cursor_wait(true);
 
-  uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &bases_len);
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base_old = bases[base_index];
+  for (Base *base_old : bases) {
     Object *ob_old = base_old->object;
 
     {
@@ -762,7 +762,6 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
     /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob_old);
   }
-  MEM_freeN(bases);
 
   /* Recalculate/redraw + cleanup */
   WM_cursor_wait(false);
@@ -1056,11 +1055,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
   }
   CTX_DATA_END;
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *ob : objects) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bool changed = false;
 
@@ -1080,8 +1077,6 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
     /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
   }
-  MEM_freeN(objects);
-
   return OPERATOR_FINISHED;
 }
 

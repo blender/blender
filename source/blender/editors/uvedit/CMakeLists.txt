@@ -33,7 +33,7 @@ set(SRC
   uvedit_unwrap_ops.cc
 
   uvedit_clipboard_graph_iso.hh
-  uvedit_intern.h
+  uvedit_intern.hh
 )
 
 set(LIB

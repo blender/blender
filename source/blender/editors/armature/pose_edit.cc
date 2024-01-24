@@ -25,7 +25,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -55,7 +55,7 @@
 
 #include "UI_interface.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 #undef DEBUG_TIME
 
@@ -63,6 +63,8 @@
 #ifdef DEBUG_TIME
 #  include "BLI_time_utildefines.h"
 #endif
+
+using blender::Vector;
 
 Object *ED_pose_object_from_context(bContext *C)
 {
@@ -693,16 +695,13 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
-  Object **objects = BKE_object_pose_array_get_unique(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(scene, view_layer, CTX_wm_view3d(C));
   bool changed_multi = false;
 
   const int hide_select = !RNA_boolean_get(op->ptr, "unselected");
   void *hide_select_p = POINTER_FROM_INT(hide_select);
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  for (Object *ob_iter : objects) {
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     bool changed = bone_looper(ob_iter,
@@ -715,7 +714,6 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
-  MEM_freeN(objects);
 
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -762,15 +760,12 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
-  Object **objects = BKE_object_pose_array_get_unique(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(scene, view_layer, CTX_wm_view3d(C));
   bool changed_multi = false;
   const bool select = RNA_boolean_get(op->ptr, "select");
   void *select_p = POINTER_FROM_INT(select);
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  for (Object *ob_iter : objects) {
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     bool changed = bone_looper(
@@ -781,7 +776,6 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
-  MEM_freeN(objects);
 
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

@@ -17,7 +17,7 @@
 #include "BLI_string.h"
 
 #include "BKE_collection.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_report.h"
 

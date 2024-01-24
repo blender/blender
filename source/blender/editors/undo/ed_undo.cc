@@ -24,7 +24,7 @@
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.h"

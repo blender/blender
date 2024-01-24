@@ -28,7 +28,7 @@
 #include "BKE_context.hh"
 #include "BKE_deform.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
@@ -54,7 +54,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities

@@ -18,7 +18,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_report.h"
 
 #include "BLT_translation.h"
@@ -36,7 +36,7 @@
 #include "bmesh.hh"
 #include "bmesh_tools.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 using blender::float2;
 using blender::float3;
@@ -1025,9 +1025,8 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
   const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 
   bool no_vertex_selected = true;
@@ -1035,8 +1034,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   bool error_disconnected_vertices = true;
   bool error_rip_failed = true;
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     BMesh *bm = em->bm;
@@ -1109,8 +1107,6 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-
-  MEM_freeN(objects);
 
   if (no_vertex_selected) {
     /* Ignore it. */

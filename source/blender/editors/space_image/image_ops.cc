@@ -41,7 +41,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
@@ -86,6 +86,8 @@
 #include "RE_engine.h"
 
 #include "image_intern.hh"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name View Navigation Utilities
@@ -954,11 +956,9 @@ static int image_view_selected_exec(bContext *C, wmOperator * /*op*/)
   /* get bounds */
   float min[2], max[2];
   if (ED_space_image_show_uvedit(sima, obedit)) {
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-        scene, view_layer, ((View3D *)nullptr), &objects_len);
-    bool success = ED_uvedit_minmax_multi(scene, objects, objects_len, min, max);
-    MEM_freeN(objects);
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+        scene, view_layer, nullptr);
+    bool success = ED_uvedit_minmax_multi(scene, objects, min, max);
     if (!success) {
       return OPERATOR_CANCELLED;
     }

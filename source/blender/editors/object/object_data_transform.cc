@@ -37,7 +37,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_key.h"
 #include "BKE_lattice.hh"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_scene.h"
 

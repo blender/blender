@@ -22,7 +22,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -1180,15 +1180,14 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_IMAGE);
   if (t->tsnap.mode & SCE_SNAP_TO_VERTEX) {
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-        t->scene, t->view_layer, nullptr, &objects_len);
+    const Vector<Object *> objects =
+        BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+            t->scene, t->view_layer, nullptr);
 
     float dist_sq = square_f(float(SNAP_MIN_DISTANCE));
     if (ED_uvedit_nearest_uv_multi(&t->region->v2d,
                                    t->scene,
                                    objects,
-                                   objects_len,
                                    t->mval,
                                    t->tsnap.target_operation & SCE_SNAP_TARGET_NOT_SELECTED,
                                    &dist_sq,
@@ -1202,7 +1201,6 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
     else {
       t->tsnap.status &= ~SNAP_TARGET_FOUND;
     }
-    MEM_freeN(objects);
   }
 }
 

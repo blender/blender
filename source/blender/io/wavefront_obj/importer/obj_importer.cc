@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph_build.hh"

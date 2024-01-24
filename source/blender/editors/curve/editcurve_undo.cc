@@ -22,7 +22,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_undo_system.hh"
@@ -36,6 +36,8 @@
 #include "WM_types.hh"
 
 #include "curve_intern.h"
+
+using blender::Vector;
 
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.curve"};

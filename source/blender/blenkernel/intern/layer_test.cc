@@ -7,7 +7,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_idtype.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "BLI_string.h"
 

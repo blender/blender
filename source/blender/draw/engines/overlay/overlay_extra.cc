@@ -19,7 +19,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
 #include "BKE_global.h"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_movieclip.h"

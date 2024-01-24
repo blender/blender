@@ -16,7 +16,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 

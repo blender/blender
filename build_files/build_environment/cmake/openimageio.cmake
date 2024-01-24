@@ -140,7 +140,12 @@ if(WIN32)
     ExternalProject_Add_Step(external_openimageio after_install
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/include ${HARVEST_TARGET}/OpenImageIO/include
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/lib ${HARVEST_TARGET}/OpenImageIO/lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/iconvert.exe ${HARVEST_TARGET}/OpenImageIO/bin/iconvert.exe
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/idiff.exe ${HARVEST_TARGET}/OpenImageIO/bin/idiff.exe
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/igrep.exe ${HARVEST_TARGET}/OpenImageIO/bin/igrep.exe
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/iinfo.exe ${HARVEST_TARGET}/OpenImageIO/bin/iinfo.exe
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/maketx.exe ${HARVEST_TARGET}/OpenImageIO/bin/maketx.exe
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/oiiotool.exe ${HARVEST_TARGET}/OpenImageIO/bin/oiiotool.exe
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/OpenImageIO.dll ${HARVEST_TARGET}/OpenImageIO/bin/OpenImageIO.dll
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/OpenImageIO_Util.dll ${HARVEST_TARGET}/OpenImageIO/bin/OpenImageIO_Util.dll
       DEPENDEES install

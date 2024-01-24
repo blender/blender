@@ -24,9 +24,9 @@
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -79,12 +79,9 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *op)
 
   if (OBEDIT_FROM_OBACT(obact)) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, CTX_wm_view3d(C), &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *obedit = objects[ob_index];
-
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, CTX_wm_view3d(C));
+    for (Object *obedit : objects) {
       if (obedit->type == OB_MESH) {
         BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
@@ -122,14 +119,11 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *op)
       }
       ED_transverts_free(&tvs);
     }
-    MEM_freeN(objects);
   }
   else if (OBPOSE_FROM_OBACT(obact)) {
     KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-    uint objects_len = 0;
-    Object **objects_eval = BKE_object_pose_array_get(scene, view_layer_eval, v3d, &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob_eval = objects_eval[ob_index];
+    Vector<Object *> objects_eval = BKE_object_pose_array_get(scene, view_layer_eval, v3d);
+    for (Object *ob_eval : objects_eval) {
       Object *ob = DEG_get_original_object(ob_eval);
       bArmature *arm_eval = static_cast<bArmature *>(ob_eval->data);
 
@@ -179,7 +173,6 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *op)
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
-    MEM_freeN(objects_eval);
   }
   else {
     /* Object mode. */
@@ -332,10 +325,9 @@ static bool snap_selected_to_location(bContext *C,
   if (obedit) {
     float snap_target_local[3];
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, v3d, &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, v3d);
+    for (const int ob_index : objects.index_range()) {
       obedit = objects[ob_index];
 
       if (obedit->type == OB_MESH) {
@@ -382,16 +374,13 @@ static bool snap_selected_to_location(bContext *C,
       }
       ED_transverts_free(&tvs);
     }
-    MEM_freeN(objects);
   }
   else if (OBPOSE_FROM_OBACT(obact)) {
     KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    uint objects_len = 0;
-    Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
+    Vector<Object *> objects = BKE_object_pose_array_get(scene, view_layer, v3d);
 
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob = objects[ob_index];
+    for (Object *ob : objects) {
       bArmature *arm = static_cast<bArmature *>(ob->data);
       float snap_target_local[3];
 
@@ -461,7 +450,6 @@ static bool snap_selected_to_location(bContext *C,
 
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
-    MEM_freeN(objects);
   }
   else {
     KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
@@ -789,10 +777,9 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
 
   if (obedit) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, CTX_wm_view3d(C), &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, CTX_wm_view3d(C));
+    for (const int ob_index : objects.index_range()) {
       obedit = objects[ob_index];
 
       /* We can do that quick check for meshes only... */
@@ -824,7 +811,6 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
       }
       ED_transverts_free(&tvs);
     }
-    MEM_freeN(objects);
   }
   else {
     Object *obact = CTX_data_active_object(C);

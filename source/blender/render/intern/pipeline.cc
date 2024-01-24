@@ -50,7 +50,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
@@ -1156,6 +1156,29 @@ static bool compositor_needs_render(Scene *sce, const bool this_scene)
   return false;
 }
 
+/** Returns true if the node tree has a composite output node. */
+static bool node_tree_has_composite_output(const bNodeTree *node_tree)
+{
+  if (node_tree == nullptr) {
+    return false;
+  }
+
+  for (const bNode *node : node_tree->all_nodes()) {
+    if (node->flag & NODE_MUTED) {
+      continue;
+    }
+    if (node->type == CMP_NODE_COMPOSITE && node->flag & NODE_DO_OUTPUT) {
+      return true;
+    }
+    if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP) && node->id) {
+      if (node_tree_has_composite_output(reinterpret_cast<const bNodeTree *>(node->id))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /* Render all scenes within a compositor node tree. */
 static void do_render_compositor_scenes(Render *re)
 {
@@ -1238,6 +1261,12 @@ static void do_render_compositor(Render *re)
 
     /* Scene render process already updates animsys. */
     update_newframe = true;
+
+    /* The compositor does not have an output, skip writing the render result. See R_SKIP_WRITE for
+     * more information. */
+    if (!node_tree_has_composite_output(re->pipeline_scene_eval->nodetree)) {
+      re->flag |= R_SKIP_WRITE;
+    }
   }
 
   /* swap render result */
@@ -1618,7 +1647,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
   return true;
 }
 
-static bool node_tree_has_compositor_output(const bNodeTree *ntree)
+static bool node_tree_has_any_compositor_output(const bNodeTree *ntree)
 {
   for (const bNode *node : ntree->all_nodes()) {
     if (ELEM(node->type, CMP_NODE_COMPOSITE, CMP_NODE_OUTPUT_FILE)) {
@@ -1626,7 +1655,7 @@ static bool node_tree_has_compositor_output(const bNodeTree *ntree)
     }
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       if (node->id) {
-        if (node_tree_has_compositor_output((const bNodeTree *)node->id)) {
+        if (node_tree_has_any_compositor_output((const bNodeTree *)node->id)) {
           return true;
         }
       }
@@ -1638,7 +1667,7 @@ static bool node_tree_has_compositor_output(const bNodeTree *ntree)
 
 static int check_compositor_output(Scene *scene)
 {
-  return node_tree_has_compositor_output(scene->nodetree);
+  return node_tree_has_any_compositor_output(scene->nodetree);
 }
 
 /* Identify if the compositor can run on the GPU. Currently, this only checks if the compositor is
@@ -1764,6 +1793,12 @@ static bool render_init_from_main(Render *re,
 {
   int winx, winy;
   rcti disprect;
+
+  /* Reset the runtime flags before rendering, but only if this init is not an inter-animation
+   * init, since some flags needs to be kept across the entire animation. */
+  if (!anim) {
+    re->flag = 0;
+  }
 
   /* r.xsch and r.ysch has the actual view window size
    * r.border is the clipping rect */
@@ -1914,7 +1949,8 @@ void RE_RenderFrame(Render *re,
 
     do_render_full_pipeline(re);
 
-    if (write_still && !G.is_break) {
+    const bool should_write = write_still && !(re->flag & R_SKIP_WRITE);
+    if (should_write && !G.is_break) {
       if (BKE_imtype_is_movie(rd.im_format.imtype)) {
         /* operator checks this but in case its called from elsewhere */
         printf("Error: can't write single images with a movie format!\n");
@@ -1937,7 +1973,7 @@ void RE_RenderFrame(Render *re,
 
     /* keep after file save */
     render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_POST);
-    if (write_still) {
+    if (should_write) {
       render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
     }
   }
@@ -2424,8 +2460,9 @@ void RE_RenderAnim(Render *re,
     do_render_full_pipeline(re);
     totrendered++;
 
+    const bool should_write = !(re->flag & R_SKIP_WRITE);
     if (re->test_break_cb(re->tbh) == 0) {
-      if (!G.is_break) {
+      if (!G.is_break && should_write) {
         if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, nullptr)) {
           G.is_break = true;
         }
@@ -2470,7 +2507,9 @@ void RE_RenderAnim(Render *re,
     if (G.is_break == false) {
       /* keep after file save */
       render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_POST);
-      render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
+      if (should_write) {
+        render_callback_exec_id(re, re->main, &scene->id, BKE_CB_EVT_RENDER_WRITE);
+      }
     }
   }
 
@@ -2485,8 +2524,6 @@ void RE_RenderAnim(Render *re,
 
   scene->r.cfra = cfra_old;
   scene->r.subframe = subframe_old;
-
-  re->flag &= ~R_ANIMATION;
 
   render_callback_exec_id(re,
                           re->main,
