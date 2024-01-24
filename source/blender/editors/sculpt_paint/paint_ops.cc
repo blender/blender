@@ -1600,7 +1600,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
   /* Curves Sculpt mode. */
   keymap = WM_keymap_ensure(keyconf, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = CURVES_SCULPT_mode_poll;
+  keymap->poll = curves_sculpt_poll;
 
   /* sculpt expand. */
   expand::modal_keymap(keyconf);
