@@ -179,7 +179,7 @@ enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 9, 11, 13, 14, 15. */
+ * FREE FLAGS: 11, 13, 14, 15. */
 enum PropertyFlag {
   /**
    * Editable means the property is editable in the user
@@ -299,6 +299,12 @@ enum PropertyFlag {
    * properties which denotes whether modifier panel is collapsed or not.
    */
   PROP_NO_DEG_UPDATE = (1 << 30),
+
+  /**
+   * Property needs to ensure evaluated data-blocks are in sync with their original counter-part
+   * but the property does not affect evaluation itself.
+   */
+  PROP_DEG_SYNC_ONLY = (1 << 9),
 
   /**
    * File-paths that refer to output get a special treatment such
