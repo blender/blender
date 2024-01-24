@@ -8,8 +8,16 @@ import os
 import subprocess
 import sys
 
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
-def run(cmd, *, env=None):
+
+def run(cmd: Sequence[str], *, env: Optional[Dict[str, str]] = None) -> None:
     print("   ", " ".join(cmd))
     subprocess.check_call(cmd, env=env)
 
@@ -34,7 +42,7 @@ if not (inkscape_bin := os.environ.get("INKSCAPE_BIN")):
 
 blender_bin = os.environ.get("BLENDER_BIN", "blender")
 
-cmd = (
+cmd: Tuple[str, ...] = (
     inkscape_bin,
     os.path.join(BASEDIR, "blender_icons.svg"),
     "--export-width=602",
