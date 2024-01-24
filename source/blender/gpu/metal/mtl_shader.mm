@@ -314,9 +314,10 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion2_2;
     options.fastMathEnabled = YES;
-    options.preserveInvariance = YES;
 
     if (@available(macOS 11.00, *)) {
+      options.preserveInvariance = YES;
+
       /* Raster order groups for tile data in struct require Metal 2.3.
        * Retaining Metal 2.2. for old shaders to maintain backwards
        * compatibility for existing features. */
