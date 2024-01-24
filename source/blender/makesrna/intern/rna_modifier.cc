@@ -212,7 +212,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Wireframe",
      "Convert faces into thickened edges"},
     {eModifierType_GreasePencilSubdiv,
-     "GREASEPENCIL_SUBDIV",
+     "GREASE_PENCIL_SUBDIV",
      ICON_MOD_SUBSURF,
      "Subdivide strokes",
      "Grease Pencil subdivide modifier"},
@@ -297,7 +297,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Volume Displace",
      "Deform volume based on noise or other vector fields"}, /* TODO: Use correct icon. */
     {eModifierType_GreasePencilSmooth,
-     "GREASEPENCIL_SMOOTH",
+     "GREASE_PENCIL_SMOOTH",
      ICON_SMOOTHCURVE,
      "Smooth",
      "Smooth grease pencil strokes"},
