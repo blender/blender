@@ -344,14 +344,8 @@ static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
   best.dist = ED_view3d_select_dist_px();
 
   uint base_index;
-  BMEdge *eed_test = EDBM_edge_find_nearest_ex(&lcd->vc,
-                                               &best.dist,
-                                               nullptr,
-                                               false,
-                                               false,
-                                               nullptr,
-                                               lcd->bases,
-                                               &base_index);
+  BMEdge *eed_test = EDBM_edge_find_nearest_ex(
+      &lcd->vc, &best.dist, nullptr, false, false, nullptr, lcd->bases, &base_index);
 
   if (eed_test) {
     best.ob = lcd->bases[base_index]->object;
