@@ -32,6 +32,8 @@ def _initialize_once():
     for addon in _preferences.addons:
         enable(addon.module)
 
+    _initialize_ensure_extensions_addon()
+
 
 def paths():
     return [
@@ -606,6 +608,13 @@ def module_bl_info(mod, *, info_basis=None):
 # -----------------------------------------------------------------------------
 # Extensions
 
+def _initialize_ensure_extensions_addon():
+    if _preferences.experimental.use_extension_repos:
+        module_name = "bl_pkg"
+        if module_name not in _preferences.addons:
+            enable(module_name, default_set=True, persistent=True)
+
+
 # Module-like class, store singletons.
 class _ext_global:
     __slots__ = ()
@@ -805,6 +814,10 @@ def _initialize_extension_repos_pre(*_):
 
 @_bpy.app.handlers.persistent
 def _initialize_extension_repos_post(*_, is_first=False):
+
+    # When enabling extensions for the first time, ensure the add-on is enabled.
+    _initialize_ensure_extensions_addon()
+
     do_addons = not is_first
 
     # Map `module_id` -> `dirpath`.

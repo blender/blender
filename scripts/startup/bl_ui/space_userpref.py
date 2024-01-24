@@ -2021,10 +2021,9 @@ class USERPREF_PT_extensions(ExtensionsPanel, Panel):
         layout = self.layout
 
         row = layout.row()
-        row.label(text="The add-on to use extensions is disabled! See:")
-        row.operator(
-            "wm.url_open", text="Extension Add-on Repository", icon='URL',
-        ).url = "https://projects.blender.org/ideasman42/bl_ext"
+        row.label(text="The add-on to use extensions is disabled!")
+        row = layout.row()
+        row.label(text="Enable \"Blender Extensions\" add-on in Testing to use extensions.")
 
 
 class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
