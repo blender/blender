@@ -27,7 +27,7 @@ CHECKER_IGNORE_PREFIX = [
 
 # To add files use a relative path.
 CHECKER_EXCLUDE_SOURCE_FILES = set(os.path.join(*f.split("/")) for f in (
-    # "source/blender/example.c",
+    "source/blender/draw/engines/eevee_next/eevee_lut.cc",
 ))
 
 CHECKER_ARGS = [
