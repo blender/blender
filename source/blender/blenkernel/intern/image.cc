@@ -1418,9 +1418,19 @@ bool BKE_image_memorypack(Image *ima)
     ima->views_format = R_IMF_VIEWS_INDIVIDUAL;
   }
 
-  if (ok && ima->source == IMA_SRC_GENERATED) {
-    ima->source = IMA_SRC_FILE;
-    ima->type = IMA_TYPE_IMAGE;
+  /* Images which were "generated" before packing should now be
+   * treated as if they were saved as real files. */
+  if (ok) {
+    if (ima->source == IMA_SRC_GENERATED) {
+      ima->source = IMA_SRC_FILE;
+      ima->type = IMA_TYPE_IMAGE;
+    }
+
+    /* Clear the per-tile generated flag if all tiles were ok.
+     * Mirrors similar processing inside #BKE_image_save. */
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      tile->gen_flag &= ~IMA_GEN_TILE;
+    }
   }
 
   return ok;
