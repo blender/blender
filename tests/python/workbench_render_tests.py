@@ -80,7 +80,7 @@ def main():
     if test_dir_name.startswith('hair') and platform.system() == "Darwin":
         report.set_fail_threshold(0.050)
 
-    ok = report.run(test_dir, blender, get_arguments, batch.args=batch)
+    ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
 
