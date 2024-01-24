@@ -394,14 +394,20 @@ static void brush_asset_metadata_ensure(void *asset_ptr, AssetMetaData *asset_da
   Brush *brush = reinterpret_cast<Brush *>(asset_ptr);
   BLI_assert(GS(brush->id.name) == ID_BR);
 
+  /* Most names copied from brush RNA (not all are available there though). */
   constexpr std::array mode_map{
       std::pair{"use_paint_sculpt", OB_MODE_SCULPT},
-      std::pair{"use_paint_uv_sculpt", OB_MODE_EDIT},
       std::pair{"use_paint_vertex", OB_MODE_VERTEX_PAINT},
       std::pair{"use_paint_weight", OB_MODE_WEIGHT_PAINT},
       std::pair{"use_paint_image", OB_MODE_TEXTURE_PAINT},
+      /* Sculpt UVs in the image editor while in edit mode. */
+      std::pair{"use_paint_uv_sculpt", OB_MODE_EDIT},
       std::pair{"use_paint_grease_pencil", OB_MODE_PAINT_GPENCIL_LEGACY},
+      std::pair{"use_paint_grease_pencil", OB_MODE_PAINT_GREASE_PENCIL},
+      /* Note: Not defined in brush RNA, own name. */
+      std::pair{"use_sculpt_grease_pencil", OB_MODE_SCULPT_GPENCIL_LEGACY},
       std::pair{"use_vertex_grease_pencil", OB_MODE_VERTEX_GPENCIL_LEGACY},
+      std::pair{"use_weight_grease_pencil", OB_MODE_WEIGHT_GPENCIL_LEGACY},
       std::pair{"use_paint_sculpt_curves", OB_MODE_SCULPT_CURVES},
   };
 

@@ -1081,19 +1081,6 @@ class VIEW3D_HT_header(Header):
         sub.popover(panel="VIEW3D_PT_shading", text="")
 
 
-class VIEW3D_AST_brush_asset_shelf(bpy.types.AssetShelf):
-    bl_space_type = "VIEW_3D"
-    bl_options = {'NO_ASSET_DRAG'}
-
-    @classmethod
-    def poll(cls, context):
-        return context.object and context.object.mode == 'SCULPT_CURVES'
-
-    @classmethod
-    def asset_poll(cls, asset):
-        return asset.id_type == 'BRUSH' and asset.metadata.get("use_paint_sculpt_curves", False)
-
-
 class VIEW3D_MT_editor_menus(Menu):
     bl_label = ""
 
@@ -8769,28 +8756,73 @@ class VIEW3D_PT_viewport_debug(Panel):
         layout.prop(overlay, "use_debug_freeze_view_culling")
 
 
-class VIEW3D_AST_sculpt_brushes(bpy.types.AssetShelf):
-    # Experimental: Asset shelf for sculpt brushes, only shows up if both the
-    # "Asset Shelf" and the "Extended Asset Browser" experimental features are
-    # enabled.
-
-    bl_space_type = 'VIEW_3D'
+class BrushAssetShelf:
+    bl_space_type = "VIEW_3D"
+    bl_options = {'NO_ASSET_DRAG'}
 
     @classmethod
     def poll(cls, context):
-        prefs = context.preferences
-        if not prefs.experimental.use_extended_asset_browser:
-            return False
-
-        return context.mode == 'SCULPT'
+        return context.object and context.object.mode == cls.mode
 
     @classmethod
     def asset_poll(cls, asset):
-        return asset.id_type == 'BRUSH'
+        if asset.id_type != 'BRUSH':
+            return False
+
+        return asset.metadata.get(cls.mode_prop, False)
+
+
+class VIEW3D_AST_brush_sculpt(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'SCULPT'
+    mode_prop = "use_paint_sculpt"
+
+
+class VIEW3D_AST_brush_sculpt_curves(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'SCULPT_CURVES'
+    mode_prop = "use_paint_sculpt_curves"
+
+
+class VIEW3D_AST_brush_vertex_paint(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'VERTEX_PAINT'
+    mode_prop = "use_paint_vertex"
+
+
+class VIEW3D_AST_brush_weight_paint(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'WEIGHT_PAINT'
+    mode_prop = "use_paint_weight"
+
+
+class VIEW3D_AST_brush_texture_paint(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'TEXTURE_PAINT'
+    mode_prop = "use_paint_image"
+
+
+class VIEW3D_AST_brush_gpencil_paint(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'PAINT_GPENCIL'
+    mode_prop = "use_paint_grease_pencil"
+
+
+class VIEW3D_AST_brush_grease_pencil_paint(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'PAINT_GREASE_PENCIL'
+    mode_prop = "use_paint_grease_pencil"
+
+
+class VIEW3D_AST_brush_gpencil_sculpt(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'SCULPT_GPENCIL'
+    mode_prop = "use_sculpt_grease_pencil"
+
+
+class VIEW3D_AST_brush_gpencil_vertex(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'VERTEX_GPENCIL'
+    mode_prop = "use_vertex_grease_pencil"
+
+
+class VIEW3D_AST_brush_gpencil_weight(BrushAssetShelf, bpy.types.AssetShelf):
+    mode = 'WEIGHT_GPENCIL'
+    mode_prop = "use_weight_grease_pencil"
 
 
 classes = (
-    VIEW3D_AST_brush_asset_shelf,
     VIEW3D_HT_header,
     VIEW3D_HT_tool_header,
     VIEW3D_MT_editor_menus,
@@ -9048,7 +9080,16 @@ classes = (
     VIEW3D_PT_curves_sculpt_parameter_falloff,
     VIEW3D_PT_curves_sculpt_grow_shrink_scaling,
     VIEW3D_PT_viewport_debug,
-    VIEW3D_AST_sculpt_brushes,
+    VIEW3D_AST_brush_sculpt,
+    VIEW3D_AST_brush_sculpt_curves,
+    VIEW3D_AST_brush_vertex_paint,
+    VIEW3D_AST_brush_weight_paint,
+    VIEW3D_AST_brush_texture_paint,
+    VIEW3D_AST_brush_gpencil_paint,
+    VIEW3D_AST_brush_grease_pencil_paint,
+    VIEW3D_AST_brush_gpencil_sculpt,
+    VIEW3D_AST_brush_gpencil_vertex,
+    VIEW3D_AST_brush_gpencil_weight,
 )
 
 
