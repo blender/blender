@@ -73,7 +73,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "uvedit_intern.h"
+#include "uvedit_intern.hh"
 
 using blender::geometry::ParamHandle;
 using blender::geometry::ParamKey;

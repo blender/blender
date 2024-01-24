@@ -52,7 +52,7 @@
 #include "UI_view2d.hh"
 
 #include "intern/bmesh_marking.hh"
-#include "uvedit_intern.h"
+#include "uvedit_intern.hh"
 
 #include "bmesh_tools.hh"
 

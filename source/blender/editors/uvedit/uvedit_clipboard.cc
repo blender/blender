@@ -34,7 +34,7 @@
 #include "WM_api.hh"
 
 #include "uvedit_clipboard_graph_iso.hh"
-#include "uvedit_intern.h" /* linker, extern "C" */
+#include "uvedit_intern.hh" /* linker, extern "C" */
 
 void UV_clipboard_free();
 

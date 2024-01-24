@@ -56,7 +56,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "uvedit_intern.h"
+#include "uvedit_intern.hh"
 
 using namespace blender;
 

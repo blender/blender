@@ -63,7 +63,7 @@
 
 #include "UI_view2d.hh"
 
-#include "uvedit_intern.h"
+#include "uvedit_intern.hh"
 
 static void uv_select_all_perform(const Scene *scene, Object *obedit, int action);
 

@@ -44,7 +44,7 @@
 
 #include "UI_view2d.hh"
 
-#include "uvedit_intern.h"
+#include "uvedit_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name UV Loop Rip Data Struct
