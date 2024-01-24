@@ -1181,7 +1181,6 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
 
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
-  /* Either takes ownership of the brush_asset_reference, or frees it. */
   if (!BKE_paint_brush_asset_set(
           &tool_settings->curves_sculpt->paint, brush, brush_asset_reference))
   {
