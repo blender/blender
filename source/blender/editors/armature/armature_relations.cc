@@ -54,7 +54,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Edit Armature Join

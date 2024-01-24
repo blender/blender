@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* internal exports only */
 struct wmOperatorType;
 
@@ -335,7 +331,3 @@ int bone_looper(struct Object *ob,
                 int (*bone_func)(struct Object *, struct Bone *, void *));
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

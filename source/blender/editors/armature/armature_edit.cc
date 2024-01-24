@@ -47,7 +47,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Object Tools Public API

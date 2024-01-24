@@ -80,7 +80,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 #include "BLF_api.h"
 

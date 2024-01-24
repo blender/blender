@@ -48,7 +48,7 @@
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 enum ePoseBlendState {
   POSE_BLEND_INIT,

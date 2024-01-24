@@ -41,7 +41,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 struct wmOperator;
 

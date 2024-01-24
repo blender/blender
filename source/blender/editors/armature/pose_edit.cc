@@ -55,7 +55,7 @@
 
 #include "UI_interface.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 #undef DEBUG_TIME
 

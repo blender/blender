@@ -39,7 +39,7 @@
 
 #include "ANIM_keyframing.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 /* *********************************************** */
 /* Contents of this File:
