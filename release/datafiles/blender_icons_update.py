@@ -26,19 +26,12 @@ if sys.platform[:3] == "win":
     env["SystemDrive"] = os.environ.get("SystemDrive", "")
     env["SystemRoot"] = os.environ.get("SystemRoot", "")
 
-inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
-blender_bin = os.environ.get("BLENDER_BIN", "blender")
-
 if sys.platform == 'darwin':
-    inkscape_app_path = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
-    if os.path.exists(inkscape_app_path):
-        inkscape_bin = inkscape_app_path
-    blender_app_path = '/Applications/Blender.app/Contents/MacOS/Blender'
-    if os.path.exists(blender_app_path):
-        blender_bin = blender_app_path
-    else:
-        blender_bin = "Blender"
-
+    inkscape_bin = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
+else:
+    inkscape_bin = "inkscape"
+inkscape_bin = os.environ.get("INKSCAPE_BIN", inkscape_bin)
+blender_bin = os.environ.get("BLENDER_BIN", "blender")
 
 cmd = (
     inkscape_bin,
