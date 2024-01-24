@@ -105,10 +105,12 @@ static PyObject *pygpu_uniformbuffer__tp_new(PyTypeObject * /*self*/,
   return BPyGPUUniformBuf_CreatePyObject(ubo);
 }
 
-PyDoc_STRVAR(pygpu_uniformbuffer_update_doc,
-             ".. method:: update(data)\n"
-             "\n"
-             "   Update the data of the uniform buffer object.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_uniformbuffer_update_doc,
+    ".. method:: update(data)\n"
+    "\n"
+    "   Update the data of the uniform buffer object.\n");
 static PyObject *pygpu_uniformbuffer_update(BPyGPUUniformBuf *self, PyObject *obj)
 {
   BPYGPU_UNIFORMBUF_CHECK_OBJ(self);
@@ -125,11 +127,13 @@ static PyObject *pygpu_uniformbuffer_update(BPyGPUUniformBuf *self, PyObject *ob
 }
 
 #ifdef BPYGPU_USE_GPUOBJ_FREE_METHOD
-PyDoc_STRVAR(pygpu_uniformbuffer_free_doc,
-             ".. method::free()\n"
-             "\n"
-             "   Free the uniform buffer object.\n"
-             "   The uniform buffer object will no longer be accessible.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_uniformbuffer_free_doc,
+    ".. method::free()\n"
+    "\n"
+    "   Free the uniform buffer object.\n"
+    "   The uniform buffer object will no longer be accessible.\n");
 static PyObject *pygpu_uniformbuffer_free(BPyGPUUniformBuf *self)
 {
   BPYGPU_UNIFORMBUF_CHECK_OBJ(self);
@@ -160,13 +164,15 @@ static PyMethodDef pygpu_uniformbuffer__tp_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-PyDoc_STRVAR(pygpu_uniformbuffer__tp_doc,
-             ".. class:: GPUUniformBuf(data)\n"
-             "\n"
-             "   This object gives access to off uniform buffers.\n"
-             "\n"
-             "   :arg data: Data to fill the buffer.\n"
-             "   :type data: object exposing buffer interface\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_uniformbuffer__tp_doc,
+    ".. class:: GPUUniformBuf(data)\n"
+    "\n"
+    "   This object gives access to off uniform buffers.\n"
+    "\n"
+    "   :arg data: Data to fill the buffer.\n"
+    "   :type data: object exposing buffer interface\n");
 PyTypeObject BPyGPUUniformBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUUniformBuf",

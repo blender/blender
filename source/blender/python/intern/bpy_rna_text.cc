@@ -46,18 +46,20 @@ struct TextRegion {
 /** \name Text Editor Get / Set region text API
  * \{ */
 
-PyDoc_STRVAR(bpy_rna_region_as_string_doc,
-             ".. method:: region_as_string(range=None)\n"
-             "\n"
-             "   :arg range: The region of text to be returned, "
-             "defaulting to the selection when no range is passed.\n"
-             "      Each int pair represents a line and column: "
-             "((start_line, start_column), (end_line, end_column))\n"
-             "      The values match Python's slicing logic "
-             "(negative values count backwards from the end, the end value is not inclusive).\n"
-             "   :type range: Two pairs of ints\n"
-             "   :return: The specified region as a string.\n"
-             "   :rtype: str.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_rna_region_as_string_doc,
+    ".. method:: region_as_string(range=None)\n"
+    "\n"
+    "   :arg range: The region of text to be returned, "
+    "defaulting to the selection when no range is passed.\n"
+    "      Each int pair represents a line and column: "
+    "((start_line, start_column), (end_line, end_column))\n"
+    "      The values match Python's slicing logic "
+    "(negative values count backwards from the end, the end value is not inclusive).\n"
+    "   :type range: Two pairs of ints\n"
+    "   :return: The specified region as a string.\n"
+    "   :rtype: str.\n");
 /* Receive a Python Tuple as parameter to represent the region range. */
 static PyObject *bpy_rna_region_as_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
@@ -112,18 +114,20 @@ PyMethodDef BPY_rna_region_as_string_method_def = {
 #  pragma GCC diagnostic pop
 #endif
 
-PyDoc_STRVAR(bpy_rna_region_from_string_doc,
-             ".. method:: region_from_string(body, range=None)\n"
-             "\n"
-             "   :arg body: The text to be inserted.\n"
-             "   :type body: str\n"
-             "   :arg range: The region of text to be returned, "
-             "defaulting to the selection when no range is passed.\n"
-             "      Each int pair represents a line and column: "
-             "((start_line, start_column), (end_line, end_column))\n"
-             "      The values match Python's slicing logic "
-             "(negative values count backwards from the end, the end value is not inclusive).\n"
-             "   :type range: Two pairs of ints\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_rna_region_from_string_doc,
+    ".. method:: region_from_string(body, range=None)\n"
+    "\n"
+    "   :arg body: The text to be inserted.\n"
+    "   :type body: str\n"
+    "   :arg range: The region of text to be returned, "
+    "defaulting to the selection when no range is passed.\n"
+    "      Each int pair represents a line and column: "
+    "((start_line, start_column), (end_line, end_column))\n"
+    "      The values match Python's slicing logic "
+    "(negative values count backwards from the end, the end value is not inclusive).\n"
+    "   :type range: Two pairs of ints\n");
 static PyObject *bpy_rna_region_from_string(PyObject *self, PyObject *args, PyObject *kwds)
 {
   BPy_StructRNA *pyrna = (BPy_StructRNA *)self;

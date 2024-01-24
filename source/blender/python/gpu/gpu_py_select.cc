@@ -29,13 +29,15 @@
 /** \name Methods
  * \{ */
 
-PyDoc_STRVAR(pygpu_select_load_id_doc,
-             ".. function:: load_id(id)\n"
-             "\n"
-             "   Set the selection ID.\n"
-             "\n"
-             "   :arg id: Number (32-bit uint).\n"
-             "   :type select: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_select_load_id_doc,
+    ".. function:: load_id(id)\n"
+    "\n"
+    "   Set the selection ID.\n"
+    "\n"
+    "   :arg id: Number (32-bit uint).\n"
+    "   :type select: int\n");
 static PyObject *pygpu_select_load_id(PyObject * /*self*/, PyObject *value)
 {
   uint id;
@@ -58,7 +60,10 @@ static PyMethodDef pygpu_select__tp_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-PyDoc_STRVAR(pygpu_select__tp_doc, "This module provides access to selection.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_select__tp_doc,
+    "This module provides access to selection.");
 static PyModuleDef pygpu_select_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.select",

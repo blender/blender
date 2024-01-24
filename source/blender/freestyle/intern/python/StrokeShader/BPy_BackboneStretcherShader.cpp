@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char BackboneStretcherShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    BackboneStretcherShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`BackboneStretcherShader`\n"
     "\n"
     "[Geometry shader]\n"
@@ -38,7 +40,7 @@ static char BackboneStretcherShader___doc__[] =
     "   respective directions: v(1)v(0) and v(n-1)v(n).\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int BackboneStretcherShader___init__(BPy_BackboneStretcherShader *self,
                                             PyObject *args,

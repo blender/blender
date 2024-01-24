@@ -19,20 +19,25 @@
 #endif
 
 /*-------------------------DOC STRINGS ---------------------------*/
-PyDoc_STRVAR(M_Interpolate_doc, "The Blender interpolate module");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Interpolate_doc,
+    "The Blender interpolate module");
 
 /* ---------------------------------WEIGHT CALCULATION ----------------------- */
 
 #ifndef MATH_STANDALONE
 
-PyDoc_STRVAR(M_Interpolate_poly_3d_calc_doc,
-             ".. function:: poly_3d_calc(veclist, pt)\n"
-             "\n"
-             "   Calculate barycentric weights for a point on a polygon.\n"
-             "\n"
-             "   :arg veclist: list of vectors\n"
-             "   :arg pt: point"
-             "   :rtype: list of per-vector weights\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Interpolate_poly_3d_calc_doc,
+    ".. function:: poly_3d_calc(veclist, pt)\n"
+    "\n"
+    "   Calculate barycentric weights for a point on a polygon.\n"
+    "\n"
+    "   :arg veclist: list of vectors\n"
+    "   :arg pt: point"
+    "   :rtype: list of per-vector weights\n");
 static PyObject *M_Interpolate_poly_3d_calc(PyObject * /*self*/, PyObject *args)
 {
   float fp[3];

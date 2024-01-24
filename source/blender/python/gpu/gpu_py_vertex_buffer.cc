@@ -259,15 +259,17 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject * /*type*/, PyObject *args, 
   return BPyGPUVertBuf_CreatePyObject(vbo);
 }
 
-PyDoc_STRVAR(pygpu_vertbuf_attr_fill_doc,
-             ".. method:: attr_fill(id, data)\n"
-             "\n"
-             "   Insert data into the buffer for a single attribute.\n"
-             "\n"
-             "   :arg id: Either the name or the id of the attribute.\n"
-             "   :type id: int or str\n"
-             "   :arg data: Sequence of data that should be stored in the buffer\n"
-             "   :type data: sequence of floats, ints, vectors or matrices\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_vertbuf_attr_fill_doc,
+    ".. method:: attr_fill(id, data)\n"
+    "\n"
+    "   Insert data into the buffer for a single attribute.\n"
+    "\n"
+    "   :arg id: Either the name or the id of the attribute.\n"
+    "   :type id: int or str\n"
+    "   :arg data: Sequence of data that should be stored in the buffer\n"
+    "   :type data: sequence of floats, ints, vectors or matrices\n");
 static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
   PyObject *data;
@@ -335,15 +337,17 @@ static void pygpu_vertbuf__tp_dealloc(BPyGPUVertBuf *self)
   Py_TYPE(self)->tp_free(self);
 }
 
-PyDoc_STRVAR(pygpu_vertbuf__tp_doc,
-             ".. class:: GPUVertBuf(format, len)\n"
-             "\n"
-             "   Contains a VBO.\n"
-             "\n"
-             "   :arg format: Vertex format.\n"
-             "   :type format: :class:`gpu.types.GPUVertFormat`\n"
-             "   :arg len: Amount of vertices that will fit into this buffer.\n"
-             "   :type len: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_vertbuf__tp_doc,
+    ".. class:: GPUVertBuf(format, len)\n"
+    "\n"
+    "   Contains a VBO.\n"
+    "\n"
+    "   :arg format: Vertex format.\n"
+    "   :type format: :class:`gpu.types.GPUVertFormat`\n"
+    "   :arg len: Amount of vertices that will fit into this buffer.\n"
+    "   :type len: int\n");
 PyTypeObject BPyGPUVertBuf_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUVertBuf",

@@ -22,7 +22,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ReadSteerableViewMapPixelF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    ReadSteerableViewMapPixelF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DFloat` > :class:`ReadSteerableViewMapPixelF0D`\n"
     "\n"
@@ -44,7 +46,7 @@ static char ReadSteerableViewMapPixelF0D___doc__[] =
     "   :arg it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: A pixel in one of the level of one of the steerable viewmaps.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0D *self,
                                                  PyObject *args,

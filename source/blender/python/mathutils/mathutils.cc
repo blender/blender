@@ -22,6 +22,7 @@
 #endif
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Mathutils_doc,
     "This module provides access to math operations.\n"
     "\n"

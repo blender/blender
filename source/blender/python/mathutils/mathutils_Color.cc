@@ -99,13 +99,15 @@ static PyObject *Color_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 #ifndef MATH_STANDALONE
 
-PyDoc_STRVAR(Color_from_scene_linear_to_srgb_doc,
-             ".. function:: from_scene_linear_to_srgb()\n"
-             "\n"
-             "   Convert from scene linear to sRGB color space.\n"
-             "\n"
-             "   :return: A color in sRGB color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_scene_linear_to_srgb_doc,
+    ".. function:: from_scene_linear_to_srgb()\n"
+    "\n"
+    "   Convert from scene linear to sRGB color space.\n"
+    "\n"
+    "   :return: A color in sRGB color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_scene_linear_to_srgb(ColorObject *self)
 {
   float col[3];
@@ -113,13 +115,15 @@ static PyObject *Color_from_scene_linear_to_srgb(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_srgb_to_scene_linear_doc,
-             ".. function:: from_srgb_to_scene_linear()\n"
-             "\n"
-             "   Convert from sRGB to scene linear color space.\n"
-             "\n"
-             "   :return: A color in scene linear color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_srgb_to_scene_linear_doc,
+    ".. function:: from_srgb_to_scene_linear()\n"
+    "\n"
+    "   Convert from sRGB to scene linear color space.\n"
+    "\n"
+    "   :return: A color in scene linear color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_srgb_to_scene_linear(ColorObject *self)
 {
   float col[3];
@@ -127,13 +131,15 @@ static PyObject *Color_from_srgb_to_scene_linear(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_scene_linear_to_xyz_d65_doc,
-             ".. function:: from_scene_linear_to_xyz_d65()\n"
-             "\n"
-             "   Convert from scene linear to CIE XYZ (Illuminant D65) color space.\n"
-             "\n"
-             "   :return: A color in XYZ color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_scene_linear_to_xyz_d65_doc,
+    ".. function:: from_scene_linear_to_xyz_d65()\n"
+    "\n"
+    "   Convert from scene linear to CIE XYZ (Illuminant D65) color space.\n"
+    "\n"
+    "   :return: A color in XYZ color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_scene_linear_to_xyz_d65(ColorObject *self)
 {
   float col[3];
@@ -141,13 +147,15 @@ static PyObject *Color_from_scene_linear_to_xyz_d65(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_xyz_d65_to_scene_linear_doc,
-             ".. function:: from_xyz_d65_to_scene_linear()\n"
-             "\n"
-             "   Convert from CIE XYZ (Illuminant D65) to scene linear color space.\n"
-             "\n"
-             "   :return: A color in scene linear color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_xyz_d65_to_scene_linear_doc,
+    ".. function:: from_xyz_d65_to_scene_linear()\n"
+    "\n"
+    "   Convert from CIE XYZ (Illuminant D65) to scene linear color space.\n"
+    "\n"
+    "   :return: A color in scene linear color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_xyz_d65_to_scene_linear(ColorObject *self)
 {
   float col[3];
@@ -155,13 +163,15 @@ static PyObject *Color_from_xyz_d65_to_scene_linear(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_scene_linear_to_aces_doc,
-             ".. function:: from_scene_linear_to_aces()\n"
-             "\n"
-             "   Convert from scene linear to ACES2065-1 linear color space.\n"
-             "\n"
-             "   :return: A color in ACES2065-1 linear color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_scene_linear_to_aces_doc,
+    ".. function:: from_scene_linear_to_aces()\n"
+    "\n"
+    "   Convert from scene linear to ACES2065-1 linear color space.\n"
+    "\n"
+    "   :return: A color in ACES2065-1 linear color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_scene_linear_to_aces(ColorObject *self)
 {
   float col[3];
@@ -169,13 +179,15 @@ static PyObject *Color_from_scene_linear_to_aces(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_aces_to_scene_linear_doc,
-             ".. function:: from_aces_to_scene_linear()\n"
-             "\n"
-             "   Convert from ACES2065-1 linear to scene linear color space.\n"
-             "\n"
-             "   :return: A color in scene linear color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_aces_to_scene_linear_doc,
+    ".. function:: from_aces_to_scene_linear()\n"
+    "\n"
+    "   Convert from ACES2065-1 linear to scene linear color space.\n"
+    "\n"
+    "   :return: A color in scene linear color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_aces_to_scene_linear(ColorObject *self)
 {
   float col[3];
@@ -183,13 +195,15 @@ static PyObject *Color_from_aces_to_scene_linear(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_scene_linear_to_rec709_linear_doc,
-             ".. function:: from_scene_linear_to_rec709_linear()\n"
-             "\n"
-             "   Convert from scene linear to Rec.709 linear color space.\n"
-             "\n"
-             "   :return: A color in Rec.709 linear color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_scene_linear_to_rec709_linear_doc,
+    ".. function:: from_scene_linear_to_rec709_linear()\n"
+    "\n"
+    "   Convert from scene linear to Rec.709 linear color space.\n"
+    "\n"
+    "   :return: A color in Rec.709 linear color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_scene_linear_to_rec709_linear(ColorObject *self)
 {
   float col[3];
@@ -197,13 +211,15 @@ static PyObject *Color_from_scene_linear_to_rec709_linear(ColorObject *self)
   return Color_CreatePyObject(col, Py_TYPE(self));
 }
 
-PyDoc_STRVAR(Color_from_rec709_linear_to_scene_linear_doc,
-             ".. function:: from_rec709_linear_to_scene_linear()\n"
-             "\n"
-             "   Convert from Rec.709 linear color space to scene linear color space.\n"
-             "\n"
-             "   :return: A color in scene linear color space.\n"
-             "   :rtype: :class:`Color`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_from_rec709_linear_to_scene_linear_doc,
+    ".. function:: from_rec709_linear_to_scene_linear()\n"
+    "\n"
+    "   Convert from Rec.709 linear color space to scene linear color space.\n"
+    "\n"
+    "   :return: A color in scene linear color space.\n"
+    "   :rtype: :class:`Color`\n");
 static PyObject *Color_from_rec709_linear_to_scene_linear(ColorObject *self)
 {
   float col[3];
@@ -219,16 +235,18 @@ static PyObject *Color_from_rec709_linear_to_scene_linear(ColorObject *self)
 /** \name Color Methods: Color Copy/Deep-Copy
  * \{ */
 
-PyDoc_STRVAR(Color_copy_doc,
-             ".. function:: copy()\n"
-             "\n"
-             "   Returns a copy of this color.\n"
-             "\n"
-             "   :return: A copy of the color.\n"
-             "   :rtype: :class:`Color`\n"
-             "\n"
-             "   .. note:: use this to get a copy of a wrapped color with\n"
-             "      no reference to the original data.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_copy_doc,
+    ".. function:: copy()\n"
+    "\n"
+    "   Returns a copy of this color.\n"
+    "\n"
+    "   :return: A copy of the color.\n"
+    "   :rtype: :class:`Color`\n"
+    "\n"
+    "   .. note:: use this to get a copy of a wrapped color with\n"
+    "      no reference to the original data.\n");
 static PyObject *Color_copy(ColorObject *self)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -895,9 +913,24 @@ static PyNumberMethods Color_NumMethods = {
 
 /* Color channel (RGB): `color.r/g/b`. */
 
-PyDoc_STRVAR(Color_channel_r_doc, "Red color channel.\n\n:type: float");
-PyDoc_STRVAR(Color_channel_g_doc, "Green color channel.\n\n:type: float");
-PyDoc_STRVAR(Color_channel_b_doc, "Blue color channel.\n\n:type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_channel_r_doc,
+    "Red color channel.\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_channel_g_doc,
+    "Green color channel.\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_channel_b_doc,
+    "Blue color channel.\n"
+    "\n"
+    ":type: float");
 
 static PyObject *Color_channel_get(ColorObject *self, void *type)
 {
@@ -911,9 +944,24 @@ static int Color_channel_set(ColorObject *self, PyObject *value, void *type)
 
 /* Color channel (HSV): `color.h/s/v`. */
 
-PyDoc_STRVAR(Color_channel_hsv_h_doc, "HSV Hue component in [0, 1].\n\n:type: float");
-PyDoc_STRVAR(Color_channel_hsv_s_doc, "HSV Saturation component in [0, 1].\n\n:type: float");
-PyDoc_STRVAR(Color_channel_hsv_v_doc, "HSV Value component in [0, 1].\n\n:type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_channel_hsv_h_doc,
+    "HSV Hue component in [0, 1].\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_channel_hsv_s_doc,
+    "HSV Saturation component in [0, 1].\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_channel_hsv_v_doc,
+    "HSV Value component in [0, 1].\n"
+    "\n"
+    ":type: float");
 
 static PyObject *Color_channel_hsv_get(ColorObject *self, void *type)
 {
@@ -958,7 +1006,12 @@ static int Color_channel_hsv_set(ColorObject *self, PyObject *value, void *type)
   return 0;
 }
 
-PyDoc_STRVAR(Color_hsv_doc, "HSV Values in [0, 1].\n\n:type: float triplet");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Color_hsv_doc,
+    "HSV Values in [0, 1].\n"
+    "\n"
+    ":type: float triplet");
 /** Color channel HSV (get): `x = color.hsv`. */
 static PyObject *Color_hsv_get(ColorObject *self, void * /*closure*/)
 {
@@ -1137,6 +1190,7 @@ static PyMethodDef Color_methods[] = {
 #endif
 
 PyDoc_STRVAR(
+    /* Wrap. */
     color_doc,
     ".. class:: Color(rgb)\n"
     "\n"

@@ -24,7 +24,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char GetDirectionalViewMapDensityF1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    GetDirectionalViewMapDensityF1D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > "
     ":class:`freestyle.types.UnaryFunction1DDouble` "
     "> :class:`GetDirectionalViewMapDensityF1D`\n"
@@ -63,7 +65,7 @@ static char GetDirectionalViewMapDensityF1D___doc__[] =
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: the density evaluated for an Interface1D in of the\n"
     "      steerable viewmaps image.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDensityF1D *self,
                                                     PyObject *args,

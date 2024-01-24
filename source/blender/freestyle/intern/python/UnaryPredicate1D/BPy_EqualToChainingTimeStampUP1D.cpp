@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char EqualToChainingTimeStampUP1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    EqualToChainingTimeStampUP1D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > "
     ":class:`freestyle.types.EqualToChainingTimeStampUP1D`\n"
     "\n"
@@ -39,7 +41,7 @@ static char EqualToChainingTimeStampUP1D___doc__[] =
     "   :arg inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: True if the time stamp is equal to a user-defined value.\n"
-    "   :rtype: bool\n";
+    "   :rtype: bool\n");
 
 static int EqualToChainingTimeStampUP1D___init__(BPy_EqualToChainingTimeStampUP1D *self,
                                                  PyObject *args,

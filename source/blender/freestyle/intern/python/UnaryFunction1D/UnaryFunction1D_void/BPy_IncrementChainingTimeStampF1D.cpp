@@ -22,7 +22,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char IncrementChainingTimeStampF1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    IncrementChainingTimeStampF1D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > "
     ":class:`freestyle.types.UnaryFunction1DVoid` > :class:`IncrementChainingTimeStampF1D`\n"
     "\n"
@@ -35,7 +37,7 @@ static char IncrementChainingTimeStampF1D___doc__[] =
     "   Increments the chaining time stamp of the Interface1D.\n"
     "\n"
     "   :arg inter: An Interface1D object.\n"
-    "   :type inter: :class:`freestyle.types.Interface1D`\n";
+    "   :type inter: :class:`freestyle.types.Interface1D`\n");
 
 static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStampF1D *self,
                                                   PyObject *args,

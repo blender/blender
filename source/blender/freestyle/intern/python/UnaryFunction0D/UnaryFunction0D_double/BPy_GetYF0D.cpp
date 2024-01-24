@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char GetYF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    GetYF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DDouble` > :class:`GetYF0D`\n"
     "\n"
@@ -36,7 +38,7 @@ static char GetYF0D___doc__[] =
     "   :arg it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The Y 3D coordinate of the pointed Interface0D.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static int GetYF0D___init__(BPy_GetYF0D *self, PyObject *args, PyObject *kwds)
 {

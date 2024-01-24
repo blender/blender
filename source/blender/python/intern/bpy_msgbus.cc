@@ -196,6 +196,7 @@ static void bpy_msgbus_subscribe_value_free_data(wmMsgSubscribeKey * /*msg_key*/
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_msgbus_subscribe_rna_doc,
     ".. function:: subscribe_rna(key, owner, args, notify, options=set())\n"
     "\n"
@@ -325,6 +326,7 @@ static PyObject *bpy_msgbus_subscribe_rna(PyObject * /*self*/, PyObject *args, P
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_msgbus_publish_rna_doc,
     ".. function:: publish_rna(key)\n"
     "\n" BPY_MSGBUS_RNA_MSGKEY_DOC
@@ -371,10 +373,12 @@ static PyObject *bpy_msgbus_publish_rna(PyObject * /*self*/, PyObject *args, PyO
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_msgbus_clear_by_owner_doc,
-             ".. function:: clear_by_owner(owner)\n"
-             "\n"
-             "   Clear all subscribers using this owner.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_msgbus_clear_by_owner_doc,
+    ".. function:: clear_by_owner(owner)\n"
+    "\n"
+    "   Clear all subscribers using this owner.\n");
 static PyObject *bpy_msgbus_clear_by_owner(PyObject * /*self*/, PyObject *py_owner)
 {
   bContext *C = BPY_context_get();

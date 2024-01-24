@@ -152,6 +152,7 @@ static PyTypeObject bpy_lib_Type = {
 };
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_lib_load_doc,
     ".. method:: load("
     "filepath, "

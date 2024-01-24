@@ -126,17 +126,19 @@ static PyTypeObject bpy_rna_data_context_Type = {
     /*tp_vectorcall*/ nullptr,
 };
 
-PyDoc_STRVAR(bpy_rna_data_context_load_doc,
-             ".. method:: temp_data(filepath=None)\n"
-             "\n"
-             "   A context manager that temporarily creates blender file data.\n"
-             "\n"
-             "   :arg filepath: The file path for the newly temporary data. "
-             "When None, the path of the currently open file is used.\n"
-             "   :type filepath: str, bytes or NoneType\n"
-             "\n"
-             "   :return: Blend file data which is freed once the context exists.\n"
-             "   :rtype: :class:`bpy.types.BlendData`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_rna_data_context_load_doc,
+    ".. method:: temp_data(filepath=None)\n"
+    "\n"
+    "   A context manager that temporarily creates blender file data.\n"
+    "\n"
+    "   :arg filepath: The file path for the newly temporary data. "
+    "When None, the path of the currently open file is used.\n"
+    "   :type filepath: str, bytes or NoneType\n"
+    "\n"
+    "   :return: Blend file data which is freed once the context exists.\n"
+    "   :rtype: :class:`bpy.types.BlendData`\n");
 
 static PyObject *bpy_rna_data_temp_data(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {

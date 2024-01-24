@@ -19,17 +19,19 @@
 #include "bmesh_py_geometry.h" /* own include */
 #include "bmesh_py_types.h"
 
-PyDoc_STRVAR(bpy_bm_geometry_intersect_face_point_doc,
-             ".. method:: intersect_face_point(face, point)\n"
-             "\n"
-             "   Tests if the projection of a point is inside a face (using the face's normal).\n"
-             "\n"
-             "   :arg face: The face to test.\n"
-             "   :type face: :class:`bmesh.types.BMFace`\n"
-             "   :arg point: The point to test.\n"
-             "   :type point: float triplet\n"
-             "   :return: True when the projection of the point is in the face.\n"
-             "   :rtype: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_geometry_intersect_face_point_doc,
+    ".. method:: intersect_face_point(face, point)\n"
+    "\n"
+    "   Tests if the projection of a point is inside a face (using the face's normal).\n"
+    "\n"
+    "   :arg face: The face to test.\n"
+    "   :type face: :class:`bmesh.types.BMFace`\n"
+    "   :arg point: The point to test.\n"
+    "   :type point: float triplet\n"
+    "   :return: True when the projection of the point is in the face.\n"
+    "   :rtype: bool\n");
 static PyObject *bpy_bm_geometry_intersect_face_point(BPy_BMFace * /*self*/, PyObject *args)
 {
   BPy_BMFace *py_face;
@@ -59,8 +61,10 @@ static PyMethodDef BPy_BM_geometry_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-PyDoc_STRVAR(BPy_BM_utils_doc,
-             "This module provides access to bmesh geometry evaluation functions.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_BM_utils_doc,
+    "This module provides access to bmesh geometry evaluation functions.");
 static PyModuleDef BPy_BM_geometry_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.geometry",
