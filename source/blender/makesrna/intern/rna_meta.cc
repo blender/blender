@@ -29,7 +29,7 @@
 #  include "DNA_scene_types.h"
 
 #  include "BKE_main.hh"
-#  include "BKE_mball.h"
+#  include "BKE_mball.hh"
 #  include "BKE_scene.h"
 
 #  include "DEG_depsgraph.hh"

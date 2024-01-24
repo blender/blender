@@ -432,8 +432,8 @@ set(SRC
   BKE_main_namemap.hh
   BKE_mask.h
   BKE_material.h
-  BKE_mball.h
-  BKE_mball_tessellate.h
+  BKE_mball.hh
+  BKE_mball_tessellate.hh
   BKE_mesh.h
   BKE_mesh.hh
   BKE_mesh_boolean_convert.hh

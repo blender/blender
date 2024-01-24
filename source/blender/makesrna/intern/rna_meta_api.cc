@@ -15,7 +15,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 
 #include "rna_internal.h" /* own include */
 

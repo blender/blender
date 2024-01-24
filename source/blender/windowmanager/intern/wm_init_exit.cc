@@ -43,7 +43,7 @@
 #include "BKE_keyconfig.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_mball_tessellate.h"
+#include "BKE_mball_tessellate.hh"
 #include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"

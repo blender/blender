@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Depsgraph;
 struct Object;
 struct Scene;
@@ -21,7 +17,3 @@ struct Mesh *BKE_mball_polygonize(struct Depsgraph *depsgraph,
                                   struct Object *ob);
 
 void BKE_mball_cubeTable_free(void);
-
-#ifdef __cplusplus
-}
-#endif

@@ -7,10 +7,6 @@
  * \ingroup bke
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Base;
 struct Depsgraph;
 struct Main;
@@ -97,7 +93,3 @@ bool BKE_mball_select_swap_multi_ex(struct Base **bases, int bases_len);
 /* **** Depsgraph evaluation **** */
 
 void BKE_mball_data_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
-
-#ifdef __cplusplus
-}
-#endif
