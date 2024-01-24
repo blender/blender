@@ -267,22 +267,19 @@ EditBone *ED_armature_pick_ebone(bContext *C, const int xy[2], bool findunsel, B
 bPoseChannel *ED_armature_pick_pchan(bContext *C, const int xy[2], bool findunsel, Base **r_base);
 Bone *ED_armature_pick_bone(bContext *C, const int xy[2], bool findunsel, Base **r_base);
 
-EditBone *ED_armature_pick_ebone_from_selectbuffer(Base **bases,
-                                                   uint bases_len,
+EditBone *ED_armature_pick_ebone_from_selectbuffer(blender::Span<Base *> bases,
                                                    const GPUSelectResult *hit_results,
                                                    int hits,
                                                    bool findunsel,
                                                    bool do_nearest,
                                                    Base **r_base);
-bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(Base **bases,
-                                                       uint bases_len,
+bPoseChannel *ED_armature_pick_pchan_from_selectbuffer(blender::Span<Base *> bases,
                                                        const GPUSelectResult *hit_results,
                                                        int hits,
                                                        bool findunsel,
                                                        bool do_nearest,
                                                        Base **r_base);
-Bone *ED_armature_pick_bone_from_selectbuffer(Base **bases,
-                                              uint bases_len,
+Bone *ED_armature_pick_bone_from_selectbuffer(blender::Span<Base *> bases,
                                               const GPUSelectResult *hit_results,
                                               int hits,
                                               bool findunsel,

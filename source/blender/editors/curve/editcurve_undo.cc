@@ -37,6 +37,8 @@
 
 #include "curve_intern.h"
 
+using blender::Vector;
+
 /** We only need this locally. */
 static CLG_LogRef LOG = {"ed.undo.curve"};
 

@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include "BLI_vector.hh"
+
 #include "BKE_collection.h"
 
 #include "DNA_layer_types.h"
@@ -478,8 +480,8 @@ struct ObjectsInViewLayerParams {
   void *filter_userdata;
 };
 
-struct Object **BKE_view_layer_array_selected_objects_params(
-    ViewLayer *view_layer, const View3D *v3d, uint *r_len, const ObjectsInViewLayerParams *params);
+blender::Vector<Object *> BKE_view_layer_array_selected_objects_params(
+    ViewLayer *view_layer, const View3D *v3d, const ObjectsInViewLayerParams *params);
 
 /**
  * Use this in rare cases we need to detect a pair of objects (active, selected).
@@ -500,46 +502,38 @@ struct ObjectsInModeParams {
   void *filter_userdata;
 };
 
-Base **BKE_view_layer_array_from_bases_in_mode_params(const Scene *scene,
-                                                      ViewLayer *view_layer,
-                                                      const View3D *v3d,
-                                                      uint *r_len,
-                                                      const ObjectsInModeParams *params);
+blender::Vector<Base *> BKE_view_layer_array_from_bases_in_mode_params(
+    const Scene *scene,
+    ViewLayer *view_layer,
+    const View3D *v3d,
+    const ObjectsInModeParams *params);
 
-Object **BKE_view_layer_array_from_objects_in_mode_params(const Scene *scene,
-                                                          ViewLayer *view_layer,
-                                                          const View3D *v3d,
-                                                          uint *len,
-                                                          const ObjectsInModeParams *params);
+blender::Vector<Object *> BKE_view_layer_array_from_objects_in_mode_params(
+    const Scene *scene,
+    ViewLayer *view_layer,
+    const View3D *v3d,
+    const ObjectsInModeParams *params);
 
 bool BKE_view_layer_filter_edit_mesh_has_uvs(const Object *ob, void *user_data);
 bool BKE_view_layer_filter_edit_mesh_has_edges(const Object *ob, void *user_data);
 
 /* Utility functions that wrap common arguments (add more as needed). */
 
-Object **BKE_view_layer_array_from_objects_in_edit_mode(const Scene *scene,
-                                                        ViewLayer *view_layer,
-                                                        const View3D *v3d,
-                                                        uint *r_len);
-Base **BKE_view_layer_array_from_bases_in_edit_mode(const Scene *scene,
-                                                    ViewLayer *view_layer,
-                                                    const View3D *v3d,
-                                                    uint *r_len);
-Object **BKE_view_layer_array_from_objects_in_edit_mode_unique_data(const Scene *scene,
-                                                                    ViewLayer *view_layer,
-                                                                    const View3D *v3d,
-                                                                    uint *r_len);
+blender::Vector<Object *> BKE_view_layer_array_from_objects_in_edit_mode(const Scene *scene,
+                                                                         ViewLayer *view_layer,
+                                                                         const View3D *v3d);
+blender::Vector<Base *> BKE_view_layer_array_from_bases_in_edit_mode(const Scene *scene,
+                                                                     ViewLayer *view_layer,
+                                                                     const View3D *v3d);
+blender::Vector<Object *> BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+    const Scene *scene, ViewLayer *view_layer, const View3D *v3d);
 
-Base **BKE_view_layer_array_from_bases_in_edit_mode_unique_data(const Scene *scene,
-                                                                ViewLayer *view_layer,
-                                                                const View3D *v3d,
-                                                                uint *r_len);
-Object **BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(const Scene *scene,
-                                                                             ViewLayer *view_layer,
-                                                                             const View3D *v3d,
-                                                                             uint *r_len);
-Object **BKE_view_layer_array_from_objects_in_mode_unique_data(
-    const Scene *scene, ViewLayer *view_layer, const View3D *v3d, uint *r_len, eObjectMode mode);
+blender::Vector<Base *> BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+    const Scene *scene, ViewLayer *view_layer, const View3D *v3d);
+blender::Vector<Object *> BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+    const Scene *scene, ViewLayer *view_layer, const View3D *v3d);
+blender::Vector<Object *> BKE_view_layer_array_from_objects_in_mode_unique_data(
+    const Scene *scene, ViewLayer *view_layer, const View3D *v3d, eObjectMode mode);
 Object *BKE_view_layer_active_object_get(const ViewLayer *view_layer);
 Object *BKE_view_layer_edit_object_get(const ViewLayer *view_layer);
 

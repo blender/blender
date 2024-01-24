@@ -1,7 +1,10 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma once
+
+#include "BLI_span.hh"
 
 /** \file
  * \ingroup bke
@@ -18,7 +21,7 @@ struct Scene;
 MetaBall *BKE_mball_add(Main *bmain, const char *name);
 
 bool BKE_mball_is_any_selected(const MetaBall *mb);
-bool BKE_mball_is_any_selected_multi(Base **bases, int bases_len);
+bool BKE_mball_is_any_selected_multi(blender::Span<Base *> bases);
 bool BKE_mball_is_any_unselected(const MetaBall *mb);
 
 /**
@@ -82,13 +85,13 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, int type);
 /* *** Select functions *** */
 
 int BKE_mball_select_count(const MetaBall *mb);
-int BKE_mball_select_count_multi(Base **bases, int bases_len);
+int BKE_mball_select_count_multi(blender::Span<Base *> bases);
 bool BKE_mball_select_all(MetaBall *mb);
-bool BKE_mball_select_all_multi_ex(Base **bases, int bases_len);
+bool BKE_mball_select_all_multi_ex(blender::Span<Base *> bases);
 bool BKE_mball_deselect_all(MetaBall *mb);
-bool BKE_mball_deselect_all_multi_ex(Base **bases, int bases_len);
+bool BKE_mball_deselect_all_multi_ex(blender::Span<Base *> bases);
 bool BKE_mball_select_swap(MetaBall *mb);
-bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len);
+bool BKE_mball_select_swap_multi_ex(blender::Span<Base *> bases);
 
 /* **** Depsgraph evaluation **** */
 

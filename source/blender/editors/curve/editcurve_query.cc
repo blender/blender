@@ -26,6 +26,8 @@
 
 #include "curve_intern.h"
 
+using blender::Vector;
+
 /* -------------------------------------------------------------------- */
 /** \name Cursor Picking API
  * \{ */
@@ -109,11 +111,9 @@ bool ED_curve_pick_vert_ex(ViewContext *vc,
   data.mval_fl[0] = vc->mval[0];
   data.mval_fl[1] = vc->mval[1];
 
-  uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc->scene, vc->view_layer, vc->v3d, &bases_len);
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base = bases[base_index];
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc->scene, vc->view_layer, vc->v3d);
+  for (Base *base : bases) {
     data.is_changed = false;
 
     ED_view3d_viewcontext_init_object(vc, base->object);
@@ -124,7 +124,6 @@ bool ED_curve_pick_vert_ex(ViewContext *vc,
       *r_base = base;
     }
   }
-  MEM_freeN(bases);
 
   *r_nurb = data.nurb;
   *r_bezt = data.bezt;

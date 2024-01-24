@@ -45,6 +45,8 @@
 
 #include "DEG_depsgraph.hh"
 
+using blender::Vector;
+
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
@@ -64,11 +66,9 @@ static void edbm_flag_disable_all_multi(const Scene *scene,
                                         View3D *v3d,
                                         const char hflag)
 {
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, v3d, &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, v3d);
+  for (Object *ob_iter : objects) {
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
     BMesh *bm_iter = em_iter->bm;
     if (bm_iter->totvertsel) {
@@ -76,7 +76,6 @@ static void edbm_flag_disable_all_multi(const Scene *scene,
       DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
     }
   }
-  MEM_freeN(objects);
 }
 
 /** When accessed as a tool, get the active edge from the pre-selection gizmo. */

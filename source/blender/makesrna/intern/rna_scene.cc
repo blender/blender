@@ -765,6 +765,8 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #    include "FRS_freestyle.h"
 #  endif
 
+using blender::Vector;
+
 static int rna_ToolSettings_snap_mode_get(PointerRNA *ptr)
 {
   ToolSettings *ts = (ToolSettings *)(ptr->data);
@@ -2356,18 +2358,14 @@ static void rna_EditMesh_update(bContext *C, PointerRNA * /*ptr*/)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     Mesh *mesh = BKE_mesh_from_object(obedit);
 
     DEG_id_tag_update(&mesh->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, mesh);
   }
-
-  MEM_freeN(objects);
 }
 
 static char *rna_MeshStatVis_path(const PointerRNA * /*ptr*/)

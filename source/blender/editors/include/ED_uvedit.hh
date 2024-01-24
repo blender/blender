@@ -47,15 +47,18 @@ void ED_uvedit_foreach_uv(const Scene *scene,
                           const bool selected,
                           blender::FunctionRef<void(float[2])> user_fn);
 void ED_uvedit_foreach_uv_multi(const Scene *scene,
-                                Object **objects_edit,
-                                uint objects_len,
+                                blender::Span<Object *> objects_edit,
                                 const bool skip_invisible,
                                 const bool skip_nonselected,
                                 blender::FunctionRef<void(float[2])> user_fn);
-bool ED_uvedit_minmax_multi(
-    const Scene *scene, Object **objects_edit, uint objects_len, float r_min[2], float r_max[2]);
-bool ED_uvedit_center_multi(
-    const Scene *scene, Object **objects_edit, uint objects_len, float r_cent[2], char mode);
+bool ED_uvedit_minmax_multi(const Scene *scene,
+                            blender::Span<Object *> objects_edit,
+                            float r_min[2],
+                            float r_max[2]);
+bool ED_uvedit_center_multi(const Scene *scene,
+                            blender::Span<Object *> objects_edit,
+                            float r_cent[2],
+                            char mode);
 
 bool ED_uvedit_center_from_pivot_ex(SpaceImage *sima,
                                     Scene *scene,
@@ -219,8 +222,7 @@ void uvedit_select_flush(const Scene *scene, BMEditMesh *em);
 
 bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
                                 const Scene *scene,
-                                Object **objects,
-                                uint objects_len,
+                                blender::Span<Object *> objects,
                                 const float mval_fl[2],
                                 const bool ignore_selected,
                                 float *dist_sq,
@@ -262,7 +264,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit);
 void ED_uvedit_live_unwrap_re_solve();
 void ED_uvedit_live_unwrap_end(short cancel);
 
-void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len);
+void ED_uvedit_live_unwrap(const Scene *scene, blender::Span<Object *> objects);
 void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob);
 
 /* `uvedit_draw.cc` */

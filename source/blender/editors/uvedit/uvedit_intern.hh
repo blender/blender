@@ -46,8 +46,7 @@ UvNearestHit uv_nearest_hit_init_max(const View2D *v2d);
 bool uv_find_nearest_vert(
     Scene *scene, Object *obedit, const float co[2], float penalty_dist, UvNearestHit *hit);
 bool uv_find_nearest_vert_multi(Scene *scene,
-                                Object **objects,
-                                uint objects_len,
+                                blender::Span<Object *> objects,
                                 const float co[2],
                                 float penalty_dist,
                                 UvNearestHit *hit);
@@ -55,8 +54,7 @@ bool uv_find_nearest_vert_multi(Scene *scene,
 bool uv_find_nearest_edge(
     Scene *scene, Object *obedit, const float co[2], float penalty, UvNearestHit *hit);
 bool uv_find_nearest_edge_multi(Scene *scene,
-                                Object **objects,
-                                uint objects_len,
+                                blender::Span<Object *> objects,
                                 const float co[2],
                                 float penalty,
                                 UvNearestHit *hit);
@@ -74,13 +72,14 @@ bool uv_find_nearest_face_ex(
     Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit, bool only_in_face);
 bool uv_find_nearest_face(Scene *scene, Object *obedit, const float co[2], UvNearestHit *hit);
 bool uv_find_nearest_face_multi_ex(Scene *scene,
-                                   Object **objects,
-                                   uint objects_len,
+                                   blender::Span<Object *> objects,
                                    const float co[2],
                                    UvNearestHit *hit,
                                    bool only_in_face);
-bool uv_find_nearest_face_multi(
-    Scene *scene, Object **objects, uint objects_len, const float co[2], UvNearestHit *hit);
+bool uv_find_nearest_face_multi(Scene *scene,
+                                blender::Span<Object *> objects,
+                                const float co[2],
+                                UvNearestHit *hit);
 
 BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, const float co[2]);
 BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, const float co[2]);
@@ -120,7 +119,7 @@ void UV_OT_shortest_path_select(wmOperatorType *ot);
 /* `uvedit_select.cc` */
 
 bool uvedit_select_is_any_selected(const Scene *scene, Object *obedit);
-bool uvedit_select_is_any_selected_multi(const Scene *scene, Object **objects, uint objects_len);
+bool uvedit_select_is_any_selected_multi(const Scene *scene, blender::Span<Object *> objects);
 /**
  * \warning This returns first selected UV,
  * not ideal in many cases since there could be multiple.

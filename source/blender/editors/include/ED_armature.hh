@@ -8,9 +8,8 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include "BLI_listbase.h"
+#include "BLI_span.hh"
 
 struct Base;
 struct Bone;
@@ -134,29 +133,25 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op);
 
 /* `armature_select.cc` */
 
-Base *ED_armature_base_and_ebone_from_select_buffer(Base **bases,
-                                                    uint bases_len,
+Base *ED_armature_base_and_ebone_from_select_buffer(blender::Span<Base *> bases,
                                                     unsigned int select_id,
                                                     EditBone **r_ebone);
-Object *ED_armature_object_and_ebone_from_select_buffer(Object **objects,
-                                                        uint objects_len,
+Object *ED_armature_object_and_ebone_from_select_buffer(blender::Span<Object *> objects,
                                                         unsigned int select_id,
                                                         EditBone **r_ebone);
-Base *ED_armature_base_and_pchan_from_select_buffer(Base **bases,
-                                                    uint bases_len,
+Base *ED_armature_base_and_pchan_from_select_buffer(blender::Span<Base *> bases,
                                                     unsigned int select_id,
                                                     bPoseChannel **r_pchan);
 /**
  * For callers that don't need the pose channel.
  */
-Base *ED_armature_base_and_bone_from_select_buffer(Base **bases,
-                                                   uint bases_len,
+Base *ED_armature_base_and_bone_from_select_buffer(blender::Span<Base *> bases,
                                                    unsigned int select_id,
                                                    Bone **r_bone);
 bool ED_armature_edit_deselect_all(Object *obedit);
 bool ED_armature_edit_deselect_all_visible(Object *obedit);
-bool ED_armature_edit_deselect_all_multi_ex(Base **bases, uint bases_len);
-bool ED_armature_edit_deselect_all_visible_multi_ex(Base **bases, uint bases_len);
+bool ED_armature_edit_deselect_all_multi_ex(blender::Span<Base *> bases);
+bool ED_armature_edit_deselect_all_visible_multi_ex(blender::Span<Base *> bases);
 bool ED_armature_edit_deselect_all_visible_multi(bContext *C);
 /**
  * \return True when pick finds an element or the selection changed.
@@ -315,8 +310,7 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
 void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
                                             ViewLayer *view_layer,
                                             Base *base_select);
-bool ED_pose_deselect_all_multi_ex(Base **bases,
-                                   uint bases_len,
+bool ED_pose_deselect_all_multi_ex(blender::Span<Base *> bases,
                                    int select_mode,
                                    bool ignore_visibility);
 bool ED_pose_deselect_all_multi(bContext *C, int select_mode, bool ignore_visibility);
