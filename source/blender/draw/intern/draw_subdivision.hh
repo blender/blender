@@ -31,8 +31,8 @@ struct MeshRenderData;
  * \{ */
 
 struct DRWPatchMap {
-  struct GPUVertBuf *patch_map_handles;
-  struct GPUVertBuf *patch_map_quadtree;
+  GPUVertBuf *patch_map_handles;
+  GPUVertBuf *patch_map_quadtree;
   int min_patch_face;
   int max_patch_face;
   int max_depth;

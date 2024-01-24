@@ -15,30 +15,30 @@ struct MetaElem;
 struct Object;
 struct Scene;
 
-struct MetaBall *BKE_mball_add(struct Main *bmain, const char *name);
+MetaBall *BKE_mball_add(Main *bmain, const char *name);
 
-bool BKE_mball_is_any_selected(const struct MetaBall *mb);
-bool BKE_mball_is_any_selected_multi(struct Base **bases, int bases_len);
-bool BKE_mball_is_any_unselected(const struct MetaBall *mb);
+bool BKE_mball_is_any_selected(const MetaBall *mb);
+bool BKE_mball_is_any_selected_multi(Base **bases, int bases_len);
+bool BKE_mball_is_any_unselected(const MetaBall *mb);
 
 /**
  * Return `true` if `ob1` and `ob2` are part of the same metaBall group.
  *
  * \note Currently checks whether their two base names (without numerical suffix) is the same.
  */
-bool BKE_mball_is_same_group(const struct Object *ob1, const struct Object *ob2);
+bool BKE_mball_is_same_group(const Object *ob1, const Object *ob2);
 /**
  * Return `true` if `ob1` and `ob2` are part of the same metaBall group, and `ob1` is its
  * basis.
  */
-bool BKE_mball_is_basis_for(const struct Object *ob1, const struct Object *ob2);
+bool BKE_mball_is_basis_for(const Object *ob1, const Object *ob2);
 /**
  * Test, if \a ob is a basis meta-ball.
  *
  * It test last character of Object ID name.
  * If last character is digit it return 0, else it return 1.
  */
-bool BKE_mball_is_basis(const struct Object *ob);
+bool BKE_mball_is_basis(const Object *ob);
 /**
  * This function finds the basis meta-ball.
  *
@@ -48,7 +48,7 @@ bool BKE_mball_is_basis(const struct Object *ob);
  *
  * \warning #BKE_mball_is_basis() can fail on returned object, see function docs for details.
  */
-struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
+Object *BKE_mball_basis_find(Scene *scene, Object *ob);
 
 /**
  * Copy some properties from a meta-ball obdata to all other meta-ball obdata belonging to the same
@@ -59,37 +59,37 @@ struct Object *BKE_mball_basis_find(struct Scene *scene, struct Object *ob);
  * `MBall`, `MBall.001`, `MBall.002`, etc). The most important is to copy properties to the base
  * meta-ball, because this meta-ball influences polygonization of meta-balls.
  */
-void BKE_mball_properties_copy(struct Main *bmain, struct MetaBall *metaball_src);
+void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src);
 
 bool BKE_mball_minmax_ex(
-    const struct MetaBall *mb, float min[3], float max[3], const float obmat[4][4], short flag);
+    const MetaBall *mb, float min[3], float max[3], const float obmat[4][4], short flag);
 
 /* Basic vertex data functions. */
 
-bool BKE_mball_minmax(const struct MetaBall *mb, float min[3], float max[3]);
-bool BKE_mball_center_median(const struct MetaBall *mb, float r_cent[3]);
-bool BKE_mball_center_bounds(const struct MetaBall *mb, float r_cent[3]);
-void BKE_mball_transform(struct MetaBall *mb, const float mat[4][4], bool do_props);
-void BKE_mball_translate(struct MetaBall *mb, const float offset[3]);
+bool BKE_mball_minmax(const MetaBall *mb, float min[3], float max[3]);
+bool BKE_mball_center_median(const MetaBall *mb, float r_cent[3]);
+bool BKE_mball_center_bounds(const MetaBall *mb, float r_cent[3]);
+void BKE_mball_transform(MetaBall *mb, const float mat[4][4], bool do_props);
+void BKE_mball_translate(MetaBall *mb, const float offset[3]);
 
 /**
  * Most simple meta-element adding function.
  *
  * \note don't do context manipulation here (rna uses).
  */
-struct MetaElem *BKE_mball_element_add(struct MetaBall *mb, int type);
+MetaElem *BKE_mball_element_add(MetaBall *mb, int type);
 
 /* *** Select functions *** */
 
-int BKE_mball_select_count(const struct MetaBall *mb);
-int BKE_mball_select_count_multi(struct Base **bases, int bases_len);
-bool BKE_mball_select_all(struct MetaBall *mb);
-bool BKE_mball_select_all_multi_ex(struct Base **bases, int bases_len);
-bool BKE_mball_deselect_all(struct MetaBall *mb);
-bool BKE_mball_deselect_all_multi_ex(struct Base **bases, int bases_len);
-bool BKE_mball_select_swap(struct MetaBall *mb);
-bool BKE_mball_select_swap_multi_ex(struct Base **bases, int bases_len);
+int BKE_mball_select_count(const MetaBall *mb);
+int BKE_mball_select_count_multi(Base **bases, int bases_len);
+bool BKE_mball_select_all(MetaBall *mb);
+bool BKE_mball_select_all_multi_ex(Base **bases, int bases_len);
+bool BKE_mball_deselect_all(MetaBall *mb);
+bool BKE_mball_deselect_all_multi_ex(Base **bases, int bases_len);
+bool BKE_mball_select_swap(MetaBall *mb);
+bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len);
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mball_data_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
+void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob);

@@ -12,8 +12,6 @@ struct Object;
 struct Scene;
 struct Mesh;
 
-struct Mesh *BKE_mball_polygonize(struct Depsgraph *depsgraph,
-                                  struct Scene *scene,
-                                  struct Object *ob);
+Mesh *BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
-void BKE_mball_cubeTable_free(void);
+void BKE_mball_cubeTable_free();
