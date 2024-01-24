@@ -40,8 +40,13 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
   /* We need to copy the object because it may be in temporary space. */
   Object *obj_eval = DEG_get_evaluated_object(depsgraph, mesh_object);
   object_name_ = obj_eval->id.name + 2;
-  export_mesh_ = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
-                                                 BKE_object_get_pre_modified_mesh(obj_eval);
+  export_mesh_ = nullptr;
+
+  if (obj_eval->type == OB_MESH) {
+    export_mesh_ = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
+                                                   BKE_object_get_pre_modified_mesh(obj_eval);
+  }
+
   if (export_mesh_) {
     mesh_positions_ = export_mesh_->vert_positions();
     mesh_edges_ = export_mesh_->edges();
