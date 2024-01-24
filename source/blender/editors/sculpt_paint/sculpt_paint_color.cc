@@ -319,7 +319,7 @@ void do_paint_brush(PaintModeSettings *paint_mode_settings,
                                     ss->cache->wet_mix_prev_color,
                                     ss->cache->paint_brush.wet_persistence);
       copy_v4_v4(ss->cache->wet_mix_prev_color, wet_color);
-      ss->cache->wet_mix_prev_color == math::clamp(ss->cache->wet_mix_prev_color, 0.0f, 1.0f);
+      ss->cache->wet_mix_prev_color = math::clamp(ss->cache->wet_mix_prev_color, 0.0f, 1.0f);
     }
   }
 
