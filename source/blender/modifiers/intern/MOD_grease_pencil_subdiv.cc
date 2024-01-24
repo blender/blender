@@ -110,7 +110,8 @@ static void subdivide_drawing(ModifierData &md, Object &ob, bke::greasepencil::D
     drawing.strokes_for_write() = subdivided_curves;
   }
   else {
-    VArray<int> cuts = VArray<int>::ForSingle(math::pow(mmd.level,2), drawing.strokes().points_num());
+    VArray<int> cuts = VArray<int>::ForSingle(math::pow(mmd.level, 2),
+                                              drawing.strokes().points_num());
     drawing.strokes_for_write() = geometry::subdivide_curves(drawing.strokes(), strokes, cuts, {});
   }
 

@@ -7818,7 +7818,7 @@ static void rna_def_modifier_grease_pencil_color(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  
+
   static const EnumPropertyItem color_mode_items[] = {
       {MOD_GREASE_PENCIL_COLOR_BOTH, "BOTH", 0, "Stroke & Fill", "Modify fill and stroke colors"},
       {MOD_GREASE_PENCIL_COLOR_STROKE, "STROKE", 0, "Stroke", "Modify stroke color only"},
@@ -7951,7 +7951,6 @@ static void rna_def_modifier_grease_pencil_tint(BlenderRNA *brna)
       prop, "Use Weight as Factor", "Use vertex group weight as factor instead of influence");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
-
 
 static void rna_def_modifier_grease_pencil_smooth(BlenderRNA *brna)
 {
