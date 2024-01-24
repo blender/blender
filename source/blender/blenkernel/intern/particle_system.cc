@@ -7,10 +7,9 @@
  * \ingroup bke
  */
 
-#include <cstddef>
-
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 
@@ -3398,7 +3397,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
       mul_m4_m4m4(root_mat, sim->ob->object_to_world, hairmat);
       normalize_m4(root_mat);
 
-      bending_stiffness = CLAMPIS(
+      bending_stiffness = std::clamp(
           1.0f - part->bending_random * psys_frand(psys, p + 666), 0.0f, 1.0f);
 
       for (k = 0, key = pa->hair; k < pa->totkey; k++, key++) {

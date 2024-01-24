@@ -12,6 +12,7 @@
 
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 #include "BLI_vector.hh"
 
@@ -192,10 +193,10 @@ static void do_paint_brush_task(Object *ob,
         ss->cache->automasking.get(), ss, vd.vertex, &automask_data);
     mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], brush->alpha * automasking);
 
-    float col[4];
+    float4 col;
     SCULPT_vertex_color_get(ss, vd.vertex, col);
     IMB_blend_color_float(col, orig_data.col, buffer_color, IMB_BlendMode(brush->blend));
-    CLAMP4(col, 0.0f, 1.0f);
+    col = math::clamp(col, 0.0f, 1.0f);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
   }
   BKE_pbvh_vertex_iter_end;
@@ -286,7 +287,7 @@ void do_paint_brush(PaintModeSettings *paint_mode_settings,
   /* Regular Paint mode. */
 
   /* Wet paint color sampling. */
-  float wet_color[4] = {0.0f};
+  float4 wet_color(0);
   if (ss->cache->paint_brush.wet_mix > 0.0f) {
     const SampleWetPaintData swptd = threading::parallel_reduce(
         nodes.index_range(),
@@ -308,7 +309,7 @@ void do_paint_brush(PaintModeSettings *paint_mode_settings,
     if (swptd.tot_samples > 0 && is_finite_v4(swptd.color)) {
       copy_v4_v4(wet_color, swptd.color);
       mul_v4_fl(wet_color, 1.0f / swptd.tot_samples);
-      CLAMP4(wet_color, 0.0f, 1.0f);
+      wet_color = math::clamp(wet_color, 0.0f, 1.0f);
 
       if (ss->cache->first_time) {
         copy_v4_v4(ss->cache->wet_mix_prev_color, wet_color);
@@ -318,7 +319,7 @@ void do_paint_brush(PaintModeSettings *paint_mode_settings,
                                     ss->cache->wet_mix_prev_color,
                                     ss->cache->paint_brush.wet_persistence);
       copy_v4_v4(ss->cache->wet_mix_prev_color, wet_color);
-      CLAMP4(ss->cache->wet_mix_prev_color, 0.0f, 1.0f);
+      ss->cache->wet_mix_prev_color = math::clamp(ss->cache->wet_mix_prev_color, 0.0f, 1.0f);
     }
   }
 

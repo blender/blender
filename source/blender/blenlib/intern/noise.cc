@@ -665,7 +665,7 @@ float perlin_ridged_multi_fractal(T p,
 
   for (int i = 1; i <= int(detail); i++) {
     p *= lacunarity;
-    weight = CLAMPIS(signal * gain, 0.0f, 1.0f);
+    weight = std::clamp(signal * gain, 0.0f, 1.0f);
     signal = offset - std::abs(perlin_signed(p));
     signal *= signal;
     signal *= weight;

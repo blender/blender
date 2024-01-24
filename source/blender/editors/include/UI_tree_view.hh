@@ -150,7 +150,9 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   void draw_hierarchy_lines(const ARegion &region) const;
   void draw_hierarchy_lines_recursive(const ARegion &region,
                                       const TreeViewOrItem &parent,
-                                      uint pos) const;
+                                      const uint pos,
+                                      const float aspect) const;
+
   AbstractTreeViewItem *find_last_visible_descendant(const AbstractTreeViewItem &parent) const;
 };
 

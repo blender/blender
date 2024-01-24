@@ -966,14 +966,14 @@ static void shape_preset_trias_from_rect_dash(uiWidgetTrias *tria, const rcti *r
 static void shadecolors4(
     uchar coltop[4], uchar coldown[4], const uchar *color, short shadetop, short shadedown)
 {
-  coltop[0] = CLAMPIS(color[0] + shadetop, 0, 255);
-  coltop[1] = CLAMPIS(color[1] + shadetop, 0, 255);
-  coltop[2] = CLAMPIS(color[2] + shadetop, 0, 255);
+  coltop[0] = std::clamp(color[0] + shadetop, 0, 255);
+  coltop[1] = std::clamp(color[1] + shadetop, 0, 255);
+  coltop[2] = std::clamp(color[2] + shadetop, 0, 255);
   coltop[3] = color[3];
 
-  coldown[0] = CLAMPIS(color[0] + shadedown, 0, 255);
-  coldown[1] = CLAMPIS(color[1] + shadedown, 0, 255);
-  coldown[2] = CLAMPIS(color[2] + shadedown, 0, 255);
+  coldown[0] = std::clamp(color[0] + shadedown, 0, 255);
+  coldown[1] = std::clamp(color[1] + shadedown, 0, 255);
+  coldown[2] = std::clamp(color[2] + shadedown, 0, 255);
   coldown[3] = color[3];
 }
 
@@ -5218,9 +5218,9 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
 {
   /* Alas, this isn't nice. */
   const float unit_half = unit_size / 2;
-  const float cent_x = mval_origin ? CLAMPIS(mval_origin[0],
-                                             rect->xmin + unit_size,
-                                             rect->xmax - unit_size) :
+  const float cent_x = mval_origin ? std::clamp(mval_origin[0],
+                                                rect->xmin + unit_size,
+                                                rect->xmax - unit_size) :
                                      BLI_rcti_cent_x(rect);
 
   GPU_blend(GPU_BLEND_ALPHA);

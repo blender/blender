@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -665,7 +667,7 @@ static void splineik_evaluate_bone(
           }
           if (bulge < 1.0f) {
             if (ik_data->flag & CONSTRAINT_SPLINEIK_USE_BULGE_MIN) {
-              float bulge_min = CLAMPIS(ik_data->bulge_min, 0.0f, 1.0f);
+              float bulge_min = std::clamp(ik_data->bulge_min, 0.0f, 1.0f);
               float hard = max_ff(bulge, bulge_min);
 
               float range = 1.0f - bulge_min;

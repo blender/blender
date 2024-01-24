@@ -6,6 +6,7 @@
  * \ingroup edtransform
  */
 
+#include <algorithm>
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
@@ -84,7 +85,7 @@ static void applyTimeSlideValue(TransInfo *t, float sval, float cval)
 
       /* only apply to data if in range */
       if ((sval > minx) && (sval < maxx)) {
-        float cvalc = CLAMPIS(cval, minx, maxx);
+        float cvalc = std::clamp(cval, minx, maxx);
         float timefac;
         float *dst;
         float ival;

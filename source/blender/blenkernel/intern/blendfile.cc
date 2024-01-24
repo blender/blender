@@ -1089,7 +1089,8 @@ static void setup_app_data(bContext *C,
     bmain->filepath[0] = '\0';
   }
   else if (recover) {
-    /* In case of auto-save or quit.blend, use original filepath instead. */
+    /* In case of auto-save or quit.blend, use original filepath instead (see also #read_global in
+     * `readfile.cc`). */
     bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }
@@ -1460,13 +1461,13 @@ bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *
 bool BKE_blendfile_userdef_write_all(ReportList *reports)
 {
   char filepath[FILE_MAX];
-  const char *cfgdir;
+  std::optional<std::string> cfgdir;
   bool ok = true;
   const bool use_template_userpref = BKE_appdir_app_template_has_userpref(U.app_template);
 
   if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr))) {
     bool ok_write;
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
+    BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
     printf("Writing userprefs: \"%s\" ", filepath);
     if (use_template_userpref) {
@@ -1493,7 +1494,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   if (use_template_userpref) {
     if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
       /* Also save app-template preferences. */
-      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
+      BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
       printf("Writing userprefs app-template: \"%s\" ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {

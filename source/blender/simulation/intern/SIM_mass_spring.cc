@@ -6,6 +6,8 @@
  * \ingroup sim
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cloth_types.h"
@@ -1057,7 +1059,7 @@ static void cloth_continuum_step(ClothModifierData *clmd, float dt)
               interp_v3_v3v3(col,
                              col0,
                              col1,
-                             CLAMPIS(gdensity * clmd->sim_parms->density_strength, 0.0, 1.0));
+                             std::clamp(gdensity * clmd->sim_parms->density_strength, 0.0, 1.0));
 #    if 0
               BKE_sim_debug_data_add_circle(clmd->debug_data,
                                             x,

@@ -135,14 +135,15 @@ AbstractTreeViewItem *AbstractTreeView::find_last_visible_descendant(
 
 void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
                                                       const TreeViewOrItem &parent,
-                                                      const uint pos) const
+                                                      const uint pos,
+                                                      const float aspect) const
 {
   for (const auto &item : parent.children_) {
     if (!item->is_collapsible() || item->is_collapsed()) {
       continue;
     }
 
-    draw_hierarchy_lines_recursive(region, *item, pos);
+    draw_hierarchy_lines_recursive(region, *item, pos, aspect);
 
     const AbstractTreeViewItem *first_descendant = item->children_.first().get();
     const AbstractTreeViewItem *last_descendant = find_last_visible_descendant(*item);
@@ -162,9 +163,10 @@ void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
     ui_but_to_pixelrect(&last_child_rect, &region, block, &last_child_but);
 
     /* Small vertical padding. */
-    const short line_padding = UI_UNIT_Y / 4.0f;
-    const float x = first_child_rect.xmin + first_descendant->indent_width() -
-                    UI_ICON_SIZE * 0.5f + 2 * UI_SCALE_FAC;
+    const short line_padding = UI_UNIT_Y / 4.0f / aspect;
+    const float x = first_child_rect.xmin + ((first_descendant->indent_width() -
+                                              (0.5f * UI_ICON_SIZE) + U.pixelsize + UI_SCALE_FAC) /
+                                             aspect);
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2f(pos, x, first_child_rect.ymax - line_padding);
     immVertex2f(pos, x, last_child_rect.ymin + line_padding);
@@ -174,6 +176,8 @@ void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
 
 void AbstractTreeView::draw_hierarchy_lines(const ARegion &region) const
 {
+  const float aspect = BLI_rctf_size_y(&region.v2d.cur) / (BLI_rcti_size_y(&region.v2d.mask) + 1);
+
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uchar col[4];
@@ -191,9 +195,9 @@ void AbstractTreeView::draw_hierarchy_lines(const ARegion &region) const
   col[3] = 255;
   immUniformColor4ubv(col);
 
-  GPU_line_width(1.0f);
+  GPU_line_width(1.0f / aspect);
   GPU_blend(GPU_BLEND_ALPHA);
-  draw_hierarchy_lines_recursive(region, *this, pos);
+  draw_hierarchy_lines_recursive(region, *this, pos, aspect);
   GPU_blend(GPU_BLEND_NONE);
 
   immUnbindProgram();

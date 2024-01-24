@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.h"
@@ -95,7 +97,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const int offset_type = bmd->val_flags;
   const int profile_type = bmd->profile_type;
   const float value = bmd->value;
-  const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
+  const int mat = std::clamp(int(bmd->mat), -1, ctx->object->totcol - 1);
   const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
   const bool mark_seam = (bmd->edge_flags & MOD_BEVEL_MARK_SEAM);
   const bool mark_sharp = (bmd->edge_flags & MOD_BEVEL_MARK_SHARP);

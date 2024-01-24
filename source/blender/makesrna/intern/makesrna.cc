@@ -1101,10 +1101,10 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 
     if (iprop->hardmin != INT_MIN || iprop->hardmax != INT_MAX || iprop->range) {
       if (array) {
-        fprintf(f, "CLAMPIS(values[i], ");
+        fprintf(f, "std::clamp(values[i], ");
       }
       else {
-        fprintf(f, "CLAMPIS(value, ");
+        fprintf(f, "std::clamp(value, ");
       }
       if (iprop->range) {
         fprintf(f, "prop_clamp_min, prop_clamp_max);\n");
@@ -1123,10 +1123,10 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 
     if (fprop->hardmin != -FLT_MAX || fprop->hardmax != FLT_MAX || fprop->range) {
       if (array) {
-        fprintf(f, "CLAMPIS(values[i], ");
+        fprintf(f, "std::clamp(values[i], ");
       }
       else {
-        fprintf(f, "CLAMPIS(value, ");
+        fprintf(f, "std::clamp(value, ");
       }
       if (fprop->range) {
         fprintf(f, "prop_clamp_min, prop_clamp_max);\n");
@@ -1466,7 +1466,7 @@ static char *rna_def_property_set_func(
             /* C++ may require casting to an enum type. */
             fprintf(f, "#ifdef __cplusplus\n");
             fprintf(f,
-                    /* If #rna_clamp_value() adds an expression like `CLAMPIS(...)`
+                    /* If #rna_clamp_value() adds an expression like `std::clamp(...)`
                      * (instead of an `lvalue`), #decltype() yields a reference,
                      * so that has to be removed. */
                     "    data->%s = %s(std::remove_reference_t<decltype(data->%s)>)",
@@ -4848,6 +4848,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include <limits>\n");
   fprintf(f, "#include <string.h>\n\n");
   fprintf(f, "#include <stddef.h>\n\n");
+  fprintf(f, "#include <algorithm>\n\n");
 
   fprintf(f, "#include \"MEM_guardedalloc.h\"\n\n");
 

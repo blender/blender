@@ -12,6 +12,7 @@
 /* Fast store variant macro. In GLSL this is the same as imageStore, but assumes no bounds
  * checking. */
 #define imageStoreFast imageStore
+#define imageLoadFast imageLoad
 
 /* Texture format tokens -- Type explicitness required by other Graphics APIs. */
 #define depth2D sampler2D

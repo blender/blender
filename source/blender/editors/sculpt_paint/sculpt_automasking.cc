@@ -725,15 +725,29 @@ static void init_boundary_masking(Object *ob, eBoundaryAutomaskMode mode, int pr
   }
 }
 
+/* Updates the cached values, preferring brush settings over tool-level settings. */
 static void cache_settings_update(Cache &automasking, SculptSession *ss, Sculpt *sd, Brush *brush)
 {
   automasking.settings.flags = calc_effective_bits(sd, brush);
   automasking.settings.initial_face_set = face_set::active_face_set_get(ss);
 
-  automasking.settings.view_normal_limit = sd->automasking_view_normal_limit;
-  automasking.settings.view_normal_falloff = sd->automasking_view_normal_falloff;
-  automasking.settings.start_normal_limit = sd->automasking_start_normal_limit;
-  automasking.settings.start_normal_falloff = sd->automasking_start_normal_falloff;
+  if (brush && (brush->automasking_flags & BRUSH_AUTOMASKING_VIEW_NORMAL)) {
+    automasking.settings.view_normal_limit = brush->automasking_view_normal_limit;
+    automasking.settings.view_normal_falloff = brush->automasking_view_normal_falloff;
+  }
+  else {
+    automasking.settings.view_normal_limit = sd->automasking_view_normal_limit;
+    automasking.settings.view_normal_falloff = sd->automasking_view_normal_falloff;
+  }
+
+  if (brush && (brush->automasking_flags & BRUSH_AUTOMASKING_BRUSH_NORMAL)) {
+    automasking.settings.start_normal_limit = brush->automasking_start_normal_limit;
+    automasking.settings.start_normal_falloff = brush->automasking_start_normal_falloff;
+  }
+  else {
+    automasking.settings.start_normal_limit = sd->automasking_start_normal_limit;
+    automasking.settings.start_normal_falloff = sd->automasking_start_normal_falloff;
+  }
 
   if (brush && (brush->automasking_flags & BRUSH_AUTOMASKING_CAVITY_ALL)) {
     automasking.settings.cavity_curve = brush->automasking_cavity_curve;

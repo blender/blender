@@ -524,7 +524,7 @@ static float eff_calc_visibility(ListBase *colliders,
         absorption = col->ob->pd->absorption;
 
         /* visibility is only between 0 and 1, calculated from 1-absorption */
-        visibility *= CLAMPIS(1.0f - absorption, 0.0f, 1.0f);
+        visibility *= std::clamp(1.0f - absorption, 0.0f, 1.0f);
 
         if (visibility <= 0.0f) {
           break;

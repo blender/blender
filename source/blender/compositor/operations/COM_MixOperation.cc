@@ -308,7 +308,7 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
     }
     else {
       tmp = 1.0f - (1.0f - p.color1[0]) / tmp;
-      p.out[0] = CLAMPIS(tmp, 0.0f, 1.0f);
+      p.out[0] = std::clamp(tmp, 0.0f, 1.0f);
     }
 
     tmp = value_m + value * p.color2[1];
@@ -317,7 +317,7 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
     }
     else {
       tmp = 1.0f - (1.0f - p.color1[1]) / tmp;
-      p.out[1] = CLAMPIS(tmp, 0.0f, 1.0f);
+      p.out[1] = std::clamp(tmp, 0.0f, 1.0f);
     }
 
     tmp = value_m + value * p.color2[2];
@@ -326,7 +326,7 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
     }
     else {
       tmp = 1.0f - (1.0f - p.color1[2]) / tmp;
-      p.out[2] = CLAMPIS(tmp, 0.0f, 1.0f);
+      p.out[2] = std::clamp(tmp, 0.0f, 1.0f);
     }
     p.out[3] = p.color1[3];
 

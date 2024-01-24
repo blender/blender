@@ -609,13 +609,13 @@ static void studiolight_add_files_from_datafolder(const int folder_id,
                                                   const char *subfolder,
                                                   int flag)
 {
-  const char *folder = BKE_appdir_folder_id(folder_id, subfolder);
+  const std::optional<std::string> folder = BKE_appdir_folder_id(folder_id, subfolder);
   if (!folder) {
     return;
   }
 
   direntry *dirs;
-  const uint dirs_num = BLI_filelist_dir_contents(folder, &dirs);
+  const uint dirs_num = BLI_filelist_dir_contents(folder->c_str(), &dirs);
   int i;
   for (i = 0; i < dirs_num; i++) {
     if (dirs[i].type & S_IFREG) {

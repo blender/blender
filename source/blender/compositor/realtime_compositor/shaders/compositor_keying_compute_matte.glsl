@@ -39,7 +39,19 @@ void main()
   float input_saturation = compute_saturation(input_color, key_saturation_indices);
   float key_saturation = compute_saturation(key_color, key_saturation_indices);
 
-  float matte = 1.0f - clamp(input_saturation / key_saturation, 0.0, 1.0);
+  float matte;
+  if (input_saturation < 0) {
+    /* Means main channel of pixel is different from screen, assume this is completely a
+     * foreground. */
+    matte = 1.0f;
+  }
+  else if (input_saturation >= key_saturation) {
+    /* Matched main channels and higher saturation on pixel is treated as completely background. */
+    matte = 0.0f;
+  }
+  else {
+    matte = 1.0f - clamp(input_saturation / key_saturation, 0.0, 1.0);
+  }
 
   imageStore(output_img, texel, vec4(matte));
 }

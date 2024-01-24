@@ -53,7 +53,7 @@
     .dampfac = 1.0f, \
     .gravityfac = 1.0f, \
     .fieldfac = 1.0f, \
-    .brush_map_mode = MTEX_MAP_MODE_TILED, \
+    .brush_map_mode = MTEX_MAP_MODE_VIEW, \
     .random_angle = 2.0f * (float)M_PI, \
     .brush_angle_mode = 0, \
   } \

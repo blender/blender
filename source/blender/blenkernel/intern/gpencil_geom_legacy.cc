@@ -561,7 +561,7 @@ static bool BKE_gpencil_stroke_extra_points(bGPDstroke *gps,
     MDeformVert *new_dv = (MDeformVert *)MEM_mallocN(sizeof(MDeformVert) * new_count, __func__);
 
     for (int i = 0; i < new_count; i++) {
-      MDeformVert *dv = &gps->dvert[CLAMPIS(i - count_before, 0, gps->totpoints - 1)];
+      MDeformVert *dv = &gps->dvert[std::clamp(i - count_before, 0, gps->totpoints - 1)];
       int inew = i;
       new_dv[inew].flag = dv->flag;
       new_dv[inew].totweight = dv->totweight;

@@ -2118,6 +2118,7 @@ enum eOutliner_PropModifierOps {
   OL_MODIFIER_OP_TOGVIS = 1,
   OL_MODIFIER_OP_TOGREN,
   OL_MODIFIER_OP_DELETE,
+  OL_MODIFIER_OP_APPLY,
 };
 
 static void pchan_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void * /*arg*/)
@@ -2308,11 +2309,18 @@ static void constraint_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/
   }
 }
 
-static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *Carg)
+struct ModifierFnArgs {
+  bContext *C;
+  ReportList *reports;
+};
+
+static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, void *arg)
 {
-  bContext *C = (bContext *)Carg;
+  ModifierFnArgs *data = static_cast<ModifierFnArgs *>(arg);
+  bContext *C = data->C;
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ModifierData *md = (ModifierData *)te->directdata;
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
 
@@ -2327,8 +2335,16 @@ static void modifier_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
   }
   else if (event == OL_MODIFIER_OP_DELETE) {
-    ED_object_modifier_remove(nullptr, bmain, scene, ob, md);
+    ED_object_modifier_remove(data->reports, bmain, scene, ob, md);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
+    te->store_elem->flag &= ~TSE_SELECTED;
+  }
+  else if (event == OL_MODIFIER_OP_APPLY) {
+    ED_object_modifier_apply(
+        bmain, data->reports, depsgraph, scene, ob, md, MODIFIER_APPLY_DATA, false);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+    DEG_relations_tag_update(bmain);
+    WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
     te->store_elem->flag &= ~TSE_SELECTED;
   }
 }
@@ -3457,9 +3473,11 @@ void OUTLINER_OT_constraint_operation(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem prop_modifier_op_types[] = {
+    {OL_MODIFIER_OP_APPLY, "APPLY", ICON_CHECKMARK, "Apply", ""},
+    {OL_MODIFIER_OP_DELETE, "DELETE", ICON_X, "Delete", ""},
+    RNA_ENUM_ITEM_SEPR,
     {OL_MODIFIER_OP_TOGVIS, "TOGVIS", ICON_RESTRICT_VIEW_OFF, "Toggle Viewport Use", ""},
     {OL_MODIFIER_OP_TOGREN, "TOGREN", ICON_RESTRICT_RENDER_OFF, "Toggle Render Use", ""},
-    {OL_MODIFIER_OP_DELETE, "DELETE", ICON_X, "Delete", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -3468,9 +3486,13 @@ static int outliner_modifier_operation_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   eOutliner_PropModifierOps event = (eOutliner_PropModifierOps)RNA_enum_get(op->ptr, "type");
 
-  outliner_do_data_operation(space_outliner, TSE_MODIFIER, event, modifier_fn, C);
+  ModifierFnArgs args{};
+  args.C = C;
+  args.reports = op->reports;
 
-  if (event == OL_MODIFIER_OP_DELETE) {
+  outliner_do_data_operation(space_outliner, TSE_MODIFIER, event, modifier_fn, &args);
+
+  if (ELEM(event, OL_MODIFIER_OP_DELETE, OL_MODIFIER_OP_APPLY)) {
     outliner_cleanup_tree(space_outliner);
   }
 

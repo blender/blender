@@ -22,6 +22,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
 
@@ -184,21 +186,21 @@ static void rna_Lattice_points_u_set(PointerRNA *ptr, int value)
 {
   Lattice *lt = (Lattice *)ptr->data;
 
-  lt->opntsu = CLAMPIS(value, 1, 64);
+  lt->opntsu = std::clamp(value, 1, 64);
 }
 
 static void rna_Lattice_points_v_set(PointerRNA *ptr, int value)
 {
   Lattice *lt = (Lattice *)ptr->data;
 
-  lt->opntsv = CLAMPIS(value, 1, 64);
+  lt->opntsv = std::clamp(value, 1, 64);
 }
 
 static void rna_Lattice_points_w_set(PointerRNA *ptr, int value)
 {
   Lattice *lt = (Lattice *)ptr->data;
 
-  lt->opntsw = CLAMPIS(value, 1, 64);
+  lt->opntsw = std::clamp(value, 1, 64);
 }
 
 static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)

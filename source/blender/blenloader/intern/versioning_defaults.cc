@@ -817,12 +817,28 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   {
-    /* Use the same tool icon color in the brush cursor */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      /* Use the same tool icon color in the brush cursor */
       if (brush->ob_mode & OB_MODE_SCULPT) {
         BLI_assert(brush->sculpt_tool != 0);
         BKE_brush_sculpt_reset(brush);
       }
+
+      /* Set the default texture mapping.
+       * Do it for all brushes, since some of them might be coming from the startup file. */
+      brush->mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
+      brush->mask_mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
+    }
+  }
+
+  {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
+      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
+
+      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
+      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
     }
   }
 }
