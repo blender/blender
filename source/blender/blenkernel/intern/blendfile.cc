@@ -900,7 +900,8 @@ static void setup_app_data(bContext *C,
     bmain->filepath[0] = '\0';
   }
   else if (recover) {
-    /* In case of auto-save or quit.blend, use original filepath instead. */
+    /* In case of auto-save or quit.blend, use original filepath instead (see also #read_global in
+     * `readfile.cc`). */
     bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }
