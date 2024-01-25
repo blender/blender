@@ -183,11 +183,17 @@ TEST(math_base, InterpolateInt)
   EXPECT_EQ(math::interpolate(100, 200, 0.4f), 140);
 }
 
-TEST(math_base, ModFPositive)
+TEST(math_base, FlooredFMod)
 {
-  EXPECT_FLOAT_EQ(mod_f_positive(3.27f, 1.57f), 0.12999988f);
-  EXPECT_FLOAT_EQ(mod_f_positive(327.f, 47.f), 45.f);
-  EXPECT_FLOAT_EQ(mod_f_positive(-0.1f, 1.0f), 0.9f);
+  EXPECT_FLOAT_EQ(floored_fmod(3.27f, 1.57f), 0.12999988f);
+  EXPECT_FLOAT_EQ(floored_fmod(327.f, 47.f), 45.f);
+  EXPECT_FLOAT_EQ(floored_fmod(-0.1f, 1.0f), 0.9f);
+  EXPECT_FLOAT_EQ(floored_fmod(-0.9f, 1.0f), 0.1f);
+  EXPECT_FLOAT_EQ(floored_fmod(-100.1f, 1.0f), 0.90000153f);
+  EXPECT_FLOAT_EQ(floored_fmod(-0.1f, 12345.0f), 12344.9f);
+  EXPECT_FLOAT_EQ(floored_fmod(12345.1f, 12345.0f), 0.099609375f);
+  EXPECT_FLOAT_EQ(floored_fmod(12344.999f, 12345.0f), 12344.999f);
+  EXPECT_FLOAT_EQ(floored_fmod(12345.0f, 12345.0f), 0.0f);
 }
 
 }  // namespace blender::tests

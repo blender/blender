@@ -249,11 +249,11 @@ class MemoryBuffer {
         single_y = rel_y - last_y;
       }
 
-      BLI_bilinear_interpolation_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
+      math::interpolate_bilinear_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
       return;
     }
 
-    BLI_bilinear_interpolation_fl(buffer_,
+    math::interpolate_bilinear_fl(buffer_,
                                   out,
                                   get_width(),
                                   get_height(),
@@ -451,10 +451,7 @@ class MemoryBuffer {
         }
         break;
       case MemoryBufferExtend::Repeat:
-        x = fmodf(x, w);
-        if (x < 0.0f) {
-          x += w;
-        }
+        x = floored_fmod(x, w);
         break;
     }
 
@@ -470,10 +467,7 @@ class MemoryBuffer {
         }
         break;
       case MemoryBufferExtend::Repeat:
-        y = fmodf(y, h);
-        if (y < 0.0f) {
-          y += h;
-        }
+        y = floored_fmod(y, h);
         break;
     }
 
@@ -547,7 +541,7 @@ class MemoryBuffer {
       memcpy(result, buffer_, sizeof(float) * num_channels_);
     }
     else {
-      BLI_bilinear_interpolation_wrap_fl(buffer_,
+      math::interpolate_bilinear_wrap_fl(buffer_,
                                          result,
                                          get_width(),
                                          get_height(),

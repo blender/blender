@@ -27,6 +27,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_vector.hh"
 #include "BLI_memarena.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
@@ -37,7 +38,7 @@
 #include "BLT_translation.h"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -715,35 +716,17 @@ static int project_paint_PickFace(const ProjPaintState *ps, const float pt[2], f
   return best_tri_index;
 }
 
-/* Converts a uv coord into a pixel location wrapping if the uv is outside 0-1 range */
-static void uvco_to_wrapped_pxco(const float uv[2], int ibuf_x, int ibuf_y, float *x, float *y)
-{
-  /* use */
-  *x = fmodf(uv[0], 1.0f);
-  *y = fmodf(uv[1], 1.0f);
-
-  if (*x < 0.0f) {
-    *x += 1.0f;
-  }
-  if (*y < 0.0f) {
-    *y += 1.0f;
-  }
-
-  *x = *x * ibuf_x - 0.5f;
-  *y = *y * ibuf_y - 0.5f;
-}
-
 /* Set the top-most face color that the screen space coord 'pt' touches
  * (or return 0 if none touch) */
 static bool project_paint_PickColor(
     const ProjPaintState *ps, const float pt[2], float *rgba_fp, uchar *rgba, const bool interp)
 {
+  using namespace blender;
   const float *tri_uv[3];
   float w[3], uv[2];
   int tri_index;
   Image *ima;
   ImBuf *ibuf;
-  int xi, yi;
 
   tri_index = project_paint_PickFace(ps, pt, w);
 
@@ -770,58 +753,32 @@ static bool project_paint_PickColor(
     return false;
   }
 
+  float x = uv[0] * ibuf->x;
+  float y = uv[1] * ibuf->y;
   if (interp) {
-    float x, y;
-    uvco_to_wrapped_pxco(uv, ibuf->x, ibuf->y, &x, &y);
+    x -= 0.5f;
+    y -= 0.5f;
+  }
 
-    if (ibuf->float_buffer.data) {
-      if (rgba_fp) {
-        bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_fp, x, y);
-      }
-      else {
-        float rgba_tmp_f[4];
-        bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_tmp_f, x, y);
-        premul_float_to_straight_uchar(rgba, rgba_tmp_f);
-      }
+  if (ibuf->float_buffer.data) {
+    float4 col = interp ? imbuf::interpolate_bilinear_wrap_fl(ibuf, x, y) :
+                          imbuf::interpolate_nearest_wrap_fl(ibuf, x, y);
+    col = math::clamp(col, 0.0f, 1.0f);
+    if (rgba_fp) {
+      memcpy(rgba_fp, &col, sizeof(col));
     }
     else {
-      if (rgba) {
-        bilinear_interpolation_color_wrap(ibuf, rgba, nullptr, x, y);
-      }
-      else {
-        uchar rgba_tmp[4];
-        bilinear_interpolation_color_wrap(ibuf, rgba_tmp, nullptr, x, y);
-        straight_uchar_to_premul_float(rgba_fp, rgba_tmp);
-      }
+      premul_float_to_straight_uchar(rgba, col);
     }
   }
   else {
-    // xi = int((uv[0]*ibuf->x) + 0.5f);
-    // yi = int((uv[1]*ibuf->y) + 0.5f);
-    // if (xi < 0 || xi >= ibuf->x  ||  yi < 0 || yi >= ibuf->y) return false;
-
-    /* wrap */
-    xi = mod_i(int(uv[0] * ibuf->x), ibuf->x);
-    yi = mod_i(int(uv[1] * ibuf->y), ibuf->y);
-
+    uchar4 col = interp ? imbuf::interpolate_bilinear_wrap_byte(ibuf, x, y) :
+                          imbuf::interpolate_nearest_wrap_byte(ibuf, x, y);
     if (rgba) {
-      if (ibuf->float_buffer.data) {
-        const float *rgba_tmp_fp = ibuf->float_buffer.data + (xi + yi * ibuf->x * 4);
-        premul_float_to_straight_uchar(rgba, rgba_tmp_fp);
-      }
-      else {
-        *((uint *)rgba) = *(uint *)(((char *)ibuf->byte_buffer.data) + ((xi + yi * ibuf->x) * 4));
-      }
+      memcpy(rgba, &col, sizeof(col));
     }
-
-    if (rgba_fp) {
-      if (ibuf->float_buffer.data) {
-        copy_v4_v4(rgba_fp, (ibuf->float_buffer.data + ((xi + yi * ibuf->x) * 4)));
-      }
-      else {
-        uchar *tmp_ch = ibuf->byte_buffer.data + ((xi + yi * ibuf->x) * 4);
-        straight_uchar_to_premul_float(rgba_fp, tmp_ch);
-      }
+    else {
+      straight_uchar_to_premul_float(rgba_fp, col);
     }
   }
   BKE_image_release_ibuf(ima, ibuf, nullptr);
@@ -1657,18 +1614,22 @@ static float screen_px_line_point_factor_v2_persp(const ProjPaintState *ps,
 static void project_face_pixel(
     const float *tri_uv[3], ImBuf *ibuf_other, const float w[3], uchar rgba_ub[4], float rgba_f[4])
 {
-  float uv_other[2], x, y;
+  using namespace blender;
+  float uv_other[2];
 
   interp_v2_v2v2v2(uv_other, UNPACK3(tri_uv), w);
 
-  /* use */
-  uvco_to_wrapped_pxco(uv_other, ibuf_other->x, ibuf_other->y, &x, &y);
+  float x = uv_other[0] * ibuf_other->x - 0.5f;
+  float y = uv_other[1] * ibuf_other->y - 0.5f;
 
-  if (ibuf_other->float_buffer.data) { /* from float to float */
-    bilinear_interpolation_color_wrap(ibuf_other, nullptr, rgba_f, x, y);
+  if (ibuf_other->float_buffer.data) {
+    float4 col = imbuf::interpolate_bilinear_wrap_fl(ibuf_other, x, y);
+    col = math::clamp(col, 0.0f, 1.0f);
+    memcpy(rgba_f, &col, sizeof(col));
   }
-  else { /* from char to float */
-    bilinear_interpolation_color_wrap(ibuf_other, rgba_ub, nullptr, x, y);
+  else {
+    uchar4 col = imbuf::interpolate_bilinear_wrap_byte(ibuf_other, x, y);
+    memcpy(rgba_ub, &col, sizeof(col));
   }
 }
 
@@ -5388,11 +5349,10 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
           if (is_floatbuf) {
             BLI_assert(ps->reproject_ibuf->float_buffer.data != nullptr);
 
-            bicubic_interpolation_color(ps->reproject_ibuf,
-                                        nullptr,
-                                        projPixel->newColor.f,
-                                        projPixel->projCoSS[0],
-                                        projPixel->projCoSS[1]);
+            blender::imbuf::interpolate_cubic_bspline_fl(ps->reproject_ibuf,
+                                                         projPixel->newColor.f,
+                                                         projPixel->projCoSS[0],
+                                                         projPixel->projCoSS[1]);
             if (projPixel->newColor.f[3]) {
               float mask = float(projPixel->mask) * (1.0f / 65535.0f);
 
@@ -5404,12 +5364,10 @@ static void do_projectpaint_thread(TaskPool *__restrict /*pool*/, void *ph_v)
           }
           else {
             BLI_assert(ps->reproject_ibuf->byte_buffer.data != nullptr);
-
-            bicubic_interpolation_color(ps->reproject_ibuf,
-                                        projPixel->newColor.ch,
-                                        nullptr,
-                                        projPixel->projCoSS[0],
-                                        projPixel->projCoSS[1]);
+            blender::imbuf::interpolate_cubic_bspline_byte(ps->reproject_ibuf,
+                                                           projPixel->newColor.ch,
+                                                           projPixel->projCoSS[0],
+                                                           projPixel->projCoSS[1]);
             if (projPixel->newColor.ch[3]) {
               float mask = float(projPixel->mask) * (1.0f / 65535.0f);
               projPixel->newColor.ch[3] *= mask;

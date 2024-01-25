@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,7 +18,10 @@
 #include "BLI_vector.hh"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
+
+using blender::float4;
+using blender::uchar4;
 
 namespace blender::imbuf::transform {
 
@@ -134,27 +138,6 @@ static float wrap_uv(float value, int size)
   return x;
 }
 
-template<int NumChannels>
-static void sample_nearest_float(const ImBuf *source, float u, float v, float *r_sample)
-{
-  int x1 = int(u);
-  int y1 = int(v);
-
-  /* Break when sample outside image is requested. */
-  if (x1 < 0 || x1 >= source->x || y1 < 0 || y1 >= source->y) {
-    for (int i = 0; i < NumChannels; i++) {
-      r_sample[i] = 0.0f;
-    }
-    return;
-  }
-
-  size_t offset = (size_t(source->x) * y1 + x1) * NumChannels;
-  const float *dataF = source->float_buffer.data + offset;
-  for (int i = 0; i < NumChannels; i++) {
-    r_sample[i] = dataF[i];
-  }
-}
-
 /* Read a pixel from an image buffer, with filtering/wrapping parameters. */
 template<eIMBInterpolationFilterMode Filter, typename T, int NumChannels, bool WrapUV>
 static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
@@ -171,19 +154,19 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
     v -= 0.5f;
   }
   if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, float> && NumChannels == 4) {
-    bilinear_interpolation_color_fl(source, r_sample, u, v);
+    interpolate_bilinear_fl(source, r_sample, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<T, uchar> && NumChannels == 4)
   {
-    nearest_interpolation_color_char(source, r_sample, nullptr, u, v);
+    interpolate_nearest_byte(source, r_sample, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, uchar> && NumChannels == 4)
   {
-    bilinear_interpolation_color_char(source, r_sample, u, v);
+    interpolate_bilinear_byte(source, r_sample, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, float>) {
     if constexpr (WrapUV) {
-      BLI_bilinear_interpolation_wrap_fl(source->float_buffer.data,
+      math::interpolate_bilinear_wrap_fl(source->float_buffer.data,
                                          r_sample,
                                          source->x,
                                          source->y,
@@ -194,20 +177,21 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
                                          true);
     }
     else {
-      BLI_bilinear_interpolation_fl(
+      math::interpolate_bilinear_fl(
           source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
     }
   }
   else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<T, float>) {
-    sample_nearest_float<NumChannels>(source, u, v, r_sample);
+    math::interpolate_nearest_fl(
+        source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_BICUBIC && std::is_same_v<T, float>) {
-    BLI_bicubic_interpolation_fl(
+    math::interpolate_cubic_bspline_fl(
         source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
   }
   else if constexpr (Filter == IMB_FILTER_BICUBIC && std::is_same_v<T, uchar> && NumChannels == 4)
   {
-    BLI_bicubic_interpolation_char(source->byte_buffer.data, r_sample, source->x, source->y, u, v);
+    interpolate_cubic_bspline_byte(source, r_sample, u, v);
   }
   else {
     /* Unsupported sampler. */

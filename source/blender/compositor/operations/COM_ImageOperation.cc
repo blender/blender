@@ -7,8 +7,7 @@
 #include "BKE_scene.h"
 
 #include "IMB_colormanagement.hh"
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 
 namespace blender::compositor {
 
@@ -102,27 +101,27 @@ static void sample_image_at_location(ImBuf *ibuf,
   if (ibuf->float_buffer.data) {
     switch (sampler) {
       case PixelSampler::Nearest:
-        nearest_interpolation_color(ibuf, nullptr, color, x, y);
+        imbuf::interpolate_nearest_fl(ibuf, color, x, y);
         break;
       case PixelSampler::Bilinear:
-        bilinear_interpolation_color(ibuf, nullptr, color, x, y);
+        imbuf::interpolate_bilinear_fl(ibuf, color, x, y);
         break;
       case PixelSampler::Bicubic:
-        bicubic_interpolation_color(ibuf, nullptr, color, x, y);
+        imbuf::interpolate_cubic_bspline_fl(ibuf, color, x, y);
         break;
     }
   }
   else {
-    uchar byte_color[4];
+    uchar4 byte_color;
     switch (sampler) {
       case PixelSampler::Nearest:
-        nearest_interpolation_color(ibuf, byte_color, nullptr, x, y);
+        byte_color = imbuf::interpolate_nearest_byte(ibuf, x, y);
         break;
       case PixelSampler::Bilinear:
-        bilinear_interpolation_color(ibuf, byte_color, nullptr, x, y);
+        byte_color = imbuf::interpolate_bilinear_byte(ibuf, x, y);
         break;
       case PixelSampler::Bicubic:
-        bicubic_interpolation_color(ibuf, byte_color, nullptr, x, y);
+        byte_color = imbuf::interpolate_cubic_bspline_byte(ibuf, x, y);
         break;
     }
     rgba_uchar_to_float(color, byte_color);
