@@ -2298,30 +2298,31 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
                 # Expanded UI (only if additional info is available)
                 if info["show_expanded"]:
-                    if info["description"]:
+                    if value := info["description"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Description:")
-                        split.label(text=iface_(info["description"]))
-                    if info["location"]:
+                        split.label(text=iface_(value))
+                    if value := info["location"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Location:")
-                        split.label(text=iface_(info["location"]))
+                        split.label(text=iface_(value))
                     if mod:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="File:")
                         split.label(text=mod.__file__, translate=False)
-                    if info["author"]:
+                    if value := info["author"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Author:")
-                        split.label(text=info["author"], translate=False)
-                    if info["version"]:
+                        split.label(text=value, translate=False)
+                    if value := info["version"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Version:")
-                        split.label(text=".".join(str(x) for x in info["version"]), translate=False)
-                    if info["warning"]:
+                        split.label(text=".".join(str(x) for x in value), translate=False)
+                    if value := info["warning"]:
                         split = colsub.row().split(factor=0.15)
                         split.label(text="Warning:")
-                        split.label(text="  " + iface_(info["warning"]), icon='ERROR')
+                        split.label(text="  " + iface_(value), icon='ERROR')
+                    del value
 
                     user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
                     if info["doc_url"] or info.get("tracker_url"):
