@@ -146,9 +146,7 @@ static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void 
 
 PyDoc_STRVAR(
     /* Wrap. */
-    A
-        /* Wrap. */
-        djacencyIterator_is_incoming_doc,
+    AdjacencyIterator_is_incoming_doc,
     "True if the current ViewEdge is coming towards the iteration vertex, and\n"
     "False otherwise.\n"
     "\n"
