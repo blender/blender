@@ -21,7 +21,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char SpatialNoiseShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    SpatialNoiseShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`SpatialNoiseShader`\n"
     "\n"
     "[Geometry shader]\n"
@@ -47,7 +49,7 @@ static char SpatialNoiseShader___doc__[] =
     "   more noisy.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self,
                                        PyObject *args,

@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char TipRemoverShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    TipRemoverShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`TipRemoverShader`\n"
     "\n"
     "[Geometry shader]\n"
@@ -38,7 +40,7 @@ static char TipRemoverShader___doc__[] =
     "   Removes the stroke's extremities.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int TipRemoverShader___init__(BPy_TipRemoverShader *self, PyObject *args, PyObject *kwds)
 {

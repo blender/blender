@@ -31,9 +31,11 @@
 /** \name GPU Module
  * \{ */
 
-PyDoc_STRVAR(pygpu_doc,
-             "This module provides Python wrappers for the GPU implementation in Blender.\n"
-             "Some higher level functions can be found in the `gpu_extras` module.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_doc,
+    "This module provides Python wrappers for the GPU implementation in Blender.\n"
+    "Some higher level functions can be found in the `gpu_extras` module.");
 static PyModuleDef pygpu_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu",

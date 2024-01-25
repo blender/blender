@@ -24,25 +24,27 @@ using namespace Freestyle;
 
 /*----------------------SVertex methods ----------------------------*/
 
-PyDoc_STRVAR(SVertex_doc,
-             "Class hierarchy: :class:`Interface0D` > :class:`SVertex`\n"
-             "\n"
-             "Class to define a vertex of the embedding.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "            __init__(brother)\n"
-             "            __init__(point_3d, id)\n"
-             "\n"
-             "   Builds a :class:`SVertex` using the default constructor,\n"
-             "   copy constructor or the overloaded constructor which builds"
-             "   a :class:`SVertex` from 3D coordinates and an Id.\n"
-             "\n"
-             "   :arg brother: A SVertex object.\n"
-             "   :type brother: :class:`SVertex`\n"
-             "   :arg point_3d: A three-dimensional vector.\n"
-             "   :type point_3d: :class:`mathutils.Vector`\n"
-             "   :arg id: An Id object.\n"
-             "   :type id: :class:`Id`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_doc,
+    "Class hierarchy: :class:`Interface0D` > :class:`SVertex`\n"
+    "\n"
+    "Class to define a vertex of the embedding.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "            __init__(brother)\n"
+    "            __init__(point_3d, id)\n"
+    "\n"
+    "   Builds a :class:`SVertex` using the default constructor,\n"
+    "   copy constructor or the overloaded constructor which builds"
+    "   a :class:`SVertex` from 3D coordinates and an Id.\n"
+    "\n"
+    "   :arg brother: A SVertex object.\n"
+    "   :type brother: :class:`SVertex`\n"
+    "   :arg point_3d: A three-dimensional vector.\n"
+    "   :type point_3d: :class:`mathutils.Vector`\n"
+    "   :arg id: An Id object.\n"
+    "   :type id: :class:`Id`");
 
 static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -75,14 +77,16 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
-PyDoc_STRVAR(SVertex_add_normal_doc,
-             ".. method:: add_normal(normal)\n"
-             "\n"
-             "   Adds a normal to the SVertex's set of normals. If the same normal\n"
-             "   is already in the set, nothing changes.\n"
-             "\n"
-             "   :arg normal: A three-dimensional vector.\n"
-             "   :type normal: :class:`mathutils.Vector`, list or tuple of 3 real numbers");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_add_normal_doc,
+    ".. method:: add_normal(normal)\n"
+    "\n"
+    "   Adds a normal to the SVertex's set of normals. If the same normal\n"
+    "   is already in the set, nothing changes.\n"
+    "\n"
+    "   :arg normal: A three-dimensional vector.\n"
+    "   :type normal: :class:`mathutils.Vector`, list or tuple of 3 real numbers");
 
 static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -102,13 +106,15 @@ static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject 
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(SVertex_add_fedge_doc,
-             ".. method:: add_fedge(fedge)\n"
-             "\n"
-             "   Add an FEdge to the list of edges emanating from this SVertex.\n"
-             "\n"
-             "   :arg fedge: An FEdge.\n"
-             "   :type fedge: :class:`FEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_add_fedge_doc,
+    ".. method:: add_fedge(fedge)\n"
+    "\n"
+    "   Add an FEdge to the list of edges emanating from this SVertex.\n"
+    "\n"
+    "   :arg fedge: An FEdge.\n"
+    "   :type fedge: :class:`FEdge`");
 
 static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -269,10 +275,12 @@ void SVertex_mathutils_register_callback()
 
 /*----------------------SVertex get/setters ----------------------------*/
 
-PyDoc_STRVAR(SVertex_point_3d_doc,
-             "The 3D coordinates of the SVertex.\n"
-             "\n"
-             ":type: :class:`mathutils.Vector`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_point_3d_doc,
+    "The 3D coordinates of the SVertex.\n"
+    "\n"
+    ":type: :class:`mathutils.Vector`");
 
 static PyObject *SVertex_point_3d_get(BPy_SVertex *self, void * /*closure*/)
 {
@@ -291,10 +299,12 @@ static int SVertex_point_3d_set(BPy_SVertex *self, PyObject *value, void * /*clo
   return 0;
 }
 
-PyDoc_STRVAR(SVertex_point_2d_doc,
-             "The projected 3D coordinates of the SVertex.\n"
-             "\n"
-             ":type: :class:`mathutils.Vector`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_point_2d_doc,
+    "The projected 3D coordinates of the SVertex.\n"
+    "\n"
+    ":type: :class:`mathutils.Vector`");
 
 static PyObject *SVertex_point_2d_get(BPy_SVertex *self, void * /*closure*/)
 {
@@ -313,10 +323,12 @@ static int SVertex_point_2d_set(BPy_SVertex *self, PyObject *value, void * /*clo
   return 0;
 }
 
-PyDoc_STRVAR(SVertex_id_doc,
-             "The Id of this SVertex.\n"
-             "\n"
-             ":type: :class:`Id`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_id_doc,
+    "The Id of this SVertex.\n"
+    "\n"
+    ":type: :class:`Id`");
 
 static PyObject *SVertex_id_get(BPy_SVertex *self, void * /*closure*/)
 {
@@ -334,12 +346,14 @@ static int SVertex_id_set(BPy_SVertex *self, PyObject *value, void * /*closure*/
   return 0;
 }
 
-PyDoc_STRVAR(SVertex_normals_doc,
-             "The normals for this Vertex as a list. In a sharp surface, an SVertex\n"
-             "has exactly one normal. In a smooth surface, an SVertex can have any\n"
-             "number of normals.\n"
-             "\n"
-             ":type: list of :class:`mathutils.Vector` objects");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_normals_doc,
+    "The normals for this Vertex as a list. In a sharp surface, an SVertex\n"
+    "has exactly one normal. In a smooth surface, an SVertex can have any\n"
+    "number of normals.\n"
+    "\n"
+    ":type: list of :class:`mathutils.Vector` objects");
 
 static PyObject *SVertex_normals_get(BPy_SVertex *self, void * /*closure*/)
 {
@@ -356,21 +370,25 @@ static PyObject *SVertex_normals_get(BPy_SVertex *self, void * /*closure*/)
   return py_normals;
 }
 
-PyDoc_STRVAR(SVertex_normals_size_doc,
-             "The number of different normals for this SVertex.\n"
-             "\n"
-             ":type: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_normals_size_doc,
+    "The number of different normals for this SVertex.\n"
+    "\n"
+    ":type: int");
 
 static PyObject *SVertex_normals_size_get(BPy_SVertex *self, void * /*closure*/)
 {
   return PyLong_FromLong(self->sv->normalsSize());
 }
 
-PyDoc_STRVAR(SVertex_viewvertex_doc,
-             "If this SVertex is also a ViewVertex, this property refers to the\n"
-             "ViewVertex, and None otherwise.\n"
-             "\n"
-             ":type: :class:`ViewVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_viewvertex_doc,
+    "If this SVertex is also a ViewVertex, this property refers to the\n"
+    "ViewVertex, and None otherwise.\n"
+    "\n"
+    ":type: :class:`ViewVertex`");
 
 static PyObject *SVertex_viewvertex_get(BPy_SVertex *self, void * /*closure*/)
 {
@@ -381,18 +399,20 @@ static PyObject *SVertex_viewvertex_get(BPy_SVertex *self, void * /*closure*/)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(SVertex_curvatures_doc,
-             "Curvature information expressed in the form of a seven-element tuple\n"
-             "(K1, e1, K2, e2, Kr, er, dKr), where K1 and K2 are scalar values\n"
-             "representing the first (maximum) and second (minimum) principal\n"
-             "curvatures at this SVertex, respectively; e1 and e2 are\n"
-             "three-dimensional vectors representing the first and second principal\n"
-             "directions, i.e. the directions of the normal plane where the\n"
-             "curvature takes its maximum and minimum values, respectively; and Kr,\n"
-             "er and dKr are the radial curvature, radial direction, and the\n"
-             "derivative of the radial curvature at this SVertex, respectively.\n"
-             "\n"
-             ":type: tuple");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertex_curvatures_doc,
+    "Curvature information expressed in the form of a seven-element tuple\n"
+    "(K1, e1, K2, e2, Kr, er, dKr), where K1 and K2 are scalar values\n"
+    "representing the first (maximum) and second (minimum) principal\n"
+    "curvatures at this SVertex, respectively; e1 and e2 are\n"
+    "three-dimensional vectors representing the first and second principal\n"
+    "directions, i.e. the directions of the normal plane where the\n"
+    "curvature takes its maximum and minimum values, respectively; and Kr,\n"
+    "er and dKr are the radial curvature, radial direction, and the\n"
+    "derivative of the radial curvature at this SVertex, respectively.\n"
+    "\n"
+    ":type: tuple");
 
 static PyObject *SVertex_curvatures_get(BPy_SVertex *self, void * /*closure*/)
 {

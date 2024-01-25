@@ -48,25 +48,29 @@ int Operators_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-PyDoc_STRVAR(Operators_doc,
-             "Class defining the operators used in a style module. There are five\n"
-             "types of operators: Selection, chaining, splitting, sorting and\n"
-             "creation. All these operators are user controlled through functors,\n"
-             "predicates and shaders that are taken as arguments.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_doc,
+    "Class defining the operators used in a style module. There are five\n"
+    "types of operators: Selection, chaining, splitting, sorting and\n"
+    "creation. All these operators are user controlled through functors,\n"
+    "predicates and shaders that are taken as arguments.");
 
 static void Operators_dealloc(BPy_Operators *self)
 {
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-PyDoc_STRVAR(Operators_select_doc,
-             ".. staticmethod:: select(pred)\n"
-             "\n"
-             "   Selects the ViewEdges of the ViewMap verifying a specified\n"
-             "   condition.\n"
-             "\n"
-             "   :arg pred: The predicate expressing this condition.\n"
-             "   :type pred: :class:`UnaryPredicate1D`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_select_doc,
+    ".. staticmethod:: select(pred)\n"
+    "\n"
+    "   Selects the ViewEdges of the ViewMap verifying a specified\n"
+    "   condition.\n"
+    "\n"
+    "   :arg pred: The predicate expressing this condition.\n"
+    "   :type pred: :class:`UnaryPredicate1D`");
 
 static PyObject *Operators_select(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
@@ -92,27 +96,29 @@ static PyObject *Operators_select(BPy_Operators * /*self*/, PyObject *args, PyOb
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_chain_doc,
-             ".. staticmethod:: chain(it, pred, modifier)\n"
-             "                  chain(it, pred)\n"
-             "\n"
-             "   Builds a set of chains from the current set of ViewEdges. Each\n"
-             "   ViewEdge of the current list starts a new chain. The chaining\n"
-             "   operator then iterates over the ViewEdges of the ViewMap using the\n"
-             "   user specified iterator. This operator only iterates using the\n"
-             "   increment operator and is therefore unidirectional.\n"
-             "\n"
-             "   :arg it: The iterator on the ViewEdges of the ViewMap. It contains\n"
-             "      the chaining rule.\n"
-             "   :type it: :class:`ViewEdgeIterator`\n"
-             "   :arg pred: The predicate on the ViewEdge that expresses the\n"
-             "      stopping condition.\n"
-             "   :type pred: :class:`UnaryPredicate1D`\n"
-             "   :arg modifier: A function that takes a ViewEdge as argument and\n"
-             "      that is used to modify the processed ViewEdge state (the\n"
-             "      timestamp incrementation is a typical illustration of such a modifier).\n"
-             "      If this argument is not given, the time stamp is automatically managed.\n"
-             "   :type modifier: :class:`UnaryFunction1DVoid`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_chain_doc,
+    ".. staticmethod:: chain(it, pred, modifier)\n"
+    "                  chain(it, pred)\n"
+    "\n"
+    "   Builds a set of chains from the current set of ViewEdges. Each\n"
+    "   ViewEdge of the current list starts a new chain. The chaining\n"
+    "   operator then iterates over the ViewEdges of the ViewMap using the\n"
+    "   user specified iterator. This operator only iterates using the\n"
+    "   increment operator and is therefore unidirectional.\n"
+    "\n"
+    "   :arg it: The iterator on the ViewEdges of the ViewMap. It contains\n"
+    "      the chaining rule.\n"
+    "   :type it: :class:`ViewEdgeIterator`\n"
+    "   :arg pred: The predicate on the ViewEdge that expresses the\n"
+    "      stopping condition.\n"
+    "   :type pred: :class:`UnaryPredicate1D`\n"
+    "   :arg modifier: A function that takes a ViewEdge as argument and\n"
+    "      that is used to modify the processed ViewEdge state (the\n"
+    "      timestamp incrementation is a typical illustration of such a modifier).\n"
+    "      If this argument is not given, the time stamp is automatically managed.\n"
+    "   :type modifier: :class:`UnaryFunction1DVoid`\n");
 
 static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
@@ -171,29 +177,31 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_bidirectional_chain_doc,
-             ".. staticmethod:: bidirectional_chain(it, pred)\n"
-             "                  bidirectional_chain(it)\n"
-             "\n"
-             "   Builds a set of chains from the current set of ViewEdges. Each\n"
-             "   ViewEdge of the current list potentially starts a new chain. The\n"
-             "   chaining operator then iterates over the ViewEdges of the ViewMap\n"
-             "   using the user specified iterator. This operator iterates both using\n"
-             "   the increment and decrement operators and is therefore bidirectional.\n"
-             "   This operator works with a ChainingIterator which contains the\n"
-             "   chaining rules. It is this last one which can be told to chain only\n"
-             "   edges that belong to the selection or not to process twice a ViewEdge\n"
-             "   during the chaining. Each time a ViewEdge is added to a chain, its\n"
-             "   chaining time stamp is incremented. This allows you to keep track of\n"
-             "   the number of chains to which a ViewEdge belongs to.\n"
-             "\n"
-             "   :arg it: The ChainingIterator on the ViewEdges of the ViewMap. It\n"
-             "      contains the chaining rule.\n"
-             "   :type it: :class:`ChainingIterator`\n"
-             "   :arg pred: The predicate on the ViewEdge that expresses the stopping condition.\n"
-             "      This parameter is optional, you make not want to pass a stopping criterion\n"
-             "      when the stopping criterion is already contained in the iterator definition.\n"
-             "   :type pred: :class:`UnaryPredicate1D`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_bidirectional_chain_doc,
+    ".. staticmethod:: bidirectional_chain(it, pred)\n"
+    "                  bidirectional_chain(it)\n"
+    "\n"
+    "   Builds a set of chains from the current set of ViewEdges. Each\n"
+    "   ViewEdge of the current list potentially starts a new chain. The\n"
+    "   chaining operator then iterates over the ViewEdges of the ViewMap\n"
+    "   using the user specified iterator. This operator iterates both using\n"
+    "   the increment and decrement operators and is therefore bidirectional.\n"
+    "   This operator works with a ChainingIterator which contains the\n"
+    "   chaining rules. It is this last one which can be told to chain only\n"
+    "   edges that belong to the selection or not to process twice a ViewEdge\n"
+    "   during the chaining. Each time a ViewEdge is added to a chain, its\n"
+    "   chaining time stamp is incremented. This allows you to keep track of\n"
+    "   the number of chains to which a ViewEdge belongs to.\n"
+    "\n"
+    "   :arg it: The ChainingIterator on the ViewEdges of the ViewMap. It\n"
+    "      contains the chaining rule.\n"
+    "   :type it: :class:`ChainingIterator`\n"
+    "   :arg pred: The predicate on the ViewEdge that expresses the stopping condition.\n"
+    "      This parameter is optional, you make not want to pass a stopping criterion\n"
+    "      when the stopping criterion is already contained in the iterator definition.\n"
+    "   :type pred: :class:`UnaryPredicate1D`\n");
 
 static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
                                                PyObject *args,
@@ -246,36 +254,38 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_sequential_split_doc,
-             ".. staticmethod:: sequential_split(starting_pred, stopping_pred, sampling=0.0)\n"
-             "                  sequential_split(pred, sampling=0.0)\n"
-             "\n"
-             "   Splits each chain of the current set of chains in a sequential way.\n"
-             "   The points of each chain are processed (with a specified sampling)\n"
-             "   sequentially. The first point of the initial chain is the\n"
-             "   first point of one of the resulting chains. The splitting ends when\n"
-             "   no more chain can start.\n"
-             "\n"
-             "   .. tip::\n"
-             "\n"
-             "      By specifying a starting and stopping predicate allows\n"
-             "      the chains to overlap rather than chains partitioning.\n"
-             "\n"
-             "   :arg starting_pred: The predicate on a point that expresses the\n"
-             "      starting condition. Each time this condition is verified, a new chain begins\n"
-             "   :type starting_pred: :class:`UnaryPredicate0D`\n"
-             "   :arg stopping_pred: The predicate on a point that expresses the\n"
-             "      stopping condition. The chain ends as soon as this predicate is verified.\n"
-             "   :type stopping_pred: :class:`UnaryPredicate0D`\n"
-             "   :arg pred: The predicate on a point that expresses the splitting condition.\n"
-             "      Each time the condition is verified, the chain is split into two chains.\n"
-             "      The resulting set of chains is a partition of the initial chain\n"
-             "   :type pred: :class:`UnaryPredicate0D`\n"
-             "   :arg sampling: The resolution used to sample the chain for the\n"
-             "      predicates evaluation. (The chain is not actually resampled;\n"
-             "      a virtual point only progresses along the curve using this\n"
-             "      resolution.)\n"
-             "   :type sampling: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_sequential_split_doc,
+    ".. staticmethod:: sequential_split(starting_pred, stopping_pred, sampling=0.0)\n"
+    "                  sequential_split(pred, sampling=0.0)\n"
+    "\n"
+    "   Splits each chain of the current set of chains in a sequential way.\n"
+    "   The points of each chain are processed (with a specified sampling)\n"
+    "   sequentially. The first point of the initial chain is the\n"
+    "   first point of one of the resulting chains. The splitting ends when\n"
+    "   no more chain can start.\n"
+    "\n"
+    "   .. tip::\n"
+    "\n"
+    "      By specifying a starting and stopping predicate allows\n"
+    "      the chains to overlap rather than chains partitioning.\n"
+    "\n"
+    "   :arg starting_pred: The predicate on a point that expresses the\n"
+    "      starting condition. Each time this condition is verified, a new chain begins\n"
+    "   :type starting_pred: :class:`UnaryPredicate0D`\n"
+    "   :arg stopping_pred: The predicate on a point that expresses the\n"
+    "      stopping condition. The chain ends as soon as this predicate is verified.\n"
+    "   :type stopping_pred: :class:`UnaryPredicate0D`\n"
+    "   :arg pred: The predicate on a point that expresses the splitting condition.\n"
+    "      Each time the condition is verified, the chain is split into two chains.\n"
+    "      The resulting set of chains is a partition of the initial chain\n"
+    "   :type pred: :class:`UnaryPredicate0D`\n"
+    "   :arg sampling: The resolution used to sample the chain for the\n"
+    "      predicates evaluation. (The chain is not actually resampled;\n"
+    "      a virtual point only progresses along the curve using this\n"
+    "      resolution.)\n"
+    "   :type sampling: float\n");
 
 static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
                                             PyObject *args,
@@ -344,6 +354,7 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Operators_recursive_split_doc,
     ".. staticmethod:: recursive_split(func, pred_1d, sampling=0.0)\n"
     "                  recursive_split(func, pred_0d, pred_1d, sampling=0.0)\n"
@@ -470,14 +481,16 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_sort_doc,
-             ".. staticmethod:: sort(pred)\n"
-             "\n"
-             "   Sorts the current set of chains (or viewedges) according to the\n"
-             "   comparison predicate given as argument.\n"
-             "\n"
-             "   :arg pred: The binary predicate used for the comparison.\n"
-             "   :type pred: :class:`BinaryPredicate1D`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_sort_doc,
+    ".. staticmethod:: sort(pred)\n"
+    "\n"
+    "   Sorts the current set of chains (or viewedges) according to the\n"
+    "   comparison predicate given as argument.\n"
+    "\n"
+    "   :arg pred: The binary predicate used for the comparison.\n"
+    "   :type pred: :class:`BinaryPredicate1D`");
 
 static PyObject *Operators_sort(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
@@ -503,17 +516,19 @@ static PyObject *Operators_sort(BPy_Operators * /*self*/, PyObject *args, PyObje
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_create_doc,
-             ".. staticmethod:: create(pred, shaders)\n"
-             "\n"
-             "   Creates and shades the strokes from the current set of chains. A\n"
-             "   predicate can be specified to make a selection pass on the chains.\n"
-             "\n"
-             "   :arg pred: The predicate that a chain must verify in order to be\n"
-             "      transform as a stroke.\n"
-             "   :type pred: :class:`UnaryPredicate1D`\n"
-             "   :arg shaders: The list of shaders used to shade the strokes.\n"
-             "   :type shaders: list of :class:`StrokeShader` objects");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_create_doc,
+    ".. staticmethod:: create(pred, shaders)\n"
+    "\n"
+    "   Creates and shades the strokes from the current set of chains. A\n"
+    "   predicate can be specified to make a selection pass on the chains.\n"
+    "\n"
+    "   :arg pred: The predicate that a chain must verify in order to be\n"
+    "      transform as a stroke.\n"
+    "   :type pred: :class:`UnaryPredicate1D`\n"
+    "   :arg shaders: The list of shaders used to shade the strokes.\n"
+    "   :type shaders: list of :class:`StrokeShader` objects");
 
 static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
@@ -559,14 +574,16 @@ static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyOb
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_reset_doc,
-             ".. staticmethod:: reset(delete_strokes=True)\n"
-             "\n"
-             "   Resets the line stylization process to the initial state. The results of\n"
-             "   stroke creation are accumulated if **delete_strokes** is set to False.\n"
-             "\n"
-             "   :arg delete_strokes: Delete the strokes that are currently stored.\n"
-             "   :type delete_strokes: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_reset_doc,
+    ".. staticmethod:: reset(delete_strokes=True)\n"
+    "\n"
+    "   Resets the line stylization process to the initial state. The results of\n"
+    "   stroke creation are accumulated if **delete_strokes** is set to False.\n"
+    "\n"
+    "   :arg delete_strokes: Delete the strokes that are currently stored.\n"
+    "   :type delete_strokes: bool\n");
 
 static PyObject *Operators_reset(BPy_Operators * /*self*/, PyObject *args, PyObject *kwds)
 {
@@ -583,15 +600,17 @@ static PyObject *Operators_reset(BPy_Operators * /*self*/, PyObject *args, PyObj
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Operators_get_viewedge_from_index_doc,
-             ".. staticmethod:: get_viewedge_from_index(i)\n"
-             "\n"
-             "   Returns the ViewEdge at the index in the current set of ViewEdges.\n"
-             "\n"
-             "   :arg i: index (0 <= i < Operators.get_view_edges_size()).\n"
-             "   :type i: int\n"
-             "   :return: The ViewEdge object.\n"
-             "   :rtype: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_get_viewedge_from_index_doc,
+    ".. staticmethod:: get_viewedge_from_index(i)\n"
+    "\n"
+    "   Returns the ViewEdge at the index in the current set of ViewEdges.\n"
+    "\n"
+    "   :arg i: index (0 <= i < Operators.get_view_edges_size()).\n"
+    "   :type i: int\n"
+    "   :return: The ViewEdge object.\n"
+    "   :rtype: :class:`ViewEdge`");
 
 static PyObject *Operators_get_viewedge_from_index(BPy_Operators * /*self*/,
                                                    PyObject *args,
@@ -610,15 +629,17 @@ static PyObject *Operators_get_viewedge_from_index(BPy_Operators * /*self*/,
   return BPy_ViewEdge_from_ViewEdge(*(Operators::getViewEdgeFromIndex(i)));
 }
 
-PyDoc_STRVAR(Operators_get_chain_from_index_doc,
-             ".. staticmethod:: get_chain_from_index(i)\n"
-             "\n"
-             "   Returns the Chain at the index in the current set of Chains.\n"
-             "\n"
-             "   :arg i: index (0 <= i < Operators.get_chains_size()).\n"
-             "   :type i: int\n"
-             "   :return: The Chain object.\n"
-             "   :rtype: :class:`Chain`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_get_chain_from_index_doc,
+    ".. staticmethod:: get_chain_from_index(i)\n"
+    "\n"
+    "   Returns the Chain at the index in the current set of Chains.\n"
+    "\n"
+    "   :arg i: index (0 <= i < Operators.get_chains_size()).\n"
+    "   :type i: int\n"
+    "   :return: The Chain object.\n"
+    "   :rtype: :class:`Chain`");
 
 static PyObject *Operators_get_chain_from_index(BPy_Operators * /*self*/,
                                                 PyObject *args,
@@ -637,15 +658,17 @@ static PyObject *Operators_get_chain_from_index(BPy_Operators * /*self*/,
   return BPy_Chain_from_Chain(*(Operators::getChainFromIndex(i)));
 }
 
-PyDoc_STRVAR(Operators_get_stroke_from_index_doc,
-             ".. staticmethod:: get_stroke_from_index(i)\n"
-             "\n"
-             "   Returns the Stroke at the index in the current set of Strokes.\n"
-             "\n"
-             "   :arg i: index (0 <= i < Operators.get_strokes_size()).\n"
-             "   :type i: int\n"
-             "   :return: The Stroke object.\n"
-             "   :rtype: :class:`Stroke`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_get_stroke_from_index_doc,
+    ".. staticmethod:: get_stroke_from_index(i)\n"
+    "\n"
+    "   Returns the Stroke at the index in the current set of Strokes.\n"
+    "\n"
+    "   :arg i: index (0 <= i < Operators.get_strokes_size()).\n"
+    "   :type i: int\n"
+    "   :return: The Stroke object.\n"
+    "   :rtype: :class:`Stroke`");
 
 static PyObject *Operators_get_stroke_from_index(BPy_Operators * /*self*/,
                                                  PyObject *args,
@@ -664,39 +687,45 @@ static PyObject *Operators_get_stroke_from_index(BPy_Operators * /*self*/,
   return BPy_Stroke_from_Stroke(*(Operators::getStrokeFromIndex(i)));
 }
 
-PyDoc_STRVAR(Operators_get_view_edges_size_doc,
-             ".. staticmethod:: get_view_edges_size()\n"
-             "\n"
-             "   Returns the number of ViewEdges.\n"
-             "\n"
-             "   :return: The number of ViewEdges.\n"
-             "   :rtype: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_get_view_edges_size_doc,
+    ".. staticmethod:: get_view_edges_size()\n"
+    "\n"
+    "   Returns the number of ViewEdges.\n"
+    "\n"
+    "   :return: The number of ViewEdges.\n"
+    "   :rtype: int");
 
 static PyObject *Operators_get_view_edges_size(BPy_Operators * /*self*/)
 {
   return PyLong_FromLong(Operators::getViewEdgesSize());
 }
 
-PyDoc_STRVAR(Operators_get_chains_size_doc,
-             ".. staticmethod:: get_chains_size()\n"
-             "\n"
-             "   Returns the number of Chains.\n"
-             "\n"
-             "   :return: The number of Chains.\n"
-             "   :rtype: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_get_chains_size_doc,
+    ".. staticmethod:: get_chains_size()\n"
+    "\n"
+    "   Returns the number of Chains.\n"
+    "\n"
+    "   :return: The number of Chains.\n"
+    "   :rtype: int");
 
 static PyObject *Operators_get_chains_size(BPy_Operators * /*self*/)
 {
   return PyLong_FromLong(Operators::getChainsSize());
 }
 
-PyDoc_STRVAR(Operators_get_strokes_size_doc,
-             ".. staticmethod:: get_strokes_size()\n"
-             "\n"
-             "   Returns the number of Strokes.\n"
-             "\n"
-             "   :return: The number of Strokes.\n"
-             "   :rtype: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Operators_get_strokes_size_doc,
+    ".. staticmethod:: get_strokes_size()\n"
+    "\n"
+    "   Returns the number of Strokes.\n"
+    "\n"
+    "   :return: The number of Strokes.\n"
+    "   :rtype: int");
 
 static PyObject *Operators_get_strokes_size(BPy_Operators * /*self*/)
 {

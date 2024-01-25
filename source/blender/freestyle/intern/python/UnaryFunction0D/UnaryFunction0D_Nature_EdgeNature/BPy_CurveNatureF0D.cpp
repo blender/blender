@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char CurveNatureF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    CurveNatureF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DEdgeNature` > :class:`CurveNatureF0D`\n"
     "\n"
@@ -37,7 +39,7 @@ static char CurveNatureF0D___doc__[] =
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The nature of the 1D element to which the pointed Interface0D\n"
     "      belongs.\n"
-    "   :rtype: :class:`freestyle.types.Nature`\n";
+    "   :rtype: :class:`freestyle.types.Nature`\n");
 
 static int CurveNatureF0D___init__(BPy_CurveNatureF0D *self, PyObject *args, PyObject *kwds)
 {

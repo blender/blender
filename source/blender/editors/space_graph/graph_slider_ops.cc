@@ -2440,8 +2440,7 @@ void GRAPH_OT_scale_from_neighbor(wmOperatorType *ot)
   ot->name = "Scale from Neighbor";
   ot->idname = "GRAPH_OT_scale_from_neighbor";
   ot->description =
-      "Increase or decrease the value of selected keys \n\
-  in relationship to the neighboring one";
+      "Increase or decrease the value of selected keys in relationship to the neighboring one";
 
   /* API callbacks. */
   ot->invoke = scale_from_neighbor_invoke;

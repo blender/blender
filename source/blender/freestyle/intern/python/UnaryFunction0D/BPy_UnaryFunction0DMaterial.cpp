@@ -46,7 +46,9 @@ int UnaryFunction0DMaterial_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char UnaryFunction0DMaterial___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    UnaryFunction0DMaterial___doc__,
     "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DMaterial`\n"
     "\n"
     "Base class for unary functions (functors) that work on\n"
@@ -54,7 +56,7 @@ static char UnaryFunction0DMaterial___doc__[] =
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.\n";
+    "   Default constructor.\n");
 
 static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial *self,
                                             PyObject *args,

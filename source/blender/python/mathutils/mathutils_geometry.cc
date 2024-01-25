@@ -30,31 +30,36 @@
 #include "../generic/python_utildefines.h"
 
 /*-------------------------DOC STRINGS ---------------------------*/
-PyDoc_STRVAR(M_Geometry_doc, "The Blender geometry module");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_doc,
+    "The Blender geometry module");
 
 /* ---------------------------------INTERSECTION FUNCTIONS-------------------- */
 
-PyDoc_STRVAR(M_Geometry_intersect_ray_tri_doc,
-             ".. function:: intersect_ray_tri(v1, v2, v3, ray, orig, clip=True)\n"
-             "\n"
-             "   Returns the intersection between a ray and a triangle, if possible, returns None "
-             "otherwise.\n"
-             "\n"
-             "   :arg v1: Point1\n"
-             "   :type v1: :class:`mathutils.Vector`\n"
-             "   :arg v2: Point2\n"
-             "   :type v2: :class:`mathutils.Vector`\n"
-             "   :arg v3: Point3\n"
-             "   :type v3: :class:`mathutils.Vector`\n"
-             "   :arg ray: Direction of the projection\n"
-             "   :type ray: :class:`mathutils.Vector`\n"
-             "   :arg orig: Origin\n"
-             "   :type orig: :class:`mathutils.Vector`\n"
-             "   :arg clip: When False, don't restrict the intersection to the area of the "
-             "triangle, use the infinite plane defined by the triangle.\n"
-             "   :type clip: boolean\n"
-             "   :return: The point of intersection or None if no intersection is found\n"
-             "   :rtype: :class:`mathutils.Vector` or None\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_intersect_ray_tri_doc,
+    ".. function:: intersect_ray_tri(v1, v2, v3, ray, orig, clip=True)\n"
+    "\n"
+    "   Returns the intersection between a ray and a triangle, if possible, returns None "
+    "otherwise.\n"
+    "\n"
+    "   :arg v1: Point1\n"
+    "   :type v1: :class:`mathutils.Vector`\n"
+    "   :arg v2: Point2\n"
+    "   :type v2: :class:`mathutils.Vector`\n"
+    "   :arg v3: Point3\n"
+    "   :type v3: :class:`mathutils.Vector`\n"
+    "   :arg ray: Direction of the projection\n"
+    "   :type ray: :class:`mathutils.Vector`\n"
+    "   :arg orig: Origin\n"
+    "   :type orig: :class:`mathutils.Vector`\n"
+    "   :arg clip: When False, don't restrict the intersection to the area of the "
+    "triangle, use the infinite plane defined by the triangle.\n"
+    "   :type clip: boolean\n"
+    "   :return: The point of intersection or None if no intersection is found\n"
+    "   :rtype: :class:`mathutils.Vector` or None\n");
 static PyObject *M_Geometry_intersect_ray_tri(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_ray_tri";
@@ -144,20 +149,22 @@ static PyObject *M_Geometry_intersect_ray_tri(PyObject * /*self*/, PyObject *arg
 
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
 
-PyDoc_STRVAR(M_Geometry_intersect_line_line_doc,
-             ".. function:: intersect_line_line(v1, v2, v3, v4)\n"
-             "\n"
-             "   Returns a tuple with the points on each line respectively closest to the other.\n"
-             "\n"
-             "   :arg v1: First point of the first line\n"
-             "   :type v1: :class:`mathutils.Vector`\n"
-             "   :arg v2: Second point of the first line\n"
-             "   :type v2: :class:`mathutils.Vector`\n"
-             "   :arg v3: First point of the second line\n"
-             "   :type v3: :class:`mathutils.Vector`\n"
-             "   :arg v4: Second point of the second line\n"
-             "   :type v4: :class:`mathutils.Vector`\n"
-             "   :rtype: tuple of :class:`mathutils.Vector`'s\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_intersect_line_line_doc,
+    ".. function:: intersect_line_line(v1, v2, v3, v4)\n"
+    "\n"
+    "   Returns a tuple with the points on each line respectively closest to the other.\n"
+    "\n"
+    "   :arg v1: First point of the first line\n"
+    "   :type v1: :class:`mathutils.Vector`\n"
+    "   :arg v2: Second point of the first line\n"
+    "   :type v2: :class:`mathutils.Vector`\n"
+    "   :arg v3: First point of the second line\n"
+    "   :type v3: :class:`mathutils.Vector`\n"
+    "   :arg v4: Second point of the second line\n"
+    "   :type v4: :class:`mathutils.Vector`\n"
+    "   :rtype: tuple of :class:`mathutils.Vector`'s\n");
 static PyObject *M_Geometry_intersect_line_line(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_line_line";
@@ -221,6 +228,7 @@ static PyObject *M_Geometry_intersect_line_line(PyObject * /*self*/, PyObject *a
 /* Line-Line intersection using algorithm from mathworld.wolfram.com */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_sphere_sphere_2d_doc,
     ".. function:: intersect_sphere_sphere_2d(p_a, radius_a, p_b, radius_b)\n"
     "\n"
@@ -293,12 +301,14 @@ static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject * /*self*/, PyOb
   return ret;
 }
 
-PyDoc_STRVAR(M_Geometry_intersect_tri_tri_2d_doc,
-             ".. function:: intersect_tri_tri_2d(tri_a1, tri_a2, tri_a3, tri_b1, tri_b2, tri_b3)\n"
-             "\n"
-             "   Check if two 2D triangles intersect.\n"
-             "\n"
-             "   :rtype: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_intersect_tri_tri_2d_doc,
+    ".. function:: intersect_tri_tri_2d(tri_a1, tri_a2, tri_a3, tri_b1, tri_b2, tri_b3)\n"
+    "\n"
+    "   Check if two 2D triangles intersect.\n"
+    "\n"
+    "   :rtype: bool\n");
 static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_tri_tri_2d";
@@ -331,14 +341,16 @@ static PyObject *M_Geometry_intersect_tri_tri_2d(PyObject * /*self*/, PyObject *
   return PyBool_FromLong(ret);
 }
 
-PyDoc_STRVAR(M_Geometry_normal_doc,
-             ".. function:: normal(vectors)\n"
-             "\n"
-             "   Returns the normal of a 3D polygon.\n"
-             "\n"
-             "   :arg vectors: Vectors to calculate normals with\n"
-             "   :type vectors: sequence of 3 or more 3d vector\n"
-             "   :rtype: :class:`mathutils.Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_normal_doc,
+    ".. function:: normal(vectors)\n"
+    "\n"
+    "   Returns the normal of a 3D polygon.\n"
+    "\n"
+    "   :arg vectors: Vectors to calculate normals with\n"
+    "   :type vectors: sequence of 3 or more 3d vector\n"
+    "   :rtype: :class:`mathutils.Vector`\n");
 static PyObject *M_Geometry_normal(PyObject * /*self*/, PyObject *args)
 {
   float(*coords)[3];
@@ -372,18 +384,20 @@ finally:
 
 /* --------------------------------- AREA FUNCTIONS-------------------- */
 
-PyDoc_STRVAR(M_Geometry_area_tri_doc,
-             ".. function:: area_tri(v1, v2, v3)\n"
-             "\n"
-             "   Returns the area size of the 2D or 3D triangle defined.\n"
-             "\n"
-             "   :arg v1: Point1\n"
-             "   :type v1: :class:`mathutils.Vector`\n"
-             "   :arg v2: Point2\n"
-             "   :type v2: :class:`mathutils.Vector`\n"
-             "   :arg v3: Point3\n"
-             "   :type v3: :class:`mathutils.Vector`\n"
-             "   :rtype: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_area_tri_doc,
+    ".. function:: area_tri(v1, v2, v3)\n"
+    "\n"
+    "   Returns the area size of the 2D or 3D triangle defined.\n"
+    "\n"
+    "   :arg v1: Point1\n"
+    "   :type v1: :class:`mathutils.Vector`\n"
+    "   :arg v2: Point2\n"
+    "   :type v2: :class:`mathutils.Vector`\n"
+    "   :arg v3: Point3\n"
+    "   :type v3: :class:`mathutils.Vector`\n"
+    "   :rtype: float\n");
 static PyObject *M_Geometry_area_tri(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "area_tri";
@@ -405,20 +419,22 @@ static PyObject *M_Geometry_area_tri(PyObject * /*self*/, PyObject *args)
   return PyFloat_FromDouble((len == 3 ? area_tri_v3 : area_tri_v2)(UNPACK3(tri)));
 }
 
-PyDoc_STRVAR(M_Geometry_volume_tetrahedron_doc,
-             ".. function:: volume_tetrahedron(v1, v2, v3, v4)\n"
-             "\n"
-             "   Return the volume formed by a tetrahedron (points can be in any order).\n"
-             "\n"
-             "   :arg v1: Point1\n"
-             "   :type v1: :class:`mathutils.Vector`\n"
-             "   :arg v2: Point2\n"
-             "   :type v2: :class:`mathutils.Vector`\n"
-             "   :arg v3: Point3\n"
-             "   :type v3: :class:`mathutils.Vector`\n"
-             "   :arg v4: Point4\n"
-             "   :type v4: :class:`mathutils.Vector`\n"
-             "   :rtype: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_volume_tetrahedron_doc,
+    ".. function:: volume_tetrahedron(v1, v2, v3, v4)\n"
+    "\n"
+    "   Return the volume formed by a tetrahedron (points can be in any order).\n"
+    "\n"
+    "   :arg v1: Point1\n"
+    "   :type v1: :class:`mathutils.Vector`\n"
+    "   :arg v2: Point2\n"
+    "   :type v2: :class:`mathutils.Vector`\n"
+    "   :arg v3: Point3\n"
+    "   :type v3: :class:`mathutils.Vector`\n"
+    "   :arg v4: Point4\n"
+    "   :type v4: :class:`mathutils.Vector`\n"
+    "   :rtype: float\n");
 static PyObject *M_Geometry_volume_tetrahedron(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "volume_tetrahedron";
@@ -440,6 +456,7 @@ static PyObject *M_Geometry_volume_tetrahedron(PyObject * /*self*/, PyObject *ar
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_line_line_2d_doc,
     ".. function:: intersect_line_line_2d(lineA_p1, lineA_p2, lineB_p1, lineB_p2)\n"
     "\n"
@@ -484,6 +501,7 @@ static PyObject *M_Geometry_intersect_line_line_2d(PyObject * /*self*/, PyObject
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_line_plane_doc,
     ".. function:: intersect_line_plane(line_a, line_b, plane_co, plane_no, no_flip=False)\n"
     "\n"
@@ -538,6 +556,7 @@ static PyObject *M_Geometry_intersect_line_plane(PyObject * /*self*/, PyObject *
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_plane_plane_doc,
     ".. function:: intersect_plane_plane(plane_a_co, plane_a_no, plane_b_co, plane_b_no)\n"
     "\n"
@@ -607,6 +626,7 @@ static PyObject *M_Geometry_intersect_plane_plane(PyObject * /*self*/, PyObject 
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_line_sphere_doc,
     ".. function:: intersect_line_sphere(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
     "\n"
@@ -697,6 +717,7 @@ static PyObject *M_Geometry_intersect_line_sphere(PyObject * /*self*/, PyObject 
 
 /* keep in sync with M_Geometry_intersect_line_sphere */
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_line_sphere_2d_doc,
     ".. function:: intersect_line_sphere_2d(line_a, line_b, sphere_co, sphere_radius, clip=True)\n"
     "\n"
@@ -786,6 +807,7 @@ static PyObject *M_Geometry_intersect_line_sphere_2d(PyObject * /*self*/, PyObje
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_point_line_doc,
     ".. function:: intersect_point_line(pt, line_p1, line_p2)\n"
     "\n"
@@ -832,22 +854,24 @@ static PyObject *M_Geometry_intersect_point_line(PyObject * /*self*/, PyObject *
   return ret;
 }
 
-PyDoc_STRVAR(M_Geometry_intersect_point_tri_doc,
-             ".. function:: intersect_point_tri(pt, tri_p1, tri_p2, tri_p3)\n"
-             "\n"
-             "   Takes 4 vectors: one is the point and the next 3 define the triangle. Projects "
-             "the point onto the triangle plane and checks if it is within the triangle.\n"
-             "\n"
-             "   :arg pt: Point\n"
-             "   :type pt: :class:`mathutils.Vector`\n"
-             "   :arg tri_p1: First point of the triangle\n"
-             "   :type tri_p1: :class:`mathutils.Vector`\n"
-             "   :arg tri_p2: Second point of the triangle\n"
-             "   :type tri_p2: :class:`mathutils.Vector`\n"
-             "   :arg tri_p3: Third point of the triangle\n"
-             "   :type tri_p3: :class:`mathutils.Vector`\n"
-             "   :return: Point on the triangles plane or None if its outside the triangle\n"
-             "   :rtype: :class:`mathutils.Vector` or None\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_intersect_point_tri_doc,
+    ".. function:: intersect_point_tri(pt, tri_p1, tri_p2, tri_p3)\n"
+    "\n"
+    "   Takes 4 vectors: one is the point and the next 3 define the triangle. Projects "
+    "the point onto the triangle plane and checks if it is within the triangle.\n"
+    "\n"
+    "   :arg pt: Point\n"
+    "   :type pt: :class:`mathutils.Vector`\n"
+    "   :arg tri_p1: First point of the triangle\n"
+    "   :type tri_p1: :class:`mathutils.Vector`\n"
+    "   :arg tri_p2: Second point of the triangle\n"
+    "   :type tri_p2: :class:`mathutils.Vector`\n"
+    "   :arg tri_p3: Third point of the triangle\n"
+    "   :type tri_p3: :class:`mathutils.Vector`\n"
+    "   :return: Point on the triangles plane or None if its outside the triangle\n"
+    "   :rtype: :class:`mathutils.Vector` or None\n");
 static PyObject *M_Geometry_intersect_point_tri(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_point_tri";
@@ -879,21 +903,23 @@ static PyObject *M_Geometry_intersect_point_tri(PyObject * /*self*/, PyObject *a
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(M_Geometry_closest_point_on_tri_doc,
-             ".. function:: closest_point_on_tri(pt, tri_p1, tri_p2, tri_p3)\n"
-             "\n"
-             "   Takes 4 vectors: one is the point and the next 3 define the triangle.\n"
-             "\n"
-             "   :arg pt: Point\n"
-             "   :type pt: :class:`mathutils.Vector`\n"
-             "   :arg tri_p1: First point of the triangle\n"
-             "   :type tri_p1: :class:`mathutils.Vector`\n"
-             "   :arg tri_p2: Second point of the triangle\n"
-             "   :type tri_p2: :class:`mathutils.Vector`\n"
-             "   :arg tri_p3: Third point of the triangle\n"
-             "   :type tri_p3: :class:`mathutils.Vector`\n"
-             "   :return: The closest point of the triangle.\n"
-             "   :rtype: :class:`mathutils.Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_closest_point_on_tri_doc,
+    ".. function:: closest_point_on_tri(pt, tri_p1, tri_p2, tri_p3)\n"
+    "\n"
+    "   Takes 4 vectors: one is the point and the next 3 define the triangle.\n"
+    "\n"
+    "   :arg pt: Point\n"
+    "   :type pt: :class:`mathutils.Vector`\n"
+    "   :arg tri_p1: First point of the triangle\n"
+    "   :type tri_p1: :class:`mathutils.Vector`\n"
+    "   :arg tri_p2: Second point of the triangle\n"
+    "   :type tri_p2: :class:`mathutils.Vector`\n"
+    "   :arg tri_p3: Third point of the triangle\n"
+    "   :type tri_p3: :class:`mathutils.Vector`\n"
+    "   :return: The closest point of the triangle.\n"
+    "   :rtype: :class:`mathutils.Vector`\n");
 static PyObject *M_Geometry_closest_point_on_tri(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "closest_point_on_tri";
@@ -924,6 +950,7 @@ static PyObject *M_Geometry_closest_point_on_tri(PyObject * /*self*/, PyObject *
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_intersect_point_tri_2d_doc,
     ".. function:: intersect_point_tri_2d(pt, tri_p1, tri_p2, tri_p3)\n"
     "\n"
@@ -962,26 +989,28 @@ static PyObject *M_Geometry_intersect_point_tri_2d(PyObject * /*self*/, PyObject
   return PyLong_FromLong(isect_point_tri_v2(pt, UNPACK3(tri)));
 }
 
-PyDoc_STRVAR(M_Geometry_intersect_point_quad_2d_doc,
-             ".. function:: intersect_point_quad_2d(pt, quad_p1, quad_p2, quad_p3, quad_p4)\n"
-             "\n"
-             "   Takes 5 vectors (using only the x and y coordinates): one is the point and the "
-             "next 4 define the quad,\n"
-             "   only the x and y are used from the vectors. Returns 1 if the point is within the "
-             "quad, otherwise 0.\n"
-             "   Works only with convex quads without singular edges.\n"
-             "\n"
-             "   :arg pt: Point\n"
-             "   :type pt: :class:`mathutils.Vector`\n"
-             "   :arg quad_p1: First point of the quad\n"
-             "   :type quad_p1: :class:`mathutils.Vector`\n"
-             "   :arg quad_p2: Second point of the quad\n"
-             "   :type quad_p2: :class:`mathutils.Vector`\n"
-             "   :arg quad_p3: Third point of the quad\n"
-             "   :type quad_p3: :class:`mathutils.Vector`\n"
-             "   :arg quad_p4: Fourth point of the quad\n"
-             "   :type quad_p4: :class:`mathutils.Vector`\n"
-             "   :rtype: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_intersect_point_quad_2d_doc,
+    ".. function:: intersect_point_quad_2d(pt, quad_p1, quad_p2, quad_p3, quad_p4)\n"
+    "\n"
+    "   Takes 5 vectors (using only the x and y coordinates): one is the point and the "
+    "next 4 define the quad,\n"
+    "   only the x and y are used from the vectors. Returns 1 if the point is within the "
+    "quad, otherwise 0.\n"
+    "   Works only with convex quads without singular edges.\n"
+    "\n"
+    "   :arg pt: Point\n"
+    "   :type pt: :class:`mathutils.Vector`\n"
+    "   :arg quad_p1: First point of the quad\n"
+    "   :type quad_p1: :class:`mathutils.Vector`\n"
+    "   :arg quad_p2: Second point of the quad\n"
+    "   :type quad_p2: :class:`mathutils.Vector`\n"
+    "   :arg quad_p3: Third point of the quad\n"
+    "   :type quad_p3: :class:`mathutils.Vector`\n"
+    "   :arg quad_p4: Fourth point of the quad\n"
+    "   :type quad_p4: :class:`mathutils.Vector`\n"
+    "   :rtype: int\n");
 static PyObject *M_Geometry_intersect_point_quad_2d(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "intersect_point_quad_2d";
@@ -1005,19 +1034,21 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject * /*self*/, PyObjec
   return PyLong_FromLong(isect_point_quad_v2(pt, UNPACK4(quad)));
 }
 
-PyDoc_STRVAR(M_Geometry_distance_point_to_plane_doc,
-             ".. function:: distance_point_to_plane(pt, plane_co, plane_no)\n"
-             "\n"
-             "   Returns the signed distance between a point and a plane "
-             "   (negative when below the normal).\n"
-             "\n"
-             "   :arg pt: Point\n"
-             "   :type pt: :class:`mathutils.Vector`\n"
-             "   :arg plane_co: A point on the plane\n"
-             "   :type plane_co: :class:`mathutils.Vector`\n"
-             "   :arg plane_no: The direction the plane is facing\n"
-             "   :type plane_no: :class:`mathutils.Vector`\n"
-             "   :rtype: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_distance_point_to_plane_doc,
+    ".. function:: distance_point_to_plane(pt, plane_co, plane_no)\n"
+    "\n"
+    "   Returns the signed distance between a point and a plane "
+    "   (negative when below the normal).\n"
+    "\n"
+    "   :arg pt: Point\n"
+    "   :type pt: :class:`mathutils.Vector`\n"
+    "   :arg plane_co: A point on the plane\n"
+    "   :type plane_co: :class:`mathutils.Vector`\n"
+    "   :arg plane_no: The direction the plane is facing\n"
+    "   :type plane_no: :class:`mathutils.Vector`\n"
+    "   :rtype: float\n");
 static PyObject *M_Geometry_distance_point_to_plane(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "distance_point_to_plane";
@@ -1042,6 +1073,7 @@ static PyObject *M_Geometry_distance_point_to_plane(PyObject * /*self*/, PyObjec
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_barycentric_transform_doc,
     ".. function:: barycentric_transform(point, tri_a1, tri_a2, tri_a3, tri_b1, tri_b2, tri_b3)\n"
     "\n"
@@ -1111,17 +1143,19 @@ static void points_in_planes_fn(const float co[3], int i, int j, int k, void *us
   user_data->planes_used[k] = true;
 }
 
-PyDoc_STRVAR(M_Geometry_points_in_planes_doc,
-             ".. function:: points_in_planes(planes)\n"
-             "\n"
-             "   Returns a list of points inside all planes given and a list of index values for "
-             "the planes used.\n"
-             "\n"
-             "   :arg planes: List of planes (4D vectors).\n"
-             "   :type planes: list of :class:`mathutils.Vector`\n"
-             "   :return: two lists, once containing the vertices inside the planes, another "
-             "containing the plane indices used\n"
-             "   :rtype: pair of lists\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_points_in_planes_doc,
+    ".. function:: points_in_planes(planes)\n"
+    "\n"
+    "   Returns a list of points inside all planes given and a list of index values for "
+    "the planes used.\n"
+    "\n"
+    "   :arg planes: List of planes (4D vectors).\n"
+    "   :type planes: list of :class:`mathutils.Vector`\n"
+    "   :return: two lists, once containing the vertices inside the planes, another "
+    "containing the plane indices used\n"
+    "   :rtype: pair of lists\n");
 static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args)
 {
   PyObject *py_planes;
@@ -1175,23 +1209,25 @@ static PyObject *M_Geometry_points_in_planes(PyObject * /*self*/, PyObject *args
 
 #ifndef MATH_STANDALONE
 
-PyDoc_STRVAR(M_Geometry_interpolate_bezier_doc,
-             ".. function:: interpolate_bezier(knot1, handle1, handle2, knot2, resolution)\n"
-             "\n"
-             "   Interpolate a bezier spline segment.\n"
-             "\n"
-             "   :arg knot1: First bezier spline point.\n"
-             "   :type knot1: :class:`mathutils.Vector`\n"
-             "   :arg handle1: First bezier spline handle.\n"
-             "   :type handle1: :class:`mathutils.Vector`\n"
-             "   :arg handle2: Second bezier spline handle.\n"
-             "   :type handle2: :class:`mathutils.Vector`\n"
-             "   :arg knot2: Second bezier spline point.\n"
-             "   :type knot2: :class:`mathutils.Vector`\n"
-             "   :arg resolution: Number of points to return.\n"
-             "   :type resolution: int\n"
-             "   :return: The interpolated points\n"
-             "   :rtype: list of :class:`mathutils.Vector`'s\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_interpolate_bezier_doc,
+    ".. function:: interpolate_bezier(knot1, handle1, handle2, knot2, resolution)\n"
+    "\n"
+    "   Interpolate a bezier spline segment.\n"
+    "\n"
+    "   :arg knot1: First bezier spline point.\n"
+    "   :type knot1: :class:`mathutils.Vector`\n"
+    "   :arg handle1: First bezier spline handle.\n"
+    "   :type handle1: :class:`mathutils.Vector`\n"
+    "   :arg handle2: Second bezier spline handle.\n"
+    "   :type handle2: :class:`mathutils.Vector`\n"
+    "   :arg knot2: Second bezier spline point.\n"
+    "   :type knot2: :class:`mathutils.Vector`\n"
+    "   :arg resolution: Number of points to return.\n"
+    "   :type resolution: int\n"
+    "   :return: The interpolated points\n"
+    "   :rtype: list of :class:`mathutils.Vector`'s\n");
 static PyObject *M_Geometry_interpolate_bezier(PyObject * /*self*/, PyObject *args)
 {
   const char *error_prefix = "interpolate_bezier";
@@ -1237,15 +1273,17 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject * /*self*/, PyObject *ar
   return list;
 }
 
-PyDoc_STRVAR(M_Geometry_tessellate_polygon_doc,
-             ".. function:: tessellate_polygon(veclist_list)\n"
-             "\n"
-             "   Takes a list of polylines (each point a pair or triplet of numbers) and returns "
-             "the point indices for a polyline filled with triangles. Does not handle degenerate "
-             "geometry (such as zero-length lines due to consecutive identical points).\n"
-             "\n"
-             "   :arg veclist_list: list of polylines\n"
-             "   :rtype: list\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_tessellate_polygon_doc,
+    ".. function:: tessellate_polygon(veclist_list)\n"
+    "\n"
+    "   Takes a list of polylines (each point a pair or triplet of numbers) and returns "
+    "the point indices for a polyline filled with triangles. Does not handle degenerate "
+    "geometry (such as zero-length lines due to consecutive identical points).\n"
+    "\n"
+    "   :arg veclist_list: list of polylines\n"
+    "   :rtype: list\n");
 /* PolyFill function, uses Blenders scan-fill to fill multiple poly lines. */
 static PyObject *M_Geometry_tessellate_polygon(PyObject * /*self*/, PyObject *polyLineSeq)
 {
@@ -1413,16 +1451,18 @@ static void boxPack_ToPyObject(PyObject *value, const BoxPack *boxarray)
   }
 }
 
-PyDoc_STRVAR(M_Geometry_box_pack_2d_doc,
-             ".. function:: box_pack_2d(boxes)\n"
-             "\n"
-             "   Returns a tuple with the width and height of the packed bounding box.\n"
-             "\n"
-             "   :arg boxes: list of boxes, each box is a list where the first 4 items are [x, y, "
-             "width, height, ...] other items are ignored.\n"
-             "   :type boxes: list\n"
-             "   :return: the width and height of the packed bounding box\n"
-             "   :rtype: tuple, pair of floats\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_box_pack_2d_doc,
+    ".. function:: box_pack_2d(boxes)\n"
+    "\n"
+    "   Returns a tuple with the width and height of the packed bounding box.\n"
+    "\n"
+    "   :arg boxes: list of boxes, each box is a list where the first 4 items are [x, y, "
+    "width, height, ...] other items are ignored.\n"
+    "   :type boxes: list\n"
+    "   :return: the width and height of the packed bounding box\n"
+    "   :rtype: tuple, pair of floats\n");
 static PyObject *M_Geometry_box_pack_2d(PyObject * /*self*/, PyObject *boxlist)
 {
   float tot_width = 0.0f, tot_height = 0.0f;
@@ -1455,15 +1495,17 @@ static PyObject *M_Geometry_box_pack_2d(PyObject * /*self*/, PyObject *boxlist)
   return ret;
 }
 
-PyDoc_STRVAR(M_Geometry_box_fit_2d_doc,
-             ".. function:: box_fit_2d(points)\n"
-             "\n"
-             "   Returns an angle that best fits the points to an axis aligned rectangle\n"
-             "\n"
-             "   :arg points: list of 2d points.\n"
-             "   :type points: list\n"
-             "   :return: angle\n"
-             "   :rtype: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_box_fit_2d_doc,
+    ".. function:: box_fit_2d(points)\n"
+    "\n"
+    "   Returns an angle that best fits the points to an axis aligned rectangle\n"
+    "\n"
+    "   :arg points: list of 2d points.\n"
+    "   :type points: list\n"
+    "   :return: angle\n"
+    "   :rtype: float\n");
 static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 {
   float(*points)[2];
@@ -1486,15 +1528,17 @@ static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
   return PyFloat_FromDouble(angle);
 }
 
-PyDoc_STRVAR(M_Geometry_convex_hull_2d_doc,
-             ".. function:: convex_hull_2d(points)\n"
-             "\n"
-             "   Returns a list of indices into the list given\n"
-             "\n"
-             "   :arg points: list of 2d points.\n"
-             "   :type points: list\n"
-             "   :return: a list of indices\n"
-             "   :rtype: list of ints\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_Geometry_convex_hull_2d_doc,
+    ".. function:: convex_hull_2d(points)\n"
+    "\n"
+    "   Returns a list of indices into the list given\n"
+    "\n"
+    "   :arg points: list of 2d points.\n"
+    "   :type points: list\n"
+    "   :return: a list of indices\n"
+    "   :rtype: list of ints\n");
 static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointlist)
 {
   float(*points)[2];
@@ -1554,6 +1598,7 @@ static PyObject *list_of_lists_from_arrays(const blender::Span<blender::Vector<i
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_Geometry_delaunay_2d_cdt_doc,
     ".. function:: delaunay_2d_cdt(vert_coords, edges, faces, output_type, epsilon, "
     "need_ids=True)\n"

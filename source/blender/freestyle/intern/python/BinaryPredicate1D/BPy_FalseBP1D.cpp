@@ -18,7 +18,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char FalseBP1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    FalseBP1D___doc__,
     "Class hierarchy: :class:`freestyle.types.BinaryPredicate1D` > :class:`FalseBP1D`\n"
     "\n"
     ".. method:: __call__(inter1, inter2)\n"
@@ -30,7 +32,7 @@ static char FalseBP1D___doc__[] =
     "   :arg inter2: The second Interface1D object.\n"
     "   :type inter2: :class:`freestyle.types.Interface1D`\n"
     "   :return: False.\n"
-    "   :rtype: bool\n";
+    "   :rtype: bool\n");
 
 static int FalseBP1D___init__(BPy_FalseBP1D *self, PyObject *args, PyObject *kwds)
 {

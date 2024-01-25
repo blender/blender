@@ -23,6 +23,7 @@ using namespace Freestyle;
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(
+    /* Wrap. */
     SVertexIterator_doc,
     "Class hierarchy: :class:`Iterator` > :class:`SVertexIterator`\n"
     "\n"
@@ -98,10 +99,12 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
 
 /*----------------------SVertexIterator get/setters ----------------------------*/
 
-PyDoc_STRVAR(SVertexIterator_object_doc,
-             "The SVertex object currently pointed by this iterator.\n"
-             "\n"
-             ":type: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertexIterator_object_doc,
+    "The SVertex object currently pointed by this iterator.\n"
+    "\n"
+    ":type: :class:`SVertex`");
 
 static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void * /*closure*/)
 {
@@ -116,20 +119,24 @@ static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void * /*
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(SVertexIterator_t_doc,
-             "The curvilinear abscissa of the current point.\n"
-             "\n"
-             ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertexIterator_t_doc,
+    "The curvilinear abscissa of the current point.\n"
+    "\n"
+    ":type: float");
 
 static PyObject *SVertexIterator_t_get(BPy_SVertexIterator *self, void * /*closure*/)
 {
   return PyFloat_FromDouble(self->sv_it->t());
 }
 
-PyDoc_STRVAR(SVertexIterator_u_doc,
-             "The point parameter at the current point in the 1D element (0 <= u <= 1).\n"
-             "\n"
-             ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    SVertexIterator_u_doc,
+    "The point parameter at the current point in the 1D element (0 <= u <= 1).\n"
+    "\n"
+    ":type: float");
 
 static PyObject *SVertexIterator_u_get(BPy_SVertexIterator *self, void * /*closure*/)
 {

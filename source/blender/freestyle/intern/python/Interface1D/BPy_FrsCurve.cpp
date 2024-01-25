@@ -23,24 +23,26 @@ using namespace Freestyle;
 
 /*----------------------CurvePoint methods ----------------------------*/
 
-PyDoc_STRVAR(FrsCurve_doc,
-             "Class hierarchy: :class:`Interface1D` > :class:`Curve`\n"
-             "\n"
-             "Base class for curves made of CurvePoints. :class:`SVertex` is the\n"
-             "type of the initial curve vertices. A :class:`Chain` is a\n"
-             "specialization of a Curve.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "            __init__(brother)\n"
-             "            __init__(id)\n"
-             "\n"
-             "   Builds a :class:`FrsCurve` using a default constructor,\n"
-             "   copy constructor or from an :class:`Id`.\n"
-             "\n"
-             "   :arg brother: A Curve object.\n"
-             "   :type brother: :class:`Curve`\n"
-             "   :arg id: An Id object.\n"
-             "   :type id: :class:`Id`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsCurve_doc,
+    "Class hierarchy: :class:`Interface1D` > :class:`Curve`\n"
+    "\n"
+    "Base class for curves made of CurvePoints. :class:`SVertex` is the\n"
+    "type of the initial curve vertices. A :class:`Chain` is a\n"
+    "specialization of a Curve.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "            __init__(brother)\n"
+    "            __init__(id)\n"
+    "\n"
+    "   Builds a :class:`FrsCurve` using a default constructor,\n"
+    "   copy constructor or from an :class:`Id`.\n"
+    "\n"
+    "   :arg brother: A Curve object.\n"
+    "   :type brother: :class:`Curve`\n"
+    "   :arg id: An Id object.\n"
+    "   :type id: :class:`Id`");
 
 static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
@@ -70,13 +72,15 @@ static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
-PyDoc_STRVAR(FrsCurve_push_vertex_back_doc,
-             ".. method:: push_vertex_back(vertex)\n"
-             "\n"
-             "   Adds a single vertex at the end of the Curve.\n"
-             "\n"
-             "   :arg vertex: A vertex object.\n"
-             "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsCurve_push_vertex_back_doc,
+    ".. method:: push_vertex_back(vertex)\n"
+    "\n"
+    "   Adds a single vertex at the end of the Curve.\n"
+    "\n"
+    "   :arg vertex: A vertex object.\n"
+    "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
 
 static PyObject *FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
@@ -100,13 +104,15 @@ static PyObject *FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, P
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(FrsCurve_push_vertex_front_doc,
-             ".. method:: push_vertex_front(vertex)\n"
-             "\n"
-             "   Adds a single vertex at the front of the Curve.\n"
-             "\n"
-             "   :arg vertex: A vertex object.\n"
-             "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsCurve_push_vertex_front_doc,
+    ".. method:: push_vertex_front(vertex)\n"
+    "\n"
+    "   Adds a single vertex at the front of the Curve.\n"
+    "\n"
+    "   :arg vertex: A vertex object.\n"
+    "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
 
 static PyObject *FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
@@ -144,20 +150,24 @@ static PyMethodDef BPy_FrsCurve_methods[] = {
 
 /*----------------------CurvePoint get/setters ----------------------------*/
 
-PyDoc_STRVAR(FrsCurve_is_empty_doc,
-             "True if the Curve doesn't have any Vertex yet.\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsCurve_is_empty_doc,
+    "True if the Curve doesn't have any Vertex yet.\n"
+    "\n"
+    ":type: bool");
 
 static PyObject *FrsCurve_is_empty_get(BPy_FrsCurve *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->c->empty());
 }
 
-PyDoc_STRVAR(FrsCurve_segments_size_doc,
-             "The number of segments in the polyline constituting the Curve.\n"
-             "\n"
-             ":type: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FrsCurve_segments_size_doc,
+    "The number of segments in the polyline constituting the Curve.\n"
+    "\n"
+    ":type: int");
 
 static PyObject *FrsCurve_segments_size_get(BPy_FrsCurve *self, void * /*closure*/)
 {

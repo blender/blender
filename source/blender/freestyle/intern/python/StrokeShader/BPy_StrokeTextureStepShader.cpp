@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char StrokeTextureStepShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    StrokeTextureStepShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`StrokeTextureStepShader`\n"
     "\n"
     "[Texture shader]\n"
@@ -37,7 +39,7 @@ static char StrokeTextureStepShader___doc__[] =
     "   Assigns a spacing factor to the texture coordinates of the Stroke.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int StrokeTextureStepShader___init__(BPy_StrokeTextureStepShader *self,
                                             PyObject *args,

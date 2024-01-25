@@ -31,7 +31,8 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/shader.h>
 
-#include <iostream>
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
 
@@ -145,14 +146,14 @@ static void link_nodes(
   bNodeSocket *source_socket = nodeFindSocket(source, SOCK_OUT, sock_out);
 
   if (!source_socket) {
-    std::cerr << "PROGRAMMER ERROR: Couldn't find output socket " << sock_out << std::endl;
+    CLOG_ERROR(&LOG, "Couldn't find output socket %s", sock_out);
     return;
   }
 
   bNodeSocket *dest_socket = nodeFindSocket(dest, SOCK_IN, sock_in);
 
   if (!dest_socket) {
-    std::cerr << "PROGRAMMER ERROR: Couldn't find input socket " << sock_in << std::endl;
+    CLOG_ERROR(&LOG, "Couldn't find input socket %s", sock_in);
     return;
   }
 
@@ -492,8 +493,9 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
   bNode *principled = add_node(nullptr, ntree, SH_NODE_BSDF_PRINCIPLED, 0.0f, 300.0f);
 
   if (!principled) {
-    std::cerr << "ERROR: Couldn't create SH_NODE_BSDF_PRINCIPLED node for USD shader "
-              << usd_shader.GetPath() << std::endl;
+    CLOG_ERROR(&LOG,
+               "Couldn't create SH_NODE_BSDF_PRINCIPLED node for USD shader %s",
+               usd_shader.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -501,8 +503,9 @@ void USDMaterialReader::import_usd_preview(Material *mtl,
   bNode *output = add_node(nullptr, ntree, SH_NODE_OUTPUT_MATERIAL, 300.0f, 300.0f);
 
   if (!output) {
-    std::cerr << "ERROR: Couldn't create SH_NODE_OUTPUT_MATERIAL node for USD shader "
-              << usd_shader.GetPath() << std::endl;
+    CLOG_ERROR(&LOG,
+               "Couldn't create SH_NODE_OUTPUT_MATERIAL node for USD shader %s",
+               usd_shader.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -621,14 +624,15 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
 
     bNodeSocket *sock = nodeFindSocket(dest_node, SOCK_IN, dest_socket_name);
     if (!sock) {
-      std::cerr << "ERROR: couldn't get destination node socket " << dest_socket_name << std::endl;
+      CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", dest_socket_name);
       return false;
     }
 
     pxr::VtValue val;
     if (!usd_input.Get(&val)) {
-      std::cerr << "ERROR: couldn't get value for usd shader input "
-                << usd_input.GetPrim().GetPath() << std::endl;
+      CLOG_ERROR(&LOG,
+                 "Couldn't get value for usd shader input %s",
+                 usd_input.GetPrim().GetPath().GetAsString().c_str());
       return false;
     }
 
@@ -665,8 +669,10 @@ bool USDMaterialReader::set_node_input(const pxr::UsdShadeInput &usd_input,
         }
         break;
       default:
-        std::cerr << "WARNING: unexpected type " << sock->idname << " for destination node socket "
-                  << dest_socket_name << std::endl;
+        CLOG_WARN(&LOG,
+                  "Unexpected type %s for destination node socket %s",
+                  sock->idname,
+                  dest_socket_name);
         break;
     }
   }
@@ -704,8 +710,9 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
 
   pxr::TfToken shader_id;
   if (!source_shader.GetShaderId(&shader_id)) {
-    std::cerr << "ERROR: couldn't get shader id for source shader "
-              << source_shader.GetPrim().GetPath() << std::endl;
+    CLOG_ERROR(&LOG,
+               "Couldn't get shader id for source shader %s",
+               source_shader.GetPath().GetAsString().c_str());
     return false;
   }
 
@@ -781,8 +788,7 @@ void USDMaterialReader::convert_usd_uv_texture(const pxr::UsdShadeShader &usd_sh
     tex_image = add_node(nullptr, ntree, SH_NODE_TEX_IMAGE, locx, locy);
 
     if (!tex_image) {
-      std::cerr << "ERROR: Couldn't create SH_NODE_TEX_IMAGE for node input " << dest_socket_name
-                << std::endl;
+      CLOG_ERROR(&LOG, "Couldn't create SH_NODE_TEX_IMAGE for node input %s", dest_socket_name);
       return;
     }
 
@@ -896,15 +902,17 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   pxr::UsdShadeInput file_input = usd_shader.GetInput(usdtokens::file);
 
   if (!file_input) {
-    std::cerr << "WARNING: Couldn't get file input for USD shader " << usd_shader.GetPath()
-              << std::endl;
+    CLOG_WARN(&LOG,
+              "Couldn't get file input for USD shader %s",
+              usd_shader.GetPath().GetAsString().c_str());
     return;
   }
 
   pxr::VtValue file_val;
   if (!file_input.Get(&file_val) || !file_val.IsHolding<pxr::SdfAssetPath>()) {
-    std::cerr << "WARNING: Couldn't get file input value for USD shader " << usd_shader.GetPath()
-              << std::endl;
+    CLOG_WARN(&LOG,
+              "Couldn't get file input value for USD shader %s",
+              usd_shader.GetPath().GetAsString().c_str());
     return;
   }
 
@@ -923,8 +931,9 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   }
 
   if (file_path.empty()) {
-    std::cerr << "WARNING: Couldn't resolve image asset '" << asset_path
-              << "' for Texture Image node." << std::endl;
+    CLOG_WARN(&LOG,
+              " Couldn't resolve image asset '%s' for Texture Image node",
+              asset_path.GetAssetPath().c_str());
     return;
   }
 
@@ -959,8 +968,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   const char *im_file = file_path.c_str();
   Image *image = BKE_image_load_exists(bmain_, im_file);
   if (!image) {
-    std::cerr << "WARNING: Couldn't open image file '" << im_file << "' for Texture Image node."
-              << std::endl;
+    CLOG_WARN(&LOG, "Couldn't open image file '%s' for Texture Image node", im_file);
     return;
   }
 
@@ -1041,8 +1049,7 @@ void USDMaterialReader::convert_usd_primvar_reader_float2(const pxr::UsdShadeSha
     uv_map = add_node(nullptr, ntree, SH_NODE_UVMAP, locx, locy);
 
     if (!uv_map) {
-      std::cerr << "ERROR: Couldn't create SH_NODE_UVMAP for node input " << dest_socket_name
-                << std::endl;
+      CLOG_ERROR(&LOG, "Couldn't create SH_NODE_UVMAP for node input %s", dest_socket_name);
       return;
     }
 

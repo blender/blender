@@ -56,7 +56,7 @@ def create_argparse():
     parser.add_argument("-blender", nargs="+")
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-idiff", nargs=1)
+    parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument("-export_method", nargs=1)
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
@@ -68,18 +68,18 @@ def main():
 
     blender = args.blender[0]
     test_dir = args.testdir[0]
-    idiff = args.idiff[0]
+    oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
     export_method = args.export_method[0]
 
     from modules import render_report
 
     if export_method == 'HYDRA':
-        report = render_report.Report("Storm Hydra", output_dir, idiff)
+        report = render_report.Report("Storm Hydra", output_dir, oiiotool)
         report.set_reference_dir("storm_hydra_renders")
         report.set_compare_engine('cycles', 'CPU')
     else:
-        report = render_report.Report("Storm USD", output_dir, idiff)
+        report = render_report.Report("Storm USD", output_dir, oiiotool)
         report.set_reference_dir("storm_usd_renders")
         report.set_compare_engine('storm_hydra')
 

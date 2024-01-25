@@ -542,31 +542,33 @@ static PyObject *bpy_context_temp_override_extract_known_args(const char *const 
   return kwds_parse;
 }
 
-PyDoc_STRVAR(bpy_context_temp_override_doc,
-             ".. method:: temp_override(window, area, region, **keywords)\n"
-             "\n"
-             "   Context manager to temporarily override members in the context.\n"
-             "\n"
-             "   :arg window: Window override or None.\n"
-             "   :type window: :class:`bpy.types.Window`\n"
-             "   :arg screen: Screen override or None.\n"
-             "\n"
-             "      .. note:: Switching to or away from full-screen areas & temporary screens "
-             "isn't supported. Passing in these screens will raise an exception, "
-             "actions that leave the context such screens won't restore the prior screen.\n"
-             "\n"
-             "      .. note:: Changing the screen has wider implications "
-             "than other arguments as it will also change the works-space "
-             "and potentially the scene (when pinned).\n"
-             "\n"
-             "   :type screen: :class:`bpy.types.Screen`\n"
-             "   :arg area: Area override or None.\n"
-             "   :type area: :class:`bpy.types.Area`\n"
-             "   :arg region: Region override or None.\n"
-             "   :type region: :class:`bpy.types.Region`\n"
-             "   :arg keywords: Additional keywords override context members.\n"
-             "   :return: The context manager .\n"
-             "   :rtype: context manager\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_context_temp_override_doc,
+    ".. method:: temp_override(window, area, region, **keywords)\n"
+    "\n"
+    "   Context manager to temporarily override members in the context.\n"
+    "\n"
+    "   :arg window: Window override or None.\n"
+    "   :type window: :class:`bpy.types.Window`\n"
+    "   :arg screen: Screen override or None.\n"
+    "\n"
+    "      .. note:: Switching to or away from full-screen areas & temporary screens "
+    "isn't supported. Passing in these screens will raise an exception, "
+    "actions that leave the context such screens won't restore the prior screen.\n"
+    "\n"
+    "      .. note:: Changing the screen has wider implications "
+    "than other arguments as it will also change the works-space "
+    "and potentially the scene (when pinned).\n"
+    "\n"
+    "   :type screen: :class:`bpy.types.Screen`\n"
+    "   :arg area: Area override or None.\n"
+    "   :type area: :class:`bpy.types.Area`\n"
+    "   :arg region: Region override or None.\n"
+    "   :type region: :class:`bpy.types.Region`\n"
+    "   :arg keywords: Additional keywords override context members.\n"
+    "   :return: The context manager .\n"
+    "   :rtype: context manager\n");
 static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObject *kwds)
 {
   const PointerRNA *context_ptr = pyrna_struct_as_ptr(self, &RNA_Context);

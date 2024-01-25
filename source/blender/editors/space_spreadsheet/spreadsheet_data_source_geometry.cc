@@ -545,7 +545,7 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
           /* This is a potentially heavy operation to do on every redraw. The best solution here is
            * to display the data directly from the bmesh without a conversion, which can be
            * implemented a bit later. */
-          BM_mesh_bm_to_me_for_eval(em->bm, new_mesh, nullptr);
+          BM_mesh_bm_to_me_for_eval(*em->bm, *new_mesh, nullptr);
           geometry_set.replace_mesh(new_mesh, bke::GeometryOwnershipType::Owned);
         }
       }

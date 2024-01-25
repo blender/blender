@@ -37,11 +37,7 @@
 
 BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()
 {
-  /* NOTE: Hair refine is faster using transform feedback via vertex processing pipeline with Metal
-   * and Apple Silicon GPUs. This is also because vertex work can more easily be executed in
-   * parallel with fragment work, whereas compute inserts an explicit dependency,
-   * due to switching of command encoder types. */
-  if (GPU_compute_shader_support() && (GPU_backend_get_type() != GPU_BACKEND_METAL)) {
+  if (GPU_compute_shader_support()) {
     return PART_REFINE_SHADER_COMPUTE;
   }
   if (GPU_transform_feedback_support()) {

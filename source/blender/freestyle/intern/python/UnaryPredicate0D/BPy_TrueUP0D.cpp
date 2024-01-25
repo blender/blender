@@ -18,7 +18,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char TrueUP0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    TrueUP0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryPredicate0D` > :class:`TrueUP0D`\n"
     "\n"
     ".. method:: __call__(it)\n"
@@ -28,7 +30,7 @@ static char TrueUP0D___doc__[] =
     "   :arg it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: True.\n"
-    "   :rtype: bool\n";
+    "   :rtype: bool\n");
 
 static int TrueUP0D___init__(BPy_TrueUP0D *self, PyObject *args, PyObject *kwds)
 {

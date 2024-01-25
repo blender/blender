@@ -608,23 +608,25 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
   return true;
 }
 
-PyDoc_STRVAR(BPy_IDPropertyUIManager_update_doc,
-             ".. method:: update( "
-             "subtype=None, "
-             "min=None, "
-             "max=None, "
-             "soft_min=None, "
-             "soft_max=None, "
-             "precision=None, "
-             "step=None, "
-             "default=None, "
-             "id_type=None, "
-             "items=None, "
-             "description=None)\n"
-             "\n"
-             "   Update the RNA information of the IDProperty used for interaction and\n"
-             "   display in the user interface. The required types for many of the keyword\n"
-             "   arguments depend on the type of the property.\n ");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_IDPropertyUIManager_update_doc,
+    ".. method:: update( "
+    "subtype=None, "
+    "min=None, "
+    "max=None, "
+    "soft_min=None, "
+    "soft_max=None, "
+    "precision=None, "
+    "step=None, "
+    "default=None, "
+    "id_type=None, "
+    "items=None, "
+    "description=None)\n"
+    "\n"
+    "   Update the RNA information of the IDProperty used for interaction and\n"
+    "   display in the user interface. The required types for many of the keyword\n"
+    "   arguments depend on the type of the property.\n ");
 static PyObject *BPy_IDPropertyUIManager_update(BPy_IDPropertyUIManager *self,
                                                 PyObject *args,
                                                 PyObject *kwargs)
@@ -813,11 +815,13 @@ static void idprop_ui_data_to_dict_id(IDProperty *property, PyObject *dict)
   Py_DECREF(item);
 }
 
-PyDoc_STRVAR(BPy_IDPropertyUIManager_as_dict_doc,
-             ".. method:: as_dict()\n"
-             "\n"
-             "   Return a dictionary of the property's RNA UI data. The fields in the\n"
-             "   returned dictionary and their types will depend on the property's type.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_IDPropertyUIManager_as_dict_doc,
+    ".. method:: as_dict()\n"
+    "\n"
+    "   Return a dictionary of the property's RNA UI data. The fields in the\n"
+    "   returned dictionary and their types will depend on the property's type.\n");
 static PyObject *BPy_IDIDPropertyUIManager_as_dict(BPy_IDPropertyUIManager *self)
 {
   IDProperty *property = self->property;
@@ -874,10 +878,12 @@ static PyObject *BPy_IDIDPropertyUIManager_as_dict(BPy_IDPropertyUIManager *self
 /** \name UI Data Clear
  * \{ */
 
-PyDoc_STRVAR(BPy_IDPropertyUIManager_clear_doc,
-             ".. method:: clear()\n"
-             "\n"
-             "   Remove the RNA UI data from this IDProperty.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_IDPropertyUIManager_clear_doc,
+    ".. method:: clear()\n"
+    "\n"
+    "   Remove the RNA UI data from this IDProperty.\n");
 static PyObject *BPy_IDPropertyUIManager_clear(BPy_IDPropertyUIManager *self)
 {
   IDProperty *property = self->property;
@@ -903,6 +909,7 @@ static PyObject *BPy_IDPropertyUIManager_clear(BPy_IDPropertyUIManager *self)
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     BPy_IDPropertyUIManager_update_from_doc,
     ".. method:: update_from(ui_manager_source)\n"
     "\n"

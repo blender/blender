@@ -46,7 +46,6 @@
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 
-#include <iostream>
 #include <string>
 #include <vector>
 

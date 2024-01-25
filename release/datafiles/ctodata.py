@@ -24,17 +24,18 @@ except:
     sys.stdout.write("Unable to open input %s\n" % argv[1])
     sys.exit(1)
 
-data = fpin.read().rsplit("{")[-1].split("}")[0]
-data = data.replace(",", " ")
-data = data.split()
-data = [int(v) for v in data]
+data_as_str = fpin.read().rsplit("{")[-1].split("}")[0]
+data_as_str = data_as_str.replace(",", " ")
+data_as_list = [int(v) for v in data_as_str.split()]
+del data_as_str
 
 if strip_byte:
     # String data gets trailing byte.
-    last = data.pop()
+    last = data_as_list.pop()
     assert last == 0
 
-data = bytes(data)
+data = bytes(data_as_list)
+del data_as_list
 
 dname = filename + ".ctodata"
 

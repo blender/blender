@@ -22,6 +22,7 @@ using namespace Freestyle;
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(
+    /* Wrap. */
     AdjacencyIterator_doc,
     "Class hierarchy: :class:`Iterator` > :class:`AdjacencyIterator`\n"
     "\n"
@@ -123,10 +124,12 @@ static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 
 /*----------------------AdjacencyIterator get/setters ----------------------------*/
 
-PyDoc_STRVAR(AdjacencyIterator_object_doc,
-             "The ViewEdge object currently pointed to by this iterator.\n"
-             "\n"
-             ":type: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    AdjacencyIterator_object_doc,
+    "The ViewEdge object currently pointed to by this iterator.\n"
+    "\n"
+    ":type: :class:`ViewEdge`");
 
 static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void * /*closure*/)
 {
@@ -141,11 +144,13 @@ static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void 
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(AdjacencyIterator_is_incoming_doc,
-             "True if the current ViewEdge is coming towards the iteration vertex, and\n"
-             "False otherwise.\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    AdjacencyIterator_is_incoming_doc,
+    "True if the current ViewEdge is coming towards the iteration vertex, and\n"
+    "False otherwise.\n"
+    "\n"
+    ":type: bool");
 
 static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self, void * /*closure*/)
 {

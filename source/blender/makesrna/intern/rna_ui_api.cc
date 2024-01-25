@@ -340,7 +340,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
 
   ot = WM_operatortype_find(opname, false); /* print error next */
   if (!ot || !ot->srna) {
-    RNA_warning("%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
+    RNA_warning("%s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
     return PointerRNA_NULL;
   }
 
@@ -377,7 +377,7 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
   if (!ot || !ot->srna) {
-    RNA_warning("%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
+    RNA_warning("%s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
     return PointerRNA_NULL;
   }
 
@@ -421,7 +421,7 @@ static PointerRNA rna_uiItemMenuEnumO(uiLayout *layout,
   wmOperatorType *ot = WM_operatortype_find(opname, false); /* print error next */
 
   if (!ot || !ot->srna) {
-    RNA_warning("%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
+    RNA_warning("%s '%s'", ot ? "operator missing srna" : "unknown operator", opname);
     return PointerRNA_NULL;
   }
 

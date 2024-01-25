@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ReadCompleteViewMapPixelF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    ReadCompleteViewMapPixelF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DFloat` > :class:`ReadCompleteViewMapPixelF0D`\n"
     "\n"
@@ -39,7 +41,7 @@ static char ReadCompleteViewMapPixelF0D___doc__[] =
     "   :arg it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: A pixel in one of the level of the complete viewmap.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static int ReadCompleteViewMapPixelF0D___init__(BPy_ReadCompleteViewMapPixelF0D *self,
                                                 PyObject *args,

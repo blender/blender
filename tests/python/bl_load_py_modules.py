@@ -27,10 +27,6 @@ BLACKLIST = {
     os.path.join("io_blend_utils", "blender_bam-unpacked.whl"),
 }
 
-for mod in addon_utils.modules():
-    if addon_utils.module_bl_info(mod)['blender'] < (2, 80, 0):
-        BLACKLIST.add(mod.__name__)
-
 # Some modules need to add to the `sys.path`.
 MODULE_SYS_PATHS = {
     # Runs in a Python subprocess, so its expected its basedir can be imported.
