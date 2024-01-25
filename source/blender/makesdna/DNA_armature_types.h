@@ -279,7 +279,7 @@ typedef struct BoneCollection {
    *
    * Note that its effective visibility depends on the visibility of its ancestors as well.
    *
-   * \see is_visible_effectively
+   * \see is_visible_with_ancestors
    * \see ANIM_bonecoll_show
    * \see ANIM_bonecoll_hide
    */
@@ -288,18 +288,19 @@ typedef struct BoneCollection {
   /**
    * Return whether this collection's ancestors are visible or not.
    *
-   * \see is_visible_effectively
+   * \see is_visible_with_ancestors
    */
   bool is_visible_ancestors() const;
 
   /**
-   * Return whether this collection is effectively visible.
+   * Return whether this collection is visible, taking into account the
+   * visibility of its ancestors.
    *
    * \return true when this collection and all its ancestors are visible.
    *
    * \see is_visible
    */
-  bool is_visible_effectively() const;
+  bool is_visible_with_ancestors() const;
 #endif
 } BoneCollection;
 

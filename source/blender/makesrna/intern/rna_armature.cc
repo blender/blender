@@ -390,7 +390,7 @@ static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_vis
 static bool rna_BoneCollection_is_visible_effectively_get(PointerRNA *ptr)
 {
   const BoneCollection *bcoll = (BoneCollection *)ptr->data;
-  return bcoll->is_visible_effectively();
+  return bcoll->is_visible_with_ancestors();
 }
 
 static char *rna_BoneCollection_path(const PointerRNA *ptr)

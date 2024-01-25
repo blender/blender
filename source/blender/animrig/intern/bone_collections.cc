@@ -738,7 +738,7 @@ static void ancestors_visible_descendants_clear(bArmature *armature, BoneCollect
 /** Set or clear #BONE_COLLECTION_ANCESTORS_VISIBLE on all descendants of this bone collection. */
 static void ancestors_visible_descendants_update(bArmature *armature, BoneCollection *parent_bcoll)
 {
-  if (!parent_bcoll->is_visible_effectively()) {
+  if (!parent_bcoll->is_visible_with_ancestors()) {
     /* If this bone collection is not visible itself, or any of its ancestors are
      * invisible, all descendants have an invisible ancestor. */
     ancestors_visible_descendants_clear(armature, parent_bcoll);
@@ -759,7 +759,7 @@ static void ancestors_visible_update(bArmature *armature,
                                      const BoneCollection *parent_bcoll,
                                      BoneCollection *bcoll)
 {
-  if (parent_bcoll == nullptr || parent_bcoll->is_visible_effectively()) {
+  if (parent_bcoll == nullptr || parent_bcoll->is_visible_with_ancestors()) {
     bcoll->flags |= BONE_COLLECTION_ANCESTORS_VISIBLE;
   }
   else {
@@ -934,7 +934,7 @@ static bool any_bone_collection_visible(const ListBase /*BoneCollectionRef*/ *co
 
   LISTBASE_FOREACH (const BoneCollectionReference *, bcoll_ref, collection_refs) {
     const BoneCollection *bcoll = bcoll_ref->bcoll;
-    if (bcoll->is_visible_effectively()) {
+    if (bcoll->is_visible_with_ancestors()) {
       return true;
     }
   }
