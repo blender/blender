@@ -142,6 +142,14 @@ struct Main {
    * could try to use more refined detection on load. */
   bool has_forward_compatibility_issues;
 
+  /**
+   * The currently opened .blend file was created as an asset library storage.
+   *
+   * This is used to warn the user when they try to save it from Blender UI, since this will likely
+   * break the automatic management from the asset library system.
+   */
+  bool is_asset_repository;
+
   /** Commit timestamp from `buildinfo`. */
   uint64_t build_commit_timestamp;
   /** Commit Hash from `buildinfo`. */
@@ -298,6 +306,17 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
  * Check whether given `bmain` is empty or contains some IDs.
  */
 bool BKE_main_is_empty(Main *bmain);
+
+/**
+ * Check whether the bmain has issues, e.g. for reporting in the status bar.
+ */
+bool BKE_main_has_issues(const Main *bmain);
+
+/**
+ * Check whether user confirmation should be required when overwriting this `bmain` into its source
+ * blendfile.
+ */
+bool BKE_main_needs_overwrite_confirm(const Main *bmain);
 
 void BKE_main_lock(Main *bmain);
 void BKE_main_unlock(Main *bmain);

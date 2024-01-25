@@ -6558,13 +6558,47 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
   }
 }
 
+static void ui_template_status_info_warnings_messages(Main *bmain,
+                                                      Scene *scene,
+                                                      ViewLayer *view_layer,
+                                                      std::string &warning_message,
+                                                      std::string &regular_message,
+                                                      std::string &tooltip_message)
+{
+  tooltip_message = "";
+  char statusbar_info_flag = U.statusbar_flag;
+
+  if (bmain->has_forward_compatibility_issues) {
+    warning_message = ED_info_statusbar_string_ex(
+        bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
+    statusbar_info_flag &= ~STATUSBAR_SHOW_VERSION;
+
+    char writer_ver_str[12];
+    BKE_blender_version_blendfile_string_from_values(
+        writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, -1);
+    tooltip_message += fmt::format(RPT_("File saved by newer Blender\n({}), expect loss of data"),
+                                   writer_ver_str);
+  }
+  if (bmain->is_asset_repository) {
+    if (!tooltip_message.empty()) {
+      tooltip_message += "\n\n";
+    }
+    tooltip_message += RPT_(
+        "This file is managed by the Blender asset system\n"
+        "By editing it as a regular blend file, it will no longer\n"
+        "be possible to update its assets through the asset browser");
+  }
+
+  regular_message = ED_info_statusbar_string_ex(bmain, scene, view_layer, statusbar_info_flag);
+}
+
 void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  if (!bmain->has_forward_compatibility_issues) {
+  if (!BKE_main_has_issues(bmain)) {
     const char *status_info_txt = ED_info_statusbar_string(bmain, scene, view_layer);
     uiItemL(layout, status_info_txt, ICON_NONE);
     return;
@@ -6573,13 +6607,13 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   /* Blender version part is shown as warning area when there are forward compatibility issues with
    * currently loaded .blend file. */
 
-  const char *status_info_txt = ED_info_statusbar_string_ex(
-      bmain, scene, view_layer, (U.statusbar_flag & ~STATUSBAR_SHOW_VERSION));
-  uiItemL(layout, status_info_txt, ICON_NONE);
+  std::string warning_message;
+  std::string regular_message;
+  std::string tooltip_message;
+  ui_template_status_info_warnings_messages(
+      bmain, scene, view_layer, warning_message, regular_message, tooltip_message);
 
-  status_info_txt = ED_info_statusbar_string_ex(bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
-
-  uiBut *but;
+  uiItemL(layout, regular_message.c_str(), ICON_NONE);
 
   const uiStyle *style = UI_style_get();
   uiLayout *ui_abs = uiLayoutAbsolute(layout, false);
@@ -6587,27 +6621,28 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   eUIEmbossType previous_emboss = UI_block_emboss_get(block);
 
   UI_fontstyle_set(&style->widgetlabel);
-  int width = int(
-      BLF_width(style->widgetlabel.uifont_id, status_info_txt, strlen(status_info_txt)));
-  width = max_ii(width, int(10 * UI_SCALE_FAC));
+  const int width = max_ii(int(BLF_width(style->widgetlabel.uifont_id,
+                                         warning_message.c_str(),
+                                         warning_message.length())),
+                           int(10 * UI_SCALE_FAC));
 
   UI_block_align_begin(block);
 
   /* Background for icon. */
-  but = uiDefBut(block,
-                 UI_BTYPE_ROUNDBOX,
-                 0,
-                 "",
-                 0,
-                 0,
-                 UI_UNIT_X + (6 * UI_SCALE_FAC),
-                 UI_UNIT_Y,
-                 nullptr,
-                 0.0f,
-                 0.0f,
-                 0,
-                 0,
-                 "");
+  uiBut *but = uiDefBut(block,
+                        UI_BTYPE_ROUNDBOX,
+                        0,
+                        "",
+                        0,
+                        0,
+                        UI_UNIT_X + (6 * UI_SCALE_FAC),
+                        UI_UNIT_Y,
+                        nullptr,
+                        0.0f,
+                        0.0f,
+                        0,
+                        0,
+                        "");
   /* UI_BTYPE_ROUNDBOX's bg color is set in but->col. */
   UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
 
@@ -6634,14 +6669,13 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   UI_block_align_end(block);
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
-  /* The report icon itself. */
-  static char compat_error_msg[256];
-  char writer_ver_str[12];
-  BKE_blender_version_blendfile_string_from_values(
-      writer_ver_str, sizeof(writer_ver_str), bmain->versionfile, -1);
-  SNPRINTF(compat_error_msg,
-           RPT_("File saved by newer Blender\n(%s), expect loss of data"),
-           writer_ver_str);
+  /* Tool tips have to be static currently.
+   * FIXME This is a horrible requirement from uiBut, should probably just store an std::string for
+   * the tooltip as well? */
+  static char tooltip_static_storage[256];
+  BLI_strncpy(tooltip_static_storage, tooltip_message.c_str(), sizeof(tooltip_static_storage));
+
+  /* The warning icon itself. */
   but = uiDefIconBut(block,
                      UI_BTYPE_BUT,
                      0,
@@ -6655,25 +6689,27 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                      0.0f,
                      0.0f,
                      0.0f,
-                     compat_error_msg);
+                     tooltip_static_storage);
   UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
 
-  /* The report message. */
-  but = uiDefBut(block,
-                 UI_BTYPE_BUT,
-                 0,
-                 status_info_txt,
-                 UI_UNIT_X,
-                 0,
-                 short(width + UI_UNIT_X),
-                 UI_UNIT_Y,
-                 nullptr,
-                 0.0f,
-                 0.0f,
-                 0.0f,
-                 0.0f,
-                 compat_error_msg);
+  /* The warning message, if any. */
+  if (!warning_message.empty()) {
+    but = uiDefBut(block,
+                   UI_BTYPE_BUT,
+                   0,
+                   warning_message.c_str(),
+                   UI_UNIT_X,
+                   0,
+                   short(width + UI_UNIT_X),
+                   UI_UNIT_Y,
+                   nullptr,
+                   0.0f,
+                   0.0f,
+                   0.0f,
+                   0.0f,
+                   tooltip_static_storage);
+  }
 
   UI_block_emboss_set(block, previous_emboss);
 }
