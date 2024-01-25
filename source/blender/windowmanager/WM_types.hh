@@ -933,15 +933,12 @@ struct wmConfirmDetails {
   char title[1024];
   char message[1024];
   char message2[1024];
-  char confirm_button[256];
-  char cancel_button[256];
+  char confirm_text[256];
   int icon;
   wmConfirmSize size;
   wmConfirmPosition position;
-  bool confirm_default;
   bool cancel_default;
   bool mouse_move_quit;
-  bool red_alert;
 };
 
 /**

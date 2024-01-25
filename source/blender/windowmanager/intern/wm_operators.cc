@@ -1218,15 +1218,12 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
   wmConfirmDetails confirm = {{0}};
 
   STRNCPY(confirm.title, WM_operatortype_description(C, op->type, op->ptr).c_str());
-  STRNCPY(confirm.confirm_button, WM_operatortype_name(op->type, op->ptr).c_str());
-  STRNCPY(confirm.cancel_button, IFACE_("Cancel"));
+  STRNCPY(confirm.confirm_text, WM_operatortype_name(op->type, op->ptr).c_str());
   confirm.icon = ALERT_ICON_WARNING;
   confirm.size = WM_WARNING_SIZE_SMALL;
   confirm.position = WM_WARNING_POSITION_MOUSE;
-  confirm.confirm_default = true;
   confirm.cancel_default = false;
   confirm.mouse_move_quit = false;
-  confirm.red_alert = false;
 
   /* uiBlock.flag */
   int block_flags = UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT;
@@ -1315,7 +1312,7 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
                                    UI_BTYPE_BUT,
                                    0,
                                    0,
-                                   confirm.confirm_button,
+                                   confirm.confirm_text,
                                    0,
                                    0,
                                    0,
@@ -1333,7 +1330,7 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
                                 UI_BTYPE_BUT,
                                 0,
                                 0,
-                                confirm.cancel_button,
+                                IFACE_("Cancel"),
                                 0,
                                 0,
                                 0,
@@ -1351,7 +1348,7 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
                                    UI_BTYPE_BUT,
                                    0,
                                    0,
-                                   confirm.confirm_button,
+                                   confirm.confirm_text,
                                    0,
                                    0,
                                    0,
@@ -1369,18 +1366,7 @@ static uiBlock *wm_block_confirm_create(bContext *C, ARegion *region, void *arg_
   UI_but_func_set(cancel_but, wm_operator_block_cancel, op, block);
   UI_but_drawflag_disable(confirm_but, UI_BUT_TEXT_LEFT);
   UI_but_drawflag_disable(cancel_but, UI_BUT_TEXT_LEFT);
-
-  if (confirm.red_alert) {
-    UI_but_flag_enable(confirm_but, UI_BUT_REDALERT);
-  }
-  else {
-    if (confirm.cancel_default) {
-      UI_but_flag_enable(cancel_but, UI_BUT_ACTIVE_DEFAULT);
-    }
-    else if (confirm.confirm_default) {
-      UI_but_flag_enable(confirm_but, UI_BUT_ACTIVE_DEFAULT);
-    }
-  }
+  UI_but_flag_enable(confirm.cancel_default ? cancel_but : confirm_but, UI_BUT_ACTIVE_DEFAULT);
 
   if (confirm.position == WM_WARNING_POSITION_MOUSE) {
     int bounds_offset[2];
