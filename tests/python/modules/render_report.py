@@ -76,6 +76,7 @@ def test_get_images(output_dir, filepath, reference_dir, reference_override_dir)
 class Report:
     __slots__ = (
         'title',
+        'engine_name',
         'output_dir',
         'global_dir',
         'reference_dir',
@@ -104,6 +105,7 @@ class Report:
         self.compare_engine = None
         self.fail_threshold = 0.016
         self.fail_percent = 1
+        self.engine_name = self.title.lower().replace(" ", "_")
         self.device = device
         self.blacklist = blacklist
 
@@ -141,6 +143,9 @@ class Report:
 
     def set_compare_engine(self, other_engine, other_device=None):
         self.compare_engine = (other_engine, other_device)
+
+    def set_engine_name(self, engine_name):
+        self.engine_name = engine_name
 
     def run(self, dirpath, blender, arguments_cb, batch=False):
         # Run tests and output report.
@@ -232,7 +237,7 @@ class Report:
         if failed:
             message = """<div class="alert alert-danger" role="alert">"""
             message += """<p>Run this command to regenerate reference (ground truth) images:</p>"""
-            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.title.lower()
+            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.engine_name
             message += """<p>This then happens for new and failing tests; reference images of """ \
                        """passing test cases will not be updated. Be sure to commit the new reference """ \
                        """images to the SVN repository afterwards.</p>"""

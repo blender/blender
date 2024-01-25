@@ -3629,8 +3629,8 @@ static void wm_clear_recent_files_confirm(bContext * /*C*/,
                                           wmOperator * /*op*/,
                                           wmConfirmDetails *confirm)
 {
-  STRNCPY(confirm->message, IFACE_("Remove all items from the recent files list"));
-  STRNCPY(confirm->confirm_button, IFACE_("Remove All"));
+  confirm->message = IFACE_("Remove all items from the recent files list");
+  confirm->confirm_text = IFACE_("Remove All");
   confirm->position = WM_WARNING_POSITION_CENTER;
   confirm->size = WM_WARNING_SIZE_LARGE;
   confirm->cancel_default = true;

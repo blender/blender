@@ -10,6 +10,7 @@
 
 #include <optional>
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_utility_mixins.hh"
@@ -44,14 +45,14 @@ class OBJMesh : NonCopyable {
    * Final transform of an object obtained from export settings (up_axis, forward_axis) and the
    * object's world transform matrix.
    */
-  float world_and_axes_transform_[4][4];
-  float world_and_axes_normal_transform_[3][3];
+  float4x4 world_and_axes_transform_;
+  float3x3 world_and_axes_normal_transform_;
   bool mirrored_transform_;
 
   /**
    * Per-loop UV index.
    */
-  Vector<int> loop_to_uv_index_;
+  Array<int> loop_to_uv_index_;
   /*
    * UV vertices.
    */
@@ -60,7 +61,7 @@ class OBJMesh : NonCopyable {
   /**
    * Per-loop normal index.
    */
-  Vector<int> loop_to_normal_index_;
+  Array<int> loop_to_normal_index_;
   /*
    * Normal coords.
    */
@@ -81,7 +82,7 @@ class OBJMesh : NonCopyable {
   /**
    * Order in which the polygons should be written into the file (sorted by material index).
    */
-  Vector<int> poly_order_;
+  Array<int> poly_order_;
 
  public:
   Array<const Material *> materials;
@@ -132,10 +133,11 @@ class OBJMesh : NonCopyable {
    */
   const char *get_object_mesh_name() const;
 
-  /**
-   * Calculate coordinates of the vertex at the given index.
-   */
-  float3 calc_vertex_coords(int vert_index, float global_scale) const;
+  const float4x4 &get_world_axes_transform() const
+  {
+    return world_and_axes_transform_;
+  }
+
   /**
    * Calculate vertex indices of all vertices of the polygon at the given index.
    */
@@ -221,6 +223,9 @@ class OBJMesh : NonCopyable {
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
-  void set_world_axes_transform(const Object &obj_eval, eIOAxis forward, eIOAxis up);
+  void set_world_axes_transform(const Object &obj_eval,
+                                eIOAxis forward,
+                                eIOAxis up,
+                                float global_scale);
 };
 }  // namespace blender::io::obj

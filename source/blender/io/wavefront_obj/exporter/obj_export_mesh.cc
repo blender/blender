@@ -14,12 +14,12 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -70,7 +70,8 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     this->materials[i] = BKE_object_material_get_eval(obj_eval, i + 1);
   }
 
-  set_world_axes_transform(*obj_eval, export_params.forward_axis, export_params.up_axis);
+  set_world_axes_transform(
+      *obj_eval, export_params.forward_axis, export_params.up_axis, export_params.global_scale);
 }
 
 /**
@@ -103,11 +104,11 @@ void OBJMesh::clear()
     owned_export_mesh_ = nullptr;
   }
   export_mesh_ = nullptr;
-  loop_to_uv_index_.clear_and_shrink();
+  loop_to_uv_index_ = {};
   uv_coords_.clear_and_shrink();
-  loop_to_normal_index_.clear_and_shrink();
+  loop_to_normal_index_ = {};
   normal_coords_.clear_and_shrink();
-  poly_order_.clear_and_shrink();
+  poly_order_ = {};
   if (poly_smooth_groups_) {
     MEM_freeN(poly_smooth_groups_);
     poly_smooth_groups_ = nullptr;
@@ -146,23 +147,27 @@ void OBJMesh::triangulate_mesh_eval()
 
 void OBJMesh::set_world_axes_transform(const Object &obj_eval,
                                        const eIOAxis forward,
-                                       const eIOAxis up)
+                                       const eIOAxis up,
+                                       const float global_scale)
 {
-  float axes_transform[3][3];
-  unit_m3(axes_transform);
+  float3x3 axes_transform;
   /* +Y-forward and +Z-up are the default Blender axis settings. */
-  mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(world_and_axes_transform_, axes_transform, obj_eval.object_to_world);
-  /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(world_and_axes_transform_[3], axes_transform, obj_eval.object_to_world[3]);
-  world_and_axes_transform_[3][3] = obj_eval.object_to_world[3][3];
+  mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform.ptr());
+
+  const float4x4 object_to_world(obj_eval.object_to_world);
+  const float3x3 transform = axes_transform * float3x3(object_to_world);
+
+  world_and_axes_transform_ = float4x4(transform);
+  world_and_axes_transform_.location() = axes_transform * object_to_world.location();
+  world_and_axes_transform_[3][3] = object_to_world[3][3];
+
+  world_and_axes_transform_ = math::from_scale<float4x4>(float3(global_scale)) *
+                              world_and_axes_transform_;
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
-  float normal_matrix[3][3];
-  copy_m3_m4(normal_matrix, world_and_axes_transform_);
-  invert_m3_m3(world_and_axes_normal_transform_, normal_matrix);
-  transpose_m3(world_and_axes_normal_transform_);
-  mirrored_transform_ = is_negative_m3(world_and_axes_normal_transform_);
+  world_and_axes_normal_transform_ = math::transpose(math::invert(transform));
+
+  mirrored_transform_ = math::is_negative(world_and_axes_normal_transform_);
 }
 
 int OBJMesh::tot_vertices() const
@@ -227,7 +232,7 @@ void OBJMesh::calc_poly_order()
   }
   const VArraySpan<int> material_indices_span(material_indices);
 
-  poly_order_.resize(material_indices_span.size());
+  poly_order_.reinitialize(material_indices_span.size());
   for (const int i : material_indices_span.index_range()) {
     poly_order_[i] = i;
   }
@@ -258,14 +263,6 @@ const char *OBJMesh::get_object_mesh_name() const
   return export_mesh_->id.name + 2;
 }
 
-float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scale) const
-{
-  float3 r_coords = mesh_positions_[vert_index];
-  mul_m4_v3(world_and_axes_transform_, r_coords);
-  mul_v3_fl(r_coords, global_scale);
-  return r_coords;
-}
-
 Span<int> OBJMesh::calc_poly_vertex_indices(const int face_index) const
 {
   return mesh_corner_verts_.slice(mesh_faces_[face_index]);
@@ -292,7 +289,7 @@ void OBJMesh::store_uv_coords_and_indices()
   uv_to_index.reserve(export_mesh_->verts_num);
   uv_coords_.reserve(export_mesh_->verts_num);
 
-  loop_to_uv_index_.resize(uv_map.size());
+  loop_to_uv_index_.reinitialize(uv_map.size());
 
   for (int index = 0; index < int(uv_map.size()); index++) {
     float2 uv = uv_map[index];
@@ -317,11 +314,9 @@ Span<int> OBJMesh::calc_poly_uv_indices(const int face_index) const
 
 float3 OBJMesh::calc_poly_normal(const int face_index) const
 {
-  float3 r_poly_normal = bke::mesh::face_normal_calc(
-      mesh_positions_, mesh_corner_verts_.slice(mesh_faces_[face_index]));
-  mul_m3_v3(world_and_axes_normal_transform_, r_poly_normal);
-  normalize_v3(r_poly_normal);
-  return r_poly_normal;
+  const Span<int> face_verts = mesh_corner_verts_.slice(mesh_faces_[face_index]);
+  const float3 normal = bke::mesh::face_normal_calc(mesh_positions_, face_verts);
+  return math::normalize(world_and_axes_normal_transform_ * normal);
 }
 
 /** Round \a f to \a round_digits decimal digits. */
@@ -352,7 +347,7 @@ void OBJMesh::store_normal_coords_and_indices()
   Map<float3, int> normal_to_index;
   /* We don't know how many unique normals there will be, but this is a guess. */
   normal_to_index.reserve(export_mesh_->faces_num);
-  loop_to_normal_index_.resize(export_mesh_->corners_num);
+  loop_to_normal_index_.reinitialize(export_mesh_->corners_num);
   loop_to_normal_index_.fill(-1);
 
   Span<float3> corner_normals;
@@ -368,17 +363,15 @@ void OBJMesh::store_normal_coords_and_indices()
     bool need_per_loop_normals = !corner_normals.is_empty() || !(sharp_faces_[face_index]);
     if (need_per_loop_normals) {
       for (const int corner : face) {
-        float3 loop_normal;
         BLI_assert(corner < export_mesh_->corners_num);
-        copy_v3_v3(loop_normal, corner_normals[corner]);
-        mul_m3_v3(world_and_axes_normal_transform_, loop_normal);
-        normalize_v3(loop_normal);
-        float3 rounded_loop_normal = round_float3_to_n_digits(loop_normal, round_digits);
-        int loop_norm_index = normal_to_index.lookup_default(rounded_loop_normal, -1);
+        const float3 normal = math::normalize(world_and_axes_normal_transform_ *
+                                              corner_normals[corner]);
+        const float3 rounded = round_float3_to_n_digits(normal, round_digits);
+        int loop_norm_index = normal_to_index.lookup_default(rounded, -1);
         if (loop_norm_index == -1) {
           loop_norm_index = cur_normal_index++;
-          normal_to_index.add(rounded_loop_normal, loop_norm_index);
-          normal_coords_.append(rounded_loop_normal);
+          normal_to_index.add(rounded, loop_norm_index);
+          normal_coords_.append(rounded);
         }
         loop_to_normal_index_[corner] = loop_norm_index;
       }
