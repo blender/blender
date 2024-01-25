@@ -136,6 +136,7 @@ def main():
     from modules import render_report
     report = render_report.Report("Eevee Next", output_dir, oiiotool)
     report.set_pixelated(True)
+    report.set_engine_name('eevee_next')
     report.set_reference_dir("eevee_next_renders")
     report.set_reference_override_dir(reference_override_dir)
     report.set_compare_engine('cycles', 'CPU')
