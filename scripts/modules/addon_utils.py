@@ -6,6 +6,7 @@ __all__ = (
     "paths",
     "modules",
     "check",
+    "check_extension",
     "enable",
     "disable",
     "disable_all",
@@ -267,6 +268,14 @@ def check(module_name):
         loaded_default = True
 
     return loaded_default, loaded_state
+
+
+def check_extension(module_name):
+    """
+    Return true if the module is an extension.
+    """
+    return module_name.startswith(_ext_base_pkg_idname_with_dot)
+
 
 # utility functions
 

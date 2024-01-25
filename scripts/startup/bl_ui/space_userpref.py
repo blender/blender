@@ -2271,6 +2271,8 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             colsub = box.column()
             row = colsub.row(align=True)
 
+            is_extension = addon_utils.check_extension(module_name)
+
             row.operator(
                 "preferences.addon_expand",
                 icon='DISCLOSURE_TRI_DOWN' if info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
@@ -2319,7 +2321,11 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 if value := info["version"]:
                     split = colsub.row().split(factor=0.15)
                     split.label(text="Version:")
-                    split.label(text=".".join(str(x) for x in value), translate=False)
+                    # Extensions use SEMVER.
+                    if is_extension:
+                        split.label(text=value, translate=False)
+                    else:
+                        split.label(text=".".join(str(x) for x in value), translate=False)
                 if value := info["warning"]:
                     split = colsub.row().split(factor=0.15)
                     split.label(text="Warning:")
