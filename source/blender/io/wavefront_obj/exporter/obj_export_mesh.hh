@@ -133,10 +133,11 @@ class OBJMesh : NonCopyable {
    */
   const char *get_object_mesh_name() const;
 
-  /**
-   * Calculate coordinates of the vertex at the given index.
-   */
-  float3 calc_vertex_coords(int vert_index, float global_scale) const;
+  const float4x4 &get_world_axes_transform() const
+  {
+    return world_and_axes_transform_;
+  }
+
   /**
    * Calculate vertex indices of all vertices of the polygon at the given index.
    */
@@ -222,6 +223,9 @@ class OBJMesh : NonCopyable {
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
-  void set_world_axes_transform(const Object &obj_eval, eIOAxis forward, eIOAxis up);
+  void set_world_axes_transform(const Object &obj_eval,
+                                eIOAxis forward,
+                                eIOAxis up,
+                                float global_scale);
 };
 }  // namespace blender::io::obj

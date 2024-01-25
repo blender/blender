@@ -16,6 +16,7 @@
 
 #include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_path_util.h"
 #include "BLI_task.hh"
 
@@ -259,6 +260,10 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
 
   const Mesh *mesh = obj_mesh_data.get_mesh();
   const StringRef name = mesh->active_color_attribute;
+
+  const float4x4 transform = obj_mesh_data.get_world_axes_transform();
+  const Span<float3> positions = obj_mesh_data.get_mesh()->vert_positions();
+
   if (write_colors && !name.is_empty()) {
     const bke::AttributeAccessor attributes = mesh->attributes();
     const VArray<ColorGeometry4f> attribute = *attributes.lookup_or_default<ColorGeometry4f>(
@@ -266,7 +271,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
 
     BLI_assert(tot_count == attribute.size());
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
-      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.global_scale);
+      const float3 vertex = math::transform_point(transform, positions[i]);
       ColorGeometry4f linear = attribute.get(i);
       float srgb[3];
       linearrgb_to_srgb_v3_v3(srgb, linear);
@@ -275,7 +280,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
   }
   else {
     obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
-      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.global_scale);
+      const float3 vertex = math::transform_point(transform, positions[i]);
       buf.write_obj_vertex(vertex[0], vertex[1], vertex[2]);
     });
   }

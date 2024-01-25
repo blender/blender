@@ -17,6 +17,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
@@ -69,7 +70,8 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     this->materials[i] = BKE_object_material_get_eval(obj_eval, i + 1);
   }
 
-  set_world_axes_transform(*obj_eval, export_params.forward_axis, export_params.up_axis);
+  set_world_axes_transform(
+      *obj_eval, export_params.forward_axis, export_params.up_axis, export_params.global_scale);
 }
 
 /**
@@ -145,7 +147,8 @@ void OBJMesh::triangulate_mesh_eval()
 
 void OBJMesh::set_world_axes_transform(const Object &obj_eval,
                                        const eIOAxis forward,
-                                       const eIOAxis up)
+                                       const eIOAxis up,
+                                       const float global_scale)
 {
   float3x3 axes_transform;
   /* +Y-forward and +Z-up are the default Blender axis settings. */
@@ -157,6 +160,9 @@ void OBJMesh::set_world_axes_transform(const Object &obj_eval,
   world_and_axes_transform_ = float4x4(transform);
   world_and_axes_transform_.location() = axes_transform * object_to_world.location();
   world_and_axes_transform_[3][3] = object_to_world[3][3];
+
+  world_and_axes_transform_ = math::from_scale<float4x4>(float3(global_scale)) *
+                              world_and_axes_transform_;
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
   world_and_axes_normal_transform_ = math::transpose(math::invert(transform));
@@ -255,13 +261,6 @@ const char *OBJMesh::get_object_name() const
 const char *OBJMesh::get_object_mesh_name() const
 {
   return export_mesh_->id.name + 2;
-}
-
-float3 OBJMesh::calc_vertex_coords(const int vert_index, const float global_scale) const
-{
-  const float3 coords = math::transform_point(world_and_axes_transform_,
-                                              mesh_positions_[vert_index]);
-  return coords * global_scale;
 }
 
 Span<int> OBJMesh::calc_poly_vertex_indices(const int face_index) const
