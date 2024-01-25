@@ -4711,9 +4711,9 @@ def km_object_mode(params):
         ("object.join", {"type": 'J', "value": 'PRESS', "ctrl": True}, None),
         ("wm.context_toggle", {"type": 'PERIOD', "value": 'PRESS', "ctrl": True},
          {"properties": [("data_path", 'tool_settings.use_transform_data_origin')]}),
-        ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
+        ("anim.keyframe_insert_menu", {"type": 'K', "value": 'PRESS'}, {"properties": [("always_prompt", True)]}),
         ("anim.keyframe_delete_v3d", {"type": 'I', "value": 'PRESS', "alt": True}, None),
-        ("anim.keying_set_active_set", {"type": 'I', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
+        ("anim.keying_set_active_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
         ("collection.create", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("collection.objects_remove", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
         ("collection.objects_remove_all",
@@ -4729,6 +4729,16 @@ def km_object_mode(params):
         *_template_object_hide_collection_from_number_keys(),
         *_template_items_context_menu("VIEW3D_MT_object_context_menu", params.context_menu_event),
     ])
+
+    if params.use_pie_click_drag:
+        items.extend([
+            ("anim.keyframe_insert", {"type": 'I', "value": 'CLICK'}, None),
+            op_menu_pie("ANIM_MT_keyframe_insert_pie", {"type": 'I', "value": 'CLICK_DRAG'}),
+        ])
+    else:
+        items.extend([
+            ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
+        ])
 
     if params.legacy:
         items.extend([
@@ -4850,9 +4860,9 @@ def km_pose(params):
         ("armature.assign_to_collection", {"type": 'M', "value": 'PRESS', "shift": True}, None),
         ("armature.move_to_collection", {"type": 'M', "value": 'PRESS'}, None),
         ("transform.bbone_resize", {"type": 'S', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
-        ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
+        ("anim.keyframe_insert_menu", {"type": 'K', "value": 'PRESS'}, {"properties": [("always_prompt", True)]}),
         ("anim.keyframe_delete_v3d", {"type": 'I', "value": 'PRESS', "alt": True}, None),
-        ("anim.keying_set_active_set", {"type": 'I', "value": 'PRESS', "shift": True, "ctrl": True, "alt": True}, None),
+        ("anim.keying_set_active_set", {"type": 'K', "value": 'PRESS', "shift": True}, None),
         ("pose.push", {"type": 'E', "value": 'PRESS', "ctrl": True}, None),
         ("pose.relax", {"type": 'E', "value": 'PRESS', "alt": True}, None),
         ("pose.breakdown", {"type": 'E', "value": 'PRESS', "shift": True}, None),
@@ -4860,6 +4870,16 @@ def km_pose(params):
         op_menu("VIEW3D_MT_pose_propagate", {"type": 'P', "value": 'PRESS', "alt": True}),
         *_template_items_context_menu("VIEW3D_MT_pose_context_menu", params.context_menu_event),
     ])
+
+    if params.use_pie_click_drag:
+        items.extend([
+            ("anim.keyframe_insert", {"type": 'I', "value": 'CLICK'}, None),
+            op_menu_pie("ANIM_MT_keyframe_insert_pie", {"type": 'I', "value": 'CLICK_DRAG'}),
+        ])
+    else:
+        items.extend([
+            ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
+        ])
 
     return keymap
 
