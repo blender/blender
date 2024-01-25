@@ -411,7 +411,7 @@ class Report:
             shutil.copy(new_img, old_img)
             failed = False
 
-        # Generate diff image.
+        # Generate color diff image.
         command = (
             self.oiiotool,
             ref_img,
@@ -423,7 +423,24 @@ class Report:
             "--mulc", "16",
             "-o", diff_color_img,
         )
+        try:
+            subprocess.check_output(command)
+        except subprocess.CalledProcessError as e:
+            if self.verbose:
+                print_message(e.output.decode("utf-8", 'ignore'))
 
+        # Generate alpha diff image.
+        command = (
+            self.oiiotool,
+            ref_img,
+            "--ch", "A",
+            tmp_filepath,
+            "--ch", "A",
+            "--sub",
+            "--abs",
+            "--mulc", "16",
+            "-o", diff_alpha_img,
+        )
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError as e:

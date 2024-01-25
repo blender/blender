@@ -26,7 +26,7 @@
 #include "DNA_listBase.h"
 
 #include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 #include "IMB_openexr.hh"
 
 #include "GPU_texture.h"
@@ -34,6 +34,8 @@
 #include "MEM_guardedalloc.h"
 
 #include <cstring>
+
+using blender::float4;
 
 /* Statics */
 static ListBase studiolights;
@@ -487,11 +489,11 @@ static void studiolight_create_matcap_specular_gputexture(StudioLight *sl)
   sl->flag |= STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE;
 }
 
-static void studiolight_calculate_radiance(ImBuf *ibuf, float color[4], const float direction[3])
+static float4 studiolight_calculate_radiance(ImBuf *ibuf, const float direction[3])
 {
   float uv[2];
   direction_to_equirect(uv, direction);
-  nearest_interpolation_color_wrap(ibuf, nullptr, color, uv[0] * ibuf->x, uv[1] * ibuf->y);
+  return blender::imbuf::interpolate_nearest_fl(ibuf, uv[0] * ibuf->x, uv[1] * ibuf->y);
 }
 
 /*
@@ -692,7 +694,7 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
 
     uint alphamask = alpha_circle_mask(dx, dy, 0.5f - texel_size[0], 0.5f);
     if (alphamask != 0) {
-      float normal[3], direction[3], color[4];
+      float normal[3], direction[3];
       const float incoming[3] = {0.0f, 0.0f, -1.0f};
       sphere_normal_from_uv(normal, dx, dy);
       reflect_v3_v3v3(direction, incoming, normal);
@@ -700,7 +702,7 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
       SWAP(float, direction[1], direction[2]);
       direction[1] = -direction[1];
 
-      studiolight_calculate_radiance(sl->equirect_radiance_buffer, color, direction);
+      float4 color = studiolight_calculate_radiance(sl->equirect_radiance_buffer, direction);
 
       *pixel = rgb_to_cpack(linearrgb_to_srgb(color[0]),
                             linearrgb_to_srgb(color[1]),
@@ -716,6 +718,8 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
 
 static void studiolight_matcap_preview(uint *icon_buffer, StudioLight *sl, bool flipped)
 {
+  using namespace blender;
+
   BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EXTERNAL_IMAGE_LOADED);
 
   ImBuf *diffuse_buffer = sl->matcap_diffuse.ibuf;
@@ -728,14 +732,12 @@ static void studiolight_matcap_preview(uint *icon_buffer, StudioLight *sl, bool 
       dx = 1.0f - dx;
     }
 
-    float color[4];
     float u = dx * diffuse_buffer->x - 1.0f;
     float v = dy * diffuse_buffer->y - 1.0f;
-    nearest_interpolation_color(diffuse_buffer, nullptr, color, u, v);
+    float4 color = imbuf::interpolate_nearest_fl(diffuse_buffer, u, v);
 
     if (specular_buffer) {
-      float specular[4];
-      nearest_interpolation_color(specular_buffer, nullptr, specular, u, v);
+      float4 specular = imbuf::interpolate_nearest_fl(specular_buffer, u, v);
       add_v3_v3(color, specular);
     }
 

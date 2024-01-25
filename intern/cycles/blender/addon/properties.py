@@ -1718,10 +1718,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.prop(self, "metalrt")
 
         if compute_device_type == 'HIP':
-            has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
-            row = layout.row()
-            row.enabled = has_hiprt
-            row.prop(self, "use_hiprt")
+            import platform
+            if platform.system() == "Windows":  # HIP-RT is currently only supported on Windows
+                has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
+                row = layout.row()
+                row.enabled = has_hiprt
+                row.prop(self, "use_hiprt")
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()

@@ -36,6 +36,7 @@ set(SRC
   intern/format_tiff.cc
   intern/imageprocess.cc
   intern/indexer.cc
+  intern/interp.cc
   intern/iris.cc
   intern/jpeg.cc
   intern/metadata.cc
@@ -58,6 +59,7 @@ set(SRC
   IMB_imbuf.hh
   IMB_imbuf_enums.h
   IMB_imbuf_types.hh
+  IMB_interp.hh
   IMB_metadata.hh
   IMB_moviecache.hh
   IMB_openexr.hh

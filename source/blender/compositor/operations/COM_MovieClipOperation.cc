@@ -8,6 +8,7 @@
 #include "BKE_movieclip.h"
 
 #include "IMB_imbuf.hh"
+#include "IMB_interp.hh"
 
 namespace blender::compositor {
 
@@ -81,13 +82,13 @@ void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
   else {
     switch (sampler) {
       case PixelSampler::Nearest:
-        nearest_interpolation_color(ibuf, nullptr, output, x, y);
+        imbuf::interpolate_nearest_fl(ibuf, output, x, y);
         break;
       case PixelSampler::Bilinear:
-        bilinear_interpolation_color(ibuf, nullptr, output, x, y);
+        imbuf::interpolate_bilinear_fl(ibuf, output, x, y);
         break;
       case PixelSampler::Bicubic:
-        bicubic_interpolation_color(ibuf, nullptr, output, x, y);
+        imbuf::interpolate_cubic_bspline_fl(ibuf, output, x, y);
         break;
     }
   }

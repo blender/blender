@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2003-2009 Blender Authors
+ * SPDX-FileCopyrightText: 2003-2024 Blender Authors
  * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -40,6 +40,7 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 #include "IMB_metadata.hh"
 
 #include "BLI_math_color_blend.h"
@@ -64,7 +65,7 @@
 #include "strip_time.hh"
 #include "utils.hh"
 
-using blender::float4;
+using namespace blender;
 
 static SeqEffectHandle get_sequence_effect_impl(int seq_type);
 
@@ -1536,7 +1537,7 @@ static void transform_image(int x,
                             int y,
                             int start_line,
                             int total_lines,
-                            ImBuf *ibuf1,
+                            ImBuf *ibuf,
                             ImBuf *out,
                             float scale_x,
                             float scale_y,
@@ -1549,6 +1550,10 @@ static void transform_image(int x,
   float s = sinf(rotate);
   float c = cosf(rotate);
 
+  float4 *dst_fl = reinterpret_cast<float4 *>(out->float_buffer.data);
+  uchar4 *dst_ch = reinterpret_cast<uchar4 *>(out->byte_buffer.data);
+
+  size_t offset = size_t(x) * start_line;
   for (int yi = start_line; yi < start_line + total_lines; yi++) {
     for (int xi = 0; xi < x; xi++) {
       /* Translate point. */
@@ -1570,15 +1575,31 @@ static void transform_image(int x,
       /* interpolate */
       switch (interpolation) {
         case 0:
-          nearest_interpolation(ibuf1, out, xt, yt, xi, yi);
+          if (dst_fl) {
+            dst_fl[offset] = imbuf::interpolate_nearest_fl(ibuf, xt, yt);
+          }
+          else {
+            dst_ch[offset] = imbuf::interpolate_nearest_byte(ibuf, xt, yt);
+          }
           break;
         case 1:
-          bilinear_interpolation(ibuf1, out, xt, yt, xi, yi);
+          if (dst_fl) {
+            dst_fl[offset] = imbuf::interpolate_bilinear_fl(ibuf, xt, yt);
+          }
+          else {
+            dst_ch[offset] = imbuf::interpolate_bilinear_byte(ibuf, xt, yt);
+          }
           break;
         case 2:
-          bicubic_interpolation(ibuf1, out, xt, yt, xi, yi);
+          if (dst_fl) {
+            dst_fl[offset] = imbuf::interpolate_cubic_bspline_fl(ibuf, xt, yt);
+          }
+          else {
+            dst_ch[offset] = imbuf::interpolate_cubic_bspline_byte(ibuf, xt, yt);
+          }
           break;
       }
+      offset++;
     }
   }
 }

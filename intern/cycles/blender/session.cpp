@@ -650,6 +650,9 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bak
   integrator->set_use_direct_light(use_direct_light);
   integrator->set_use_indirect_light(use_indirect_light);
 
+  const PassInfo pass_info = Pass::get_info(type);
+  integrator->set_use_denoise(pass_info.support_denoise);
+
   return true;
 }
 

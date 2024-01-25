@@ -512,46 +512,8 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to,
  */
 void IMB_convert_rgba_to_abgr(ImBuf *ibuf);
 
-void bicubic_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout);
-void nearest_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout);
-void bilinear_interpolation(const ImBuf *in, ImBuf *out, float u, float v, int xout, int yout);
-
-typedef void (*InterpolationColorFunction)(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bicubic_interpolation_color(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-
-/* Functions assumes out to be zeroed, only does RGBA. */
-
-void nearest_interpolation_color_char(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void nearest_interpolation_color_fl(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void nearest_interpolation_color(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void nearest_interpolation_color_wrap(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bilinear_interpolation_color(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-void bilinear_interpolation_color_char(const ImBuf *in, unsigned char outI[4], float u, float v);
-void bilinear_interpolation_color_fl(const ImBuf *in, float outF[4], float u, float v);
-/**
- * Note about wrapping, the u/v still needs to be within the image bounds,
- * just the interpolation is wrapped.
- * This the same as bilinear_interpolation_color except it wraps
- * rather than using empty and emptyI.
- */
-void bilinear_interpolation_color_wrap(
-    const ImBuf *in, unsigned char outI[4], float outF[4], float u, float v);
-
 void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
 void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float backcol[3]);
-
-/**
- * Sample pixel of image using NEAREST method.
- */
-void IMB_sampleImageAtLocation(
-    ImBuf *ibuf, float x, float y, bool make_linear_rgb, float color[4]);
 
 ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
