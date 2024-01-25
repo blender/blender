@@ -103,11 +103,11 @@ void OBJMesh::clear()
     owned_export_mesh_ = nullptr;
   }
   export_mesh_ = nullptr;
-  loop_to_uv_index_.clear_and_shrink();
+  loop_to_uv_index_ = {};
   uv_coords_.clear_and_shrink();
-  loop_to_normal_index_.clear_and_shrink();
+  loop_to_normal_index_ = {};
   normal_coords_.clear_and_shrink();
-  poly_order_.clear_and_shrink();
+  poly_order_ = {};
   if (poly_smooth_groups_) {
     MEM_freeN(poly_smooth_groups_);
     poly_smooth_groups_ = nullptr;
@@ -227,7 +227,7 @@ void OBJMesh::calc_poly_order()
   }
   const VArraySpan<int> material_indices_span(material_indices);
 
-  poly_order_.resize(material_indices_span.size());
+  poly_order_.reinitialize(material_indices_span.size());
   for (const int i : material_indices_span.index_range()) {
     poly_order_[i] = i;
   }
@@ -292,7 +292,7 @@ void OBJMesh::store_uv_coords_and_indices()
   uv_to_index.reserve(export_mesh_->verts_num);
   uv_coords_.reserve(export_mesh_->verts_num);
 
-  loop_to_uv_index_.resize(uv_map.size());
+  loop_to_uv_index_.reinitialize(uv_map.size());
 
   for (int index = 0; index < int(uv_map.size()); index++) {
     float2 uv = uv_map[index];
@@ -352,7 +352,7 @@ void OBJMesh::store_normal_coords_and_indices()
   Map<float3, int> normal_to_index;
   /* We don't know how many unique normals there will be, but this is a guess. */
   normal_to_index.reserve(export_mesh_->faces_num);
-  loop_to_normal_index_.resize(export_mesh_->corners_num);
+  loop_to_normal_index_.reinitialize(export_mesh_->corners_num);
   loop_to_normal_index_.fill(-1);
 
   Span<float3> corner_normals;

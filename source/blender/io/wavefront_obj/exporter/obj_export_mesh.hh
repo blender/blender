@@ -51,7 +51,7 @@ class OBJMesh : NonCopyable {
   /**
    * Per-loop UV index.
    */
-  Vector<int> loop_to_uv_index_;
+  Array<int> loop_to_uv_index_;
   /*
    * UV vertices.
    */
@@ -60,7 +60,7 @@ class OBJMesh : NonCopyable {
   /**
    * Per-loop normal index.
    */
-  Vector<int> loop_to_normal_index_;
+  Array<int> loop_to_normal_index_;
   /*
    * Normal coords.
    */
@@ -81,7 +81,7 @@ class OBJMesh : NonCopyable {
   /**
    * Order in which the polygons should be written into the file (sorted by material index).
    */
-  Vector<int> poly_order_;
+  Array<int> poly_order_;
 
  public:
   Array<const Material *> materials;

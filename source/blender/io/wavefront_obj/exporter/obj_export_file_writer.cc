@@ -234,8 +234,8 @@ void obj_parallel_chunked_output(FormatHandler &fh, int tot_count, const Functio
     return;
   }
   /* Give each chunk its own temporary output buffer, and process them in parallel. */
-  std::vector<FormatHandler> buffers(chunk_count);
-  blender::threading::parallel_for(IndexRange(chunk_count), 1, [&](IndexRange range) {
+  Array<FormatHandler> buffers(chunk_count);
+  threading::parallel_for(IndexRange(chunk_count), 1, [&](IndexRange range) {
     for (const int r : range) {
       int i_start = r * chunk_size;
       int i_end = std::min(i_start + chunk_size, tot_count);
@@ -283,9 +283,8 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
 
 void OBJWriter::write_uv_coords(FormatHandler &fh, OBJMesh &r_obj_mesh_data) const
 {
-  const Vector<float2> &uv_coords = r_obj_mesh_data.get_uv_coords();
-  const int tot_count = uv_coords.size();
-  obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
+  const Span<float2> uv_coords = r_obj_mesh_data.get_uv_coords();
+  obj_parallel_chunked_output(fh, uv_coords.size(), [&](FormatHandler &buf, int i) {
     const float2 &uv_vertex = uv_coords[i];
     buf.write_obj_uv(uv_vertex[0], uv_vertex[1]);
   });
@@ -294,9 +293,8 @@ void OBJWriter::write_uv_coords(FormatHandler &fh, OBJMesh &r_obj_mesh_data) con
 void OBJWriter::write_poly_normals(FormatHandler &fh, OBJMesh &obj_mesh_data)
 {
   /* Poly normals should be calculated earlier via store_normal_coords_and_indices. */
-  const Vector<float3> &normal_coords = obj_mesh_data.get_normal_coords();
-  const int tot_count = normal_coords.size();
-  obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler &buf, int i) {
+  const Span<float3> normal_coords = obj_mesh_data.get_normal_coords();
+  obj_parallel_chunked_output(fh, normal_coords.size(), [&](FormatHandler &buf, int i) {
     const float3 &normal = normal_coords[i];
     buf.write_obj_normal(normal[0], normal[1], normal[2]);
   });
