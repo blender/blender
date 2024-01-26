@@ -204,7 +204,8 @@ void NODE_OT_group_edit(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "exit", false, "Exit", "");
+  PropertyRNA *prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
