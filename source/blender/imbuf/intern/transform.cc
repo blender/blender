@@ -146,10 +146,10 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
     u = wrap_uv(u, source->x);
     v = wrap_uv(v, source->y);
   }
-  /* BLI_bilinear_interpolation functions use `floor(uv)` and `floor(uv)+1`
+  /* Bilinear/cubic interpolation functions use `floor(uv)` and `floor(uv)+1`
    * texels. For proper mapping between pixel and texel spaces, need to
-   * subtract 0.5. Same for bicubic. */
-  if constexpr (ELEM(Filter, IMB_FILTER_BILINEAR, IMB_FILTER_BICUBIC)) {
+   * subtract 0.5. */
+  if constexpr (Filter != IMB_FILTER_NEAREST) {
     u -= 0.5f;
     v -= 0.5f;
   }
@@ -185,13 +185,23 @@ static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
     math::interpolate_nearest_fl(
         source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
   }
-  else if constexpr (Filter == IMB_FILTER_BICUBIC && std::is_same_v<T, float>) {
+  else if constexpr (Filter == IMB_FILTER_CUBIC_BSPLINE && std::is_same_v<T, float>) {
     math::interpolate_cubic_bspline_fl(
         source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
   }
-  else if constexpr (Filter == IMB_FILTER_BICUBIC && std::is_same_v<T, uchar> && NumChannels == 4)
+  else if constexpr (Filter == IMB_FILTER_CUBIC_BSPLINE && std::is_same_v<T, uchar> &&
+                     NumChannels == 4)
   {
     interpolate_cubic_bspline_byte(source, r_sample, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_CUBIC_MITCHELL && std::is_same_v<T, float>) {
+    math::interpolate_cubic_mitchell_fl(
+        source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_CUBIC_MITCHELL && std::is_same_v<T, uchar> &&
+                     NumChannels == 4)
+  {
+    interpolate_cubic_mitchell_byte(source, r_sample, u, v);
   }
   else {
     /* Unsupported sampler. */
@@ -385,8 +395,11 @@ void IMB_transform(const ImBuf *src,
     else if (filter == IMB_FILTER_BILINEAR) {
       transform_scanlines_filter<IMB_FILTER_BILINEAR>(ctx, y_range);
     }
-    else if (filter == IMB_FILTER_BICUBIC) {
-      transform_scanlines_filter<IMB_FILTER_BICUBIC>(ctx, y_range);
+    else if (filter == IMB_FILTER_CUBIC_BSPLINE) {
+      transform_scanlines_filter<IMB_FILTER_CUBIC_BSPLINE>(ctx, y_range);
+    }
+    else if (filter == IMB_FILTER_CUBIC_MITCHELL) {
+      transform_scanlines_filter<IMB_FILTER_CUBIC_MITCHELL>(ctx, y_range);
     }
   });
 }

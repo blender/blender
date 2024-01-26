@@ -43,7 +43,7 @@ OCIOColorSpaceConversionShaderKey::OCIOColorSpaceConversionShaderKey(std::string
 
 uint64_t OCIOColorSpaceConversionShaderKey::hash() const
 {
-  return get_default_hash_3(source, target, config_cache_id);
+  return get_default_hash(source, target, config_cache_id);
 }
 
 bool operator==(const OCIOColorSpaceConversionShaderKey &a,

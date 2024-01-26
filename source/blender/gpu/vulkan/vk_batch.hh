@@ -31,4 +31,9 @@ class VKBatch : public Batch {
   void draw_setup();
 };
 
+BLI_INLINE VKBatch *unwrap(GPUBatch *batch)
+{
+  return static_cast<VKBatch *>(batch);
+}
+
 }  // namespace blender::gpu

@@ -1729,7 +1729,7 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node)
   node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
+void BKE_pbvh_node_mark_positions_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateBB;
 }

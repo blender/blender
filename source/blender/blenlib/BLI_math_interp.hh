@@ -203,6 +203,27 @@ void interpolate_bilinear_wrap_fl(const float *buffer,
 void interpolate_cubic_bspline_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v);
 
+/**
+ * Cubic Mitchell sampling.
+ *
+ * Takes 4x4 image samples at floor(u,v)-1 .. floor(u,v)+2, and blends them
+ * based on fractional parts of u,v. Uses Mitchell-Netravali filter (B=C=1/3),
+ * which has a good compromise between blur and ringing.
+ * Samples outside the image are clamped to texels at image edge.
+ *
+ * Note that you probably want to subtract 0.5 from u,v before this function,
+ * to get proper filtering.
+ */
+
+[[nodiscard]] uchar4 interpolate_cubic_mitchell_byte(
+    const uchar *buffer, int width, int height, float u, float v);
+
+[[nodiscard]] float4 interpolate_cubic_mitchell_fl(
+    const float *buffer, int width, int height, float u, float v);
+
+void interpolate_cubic_mitchell_fl(
+    const float *buffer, float *output, int width, int height, int components, float u, float v);
+
 }  // namespace blender::math
 
 #define EWA_MAXIDX 255

@@ -81,22 +81,22 @@ class OBJWriter : NonMovable, NonCopyable {
                            bool write_colors) const;
   /**
    * Write UV vertex coordinates for all vertices as `vt u v`.
-   * \note UV indices are stored here, but written with polygons later.
+   * \note UV indices are stored here, but written with faces later.
    */
   void write_uv_coords(FormatHandler &fh, OBJMesh &obj_mesh_data) const;
   /**
-   * Write loop normals for smooth-shaded polygons, and polygon normals otherwise, as "vn x y z".
-   * \note Normal indices ares stored here, but written with polygons later.
+   * Write corner normals for smooth-shaded faces, and face normals otherwise, as "vn x y z".
+   * \note Normal indices ares stored here, but written with faces later.
    */
-  void write_poly_normals(FormatHandler &fh, OBJMesh &obj_mesh_data);
+  void write_normals(FormatHandler &fh, OBJMesh &obj_mesh_data);
   /**
-   * Write polygon elements with at least vertex indices, and conditionally with UV vertex
-   * indices and polygon normal indices. Also write groups: smooth, vertex, material.
+   * Write face elements with at least vertex indices, and conditionally with UV vertex
+   * indices and face normal indices. Also write groups: smooth, vertex, material.
    * The matname_fn turns a 0-indexed material slot number in an Object into the
    * name used in the .obj file.
    * \note UV indices were stored while writing UV vertices.
    */
-  void write_poly_elements(FormatHandler &fh,
+  void write_face_elements(FormatHandler &fh,
                            const IndexOffsets &offsets,
                            const OBJMesh &obj_mesh_data,
                            FunctionRef<const char *(int)> matname_fn);
@@ -119,12 +119,12 @@ class OBJWriter : NonMovable, NonCopyable {
                                                           Span<int> normal_indices,
                                                           bool flip) const;
   /**
-   * \return Writer function with appropriate polygon-element syntax.
+   * \return Writer function with appropriate face-element syntax.
    */
-  func_vert_uv_normal_indices get_poly_element_writer(int total_uv_vertices) const;
+  func_vert_uv_normal_indices get_face_element_writer(int total_uv_vertices) const;
 
   /**
-   * Write one line of polygon indices as "f v1/vt1/vn1 v2/vt2/vn2 ...".
+   * Write one line of face indices as "f v1/vt1/vn1 v2/vt2/vn2 ...".
    */
   void write_vert_uv_normal_indices(FormatHandler &fh,
                                     const IndexOffsets &offsets,
@@ -133,7 +133,7 @@ class OBJWriter : NonMovable, NonCopyable {
                                     Span<int> normal_indices,
                                     bool flip) const;
   /**
-   * Write one line of polygon indices as "f v1//vn1 v2//vn2 ...".
+   * Write one line of face indices as "f v1//vn1 v2//vn2 ...".
    */
   void write_vert_normal_indices(FormatHandler &fh,
                                  const IndexOffsets &offsets,
@@ -142,7 +142,7 @@ class OBJWriter : NonMovable, NonCopyable {
                                  Span<int> normal_indices,
                                  bool flip) const;
   /**
-   * Write one line of polygon indices as "f v1/vt1 v2/vt2 ...".
+   * Write one line of face indices as "f v1/vt1 v2/vt2 ...".
    */
   void write_vert_uv_indices(FormatHandler &fh,
                              const IndexOffsets &offsets,
@@ -151,7 +151,7 @@ class OBJWriter : NonMovable, NonCopyable {
                              Span<int> /*normal_indices*/,
                              bool flip) const;
   /**
-   * Write one line of polygon indices as "f v1 v2 ...".
+   * Write one line of face indices as "f v1 v2 ...".
    */
   void write_vert_indices(FormatHandler &fh,
                           const IndexOffsets &offsets,

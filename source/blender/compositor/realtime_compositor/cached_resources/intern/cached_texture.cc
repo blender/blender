@@ -40,7 +40,7 @@ CachedTextureKey::CachedTextureKey(int2 size, float3 offset, float3 scale)
 
 uint64_t CachedTextureKey::hash() const
 {
-  return get_default_hash_3(size, offset, scale);
+  return get_default_hash(size, offset, scale);
 }
 
 bool operator==(const CachedTextureKey &a, const CachedTextureKey &b)

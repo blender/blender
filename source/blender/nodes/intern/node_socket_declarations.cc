@@ -482,6 +482,53 @@ bNodeSocket &String::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name #Menu
+ * \{ */
+
+bNodeSocket &Menu::build(bNodeTree &ntree, bNode &node) const
+{
+  bNodeSocket &socket = *nodeAddStaticSocket(&ntree,
+                                             &node,
+                                             this->in_out,
+                                             SOCK_MENU,
+                                             PROP_NONE,
+                                             this->identifier.c_str(),
+                                             this->name.c_str());
+
+  ((bNodeSocketValueMenu *)socket.default_value)->value = this->default_value;
+  this->set_common_flags(socket);
+  return socket;
+}
+
+bool Menu::matches(const bNodeSocket &socket) const
+{
+  if (!this->matches_common_data(socket)) {
+    return false;
+  }
+  if (socket.type != SOCK_MENU) {
+    return false;
+  }
+  return true;
+}
+
+bool Menu::can_connect(const bNodeSocket &socket) const
+{
+  return sockets_can_connect(*this, socket) && socket.type == SOCK_MENU;
+}
+
+bNodeSocket &Menu::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
+{
+  if (socket.type != SOCK_MENU) {
+    BLI_assert(socket.in_out == this->in_out);
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
+  return socket;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name #IDSocketDeclaration
  * \{ */
 

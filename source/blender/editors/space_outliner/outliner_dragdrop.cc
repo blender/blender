@@ -1287,7 +1287,7 @@ static std::string collection_drop_tooltip(bContext *C,
       }
     }
   }
-  return nullptr;
+  return {};
 }
 
 static int collection_drop_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)

@@ -79,7 +79,7 @@ class HandlePositionFieldInput final : public bke::CurvesFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_2(relative_, left_);
+    return get_default_hash(relative_, left_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override

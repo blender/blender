@@ -389,8 +389,20 @@ static void rna_BoneCollection_is_visible_set(PointerRNA *ptr, const bool is_vis
 
 static bool rna_BoneCollection_is_visible_effectively_get(PointerRNA *ptr)
 {
+  const bArmature *arm = (bArmature *)ptr->owner_id;
   const BoneCollection *bcoll = (BoneCollection *)ptr->data;
-  return bcoll->is_visible_effectively();
+  return ANIM_armature_bonecoll_is_visible_effectively(arm, bcoll);
+}
+
+static void rna_BoneCollection_is_solo_set(PointerRNA *ptr, const bool is_solo)
+{
+  bArmature *arm = (bArmature *)ptr->owner_id;
+  BoneCollection *bcoll = (BoneCollection *)ptr->data;
+
+  ANIM_armature_bonecoll_solo_set(arm, bcoll, is_solo);
+
+  WM_main_add_notifier(NC_OBJECT | ND_BONE_COLLECTION, &arm->id);
+  WM_main_add_notifier(NC_OBJECT | ND_POSE, &arm->id);
 }
 
 static char *rna_BoneCollection_path(const PointerRNA *ptr)
@@ -2018,6 +2030,14 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
                            "is no active collection");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollections_active_name_set");
 
+  prop = RNA_def_property(srna, "is_solo_active", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ARM_BCOLL_SOLO_ACTIVE);
+  RNA_def_property_ui_text(
+      prop,
+      "Solo Active",
+      "Read-ony flag that indicates there is at least one bone collection marked as 'solo'");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   /* Armature.collections.new(...) */
   func = RNA_def_function(srna, "new", "rna_BoneCollections_new");
   RNA_def_function_ui_description(func, "Add a new empty bone collection to the armature");
@@ -2311,8 +2331,16 @@ static void rna_def_bonecollection(BlenderRNA *brna)
       prop,
       "Effective Visibility",
       "Whether this bone collection is effectively visible in the viewport. This is True when "
-      "this bone collection and all of its ancestors are visible");
+      "this bone collection and all of its ancestors are visible, or when it is marked as 'solo'");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "is_solo", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_SOLO);
+  RNA_def_property_ui_text(
+      prop, "Solo", "Show only this bone collection, and others also marked as 'solo'");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_BoneCollection_is_solo_set");
 
   prop = RNA_def_property(srna, "is_local_override", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_OVERRIDE_LIBRARY_LOCAL);

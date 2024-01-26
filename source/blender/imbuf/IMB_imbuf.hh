@@ -264,7 +264,8 @@ void IMB_rectblend_threaded(ImBuf *dbuf,
 enum eIMBInterpolationFilterMode {
   IMB_FILTER_NEAREST,
   IMB_FILTER_BILINEAR,
-  IMB_FILTER_BICUBIC,
+  IMB_FILTER_CUBIC_BSPLINE,
+  IMB_FILTER_CUBIC_MITCHELL,
 };
 
 /**

@@ -240,6 +240,23 @@ void ANIM_armature_bonecoll_is_visible_set(bArmature *armature,
                                            bool is_visible);
 
 /**
+ * Set or clear this bone collection's solo flag.
+ */
+void ANIM_armature_bonecoll_solo_set(bArmature *armature, BoneCollection *bcoll, bool is_solo);
+
+/**
+ * Refresh the ARM_BCOLL_SOLO_ACTIVE flag.
+ */
+void ANIM_armature_refresh_solo_active(bArmature *armature);
+
+/**
+ * Determine whether this bone collection is visible, taking into account the visibility of its
+ * ancestors and the "solo" flags that are in use.
+ */
+bool ANIM_armature_bonecoll_is_visible_effectively(const bArmature *armature,
+                                                   const BoneCollection *bcoll);
+
+/**
  * Assign the bone to the bone collection.
  *
  * No-op if the bone is already a member of the collection.

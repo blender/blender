@@ -1772,6 +1772,19 @@ class _defs_weight_paint:
 
 class _defs_paint_grease_pencil:
 
+    # FIXME: Replace brush tools with code below once they are all implemented:
+    #
+    # @staticmethod
+    # def generate_from_brushes(context):
+    #     return generate_from_enum_ex(
+    #         context,
+    #         idname_prefix="builtin_brush.",
+    #         icon_prefix="brush.gpencil_draw.",
+    #         type=bpy.types.Brush,
+    #         attr="gpencil_tool",
+    #         cursor='DOT',
+    #     )
+
     @ToolDef.from_fn
     def draw():
         return dict(

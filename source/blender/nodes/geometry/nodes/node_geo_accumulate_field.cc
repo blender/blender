@@ -232,7 +232,7 @@ class AccumulateFieldInput final : public bke::GeometryFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_4(input_, group_index_, source_domain_, accumulation_mode_);
+    return get_default_hash(input_, group_index_, source_domain_, accumulation_mode_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override
@@ -320,7 +320,7 @@ class TotalFieldInput final : public bke::GeometryFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_3(input_, group_index_, source_domain_);
+    return get_default_hash(input_, group_index_, source_domain_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override

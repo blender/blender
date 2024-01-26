@@ -434,7 +434,8 @@ static bool socket_can_be_viewed(const bNode &node, const bNodeSocket &socket)
               SOCK_INT,
               SOCK_BOOLEAN,
               SOCK_ROTATION,
-              SOCK_RGBA);
+              SOCK_RGBA,
+              SOCK_MENU);
 }
 
 /**
@@ -2245,6 +2246,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
     case SOCK_MATERIAL:
+    case SOCK_MENU:
       return 6;
   }
   return -1;

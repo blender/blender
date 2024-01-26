@@ -91,6 +91,16 @@ inline void interpolate_cubic_bspline_fl(const ImBuf *in, float output[4], float
   memcpy(output, &col, sizeof(col));
 }
 
+[[nodiscard]] inline uchar4 interpolate_cubic_mitchell_byte(const ImBuf *in, float u, float v)
+{
+  return math::interpolate_cubic_mitchell_byte(in->byte_buffer.data, in->x, in->y, u, v);
+}
+inline void interpolate_cubic_mitchell_byte(const ImBuf *in, uchar output[4], float u, float v)
+{
+  uchar4 col = math::interpolate_cubic_mitchell_byte(in->byte_buffer.data, in->x, in->y, u, v);
+  memcpy(output, &col, sizeof(col));
+}
+
 }  // namespace blender::imbuf
 
 /**

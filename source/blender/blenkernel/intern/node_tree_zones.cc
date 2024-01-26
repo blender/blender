@@ -69,7 +69,7 @@ struct ZoneRelation {
 
   uint64_t hash() const
   {
-    return get_default_hash_2(this->parent, this->child);
+    return get_default_hash(this->parent, this->child);
   }
 
   BLI_STRUCT_EQUALITY_OPERATORS_2(ZoneRelation, parent, child)

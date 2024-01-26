@@ -3182,9 +3182,13 @@ bool BoneCollection::is_visible_ancestors() const
 {
   return this->flags & BONE_COLLECTION_ANCESTORS_VISIBLE;
 }
-bool BoneCollection::is_visible_effectively() const
+bool BoneCollection::is_visible_with_ancestors() const
 {
   return this->is_visible() && this->is_visible_ancestors();
+}
+bool BoneCollection::is_solo() const
+{
+  return this->flags & BONE_COLLECTION_SOLO;
 }
 
 /** \} */

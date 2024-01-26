@@ -523,7 +523,7 @@ static bool clip_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*eve
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE)) {
+    if (ELEM(file_type, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE)) {
       return true;
     }
   }
