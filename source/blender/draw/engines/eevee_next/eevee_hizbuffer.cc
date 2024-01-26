@@ -19,7 +19,9 @@ void HiZBuffer::sync()
 {
   int2 render_extent = inst_.film.render_extent_get();
   /* Padding to avoid complexity during down-sampling and screen tracing. */
-  int2 hiz_extent = math::ceil_to_multiple(render_extent, int2(1u << (HIZ_MIP_COUNT - 1)));
+  int2 probe_extent = int2(inst_.reflection_probes.probe_render_extent());
+  int2 hiz_extent = math::ceil_to_multiple(math::max(render_extent, probe_extent),
+                                           int2(1u << (HIZ_MIP_COUNT - 1)));
   int2 dispatch_size = math::divide_ceil(hiz_extent, int2(HIZ_GROUP_SIZE));
 
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE;

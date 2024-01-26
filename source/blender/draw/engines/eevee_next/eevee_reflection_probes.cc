@@ -140,6 +140,11 @@ eLightProbeResolution ReflectionProbeModule::reflection_probe_resolution() const
   return LIGHT_PROBE_RESOLUTION_2048;
 }
 
+int ReflectionProbeModule::probe_render_extent() const
+{
+  return instance_.scene->eevee.gi_cubemap_resolution / 2;
+}
+
 void ReflectionProbeModule::init()
 {
   if (!is_initialized) {
