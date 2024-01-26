@@ -1225,7 +1225,7 @@ static void mask_gesture_apply_task(SculptGestureContext *sgcontext,
         undo::push_node(ob, node, undo::Type::Mask);
 
         if (is_multires) {
-          BKE_pbvh_node_mark_normals_update(node);
+          BKE_pbvh_node_mark_positions_update(node);
         }
       }
       const float new_mask = mask_flood_fill_get_new_value_for_elem(

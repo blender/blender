@@ -295,7 +295,7 @@ static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
   if (!data.modified_position_verts.is_empty()) {
     for (const int vert : verts) {
       if (data.modified_position_verts[vert]) {
-        BKE_pbvh_node_mark_normals_update(&node);
+        BKE_pbvh_node_mark_positions_update(&node);
         break;
       }
     }
