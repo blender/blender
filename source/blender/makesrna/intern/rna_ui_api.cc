@@ -973,21 +973,26 @@ static void api_ui_item_common_heading(FunctionRNA *func)
       func, "translate", true, "", "Translate the given heading, when UI translation is enabled");
 }
 
+void api_ui_item_common_translation(FunctionRNA *func)
+{
+  PropertyRNA *prop = RNA_def_string(func,
+                                     "text_ctxt",
+                                     nullptr,
+                                     0,
+                                     "",
+                                     "Override automatic translation context of the given text");
+  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
+  RNA_def_boolean(
+      func, "translate", true, "", "Translate the given text, when UI translation is enabled");
+}
+
 static void api_ui_item_common_text(FunctionRNA *func)
 {
   PropertyRNA *prop;
 
   prop = RNA_def_string(func, "text", nullptr, 0, "", "Override automatic text of the item");
   RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
-  prop = RNA_def_string(func,
-                        "text_ctxt",
-                        nullptr,
-                        0,
-                        "",
-                        "Override automatic translation context of the given text");
-  RNA_def_property_clear_flag(prop, PROP_NEVER_NULL);
-  RNA_def_boolean(
-      func, "translate", true, "", "Translate the given text, when UI translation is enabled");
+  api_ui_item_common_translation(func);
 }
 
 static void api_ui_item_common(FunctionRNA *func)
