@@ -144,6 +144,7 @@ class ARMATURE_MT_collection_context_menu(Menu):
         layout = self.layout
 
         layout.operator("armature.collection_show_all")
+        layout.operator("armature.collection_unsolo_all")
         layout.separator()
         layout.operator("armature.collection_remove_unused", text="Remove Unused")
 
@@ -169,6 +170,7 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
         layout.separator()
 
         layout.operator("armature.collection_show_all")
+        layout.operator("armature.collection_unsolo_all")
 
         layout.separator()
 

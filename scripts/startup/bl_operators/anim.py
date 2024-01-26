@@ -541,6 +541,28 @@ class ARMATURE_OT_collection_show_all(Operator):
         return {'FINISHED'}
 
 
+class ARMATURE_OT_collection_unsolo_all(Operator):
+    """Clear the 'solo' setting on all bone collections"""
+    bl_idname = "armature.collection_unsolo_all"
+    bl_label = "Un-solo All"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        if not (context.object and context.object.type == 'ARMATURE' and context.object.data):
+            return False
+        if not context.object.data.collections.is_solo_active:
+            cls.poll_message_set("None of the bone collections is marked 'solo'")
+            return False
+        return True
+
+    def execute(self, context):
+        arm = context.object.data
+        for bcoll in arm.collections_all:
+            bcoll.is_solo = False
+        return {'FINISHED'}
+
+
 class ARMATURE_OT_collection_remove_unused(Operator):
     """Remove all bone collections that have neither bones nor children. """ \
         """This is done recursively, so bone collections that only have unused children are also removed"""
@@ -632,5 +654,6 @@ classes = (
     UpdateAnimatedTransformConstraint,
     ARMATURE_OT_copy_bone_color_to_selected,
     ARMATURE_OT_collection_show_all,
+    ARMATURE_OT_collection_unsolo_all,
     ARMATURE_OT_collection_remove_unused,
 )
