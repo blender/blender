@@ -3929,6 +3929,18 @@ static bNode *find_node_by_enum_definition(bNodeTree *ntree, const NodeEnumDefin
   return nullptr;
 }
 
+[[maybe_unused]] static bNode *find_node_by_enum_item(bNodeTree *ntree, const NodeEnumItem *item)
+{
+  ntree->ensure_topology_cache();
+  for (bNode *node : ntree->nodes_by_type("GeometryNodeMenuSwitch")) {
+    NodeMenuSwitch *storage = static_cast<NodeMenuSwitch *>(node->storage);
+    if (storage->enum_definition.items().contains_ptr(item)) {
+      return node;
+    }
+  }
+  return nullptr;
+}
+
 static NodeEnumDefinition *find_enum_definition_by_item(bNodeTree *ntree, const NodeEnumItem *item)
 {
   ntree->ensure_topology_cache();
