@@ -370,8 +370,7 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
     return;
   }
 
-  float(*corner_normals)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(mesh_geometry_.total_corner_, sizeof(float[3]), __func__));
+  Array<float3> corner_normals(mesh_geometry_.total_corner_);
   int corner_index = 0;
   for (const FaceElem &curr_face : mesh_geometry_.face_elements_) {
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
@@ -381,12 +380,11 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
       if (n_index >= 0 && n_index < global_vertices_.vert_normals.size()) {
         normal = global_vertices_.vert_normals[n_index];
       }
-      copy_v3_v3(corner_normals[corner_index], normal);
+      corner_normals[corner_index] = normal;
       corner_index++;
     }
   }
-  BKE_mesh_set_custom_normals(mesh, corner_normals);
-  MEM_freeN(corner_normals);
+  BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(corner_normals.data()));
 }
 
 void MeshFromGeometry::create_colors(Mesh *mesh)
