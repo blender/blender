@@ -10,24 +10,41 @@
 #include <cstring>
 
 #include "BLI_math_base.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_simd.h"
 #include "BLI_strict_flags.h"
 
-/* Cubic B-Spline coefficients. f is offset from texel center in pixel space.
- * This is Mitchell-Netravali filter with B=1, C=0 parameters. */
-static blender::float4 cubic_bspline_coefficients(float f)
+enum class eCubicFilter {
+  BSpline,
+  Mitchell,
+};
+
+/* Calculate cubic filter coefficients, for samples at -1,0,+1,+2.
+ * f is 0..1 offset from texel center in pixel space. */
+template<enum eCubicFilter filter> static blender::float4 cubic_filter_coefficients(float f)
 {
   float f2 = f * f;
   float f3 = f2 * f;
 
-  float w3 = f3 / 6.0f;
-  float w0 = -w3 + f2 * 0.5f - f * 0.5f + 1.0f / 6.0f;
-  float w1 = f3 * 0.5f - f2 * 1.0f + 2.0f / 3.0f;
-  float w2 = 1.0f - w0 - w1 - w3;
-  return blender::float4(w0, w1, w2, w3);
+  if constexpr (filter == eCubicFilter::BSpline) {
+    /* Cubic B-Spline (Mitchell-Netravali filter with B=1, C=0 parameters). */
+    float w3 = f3 * (1.0f / 6.0f);
+    float w0 = -w3 + f2 * 0.5f - f * 0.5f + 1.0f / 6.0f;
+    float w1 = f3 * 0.5f - f2 * 1.0f + 2.0f / 3.0f;
+    float w2 = 1.0f - w0 - w1 - w3;
+    return blender::float4(w0, w1, w2, w3);
+  }
+  else if constexpr (filter == eCubicFilter::Mitchell) {
+    /* Cubic Mitchell-Netravali filter with B=1/3, C=1/3 parameters. */
+    float w0 = -7.0f / 18.0f * f3 + 5.0f / 6.0f * f2 - 0.5f * f + 1.0f / 18.0f;
+    float w1 = 7.0f / 6.0f * f3 - 2.0f * f2 + 8.0f / 9.0f;
+    float w2 = -7.0f / 6.0f * f3 + 3.0f / 2.0f * f2 + 0.5f * f + 1.0f / 18.0f;
+    float w3 = 7.0f / 18.0f * f3 - 1.0f / 3.0f * f2;
+    return blender::float4(w0, w1, w2, w3);
+  }
 }
 
 #if BLI_HAVE_SSE2
@@ -51,6 +68,7 @@ BLI_INLINE __m128 floor_simd(__m128 v)
   return v_floor;
 }
 
+template<eCubicFilter filter>
 BLI_INLINE void bicubic_interpolation_uchar_simd(
     const uchar *src_buffer, uchar *output, int width, int height, float u, float v)
 {
@@ -72,8 +90,8 @@ BLI_INLINE void bicubic_interpolation_uchar_simd(
   __m128 frac_uv = _mm_sub_ps(uv, uv_floor);
 
   /* Calculate pixel weights. */
-  blender::float4 wx = cubic_bspline_coefficients(_mm_cvtss_f32(frac_uv));
-  blender::float4 wy = cubic_bspline_coefficients(
+  blender::float4 wx = cubic_filter_coefficients<filter>(_mm_cvtss_f32(frac_uv));
+  blender::float4 wy = cubic_filter_coefficients<filter>(
       _mm_cvtss_f32(_mm_shuffle_ps(frac_uv, frac_uv, 1)));
 
   /* Read 4x4 source pixels and blend them. */
@@ -102,7 +120,8 @@ BLI_INLINE void bicubic_interpolation_uchar_simd(
   }
 
   /* Pack and write to destination: pack to 16 bit signed, then to 8 bit
-   * unsigned, then write resulting 32-bit value. */
+   * unsigned, then write resulting 32-bit value. This will clamp
+   * out of range values too. */
   out = _mm_add_ps(out, _mm_set1_ps(0.5f));
   __m128i rgba32 = _mm_cvttps_epi32(out);
   __m128i rgba16 = _mm_packs_epi32(rgba32, _mm_setzero_si128());
@@ -111,7 +130,7 @@ BLI_INLINE void bicubic_interpolation_uchar_simd(
 }
 #endif /* BLI_HAVE_SSE2 */
 
-template<typename T>
+template<typename T, eCubicFilter filter>
 static void bicubic_interpolation(
     const T *src_buffer, T *output, int width, int height, int components, float u, float v)
 {
@@ -122,7 +141,7 @@ static void bicubic_interpolation(
 #if BLI_HAVE_SSE2
   if constexpr (std::is_same_v<T, uchar>) {
     if (components == 4) {
-      bicubic_interpolation_uchar_simd(src_buffer, output, width, height, u, v);
+      bicubic_interpolation_uchar_simd<filter>(src_buffer, output, width, height, u, v);
       return;
     }
   }
@@ -143,8 +162,8 @@ static void bicubic_interpolation(
   float4 out{0.0f};
 
   /* Calculate pixel weights. */
-  float4 wx = cubic_bspline_coefficients(frac_u);
-  float4 wy = cubic_bspline_coefficients(frac_v);
+  float4 wx = cubic_filter_coefficients<filter>(frac_u);
+  float4 wy = cubic_filter_coefficients<filter>(frac_v);
 
   /* Read 4x4 source pixels and blend them. */
   for (int n = 0; n < 4; n++) {
@@ -171,6 +190,16 @@ static void bicubic_interpolation(
         out[1] += data[1] * w;
         out[2] += data[2] * w;
         out[3] += data[3] * w;
+      }
+    }
+  }
+
+  /* Mitchell filter has negative lobes; prevent output from going out of range. */
+  if constexpr (filter == eCubicFilter::Mitchell) {
+    for (int i = 0; i < components; i++) {
+      out[i] = math::max(out[i], 0.0f);
+      if constexpr (std::is_same_v<T, uchar>) {
+        out[i] = math::min(out[i], 255.0f);
       }
     }
   }
@@ -551,21 +580,44 @@ float4 interpolate_bilinear_wrap_fl(const float *buffer, int width, int height, 
 uchar4 interpolate_cubic_bspline_byte(const uchar *buffer, int width, int height, float u, float v)
 {
   uchar4 res;
-  bicubic_interpolation<uchar>(buffer, res, width, height, 4, u, v);
+  bicubic_interpolation<uchar, eCubicFilter::BSpline>(buffer, res, width, height, 4, u, v);
   return res;
 }
 
 float4 interpolate_cubic_bspline_fl(const float *buffer, int width, int height, float u, float v)
 {
   float4 res;
-  bicubic_interpolation<float>(buffer, res, width, height, 4, u, v);
+  bicubic_interpolation<float, eCubicFilter::BSpline>(buffer, res, width, height, 4, u, v);
   return res;
 }
 
 void interpolate_cubic_bspline_fl(
     const float *buffer, float *output, int width, int height, int components, float u, float v)
 {
-  bicubic_interpolation<float>(buffer, output, width, height, components, u, v);
+  bicubic_interpolation<float, eCubicFilter::BSpline>(
+      buffer, output, width, height, components, u, v);
+}
+
+uchar4 interpolate_cubic_mitchell_byte(
+    const uchar *buffer, int width, int height, float u, float v)
+{
+  uchar4 res;
+  bicubic_interpolation<uchar, eCubicFilter::Mitchell>(buffer, res, width, height, 4, u, v);
+  return res;
+}
+
+float4 interpolate_cubic_mitchell_fl(const float *buffer, int width, int height, float u, float v)
+{
+  float4 res;
+  bicubic_interpolation<float, eCubicFilter::Mitchell>(buffer, res, width, height, 4, u, v);
+  return res;
+}
+
+void interpolate_cubic_mitchell_fl(
+    const float *buffer, float *output, int width, int height, int components, float u, float v)
+{
+  bicubic_interpolation<float, eCubicFilter::Mitchell>(
+      buffer, output, width, height, components, u, v);
 }
 
 }  // namespace blender::math

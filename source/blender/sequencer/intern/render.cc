@@ -545,8 +545,11 @@ static void sequencer_preprocess_transform_crop(
     case SEQ_TRANSFORM_FILTER_BILINEAR:
       filter = IMB_FILTER_BILINEAR;
       break;
-    case SEQ_TRANSFORM_FILTER_BICUBIC:
-      filter = IMB_FILTER_BICUBIC;
+    case SEQ_TRANSFORM_FILTER_CUBIC_BSPLINE:
+      filter = IMB_FILTER_CUBIC_BSPLINE;
+      break;
+    case SEQ_TRANSFORM_FILTER_CUBIC_MITCHELL:
+      filter = IMB_FILTER_CUBIC_MITCHELL;
       break;
     case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
       filter = IMB_FILTER_NEAREST;

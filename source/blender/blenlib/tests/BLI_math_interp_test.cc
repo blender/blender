@@ -256,3 +256,65 @@ TEST(math_interp, CubicBSplineCharFullyOutsideImage)
   res = interpolate_cubic_bspline_byte(image_char[0][0], image_width, image_height, 0, 500.0f);
   EXPECT_EQ(exp, res);
 }
+
+TEST(math_interp, CubicMitchellCharExactSamples)
+{
+  uchar4 res;
+  uchar4 exp1 = {72, 101, 140, 223};
+  res = interpolate_cubic_mitchell_byte(image_char[0][0], image_width, image_height, 1.0f, 2.0f);
+  EXPECT_EQ(int4(exp1), int4(res));
+  uchar4 exp2 = {233, 162, 99, 37};
+  res = interpolate_cubic_mitchell_byte(image_char[0][0], image_width, image_height, 2.0f, 0.0f);
+  EXPECT_EQ(int4(exp2), int4(res));
+}
+
+TEST(math_interp, CubicMitchellCharSamples)
+{
+  uchar4 res;
+  uchar4 exp1 = {135, 132, 130, 127};
+  res = interpolate_cubic_mitchell_byte(
+      image_char[0][0], image_width, image_height, 1.25f, 0.625f);
+  EXPECT_EQ(int4(exp1), int4(res));
+  uchar4 exp2 = {216, 189, 167, 143};
+  res = interpolate_cubic_mitchell_byte(image_char[0][0], image_width, image_height, 1.4f, 0.1f);
+  EXPECT_EQ(int4(exp2), int4(res));
+}
+
+TEST(math_interp, CubicMitchellFloatSamples)
+{
+  float4 res;
+  float4 exp1 = {134.5659f, 131.91309f, 130.17685f, 126.66989f};
+  res = interpolate_cubic_mitchell_fl(image_fl[0][0], image_width, image_height, 1.25f, 0.625f);
+  EXPECT_V4_NEAR(exp1, res, float_tolerance);
+  float4 exp2 = {216.27115f, 189.30673f, 166.93599f, 143.31964f};
+  res = interpolate_cubic_mitchell_fl(image_fl[0][0], image_width, image_height, 1.4f, 0.1f);
+  EXPECT_V4_NEAR(exp2, res, float_tolerance);
+}
+
+TEST(math_interp, CubicMitchellCharPartiallyOutsideImage)
+{
+  uchar4 res;
+  uchar4 exp1 = {0, 0, 0, 0};
+  res = interpolate_cubic_mitchell_byte(image_char[0][0], image_width, image_height, -0.5f, 2.0f);
+  EXPECT_EQ(int4(exp1), int4(res));
+  uchar4 exp2 = {88, 116, 151, 228};
+  res = interpolate_cubic_mitchell_byte(image_char[0][0], image_width, image_height, 1.25f, 2.9f);
+  EXPECT_EQ(int4(exp2), int4(res));
+  uchar4 exp3 = {239, 159, 89, 19};
+  res = interpolate_cubic_mitchell_byte(image_char[0][0], image_width, image_height, 2.2f, -0.1f);
+  EXPECT_EQ(int4(exp3), int4(res));
+}
+
+TEST(math_interp, CubicMitchellFloatPartiallyOutsideImage)
+{
+  float4 res;
+  float4 exp1 = {0, 0, 0, 0};
+  res = interpolate_cubic_mitchell_fl(image_fl[0][0], image_width, image_height, -0.5f, 2.0f);
+  EXPECT_V4_NEAR(exp1, res, float_tolerance);
+  float4 exp2 = {87.98676f, 115.63634f, 151.13014f, 228.19823f};
+  res = interpolate_cubic_mitchell_fl(image_fl[0][0], image_width, image_height, 1.25f, 2.9f);
+  EXPECT_V4_NEAR(exp2, res, float_tolerance);
+  float4 exp3 = {238.6136f, 158.58293f, 88.55761f, 18.53225f};
+  res = interpolate_cubic_mitchell_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
+  EXPECT_V4_NEAR(exp3, res, float_tolerance);
+}
