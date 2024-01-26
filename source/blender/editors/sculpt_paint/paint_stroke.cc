@@ -208,10 +208,10 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
   GPU_line_smooth(false);
 }
 
-static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
+static bool paint_tool_require_location(Brush *brush, PaintMode mode)
 {
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       if (ELEM(brush->sculpt_tool,
                SCULPT_TOOL_GRAB,
                SCULPT_TOOL_ELASTIC_DEFORM,
@@ -236,10 +236,10 @@ static bool paint_tool_require_location(Brush *brush, ePaintMode mode)
   return true;
 }
 
-static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
+static bool paint_stroke_use_scene_spacing(Brush *brush, PaintMode mode)
 {
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       return brush->flag & BRUSH_SCENE_SPACING;
     default:
       break;
@@ -247,19 +247,19 @@ static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
   return false;
 }
 
-static bool paint_tool_raycast_original(Brush *brush, ePaintMode /*mode*/)
+static bool paint_tool_raycast_original(Brush *brush, PaintMode /*mode*/)
 {
   return brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT);
 }
 
-static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode mode)
+static bool paint_tool_require_inbetween_mouse_events(Brush *brush, PaintMode mode)
 {
   if (brush->flag & BRUSH_ANCHORED) {
     return false;
   }
 
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       if (ELEM(brush->sculpt_tool,
                SCULPT_TOOL_GRAB,
                SCULPT_TOOL_ROTATE,
@@ -285,7 +285,7 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
 /* Initialize the stroke cache variants from operator properties */
 static bool paint_brush_update(bContext *C,
                                Brush *brush,
-                               ePaintMode mode,
+                               PaintMode mode,
                                PaintStroke *stroke,
                                const float mouse_init[2],
                                float mouse[2],
@@ -500,7 +500,7 @@ static bool paint_stroke_use_dash(Brush *brush)
   return brush->flag & BRUSH_SPACE || brush->flag & BRUSH_LINE || brush->flag & BRUSH_CURVE;
 }
 
-static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
+static bool paint_stroke_use_jitter(PaintMode mode, Brush *brush, bool invert)
 {
   bool use_jitter = (brush->flag & BRUSH_ABSOLUTE_JITTER) ? (brush->jitter_absolute != 0) :
                                                             (brush->jitter != 0);
@@ -508,7 +508,7 @@ static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
   /* jitter-ed brush gives weird and unpredictable result for this
    * kinds of stroke, so manually disable jitter usage (sergey) */
   use_jitter &= (brush->flag & (BRUSH_DRAG_DOT | BRUSH_ANCHORED)) == 0;
-  use_jitter &= (!ELEM(mode, PAINT_MODE_TEXTURE_2D, PAINT_MODE_TEXTURE_3D) ||
+  use_jitter &= (!ELEM(mode, PaintMode::Texture2D, PaintMode::Texture3D) ||
                  !(invert && brush->imagepaint_tool == PAINT_TOOL_CLONE));
 
   return use_jitter;
@@ -520,7 +520,7 @@ static void paint_brush_stroke_add_step(
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   UnifiedPaintSettings *ups = stroke->ups;
   float mouse_out[2];
@@ -643,7 +643,7 @@ static void paint_brush_stroke_add_step(
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
 static bool paint_smooth_stroke(PaintStroke *stroke,
                                 const PaintSample *sample,
-                                ePaintMode mode,
+                                PaintMode mode,
                                 float r_mouse[2],
                                 float *r_pressure)
 {
@@ -676,7 +676,7 @@ static float paint_space_stroke_spacing(bContext *C,
                                         float spacing_pressure)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   float size_clamp = 0.0f;
   float size = BKE_brush_size_get(scene, stroke->brush) * size_pressure;
@@ -816,7 +816,7 @@ static int paint_space_stroke(bContext *C,
   ARegion *region = CTX_wm_region(C);
   UnifiedPaintSettings *ups = stroke->ups;
   Paint *paint = BKE_paint_get_active_from_context(C);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   int count = 0;
 
@@ -1022,7 +1022,7 @@ static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
   return ELEM(tool, CURVES_SCULPT_TOOL_ADD, CURVES_SCULPT_TOOL_DENSITY);
 }
 
-bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
+bool paint_space_stroke_enabled(Brush *br, PaintMode mode)
 {
   if ((br->flag & BRUSH_SPACE) == 0) {
     return false;
@@ -1036,13 +1036,13 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return true;
   }
 
-  if (mode == PAINT_MODE_SCULPT_CURVES &&
+  if (mode == PaintMode::SculptCurves &&
       !curves_sculpt_brush_uses_spacing(eBrushCurvesSculptTool(br->curves_sculpt_tool)))
   {
     return false;
   }
 
-  if (mode == PAINT_MODE_GPENCIL) {
+  if (mode == PaintMode::GPencil) {
     /* No spacing needed for now. */
     return false;
   }
@@ -1066,21 +1066,21 @@ static bool sculpt_is_grab_tool(Brush *br)
               SCULPT_TOOL_SNAKE_HOOK);
 }
 
-bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
+bool paint_supports_dynamic_size(Brush *br, PaintMode mode)
 {
   if (br->flag & BRUSH_ANCHORED) {
     return false;
   }
 
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       if (sculpt_is_grab_tool(br)) {
         return false;
       }
       break;
 
-    case PAINT_MODE_TEXTURE_2D: /* fall through */
-    case PAINT_MODE_TEXTURE_3D:
+    case PaintMode::Texture2D: /* fall through */
+    case PaintMode::Texture3D:
       if ((br->imagepaint_tool == PAINT_TOOL_FILL) && (br->flag & BRUSH_USE_GRADIENT)) {
         return false;
       }
@@ -1092,7 +1092,7 @@ bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
   return true;
 }
 
-bool paint_supports_smooth_stroke(Brush *br, ePaintMode mode)
+bool paint_supports_smooth_stroke(Brush *br, PaintMode mode)
 {
   if (!(br->flag & BRUSH_SMOOTH_STROKE) ||
       (br->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT | BRUSH_LINE)))
@@ -1101,7 +1101,7 @@ bool paint_supports_smooth_stroke(Brush *br, ePaintMode mode)
   }
 
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       if (sculpt_is_grab_tool(br)) {
         return false;
       }
@@ -1112,21 +1112,21 @@ bool paint_supports_smooth_stroke(Brush *br, ePaintMode mode)
   return true;
 }
 
-bool paint_supports_texture(ePaintMode mode)
+bool paint_supports_texture(PaintMode mode)
 {
   /* omit: PAINT_WEIGHT, PAINT_SCULPT_UV, PAINT_INVALID */
   return ELEM(
-      mode, PAINT_MODE_SCULPT, PAINT_MODE_VERTEX, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D);
+      mode, PaintMode::Sculpt, PaintMode::Vertex, PaintMode::Texture3D, PaintMode::Texture2D);
 }
 
-bool paint_supports_dynamic_tex_coords(Brush *br, ePaintMode mode)
+bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode)
 {
   if (br->flag & BRUSH_ANCHORED) {
     return false;
   }
 
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       if (sculpt_is_grab_tool(br)) {
         return false;
       }
@@ -1208,7 +1208,7 @@ static void paint_line_strokes_spacing(bContext *C,
   UnifiedPaintSettings *ups = stroke->ups;
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   ARegion *region = CTX_wm_region(C);
 
   const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
@@ -1432,7 +1432,7 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
 int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke **stroke_p)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   PaintStroke *stroke = *stroke_p;
   Brush *br = stroke->brush = BKE_paint_brush(p);
   PaintSample sample_average;

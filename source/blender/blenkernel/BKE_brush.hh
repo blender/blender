@@ -13,8 +13,7 @@
 #include "DNA_color_types.h"
 #include "DNA_object_enums.h"
 
-#include "BKE_paint.hh" /* for ePaintMode */
-
+enum class PaintMode : int8_t;
 struct Brush;
 struct ImBuf;
 struct ImagePool;
@@ -176,7 +175,7 @@ void BKE_brush_scale_size(int *r_brush_size,
 /* Returns true if a brush requires a cube
  * (often presented to the user as a square) tip inside a specific paint mode.
  */
-bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode);
+bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode);
 
 /* Accessors */
 #define BKE_brush_tool_get(brush, p) \

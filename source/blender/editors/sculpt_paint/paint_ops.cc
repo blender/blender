@@ -56,7 +56,7 @@ static int brush_add_exec(bContext *C, wmOperator * /*op*/)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *br = BKE_paint_brush(paint);
   Main *bmain = CTX_data_main(C);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   if (br) {
     br = (Brush *)BKE_id_copy(bmain, &br->id);
@@ -377,7 +377,7 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   Palette *palette = paint->palette;
   PaletteColor *color;
 
@@ -387,15 +387,15 @@ static int palette_color_add_exec(bContext *C, wmOperator * /*op*/)
   if (paint->brush) {
     const Brush *brush = paint->brush;
     if (ELEM(mode,
-             PAINT_MODE_TEXTURE_3D,
-             PAINT_MODE_TEXTURE_2D,
-             PAINT_MODE_VERTEX,
-             PAINT_MODE_SCULPT))
+             PaintMode::Texture3D,
+             PaintMode::Texture2D,
+             PaintMode::Vertex,
+             PaintMode::Sculpt))
     {
       copy_v3_v3(color->rgb, BKE_brush_color_get(scene, brush));
       color->value = 0.0;
     }
-    else if (mode == PAINT_MODE_WEIGHT) {
+    else if (mode == PaintMode::Weight) {
       zero_v3(color->rgb);
       color->value = brush->weight;
     }
@@ -916,9 +916,9 @@ static bool brush_generic_tool_set(bContext *C,
      * In case we are toggling (and the brush changed to the toggle_brush), we need to get the
      * tool_name again. */
     int tool_result = brush_tool(brush, paint->runtime.tool_offset);
-    ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
+    PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
 
-    if (paint_mode == PAINT_MODE_SCULPT_CURVES) {
+    if (paint_mode == PaintMode::SculptCurves) {
       tool_name = curves_active_tool_name_get(eBrushCurvesSculptTool(tool)).c_str();
     }
     else {
@@ -935,16 +935,16 @@ static bool brush_generic_tool_set(bContext *C,
   return false;
 }
 
-static const ePaintMode brush_select_paint_modes[] = {
-    PAINT_MODE_SCULPT,
-    PAINT_MODE_VERTEX,
-    PAINT_MODE_WEIGHT,
-    PAINT_MODE_TEXTURE_3D,
-    PAINT_MODE_GPENCIL,
-    PAINT_MODE_VERTEX_GPENCIL,
-    PAINT_MODE_SCULPT_GPENCIL,
-    PAINT_MODE_WEIGHT_GPENCIL,
-    PAINT_MODE_SCULPT_CURVES,
+static const PaintMode brush_select_paint_modes[] = {
+    PaintMode::Sculpt,
+    PaintMode::Vertex,
+    PaintMode::Weight,
+    PaintMode::Texture3D,
+    PaintMode::GPencil,
+    PaintMode::VertexGPencil,
+    PaintMode::SculptGPencil,
+    PaintMode::WeightGPencil,
+    PaintMode::SculptCurves,
 };
 
 static int brush_select_exec(bContext *C, wmOperator *op)
@@ -956,7 +956,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   const char *tool_name = "Brush";
   int tool = 0;
 
-  ePaintMode paint_mode = PAINT_MODE_INVALID;
+  PaintMode paint_mode = PaintMode::Invalid;
   for (int i = 0; i < ARRAY_SIZE(brush_select_paint_modes); i++) {
     paint_mode = brush_select_paint_modes[i];
     const char *op_prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
@@ -967,7 +967,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (paint_mode == PAINT_MODE_INVALID) {
+  if (paint_mode == PaintMode::Invalid) {
     return OPERATOR_CANCELLED;
   }
 
@@ -976,7 +976,7 @@ static int brush_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (paint_mode == PAINT_MODE_SCULPT_CURVES) {
+  if (paint_mode == PaintMode::SculptCurves) {
     tool_name = curves_active_tool_name_get(eBrushCurvesSculptTool(tool)).c_str();
   }
   else {
@@ -1008,7 +1008,7 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
   /* props */
   /* All properties are hidden, so as not to show the redo panel. */
   for (int i = 0; i < ARRAY_SIZE(brush_select_paint_modes); i++) {
-    const ePaintMode paint_mode = brush_select_paint_modes[i];
+    const PaintMode paint_mode = brush_select_paint_modes[i];
     const char *prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
     prop = RNA_def_enum(
         ot->srna, prop_id, BKE_paint_get_tool_enum_from_paintmode(paint_mode), 0, prop_id, "");
@@ -1260,7 +1260,7 @@ static int stencil_control_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
 static bool stencil_control_poll(bContext *C)
 {
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   Paint *paint;
   Brush *br;

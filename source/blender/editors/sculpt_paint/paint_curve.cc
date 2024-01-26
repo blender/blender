@@ -666,27 +666,27 @@ void PAINTCURVE_OT_slide(wmOperatorType *ot)
 
 static int paintcurve_draw_exec(bContext *C, wmOperator * /*op*/)
 {
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   const char *name;
 
   switch (mode) {
-    case PAINT_MODE_TEXTURE_2D:
-    case PAINT_MODE_TEXTURE_3D:
+    case PaintMode::Texture2D:
+    case PaintMode::Texture3D:
       name = "PAINT_OT_image_paint";
       break;
-    case PAINT_MODE_WEIGHT:
+    case PaintMode::Weight:
       name = "PAINT_OT_weight_paint";
       break;
-    case PAINT_MODE_VERTEX:
+    case PaintMode::Vertex:
       name = "PAINT_OT_vertex_paint";
       break;
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       name = "SCULPT_OT_brush_stroke";
       break;
-    case PAINT_MODE_SCULPT_CURVES:
+    case PaintMode::SculptCurves:
       name = "SCULPT_CURVES_OT_brush_stroke";
       break;
-    case PAINT_MODE_GPENCIL:
+    case PaintMode::GPencil:
       name = "GREASE_PENCIL_OT_brush_stroke";
       break;
     default:
@@ -713,10 +713,10 @@ void PAINTCURVE_OT_draw(wmOperatorType *ot)
 
 static int paintcurve_cursor_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   switch (mode) {
-    case PAINT_MODE_TEXTURE_2D: {
+    case PaintMode::Texture2D: {
       ARegion *region = CTX_wm_region(C);
       SpaceImage *sima = CTX_wm_space_image(C);
       float location[2];

@@ -319,7 +319,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-  ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
+  ED_image_undo_push_begin(op->type->name, PaintMode::Texture2D);
 
   return pop;
 }

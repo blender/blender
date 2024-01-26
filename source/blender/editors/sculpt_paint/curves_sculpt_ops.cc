@@ -203,7 +203,7 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
-  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptCurves);
   const Brush *brush = paint ? BKE_paint_brush_for_read(paint) : nullptr;
   if (brush == nullptr) {
     return OPERATOR_CANCELLED;
@@ -288,7 +288,7 @@ static void curves_sculptmode_enter(bContext *C)
   ob->mode = OB_MODE_SCULPT_CURVES;
 
   /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptCurves);
   copy_v3_v3_uchar(paint->paint_cursor_col, PAINT_CURSOR_SCULPT_CURVES);
   paint->paint_cursor_col[3] = 128;
 

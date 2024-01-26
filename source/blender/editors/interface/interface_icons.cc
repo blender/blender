@@ -2105,7 +2105,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
   else {
     Object *ob = CTX_data_active_object(C);
     const EnumPropertyItem *items = nullptr;
-    ePaintMode paint_mode = PAINT_MODE_INVALID;
+    PaintMode paint_mode = PaintMode::Invalid;
     ScrArea *area = CTX_wm_area(C);
     char space_type = area->spacetype;
     /* Fallback to 3D view. */
@@ -2119,26 +2119,26 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 
     if ((space_type == SPACE_VIEW3D) && ob) {
       if (ob->mode & OB_MODE_SCULPT) {
-        paint_mode = PAINT_MODE_SCULPT;
+        paint_mode = PaintMode::Sculpt;
       }
       else if (ob->mode & OB_MODE_VERTEX_PAINT) {
-        paint_mode = PAINT_MODE_VERTEX;
+        paint_mode = PaintMode::Vertex;
       }
       else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-        paint_mode = PAINT_MODE_WEIGHT;
+        paint_mode = PaintMode::Weight;
       }
       else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-        paint_mode = PAINT_MODE_TEXTURE_3D;
+        paint_mode = PaintMode::Texture3D;
       }
       else if (ob->mode & OB_MODE_SCULPT_CURVES) {
-        paint_mode = PAINT_MODE_SCULPT_CURVES;
+        paint_mode = PaintMode::SculptCurves;
       }
     }
     else if (space_type == SPACE_IMAGE) {
       if (area->spacetype == space_type) {
         const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
         if (sima->mode == SI_MODE_PAINT) {
-          paint_mode = PAINT_MODE_TEXTURE_2D;
+          paint_mode = PaintMode::Texture2D;
         }
       }
     }
@@ -2248,7 +2248,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       return id->icon_id;
     }
 
-    if (paint_mode != PAINT_MODE_INVALID) {
+    if (paint_mode != PaintMode::Invalid) {
       items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       const uint tool_offset = BKE_paint_get_brush_tool_offset_from_paintmode(paint_mode);
       const int tool_type = *(char *)POINTER_OFFSET(br, tool_offset);

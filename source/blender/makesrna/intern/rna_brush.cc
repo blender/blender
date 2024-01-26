@@ -896,7 +896,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
                                                          PropertyRNA * /*prop*/,
                                                          bool * /*r_free*/)
 {
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   /* sculpt mode */
   static const EnumPropertyItem prop_flatten_contrast_items[] = {
@@ -939,7 +939,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
   Brush *me = (Brush *)(ptr->data);
 
   switch (mode) {
-    case PAINT_MODE_SCULPT:
+    case PaintMode::Sculpt:
       switch (me->sculpt_tool) {
         case SCULPT_TOOL_DRAW:
         case SCULPT_TOOL_DRAW_SHARP:
@@ -982,8 +982,8 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
           return rna_enum_dummy_DEFAULT_items;
       }
 
-    case PAINT_MODE_TEXTURE_2D:
-    case PAINT_MODE_TEXTURE_3D:
+    case PaintMode::Texture2D:
+    case PaintMode::Texture3D:
       switch (me->imagepaint_tool) {
         case PAINT_TOOL_SOFTEN:
           return prop_soften_sharpen_items;
@@ -991,7 +991,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         default:
           return rna_enum_dummy_DEFAULT_items;
       }
-    case PAINT_MODE_SCULPT_CURVES:
+    case PaintMode::SculptCurves:
       switch (me->curves_sculpt_tool) {
         case CURVES_SCULPT_TOOL_GROW_SHRINK:
         case CURVES_SCULPT_TOOL_SELECTION_PAINT:
@@ -1010,7 +1010,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
                                                       PropertyRNA * /*prop*/,
                                                       bool * /*r_free*/)
 {
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   static const EnumPropertyItem brush_stroke_method_items[] = {
       {0, "DOTS", 0, "Dots", "Apply paint on each mouse move step"},
@@ -1034,9 +1034,9 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
   };
 
   switch (mode) {
-    case PAINT_MODE_SCULPT:
-    case PAINT_MODE_TEXTURE_2D:
-    case PAINT_MODE_TEXTURE_3D:
+    case PaintMode::Sculpt:
+    case PaintMode::Texture2D:
+    case PaintMode::Texture3D:
       return sculpt_stroke_method_items;
 
     default:
@@ -1170,8 +1170,8 @@ static const EnumPropertyItem *rna_BrushTextureSlot_map_mode_itemf(bContext *C,
 #  define rna_enum_brush_texture_slot_map_sculpt_mode_items \
     rna_enum_brush_texture_slot_map_all_mode_items;
 
-  const ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-  if (mode == PAINT_MODE_SCULPT) {
+  const PaintMode mode = BKE_paintmode_get_active_from_context(C);
+  if (mode == PaintMode::Sculpt) {
     return rna_enum_brush_texture_slot_map_sculpt_mode_items;
   }
   return rna_enum_brush_texture_slot_map_texture_mode_items;
