@@ -306,9 +306,6 @@ class GHOST_SystemCocoa : public GHOST_System {
    */
   GHOST_TSuccess setMouseCursorPosition(int32_t x, int32_t y);
 
-  /** Start time at initialization. */
-  uint64_t m_start_time;
-
   /** Event has been processed directly by Cocoa (or NDOF manager)
    * and has sent a ghost event to be dispatched */
   bool m_outsideLoopEventProcessed;
