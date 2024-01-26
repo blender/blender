@@ -266,6 +266,13 @@ static SocketDeclarationPtr declaration_for_interface_socket(
       dst = std::move(decl);
       break;
     }
+    case SOCK_MENU: {
+      const auto &value = node_interface::get_socket_data_as<bNodeSocketValueMenu>(io_socket);
+      std::unique_ptr<decl::Menu> decl = std::make_unique<decl::Menu>();
+      decl->default_value = value.value;
+      dst = std::move(decl);
+      break;
+    }
     case SOCK_OBJECT: {
       auto value = std::make_unique<decl::Object>();
       value->default_value_fn = get_default_id_getter(ntree.tree_interface, io_socket);

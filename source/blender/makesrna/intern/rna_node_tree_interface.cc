@@ -30,6 +30,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #  include "BKE_attribute.hh"
 #  include "BKE_node.h"
+#  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
 #  include "BKE_node_tree_update.hh"
@@ -881,6 +882,24 @@ static int rna_NodeTreeInterface_items_lookup_string(PointerRNA *ptr,
     }
   }
   return false;
+}
+
+const EnumPropertyItem *RNA_node_tree_interface_socket_menu_itemf(bContext * /*C*/,
+                                                                  PointerRNA *ptr,
+                                                                  PropertyRNA * /*prop*/,
+                                                                  bool *r_free)
+{
+  const bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  if (!socket) {
+    *r_free = false;
+    return rna_enum_dummy_NULL_items;
+  }
+  const bNodeSocketValueMenu *data = static_cast<bNodeSocketValueMenu *>(socket->socket_data);
+  if (!data->enum_items) {
+    *r_free = false;
+    return rna_enum_dummy_NULL_items;
+  }
+  return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 
 #else

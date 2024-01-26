@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_index_range.hh"
+#include "BLI_utildefines.h"
 
 namespace blender::dna::array {
 

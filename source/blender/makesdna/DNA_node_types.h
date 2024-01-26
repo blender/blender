@@ -40,17 +40,22 @@ namespace blender::bke {
 class bNodeTreeZones;
 class bNodeTreeZone;
 }  // namespace blender::bke
+namespace blender::bke {
+struct RuntimeNodeEnumItems;
+}  // namespace blender::bke
 using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
 using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
 using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
 using bNodeRuntimeHandle = blender::bke::bNodeRuntime;
 using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
+using RuntimeNodeEnumItemsHandle = blender::bke::RuntimeNodeEnumItems;
 #else
 typedef struct NodeDeclarationHandle NodeDeclarationHandle;
 typedef struct SocketDeclarationHandle SocketDeclarationHandle;
 typedef struct bNodeTreeRuntimeHandle bNodeTreeRuntimeHandle;
 typedef struct bNodeRuntimeHandle bNodeRuntimeHandle;
 typedef struct bNodeSocketRuntimeHandle bNodeSocketRuntimeHandle;
+typedef struct RuntimeNodeEnumItemsHandle RuntimeNodeEnumItemsHandle;
 #endif
 
 struct AnimData;
@@ -69,6 +74,7 @@ struct bNodeLink;
 struct bNodePreview;
 struct bNodeType;
 struct bNode;
+struct NodeEnumDefinition;
 
 #define NODE_MAXSTR 64
 
@@ -256,6 +262,7 @@ typedef enum eNodeSocketDatatype {
   SOCK_TEXTURE = 12,
   SOCK_MATERIAL = 13,
   SOCK_ROTATION = 14,
+  SOCK_MENU = 15,
 } eNodeSocketDatatype;
 
 /** Socket shape. */
@@ -918,6 +925,19 @@ typedef struct bNodeSocketValueTexture {
 typedef struct bNodeSocketValueMaterial {
   struct Material *value;
 } bNodeSocketValueMaterial;
+
+typedef struct bNodeSocketValueMenu {
+  /* Default input enum identifier. */
+  int value;
+  /* #NodeSocketValueMenuRuntimeFlag */
+  int runtime_flag;
+  /* Immutable runtime enum definition. */
+  const RuntimeNodeEnumItemsHandle *enum_items;
+
+#ifdef __cplusplus
+  bool has_conflict() const;
+#endif
+} bNodeSocketValueMenu;
 
 typedef struct GeometryNodeAssetTraits {
   int flag;
@@ -1613,9 +1633,49 @@ typedef struct NodeGeometryMeshLine {
 } NodeGeometryMeshLine;
 
 typedef struct NodeSwitch {
-  /** #NodeSwitch. */
+  /** #eNodeSocketDatatype. */
   uint8_t input_type;
 } NodeSwitch;
+
+typedef struct NodeEnumItem {
+  char *name;
+  char *description;
+  /* Immutable unique identifier. */
+  int32_t identifier;
+  char _pad[4];
+} NodeEnumItem;
+
+typedef struct NodeEnumDefinition {
+  /* User-defined enum items owned and managed by this node. */
+  NodeEnumItem *items_array;
+  int16_t items_num;
+  int16_t active_index;
+  uint32_t next_identifier;
+
+#ifdef __cplusplus
+  blender::Span<NodeEnumItem> items() const;
+  blender::MutableSpan<NodeEnumItem> items_for_write();
+
+  NodeEnumItem *add_item(blender::StringRef name);
+  bool remove_item(NodeEnumItem &item);
+  void clear();
+  bool move_item(uint16_t from_index, uint16_t to_index);
+
+  const NodeEnumItem *active_item() const;
+  NodeEnumItem *active_item();
+  void active_item_set(NodeEnumItem *item);
+
+  void set_item_name(NodeEnumItem &item, blender::StringRef name);
+#endif
+} NodeEnumDefinition;
+
+typedef struct NodeMenuSwitch {
+  NodeEnumDefinition enum_definition;
+
+  /** #eNodeSocketDatatype. */
+  uint8_t data_type;
+  char _pad[7];
+} NodeMenuSwitch;
 
 typedef struct NodeGeometryCurveSplineType {
   /** #GeometryNodeSplineType. */

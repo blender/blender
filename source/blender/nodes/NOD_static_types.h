@@ -372,6 +372,7 @@ DefNode(GeometryNode, GEO_NODE_INSTANCES_TO_POINTS, 0, "INSTANCES_TO_POINTS",Ins
 DefNode(GeometryNode, GEO_NODE_IS_VIEWPORT, 0, "IS_VIEWPORT", IsViewport, "Is Viewport", "Retrieve whether the nodes are being evaluated for the viewport rather than the final render")
 DefNode(GeometryNode, GEO_NODE_JOIN_GEOMETRY, 0, "JOIN_GEOMETRY", JoinGeometry, "Join Geometry", "Merge separately generated geometries into a single one")
 DefNode(GeometryNode, GEO_NODE_MATERIAL_SELECTION, 0, "MATERIAL_SELECTION", MaterialSelection, "Material Selection", "Provide a selection of faces that use the specified material")
+DefNode(GeometryNode, GEO_NODE_MENU_SWITCH, def_geo_menu_switch, "MENU_SWITCH", MenuSwitch, "Menu Switch", "Select from multiple inputs by name")
 DefNode(GeometryNode, GEO_NODE_MERGE_BY_DISTANCE, 0, "MERGE_BY_DISTANCE", MergeByDistance, "Merge by Distance", "Merge vertices or points within a given distance")
 DefNode(GeometryNode, GEO_NODE_MESH_BOOLEAN, 0, "MESH_BOOLEAN", MeshBoolean, "Mesh Boolean", "Cut, subtract, or join multiple mesh inputs")
 DefNode(GeometryNode, GEO_NODE_MESH_FACE_GROUP_BOUNDARIES, 0, "MESH_FACE_SET_BOUNDARIES", MeshFaceSetBoundaries, "Face Group Boundaries", "Find edges on the boundaries between groups of faces with the same ID value")
