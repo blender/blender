@@ -78,7 +78,7 @@ struct uv_vertex_key {
 
   uint64_t hash() const
   {
-    return get_default_hash_3(uv.x, uv.y, vertex_index);
+    return get_default_hash(uv.x, uv.y, vertex_index);
   }
 };
 

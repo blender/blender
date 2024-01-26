@@ -431,7 +431,7 @@ std::string AttributeFieldInput::socket_inspection_name() const
 
 uint64_t AttributeFieldInput::hash() const
 {
-  return get_default_hash_2(name_, type_);
+  return get_default_hash(name_, type_);
 }
 
 bool AttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
@@ -513,7 +513,7 @@ std::string AnonymousAttributeFieldInput::socket_inspection_name() const
 
 uint64_t AnonymousAttributeFieldInput::hash() const
 {
-  return get_default_hash_2(anonymous_id_.get(), type_);
+  return get_default_hash(anonymous_id_.get(), type_);
 }
 
 bool AnonymousAttributeFieldInput::is_equal_to(const fn::FieldNode &other) const
@@ -575,7 +575,7 @@ GVArray NamedLayerSelectionFieldInput::get_varray_for_context(
 
 uint64_t NamedLayerSelectionFieldInput::hash() const
 {
-  return get_default_hash_2(layer_name_, type_);
+  return get_default_hash(layer_name_, type_);
 }
 
 bool NamedLayerSelectionFieldInput::is_equal_to(const fn::FieldNode &other) const

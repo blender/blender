@@ -672,12 +672,12 @@ class NodeOperation {
 
   template<typename T1, typename T2> void hash_params(T1 param1, T2 param2)
   {
-    combine_hashes(params_hash_, get_default_hash_2(param1, param2));
+    combine_hashes(params_hash_, get_default_hash(param1, param2));
   }
 
   template<typename T1, typename T2, typename T3> void hash_params(T1 param1, T2 param2, T3 param3)
   {
-    combine_hashes(params_hash_, get_default_hash_3(param1, param2, param3));
+    combine_hashes(params_hash_, get_default_hash(param1, param2, param3));
   }
 
   void add_input_socket(DataType datatype, ResizeMode resize_mode = ResizeMode::Center);

@@ -44,7 +44,7 @@ KeyingScreenKey::KeyingScreenKey(int frame, float smoothness)
 
 uint64_t KeyingScreenKey::hash() const
 {
-  return get_default_hash_2(frame, smoothness);
+  return get_default_hash(frame, smoothness);
 }
 
 bool operator==(const KeyingScreenKey &a, const KeyingScreenKey &b)

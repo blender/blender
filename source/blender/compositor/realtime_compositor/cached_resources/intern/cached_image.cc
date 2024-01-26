@@ -42,7 +42,7 @@ CachedImageKey::CachedImageKey(ImageUser image_user, std::string pass_name)
 
 uint64_t CachedImageKey::hash() const
 {
-  return get_default_hash_4(image_user.framenr, image_user.layer, image_user.view, pass_name);
+  return get_default_hash(image_user.framenr, image_user.layer, image_user.view, pass_name);
 }
 
 bool operator==(const CachedImageKey &a, const CachedImageKey &b)

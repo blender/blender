@@ -88,7 +88,7 @@ class Edge {
 
   uint64_t hash() const
   {
-    return get_default_hash_2(v_[0]->id, v_[1]->id);
+    return get_default_hash(v_[0]->id, v_[1]->id);
   }
 };
 

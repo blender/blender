@@ -99,7 +99,7 @@ struct PaintTileKey {
 
   uint64_t hash() const
   {
-    return blender::get_default_hash_4(x_tile, y_tile, image, ibuf);
+    return blender::get_default_hash(x_tile, y_tile, image, ibuf);
   }
   bool operator==(const PaintTileKey &other) const
   {

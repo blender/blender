@@ -313,7 +313,7 @@ inline const bNode &DNode::operator*() const
 
 inline uint64_t DNode::hash() const
 {
-  return get_default_hash_2(context_, bnode_);
+  return get_default_hash(context_, bnode_);
 }
 
 inline DInputSocket DNode::input(int index) const
@@ -387,7 +387,7 @@ inline const bNodeSocket &DSocket::operator*() const
 
 inline uint64_t DSocket::hash() const
 {
-  return get_default_hash_2(context_, bsocket_);
+  return get_default_hash(context_, bsocket_);
 }
 
 inline DNode DSocket::node() const

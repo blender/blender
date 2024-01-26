@@ -1381,7 +1381,7 @@ void BKE_ntree_update_tag_image_user_changed(bNodeTree *ntree, ImageUser * /*ius
 
 uint64_t bNestedNodePath::hash() const
 {
-  return blender::get_default_hash_2(this->node_id, this->id_in_node);
+  return blender::get_default_hash(this->node_id, this->id_in_node);
 }
 
 bool operator==(const bNestedNodePath &a, const bNestedNodePath &b)

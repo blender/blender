@@ -36,7 +36,7 @@ BokehKernelKey::BokehKernelKey(
 
 uint64_t BokehKernelKey::hash() const
 {
-  return get_default_hash_3(
+  return get_default_hash(
       size, size, get_default_hash(float4(rotation, roundness, catadioptric, lens_shift)));
 }
 
