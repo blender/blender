@@ -696,7 +696,13 @@ void ANIM_armature_bonecoll_remove_from_index(bArmature *armature, int index)
     }
   }
 
+  const bool is_solo = bcoll->is_solo();
   internal::bonecoll_unassign_and_free(armature, bcoll);
+  if (is_solo) {
+    /* This might have been the last solo'ed bone collection, so check whether
+     * solo'ing should still be active on the armature. */
+    ANIM_armature_refresh_solo_active(armature);
+  }
 }
 
 void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
