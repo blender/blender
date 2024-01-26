@@ -32,5 +32,4 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
  *                           included, since they are stored on disk with a single root directory,
  *                           thus have a well defined location that can be written to.
  */
-const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
-    bool include_generated);
+const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(bool include_generated);

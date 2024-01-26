@@ -26,8 +26,7 @@
 struct AssetLibrary;
 struct bScreen;
 
-void ED_asset_catalogs_save_from_main_path(struct ::AssetLibrary *library,
-                                           const struct Main *bmain);
+void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *bmain);
 
 /**
  * Saving catalog edits when the file is saved is a global option shared for each asset library,

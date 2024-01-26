@@ -942,6 +942,4 @@ constexpr FileIndexerType asset_indexer()
 
 }  // namespace blender::ed::asset::index
 
-extern "C" {
 const FileIndexerType file_indexer_asset = blender::ed::asset::index::asset_indexer();
-}

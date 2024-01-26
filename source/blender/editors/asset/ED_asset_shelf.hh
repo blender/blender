@@ -32,37 +32,34 @@ struct RegionPollParams;
  *
  * \{ */
 
-bool ED_asset_shelf_regions_poll(const struct RegionPollParams *params);
+bool ED_asset_shelf_regions_poll(const RegionPollParams *params);
 
 /** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_HEADER). */
 void *ED_asset_shelf_region_duplicate(void *regiondata);
-void ED_asset_shelf_region_free(struct ARegion *region);
-void ED_asset_shelf_region_init(struct wmWindowManager *wm, struct ARegion *region);
-int ED_asset_shelf_region_snap(const struct ARegion *region, int size, int axis);
-void ED_asset_shelf_region_on_user_resize(const struct ARegion *region);
-void ED_asset_shelf_region_listen(const struct wmRegionListenerParams *params);
-void ED_asset_shelf_region_layout(const bContext *C, struct ARegion *region);
-void ED_asset_shelf_region_draw(const bContext *C, struct ARegion *region);
-void ED_asset_shelf_region_blend_read_data(BlendDataReader *reader, struct ARegion *region);
-void ED_asset_shelf_region_blend_write(BlendWriter *writer, struct ARegion *region);
+void ED_asset_shelf_region_free(ARegion *region);
+void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region);
+int ED_asset_shelf_region_snap(const ARegion *region, int size, int axis);
+void ED_asset_shelf_region_on_user_resize(const ARegion *region);
+void ED_asset_shelf_region_listen(const wmRegionListenerParams *params);
+void ED_asset_shelf_region_layout(const bContext *C, ARegion *region);
+void ED_asset_shelf_region_draw(const bContext *C, ARegion *region);
+void ED_asset_shelf_region_blend_read_data(BlendDataReader *reader, ARegion *region);
+void ED_asset_shelf_region_blend_write(BlendWriter *writer, ARegion *region);
 int ED_asset_shelf_region_prefsizey(void);
 
-void ED_asset_shelf_header_region_init(struct wmWindowManager *wm, struct ARegion *region);
-void ED_asset_shelf_header_region(const struct bContext *C, struct ARegion *region);
-void ED_asset_shelf_header_region_listen(const struct wmRegionListenerParams *params);
+void ED_asset_shelf_header_region_init(wmWindowManager *wm, ARegion *region);
+void ED_asset_shelf_header_region(const bContext *C, ARegion *region);
+void ED_asset_shelf_header_region_listen(const wmRegionListenerParams *params);
 int ED_asset_shelf_header_region_size(void);
-void ED_asset_shelf_header_regiontype_register(struct ARegionType *region_type,
-                                               const int space_type);
+void ED_asset_shelf_header_regiontype_register(ARegionType *region_type, const int space_type);
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 
-void ED_asset_shelf_type_unlink(const struct Main &bmain, const struct AssetShelfType &shelf_type);
+void ED_asset_shelf_type_unlink(const Main &bmain, const AssetShelfType &shelf_type);
 
-int ED_asset_shelf_tile_width(const struct AssetShelfSettings &settings);
-int ED_asset_shelf_tile_height(const struct AssetShelfSettings &settings);
+int ED_asset_shelf_tile_width(const AssetShelfSettings &settings);
+int ED_asset_shelf_tile_height(const AssetShelfSettings &settings);
 
-int ED_asset_shelf_context(const struct bContext *C,
-                           const char *member,
-                           struct bContextDataResult *result);
+int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataResult *result);

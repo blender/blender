@@ -12,7 +12,7 @@
 
 struct ID;
 
-bool ED_asset_type_id_is_non_experimental(const struct ID *id);
+bool ED_asset_type_id_is_non_experimental(const ID *id);
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS \
   (FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_AC | FILTER_ID_WO | FILTER_ID_NT)
 
@@ -28,7 +28,7 @@ bool ED_asset_type_is_supported(const ID *id);
  * \note Does not check for #BKE_id_can_be_asset(), so may return filter flags for IDs that can
  *       never be assets.
  */
-int64_t ED_asset_types_supported_as_filter_flags(void);
+int64_t ED_asset_types_supported_as_filter_flags();
 
 /**
  * Utility: A string enumerating the non-experimental asset types. This is useful info to

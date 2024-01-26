@@ -19,13 +19,12 @@
 
 #include "RNA_types.hh"
 
+struct AssetHandle;
 namespace blender::asset_system {
 class AssetRepresentation;
 }
 
-struct AssetHandle;
-
 blender::asset_system::AssetRepresentation *ED_asset_handle_get_representation(
-    const struct AssetHandle *asset);
-int ED_asset_handle_get_preview_icon_id(const struct AssetHandle *asset);
-int ED_asset_handle_get_preview_or_type_icon_id(const struct AssetHandle *asset);
+    const AssetHandle *asset);
+int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset);
+int ED_asset_handle_get_preview_or_type_icon_id(const AssetHandle *asset);

@@ -20,14 +20,14 @@ struct bContext;
  *
  * \return whether the datablock was marked as asset; false when it is not capable of becoming an
  * asset, or when it already was an asset. */
-bool ED_asset_mark_id(struct ID *id);
+bool ED_asset_mark_id(ID *id);
 
 /**
  * Generate preview image for the given datablock.
  *
  * The preview image might be generated using a background thread.
  */
-void ED_asset_generate_preview(const struct bContext *C, struct ID *id);
+void ED_asset_generate_preview(const bContext *C, ID *id);
 
 /**
  * Remove the asset metadata, turning the ID into a "normal" ID.
@@ -37,7 +37,7 @@ void ED_asset_generate_preview(const struct bContext *C, struct ID *id);
  *
  * \return whether the asset metadata was actually removed; false when the ID was not an asset.
  */
-bool ED_asset_clear_id(struct ID *id);
+bool ED_asset_clear_id(ID *id);
 
 /**
  * Copy the asset metadata to the given destination ID.
@@ -49,8 +49,8 @@ bool ED_asset_clear_id(struct ID *id);
  * \return true when the copy succeeded, false otherwise. The only reason for
  *  failure is when \a destination is of a type that cannot be an asset.
  */
-bool ED_asset_copy_to_id(const struct AssetMetaData *asset_data, struct ID *destination);
+bool ED_asset_copy_to_id(const AssetMetaData *asset_data, ID *destination);
 
-void ED_assets_pre_save(struct Main *bmain);
+void ED_assets_pre_save(Main *bmain);
 
-bool ED_asset_can_mark_single_from_context(const struct bContext *C);
+bool ED_asset_can_mark_single_from_context(const bContext *C);
