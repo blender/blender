@@ -23,7 +23,7 @@
 
 #include "DNA_screen_types.h"
 
-#include "ED_asset_list.h"
+#include "ED_asset_list.hh"
 #include "ED_screen.hh"
 
 #include "RNA_prototypes.h"
@@ -35,7 +35,7 @@
 
 #include "WM_api.hh"
 
-#include "ED_asset_shelf.h"
+#include "ED_asset_shelf.hh"
 #include "asset_shelf.hh"
 
 using namespace blender;

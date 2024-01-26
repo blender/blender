@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ARegion;
 struct ARegionType;
 struct AssetShelfSettings;
@@ -70,7 +66,3 @@ int ED_asset_shelf_tile_height(const struct AssetShelfSettings &settings);
 int ED_asset_shelf_context(const struct bContext *C,
                            const char *member,
                            struct bContextDataResult *result);
-
-#ifdef __cplusplus
-}
-#endif

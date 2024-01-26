@@ -18,7 +18,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_asset_catalog.h"
+#include "ED_asset_catalog.hh"
 #include "ED_asset_catalog.hh"
 
 #include "WM_api.hh"

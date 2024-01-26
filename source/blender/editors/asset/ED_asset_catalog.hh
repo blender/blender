@@ -12,7 +12,7 @@
  * true. Generally UI code should disable such functionality in this case, so these functions are
  * not called at all.
  *
- * Note that `ED_asset_catalog.h` is part of this API.
+ * Note that `ED_asset_catalog.hh` is part of this API.
  */
 
 #pragma once
@@ -26,18 +26,30 @@
 struct AssetLibrary;
 struct bScreen;
 
+void ED_asset_catalogs_save_from_main_path(struct ::AssetLibrary *library,
+                                           const struct Main *bmain);
+
+/**
+ * Saving catalog edits when the file is saved is a global option shared for each asset library,
+ * and as such ignores the per asset library #ED_asset_catalogs_read_only().
+ */
+void ED_asset_catalogs_set_save_catalogs_when_file_is_saved(bool should_save);
+bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved(void);
+
 /**
  * Returns if the catalogs of \a library are allowed to be editable, or if the UI should forbid
  * edits.
  */
-[[nodiscard]] bool ED_asset_catalogs_read_only(const AssetLibrary &library);
+[[nodiscard]] bool ED_asset_catalogs_read_only(const ::AssetLibrary &library);
 
 blender::asset_system::AssetCatalog *ED_asset_catalog_add(
-    AssetLibrary *library, blender::StringRefNull name, blender::StringRef parent_path = nullptr);
-void ED_asset_catalog_remove(AssetLibrary *library,
+    ::AssetLibrary *library,
+    blender::StringRefNull name,
+    blender::StringRef parent_path = nullptr);
+void ED_asset_catalog_remove(::AssetLibrary *library,
                              const blender::asset_system::CatalogID &catalog_id);
 
-void ED_asset_catalog_rename(AssetLibrary *library,
+void ED_asset_catalog_rename(::AssetLibrary *library,
                              blender::asset_system::CatalogID catalog_id,
                              blender::StringRefNull new_name);
 /**
@@ -52,6 +64,6 @@ void ED_asset_catalog_rename(AssetLibrary *library,
  * Nothing is done (debug builds run into an assert) if the given catalog IDs can't be identified.
  */
 void ED_asset_catalog_move(
-    AssetLibrary *library,
+    ::AssetLibrary *library,
     blender::asset_system::CatalogID src_catalog_id,
     std::optional<blender::asset_system::CatalogID> dst_parent_catalog_id = std::nullopt);

@@ -66,8 +66,8 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 #  include "BKE_report.h"
 #  include "BKE_screen.hh"
 
-#  include "ED_asset_library.h"
-#  include "ED_asset_shelf.h"
+#  include "ED_asset_library.hh"
+#  include "ED_asset_shelf.hh"
 
 #  include "WM_api.hh"
 

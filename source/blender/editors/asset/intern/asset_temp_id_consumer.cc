@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "ED_asset_temp_id_consumer.h"
+#include "ED_asset_temp_id_consumer.hh"
 
 using namespace blender;
 

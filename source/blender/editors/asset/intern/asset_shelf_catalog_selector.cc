@@ -22,7 +22,7 @@
 #include "BLT_translation.h"
 
 #include "ED_asset_filter.hh"
-#include "ED_asset_list.h"
+#include "ED_asset_list.hh"
 #include "ED_asset_list.hh"
 
 #include "RNA_access.hh"

@@ -10,10 +10,6 @@
 
 #include "ED_file_indexer.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * File Indexer Service for indexing asset files.
  *
@@ -32,7 +28,3 @@ extern "C" {
  *   additional performance.
  */
 extern const FileIndexerType file_indexer_asset;
-
-#ifdef __cplusplus
-}
-#endif

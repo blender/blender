@@ -54,7 +54,7 @@
 #include "BKE_viewer_path.hh"
 #include "BKE_workspace.h"
 
-#include "ED_asset_shelf.h"
+#include "ED_asset_shelf.hh"
 #include "ED_geometry.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"

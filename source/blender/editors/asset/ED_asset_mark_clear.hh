@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct AssetMetaData;
 struct ID;
 struct Main;
@@ -58,7 +54,3 @@ bool ED_asset_copy_to_id(const struct AssetMetaData *asset_data, struct ID *dest
 void ED_assets_pre_save(struct Main *bmain);
 
 bool ED_asset_can_mark_single_from_context(const struct bContext *C);
-
-#ifdef __cplusplus
-}
-#endif

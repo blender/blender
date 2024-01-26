@@ -34,8 +34,8 @@
 #include "../space_file/file_indexer.hh"
 #include "../space_file/filelist.hh"
 
-#include "ED_asset_indexer.h"
-#include "ED_asset_list.h"
+#include "ED_asset_indexer.hh"
+#include "ED_asset_list.hh"
 #include "ED_asset_list.hh"
 #include "ED_screen.hh"
 #include "asset_library_reference.hh"

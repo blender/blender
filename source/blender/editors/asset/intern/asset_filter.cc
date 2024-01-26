@@ -19,9 +19,9 @@
 #include "AS_asset_library.hh"
 
 #include "ED_asset_filter.hh"
-#include "ED_asset_handle.h"
-#include "ED_asset_library.h"
-#include "ED_asset_list.h"
+#include "ED_asset_handle.hh"
+#include "ED_asset_library.hh"
+#include "ED_asset_list.hh"
 #include "ED_asset_list.hh"
 
 using namespace blender;

@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <optional>
 
-#include "ED_asset_indexer.h"
+#include "ED_asset_indexer.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"

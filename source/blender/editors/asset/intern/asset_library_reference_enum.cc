@@ -23,7 +23,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_asset_library.h"
+#include "ED_asset_library.hh"
 
 int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library)
 {

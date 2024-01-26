@@ -34,7 +34,7 @@
 #include "WM_types.hh"
 
 #include "ED_asset.hh"
-#include "ED_asset_shelf.h"
+#include "ED_asset_shelf.hh"
 #include "ED_buttons.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"

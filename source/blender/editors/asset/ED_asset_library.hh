@@ -10,10 +10,6 @@
 
 #include "DNA_asset_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Return an index that can be used to uniquely identify \a library, assuming
  * that all relevant indices were created with this function.
@@ -38,7 +34,3 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
  */
 const struct EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(
     bool include_generated);
-
-#ifdef __cplusplus
-}
-#endif

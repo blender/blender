@@ -56,7 +56,7 @@
 
 /* TODO(@JulianEisel): For asset shelf region reading/writing. Region read/write should be done via
  * a #ARegionType callback. */
-#include "../editors/asset/ED_asset_shelf.h"
+#include "../editors/asset/ED_asset_shelf.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"

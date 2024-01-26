@@ -20,10 +20,10 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "ED_asset_handle.h"
-#include "ED_asset_list.h"
+#include "ED_asset_handle.hh"
 #include "ED_asset_list.hh"
-#include "ED_asset_shelf.h"
+#include "ED_asset_list.hh"
+#include "ED_asset_shelf.hh"
 
 #include "UI_grid_view.hh"
 #include "UI_interface.hh"

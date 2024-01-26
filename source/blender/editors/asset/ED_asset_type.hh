@@ -10,10 +10,6 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 
 bool ED_asset_type_id_is_non_experimental(const struct ID *id);
@@ -42,7 +38,3 @@ int64_t ED_asset_types_supported_as_filter_flags(void);
  */
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING \
   "Material, Collection, Object, Pose Action, Node Group or World"
-
-#ifdef __cplusplus
-}
-#endif

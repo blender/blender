@@ -22,7 +22,7 @@
 
 #include "RNA_prototypes.h"
 
-#include "ED_asset_handle.h"
+#include "ED_asset_handle.hh"
 
 blender::asset_system::AssetRepresentation *ED_asset_handle_get_representation(
     const AssetHandle *asset)

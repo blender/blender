@@ -12,7 +12,7 @@
 
 #include "BKE_lib_id.hh"
 
-#include "ED_asset_type.h"
+#include "ED_asset_type.hh"
 
 bool ED_asset_type_id_is_non_experimental(const ID *id)
 {
