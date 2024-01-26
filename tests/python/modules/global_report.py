@@ -63,12 +63,14 @@ def add(output_dir, category, name, filepath, failed=None):
     else:
         status = "ok"
 
+    relpath = os.path.relpath(filepath, output_dir)
+
     html = """
         <span class="{status}">&#11044;</span>
-        <a href="file://{filepath}">{name}</a><br/>
+        <a href="{relpath}">{name}</a><br/>
         """ . format(status=status,
                      name=name,
-                     filepath=filepath)
+                     relpath=relpath)
 
     dirpath = os.path.join(output_dir, "report", category)
     os.makedirs(dirpath, exist_ok=True)
