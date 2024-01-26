@@ -8,9 +8,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "BKE_asset.hh"
 #include "BKE_attribute.hh"
-#include "BKE_blendfile.hh"
 #include "BKE_brush.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
@@ -18,13 +16,11 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 
-#include "ED_asset_handle.h"
 #include "ED_curves.hh"
 #include "ED_curves_sculpt.hh"
 #include "ED_image.hh"
@@ -32,8 +28,6 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 #include "ED_view3d.hh"
-
-#include "AS_asset_representation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -1162,50 +1156,6 @@ static void SCULPT_CURVES_OT_min_distance_edit(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
-/* -------------------------------------------------------------------- */
-
-static int brush_asset_select_exec(bContext *C, wmOperator *op)
-{
-  /* This operator currently covers both cases: the file/asset browser file list and the asset list
-   * used for the asset-view template. Once the asset list design is used by the Asset Browser,
-   * this can be simplified to just that case. */
-  asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
-  if (!asset) {
-    return OPERATOR_CANCELLED;
-  }
-
-  AssetWeakReference *brush_asset_reference = asset->make_weak_reference();
-  Brush *brush = BKE_brush_asset_runtime_ensure(CTX_data_main(C), brush_asset_reference);
-
-  ToolSettings *tool_settings = CTX_data_tool_settings(C);
-
-  if (!BKE_paint_brush_asset_set(
-          &tool_settings->curves_sculpt->paint, brush, brush_asset_reference))
-  {
-    /* Note brush datablock was still added, so was not a no-op. */
-    BKE_report(op->reports, RPT_WARNING, "Unable to select brush, wrong object mode");
-    return OPERATOR_FINISHED;
-  }
-
-  WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-  WM_toolsystem_ref_set_by_id(C, "builtin.brush");
-
-  return OPERATOR_FINISHED;
-}
-
-static void SCULPT_CURVES_OT_brush_asset_select(wmOperatorType *ot)
-{
-  ot->name = "Select Brush Asset";
-  ot->description = "Select a brush asset as currently sculpt/paint tool - TESTING PURPOSE ONLY";
-  ot->idname = "SCULPT_CURVES_OT_brush_asset_select";
-
-  ot->exec = brush_asset_select_exec;
-  ot->poll = curves_sculpt_poll;
-
-  ot->prop = RNA_def_string(
-      ot->srna, "name", nullptr, MAX_NAME, "Brush Name", "Name of the brush asset to select");
-}
-
 }  // namespace blender::ed::sculpt_paint
 
 /* -------------------------------------------------------------------- */
@@ -1220,8 +1170,6 @@ void ED_operatortypes_sculpt_curves()
   WM_operatortype_append(SCULPT_CURVES_OT_select_random);
   WM_operatortype_append(SCULPT_CURVES_OT_select_grow);
   WM_operatortype_append(SCULPT_CURVES_OT_min_distance_edit);
-
-  WM_operatortype_append(SCULPT_CURVES_OT_brush_asset_select);
 }
 
 /** \} */

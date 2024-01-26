@@ -45,6 +45,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "AS_asset_representation.hh"
+
 #include "curves_sculpt_intern.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
@@ -971,6 +973,53 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
+/**************************** Brush Assets **********************************/
+
+static bool brush_asset_poll(bContext *C)
+{
+  return BKE_paint_get_active_from_context(C) != nullptr;
+}
+
+static int brush_asset_select_exec(bContext *C, wmOperator *op)
+{
+  /* This operator currently covers both cases: the file/asset browser file list and the asset list
+   * used for the asset-view template. Once the asset list design is used by the Asset Browser,
+   * this can be simplified to just that case. */
+  blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  if (!asset) {
+    return OPERATOR_CANCELLED;
+  }
+
+  AssetWeakReference *brush_asset_reference = asset->make_weak_reference();
+  Brush *brush = BKE_brush_asset_runtime_ensure(CTX_data_main(C), brush_asset_reference);
+
+  Paint *paint = BKE_paint_get_active_from_context(C);
+
+  if (!BKE_paint_brush_asset_set(paint, brush, brush_asset_reference)) {
+    /* Note brush datablock was still added, so was not a no-op. */
+    BKE_report(op->reports, RPT_WARNING, "Unable to select brush, wrong object mode");
+    return OPERATOR_FINISHED;
+  }
+
+  WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  WM_toolsystem_ref_set_by_id(C, "builtin.brush");
+
+  return OPERATOR_FINISHED;
+}
+
+static void BRUSH_OT_asset_select(wmOperatorType *ot)
+{
+  ot->name = "Select Brush Asset";
+  ot->description = "Select a brush asset as current sculpt and paint tool";
+  ot->idname = "BRUSH_OT_asset_select";
+
+  ot->exec = brush_asset_select_exec;
+  ot->poll = brush_asset_poll;
+
+  ot->prop = RNA_def_string(
+      ot->srna, "name", nullptr, MAX_NAME, "Brush Name", "Name of the brush asset to select");
+}
+
 /***** Stencil Control *****/
 
 enum StencilControlMode {
@@ -1432,6 +1481,7 @@ void ED_operatortypes_paint()
   WM_operatortype_append(BRUSH_OT_stencil_control);
   WM_operatortype_append(BRUSH_OT_stencil_fit_image_aspect);
   WM_operatortype_append(BRUSH_OT_stencil_reset_transform);
+  WM_operatortype_append(BRUSH_OT_asset_select);
 
   /* NOTE: particle uses a different system, can be added with existing operators in `wm.py`. */
   WM_operatortype_append(PAINT_OT_brush_select);
