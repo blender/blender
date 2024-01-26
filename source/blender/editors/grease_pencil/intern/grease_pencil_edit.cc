@@ -16,6 +16,7 @@
 #include "BLT_translation.h"
 
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
@@ -33,7 +34,6 @@
 
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
-#include "ED_screen.hh"
 
 #include "GEO_smooth_curves.hh"
 #include "GEO_subdivide_curves.hh"
@@ -43,71 +43,6 @@
 #include "UI_resources.hh"
 
 namespace blender::ed::greasepencil {
-
-bool active_grease_pencil_poll(bContext *C)
-{
-  Object *object = CTX_data_active_object(C);
-  if (object == nullptr || object->type != OB_GREASE_PENCIL) {
-    return false;
-  }
-  return true;
-}
-
-bool editable_grease_pencil_poll(bContext *C)
-{
-  Object *object = CTX_data_active_object(C);
-  if (object == nullptr || object->type != OB_GREASE_PENCIL) {
-    return false;
-  }
-  if (!ED_operator_object_active_editable_ex(C, object)) {
-    return false;
-  }
-  if ((object->mode & OB_MODE_EDIT) == 0) {
-    return false;
-  }
-  return true;
-}
-
-bool editable_grease_pencil_point_selection_poll(bContext *C)
-{
-  if (!editable_grease_pencil_poll(C)) {
-    return false;
-  }
-
-  /* Allowed: point and segment selection mode, not allowed: stroke selection mode. */
-  ToolSettings *ts = CTX_data_tool_settings(C);
-  return (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE);
-}
-
-bool grease_pencil_painting_poll(bContext *C)
-{
-  if (!active_grease_pencil_poll(C)) {
-    return false;
-  }
-  Object *object = CTX_data_active_object(C);
-  if ((object->mode & OB_MODE_PAINT_GREASE_PENCIL) == 0) {
-    return false;
-  }
-  ToolSettings *ts = CTX_data_tool_settings(C);
-  if (!ts || !ts->gp_paint) {
-    return false;
-  }
-  return true;
-}
-
-static void keymap_grease_pencil_editing(wmKeyConfig *keyconf)
-{
-  wmKeyMap *keymap = WM_keymap_ensure(
-      keyconf, "Grease Pencil Edit Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = editable_grease_pencil_poll;
-}
-
-static void keymap_grease_pencil_painting(wmKeyConfig *keyconf)
-{
-  wmKeyMap *keymap = WM_keymap_ensure(
-      keyconf, "Grease Pencil Paint Mode", SPACE_EMPTY, RGN_TYPE_WINDOW);
-  keymap->poll = grease_pencil_painting_poll;
-}
 
 /* -------------------------------------------------------------------- */
 /** \name Smooth Stroke Operator
@@ -1602,18 +1537,6 @@ static void GREASE_PENCIL_OT_stroke_subdivide(wmOperatorType *ot)
 
 /** \} */
 
-static void grease_pencil_operatormarcos_define()
-{
-  wmOperatorType *ot;
-
-  ot = WM_operatortype_append_macro("GREASE_PENCIL_OT_stroke_subdivide_smooth",
-                                    "Subdivide and Smooth",
-                                    "Subdivide strokes and smooth them",
-                                    OPTYPE_UNDO | OPTYPE_REGISTER);
-  WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_stroke_subdivide");
-  WM_operatortype_macro_define(ot, "GREASE_PENCIL_OT_stroke_smooth");
-}
-
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -1635,13 +1558,4 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_material);
   WM_operatortype_append(GREASE_PENCIL_OT_clean_loose);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_subdivide);
-
-  grease_pencil_operatormarcos_define();
-}
-
-void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
-{
-  using namespace blender::ed::greasepencil;
-  keymap_grease_pencil_editing(keyconf);
-  keymap_grease_pencil_painting(keyconf);
 }
