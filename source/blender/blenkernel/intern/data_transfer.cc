@@ -1060,7 +1060,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
         dst_data = static_cast<float3 *>(CustomData_add_layer(
             &me_dst->corner_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num));
       }
-      if (mix_factor != 1.0f) {
+      if (mix_factor != 1.0f || mix_weights) {
         MutableSpan(dst_data, me_dst->corners_num).copy_from(me_dst->corner_normals());
       }
       /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
