@@ -80,7 +80,7 @@ static bool image_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_IMAGE)) {
+    if (file_type == FILE_TYPE_IMAGE) {
       generic_poll_operations(event, TH_SEQ_IMAGE);
       return true;
     }
@@ -98,7 +98,7 @@ static bool is_movie(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_MOVIE)) {
+    if (file_type == FILE_TYPE_MOVIE) {
       return true;
     }
   }
@@ -122,7 +122,7 @@ static bool is_sound(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_SOUND)) {
+    if (file_type == FILE_TYPE_SOUND) {
       return true;
     }
   }
@@ -690,7 +690,7 @@ static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_IMAGE)) {
+    if (file_type == FILE_TYPE_IMAGE) {
       return true;
     }
   }
@@ -702,7 +702,7 @@ static bool movie_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_MOVIE)) {
+    if (file_type == FILE_TYPE_MOVIE) {
       return true;
     }
   }
@@ -714,7 +714,7 @@ static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEven
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
-    if (ELEM(file_type, 0, FILE_TYPE_SOUND)) {
+    if (file_type == FILE_TYPE_SOUND) {
       return true;
     }
   }
