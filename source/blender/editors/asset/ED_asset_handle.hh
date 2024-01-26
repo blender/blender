@@ -19,25 +19,15 @@
 
 #include "RNA_types.hh"
 
-#ifdef __cplusplus
+struct AssetHandle;
 namespace blender::asset_system {
 class AssetRepresentation;
 }
-using AssetRepresentationHandle = blender::asset_system::AssetRepresentation;
-#else
-typedef struct AssetRepresentationHandle AssetRepresentationHandle;
-#endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender::ed::asset {
 
-struct AssetHandle;
+asset_system::AssetRepresentation *handle_get_representation(const AssetHandle *asset);
+int handle_get_preview_icon_id(const AssetHandle *asset);
+int handle_get_preview_or_type_icon_id(const AssetHandle *asset);
 
-AssetRepresentationHandle *ED_asset_handle_get_representation(const struct AssetHandle *asset);
-int ED_asset_handle_get_preview_icon_id(const struct AssetHandle *asset);
-int ED_asset_handle_get_preview_or_type_icon_id(const struct AssetHandle *asset);
-
-#ifdef __cplusplus
-}
-#endif
+}  // namespace blender::ed::asset

@@ -576,7 +576,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     std::string shortcut = UI_but_string_get_operator_keymap(*C, *but);
 
     if (shortcut.empty()) {
-      const ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
+      const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
       const char *tool_attr = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
       if (tool_attr != nullptr) {
         const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);

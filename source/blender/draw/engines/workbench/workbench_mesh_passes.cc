@@ -69,8 +69,8 @@ PassMain::Sub &MeshPass::get_subpass(
     GPUTexture *texture = nullptr;
     GPUTexture *tilemap = nullptr;
     if (image->source == IMA_SRC_TILED) {
-      texture = BKE_image_get_gpu_tiles(image, iuser, nullptr);
-      tilemap = BKE_image_get_gpu_tilemap(image, iuser, nullptr);
+      texture = BKE_image_get_gpu_tiles(image, iuser);
+      tilemap = BKE_image_get_gpu_tilemap(image, iuser);
     }
     else {
       texture = BKE_image_get_gpu_texture(image, iuser, nullptr);

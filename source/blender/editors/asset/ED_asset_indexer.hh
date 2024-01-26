@@ -10,9 +10,7 @@
 
 #include "ED_file_indexer.hh"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender::ed::asset::index {
 
 /**
  * File Indexer Service for indexing asset files.
@@ -33,6 +31,4 @@ extern "C" {
  */
 extern const FileIndexerType file_indexer_asset;
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace blender::ed::asset::index

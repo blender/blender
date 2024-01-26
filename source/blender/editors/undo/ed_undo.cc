@@ -205,6 +205,7 @@ static void ed_undo_step_post(bContext *C,
                               const enum eUndoStepDir undo_dir,
                               ReportList *reports)
 {
+  using namespace blender::ed;
   BLI_assert(ELEM(undo_dir, STEP_UNDO, STEP_REDO));
 
   Main *bmain = CTX_data_main(C);
@@ -249,7 +250,7 @@ static void ed_undo_step_post(bContext *C,
   WM_toolsystem_refresh_active(C);
   WM_toolsystem_refresh_screen_all(bmain);
 
-  ED_assetlist_storage_tag_main_data_dirty();
+  asset::list::storage_tag_main_data_dirty();
 
   if (CLOG_CHECK(&LOG, 1)) {
     BKE_undosys_print(wm->undo_stack);

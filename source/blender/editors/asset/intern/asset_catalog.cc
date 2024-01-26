@@ -18,15 +18,15 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_asset_catalog.h"
 #include "ED_asset_catalog.hh"
 
 #include "WM_api.hh"
 
-using namespace blender;
+namespace blender::ed::asset {
+
 using namespace blender::asset_system;
 
-bool ED_asset_catalogs_read_only(const ::AssetLibrary &library)
+bool catalogs_read_only(const AssetLibrary &library)
 {
   asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       &library);
@@ -58,16 +58,16 @@ static std::string catalog_name_ensure_unique(AssetCatalogService &catalog_servi
   return unique_name;
 }
 
-asset_system::AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
-                                                 StringRefNull name,
-                                                 StringRef parent_path)
+asset_system::AssetCatalog *catalog_add(AssetLibrary *library,
+                                        StringRefNull name,
+                                        StringRef parent_path)
 {
   asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       library);
   if (!catalog_service) {
     return nullptr;
   }
-  if (ED_asset_catalogs_read_only(*library)) {
+  if (catalogs_read_only(*library)) {
     return nullptr;
   }
 
@@ -85,7 +85,7 @@ asset_system::AssetCatalog *ED_asset_catalog_add(::AssetLibrary *library,
   return new_catalog;
 }
 
-void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_id)
+void catalog_remove(AssetLibrary *library, const CatalogID &catalog_id)
 {
   asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       library);
@@ -93,7 +93,7 @@ void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_i
     BLI_assert_unreachable();
     return;
   }
-  if (ED_asset_catalogs_read_only(*library)) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -103,9 +103,9 @@ void ED_asset_catalog_remove(::AssetLibrary *library, const CatalogID &catalog_i
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
-void ED_asset_catalog_rename(::AssetLibrary *library,
-                             const CatalogID catalog_id,
-                             const StringRefNull new_name)
+void catalog_rename(AssetLibrary *library,
+                    const CatalogID catalog_id,
+                    const StringRefNull new_name)
 {
   asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       library);
@@ -113,7 +113,7 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
     BLI_assert_unreachable();
     return;
   }
-  if (ED_asset_catalogs_read_only(*library)) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -133,9 +133,9 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
-void ED_asset_catalog_move(::AssetLibrary *library,
-                           const CatalogID src_catalog_id,
-                           const std::optional<CatalogID> dst_parent_catalog_id)
+void catalog_move(AssetLibrary *library,
+                  const CatalogID src_catalog_id,
+                  const std::optional<CatalogID> dst_parent_catalog_id)
 {
   asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       library);
@@ -143,7 +143,7 @@ void ED_asset_catalog_move(::AssetLibrary *library,
     BLI_assert_unreachable();
     return;
   }
-  if (ED_asset_catalogs_read_only(*library)) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -179,7 +179,7 @@ void ED_asset_catalog_move(::AssetLibrary *library,
   WM_main_add_notifier(NC_SPACE | ND_SPACE_ASSET_PARAMS, nullptr);
 }
 
-void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *bmain)
+void catalogs_save_from_main_path(AssetLibrary *library, const Main *bmain)
 {
   asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
       library);
@@ -187,7 +187,7 @@ void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *
     BLI_assert_unreachable();
     return;
   }
-  if (ED_asset_catalogs_read_only(*library)) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -197,12 +197,14 @@ void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *
   catalog_service->write_to_disk(bmain->filepath);
 }
 
-void ED_asset_catalogs_set_save_catalogs_when_file_is_saved(const bool should_save)
+void catalogs_set_save_catalogs_when_file_is_saved(const bool should_save)
 {
   asset_system::AssetLibrary::save_catalogs_when_file_is_saved = should_save;
 }
 
-bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved()
+bool catalogs_get_save_catalogs_when_file_is_saved()
 {
   return asset_system::AssetLibrary::save_catalogs_when_file_is_saved;
 }
+
+}  // namespace blender::ed::asset

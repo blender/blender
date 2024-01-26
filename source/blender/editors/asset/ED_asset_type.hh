@@ -10,13 +10,11 @@
 
 #include "DNA_ID.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 
-bool ED_asset_type_id_is_non_experimental(const struct ID *id);
+namespace blender::ed::asset {
+
+bool id_type_is_non_experimental(const ID *id);
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS \
   (FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_AC | FILTER_ID_WO | FILTER_ID_NT)
 
@@ -24,7 +22,7 @@ bool ED_asset_type_id_is_non_experimental(const struct ID *id);
  * Check if the asset type for \a id (which doesn't need to be an asset right now) can be an asset,
  * respecting the "Extended Asset Browser" experimental feature flag.
  */
-bool ED_asset_type_is_supported(const ID *id);
+bool id_type_is_supported(const ID *id);
 
 /**
  * Get the filter flags (subset of #FILTER_ID_ALL) representing the asset ID types that may be
@@ -32,7 +30,7 @@ bool ED_asset_type_is_supported(const ID *id);
  * \note Does not check for #BKE_id_can_be_asset(), so may return filter flags for IDs that can
  *       never be assets.
  */
-int64_t ED_asset_types_supported_as_filter_flags(void);
+int64_t types_supported_as_filter_flags();
 
 /**
  * Utility: A string enumerating the non-experimental asset types. This is useful info to
@@ -43,6 +41,4 @@ int64_t ED_asset_types_supported_as_filter_flags(void);
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING \
   "Material, Collection, Object, Pose Action, Node Group or World"
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace blender::ed::asset

@@ -358,8 +358,8 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     BKE_report(reports, RPT_WARNING, "Object has negative scale, sculpting may be unpredictable");
   }
 
-  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);
-  BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT, PAINT_CURSOR_SCULPT);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::Sculpt);
+  BKE_paint_init(bmain, scene, PaintMode::Sculpt, PAINT_CURSOR_SCULPT);
 
   ED_paint_cursor_start(paint, SCULPT_mode_poll_view3d);
 

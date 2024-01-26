@@ -6164,7 +6164,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_3D);
+  ED_image_undo_push_begin(op->type->name, PaintMode::Texture3D);
 
   const float pos[2] = {0.0, 0.0};
   const float lastpos[2] = {0.0, 0.0};

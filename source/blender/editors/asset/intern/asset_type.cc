@@ -12,16 +12,18 @@
 
 #include "BKE_lib_id.hh"
 
-#include "ED_asset_type.h"
+#include "ED_asset_type.hh"
 
-bool ED_asset_type_id_is_non_experimental(const ID *id)
+namespace blender::ed::asset {
+
+bool id_type_is_non_experimental(const ID *id)
 {
   /* Remember to update #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING and
    * #ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS() with this! */
   return ELEM(GS(id->name), ID_MA, ID_GR, ID_OB, ID_AC, ID_WO, ID_NT);
 }
 
-bool ED_asset_type_is_supported(const ID *id)
+bool id_type_is_supported(const ID *id)
 {
   if (!BKE_id_can_be_asset(id)) {
     return false;
@@ -33,10 +35,10 @@ bool ED_asset_type_is_supported(const ID *id)
     return true;
   }
 
-  return ED_asset_type_id_is_non_experimental(id);
+  return id_type_is_non_experimental(id);
 }
 
-int64_t ED_asset_types_supported_as_filter_flags()
+int64_t types_supported_as_filter_flags()
 {
   if (U.experimental.use_extended_asset_browser) {
     return FILTER_ID_ALL;
@@ -44,3 +46,5 @@ int64_t ED_asset_types_supported_as_filter_flags()
 
   return ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS;
 }
+
+}  // namespace blender::ed::asset

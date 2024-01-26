@@ -240,6 +240,8 @@ bool rna_AnimaData_override_apply(struct Main *bmain,
 void rna_def_animviz_common(struct StructRNA *srna);
 void rna_def_motionpath_common(struct StructRNA *srna);
 
+void api_ui_item_common_translation(FunctionRNA *func);
+
 /**
  * Settings for curved bbone settings.
  */

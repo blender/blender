@@ -79,17 +79,17 @@ void paint_stroke_free(bContext *C, wmOperator *op, PaintStroke *stroke);
 /**
  * Returns zero if the stroke dots should not be spaced, non-zero otherwise.
  */
-bool paint_space_stroke_enabled(Brush *br, enum ePaintMode mode);
+bool paint_space_stroke_enabled(Brush *br, PaintMode mode);
 /**
  * Return true if the brush size can change during paint (normally used for pressure).
  */
-bool paint_supports_dynamic_size(Brush *br, enum ePaintMode mode);
+bool paint_supports_dynamic_size(Brush *br, PaintMode mode);
 /**
  * Return true if the brush size can change during paint (normally used for pressure).
  */
-bool paint_supports_dynamic_tex_coords(Brush *br, enum ePaintMode mode);
-bool paint_supports_smooth_stroke(Brush *br, enum ePaintMode mode);
-bool paint_supports_texture(enum ePaintMode mode);
+bool paint_supports_dynamic_tex_coords(Brush *br, PaintMode mode);
+bool paint_supports_smooth_stroke(Brush *br, PaintMode mode);
+bool paint_supports_texture(PaintMode mode);
 
 /**
  * Called in paint_ops.cc, on each regeneration of key-maps.

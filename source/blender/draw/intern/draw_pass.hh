@@ -925,11 +925,11 @@ template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMat
       /* Image */
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
       if (tex->tiled_mapping_name[0]) {
-        GPUTexture *tiles = BKE_image_get_gpu_tiles(tex->ima, iuser, nullptr);
+        GPUTexture *tiles = BKE_image_get_gpu_tiles(tex->ima, iuser);
         manager.acquire_texture(tiles);
         bind_texture(tex->sampler_name, tiles, tex->sampler_state);
 
-        GPUTexture *tile_map = BKE_image_get_gpu_tilemap(tex->ima, iuser, nullptr);
+        GPUTexture *tile_map = BKE_image_get_gpu_tilemap(tex->ima, iuser);
         manager.acquire_texture(tile_map);
         bind_texture(tex->tiled_mapping_name, tile_map, tex->sampler_state);
       }

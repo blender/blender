@@ -461,6 +461,7 @@ void UV_clipboard_free();
 
 void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_actions)
 {
+  using namespace blender;
   wmWindowManager *wm = C ? CTX_wm_manager(C) : nullptr;
 
   /* While nothing technically prevents saving user data in background mode,
@@ -577,7 +578,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
   ED_preview_restart_queue_free();
-  ED_assetlist_storage_exit();
+  ed::asset::list::storage_exit();
 
   BKE_tracking_clipboard_free();
   BKE_mask_clipboard_free();

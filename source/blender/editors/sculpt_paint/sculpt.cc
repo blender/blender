@@ -1177,7 +1177,7 @@ static int sculpt_brush_needs_normal(const SculptSession *ss, Sculpt *sd, const 
 
           (mask_tex->brush_map_mode == MTEX_MAP_MODE_AREA)) ||
          sculpt_brush_use_topology_rake(ss, brush) ||
-         BKE_brush_has_cube_tip(brush, PAINT_MODE_SCULPT);
+         BKE_brush_has_cube_tip(brush, PaintMode::Sculpt);
 }
 
 static bool sculpt_brush_needs_rake_rotation(const Brush *brush)
@@ -3324,7 +3324,7 @@ static void do_brush_action(Sculpt *sd,
     float radius_scale = 1.0f;
 
     /* Corners of square brushes can go outside the brush radius. */
-    if (BKE_brush_has_cube_tip(brush, PAINT_MODE_SCULPT)) {
+    if (BKE_brush_has_cube_tip(brush, PaintMode::Sculpt)) {
       radius_scale = M_SQRT2;
     }
 
@@ -4628,7 +4628,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
    * thumb). They depends on initial state and brush coord/pressure/etc.
    * It's more an events design issue, which doesn't split coordinate/pressure/angle changing
    * events. We should avoid this after events system re-design. */
-  if (paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT) || cache->first_time) {
+  if (paint_supports_dynamic_size(brush, PaintMode::Sculpt) || cache->first_time) {
     cache->pressure = RNA_float_get(ptr, "pressure");
   }
 
@@ -4661,7 +4661,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     }
   }
 
-  if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT))
+  if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, PaintMode::Sculpt))
   {
     cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
     cache->dyntopo_pixel_radius = sculpt_brush_dynamic_size_get(
@@ -5401,7 +5401,7 @@ static void sculpt_stroke_undo_begin(const bContext *C, wmOperator *op)
   if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
       SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob))
   {
-    ED_image_undo_push_begin(op->type->name, PAINT_MODE_SCULPT);
+    ED_image_undo_push_begin(op->type->name, PaintMode::Sculpt);
   }
   else {
     undo::push_begin_ex(ob, sculpt_tool_name(sd));

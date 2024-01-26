@@ -6,7 +6,6 @@
  * \ingroup edasset
  */
 
-#include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
@@ -24,7 +23,6 @@
 #include "BLI_set.hh"
 
 #include "ED_asset.hh"
-#include "ED_asset_catalog.hh"
 #include "ED_screen.hh"
 #include "ED_util.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
@@ -41,15 +39,12 @@
 
 #include "DNA_space_types.h"
 
-using namespace blender;
-
+namespace blender::ed::asset {
 /* -------------------------------------------------------------------- */
 
-using PointerRNAVec = blender::Vector<PointerRNA>;
-
-static PointerRNAVec get_single_id_vec_from_context(const bContext *C)
+static Vector<PointerRNA> get_single_id_vec_from_context(const bContext *C)
 {
-  PointerRNAVec ids;
+  Vector<PointerRNA> ids;
   PointerRNA idptr = CTX_data_pointer_get_type(C, "id", &RNA_ID);
   if (idptr.data) {
     ids.append(idptr);
@@ -62,9 +57,9 @@ static PointerRNAVec get_single_id_vec_from_context(const bContext *C)
  * ("selected_ids" context member) over a single active one ("id" context member), since usually
  * batch operations are more useful.
  */
-static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
+static Vector<PointerRNA> asset_operation_get_ids_from_context(const bContext *C)
 {
-  PointerRNAVec ids;
+  Vector<PointerRNA> ids;
 
   /* "selected_ids" context member. */
   {
@@ -85,7 +80,7 @@ static PointerRNAVec asset_operation_get_ids_from_context(const bContext *C)
 }
 
 /**
- * Information about what's contained in a #PointerRNAVec, returned by
+ * Information about what's contained in a #Vector<PointerRNA>, returned by
  * #asset_operation_get_id_vec_stats_from_context().
  */
 struct IDVecStats {
@@ -98,7 +93,7 @@ struct IDVecStats {
  * Helper to report stats about the IDs in context. Operator polls use this, also to report a
  * helpful disabled hint to the user.
  */
-static IDVecStats asset_operation_get_id_vec_stats_from_ids(const PointerRNAVec &id_pointers)
+static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Vector<PointerRNA> &id_pointers)
 {
   IDVecStats stats;
 
@@ -108,7 +103,7 @@ static IDVecStats asset_operation_get_id_vec_stats_from_ids(const PointerRNAVec 
     BLI_assert(RNA_struct_is_ID(ptr.type));
 
     ID *id = static_cast<ID *>(ptr.data);
-    if (ED_asset_type_is_supported(id)) {
+    if (id_type_is_supported(id)) {
       stats.has_supported_type = true;
     }
     if (ID_IS_ASSET(id)) {
@@ -134,7 +129,7 @@ static const char *asset_operation_unsupported_type_msg(const bool is_single)
 
 class AssetMarkHelper {
  public:
-  void operator()(const bContext &C, const PointerRNAVec &ids);
+  void operator()(const bContext &C, const Vector<PointerRNA> &ids);
 
   void reportResults(ReportList &reports) const;
   bool wasSuccessful() const;
@@ -149,7 +144,7 @@ class AssetMarkHelper {
   Stats stats;
 };
 
-void AssetMarkHelper::operator()(const bContext &C, const PointerRNAVec &ids)
+void AssetMarkHelper::operator()(const bContext &C, const Vector<PointerRNA> &ids)
 {
   for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
@@ -160,8 +155,8 @@ void AssetMarkHelper::operator()(const bContext &C, const PointerRNAVec &ids)
       continue;
     }
 
-    if (ED_asset_mark_id(id)) {
-      ED_asset_generate_preview(&C, id);
+    if (mark_id(id)) {
+      generate_preview(&C, id);
 
       stats.last_id = id;
       stats.tot_created++;
@@ -199,7 +194,7 @@ void AssetMarkHelper::reportResults(ReportList &reports) const
   }
 }
 
-static int asset_mark_exec(const bContext *C, const wmOperator *op, const PointerRNAVec &ids)
+static int asset_mark_exec(const bContext *C, const wmOperator *op, const Vector<PointerRNA> &ids)
 {
   AssetMarkHelper mark_helper;
   mark_helper(*C, ids);
@@ -215,7 +210,7 @@ static int asset_mark_exec(const bContext *C, const wmOperator *op, const Pointe
   return OPERATOR_FINISHED;
 }
 
-static bool asset_mark_poll(bContext *C, const PointerRNAVec &ids)
+static bool asset_mark_poll(bContext *C, const Vector<PointerRNA> &ids)
 {
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
@@ -274,7 +269,7 @@ class AssetClearHelper {
  public:
   AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user) {}
 
-  void operator()(const PointerRNAVec &ids);
+  void operator()(const Vector<PointerRNA> &ids);
 
   void reportResults(const bContext *C, ReportList &reports) const;
   bool wasSuccessful() const;
@@ -288,7 +283,7 @@ class AssetClearHelper {
   Stats stats;
 };
 
-void AssetClearHelper::operator()(const PointerRNAVec &ids)
+void AssetClearHelper::operator()(const Vector<PointerRNA> &ids)
 {
   for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
@@ -298,7 +293,7 @@ void AssetClearHelper::operator()(const PointerRNAVec &ids)
       continue;
     }
 
-    if (!ED_asset_clear_id(id)) {
+    if (!clear_id(id)) {
       continue;
     }
 
@@ -341,7 +336,7 @@ bool AssetClearHelper::wasSuccessful() const
   return stats.tot_cleared > 0;
 }
 
-static int asset_clear_exec(const bContext *C, const wmOperator *op, const PointerRNAVec &ids)
+static int asset_clear_exec(const bContext *C, const wmOperator *op, const Vector<PointerRNA> &ids)
 {
   const bool set_fake_user = RNA_boolean_get(op->ptr, "set_fake_user");
   AssetClearHelper clear_helper(set_fake_user);
@@ -358,7 +353,7 @@ static int asset_clear_exec(const bContext *C, const wmOperator *op, const Point
   return OPERATOR_FINISHED;
 }
 
-static bool asset_clear_poll(bContext *C, const PointerRNAVec &ids)
+static bool asset_clear_poll(bContext *C, const Vector<PointerRNA> &ids)
 {
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
@@ -456,7 +451,7 @@ static bool asset_library_refresh_poll(bContext *C)
     return false;
   }
 
-  return ED_assetlist_storage_has_list_for_library(library);
+  return list::storage_has_list_for_library(library);
 }
 
 static int asset_library_refresh_exec(bContext *C, wmOperator * /*unused*/)
@@ -470,7 +465,7 @@ static int asset_library_refresh_exec(bContext *C, wmOperator * /*unused*/)
   else {
     /* Execution mode #2: Outside the Asset Browser, use the asset list. */
     const AssetLibraryReference *library = CTX_wm_asset_library_ref(C);
-    ED_assetlist_clear(library, C);
+    list::clear(library, C);
   }
 
   return OPERATOR_FINISHED;
@@ -501,11 +496,11 @@ static bool asset_catalog_operator_poll(bContext *C)
   if (!sfile) {
     return false;
   }
-  const AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  const asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   if (!asset_library) {
     return false;
   }
-  if (ED_asset_catalogs_read_only(*asset_library)) {
+  if (catalogs_read_only(*asset_library)) {
     CTX_wm_operator_poll_msg_set(C, "Asset catalogs cannot be edited in this asset library");
     return false;
   }
@@ -515,10 +510,10 @@ static bool asset_catalog_operator_poll(bContext *C)
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
-  blender::asset_system::AssetCatalog *new_catalog = ED_asset_catalog_add(
+  asset_system::AssetCatalog *new_catalog = catalog_add(
       asset_library, DATA_("Catalog"), parent_path);
 
   if (sfile) {
@@ -555,14 +550,14 @@ static void ASSET_OT_catalog_new(wmOperatorType *ot)
 static int asset_catalog_delete_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
   char *catalog_id_str = RNA_string_get_alloc(op->ptr, "catalog_id", nullptr, 0, nullptr);
   asset_system::CatalogID catalog_id;
   if (!BLI_uuid_parse_string(&catalog_id, catalog_id_str)) {
     return OPERATOR_CANCELLED;
   }
 
-  ED_asset_catalog_remove(asset_library, catalog_id);
+  catalog_remove(asset_library, catalog_id);
 
   MEM_freeN(catalog_id_str);
 
@@ -595,7 +590,7 @@ static asset_system::AssetCatalogService *get_catalog_service(bContext *C)
     return nullptr;
   }
 
-  AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
+  asset_system::AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
   return AS_asset_library_get_catalog_service(asset_lib);
 }
 
@@ -715,9 +710,9 @@ static bool asset_catalogs_save_poll(bContext *C)
 static int asset_catalogs_save_exec(bContext *C, wmOperator * /*op*/)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  ::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
 
-  ED_asset_catalogs_save_from_main_path(asset_library, CTX_data_main(C));
+  catalogs_save_from_main_path(asset_library, CTX_data_main(C));
 
   WM_event_add_notifier_ex(
       CTX_wm_manager(C), CTX_wm_window(C), NC_ASSET | ND_ASSET_CATALOGS, nullptr);
@@ -849,7 +844,7 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
                                                                  PropertyRNA * /*prop*/,
                                                                  bool *r_free)
 {
-  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf(false);
+  const EnumPropertyItem *items = library_reference_to_rna_enum_itemf(false);
   if (!items) {
     *r_free = false;
     return nullptr;
@@ -897,7 +892,7 @@ static bool could_be_asset_bundle(const Main *bmain)
 static const bUserAssetLibrary *selected_asset_library(wmOperator *op)
 {
   const int enum_value = RNA_enum_get(op->ptr, "asset_library_reference");
-  const AssetLibraryReference lib_ref = ED_asset_library_reference_from_enum_value(enum_value);
+  const AssetLibraryReference lib_ref = library_reference_from_enum_value(enum_value);
   const bUserAssetLibrary *lib = BKE_preferences_asset_library_find_index(
       &U, lib_ref.custom_library_index);
   return lib;
@@ -1008,7 +1003,7 @@ static bool has_external_files(Main *bmain, ReportList *reports)
 
 /* -------------------------------------------------------------------- */
 
-void ED_operatortypes_asset()
+void operatortypes_asset()
 {
   WM_operatortype_append(ASSET_OT_mark);
   WM_operatortype_append(ASSET_OT_mark_single);
@@ -1025,3 +1020,5 @@ void ED_operatortypes_asset()
 
   WM_operatortype_append(ASSET_OT_library_refresh);
 }
+
+}  // namespace blender::ed::asset

@@ -61,6 +61,7 @@
 
 void ED_spacetypes_init()
 {
+  using namespace blender::ed;
   /* UI unit is a variable, may be used in some space type initialization. */
   U.widget_unit = 20;
 
@@ -92,7 +93,7 @@ void ED_spacetypes_init()
   ED_operatortypes_screen();
   ED_operatortypes_anim();
   ED_operatortypes_animchannels();
-  ED_operatortypes_asset();
+  asset::operatortypes_asset();
   ED_operatortypes_gpencil_legacy();
   ED_operatortypes_grease_pencil();
   ED_operatortypes_object();
