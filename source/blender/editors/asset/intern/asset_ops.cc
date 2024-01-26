@@ -6,7 +6,7 @@
  * \ingroup edasset
  */
 
-#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 

@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"

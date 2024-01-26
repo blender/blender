@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "AS_asset_catalog.hh"
-#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 #include "AS_asset_library.hh"
 
 #include "BKE_callbacks.h"

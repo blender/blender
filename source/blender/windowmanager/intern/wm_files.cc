@@ -59,7 +59,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
