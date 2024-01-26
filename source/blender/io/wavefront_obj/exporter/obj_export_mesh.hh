@@ -146,7 +146,7 @@ class OBJMesh : NonCopyable {
     if (uv_coords_.is_empty()) {
       return {};
     }
-    BLI_assert(face_index < export_mesh_->faces_num);
+    BLI_assert(face_index < mesh_faces_.size());
     return corner_to_uv_index_.as_span().slice(mesh_faces_[face_index]);
   }
 
