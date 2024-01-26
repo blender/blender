@@ -410,6 +410,8 @@ typedef struct Mesh {
   void tag_positions_changed_no_normals();
   /** Call when changing "sharp_face" or "sharp_edge" data. */
   void tag_sharpness_changed();
+  /** Call when changing #CD_CUSTOMLOOPNORMAL data. */
+  void tag_custom_normals_changed();
   /** Call when face vertex order has changed but positions and faces haven't changed. */
   void tag_face_winding_changed();
   /** Call when new edges and vertices have been created but vertices and faces haven't changed. */
