@@ -589,7 +589,7 @@ using uiButSearchTooltipFn =
 using uiButSearchListenFn = void (*)(const wmRegionListenerParams *params, void *arg);
 
 /** Must return an allocated string. */
-using uiButToolTipFunc = char *(*)(bContext *C, void *argN, const char *tip);
+using uiButToolTipFunc = std::string (*)(bContext *C, void *argN, const char *tip);
 
 using uiButToolTipCustomFunc = void (*)(bContext *C, uiTooltipData *data, void *argN);
 

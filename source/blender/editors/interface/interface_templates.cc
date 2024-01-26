@@ -6141,7 +6141,7 @@ struct ProgressTooltip_Store {
   void *owner;
 };
 
-static char *progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
   ProgressTooltip_Store *arg = static_cast<ProgressTooltip_Store *>(argN);
   wmWindowManager *wm = arg->wm;
@@ -6160,9 +6160,9 @@ static char *progress_tooltip_func(bContext * /*C*/, void *argN, const char * /*
     BLI_timecode_string_from_time_simple(remaining_str, sizeof(remaining_str), remaining);
   }
 
-  return BLI_sprintfN(
-      "Time Remaining: %s\n"
-      "Time Elapsed: %s",
+  return fmt::format(
+      "Time Remaining: {}\n"
+      "Time Elapsed: {}",
       remaining_str,
       elapsed_str);
 }
