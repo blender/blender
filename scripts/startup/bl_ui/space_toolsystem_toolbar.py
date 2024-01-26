@@ -1383,17 +1383,23 @@ class _defs_particle:
 class _defs_sculpt:
 
     @staticmethod
-    def generate_from_brushes(context):
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="brush.sculpt.",
-            type=bpy.types.Brush,
-            attr="sculpt_tool",
-            # TODO(@ideasman42): we may want to enable this,
-            # it causes awkward grouping with 2x column button layout.
-            use_separators=False,
-        )
+    def generate_brush_tool(context):
+        if not context:
+            return ()
+        brush = context.tool_settings.sculpt.brush
+        if not brush:
+            return ()
+        tool = brush.sculpt_tool
+        return [
+            ToolDef.from_dict(
+                dict(
+                    idname="builtin.brush",
+                    label=brush.name,
+                    icon="brush.sculpt.paint",
+                    data_block=tool
+                )
+            )
+        ]
 
     @ToolDef.from_fn
     def hide_border():
@@ -2442,18 +2448,23 @@ class _defs_gpencil_weight:
 class _defs_curves_sculpt:
 
     @staticmethod
-    def generate_from_brushes(context):
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="ops.curves.sculpt_",
-            type=bpy.types.Brush,
-            attr="curves_sculpt_tool",
-            icon_map={
-                # Use the generic icon for selection painting.
-                "ops.curves.sculpt_selection_paint": "ops.generic.select_paint",
-            },
-        )
+    def generate_brush_tool(context):
+        if not context:
+            return ()
+        brush = context.tool_settings.curves_sculpt.brush
+        if not brush:
+            return ()
+        tool = brush.curves_sculpt_tool
+        return [
+            ToolDef.from_dict(
+                dict(
+                    idname="builtin.brush",
+                    label=brush.name,
+                    icon="brush.sculpt.paint",
+                    data_block=tool
+                )
+            )
+        ]
 
 
 class _defs_gpencil_vertex:
@@ -3089,7 +3100,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_particle.generate_from_brushes,
         ],
         'SCULPT': [
-            _defs_sculpt.generate_from_brushes,
+            lambda context: (
+                _defs_sculpt.generate_brush_tool(context)
+            ),
             None,
             (
                 _defs_sculpt.mask_border,
@@ -3234,7 +3247,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'SCULPT_CURVES': [
-            _defs_curves_sculpt.generate_from_brushes,
+            lambda context: (
+                _defs_curves_sculpt.generate_brush_tool(context)
+            ),
             None,
             *_tools_annotate,
         ],

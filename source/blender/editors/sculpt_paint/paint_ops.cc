@@ -849,36 +849,6 @@ static Brush *brush_tool_toggle(Main *bmain, Paint *paint, Brush *brush_orig, co
   return nullptr;
 }
 
-/** The name of the active tool is "builtin_brush." concatenated with the returned string. */
-static blender::StringRefNull curves_active_tool_name_get(const eBrushCurvesSculptTool tool)
-{
-  switch (tool) {
-    case CURVES_SCULPT_TOOL_COMB:
-      return "comb";
-    case CURVES_SCULPT_TOOL_DELETE:
-      return "delete";
-    case CURVES_SCULPT_TOOL_SNAKE_HOOK:
-      return "snake_hook";
-    case CURVES_SCULPT_TOOL_ADD:
-      return "add";
-    case CURVES_SCULPT_TOOL_GROW_SHRINK:
-      return "grow_shrink";
-    case CURVES_SCULPT_TOOL_SELECTION_PAINT:
-      return "selection_paint";
-    case CURVES_SCULPT_TOOL_PINCH:
-      return "pinch";
-    case CURVES_SCULPT_TOOL_SMOOTH:
-      return "smooth";
-    case CURVES_SCULPT_TOOL_PUFF:
-      return "puff";
-    case CURVES_SCULPT_TOOL_DENSITY:
-      return "density";
-    case CURVES_SCULPT_TOOL_SLIDE:
-      return "slide";
-  }
-  return "";
-}
-
 static bool brush_generic_tool_set(bContext *C,
                                    Main *bmain,
                                    Paint *paint,
@@ -910,26 +880,7 @@ static bool brush_generic_tool_set(bContext *C,
     BKE_paint_invalidate_overlay_all();
 
     WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
-
-    /* Tool System
-     * This is needed for when there is a non-sculpt tool active (transform for e.g.).
-     * In case we are toggling (and the brush changed to the toggle_brush), we need to get the
-     * tool_name again. */
-    int tool_result = brush_tool(brush, paint->runtime.tool_offset);
-    ePaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
-
-    if (paint_mode == PAINT_MODE_SCULPT_CURVES) {
-      tool_name = curves_active_tool_name_get(eBrushCurvesSculptTool(tool)).c_str();
-    }
-    else {
-      const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-      RNA_enum_name_from_value(items, tool_result, &tool_name);
-    }
-
-    char tool_id[MAX_NAME];
-    SNPRINTF(tool_id, "builtin_brush.%s", tool_name);
-    WM_toolsystem_ref_set_by_id(C, tool_id);
-
+    WM_toolsystem_ref_set_by_id(C, "builtin.brush");
     return true;
   }
   return false;
@@ -974,14 +925,6 @@ static int brush_select_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
   if (paint == nullptr) {
     return OPERATOR_CANCELLED;
-  }
-
-  if (paint_mode == PAINT_MODE_SCULPT_CURVES) {
-    tool_name = curves_active_tool_name_get(eBrushCurvesSculptTool(tool)).c_str();
-  }
-  else {
-    const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-    RNA_enum_name_from_value(items, tool, &tool_name);
   }
 
   if (brush_generic_tool_set(C, bmain, paint, tool, tool_name, create_missing, toggle)) {
