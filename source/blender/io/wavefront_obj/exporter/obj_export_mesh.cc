@@ -227,12 +227,9 @@ void OBJMesh::calc_poly_order()
   }
   const VArraySpan<int> material_indices_span(material_indices);
 
-  poly_order_.reinitialize(material_indices_span.size());
-  for (const int i : material_indices_span.index_range()) {
-    poly_order_[i] = i;
-  }
-
   /* Sort polygons by their material index. */
+  poly_order_.reinitialize(material_indices_span.size());
+  array_utils::fill_index_range(poly_order_.as_mutable_span());
   blender::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
     int mat_a = material_indices_span[a];
     int mat_b = material_indices_span[b];
