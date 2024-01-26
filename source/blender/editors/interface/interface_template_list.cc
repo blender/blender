@@ -640,7 +640,7 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
   return nullptr;
 }
 
-static char *uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
+static std::string uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
   std::string tooltip_string = dyn_tooltip;
@@ -648,7 +648,7 @@ static char *uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *
     tooltip_string += '\n';
     tooltip_string += tip;
   }
-  return BLI_strdupn(tooltip_string.c_str(), tooltip_string.size());
+  return tooltip_string;
 }
 
 /**

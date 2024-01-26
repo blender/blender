@@ -323,7 +323,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
   }
 }
 
-static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
   std::string complete_string = asset->get_name();
@@ -332,7 +332,7 @@ static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const ch
     complete_string += '\n';
     complete_string += meta_data.description;
   }
-  return BLI_strdupn(complete_string.c_str(), complete_string.size());
+  return complete_string;
 }
 
 static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
