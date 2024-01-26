@@ -185,7 +185,7 @@ static void write_mesh_objects(const Span<std::unique_ptr<OBJMesh>> exportable_a
     index_offsets.append(offsets);
     offsets.vertex_offset += obj.tot_vertices();
     offsets.uv_vertex_offset += obj.tot_uv_vertices();
-    offsets.normal_offset += obj.tot_normal_indices();
+    offsets.normal_offset += obj.get_normal_coords().size();
   }
 
   /* Parallel over meshes: main result writing. */

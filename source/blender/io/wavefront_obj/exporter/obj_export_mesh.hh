@@ -35,7 +35,6 @@ class OBJMesh : NonCopyable {
   const Mesh *export_mesh_;
   /** A mesh owned here, if created or modified for the export. May be null. */
   Mesh *owned_export_mesh_ = nullptr;
-  Span<float3> mesh_positions_;
   Span<int2> mesh_edges_;
   OffsetIndices<int> mesh_faces_;
   Span<int> mesh_corner_verts_;
@@ -58,19 +57,10 @@ class OBJMesh : NonCopyable {
    */
   Vector<float2> uv_coords_;
 
-  /**
-   * Per-loop normal index.
-   */
+  /** Index into #normal_coords_ for every face corner. */
   Array<int> loop_to_normal_index_;
-  /*
-   * Normal coords.
-   */
-  Vector<float3> normal_coords_;
-  /*
-   * Total number of normal indices (maximum entry, plus 1, in
-   * the loop_to_norm_index_ vector).
-   */
-  int tot_normal_indices_ = 0;
+  /** De-duplicated normals, indexed by #loop_to_normal_index_. */
+  Array<float3> normal_coords_;
   /**
    * Total smooth groups in an object.
    */
@@ -100,7 +90,6 @@ class OBJMesh : NonCopyable {
   int tot_vertices() const;
   int tot_faces() const;
   int tot_uv_vertices() const;
-  int tot_normal_indices() const;
   int tot_edges() const;
   int tot_deform_groups() const;
   bool is_mirrored_transform() const
@@ -154,18 +143,12 @@ class OBJMesh : NonCopyable {
   }
   Span<int> calc_poly_uv_indices(int face_index) const;
   /**
-   * Calculate polygon normal of a polygon at given index.
-   *
-   * Should be used for flat-shaded polygons.
-   */
-  float3 calc_poly_normal(int face_index) const;
-  /**
    * Find the unique normals of the mesh and stores them in a member variable.
    * Also stores the indices into that vector with for each loop.
    */
   void store_normal_coords_and_indices();
   /* Get normals calculate by store_normal_coords_and_indices. */
-  const Vector<float3> &get_normal_coords() const
+  Span<float3> get_normal_coords() const
   {
     return normal_coords_;
   }
@@ -174,7 +157,15 @@ class OBJMesh : NonCopyable {
    * \param face_index: Index of the polygon to calculate indices for.
    * \return Vector of normal indices, aligned with vertices of polygon.
    */
-  Vector<int> calc_poly_normal_indices(int face_index) const;
+  Span<int> calc_poly_normal_indices(const int face_index) const
+  {
+    if (loop_to_normal_index_.is_empty()) {
+      return {};
+    }
+    const IndexRange face = mesh_faces_[face_index];
+    return loop_to_normal_index_.as_span().slice(face);
+  }
+
   /**
    * Find the most representative vertex group of a polygon.
    *
