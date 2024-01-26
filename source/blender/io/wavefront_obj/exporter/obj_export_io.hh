@@ -85,27 +85,27 @@ class FormatHandler : NonCopyable, NonMovable {
   {
     write_impl("vn {:.4f} {:.4f} {:.4f}\n", x, y, z);
   }
-  void write_obj_poly_begin()
+  void write_obj_face_begin()
   {
     write_impl("f");
   }
-  void write_obj_poly_end()
+  void write_obj_face_end()
   {
     write_obj_newline();
   }
-  void write_obj_poly_v_uv_normal(int v, int uv, int n)
+  void write_obj_face_v_uv_normal(int v, int uv, int n)
   {
     write_impl(" {}/{}/{}", v, uv, n);
   }
-  void write_obj_poly_v_normal(int v, int n)
+  void write_obj_face_v_normal(int v, int n)
   {
     write_impl(" {}//{}", v, n);
   }
-  void write_obj_poly_v_uv(int v, int uv)
+  void write_obj_face_v_uv(int v, int uv)
   {
     write_impl(" {}/{}", v, uv);
   }
-  void write_obj_poly_v(int v)
+  void write_obj_face_v(int v)
   {
     write_impl(" {}", v);
   }

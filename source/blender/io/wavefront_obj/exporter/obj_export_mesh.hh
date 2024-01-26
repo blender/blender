@@ -48,18 +48,14 @@ class OBJMesh : NonCopyable {
   float3x3 world_and_axes_normal_transform_;
   bool mirrored_transform_;
 
-  /**
-   * Per-loop UV index.
-   */
-  Array<int> loop_to_uv_index_;
-  /*
-   * UV vertices.
-   */
+  /** Per-corner UV index. */
+  Array<int> corner_to_uv_index_;
+  /** UV vertices. */
   Vector<float2> uv_coords_;
 
   /** Index into #normal_coords_ for every face corner. */
-  Array<int> loop_to_normal_index_;
-  /** De-duplicated normals, indexed by #loop_to_normal_index_. */
+  Array<int> corner_to_normal_index_;
+  /** De-duplicated normals, indexed by #corner_to_normal_index_. */
   Array<float3> normal_coords_;
   /**
    * Total smooth groups in an object.
@@ -68,11 +64,11 @@ class OBJMesh : NonCopyable {
   /**
    * Polygon aligned array of their smooth groups.
    */
-  int *poly_smooth_groups_ = nullptr;
+  int *face_smooth_groups_ = nullptr;
   /**
-   * Order in which the polygons should be written into the file (sorted by material index).
+   * Order in which the faces should be written into the file (sorted by material index).
    */
-  Array<int> poly_order_;
+  Array<int> face_order_;
 
  public:
   Array<const Material *> materials;
@@ -104,14 +100,14 @@ class OBJMesh : NonCopyable {
 
   /**
    * Calculate smooth groups of a smooth-shaded object.
-   * \return A polygon aligned array of smooth group numbers.
+   * \return A face aligned array of smooth group numbers.
    */
   void calc_smooth_groups(bool use_bitflags);
   /**
-   * \return Smooth group of the polygon at the given index.
+   * \return Smooth group of the face at the given index.
    */
   int ith_smooth_group(int face_index) const;
-  bool is_ith_poly_smooth(int face_index) const;
+  bool is_ith_face_smooth(int face_index) const;
 
   /**
    * Get object name as it appears in the outliner.
@@ -128,23 +124,35 @@ class OBJMesh : NonCopyable {
   }
 
   /**
-   * Calculate vertex indices of all vertices of the polygon at the given index.
+   * Calculate vertex indices of all vertices of the face at the given index.
    */
-  Span<int> calc_poly_vertex_indices(int face_index) const;
+  Span<int> calc_face_vert_indices(const int face_index) const
+  {
+    return mesh_corner_verts_.slice(mesh_faces_[face_index]);
+  }
+
   /**
    * Calculate UV vertex coordinates of an Object.
    * Stores the coordinates and UV vertex indices in the member variables.
    */
   void store_uv_coords_and_indices();
   /* Get UV coordinates computed by store_uv_coords_and_indices. */
-  const Vector<float2> &get_uv_coords() const
+  const Span<float2> get_uv_coords() const
   {
     return uv_coords_;
   }
-  Span<int> calc_poly_uv_indices(int face_index) const;
+  Span<int> get_face_uv_indices(const int face_index) const
+  {
+    if (uv_coords_.is_empty()) {
+      return {};
+    }
+    BLI_assert(face_index < export_mesh_->faces_num);
+    return corner_to_uv_index_.as_span().slice(mesh_faces_[face_index]);
+  }
+
   /**
    * Find the unique normals of the mesh and stores them in a member variable.
-   * Also stores the indices into that vector with for each loop.
+   * Also stores the indices into that vector with for each corner.
    */
   void store_normal_coords_and_indices();
   /* Get normals calculate by store_normal_coords_and_indices. */
@@ -153,49 +161,49 @@ class OBJMesh : NonCopyable {
     return normal_coords_;
   }
   /**
-   * Calculate a polygon's polygon/loop normal indices.
-   * \param face_index: Index of the polygon to calculate indices for.
-   * \return Vector of normal indices, aligned with vertices of polygon.
+   * Calculate a face's face/corner normal indices.
+   * \param face_index: Index of the face to calculate indices for.
+   * \return Span of normal indices, aligned with vertices of face.
    */
-  Span<int> calc_poly_normal_indices(const int face_index) const
+  Span<int> get_face_normal_indices(const int face_index) const
   {
-    if (loop_to_normal_index_.is_empty()) {
+    if (corner_to_normal_index_.is_empty()) {
       return {};
     }
     const IndexRange face = mesh_faces_[face_index];
-    return loop_to_normal_index_.as_span().slice(face);
+    return corner_to_normal_index_.as_span().slice(face);
   }
 
   /**
-   * Find the most representative vertex group of a polygon.
+   * Find the most representative vertex group of a face.
    *
    * This adds up vertex group weights, and the group with the largest
-   * weight sum across the polygon is the one returned.
+   * weight sum across the face is the one returned.
    *
    * group_weights is temporary storage to avoid reallocations, it must
    * be the size of amount of vertex groups in the object.
    */
-  int16_t get_poly_deform_group_index(int face_index, MutableSpan<float> group_weights) const;
+  int16_t get_face_deform_group_index(int face_index, MutableSpan<float> group_weights) const;
   /**
    * Find the name of the vertex deform group at the given index.
    * The index indices into the #Object.defbase.
    */
-  const char *get_poly_deform_group_name(int16_t def_group_index) const;
+  const char *get_face_deform_group_name(int16_t def_group_index) const;
 
   /**
-   * Calculate the order in which the polygons should be written into the file (sorted by material
+   * Calculate the order in which the faces should be written into the file (sorted by material
    * index).
    */
-  void calc_poly_order();
+  void calc_face_order();
 
   /**
-   * Remap polygon index according to polygon writing order.
-   * When materials are not being written, the polygon order array
+   * Remap face index according to face writing order.
+   * When materials are not being written, the face order array
    * might be empty, in which case remap is a no-op.
    */
   int remap_face_index(int i) const
   {
-    return i < 0 || i >= poly_order_.size() ? i : poly_order_[i];
+    return i < 0 || i >= face_order_.size() ? i : face_order_[i];
   }
 
   const Mesh *get_mesh() const

@@ -104,14 +104,14 @@ void OBJMesh::clear()
     owned_export_mesh_ = nullptr;
   }
   export_mesh_ = nullptr;
-  loop_to_uv_index_ = {};
+  corner_to_uv_index_ = {};
   uv_coords_.clear_and_shrink();
-  loop_to_normal_index_ = {};
+  corner_to_normal_index_ = {};
   normal_coords_ = {};
-  poly_order_ = {};
-  if (poly_smooth_groups_) {
-    MEM_freeN(poly_smooth_groups_);
-    poly_smooth_groups_ = nullptr;
+  face_order_ = {};
+  if (face_smooth_groups_) {
+    MEM_freeN(face_smooth_groups_);
+    face_smooth_groups_ = nullptr;
   }
 }
 
@@ -199,8 +199,8 @@ int OBJMesh::ith_smooth_group(const int face_index) const
 {
   /* Calculate smooth groups first: #OBJMesh::calc_smooth_groups. */
   BLI_assert(tot_smooth_groups_ != -NEGATIVE_INIT);
-  BLI_assert(poly_smooth_groups_);
-  return poly_smooth_groups_[face_index];
+  BLI_assert(face_smooth_groups_);
+  return face_smooth_groups_[face_index];
 }
 
 void OBJMesh::calc_smooth_groups(const bool use_bitflags)
@@ -208,7 +208,7 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
   const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-  poly_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
+  face_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
                                                    mesh_faces_,
                                                    export_mesh_->corner_edges(),
                                                    sharp_edges,
@@ -217,7 +217,7 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
                                                    use_bitflags);
 }
 
-void OBJMesh::calc_poly_order()
+void OBJMesh::calc_face_order()
 {
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArray<int> material_indices = *attributes.lookup_or_default<int>(
@@ -227,10 +227,10 @@ void OBJMesh::calc_poly_order()
   }
   const VArraySpan<int> material_indices_span(material_indices);
 
-  /* Sort polygons by their material index. */
-  poly_order_.reinitialize(material_indices_span.size());
-  array_utils::fill_index_range(poly_order_.as_mutable_span());
-  blender::parallel_sort(poly_order_.begin(), poly_order_.end(), [&](int a, int b) {
+  /* Sort faces by their material index. */
+  face_order_.reinitialize(material_indices_span.size());
+  array_utils::fill_index_range(face_order_.as_mutable_span());
+  blender::parallel_sort(face_order_.begin(), face_order_.end(), [&](int a, int b) {
     int mat_a = material_indices_span[a];
     int mat_b = material_indices_span[b];
     if (mat_a != mat_b) {
@@ -240,7 +240,7 @@ void OBJMesh::calc_poly_order()
   });
 }
 
-bool OBJMesh::is_ith_poly_smooth(const int face_index) const
+bool OBJMesh::is_ith_face_smooth(const int face_index) const
 {
   return !sharp_faces_[face_index];
 }
@@ -253,11 +253,6 @@ const char *OBJMesh::get_object_name() const
 const char *OBJMesh::get_object_mesh_name() const
 {
   return export_mesh_->id.name + 2;
-}
-
-Span<int> OBJMesh::calc_poly_vertex_indices(const int face_index) const
-{
-  return mesh_corner_verts_.slice(mesh_faces_[face_index]);
 }
 
 void OBJMesh::store_uv_coords_and_indices()
@@ -281,7 +276,7 @@ void OBJMesh::store_uv_coords_and_indices()
   uv_to_index.reserve(export_mesh_->verts_num);
   uv_coords_.reserve(export_mesh_->verts_num);
 
-  loop_to_uv_index_.reinitialize(uv_map.size());
+  corner_to_uv_index_.reinitialize(uv_map.size());
 
   for (int index = 0; index < int(uv_map.size()); index++) {
     float2 uv = uv_map[index];
@@ -291,17 +286,8 @@ void OBJMesh::store_uv_coords_and_indices()
       uv_to_index.add(uv, uv_index);
       uv_coords_.append(uv);
     }
-    loop_to_uv_index_[index] = uv_index;
+    corner_to_uv_index_[index] = uv_index;
   }
-}
-
-Span<int> OBJMesh::calc_poly_uv_indices(const int face_index) const
-{
-  if (uv_coords_.is_empty()) {
-    return {};
-  }
-  BLI_assert(face_index < export_mesh_->faces_num);
-  return loop_to_uv_index_.as_span().slice(mesh_faces_[face_index]);
 }
 
 /** Round \a f to \a round_digits decimal digits. */
@@ -331,7 +317,7 @@ void OBJMesh::store_normal_coords_and_indices()
   VectorSet<float3> unique_normals;
   /* We don't know how many unique normals there will be, but this is a guess. */
   unique_normals.reserve(export_mesh_->faces_num);
-  loop_to_normal_index_.reinitialize(export_mesh_->corners_num);
+  corner_to_normal_index_.reinitialize(export_mesh_->corners_num);
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
   const float3x3 transform = world_and_axes_normal_transform_;
@@ -346,7 +332,7 @@ void OBJMesh::store_normal_coords_and_indices()
       const Span<float3> face_normals = export_mesh_->face_normals();
       for (const int face : mesh_faces_.index_range()) {
         const int index = add_normal(face_normals[face]);
-        loop_to_normal_index_.as_mutable_span().slice(mesh_faces_[face]).fill(index);
+        corner_to_normal_index_.as_mutable_span().slice(mesh_faces_[face]).fill(index);
       }
       break;
     }
@@ -368,13 +354,13 @@ void OBJMesh::store_normal_coords_and_indices()
       }
       array_utils::gather(vert_normal_indices.as_span(),
                           mesh_corner_verts_,
-                          loop_to_normal_index_.as_mutable_span());
+                          corner_to_normal_index_.as_mutable_span());
       break;
     }
     case bke::MeshNormalDomain::Corner: {
       const Span<float3> corner_normals = export_mesh_->corner_normals();
       for (const int corner : corner_normals.index_range()) {
-        loop_to_normal_index_[corner] = add_normal(corner_normals[corner]);
+        corner_to_normal_index_[corner] = add_normal(corner_normals[corner]);
       }
       break;
     }
@@ -388,7 +374,7 @@ int OBJMesh::tot_deform_groups() const
   return BLI_listbase_count(&export_mesh_->vertex_group_names);
 }
 
-int16_t OBJMesh::get_poly_deform_group_index(const int face_index,
+int16_t OBJMesh::get_face_deform_group_index(const int face_index,
                                              MutableSpan<float> group_weights) const
 {
   BLI_assert(face_index < export_mesh_->faces_num);
@@ -420,7 +406,7 @@ int16_t OBJMesh::get_poly_deform_group_index(const int face_index,
   return max_idx;
 }
 
-const char *OBJMesh::get_poly_deform_group_name(const int16_t def_group_index) const
+const char *OBJMesh::get_face_deform_group_name(const int16_t def_group_index) const
 {
   const bDeformGroup &vertex_group = *(static_cast<bDeformGroup *>(
       BLI_findlink(&export_mesh_->vertex_group_names, def_group_index)));
