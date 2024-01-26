@@ -2280,6 +2280,11 @@ Panel *uiLayoutGetRootPanel(uiLayout *layout);
 
 uiLayout *uiLayoutRow(uiLayout *layout, bool align);
 
+struct PanelLayout {
+  uiLayout *header;
+  uiLayout *body;
+};
+
 /**
  * Create a "layout panel" which is a panel that is defined as part of the `uiLayout`. This allows
  * creating expandable sections which can also be nested.
@@ -2291,9 +2296,22 @@ uiLayout *uiLayoutRow(uiLayout *layout, bool align);
  * context even of the open-property is `false`. This can happen with e.g. property search.
  * \param layout: The `uiLayout` that should contain the sub-panel.
  * Only layouts that span the full width of the region are supported for now.
- * \param name: Text that's shown in the panel header. It should already be translated.
  * \param open_prop_owner: Data that contains the open-property.
  * \param open_prop_name: Name of the open-property in `open_prop_owner`.
+ *
+ * \return A #PanelLayout containing layouts for both the header row and the panel body. If the
+ * panel is closed and should not be drawn, the body layout will be NULL.
+ */
+PanelLayout uiLayoutPanelWithHeader(const bContext *C,
+                                    uiLayout *layout,
+                                    PointerRNA *open_prop_owner,
+                                    const char *open_prop_name);
+
+/**
+ * Variant of #uiLayoutPanelWithHeader() that automatically creates the header row with the
+ * given label name and only returns the body layout.
+ *
+ * \param name: Text that's shown in the panel header. It should already be translated.
  *
  * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
  * sub-panel should be inserted into.

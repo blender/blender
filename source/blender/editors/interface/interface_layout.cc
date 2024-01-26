@@ -4974,11 +4974,10 @@ uiLayout *uiLayoutRow(uiLayout *layout, bool align)
   return litem;
 }
 
-uiLayout *uiLayoutPanel(const bContext *C,
-                        uiLayout *layout,
-                        const char *name,
-                        PointerRNA *open_prop_owner,
-                        const char *open_prop_name)
+PanelLayout uiLayoutPanelWithHeader(const bContext *C,
+                                    uiLayout *layout,
+                                    PointerRNA *open_prop_owner,
+                                    const char *open_prop_name)
 {
   const ARegion *region = CTX_wm_region(C);
 
@@ -4986,6 +4985,7 @@ uiLayout *uiLayoutPanel(const bContext *C,
   const bool search_filter_active = region->flag & RGN_FLAG_SEARCH_FILTER_ACTIVE;
   const bool is_open = is_real_open || search_filter_active;
 
+  PanelLayout panel_layout{};
   {
     uiLayoutItemPanelHeader *header_litem = MEM_cnew<uiLayoutItemPanelHeader>(__func__);
     uiLayout *litem = &header_litem->litem;
@@ -4995,30 +4995,33 @@ uiLayout *uiLayoutPanel(const bContext *C,
     header_litem->open_prop_owner = *open_prop_owner;
     STRNCPY(header_litem->open_prop_name, open_prop_name);
 
-    UI_block_layout_set_current(layout->root->block, litem);
+    uiLayout *row = uiLayoutRow(litem, true);
+    uiLayoutSetUnitsY(row, 1.2f);
 
-    uiBlock *block = uiLayoutGetBlock(layout);
+    uiBlock *block = uiLayoutGetBlock(row);
     const int icon = is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW;
-    const int width = ui_text_icon_width(layout, name, icon, false);
+    const int width = ui_text_icon_width(layout, "", icon, false);
     uiDefIconTextBut(block,
                      UI_BTYPE_LABEL,
                      0,
                      icon,
-                     name,
+                     "",
                      0,
                      0,
                      width,
-                     UI_UNIT_Y * 1.2f,
+                     UI_UNIT_Y,
                      nullptr,
-                     0.0,
-                     0.0,
-                     0.0,
-                     0.0,
+                     0.0f,
+                     0.0f,
+                     0.0f,
+                     0.0f,
                      "");
+
+    panel_layout.header = row;
   }
 
   if (!is_open) {
-    return nullptr;
+    return panel_layout;
   }
 
   uiLayoutItemPanelBody *body_litem = MEM_cnew<uiLayoutItemPanelBody>(__func__);
@@ -5027,7 +5030,21 @@ uiLayout *uiLayoutPanel(const bContext *C,
   litem->space = layout->root->style->templatespace;
   ui_litem_init_from_parent(litem, layout, false);
   UI_block_layout_set_current(layout->root->block, litem);
-  return litem;
+  panel_layout.body = litem;
+
+  return panel_layout;
+}
+
+uiLayout *uiLayoutPanel(const bContext *C,
+                        uiLayout *layout,
+                        const char *name,
+                        PointerRNA *open_prop_owner,
+                        const char *open_prop_name)
+{
+  PanelLayout panel = uiLayoutPanelWithHeader(C, layout, open_prop_owner, open_prop_name);
+  uiItemL(panel.header, name, ICON_NONE);
+
+  return panel.body;
 }
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout)

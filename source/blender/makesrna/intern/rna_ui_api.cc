@@ -780,42 +780,47 @@ static uiLayout *rna_uiLayoutColumnWithHeading(
   return uiLayoutColumnWithHeading(layout, align, heading);
 }
 
-struct uiLayout *rna_uiLayoutPanelProp(uiLayout *layout,
-                                       bContext *C,
-                                       ReportList *reports,
-                                       PointerRNA *data,
-                                       const char *property,
-                                       const char *text,
-                                       const char *text_ctxt,
-                                       const bool translate)
+void rna_uiLayoutPanelProp(uiLayout *layout,
+                           bContext *C,
+                           ReportList *reports,
+                           PointerRNA *data,
+                           const char *property,
+                           uiLayout **r_layout_header,
+                           uiLayout **r_layout_body)
 {
-  text = rna_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
   Panel *panel = uiLayoutGetRootPanel(layout);
   if (panel == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Layout panels can not be used in this context");
-    return nullptr;
+    *r_layout_header = nullptr;
+    *r_layout_body = nullptr;
+    return;
   }
-  return uiLayoutPanel(C, layout, text, data, property);
+
+  PanelLayout panel_layout = uiLayoutPanelWithHeader(C, layout, data, property);
+  *r_layout_header = panel_layout.header;
+  *r_layout_body = panel_layout.body;
 }
 
-struct uiLayout *rna_uiLayoutPanel(uiLayout *layout,
-                                   bContext *C,
-                                   ReportList *reports,
-                                   const char *idname,
-                                   const char *text,
-                                   const char *text_ctxt,
-                                   const bool translate,
-                                   const bool default_closed)
+void rna_uiLayoutPanel(uiLayout *layout,
+                       bContext *C,
+                       ReportList *reports,
+                       const char *idname,
+                       const bool default_closed,
+                       uiLayout **r_layout_header,
+                       uiLayout **r_layout_body)
 {
-  text = RNA_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
   Panel *panel = uiLayoutGetRootPanel(layout);
   if (panel == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Layout panels can not be used in this context");
-    return nullptr;
+    *r_layout_header = nullptr;
+    *r_layout_body = nullptr;
+    return;
   }
   LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(panel, idname, default_closed);
   PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
-  return uiLayoutPanel(C, layout, text, &state_ptr, "is_open");
+  PanelLayout panel_layout = uiLayoutPanelWithHeader(C, layout, &state_ptr, "is_open");
+  *r_layout_header = panel_layout.header;
+  *r_layout_body = panel_layout.body;
 }
 
 static void rna_uiLayout_template_node_asset_menu_items(uiLayout *layout,
@@ -1093,18 +1098,19 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   parm = RNA_def_string(func, "idname", nullptr, 0, "", "Identifier of the panel");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  api_ui_item_common_text(func);
   RNA_def_boolean(func,
                   "default_closed",
                   false,
                   "Open by Default",
                   "When true, the panel will be open the first time it is shown");
+  parm = RNA_def_pointer(func, "layout_header", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func,
-                         "layout",
+                         "layout_body",
                          "UILayout",
                          "",
-                         "Sub-layout to put items in. Will be none is the panel is collapsed");
-  RNA_def_function_return(func, parm);
+                         "Sub-layout to put items in. Will be none if the panel is collapsed");
+  RNA_def_function_output(func, parm);
 
   func = RNA_def_function(srna, "panel_prop", "rna_uiLayoutPanelProp");
   RNA_def_function_ui_description(
@@ -1125,13 +1131,14 @@ void RNA_api_ui_layout(StructRNA *srna)
       "",
       "Identifier of the boolean property that determines whether the panel is open or closed");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  api_ui_item_common_text(func);
+  parm = RNA_def_pointer(func, "layout_header", "UILayout", "", "Sub-layout to put items in");
+  RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func,
-                         "layout",
+                         "layout_body",
                          "UILayout",
                          "",
-                         "Sub-layout to put items in. Will be none is the panel is collapsed");
-  RNA_def_function_return(func, parm);
+                         "Sub-layout to put items in. Will be none if the panel is collapsed");
+  RNA_def_function_output(func, parm);
 
   func = RNA_def_function(srna, "column_flow", "uiLayoutColumnFlow");
   RNA_def_int(func, "columns", 0, 0, INT_MAX, "", "Number of columns, 0 is automatic", 0, INT_MAX);
