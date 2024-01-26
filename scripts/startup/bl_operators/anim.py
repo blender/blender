@@ -524,48 +524,6 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
         return {'FINISHED'}
 
 
-class ARMATURE_OT_collection_solo_visibility(Operator):
-    """Hide all other bone collections and show the active one. """ \
-        """Note that it is necessary to also show the ancestors of the active """ \
-        """bone collection in order to ensure its visibility"""
-    bl_idname = "armature.collection_solo_visibility"
-    bl_label = "Solo Visibility"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    name: StringProperty(name='Bone Collection')
-
-    @classmethod
-    def poll(cls, context):
-        return context.object and context.object.type == 'ARMATURE' and context.object.data
-
-    def execute(self, context):
-        arm = context.object.data
-
-        # Find the named bone collection.
-        if self.name:
-            try:
-                solo_bcoll = arm.collections[self.name]
-            except KeyError:
-                self.report({'ERROR'}, "Bone collection %r not found" % self.name)
-                return {'CANCELLED'}
-        else:
-            solo_bcoll = arm.collections.active
-            if not solo_bcoll:
-                self.report({'ERROR'}, "Armature has no active Bone collection, nothing to solo")
-                return {'CANCELLED'}
-
-        # Hide everything first.
-        for bcoll in arm.collections_all:
-            bcoll.is_visible = False
-
-        # Show the named bone collection and all its ancestors.
-        while solo_bcoll:
-            solo_bcoll.is_visible = True
-            solo_bcoll = solo_bcoll.parent
-
-        return {'FINISHED'}
-
-
 class ARMATURE_OT_collection_show_all(Operator):
     """Show all bone collections"""
     bl_idname = "armature.collection_show_all"
@@ -673,7 +631,6 @@ classes = (
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
     ARMATURE_OT_copy_bone_color_to_selected,
-    ARMATURE_OT_collection_solo_visibility,
     ARMATURE_OT_collection_show_all,
     ARMATURE_OT_collection_remove_unused,
 )
