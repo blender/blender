@@ -177,9 +177,9 @@ Batch *VKBackend::batch_alloc()
   return new VKBatch();
 }
 
-DrawList *VKBackend::drawlist_alloc(int /*list_length*/)
+DrawList *VKBackend::drawlist_alloc(int list_length)
 {
-  return new VKDrawList();
+  return new VKDrawList(list_length);
 }
 
 Fence *VKBackend::fence_alloc()

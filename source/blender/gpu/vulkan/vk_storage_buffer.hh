@@ -49,6 +49,11 @@ class VKStorageBuffer : public StorageBuf, public VKBindableResource {
 
   void ensure_allocated();
 
+  const VKBuffer &buffer_get() const
+  {
+    return buffer_;
+  }
+
  private:
   void allocate();
 };
@@ -56,6 +61,10 @@ class VKStorageBuffer : public StorageBuf, public VKBindableResource {
 BLI_INLINE VKStorageBuffer *unwrap(StorageBuf *storage_buffer)
 {
   return static_cast<VKStorageBuffer *>(storage_buffer);
+}
+BLI_INLINE StorageBuf *wrap(VKStorageBuffer *storage_buffer)
+{
+  return static_cast<StorageBuf *>(storage_buffer);
 }
 
 }  // namespace blender::gpu
