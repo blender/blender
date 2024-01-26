@@ -112,11 +112,11 @@ class OBJMesh : NonCopyable {
   /**
    * Get object name as it appears in the outliner.
    */
-  const char *get_object_name() const;
+  StringRef get_object_name() const;
   /**
    * Get Object's Mesh's name.
    */
-  const char *get_object_mesh_name() const;
+  StringRef get_object_mesh_name() const;
 
   const float4x4 &get_world_axes_transform() const
   {

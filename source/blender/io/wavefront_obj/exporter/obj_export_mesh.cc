@@ -245,12 +245,12 @@ bool OBJMesh::is_ith_face_smooth(const int face_index) const
   return !sharp_faces_[face_index];
 }
 
-const char *OBJMesh::get_object_name() const
+StringRef OBJMesh::get_object_name() const
 {
-  return object_name_.c_str();
+  return object_name_;
 }
 
-const char *OBJMesh::get_object_mesh_name() const
+StringRef OBJMesh::get_object_mesh_name() const
 {
   return export_mesh_->id.name + 2;
 }
