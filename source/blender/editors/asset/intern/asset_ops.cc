@@ -7,7 +7,6 @@
  */
 
 #include "AS_asset_library.hh"
-#include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
 #include "BKE_asset.hh"
@@ -501,7 +500,8 @@ static bool asset_catalog_operator_poll(bContext *C)
   if (!sfile) {
     return false;
   }
-  const AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  const blender::asset_system::AssetLibrary *asset_library =
+      ED_fileselect_active_asset_library_get(sfile);
   if (!asset_library) {
     return false;
   }
@@ -515,7 +515,8 @@ static bool asset_catalog_operator_poll(bContext *C)
 static int asset_catalog_new_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  blender::asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(
+      sfile);
   char *parent_path = RNA_string_get_alloc(op->ptr, "parent_path", nullptr, 0, nullptr);
 
   blender::asset_system::AssetCatalog *new_catalog = ED_asset_catalog_add(
@@ -555,7 +556,8 @@ static void ASSET_OT_catalog_new(wmOperatorType *ot)
 static int asset_catalog_delete_exec(bContext *C, wmOperator *op)
 {
   SpaceFile *sfile = CTX_wm_space_file(C);
-  AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  blender::asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(
+      sfile);
   char *catalog_id_str = RNA_string_get_alloc(op->ptr, "catalog_id", nullptr, 0, nullptr);
   asset_system::CatalogID catalog_id;
   if (!BLI_uuid_parse_string(&catalog_id, catalog_id_str)) {
@@ -595,7 +597,7 @@ static asset_system::AssetCatalogService *get_catalog_service(bContext *C)
     return nullptr;
   }
 
-  AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
+  blender::asset_system::AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
   return AS_asset_library_get_catalog_service(asset_lib);
 }
 
@@ -715,7 +717,8 @@ static bool asset_catalogs_save_poll(bContext *C)
 static int asset_catalogs_save_exec(bContext *C, wmOperator * /*op*/)
 {
   const SpaceFile *sfile = CTX_wm_space_file(C);
-  ::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  blender::asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(
+      sfile);
 
   ED_asset_catalogs_save_from_main_path(asset_library, CTX_data_main(C));
 

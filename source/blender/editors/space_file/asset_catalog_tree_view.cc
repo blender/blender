@@ -44,7 +44,7 @@ namespace blender::ed::asset_browser {
 class AssetCatalogTreeViewAllItem;
 
 class AssetCatalogTreeView : public ui::AbstractTreeView {
-  ::AssetLibrary *asset_library_;
+  asset_system::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
   asset_system::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
@@ -55,7 +55,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
   friend class AssetCatalogTreeViewAllItem;
 
  public:
-  AssetCatalogTreeView(::AssetLibrary *library,
+  AssetCatalogTreeView(asset_system::AssetLibrary *library,
                        FileAssetSelectParams *params,
                        SpaceFile &space_file);
 
@@ -117,11 +117,12 @@ class AssetCatalogDropTarget : public ui::TreeViewItemDropTarget {
   std::string drop_tooltip(const ui::DragInfo &drag_info) const override;
   bool on_drop(bContext *C, const ui::DragInfo &drag_info) const override;
 
-  ::AssetLibrary &get_asset_library() const;
+  asset_system::AssetLibrary &get_asset_library() const;
 
-  static AssetCatalog *get_drag_catalog(const wmDrag &drag, const ::AssetLibrary &asset_library);
+  static AssetCatalog *get_drag_catalog(const wmDrag &drag,
+                                        const asset_system::AssetLibrary &asset_library);
   static bool has_droppable_asset(const wmDrag &drag, const char **r_disabled_hint);
-  static bool can_modify_catalogs(const ::AssetLibrary &asset_library,
+  static bool can_modify_catalogs(const asset_system::AssetLibrary &asset_library,
                                   const char **r_disabled_hint);
   static bool drop_assets_into_catalog(bContext *C,
                                        const AssetCatalogTreeView &tree_view,
@@ -177,7 +178,7 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 
 /* ---------------------------------------------------------------------- */
 
-AssetCatalogTreeView::AssetCatalogTreeView(::AssetLibrary *library,
+AssetCatalogTreeView::AssetCatalogTreeView(asset_system::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
     : asset_library_(library),
@@ -366,7 +367,7 @@ AssetCatalogDropTarget::AssetCatalogDropTarget(AssetCatalogTreeViewItem &item,
 bool AssetCatalogDropTarget::can_drop(const wmDrag &drag, const char **r_disabled_hint) const
 {
   if (drag.type == WM_DRAG_ASSET_CATALOG) {
-    const ::AssetLibrary &library = get_asset_library();
+    const asset_system::AssetLibrary &library = get_asset_library();
     if (!can_modify_catalogs(library, r_disabled_hint)) {
       return false;
     }
@@ -496,8 +497,8 @@ bool AssetCatalogDropTarget::drop_assets_into_catalog(bContext *C,
   return true;
 }
 
-AssetCatalog *AssetCatalogDropTarget::get_drag_catalog(const wmDrag &drag,
-                                                       const ::AssetLibrary &asset_library)
+AssetCatalog *AssetCatalogDropTarget::get_drag_catalog(
+    const wmDrag &drag, const asset_system::AssetLibrary &asset_library)
 {
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return nullptr;
@@ -525,7 +526,7 @@ bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char 
   return false;
 }
 
-bool AssetCatalogDropTarget::can_modify_catalogs(const ::AssetLibrary &library,
+bool AssetCatalogDropTarget::can_modify_catalogs(const asset_system::AssetLibrary &library,
                                                  const char **r_disabled_hint)
 {
   if (ED_asset_catalogs_read_only(library)) {
@@ -535,7 +536,7 @@ bool AssetCatalogDropTarget::can_modify_catalogs(const ::AssetLibrary &library,
   return true;
 }
 
-::AssetLibrary &AssetCatalogDropTarget::get_asset_library() const
+asset_system::AssetLibrary &AssetCatalogDropTarget::get_asset_library() const
 {
   return *get_view<AssetCatalogTreeView>().asset_library_;
 }
@@ -600,7 +601,7 @@ bool AssetCatalogTreeViewAllItem::DropTarget::can_drop(const wmDrag &drag,
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return false;
   }
-  ::AssetLibrary &library = *get_view<AssetCatalogTreeView>().asset_library_;
+  asset_system::AssetLibrary &library = *get_view<AssetCatalogTreeView>().asset_library_;
   if (!AssetCatalogDropTarget::can_modify_catalogs(library, r_disabled_hint)) {
     return false;
   }
@@ -771,7 +772,7 @@ bool file_is_asset_visible_in_catalog_filter_settings(
 
 /* ---------------------------------------------------------------------- */
 
-void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
+void file_create_asset_catalog_tree_view_in_layout(asset_system::AssetLibrary *asset_library,
                                                    uiLayout *layout,
                                                    SpaceFile *space_file,
                                                    FileAssetSelectParams *params)

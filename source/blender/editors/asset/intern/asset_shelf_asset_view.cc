@@ -22,7 +22,6 @@
 
 #include "ED_asset_handle.hh"
 #include "ED_asset_list.hh"
-#include "ED_asset_list.hh"
 #include "ED_asset_shelf.hh"
 
 #include "UI_grid_view.hh"
@@ -171,7 +170,7 @@ static std::optional<asset_system::AssetCatalogFilter> catalog_filter_from_shelf
     return {};
   }
 
-  asset_system ::AssetCatalog *active_catalog = library.catalog_service->find_catalog_by_path(
+  asset_system::AssetCatalog *active_catalog = library.catalog_service->find_catalog_by_path(
       shelf_settings.active_catalog_path);
   if (!active_catalog) {
     return {};

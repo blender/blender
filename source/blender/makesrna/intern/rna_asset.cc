@@ -355,7 +355,8 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
     return;
   }
 
-  ::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  blender::asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(
+      sfile);
   if (asset_library == nullptr) {
     /* The SpaceFile may not be an asset browser but a regular file browser. */
     return;

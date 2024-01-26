@@ -21,7 +21,6 @@
 
 #include "BKE_callbacks.h"
 
-struct AssetLibrary;
 struct IDRemapper;
 struct Main;
 
@@ -232,9 +231,9 @@ std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRe
 std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain);
 
 blender::asset_system::AssetCatalogService *AS_asset_library_get_catalog_service(
-    const ::AssetLibrary *library);
+    const blender::asset_system::AssetLibrary *library);
 blender::asset_system::AssetCatalogTree *AS_asset_library_get_catalog_tree(
-    const ::AssetLibrary *library);
+    const blender::asset_system::AssetLibrary *library);
 
 /**
  * Force clearing of all asset library data. After calling this, new asset libraries can be loaded
@@ -251,11 +250,12 @@ void AS_asset_libraries_exit();
  *
  * To get the in-memory-only "current file" asset library, pass an empty path.
  */
-::AssetLibrary *AS_asset_library_load(const char *name, const char *library_dirpath);
+blender::asset_system::AssetLibrary *AS_asset_library_load(const char *name,
+                                                           const char *library_dirpath);
 
 /** Look up the asset's catalog and copy its simple name into #asset_data. */
-void AS_asset_library_refresh_catalog_simplename(::AssetLibrary *asset_library,
-                                                 AssetMetaData *asset_data);
+void AS_asset_library_refresh_catalog_simplename(
+    blender::asset_system::AssetLibrary *asset_library, AssetMetaData *asset_data);
 
 /** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
 bool AS_asset_library_has_any_unsaved_catalogs(void);

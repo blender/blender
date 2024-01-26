@@ -14,7 +14,6 @@
 
 #include "RNA_types.hh"
 
-struct AssetLibrary;
 struct bScreen;
 struct uiLayout;
 

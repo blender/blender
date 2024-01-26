@@ -23,10 +23,10 @@
 
 #include "BLI_string_ref.hh"
 
-struct AssetLibrary;
 struct bScreen;
 
-void ED_asset_catalogs_save_from_main_path(::AssetLibrary *library, const Main *bmain);
+void ED_asset_catalogs_save_from_main_path(blender::asset_system::AssetLibrary *library,
+                                           const Main *bmain);
 
 /**
  * Saving catalog edits when the file is saved is a global option shared for each asset library,
@@ -39,16 +39,16 @@ bool ED_asset_catalogs_get_save_catalogs_when_file_is_saved(void);
  * Returns if the catalogs of \a library are allowed to be editable, or if the UI should forbid
  * edits.
  */
-[[nodiscard]] bool ED_asset_catalogs_read_only(const ::AssetLibrary &library);
+[[nodiscard]] bool ED_asset_catalogs_read_only(const blender::asset_system::AssetLibrary &library);
 
 blender::asset_system::AssetCatalog *ED_asset_catalog_add(
-    ::AssetLibrary *library,
+    blender::asset_system::AssetLibrary *library,
     blender::StringRefNull name,
     blender::StringRef parent_path = nullptr);
-void ED_asset_catalog_remove(::AssetLibrary *library,
+void ED_asset_catalog_remove(blender::asset_system::AssetLibrary *library,
                              const blender::asset_system::CatalogID &catalog_id);
 
-void ED_asset_catalog_rename(::AssetLibrary *library,
+void ED_asset_catalog_rename(blender::asset_system::AssetLibrary *library,
                              blender::asset_system::CatalogID catalog_id,
                              blender::StringRefNull new_name);
 /**
@@ -63,6 +63,6 @@ void ED_asset_catalog_rename(::AssetLibrary *library,
  * Nothing is done (debug builds run into an assert) if the given catalog IDs can't be identified.
  */
 void ED_asset_catalog_move(
-    ::AssetLibrary *library,
+    blender::asset_system::AssetLibrary *library,
     blender::asset_system::CatalogID src_catalog_id,
     std::optional<blender::asset_system::CatalogID> dst_parent_catalog_id = std::nullopt);

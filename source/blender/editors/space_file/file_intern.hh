@@ -15,7 +15,6 @@
 
 struct ARegion;
 struct ARegionType;
-struct AssetLibrary;
 struct bContextDataResult;
 struct FileAssetSelectParams;
 struct FileSelectParams;
@@ -228,10 +227,11 @@ void file_path_to_ui_path(const char *path, char *r_pathi, int max_size);
 /* C-handle for #ed::asset_browser::AssetCatalogFilterSettings. */
 struct FileAssetCatalogFilterSettingsHandle;
 
-void file_create_asset_catalog_tree_view_in_layout(::AssetLibrary *asset_library,
-                                                   uiLayout *layout,
-                                                   SpaceFile *space_file,
-                                                   FileAssetSelectParams *params);
+void file_create_asset_catalog_tree_view_in_layout(
+    blender::asset_system::AssetLibrary *asset_library,
+    uiLayout *layout,
+    SpaceFile *space_file,
+    FileAssetSelectParams *params);
 
 namespace blender::asset_system {
 class AssetLibrary;
