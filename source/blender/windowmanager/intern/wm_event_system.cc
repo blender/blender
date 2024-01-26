@@ -397,7 +397,7 @@ void WM_main_remove_notifier_reference(const void *reference)
 
 static void wm_main_remap_assetlist(ID *old_id, ID *new_id, void * /*user_data*/)
 {
-  ED_assetlist_storage_id_remap(old_id, new_id);
+  blender::ed::asset::list::storage_id_remap(old_id, new_id);
 }
 
 static void wm_main_remap_msgbus_notify(ID *old_id, ID *new_id, void *user_data)

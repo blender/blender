@@ -330,7 +330,7 @@ bool AssetCatalogTreeViewItem::supports_renaming() const
 {
   const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
       get_tree_view());
-  return !ED_asset_catalogs_read_only(*tree_view.asset_library_);
+  return !asset::catalogs_read_only(*tree_view.asset_library_);
 }
 
 bool AssetCatalogTreeViewItem::rename(const bContext &C, StringRefNull new_name)
@@ -340,7 +340,7 @@ bool AssetCatalogTreeViewItem::rename(const bContext &C, StringRefNull new_name)
 
   const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
       get_tree_view());
-  ED_asset_catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
+  asset::catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
   return true;
 }
 
@@ -454,7 +454,7 @@ bool AssetCatalogDropTarget::drop_asset_catalog_into_catalog(
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
   wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
-  ED_asset_catalog_move(tree_view.asset_library_, catalog_drag->drag_catalog_id, drop_catalog_id);
+  asset::catalog_move(tree_view.asset_library_, catalog_drag->drag_catalog_id, drop_catalog_id);
   tree_view.activate_catalog_by_id(catalog_drag->drag_catalog_id);
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_CATALOGS, nullptr);
@@ -529,7 +529,7 @@ bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char 
 bool AssetCatalogDropTarget::can_modify_catalogs(const asset_system::AssetLibrary &library,
                                                  const char **r_disabled_hint)
 {
-  if (ED_asset_catalogs_read_only(library)) {
+  if (asset::catalogs_read_only(library)) {
     *r_disabled_hint = RPT_("Catalogs cannot be edited in this asset library");
     return false;
   }

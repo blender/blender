@@ -648,7 +648,7 @@ struct AssetIndex {
   const int UNKNOWN_VERSION = -1;
 
   /**
-   * `blender::io::serialize::Value` representing the contents of an index file.
+   * `io::serialize::Value` representing the contents of an index file.
    *
    * Value is used over #DictionaryValue as the contents of the index could be corrupted and
    * doesn't represent an object. In case corrupted files are detected the `get_version` would
@@ -940,6 +940,6 @@ constexpr FileIndexerType asset_indexer()
   return indexer;
 }
 
-}  // namespace blender::ed::asset::index
+const FileIndexerType file_indexer_asset = asset_indexer();
 
-const FileIndexerType file_indexer_asset = blender::ed::asset::index::asset_indexer();
+}  // namespace blender::ed::asset::index

@@ -506,6 +506,7 @@ static void set_layout_context_from_button(bContext *C, uiLayout *layout, uiBut 
 
 bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *event)
 {
+  using namespace blender::ed;
   /* ui_but_is_interactive() may let some buttons through that should not get a context menu - it
    * doesn't make sense for them. */
   if (ELEM(but->type, UI_BTYPE_LABEL, UI_BTYPE_IMAGE)) {
@@ -1023,7 +1024,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   /* If the button represents an id, it can set the "id" context pointer. */
-  if (ED_asset_can_mark_single_from_context(C)) {
+  if (asset::can_mark_single_from_context(C)) {
     const ID *id = static_cast<const ID *>(CTX_data_pointer_get_type(C, "id", &RNA_ID).data);
 
     /* Gray out items depending on if data-block is an asset. Preferably this could be done via

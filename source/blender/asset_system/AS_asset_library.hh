@@ -77,7 +77,7 @@ class AssetLibrary {
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
-  /* Controlled by #ED_asset_catalogs_set_save_catalogs_when_file_is_saved,
+  /* Controlled by #ed::asset::catalogs_set_save_catalogs_when_file_is_saved,
    * for managing the "Save Catalog Changes" in the quit-confirmation dialog box. */
   static bool save_catalogs_when_file_is_saved;
 

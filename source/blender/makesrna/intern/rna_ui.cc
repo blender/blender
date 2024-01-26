@@ -1180,7 +1180,7 @@ static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
     return false;
   }
 
-  ED_asset_shelf_type_unlink(*bmain, *shelf_type);
+  blender::ed::asset::shelf::type_unlink(*bmain, *shelf_type);
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
@@ -1284,13 +1284,15 @@ static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
 static int rna_AssetShelf_asset_library_get(PointerRNA *ptr)
 {
   AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
-  return ED_asset_library_reference_to_enum_value(&shelf->settings.asset_library_reference);
+  return blender::ed::asset::library_reference_to_enum_value(
+      &shelf->settings.asset_library_reference);
 }
 
 static void rna_AssetShelf_asset_library_set(PointerRNA *ptr, int value)
 {
   AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
-  shelf->settings.asset_library_reference = ED_asset_library_reference_from_enum_value(value);
+  shelf->settings.asset_library_reference = blender::ed::asset::library_reference_from_enum_value(
+      value);
 }
 
 static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)

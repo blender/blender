@@ -10,19 +10,21 @@
 
 #include "DNA_asset_types.h"
 
+namespace blender::ed::asset {
+
 /**
  * Return an index that can be used to uniquely identify \a library, assuming
  * that all relevant indices were created with this function.
  */
-int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library);
+int library_reference_to_enum_value(const AssetLibraryReference *library);
 /**
  * Return an asset library reference matching the index returned by
- * #ED_asset_library_reference_to_enum_value().
+ * #library_reference_to_enum_value().
  */
-AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
+AssetLibraryReference library_reference_from_enum_value(int value);
 /**
  * Translate all available asset libraries to an RNA enum, whereby the enum values match the result
- * of #ED_asset_library_reference_to_enum_value() for any given library.
+ * of #library_reference_to_enum_value() for any given library.
  *
  * Since this is meant for UI display, skips non-displayable libraries, that is, libraries with an
  * empty name or path.
@@ -32,4 +34,6 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value);
  *                           included, since they are stored on disk with a single root directory,
  *                           thus have a well defined location that can be written to.
  */
-const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(bool include_generated);
+const EnumPropertyItem *library_reference_to_rna_enum_itemf(bool include_generated);
+
+}  // namespace blender::ed::asset

@@ -75,6 +75,7 @@ void ED_editors_init_for_undo(Main *bmain)
 
 void ED_editors_init(bContext *C)
 {
+  using namespace blender::ed;
   Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -205,7 +206,7 @@ void ED_editors_init(bContext *C)
     }
   }
 
-  ED_assetlist_storage_tag_main_data_dirty();
+  asset::list::storage_tag_main_data_dirty();
 
   SWAP(int, reports->flag, reports_flag_prev);
   wm->op_undo_depth--;

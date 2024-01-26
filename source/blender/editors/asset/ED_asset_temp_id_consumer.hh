@@ -23,11 +23,15 @@ namespace blender::asset_system {
 class AssetRepresentation;
 }
 
-AssetTempIDConsumer *ED_asset_temp_id_consumer_create(
+namespace blender::ed::asset {
+
+AssetTempIDConsumer *temp_id_consumer_create(
     const blender::asset_system::AssetRepresentation *asset);
 
-void ED_asset_temp_id_consumer_free(AssetTempIDConsumer **consumer);
-ID *ED_asset_temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer,
-                                              ID_Type id_type,
-                                              Main *bmain,
-                                              ReportList *reports);
+void temp_id_consumer_free(AssetTempIDConsumer **consumer);
+ID *temp_id_consumer_ensure_local_id(AssetTempIDConsumer *consumer,
+                                     ID_Type id_type,
+                                     Main *bmain,
+                                     ReportList *reports);
+
+}  // namespace blender::ed::asset

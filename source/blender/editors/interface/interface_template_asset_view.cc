@@ -35,6 +35,7 @@
 #include "interface_intern.hh"
 
 using namespace blender;
+using namespace blender::ed;
 
 struct AssetViewListData {
   AssetLibraryReference asset_library_ref;
@@ -45,7 +46,7 @@ struct AssetViewListData {
 
 static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
 {
-  blender::asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(
+  blender::asset_system::AssetRepresentation *asset = asset::handle_get_representation(
       asset_handle);
 
   UI_but_dragflag_enable(but, UI_BUT_DRAG_FULL_BUT);
@@ -59,9 +60,9 @@ static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
   const eAssetImportMethod import_method = asset->get_import_method().value_or(
       ASSET_IMPORT_APPEND_REUSE);
 
-  ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
+  ImBuf *imbuf = asset::list::asset_image_get(asset_handle);
   UI_but_drag_set_asset(
-      but, asset, import_method, ED_asset_handle_get_preview_icon_id(asset_handle), imbuf, 1.0f);
+      but, asset, import_method, asset::handle_get_preview_icon_id(asset_handle), imbuf, 1.0f);
 }
 
 static void asset_view_draw_item(uiList *ui_list,
@@ -77,7 +78,7 @@ static void asset_view_draw_item(uiList *ui_list,
 {
   AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
 
-  AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&list_data->asset_library_ref,
+  AssetHandle asset_handle = asset::list::asset_handle_get_by_index(&list_data->asset_library_ref,
                                                                     index);
 
   PointerRNA file_ptr = RNA_pointer_create(&list_data->screen->id,
@@ -93,8 +94,8 @@ static void asset_view_draw_item(uiList *ui_list,
       block,
       UI_BTYPE_PREVIEW_TILE,
       0,
-      ED_asset_handle_get_preview_icon_id(&asset_handle),
-      show_names ? ED_asset_handle_get_representation(&asset_handle)->get_name().c_str() : "",
+      asset::handle_get_preview_icon_id(&asset_handle),
+      show_names ? asset::handle_get_representation(&asset_handle)->get_name().c_str() : "",
       0,
       0,
       size_x,
@@ -106,7 +107,7 @@ static void asset_view_draw_item(uiList *ui_list,
       0,
       "");
   ui_def_but_icon(but,
-                  ED_asset_handle_get_preview_icon_id(&asset_handle),
+                  asset::handle_get_preview_icon_id(&asset_handle),
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   but->emboss = UI_EMBOSS_NONE;
@@ -130,10 +131,10 @@ static void asset_view_filter_items(uiList *ui_list,
       C,
       [&name_filter, list_data, &filter_settings](
           const PointerRNA &itemptr, blender::StringRefNull name, int index) {
-        asset_system::AssetRepresentation *asset = ED_assetlist_asset_get_by_index(
+        asset_system::AssetRepresentation *asset = asset::list::asset_get_by_index(
             list_data->asset_library_ref, index);
 
-        if (!ED_asset_filter_matches_asset(&filter_settings, *asset)) {
+        if (!asset::filter_matches_asset(&filter_settings, *asset)) {
           return UI_LIST_ITEM_NEVER_SHOW;
         }
         return name_filter(itemptr, name, index);
@@ -141,7 +142,7 @@ static void asset_view_filter_items(uiList *ui_list,
       dataptr,
       propname,
       [list_data](const PointerRNA & /*itemptr*/, int index) -> std::string {
-        asset_system::AssetRepresentation *asset = ED_assetlist_asset_get_by_index(
+        asset_system::AssetRepresentation *asset = asset::list::asset_get_by_index(
             list_data->asset_library_ref, index);
 
         return asset->get_name();
@@ -155,13 +156,13 @@ static void asset_view_listener(uiList * /*ui_list*/, wmRegionListenerParams *pa
   switch (notifier->category) {
     case NC_ID: {
       if (ELEM(notifier->action, NA_RENAME)) {
-        ED_assetlist_storage_tag_main_data_dirty();
+        asset::list::storage_tag_main_data_dirty();
       }
       break;
     }
   }
 
-  if (ED_assetlist_listen(params->notifier)) {
+  if (asset::list::listen(params->notifier)) {
     ED_region_tag_redraw(params->region);
   }
 }
@@ -199,7 +200,7 @@ static void populate_asset_collection(const AssetLibraryReference &asset_library
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  ED_assetlist_iterate(asset_library_ref, [&](AssetHandle /*asset*/) {
+  asset::list::iterate(asset_library_ref, [&](AssetHandle /*asset*/) {
     /* XXX creating a dummy #RNA_AssetHandle collection item. It's #file_data will be null. This is
      * because the #FileDirEntry may be freed while iterating, there's a cache for them with a
      * maximum size. Further code will query as needed it using the collection index. */
@@ -238,7 +239,7 @@ void uiTemplateAssetView(uiLayout *layout,
 
   PropertyRNA *asset_library_prop = RNA_struct_find_property(asset_library_dataptr,
                                                              asset_library_propname);
-  AssetLibraryReference asset_library_ref = ED_asset_library_reference_from_enum_value(
+  AssetLibraryReference asset_library_ref = asset::library_reference_from_enum_value(
       RNA_property_enum_get(asset_library_dataptr, asset_library_prop));
 
   uiLayout *row = uiLayoutRow(col, true);
@@ -256,9 +257,9 @@ void uiTemplateAssetView(uiLayout *layout,
     }
   }
 
-  ED_assetlist_storage_fetch(&asset_library_ref, C);
-  ED_assetlist_ensure_previews_job(&asset_library_ref, C);
-  const int tot_items = ED_assetlist_size(&asset_library_ref);
+  asset::list::storage_fetch(&asset_library_ref, C);
+  asset::list::ensure_previews_job(&asset_library_ref, C);
+  const int tot_items = asset::list::size(&asset_library_ref);
 
   populate_asset_collection(asset_library_ref, *assets_dataptr, assets_propname);
 

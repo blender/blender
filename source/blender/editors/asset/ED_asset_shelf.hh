@@ -20,46 +20,50 @@ struct Main;
 struct wmWindowManager;
 struct RegionPollParams;
 
+namespace blender::ed::asset::shelf {
+
 /* -------------------------------------------------------------------- */
 /** \name Asset Shelf Regions
  *
  * Naming conventions:
- * - #ED_asset_shelf_regions_xxx(): Applies to both regions (#RGN_TYPE_ASSET_SHELF and
+ * - #regions_xxx(): Applies to both regions (#RGN_TYPE_ASSET_SHELF and
  *   #RGN_TYPE_ASSET_SHELF_HEADER).
- * - #ED_asset_shelf_region_xxx(): Applies to the main shelf region (#RGN_TYPE_ASSET_SHELF).
- * - #ED_asset_shelf_header_region_xxx(): Applies to the shelf header region
+ * - #region_xxx(): Applies to the main shelf region (#RGN_TYPE_ASSET_SHELF).
+ * - #header_region_xxx(): Applies to the shelf header region
  *   (#RGN_TYPE_ASSET_SHELF_HEADER).
  *
  * \{ */
 
-bool ED_asset_shelf_regions_poll(const RegionPollParams *params);
+bool regions_poll(const RegionPollParams *params);
 
 /** Only needed for #RGN_TYPE_ASSET_SHELF (not #RGN_TYPE_ASSET_SHELF_HEADER). */
-void *ED_asset_shelf_region_duplicate(void *regiondata);
-void ED_asset_shelf_region_free(ARegion *region);
-void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region);
-int ED_asset_shelf_region_snap(const ARegion *region, int size, int axis);
-void ED_asset_shelf_region_on_user_resize(const ARegion *region);
-void ED_asset_shelf_region_listen(const wmRegionListenerParams *params);
-void ED_asset_shelf_region_layout(const bContext *C, ARegion *region);
-void ED_asset_shelf_region_draw(const bContext *C, ARegion *region);
-void ED_asset_shelf_region_blend_read_data(BlendDataReader *reader, ARegion *region);
-void ED_asset_shelf_region_blend_write(BlendWriter *writer, ARegion *region);
-int ED_asset_shelf_region_prefsizey(void);
+void *region_duplicate(void *regiondata);
+void region_free(ARegion *region);
+void region_init(wmWindowManager *wm, ARegion *region);
+int region_snap(const ARegion *region, int size, int axis);
+void region_on_user_resize(const ARegion *region);
+void region_listen(const wmRegionListenerParams *params);
+void region_layout(const bContext *C, ARegion *region);
+void region_draw(const bContext *C, ARegion *region);
+void region_blend_read_data(BlendDataReader *reader, ARegion *region);
+void region_blend_write(BlendWriter *writer, ARegion *region);
+int region_prefsizey(void);
 
-void ED_asset_shelf_header_region_init(wmWindowManager *wm, ARegion *region);
-void ED_asset_shelf_header_region(const bContext *C, ARegion *region);
-void ED_asset_shelf_header_region_listen(const wmRegionListenerParams *params);
-int ED_asset_shelf_header_region_size(void);
-void ED_asset_shelf_header_regiontype_register(ARegionType *region_type, const int space_type);
+void header_region_init(wmWindowManager *wm, ARegion *region);
+void header_region(const bContext *C, ARegion *region);
+void header_region_listen(const wmRegionListenerParams *params);
+int header_region_size(void);
+void header_regiontype_register(ARegionType *region_type, const int space_type);
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
 
-void ED_asset_shelf_type_unlink(const Main &bmain, const AssetShelfType &shelf_type);
+void type_unlink(const Main &bmain, const AssetShelfType &shelf_type);
 
-int ED_asset_shelf_tile_width(const AssetShelfSettings &settings);
-int ED_asset_shelf_tile_height(const AssetShelfSettings &settings);
+int tile_width(const AssetShelfSettings &settings);
+int tile_height(const AssetShelfSettings &settings);
 
-int ED_asset_shelf_context(const bContext *C, const char *member, bContextDataResult *result);
+int context(const bContext *C, const char *member, bContextDataResult *result);
+
+}  // namespace blender::ed::asset::shelf

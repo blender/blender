@@ -198,9 +198,9 @@ typedef struct AssetWeakReference {
  * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
  * pass to the UI.
  *
- * \warning Never store this! When using #ED_assetlist_iterate(), only access it within the
- *          iterator function. The contained file data can be freed since the file cache has a
- *          maximum number of items.
+ * \warning Never store this! When using #blender::ed::asset::list::iterate(), only access it
+ * within the iterator function. The contained file data can be freed since the file cache has a
+ * maximum number of items.
  */
 #
 #

@@ -14,8 +14,6 @@
 /* Barely anything here. Just general editor level functions. Actual asset level code is in
  * dedicated headers. */
 
-void ED_operatortypes_asset();
-
 #include "../asset/ED_asset_catalog.hh"
 #include "../asset/ED_asset_handle.hh"
 #include "../asset/ED_asset_library.hh"
@@ -28,3 +26,9 @@ void ED_operatortypes_asset();
 #include "../asset/ED_asset_filter.hh"
 #include "../asset/ED_asset_import.hh"
 #include "../asset/ED_asset_list.hh"
+
+namespace blender::ed::asset {
+
+void operatortypes_asset();
+
+}

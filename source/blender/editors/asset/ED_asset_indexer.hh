@@ -10,6 +10,8 @@
 
 #include "ED_file_indexer.hh"
 
+namespace blender::ed::asset::index {
+
 /**
  * File Indexer Service for indexing asset files.
  *
@@ -28,3 +30,5 @@
  *   additional performance.
  */
 extern const FileIndexerType file_indexer_asset;
+
+}  // namespace blender::ed::asset::index

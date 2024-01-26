@@ -190,6 +190,7 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
                                                             Main *bmain,
                                                             const bool is_read_homefile)
 {
+  using namespace blender;
   BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
@@ -239,7 +240,7 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
 
   /* Asset loading is done by the UI/editors and they keep pointers into it. So make sure to clear
    * it after UI/editors. */
-  ED_assetlist_storage_exit();
+  ed::asset::list::storage_exit();
   AS_asset_libraries_exit();
 
   /* NOTE: `wm_setup_data->old_wm` cannot be set here, as this pointer may be swapped with the
@@ -1952,7 +1953,7 @@ static bool wm_file_write(bContext *C,
     return false;
   }
 
-  ED_assets_pre_save(bmain);
+  blender::ed::asset::pre_save_assets(bmain);
 
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
@@ -2291,7 +2292,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   /* NOTE: either #BKE_CB_EVT_SAVE_POST or #BKE_CB_EVT_SAVE_POST_FAIL must run.
    * Runs at the end of this function, don't return beforehand. */
   BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, "");
-  ED_assets_pre_save(bmain);
+  blender::ed::asset::pre_save_assets(bmain);
 
   /* check current window and close it if temp */
   if (win && WM_window_is_temp_screen(win)) {
@@ -4229,11 +4230,13 @@ static const char *close_file_dialog_name = "file_close_popup";
 static void save_catalogs_when_file_is_closed_set_fn(bContext * /*C*/, void *arg1, void * /*arg2*/)
 {
   char *save_catalogs_when_file_is_closed = static_cast<char *>(arg1);
-  ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
+  blender::ed::asset::catalogs_set_save_catalogs_when_file_is_saved(
+      *save_catalogs_when_file_is_closed != 0);
 }
 
 static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, void *arg1)
 {
+  using namespace blender;
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
 
@@ -4325,7 +4328,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
   if (AS_asset_library_has_any_unsaved_catalogs()) {
     static char save_catalogs_when_file_is_closed;
 
-    save_catalogs_when_file_is_closed = ED_asset_catalogs_get_save_catalogs_when_file_is_saved();
+    save_catalogs_when_file_is_closed = ed::asset::catalogs_get_save_catalogs_when_file_is_saved();
 
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
