@@ -1939,9 +1939,8 @@ int WM_operator_props_dialog_popup(
   data->op = op;
   data->width = width * UI_SCALE_FAC;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
-  data->title = (title == nullptr) ? WM_operatortype_description(C, op->type, op->ptr) : title;
-  data->confirm_text = (confirm_text == nullptr) ? WM_operatortype_name(op->type, op->ptr) :
-                                                   confirm_text;
+  data->title = (title == nullptr) ? WM_operatortype_name(op->type, op->ptr) : title;
+  data->confirm_text = (confirm_text == nullptr) ? IFACE_("OK") : confirm_text;
   data->cancel_default = false;
   data->mouse_move_quit = false;
   data->include_properties = true;
