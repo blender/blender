@@ -1374,69 +1374,71 @@ static void template_ID(const bContext *C,
 
     template_id_workspace_pin_extra_icon(template_ui, but);
 
-    if (ID_IS_LINKED(id)) {
-      const bool disabled = !BKE_idtype_idcode_is_localizable(GS(id->name));
-      if (id->tag & LIB_TAG_INDIRECT) {
-        but = uiDefIconBut(block,
-                           UI_BTYPE_BUT,
-                           0,
-                           ICON_LIBRARY_DATA_INDIRECT,
-                           0,
-                           0,
-                           UI_UNIT_X,
-                           UI_UNIT_Y,
-                           nullptr,
-                           0,
-                           0,
-                           0,
-                           0,
-                           TIP_("Indirect library data-block, cannot be made local, "
-                                "Shift + Click to create a library override hierarchy"));
+    if (!hide_buttons) {
+      if (ID_IS_LINKED(id)) {
+        const bool disabled = !BKE_idtype_idcode_is_localizable(GS(id->name));
+        if (id->tag & LIB_TAG_INDIRECT) {
+          but = uiDefIconBut(block,
+                             UI_BTYPE_BUT,
+                             0,
+                             ICON_LIBRARY_DATA_INDIRECT,
+                             0,
+                             0,
+                             UI_UNIT_X,
+                             UI_UNIT_Y,
+                             nullptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             TIP_("Indirect library data-block, cannot be made local, "
+                                  "Shift + Click to create a library override hierarchy"));
+        }
+        else {
+          but = uiDefIconBut(block,
+                             UI_BTYPE_BUT,
+                             0,
+                             ICON_LIBRARY_DATA_DIRECT,
+                             0,
+                             0,
+                             UI_UNIT_X,
+                             UI_UNIT_Y,
+                             nullptr,
+                             0,
+                             0,
+                             0,
+                             0,
+                             TIP_("Direct linked library data-block, click to make local, "
+                                  "Shift + Click to create a library override"));
+        }
+        if (disabled) {
+          UI_but_flag_enable(but, UI_BUT_DISABLED);
+        }
+        else {
+          UI_but_funcN_set(
+              but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_LOCAL));
+        }
       }
-      else {
-        but = uiDefIconBut(block,
-                           UI_BTYPE_BUT,
-                           0,
-                           ICON_LIBRARY_DATA_DIRECT,
-                           0,
-                           0,
-                           UI_UNIT_X,
-                           UI_UNIT_Y,
-                           nullptr,
-                           0,
-                           0,
-                           0,
-                           0,
-                           TIP_("Direct linked library data-block, click to make local, "
-                                "Shift + Click to create a library override"));
-      }
-      if (disabled) {
-        UI_but_flag_enable(but, UI_BUT_DISABLED);
-      }
-      else {
+      else if (ID_IS_OVERRIDE_LIBRARY(id)) {
+        but = uiDefIconBut(
+            block,
+            UI_BTYPE_BUT,
+            0,
+            ICON_LIBRARY_DATA_OVERRIDE,
+            0,
+            0,
+            UI_UNIT_X,
+            UI_UNIT_Y,
+            nullptr,
+            0,
+            0,
+            0,
+            0,
+            TIP_("Library override of linked data-block, click to make fully local, "
+                 "Shift + Click to clear the library override and toggle if it can be edited"));
         UI_but_funcN_set(
-            but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_LOCAL));
+            but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OVERRIDE));
       }
-    }
-    else if (ID_IS_OVERRIDE_LIBRARY(id)) {
-      but = uiDefIconBut(
-          block,
-          UI_BTYPE_BUT,
-          0,
-          ICON_LIBRARY_DATA_OVERRIDE,
-          0,
-          0,
-          UI_UNIT_X,
-          UI_UNIT_Y,
-          nullptr,
-          0,
-          0,
-          0,
-          0,
-          TIP_("Library override of linked data-block, click to make fully local, "
-               "Shift + Click to clear the library override and toggle if it can be edited"));
-      UI_but_funcN_set(
-          but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OVERRIDE));
     }
 
     if ((ID_REAL_USERS(id) > 1) && (hide_buttons == false)) {

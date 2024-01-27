@@ -43,25 +43,30 @@ class VIEW3D_MT_brush_context_menu(Menu):
 
         # skip if no active brush
         if not brush:
-            layout.label(text="No Brushes currently available", icon='INFO')
+            layout.label(text="No brush selected", icon='INFO')
             return
 
-        # brush paint modes
-        layout.menu("VIEW3D_MT_brush_paint_modes")
 
-        # brush tool
+        # TODO: Need actual check if this is an asset from library.
+        # TODO: why is brush.asset_data None for these?
+        is_linked = brush.library
+        is_override = brush.override_library and brush.override_library.reference
+        is_asset_brush = is_linked or is_override
 
-        if context.image_paint_object:
-            layout.prop_menu_enum(brush, "image_tool")
-        elif context.vertex_paint_object:
-            layout.prop_menu_enum(brush, "vertex_tool")
-        elif context.weight_paint_object:
-            layout.prop_menu_enum(brush, "weight_tool")
-        elif context.sculpt_object:
-            layout.prop_menu_enum(brush, "sculpt_tool")
-            layout.operator("brush.reset")
-        elif context.tool_settings.curves_sculpt:
-            layout.prop_menu_enum(brush, "curves_sculpt_tool")
+        if is_asset_brush:
+            layout.operator("brush.asset_save_as", text="Duplicate Asset...", icon='DUPLICATE')
+            layout.operator("brush.asset_delete", text="Delete Asset")
+
+            layout.separator()
+
+            layout.operator("brush.asset_update", text="Update Asset")
+            layout.operator("brush.asset_revert", text="Revert to Asset")
+
+            if context.sculpt_object:
+                layout.operator("brush.reset", text="Reset to Defaults")
+        else:
+            layout.operator("brush.asset_save_as", text="Save As Asset...", icon='FILE_TICK')
+            layout.operator("brush.asset_delete", text="Delete")
 
 
 class VIEW3D_MT_brush_gpencil_context_menu(Menu):

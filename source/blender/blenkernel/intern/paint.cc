@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -673,6 +674,13 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
   }
 }
 
+bool BKE_paint_brush_is_valid_asset(const Brush *brush)
+{
+  return brush && (ID_IS_ASSET(&brush->id) ||
+                   (!ID_IS_LINKED(&brush->id) && ID_IS_OVERRIDE_LIBRARY_REAL(&brush->id) &&
+                    ID_IS_ASSET(brush->id.override_library->reference)));
+}
+
 static void paint_brush_asset_update(Paint &paint,
                                      Brush *brush,
                                      AssetWeakReference *brush_asset_reference)
@@ -705,6 +713,21 @@ bool BKE_paint_brush_asset_set(Paint *paint,
   BKE_paint_brush_set(paint, brush);
   paint_brush_asset_update(*paint, brush, weak_asset_reference);
   return true;
+}
+
+std::optional<AssetWeakReference *> BKE_paint_brush_asset_get(Paint *paint, Brush **r_brush)
+{
+  Brush *brush = *r_brush = BKE_paint_brush(paint);
+
+  if (!BKE_paint_brush_is_valid_asset(brush)) {
+    return {};
+  }
+
+  if (paint->brush_asset_reference) {
+    return paint->brush_asset_reference;
+  }
+
+  return {};
 }
 
 void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)

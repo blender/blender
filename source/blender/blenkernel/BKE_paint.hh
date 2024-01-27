@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_math_matrix_types.hh"
@@ -204,12 +206,25 @@ const Brush *BKE_paint_brush_for_read(const Paint *p);
 void BKE_paint_brush_set(Paint *paint, Brush *br);
 
 /**
+ * Check if the given brush is a valid Brush Asset.
+ *
+ * A valid brush Asset is either an actual asset, or a local liboverride of a linked brush asset.
+ */
+bool BKE_paint_brush_is_valid_asset(const Brush *brush);
+
+/**
  * Set the active brush of given paint struct, and store the weak asset reference to it.
  * \note Takes ownership of the given `weak_asset_reference`.
  */
 bool BKE_paint_brush_asset_set(Paint *paint,
                                Brush *brush,
                                AssetWeakReference *weak_asset_reference);
+
+/**
+ * Get the active brush of given paint struct, together with its weak asset reference.
+ * \note Returns unset optional if the active brush is not a valid Brush Asset data..
+ */
+std::optional<AssetWeakReference *> BKE_paint_brush_asset_get(Paint *paint, Brush **r_brush);
 
 /**
  * Attempt to restore a valid active brush in `paint` from brush asset information stored in

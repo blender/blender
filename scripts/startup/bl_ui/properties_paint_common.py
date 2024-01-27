@@ -147,19 +147,50 @@ class BrushSelectPanel(BrushPanel):
         brush = settings.brush
 
         row = layout.row()
-        large_preview = True
-        if large_preview:
-            row.column().template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8, hide_buttons=False)
-        else:
-            row.column().template_ID(settings, "brush", new="brush.add")
+        # TODO: hide buttons since they are confusing with menu entries.
+        # But some of this functionality may still be needed.
+        row.column().template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8, hide_buttons=True)
+
+        if brush is None:
+            return
+
         col = row.column()
         col.menu("VIEW3D_MT_brush_context_menu", icon='DOWNARROW_HLT', text="")
 
-        if brush is not None:
-            col.prop(brush, "use_custom_icon", toggle=True, icon='FILE_IMAGE', text="")
+        header, panel = layout.panel("customize", default_closed=True)
+        header.label(text="Customize")
+        if panel:
+            panel.use_property_split = True
+            panel.use_property_decorate = False
 
-            if brush.use_custom_icon:
-                layout.prop(brush, "icon_filepath", text="")
+            # icon
+            col = panel.column(heading="Custom Icon", align=True)
+            row = col.row()
+            row.prop(brush, "use_custom_icon", text="")
+            sub = row.row()
+            sub.active = brush.use_custom_icon
+            sub.prop(brush, "icon_filepath", text="")
+
+            # brush tool
+            if context.image_paint_object:
+                panel.prop(brush, "image_tool")
+            elif context.vertex_paint_object:
+                panel.prop(brush, "vertex_tool")
+            elif context.weight_paint_object:
+                panel.prop(brush, "weight_tool")
+            elif context.sculpt_object:
+                panel.prop(brush, "sculpt_tool")
+            elif context.tool_settings.curves_sculpt:
+                panel.prop(brush, "curves_sculpt_tool")
+
+            # brush paint modes
+            col = panel.column(heading="Modes", align=True)
+            col.prop(brush, "use_paint_sculpt", text="Sculpt")
+            col.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
+            col.prop(brush, "use_paint_vertex", text="Vertex Paint")
+            col.prop(brush, "use_paint_weight", text="Weight Paint")
+            col.prop(brush, "use_paint_image", text="Texture Paint")
+            col.prop(brush, "use_paint_sculpt_curves", text="Sculpt Curves")
 
 
 class ColorPalettePanel(BrushPanel):

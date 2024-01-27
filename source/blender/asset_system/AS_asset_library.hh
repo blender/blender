@@ -107,6 +107,9 @@ class AssetLibrary {
    */
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
+  static std::string resolve_asset_weak_reference_to_full_path(
+      const AssetWeakReference &asset_reference);
+
   void load_catalogs();
 
   /** Load catalogs that have changed on disk. */
@@ -165,8 +168,6 @@ class AssetLibrary {
    * asset path (relative to the asset library root directory).
    */
   AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
-
-  std::string resolve_asset_weak_reference_to_full_path(const AssetWeakReference &asset_reference);
 
   eAssetLibraryType library_type() const;
   StringRefNull name() const;
