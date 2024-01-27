@@ -1015,9 +1015,6 @@ static void BRUSH_OT_asset_select(wmOperatorType *ot)
 
   ot->exec = brush_asset_select_exec;
   ot->poll = brush_asset_poll;
-
-  ot->prop = RNA_def_string(
-      ot->srna, "name", nullptr, MAX_NAME, "Brush Name", "Name of the brush asset to select");
 }
 
 /***** Stencil Control *****/
