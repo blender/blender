@@ -44,7 +44,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_texture.h"
 
-#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

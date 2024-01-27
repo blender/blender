@@ -14,6 +14,7 @@
 #include "DNA_object_enums.h"
 
 enum class PaintMode : int8_t;
+struct AssetWeakReference;
 struct Brush;
 struct ImBuf;
 struct ImagePool;
@@ -30,6 +31,7 @@ struct UnifiedPaintSettings;
 void BKE_brush_system_init();
 void BKE_brush_system_exit();
 
+/* TODO: Should be somewhere else not specific to brushes. */
 Brush *BKE_brush_asset_runtime_ensure(Main *bmain,
                                       const AssetWeakReference *brush_asset_reference);
 
