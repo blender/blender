@@ -47,11 +47,23 @@ ccl_device_forceinline bool osl_closure_skip(KernelGlobals kg,
                                              uint32_t path_flag,
                                              int scattering)
 {
-  /* caustic options */
+  /* Caustic options */
   if ((scattering & LABEL_GLOSSY) && (path_flag & PATH_RAY_DIFFUSE)) {
-    if ((!kernel_data.integrator.caustics_reflective && (scattering & LABEL_REFLECT)) ||
-        (!kernel_data.integrator.caustics_refractive && (scattering & LABEL_TRANSMIT)))
-    {
+    const bool has_reflect = (scattering & LABEL_REFLECT);
+    const bool has_transmit = (scattering & LABEL_TRANSMIT);
+    const bool reflect_caustics_disabled = !kernel_data.integrator.caustics_reflective;
+    const bool refract_caustics_disabled = !kernel_data.integrator.caustics_refractive;
+
+    /* Reflective Caustics */
+    if (reflect_caustics_disabled && has_reflect && !has_transmit) {
+      return true;
+    }
+    /* Refractive Caustics*/
+    if (refract_caustics_disabled && has_transmit && !has_reflect) {
+      return true;
+    }
+    /* Glass Caustics */
+    if (reflect_caustics_disabled && refract_caustics_disabled && has_reflect && has_transmit) {
       return true;
     }
   }
@@ -322,7 +334,12 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   const bool has_reflection = !is_zero(closure->reflection_tint);
   const bool has_transmission = !is_zero(closure->transmission_tint);
 
-  if (osl_closure_skip(kg, sd, path_flag, LABEL_GLOSSY | LABEL_REFLECT)) {
+  int label = LABEL_GLOSSY | LABEL_REFLECT;
+  if (has_transmission) {
+    label |= LABEL_TRANSMIT;
+  }
+
+  if (osl_closure_skip(kg, sd, path_flag, label)) {
     return;
   }
 
