@@ -1542,16 +1542,72 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
     }
 
     bNodeSocket *base_color_sock = nodeFindSocket(node, SOCK_IN, "Base Color");
+    bNodeSocket *metallic_sock = nodeFindSocket(node, SOCK_IN, "Metallic");
     float specular_tint_old = *version_cycles_node_socket_float_value(specular_tint_sock);
     float *base_color = version_cycles_node_socket_rgba_value(base_color_sock);
+    float metallic = *version_cycles_node_socket_float_value(metallic_sock);
 
     /* Change socket type to Color. */
     nodeModifySocketTypeStatic(ntree, node, specular_tint_sock, SOCK_RGBA, 0);
+    float *specular_tint = version_cycles_node_socket_rgba_value(specular_tint_sock);
+
+    /* The conversion logic here is that the new Specular Tint should be
+     * mix(one, mix(base_color, one, metallic), old_specular_tint).
+     * This needs to be handled both for the fixed values, as well as for any potential connected
+     * inputs. */
 
     static float one[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-    /* Add a mix node when working with dynamic inputs. */
-    if (specular_tint_sock->link || (base_color_sock->link && specular_tint_old != 0)) {
+    /* Mix the fixed values. */
+    float metallic_mix[4];
+    interp_v4_v4v4(metallic_mix, base_color, one, metallic);
+    interp_v4_v4v4(specular_tint, one, metallic_mix, specular_tint_old);
+
+    if (specular_tint_sock->link == nullptr && specular_tint_old <= 0.0f) {
+      /* Specular Tint was fixed at zero, we don't need any conversion node setup. */
+      continue;
+    }
+
+    /* If the Metallic input is dynamic, or fixed > 0 and base color is dynamic,
+     * we need to insert a node to compute the metallic_mix.
+     * Otherwise, use whatever is connected to the base color, or the static value
+     * if it's unconnected. */
+    bNodeSocket *metallic_mix_out = nullptr;
+    bNode *metallic_mix_node = nullptr;
+    if (metallic_sock->link || (base_color_sock->link && metallic > 0.0f)) {
+      /* Metallic Mix needs to be dynamically mixed. */
+      bNode *mix = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX);
+      static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
+      mix->locx = node->locx - 270;
+      mix->locy = node->locy - 120;
+
+      bNodeSocket *a_in = nodeFindSocket(mix, SOCK_IN, "A_Color");
+      bNodeSocket *b_in = nodeFindSocket(mix, SOCK_IN, "B_Color");
+      bNodeSocket *fac_in = nodeFindSocket(mix, SOCK_IN, "Factor_Float");
+      metallic_mix_out = nodeFindSocket(mix, SOCK_OUT, "Result_Color");
+      metallic_mix_node = mix;
+
+      copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), base_color);
+      if (base_color_sock->link) {
+        nodeAddLink(
+            ntree, base_color_sock->link->fromnode, base_color_sock->link->fromsock, mix, a_in);
+      }
+      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), one);
+      *version_cycles_node_socket_float_value(fac_in) = metallic;
+      if (metallic_sock->link) {
+        nodeAddLink(
+            ntree, metallic_sock->link->fromnode, metallic_sock->link->fromsock, mix, fac_in);
+      }
+    }
+    else if (base_color_sock->link) {
+      /* Metallic Mix is a no-op and equivalent to Base Color*/
+      metallic_mix_out = base_color_sock->link->fromsock;
+      metallic_mix_node = base_color_sock->link->fromnode;
+    }
+
+    /* Similar to above, if the Specular Tint input is dynamic, or fixed > 0 and metallic mix
+     * is dynamic, we need to insert a node to compute the new specular tint. */
+    if (specular_tint_sock->link || (metallic_mix_out && specular_tint_old > 0.0f)) {
       bNode *mix = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX);
       static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
       mix->locx = node->locx - 170;
@@ -1563,13 +1619,11 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       bNodeSocket *result_out = nodeFindSocket(mix, SOCK_OUT, "Result_Color");
 
       copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), one);
-      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), base_color);
-      *version_cycles_node_socket_float_value(fac_in) = specular_tint_old;
-
-      if (base_color_sock->link) {
-        nodeAddLink(
-            ntree, base_color_sock->link->fromnode, base_color_sock->link->fromsock, mix, b_in);
+      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), metallic_mix);
+      if (metallic_mix_out) {
+        nodeAddLink(ntree, metallic_mix_node, metallic_mix_out, mix, b_in);
       }
+      *version_cycles_node_socket_float_value(fac_in) = specular_tint_old;
       if (specular_tint_sock->link) {
         nodeAddLink(ntree,
                     specular_tint_sock->link->fromnode,
@@ -1580,10 +1634,6 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       }
       nodeAddLink(ntree, mix, result_out, node, specular_tint_sock);
     }
-
-    float *specular_tint = version_cycles_node_socket_rgba_value(specular_tint_sock);
-    /* Mix the fixed values. */
-    interp_v4_v4v4(specular_tint, one, base_color, specular_tint_old);
   }
 }
 
