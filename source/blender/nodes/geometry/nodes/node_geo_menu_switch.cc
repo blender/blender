@@ -145,8 +145,6 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
   dst_node->storage = dst_storage;
 }
 
-static void node_update(bNodeTree * /*ntree*/, bNode * /*node*/) {}
-
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   if (params.in_out() == SOCK_IN) {
@@ -403,7 +401,6 @@ static void register_node()
   geo_node_type_base(&ntype, GEO_NODE_MENU_SWITCH, "Menu Switch", NODE_CLASS_CONVERTER);
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
-  ntype.updatefunc = node_update;
   node_type_storage(&ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
