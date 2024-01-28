@@ -998,6 +998,7 @@ if(NOT OPENIMAGEIO_TOOL)
 else()
   set(render_tests
     transform
+    filter
   )
 
   foreach(render_test ${render_tests})
