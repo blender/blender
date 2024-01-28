@@ -29,7 +29,7 @@ blender::MutableSpan<NodeEnumItem> NodeEnumDefinition::items_for_write()
   return {this->items_array, this->items_num};
 }
 
-NodeEnumItem *NodeEnumDefinition::add_item(blender::StringRef name)
+NodeEnumItem *NodeEnumDefinition::add_item(const blender::StringRef name)
 {
   const int insert_index = this->items_num;
   NodeEnumItem *old_items = this->items_array;
@@ -82,11 +82,11 @@ void NodeEnumDefinition::clear()
   this->active_index = int16_t(active_index);
 }
 
-bool NodeEnumDefinition::move_item(uint16_t from_index, uint16_t to_index)
+bool NodeEnumDefinition::move_item(const uint16_t from_index, const uint16_t to_index)
 {
   if (to_index < this->items_num) {
-    int items_num = this->items_num;
-    int active_index = this->active_index;
+    const int items_num = this->items_num;
+    const int active_index = this->active_index;
     blender::dna::array::move_index(this->items_array, items_num, from_index, to_index);
     this->items_num = int16_t(items_num);
     this->active_index = int16_t(active_index);
@@ -115,7 +115,7 @@ void NodeEnumDefinition::active_item_set(NodeEnumItem *item)
   this->active_index = this->items().contains_ptr(item) ? item - this->items_array : -1;
 }
 
-void NodeEnumDefinition::set_item_name(NodeEnumItem &item, blender::StringRef name)
+void NodeEnumDefinition::set_item_name(NodeEnumItem &item, const blender::StringRef name)
 {
   char unique_name[MAX_NAME + 4];
   STRNCPY(unique_name, name.data());
