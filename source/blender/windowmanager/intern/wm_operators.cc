@@ -668,12 +668,18 @@ std::string WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *p
 
   if (lhs.empty()) {
     /* Fallback to `bpy.data.foo[id]` if we don't find in the context. */
-    lhs = RNA_path_full_property_py(ptr, prop, index);
+    if (char *lhs_cstr = RNA_path_full_property_py(ptr, prop, index)) {
+      lhs = lhs_cstr;
+      MEM_freeN(lhs_cstr);
+    }
+    if (lhs.empty()) {
+      return "";
+    }
   }
 
   char *rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
   if (!rhs) {
-    return nullptr;
+    return "";
   }
 
   std::string ret = fmt::format("{} = {}", lhs, rhs);
