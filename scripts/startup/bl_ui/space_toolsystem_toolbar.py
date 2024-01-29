@@ -1394,7 +1394,7 @@ class _defs_sculpt:
             ToolDef.from_dict(
                 dict(
                     idname="builtin.brush",
-                    label=brush.name,
+                    label="Brush",
                     icon="brush.sculpt.paint",
                     data_block=tool
                 )
@@ -2459,7 +2459,7 @@ class _defs_curves_sculpt:
             ToolDef.from_dict(
                 dict(
                     idname="builtin.brush",
-                    label=brush.name,
+                    label="Brush",
                     icon="brush.sculpt.paint",
                     data_block=tool
                 )
