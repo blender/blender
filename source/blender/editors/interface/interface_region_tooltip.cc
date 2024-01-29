@@ -847,7 +847,8 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       but_tip_label = UI_but_string_get_tooltip_label(*but);
       but_tip = UI_but_string_get_tooltip(*C, *but);
       enum_label = enum_item ? enum_item->name : "";
-      enum_tip = enum_item ? enum_item->description : "";
+      const char *description_c = enum_item ? enum_item->description : nullptr;
+      enum_tip = description_c ? description_c : "";
       if (!is_menu) {
         op_keymap = UI_but_string_get_operator_keymap(*C, *but);
         prop_keymap = UI_but_string_get_property_keymap(*C, *but);
@@ -979,7 +980,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   else if (optype) {
     PointerRNA *opptr = extra_icon ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
                                      /* Allocated when needed, the button owns it. */
-                                     UI_but_operator_ptr_get(but);
+                                     UI_but_operator_ptr_ensure(but);
 
     /* So the context is passed to field functions (some Python field functions use it). */
     WM_operator_properties_sanitize(opptr, false);

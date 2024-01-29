@@ -1286,7 +1286,7 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
 
   /* assign properties */
   if (properties || r_opptr) {
-    PointerRNA *opptr = UI_but_operator_ptr_get(but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
     if (properties) {
       opptr->data = properties;
     }

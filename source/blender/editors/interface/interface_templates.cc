@@ -1534,7 +1534,7 @@ static void template_ID(const bContext *C,
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         TIP_("Packed File, click to unpack"));
-    UI_but_operator_ptr_get(but);
+    UI_but_operator_ptr_ensure(but);
 
     RNA_string_set(but->opptr, "id_name", id->name + 2);
     RNA_int_set(but->opptr, "id_type", GS(id->name));
@@ -5911,7 +5911,7 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         nullptr);
-    UI_but_operator_ptr_get(but);
+    UI_but_operator_ptr_ensure(but);
     RNA_enum_set(but->opptr, "type", -1);
 
     but = uiDefIconButO(block,
@@ -5924,7 +5924,7 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
                         UI_UNIT_X,
                         UI_UNIT_Y,
                         nullptr);
-    UI_but_operator_ptr_get(but);
+    UI_but_operator_ptr_ensure(but);
     RNA_enum_set(but->opptr, "type", 1);
 
     /* Menu. */

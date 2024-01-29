@@ -1469,7 +1469,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
                                    UI_UNIT_X * 8,
                                    UI_UNIT_Y,
                                    nullptr);
-    PointerRNA *but_opptr = UI_but_operator_ptr_get(but);
+    PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
     RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
 
     UI_block_end(C, block);

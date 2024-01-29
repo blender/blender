@@ -5936,7 +5936,7 @@ int UI_but_return_value_get(uiBut *but)
   return but->retval;
 }
 
-PointerRNA *UI_but_operator_ptr_get(uiBut *but)
+PointerRNA *UI_but_operator_ptr_ensure(uiBut *but)
 {
   if (but->optype && !but->opptr) {
     but->opptr = MEM_cnew<PointerRNA>(__func__);
@@ -6421,7 +6421,7 @@ static void operator_enum_search_update_fn(
   }
   else {
     /* Will create it if needed! */
-    PointerRNA *ptr = UI_but_operator_ptr_get(static_cast<uiBut *>(but));
+    PointerRNA *ptr = UI_but_operator_ptr_ensure(static_cast<uiBut *>(but));
 
     bool do_free;
     const EnumPropertyItem *all_items;
@@ -6453,7 +6453,7 @@ static void operator_enum_search_exec_fn(bContext * /*C*/, void *but, void *arg2
 {
   wmOperatorType *ot = ((uiBut *)but)->optype;
   /* Will create it if needed! */
-  PointerRNA *opptr = UI_but_operator_ptr_get(static_cast<uiBut *>(but));
+  PointerRNA *opptr = UI_but_operator_ptr_ensure(static_cast<uiBut *>(but));
 
   if (ot) {
     if (ot->prop) {
@@ -6498,7 +6498,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
   but->opcontext = WM_OP_EXEC_DEFAULT;
 
   if (properties) {
-    PointerRNA *ptr = UI_but_operator_ptr_get(but);
+    PointerRNA *ptr = UI_but_operator_ptr_ensure(but);
     /* Copy id-properties. */
     ptr->data = IDP_CopyProperty(properties);
   }
@@ -6577,7 +6577,7 @@ std::optional<EnumPropertyItem> UI_but_rna_enum_item_get(bContext &C, uiBut &but
     wmOperatorType *ot = but.optype;
 
     /* So the context is passed to `itemf` functions. */
-    PointerRNA *opptr = UI_but_operator_ptr_get(&but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     WM_operator_properties_sanitize(opptr, false);
 
     /* If the default property of the operator is an enum and is set, fetch the tooltip of the
@@ -6662,7 +6662,7 @@ std::string UI_but_string_get_rna_label(uiBut &but)
     return RNA_property_ui_name(but.rnaprop);
   }
   if (but.optype) {
-    PointerRNA *opptr = UI_but_operator_ptr_get(&but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     return WM_operatortype_name(but.optype, opptr).c_str();
   }
   if (ELEM(but.type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
@@ -6717,7 +6717,7 @@ std::string UI_but_string_get_rna_tooltip(bContext &C, uiBut &but)
     }
   }
   else if (but.optype) {
-    PointerRNA *opptr = UI_but_operator_ptr_get(&but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     const bContextStore *previous_ctx = CTX_store_get(&C);
     CTX_store_set(&C, but.context);
     std::string tmp = WM_operatortype_description(&C, but.optype, opptr).c_str();

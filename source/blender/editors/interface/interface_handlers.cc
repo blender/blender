@@ -2734,7 +2734,7 @@ static void ui_but_paste_CurveProfile(bContext *C, uiBut *but)
 
 static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int output_maxncpy)
 {
-  PointerRNA *opptr = UI_but_operator_ptr_get(but);
+  PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
 
   char *str;
   str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);

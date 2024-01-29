@@ -1402,7 +1402,7 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
                              const char *tip);
 
 /** For passing inputs to ButO buttons. */
-PointerRNA *UI_but_operator_ptr_get(uiBut *but);
+PointerRNA *UI_but_operator_ptr_ensure(uiBut *but);
 
 void UI_but_context_ptr_set(uiBlock *block, uiBut *but, const char *name, const PointerRNA *ptr);
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
