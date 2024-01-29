@@ -876,6 +876,17 @@ static void rna_def_sculpt(BlenderRNA *brna)
     RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   } while ((++entry)->identifier);
 
+  prop = RNA_def_property(
+      srna, "automasking_boundary_edges_propagation_steps", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "automasking_boundary_edges_propagation_steps");
+  RNA_def_property_range(prop, 1, AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS);
+  RNA_def_property_ui_range(prop, 1, AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS, 1, -1);
+  RNA_def_property_ui_text(prop,
+                           "Propagation Steps",
+                           "Distance where boundary edge automasking is going to protect vertices "
+                           "from the fully masked edge");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
   prop = RNA_def_property(srna, "automasking_cavity_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "automasking_cavity_factor");
   RNA_def_property_ui_text(prop, "Cavity Factor", "The contrast of the cavity mask");

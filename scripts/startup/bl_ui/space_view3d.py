@@ -8527,7 +8527,7 @@ class VIEW3D_PT_sculpt_automasking(Panel):
         col.prop(sculpt, "use_automasking_boundary_face_sets", text="Face Sets Boundary")
 
         if sculpt.use_automasking_boundary_edges or sculpt.use_automasking_boundary_face_sets:
-            col.prop(sculpt.brush, "automasking_boundary_edges_propagation_steps")
+            col.prop(sculpt, "automasking_boundary_edges_propagation_steps")
 
         col.separator()
 

@@ -3183,8 +3183,8 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(
       srna, "automasking_boundary_edges_propagation_steps", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "automasking_boundary_edges_propagation_steps");
-  RNA_def_property_range(prop, 1, 20);
-  RNA_def_property_ui_range(prop, 1, 20, 1, 3);
+  RNA_def_property_range(prop, 1, AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS);
+  RNA_def_property_ui_range(prop, 1, AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS, 1, -1);
   RNA_def_property_ui_text(prop,
                            "Propagation Steps",
                            "Distance where boundary edge automasking is going to protect vertices "

@@ -383,6 +383,10 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (idprop) {
     IDP_ClearProperty(idprop);
   }
+
+  if (ts->sculpt) {
+    ts->sculpt->automasking_boundary_edges_propagation_steps = 1;
+  }
 }
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
