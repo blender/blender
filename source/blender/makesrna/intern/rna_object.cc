@@ -328,7 +328,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
 #  include "BKE_curve.hh"
-#  include "BKE_deform.h"
+#  include "BKE_deform.hh"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
 #  include "BKE_gpencil_modifier_legacy.h"

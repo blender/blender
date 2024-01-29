@@ -377,7 +377,7 @@ set(SRC
   BKE_customdata.hh
   BKE_customdata_file.h
   BKE_data_transfer.h
-  BKE_deform.h
+  BKE_deform.hh
   BKE_displist.h
   BKE_duplilist.h
   BKE_dynamicpaint.h

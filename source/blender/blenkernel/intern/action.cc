@@ -41,7 +41,7 @@
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
 #include "BKE_constraint.h"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"

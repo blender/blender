@@ -15,7 +15,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"

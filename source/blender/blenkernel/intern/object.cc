@@ -79,7 +79,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.hh"

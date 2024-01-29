@@ -28,7 +28,7 @@
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_curves.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_set.hh"

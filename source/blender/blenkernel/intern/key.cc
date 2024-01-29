@@ -37,7 +37,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.h"

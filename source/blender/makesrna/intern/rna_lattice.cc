@@ -27,7 +27,7 @@
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
 
-#  include "BKE_deform.h"
+#  include "BKE_deform.hh"
 #  include "BKE_lattice.hh"
 #  include "BKE_main.hh"
 #  include "BLI_string.h"

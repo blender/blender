@@ -38,7 +38,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Lattice Deform API
