@@ -65,12 +65,7 @@ static FCurve *ui_but_get_fcurve(
 
 void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
 {
-  AnimData *adt;
-  bAction *act;
-  FCurve *fcu;
-  bool driven;
-  bool special;
-
+  /* Clear the flags that this function might set. */
   but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
   but->drawflag &= ~UI_BUT_ANIMATED_CHANGED;
 
@@ -78,41 +73,46 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
    *        itself (which are used to animate properties of the animation data).
    *        We count those as "animated" too for now
    */
-  fcu = ui_but_get_fcurve(but, &adt, &act, &driven, &special);
+  AnimData *adt;
+  bAction *act;
+  bool driven;
+  bool special;
+  FCurve *fcu = ui_but_get_fcurve(but, &adt, &act, &driven, &special);
 
-  if (fcu) {
-    if (!driven) {
-      /* Empty curves are ignored by the animation evaluation system. */
-      if (BKE_fcurve_is_empty(fcu)) {
-        return;
-      }
+  if (!fcu) {
+    return;
+  }
+  if (driven) {
+    but->flag |= UI_BUT_DRIVEN;
+    return;
+  }
 
-      but->flag |= UI_BUT_ANIMATED;
+  /* Empty curves are ignored by the animation evaluation system. */
+  if (BKE_fcurve_is_empty(fcu)) {
+    return;
+  }
 
-      /* #41525 - When the active action is a NLA strip being edited,
-       * we need to correct the frame number to "look inside" the
-       * remapped action
-       */
-      float cfra = anim_eval_context->eval_time;
-      if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
-      }
+  but->flag |= UI_BUT_ANIMATED;
 
-      if (fcurve_frame_has_keyframe(fcu, cfra)) {
-        but->flag |= UI_BUT_ANIMATED_KEY;
-      }
+  /* #41525 - When the active action is a NLA strip being edited,
+   * we need to correct the frame number to "look inside" the
+   * remapped action
+   */
+  float cfra = anim_eval_context->eval_time;
+  if (adt) {
+    cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
+  }
 
-      /* XXX: this feature is totally broken and useless with NLA */
-      if (adt == nullptr || adt->nla_tracks.first == nullptr) {
-        const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
-            anim_eval_context, cfra);
-        if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
-          but->drawflag |= UI_BUT_ANIMATED_CHANGED;
-        }
-      }
-    }
-    else {
-      but->flag |= UI_BUT_DRIVEN;
+  if (fcurve_frame_has_keyframe(fcu, cfra)) {
+    but->flag |= UI_BUT_ANIMATED_KEY;
+  }
+
+  /* XXX: this feature is totally broken and useless with NLA */
+  if (adt == nullptr || adt->nla_tracks.first == nullptr) {
+    const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
+        anim_eval_context, cfra);
+    if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
+      but->drawflag |= UI_BUT_ANIMATED_CHANGED;
     }
   }
 }
