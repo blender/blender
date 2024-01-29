@@ -841,12 +841,15 @@ class NodeTreeMainUpdater {
 
       /* Propagate enum references from output links. */
       for (bNodeSocket *output : node->output_sockets()) {
-        if (output->is_available() && output->type == SOCK_MENU) {
-          for (const bNodeSocket *input : output->directly_linked_sockets()) {
-            this->update_socket_enum_definition(
-                *output->default_value_typed<bNodeSocketValueMenu>(),
-                *input->default_value_typed<bNodeSocketValueMenu>());
+        if (!output->is_available() || output->type != SOCK_MENU) {
+          continue;
+        }
+        for (const bNodeSocket *input : output->directly_linked_sockets()) {
+          if (!input->is_available() || input->type != SOCK_MENU) {
+            continue;
           }
+          this->update_socket_enum_definition(*output->default_value_typed<bNodeSocketValueMenu>(),
+                                              *input->default_value_typed<bNodeSocketValueMenu>());
         }
       }
 
