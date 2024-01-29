@@ -83,8 +83,8 @@ extern GHOST_TSuccess GHOST_DisposeEventConsumer(GHOST_EventConsumerHandle consu
 
 /**
  * Returns the system time.
- * Returns the number of milliseconds since the start of the system process.
- * Based on ANSI clock() routine.
+ * Returns the number of milliseconds since the start of the system.
+ *
  * \param systemhandle: The handle to the system.
  * \return The number of milliseconds.
  */

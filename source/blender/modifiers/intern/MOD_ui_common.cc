@@ -143,6 +143,24 @@ void modifier_vgroup_ui(uiLayout *layout,
   }
 }
 
+void modifier_grease_pencil_curve_header_draw(const bContext * /*C*/, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
+
+  uiItemR(layout, ptr, "use_custom_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
+}
+
+void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+
+  PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
+
+  uiTemplateCurveMapping(layout, ptr, "curve", 0, false, false, false, false);
+}
+
 /**
  * Check whether Modifier is a simulation or not. Used for switching to the
  * physics/particles context tab.

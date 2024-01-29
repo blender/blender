@@ -811,6 +811,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
+  uiLayoutSetEnabled(layout, !ID_IS_LINKED(&object));
+
   {
     uiLayout *col = uiLayoutColumn(layout, false);
     uiLayout *row = uiLayoutRow(col, true);

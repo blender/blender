@@ -7,16 +7,22 @@
  */
 
 #include "ANIM_animdata.hh"
+
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+
 #include "DNA_anim_types.h"
+
 #include "ED_anim_api.hh"
+
 #include "RNA_access.hh"
 #include "RNA_path.hh"
 

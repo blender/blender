@@ -326,7 +326,7 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
 }
 
-static void update_existing_bake_caches(NodesModifierData &nmd)
+static void remove_outdated_bake_caches(NodesModifierData &nmd)
 {
   if (!nmd.runtime->cache) {
     if (nmd.bakes_num == 0) {
@@ -337,49 +337,15 @@ static void update_existing_bake_caches(NodesModifierData &nmd)
   bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
   std::lock_guard lock{modifier_cache.mutex};
 
-  Map<int, std::unique_ptr<bake::SimulationNodeCache>> &old_simulation_cache_by_id =
-      modifier_cache.simulation_cache_by_id;
-  Map<int, std::unique_ptr<bake::BakeNodeCache>> &old_bake_cache_by_id =
-      modifier_cache.bake_cache_by_id;
-
-  Map<int, std::unique_ptr<bake::SimulationNodeCache>> new_simulation_cache_by_id;
-  Map<int, std::unique_ptr<bake::BakeNodeCache>> new_bake_cache_by_id;
-  if (nmd.node_group) {
-    for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
-      const bNode *node = nmd.node_group->find_nested_node(ref.id);
-      switch (node->type) {
-        case GEO_NODE_SIMULATION_OUTPUT: {
-          std::unique_ptr<bake::SimulationNodeCache> node_cache;
-          if (std::unique_ptr<bake::SimulationNodeCache> *old_node_cache_ptr =
-                  old_simulation_cache_by_id.lookup_ptr(ref.id))
-          {
-            node_cache = std::move(*old_node_cache_ptr);
-          }
-          else {
-            node_cache = std::make_unique<bake::SimulationNodeCache>();
-          }
-          new_simulation_cache_by_id.add(ref.id, std::move(node_cache));
-          break;
-        }
-        case GEO_NODE_BAKE: {
-          std::unique_ptr<bake::BakeNodeCache> node_cache;
-          if (std::unique_ptr<bake::BakeNodeCache> *old_node_cache_ptr =
-                  old_bake_cache_by_id.lookup_ptr(ref.id))
-          {
-            node_cache = std::move(*old_node_cache_ptr);
-          }
-          else {
-            node_cache = std::make_unique<bake::BakeNodeCache>();
-          }
-          new_bake_cache_by_id.add(ref.id, std::move(node_cache));
-          break;
-        }
-      }
-    }
+  Set<int> existing_bake_ids;
+  for (const NodesModifierBake &bake : Span{nmd.bakes, nmd.bakes_num}) {
+    existing_bake_ids.add(bake.id);
   }
 
-  modifier_cache.simulation_cache_by_id = std::move(new_simulation_cache_by_id);
-  modifier_cache.bake_cache_by_id = std::move(new_bake_cache_by_id);
+  auto remove_predicate = [&](auto item) { return !existing_bake_ids.contains(item.key); };
+
+  modifier_cache.bake_cache_by_id.remove_if(remove_predicate);
+  modifier_cache.simulation_cache_by_id.remove_if(remove_predicate);
 }
 
 static void update_bakes_from_node_group(NodesModifierData &nmd)
@@ -432,7 +398,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   nmd.bakes = new_bake_data;
   nmd.bakes_num = new_bake_ids.size();
 
-  update_existing_bake_caches(nmd);
+  remove_outdated_bake_caches(nmd);
 }
 
 static void update_panels_from_node_group(NodesModifierData &nmd)
@@ -1051,12 +1017,9 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
 
   void init_simulation_info(const int zone_id, nodes::SimulationZoneBehavior &zone_behavior) const
   {
-    if (!modifier_cache_->simulation_cache_by_id.contains(zone_id)) {
-      /* Should have been created in #update_existing_bake_caches. */
-      return;
-    }
-    bake::SimulationNodeCache &node_cache = *modifier_cache_->simulation_cache_by_id.lookup(
-        zone_id);
+    bake::SimulationNodeCache &node_cache =
+        *modifier_cache_->simulation_cache_by_id.lookup_or_add_cb(
+            zone_id, []() { return std::make_unique<bake::SimulationNodeCache>(); });
     const IndexRange sim_frame_range = *bake::get_node_bake_frame_range(
         *scene_, *ctx_.object, nmd_, zone_id);
     const SubFrame sim_start_frame{int(sim_frame_range.first())};
@@ -1306,11 +1269,8 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
  private:
   void init_bake_behavior(const int id, nodes::BakeNodeBehavior &behavior) const
   {
-    if (!modifier_cache_->bake_cache_by_id.contains(id)) {
-      /* Should have been created in #update_existing_bake_caches. */
-      return;
-    }
-    bake::BakeNodeCache &node_cache = *modifier_cache_->bake_cache_by_id.lookup(id);
+    bake::BakeNodeCache &node_cache = *modifier_cache_->bake_cache_by_id.lookup_or_add_cb(
+        id, []() { return std::make_unique<bake::BakeNodeCache>(); });
 
     if (depsgraph_is_active_) {
       if (modifier_cache_->requested_bakes.contains(id)) {
@@ -2219,7 +2179,6 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
   else {
     tnmd->runtime->cache = std::make_shared<bake::ModifierCache>();
-    update_existing_bake_caches(*tnmd);
     /* Clear the bake path when duplicating. */
     tnmd->bake_directory = nullptr;
   }

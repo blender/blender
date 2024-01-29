@@ -1001,13 +1001,12 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
   }
 
   /* make a little report about what we've done! */
-  char *buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
-  if (buf) {
-    BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
-    MEM_freeN(buf);
-
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, nullptr);
+  const std::string str = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
+  if (str.empty()) {
+    return;
   }
+  BKE_report(CTX_wm_reports(C), RPT_PROPERTY, str.c_str());
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, nullptr);
 }
 
 static void ui_apply_but_funcs_after(bContext *C)
@@ -2734,12 +2733,10 @@ static void ui_but_paste_CurveProfile(bContext *C, uiBut *but)
 
 static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int output_maxncpy)
 {
-  PointerRNA *opptr = UI_but_operator_ptr_get(but);
+  PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
 
-  char *str;
-  str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
-  BLI_strncpy(output, str, output_maxncpy);
-  MEM_freeN(str);
+  std::string str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
+  BLI_strncpy(output, str.c_str(), output_maxncpy);
 }
 
 static bool ui_but_copy_menu(uiBut *but, char *output, int output_maxncpy)

@@ -283,15 +283,12 @@ static int copy_python_command_button_exec(bContext *C, wmOperator * /*op*/)
   uiBut *but = UI_context_active_but_get(C);
 
   if (but && (but->optype != nullptr)) {
-    PointerRNA *opptr;
-    char *str;
-    opptr = UI_but_operator_ptr_get(but); /* allocated when needed, the button owns it */
+    /* allocated when needed, the button owns it */
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
 
-    str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
+    std::string str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
 
-    WM_clipboard_text_set(str, false);
-
-    MEM_freeN(str);
+    WM_clipboard_text_set(str.c_str(), false);
 
     return OPERATOR_FINISHED;
   }

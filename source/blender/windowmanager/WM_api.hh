@@ -14,6 +14,8 @@
  * \todo document
  */
 
+#include <string>
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 #include "DNA_windowmanager_types.h"
@@ -685,6 +687,18 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
  */
 int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *event);
 int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *event);
+
+/**
+ * Like WM_operator_confirm, but with more options and can't be used as an invoke directly.
+ */
+int WM_operator_confirm_ex(bContext *C,
+                           wmOperator *op,
+                           const char *title = nullptr,
+                           const char *message = nullptr,
+                           const char *confirm_text = nullptr,
+                           int icon = 0, /* ALERT_ICON_WARNING. */
+                           bool cancel_default = false);
+
 /**
  * Invoke callback, file selector "filepath" unset + exec.
  *
@@ -1033,9 +1047,9 @@ bool WM_operator_properties_checker_interval_test(const CheckerIntervalParams *o
                                                   int depth);
 
 /**
- * Operator as a Python command (resulting string must be freed).
+ * Operator as a Python command.
  *
- * Print a string representation of the operator,
+ * Return a string representation of the operator,
  * with the arguments that it runs so Python can run it again.
  *
  * When calling from an existing #wmOperator, better to use simple version:
@@ -1043,18 +1057,17 @@ bool WM_operator_properties_checker_interval_test(const CheckerIntervalParams *o
  *
  * \note Both \a op and \a opptr may be `NULL` (\a op is only used for macro operators).
  */
-char *WM_operator_pystring_ex(bContext *C,
-                              wmOperator *op,
-                              bool all_args,
-                              bool macro_args,
-                              wmOperatorType *ot,
-                              PointerRNA *opptr);
-char *WM_operator_pystring(bContext *C, wmOperator *op, bool all_args, bool macro_args);
-/**
- * \return true if the string was shortened.
- */
-bool WM_operator_pystring_abbreviate(char *str, int str_len_max);
-char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index);
+std::string WM_operator_pystring_ex(bContext *C,
+                                    wmOperator *op,
+                                    bool all_args,
+                                    bool macro_args,
+                                    wmOperatorType *ot,
+                                    PointerRNA *opptr);
+std::string WM_operator_pystring(bContext *C, wmOperator *op, bool all_args, bool macro_args);
+
+std::string WM_operator_pystring_abbreviate(std::string str, int str_len_max);
+
+std::string WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index);
 /**
  * Convert: `some.op` -> `SOME_OT_op` or leave as-is.
  * \return the length of `dst`.
@@ -1075,11 +1088,11 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
 /**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
-char *WM_context_path_resolve_property_full(const bContext *C,
-                                            const PointerRNA *ptr,
-                                            PropertyRNA *prop,
-                                            int index);
-char *WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr);
+std::string WM_context_path_resolve_property_full(const bContext *C,
+                                                  const PointerRNA *ptr,
+                                                  PropertyRNA *prop,
+                                                  int index);
+std::string WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr);
 
 /* `wm_operator_type.cc` */
 

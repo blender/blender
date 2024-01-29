@@ -45,6 +45,7 @@ struct IconTextOverlay {
 #define PREVIEW_DEFAULT_HEIGHT 128
 
 enum eAlertIcon {
+  ALERT_ICON_NONE = -1,
   ALERT_ICON_WARNING = 0,
   ALERT_ICON_QUESTION = 1,
   ALERT_ICON_ERROR = 2,

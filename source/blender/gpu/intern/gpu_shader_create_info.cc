@@ -413,6 +413,15 @@ void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_
 
 using namespace blender::gpu::shader;
 
+#ifdef _MSC_VER
+/* Disable optimization for this function with MSVC. It does not like the fact
+ * shaders info are declared in the same function (same basic block or not does
+ * not change anything).
+ * Since it is just a function called to register shaders (once),
+ * the fact it's optimized or not does not matter, it's not on any hot
+ * code path. */
+#  pragma optimize("", off)
+#endif
 void gpu_shader_create_info_init()
 {
   g_create_infos = new CreateInfoDictionnary();
@@ -553,6 +562,9 @@ void gpu_shader_create_info_init()
   /* TEST */
   // gpu_shader_create_info_compile(nullptr);
 }
+#ifdef _MSC_VER
+#  pragma optimize("", on)
+#endif
 
 void gpu_shader_create_info_exit()
 {

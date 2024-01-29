@@ -1359,6 +1359,7 @@ static bool ui_but_event_property_operator_string(const bContext *C,
                                                   char *buf,
                                                   const size_t buf_maxncpy)
 {
+  using namespace blender;
   /* Context toggle operator names to check. */
 
   /* NOTE(@ideasman42): This function could use a refactor to generalize button type to operator
@@ -1448,18 +1449,17 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   /* There may be multiple data-paths to the same properties,
    * support different variations so key bindings are properly detected no matter which are used.
    */
-  char *data_path_variations[2] = {nullptr};
-  int data_path_variations_num = 0;
+  Vector<std::string, 2> data_path_variations;
 
   {
-    char *data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
+    std::string data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
 
     /* Always iterate once, even if data-path isn't set. */
-    data_path_variations[data_path_variations_num++] = data_path;
+    data_path_variations.append(data_path);
 
-    if (data_path) {
-      if (STRPREFIX(data_path, "scene.tool_settings.")) {
-        data_path_variations[data_path_variations_num++] = BLI_strdup(data_path + 6);
+    if (!data_path.empty()) {
+      if (StringRef(data_path).startswith("scene.tool_settings.")) {
+        data_path_variations.append(StringRef(data_path).drop_known_prefix("scene."));
       }
     }
   }
@@ -1467,18 +1467,18 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   /* We have a data-path! */
   bool found = false;
 
-  for (int data_path_index = 0; data_path_index < data_path_variations_num && (found == false);
+  for (int data_path_index = 0; data_path_index < data_path_variations.size() && (found == false);
        data_path_index++)
   {
-    const char *data_path = data_path_variations[data_path_index];
-    if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
+    const StringRefNull data_path = data_path_variations[data_path_index];
+    if (!data_path.is_empty() || (prop_enum_value_ok && prop_enum_value_id)) {
       /* Create a property to host the "data_path" property we're sending to the operators. */
       IDProperty *prop_path;
 
       const IDPropertyTemplate group_val = {0};
       prop_path = IDP_New(IDP_GROUP, &group_val, __func__);
-      if (data_path) {
-        IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path"));
+      if (!data_path.is_empty()) {
+        IDP_AddToGroup(prop_path, IDP_NewString(data_path.c_str(), "data_path"));
       }
       if (prop_enum_value_ok) {
         const EnumPropertyItem *item;
@@ -1522,12 +1522,6 @@ static bool ui_but_event_property_operator_string(const bContext *C,
     }
   }
 
-  for (int data_path_index = 0; data_path_index < data_path_variations_num; data_path_index++) {
-    char *data_path = data_path_variations[data_path_index];
-    if (data_path) {
-      MEM_freeN(data_path);
-    }
-  }
   return found;
 }
 
@@ -5936,7 +5930,7 @@ int UI_but_return_value_get(uiBut *but)
   return but->retval;
 }
 
-PointerRNA *UI_but_operator_ptr_get(uiBut *but)
+PointerRNA *UI_but_operator_ptr_ensure(uiBut *but)
 {
   if (but->optype && !but->opptr) {
     but->opptr = MEM_cnew<PointerRNA>(__func__);
@@ -6421,7 +6415,7 @@ static void operator_enum_search_update_fn(
   }
   else {
     /* Will create it if needed! */
-    PointerRNA *ptr = UI_but_operator_ptr_get(static_cast<uiBut *>(but));
+    PointerRNA *ptr = UI_but_operator_ptr_ensure(static_cast<uiBut *>(but));
 
     bool do_free;
     const EnumPropertyItem *all_items;
@@ -6453,7 +6447,7 @@ static void operator_enum_search_exec_fn(bContext * /*C*/, void *but, void *arg2
 {
   wmOperatorType *ot = ((uiBut *)but)->optype;
   /* Will create it if needed! */
-  PointerRNA *opptr = UI_but_operator_ptr_get(static_cast<uiBut *>(but));
+  PointerRNA *opptr = UI_but_operator_ptr_ensure(static_cast<uiBut *>(but));
 
   if (ot) {
     if (ot->prop) {
@@ -6498,7 +6492,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
   but->opcontext = WM_OP_EXEC_DEFAULT;
 
   if (properties) {
-    PointerRNA *ptr = UI_but_operator_ptr_get(but);
+    PointerRNA *ptr = UI_but_operator_ptr_ensure(but);
     /* Copy id-properties. */
     ptr->data = IDP_CopyProperty(properties);
   }
@@ -6577,7 +6571,7 @@ std::optional<EnumPropertyItem> UI_but_rna_enum_item_get(bContext &C, uiBut &but
     wmOperatorType *ot = but.optype;
 
     /* So the context is passed to `itemf` functions. */
-    PointerRNA *opptr = UI_but_operator_ptr_get(&but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     WM_operator_properties_sanitize(opptr, false);
 
     /* If the default property of the operator is an enum and is set, fetch the tooltip of the
@@ -6662,7 +6656,7 @@ std::string UI_but_string_get_rna_label(uiBut &but)
     return RNA_property_ui_name(but.rnaprop);
   }
   if (but.optype) {
-    PointerRNA *opptr = UI_but_operator_ptr_get(&but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     return WM_operatortype_name(but.optype, opptr).c_str();
   }
   if (ELEM(but.type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) {
@@ -6717,7 +6711,7 @@ std::string UI_but_string_get_rna_tooltip(bContext &C, uiBut &but)
     }
   }
   else if (but.optype) {
-    PointerRNA *opptr = UI_but_operator_ptr_get(&but);
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(&but);
     const bContextStore *previous_ctx = CTX_store_get(&C);
     CTX_store_set(&C, but.context);
     std::string tmp = WM_operatortype_description(&C, but.optype, opptr).c_str();

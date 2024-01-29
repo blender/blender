@@ -61,18 +61,16 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 
   /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
    * Support can be added at #wm_context_member_from_ptr. */
-  char *final_data_path = WM_context_path_resolve_property_full(
+  std::string final_data_path = WM_context_path_resolve_property_full(
       C, &but->rnapoin, but->rnaprop, but->rnaindex);
-  if (final_data_path == nullptr) {
+  if (final_data_path.empty()) {
     return nullptr;
   }
 
   /* Create ID property of data path, to pass to the operator. */
   const IDPropertyTemplate val = {0};
   IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-  IDP_AddToGroup(prop, IDP_NewString(final_data_path, "data_path"));
-
-  MEM_freeN((void *)final_data_path);
+  IDP_AddToGroup(prop, IDP_NewString(final_data_path.c_str(), "data_path"));
 
   return prop;
 }
@@ -321,9 +319,8 @@ static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
   }
   else if (but->rnaprop) {
     if (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) {
-      char *data_path = WM_context_path_resolve_full(C, &but->rnapoin);
-      if (data_path != nullptr) {
-        MEM_freeN(data_path);
+      std::string data_path = WM_context_path_resolve_full(C, &but->rnapoin);
+      if (!data_path.empty()) {
         result = true;
       }
     }
@@ -346,14 +343,13 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
         &um->items, but->optype, prop, "", but->opcontext);
   }
   if (but->rnaprop) {
-    char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
+    std::string member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
     /* Ignore the actual array index [pass -1] since the index is handled separately. */
     const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
                               RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
                               RNA_property_identifier(but->rnaprop);
     bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
-        &um->items, member_id_data_path, prop_id, but->rnaindex);
-    MEM_freeN(member_id_data_path);
+        &um->items, member_id_data_path.c_str(), prop_id, but->rnaindex);
     return umi;
   }
 
@@ -423,14 +419,14 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
   else if (but->rnaprop) {
     /* NOTE: 'member_id' may be a path. */
-    char *member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
+    std::string member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
     /* Ignore the actual array index [pass -1] since the index is handled separately. */
     const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
                               RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
                               RNA_property_identifier(but->rnaprop);
     /* NOTE: ignore 'drawstr', use property idname always. */
-    ED_screen_user_menu_item_add_prop(&um->items, "", member_id_data_path, prop_id, but->rnaindex);
-    MEM_freeN(member_id_data_path);
+    ED_screen_user_menu_item_add_prop(
+        &um->items, "", member_id_data_path.c_str(), prop_id, but->rnaindex);
   }
   else if ((mt = UI_but_menutype_get(but))) {
     ED_screen_user_menu_item_add_menu(&um->items, drawstr.c_str(), mt);

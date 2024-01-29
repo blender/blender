@@ -178,7 +178,7 @@ static void id_property_int_update_enum_items(const bNodeSocketValueMenu *value,
   int idprop_items_num = 0;
   IDPropertyUIDataEnumItem *idprop_items = nullptr;
 
-  if (value->enum_items) {
+  if (value->enum_items && !value->enum_items->items.is_empty()) {
     const Span<bke::RuntimeNodeEnumItem> items = value->enum_items->items;
     idprop_items_num = items.size();
     idprop_items = MEM_cnew_array<IDPropertyUIDataEnumItem>(items.size(), __func__);

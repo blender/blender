@@ -59,7 +59,13 @@ class DATA_PT_curves_surface(DataButtonsPanel, Panel):
         layout.prop(ob.data, "surface")
         has_surface = ob.data.surface is not None
         if has_surface:
-            layout.prop_search(ob.data, "surface_uv_map", ob.data.surface.data, "uv_layers", text="UV Map", icon='GROUP_UVS')
+            layout.prop_search(
+                ob.data,
+                "surface_uv_map",
+                ob.data.surface.data,
+                "uv_layers",
+                text="UV Map",
+                icon='GROUP_UVS')
         else:
             row = layout.row()
             row.prop(ob.data, "surface_uv_map", text="UV Map")

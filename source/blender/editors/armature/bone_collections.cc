@@ -929,6 +929,10 @@ static int add_or_move_to_collection_exec(bContext *C,
 
   bArmature *arm = static_cast<bArmature *>(ob->data);
   BoneCollection *target_bcoll = add_or_move_to_collection_bcoll(op, arm);
+  if (!target_bcoll) {
+    /* add_or_move_to_collection_bcoll() already reported the reason. */
+    return OPERATOR_CANCELLED;
+  }
 
   bool made_any_changes = false;
   bool had_bones_to_assign = false;
@@ -1107,7 +1111,9 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
     child_count = arm->collection_root_count;
   }
   else {
-    /* Add a menu item to assign to the parent first, before listing the children. */
+    /* Add a menu item to assign to the parent first, before listing the children.
+     * The parent is assumed to be editable, because otherwise the menu would
+     * have been disabled already one recursion level higher. */
     const BoneCollection *parent = arm->collection_array[parent_bcoll_index];
     menu_add_item_for_move_assign_unassign(
         layout, arm, parent, parent_bcoll_index, is_move_operation);
@@ -1121,6 +1127,16 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
    * bone collection wouldn't have been drawn as a menu. */
   for (int index = child_index; index < child_index + child_count; index++) {
     const BoneCollection *bcoll = arm->collection_array[index];
+
+    /* Avoid assigning/moving to a linked bone collection. */
+    if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
+      uiLayout *sub = uiLayoutRow(layout, false);
+      uiLayoutSetEnabled(sub, false);
+
+      /* TODO: figure out if we can add a 'disabled' message in the tooltip. */
+      menu_add_item_for_move_assign_unassign(sub, arm, bcoll, index, is_move_operation);
+      continue;
+    }
 
     if (blender::animrig::bonecoll_has_children(bcoll)) {
       uiItemMenuF(layout,

@@ -185,19 +185,33 @@ static bool is_constrained_by_radius(const Brush *br)
   return false;
 }
 
+/* Fetch the propogation_steps value, preferring the brush level value over the global sculpt tool
+ * value. */
+static int boundary_propagation_steps(const Sculpt *sd, const Brush *brush)
+{
+  return brush && brush->automasking_flags &
+                      (BRUSH_AUTOMASKING_BOUNDARY_EDGES | BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS) ?
+             brush->automasking_boundary_edges_propagation_steps :
+             sd->automasking_boundary_edges_propagation_steps;
+}
+
+/* Determine if the given automasking settings require values to be precomputed and cached. */
 static bool needs_factors_cache(const Sculpt *sd, const Brush *brush)
 {
-
   const int automasking_flags = calc_effective_bits(sd, brush);
 
   if (automasking_flags & BRUSH_AUTOMASKING_TOPOLOGY && brush && is_constrained_by_radius(brush)) {
     return true;
   }
 
-  if (automasking_flags & (BRUSH_AUTOMASKING_BOUNDARY_EDGES |
-                           BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS | BRUSH_AUTOMASKING_VIEW_NORMAL))
-  {
+  if (automasking_flags & BRUSH_AUTOMASKING_VIEW_NORMAL) {
     return brush && brush->automasking_boundary_edges_propagation_steps != 1;
+  }
+
+  if (automasking_flags &
+      (BRUSH_AUTOMASKING_BOUNDARY_EDGES | BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS))
+  {
+    return boundary_propagation_steps(sd, brush) != 1;
   }
   return false;
 }
@@ -917,10 +931,6 @@ std::unique_ptr<Cache> cache_init(Sculpt *sd, Brush *brush, Object *ob)
     (*(float *)SCULPT_vertex_attr_get(vertex, ss->attrs.automasking_factor)) = initial_value;
   }
 
-  const int boundary_propagation_steps = brush ?
-                                             brush->automasking_boundary_edges_propagation_steps :
-                                             1;
-
   /* Additive modes. */
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
     SCULPT_vertex_random_access_ensure(ss);
@@ -934,13 +944,14 @@ std::unique_ptr<Cache> cache_init(Sculpt *sd, Brush *brush, Object *ob)
     init_face_sets_masking(sd, ob);
   }
 
+  const int steps = boundary_propagation_steps(sd, brush);
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
     SCULPT_vertex_random_access_ensure(ss);
-    init_boundary_masking(ob, AUTOMASK_INIT_BOUNDARY_EDGES, boundary_propagation_steps);
+    init_boundary_masking(ob, AUTOMASK_INIT_BOUNDARY_EDGES, steps);
   }
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
     SCULPT_vertex_random_access_ensure(ss);
-    init_boundary_masking(ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, boundary_propagation_steps);
+    init_boundary_masking(ob, AUTOMASK_INIT_BOUNDARY_FACE_SETS, steps);
   }
 
   /* Subtractive modes. */

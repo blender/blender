@@ -89,6 +89,7 @@ dict_custom = {
     "deallocate",
     "deallocated",
     "deallocating",
+    "deallocation",
     "decompressor",
     "decorrelated",
     "decrement",

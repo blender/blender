@@ -418,6 +418,7 @@
     .automasking_start_normal_falloff = 0.25f, \
     .automasking_view_normal_limit = 1.570796, /* 0.5 * pi. */ \
     .automasking_view_normal_falloff = 0.25f, \
+    .automasking_boundary_edges_propagation_steps = 1, \
     .flags = SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE,\
     .paint = {\
       .symmetry_flags = PAINT_SYMMETRY_FEATHER,\

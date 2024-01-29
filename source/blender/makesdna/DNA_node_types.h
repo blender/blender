@@ -1659,7 +1659,7 @@ typedef struct NodeEnumDefinition {
   NodeEnumItem *add_item(blender::StringRef name);
   bool remove_item(NodeEnumItem &item);
   void clear();
-  bool move_item(uint16_t from_index, uint16_t to_index);
+  bool move_item(int from_index, int to_index);
 
   const NodeEnumItem *active_item() const;
   NodeEnumItem *active_item();

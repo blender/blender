@@ -425,7 +425,7 @@ const EnumPropertyItem *RNA_node_enum_definition_itemf(
 
   for (const blender::bke::RuntimeNodeEnumItem &item : enum_items.items) {
     tmp.value = item.identifier;
-    /* Item name is unique and used as the RNA identitifier as well.
+    /* Item name is unique and used as the RNA identifier as well.
      * The integer value is persistent and unique and should be used
      * when storing the enum value. */
     tmp.identifier = item.name.c_str();

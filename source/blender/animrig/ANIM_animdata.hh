@@ -8,6 +8,8 @@
  * \brief Functions to work with AnimData.
  */
 
+#pragma once
+
 struct ID;
 struct Main;
 

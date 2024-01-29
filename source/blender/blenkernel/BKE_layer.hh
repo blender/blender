@@ -73,7 +73,7 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, bool do_id_user);
 
 /**
  * Free the bases of this #ViewLayer, and what they reference.
- * This includes baseact, object_bases, object_bases_hash, and layer_collections.
+ * This includes `baseact`, `object_bases`, `object_bases_hash`, and `layer_collections`.
  */
 void BKE_view_layer_free_object_content(ViewLayer *view_layer);
 

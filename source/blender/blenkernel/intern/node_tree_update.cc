@@ -822,6 +822,8 @@ class NodeTreeMainUpdater {
           bNodeSocket &input = *node->input_sockets()[0];
           BLI_assert(input.is_available() && input.type == SOCK_MENU);
           this->set_enum_ptr(*input.default_value_typed<bNodeSocketValueMenu>(), enum_items);
+          /* Remove initial user. */
+          enum_items->remove_user_and_delete_if_last();
         }
         continue;
       }
@@ -841,12 +843,15 @@ class NodeTreeMainUpdater {
 
       /* Propagate enum references from output links. */
       for (bNodeSocket *output : node->output_sockets()) {
-        if (output->is_available() && output->type == SOCK_MENU) {
-          for (const bNodeSocket *input : output->directly_linked_sockets()) {
-            this->update_socket_enum_definition(
-                *output->default_value_typed<bNodeSocketValueMenu>(),
-                *input->default_value_typed<bNodeSocketValueMenu>());
+        if (!output->is_available() || output->type != SOCK_MENU) {
+          continue;
+        }
+        for (const bNodeSocket *input : output->directly_linked_sockets()) {
+          if (!input->is_available() || input->type != SOCK_MENU) {
+            continue;
           }
+          this->update_socket_enum_definition(*output->default_value_typed<bNodeSocketValueMenu>(),
+                                              *input->default_value_typed<bNodeSocketValueMenu>());
         }
       }
 

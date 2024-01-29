@@ -19,7 +19,7 @@ typedef struct GlobalsUboStorage GlobalsUboStorage;
 #define UBO_FIRST_COLOR color_wire
 #define UBO_LAST_COLOR color_uv_shadow
 
-/* Used as ubo but colors can be directly referenced as well */
+/* Used as UBO but colors can be directly referenced as well */
 /* \note Also keep all color as vec4 and between #UBO_FIRST_COLOR and #UBO_LAST_COLOR. */
 struct GlobalsUboStorage {
   /* UBOs data needs to be 16 byte aligned (size of vec4) */

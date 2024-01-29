@@ -529,6 +529,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
     return;
   }
 
+  uiLayoutSetEnabled(layout, !ID_IS_LINKED(ctx.object));
   uiLayout *col = uiLayoutColumn(layout, false);
   {
     uiLayout *row = uiLayoutRow(col, true);
@@ -545,6 +546,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   if (!get_bake_draw_context(C, node, ctx)) {
     return;
   }
+
+  uiLayoutSetEnabled(layout, !ID_IS_LINKED(ctx.object));
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
