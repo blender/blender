@@ -465,14 +465,8 @@ static void sequencer_thumbnail_transform(ImBuf *in, ImBuf *out)
                        blender::float3{scale_x, scale_y, 1.0f});
   transform_pivot_set_m4(transform_matrix, pivot);
   invert_m4(transform_matrix);
-  const int num_subsamples = 1;
-  IMB_transform(in,
-                out,
-                IMB_TRANSFORM_MODE_REGULAR,
-                IMB_FILTER_NEAREST,
-                num_subsamples,
-                transform_matrix,
-                nullptr);
+  IMB_transform(
+      in, out, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, transform_matrix, nullptr);
 }
 
 /* Check whether transform introduces transparent ares in the result (happens when the transformed
@@ -537,7 +531,6 @@ static void sequencer_preprocess_transform_crop(
 
   const StripTransform *transform = seq->strip->transform;
   eIMBInterpolationFilterMode filter = IMB_FILTER_NEAREST;
-  int num_subsamples = 1;
   switch (transform->filter) {
     case SEQ_TRANSFORM_FILTER_NEAREST:
       filter = IMB_FILTER_NEAREST;
@@ -551,19 +544,12 @@ static void sequencer_preprocess_transform_crop(
     case SEQ_TRANSFORM_FILTER_CUBIC_MITCHELL:
       filter = IMB_FILTER_CUBIC_MITCHELL;
       break;
-    case SEQ_TRANSFORM_FILTER_NEAREST_3x3:
-      filter = IMB_FILTER_NEAREST;
-      num_subsamples = 3;
+    case SEQ_TRANSFORM_FILTER_BOX:
+      filter = IMB_FILTER_BOX;
       break;
   }
 
-  IMB_transform(in,
-                out,
-                IMB_TRANSFORM_MODE_CROP_SRC,
-                filter,
-                num_subsamples,
-                transform_matrix,
-                &source_crop);
+  IMB_transform(in, out, IMB_TRANSFORM_MODE_CROP_SRC, filter, transform_matrix, &source_crop);
 
   if (!seq_image_transform_transparency_gained(context, seq)) {
     out->planes = in->planes;

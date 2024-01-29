@@ -37,29 +37,29 @@ static ImBuf *create_6x2_test_image()
   return img;
 }
 
-static ImBuf *transform_2x_smaller(eIMBInterpolationFilterMode filter, int subsamples)
+static ImBuf *transform_2x_smaller(eIMBInterpolationFilterMode filter)
 {
   ImBuf *src = create_6x2_test_image();
   ImBuf *dst = IMB_allocImBuf(3, 1, 32, IB_rect);
   float4x4 matrix = math::from_scale<float4x4>(float4(2.0f));
-  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, subsamples, matrix.ptr(), nullptr);
+  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix.ptr(), nullptr);
   IMB_freeImBuf(src);
   return dst;
 }
 
-static ImBuf *transform_fractional_larger(eIMBInterpolationFilterMode filter, int subsamples)
+static ImBuf *transform_fractional_larger(eIMBInterpolationFilterMode filter)
 {
   ImBuf *src = create_6x2_test_image();
   ImBuf *dst = IMB_allocImBuf(9, 7, 32, IB_rect);
   float4x4 matrix = math::from_scale<float4x4>(float4(6.0f / 9.0f, 2.0f / 7.0f, 1.0f, 1.0f));
-  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, subsamples, matrix.ptr(), nullptr);
+  IMB_transform(src, dst, IMB_TRANSFORM_MODE_REGULAR, filter, matrix.ptr(), nullptr);
   IMB_freeImBuf(src);
   return dst;
 }
 
 TEST(imbuf_transform, nearest_2x_smaller)
 {
-  ImBuf *res = transform_2x_smaller(IMB_FILTER_NEAREST, 1);
+  ImBuf *res = transform_2x_smaller(IMB_FILTER_NEAREST);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
   EXPECT_EQ(got[0], ColorTheme4b(255, 255, 255, 255));
   EXPECT_EQ(got[1], ColorTheme4b(133, 55, 31, 19));
@@ -67,19 +67,20 @@ TEST(imbuf_transform, nearest_2x_smaller)
   IMB_freeImBuf(res);
 }
 
-TEST(imbuf_transform, nearest_subsample3_2x_smaller)
+TEST(imbuf_transform, box_2x_smaller)
 {
-  ImBuf *res = transform_2x_smaller(IMB_FILTER_NEAREST, 3);
+  ImBuf *res = transform_2x_smaller(IMB_FILTER_BOX);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
-  EXPECT_EQ(got[0], ColorTheme4b(227, 170, 113, 255));
-  EXPECT_EQ(got[1], ColorTheme4b(133, 55, 31, 17));
-  EXPECT_EQ(got[2], ColorTheme4b(56, 22, 64, 253));
+  /* At 2x reduction should be same as bilinear, save for some rounding errors. */
+  EXPECT_EQ(got[0], ColorTheme4b(191, 128, 64, 255));
+  EXPECT_EQ(got[1], ColorTheme4b(133, 55, 31, 16));
+  EXPECT_EQ(got[2], ColorTheme4b(54, 50, 48, 254));
   IMB_freeImBuf(res);
 }
 
 TEST(imbuf_transform, bilinear_2x_smaller)
 {
-  ImBuf *res = transform_2x_smaller(IMB_FILTER_BILINEAR, 1);
+  ImBuf *res = transform_2x_smaller(IMB_FILTER_BILINEAR);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
   EXPECT_EQ(got[0], ColorTheme4b(191, 128, 64, 255));
   EXPECT_EQ(got[1], ColorTheme4b(133, 55, 31, 16));
@@ -89,7 +90,7 @@ TEST(imbuf_transform, bilinear_2x_smaller)
 
 TEST(imbuf_transform, cubic_bspline_2x_smaller)
 {
-  ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_BSPLINE, 1);
+  ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_BSPLINE);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
   EXPECT_EQ(got[0], ColorTheme4b(189, 126, 62, 250));
   EXPECT_EQ(got[1], ColorTheme4b(134, 57, 33, 26));
@@ -99,7 +100,7 @@ TEST(imbuf_transform, cubic_bspline_2x_smaller)
 
 TEST(imbuf_transform, cubic_mitchell_2x_smaller)
 {
-  ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_MITCHELL, 1);
+  ImBuf *res = transform_2x_smaller(IMB_FILTER_CUBIC_MITCHELL);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
   EXPECT_EQ(got[0], ColorTheme4b(195, 130, 67, 255));
   EXPECT_EQ(got[1], ColorTheme4b(132, 51, 28, 0));
@@ -109,7 +110,7 @@ TEST(imbuf_transform, cubic_mitchell_2x_smaller)
 
 TEST(imbuf_transform, cubic_mitchell_fractional_larger)
 {
-  ImBuf *res = transform_fractional_larger(IMB_FILTER_CUBIC_MITCHELL, 1);
+  ImBuf *res = transform_fractional_larger(IMB_FILTER_CUBIC_MITCHELL);
   const ColorTheme4b *got = reinterpret_cast<ColorTheme4b *>(res->byte_buffer.data);
   EXPECT_EQ(got[0 + 0 * res->x], ColorTheme4b(0, 0, 0, 255));
   EXPECT_EQ(got[1 + 0 * res->x], ColorTheme4b(127, 0, 0, 255));
@@ -138,8 +139,7 @@ TEST(imbuf_transform, nearest_very_large_scale)
   ImBuf *res = IMB_allocImBuf(3841, 1, 32, IB_rect);
   float4x4 matrix = math::from_loc_rot_scale<float4x4>(
       float3(254, 0, 0), math::Quaternion::identity(), float3(3.0f / 3840.0f, 1, 1));
-  IMB_transform(
-      src, res, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, 1, matrix.ptr(), nullptr);
+  IMB_transform(src, res, IMB_TRANSFORM_MODE_REGULAR, IMB_FILTER_NEAREST, matrix.ptr(), nullptr);
 
   /* Check result: leftmost red, middle green, two rightmost pixels blue and black.
    * If the transform code internally does not have enough precision while stepping

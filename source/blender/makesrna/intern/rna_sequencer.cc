@@ -1726,11 +1726,11 @@ static const EnumPropertyItem transform_filter_items[] = {
      "Cubic B-Spline",
      "Cubic B-Spline filter (blurry but no ringing) on 4" BLI_STR_UTF8_MULTIPLICATION_SIGN
      "4 samples"},
-    {SEQ_TRANSFORM_FILTER_NEAREST_3x3,
-     "SUBSAMPLING_3x3",
+    {SEQ_TRANSFORM_FILTER_BOX,
+     "BOX",
      0,
-     "Subsampling (3" BLI_STR_UTF8_MULTIPLICATION_SIGN "3)",
-     "Use nearest with 3" BLI_STR_UTF8_MULTIPLICATION_SIGN "3 subsamples"},
+     "Box",
+     "Averages source image samples that fall under destination pixel"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
