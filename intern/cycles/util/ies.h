@@ -24,8 +24,9 @@ class IESFile {
  protected:
   bool parse(const string &ies);
   bool process();
-  bool process_type_b();
-  bool process_type_c();
+  void process_type_a();
+  void process_type_b();
+  void process_type_c();
 
   /* The brightness distribution is stored in spherical coordinates.
    * The horizontal angles correspond to theta in the regular notation
@@ -36,7 +37,7 @@ class IESFile {
    * of one horizontal segment. */
   vector<vector<float>> intensity;
 
-  /* Types of angle representation in IES files. Currently, only B and C are supported. */
+  /* Types of angle representation in IES files. */
   enum IESType { TYPE_A = 3, TYPE_B = 2, TYPE_C = 1 } type;
 };
 
