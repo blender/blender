@@ -835,7 +835,7 @@
     .factor = 1.0f, \
     .step = 1, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilOffsetModifierData \
   { \
     .flag = 0, \
@@ -845,6 +845,19 @@
     .scale = {1.0f, 1.0f, 1.0f}, \
     .stroke_step = 1, \
     .stroke_start_offset = 0, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilNoiseModifierData \
+  { \
+    .flag = GP_NOISE_FULL_STROKE | GP_NOISE_USE_RANDOM, \
+    .factor = 0.5f, \
+    .factor_strength = 0.0f, \
+    .factor_thickness = 0.0f, \
+    .factor_uvs = 0.0f, \
+    .noise_scale = 0.0f, \
+    .noise_offset = 0.0f, \
+    .step = 4, \
+    .seed = 1, \
   }
 
 /* clang-format off */

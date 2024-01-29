@@ -99,6 +99,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilTint = 64,
   eModifierType_GreasePencilSmooth = 65,
   eModifierType_GreasePencilOffset = 66,
+  eModifierType_GreasePencilNoise = 67,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -2667,3 +2668,28 @@ typedef enum GreasePencilOffsetModifierMode {
   MOD_GREASE_PENCIL_OFFSET_MATERIAL = 2,
   MOD_GREASE_PENCIL_OFFSET_STROKE = 3,
 } GreasePencilOffsetModifierMode;
+
+typedef struct GreasePencilNoiseModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+
+  /** For convenience of versioning, these flags are kept in `eNoiseGpencil_Flag`. */
+  int flag;
+
+  /** Factor of noise. */
+  float factor;
+  float factor_strength;
+  float factor_thickness;
+  float factor_uvs;
+  /** Noise Frequency scaling */
+  float noise_scale;
+  float noise_offset;
+  short noise_mode;
+  char _pad[2];
+  /** How many frames before recalculate randoms. */
+  int step;
+  /** Random seed */
+  int seed;
+
+  void *_pad1;
+} GreasePencilNoiseModifierData;

@@ -32,6 +32,9 @@ void modifier_vgroup_ui(uiLayout *layout,
                         const char *invert_vgroup_prop,
                         const char *text);
 
+void modifier_grease_pencil_curve_header_draw(const bContext * /*C*/, Panel *panel);
+void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *panel);
+
 /**
  * Draw modifier error message.
  */
