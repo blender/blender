@@ -691,7 +691,7 @@ class _ext_global:
 # The name (in `sys.modules`) keep this short because it's stored as part of add-on modules name.
 _ext_base_pkg_idname = "bl_ext"
 _ext_base_pkg_idname_with_dot = _ext_base_pkg_idname + "."
-_ext_manifest_filename_toml = "bl_manifest.toml"
+_ext_manifest_filename_toml = "blender_manifest.toml"
 
 
 def _extension_preferences_idmap():
