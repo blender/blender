@@ -64,8 +64,7 @@ static void step_object_sync_render(void *instance,
 {
   Instance &inst = *reinterpret_cast<Instance *>(instance);
 
-  const bool is_velocity_type = ELEM(
-      ob->type, OB_CURVES, OB_GPENCIL_LEGACY, OB_MESH, OB_POINTCLOUD);
+  const bool is_velocity_type = ELEM(ob->type, OB_CURVES, OB_MESH, OB_POINTCLOUD);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -244,6 +243,9 @@ void VelocityModule::geometry_steps_fill()
 {
   uint dst_ofs = 0;
   for (VelocityGeometryData &geom : geometry_map.values()) {
+    if (!geom.pos_buf) {
+      continue;
+    }
     uint src_len = GPU_vertbuf_get_vertex_len(geom.pos_buf);
     geom.len = src_len;
     geom.ofs = dst_ofs;
@@ -260,6 +262,9 @@ void VelocityModule::geometry_steps_fill()
   copy_ps.bind_ssbo("out_buf", *geometry_steps[step_]);
 
   for (VelocityGeometryData &geom : geometry_map.values()) {
+    if (!geom.pos_buf) {
+      continue;
+    }
     const GPUVertFormat *format = GPU_vertbuf_get_format(geom.pos_buf);
     if (format->stride == 16) {
       GPU_storagebuf_copy_sub_from_vertbuf(*geometry_steps[step_],

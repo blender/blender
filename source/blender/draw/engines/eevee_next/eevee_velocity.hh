@@ -36,9 +36,9 @@ class VelocityModule {
     /** VertBuf not yet ready to be copied to the #VelocityGeometryBuf. */
     GPUVertBuf *pos_buf = nullptr;
     /* Offset in the #VelocityGeometryBuf to the start of the data. In vertex. */
-    int ofs;
+    int ofs = 0;
     /* Length of the vertex buffer. In vertex. */
-    int len;
+    int len = 0;
   };
   /**
    * The map contains indirection indices to the obmat and geometry in each step buffer.
