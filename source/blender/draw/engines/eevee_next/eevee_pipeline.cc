@@ -398,6 +398,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
 void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb)
 {
   if (!has_transparent_ && !has_opaque_) {
+    inst_.volume.draw_resolve(view);
     return;
   }
 
