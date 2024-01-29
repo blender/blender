@@ -919,26 +919,14 @@ struct wmTimer {
   bool sleep;
 };
 
-enum wmConfirmSize {
-  WM_WARNING_SIZE_SMALL = 0,
-  WM_WARNING_SIZE_LARGE,
+enum wmPopupSize {
+  WM_POPUP_SIZE_SMALL = 0,
+  WM_POPUP_SIZE_LARGE,
 };
 
-enum wmConfirmPosition {
-  WM_WARNING_POSITION_MOUSE = 0,
-  WM_WARNING_POSITION_CENTER,
-};
-
-struct wmConfirmDetails {
-  std::string title;
-  std::string message;
-  std::string message2;
-  std::string confirm_text;
-  int icon;
-  wmConfirmSize size;
-  wmConfirmPosition position;
-  bool cancel_default;
-  bool mouse_move_quit;
+enum wmPopupPosition {
+  WM_POPUP_POSITION_MOUSE = 0,
+  WM_POPUP_POSITION_CENTER,
 };
 
 /**
@@ -1067,11 +1055,6 @@ struct wmOperatorType {
    * The returned string is expected to be translated if needed.
    */
   std::string (*get_description)(bContext *C, wmOperatorType *ot, PointerRNA *ptr);
-
-  /**
-   * If using WM_operator_confirm the following can override all parts of the dialog.
-   */
-  void (*confirm)(bContext *C, wmOperator *, wmConfirmDetails *details);
 
   /** RNA for properties */
   StructRNA *srna;
