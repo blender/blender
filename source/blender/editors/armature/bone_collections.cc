@@ -929,6 +929,10 @@ static int add_or_move_to_collection_exec(bContext *C,
 
   bArmature *arm = static_cast<bArmature *>(ob->data);
   BoneCollection *target_bcoll = add_or_move_to_collection_bcoll(op, arm);
+  if (!target_bcoll) {
+    /* add_or_move_to_collection_bcoll() already reported the reason. */
+    return OPERATOR_CANCELLED;
+  }
 
   bool made_any_changes = false;
   bool had_bones_to_assign = false;
