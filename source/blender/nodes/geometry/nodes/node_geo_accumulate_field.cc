@@ -190,7 +190,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         [type](LinkSearchOpParams &params) {
           bNode &node = params.add_node("GeometryNodeAccumulateField");
           node_storage(node).data_type = *type;
-          params.update_and_connect_available_socket(node, "Group Index");
+          params.update_and_connect_available_socket(node, "Group ID");
         },
         -1);
   }
