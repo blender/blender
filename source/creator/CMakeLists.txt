@@ -1678,7 +1678,7 @@ if(EXISTS "${ASSET_BUNDLE_DIR}")
   )
 
   # TODO temporary change for development only. Remove before merging.
-  set(ASSET_BRUSH_BUNDLE_DIR "${ASSET_BUNDLE_DIR}/../working/brushes/")
+  set(ASSET_BRUSH_BUNDLE_DIR "${ASSET_BUNDLE_DIR}/../testing/brushes/")
   if(EXISTS "${ASSET_BRUSH_BUNDLE_DIR}")
 	install(
 	  FILES ${ASSET_BRUSH_BUNDLE_DIR}/essentials_brushes.blend
