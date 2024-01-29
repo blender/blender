@@ -208,6 +208,15 @@ static void grease_pencil_edit_batch_ensure(Object &object,
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
 
+  if (cache->edit_points_pos != nullptr) {
+    return;
+  }
+
+  /* Should be discarded together. */
+  BLI_assert(cache->edit_points_pos == nullptr && cache->edit_line_indices == nullptr &&
+             cache->edit_points_indices == nullptr);
+  BLI_assert(cache->edit_points == nullptr && cache->edit_lines == nullptr);
+
   /* Get the visible drawings. */
   const Array<ed::greasepencil::DrawingInfo> drawings =
       ed::greasepencil::retrieve_visible_drawings(scene, grease_pencil);
@@ -225,8 +234,10 @@ static void grease_pencil_edit_batch_ensure(Object &object,
         &format_edit_points_selection, "selection", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
   }
 
-  cache->edit_points_pos = GPU_vertbuf_create_with_format(&format_edit_points_pos);
-  cache->edit_points_selection = GPU_vertbuf_create_with_format(&format_edit_points_selection);
+  GPUUsageType vbo_flag = GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY;
+  cache->edit_points_pos = GPU_vertbuf_create_with_format_ex(&format_edit_points_pos, vbo_flag);
+  cache->edit_points_selection = GPU_vertbuf_create_with_format_ex(&format_edit_points_selection,
+                                                                   vbo_flag);
 
   int total_points_num = 0;
   for (const ed::greasepencil::DrawingInfo &info : drawings) {
@@ -371,6 +382,9 @@ static void grease_pencil_edit_batch_ensure(Object &object,
   cache->edit_lines = GPU_batch_create(
       GPU_PRIM_LINE_STRIP, cache->edit_points_pos, cache->edit_line_indices);
   GPU_batch_vertbuf_add(cache->edit_lines, cache->edit_points_selection, false);
+  /* Allow creation of buffer texture. */
+  GPU_vertbuf_use(cache->edit_points_pos);
+  GPU_vertbuf_use(cache->edit_points_selection);
 
   cache->is_dirty = false;
 }
