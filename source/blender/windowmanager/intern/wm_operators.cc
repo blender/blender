@@ -19,6 +19,8 @@
 #include <iostream>
 #include <sstream>
 
+#include <fmt/format.h>
+
 #ifdef WIN32
 #  include "GHOST_C-api.h"
 #endif
@@ -40,7 +42,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
-#include "BLI_dynstr.h" /* For #WM_operator_pystring. */
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_utils.hh"
@@ -212,23 +213,23 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
   return true;
 }
 
-char *WM_operator_pystring_ex(bContext *C,
-                              wmOperator *op,
-                              const bool all_args,
-                              const bool macro_args,
-                              wmOperatorType *ot,
-                              PointerRNA *opptr)
+std::string WM_operator_pystring_ex(bContext *C,
+                                    wmOperator *op,
+                                    const bool all_args,
+                                    const bool macro_args,
+                                    wmOperatorType *ot,
+                                    PointerRNA *opptr)
 {
   char idname_py[OP_MAX_TYPENAME];
 
   /* for building the string */
-  DynStr *dynstr = BLI_dynstr_new();
+  std::stringstream ss;
 
   /* arbitrary, but can get huge string with stroke painting otherwise */
   int max_prop_length = 10;
 
   WM_operator_py_idname(idname_py, ot->idname);
-  BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
+  ss << "bpy.ops." << idname_py << "(";
 
   if (op && op->macro.first) {
     /* Special handling for macros, else we only get default values in this case... */
@@ -247,11 +248,11 @@ char *WM_operator_pystring_ex(bContext *C,
 
       char *cstring_args = RNA_pointer_as_string_id(C, opmptr);
       if (first_op) {
-        BLI_dynstr_appendf(dynstr, "%s=%s", opm->type->idname, cstring_args);
+        ss << opm->type->idname << '=' << cstring_args;
         first_op = false;
       }
       else {
-        BLI_dynstr_appendf(dynstr, ", %s=%s", opm->type->idname, cstring_args);
+        ss << ", " << opm->type->idname << '=' << cstring_args;
       }
       MEM_freeN(cstring_args);
 
@@ -272,7 +273,7 @@ char *WM_operator_pystring_ex(bContext *C,
 
     char *cstring_args = RNA_pointer_as_string_keywords(
         C, opptr, false, all_args, macro_args_test, max_prop_length);
-    BLI_dynstr_append(dynstr, cstring_args);
+    ss << cstring_args;
     MEM_freeN(cstring_args);
 
     if (opptr == &opptr_default) {
@@ -280,53 +281,53 @@ char *WM_operator_pystring_ex(bContext *C,
     }
   }
 
-  BLI_dynstr_append(dynstr, ")");
+  ss << ')';
 
-  char *cstring = BLI_dynstr_get_cstring(dynstr);
-  BLI_dynstr_free(dynstr);
-  return cstring;
+  return ss.str();
 }
 
-char *WM_operator_pystring(bContext *C, wmOperator *op, const bool all_args, const bool macro_args)
+std::string WM_operator_pystring(bContext *C,
+                                 wmOperator *op,
+                                 const bool all_args,
+                                 const bool macro_args)
 {
   return WM_operator_pystring_ex(C, op, all_args, macro_args, op->type, op->ptr);
 }
 
-bool WM_operator_pystring_abbreviate(char *str, int str_len_max)
+std::string WM_operator_pystring_abbreviate(std::string str, int str_len_max)
 {
-  const int str_len = strlen(str);
-  const char *parens_start = strchr(str, '(');
-
-  if (parens_start) {
-    const int parens_start_pos = parens_start - str;
-    const char *parens_end = strrchr(parens_start + 1, ')');
-
-    if (parens_end) {
-      const int parens_len = parens_end - parens_start;
-
-      if (parens_len > str_len_max) {
-        const char *comma_first = strchr(parens_start, ',');
-
-        /* Truncate after the first comma. */
-        if (comma_first) {
-          const char end_str[] = " ... )";
-          const int end_str_len = sizeof(end_str) - 1;
-
-          /* Leave a place for the first argument. */
-          const int new_str_len = (comma_first - parens_start) + 1;
-
-          if (str_len >= new_str_len + parens_start_pos + end_str_len + 1) {
-            /* Append " ... )" to the string after the comma. */
-            memcpy(str + new_str_len + parens_start_pos, end_str, end_str_len + 1);
-
-            return true;
-          }
-        }
-      }
-    }
+  const int str_len = str.size();
+  const size_t parens_start = str.find('(');
+  if (parens_start == std::string::npos) {
+    return str;
   }
 
-  return false;
+  const size_t parens_end = str.find(parens_start + 1, ')');
+  if (parens_end == std::string::npos) {
+    return str;
+  }
+
+  const int parens_len = parens_end - parens_start;
+  if (parens_len <= str_len_max) {
+    return str;
+  }
+
+  /* Truncate after the first comma. */
+  const size_t comma_first = str.find(parens_start, ',');
+  if (comma_first == std::string::npos) {
+    return str;
+  }
+  const char end_str[] = " ... )";
+  const int end_str_len = sizeof(end_str) - 1;
+
+  /* Leave a place for the first argument. */
+  const int new_str_len = (comma_first - parens_start) + 1;
+
+  if (str_len < new_str_len + parens_start + end_str_len + 1) {
+    return str;
+  }
+
+  return str.substr(0, comma_first) + end_str;
 }
 
 /* return nullptr if no match is found */
@@ -595,94 +596,87 @@ static const char *wm_context_member_from_ptr(const bContext *C,
 }
 #endif
 
-char *WM_context_path_resolve_property_full(const bContext *C,
-                                            const PointerRNA *ptr,
-                                            PropertyRNA *prop,
-                                            int index)
+std::string WM_context_path_resolve_property_full(const bContext *C,
+                                                  const PointerRNA *ptr,
+                                                  PropertyRNA *prop,
+                                                  int index)
 {
   bool is_id;
   const char *member_id = wm_context_member_from_ptr(C, ptr, &is_id);
-  char *member_id_data_path = nullptr;
-  if (member_id != nullptr) {
-    if (is_id && !RNA_struct_is_ID(ptr->type)) {
-      char *data_path = RNA_path_from_ID_to_struct(ptr);
-      if (data_path != nullptr) {
-        if (prop != nullptr) {
-          char *prop_str = RNA_path_property_py(ptr, prop, index);
-          if (prop_str[0] == '[') {
-            member_id_data_path = BLI_string_joinN(member_id, ".", data_path, prop_str);
-          }
-          else {
-            member_id_data_path = BLI_string_join_by_sep_charN(
-                '.', member_id, data_path, prop_str);
-          }
-          MEM_freeN(prop_str);
-        }
-        else {
-          member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, data_path);
-        }
-        MEM_freeN(data_path);
-      }
-    }
-    else {
+  if (!member_id) {
+    return "";
+  }
+  std::string member_id_data_path;
+  if (is_id && !RNA_struct_is_ID(ptr->type)) {
+    char *data_path = RNA_path_from_ID_to_struct(ptr);
+    if (data_path != nullptr) {
       if (prop != nullptr) {
         char *prop_str = RNA_path_property_py(ptr, prop, index);
         if (prop_str[0] == '[') {
-          member_id_data_path = BLI_string_joinN(member_id, prop_str);
+          member_id_data_path = fmt::format("{}.{}", data_path, prop_str);
         }
         else {
-          member_id_data_path = BLI_string_join_by_sep_charN('.', member_id, prop_str);
+          member_id_data_path = fmt::format("{}.{}.{}", member_id, data_path, prop_str);
         }
         MEM_freeN(prop_str);
       }
       else {
-        member_id_data_path = BLI_strdup(member_id);
+        member_id_data_path = fmt::format("{}.{}", member_id, data_path);
       }
+      MEM_freeN(data_path);
     }
   }
+  else {
+    if (prop != nullptr) {
+      char *prop_str = RNA_path_property_py(ptr, prop, index);
+      if (prop_str[0] == '[') {
+        member_id_data_path = fmt::format("{}{}", member_id, prop_str);
+      }
+      else {
+        member_id_data_path = fmt::format("{}.{}", member_id, prop_str);
+      }
+      MEM_freeN(prop_str);
+    }
+    else {
+      member_id_data_path = member_id;
+    }
+  }
+
   return member_id_data_path;
 }
 
-char *WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr)
+std::string WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr)
 {
   return WM_context_path_resolve_property_full(C, ptr, nullptr, -1);
 }
 
-static char *wm_prop_pystring_from_context(bContext *C,
-                                           PointerRNA *ptr,
-                                           PropertyRNA *prop,
-                                           int index)
+static std::string wm_prop_pystring_from_context(bContext *C,
+                                                 PointerRNA *ptr,
+                                                 PropertyRNA *prop,
+                                                 int index)
 {
-  char *member_id_data_path = WM_context_path_resolve_property_full(C, ptr, prop, index);
-  char *ret = nullptr;
-  if (member_id_data_path != nullptr) {
-    ret = BLI_sprintfN("bpy.context.%s", member_id_data_path);
-    MEM_freeN(member_id_data_path);
+  std::string member_id_data_path = WM_context_path_resolve_property_full(C, ptr, prop, index);
+  if (member_id_data_path.empty()) {
+    return "";
   }
-  return ret;
+  return "bpy.context." + member_id_data_path;
 }
 
-char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
+std::string WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-  char *lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : nullptr;
+  std::string lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : "";
 
-  if (lhs == nullptr) {
+  if (lhs.empty()) {
     /* Fallback to `bpy.data.foo[id]` if we don't find in the context. */
     lhs = RNA_path_full_property_py(ptr, prop, index);
   }
 
-  if (!lhs) {
-    return nullptr;
-  }
-
   char *rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
   if (!rhs) {
-    MEM_freeN(lhs);
     return nullptr;
   }
 
-  char *ret = BLI_sprintfN("%s = %s", lhs, rhs);
-  MEM_freeN(lhs);
+  std::string ret = fmt::format("{} = {}", lhs, rhs);
   MEM_freeN(rhs);
   return ret;
 }

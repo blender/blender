@@ -6287,25 +6287,23 @@ static void ui_layout_introspect_button(DynStr *ds, uiButtonItem *bitem)
   BLI_dynstr_appendf(ds, "'tip':'''%s''', ", but->tip ? but->tip : "");
 
   if (but->optype) {
-    char *opstr = WM_operator_pystring_ex(static_cast<bContext *>(but->block->evil_C),
-                                          nullptr,
-                                          false,
-                                          true,
-                                          but->optype,
-                                          but->opptr);
-    BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr ? opstr : "");
-    MEM_freeN(opstr);
+    std::string opstr = WM_operator_pystring_ex(static_cast<bContext *>(but->block->evil_C),
+                                                nullptr,
+                                                false,
+                                                true,
+                                                but->optype,
+                                                but->opptr);
+    BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr.c_str());
   }
 
   {
     PropertyRNA *prop = nullptr;
     wmOperatorType *ot = UI_but_operatortype_get_from_enum_menu(but, &prop);
     if (ot) {
-      char *opstr = WM_operator_pystring_ex(
+      std::string opstr = WM_operator_pystring_ex(
           static_cast<bContext *>(but->block->evil_C), nullptr, false, true, ot, nullptr);
-      BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr ? opstr : "");
+      BLI_dynstr_appendf(ds, "'operator':'''%s''', ", opstr.c_str());
       BLI_dynstr_appendf(ds, "'property':'''%s''', ", prop ? RNA_property_identifier(prop) : "");
-      MEM_freeN(opstr);
     }
   }
 

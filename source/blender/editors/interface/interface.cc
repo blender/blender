@@ -1359,6 +1359,7 @@ static bool ui_but_event_property_operator_string(const bContext *C,
                                                   char *buf,
                                                   const size_t buf_maxncpy)
 {
+  using namespace blender;
   /* Context toggle operator names to check. */
 
   /* NOTE(@ideasman42): This function could use a refactor to generalize button type to operator
@@ -1448,18 +1449,17 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   /* There may be multiple data-paths to the same properties,
    * support different variations so key bindings are properly detected no matter which are used.
    */
-  char *data_path_variations[2] = {nullptr};
-  int data_path_variations_num = 0;
+  Vector<std::string, 2> data_path_variations;
 
   {
-    char *data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
+    std::string data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
 
     /* Always iterate once, even if data-path isn't set. */
-    data_path_variations[data_path_variations_num++] = data_path;
+    data_path_variations.append(data_path);
 
-    if (data_path) {
-      if (STRPREFIX(data_path, "scene.tool_settings.")) {
-        data_path_variations[data_path_variations_num++] = BLI_strdup(data_path + 6);
+    if (!data_path.empty()) {
+      if (StringRef(data_path).startswith("scene.tool_settings.")) {
+        data_path_variations.append(StringRef(data_path).drop_known_prefix("scene."));
       }
     }
   }
@@ -1467,18 +1467,18 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   /* We have a data-path! */
   bool found = false;
 
-  for (int data_path_index = 0; data_path_index < data_path_variations_num && (found == false);
+  for (int data_path_index = 0; data_path_index < data_path_variations.size() && (found == false);
        data_path_index++)
   {
-    const char *data_path = data_path_variations[data_path_index];
-    if (data_path || (prop_enum_value_ok && prop_enum_value_id)) {
+    const StringRefNull data_path = data_path_variations[data_path_index];
+    if (!data_path.is_empty() || (prop_enum_value_ok && prop_enum_value_id)) {
       /* Create a property to host the "data_path" property we're sending to the operators. */
       IDProperty *prop_path;
 
       const IDPropertyTemplate group_val = {0};
       prop_path = IDP_New(IDP_GROUP, &group_val, __func__);
-      if (data_path) {
-        IDP_AddToGroup(prop_path, IDP_NewString(data_path, "data_path"));
+      if (!data_path.is_empty()) {
+        IDP_AddToGroup(prop_path, IDP_NewString(data_path.c_str(), "data_path"));
       }
       if (prop_enum_value_ok) {
         const EnumPropertyItem *item;
@@ -1522,12 +1522,6 @@ static bool ui_but_event_property_operator_string(const bContext *C,
     }
   }
 
-  for (int data_path_index = 0; data_path_index < data_path_variations_num; data_path_index++) {
-    char *data_path = data_path_variations[data_path_index];
-    if (data_path) {
-      MEM_freeN(data_path);
-    }
-  }
   return found;
 }
 
