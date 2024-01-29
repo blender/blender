@@ -40,6 +40,8 @@ static int node_shader_gpu_bsdf_hair(GPUMaterial *mat,
                                      GPUNodeStack *in,
                                      GPUNodeStack *out)
 {
+  GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY);
+
   return GPU_stack_link(mat, node, "node_bsdf_hair", in, out);
 }
 
