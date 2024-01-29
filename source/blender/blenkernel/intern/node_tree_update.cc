@@ -822,6 +822,8 @@ class NodeTreeMainUpdater {
           bNodeSocket &input = *node->input_sockets()[0];
           BLI_assert(input.is_available() && input.type == SOCK_MENU);
           this->set_enum_ptr(*input.default_value_typed<bNodeSocketValueMenu>(), enum_items);
+          /* Remove initial user. */
+          enum_items->remove_user_and_delete_if_last();
         }
         continue;
       }
