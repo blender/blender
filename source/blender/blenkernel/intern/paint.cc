@@ -705,7 +705,7 @@ bool BKE_paint_brush_asset_set(Paint *paint,
 {
   /* Should not happen for users if brush assets are properly filtered by mode, but still protect
    * against it in case of invalid API usage. */
-  if (paint->runtime.ob_mode != brush->ob_mode) {
+  if (brush && paint->runtime.ob_mode != brush->ob_mode) {
     BKE_asset_weak_reference_free(&weak_asset_reference);
     return false;
   }
