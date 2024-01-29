@@ -280,7 +280,7 @@ uint64_t GHOST_SystemX11::ms_from_input_time(Time timestamp) const
    * XORG/LIBINPUT which uses time-stamps based on the monotonic time,
    * Needed to resolve failure to detect double-clicking, see: #40009. */
 
-  /* Accumulate time rollover (as well as store the initial delta from `m_start_time`). */
+  /* Accumulate time rollover (as well as store the initial delta from #getMilliSeconds). */
   static uint64_t timestamp_offset = 0;
 
   /* The last event time (to detect rollover). */
