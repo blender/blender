@@ -1669,27 +1669,18 @@ if(NOT EXISTS "${ASSET_BUNDLE_DIR}")
   set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
 endif()
 
-set(ASSET_TARGETDIR ${TARGETDIR_VER}/datafiles/assets)
+# TODO temporary change for development only. Remove before merging.
+set(ASSET_BUNDLE_TESTING_DIR "${ASSET_BUNDLE_DIR}/../testing/")
+if(EXISTS "${ASSET_BUNDLE_TESTING_DIR}")
+  set(ASSET_BUNDLE_DIR "${ASSET_BUNDLE_TESTING_DIR}")
+endif()
+
 if(EXISTS "${ASSET_BUNDLE_DIR}")
   install(
     DIRECTORY ${ASSET_BUNDLE_DIR}
-    DESTINATION ${ASSET_TARGETDIR}
+    DESTINATION ${TARGETDIR_VER}/datafiles/assets
     PATTERN ".svn" EXCLUDE
   )
-
-  # TODO temporary change for development only. Remove before merging.
-  set(ASSET_BRUSH_BUNDLE_DIR "${ASSET_BUNDLE_DIR}/../testing/brushes/")
-  if(EXISTS "${ASSET_BRUSH_BUNDLE_DIR}")
-	install(
-	  FILES ${ASSET_BRUSH_BUNDLE_DIR}/essentials_brushes.blend
-      DESTINATION ${ASSET_TARGETDIR}/brushes
-	)
-
-	install(
-	  FILES ${ASSET_BRUSH_BUNDLE_DIR}/blender_assets.cats.txt
-      DESTINATION ${ASSET_TARGETDIR}
-	)
-  endif()
 endif()
 
 
