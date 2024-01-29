@@ -244,9 +244,9 @@ class ReflectionProbeModule {
   }
 
   /**
-   * Get the resolution of a single cubemap side when rendering probes.
+   * Get the resolution of a single cube-map side when rendering probes.
    *
-   * The cubemaps are rendered half size of the size of the octahedral texture.
+   * The cube-maps are rendered half size of the size of the octahedral texture.
    */
   int probe_render_extent() const;
 

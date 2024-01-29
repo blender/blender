@@ -413,7 +413,7 @@ class Layer : public ::GreasePencilLayer {
   bool has_drawing_at(const int frame_number) const;
 
   /**
-   * \returns the key of the active frame at \a frame_number or std::nullopt if there is no frame.
+   * \returns the key of the active frame at \a frame_number or #std::nullopt if there is no frame.
    */
   std::optional<FramesMapKey> frame_key_at(int frame_number) const;
 
@@ -438,12 +438,12 @@ class Layer : public ::GreasePencilLayer {
   void tag_frames_map_keys_changed();
 
   /**
-   * Prepare the DNA #GreasePencilLayer data before blendfile writing.
+   * Prepare the DNA #GreasePencilLayer data before blend-file writing.
    */
   void prepare_for_dna_write();
 
   /**
-   * Update from DNA #GreasePencilLayer data after blendfile reading.
+   * Update from DNA #GreasePencilLayer data after blend-file reading.
    */
   void update_from_dna_read();
 
@@ -543,12 +543,12 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void print_nodes(StringRefNull header) const;
 
   /**
-   * Prepare the DNA #GreasePencilLayerTreeGroup data before blendfile writing.
+   * Prepare the DNA #GreasePencilLayerTreeGroup data before blend-file writing.
    */
   void prepare_for_dna_write();
 
   /**
-   * Update from DNA #GreasePencilLayerTreeGroup data after blendfile reading.
+   * Update from DNA #GreasePencilLayerTreeGroup data after blend-file reading.
    */
   void update_from_dna_read();
 
