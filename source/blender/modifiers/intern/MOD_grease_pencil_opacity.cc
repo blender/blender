@@ -113,7 +113,7 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
         const float vgroup_weight = vgroup_weights[point_i];
         const float vgroup_influence = invert_vertex_group ? 1.0f - vgroup_weight : vgroup_weight;
         opacities.span[point_i] = std::clamp(
-            opacities.span[point_i] + omd.color_factor * curve_factor * vgroup_influence - 1.0f,
+            opacities.span[point_i] + (omd.color_factor * curve_factor - 1.0f) * vgroup_influence,
             0.0f,
             1.0f);
       }
