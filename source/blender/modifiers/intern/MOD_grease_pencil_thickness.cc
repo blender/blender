@@ -89,7 +89,7 @@ static void deform_drawing(const ModifierData &md,
                            const Object &ob,
                            bke::greasepencil::Drawing &drawing)
 {
-  auto &mmd = reinterpret_cast<const GreasePencilThickModifierData &>(md);
+  const auto &mmd = reinterpret_cast<const GreasePencilThickModifierData &>(md);
 
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
   if (curves.points_num() == 0) {
@@ -99,12 +99,11 @@ static void deform_drawing(const ModifierData &md,
   IndexMaskMemory memory;
   const IndexMask strokes = modifier::greasepencil::get_filtered_stroke_mask(
       &ob, curves, mmd.influence, memory);
-
   if (strokes.is_empty()) {
     return;
   }
 
-  blender::MutableSpan<float> radii = drawing.radii_for_write();
+  MutableSpan<float> radii = drawing.radii_for_write();
   const OffsetIndices points_by_curve = curves.points_by_curve();
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   const VArray<float> vgroup_weights = *attributes.lookup_or_default<float>(
@@ -114,43 +113,41 @@ static void deform_drawing(const ModifierData &md,
                            ((mmd.influence.flag & GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP) !=
                             0);
 
-  threading::parallel_for(curves.curves_range(), 512, [&](const IndexRange range) {
-    for (const int curve : range) {
-      const IndexRange points = points_by_curve[curve];
-      for (const int local_point : points.index_range()) {
-        const int point = local_point + points.first();
-        const float weight = vgroup_weights[point];
-        if (weight <= 0.0f) {
-          continue;
-        }
-
-        if ((!is_normalized) && (mmd.flag & MOD_GREASE_PENCIL_THICK_WEIGHT_FACTOR)) {
-          radii[point] *= (is_inverted ? 1.0f - weight : weight);
-          radii[point] = math::max(radii[point], 0.0f);
-          continue;
-        }
-
-        const float influence = [&]() {
-          if (mmd.influence.flag & GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE &&
-              (mmd.influence.custom_curve))
-          {
-            /* Normalize value to evaluate curve. */
-            const float value = float(local_point) / (points.size() - 1);
-            return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
-          }
-          return 1.0f;
-        }();
-
-        const float target = [&]() {
-          if (is_normalized) {
-            return mmd.thickness * influence;
-          }
-          return radii[point] * math::interpolate(1.0f, mmd.thickness_fac, influence);
-        }();
-
-        const float radius = math::interpolate(radii[point], target, weight);
-        radii[point] = math::max(radius, 0.0f);
+  strokes.foreach_index(GrainSize(512), [&](const int curve) {
+    const IndexRange points = points_by_curve[curve];
+    for (const int i : points.index_range()) {
+      const int point = points[i];
+      const float weight = vgroup_weights[point];
+      if (weight <= 0.0f) {
+        continue;
       }
+
+      if ((!is_normalized) && (mmd.flag & MOD_GREASE_PENCIL_THICK_WEIGHT_FACTOR)) {
+        radii[point] *= (is_inverted ? 1.0f - weight : weight);
+        radii[point] = math::max(radii[point], 0.0f);
+        continue;
+      }
+
+      const float influence = [&]() {
+        if (mmd.influence.flag & GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE &&
+            (mmd.influence.custom_curve))
+        {
+          /* Normalize value to evaluate curve. */
+          const float value = float(i) / (points.size() - 1);
+          return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
+        }
+        return 1.0f;
+      }();
+
+      const float target = [&]() {
+        if (is_normalized) {
+          return mmd.thickness * influence;
+        }
+        return radii[point] * math::interpolate(1.0f, mmd.thickness_fac, influence);
+      }();
+
+      const float radius = math::interpolate(radii[point], target, weight);
+      radii[point] = math::max(radius, 0.0f);
     }
   });
 }
