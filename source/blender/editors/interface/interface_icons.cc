@@ -2584,6 +2584,9 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
   UNUSED_VARS(icon);
   return nullptr;
 #else
+  if (icon == ALERT_ICON_NONE) {
+    return nullptr;
+  }
   const int ALERT_IMG_SIZE = 256;
   icon = eAlertIcon(std::min<int>(icon, ALERT_ICON_MAX - 1));
   const int left = icon * ALERT_IMG_SIZE;

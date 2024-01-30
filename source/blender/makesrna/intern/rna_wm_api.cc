@@ -806,7 +806,6 @@ const EnumPropertyItem rna_operator_popup_icon_items[] = {
     {ALERT_ICON_QUESTION, "QUESTION", 0, "Question", ""},
     {ALERT_ICON_ERROR, "ERROR", 0, "Error", ""},
     {ALERT_ICON_INFO, "INFO", 0, "Info", ""},
-    {ALERT_ICON_BLENDER, "BLENDER", 0, "Blender", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

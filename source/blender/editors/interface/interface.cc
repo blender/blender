@@ -4861,8 +4861,11 @@ uiBut *uiDefButImage(
 uiBut *uiDefButAlert(uiBlock *block, int icon, int x, int y, short width, short height)
 {
   ImBuf *ibuf = UI_icon_alert_imbuf_get((eAlertIcon)icon);
-  bTheme *btheme = UI_GetTheme();
-  return uiDefButImage(block, ibuf, x, y, width, height, btheme->tui.wcol_menu_back.text);
+  if (ibuf) {
+    bTheme *btheme = UI_GetTheme();
+    return uiDefButImage(block, ibuf, x, y, width, height, btheme->tui.wcol_menu_back.text);
+  }
+  return nullptr;
 }
 
 /**
