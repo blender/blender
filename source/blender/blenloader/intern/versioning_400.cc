@@ -2789,6 +2789,55 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 17)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      int input_sample_values[10];
+
+      input_sample_values[0] = ts->imapaint.paint.num_input_samples;
+      input_sample_values[1] = ts->sculpt != nullptr ? ts->sculpt->paint.num_input_samples : 1;
+      input_sample_values[2] = ts->curves_sculpt != nullptr ?
+                                   ts->curves_sculpt->paint.num_input_samples :
+                                   1;
+      input_sample_values[3] = ts->uvsculpt != nullptr ? ts->uvsculpt->paint.num_input_samples : 1;
+
+      input_sample_values[4] = ts->gp_paint != nullptr ? ts->gp_paint->paint.num_input_samples : 1;
+      input_sample_values[5] = ts->gp_vertexpaint != nullptr ?
+                                   ts->gp_vertexpaint->paint.num_input_samples :
+                                   1;
+      input_sample_values[6] = ts->gp_sculptpaint != nullptr ?
+                                   ts->gp_sculptpaint->paint.num_input_samples :
+                                   1;
+      input_sample_values[7] = ts->gp_weightpaint != nullptr ?
+                                   ts->gp_weightpaint->paint.num_input_samples :
+                                   1;
+
+      input_sample_values[8] = ts->vpaint != nullptr ? ts->vpaint->paint.num_input_samples : 1;
+      input_sample_values[9] = ts->wpaint != nullptr ? ts->wpaint->paint.num_input_samples : 1;
+
+      int unified_value = 1;
+      for (int i = 0; i < 10; i++) {
+        if (input_sample_values[i] != 1) {
+          if (unified_value == 1) {
+            unified_value = input_sample_values[i];
+          }
+          else {
+            /* In the case of a user having multiple tools with different num_input_value values
+             * set we cannot support this in the single UnifiedPaintSettings value, so fallback
+             * to 1 instead of deciding that one value is more canonical than the other.
+             */
+            break;
+          }
+        }
+      }
+
+      ts->unified_paint_settings.input_samples = unified_value;
+    }
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->input_samples = 1;
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

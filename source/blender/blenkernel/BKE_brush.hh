@@ -152,6 +152,9 @@ void BKE_brush_alpha_set(Scene *scene, Brush *brush, float alpha);
 float BKE_brush_weight_get(const Scene *scene, const Brush *brush);
 void BKE_brush_weight_set(const Scene *scene, Brush *brush, float value);
 
+int BKE_brush_input_samples_get(const Scene *scene, const Brush *brush);
+void BKE_brush_input_samples_set(const Scene *scene, Brush *brush, int value);
+
 bool BKE_brush_use_locked_size(const Scene *scene, const Brush *brush);
 bool BKE_brush_use_alpha_pressure(const Brush *brush);
 bool BKE_brush_use_size_pressure(const Brush *brush);

@@ -308,6 +308,7 @@
 #define _DNA_DEFAULTS_UnifiedPaintSettings \
   { \
     .size = 50, \
+    .input_samples = 1, \
     .unprojected_radius = 0.29, \
     .alpha = 0.5f, \
     .weight = 0.5f, \

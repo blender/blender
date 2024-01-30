@@ -674,13 +674,6 @@ static void rna_def_paint(BlenderRNA *brna)
       "Update the geometry when it enters the view, providing faster view navigation");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
-  prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, nullptr, "num_input_samples");
-  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 1, -1);
-  RNA_def_property_ui_text(
-      prop, "Input Samples", "Average multiple input samples together to smooth the brush stroke");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
   prop = RNA_def_property(srna, "use_symmetry_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "symmetry_flags", PAINT_SYMM_X);
   RNA_def_property_ui_text(prop, "Symmetry X", "Mirror brush across the X axis");

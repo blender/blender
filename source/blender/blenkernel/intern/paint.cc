@@ -1248,10 +1248,6 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *p)
 
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *p)
 {
-  if (p->num_input_samples < 1) {
-    p->num_input_samples = 1;
-  }
-
   BLO_read_data_address(reader, &p->cavity_curve);
   if (p->cavity_curve) {
     BKE_curvemapping_blend_read(reader, p->cavity_curve);

@@ -967,8 +967,12 @@ typedef struct Paint {
   /** Enum #ePaintFlags. */
   int flags;
 
-  /** Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES inputs to smooth the stroke. */
-  int num_input_samples;
+  /**
+   * Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES inputs to smooth the stroke.
+   * This value is now DEPRECATED, please refer to the Brush and UnifiedPaintSetting values
+   * instead.
+   */
+  int num_input_samples DNA_DEPRECATED;
 
   /** Flags used for symmetry. */
   int symmetry_flags;
@@ -1338,8 +1342,12 @@ typedef struct UnifiedPaintSettings {
   /** Unified brush secondary color. */
   float secondary_rgb[3];
 
+  /** Unified brush stroke input samples. */
+  int input_samples;
+
   /** User preferences for sculpt and paint. */
   int flag;
+  char _pad[4];
 
   /* Rake rotation. */
 
@@ -1411,6 +1419,7 @@ typedef enum {
   UNIFIED_PAINT_ALPHA = (1 << 1),
   UNIFIED_PAINT_WEIGHT = (1 << 5),
   UNIFIED_PAINT_COLOR = (1 << 6),
+  UNIFIED_PAINT_INPUT_SAMPLES = (1 << 7),
 
   /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),

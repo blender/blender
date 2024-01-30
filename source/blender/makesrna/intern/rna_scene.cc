@@ -4182,6 +4182,13 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Use Unified Color", "Instead of per-brush color, the color is shared across brushes");
 
+  prop = RNA_def_property(srna, "use_unified_input_samples", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_INPUT_SAMPLES);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Unified Input Samples",
+      "Instead of per-brush input samples, the value is shared across brushes");
+
   /* unified paint settings that override the equivalent settings
    * from the active brush */
   prop = RNA_def_property(srna, "size", PROP_INT, PROP_PIXEL);
@@ -4230,6 +4237,17 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0, 1.0);
   RNA_def_property_float_sdna(prop, nullptr, "secondary_rgb");
   RNA_def_property_ui_text(prop, "Secondary Color", "");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "input_samples");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_range(prop, 1, PAINT_MAX_INPUT_SAMPLES);
+  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 1, -1);
+  RNA_def_property_ui_text(
+      prop,
+      "Input Samples",
+      "Number of input samples to average together to smooth the brush stroke");
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
   prop = RNA_def_property(srna, "use_locked_size", PROP_ENUM, PROP_NONE); /* as an enum */

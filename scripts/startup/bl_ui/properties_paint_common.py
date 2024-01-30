@@ -362,7 +362,14 @@ class StrokePanel(BrushPanel):
             col.row().prop(brush, "jitter_unit", expand=True)
 
         col.separator()
-        col.prop(settings, "input_samples")
+        UnifiedPaintPanel.prop_unified(
+            layout,
+            context,
+            brush,
+            "input_samples",
+            unified_name="use_unified_input_samples",
+            slider=True,
+        )
 
 
 class SmoothStrokePanel(BrushPanel):

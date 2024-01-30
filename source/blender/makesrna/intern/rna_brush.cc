@@ -2769,6 +2769,16 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Unprojected Radius", "Radius of brush in Blender units");
   RNA_def_property_update(prop, 0, "rna_Brush_size_update");
 
+  prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "input_samples");
+  RNA_def_property_range(prop, 1, PAINT_MAX_INPUT_SAMPLES);
+  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 1, -1);
+  RNA_def_property_ui_text(
+      prop,
+      "Input Samples",
+      "Number of input samples to average together to smooth the brush stroke");
+  RNA_def_property_update(prop, 0, "rna_Brush_update");
+
   prop = RNA_def_property(srna, "jitter", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "jitter");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
