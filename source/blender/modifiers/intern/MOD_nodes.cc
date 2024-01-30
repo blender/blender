@@ -1874,8 +1874,8 @@ static void draw_interface_panel_content(const bContext *C,
       NodesModifierPanel *panel = find_panel_by_id(nmd, sub_interface_panel.identifier);
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
-      if (uiLayout *panel_layout = uiLayoutPanel(
-              C, layout, sub_interface_panel.name, &panel_ptr, "is_open"))
+      if (uiLayout *panel_layout = uiLayoutPanelProp(
+              C, layout, &panel_ptr, "is_open", sub_interface_panel.name))
       {
         draw_interface_panel_content(C, panel_layout, modifier_ptr, nmd, sub_interface_panel);
       }
@@ -2002,13 +2002,13 @@ static void draw_manage_panel(const bContext *C,
                               PointerRNA *modifier_ptr,
                               NodesModifierData &nmd)
 {
-  if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, IFACE_("Bake"), modifier_ptr, "open_bake_panel"))
+  if (uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, modifier_ptr, "open_bake_panel", IFACE_("Bake")))
   {
     draw_bake_panel(panel_layout, modifier_ptr);
   }
-  if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, IFACE_("Named Attributes"), modifier_ptr, "open_named_attributes_panel"))
+  if (uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, modifier_ptr, "open_named_attributes_panel", IFACE_("Named Attributes")))
   {
     draw_named_attributes_panel(panel_layout, nmd);
   }
@@ -2058,14 +2058,14 @@ static void panel_draw(const bContext *C, Panel *panel)
   modifier_panel_end(layout, ptr);
 
   if (has_output_attribute(*nmd)) {
-    if (uiLayout *panel_layout = uiLayoutPanel(
-            C, layout, IFACE_("Output Attributes"), ptr, "open_output_attributes_panel"))
+    if (uiLayout *panel_layout = uiLayoutPanelProp(
+            C, layout, ptr, "open_output_attributes_panel", IFACE_("Output Attributes")))
     {
       draw_output_attributes_panel(C, panel_layout, *nmd, ptr);
     }
   }
-  if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, IFACE_("Manage"), ptr, "open_manage_panel"))
+  if (uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, ptr, "open_manage_panel", IFACE_("Manage")))
   {
     draw_manage_panel(C, panel_layout, ptr, *nmd);
   }

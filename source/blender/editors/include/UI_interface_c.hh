@@ -2302,25 +2302,52 @@ struct PanelLayout {
  * \return A #PanelLayout containing layouts for both the header row and the panel body. If the
  * panel is closed and should not be drawn, the body layout will be NULL.
  */
-PanelLayout uiLayoutPanelWithHeader(const bContext *C,
-                                    uiLayout *layout,
-                                    PointerRNA *open_prop_owner,
-                                    const char *open_prop_name);
+PanelLayout uiLayoutPanelProp(const bContext *C,
+                              uiLayout *layout,
+                              PointerRNA *open_prop_owner,
+                              const char *open_prop_name);
 
 /**
- * Variant of #uiLayoutPanelWithHeader() that automatically creates the header row with the
- * given label name and only returns the body layout.
+ * Variant of #uiLayoutPanelProp that automatically creates the header row with the
+ * given label and only returns the body layout.
  *
- * \param name: Text that's shown in the panel header. It should already be translated.
+ * \param label: Text that's shown in the panel header. It should already be translated.
+ *
+ * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
+ * sub-panel should be inserted into.
+ */
+uiLayout *uiLayoutPanelProp(const bContext *C,
+                            uiLayout *layout,
+                            PointerRNA *open_prop_owner,
+                            const char *open_prop_name,
+                            const char *label);
+
+/**
+ * Variant of #uiLayoutPanelProp that automatically stores the open-close-state in the root
+ * panel. When a dynamic number of panels is required, it's recommended to use #uiLayoutPanelProp
+ * instead of passing in generated idnames.
+ *
+ * \param idname: String that identifies the open-close-state in the root panel.
+ */
+PanelLayout uiLayoutPanel(const bContext *C,
+                          uiLayout *layout,
+                          const char *idname,
+                          bool default_closed);
+
+/**
+ * Variant of #uiLayoutPanel that automatically creates the header row with the given label and
+ * only returns the body layout.
+ *
+ * \param label:  Text that's shown in the panel header. It should already be translated.
  *
  * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
  * sub-panel should be inserted into.
  */
 uiLayout *uiLayoutPanel(const bContext *C,
                         uiLayout *layout,
-                        const char *name,
-                        PointerRNA *open_prop_owner,
-                        const char *open_prop_name);
+                        const char *idname,
+                        bool default_closed,
+                        const char *label);
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 

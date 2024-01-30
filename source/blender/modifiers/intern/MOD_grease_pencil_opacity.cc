@@ -260,8 +260,8 @@ static void panel_draw(const bContext *C, Panel *panel)
       panel, "influence", true);
   PointerRNA influence_state_ptr = RNA_pointer_create(
       nullptr, &RNA_LayoutPanelState, influence_panel_state);
-  if (uiLayout *influence_panel = uiLayoutPanel(
-          C, layout, "Influence", &influence_state_ptr, "is_open"))
+  if (uiLayout *influence_panel = uiLayoutPanelProp(
+          C, layout, &influence_state_ptr, "is_open", "Influence"))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

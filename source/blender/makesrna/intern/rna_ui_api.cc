@@ -796,7 +796,7 @@ void rna_uiLayoutPanelProp(uiLayout *layout,
     return;
   }
 
-  PanelLayout panel_layout = uiLayoutPanelWithHeader(C, layout, data, property);
+  PanelLayout panel_layout = uiLayoutPanelProp(C, layout, data, property);
   *r_layout_header = panel_layout.header;
   *r_layout_body = panel_layout.body;
 }
@@ -816,9 +816,7 @@ void rna_uiLayoutPanel(uiLayout *layout,
     *r_layout_body = nullptr;
     return;
   }
-  LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(panel, idname, default_closed);
-  PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
-  PanelLayout panel_layout = uiLayoutPanelWithHeader(C, layout, &state_ptr, "is_open");
+  PanelLayout panel_layout = uiLayoutPanel(C, layout, idname, default_closed);
   *r_layout_header = panel_layout.header;
   *r_layout_body = panel_layout.body;
 }

@@ -92,8 +92,8 @@ static void handle_node_declaration_items(bContext *C,
       LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
           root_panel, panel_idname.c_str(), panel_decl->default_collapsed);
       PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
-      uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, IFACE_(panel_decl->name.c_str()), &state_ptr, "is_open");
+      uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, &state_ptr, "is_open", IFACE_(panel_decl->name.c_str()));
       /* Draw panel buttons at the top of each panel section. */
       if (panel_layout && panel_decl->draw_buttons) {
         panel_decl->draw_buttons(panel_layout, C, node_ptr);
