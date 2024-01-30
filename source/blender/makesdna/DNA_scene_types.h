@@ -968,11 +968,10 @@ typedef struct Paint {
   int flags;
 
   /**
-   * Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES inputs to smooth the stroke.
-   * This value is now DEPRECATED, please refer to the Brush and UnifiedPaintSetting values
-   * instead.
+   * Paint stroke can use up to #PAINT_MAX_INPUT_SAMPLES inputs to smooth the stroke.
+   * This value is deprecated. Refer to the #Brush and #UnifiedPaintSetting values instead.
    */
-  int num_input_samples DNA_DEPRECATED;
+  int num_input_samples_deprecated;
 
   /** Flags used for symmetry. */
   int symmetry_flags;
