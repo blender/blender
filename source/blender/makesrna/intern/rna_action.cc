@@ -401,7 +401,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
       prop,
       "Show Data-Block Filters",
       "Show options for whether channels related to certain types of data are included");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, nullptr);
 
   /* General Filtering Settings */

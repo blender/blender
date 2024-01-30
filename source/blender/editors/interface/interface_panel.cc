@@ -1095,7 +1095,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     const float size_y = BLI_rcti_size_y(&widget_rect);
     GPU_blend(GPU_BLEND_ALPHA);
     UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
-                    widget_rect.ymin + size_y * 0.2f,
+                    widget_rect.ymin + size_y * 0.13f,
                     UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                     aspect * UI_INV_SCALE_FAC,
                     0.7f,

@@ -368,7 +368,7 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
     return;
   }
 
-  const BIFIconID icon = is_collapsed() ? ICON_TRIA_RIGHT : ICON_TRIA_DOWN;
+  const BIFIconID icon = is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
   uiBut *but = uiDefIconBut(
       &block, UI_BTYPE_BUT_TOGGLE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
   /* Note that we're passing the tree-row button here, not the chevron one. */

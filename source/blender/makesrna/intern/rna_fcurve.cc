@@ -1772,7 +1772,7 @@ static void rna_def_fmodifier(BlenderRNA *brna)
   // RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_FModifier_show_expanded_set");
   RNA_def_property_ui_text(prop, "Expanded", "F-Curve Modifier's panel is expanded in UI");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", FMODIFIER_FLAG_MUTED);

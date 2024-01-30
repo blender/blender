@@ -3543,7 +3543,7 @@ void RNA_def_constraint(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ui_expand_flag", 0);
   RNA_def_property_ui_text(prop, "Expanded", "Constraint's panel is expanded in UI");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   /* XXX this is really an internal flag,
    * but it may be useful for some tools to be able to access this... */

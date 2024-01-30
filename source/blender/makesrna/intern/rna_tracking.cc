@@ -2101,7 +2101,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", TRACKING_SHOW_STAB_TRACKS);
   RNA_def_property_ui_text(
       prop, "Show Tracks", "Show UI list of tracks participating in stabilization");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 }
 
 static void rna_def_reconstructedCamera(BlenderRNA *brna)
