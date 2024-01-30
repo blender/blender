@@ -139,6 +139,45 @@ PyTypeObject Nature_Type = {
 
 /*-----------------------BPy_Nature instance definitions ----------------------------------*/
 
+static PyLongObject _Nature_POINT = {PyVarObject_HEAD_INIT(&Nature_Type, 0){Nature::POINT}};
+static PyLongObject _Nature_S_VERTEX = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::S_VERTEX}};
+static PyLongObject _Nature_VIEW_VERTEX = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::VIEW_VERTEX}};
+static PyLongObject _Nature_NON_T_VERTEX = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::NON_T_VERTEX}};
+static PyLongObject _Nature_T_VERTEX = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::T_VERTEX}};
+static PyLongObject _Nature_CUSP = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::CUSP}};
+static PyLongObject _Nature_NO_FEATURE = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 0){Nature::NO_FEATURE}};
+static PyLongObject _Nature_SILHOUETTE = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::SILHOUETTE}};
+static PyLongObject _Nature_BORDER = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::BORDER}};
+static PyLongObject _Nature_CREASE = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::CREASE}};
+static PyLongObject _Nature_RIDGE = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::RIDGE}};
+static PyLongObject _Nature_VALLEY = {PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::VALLEY}};
+static PyLongObject _Nature_SUGGESTIVE_CONTOUR = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::SUGGESTIVE_CONTOUR}};
+static PyLongObject _Nature_MATERIAL_BOUNDARY = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::MATERIAL_BOUNDARY}};
+static PyLongObject _Nature_EDGE_MARK = {
+    PyVarObject_HEAD_INIT(&Nature_Type, 1){Nature::EDGE_MARK}};
+
+#define BPy_Nature_POINT ((PyObject *)&_Nature_POINT)
+#define BPy_Nature_S_VERTEX ((PyObject *)&_Nature_S_VERTEX)
+#define BPy_Nature_VIEW_VERTEX ((PyObject *)&_Nature_VIEW_VERTEX)
+#define BPy_Nature_NON_T_VERTEX ((PyObject *)&_Nature_NON_T_VERTEX)
+#define BPy_Nature_T_VERTEX ((PyObject *)&_Nature_T_VERTEX)
+#define BPy_Nature_CUSP ((PyObject *)&_Nature_CUSP)
+#define BPy_Nature_NO_FEATURE ((PyObject *)&_Nature_NO_FEATURE)
+#define BPy_Nature_SILHOUETTE ((PyObject *)&_Nature_SILHOUETTE)
+#define BPy_Nature_BORDER ((PyObject *)&_Nature_BORDER)
+#define BPy_Nature_CREASE ((PyObject *)&_Nature_CREASE)
+#define BPy_Nature_RIDGE ((PyObject *)&_Nature_RIDGE)
+#define BPy_Nature_VALLEY ((PyObject *)&_Nature_VALLEY)
+#define BPy_Nature_SUGGESTIVE_CONTOUR ((PyObject *)&_Nature_SUGGESTIVE_CONTOUR)
+#define BPy_Nature_MATERIAL_BOUNDARY ((PyObject *)&_Nature_MATERIAL_BOUNDARY)
+#define BPy_Nature_EDGE_MARK ((PyObject *)&_Nature_EDGE_MARK)
+
 //-------------------MODULE INITIALIZATION--------------------------------
 int Nature_Init(PyObject *module)
 {
@@ -153,25 +192,23 @@ int Nature_Init(PyObject *module)
   PyModule_AddObject(module, "Nature", (PyObject *)&Nature_Type);
 
   // VertexNature
-  PyDict_SetItemString(Nature_Type.tp_dict, "POINT", PyLong_FromLong(Nature::POINT));
-  PyDict_SetItemString(Nature_Type.tp_dict, "S_VERTEX", PyLong_FromLong(Nature::S_VERTEX));
-  PyDict_SetItemString(Nature_Type.tp_dict, "VIEW_VERTEX", PyLong_FromLong(Nature::VIEW_VERTEX));
-  PyDict_SetItemString(Nature_Type.tp_dict, "NON_T_VERTEX", PyLong_FromLong(Nature::NON_T_VERTEX));
-  PyDict_SetItemString(Nature_Type.tp_dict, "T_VERTEX", PyLong_FromLong(Nature::T_VERTEX));
-  PyDict_SetItemString(Nature_Type.tp_dict, "CUSP", PyLong_FromLong(Nature::CUSP));
+  PyDict_SetItemString(Nature_Type.tp_dict, "POINT", BPy_Nature_POINT);
+  PyDict_SetItemString(Nature_Type.tp_dict, "S_VERTEX", BPy_Nature_S_VERTEX);
+  PyDict_SetItemString(Nature_Type.tp_dict, "VIEW_VERTEX", BPy_Nature_VIEW_VERTEX);
+  PyDict_SetItemString(Nature_Type.tp_dict, "NON_T_VERTEX", BPy_Nature_NON_T_VERTEX);
+  PyDict_SetItemString(Nature_Type.tp_dict, "T_VERTEX", BPy_Nature_T_VERTEX);
+  PyDict_SetItemString(Nature_Type.tp_dict, "CUSP", BPy_Nature_CUSP);
 
   // EdgeNature
-  PyDict_SetItemString(Nature_Type.tp_dict, "NO_FEATURE", PyLong_FromLong(Nature::NO_FEATURE));
-  PyDict_SetItemString(Nature_Type.tp_dict, "SILHOUETTE", PyLong_FromLong(Nature::SILHOUETTE));
-  PyDict_SetItemString(Nature_Type.tp_dict, "BORDER", PyLong_FromLong(Nature::BORDER));
-  PyDict_SetItemString(Nature_Type.tp_dict, "CREASE", PyLong_FromLong(Nature::CREASE));
-  PyDict_SetItemString(Nature_Type.tp_dict, "RIDGE", PyLong_FromLong(Nature::RIDGE));
-  PyDict_SetItemString(Nature_Type.tp_dict, "VALLEY", PyLong_FromLong(Nature::VALLEY));
-  PyDict_SetItemString(
-      Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", PyLong_FromLong(Nature::SUGGESTIVE_CONTOUR));
-  PyDict_SetItemString(
-      Nature_Type.tp_dict, "MATERIAL_BOUNDARY", PyLong_FromLong(Nature::MATERIAL_BOUNDARY));
-  PyDict_SetItemString(Nature_Type.tp_dict, "EDGE_MARK", PyLong_FromLong(Nature::EDGE_MARK));
+  PyDict_SetItemString(Nature_Type.tp_dict, "NO_FEATURE", BPy_Nature_NO_FEATURE);
+  PyDict_SetItemString(Nature_Type.tp_dict, "SILHOUETTE", BPy_Nature_SILHOUETTE);
+  PyDict_SetItemString(Nature_Type.tp_dict, "BORDER", BPy_Nature_BORDER);
+  PyDict_SetItemString(Nature_Type.tp_dict, "CREASE", BPy_Nature_CREASE);
+  PyDict_SetItemString(Nature_Type.tp_dict, "RIDGE", BPy_Nature_RIDGE);
+  PyDict_SetItemString(Nature_Type.tp_dict, "VALLEY", BPy_Nature_VALLEY);
+  PyDict_SetItemString(Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", BPy_Nature_SUGGESTIVE_CONTOUR);
+  PyDict_SetItemString(Nature_Type.tp_dict, "MATERIAL_BOUNDARY", BPy_Nature_MATERIAL_BOUNDARY);
+  PyDict_SetItemString(Nature_Type.tp_dict, "EDGE_MARK", BPy_Nature_EDGE_MARK);
 
   return 0;
 }
@@ -214,11 +251,7 @@ static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
   else {
     result = PyObject_NewVar(BPy_Nature, &Nature_Type, 1);
     if (result) {
-#if PY_VERSION_HEX >= 0x030c0000 /* Account for change in `PyLongObject` in Python 3.12+. */
-      result->i.long_value.ob_digit[0] = v;
-#else
       result->i.ob_digit[0] = v;
-#endif
     }
   }
   return (PyObject *)result;
