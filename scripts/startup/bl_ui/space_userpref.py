@@ -2013,26 +2013,52 @@ class USERPREF_PT_extensions(ExtensionsPanel, Panel):
     # NOTE: currently disabled by an add-on when used.
     unused = True
 
-    @classmethod
-    def poll(cls, _context):
-        return cls.unused
-
     def draw(self, context):
         layout = self.layout
 
-        row = layout.row()
-        row.label(text="The add-on to use extensions is disabled!")
-        row = layout.row()
-        row.label(text="Enable \"Blender Extensions\" add-on in Testing to use extensions.")
+        if self.unused:
+            row = layout.row()
+            row.label(text="The add-on to use extensions is disabled!")
+            row = layout.row()
+            row.label(text="Enable \"Blender Extensions\" add-on in Testing to use extensions.")
+
+            # Placeholder, show this popover so it's accessible,
+            # typically this is accessed via the the add-ons UI.
+            row = layout.row()
+            row.popover("USERPREF_PT_extensions_repos", icon='SETTINGS')
 
 
-class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
+class USERPREF_PT_extensions_repos(Panel):
     bl_label = "Repositories"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {'HIDE_HEADER'}
+
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+
+    # Show wider than most panels so the URL & directory aren't overly clipped.
+    bl_ui_units_x = 24
+
+    # NOTE: ideally `if panel := layout.panel("extensions_repo_advanced", default_closed=True):`
+    # would be used but it isn't supported here, use a kludge to achieve a similar UI.
+    _panel_layout_kludge_state = False
 
     @classmethod
-    def poll(cls, context):
-        return context.preferences.experimental.use_extension_repos
+    def _panel_layout_kludge(cls, layout, *, text):
+        row = layout.row(align=True)
+        row.alignment = 'LEFT'
+        show_advanced = USERPREF_PT_extensions_repos._panel_layout_kludge_state
+        props = row.operator(
+            "wm.context_toggle",
+            text="Advanced",
+            icon='DOWNARROW_HLT' if show_advanced else 'RIGHTARROW',
+            emboss=False,
+        )
+        props.module = "bl_ui.space_userpref"
+        props.data_path = "USERPREF_PT_extensions_repos._panel_layout_kludge_state"
+
+        if show_advanced:
+            return layout.column()
+        return None
 
     def draw(self, context):
         layout = self.layout
@@ -2065,11 +2091,13 @@ class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
 
         layout.separator()
 
-        layout.prop(active_repo, "directory")
         layout.prop(active_repo, "remote_path")
-        row = layout.row()
-        row.prop(active_repo, "use_cache")
-        row.prop(active_repo, "module")
+
+        if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
+            layout_panel.prop(active_repo, "directory")
+            row = layout_panel.row()
+            row.prop(active_repo, "use_cache")
+            row.prop(active_repo, "module")
 
 
 # -----------------------------------------------------------------------------
