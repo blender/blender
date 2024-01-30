@@ -674,6 +674,13 @@ class PREFERENCES_OT_addon_install(Operator):
                 return {'CANCELLED'}
 
             file_to_extract_root = _zipfile_root_namelist(file_to_extract)
+
+            if "__init__.py" in file_to_extract_root:
+                self.report({'ERROR'}, rpt_(
+                    "ZIP packaged incorrectly; __init__.py should be in a directory, not at top-level"
+                ))
+                return {'CANCELLED'}
+
             if self.overwrite:
                 for f in file_to_extract_root:
                     _module_filesystem_remove(path_addons, f)
