@@ -278,5 +278,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilOffset);
   INIT_TYPE(GreasePencilNoise);
   INIT_TYPE(GreasePencilMirror);
+  INIT_TYPE(GreasePencilThickness);
 #undef INIT_TYPE
 }
