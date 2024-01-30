@@ -192,10 +192,6 @@ class ZCombineOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_z_combine_compute_mask");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1b(shader, "use_alpha", use_alpha());
-
-    const Result &first = get_input("Image");
-    first.bind_as_texture(shader, "first_tx");
     const Result &first_z = get_input("Z");
     first_z.bind_as_texture(shader, "first_z_tx");
     const Result &second_z = get_input("Z_001");
@@ -208,7 +204,6 @@ class ZCombineOperation : public NodeOperation {
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
-    first.unbind_as_texture();
     first_z.unbind_as_texture();
     second_z.unbind_as_texture();
     mask.unbind_as_image();
