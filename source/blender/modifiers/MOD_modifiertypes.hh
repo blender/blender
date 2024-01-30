@@ -80,6 +80,7 @@ extern ModifierTypeInfo modifierType_GreasePencilTint;
 extern ModifierTypeInfo modifierType_GreasePencilSmooth;
 extern ModifierTypeInfo modifierType_GreasePencilOffset;
 extern ModifierTypeInfo modifierType_GreasePencilNoise;
+extern ModifierTypeInfo modifierType_GreasePencilMirror;
 
 /* MOD_util.cc */
 

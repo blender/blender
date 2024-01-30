@@ -216,6 +216,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_SUBSURF,
      "Subdivide strokes",
      "Grease Pencil subdivide modifier"},
+    {eModifierType_GreasePencilMirror,
+     "GREASE_PENCIL_MIRROR",
+     ICON_MOD_MIRROR,
+     "Mirror strokes",
+     "Duplicate strokes like a mirror"},
 
     RNA_ENUM_ITEM_HEADING(N_("Deform"), nullptr),
     {eModifierType_Armature,
@@ -1829,6 +1834,7 @@ static void rna_GreasePencilModifier_material_set(PointerRNA *ptr,
     }
 
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilColor);
+RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilMirror);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilOffset);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilOpacity);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilSubdiv);
@@ -1871,6 +1877,17 @@ static void rna_GreasePencilTintModifier_object_set(PointerRNA *ptr,
   Object *ob = static_cast<Object *>(value.data);
 
   tmd->object = ob;
+  id_lib_extern(&ob->id);
+}
+
+static void rna_GreasePencilMirrorModifier_object_set(PointerRNA *ptr,
+                                                      PointerRNA value,
+                                                      ReportList * /*reports*/)
+{
+  GreasePencilMirrorModifierData *mmd = static_cast<GreasePencilMirrorModifierData *>(ptr->data);
+  Object *ob = static_cast<Object *>(value.data);
+
+  mmd->object = ob;
   id_lib_extern(&ob->id);
 }
 
@@ -8227,6 +8244,47 @@ static void rna_def_modifier_grease_pencil_noise(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_mirror(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilMirrorModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Grease Pencil Mirror Modifier", "");
+  RNA_def_struct_sdna(srna, "GreasePencilMirrorModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_MIRROR);
+
+  rna_def_modifier_grease_pencil_layer_filter(srna);
+  rna_def_modifier_grease_pencil_material_filter(
+      srna, "rna_GreasePencilMirrorModifier_material_filter_set");
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Object used as center");
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_GreasePencilMirrorModifier_object_set", nullptr, nullptr);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "use_axis_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_MIRROR_AXIS_X);
+  RNA_def_property_ui_text(prop, "X", "Mirror the X axis");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_axis_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_MIRROR_AXIS_Y);
+  RNA_def_property_ui_text(prop, "Y", "Mirror the Y axis");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_axis_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_MIRROR_AXIS_Z);
+  RNA_def_property_ui_text(prop, "Z", "Mirror the Z axis");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8394,6 +8452,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_smooth(brna);
   rna_def_modifier_grease_pencil_offset(brna);
   rna_def_modifier_grease_pencil_noise(brna);
+  rna_def_modifier_grease_pencil_mirror(brna);
 }
 
 #endif
