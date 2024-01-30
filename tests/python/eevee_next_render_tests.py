@@ -20,12 +20,21 @@ def setup():
     # Enable Eevee features
     scene = bpy.context.scene
     eevee = scene.eevee
+    ray_tracing = eevee.ray_tracing_options
 
     eevee.gtao_distance = 1
     eevee.use_volumetric_shadows = True
     eevee.volumetric_tile_size = '2'
     eevee.use_motion_blur = True
-    # Due to an issue in HiZ-buffer set the probbe resolution to 256. When the
+    # Overscan of 50 will doesn't offset the final image, and adds more information for screen based ray tracing.
+    eevee.use_overscan = True
+    eevee.overscan_size = 50.0
+    eevee.use_raytracing = True
+    eevee.ray_tracing_method = 'SCREEN'
+    ray_tracing.resolution_scale = "1"
+    ray_tracing.screen_trace_quality = 1.0
+    ray_tracing.screen_trace_thickness = 1.0
+    # Due to an issue in HiZ-buffer set the probe resolution to 256. When the
     # probe resolution is to high it will be corrupted as the HiZ buffer isn't
     # large enough
     eevee.gi_cubemap_resolution = '256'
@@ -33,11 +42,12 @@ def setup():
     # Does not work in edit mode
     try:
         # Simple probe setup
-        bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.05, 0.0, 0.03))
+        bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.0, 0.0, 0.0))
         cubemap = bpy.context.selected_objects[0]
         cubemap.scale = (1.0, 1.0, 1.0)
         cubemap.data.falloff = 0.0
-        cubemap.data.clip_start = 0.975
+        cubemap.data.clip_start = 0.8
+        cubemap.data.influence_distance = 1.2
 
         bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 0.0))
         grid = bpy.context.selected_objects[0]
