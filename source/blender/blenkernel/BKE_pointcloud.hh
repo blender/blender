@@ -42,21 +42,18 @@ struct PointCloudRuntime {
 
 }  // namespace blender::bke
 
-void *BKE_pointcloud_add(struct Main *bmain, const char *name);
-void *BKE_pointcloud_add_default(struct Main *bmain, const char *name);
-struct PointCloud *BKE_pointcloud_new_nomain(int totpoint);
-void BKE_pointcloud_nomain_to_pointcloud(struct PointCloud *pointcloud_src,
-                                         struct PointCloud *pointcloud_dst);
+void *BKE_pointcloud_add(Main *bmain, const char *name);
+void *BKE_pointcloud_add_default(Main *bmain, const char *name);
+PointCloud *BKE_pointcloud_new_nomain(int totpoint);
+void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst);
 
-bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, const char *name);
+bool BKE_pointcloud_attribute_required(const PointCloud *pointcloud, const char *name);
 
 /* Dependency Graph */
 
-struct PointCloud *BKE_pointcloud_copy_for_eval(const struct PointCloud *pointcloud_src);
+PointCloud *BKE_pointcloud_copy_for_eval(const PointCloud *pointcloud_src);
 
-void BKE_pointcloud_data_update(struct Depsgraph *depsgraph,
-                                struct Scene *scene,
-                                struct Object *object);
+void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *object);
 
 /* Draw Cache */
 
@@ -64,8 +61,8 @@ enum {
   BKE_POINTCLOUD_BATCH_DIRTY_ALL = 0,
 };
 
-void BKE_pointcloud_batch_cache_dirty_tag(struct PointCloud *pointcloud, int mode);
-void BKE_pointcloud_batch_cache_free(struct PointCloud *pointcloud);
+void BKE_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode);
+void BKE_pointcloud_batch_cache_free(PointCloud *pointcloud);
 
-extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(struct PointCloud *pointcloud, int mode);
-extern void (*BKE_pointcloud_batch_cache_free_cb)(struct PointCloud *pointcloud);
+extern void (*BKE_pointcloud_batch_cache_dirty_tag_cb)(PointCloud *pointcloud, int mode);
+extern void (*BKE_pointcloud_batch_cache_free_cb)(PointCloud *pointcloud);
