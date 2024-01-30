@@ -1768,6 +1768,30 @@ void remove_defgroup_index(MutableSpan<MDeformVert> dverts, const int defgroup_i
   });
 }
 
+void gather_deform_verts(const Span<MDeformVert> src,
+                         const Span<int> indices,
+                         MutableSpan<MDeformVert> dst)
+{
+  threading::parallel_for(indices.index_range(), 512, [&](const IndexRange range) {
+    for (const int dst_i : range) {
+      const int src_i = indices[dst_i];
+      dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
+      dst[dst_i].totweight = src[src_i].totweight;
+      dst[dst_i].flag = src[src_i].flag;
+    }
+  });
+}
+void gather_deform_verts(const Span<MDeformVert> src,
+                         const IndexMask &indices,
+                         MutableSpan<MDeformVert> dst)
+{
+  indices.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+    dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
+    dst[dst_i].totweight = src[src_i].totweight;
+    dst[dst_i].flag = src[src_i].flag;
+  });
+}
+
 }  // namespace blender::bke
 
 /** \} */

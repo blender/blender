@@ -368,8 +368,7 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     }
     const Span<MDeformVert> dverts = curves->deform_verts();
     if (dverts.is_empty()) {
-      static const float default_value = 0.0f;
-      return {VArray<float>::ForSingle(default_value, curves->points_num()), AttrDomain::Point};
+      return {VArray<float>::ForSingle(0.0f, curves->points_num()), AttrDomain::Point};
     }
     return {varray_for_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }

@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_enumerable_thread_specific.hh"
@@ -11,6 +10,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_mesh.hh"
 
@@ -124,26 +124,17 @@ static void gather_vert_attributes(const Mesh &mesh_src,
   }
 
   const Span<MDeformVert> src = mesh_src.deform_verts();
-  MutableSpan<MDeformVert> dst = mesh_dst.deform_verts_for_write();
-  threading::parallel_invoke(
-      src.size() > 1024,
-      [&]() {
-        if (!src.is_empty() && !dst.is_empty()) {
-          vert_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-            dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
-            dst[dst_i].totweight = src[src_i].totweight;
-            dst[dst_i].flag = src[src_i].flag;
-          });
-        }
-      },
-      [&]() {
-        bke::gather_attributes(mesh_src.attributes(),
-                               bke::AttrDomain::Point,
-                               propagation_info,
-                               vertex_group_names,
-                               vert_mask,
-                               mesh_dst.attributes_for_write());
-      });
+  if (!vertex_group_names.is_empty() && !src.is_empty()) {
+    MutableSpan<MDeformVert> dst = mesh_dst.deform_verts_for_write();
+    bke::gather_deform_verts(src, vert_mask, dst);
+  }
+
+  bke::gather_attributes(mesh_src.attributes(),
+                         bke::AttrDomain::Point,
+                         propagation_info,
+                         vertex_group_names,
+                         vert_mask,
+                         mesh_dst.attributes_for_write());
 }
 
 std::optional<Mesh *> mesh_copy_selection(
