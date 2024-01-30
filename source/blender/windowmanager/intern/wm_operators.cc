@@ -596,15 +596,15 @@ static const char *wm_context_member_from_ptr(const bContext *C,
 }
 #endif
 
-std::string WM_context_path_resolve_property_full(const bContext *C,
-                                                  const PointerRNA *ptr,
-                                                  PropertyRNA *prop,
-                                                  int index)
+std::optional<std::string> WM_context_path_resolve_property_full(const bContext *C,
+                                                                 const PointerRNA *ptr,
+                                                                 PropertyRNA *prop,
+                                                                 int index)
 {
   bool is_id;
   const char *member_id = wm_context_member_from_ptr(C, ptr, &is_id);
   if (!member_id) {
-    return "";
+    return std::nullopt;
   }
   std::string member_id_data_path;
   if (is_id && !RNA_struct_is_ID(ptr->type)) {
@@ -645,44 +645,49 @@ std::string WM_context_path_resolve_property_full(const bContext *C,
   return member_id_data_path;
 }
 
-std::string WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr)
+std::optional<std::string> WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr)
 {
   return WM_context_path_resolve_property_full(C, ptr, nullptr, -1);
 }
 
-static std::string wm_prop_pystring_from_context(bContext *C,
-                                                 PointerRNA *ptr,
-                                                 PropertyRNA *prop,
-                                                 int index)
+static std::optional<std::string> wm_prop_pystring_from_context(bContext *C,
+                                                                PointerRNA *ptr,
+                                                                PropertyRNA *prop,
+                                                                int index)
 {
-  std::string member_id_data_path = WM_context_path_resolve_property_full(C, ptr, prop, index);
-  if (member_id_data_path.empty()) {
-    return "";
+  std::optional<std::string> member_id_data_path = WM_context_path_resolve_property_full(
+      C, ptr, prop, index);
+  if (!member_id_data_path.has_value()) {
+    return std::nullopt;
   }
-  return "bpy.context." + member_id_data_path;
+  return "bpy.context." + member_id_data_path.value();
 }
 
-std::string WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
+std::optional<std::string> WM_prop_pystring_assign(bContext *C,
+                                                   PointerRNA *ptr,
+                                                   PropertyRNA *prop,
+                                                   int index)
 {
-  std::string lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : "";
+  std::optional<std::string> lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) :
+                                       std::nullopt;
 
-  if (lhs.empty()) {
+  if (!lhs.has_value()) {
     /* Fallback to `bpy.data.foo[id]` if we don't find in the context. */
     if (char *lhs_cstr = RNA_path_full_property_py(ptr, prop, index)) {
       lhs = lhs_cstr;
       MEM_freeN(lhs_cstr);
     }
-    if (lhs.empty()) {
-      return "";
+    else {
+      return std::nullopt;
     }
   }
 
   char *rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
   if (!rhs) {
-    return "";
+    return std::nullopt;
   }
 
-  std::string ret = fmt::format("{} = {}", lhs, rhs);
+  std::string ret = fmt::format("{} = {}", lhs.value(), rhs);
   MEM_freeN(rhs);
   return ret;
 }

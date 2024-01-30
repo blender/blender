@@ -1452,14 +1452,16 @@ static bool ui_but_event_property_operator_string(const bContext *C,
   Vector<std::string, 2> data_path_variations;
 
   {
-    std::string data_path = WM_context_path_resolve_property_full(C, ptr, prop, prop_index);
+    std::optional<std::string> data_path = WM_context_path_resolve_property_full(
+        C, ptr, prop, prop_index);
 
     /* Always iterate once, even if data-path isn't set. */
-    data_path_variations.append(data_path);
+    data_path_variations.append(data_path.has_value() ? data_path.value() : "");
 
-    if (!data_path.empty()) {
-      if (StringRef(data_path).startswith("scene.tool_settings.")) {
-        data_path_variations.append(StringRef(data_path).drop_known_prefix("scene."));
+    if (data_path.has_value()) {
+      StringRef data_path_ref = StringRef(data_path.value());
+      if (data_path_ref.startswith("scene.tool_settings.")) {
+        data_path_variations.append(data_path_ref.drop_known_prefix("scene."));
       }
     }
   }

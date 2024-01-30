@@ -1001,11 +1001,12 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
   }
 
   /* make a little report about what we've done! */
-  const std::string str = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
-  if (str.empty()) {
+  std::optional<const std::string> str = WM_prop_pystring_assign(
+      C, &but->rnapoin, but->rnaprop, but->rnaindex);
+  if (!str.has_value()) {
     return;
   }
-  BKE_report(CTX_wm_reports(C), RPT_PROPERTY, str.c_str());
+  BKE_report(CTX_wm_reports(C), RPT_PROPERTY, str.value().c_str());
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, nullptr);
 }
 

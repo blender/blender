@@ -61,16 +61,16 @@ static IDProperty *shortcut_property_from_rna(bContext *C, uiBut *but)
 
   /* If this returns null, we won't be able to bind shortcuts to these RNA properties.
    * Support can be added at #wm_context_member_from_ptr. */
-  std::string final_data_path = WM_context_path_resolve_property_full(
+  std::optional<std::string> final_data_path = WM_context_path_resolve_property_full(
       C, &but->rnapoin, but->rnaprop, but->rnaindex);
-  if (final_data_path.empty()) {
+  if (!final_data_path.has_value()) {
     return nullptr;
   }
 
   /* Create ID property of data path, to pass to the operator. */
   const IDPropertyTemplate val = {0};
   IDProperty *prop = IDP_New(IDP_GROUP, &val, __func__);
-  IDP_AddToGroup(prop, IDP_NewString(final_data_path.c_str(), "data_path"));
+  IDP_AddToGroup(prop, IDP_NewString(final_data_path.value().c_str(), "data_path"));
 
   return prop;
 }
@@ -319,8 +319,8 @@ static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
   }
   else if (but->rnaprop) {
     if (RNA_property_type(but->rnaprop) == PROP_BOOLEAN) {
-      std::string data_path = WM_context_path_resolve_full(C, &but->rnapoin);
-      if (!data_path.empty()) {
+      std::optional<std::string> data_path = WM_context_path_resolve_full(C, &but->rnapoin);
+      if (data_path.has_value()) {
         result = true;
       }
     }
@@ -343,13 +343,22 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
         &um->items, but->optype, prop, "", but->opcontext);
   }
   if (but->rnaprop) {
-    std::string member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
+    std::optional<std::string> member_id_data_path = WM_context_path_resolve_full(C,
+                                                                                  &but->rnapoin);
+    /* NOTE(@ideasman42): It's highly unlikely a this ever occurs since the path must be resolved
+     * for this to be added in the first place, there might be some cases where manually
+     * constructed RNA paths don't resolve and in this case a crash should be avoided. */
+    if (UNLIKELY(!member_id_data_path.has_value())) {
+      /* Assert because this should never happen for typical usage. */
+      BLI_assert_unreachable();
+      return nullptr;
+    }
     /* Ignore the actual array index [pass -1] since the index is handled separately. */
     const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
                               RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
                               RNA_property_identifier(but->rnaprop);
     bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
-        &um->items, member_id_data_path.c_str(), prop_id, but->rnaindex);
+        &um->items, member_id_data_path.value().c_str(), prop_id, but->rnaindex);
     return umi;
   }
 
@@ -419,14 +428,21 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
   }
   else if (but->rnaprop) {
     /* NOTE: 'member_id' may be a path. */
-    std::string member_id_data_path = WM_context_path_resolve_full(C, &but->rnapoin);
-    /* Ignore the actual array index [pass -1] since the index is handled separately. */
-    const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
-                              RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
-                              RNA_property_identifier(but->rnaprop);
-    /* NOTE: ignore 'drawstr', use property idname always. */
-    ED_screen_user_menu_item_add_prop(
-        &um->items, "", member_id_data_path.c_str(), prop_id, but->rnaindex);
+    std::optional<std::string> member_id_data_path = WM_context_path_resolve_full(C,
+                                                                                  &but->rnapoin);
+    if (!member_id_data_path.has_value()) {
+      /* See #ui_but_user_menu_find code-comment. */
+      BLI_assert_unreachable();
+    }
+    else {
+      /* Ignore the actual array index [pass -1] since the index is handled separately. */
+      const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
+                                RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
+                                RNA_property_identifier(but->rnaprop);
+      /* NOTE: ignore 'drawstr', use property idname always. */
+      ED_screen_user_menu_item_add_prop(
+          &um->items, "", member_id_data_path.value().c_str(), prop_id, but->rnaindex);
+    }
   }
   else if ((mt = UI_but_menutype_get(but))) {
     ED_screen_user_menu_item_add_menu(&um->items, drawstr.c_str(), mt);
