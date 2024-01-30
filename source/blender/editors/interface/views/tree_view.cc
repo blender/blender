@@ -302,9 +302,6 @@ void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void *
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
 
   tree_item.activate(*C);
-  /* Not only activate the item, also show its children. Maybe this should be optional, or
-   * controlled by the specific tree-view. */
-  tree_item.set_collapsed(false);
 }
 
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
