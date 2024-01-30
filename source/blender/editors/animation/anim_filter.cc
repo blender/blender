@@ -75,7 +75,7 @@
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"

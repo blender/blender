@@ -20,7 +20,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_customdata.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_subdiv.hh"

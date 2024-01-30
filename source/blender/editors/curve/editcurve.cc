@@ -30,7 +30,7 @@
 #include "BKE_displist.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

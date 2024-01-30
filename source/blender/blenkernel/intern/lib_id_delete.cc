@@ -26,7 +26,7 @@
 #include "BKE_asset.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"

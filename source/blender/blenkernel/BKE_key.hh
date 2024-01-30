@@ -16,11 +16,6 @@ struct Main;
 struct Mesh;
 struct Object;
 
-/* Kernel prototypes */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Free (or release) any data used by this shape-key (does not free the key itself).
  */
@@ -220,7 +215,3 @@ void BKE_keyblock_curve_data_set_with_mat4(struct Key *key,
 void BKE_keyblock_data_set(struct Key *key, int shape_index, const void *data);
 
 /** \} */
-
-#ifdef __cplusplus
-};
-#endif

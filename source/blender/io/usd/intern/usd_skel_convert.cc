@@ -30,7 +30,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"

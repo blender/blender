@@ -50,7 +50,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"

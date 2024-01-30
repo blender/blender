@@ -9,7 +9,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_key.h"
+#include "BKE_key.hh"
 
 #include "WM_api.hh"
 

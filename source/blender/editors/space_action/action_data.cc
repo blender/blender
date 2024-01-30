@@ -30,7 +30,7 @@
 #include "BKE_action.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"
 #include "BKE_report.h"

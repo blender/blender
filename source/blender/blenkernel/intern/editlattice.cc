@@ -19,7 +19,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 
 #include "BKE_editlattice.h" /* own include */
 

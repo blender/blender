@@ -17,7 +17,7 @@
 #include "BKE_context.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_image.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_studiolight.h"

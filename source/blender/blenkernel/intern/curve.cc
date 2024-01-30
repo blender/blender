@@ -45,7 +45,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_displist.h"
 #include "BKE_idtype.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"

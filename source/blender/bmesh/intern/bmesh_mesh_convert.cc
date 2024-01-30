@@ -96,7 +96,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_multires.hh"
 
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_main.hh"
 
 #include "DEG_depsgraph_query.hh"

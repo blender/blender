@@ -415,7 +415,7 @@ set(SRC
   BKE_instances.hh
   BKE_ipo.h
   BKE_kelvinlet.h
-  BKE_key.h
+  BKE_key.hh
   BKE_keyconfig.h
   BKE_lattice.hh
   BKE_layer.hh
