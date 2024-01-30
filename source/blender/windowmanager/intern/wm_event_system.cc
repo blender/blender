@@ -1097,7 +1097,8 @@ static void wm_operator_reports(bContext *C,
   }
 
   if (retval & OPERATOR_FINISHED) {
-    CLOG_STR_INFO_N(WM_LOG_OPERATORS, 1, WM_operator_pystring(C, op, false, true).c_str());
+    std::string pystring = WM_operator_pystring(C, op, false, true);
+    CLOG_STR_INFO_N(WM_LOG_OPERATORS, 1, pystring.c_str());
 
     if (caller_owns_reports == false) {
       BKE_reports_print(op->reports, RPT_DEBUG); /* Print out reports to console. */
@@ -1106,7 +1107,6 @@ static void wm_operator_reports(bContext *C,
     if (op->type->flag & OPTYPE_REGISTER) {
       if (G.background == 0) { /* Ends up printing these in the terminal, gets annoying. */
                                /* Report the python string representation of the operator. */
-        std::string pystring = WM_operator_pystring(C, op, false, true);
         BKE_report(CTX_wm_reports(C), RPT_OPERATOR, pystring.c_str());
       }
     }
