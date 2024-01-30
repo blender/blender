@@ -76,9 +76,10 @@ int Interface1D_Init(PyObject *module)
   Py_INCREF(&Stroke_Type);
   PyModule_AddObject(module, "Stroke", (PyObject *)&Stroke_Type);
 
-  PyDict_SetItemString(Stroke_Type.tp_dict, "DRY_MEDIUM", BPy_MediumType_DRY_MEDIUM);
-  PyDict_SetItemString(Stroke_Type.tp_dict, "HUMID_MEDIUM", BPy_MediumType_HUMID_MEDIUM);
-  PyDict_SetItemString(Stroke_Type.tp_dict, "OPAQUE_MEDIUM", BPy_MediumType_OPAQUE_MEDIUM);
+  PyDict_SetItemString(Stroke_Type.tp_dict, "DRY_MEDIUM", PyLong_FromLong(Stroke::DRY_MEDIUM));
+  PyDict_SetItemString(Stroke_Type.tp_dict, "HUMID_MEDIUM", PyLong_FromLong(Stroke::HUMID_MEDIUM));
+  PyDict_SetItemString(
+      Stroke_Type.tp_dict, "OPAQUE_MEDIUM", PyLong_FromLong(Stroke::OPAQUE_MEDIUM));
 
   if (PyType_Ready(&ViewEdge_Type) < 0) {
     return -1;
