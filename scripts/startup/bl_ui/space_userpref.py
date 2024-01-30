@@ -2149,6 +2149,23 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         return False
 
     @staticmethod
+    def draw_addon_preferences(layout, context, addon_preferences):
+        if (draw := getattr(addon_preferences, "draw", None)) is None:
+            return
+
+        addon_preferences_class = type(addon_preferences)
+        box_prefs = layout.box()
+        box_prefs.label(text="Preferences:")
+        addon_preferences_class.layout = box_prefs
+        try:
+            draw(context)
+        except BaseException:
+            import traceback
+            traceback.print_exc()
+            box_prefs.label(text="Error (see console)", icon='ERROR')
+        del addon_preferences_class.layout
+
+    @staticmethod
     def draw_error(layout, message):
         lines = message.split("\n")
         box = layout.box()
@@ -2395,21 +2412,9 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
                 # Show addon user preferences
                 if is_enabled:
-                    addon_preferences = used_addon_module_name_map[module_name].preferences
-                    if addon_preferences is not None:
-                        draw = getattr(addon_preferences, "draw", None)
-                        if draw is not None:
-                            addon_preferences_class = type(addon_preferences)
-                            box_prefs = col_box.box()
-                            box_prefs.label(text="Preferences:")
-                            addon_preferences_class.layout = box_prefs
-                            try:
-                                draw(context)
-                            except BaseException:
-                                import traceback
-                                traceback.print_exc()
-                                box_prefs.label(text="Error (see console)", icon='ERROR')
-                            del addon_preferences_class.layout
+                    if (addon_preferences := used_addon_module_name_map[module_name].preferences) is not None:
+                        self.draw_addon_preferences(col_box, context, addon_preferences)
+
             if use_extension_repos:
                 row.operator(
                     "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
