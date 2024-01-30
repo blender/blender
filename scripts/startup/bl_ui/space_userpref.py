@@ -2206,7 +2206,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
         wm = context.window_manager
         prefs = context.preferences
-        used_ext = {ext.module for ext in prefs.addons}
+        used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
 
         # Experimental UI changes proposed in: #117285.
         use_extension_repos = prefs.experimental.use_extension_repos
@@ -2267,7 +2267,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         for mod, info in addons:
             module_name = mod.__name__
 
-            is_enabled = module_name in used_ext
+            is_enabled = module_name in used_addon_module_name_map
 
             if info["support"] not in support:
                 continue
@@ -2395,7 +2395,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
                 # Show addon user preferences
                 if is_enabled:
-                    addon_preferences = prefs.addons[module_name].preferences
+                    addon_preferences = used_addon_module_name_map[module_name].preferences
                     if addon_preferences is not None:
                         draw = getattr(addon_preferences, "draw", None)
                         if draw is not None:
@@ -2420,7 +2420,10 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         # Append missing scripts
         # First collect scripts that are used but have no script file.
         module_names = {mod.__name__ for mod, info in addons}
-        missing_modules = {ext for ext in used_ext if ext not in module_names}
+        missing_modules = {
+            module_name for module_name in used_addon_module_name_map
+            if module_name not in module_names
+        }
 
         if missing_modules and filter in {"All", "Enabled"}:
             col.column().separator()
@@ -2428,7 +2431,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
 
             module_names = {mod.__name__ for mod, info in addons}
             for module_name in sorted(missing_modules):
-                is_enabled = module_name in used_ext
+                is_enabled = module_name in used_addon_module_name_map
                 # Addon UI Code
                 box = col.column().box()
                 colsub = box.column()
