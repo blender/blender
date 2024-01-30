@@ -71,7 +71,7 @@ void ZCombineAlphaOperation::execute_pixel_sampled(float output[4],
 
   depth1Reader_->read_sampled(depth1, x, y, sampler);
   depth2Reader_->read_sampled(depth2, x, y, sampler);
-  if (depth1[0] <= depth2[0]) {
+  if (depth1[0] < depth2[0]) {
     image1Reader_->read_sampled(color1, x, y, sampler);
     image2Reader_->read_sampled(color2, x, y, sampler);
   }
@@ -96,7 +96,7 @@ void ZCombineAlphaOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float depth2 = *it.in(3);
     const float *color1;
     const float *color2;
-    if (depth1 <= depth2) {
+    if (depth1 < depth2) {
       color1 = it.in(0);
       color2 = it.in(2);
     }
