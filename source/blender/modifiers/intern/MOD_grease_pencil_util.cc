@@ -309,6 +309,18 @@ IndexMask get_filtered_stroke_mask(const Object *ob,
       memory);
 }
 
+VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
+                                           const GreasePencilModifierInfluenceData &influence_data)
+{
+  if (influence_data.vertex_group_name[0] == '\0') {
+    /* If vertex group is not set, use full weight for all vertices. */
+    return VArray<float>::ForSingle(1.0f, curves.point_num);
+  }
+  /* Vertex group weights, with zero weight as fallback. */
+  return *curves.attributes().lookup_or_default<float>(
+      influence_data.vertex_group_name, bke::AttrDomain::Point, 0.0f);
+}
+
 Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease_pencil,
                                                             const IndexMask &layer_mask,
                                                             const int frame)

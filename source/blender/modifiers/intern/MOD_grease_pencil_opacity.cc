@@ -87,10 +87,8 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
       "opacity", bke::AttrDomain::Point);
-  const VArray<float> vgroup_weights =
-      attributes
-          .lookup_or_default<float>(omd.influence.vertex_group_name, bke::AttrDomain::Point, 1.0f)
-          .varray;
+  const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
+      curves, omd.influence);
 
   curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
     const IndexRange points = points_by_curve[curve_i];
@@ -138,9 +136,8 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
   /* Fill color opacity per stroke. */
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
       "fill_opacity", bke::AttrDomain::Curve);
-  const StringRef vgroup_name = omd.influence.vertex_group_name;
-  const VArray<float> vgroup_weights =
-      attributes.lookup_or_default<float>(vgroup_name, bke::AttrDomain::Point, 1.0f).varray;
+  const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
+      curves, omd.influence);
 
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
     if (use_vgroup_opacity) {
