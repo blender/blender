@@ -335,6 +335,13 @@ bool PyC_StructFmt_type_is_bool(char format);
 #ifdef __cplusplus
 #  include "BLI_span.hh"
 
+#  include <string>
+
+/**
+ * Create a `str` from `std::string`, wraps #PyC_UnicodeFromBytesAndSize.
+ */
+PyObject *PyC_UnicodeFromStdStr(const std::string &str);
+
 inline PyObject *PyC_Tuple_Pack_F32(const blender::Span<float> values)
 {
   return PyC_Tuple_PackArray_F32(values.data(), values.size());
