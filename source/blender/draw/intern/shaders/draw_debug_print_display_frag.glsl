@@ -111,7 +111,7 @@ bool char_intersect(uvec2 bitmap_position)
   if (!in_range_inclusive(bitmap_position, uvec2(0), uvec2(7))) {
     return false;
   }
-  uint char_bits = ascii_bitmap[char_index][bitmap_position.y >> 2u & 1u];
+  uint char_bits = ascii_bitmap[char_index % 96u][bitmap_position.y >> 2u & 1u];
   char_bits = (char_bits >> ((bitmap_position.y & 3u) * 8u + bitmap_position.x));
   return (char_bits & 1u) != 0u;
 }
