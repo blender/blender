@@ -226,7 +226,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
     def poll(cls, context):
         engine = context.engine
         obj = context.object
-        return (obj and obj.type in {'MESH', 'LATTICE'} and (engine in cls.COMPAT_ENGINES))
+        return (obj and obj.type in {'MESH', 'LATTICE', 'GREASEPENCIL'} and (engine in cls.COMPAT_ENGINES))
 
     def draw(self, context):
         layout = self.layout
