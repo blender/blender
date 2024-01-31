@@ -36,7 +36,7 @@
 
 #include "BLT_translation.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

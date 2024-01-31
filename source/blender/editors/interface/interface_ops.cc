@@ -22,7 +22,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "BLT_lang.h"
 #include "BLT_translation.h"
 

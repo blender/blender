@@ -35,7 +35,7 @@
 
 #include "BIF_glutil.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"

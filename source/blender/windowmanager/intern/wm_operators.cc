@@ -68,7 +68,7 @@
 
 #include "BKE_idtype.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

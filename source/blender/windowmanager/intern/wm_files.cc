@@ -48,7 +48,7 @@
 #include "BLO_readfile.h"
 #include "BLT_translation.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

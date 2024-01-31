@@ -29,7 +29,7 @@
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "BLT_translation.h"
 
 #include "BIF_glutil.hh"

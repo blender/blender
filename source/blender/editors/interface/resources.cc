@@ -27,7 +27,7 @@
 
 #include "BLO_readfile.h" /* for UserDef version patching. */
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "ED_screen.hh"
 

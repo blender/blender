@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct FontBLF;
 struct GlyphBLF;
 struct GlyphCacheBLF;
@@ -207,8 +203,4 @@ extern FT_Error FT_New_Face__win32_compat(FT_Library library,
                                           FT_Long face_index,
                                           FT_Face *aface);
 #  endif
-#endif
-
-#ifdef __cplusplus
-}
 #endif

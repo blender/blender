@@ -23,7 +23,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"

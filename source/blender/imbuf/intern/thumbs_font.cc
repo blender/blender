@@ -16,7 +16,7 @@
 #include "IMB_thumbs.hh" /* own include. */
 
 /* XXX, bad level call */
-#include "../../blenfont/BLF_api.h"
+#include "../../blenfont/BLF_api.hh"
 
 /* Only change if we need to update the previews in the on-disk cache. */
 #define FONT_THUMB_VERSION "1.0.1"

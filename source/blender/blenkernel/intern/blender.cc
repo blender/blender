@@ -47,7 +47,7 @@
 
 #include "SEQ_sequencer.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 Global G;
 UserDef U;

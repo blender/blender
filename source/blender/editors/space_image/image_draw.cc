@@ -45,7 +45,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_image.hh"

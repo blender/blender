@@ -23,7 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"

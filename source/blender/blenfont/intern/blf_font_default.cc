@@ -10,7 +10,7 @@
 
 #include <cstdio>
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

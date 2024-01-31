@@ -58,7 +58,7 @@
 #include "UI_string_search.hh"
 #include "UI_view2d.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "interface_intern.hh"
 

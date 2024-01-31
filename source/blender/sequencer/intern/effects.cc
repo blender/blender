@@ -58,7 +58,7 @@
 #include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "effects.hh"
 #include "render.hh"

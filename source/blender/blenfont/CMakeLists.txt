@@ -25,9 +25,9 @@ set(SRC
   intern/blf_thumbs.cc
   intern/blf_util.cc
 
-  BLF_api.h
-  intern/blf_internal.h
-  intern/blf_internal_types.h
+  BLF_api.hh
+  intern/blf_internal.hh
+  intern/blf_internal_types.hh
 )
 
 set(LIB

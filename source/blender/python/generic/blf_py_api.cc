@@ -17,7 +17,7 @@
 
 #include <Python.h>
 
-#include "../../blenfont/BLF_api.h"
+#include "../../blenfont/BLF_api.hh"
 
 #include "BLI_utildefines.h"
 

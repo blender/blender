@@ -34,7 +34,7 @@
 #include "BKE_studiolight.h"
 #include "BKE_unit.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLT_translation.h"
 

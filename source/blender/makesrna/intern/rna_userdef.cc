@@ -190,7 +190,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "GPU_select.hh"
 #  include "GPU_texture.h"
 
-#  include "BLF_api.h"
+#  include "BLF_api.hh"
 
 #  include "BLI_path_util.h"
 

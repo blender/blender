@@ -47,7 +47,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"

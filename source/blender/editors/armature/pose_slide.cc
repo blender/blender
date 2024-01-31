@@ -83,7 +83,7 @@
 
 #include "armature_intern.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 using blender::Vector;
 
