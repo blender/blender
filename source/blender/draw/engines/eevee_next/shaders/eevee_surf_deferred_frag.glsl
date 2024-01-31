@@ -51,7 +51,6 @@ void main()
   g_translucent_data.color *= g_translucent_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;
   g_refraction_data.color *= g_refraction_data.weight;
-  g_translucent_data.color *= g_translucent_data.weight;
 
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
 
