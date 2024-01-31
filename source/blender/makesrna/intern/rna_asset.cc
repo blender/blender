@@ -42,6 +42,7 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <fmt/format.h>
 
 #  include "AS_asset_library.hh"
 #  include "AS_asset_representation.hh"
@@ -60,9 +61,9 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 using namespace blender::asset_system;
 
-static char *rna_AssetMetaData_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_AssetMetaData_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("asset_data");
+  return "asset_data";
 }
 
 static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
@@ -90,12 +91,12 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
              PropertyFlag(0);
 }
 
-static char *rna_AssetTag_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_AssetTag_path(const PointerRNA *ptr)
 {
   const AssetTag *asset_tag = static_cast<const AssetTag *>(ptr->data);
   char asset_tag_name_esc[sizeof(asset_tag->name) * 2];
   BLI_str_escape(asset_tag_name_esc, asset_tag->name, sizeof(asset_tag_name_esc));
-  return BLI_sprintfN("asset_data.tags[\"%s\"]", asset_tag_name_esc);
+  return fmt::format("asset_data.tags[\"{}\"]", asset_tag_name_esc);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)

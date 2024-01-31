@@ -369,9 +369,9 @@ static void rna_Action_show_errors_update(bContext *C, PointerRNA * /*ptr*/)
   blender::animrig::reevaluate_fcurve_errors(&ac);
 }
 
-static char *rna_DopeSheet_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_DopeSheet_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("dopesheet");
+  return "dopesheet";
 }
 
 #else

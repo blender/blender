@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -1844,7 +1845,8 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, List
   }
 }
 
-char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
+std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle,
+                                                            ColorBand *color_ramp)
 {
   bool found = false;
 
@@ -1895,11 +1897,11 @@ char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand 
     if (found) {
       char name_esc[sizeof(m->name) * 2];
       BLI_str_escape(name_esc, m->name, sizeof(name_esc));
-      return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", name_esc);
+      return fmt::format("color_modifiers[\"{}\"].color_ramp", name_esc);
     }
   }
   printf("BKE_linestyle_path_to_color_ramp: No color ramps correspond to the given pointer.\n");
-  return nullptr;
+  return std::nullopt;
 }
 
 bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, const bool use_shading_nodes)

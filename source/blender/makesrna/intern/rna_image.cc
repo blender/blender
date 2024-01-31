@@ -261,7 +261,7 @@ static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_ImageUser_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ImageUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
     // ImageUser *iuser = ptr->data;
@@ -269,7 +269,7 @@ static char *rna_ImageUser_path(const PointerRNA *ptr)
     switch (GS(ptr->owner_id->name)) {
       case ID_OB:
       case ID_TE:
-        return BLI_strdup("image_user");
+        return "image_user";
       case ID_NT:
         return rna_Node_ImageUser_path(ptr);
       case ID_CA:
@@ -279,7 +279,7 @@ static char *rna_ImageUser_path(const PointerRNA *ptr)
     }
   }
 
-  return BLI_strdup("");
+  return "";
 }
 
 static void rna_Image_gpu_texture_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

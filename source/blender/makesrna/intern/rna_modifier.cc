@@ -714,6 +714,7 @@ const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <fmt/format.h>
 
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
@@ -782,13 +783,13 @@ static void rna_Modifier_name_update(Main *bmain, Scene * /*scene*/, PointerRNA 
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_Modifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Modifier_path(const PointerRNA *ptr)
 {
   const ModifierData *md = static_cast<const ModifierData *>(ptr->data);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"]", name_esc);
+  return fmt::format("modifiers[\"{}\"]", name_esc);
 }
 
 static void rna_Modifier_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

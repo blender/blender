@@ -59,14 +59,14 @@ struct DummyVolumeGridData;
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-static char *rna_VolumeRender_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_VolumeRender_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("render");
+  return "render";
 }
 
-static char *rna_VolumeDisplay_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_VolumeDisplay_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("display");
+  return "display";
 }
 
 /* Updates */

@@ -23,6 +23,7 @@
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <fmt/format.h>
 
 #  include "DNA_object_types.h"
 #  include "DNA_scene_types.h"
@@ -214,7 +215,7 @@ static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 }
 
 /* annoying, but is a consequence of RNA structures... */
-static char *rna_LatticePoint_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_LatticePoint_path(const PointerRNA *ptr)
 {
   const Lattice *lt = (Lattice *)ptr->owner_id;
   const void *point = ptr->data;
@@ -234,11 +235,11 @@ static char *rna_LatticePoint_path(const PointerRNA *ptr)
     if ((point >= (void *)points) && (point < (void *)(points + tot))) {
       int pt_index = int((BPoint *)point - points);
 
-      return BLI_sprintfN("points[%d]", pt_index);
+      return fmt::format("points[{}]", pt_index);
     }
   }
 
-  return BLI_strdup("");
+  return "";
 }
 
 static bool rna_Lattice_is_editmode_get(PointerRNA *ptr)

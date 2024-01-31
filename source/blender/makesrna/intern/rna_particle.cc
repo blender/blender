@@ -136,6 +136,8 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_string_utils.hh"
 
 #  include "BKE_boids.h"
@@ -1230,7 +1232,7 @@ static int particle_id_check(const PointerRNA *ptr)
   return (GS(id->name) == ID_PA);
 }
 
-static char *rna_SPHFluidSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_SPHFluidSettings_path(const PointerRNA *ptr)
 {
   const SPHFluidSettings *fluid = (SPHFluidSettings *)ptr->data;
 
@@ -1238,10 +1240,10 @@ static char *rna_SPHFluidSettings_path(const PointerRNA *ptr)
     const ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
     if (part->fluid == fluid) {
-      return BLI_strdup("fluid");
+      return "fluid";
     }
   }
-  return nullptr;
+  return std::nullopt;
 }
 
 static bool rna_ParticleSystem_multiple_caches_get(PointerRNA *ptr)
@@ -1486,13 +1488,13 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
   }
 }
 
-static char *rna_ParticleSystem_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ParticleSystem_path(const PointerRNA *ptr)
 {
   const ParticleSystem *psys = (ParticleSystem *)ptr->data;
   char name_esc[sizeof(psys->name) * 2];
 
   BLI_str_escape(name_esc, psys->name, sizeof(name_esc));
-  return BLI_sprintfN("particle_systems[\"%s\"]", name_esc);
+  return fmt::format("particle_systems[\"{}\"]", name_esc);
 }
 
 static void rna_ParticleSettings_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

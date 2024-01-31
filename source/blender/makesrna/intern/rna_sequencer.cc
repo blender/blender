@@ -113,6 +113,8 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include <algorithm>
 
+#  include <fmt/format.h>
+
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_movieclip.h"
@@ -624,7 +626,7 @@ static Sequence *sequence_get_by_transform(Editing *ed, StripTransform *transfor
   return data.seq;
 }
 
-static char *rna_SequenceTransform_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_SequenceTransform_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
@@ -632,13 +634,10 @@ static char *rna_SequenceTransform_path(const PointerRNA *ptr)
 
   if (seq) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
-
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
-    return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform", name_esc);
+    return fmt::format("sequence_editor.sequences_all[\"{}\"].transform", name_esc);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
 static void rna_SequenceTransform_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -674,7 +673,7 @@ static Sequence *sequence_get_by_crop(Editing *ed, StripCrop *crop)
   return data.seq;
 }
 
-static char *rna_SequenceCrop_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_SequenceCrop_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
@@ -682,13 +681,10 @@ static char *rna_SequenceCrop_path(const PointerRNA *ptr)
 
   if (seq) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
-
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
-    return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop", name_esc);
+    return fmt::format("sequence_editor.sequences_all[\"{}\"].crop", name_esc);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
 static void rna_SequenceCrop_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -826,7 +822,7 @@ static StructRNA *rna_Sequence_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_Sequence_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Sequence_path(const PointerRNA *ptr)
 {
   const Sequence *seq = (Sequence *)ptr->data;
 
@@ -836,7 +832,7 @@ static char *rna_Sequence_path(const PointerRNA *ptr)
   char name_esc[(sizeof(seq->name) - 2) * 2];
 
   BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
-  return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", name_esc);
+  return fmt::format("sequence_editor.sequences_all[\"{}\"]", name_esc);
 }
 
 static IDProperty **rna_Sequence_idprops(PointerRNA *ptr)
@@ -1156,7 +1152,7 @@ static Sequence *sequence_get_by_colorbalance(Editing *ed,
   return data.seq;
 }
 
-static char *rna_SequenceColorBalance_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_SequenceColorBalance_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   SequenceModifierData *smd;
@@ -1171,21 +1167,17 @@ static char *rna_SequenceColorBalance_path(const PointerRNA *ptr)
 
     if (!smd) {
       /* Path to old filter color balance. */
-      return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", name_esc);
+      return fmt::format("sequence_editor.sequences_all[\"{}\"].color_balance", name_esc);
     }
-    else {
-      /* Path to modifier. */
-      char name_esc_smd[sizeof(smd->name) * 2];
+    /* Path to modifier. */
+    char name_esc_smd[sizeof(smd->name) * 2];
 
-      BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
-      return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"].color_balance",
-                          name_esc,
-                          name_esc_smd);
-    }
+    BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
+    return fmt::format("sequence_editor.sequences_all[\"{}\"].modifiers[\"{}\"].color_balance",
+                       name_esc,
+                       name_esc_smd);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
 static void rna_SequenceColorBalance_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -1323,7 +1315,7 @@ static StructRNA *rna_SequenceModifier_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_SequenceModifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_SequenceModifier_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
@@ -1336,12 +1328,10 @@ static char *rna_SequenceModifier_path(const PointerRNA *ptr)
 
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
     BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
-    return BLI_sprintfN(
-        "sequence_editor.sequences_all[\"%s\"].modifiers[\"%s\"]", name_esc, name_esc_smd);
+    return fmt::format(
+        "sequence_editor.sequences_all[\"{}\"].modifiers[\"{}\"]", name_esc, name_esc_smd);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
 static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
@@ -1578,7 +1568,7 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
   rna_Sequence_sound_update(bmain, active_scene, ptr);
 }
 
-static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
@@ -1590,15 +1580,12 @@ static char *rna_SeqTimelineChannel_path(const PointerRNA *ptr)
   BLI_str_escape(channel_name_esc, channel->name, sizeof(channel_name_esc));
 
   if (channel_owner == nullptr) {
-    return BLI_sprintfN("sequence_editor.channels[\"%s\"]", channel_name_esc);
+    return fmt::format("sequence_editor.channels[\"{}\"]", channel_name_esc);
   }
-  else {
-    char owner_name_esc[(sizeof(channel_owner->name) - 2) * 2];
-    BLI_str_escape(owner_name_esc, channel_owner->name + 2, sizeof(owner_name_esc));
-    return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].channels[\"%s\"]",
-                        owner_name_esc,
-                        channel_name_esc);
-  }
+  char owner_name_esc[(sizeof(channel_owner->name) - 2) * 2];
+  BLI_str_escape(owner_name_esc, channel_owner->name + 2, sizeof(owner_name_esc));
+  return fmt::format(
+      "sequence_editor.sequences_all[\"{}\"].channels[\"{}\"]", owner_name_esc, channel_name_esc);
 }
 
 static EQCurveMappingData *rna_Sequence_SoundEqualizer_Curve_add(SoundEqualizerModifierData *semd,

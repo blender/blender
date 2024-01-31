@@ -35,6 +35,8 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "RNA_access.hh"
 #  include "RNA_path.hh"
 
@@ -169,10 +171,8 @@ static void rna_CurveMapping_clipmaxy_range(
   *max = 100.0f;
 }
 
-static char *rna_ColorRamp_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ColorRamp_path(const PointerRNA *ptr)
 {
-  char *path = nullptr;
-
   /* handle the cases where a single data-block may have 2 ramp types */
   if (ptr->owner_id) {
     ID *id = ptr->owner_id;
@@ -190,7 +190,7 @@ static char *rna_ColorRamp_path(const PointerRNA *ptr)
                */
               PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
               std::string node_path = RNA_path_from_ID_to_struct(&node_ptr).value_or("");
-              path = BLI_sprintfN("%s.color_ramp", node_path.c_str());
+              return fmt::format("{}.color_ramp", node_path);
             }
           }
         }
@@ -199,29 +199,29 @@ static char *rna_ColorRamp_path(const PointerRNA *ptr)
 
       case ID_LS: {
         /* may be nullptr */
-        path = BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
+        return BKE_linestyle_path_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
         break;
       }
 
       default:
         /* everything else just uses 'color_ramp' */
-        path = BLI_strdup("color_ramp");
+        return "color_ramp";
         break;
     }
   }
   else {
     /* everything else just uses 'color_ramp' */
-    path = BLI_strdup("color_ramp");
+    return "color_ramp";
   }
 
-  return path;
+  return std::nullopt;
 }
 
-static char *rna_ColorRampElement_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ColorRampElement_path(const PointerRNA *ptr)
 {
   PointerRNA ramp_ptr;
   PropertyRNA *prop;
-  char *path = nullptr;
+  std::optional<std::string> path;
   int index;
 
   /* helper macro for use here to try and get the path
@@ -234,9 +234,8 @@ static char *rna_ColorRampElement_path(const PointerRNA *ptr)
       if (prop) { \
         index = RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr); \
         if (index != -1) { \
-          char *texture_path = rna_ColorRamp_path(&ramp_ptr); \
-          path = BLI_sprintfN("%s.elements[%d]", texture_path, index); \
-          MEM_freeN(texture_path); \
+          std::string texture_path = rna_ColorRamp_path(&ramp_ptr).value_or(""); \
+          path = fmt::format("{}.elements[{}]", texture_path, index); \
         } \
       } \
     } \
@@ -447,9 +446,9 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
   }
 }
 
-static char *rna_ColorManagedDisplaySettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ColorManagedDisplaySettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("display_settings");
+  return "display_settings";
 }
 
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
@@ -541,9 +540,9 @@ static void rna_ColorManagedViewSettings_use_curves_set(PointerRNA *ptr, bool va
   }
 }
 
-static char *rna_ColorManagedViewSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ColorManagedViewSettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("view_settings");
+  return "view_settings";
 }
 
 static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)
@@ -678,14 +677,16 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
   }
 }
 
-static char *rna_ColorManagedSequencerColorspaceSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ColorManagedSequencerColorspaceSettings_path(
+    const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("sequencer_colorspace_settings");
+  return "sequencer_colorspace_settings";
 }
 
-static char *rna_ColorManagedInputColorspaceSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ColorManagedInputColorspaceSettings_path(
+    const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("colorspace_settings");
+  return "colorspace_settings";
 }
 
 static void rna_ColorManagement_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

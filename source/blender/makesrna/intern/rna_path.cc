@@ -910,7 +910,6 @@ std::optional<std::string> RNA_path_from_struct_to_idproperty(PointerRNA *ptr,
 
 static std::optional<std::string> rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
 {
-
   BLI_assert(ptr->owner_id != nullptr);
 
   /* TODO: Support Bones/PoseBones. no pointers stored to the bones from here, only the ID.
@@ -994,9 +993,7 @@ std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr)
   if (!RNA_struct_is_ID(ptr->type)) {
     if (ptr->type->path) {
       /* if type has a path to some ID, use it */
-      char *path_cstr = ptr->type->path((PointerRNA *)ptr);
-      ptrpath = path_cstr;
-      MEM_freeN(path_cstr);
+      ptrpath = ptr->type->path((PointerRNA *)ptr);
     }
     else if (ptr->type->nested && RNA_struct_is_ID(ptr->type->nested)) {
       PropertyRNA *userprop;

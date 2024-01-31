@@ -164,6 +164,8 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "DEG_depsgraph.hh"
 
 #  include "BLT_translation.h"
@@ -172,12 +174,12 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 /* Attribute */
 
-static char *rna_Attribute_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Attribute_path(const PointerRNA *ptr)
 {
   const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
   char layer_name_esc[sizeof(layer->name) * 2];
   BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
-  return BLI_sprintfN("attributes[\"%s\"]", layer_name_esc);
+  return fmt::format("attributes[\"{}\"]", layer_name_esc);
 }
 
 static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)

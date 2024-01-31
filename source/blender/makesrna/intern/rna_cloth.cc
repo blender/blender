@@ -29,6 +29,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BKE_context.hh"
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -439,7 +441,7 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
   sim->gravity[2] = values[2];
 }
 
-static char *rna_ClothSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ClothSettings_path(const PointerRNA *ptr)
 {
   const Object *ob = (Object *)ptr->owner_id;
   const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
@@ -447,14 +449,12 @@ static char *rna_ClothSettings_path(const PointerRNA *ptr)
   if (md) {
     char name_esc[sizeof(md->name) * 2];
     BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-    return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
+    return fmt::format("modifiers[\"{}\"].settings", name_esc);
   }
-  else {
-    return nullptr;
-  }
+  return std::nullopt;
 }
 
-static char *rna_ClothCollisionSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ClothCollisionSettings_path(const PointerRNA *ptr)
 {
   const Object *ob = (Object *)ptr->owner_id;
   const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
@@ -462,11 +462,9 @@ static char *rna_ClothCollisionSettings_path(const PointerRNA *ptr)
   if (md) {
     char name_esc[sizeof(md->name) * 2];
     BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-    return BLI_sprintfN("modifiers[\"%s\"].collision_settings", name_esc);
+    return fmt::format("modifiers[\"{}\"].collision_settings", name_esc);
   }
-  else {
-    return nullptr;
-  }
+  return std::nullopt;
 }
 
 static int rna_ClothSettings_internal_editable(PointerRNA *ptr, const char **r_info)

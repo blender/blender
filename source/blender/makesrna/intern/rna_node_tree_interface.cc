@@ -28,6 +28,8 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BKE_attribute.hh"
 #  include "BKE_node.h"
 #  include "BKE_node_enum.hh"
@@ -78,21 +80,21 @@ static StructRNA *rna_NodeTreeInterfaceItem_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_NodeTreeInterfaceItem_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_NodeTreeInterfaceItem_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   const bNodeTreeInterfaceItem *item = static_cast<const bNodeTreeInterfaceItem *>(ptr->data);
   if (!ntree->runtime) {
-    return nullptr;
+    return std::nullopt;
   }
 
   ntree->ensure_interface_cache();
   for (const int index : ntree->interface_items().index_range()) {
     if (ntree->interface_items()[index] == item) {
-      return BLI_sprintfN("interface.items_tree[%d]", index);
+      return fmt::format("interface.items_tree[{}]", index);
     }
   }
-  return nullptr;
+  return std::nullopt;
 }
 
 static PointerRNA rna_NodeTreeInterfaceItem_parent_get(PointerRNA *ptr)

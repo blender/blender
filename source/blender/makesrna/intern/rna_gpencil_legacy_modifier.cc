@@ -272,6 +272,7 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <fmt/format.h>
 
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
@@ -374,13 +375,13 @@ static void rna_GpencilModifier_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(nullptr, "grease_pencil_modifiers", oldname, gmd->name);
 }
 
-static char *rna_GpencilModifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_GpencilModifier_path(const PointerRNA *ptr)
 {
   const GpencilModifierData *gmd = static_cast<GpencilModifierData *>(ptr->data);
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
-  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"]", name_esc);
+  return fmt::format("grease_pencil_modifiers[\"{}\"]", name_esc);
 }
 
 static void rna_GpencilModifier_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -827,7 +828,7 @@ static void rna_GpencilTime_segments_begin(CollectionPropertyIterator *iter, Poi
                            nullptr);
 }
 
-static char *rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
 {
   TimeGpencilModifierSegment *ds = (TimeGpencilModifierSegment *)ptr->data;
 
@@ -841,10 +842,10 @@ static char *rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
   char ds_name_esc[sizeof(ds->name) * 2];
   BLI_str_escape(ds_name_esc, ds->name, sizeof(ds_name_esc));
 
-  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"].segments[\"%s\"]", name_esc, ds_name_esc);
+  return fmt::format("grease_pencil_modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
 }
 
-static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
 
 {
   const DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
@@ -859,7 +860,7 @@ static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
   char ds_name_esc[sizeof(ds->name) * 2];
   BLI_str_escape(ds_name_esc, ds->name, sizeof(ds_name_esc));
 
-  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"].segments[\"%s\"]", name_esc, ds_name_esc);
+  return fmt::format("grease_pencil_modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
 }
 
 static bool dash_segment_name_exists_fn(void *arg, const char *name)

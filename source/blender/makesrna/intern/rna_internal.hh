@@ -388,9 +388,10 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value);
 bool rna_GPencil_datablocks_annotations_poll(PointerRNA *ptr, const PointerRNA value);
 bool rna_GPencil_datablocks_obdata_poll(PointerRNA *ptr, const PointerRNA value);
 
-char *rna_TextureSlot_path(const PointerRNA *ptr);
-char *rna_Node_ImageUser_path(const PointerRNA *ptr);
-char *rna_CameraBackgroundImage_image_or_movieclip_user_path(const PointerRNA *ptr);
+std::optional<std::string> rna_TextureSlot_path(const PointerRNA *ptr);
+std::optional<std::string> rna_Node_ImageUser_path(const PointerRNA *ptr);
+std::optional<std::string> rna_CameraBackgroundImage_image_or_movieclip_user_path(
+    const PointerRNA *ptr);
 
 /* Node socket subtypes for group interface. */
 void rna_def_node_socket_interface_subtypes(BlenderRNA *brna);

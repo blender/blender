@@ -23,6 +23,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "MEM_guardedalloc.h"
 
 #  include "DNA_object_types.h"
@@ -156,7 +158,7 @@ static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
   return (mb->editelems != nullptr);
 }
 
-static char *rna_MetaElement_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_MetaElement_path(const PointerRNA *ptr)
 {
   const MetaBall *mb = (MetaBall *)ptr->owner_id;
   const MetaElem *ml = static_cast<MetaElem *>(ptr->data);
@@ -169,10 +171,10 @@ static char *rna_MetaElement_path(const PointerRNA *ptr)
     index = BLI_findindex(&mb->elems, ml);
   }
   if (index == -1) {
-    return nullptr;
+    return std::nullopt;
   }
 
-  return BLI_sprintfN("elements[%d]", index);
+  return fmt::format("elements[{}]", index);
 }
 
 #else

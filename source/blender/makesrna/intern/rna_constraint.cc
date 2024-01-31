@@ -320,6 +320,8 @@ static const EnumPropertyItem target_space_object_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+#  include <fmt/format.h>
+
 #  include "DNA_cachefile_types.h"
 
 #  include "BKE_action.h"
@@ -438,7 +440,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(nullptr, "constraints", oldname, con->name);
 }
 
-static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
+static std::optional<std::string> rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
 {
   bPoseChannel *pchan;
   ListBase *lb = ED_object_constraint_list_from_constraint(ob, con, &pchan);
@@ -455,16 +457,14 @@ static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
     char name_esc_const[sizeof(con->name) * 2];
     BLI_str_escape(name_esc_pchan, pchan->name, sizeof(name_esc_pchan));
     BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
-    return BLI_sprintfN("pose.bones[\"%s\"].constraints[\"%s\"]", name_esc_pchan, name_esc_const);
+    return fmt::format("pose.bones[\"{}\"].constraints[\"{}\"]", name_esc_pchan, name_esc_const);
   }
-  else {
-    char name_esc_const[sizeof(con->name) * 2];
-    BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
-    return BLI_sprintfN("constraints[\"%s\"]", name_esc_const);
-  }
+  char name_esc_const[sizeof(con->name) * 2];
+  BLI_str_escape(name_esc_const, con->name, sizeof(name_esc_const));
+  return fmt::format("constraints[\"{}\"]", name_esc_const);
 }
 
-static char *rna_Constraint_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Constraint_path(const PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   bConstraint *con = static_cast<bConstraint *>(ptr->data);
@@ -480,7 +480,7 @@ static bConstraint *rna_constraint_from_target(const PointerRNA *ptr)
   return BKE_constraint_find_from_target(ob, tgt, nullptr);
 }
 
-static char *rna_ConstraintTarget_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ConstraintTarget_path(const PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   bConstraintTarget *tgt = static_cast<bConstraintTarget *>(ptr->data);
@@ -499,20 +499,15 @@ static char *rna_ConstraintTarget_path(const PointerRNA *ptr)
   }
 
   if (index >= 0) {
-    char *con_path = rna_Constraint_do_compute_path(ob, con);
-    char *result = BLI_sprintfN("%s.targets[%d]", con_path, index);
-
-    MEM_freeN(con_path);
-    return result;
+    return fmt::format(
+        "{}.targets[{}]", rna_Constraint_do_compute_path(ob, con).value_or(""), index);
   }
-  else {
-    printf("%s: internal error, constraint '%s' of object '%s' does not contain the target\n",
-           __func__,
-           con->name,
-           ob->id.name);
-  }
+  printf("%s: internal error, constraint '%s' of object '%s' does not contain the target\n",
+         __func__,
+         con->name,
+         ob->id.name);
 
-  return nullptr;
+  return std::nullopt;
 }
 
 static void rna_Constraint_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)

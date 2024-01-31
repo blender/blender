@@ -20,6 +20,8 @@
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_math_vector.h"
 
 #  include "BKE_customdata.hh"
@@ -121,9 +123,9 @@ static void rna_Point_radius_set(PointerRNA *ptr, float value)
   radii[rna_Point_index_get_const(ptr)] = value;
 }
 
-static char *rna_Point_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Point_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("points[%d]", rna_Point_index_get_const(ptr));
+  return fmt::format("points[{}]", rna_Point_index_get_const(ptr));
 }
 
 static void rna_PointCloud_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

@@ -47,6 +47,8 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_math_vector.h"
 #  include "BLI_offset_indices.hh"
 
@@ -209,9 +211,9 @@ static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
   radii.varray.set(rna_CurvePoint_index_get_const(ptr), value);
 }
 
-static char *rna_CurvePoint_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_CurvePoint_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("points[%d]", rna_CurvePoint_index_get_const(ptr));
+  return fmt::format("points[{}]", rna_CurvePoint_index_get_const(ptr));
 }
 
 int rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
@@ -237,9 +239,9 @@ static int rna_CurveSlice_index_get(PointerRNA *ptr)
   return rna_CurveSlice_index_get_const(ptr);
 }
 
-static char *rna_CurveSlice_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_CurveSlice_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("curves[%d]", rna_CurveSlice_index_get_const(ptr));
+  return fmt::format("curves[{}]", rna_CurveSlice_index_get_const(ptr));
 }
 
 static int rna_CurveSlice_first_point_index_get(PointerRNA *ptr)

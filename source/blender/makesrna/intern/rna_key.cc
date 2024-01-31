@@ -39,6 +39,7 @@ const EnumPropertyItem rna_enum_keyblock_type_items[] = {
 #ifdef RNA_RUNTIME
 
 #  include <algorithm>
+#  include <fmt/format.h>
 #  include <stddef.h>
 
 #  include "DNA_object_types.h"
@@ -724,7 +725,7 @@ int rna_ShapeKey_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr
   return false;
 }
 
-static char *rna_ShapeKey_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ShapeKey_path(const PointerRNA *ptr)
 {
   const KeyBlock *kb = (KeyBlock *)ptr->data;
   const ID *id = ptr->owner_id;
@@ -733,11 +734,9 @@ static char *rna_ShapeKey_path(const PointerRNA *ptr)
   BLI_str_escape(name_esc, kb->name, sizeof(name_esc));
 
   if ((id) && (GS(id->name) != ID_KE)) {
-    return BLI_sprintfN("shape_keys.key_blocks[\"%s\"]", name_esc);
+    return fmt::format("shape_keys.key_blocks[\"{}\"]", name_esc);
   }
-  else {
-    return BLI_sprintfN("key_blocks[\"%s\"]", name_esc);
-  }
+  return fmt::format("key_blocks[\"{}\"]", name_esc);
 }
 
 static void rna_Key_update_data(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
@@ -820,7 +819,7 @@ static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
   return int(pt - start) / key->elemsize;
 }
 
-static char *rna_ShapeKeyPoint_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ShapeKeyPoint_path(const PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
   Key *key = rna_ShapeKey_find_key(ptr->owner_id);
@@ -843,15 +842,11 @@ static char *rna_ShapeKeyPoint_path(const PointerRNA *ptr)
     BLI_str_escape(name_esc_kb, kb->name, sizeof(name_esc_kb));
 
     if (GS(id->name) == ID_KE) {
-      return BLI_sprintfN("key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
+      return fmt::format("key_blocks[\"{}\"].data[{}]", name_esc_kb, index);
     }
-    else {
-      return BLI_sprintfN("shape_keys.key_blocks[\"%s\"].data[%d]", name_esc_kb, index);
-    }
+    return fmt::format("shape_keys.key_blocks[\"{}\"].data[{}]", name_esc_kb, index);
   }
-  else {
-    return nullptr; /* XXX: there's really no way to resolve this... */
-  }
+  return std::nullopt; /* XXX: there's really no way to resolve this... */
 }
 
 #else

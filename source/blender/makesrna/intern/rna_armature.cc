@@ -59,6 +59,8 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_math_vector.h"
 
 #  include "BKE_action.h"
@@ -397,13 +399,12 @@ static void rna_BoneCollection_is_solo_set(PointerRNA *ptr, const bool is_solo)
   ANIM_armature_bonecoll_solo_set(arm, bcoll, is_solo);
 }
 
-static char *rna_BoneCollection_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoneCollection_path(const PointerRNA *ptr)
 {
   const BoneCollection *bcoll = (const BoneCollection *)ptr->data;
   char name_esc[sizeof(bcoll->name) * 2];
-
   BLI_str_escape(name_esc, bcoll->name, sizeof(name_esc));
-  return BLI_sprintfN("collections_all[\"%s\"]", name_esc);
+  return fmt::format("collections_all[\"{}\"]", name_esc);
 }
 
 static IDProperty **rna_BoneCollection_idprops(PointerRNA *ptr)
@@ -538,7 +539,7 @@ static bool rna_Armature_collections_override_apply(Main *bmain,
   return true;
 }
 
-static char *rna_BoneColor_path_posebone(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoneColor_path_posebone(const PointerRNA *ptr)
 {
   /* Find the bPoseChan that owns this BoneColor. */
   const uint8_t *bcolor_ptr = static_cast<const uint8_t *>(ptr->data);
@@ -563,10 +564,10 @@ static char *rna_BoneColor_path_posebone(const PointerRNA *ptr)
 
   char name_esc[sizeof(bone->name) * 2];
   BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
-  return BLI_sprintfN("pose.bones[\"%s\"].color", name_esc);
+  return fmt::format("pose.bones[\"{}\"].color", name_esc);
 }
 
-static char *rna_BoneColor_path_bone(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoneColor_path_bone(const PointerRNA *ptr)
 {
   /* Find the Bone that owns this BoneColor. */
   const uint8_t *bcolor_ptr = static_cast<const uint8_t *>(ptr->data);
@@ -591,10 +592,10 @@ static char *rna_BoneColor_path_bone(const PointerRNA *ptr)
 
   char name_esc[sizeof(bone->name) * 2];
   BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
-  return BLI_sprintfN("bones[\"%s\"].color", name_esc);
+  return fmt::format("bones[\"{}\"].color", name_esc);
 }
 
-static char *rna_BoneColor_path_editbone(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoneColor_path_editbone(const PointerRNA *ptr)
 {
   /* Find the Bone that owns this BoneColor. */
   const uint8_t *bcolor_ptr = static_cast<const uint8_t *>(ptr->data);
@@ -620,10 +621,10 @@ static char *rna_BoneColor_path_editbone(const PointerRNA *ptr)
 
   char name_esc[sizeof(bone->name) * 2];
   BLI_str_escape(name_esc, bone->name, sizeof(name_esc));
-  return BLI_sprintfN("bones[\"%s\"].color", name_esc);
+  return fmt::format("bones[\"{}\"].color", name_esc);
 }
 
-static char *rna_BoneColor_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoneColor_path(const PointerRNA *ptr)
 {
   const ID *owner = ptr->owner_id;
   BLI_assert_msg(owner, "expecting all bone colors to have an owner");
@@ -640,7 +641,7 @@ static char *rna_BoneColor_path(const PointerRNA *ptr)
     }
     default:
       BLI_assert_msg(false, "expected object or armature");
-      return nullptr;
+      return std::nullopt;
   }
 }
 
@@ -747,7 +748,7 @@ static void rna_Bone_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
   WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);
 }
 
-static char *rna_Bone_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Bone_path(const PointerRNA *ptr)
 {
   const ID *id = ptr->owner_id;
   const Bone *bone = (const Bone *)ptr->data;
@@ -760,12 +761,12 @@ static char *rna_Bone_path(const PointerRNA *ptr)
    */
   if (id) {
     if (GS(id->name) == ID_OB) {
-      return BLI_sprintfN("pose.bones[\"%s\"].bone", name_esc);
+      return fmt::format("pose.bones[\"{}\"].bone", name_esc);
     }
   }
 
   /* from armature... */
-  return BLI_sprintfN("bones[\"%s\"]", name_esc);
+  return fmt::format("bones[\"{}\"]", name_esc);
 }
 
 static IDProperty **rna_Bone_idprops(PointerRNA *ptr)

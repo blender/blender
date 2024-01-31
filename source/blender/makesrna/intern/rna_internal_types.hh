@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include <optional>
+#include <string>
+
 #include "DNA_listBase.h"
 
 #include "RNA_access.hh"
@@ -49,7 +52,7 @@ using EditableFunc = int (*)(PointerRNA *ptr, const char **r_info);
 using ItemEditableFunc = int (*)(PointerRNA *ptr, int index);
 using IDPropertiesFunc = IDProperty **(*)(PointerRNA *ptr);
 using StructRefineFunc = StructRNA *(*)(PointerRNA *ptr);
-using StructPathFunc = char *(*)(const PointerRNA *ptr);
+using StructPathFunc = std::optional<std::string> (*)(const PointerRNA *ptr);
 
 using PropArrayLengthGetFunc = int (*)(const PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION]);
 using PropBooleanGetFunc = bool (*)(PointerRNA *ptr);

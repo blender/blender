@@ -85,6 +85,8 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BKE_shader_fx.h"
 
 #  include "DEG_depsgraph.hh"
@@ -144,13 +146,13 @@ static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(nullptr, "shader_effects", oldname, gmd->name);
 }
 
-static char *rna_ShaderFx_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ShaderFx_path(const PointerRNA *ptr)
 {
   const ShaderFxData *gmd = static_cast<ShaderFxData *>(ptr->data);
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
-  return BLI_sprintfN("shader_effects[\"%s\"]", name_esc);
+  return fmt::format("shader_effects[\"{}\"]", name_esc);
 }
 
 static void rna_ShaderFx_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)

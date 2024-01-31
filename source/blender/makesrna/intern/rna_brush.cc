@@ -1045,9 +1045,9 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
 }
 
 /* Grease Pencil Drawing Brushes Settings */
-static char *rna_BrushGpencilSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_BrushGpencilSettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("gpencil_settings");
+  return "gpencil_settings";
 }
 
 static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
@@ -1205,9 +1205,9 @@ static void rna_Brush_automasking_cavity_set(PointerRNA *ptr, bool val)
   }
 }
 
-static char *rna_BrushCurvesSculptSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_BrushCurvesSculptSettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("curves_sculpt_settings");
+  return "curves_sculpt_settings";
 }
 
 #else

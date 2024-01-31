@@ -150,6 +150,8 @@ static const EnumPropertyItem curve2d_fill_mode_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "DNA_object_types.h"
 
 #  include "BKE_curve.hh"
@@ -770,7 +772,7 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr,
   }
 }
 
-static char *rna_Curve_spline_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Curve_spline_path(const PointerRNA *ptr)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   ListBase *nubase = BKE_curve_nurbs_get(cu);
@@ -778,15 +780,13 @@ static char *rna_Curve_spline_path(const PointerRNA *ptr)
   int index = BLI_findindex(nubase, nu);
 
   if (index >= 0) {
-    return BLI_sprintfN("splines[%d]", index);
+    return fmt::format("splines[{}]", index);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
 /* use for both bezier and nurbs */
-static char *rna_Curve_spline_point_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Curve_spline_point_path(const PointerRNA *ptr)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   Nurb *nu;
@@ -797,29 +797,23 @@ static char *rna_Curve_spline_point_path(const PointerRNA *ptr)
 
   if (nu) {
     if (nu->type == CU_BEZIER) {
-      return BLI_sprintfN("splines[%d].bezier_points[%d]", nu_index, pt_index);
+      return fmt::format("splines[{}].bezier_points[{}]", nu_index, pt_index);
     }
-    else {
-      return BLI_sprintfN("splines[%d].points[%d]", nu_index, pt_index);
-    }
+    return fmt::format("splines[{}].points[{}]", nu_index, pt_index);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
-static char *rna_TextBox_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_TextBox_path(const PointerRNA *ptr)
 {
   const Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   const TextBox *tb = static_cast<TextBox *>(ptr->data);
   int index = int(tb - cu->tb);
 
   if (index >= 0 && index < cu->totbox) {
-    return BLI_sprintfN("text_boxes[%d]", index);
+    return fmt::format("text_boxes[{}]", index);
   }
-  else {
-    return BLI_strdup("");
-  }
+  return "";
 }
 
 static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

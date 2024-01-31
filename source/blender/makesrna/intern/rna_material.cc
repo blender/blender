@@ -131,9 +131,9 @@ static void rna_MaterialLineArt_update(Main * /*bmain*/, Scene * /*scene*/, Poin
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 }
 
-static char *rna_MaterialLineArt_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_MaterialLineArt_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("lineart");
+  return "lineart";
 }
 
 static void rna_Material_draw_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -353,9 +353,9 @@ static void rna_gpcolordata_uv_update(Main *bmain, Scene *scene, PointerRNA *ptr
   rna_MaterialGpencil_update(bmain, scene, ptr);
 }
 
-static char *rna_GpencilColorData_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string>rna_GpencilColorData_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("grease_pencil");
+  return "grease_pencil";
 }
 
 static bool rna_GpencilColorData_is_stroke_visible_get(PointerRNA *ptr)
