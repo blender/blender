@@ -608,10 +608,15 @@ void DeferredLayer::end_sync()
       /* TODO(fclem): Could specialize directly with the pass index but this would break it for
        * OpenGL and Vulkan implementation which aren't fully supporting the specialize
        * constant. */
-      pass.specialize_constant(
-          sh, "render_pass_diffuse_light_enabled", rbuf_data.diffuse_light_id != -1);
-      pass.specialize_constant(
-          sh, "render_pass_specular_light_enabled", rbuf_data.specular_light_id != -1);
+      pass.specialize_constant(sh,
+                               "render_pass_diffuse_light_enabled",
+                               (rbuf_data.diffuse_light_id != -1) ||
+                                   (rbuf_data.diffuse_color_id != -1));
+      pass.specialize_constant(sh,
+                               "render_pass_specular_light_enabled",
+                               (rbuf_data.specular_light_id != -1) ||
+                                   (rbuf_data.specular_color_id != -1));
+      pass.specialize_constant(sh, "render_pass_normal_enabled", rbuf_data.normal_id != -1);
       pass.specialize_constant(sh, "use_combined_lightprobe_eval", use_combined_lightprobe_eval);
       pass.shader_set(sh);
       /* Use stencil test to reject pixels not written by this layer. */
