@@ -3297,7 +3297,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
   auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
-    ID *used_id = ED_spreadsheet_get_current_id(sspreadsheet);
+    ID *used_id = ed::spreadsheet::get_current_id(sspreadsheet);
     if (used_id != nullptr) {
       if (GS(used_id->name) == ID_OB) {
         Object *used_object = (Object *)used_id;

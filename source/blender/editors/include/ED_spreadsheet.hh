@@ -7,4 +7,8 @@
 struct ID;
 struct SpaceSpreadsheet;
 
-ID *ED_spreadsheet_get_current_id(const SpaceSpreadsheet *sspreadsheet);
+namespace blender::ed::spreadsheet {
+
+ID *get_current_id(const SpaceSpreadsheet *sspreadsheet);
+
+}

@@ -6,4 +6,8 @@
 
 struct ARegionType;
 
+namespace blender::ed::spreadsheet {
+
 void register_row_filter_panels(ARegionType &region_type);
+
+}
