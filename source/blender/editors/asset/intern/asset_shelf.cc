@@ -86,7 +86,7 @@ static AssetShelf *create_shelf_from_type(AssetShelfType &type)
 {
   AssetShelf *shelf = MEM_new<AssetShelf>(__func__);
   *shelf = dna::shallow_zero_initialize();
-  shelf->settings.preview_size = shelf::DEFAULT_TILE_SIZE;
+  shelf->settings.preview_size = DEFAULT_TILE_SIZE;
   shelf->settings.asset_library_reference = asset_system::all_library_reference();
   shelf->type = &type;
   shelf->preferred_row_count = 1;
@@ -190,14 +190,14 @@ void *region_duplicate(void *regiondata)
     return nullptr;
   }
 
-  return shelf::regiondata_duplicate(shelf_regiondata);
+  return regiondata_duplicate(shelf_regiondata);
 }
 
 void region_free(ARegion *region)
 {
   RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
   if (shelf_regiondata) {
-    shelf::regiondata_free(&shelf_regiondata);
+    regiondata_free(shelf_regiondata);
   }
   region->regiondata = nullptr;
 }
@@ -398,7 +398,7 @@ int tile_height(const AssetShelfSettings &settings)
 
 static int asset_shelf_default_tile_height()
 {
-  return UI_preview_tile_size_x(shelf::DEFAULT_TILE_SIZE);
+  return UI_preview_tile_size_x(DEFAULT_TILE_SIZE);
 }
 
 int region_prefsizey()
@@ -439,7 +439,7 @@ void region_layout(const bContext *C, ARegion *region)
                                      0,
                                      style);
 
-  shelf::build_asset_view(
+  build_asset_view(
       *layout, active_shelf->settings.asset_library_reference, *active_shelf, *C, *region);
 
   int layout_height;
@@ -513,7 +513,7 @@ void region_blend_read_data(BlendDataReader *reader, ARegion *region)
   if (!shelf_regiondata) {
     return;
   }
-  shelf::regiondata_blend_read_data(reader, &shelf_regiondata);
+  regiondata_blend_read_data(reader, &shelf_regiondata);
   region->regiondata = shelf_regiondata;
 }
 
@@ -523,7 +523,7 @@ void region_blend_write(BlendWriter *writer, ARegion *region)
   if (!shelf_regiondata) {
     return;
   }
-  shelf::regiondata_blend_write(writer, shelf_regiondata);
+  regiondata_blend_write(writer, shelf_regiondata);
 }
 
 /** \} */
@@ -673,27 +673,27 @@ static void add_catalog_tabs(AssetShelfSettings &shelf_settings, uiLayout &layou
   {
     uiBut *but = add_tab_button(*block, IFACE_("All"));
     UI_but_func_set(but, [&shelf_settings](bContext &C) {
-      shelf::settings_set_all_catalog_active(shelf_settings);
-      shelf::send_redraw_notifier(C);
+      settings_set_all_catalog_active(shelf_settings);
+      send_redraw_notifier(C);
     });
     UI_but_func_pushed_state_set(but, [&shelf_settings](const uiBut &) -> bool {
-      return shelf::settings_is_all_catalog_active(shelf_settings);
+      return settings_is_all_catalog_active(shelf_settings);
     });
   }
 
   uiItemS(&layout);
 
   /* Regular catalog tabs. */
-  shelf::settings_foreach_enabled_catalog_path(
+  settings_foreach_enabled_catalog_path(
       shelf_settings, [&shelf_settings, block](const asset_system::AssetCatalogPath &path) {
         uiBut *but = add_tab_button(*block, path.name());
 
         UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
-          shelf::settings_set_active_catalog(shelf_settings, path);
-          shelf::send_redraw_notifier(C);
+          settings_set_active_catalog(shelf_settings, path);
+          send_redraw_notifier(C);
         });
         UI_but_func_pushed_state_set(but, [&shelf_settings, path](const uiBut &) -> bool {
-          return shelf::settings_is_active_catalog(shelf_settings, path);
+          return settings_is_active_catalog(shelf_settings, path);
         });
       });
 }

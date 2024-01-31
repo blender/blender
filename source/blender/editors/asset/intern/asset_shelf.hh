@@ -45,14 +45,10 @@ void send_redraw_notifier(const bContext &C);
  */
 RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata);
 /** Frees the contained data and \a shelf_regiondata itself. */
-void regiondata_free(RegionAssetShelf **shelf_regiondata);
+void regiondata_free(RegionAssetShelf *shelf_regiondata);
 void regiondata_blend_write(BlendWriter *writer, const RegionAssetShelf *shelf_regiondata);
 void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shelf_regiondata);
 
-/**
- * Frees the contained data, not \a shelf_settings itself.
- */
-void settings_free(AssetShelfSettings *settings);
 void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &settings);
 void settings_blend_read_data(BlendDataReader *reader, AssetShelfSettings &settings);
 
