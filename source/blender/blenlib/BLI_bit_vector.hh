@@ -120,7 +120,13 @@ class BitVector {
   {
     if (other.is_inline()) {
       /* Copy the data into the inline buffer. */
-      const int64_t ints_to_copy = other.used_ints_amount();
+      /* For small inline buffers, always copy all the bits because checking how many bits to copy
+       * would add additional overhead. */
+      int64_t ints_to_copy = IntsInInlineBuffer;
+      if constexpr (IntsInInlineBuffer > 8) {
+        /* Avoid copying too much unnecessary data in case the inline buffer is large. */
+        ints_to_copy = other.used_ints_amount();
+      }
       data_ = inline_buffer_;
       uninitialized_copy_n(other.data_, ints_to_copy, data_);
     }
