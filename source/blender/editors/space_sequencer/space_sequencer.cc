@@ -675,7 +675,17 @@ static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
 
 static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
 {
-  ED_region_panels(C, region);
+  wmOperatorCallContext op_context = WM_OP_INVOKE_REGION_WIN;
+  switch (region->regiontype) {
+    case RGN_TYPE_CHANNELS:
+      op_context = WM_OP_INVOKE_REGION_CHANNELS;
+      break;
+    case RGN_TYPE_PREVIEW:
+      op_context = WM_OP_INVOKE_REGION_PREVIEW;
+      break;
+  }
+
+  ED_region_panels_ex(C, region, op_context, nullptr);
 }
 /* *********************** preview region ************************ */
 
