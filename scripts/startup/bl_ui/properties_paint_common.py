@@ -157,28 +157,23 @@ class BrushSelectPanel(BrushPanel):
         col = row.column()
         col.menu("VIEW3D_MT_brush_context_menu", icon='DOWNARROW_HLT', text="")
 
-        header, panel = layout.panel("customize", default_closed=True)
-        header.label(text="Customize")
-        if panel:
-            panel.use_property_split = True
-            panel.use_property_decorate = False
+        # TODO: Need actual check if this is an asset from library.
+        # TODO: why is brush.asset_data None for these?
+        is_linked = brush.library
+        is_override = brush.override_library and brush.override_library.reference
+        is_asset_brush = is_linked or is_override
 
-            # icon
-            col = panel.column(heading="Custom Icon", align=True)
+        if not is_asset_brush:
+            # Legacy custom icon, mostly replaced by asset preview.
+            layout.use_property_split = True
+            layout.use_property_decorate = False
+
+            col = layout.column(heading="Custom Icon", align=True)
             row = col.row()
             row.prop(brush, "use_custom_icon", text="")
             sub = row.row()
             sub.active = brush.use_custom_icon
             sub.prop(brush, "icon_filepath", text="")
-
-            # brush paint modes
-            col = panel.column(heading="Modes", align=True)
-            col.prop(brush, "use_paint_sculpt", text="Sculpt")
-            col.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
-            col.prop(brush, "use_paint_vertex", text="Vertex Paint")
-            col.prop(brush, "use_paint_weight", text="Weight Paint")
-            col.prop(brush, "use_paint_image", text="Texture Paint")
-            col.prop(brush, "use_paint_sculpt_curves", text="Sculpt Curves")
 
 
 class ColorPalettePanel(BrushPanel):
@@ -1108,6 +1103,21 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
     if use_frontface:
         layout.prop(brush, "use_frontface", text="Front Faces Only")
+
+    # Brush modes
+    header, panel = layout.panel("modes", default_closed=True)
+    header.label(text="Modes")
+    if panel:
+        panel.use_property_split = True
+        panel.use_property_decorate = False
+
+        col = panel.column(align=True)
+        col.prop(brush, "use_paint_sculpt", text="Sculpt")
+        col.prop(brush, "use_paint_uv_sculpt", text="UV Sculpt")
+        col.prop(brush, "use_paint_vertex", text="Vertex Paint")
+        col.prop(brush, "use_paint_weight", text="Weight Paint")
+        col.prop(brush, "use_paint_image", text="Texture Paint")
+        col.prop(brush, "use_paint_sculpt_curves", text="Sculpt Curves")
 
 
 def draw_color_settings(context, layout, brush, color_type=False):
