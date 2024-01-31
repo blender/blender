@@ -131,7 +131,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       vc.scene, vc.view_layer, vc.v3d);
 
-  EDBM_mesh_knife(&vc, objects.data(), objects.size(), polys, true, cut_through);
+  EDBM_mesh_knife(&vc, objects, polys, true, cut_through);
 
   for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
