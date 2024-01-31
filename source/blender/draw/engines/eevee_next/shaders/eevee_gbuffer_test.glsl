@@ -76,7 +76,7 @@ void main()
     EXPECT_EQ(data_in.diffuse.type, CLOSURE_BSSRDF_BURLEY_ID);
     EXPECT_NEAR(data_in.diffuse.color, out_sss_burley.color, 1e-5);
     EXPECT_NEAR(data_in.diffuse.N, out_sss_burley.N, 1e-5);
-    EXPECT_NEAR(data_in.diffuse.data.rgb, to_closure_diffuse(out_sss_burley).sss_radius, 1e-5);
+    EXPECT_NEAR(data_in.diffuse.data.rgb, to_closure_subsurface(out_sss_burley).sss_radius, 1e-5);
   }
 
   TEST(eevee_gbuffer, ClosureTranslucent)
