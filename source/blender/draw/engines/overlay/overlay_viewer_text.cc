@@ -35,7 +35,7 @@ static void add_values_to_text_cache(const GVArray &values,
   DRWTextStore *dt = DRW_text_cache_ensure();
 
   uchar col[4];
-  UI_GetThemeColor4ubv(TH_DRAWEXTRA_FACEANG, col);
+  UI_GetThemeColor4ubv(TH_TEXT_HI, col);
 
   bke::attribute_math::convert_to_static_type(values.type(), [&](auto dummy) {
     using T = decltype(dummy);
@@ -83,7 +83,8 @@ static void add_values_to_text_cache(const GVArray &values,
         BLI_assert_unreachable();
       }
 
-      DRW_text_cache_add(dt, position, numstr, numstr_len, 0, 0, DRW_TEXT_CACHE_GLOBALSPACE, col);
+      DRW_text_cache_add(
+          dt, position, numstr, numstr_len, 0, 0, DRW_TEXT_CACHE_GLOBALSPACE, col, true, true);
     }
   });
 }

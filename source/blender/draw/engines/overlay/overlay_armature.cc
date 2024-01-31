@@ -1953,7 +1953,8 @@ static void draw_bone_name(const ArmatureDrawContext *ctx,
                      10,
                      0,
                      DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
-                     color);
+                     color,
+                     true);
 }
 
 /** \} */
