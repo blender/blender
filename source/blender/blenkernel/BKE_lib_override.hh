@@ -23,6 +23,8 @@
  *    of IDs in a given Main data-base.
  */
 
+#include "DNA_ID_enums.h"
+
 #include <optional>
 
 struct BlendFileReadReport;
@@ -89,7 +91,7 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
  * \param r_reports: If not NULL, add one report for each relevant ID.
  */
 int BKE_lib_override_user_edited_from_library_count(Main *bmain,
-                                                    const short id_type,
+                                                    ID_Type id_type,
                                                     Library *library,
                                                     ReportList *r_reports);
 

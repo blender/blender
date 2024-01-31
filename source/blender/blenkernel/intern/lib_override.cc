@@ -340,7 +340,7 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
 }
 
 int BKE_lib_override_user_edited_from_library_count(Main *bmain,
-                                                    const short id_type,
+                                                    const ID_Type id_type,
                                                     Library *library,
                                                     ReportList *r_reports)
 {
