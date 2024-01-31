@@ -47,6 +47,15 @@ void main()
 
   float thickness = nodetree_thickness();
 
+  /** Transparency weight is already applied through dithering, remove it from other closures. */
+  float transparency = 1.0 - average(g_transmittance);
+  float transparency_rcp = safe_rcp(transparency);
+  g_emission *= transparency_rcp;
+  g_diffuse_data.weight *= transparency_rcp;
+  g_translucent_data.weight *= transparency_rcp;
+  g_reflection_data.weight *= transparency_rcp;
+  g_refraction_data.weight *= transparency_rcp;
+
   g_diffuse_data.color *= g_diffuse_data.weight;
   g_translucent_data.color *= g_translucent_data.weight;
   g_reflection_data.color *= g_reflection_data.weight;
