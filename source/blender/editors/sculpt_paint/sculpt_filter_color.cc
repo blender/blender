@@ -371,7 +371,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                      RNA_float_get(op->ptr, "strength"));
   filter::Cache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  filter_cache->automasking = auto_mask::cache_init(sd, nullptr, ob);
+  filter_cache->automasking = auto_mask::cache_init(sd, ob);
 
   return OPERATOR_PASS_THROUGH;
 }
