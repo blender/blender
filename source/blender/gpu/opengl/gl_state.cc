@@ -555,7 +555,7 @@ uint64_t GLStateManager::bound_texture_slots()
 void GLStateManager::image_bind(Texture *tex_, int unit)
 {
   /* Minimum support is 8 image in the fragment shader. No image for other stages. */
-  BLI_assert(GPU_shader_image_load_store_support() && unit < 8);
+  BLI_assert(unit < 8);
   GLTexture *tex = static_cast<GLTexture *>(tex_);
   if (G.debug & G_DEBUG_GPU) {
     tex->check_feedback_loop();

@@ -1099,10 +1099,6 @@ static const char *glsl_patch_default_get()
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "#extension GL_ARB_conservative_depth : enable\n";
   }
-  if (GPU_shader_image_load_store_support()) {
-    ss << "#extension GL_ARB_shader_image_load_store: enable\n";
-    ss << "#extension GL_ARB_shading_language_420pack: enable\n";
-  }
   if (GLContext::layered_rendering_support) {
     ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
     ss << "#define gpu_Layer gl_Layer\n";

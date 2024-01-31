@@ -245,7 +245,8 @@ PyDoc_STRVAR(
     "   :rtype: bool\n");
 static PyObject *pygpu_shader_image_load_store_support_get(PyObject * /*self*/)
 {
-  return PyBool_FromLong(GPU_shader_image_load_store_support());
+  /* Now required to start Blender. */
+  return PyBool_FromLong(true);
 }
 
 PyDoc_STRVAR(
