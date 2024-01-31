@@ -2035,6 +2035,7 @@ bool RNA_property_enum_item_from_value_gettexted(
 
   if (result && !(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
     r_item->name = BLT_translate_do_iface(prop->translation_context, r_item->name);
+    r_item->description = BLT_translate_do_tooltip(prop->translation_context, r_item->description);
   }
 
   return result;
