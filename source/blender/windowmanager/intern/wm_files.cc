@@ -3405,6 +3405,12 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   }
 
   WM_event_add_notifier(C, NC_WM | ND_FILESAVE, nullptr);
+  if (wmWindowManager *wm = CTX_wm_manager(C)) {
+    /* Restart auto-save timer to avoid unnecessary unexpected freezing (because of auto-save) when
+     * often saving manually. */
+    wm_autosave_timer_end(wm);
+    wm_autosave_timer_begin(wm);
+  }
 
   if (!is_save_as && RNA_boolean_get(op->ptr, "exit")) {
     wm_exit_schedule_delayed(C);
