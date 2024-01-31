@@ -6120,23 +6120,6 @@ uiBut *uiDefBlockButN(uiBlock *block,
   return but;
 }
 
-uiBut *uiDefPulldownBut(uiBlock *block,
-                        uiBlockCreateFunc func,
-                        void *arg,
-                        const char *str,
-                        int x,
-                        int y,
-                        short width,
-                        short height,
-                        const char *tip)
-{
-  uiBut *but = ui_def_but(
-      block, UI_BTYPE_PULLDOWN, 0, str, x, y, width, height, arg, 0.0, 0.0, 0.0, 0.0, tip);
-  but->block_create_func = func;
-  ui_but_update(but);
-  return but;
-}
-
 uiBut *uiDefMenuBut(uiBlock *block,
                     uiMenuCreateFunc func,
                     void *arg,
@@ -6196,34 +6179,6 @@ uiBut *uiDefIconMenuBut(uiBlock *block,
   but->drawflag &= ~UI_BUT_ICON_LEFT;
 
   but->menu_create_func = func;
-  ui_but_update(but);
-
-  return but;
-}
-
-uiBut *uiDefIconTextBlockBut(uiBlock *block,
-                             uiBlockCreateFunc func,
-                             void *arg,
-                             int icon,
-                             const char *str,
-                             int x,
-                             int y,
-                             short width,
-                             short height,
-                             const char *tip)
-{
-  uiBut *but = ui_def_but(
-      block, UI_BTYPE_BLOCK, 0, str, x, y, width, height, arg, 0.0, 0.0, 0.0, 0.0, tip);
-
-  /* XXX temp, old menu calls pass on icon arrow, which is now UI_BUT_ICON_SUBMENU flag */
-  if (icon != ICON_RIGHTARROW_THIN) {
-    ui_def_but_icon(but, icon, 0);
-    but->drawflag |= UI_BUT_ICON_LEFT;
-  }
-  but->flag |= UI_HAS_ICON;
-  ui_but_submenu_enable(block, but);
-
-  but->block_create_func = func;
   ui_but_update(but);
 
   return but;
