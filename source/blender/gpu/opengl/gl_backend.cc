@@ -322,7 +322,6 @@ static void detect_workarounds()
     GLContext::texture_cube_map_array_support = false;
     GLContext::texture_gather_support = false;
     GLContext::texture_storage_support = false;
-    GLContext::vertex_attrib_binding_support = false;
 #endif
 
     return;
@@ -513,7 +512,6 @@ bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
 bool GLContext::texture_gather_support = false;
 bool GLContext::texture_storage_support = false;
-bool GLContext::vertex_attrib_binding_support = false;
 
 /** Workarounds. */
 
@@ -609,8 +607,6 @@ void GLBackend::capabilities_init()
       "GL_EXT_texture_filter_anisotropic");
   GLContext::texture_gather_support = epoxy_has_gl_extension("GL_ARB_texture_gather");
   GLContext::texture_storage_support = epoxy_gl_version() >= 43;
-  GLContext::vertex_attrib_binding_support = epoxy_has_gl_extension(
-      "GL_ARB_vertex_attrib_binding");
 
   /* Disabled until it is proven to work. */
   GLContext::framebuffer_fetch_support = false;
