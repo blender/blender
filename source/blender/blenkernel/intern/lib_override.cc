@@ -359,15 +359,16 @@ int BKE_lib_override_user_edited_from_library_count(Main *bmain,
     if (id_iter->override_library->reference->lib != library) {
       continue;
     }
+    if (!BKE_lib_override_library_is_user_edited(id_iter)) {
+      continue;
+    }
 
-    if (BKE_lib_override_library_is_user_edited(id_iter)) {
-      /* NOTE: If changes have been saved in a draft, then the local override is based on said
-       * draft (using the linked ID from the draft file as reference), so there should be no user
-       * edited changes anymore. */
-      num_user_edited++;
-      if (r_reports) {
-        BKE_report(r_reports, RPT_INFO, id_iter->name + 2);
-      }
+    /* NOTE: If changes have been saved in a draft, then the local override is based on said
+     * draft (using the linked ID from the draft file as reference), so there should be no user
+     * edited changes anymore. */
+    num_user_edited++;
+    if (r_reports) {
+      BKE_report(r_reports, RPT_INFO, id_iter->name + 2);
     }
   }
 
