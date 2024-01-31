@@ -353,7 +353,7 @@ static void rna_gpcolordata_uv_update(Main *bmain, Scene *scene, PointerRNA *ptr
   rna_MaterialGpencil_update(bmain, scene, ptr);
 }
 
-static std::optional<std::string>rna_GpencilColorData_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GpencilColorData_path(const PointerRNA * /*ptr*/)
 {
   return "grease_pencil";
 }
