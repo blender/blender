@@ -171,18 +171,6 @@ class BrushSelectPanel(BrushPanel):
             sub.active = brush.use_custom_icon
             sub.prop(brush, "icon_filepath", text="")
 
-            # brush tool
-            if context.image_paint_object:
-                panel.prop(brush, "image_tool")
-            elif context.vertex_paint_object:
-                panel.prop(brush, "vertex_tool")
-            elif context.weight_paint_object:
-                panel.prop(brush, "weight_tool")
-            elif context.sculpt_object:
-                panel.prop(brush, "sculpt_tool")
-            elif context.tool_settings.curves_sculpt:
-                panel.prop(brush, "curves_sculpt_tool")
-
             # brush paint modes
             col = panel.column(heading="Modes", align=True)
             col.prop(brush, "use_paint_sculpt", text="Sculpt")
@@ -981,6 +969,9 @@ def brush_settings_advanced(layout, context, brush, popover=False):
     use_frontface = False
 
     if mode == 'SCULPT':
+        layout.prop(brush, "sculpt_tool")
+        layout.separator()
+
         capabilities = brush.sculpt_capabilities
         use_accumulate = capabilities.has_accumulate
         use_frontface = True
@@ -1060,6 +1051,9 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
     # 3D and 2D Texture Paint.
     elif mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
+        layout.prop(brush, "image_tool")
+        layout.separator()
+
         capabilities = brush.image_paint_capabilities
         use_accumulate = capabilities.has_accumulate
 
@@ -1087,6 +1081,9 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
     # Vertex Paint #
     elif mode == 'PAINT_VERTEX':
+        layout.prop(brush, "vertex_tool")
+        layout.separator()
+
         layout.prop(brush, "use_alpha")
         if brush.vertex_tool != 'SMEAR':
             use_accumulate = True
@@ -1094,9 +1091,16 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
     # Weight Paint
     elif mode == 'PAINT_WEIGHT':
+        layout.prop(brush, "weight_tool")
+        layout.separator()
+
         if brush.weight_tool != 'SMEAR':
             use_accumulate = True
         use_frontface = True
+
+    # Sculpt Curves
+    elif mode == 'SCULPT_CURVES':
+        layout.prop(brush, "curves_sculpt_tool")
 
     # Draw shared settings.
     if use_accumulate:
