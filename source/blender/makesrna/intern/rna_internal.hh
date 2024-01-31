@@ -12,13 +12,9 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "rna_internal_types.h"
+#include "rna_internal_types.hh"
 
 #include "UI_resources.hh"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define RNA_MAGIC ((int)~0)
 
@@ -683,8 +679,4 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
         unsigned int: 0, \
         float: -FLT_MAX, \
         double: -DBL_MAX)
-#endif
-
-#ifdef __cplusplus
-}
 #endif

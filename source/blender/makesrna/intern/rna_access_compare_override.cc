@@ -46,7 +46,7 @@
 #include "RNA_prototypes.h"
 
 #include "rna_access_internal.h"
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 static CLG_LogRef LOG = {"rna.access_compare_override"};
 

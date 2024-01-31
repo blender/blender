@@ -480,8 +480,8 @@ set(SRC
 
   ${SRC_RNA_INC}
   rna_access_internal.h
-  rna_internal.h
-  rna_internal_types.h
+  rna_internal.hh
+  rna_internal_types.hh
   rna_mesh_utils.hh
 )
 

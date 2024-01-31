@@ -42,7 +42,7 @@
 
 #include "UI_interface_icons.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

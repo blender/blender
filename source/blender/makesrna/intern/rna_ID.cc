@@ -27,7 +27,7 @@
 
 #include "WM_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 /* enum of ID-block types
  * NOTE: need to keep this in line with the other defines for these

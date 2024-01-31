@@ -29,7 +29,7 @@
 
 #include "ED_outliner.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #define MESH_DM_INFO_STR_MAX 16384
 

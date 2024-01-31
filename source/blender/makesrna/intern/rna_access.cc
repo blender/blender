@@ -62,7 +62,7 @@
 #include "WM_types.hh"
 
 #include "rna_access_internal.h"
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 const PointerRNA PointerRNA_NULL = {nullptr};
 

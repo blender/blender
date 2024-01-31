@@ -17,7 +17,7 @@
 
 #include "BKE_packedFile.h"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 const EnumPropertyItem rna_enum_unpack_method_items[] = {
     {PF_REMOVE, "REMOVE", 0, "Remove Pack", ""},

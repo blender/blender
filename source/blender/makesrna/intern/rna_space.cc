@@ -50,7 +50,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"

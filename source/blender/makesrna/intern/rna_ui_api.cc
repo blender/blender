@@ -22,7 +22,7 @@
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_ICON_VECTOR(name) {ICON_##name, (#name), 0, (#name), ""},

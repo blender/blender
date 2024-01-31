@@ -45,8 +45,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
-#include "rna_internal_types.h"
+#include "rna_internal.hh"
+#include "rna_internal_types.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

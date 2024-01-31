@@ -13,7 +13,7 @@
 #include "DNA_curveprofile_types.h"
 
 #include "RNA_define.hh"
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "BLT_translation.h"
 

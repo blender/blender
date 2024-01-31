@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Use a define instead of `#pragma once` because of `rna_internal.h` */
+/* Use a define instead of `#pragma once` because of `rna_internal.hh` */
 #ifndef __RNA_ACCESS_H__
 #define __RNA_ACCESS_H__
 

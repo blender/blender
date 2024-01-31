@@ -17,7 +17,7 @@
 
 #include "RNA_define.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "BKE_cloth.hh"
 #include "BKE_modifier.hh"

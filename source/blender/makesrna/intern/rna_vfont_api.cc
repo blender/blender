@@ -13,7 +13,7 @@
 
 #include "BKE_packedFile.h"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
 

@@ -32,7 +32,7 @@
 #include "RNA_prototypes.h"
 
 #include "rna_access_internal.h"
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 /**
  * Extract the first token from `path`.

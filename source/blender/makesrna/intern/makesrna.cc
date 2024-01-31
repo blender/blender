@@ -28,7 +28,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "CLG_log.h"
 
@@ -4866,7 +4866,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 
   fprintf(f, "#include \"RNA_define.hh\"\n");
   fprintf(f, "#include \"RNA_types.hh\"\n");
-  fprintf(f, "#include \"rna_internal.h\"\n\n");
+  fprintf(f, "#include \"rna_internal.hh\"\n\n");
 
   /* include the generated prototypes header */
   fprintf(f, "#include \"rna_prototypes_gen.h\"\n\n");
