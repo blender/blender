@@ -122,8 +122,10 @@ static void node_enum_definition_copy(NodeEnumDefinition &dst_enum_def,
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
   NodeMenuSwitch *data = MEM_cnew<NodeMenuSwitch>(__func__);
-  node_enum_definition_init(data->enum_definition);
   data->data_type = SOCK_GEOMETRY;
+  node_enum_definition_init(data->enum_definition);
+  data->enum_definition.add_item("A");
+  data->enum_definition.add_item("B");
   node->storage = data;
 }
 
