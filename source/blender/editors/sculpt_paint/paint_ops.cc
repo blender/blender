@@ -1268,6 +1268,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   brush_asset_refresh_editable_library(C);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_ADDED, nullptr);
+  WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 
   return OPERATOR_FINISHED;
 }
@@ -1374,6 +1375,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
 
   brush_asset_refresh_editable_library(C);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
+  WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
 
   /* TODO: activate default brush. */
 
