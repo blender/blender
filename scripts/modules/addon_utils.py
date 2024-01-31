@@ -632,24 +632,36 @@ def _fake_module_from_extension(mod_name, mod_path, force_support=None):
     try:
         with open(filepath, "rb") as fh:
             data = tomllib.load(fh)
-
-        bl_info["name"] = data["name"]
-        bl_info["version"] = data["version"]
-        bl_info["author"] = data["author"]
-        bl_info["category"] = "Development"  # Dummy, will be removed.
     except BaseException as ex:
         print("Error:", str(ex), "in", filepath)
         return None
 
-    # Full validation must be done on install.
-    try:
-        assert type(bl_info["name"]) is str
-        assert type(bl_info["version"]) is str
-        assert type(bl_info["author"]) is str
-        assert type(bl_info["category"]) is str
-    except BaseException as ex:
-        print("Error:", str(ex), "in", filepath)
+    # This isn't a full validation which happens on package install/update.
+    if (value := data.get("name", None)) is None:
+        print("Error: missing \"name\" from in", filepath)
         return None
+    if type(value) is not str:
+        print("Error: \"name\" is not a string in", filepath)
+        return None
+    bl_info["name"] = value
+
+    if (value := data.get("version", None)) is None:
+        print("Error: missing \"version\" from in", filepath)
+        return None
+    if type(value) is not str:
+        print("Error: \"version\" is not a string in", filepath)
+        return None
+    bl_info["version"] = value
+
+    if (value := data.get("author", None)) is None:
+        print("Error: missing \"author\" from in", filepath)
+        return None
+    if (type(value) is not list) or any(x for x in value if type(x) is not str):
+        print("Error: \"author\" is not a list of strings in", filepath)
+        return None
+    bl_info["author"] = ", ".join(value)
+
+    bl_info["category"] = "Development"  # Dummy, will be removed.
 
     if force_support is not None:
         bl_info["support"] = force_support
