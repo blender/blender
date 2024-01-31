@@ -1075,14 +1075,6 @@ static const char *glsl_patch_default_get()
 
   /* Enable extensions for features that are not part of our base GLSL version
    * don't use an extension for something already available! */
-  if (GLContext::texture_gather_support) {
-    ss << "#extension GL_ARB_texture_gather: enable\n";
-    /* Some drivers don't agree on epoxy_has_gl_extension("GL_ARB_texture_gather") and the actual
-     * support in the shader so double check the preprocessor define (see #56544). */
-    ss << "#ifdef GL_ARB_texture_gather\n";
-    ss << "#  define GPU_ARB_texture_gather\n";
-    ss << "#endif\n";
-  }
   if (GLContext::shader_draw_parameters_support) {
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
     ss << "#define GPU_ARB_shader_draw_parameters\n";

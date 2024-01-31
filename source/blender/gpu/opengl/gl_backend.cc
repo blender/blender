@@ -319,7 +319,6 @@ static void detect_workarounds()
      * These code paths should be removed. */
     GLContext::debug_layer_support = false;
     GLContext::geometry_shader_invocations = false;
-    GLContext::texture_gather_support = false;
 #endif
 
     return;
@@ -414,14 +413,6 @@ static void detect_workarounds()
   {
     GLContext::unused_fb_slot_workaround = true;
   }
-  /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
-   * is reported to be supported but yield a compile error (see #55802). */
-  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) &&
-      !(epoxy_gl_version() >= 40))
-  {
-    GLContext::texture_gather_support = false;
-  }
-
   /* dFdx/dFdy calculation factors, those are dependent on driver. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) && strstr(version, "3.3.10750"))
   {
@@ -500,7 +491,6 @@ bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_barrier_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
-bool GLContext::texture_gather_support = false;
 
 /** Workarounds. */
 
@@ -592,7 +582,6 @@ void GLBackend::capabilities_init()
   GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
-  GLContext::texture_gather_support = epoxy_has_gl_extension("GL_ARB_texture_gather");
 
   /* Disabled until it is proven to work. */
   GLContext::framebuffer_fetch_support = false;
