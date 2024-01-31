@@ -1158,10 +1158,10 @@ wmKeyMap *paint_stroke_modal_keymap(wmKeyConfig *keyconf)
 }
 
 static void paint_stroke_add_sample(
-    const Paint *paint, PaintStroke *stroke, float x, float y, float pressure)
+    PaintStroke *stroke, int input_samples, float x, float y, float pressure)
 {
   PaintSample *sample = &stroke->samples[stroke->cur_sample];
-  int max_samples = std::clamp(paint->num_input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
+  int max_samples = std::clamp(input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
 
   sample->mouse[0] = x;
   sample->mouse[1] = y;
@@ -1431,6 +1431,7 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
 
 int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke **stroke_p)
 {
+  Scene *scene = CTX_data_scene(C);
   Paint *p = BKE_paint_get_active_from_context(C);
   PaintMode mode = BKE_paintmode_get_active_from_context(C);
   PaintStroke *stroke = *stroke_p;
@@ -1460,7 +1461,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     stroke->last_tablet_event_pressure = pressure;
   }
 
-  paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
+  int input_samples = BKE_brush_input_samples_get(scene, br);
+  paint_stroke_add_sample(stroke, input_samples, event->mval[0], event->mval[1], pressure);
   paint_stroke_sample_average(stroke, &sample_average);
 
   /* Tilt. */

@@ -34,7 +34,7 @@
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"

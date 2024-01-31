@@ -20,7 +20,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -100,6 +100,8 @@ static const EnumPropertyItem boidruleset_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_math_base.h"
 
 #  include "BKE_context.hh"
@@ -163,14 +165,12 @@ static StructRNA *rna_BoidRule_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_BoidRule_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoidRule_path(const PointerRNA *ptr)
 {
   const BoidRule *rule = (BoidRule *)ptr->data;
   char name_esc[sizeof(rule->name) * 2];
-
   BLI_str_escape(name_esc, rule->name, sizeof(name_esc));
-
-  return BLI_sprintfN("rules[\"%s\"]", name_esc); /* XXX not unique */
+  return fmt::format("rules[\"{}\"]", name_esc); /* XXX not unique */
 }
 
 static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)
@@ -230,7 +230,7 @@ static int particle_id_check(const PointerRNA *ptr)
   return (GS(id->name) == ID_PA);
 }
 
-static char *rna_BoidSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_BoidSettings_path(const PointerRNA *ptr)
 {
   const BoidSettings *boids = (BoidSettings *)ptr->data;
 
@@ -238,10 +238,10 @@ static char *rna_BoidSettings_path(const PointerRNA *ptr)
     ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
     if (part->boids == boids) {
-      return BLI_strdup("boids");
+      return "boids";
     }
   }
-  return nullptr;
+  return std::nullopt;
 }
 
 static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)

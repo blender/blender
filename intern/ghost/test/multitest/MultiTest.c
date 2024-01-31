@@ -30,7 +30,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "Basic.h"
 #include "EventToBuf.h"

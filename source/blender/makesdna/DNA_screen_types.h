@@ -173,7 +173,7 @@ typedef struct Panel {
 
   /**
    * List of #LayoutPanelState. This stores the open-close-state of layout-panels created with
-   * `layout.panel(...)` in Python. For more information on layout-panels, see `uiLayoutPanel`.
+   * `layout.panel(...)` in Python. For more information on layout-panels, see `uiLayoutPanelProp`.
    */
   ListBase layout_panel_states;
 

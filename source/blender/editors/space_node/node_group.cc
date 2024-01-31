@@ -221,13 +221,13 @@ void NODE_OT_group_edit(wmOperatorType *ot)
  * The given paths will be owned by the returned instance.
  * Both pointers are allowed to point to the same string.
  */
-static AnimationBasePathChange *animation_basepath_change_new(const char *src_basepath,
-                                                              const char *dst_basepath)
+static AnimationBasePathChange *animation_basepath_change_new(const StringRef src_basepath,
+                                                              const StringRef dst_basepath)
 {
   AnimationBasePathChange *basepath_change = (AnimationBasePathChange *)MEM_callocN(
       sizeof(*basepath_change), AT);
-  basepath_change->src_basepath = src_basepath;
-  basepath_change->dst_basepath = dst_basepath;
+  basepath_change->src_basepath = BLI_strdupn(src_basepath.data(), src_basepath.size());
+  basepath_change->dst_basepath = BLI_strdupn(dst_basepath.data(), dst_basepath.size());
   return basepath_change;
 }
 
@@ -295,7 +295,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old node-tree has animation data which potentially covers this node. */
-    const char *old_animation_basepath = nullptr;
+    std::optional<std::string> old_animation_basepath;
     if (wgroup->adt) {
       PointerRNA ptr = RNA_pointer_create(&wgroup->id, &RNA_Node, node);
       old_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
@@ -313,9 +313,9 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     if (wgroup->adt) {
       PointerRNA ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
-      const char *new_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
+      const std::optional<std::string> new_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
       BLI_addtail(&anim_basepaths,
-                  animation_basepath_change_new(old_animation_basepath, new_animation_basepath));
+                  animation_basepath_change_new(*old_animation_basepath, *new_animation_basepath));
     }
 
     if (!node->parent) {
@@ -538,13 +538,9 @@ static bool node_group_separate_selected(
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old node-tree has animation data which potentially covers this node. */
     if (ngroup.adt) {
-      char *path;
-
       PointerRNA ptr = RNA_pointer_create(&ngroup.id, &RNA_Node, newnode);
-      path = RNA_path_from_ID_to_struct(&ptr);
-
-      if (path) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(path, path));
+      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
+        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
       }
     }
 
@@ -1088,8 +1084,8 @@ static void node_group_make_insert_selected(const bContext &C,
     ListBase anim_basepaths = {nullptr, nullptr};
     for (bNode *node : nodes_to_move) {
       PointerRNA ptr = RNA_pointer_create(&ntree.id, &RNA_Node, node);
-      if (char *path = RNA_path_from_ID_to_struct(&ptr)) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(path, path));
+      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
+        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
       }
     }
     BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &group.id, &anim_basepaths);

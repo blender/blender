@@ -26,7 +26,7 @@
 #include "BKE_camera.h"
 #include "BKE_collection.h"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_global.h"

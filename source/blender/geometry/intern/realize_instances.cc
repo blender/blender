@@ -17,7 +17,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_curves.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 #include "BKE_material.h"

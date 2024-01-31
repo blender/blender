@@ -17,7 +17,7 @@
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLT_translation.h"
 
@@ -45,8 +45,8 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
-#include "rna_internal_types.h"
+#include "rna_internal.hh"
+#include "rna_internal_types.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -586,6 +586,8 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #undef ITEM_BOOLEAN
 
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
 
 #  include "BLI_linklist.h"
 #  include "BLI_string.h"
@@ -1343,20 +1345,20 @@ static StructRNA *rna_Node_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_Node_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Node_path(const PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   char name_esc[sizeof(node->name) * 2];
 
   BLI_str_escape(name_esc, node->name, sizeof(name_esc));
-  return BLI_sprintfN("nodes[\"%s\"]", name_esc);
+  return fmt::format("nodes[\"{}\"]", name_esc);
 }
 
-char *rna_Node_ImageUser_path(const PointerRNA *ptr)
+std::optional<std::string> rna_Node_ImageUser_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   if (!ELEM(ntree->type, NTREE_SHADER, NTREE_CUSTOM)) {
-    return nullptr;
+    return std::nullopt;
   }
 
   for (bNode *node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
@@ -1381,10 +1383,10 @@ char *rna_Node_ImageUser_path(const PointerRNA *ptr)
 
     char name_esc[sizeof(node->name) * 2];
     BLI_str_escape(name_esc, node->name, sizeof(name_esc));
-    return BLI_sprintfN("nodes[\"%s\"].image_user", name_esc);
+    return fmt::format("nodes[\"{}\"].image_user", name_esc);
   }
 
-  return nullptr;
+  return std::nullopt;
 }
 
 static bool rna_Node_poll(const bNodeType *ntype,

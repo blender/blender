@@ -19,7 +19,7 @@
 
 #include "WM_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
 

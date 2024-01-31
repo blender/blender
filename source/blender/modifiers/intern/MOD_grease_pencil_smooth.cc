@@ -218,8 +218,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "use_keep_shape", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "use_smooth_ends", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  if (uiLayout *influence_panel = uiLayoutPanel(
-          C, layout, "Influence", ptr, "open_influence_panel"))
+  if (uiLayout *influence_panel = uiLayoutPanelProp(
+          C, layout, ptr, "open_influence_panel", "Influence"))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

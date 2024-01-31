@@ -47,7 +47,7 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #endif
 
 #define EEVEE_PROBE_MAX min_ii(MAX_PROBE, GPU_max_texture_layers() / 6)
-#define USE_VOLUME_OPTI (GPU_shader_image_load_store_support())
+#define USE_VOLUME_OPTI true
 
 #define SWAP_DOUBLE_BUFFERS() \
   { \

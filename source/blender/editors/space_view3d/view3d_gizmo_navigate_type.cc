@@ -31,7 +31,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

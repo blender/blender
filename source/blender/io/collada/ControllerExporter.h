@@ -32,7 +32,7 @@
 
 #include "ExportSettings.h"
 
-#include "BKE_key.h"
+#include "BKE_key.hh"
 
 class SceneExporter;
 

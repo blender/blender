@@ -54,10 +54,11 @@ void main()
 
   /* The pixels at the boundary are those that are masked and have non masked neighbors. The inner
    * boundary has a specialization, if include_all_inner_edges is false, only inner boundaries that
-   * lie inside the outer mask will be considered a boundary. */
+   * lie inside the outer mask will be considered a boundary. The outer boundary is only considered
+   * if it is not inside the inner mask. */
   bool is_inner_boundary = is_inner_masked && has_inner_non_masked_neighbors &&
                            (is_outer_masked || include_all_inner_edges);
-  bool is_outer_boundary = is_outer_masked && has_outer_non_masked_neighbors;
+  bool is_outer_boundary = is_outer_masked && !is_inner_masked && has_outer_non_masked_neighbors;
 
   /* Encode the boundary information in the format expected by the jump flooding algorithm. */
   ivec2 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);

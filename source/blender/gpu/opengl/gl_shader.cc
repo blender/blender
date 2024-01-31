@@ -895,11 +895,6 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
   int max_verts = info.geometry_layout_.max_vertices;
   int invocations = info.geometry_layout_.invocations;
 
-  if (GLContext::geometry_shader_invocations == false && invocations != -1) {
-    max_verts *= invocations;
-    invocations = -1;
-  }
-
   std::stringstream ss;
   ss << "\n/* Geometry Layout. */\n";
   ss << "layout(" << to_string(info.geometry_layout_.primitive_in);
@@ -1075,33 +1070,13 @@ static const char *glsl_patch_default_get()
 
   /* Enable extensions for features that are not part of our base GLSL version
    * don't use an extension for something already available! */
-  if (GLContext::texture_gather_support) {
-    ss << "#extension GL_ARB_texture_gather: enable\n";
-    /* Some drivers don't agree on epoxy_has_gl_extension("GL_ARB_texture_gather") and the actual
-     * support in the shader so double check the preprocessor define (see #56544). */
-    ss << "#ifdef GL_ARB_texture_gather\n";
-    ss << "#  define GPU_ARB_texture_gather\n";
-    ss << "#endif\n";
-  }
   if (GLContext::shader_draw_parameters_support) {
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
     ss << "#define GPU_ARB_shader_draw_parameters\n";
     ss << "#define gpu_BaseInstance gl_BaseInstanceARB\n";
   }
-  if (GLContext::geometry_shader_invocations) {
-    ss << "#extension GL_ARB_gpu_shader5 : enable\n";
-    ss << "#define GPU_ARB_gpu_shader5\n";
-  }
-  if (GLContext::texture_cube_map_array_support) {
-    ss << "#extension GL_ARB_texture_cube_map_array : enable\n";
-    ss << "#define GPU_ARB_texture_cube_map_array\n";
-  }
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "#extension GL_ARB_conservative_depth : enable\n";
-  }
-  if (GPU_shader_image_load_store_support()) {
-    ss << "#extension GL_ARB_shader_image_load_store: enable\n";
-    ss << "#extension GL_ARB_shading_language_420pack: enable\n";
   }
   if (GLContext::layered_rendering_support) {
     ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
@@ -1154,11 +1129,6 @@ static const char *glsl_patch_compute_get()
   /* Version need to go first. */
   ss << "#version 430\n";
   ss << "#extension GL_ARB_compute_shader :enable\n";
-
-  if (GLContext::texture_cube_map_array_support) {
-    ss << "#extension GL_ARB_texture_cube_map_array : enable\n";
-    ss << "#define GPU_ARB_texture_cube_map_array\n";
-  }
 
   /* Array compatibility. */
   ss << "#define gpu_Array(_type) _type[]\n";

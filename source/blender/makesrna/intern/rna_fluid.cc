@@ -17,7 +17,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "BKE_fluid.h"
 #include "BKE_modifier.hh"
@@ -36,6 +36,8 @@
 #include "WM_types.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
 
 #  include "BLI_threads.h"
 
@@ -863,34 +865,34 @@ static void rna_Fluid_domaintype_set(PointerRNA *ptr, int value)
   BKE_fluid_fields_sanitize(settings);
 }
 
-static char *rna_FluidDomainSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_FluidDomainSettings_path(const PointerRNA *ptr)
 {
   const FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
   const ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"].domain_settings", name_esc);
+  return fmt::format("modifiers[\"{}\"].domain_settings", name_esc);
 }
 
-static char *rna_FluidFlowSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_FluidFlowSettings_path(const PointerRNA *ptr)
 {
   const FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
   const ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"].flow_settings", name_esc);
+  return fmt::format("modifiers[\"{}\"].flow_settings", name_esc);
 }
 
-static char *rna_FluidEffectorSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_FluidEffectorSettings_path(const PointerRNA *ptr)
 {
   const FluidEffectorSettings *settings = (FluidEffectorSettings *)ptr->data;
   const ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"].effector_settings", name_esc);
+  return fmt::format("modifiers[\"{}\"].effector_settings", name_esc);
 }
 
 /* -------------------------------------------------------------------- */

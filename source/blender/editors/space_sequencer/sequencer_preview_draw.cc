@@ -9,7 +9,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"

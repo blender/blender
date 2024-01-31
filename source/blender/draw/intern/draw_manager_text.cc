@@ -39,7 +39,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "WM_api.hh"
 
 #include "draw_manager_text.hh"
@@ -55,6 +55,8 @@ struct ViewCachedString {
   short xoffs, yoffs;
   short flag;
   int str_len;
+  bool shadow;
+  bool align_center;
 
   /* str is allocated past the end */
   char str[0];
@@ -84,7 +86,9 @@ void DRW_text_cache_add(DRWTextStore *dt,
                         short xoffs,
                         short yoffs,
                         short flag,
-                        const uchar col[4])
+                        const uchar col[4],
+                        const bool shadow,
+                        const bool align_center)
 {
   int alloc_len;
   ViewCachedString *vos;
@@ -106,6 +110,8 @@ void DRW_text_cache_add(DRWTextStore *dt,
   vos->yoffs = yoffs;
   vos->flag = flag;
   vos->str_len = str_len;
+  vos->shadow = shadow;
+  vos->align_center = align_center;
 
   /* allocate past the end */
   if (flag & DRW_TEXT_CACHE_STRING_PTR) {
@@ -129,11 +135,8 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
   GPU_matrix_push();
   GPU_matrix_identity_set();
 
-  const int font_id = BLF_default();
-
-  const uiStyle *style = UI_style_get();
-
-  BLF_size(font_id, style->widget.points * UI_SCALE_FAC);
+  BLF_default_size(UI_style_get()->widgetlabel.points);
+  const int font_id = BLF_set_default();
 
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
@@ -143,11 +146,35 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
         col_pack_prev = vos->col.pack;
       }
 
-      BLF_position(
-          font_id, float(vos->sco[0] + vos->xoffs), float(vos->sco[1] + vos->yoffs), 2.0f);
-      BLF_draw(font_id,
-               (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
-               vos->str_len);
+      if (vos->align_center) {
+        /* Measure the size of the string, then offset to align to the vertex. */
+        float width, height;
+        BLF_width_and_height(font_id,
+                             (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
+                                                                       vos->str,
+                             vos->str_len,
+                             &width,
+                             &height);
+        vos->xoffs -= short(width / 2.0f);
+        vos->yoffs -= short(height / 2.0f);
+      }
+
+      if (vos->shadow) {
+        BLF_draw_default_shadowed(
+            float(vos->sco[0] + vos->xoffs),
+            float(vos->sco[1] + vos->yoffs),
+            2.0f,
+            (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) : vos->str,
+            vos->str_len);
+      }
+      else {
+        BLF_draw_default(float(vos->sco[0] + vos->xoffs),
+                         float(vos->sco[1] + vos->yoffs),
+                         2.0f,
+                         (vos->flag & DRW_TEXT_CACHE_STRING_PTR) ? *((const char **)vos->str) :
+                                                                   vos->str,
+                         vos->str_len);
+      }
     }
   }
 

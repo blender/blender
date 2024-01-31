@@ -59,6 +59,9 @@ IndexMask get_filtered_stroke_mask(const Object *ob,
                                    const GreasePencilModifierInfluenceData &influence_data,
                                    IndexMaskMemory &memory);
 
+VArray<float> get_influence_vertex_weights(
+    const bke::CurvesGeometry &curves, const GreasePencilModifierInfluenceData &influence_data);
+
 Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease_pencil,
                                                             const IndexMask &layer_mask,
                                                             int frame);

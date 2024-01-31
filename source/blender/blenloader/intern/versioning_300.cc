@@ -66,7 +66,7 @@
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_idprop.h"

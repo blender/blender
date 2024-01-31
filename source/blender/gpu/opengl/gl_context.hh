@@ -47,14 +47,10 @@ class GLContext : public Context {
 
   /** Extensions. */
 
-  static bool base_instance_support;
   static bool clear_texture_support;
-  static bool copy_image_support;
   static bool debug_layer_support;
   static bool direct_state_access_support;
   static bool explicit_location_support;
-  static bool geometry_shader_invocations;
-  static bool fixed_restart_index_support;
   static bool framebuffer_fetch_support;
   static bool layered_rendering_support;
   static bool native_barycentric_support;
@@ -64,11 +60,7 @@ class GLContext : public Context {
   static bool shader_draw_parameters_support;
   static bool stencil_texturing_support;
   static bool texture_barrier_support;
-  static bool texture_cube_map_array_support;
   static bool texture_filter_anisotropic_support;
-  static bool texture_gather_support;
-  static bool texture_storage_support;
-  static bool vertex_attrib_binding_support;
 
   /** Workarounds. */
 

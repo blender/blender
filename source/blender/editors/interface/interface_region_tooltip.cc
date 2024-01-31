@@ -57,7 +57,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "BLT_translation.h"
 
 #ifdef WITH_PYTHON
@@ -1042,11 +1042,10 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     }
 
     if (but->rnapoin.owner_id) {
-      char *str = rnaprop ?
-                      RNA_path_full_property_py_ex(&but->rnapoin, rnaprop, but->rnaindex, true) :
-                      RNA_path_full_struct_py(&but->rnapoin);
-      UI_tooltip_text_field_add(data, str, {}, UI_TIP_STYLE_MONO, UI_TIP_LC_PYTHON);
-      MEM_freeN(str);
+      std::optional<std::string> str = rnaprop ? RNA_path_full_property_py_ex(
+                                                     &but->rnapoin, rnaprop, but->rnaindex, true) :
+                                                 RNA_path_full_struct_py(&but->rnapoin);
+      UI_tooltip_text_field_add(data, str.value_or(""), {}, UI_TIP_STYLE_MONO, UI_TIP_LC_PYTHON);
     }
   }
 

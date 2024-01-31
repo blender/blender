@@ -27,7 +27,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 /* confusing 2 enums mixed up here */
 const EnumPropertyItem rna_enum_window_cursor_items[] = {
@@ -806,7 +806,6 @@ const EnumPropertyItem rna_operator_popup_icon_items[] = {
     {ALERT_ICON_QUESTION, "QUESTION", 0, "Question", ""},
     {ALERT_ICON_ERROR, "ERROR", 0, "Error", ""},
     {ALERT_ICON_INFO, "INFO", 0, "Info", ""},
-    {ALERT_ICON_BLENDER, "BLENDER", 0, "Blender", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

@@ -35,7 +35,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"

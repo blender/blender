@@ -51,7 +51,7 @@ static void test_eevee_shadow_shift_clear()
     tilemaps_data.push_update();
   }
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
 
     tile.page = uint3(1, 2, 0);
     tile.is_used = true;
@@ -135,7 +135,7 @@ static void test_eevee_shadow_shift()
     tilemaps_data.push_update();
   }
   {
-    ShadowTileData tile = shadow_tile_unpack(ShadowTileDataPacked(SHADOW_NO_DATA));
+    ShadowTileData tile = {};
 
     for (auto x : IndexRange(SHADOW_TILEMAP_RES)) {
       for (auto y : IndexRange(SHADOW_TILEMAP_RES)) {
@@ -402,7 +402,7 @@ static void test_eevee_shadow_free()
   pages_cached_data.push_update();
 
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
 
     tiles_data.clear_to_zero();
     tiles_data.read();
@@ -673,7 +673,7 @@ class TestAlloc {
     int tile_free = tiles_index * SHADOW_TILEDATA_PER_TILEMAP + 6;
 
     {
-      ShadowTileData tile;
+      ShadowTileData tile = {};
 
       tile.is_used = true;
       tile.do_update = false;
@@ -766,7 +766,7 @@ static void test_eevee_shadow_finalize()
   }
 
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
     tile.is_used = true;
     tile.is_allocated = true;
 
@@ -1191,7 +1191,7 @@ static void test_eevee_shadow_page_mask()
   const uint lod5_ofs = lod4_ofs + lod4_len;
 
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
     /* Init all LOD to true. */
     for (auto i : IndexRange(SHADOW_TILEDATA_PER_TILEMAP)) {
       tile.is_used = true;

@@ -29,7 +29,7 @@
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.hh"
@@ -3433,16 +3433,12 @@ static void outliner_draw_tree_element(bContext *C,
 
       /* Icons a bit higher. */
       if (TSELEM_OPEN(tselem, space_outliner)) {
-        UI_icon_draw_alpha(float(icon_x) + 2 * ufac,
-                           float(*starty) + 1 * ufac,
-                           ICON_DISCLOSURE_TRI_DOWN,
-                           alpha_fac);
+        UI_icon_draw_alpha(
+            float(icon_x) + 2 * ufac, float(*starty) + 1 * ufac, ICON_DOWNARROW_HLT, alpha_fac);
       }
       else {
-        UI_icon_draw_alpha(float(icon_x) + 2 * ufac,
-                           float(*starty) + 1 * ufac,
-                           ICON_DISCLOSURE_TRI_RIGHT,
-                           alpha_fac);
+        UI_icon_draw_alpha(
+            float(icon_x) + 2 * ufac, float(*starty) + 1 * ufac, ICON_RIGHTARROW, alpha_fac);
       }
     }
     offsx += UI_UNIT_X;

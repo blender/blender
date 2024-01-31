@@ -204,6 +204,9 @@ typedef struct Brush {
   int flag2;
   int sampling_flag;
 
+  /** Number of samples used to smooth the stroke. */
+  int input_samples;
+
   /** Pressure influence for mask. */
   int mask_pressure;
   /** Jitter the position of the brush. */
@@ -260,7 +263,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[5];
+  char _pad0;
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;

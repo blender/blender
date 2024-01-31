@@ -51,6 +51,7 @@ struct GreasePencil;
 struct BlendDataReader;
 struct BlendWriter;
 struct Object;
+struct bDeformGroup;
 
 typedef enum GreasePencilStrokeCapType {
   GP_STROKE_CAP_TYPE_ROUND = 0,
@@ -433,6 +434,11 @@ typedef struct GreasePencil {
    * Global flag on the data-block.
    */
   uint32_t flag;
+
+  ListBase vertex_group_names;
+  int vertex_group_active_index;
+  char _pad4[4];
+
   /**
    * Onion skinning settings.
    */

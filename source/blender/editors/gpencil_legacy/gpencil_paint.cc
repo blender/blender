@@ -36,7 +36,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"

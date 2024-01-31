@@ -15,7 +15,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 const EnumPropertyItem rna_enum_velocity_unit_items[] = {
     {CACHEFILE_VELOCITY_UNIT_SECOND, "SECOND", 0, "Second", ""},

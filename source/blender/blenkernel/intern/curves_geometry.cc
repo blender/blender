@@ -29,7 +29,7 @@
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 namespace blender::bke {
 

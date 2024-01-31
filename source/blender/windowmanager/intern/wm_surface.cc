@@ -8,7 +8,7 @@
 
 #include "BKE_context.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"

@@ -14,6 +14,7 @@
  * \todo document
  */
 
+#include <optional>
 #include <string>
 
 #include "BLI_compiler_attrs.h"
@@ -1067,7 +1068,10 @@ std::string WM_operator_pystring(bContext *C, wmOperator *op, bool all_args, boo
 
 std::string WM_operator_pystring_abbreviate(std::string str, int str_len_max);
 
-std::string WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index);
+std::optional<std::string> WM_prop_pystring_assign(bContext *C,
+                                                   PointerRNA *ptr,
+                                                   PropertyRNA *prop,
+                                                   int index);
 /**
  * Convert: `some.op` -> `SOME_OT_op` or leave as-is.
  * \return the length of `dst`.
@@ -1088,11 +1092,11 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
 /**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
-std::string WM_context_path_resolve_property_full(const bContext *C,
-                                                  const PointerRNA *ptr,
-                                                  PropertyRNA *prop,
-                                                  int index);
-std::string WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr);
+std::optional<std::string> WM_context_path_resolve_property_full(const bContext *C,
+                                                                 const PointerRNA *ptr,
+                                                                 PropertyRNA *prop,
+                                                                 int index);
+std::optional<std::string> WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr);
 
 /* `wm_operator_type.cc` */
 

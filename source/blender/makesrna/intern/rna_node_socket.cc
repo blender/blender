@@ -14,7 +14,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 
@@ -39,6 +39,8 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
 
 #  include "DNA_material_types.h"
 
@@ -219,7 +221,7 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_NodeSocket_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_NodeSocket_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
@@ -232,11 +234,9 @@ static char *rna_NodeSocket_path(const PointerRNA *ptr)
   BLI_str_escape(name_esc, node->name, sizeof(name_esc));
 
   if (sock->in_out == SOCK_IN) {
-    return BLI_sprintfN("nodes[\"%s\"].inputs[%d]", name_esc, socketindex);
+    return fmt::format("nodes[\"{}\"].inputs[{}]", name_esc, socketindex);
   }
-  else {
-    return BLI_sprintfN("nodes[\"%s\"].outputs[%d]", name_esc, socketindex);
-  }
+  return fmt::format("nodes[\"{}\"].outputs[{}]", name_esc, socketindex);
 }
 
 static IDProperty **rna_NodeSocket_idprops(PointerRNA *ptr)

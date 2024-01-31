@@ -9,11 +9,10 @@
  * \brief Blender kernel freestyle line style functionality.
  */
 
-#include "DNA_linestyle_types.h"
+#include <optional>
+#include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "DNA_linestyle_types.h"
 
 #define LS_MODIFIER_TYPE_COLOR 1
 #define LS_MODIFIER_TYPE_ALPHA 2
@@ -83,13 +82,9 @@ bool BKE_linestyle_geometry_modifier_move(FreestyleLineStyle *linestyle,
                                           int direction);
 
 void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
-char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle,
-                                       struct ColorBand *color_ramp);
+std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle,
+                                                            struct ColorBand *color_ramp);
 
 bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, bool use_shading_nodes);
 
 void BKE_linestyle_default_shader(const struct bContext *C, FreestyleLineStyle *linestyle);
-
-#ifdef __cplusplus
-}
-#endif

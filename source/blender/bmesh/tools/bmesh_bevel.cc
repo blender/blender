@@ -26,7 +26,7 @@
 
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 
 #include "eigen_capi.h"

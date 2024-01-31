@@ -16,7 +16,7 @@
 
 #include "BLI_string.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "UI_interface.hh"
 

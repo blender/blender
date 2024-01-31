@@ -23,7 +23,7 @@
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"

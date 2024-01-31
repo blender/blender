@@ -598,7 +598,6 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
       if ((info->metal_backend_only_ && GPU_backend_get_type() != GPU_BACKEND_METAL) ||
           (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
           (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr) ||
-          (GPU_shader_image_load_store_support() == false && info->has_resource_image()) ||
           (GPU_transform_feedback_support() == false && info->tf_type_ != GPU_SHADER_TFB_NONE))
       {
         skipped++;

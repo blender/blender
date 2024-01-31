@@ -59,12 +59,6 @@ bool GLTexture::init_internal()
     format_ = GPU_DEPTH32F_STENCIL8;
   }
 
-  if ((type_ == GPU_TEXTURE_CUBE_ARRAY) && (GLContext::texture_cube_map_array_support == false)) {
-    /* Silently fail and let the caller handle the error. */
-    // debug::raise_gl_error("Attempt to create a cubemap array without hardware support!");
-    return false;
-  }
-
   target_ = to_gl_target(type_);
 
   /* We need to bind once to define the texture type. */
@@ -76,72 +70,18 @@ bool GLTexture::init_internal()
 
   GLenum internal_format = to_gl_internal_format(format_);
   const bool is_cubemap = bool(type_ == GPU_TEXTURE_CUBE);
-  const bool is_layered = bool(type_ & GPU_TEXTURE_ARRAY);
-  const bool is_compressed = bool(format_flag_ & GPU_FORMAT_COMPRESSED);
   const int dimensions = (is_cubemap) ? 2 : this->dimensions_count();
-  GLenum gl_format = to_gl_data_format(format_);
-  GLenum gl_type = to_gl(to_data_format(format_));
 
-  auto mip_size = [&](int h, int w = 1, int d = 1) -> size_t {
-    return divide_ceil_u(w, 4) * divide_ceil_u(h, 4) * divide_ceil_u(d, 4) *
-           to_block_size(format_);
-  };
   switch (dimensions) {
     default:
     case 1:
-      if (GLContext::texture_storage_support) {
-        glTexStorage1D(target_, mipmaps_, internal_format, w_);
-      }
-      else {
-        for (int i = 0, w = w_; i < mipmaps_; i++) {
-          if (is_compressed) {
-            glCompressedTexImage1D(target_, i, internal_format, w, 0, mip_size(w), nullptr);
-          }
-          else {
-            glTexImage1D(target_, i, internal_format, w, 0, gl_format, gl_type, nullptr);
-          }
-          w = max_ii(1, (w / 2));
-        }
-      }
+      glTexStorage1D(target_, mipmaps_, internal_format, w_);
       break;
     case 2:
-      if (GLContext::texture_storage_support) {
-        glTexStorage2D(target_, mipmaps_, internal_format, w_, h_);
-      }
-      else {
-        for (int i = 0, w = w_, h = h_; i < mipmaps_; i++) {
-          for (int f = 0; f < (is_cubemap ? 6 : 1); f++) {
-            GLenum target = (is_cubemap) ? GL_TEXTURE_CUBE_MAP_POSITIVE_X + f : target_;
-            if (is_compressed) {
-              glCompressedTexImage2D(target, i, internal_format, w, h, 0, mip_size(w, h), nullptr);
-            }
-            else {
-              glTexImage2D(target, i, internal_format, w, h, 0, gl_format, gl_type, nullptr);
-            }
-          }
-          w = max_ii(1, (w / 2));
-          h = is_layered ? h_ : max_ii(1, (h / 2));
-        }
-      }
+      glTexStorage2D(target_, mipmaps_, internal_format, w_, h_);
       break;
     case 3:
-      if (GLContext::texture_storage_support) {
-        glTexStorage3D(target_, mipmaps_, internal_format, w_, h_, d_);
-      }
-      else {
-        for (int i = 0, w = w_, h = h_, d = d_; i < mipmaps_; i++) {
-          if (is_compressed) {
-            glCompressedTexImage3D(
-                target_, i, internal_format, w, h, d, 0, mip_size(w, h, d), nullptr);
-          }
-          else {
-            glTexImage3D(target_, i, internal_format, w, h, d, 0, gl_format, gl_type, nullptr);
-          }
-          w = max_ii(1, (w / 2));
-          h = max_ii(1, (h / 2));
-          d = is_layered ? d_ : max_ii(1, (d / 2));
-        }
-      }
+      glTexStorage3D(target_, mipmaps_, internal_format, w_, h_, d_);
       break;
   }
   this->mip_range_set(0, mipmaps_ - 1);
@@ -182,8 +122,6 @@ bool GLTexture::init_internal(GPUVertBuf *vbo)
 
 bool GLTexture::init_internal(GPUTexture *src, int mip_offset, int layer_offset, bool use_stencil)
 {
-  BLI_assert(GLContext::texture_storage_support);
-
   const GLTexture *gl_src = static_cast<const GLTexture *>(unwrap(src));
   GLenum internal_format = to_gl_internal_format(format_);
   target_ = to_gl_target(type_);

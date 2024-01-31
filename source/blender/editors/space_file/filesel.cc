@@ -47,7 +47,7 @@
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"

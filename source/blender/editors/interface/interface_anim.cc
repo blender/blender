@@ -237,7 +237,6 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   bContext *C = static_cast<bContext *>(but->block->evil_C);
   ID *id;
   FCurve *fcu;
-  char *path;
   bool ok = false;
 
   /* button must have RNA-pointer to a numeric-capable property */
@@ -269,13 +268,14 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   }
 
   /* get path */
-  path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
-  if (path == nullptr) {
+  const std::optional<std::string> path = RNA_path_from_ID_to_property(&but->rnapoin,
+                                                                       but->rnaprop);
+  if (!path) {
     return false;
   }
 
   /* create driver */
-  fcu = verify_driver_fcurve(id, path, but->rnaindex, DRIVER_FCURVE_KEYFRAMES);
+  fcu = verify_driver_fcurve(id, path->c_str(), but->rnaindex, DRIVER_FCURVE_KEYFRAMES);
   if (fcu) {
     ChannelDriver *driver = fcu->driver;
 
@@ -294,8 +294,6 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
       ok = true;
     }
   }
-
-  MEM_freeN(path);
 
   return ok;
 }

@@ -31,7 +31,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_editmesh_tangent.hh"

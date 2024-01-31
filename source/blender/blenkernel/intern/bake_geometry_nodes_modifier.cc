@@ -98,14 +98,13 @@ std::optional<std::string> get_modifier_bake_path(const Main &bmain,
                                                   const Object &object,
                                                   const NodesModifierData &nmd)
 {
-  const StringRefNull bmain_path = BKE_main_blendfile_path(&bmain);
-  if (bmain_path.is_empty()) {
-    return std::nullopt;
-  }
   if (StringRef(nmd.bake_directory).is_empty()) {
     return std::nullopt;
   }
   const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
+  if (StringRef(base_path).is_empty()) {
+    return std::nullopt;
+  }
   char absolute_bake_dir[FILE_MAX];
   STRNCPY(absolute_bake_dir, nmd.bake_directory);
   BLI_path_abs(absolute_bake_dir, base_path);
@@ -126,6 +125,9 @@ std::optional<bake::BakePath> get_node_bake_path(const Main &bmain,
       return std::nullopt;
     }
     const char *base_path = ID_BLEND_PATH(&bmain, &object.id);
+    if (StringRef(base_path).is_empty()) {
+      return std::nullopt;
+    }
     char absolute_bake_dir[FILE_MAX];
     STRNCPY(absolute_bake_dir, bake->directory);
     BLI_path_abs(absolute_bake_dir, base_path);

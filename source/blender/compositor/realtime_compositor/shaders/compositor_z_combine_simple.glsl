@@ -13,20 +13,18 @@ void main()
   float first_z_value = texture_load(first_z_tx, texel).x;
   float second_z_value = texture_load(second_z_tx, texel).x;
 
-  /* Mix between the first and second images using a mask such that the image with the object
-   * closer to the camera is returned. The mask value is then 1, and thus returns the first image
-   * if its Z value is less than that of the second image. Otherwise, its value is 0, and thus
-   * returns the second image. Furthermore, if the object in the first image is closer but has a
-   * non-opaque alpha, then the alpha is used as a mask, but only if Use Alpha is enabled. */
-  float z_combine_factor = float(first_z_value < second_z_value);
-  float alpha_factor = use_alpha ? first_color.a : 1.0;
-  float mix_factor = z_combine_factor * alpha_factor;
+  /* Choose the closer pixel as the foreground, that is, the pixel with the lower z value. If Use
+   * Alpha is disabled, return the foreground, otherwise, mix between the foreground and background
+   * using the alpha of the foreground. */
+  vec4 foreground_color = first_z_value < second_z_value ? first_color : second_color;
+  vec4 background_color = first_z_value < second_z_value ? second_color : first_color;
+  float mix_factor = use_alpha ? foreground_color.a : 1.0;
+  vec4 combined_color = mix(background_color, foreground_color, mix_factor);
 
-  vec4 combined_color = mix(second_color, first_color, mix_factor);
   /* Use the more opaque alpha from the two images. */
   combined_color.a = use_alpha ? max(second_color.a, first_color.a) : combined_color.a;
 
-  float combined_z = mix(second_z_value, first_z_value, mix_factor);
+  float combined_z = min(first_z_value, second_z_value);
 
   imageStore(combined_img, texel, combined_color);
   imageStore(combined_z_img, texel, vec4(combined_z));

@@ -302,9 +302,6 @@ void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void *
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
 
   tree_item.activate(*C);
-  /* Not only activate the item, also show its children. Maybe this should be optional, or
-   * controlled by the specific tree-view. */
-  tree_item.set_collapsed(false);
 }
 
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
@@ -371,7 +368,7 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
     return;
   }
 
-  const BIFIconID icon = is_collapsed() ? ICON_TRIA_RIGHT : ICON_TRIA_DOWN;
+  const BIFIconID icon = is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
   uiBut *but = uiDefIconBut(
       &block, UI_BTYPE_BUT_TOGGLE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
   /* Note that we're passing the tree-row button here, not the chevron one. */

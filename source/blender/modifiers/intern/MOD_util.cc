@@ -23,7 +23,7 @@
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_attribute.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
@@ -277,5 +277,7 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilSmooth);
   INIT_TYPE(GreasePencilOffset);
   INIT_TYPE(GreasePencilNoise);
+  INIT_TYPE(GreasePencilMirror);
+  INIT_TYPE(GreasePencilThickness);
 #undef INIT_TYPE
 }

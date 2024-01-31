@@ -128,8 +128,14 @@ GPU_SHADER_CREATE_INFO(eevee_occupancy_test)
     .additional_info("eevee_shared")
     .do_static_compilation(true);
 
-GPU_SHADER_CREATE_INFO(eevee_gbuffer_test)
-    .fragment_source("eevee_gbuffer_test.glsl")
+GPU_SHADER_CREATE_INFO(eevee_gbuffer_normal_test)
+    .fragment_source("eevee_gbuffer_normal_test.glsl")
+    .additional_info("gpu_shader_test")
+    .additional_info("eevee_shared")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(eevee_gbuffer_closure_test)
+    .fragment_source("eevee_gbuffer_closure_test.glsl")
     .additional_info("gpu_shader_test")
     .additional_info("eevee_shared")
     .do_static_compilation(true);

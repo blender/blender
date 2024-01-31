@@ -31,7 +31,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 #include "bmesh.hh"
 #include "bmesh_py_types_meshdata.h"

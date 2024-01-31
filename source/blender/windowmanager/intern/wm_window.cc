@@ -72,7 +72,7 @@
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_context.h"

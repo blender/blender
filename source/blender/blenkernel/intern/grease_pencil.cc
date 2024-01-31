@@ -11,6 +11,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
@@ -116,6 +117,9 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
                   CD_MASK_ALL,
                   grease_pencil_dst->layers().size());
 
+  BKE_defgroup_copy_list(&grease_pencil_dst->vertex_group_names,
+                         &grease_pencil_src->vertex_group_names);
+
   /* Make sure the runtime pointer exists. */
   grease_pencil_dst->runtime = MEM_new<bke::GreasePencilRuntime>(__func__);
 }
@@ -131,6 +135,8 @@ static void grease_pencil_free_data(ID *id)
 
   free_drawing_array(*grease_pencil);
   MEM_delete(&grease_pencil->root_group());
+
+  BLI_freelistN(&grease_pencil->vertex_group_names);
 
   BKE_grease_pencil_batch_cache_free(grease_pencil);
 
@@ -179,6 +185,8 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
   /* Write materials. */
   BLO_write_pointer_array(
       writer, grease_pencil->material_array_num, grease_pencil->material_array);
+  /* Write vertex group names. */
+  BKE_defbase_blend_write(writer, &grease_pencil->vertex_group_names);
 }
 
 static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
@@ -195,6 +203,8 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* Read materials. */
   BLO_read_pointer_array(reader, reinterpret_cast<void **>(&grease_pencil->material_array));
+  /* Read vertex group names. */
+  BLO_read_list(reader, &grease_pencil->vertex_group_names);
 
   grease_pencil->runtime = MEM_new<blender::bke::GreasePencilRuntime>(__func__);
 }

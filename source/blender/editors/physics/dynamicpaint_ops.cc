@@ -26,7 +26,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
 #include "BKE_main.hh"

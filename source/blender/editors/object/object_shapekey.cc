@@ -30,7 +30,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"

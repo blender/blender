@@ -19,7 +19,7 @@ if not (inkscape_bin := os.environ.get("INKSCAPE_BIN")):
 cmd = (
     inkscape_bin,
     os.path.join(BASEDIR, "alert_icons.svg"),
-    "--export-width=1280",
+    "--export-width=1024",
     "--export-height=256",
     "--export-type=png",
     "--export-filename=" + os.path.join(BASEDIR, "alert_icons.png"),

@@ -14,11 +14,18 @@ void main()
   float second_z_value = texture_load(second_z_tx, texel).x;
   float mask_value = texture_load(mask_tx, texel).x;
 
-  vec4 combined_color = mix(second_color, first_color, mask_value);
+  /* Choose the closer pixel as the foreground, that is, the masked pixel with the lower z value.
+   * If Use Alpha is disabled, return the foreground, otherwise, mix between the foreground and
+   * background using the alpha of the foreground. */
+  vec4 foreground_color = mix(second_color, first_color, mask_value);
+  vec4 background_color = mix(first_color, second_color, mask_value);
+  float mix_factor = use_alpha ? foreground_color.a : 1.0;
+  vec4 combined_color = mix(background_color, foreground_color, mix_factor);
+
   /* Use the more opaque alpha from the two images. */
   combined_color.a = use_alpha ? max(second_color.a, first_color.a) : combined_color.a;
 
-  float combined_z = mix(second_z_value, first_z_value, mask_value);
+  float combined_z = min(first_z_value, second_z_value);
 
   imageStore(combined_img, texel, combined_color);
   imageStore(combined_z_img, texel, vec4(combined_z));

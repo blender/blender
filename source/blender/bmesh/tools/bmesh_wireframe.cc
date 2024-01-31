@@ -20,7 +20,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 #include "bmesh_wireframe.hh"
 

@@ -161,9 +161,8 @@ static void id_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
   ID *id = WM_drag_get_local_ID(drag, 0);
 
   /* copy drag path to properties */
-  char *text = RNA_path_full_ID_py(id);
-  RNA_string_set(drop->ptr, "text", text);
-  MEM_freeN(text);
+  std::string text = RNA_path_full_ID_py(id);
+  RNA_string_set(drop->ptr, "text", text.c_str());
 }
 
 static bool path_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)

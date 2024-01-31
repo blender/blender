@@ -23,6 +23,7 @@
 
 struct ID;
 struct IDProperty;
+struct LibraryForeachIDData;
 struct Main;
 
 /* Tips for the callback for cases it's gonna to modify the pointer. */
@@ -200,8 +201,6 @@ enum {
    * proper lib_linking and expanding of older files). */
   IDWALK_DO_DEPRECATED_POINTERS = (1 << 11),
 };
-
-typedef struct LibraryForeachIDData LibraryForeachIDData;
 
 /**
  * Check whether current iteration over ID usages should be stopped or not.

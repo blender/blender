@@ -42,7 +42,7 @@
 
 #include "UI_interface_icons.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -57,7 +57,6 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_EDITING, "EDITING", 0, "Editing", ""},
     {USER_SECTION_ANIMATION, "ANIMATION", 0, "Animation", ""},
     RNA_ENUM_ITEM_SEPR,
-    {USER_SECTION_EXTENSIONS, "EXTENSIONS", 0, "Extensions", ""},
     {USER_SECTION_ADDONS, "ADDONS", 0, "Add-ons", ""},
 #if 0 /* def WITH_USERDEF_WORKSPACES */
     RNA_ENUM_ITEM_SEPR,
@@ -191,7 +190,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "GPU_select.hh"
 #  include "GPU_texture.h"
 
-#  include "BLF_api.h"
+#  include "BLF_api.hh"
 
 #  include "BLI_path_util.h"
 
@@ -669,7 +668,7 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
   const bool use_developer_ui = (userdef->flag & USER_DEVELOPER_UI) != 0;
   const bool use_extension_repos = use_developer_ui && U.experimental.use_extension_repos;
 
-  if (use_developer_ui && use_extension_repos) {
+  if (use_developer_ui && use_extension_repos == false) {
     *r_free = false;
     return rna_enum_preference_section_items;
   }
@@ -685,12 +684,15 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext * /*C*/,
         continue;
       }
     }
-    else if (it->value == USER_SECTION_EXTENSIONS) {
-      if (use_extension_repos == false) {
-        continue;
+
+    RNA_enum_item_add(&items, &totitem, it);
+
+    /* Rename "Add-ons" to "Extensions" when extensions are enabled. */
+    if (it->value == USER_SECTION_ADDONS) {
+      if (use_extension_repos) {
+        items[totitem - 1].name = "Extensions";
       }
     }
-    RNA_enum_item_add(&items, &totitem, it);
   }
 
   RNA_enum_item_end(&items, &totitem);

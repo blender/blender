@@ -46,11 +46,11 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -1337,10 +1337,6 @@ void BKE_paint_blend_write(BlendWriter *writer, Paint *p)
 
 void BKE_paint_blend_read_data(BlendDataReader *reader, const Scene *scene, Paint *p)
 {
-  if (p->num_input_samples < 1) {
-    p->num_input_samples = 1;
-  }
-
   BLO_read_data_address(reader, &p->cavity_curve);
   if (p->cavity_curve) {
     BKE_curvemapping_blend_read(reader, p->cavity_curve);

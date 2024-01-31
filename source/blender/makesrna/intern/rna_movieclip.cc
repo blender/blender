@@ -17,7 +17,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -119,7 +119,7 @@ static PointerRNA rna_MovieClip_metadata_get(MovieClip *clip)
   return ptr;
 }
 
-static char *rna_MovieClipUser_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_MovieClipUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
     // MovieClipUser *mc_user = ptr->data;
@@ -132,7 +132,7 @@ static char *rna_MovieClipUser_path(const PointerRNA *ptr)
     }
   }
 
-  return BLI_strdup("");
+  return "";
 }
 
 #else

@@ -24,7 +24,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "UI_interface.hh"
 

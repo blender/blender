@@ -63,7 +63,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "MEM_guardedalloc.h"
 

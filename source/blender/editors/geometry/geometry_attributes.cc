@@ -17,7 +17,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"

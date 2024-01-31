@@ -23,7 +23,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
@@ -45,7 +45,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"

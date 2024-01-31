@@ -60,7 +60,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 using blender::float2;
 using blender::float2x2;

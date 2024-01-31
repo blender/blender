@@ -11,10 +11,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Name of sub-directory inside #BLENDER_DATAFILES that contains font files. */
 #define BLF_DATAFILES_FONTS_DIR "fonts"
 
@@ -407,7 +403,3 @@ struct ResultBLF {
    */
   int width;
 };
-
-#ifdef __cplusplus
-}
-#endif

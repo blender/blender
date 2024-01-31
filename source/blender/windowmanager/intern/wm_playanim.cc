@@ -56,7 +56,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
 #include "GHOST_C-api.h"

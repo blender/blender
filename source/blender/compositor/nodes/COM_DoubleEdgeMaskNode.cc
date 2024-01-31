@@ -19,8 +19,8 @@ void DoubleEdgeMaskNode::convert_to_operations(NodeConverter &converter,
   const bNode *bnode = this->get_bnode();
 
   operation = new DoubleEdgeMaskOperation();
-  operation->set_adjacent_only(bnode->custom1);
-  operation->set_keep_inside(bnode->custom2);
+  operation->set_include_all_inner_edges(!bool(bnode->custom1));
+  operation->set_include_edges_of_image(bool(bnode->custom2));
   converter.add_operation(operation);
 
   converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));

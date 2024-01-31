@@ -7,7 +7,6 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_utiltex_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
-#pragma BLENDER_REQUIRE(cubemap_lib.glsl)
 #pragma BLENDER_REQUIRE(ambient_occlusion_lib.glsl)
 #pragma BLENDER_REQUIRE(irradiance_lib.glsl)
 
@@ -165,13 +164,13 @@ vec3 probe_evaluate_cube(int pd_id, vec3 P, vec3 R, float roughness)
   R = mix(intersection, R, fac * fac);
 
   float lod = linear_roughness * prbLodCubeMax;
-  return textureLod_cubemapArray(probeCubes, vec4(R, float(pd_id)), lod).rgb;
+  return textureLod(probeCubes, vec4(R, float(pd_id)), lod).rgb;
 }
 
 vec3 probe_evaluate_world_spec(vec3 R, float roughness)
 {
   float lod = fast_sqrt(roughness) * prbLodCubeMax;
-  return textureLod_cubemapArray(probeCubes, vec4(R, 0.0), lod).rgb;
+  return textureLod(probeCubes, vec4(R, 0.0), lod).rgb;
 }
 
 vec3 probe_evaluate_planar(int id, PlanarData pd, vec3 P, vec3 N, vec3 V, float roughness)

@@ -10,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 
 #include "draw_subdivision.hh"
