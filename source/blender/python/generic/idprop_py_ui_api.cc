@@ -309,6 +309,10 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
     ui_data.enum_items = idprop_items;
     ui_data.enum_items_num = idprop_items_num;
   }
+  else {
+    ui_data.enum_items = nullptr;
+    ui_data.enum_items_num = 0;
+  }
 
   /* Write back to the property's UI data. */
   IDP_ui_data_free_unique_contents(&ui_data_orig->base, IDP_ui_data_type(idprop), &ui_data.base);
