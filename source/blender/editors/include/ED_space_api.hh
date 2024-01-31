@@ -36,13 +36,16 @@ void ED_spacetype_nla();
 void ED_spacetype_script();
 void ED_spacetype_text();
 void ED_spacetype_sequencer();
-void ED_spacetype_logic();
 void ED_spacetype_console();
 void ED_spacetype_userpref();
 void ED_spacetype_clip();
 void ED_spacetype_statusbar();
 void ED_spacetype_topbar();
-void ED_spacetype_spreadsheet();
+namespace blender::ed {
+namespace spreadsheet {
+void register_spacetype();
+}
+}  // namespace blender::ed
 
 /** \} */
 

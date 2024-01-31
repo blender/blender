@@ -22,7 +22,7 @@
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_row_filter.hh"
 
-using namespace blender::ed::spreadsheet;
+namespace blender::ed::spreadsheet {
 
 static int row_filter_add_exec(bContext *C, wmOperator * /*op*/)
 {
@@ -82,9 +82,7 @@ static void SPREADSHEET_OT_remove_row_filter_rule(wmOperatorType *ot)
 
 static int select_component_domain_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  using namespace blender;
-  const auto component_type = blender::bke::GeometryComponent::Type(
-      RNA_int_get(op->ptr, "component_type"));
+  const auto component_type = bke::GeometryComponent::Type(RNA_int_get(op->ptr, "component_type"));
   bke::AttrDomain domain = bke::AttrDomain(RNA_int_get(op->ptr, "attribute_domain_type"));
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
@@ -126,3 +124,5 @@ void spreadsheet_operatortypes()
   WM_operatortype_append(SPREADSHEET_OT_remove_row_filter_rule);
   WM_operatortype_append(SPREADSHEET_OT_change_spreadsheet_data_source);
 }
+
+}  // namespace blender::ed::spreadsheet
