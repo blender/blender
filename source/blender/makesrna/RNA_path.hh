@@ -15,6 +15,9 @@
  * UI code or Actions, though efficiency is a concern.
  */
 
+#include <optional>
+#include <string>
+
 #include "RNA_types.hh"
 
 struct ListBase;
@@ -177,7 +180,8 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_el
  * \param needle: Custom property object to find.
  * \return Relative path or NULL.
  */
-char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const IDProperty *needle);
+std::optional<std::string> RNA_path_from_struct_to_idproperty(PointerRNA *ptr,
+                                                              const IDProperty *needle);
 
 /**
  * Find the actual ID pointer and path from it to the given ID.
@@ -188,67 +192,73 @@ char *RNA_path_from_struct_to_idproperty(PointerRNA *ptr, const IDProperty *need
  */
 ID *RNA_find_real_ID_and_path(ID *id, const char **r_path);
 
-char *RNA_path_from_ID_to_struct(const PointerRNA *ptr);
+std::optional<std::string> RNA_path_from_ID_to_struct(const PointerRNA *ptr);
 
-char *RNA_path_from_real_ID_to_struct(Main *bmain, const PointerRNA *ptr, ID **r_real);
+std::optional<std::string> RNA_path_from_real_ID_to_struct(Main *bmain,
+                                                           const PointerRNA *ptr,
+                                                           ID **r_real);
 
-char *RNA_path_from_ID_to_property(const PointerRNA *ptr, PropertyRNA *prop);
+std::optional<std::string> RNA_path_from_ID_to_property(const PointerRNA *ptr, PropertyRNA *prop);
 
-char *RNA_path_from_ptr_to_property_index(const PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          int index_dim,
-                                          int index);
+std::string RNA_path_from_ptr_to_property_index(const PointerRNA *ptr,
+                                                PropertyRNA *prop,
+                                                int index_dim,
+                                                int index);
 /**
  * \param index_dim: The dimension to show, 0 disables. 1 for 1d array, 2 for 2d. etc.
  * \param index: The *flattened* index to use when \a `index_dim > 0`,
  * this is expanded when used with multi-dimensional arrays.
  */
-char *RNA_path_from_ID_to_property_index(const PointerRNA *ptr,
-                                         PropertyRNA *prop,
-                                         int index_dim,
-                                         int index);
+std::optional<std::string> RNA_path_from_ID_to_property_index(const PointerRNA *ptr,
+                                                              PropertyRNA *prop,
+                                                              int index_dim,
+                                                              int index);
 
-char *RNA_path_from_real_ID_to_property_index(Main *bmain,
-                                              const PointerRNA *ptr,
-                                              PropertyRNA *prop,
-                                              int index_dim,
-                                              int index,
-                                              ID **r_real_id);
+std::optional<std::string> RNA_path_from_real_ID_to_property_index(Main *bmain,
+                                                                   const PointerRNA *ptr,
+                                                                   PropertyRNA *prop,
+                                                                   int index_dim,
+                                                                   int index,
+                                                                   ID **r_real_id);
 
 /**
  * \return the path to given ptr/prop from the closest ancestor of given type,
  * if any (else return NULL).
  */
-char *RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
-                                             PropertyRNA *prop,
-                                             const StructRNA *type);
+std::optional<std::string> RNA_path_resolve_from_type_to_property(const PointerRNA *ptr,
+                                                                  PropertyRNA *prop,
+                                                                  const StructRNA *type);
 
 /**
  * Get the ID as a python representation, eg:
  *   bpy.data.foo["bar"]
  */
-char *RNA_path_full_ID_py(ID *id);
+std::string RNA_path_full_ID_py(ID *id);
 /**
  * Get the ID.struct as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct
  */
-char *RNA_path_full_struct_py(const PointerRNA *ptr);
+std::optional<std::string> RNA_path_full_struct_py(const PointerRNA *ptr);
 /**
  * Get the ID.struct.property as a python representation, eg:
  *   bpy.data.foo["bar"].some_struct.some_prop[10]
  */
-char *RNA_path_full_property_py_ex(const PointerRNA *ptr,
-                                   PropertyRNA *prop,
-                                   int index,
-                                   bool use_fallback);
-char *RNA_path_full_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
+std::optional<std::string> RNA_path_full_property_py_ex(const PointerRNA *ptr,
+                                                        PropertyRNA *prop,
+                                                        int index,
+                                                        bool use_fallback);
+std::optional<std::string> RNA_path_full_property_py(const PointerRNA *ptr,
+                                                     PropertyRNA *prop,
+                                                     int index);
 /**
  * Get the struct.property as a python representation, eg:
  *   some_struct.some_prop[10]
  */
-char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index);
+std::optional<std::string> RNA_path_struct_property_py(PointerRNA *ptr,
+                                                       PropertyRNA *prop,
+                                                       int index);
 /**
  * Get the struct.property as a python representation, eg:
  *   some_prop[10]
  */
-char *RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
+std::string RNA_path_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);

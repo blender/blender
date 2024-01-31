@@ -5080,7 +5080,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   Main *bmain = CTX_data_main(C);
   Key *key = (Key *)key_poin;
   KeyBlock *kb = (KeyBlock *)kb_poin;
-  char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
+  std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
 
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
@@ -5109,11 +5109,12 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   flag = ANIM_get_keyframing_flags(scene);
 
   /* try to resolve the path stored in the F-Curve */
-  if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
+  if (RNA_path_resolve_property(&id_ptr, rna_path ? rna_path->c_str() : nullptr, &ptr, &prop)) {
     /* find or create new F-Curve */
     /* XXX is the group name for this ok? */
     bAction *act = blender::animrig::id_action_ensure(bmain, (ID *)key);
-    FCurve *fcu = blender::animrig::action_fcurve_ensure(bmain, act, nullptr, &ptr, rna_path, 0);
+    FCurve *fcu = blender::animrig::action_fcurve_ensure(
+        bmain, act, nullptr, &ptr, rna_path->c_str(), 0);
 
     /* set the special 'replace' flag if on a keyframe */
     if (fcurve_frame_has_keyframe(fcu, remapped_frame)) {
@@ -5135,11 +5136,6 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
     if (done) {
       WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
     }
-  }
-
-  /* free the path */
-  if (rna_path) {
-    MEM_freeN(rna_path);
   }
 
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
@@ -5478,8 +5474,11 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
   UI_block_emboss_set(block, UI_EMBOSS_NONE);
   PropertyRNA *onion_skinning_prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
 
-  char *onion_skinning_rna_path = RNA_path_from_ID_to_property(&ptr, onion_skinning_prop);
-  if (RNA_path_resolve_property(&id_ptr, onion_skinning_rna_path, &ptr, &onion_skinning_prop)) {
+  const std::optional<std::string> onion_skinning_rna_path = RNA_path_from_ID_to_property(
+      &ptr, onion_skinning_prop);
+  if (RNA_path_resolve_property(
+          &id_ptr, onion_skinning_rna_path->c_str(), &ptr, &onion_skinning_prop))
+  {
     const int icon = layer->use_onion_skinning() ? ICON_ONIONSKIN_ON : ICON_ONIONSKIN_OFF;
     uiDefAutoButR(block,
                   &ptr,
@@ -5492,15 +5491,15 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
                   ICON_WIDTH,
                   channel_height);
   }
-  MEM_freeN(onion_skinning_rna_path);
 
   /* Layer opacity. */
   const short width = SLIDER_WIDTH * 0.6;
   offset -= width;
   UI_block_emboss_set(block, UI_EMBOSS);
   PropertyRNA *opacity_prop = RNA_struct_find_property(&ptr, "opacity");
-  char *opacity_rna_path = RNA_path_from_ID_to_property(&ptr, opacity_prop);
-  if (RNA_path_resolve_property(&id_ptr, opacity_rna_path, &ptr, &opacity_prop)) {
+  const std::optional<std::string> opacity_rna_path = RNA_path_from_ID_to_property(&ptr,
+                                                                                   opacity_prop);
+  if (RNA_path_resolve_property(&id_ptr, opacity_rna_path->c_str(), &ptr, &opacity_prop)) {
     uiDefAutoButR(block,
                   &ptr,
                   opacity_prop,
@@ -5512,7 +5511,6 @@ static void draw_grease_pencil_layer_widgets(bAnimListElem *ale,
                   width,
                   channel_height);
   }
-  MEM_freeN(opacity_rna_path);
 }
 #endif
 
@@ -5836,9 +5834,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
       else if (ale->id) { /* Slider using RNA Access --------------- */
         PointerRNA ptr;
         PropertyRNA *prop;
-        char *rna_path = nullptr;
+        std::optional<std::string> rna_path;
         int array_index = 0;
-        short free_path = 0;
 
         /* get destination info */
         if (ale->type == ANIMTYPE_FCURVE) {
@@ -5852,7 +5849,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
           Key *key = (Key *)ale->id;
 
           rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
-          free_path = 1;
         }
         /* Special for Grease Pencil Layer. */
         else if (ale->type == ANIMTYPE_GPLAYER) {
@@ -5861,7 +5857,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
             /* Reset slider offset, in order to add special gp icons. */
             offset += SLIDER_WIDTH;
 
-            char *gp_rna_path = nullptr;
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
             /* Create the RNA pointers. */
@@ -5873,67 +5868,73 @@ void ANIM_channel_draw_widgets(const bContext *C,
             offset -= ICON_WIDTH;
             UI_block_emboss_set(block, UI_EMBOSS_NONE);
             prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
-            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              icon = (gpl->onion_flag & GP_LAYER_ONIONSKIN) ? ICON_ONIONSKIN_ON :
-                                                              ICON_ONIONSKIN_OFF;
-              uiDefAutoButR(block,
-                            &ptr,
-                            prop,
-                            array_index,
-                            "",
-                            icon,
-                            offset,
-                            rect->ymin,
-                            ICON_WIDTH,
-                            channel_height);
+            if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
+                                                                                            prop))
+            {
+              if (RNA_path_resolve_property(&id_ptr, gp_rna_path->c_str(), &ptr, &prop)) {
+                icon = (gpl->onion_flag & GP_LAYER_ONIONSKIN) ? ICON_ONIONSKIN_ON :
+                                                                ICON_ONIONSKIN_OFF;
+                uiDefAutoButR(block,
+                              &ptr,
+                              prop,
+                              array_index,
+                              "",
+                              icon,
+                              offset,
+                              rect->ymin,
+                              ICON_WIDTH,
+                              channel_height);
+              }
             }
-            MEM_freeN(gp_rna_path);
 
             /* Mask Layer. */
             offset -= ICON_WIDTH;
             UI_block_emboss_set(block, UI_EMBOSS_NONE);
             prop = RNA_struct_find_property(&ptr, "use_mask_layer");
-            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              if (gpl->flag & GP_LAYER_USE_MASK) {
-                icon = ICON_MOD_MASK;
+            if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
+                                                                                            prop))
+            {
+              if (RNA_path_resolve_property(&id_ptr, gp_rna_path->c_str(), &ptr, &prop)) {
+                if (gpl->flag & GP_LAYER_USE_MASK) {
+                  icon = ICON_MOD_MASK;
+                }
+                else {
+                  icon = ICON_LAYER_ACTIVE;
+                }
+                uiDefAutoButR(block,
+                              &ptr,
+                              prop,
+                              array_index,
+                              "",
+                              icon,
+                              offset,
+                              rect->ymin,
+                              ICON_WIDTH,
+                              channel_height);
               }
-              else {
-                icon = ICON_LAYER_ACTIVE;
-              }
-              uiDefAutoButR(block,
-                            &ptr,
-                            prop,
-                            array_index,
-                            "",
-                            icon,
-                            offset,
-                            rect->ymin,
-                            ICON_WIDTH,
-                            channel_height);
             }
-            MEM_freeN(gp_rna_path);
 
             /* Layer opacity. */
             const short width = SLIDER_WIDTH * 0.6;
             offset -= width;
             UI_block_emboss_set(block, UI_EMBOSS);
             prop = RNA_struct_find_property(&ptr, "opacity");
-            gp_rna_path = RNA_path_from_ID_to_property(&ptr, prop);
-            if (RNA_path_resolve_property(&id_ptr, gp_rna_path, &ptr, &prop)) {
-              uiDefAutoButR(block,
-                            &ptr,
-                            prop,
-                            array_index,
-                            "",
-                            ICON_NONE,
-                            offset,
-                            rect->ymin,
-                            width,
-                            channel_height);
+            if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
+                                                                                            prop))
+            {
+              if (RNA_path_resolve_property(&id_ptr, gp_rna_path->c_str(), &ptr, &prop)) {
+                uiDefAutoButR(block,
+                              &ptr,
+                              prop,
+                              array_index,
+                              "",
+                              ICON_NONE,
+                              offset,
+                              rect->ymin,
+                              width,
+                              channel_height);
+              }
             }
-            MEM_freeN(gp_rna_path);
           }
         }
 #ifdef WITH_GREASE_PENCIL_V3
@@ -5948,7 +5949,9 @@ void ANIM_channel_draw_widgets(const bContext *C,
           PointerRNA id_ptr = RNA_id_pointer_create(ale->id);
 
           /* try to resolve the path */
-          if (RNA_path_resolve_property(&id_ptr, rna_path, &ptr, &prop)) {
+          if (RNA_path_resolve_property(
+                  &id_ptr, rna_path ? rna_path->c_str() : nullptr, &ptr, &prop))
+          {
             uiBut *but;
 
             /* Create the slider button,
@@ -5971,11 +5974,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
             else {
               UI_but_func_set(but, achannel_setting_slider_cb, ale->id, ale->data);
             }
-          }
-
-          /* free the path if necessary */
-          if (free_path) {
-            MEM_freeN(rna_path);
           }
         }
       }

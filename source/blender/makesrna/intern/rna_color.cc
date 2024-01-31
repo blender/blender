@@ -181,7 +181,6 @@ static char *rna_ColorRamp_path(const PointerRNA *ptr)
       case ID_NT: {
         bNodeTree *ntree = (bNodeTree *)id;
         bNode *node;
-        char *node_path;
 
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
           if (ELEM(node->type, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
@@ -190,9 +189,8 @@ static char *rna_ColorRamp_path(const PointerRNA *ptr)
                * prepend path from ID to the node
                */
               PointerRNA node_ptr = RNA_pointer_create(id, &RNA_Node, node);
-              node_path = RNA_path_from_ID_to_struct(&node_ptr);
-              path = BLI_sprintfN("%s.color_ramp", node_path);
-              MEM_freeN(node_path);
+              std::string node_path = RNA_path_from_ID_to_struct(&node_ptr).value_or("");
+              path = BLI_sprintfN("%s.color_ramp", node_path.c_str());
             }
           }
         }

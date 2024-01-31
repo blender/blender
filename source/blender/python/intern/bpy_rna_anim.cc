@@ -142,7 +142,8 @@ static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
     *r_path_full = BLI_strdup(path);
   }
   else {
-    *r_path_full = RNA_path_from_ID_to_property(&r_ptr, prop);
+    const std::optional<std::string> path_full = RNA_path_from_ID_to_property(&r_ptr, prop);
+    *r_path_full = path_full ? BLI_strdup(path_full->c_str()) : nullptr;
 
     if (*r_path_full == nullptr) {
       PyErr_Format(PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
@@ -176,8 +177,8 @@ static int pyrna_struct_anim_args_parse_no_resolve(PointerRNA *ptr,
     return 0;
   }
 
-  char *path_prefix = RNA_path_from_ID_to_struct(ptr);
-  if (path_prefix == nullptr) {
+  const std::optional<std::string> path_prefix = RNA_path_from_ID_to_struct(ptr);
+  if (!path_prefix) {
     PyErr_Format(PyExc_TypeError,
                  "%.200s could not make path for type %s",
                  error_prefix,
@@ -186,12 +187,11 @@ static int pyrna_struct_anim_args_parse_no_resolve(PointerRNA *ptr,
   }
 
   if (*path == '[') {
-    *r_path_full = BLI_string_joinN(path_prefix, path);
+    *r_path_full = BLI_string_joinN(path_prefix->c_str(), path);
   }
   else {
-    *r_path_full = BLI_string_join_by_sep_charN('.', path_prefix, path);
+    *r_path_full = BLI_string_join_by_sep_charN('.', path_prefix->c_str(), path);
   }
-  MEM_freeN(path_prefix);
 
   return 0;
 }

@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <optional>
+#include <string>
+
 /** \file
  * \ingroup bke
  */
@@ -101,7 +104,7 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src);
  * Get RNA-Path for 'value' setting of the given shape-key.
  * \note the user needs to free the returned string once they're finished with it.
  */
-char *BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb);
+std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb);
 
 /* conversion functions */
 /* NOTE: 'update_from' versions do not (re)allocate mem in kb, while 'convert_from' do. */

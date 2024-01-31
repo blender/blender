@@ -354,11 +354,11 @@ static bUserMenuItem *ui_but_user_menu_find(bContext *C, uiBut *but, bUserMenu *
       return nullptr;
     }
     /* Ignore the actual array index [pass -1] since the index is handled separately. */
-    const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
-                              RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
-                              RNA_property_identifier(but->rnaprop);
+    const std::string prop_id = RNA_property_is_idprop(but->rnaprop) ?
+                                    RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
+                                    RNA_property_identifier(but->rnaprop);
     bUserMenuItem *umi = (bUserMenuItem *)ED_screen_user_menu_item_find_prop(
-        &um->items, member_id_data_path.value().c_str(), prop_id, but->rnaindex);
+        &um->items, member_id_data_path->c_str(), prop_id.c_str(), but->rnaindex);
     return umi;
   }
 
@@ -436,12 +436,12 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
     }
     else {
       /* Ignore the actual array index [pass -1] since the index is handled separately. */
-      const char *prop_id = RNA_property_is_idprop(but->rnaprop) ?
-                                RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
-                                RNA_property_identifier(but->rnaprop);
+      const std::string prop_id = RNA_property_is_idprop(but->rnaprop) ?
+                                      RNA_path_property_py(&but->rnapoin, but->rnaprop, -1) :
+                                      RNA_property_identifier(but->rnaprop);
       /* NOTE: ignore 'drawstr', use property idname always. */
       ED_screen_user_menu_item_add_prop(
-          &um->items, "", member_id_data_path.value().c_str(), prop_id, but->rnaindex);
+          &um->items, "", member_id_data_path->c_str(), prop_id.c_str(), but->rnaindex);
     }
   }
   else if ((mt = UI_but_menutype_get(but))) {

@@ -3102,7 +3102,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
                                       PropertyRNA *prop,
                                       ListBase *r_lb,
                                       bool *r_use_path_from_id,
-                                      char **r_path);
+                                      std::optional<std::string> *r_path);
 bool UI_context_copy_to_selected_check(PointerRNA *ptr,
                                        PointerRNA *ptr_link,
                                        PropertyRNA *prop,

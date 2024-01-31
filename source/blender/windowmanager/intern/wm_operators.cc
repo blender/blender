@@ -246,15 +246,14 @@ std::string WM_operator_pystring_ex(bContext *C,
         opmptr = &opmptr_default;
       }
 
-      char *cstring_args = RNA_pointer_as_string_id(C, opmptr);
+      std::string string_args = RNA_pointer_as_string_id(C, opmptr);
       if (first_op) {
-        ss << opm->type->idname << '=' << cstring_args;
+        ss << opm->type->idname << '=' << string_args;
         first_op = false;
       }
       else {
-        ss << ", " << opm->type->idname << '=' << cstring_args;
+        ss << ", " << opm->type->idname << '=' << string_args;
       }
-      MEM_freeN(cstring_args);
 
       if (opmptr == &opmptr_default) {
         WM_operator_properties_free(&opmptr_default);
@@ -271,10 +270,8 @@ std::string WM_operator_pystring_ex(bContext *C,
       opptr = &opptr_default;
     }
 
-    char *cstring_args = RNA_pointer_as_string_keywords(
+    ss << RNA_pointer_as_string_keywords(
         C, opptr, false, all_args, macro_args_test, max_prop_length);
-    ss << cstring_args;
-    MEM_freeN(cstring_args);
 
     if (opptr == &opptr_default) {
       WM_operator_properties_free(&opptr_default);
@@ -608,34 +605,31 @@ std::optional<std::string> WM_context_path_resolve_property_full(const bContext 
   }
   std::string member_id_data_path;
   if (is_id && !RNA_struct_is_ID(ptr->type)) {
-    char *data_path = RNA_path_from_ID_to_struct(ptr);
-    if (data_path != nullptr) {
+    std::optional<std::string> data_path = RNA_path_from_ID_to_struct(ptr);
+    if (data_path) {
       if (prop != nullptr) {
-        char *prop_str = RNA_path_property_py(ptr, prop, index);
+        std::string prop_str = RNA_path_property_py(ptr, prop, index);
         if (prop_str[0] == '[') {
-          member_id_data_path = fmt::format("{}.{}", data_path, prop_str);
+          member_id_data_path = fmt::format("{}.{}", *data_path, prop_str);
         }
         else {
-          member_id_data_path = fmt::format("{}.{}.{}", member_id, data_path, prop_str);
+          member_id_data_path = fmt::format("{}.{}.{}", member_id, *data_path, prop_str);
         }
-        MEM_freeN(prop_str);
       }
       else {
-        member_id_data_path = fmt::format("{}.{}", member_id, data_path);
+        member_id_data_path = fmt::format("{}.{}", member_id, *data_path);
       }
-      MEM_freeN(data_path);
     }
   }
   else {
     if (prop != nullptr) {
-      char *prop_str = RNA_path_property_py(ptr, prop, index);
+      std::string prop_str = RNA_path_property_py(ptr, prop, index);
       if (prop_str[0] == '[') {
         member_id_data_path = fmt::format("{}{}", member_id, prop_str);
       }
       else {
         member_id_data_path = fmt::format("{}.{}", member_id, prop_str);
       }
-      MEM_freeN(prop_str);
     }
     else {
       member_id_data_path = member_id;
@@ -673,22 +667,17 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
 
   if (!lhs.has_value()) {
     /* Fallback to `bpy.data.foo[id]` if we don't find in the context. */
-    if (char *lhs_cstr = RNA_path_full_property_py(ptr, prop, index)) {
-      lhs = lhs_cstr;
-      MEM_freeN(lhs_cstr);
+    if (std::optional<std::string> lhs_str = RNA_path_full_property_py(ptr, prop, index)) {
+      lhs = lhs_str;
     }
     else {
       return std::nullopt;
     }
   }
 
-  char *rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
-  if (!rhs) {
-    return std::nullopt;
-  }
+  std::string rhs = RNA_property_as_string(C, ptr, prop, index, INT_MAX);
 
   std::string ret = fmt::format("{} = {}", lhs.value(), rhs);
-  MEM_freeN(rhs);
   return ret;
 }
 
@@ -1523,12 +1512,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
       BLF_width(style->widget.uifont_id, data->title.c_str(), BLF_DRAW_STR_DUMMY_MAX));
 
   /* Break Message into multiple lines. */
-  std::vector<std::string> message_lines;
+  blender::Vector<std::string> message_lines;
   blender::StringRef messaged_trimmed = blender::StringRef(data->message).trim();
   std::istringstream message_stream(messaged_trimmed);
   std::string line;
   while (std::getline(message_stream, line)) {
-    message_lines.push_back(line);
+    message_lines.append(line);
     text_width = std::max(
         text_width, int(BLF_width(style->widget.uifont_id, line.c_str(), BLF_DRAW_STR_DUMMY_MAX)));
   }

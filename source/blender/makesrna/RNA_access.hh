@@ -10,7 +10,9 @@
  * \ingroup RNA
  */
 
+#include <optional>
 #include <stdarg.h>
+#include <string>
 
 #include "RNA_types.hh"
 
@@ -636,34 +638,34 @@ void RNA_struct_property_unset(PointerRNA *ptr, const char *identifier);
 /**
  * Python compatible string representation of this property, (must be freed!).
  */
-char *RNA_property_as_string(
+std::string RNA_property_as_string(
     bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index, int max_prop_length);
 /**
  * String representation of a property, Python compatible but can be used for display too.
  * \param C: can be NULL.
  */
-char *RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr);
-char *RNA_pointer_as_string(bContext *C,
-                            PointerRNA *ptr,
-                            PropertyRNA *prop_ptr,
-                            PointerRNA *ptr_prop);
+std::string RNA_pointer_as_string_id(bContext *C, PointerRNA *ptr);
+std::optional<std::string> RNA_pointer_as_string(bContext *C,
+                                                 PointerRNA *ptr,
+                                                 PropertyRNA *prop_ptr,
+                                                 PointerRNA *ptr_prop);
 /**
  * \param C: can be NULL.
  */
-char *RNA_pointer_as_string_keywords_ex(bContext *C,
-                                        PointerRNA *ptr,
-                                        bool as_function,
-                                        bool all_args,
-                                        bool nested_args,
-                                        int max_prop_length,
-                                        PropertyRNA *iterprop);
-char *RNA_pointer_as_string_keywords(bContext *C,
-                                     PointerRNA *ptr,
-                                     bool as_function,
-                                     bool all_args,
-                                     bool nested_args,
-                                     int max_prop_length);
-char *RNA_function_as_string_keywords(
+std::string RNA_pointer_as_string_keywords_ex(bContext *C,
+                                              PointerRNA *ptr,
+                                              bool as_function,
+                                              bool all_args,
+                                              bool nested_args,
+                                              int max_prop_length,
+                                              PropertyRNA *iterprop);
+std::string RNA_pointer_as_string_keywords(bContext *C,
+                                           PointerRNA *ptr,
+                                           bool as_function,
+                                           bool all_args,
+                                           bool nested_args,
+                                           int max_prop_length);
+std::string RNA_function_as_string_keywords(
     bContext *C, FunctionRNA *func, bool as_function, bool all_args, int max_prop_length);
 
 /* Function */

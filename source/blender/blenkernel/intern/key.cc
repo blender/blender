@@ -1946,21 +1946,13 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
   kb_dst->slidermax = kb_src->slidermax;
 }
 
-char *BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb)
+std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb)
 {
-  PropertyRNA *prop;
-
-  /* sanity checks */
   if (ELEM(nullptr, key, kb)) {
     return nullptr;
   }
-
-  /* create the RNA pointer */
   PointerRNA ptr = RNA_pointer_create((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb);
-  /* get pointer to the property too */
-  prop = RNA_struct_find_property(&ptr, "value");
-
-  /* return the path */
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, "value");
   return RNA_path_from_ID_to_property(&ptr, prop);
 }
 

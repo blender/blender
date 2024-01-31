@@ -2930,7 +2930,7 @@ static const char *keymap_handler_log_kmi_op_str(bContext *C,
                                                  size_t buf_maxncpy)
 {
   /* The key-map item properties can further help distinguish this item from others. */
-  char *kmi_props = nullptr;
+  std::optional<std::string> kmi_props;
   if (kmi->properties != nullptr) {
     wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
     if (ot) {
@@ -2940,10 +2940,7 @@ static const char *keymap_handler_log_kmi_op_str(bContext *C,
       kmi_props = IDP_reprN(kmi->properties, nullptr);
     }
   }
-  BLI_snprintf(buf, buf_maxncpy, "%s(%s)", kmi->idname, kmi_props ? kmi_props : "");
-  if (kmi_props != nullptr) {
-    MEM_freeN(kmi_props);
-  }
+  BLI_snprintf(buf, buf_maxncpy, "%s(%s)", kmi->idname, kmi_props.value_or("").c_str());
   return buf;
 }
 

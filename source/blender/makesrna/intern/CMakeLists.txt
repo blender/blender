@@ -257,6 +257,7 @@ set(INC
   ../../render
   ../../../../intern/clog
   ../../../../intern/cycles/blender
+  ../../../../extern/fmtlib/include
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern
 
@@ -487,6 +488,7 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::dna
+  PRIVATE extern_fmtlib
   bf_editor_space_api
 
   bf_editor_animation

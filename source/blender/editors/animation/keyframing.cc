@@ -870,7 +870,6 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   ToolSettings *ts = scene->toolsettings;
   PointerRNA ptr = {nullptr};
   PropertyRNA *prop = nullptr;
-  char *path;
   uiBut *but;
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
       CTX_data_depsgraph_pointer(C), BKE_scene_frame_get(scene));
@@ -938,9 +937,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
     }
     else {
       /* standard properties */
-      path = RNA_path_from_ID_to_property(&ptr, prop);
-
-      if (path) {
+      if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
         const char *identifier = RNA_property_identifier(prop);
         const char *group = nullptr;
 
@@ -975,13 +972,11 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
                                                      ptr.owner_id,
                                                      nullptr,
                                                      group,
-                                                     path,
+                                                     path->c_str(),
                                                      index,
                                                      &anim_eval_context,
                                                      eBezTriple_KeyframeType(ts->keyframe_type),
                                                      flag) != 0);
-
-        MEM_freeN(path);
       }
       else {
         BKE_report(op->reports,
@@ -1052,7 +1047,6 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = {nullptr};
   PropertyRNA *prop = nullptr;
   Main *bmain = CTX_data_main(C);
-  char *path;
   const float cfra = BKE_scene_frame_get(scene);
   bool changed = false;
   int index;
@@ -1104,17 +1098,14 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
     }
     else {
       /* standard properties */
-      path = RNA_path_from_ID_to_property(&ptr, prop);
-
-      if (path) {
+      if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
         if (all) {
           /* -1 indicates operating on the entire array (or the property itself otherwise) */
           index = -1;
         }
 
         changed = blender::animrig::delete_keyframe(
-                      bmain, op->reports, ptr.owner_id, nullptr, path, index, cfra) != 0;
-        MEM_freeN(path);
+                      bmain, op->reports, ptr.owner_id, nullptr, path->c_str(), index, cfra) != 0;
       }
       else if (G.debug & G_DEBUG) {
         printf("Button Delete-Key: no path to property\n");
@@ -1161,7 +1152,6 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
   PointerRNA ptr = {nullptr};
   PropertyRNA *prop = nullptr;
   Main *bmain = CTX_data_main(C);
-  char *path;
   bool changed = false;
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");
@@ -1172,18 +1162,19 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
   }
 
   if (ptr.owner_id && ptr.data && prop) {
-    path = RNA_path_from_ID_to_property(&ptr, prop);
-
-    if (path) {
+    if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       if (all) {
         /* -1 indicates operating on the entire array (or the property itself otherwise) */
         index = -1;
       }
 
-      changed |=
-          (blender::animrig::clear_keyframe(
-               bmain, op->reports, ptr.owner_id, nullptr, path, index, eInsertKeyFlags(0)) != 0);
-      MEM_freeN(path);
+      changed |= (blender::animrig::clear_keyframe(bmain,
+                                                   op->reports,
+                                                   ptr.owner_id,
+                                                   nullptr,
+                                                   path->c_str(),
+                                                   index,
+                                                   eInsertKeyFlags(0)) != 0);
     }
     else if (G.debug & G_DEBUG) {
       printf("Button Clear-Key: no path to property\n");

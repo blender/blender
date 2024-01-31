@@ -353,7 +353,7 @@ bool autokeyframe_property(bContext *C,
       ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
       const eInsertKeyFlags flag = get_autokey_flags(scene);
-      char *path = RNA_path_from_ID_to_property(ptr, prop);
+      const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
 
       if (only_if_property_keyed) {
         /* NOTE: We use rnaindex instead of fcu->array_index,
@@ -366,14 +366,12 @@ bool autokeyframe_property(bContext *C,
                                 id,
                                 action,
                                 (fcu && fcu->grp) ? fcu->grp->name : nullptr,
-                                fcu ? fcu->rna_path : path,
+                                fcu ? fcu->rna_path : (path ? path->c_str() : nullptr),
                                 rnaindex,
                                 &anim_eval_context,
                                 eBezTriple_KeyframeType(ts->keyframe_type),
                                 flag) != 0;
-      if (path) {
-        MEM_freeN(path);
-      }
+
       WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
     }
   }

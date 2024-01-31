@@ -304,12 +304,9 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 
   /* Check if property is able to be added. */
   const bool all = RNA_boolean_get(op->ptr, "all");
-  char *path = nullptr;
   bool changed = false;
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
-    path = RNA_path_from_ID_to_property(&ptr, prop);
-
-    if (path) {
+    if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       if (all) {
         pflag |= KSP_FLAG_WHOLE_ARRAY;
 
@@ -322,11 +319,9 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 
       /* Add path to this setting. */
       BKE_keyingset_add_path(
-          keyingset, ptr.owner_id, nullptr, path, index, pflag, KSP_GROUP_KSNAME);
+          keyingset, ptr.owner_id, nullptr, path->c_str(), index, pflag, KSP_GROUP_KSNAME);
       keyingset->active_path = BLI_listbase_count(&keyingset->paths);
       changed = true;
-
-      MEM_freeN(path);
     }
   }
 
@@ -390,21 +385,16 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
       BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
 
   bool changed = false;
-  char *path = nullptr;
   if (ptr.owner_id && ptr.data && prop) {
-    path = RNA_path_from_ID_to_property(&ptr, prop);
-
-    if (path) {
+    if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       /* Try to find a path matching this description. */
       KS_Path *keyingset_path = BKE_keyingset_find_path(
-          keyingset, ptr.owner_id, keyingset->name, path, index, KSP_GROUP_KSNAME);
+          keyingset, ptr.owner_id, keyingset->name, path->c_str(), index, KSP_GROUP_KSNAME);
 
       if (keyingset_path) {
         BKE_keyingset_free_path(keyingset, keyingset_path);
         changed = true;
       }
-
-      MEM_freeN(path);
     }
   }
 

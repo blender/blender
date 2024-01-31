@@ -1480,7 +1480,6 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
                                                            ListBase *curves)
 {
   PointerRNA ptr;
-  char *basePath = nullptr;
   short flags = 0;
 
   /* build PointerRNA from provided data to obtain the paths to use */
@@ -1495,8 +1494,8 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
   }
 
   /* get the basic path to the properties of interest */
-  basePath = RNA_path_from_ID_to_struct(&ptr);
-  if (basePath == nullptr) {
+  const std::optional<std::string> basePath = RNA_path_from_ID_to_struct(&ptr);
+  if (!basePath) {
     return eAction_TransformFlags(0);
   }
 
@@ -1518,13 +1517,13 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
     }
 
     /* step 1: check for matching base path */
-    bPtr = strstr(fcu->rna_path, basePath);
+    bPtr = strstr(fcu->rna_path, basePath->c_str());
 
     if (bPtr) {
       /* we must add len(basePath) bytes to the match so that we are at the end of the
        * base path so that we don't get false positives with these strings in the names
        */
-      bPtr += strlen(basePath);
+      bPtr += strlen(basePath->c_str());
 
       /* step 2: check for some property with transforms
        * - to speed things up, only check for the ones not yet found
@@ -1596,9 +1595,6 @@ eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
       }
     }
   }
-
-  /* free basePath */
-  MEM_freeN(basePath);
 
   /* return flags found */
   return eAction_TransformFlags(flags);
