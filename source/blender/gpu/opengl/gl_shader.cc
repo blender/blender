@@ -895,11 +895,6 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
   int max_verts = info.geometry_layout_.max_vertices;
   int invocations = info.geometry_layout_.invocations;
 
-  if (GLContext::geometry_shader_invocations == false && invocations != -1) {
-    max_verts *= invocations;
-    invocations = -1;
-  }
-
   std::stringstream ss;
   ss << "\n/* Geometry Layout. */\n";
   ss << "layout(" << to_string(info.geometry_layout_.primitive_in);
@@ -1079,10 +1074,6 @@ static const char *glsl_patch_default_get()
     ss << "#extension GL_ARB_shader_draw_parameters : enable\n";
     ss << "#define GPU_ARB_shader_draw_parameters\n";
     ss << "#define gpu_BaseInstance gl_BaseInstanceARB\n";
-  }
-  if (GLContext::geometry_shader_invocations) {
-    ss << "#extension GL_ARB_gpu_shader5 : enable\n";
-    ss << "#define GPU_ARB_gpu_shader5\n";
   }
   if (epoxy_has_gl_extension("GL_ARB_conservative_depth")) {
     ss << "#extension GL_ARB_conservative_depth : enable\n";
