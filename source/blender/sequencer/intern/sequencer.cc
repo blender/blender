@@ -24,6 +24,7 @@
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 
 #include "DEG_depsgraph.hh"
@@ -906,11 +907,12 @@ static void seq_update_mix_sounds(Scene *scene, Sequence *seq)
 
 static void seq_update_sound_properties(const Scene *scene, const Sequence *seq)
 {
-  BKE_sound_set_scene_sound_volume(
-      seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
+  const int frame = BKE_scene_frame_get(scene);
+  BKE_sound_set_scene_sound_volume_at_frame(
+      seq->scene_sound, frame, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
   SEQ_retiming_sound_animation_data_set(scene, seq);
-  BKE_sound_set_scene_sound_pan(
-      seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
+  BKE_sound_set_scene_sound_pan_at_frame(
+      seq->scene_sound, frame, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
 }
 
 static void seq_update_sound_modifiers(Sequence *seq)
