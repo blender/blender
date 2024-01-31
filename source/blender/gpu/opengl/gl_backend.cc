@@ -317,7 +317,6 @@ static void detect_workarounds()
 #if 0
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
-    GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
     GLContext::geometry_shader_invocations = false;
     GLContext::texture_cube_map_array_support = false;
@@ -385,14 +384,6 @@ static void detect_workarounds()
     if (match_renderer(renderer, matches)) {
       GCaps.use_hq_normals_workaround = true;
     }
-  }
-  /* Limit this fix to older hardware with GL < 4.5. This means Broadwell GPUs are
-   * covered since they only support GL 4.4 on windows.
-   * This fixes some issues with workbench anti-aliasing on Win + Intel GPU. (see #76273) */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-      !(epoxy_gl_version() >= 45))
-  {
-    GLContext::copy_image_support = false;
   }
   /* Special fix for these specific GPUs.
    * Without this workaround, blender crashes on startup. (see #72098) */
@@ -505,7 +496,6 @@ GLint GLContext::max_ssbo_binds = 0;
 /** Extensions. */
 
 bool GLContext::clear_texture_support = false;
-bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
@@ -595,7 +585,6 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
   GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
-  GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");
   GLContext::debug_layer_support = epoxy_gl_version() >= 43 ||
                                    epoxy_has_gl_extension("GL_KHR_debug") ||
                                    epoxy_has_gl_extension("GL_ARB_debug_output");
