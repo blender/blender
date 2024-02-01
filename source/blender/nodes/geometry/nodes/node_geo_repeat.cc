@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_scene.h"
@@ -64,6 +65,14 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
+static void node_label(const bNodeTree * /*ntree*/,
+                       const bNode * /*node*/,
+                       char *label,
+                       const int label_maxncpy)
+{
+  BLI_strncpy_utf8(label, IFACE_("Repeat"), label_maxncpy);
+}
+
 static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 {
   bNode *output_node = ntree->node_by_id(node_storage(*node).output_node_id);
@@ -80,6 +89,7 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
+  ntype.labelfunc = node_label;
   ntype.gather_link_search_ops = nullptr;
   ntype.insert_link = node_insert_link;
   ntype.no_muting = true;
@@ -159,6 +169,7 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_REPEAT_OUTPUT, "Repeat Output", NODE_CLASS_INTERFACE);
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
+  ntype.labelfunc = repeat_input_node::node_label;
   ntype.insert_link = node_insert_link;
   ntype.no_muting = true;
   node_type_storage(&ntype, "NodeGeometryRepeatOutput", node_free_storage, node_copy_storage);
