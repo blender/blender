@@ -245,7 +245,9 @@ mark_as_advanced(CPACK_OVERRIDE_PACKAGENAME)
 mark_as_advanced(BUILDINFO_OVERRIDE_DATE)
 mark_as_advanced(BUILDINFO_OVERRIDE_TIME)
 
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16")
+# CMAKE 3.28.2 has issues with the combination of PCH and unity builds, disable for now.
+# upstream ticket https://gitlab.kitware.com/cmake/cmake/-/issues/25650
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16" AND NOT ${CMAKE_VERSION} VERSION_EQUAL "3.28.2")
   option(WITH_UNITY_BUILD "\
 Enable unity build for modules that support it to improve compile times.\n\
 WARNING: this option allows files to be built without all necessary headers!\n
