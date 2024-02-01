@@ -162,11 +162,7 @@ def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
 
         return mod
     else:
-        print(
-            "fake_module: addon missing 'bl_info' "
-            "gives bad performance!:",
-            repr(mod_path),
-        )
+        print("Warning: add-on missing 'bl_info', this can cause poor performance!:", repr(mod_path))
         return None
 
 
@@ -187,7 +183,7 @@ def modules_refresh(*, module_cache=addons_fake_modules):
         for mod_name, mod_path in _bpy.path.module_names(path, package=pkg_id):
             modules_stale.discard(mod_name)
             mod = module_cache.get(mod_name)
-            if mod:
+            if mod is not None:
                 if mod.__file__ != mod_path:
                     print(
                         "multiple addons with the same name:\n"
@@ -196,14 +192,12 @@ def modules_refresh(*, module_cache=addons_fake_modules):
                     )
                     error_duplicates.append((mod.bl_info["name"], mod.__file__, mod_path))
 
-                elif mod.__time__ != os.path.getmtime(mod_path):
-                    print(
-                        "reloading addon:",
-                        mod_name,
-                        mod.__time__,
-                        os.path.getmtime(mod_path),
-                        repr(mod_path),
-                    )
+                elif (
+                        (mod.__time__ != os.path.getmtime(metadata_path := mod_path)) if not pkg_id else
+                        # Check the manifest time as this is the source of the cache.
+                        (mod.__time_manifest__ != os.path.getmtime(metadata_path := mod.__file_manifest__))
+                ):
+                    print("reloading addon meta-data:", mod_name, repr(metadata_path), "(time-stamp change detected)")
                     del module_cache[mod_name]
                     mod = None
 
@@ -632,6 +626,9 @@ def _fake_module_from_extension(mod_name, mod_path, force_support=None):
     try:
         with open(filepath_toml, "rb") as fh:
             data = tomllib.load(fh)
+    except FileNotFoundError:
+        print("Warning: add-on missing manifest, this can cause poor performance!:", repr(filepath_toml))
+        return None
     except BaseException as ex:
         print("Error:", str(ex), "in", filepath_toml)
         return None
@@ -669,9 +666,16 @@ def _fake_module_from_extension(mod_name, mod_path, force_support=None):
     ModuleType = type(os)
     mod = ModuleType(mod_name)
     mod.bl_info = bl_info
-    # TODO: implement a way to update based on the time of the TOML file.
     mod.__file__ = mod_path
     mod.__time__ = os.path.getmtime(mod_path)
+
+    # NOTE(@ideasman42): Add non-standard manifest variables to the "fake" module,
+    # this isn't ideal as it moves further away from the return value being minimal fake-module
+    # (where `__name__` and `__file__` are typically used).
+    # A custom type could be used, however this needs to be done carefully
+    # as all users of `addon_utils.modules(..)` need to be updated.
+    mod.__file_manifest__ = filepath_toml
+    mod.__time_manifest__ = os.path.getmtime(filepath_toml)
     return mod
 
 
