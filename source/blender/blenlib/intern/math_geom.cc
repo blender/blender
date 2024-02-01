@@ -1260,8 +1260,8 @@ int isect_seg_seg_v2_point_ex(const float v0[2],
     if (equals_v2v2(v0, v1)) {
       if (len_squared_v2v2(v2, v3) > square_f(eps)) {
         /* use non-point segment as basis */
-        SWAP(const float *, v0, v2);
-        SWAP(const float *, v1, v3);
+        std::swap(v0, v2);
+        std::swap(v1, v3);
 
         sub_v2_v2v2(s10, v1, v0);
         sub_v2_v2v2(s30, v3, v0);
@@ -1283,7 +1283,7 @@ int isect_seg_seg_v2_point_ex(const float v0[2],
     u_b = dot_v2v2(s30, s10) / dot_v2v2(s10, s10);
 
     if (u_a > u_b) {
-      SWAP(float, u_a, u_b);
+      std::swap(u_a, u_b);
     }
 
     if (u_a > endpoint_max || u_b < endpoint_min) {
@@ -1795,7 +1795,7 @@ void isect_ray_tri_watertight_v3_precalc(IsectRayPrecalc *isect_precalc,
 
   /* Swap kx and ky dimensions to preserve winding direction of triangles. */
   if (ray_direction[kz] < 0.0f) {
-    SWAP(int, kx, ky);
+    std::swap(kx, ky);
   }
 
   /* Calculate the shear constants. */
@@ -2320,9 +2320,9 @@ bool isect_tri_tri_v3_ex(const float tri_a[3][3],
       double offset1 = fac1 * (dot_c - dot_b);
       if (offset0 > offset1) {
         /* Sort min max. */
-        SWAP(double, offset0, offset1);
-        SWAP(float, fac0, fac1);
-        SWAP(int, tri_i[0], tri_i[2]);
+        std::swap(offset0, offset1);
+        std::swap(fac0, fac1);
+        std::swap(tri_i[0], tri_i[2]);
       }
 
       range[i].min = float(dot_b + offset0);
@@ -2586,7 +2586,7 @@ static bool getLowestRoot(
 
     /* Sort so x1 <= x2 */
     if (r1 > r2) {
-      SWAP(float, r1, r2);
+      std::swap(r1, r2);
     }
 
     /* Get lowest root: */
@@ -2669,7 +2669,7 @@ bool isect_sweeping_sphere_tri_v3(const float p1[3],
     float t1 = (-a - radius) / nordotv;
 
     if (t0 > t1) {
-      SWAP(float, t0, t1);
+      std::swap(t0, t1);
     }
 
     if (t0 > 1.0f || t1 < 0.0f) {
@@ -3646,7 +3646,7 @@ void interp_weights_quad_v3(float w[4],
     cross_v3_v3v3(n, n1, n2);
 
     ok = barycentric_weights(v1, v2, v4, co, n, w);
-    SWAP(float, w[2], w[3]);
+    std::swap(w[2], w[3]);
 
     if (!ok || (w[0] < 0.0f)) {
       /* if w[1] is negative, co is on the other side of the v1-v3 edge,

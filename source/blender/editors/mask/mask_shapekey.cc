@@ -313,7 +313,7 @@ static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
                 MaskSplinePoint *point = &spline->points[i];
 
                 /* not especially efficient but makes this easier to follow */
-                SWAP(MaskLayerShapeElem, *shape_ele_src, *shape_ele_dst);
+                std::swap(*shape_ele_src, *shape_ele_dst);
 
                 if (MASKPOINT_ISSEL_ANY(point)) {
                   if (do_location) {

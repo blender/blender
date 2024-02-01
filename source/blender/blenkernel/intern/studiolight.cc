@@ -699,7 +699,7 @@ static void studiolight_radiance_preview(uint *icon_buffer, StudioLight *sl)
       sphere_normal_from_uv(normal, dx, dy);
       reflect_v3_v3v3(direction, incoming, normal);
       /* We want to see horizon not poles. */
-      SWAP(float, direction[1], direction[2]);
+      std::swap(direction[1], direction[2]);
       direction[1] = -direction[1];
 
       float4 color = studiolight_calculate_radiance(sl->equirect_radiance_buffer, direction);
@@ -762,7 +762,7 @@ static void studiolight_irradiance_preview(uint *icon_buffer, StudioLight *sl)
       float normal[3], color[3];
       sphere_normal_from_uv(normal, dx, dy);
       /* We want to see horizon not poles. */
-      SWAP(float, normal[1], normal[2]);
+      std::swap(normal[1], normal[2]);
       normal[1] = -normal[1];
 
       studiolight_lights_eval(sl, color, normal);

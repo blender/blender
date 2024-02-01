@@ -4218,7 +4218,7 @@ BLI_INLINE uint overlap_hash(const void *overlap_v)
   int x = overlap->indexA;
   int y = overlap->indexB;
   if (x > y) {
-    SWAP(int, x, y);
+    std::swap( x, y);
   }
   return BLI_hash_int_2d(x, y);
 }

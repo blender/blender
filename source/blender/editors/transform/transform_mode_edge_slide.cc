@@ -471,7 +471,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
       int l_nr = sv->loop_nr;
       if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
         swap_v3_v3(sv->dir_side[0], sv->dir_side[1]);
-        SWAP(BMVert *, sv->v_side[0], sv->v_side[1]);
+        std::swap(sv->v_side[0], sv->v_side[1]);
       }
     }
 

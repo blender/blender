@@ -1100,8 +1100,8 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
       if (BM_elem_flag_test(e, tag_loose) || (dists[i1] == FLT_MAX || dists[i2] == FLT_MAX)) {
         /* Propagate along edge from vertex with smallest to largest distance. */
         if (dists[i1] > dists[i2]) {
-          SWAP(int, i1, i2);
-          SWAP(BMVert *, v1, v2);
+          std::swap(i1, i2);
+          std::swap(v1, v2);
         }
 
         if (bmesh_test_dist_add(v2, v1, nullptr, dists, index, mtx)) {

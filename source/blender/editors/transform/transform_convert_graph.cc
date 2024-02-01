@@ -757,7 +757,7 @@ static void sort_time_beztmaps(BeztMap *bezms, int totvert)
           bezm->newIndex++;
           (bezm + 1)->newIndex--;
 
-          SWAP(BeztMap, *bezm, *(bezm + 1));
+          std::swap(*bezm, *(bezm + 1));
 
           ok = 1;
         }

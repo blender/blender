@@ -73,9 +73,9 @@ static DRWShadingGroup *gpencil_vfx_pass_create(
   tgp_vfx->target_fb = iter->target_fb;
   tgp_vfx->vfx_ps = pass;
 
-  SWAP(GPUFrameBuffer **, iter->target_fb, iter->source_fb);
-  SWAP(GPUTexture **, iter->target_color_tx, iter->source_color_tx);
-  SWAP(GPUTexture **, iter->target_reveal_tx, iter->source_reveal_tx);
+  std::swap(iter->target_fb, iter->source_fb);
+  std::swap(iter->target_color_tx, iter->source_color_tx);
+  std::swap(iter->target_reveal_tx, iter->source_reveal_tx);
 
   BLI_LINKS_APPEND(&iter->tgp_ob->vfx, tgp_vfx);
 
@@ -366,7 +366,7 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
     rotate_v2_v2fl(wave_dir, dir, fx->rotation);
     /* Rotate 90 degrees. */
     copy_v2_v2(wave_ofs, wave_dir);
-    SWAP(float, wave_ofs[0], wave_ofs[1]);
+    std::swap(wave_ofs[0], wave_ofs[1]);
     wave_ofs[1] *= -1.0f;
     /* Keep world space scaling and aspect ratio. */
     mul_v2_fl(wave_dir, 1.0f / (max_ff(1e-8f, fx->period) * distance_factor));
@@ -523,7 +523,7 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   }
   /* Rotate 90 degrees. */
   copy_v2_v2(wave_ofs, wave_dir);
-  SWAP(float, wave_ofs[0], wave_ofs[1]);
+  std::swap(wave_ofs[0], wave_ofs[1]);
   wave_ofs[1] *= -1.0f;
   /* Keep world space scaling and aspect ratio. */
   mul_v2_fl(wave_dir, 1.0f / (max_ff(1e-8f, fx->period) * distance_factor));

@@ -28,7 +28,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
     float *orig_float_pixels = static_cast<float *>(MEM_dupallocN(float_pixels));
     const int channels = ibuf->channels;
     if (degrees == 90) {
-      SWAP(int, ibuf->x, ibuf->y);
+      std::swap(ibuf->x, ibuf->y);
       for (int y = 0; y < size_y; y++) {
         for (int x = 0; x < size_x; x++) {
           const float *source_pixel = &orig_float_pixels[(y * size_x + x) * channels];
@@ -49,7 +49,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
       }
     }
     else if (degrees == 270) {
-      SWAP(int, ibuf->x, ibuf->y);
+      std::swap(ibuf->x, ibuf->y);
       for (int y = 0; y < size_y; y++) {
         for (int x = 0; x < size_x; x++) {
           const float *source_pixel = &orig_float_pixels[(y * size_x + x) * channels];
@@ -68,7 +68,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
     uchar *char_pixels = ibuf->byte_buffer.data;
     uchar *orig_char_pixels = static_cast<uchar *>(MEM_dupallocN(char_pixels));
     if (degrees == 90) {
-      SWAP(int, ibuf->x, ibuf->y);
+      std::swap(ibuf->x, ibuf->y);
       for (int y = 0; y < size_y; y++) {
         for (int x = 0; x < size_x; x++) {
           const uchar *source_pixel = &orig_char_pixels[(y * size_x + x) * 4];
@@ -88,7 +88,7 @@ bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees)
       }
     }
     else if (degrees == 270) {
-      SWAP(int, ibuf->x, ibuf->y);
+      std::swap(ibuf->x, ibuf->y);
       for (int y = 0; y < size_y; y++) {
         for (int x = 0; x < size_x; x++) {
           const uchar *source_pixel = &orig_char_pixels[(y * size_x + x) * 4];
@@ -179,7 +179,7 @@ void IMB_flipx(ImBuf *ibuf)
     for (yi = y - 1; yi >= 0; yi--) {
       const size_t x_offset = size_t(x) * yi;
       for (xr = x - 1, xl = 0; xr >= xl; xr--, xl++) {
-        SWAP(uint, rect[x_offset + xr], rect[x_offset + xl]);
+        std::swap(rect[x_offset + xr], rect[x_offset + xl]);
       }
     }
   }

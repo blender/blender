@@ -1101,7 +1101,7 @@ static void cloth_selfcollision(void *__restrict userdata,
   int indexA = data->overlap[index].indexA, indexB = data->overlap[index].indexB;
 
   if (indexA > indexB) {
-    SWAP(int, indexA, indexB);
+    std::swap( indexA, indexB);
   }
 
   const blender::int3 vert_tri_a = clmd->clothObject->vert_tris[indexA];

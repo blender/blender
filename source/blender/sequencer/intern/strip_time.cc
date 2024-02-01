@@ -227,7 +227,7 @@ void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
   }
 
   if (seq->startdisp > seq->enddisp) {
-    SWAP(int, seq->startdisp, seq->enddisp);
+    std::swap( seq->startdisp, seq->enddisp);
   }
 
   /* Values unusable for effects, these should be always 0. */

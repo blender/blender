@@ -67,17 +67,6 @@ extern "C" {
   } \
   (void)0
 
-/* swap with a temp value */
-#define SWAP_TVAL(tval, a, b) \
-  { \
-    CHECK_TYPE_PAIR(tval, a); \
-    CHECK_TYPE_PAIR(tval, b); \
-    (tval) = (a); \
-    (a) = (b); \
-    (b) = (tval); \
-  } \
-  (void)0
-
 /* shift around elements */
 #define SHIFT3(type, a, b, c) \
   { \

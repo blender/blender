@@ -232,7 +232,7 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
     }
 
     if (min > max) {
-      SWAP(float, min, max);
+      std::swap(min, max);
     }
   }
 

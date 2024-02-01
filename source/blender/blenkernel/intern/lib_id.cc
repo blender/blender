@@ -903,7 +903,7 @@ static void id_embedded_swap(ID **embedded_id_a,
             remapper_id_b,
             0);
     /* Manual 'remap' of owning embedded pointer in owner ID. */
-    SWAP(ID *, *embedded_id_a, *embedded_id_b);
+    std::swap(*embedded_id_a, *embedded_id_b);
 
     /* Restore internal pointers to the swapped embedded IDs in their owners' data. This also
      * includes the potential self-references inside the embedded IDs themselves. */

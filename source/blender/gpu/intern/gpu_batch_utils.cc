@@ -148,7 +148,7 @@ GPUBatch *GPU_batch_wire_from_poly_2d_encoded(const uchar *polys_flat,
         data.as_u16[0] = *((const uint16_t *)polys_step[i_prev]);
         data.as_u16[1] = *((const uint16_t *)polys_step[i]);
         if (data.as_u16[0] > data.as_u16[1]) {
-          SWAP(uint16_t, data.as_u16[0], data.as_u16[1]);
+          std::swap(data.as_u16[0], data.as_u16[1]);
         }
         *lines_step = data.as_u32;
         lines_step++;

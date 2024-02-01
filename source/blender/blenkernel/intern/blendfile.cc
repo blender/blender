@@ -330,7 +330,7 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
   BLI_assert(BLI_listbase_is_empty(old_lb) || !ID_IS_LINKED(old_lb->last));
   BLI_assert(BLI_listbase_is_empty(new_lb) || !ID_IS_LINKED(new_lb->last));
 
-  SWAP(ListBase, *new_lb, *old_lb);
+  std::swap(*new_lb, *old_lb);
 
   /* TODO: Could add per-IDType control over namemaps clearing, if this becomes a performances
    * concern. */

@@ -1777,7 +1777,7 @@ static void ed_surf_delete_selected(Object *obedit)
           if (newu == 1 && nu->pntsv > 1) { /* make a U spline */
             nu->pntsu = nu->pntsv;
             nu->pntsv = 1;
-            SWAP(short, nu->orderu, nu->orderv);
+            std::swap(nu->orderu, nu->orderv);
             BKE_nurb_order_clamp_u(nu);
             MEM_SAFE_FREE(nu->knotsv);
           }
@@ -4109,7 +4109,7 @@ static void switchdirection_knots(float *base, int tot)
   fp2 = fp1 + (a - 1);
   a /= 2;
   while (fp1 != fp2 && a > 0) {
-    SWAP(float, *fp1, *fp2);
+    std::swap(*fp1, *fp2);
     a--;
     fp1++;
     fp2--;
@@ -4144,12 +4144,12 @@ static void rotate_direction_nurb(Nurb *nu)
   BPoint *bp1, *bp2, *temp;
   int u, v;
 
-  SWAP(int, nu->pntsu, nu->pntsv);
-  SWAP(short, nu->orderu, nu->orderv);
-  SWAP(short, nu->resolu, nu->resolv);
-  SWAP(short, nu->flagu, nu->flagv);
+  std::swap(nu->pntsu, nu->pntsv);
+  std::swap(nu->orderu, nu->orderv);
+  std::swap(nu->resolu, nu->resolv);
+  std::swap(nu->flagu, nu->flagv);
 
-  SWAP(float *, nu->knotsu, nu->knotsv);
+  std::swap(nu->knotsu, nu->knotsv);
   switchdirection_knots(nu->knotsv, KNOTSV(nu));
 
   temp = static_cast<BPoint *>(MEM_dupallocN(nu->bp));
@@ -4692,7 +4692,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
     }
     else if ((nu1 && !nu2) || (!nu1 && nu2)) {
       if (nu2) {
-        SWAP(Nurb *, nu1, nu2);
+        std::swap(nu1, nu2);
       }
 
       if (!(nu1->flagu & CU_NURB_CYCLIC) && nu1->pntsu > 1) {

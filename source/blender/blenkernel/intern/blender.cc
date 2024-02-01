@@ -372,12 +372,6 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
   } \
   ((void)0)
 
-#define LISTBASE_SWAP(id) \
-  { \
-    SWAP(ListBase, userdef_a->id, userdef_b->id); \
-  } \
-  ((void)0)
-
 #define FLAG_SWAP(id, ty, flags) \
   { \
     CHECK_TYPE(&(userdef_a->id), ty *); \
@@ -389,12 +383,12 @@ void BKE_blender_userdef_app_template_data_swap(UserDef *userdef_a, UserDef *use
   } \
   ((void)0)
 
-  LISTBASE_SWAP(uistyles);
-  LISTBASE_SWAP(uifonts);
-  LISTBASE_SWAP(themes);
-  LISTBASE_SWAP(addons);
-  LISTBASE_SWAP(user_keymaps);
-  LISTBASE_SWAP(user_keyconfig_prefs);
+  std::swap(userdef_a->uistyles, userdef_b->uistyles);
+  std::swap(userdef_a->uifonts, userdef_b->uifonts);
+  std::swap(userdef_a->themes, userdef_b->themes);
+  std::swap(userdef_a->addons, userdef_b->addons);
+  std::swap(userdef_a->user_keymaps, userdef_b->user_keymaps);
+  std::swap(userdef_a->user_keyconfig_prefs, userdef_b->user_keyconfig_prefs);
 
   DATA_SWAP(font_path_ui);
   DATA_SWAP(font_path_ui_mono);
