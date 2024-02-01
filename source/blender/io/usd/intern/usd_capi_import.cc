@@ -304,7 +304,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   data->archive = archive;
 
-  archive->collect_readers(data->bmain);
+  archive->collect_readers();
 
   if (data->params.import_materials && data->params.import_all_materials) {
     archive->import_all_materials(data->bmain);
@@ -412,7 +412,7 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
-      if (reader->prim().IsInPrototype()) {
+      if (reader->is_in_proto()) {
         /* Skip prototype prims, as these are added to prototype collections. */
         continue;
       }
@@ -429,6 +429,7 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
+
       Object *ob = reader->object();
       if (!ob) {
         continue;
