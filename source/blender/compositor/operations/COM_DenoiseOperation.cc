@@ -99,7 +99,7 @@ class DenoiseFilter {
   }
 
 #else
-  void init_and_lock_denoiser(MemoryBuffer * /*output*/) {}
+  void init_and_lock_denoiser(NodeOperation * /*operation*/, MemoryBuffer * /*output*/) {}
 
   void deinit_and_unlock_denoiser() {}
 
