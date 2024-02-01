@@ -22,6 +22,9 @@ struct Main;
 struct Object;
 struct PointCloud;
 struct Scene;
+namespace blender::bke::bake {
+struct BakeMaterialsList;
+}
 
 /* PointCloud datablock */
 extern const char *POINTCLOUD_ATTR_POSITION;
@@ -36,6 +39,9 @@ struct PointCloudRuntime {
    * See #SharedCache comments.
    */
   mutable SharedCache<Bounds<float3>> bounds_cache;
+
+  /** Stores weak references to material data blocks. */
+  std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("PointCloudRuntime");
 };

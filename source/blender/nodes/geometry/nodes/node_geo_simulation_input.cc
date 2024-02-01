@@ -89,15 +89,17 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
     float delta_time = 0.0f;
     if (auto *info = std::get_if<sim_input::OutputCopy>(&input_behavior)) {
       delta_time = info->delta_time;
-      this->output_simulation_state_copy(params, user_data, info->state);
+      this->output_simulation_state_copy(
+          params, user_data, zone_behavior->data_block_map, info->state);
     }
     else if (auto *info = std::get_if<sim_input::OutputMove>(&input_behavior)) {
       delta_time = info->delta_time;
-      this->output_simulation_state_move(params, user_data, std::move(info->state));
+      this->output_simulation_state_move(
+          params, user_data, zone_behavior->data_block_map, std::move(info->state));
     }
     else if (std::get_if<sim_input::PassThrough>(&input_behavior)) {
       delta_time = 0.0f;
-      this->pass_through(params, user_data);
+      this->pass_through(params, user_data, zone_behavior->data_block_map);
     }
     else {
       BLI_assert_unreachable();
@@ -114,6 +116,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
   void output_simulation_state_copy(lf::Params &params,
                                     const GeoNodesLFUserData &user_data,
+                                    bke::bake::BakeDataBlockMap *data_block_map,
                                     const bke::bake::BakeStateRef &zone_state) const
   {
     Array<void *> outputs(simulation_items_.size());
@@ -125,6 +128,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
                                     *user_data.call_data->self_object(),
                                     *user_data.compute_context,
                                     node_,
+                                    data_block_map,
                                     outputs);
     for (const int i : simulation_items_.index_range()) {
       params.output_set(i + 1);
@@ -133,6 +137,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
   void output_simulation_state_move(lf::Params &params,
                                     const GeoNodesLFUserData &user_data,
+                                    bke::bake::BakeDataBlockMap *data_block_map,
                                     bke::bake::BakeState zone_state) const
   {
     Array<void *> outputs(simulation_items_.size());
@@ -144,13 +149,16 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
                                     *user_data.call_data->self_object(),
                                     *user_data.compute_context,
                                     node_,
+                                    data_block_map,
                                     outputs);
     for (const int i : simulation_items_.index_range()) {
       params.output_set(i + 1);
     }
   }
 
-  void pass_through(lf::Params &params, const GeoNodesLFUserData &user_data) const
+  void pass_through(lf::Params &params,
+                    const GeoNodesLFUserData &user_data,
+                    bke::bake::BakeDataBlockMap *data_block_map) const
   {
     Array<void *> input_values(inputs_.size());
     for (const int i : inputs_.index_range()) {
@@ -163,9 +171,9 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
     /* Instead of outputting the initial values directly, convert them to a simulation state and
      * then back. This ensures that some geometry processing happens on the data consistently (e.g.
      * removing anonymous attributes). */
-    bke::bake::BakeState bake_state = move_values_to_simulation_state(simulation_items_,
-                                                                      input_values);
-    this->output_simulation_state_move(params, user_data, std::move(bake_state));
+    bke::bake::BakeState bake_state = move_values_to_simulation_state(
+        simulation_items_, input_values, data_block_map);
+    this->output_simulation_state_move(params, user_data, data_block_map, std::move(bake_state));
   }
 };
 

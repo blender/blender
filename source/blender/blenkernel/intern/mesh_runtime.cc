@@ -17,6 +17,7 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
+#include "BKE_bake_data_block_id.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh_cache.hh"

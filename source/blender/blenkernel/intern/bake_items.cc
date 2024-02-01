@@ -27,27 +27,49 @@ using DictionaryValuePtr = std::shared_ptr<DictionaryValue>;
 
 GeometryBakeItem::GeometryBakeItem(GeometrySet geometry) : geometry(std::move(geometry)) {}
 
-static void remove_materials(Material ***materials, short *materials_num)
+static std::unique_ptr<BakeMaterialsList> materials_to_weak_references(
+    Material ***materials, short *materials_num, BakeDataBlockMap *data_block_map)
 {
+  if (*materials_num == 0) {
+    return {};
+  }
+  auto materials_list = std::make_unique<BakeMaterialsList>();
+  materials_list->resize(*materials_num);
+  for (const int i : materials_list->index_range()) {
+    Material *material = (*materials)[i];
+    if (material) {
+      (*materials_list)[i] = BakeDataBlockID(material->id);
+      if (data_block_map) {
+        data_block_map->try_add(material->id);
+      }
+    }
+  }
+
   MEM_SAFE_FREE(*materials);
   *materials_num = 0;
+
+  return materials_list;
 }
 
-void GeometryBakeItem::cleanup_geometry(GeometrySet &main_geometry)
+void GeometryBakeItem::prepare_geometry_for_bake(GeometrySet &main_geometry,
+                                                 BakeDataBlockMap *data_block_map)
 {
   main_geometry.ensure_owns_all_data();
   main_geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       mesh->attributes_for_write().remove_anonymous();
-      remove_materials(&mesh->mat, &mesh->totcol);
+      mesh->runtime->bake_materials = materials_to_weak_references(
+          &mesh->mat, &mesh->totcol, data_block_map);
     }
     if (Curves *curves = geometry.get_curves_for_write()) {
       curves->geometry.wrap().attributes_for_write().remove_anonymous();
-      remove_materials(&curves->mat, &curves->totcol);
+      curves->geometry.runtime->bake_materials = materials_to_weak_references(
+          &curves->mat, &curves->totcol, data_block_map);
     }
     if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
       pointcloud->attributes_for_write().remove_anonymous();
-      remove_materials(&pointcloud->mat, &pointcloud->totcol);
+      pointcloud->runtime->bake_materials = materials_to_weak_references(
+          &pointcloud->mat, &pointcloud->totcol, data_block_map);
     }
     if (bke::Instances *instances = geometry.get_instances_for_write()) {
       instances->attributes_for_write().remove_anonymous();
@@ -56,6 +78,53 @@ void GeometryBakeItem::cleanup_geometry(GeometrySet &main_geometry)
                                       GeometryComponent::Type::Curve,
                                       GeometryComponent::Type::PointCloud,
                                       GeometryComponent::Type::Instance});
+  });
+}
+
+static void restore_materials(Material ***materials,
+                              short *materials_num,
+                              std::unique_ptr<BakeMaterialsList> materials_list,
+                              BakeDataBlockMap *data_block_map)
+{
+  if (!materials_list) {
+    return;
+  }
+  BLI_assert(*materials == nullptr);
+  *materials_num = materials_list->size();
+  *materials = MEM_cnew_array<Material *>(materials_list->size(), __func__);
+  if (!data_block_map) {
+    return;
+  }
+
+  for (const int i : materials_list->index_range()) {
+    const std::optional<BakeDataBlockID> &data_block_id = (*materials_list)[i];
+    if (data_block_id) {
+      (*materials)[i] = reinterpret_cast<Material *>(
+          data_block_map->lookup_or_remember_missing(*data_block_id));
+    }
+  }
+}
+
+void GeometryBakeItem::try_restore_data_blocks(GeometrySet &main_geometry,
+                                               BakeDataBlockMap *data_block_map)
+{
+  main_geometry.modify_geometry_sets([&](GeometrySet &geometry) {
+    if (Mesh *mesh = geometry.get_mesh_for_write()) {
+      restore_materials(
+          &mesh->mat, &mesh->totcol, std::move(mesh->runtime->bake_materials), data_block_map);
+    }
+    if (Curves *curves = geometry.get_curves_for_write()) {
+      restore_materials(&curves->mat,
+                        &curves->totcol,
+                        std::move(curves->geometry.runtime->bake_materials),
+                        data_block_map);
+    }
+    if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
+      restore_materials(&pointcloud->mat,
+                        &pointcloud->totcol,
+                        std::move(pointcloud->runtime->bake_materials),
+                        data_block_map);
+    }
   });
 }
 

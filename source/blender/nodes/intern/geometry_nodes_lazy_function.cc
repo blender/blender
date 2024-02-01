@@ -965,8 +965,8 @@ class LazyFunctionForBakeInputsUsage : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    const bool need_inputs = std::holds_alternative<sim_output::PassThrough>(*behavior) ||
-                             std::holds_alternative<sim_output::StoreNewState>(*behavior);
+    const bool need_inputs = std::holds_alternative<sim_output::PassThrough>(behavior->behavior) ||
+                             std::holds_alternative<sim_output::StoreNewState>(behavior->behavior);
     params.set_output(0, need_inputs);
   }
 

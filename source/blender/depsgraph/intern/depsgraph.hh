@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <functional>
+#include <mutex>
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
@@ -173,6 +175,14 @@ struct Depsgraph {
 
   /* The number of times this graph has been evaluated. */
   uint64_t update_count;
+
+  /**
+   * Stores functions that can be called after depsgraph evaluation to writeback some changes to
+   * original data. Also see `DEG_depsgraph_writeback_sync.hh`.
+   */
+  Vector<std::function<void()>> sync_writeback_callbacks;
+  /** Needs to be locked when adding a writeback callback during evaluation. */
+  std::mutex sync_writeback_callbacks_mutex;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };
