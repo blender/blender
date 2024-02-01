@@ -902,10 +902,10 @@ std::optional<std::string> RNA_path_from_struct_to_idproperty(PointerRNA *ptr,
 {
   const IDProperty *haystack = RNA_struct_idprops(ptr, false);
 
-  if (haystack) { /* can fail when called on bones */
-    return rna_idp_path(ptr, haystack, needle, nullptr);
+  if (!haystack) { /* can fail when called on bones */
+    return std::nullopt;
   }
-  return std::nullopt;
+  return rna_idp_path(ptr, haystack, needle, nullptr);
 }
 
 static std::optional<std::string> rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
