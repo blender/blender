@@ -374,7 +374,8 @@ static int insert_key_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   /* Use the active keying set if there is one. */
-  KeyingSet *ks = ANIM_keyingset_get_from_enum_type(scene, scene->active_keyingset);
+  const int type = RNA_enum_get(op->ptr, "type");
+  KeyingSet *ks = ANIM_keyingset_get_from_enum_type(scene, type);
   if (ks) {
     return insert_key_with_keyingset(C, op, ks);
   }
@@ -396,6 +397,13 @@ void ANIM_OT_keyframe_insert(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Allows passing in a keying set when using the Python operator. */
+  PropertyRNA *prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_dummy_DEFAULT_items, 0, "Keying Set", "The Keying Set to use");
+  RNA_def_enum_funcs(prop, ANIM_keying_sets_enum_itemf);
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+  ot->prop = prop;
 }
 
 static int keyframe_insert_with_keyingset_exec(bContext *C, wmOperator *op)
