@@ -683,17 +683,17 @@ def _bl_info_from_extension(mod_name, mod_path, force_support=None):
     try:
         value = tuple(int(x) for x in value.split("."))
     except BaseException as ex:
-        print("Error:", str(ex), "in \"blender_version\"", filepath_toml)
+        print("Error:", str(ex), "in \"blender_version_min\"", filepath_toml)
         return None, filepath_toml
     bl_info["blender"] = value
 
-    if (value := data.get("author", None)) is None:
+    if (value := data.get("maintainer", None)) is None:
         print("Error: missing \"author\" from in", filepath_toml)
         return None, filepath_toml
-    if (type(value) is not list) or any(x for x in value if type(x) is not str):
-        print("Error: \"author\" is not a list of strings in", filepath_toml)
+    if type(value) is not str:
+        print("Error: \"maintainer\" is not a string", filepath_toml)
         return None, filepath_toml
-    bl_info["author"] = ", ".join(value)
+    bl_info["author"] = value
 
     bl_info["category"] = "Development"  # Dummy, will be removed.
 
