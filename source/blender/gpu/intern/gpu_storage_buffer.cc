@@ -116,4 +116,9 @@ void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data)
   unwrap(ssbo)->read(data);
 }
 
+void GPU_storagebuf_sync_as_indirect_buffer(GPUStorageBuf *ssbo)
+{
+  unwrap(ssbo)->sync_as_indirect_buffer();
+}
+
 /** \} */

@@ -183,6 +183,13 @@ void GLStorageBuf::read(void *data)
   }
 }
 
+void GLStorageBuf::sync_as_indirect_buffer()
+{
+  bind_as(GL_DRAW_INDIRECT_BUFFER);
+  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+}
+
 /** \} */
 
 }  // namespace blender::gpu

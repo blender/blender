@@ -790,6 +790,7 @@ void DrawMultiBuf::bind(RecordingState &state,
     else {
       GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
     }
+    GPU_storagebuf_sync_as_indirect_buffer(command_buf_);
   }
 
   GPU_debug_group_end();
