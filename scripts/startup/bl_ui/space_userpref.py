@@ -1114,14 +1114,13 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
 
         layout.separator()
 
-        layout.label(text="Widget")
-        self._ui_font_style(layout, style.widget)
-
-        layout.separator()
-
         layout.label(text="Widget Label")
         self._ui_font_style(layout, style.widget_label)
 
+        layout.separator()
+
+        layout.label(text="Widget")
+        self._ui_font_style(layout, style.widget)
 
 class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
     bl_label = "Bone Color Sets"
