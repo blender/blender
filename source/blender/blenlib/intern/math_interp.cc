@@ -147,8 +147,8 @@ static void bicubic_interpolation(
   }
 #endif
 
-  int iu = (int)floor(u);
-  int iv = (int)floor(v);
+  int iu = int(floor(u));
+  int iv = int(floor(v));
 
   /* Sample area entirely outside image? */
   if (iu + 1 < 0 || iu > width - 1 || iv + 1 < 0 || iv > height - 1) {
@@ -156,8 +156,8 @@ static void bicubic_interpolation(
     return;
   }
 
-  float frac_u = u - (float)iu;
-  float frac_v = v - (float)iv;
+  float frac_u = u - float(iu);
+  float frac_v = v - float(iv);
 
   float4 out{0.0f};
 
@@ -259,7 +259,7 @@ BLI_INLINE void bilinear_fl_impl(const float *buffer,
   float uf = floorf(u);
   float vf = floorf(v);
 
-  x1 = (int)uf;
+  x1 = int(uf);
   x2 = x1 + 1;
   y1 = int(vf);
   y2 = y1 + 1;
@@ -445,9 +445,9 @@ uchar4 interpolate_bilinear_byte(const uchar *buffer, int width, int height, flo
   float uf = floorf(u);
   float vf = floorf(v);
 
-  int x1 = (int)uf;
+  int x1 = int(uf);
   int x2 = x1 + 1;
-  int y1 = (int)vf;
+  int y1 = int(vf);
   int y2 = y1 + 1;
 
   /* Completely outside of the image? */
@@ -493,10 +493,10 @@ uchar4 interpolate_bilinear_byte(const uchar *buffer, int width, int height, flo
   float a_mb = a * (1.0f - b);
   float ma_mb = (1.0f - a) * (1.0f - b);
 
-  res.x = (uchar)(ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] + 0.5f);
-  res.y = (uchar)(ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] + 0.5f);
-  res.z = (uchar)(ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] + 0.5f);
-  res.w = (uchar)(ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3] + 0.5f);
+  res.x = uchar(ma_mb * row1[0] + a_mb * row3[0] + ma_b * row2[0] + a_b * row4[0] + 0.5f);
+  res.y = uchar(ma_mb * row1[1] + a_mb * row3[1] + ma_b * row2[1] + a_b * row4[1] + 0.5f);
+  res.z = uchar(ma_mb * row1[2] + a_mb * row3[2] + ma_b * row2[2] + a_b * row4[2] + 0.5f);
+  res.w = uchar(ma_mb * row1[3] + a_mb * row3[3] + ma_b * row2[3] + a_b * row4[3] + 0.5f);
 #endif
 
   return res;
@@ -535,9 +535,9 @@ uchar4 interpolate_bilinear_wrap_byte(const uchar *buffer, int width, int height
   float uf = floorf(u);
   float vf = floorf(v);
 
-  int x1 = (int)uf;
+  int x1 = int(uf);
   int x2 = x1 + 1;
-  int y1 = (int)vf;
+  int y1 = int(vf);
   int y2 = y1 + 1;
 
   /* Wrap interpolation pixels if needed. */
@@ -728,7 +728,7 @@ void BLI_ewa_filter(const int width,
   /* Scaling `dxt` / `dyt` by full resolution can cause overflow because of huge A/B/C and esp.
    * F values, scaling by aspect ratio alone does the opposite, so try something in between
    * instead. */
-  const float ff2 = (float)width, ff = sqrtf(ff2), q = (float)height / ff;
+  const float ff2 = float(width), ff = sqrtf(ff2), q = float(height) / ff;
   const float Ux = du[0] * ff, Vx = du[1] * q, Uy = dv[0] * ff, Vy = dv[1] * q;
   float A = Vx * Vx + Vy * Vy;
   float B = -2.0f * (Ux * Vx + Uy * Vy);
@@ -770,8 +770,8 @@ void BLI_ewa_filter(const int width,
   V0 = uv[1] * float(height);
   u1 = int(floorf(U0 - ue));
   u2 = int(ceilf(U0 + ue));
-  v1 = (int)floorf(V0 - ve);
-  v2 = (int)ceilf(V0 + ve);
+  v1 = int(floorf(V0 - ve));
+  v2 = int(ceilf(V0 + ve));
 
   /* sane clamping to avoid unnecessarily huge loops */
   /* NOTE: if eccentricity gets clamped (see above),
@@ -786,7 +786,7 @@ void BLI_ewa_filter(const int width,
   if (V0 - float(v1) > EWA_MAXIDX) {
     v1 = int(V0) - EWA_MAXIDX;
   }
-  if ((float)v2 - V0 > EWA_MAXIDX) {
+  if (float(v2) - V0 > EWA_MAXIDX) {
     v2 = int(V0) + EWA_MAXIDX;
   }
 
@@ -807,7 +807,7 @@ void BLI_ewa_filter(const int width,
   d = 0.0f;
   zero_v4(result);
   for (v = v1; v <= v2; v++) {
-    const float V = (float)v - V0;
+    const float V = float(v) - V0;
     float DQ = ac1 + B * V;
     float Q = (C * V + BU) * V + ac2;
     for (u = u1; u <= u2; u++) {

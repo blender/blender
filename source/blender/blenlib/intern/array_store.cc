@@ -389,7 +389,7 @@ BLI_INLINE bool bchunk_data_compare_unchecked(const BChunk *chunk,
                                               const size_t data_base_len,
                                               const size_t offset)
 {
-  BLI_assert(offset + (size_t)chunk->data_len <= data_base_len);
+  BLI_assert(offset + size_t(chunk->data_len) <= data_base_len);
   UNUSED_VARS_NDEBUG(data_base_len);
   return (memcmp(&data_base[offset], chunk->data, chunk->data_len) == 0);
 }
@@ -399,7 +399,7 @@ static bool bchunk_data_compare(const BChunk *chunk,
                                 const size_t data_base_len,
                                 const size_t offset)
 {
-  if (offset + (size_t)chunk->data_len <= data_base_len) {
+  if (offset + size_t(chunk->data_len) <= data_base_len) {
     return bchunk_data_compare_unchecked(chunk, data_base, data_base_len, offset);
   }
   return false;
@@ -974,7 +974,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
                                      const hash_key *table_hash_array)
 {
   const hash_key key = table_hash_array[((offset - i_table_start) / info->chunk_stride)];
-  const uint key_index = (uint)(key % (hash_key)table_len);
+  const uint key_index = uint(key % (hash_key)table_len);
   const BTableRef *tref = table[key_index];
   if (tref != nullptr) {
     const size_t size_left = data_len - offset;
@@ -1041,7 +1041,7 @@ static const BChunkRef *table_lookup(const BArrayInfo *info,
 
   const size_t size_left = data_len - offset;
   const hash_key key = hash_data(&data[offset], std::min(data_hash_len, size_left));
-  const uint key_index = (uint)(key % (hash_key)table_len);
+  const uint key_index = uint(key % (hash_key)table_len);
   for (BTableRef *tref = table[key_index]; tref; tref = tref->next) {
     const BChunkRef *cref = tref->cref;
 #  ifdef USE_HASH_TABLE_KEY_CACHE
@@ -1331,7 +1331,7 @@ static BChunkList *bchunk_list_from_data_merge(const BArrayInfo *info,
                                           hash_store_len
 #endif
         );
-        const uint key_index = (uint)(key % (hash_key)table_len);
+        const uint key_index = uint(key % (hash_key)table_len);
         BTableRef *tref_prev = table[key_index];
         BLI_assert(table_ref_stack_n < chunk_list_reference_remaining_len);
 #ifdef USE_HASH_TABLE_DEDUPLICATE
@@ -1532,7 +1532,7 @@ BArrayStore *BLI_array_store_create(uint stride, uint chunk_count)
 
   bs->info.accum_read_ahead_bytes = bs->info.accum_read_ahead_len * stride;
 #else
-  bs->info.accum_read_ahead_bytes = std::min((size_t)BCHUNK_HASH_LEN, chunk_count) * stride;
+  bs->info.accum_read_ahead_bytes = std::min(size_t(BCHUNK_HASH_LEN), chunk_count) * stride;
 #endif
 
   bs->memory.chunk_list = BLI_mempool_create(sizeof(BChunkList), 0, 512, BLI_MEMPOOL_NOP);
@@ -1805,7 +1805,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
         goto user_finally;
       }
     }
-    if (!(BLI_mempool_len(bs->memory.chunk_list) == (int)BLI_ghash_len(chunk_list_map))) {
+    if (!(BLI_mempool_len(bs->memory.chunk_list) == int(BLI_ghash_len(chunk_list_map)))) {
       ok = false;
       goto user_finally;
     }
@@ -1819,7 +1819,7 @@ bool BLI_array_store_is_valid(BArrayStore *bs)
         totrefs += 1;
       }
     }
-    if (!(BLI_mempool_len(bs->memory.chunk) == (int)BLI_ghash_len(chunk_map))) {
+    if (!(BLI_mempool_len(bs->memory.chunk) == int(BLI_ghash_len(chunk_map)))) {
       ok = false;
       goto user_finally;
     }

@@ -1381,7 +1381,7 @@ static KeyingSet *keyingset_get_from_op_with_error(wmOperator *op, PropertyRNA *
     char type_id[MAX_ID_NAME - 2];
     RNA_property_string_get(op->ptr, prop, type_id);
 
-    if (strcmp(type_id, "__ACTIVE__") == 0) {
+    if (STREQ(type_id, "__ACTIVE__")) {
       ks = ANIM_keyingset_get_from_enum_type(scene, scene->active_keyingset);
     }
     else {
