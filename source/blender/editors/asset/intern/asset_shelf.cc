@@ -648,7 +648,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
       &block,
       UI_BTYPE_TAB,
       0,
-                        name.c_str(),
+      name,
       0,
       0,
       but_width,
@@ -658,7 +658,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
       0,
       0,
       0,
-                        "Enable catalog, making contained assets visible in the asset shelf");
+      TIP_("Enable catalog, making contained assets visible in the asset shelf"));
 
   UI_but_drawflag_enable(but, UI_BUT_ALIGN_DOWN);
   UI_but_flag_disable(but, UI_BUT_UNDO);
