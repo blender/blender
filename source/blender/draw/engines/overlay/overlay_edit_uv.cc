@@ -354,24 +354,15 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
   if (pd->edit_uv.do_stencil_overlay) {
     const Brush *brush = BKE_paint_brush(&ts->imapaint.paint);
     ::Image *stencil_image = brush->clone.image;
-    ImBuf *stencil_ibuf = BKE_image_acquire_ibuf(
-        stencil_image, nullptr, &pd->edit_uv.stencil_lock);
+    GPUTexture *stencil_texture = BKE_image_get_gpu_texture(stencil_image, nullptr);
 
-    if (stencil_ibuf == nullptr) {
-      pd->edit_uv.stencil_ibuf = nullptr;
-      pd->edit_uv.stencil_image = nullptr;
-    }
-    else {
+    if (stencil_texture != nullptr) {
       DRW_PASS_CREATE(psl->edit_uv_stencil_ps,
                       DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS |
                           DRW_STATE_BLEND_ALPHA_PREMUL);
       GPUShader *sh = OVERLAY_shader_edit_uv_stencil_image();
       GPUBatch *geom = DRW_cache_quad_get();
       DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->edit_uv_stencil_ps);
-      pd->edit_uv.stencil_ibuf = stencil_ibuf;
-      pd->edit_uv.stencil_image = stencil_image;
-      GPUTexture *stencil_texture = BKE_image_get_gpu_texture(
-          stencil_image, nullptr, stencil_ibuf);
       DRW_shgroup_uniform_texture(grp, "imgTexture", stencil_texture);
       DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", true);
       DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
@@ -380,7 +371,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
       float size_image[2];
       BKE_image_get_size_fl(image, nullptr, size_image);
-      float size_stencil_image[2] = {float(stencil_ibuf->x), float(stencil_ibuf->y)};
+      float size_stencil_image[2] = {float(GPU_texture_original_width(stencil_texture)),
+                                     float(GPU_texture_original_height(stencil_texture))};
 
       float obmat[4][4];
       unit_m4(obmat);
@@ -391,10 +383,6 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
       DRW_shgroup_call_obmat(grp, geom, obmat);
     }
-  }
-  else {
-    pd->edit_uv.stencil_ibuf = nullptr;
-    pd->edit_uv.stencil_image = nullptr;
   }
 
   if (pd->edit_uv.do_mask_overlay) {
@@ -544,13 +532,6 @@ static void OVERLAY_edit_uv_draw_finish(OVERLAY_Data *vedata)
 {
   OVERLAY_StorageList *stl = vedata->stl;
   OVERLAY_PrivateData *pd = stl->pd;
-
-  if (pd->edit_uv.stencil_ibuf) {
-    BKE_image_release_ibuf(
-        pd->edit_uv.stencil_image, pd->edit_uv.stencil_ibuf, pd->edit_uv.stencil_lock);
-    pd->edit_uv.stencil_image = nullptr;
-    pd->edit_uv.stencil_ibuf = nullptr;
-  }
 
   DRW_TEXTURE_FREE_SAFE(pd->edit_uv.mask_texture);
 }

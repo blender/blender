@@ -409,11 +409,6 @@ struct OVERLAY_PrivateData {
     ListBase totals;
     float total_area_ratio;
 
-    /* stencil overlay */
-    Image *stencil_image;
-    ImBuf *stencil_ibuf;
-    void *stencil_lock;
-
     /* mask overlay */
     Mask *mask;
     eMaskOverlayMode mask_overlay_mode;
