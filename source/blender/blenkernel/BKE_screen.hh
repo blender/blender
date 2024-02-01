@@ -525,6 +525,8 @@ struct AssetShelfType {
 
   AssetShelfTypeFlag flag;
 
+  short default_preview_size;
+
   /** Determine if asset shelves of this type should be available in current context or not. */
   bool (*poll)(const bContext *C, const AssetShelfType *shelf_type);
 
