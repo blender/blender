@@ -150,7 +150,6 @@ class OBJECT_MT_modifier_add_generate(ModifierAddMenu, Menu):
         if ob_type == 'MESH':
             self.operator_modifier_add(layout, 'WIREFRAME')
         if ob_type == 'GREASEPENCIL':
-            self.operator_modifier_add(layout, 'GREASE_PENCIL_ARRAY')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_MIRROR')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_SUBDIV')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
