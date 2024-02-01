@@ -212,7 +212,7 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
         support = {}
 
     prefs = bpy.context.preferences
-    used_ext = {ext.module for ext in prefs.addons}
+    used_addon_module_names = {addon.module for addon in prefs.addons}
     # In case we need to blacklist some add-ons...
     black_list = {}
 
@@ -226,17 +226,17 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     if not check_only:
         for mod in ret:
             try:
-                module_name = mod.__name__
+                addon_module_name = mod.__name__
                 if disable:
-                    if module_name not in used_ext:
+                    if addon_module_name not in used_addon_module_names:
                         continue
-                    print("    Disabling module ", module_name)
-                    bpy.ops.preferences.addon_disable(module=module_name)
+                    print("    Disabling module ", addon_module_name)
+                    bpy.ops.preferences.addon_disable(module=addon_module_name)
                 else:
-                    if module_name in used_ext:
+                    if addon_module_name in used_addon_module_names:
                         continue
-                    print("    Enabling module ", module_name)
-                    bpy.ops.preferences.addon_enable(module=module_name)
+                    print("    Enabling module ", addon_module_name)
+                    bpy.ops.preferences.addon_enable(module=addon_module_name)
             except BaseException as ex:  # XXX TEMP WORKAROUND
                 print(ex)
 
