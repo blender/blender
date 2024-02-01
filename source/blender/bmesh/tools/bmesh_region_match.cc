@@ -934,7 +934,7 @@ static void bm_face_region_pivot_edge_use_best(GHash *gh,
   e_pivot_test_id[0] = (SUID_Int)BLI_ghash_lookup(gh, e_test->v1);
   e_pivot_test_id[1] = (SUID_Int)BLI_ghash_lookup(gh, e_test->v2);
   if (e_pivot_test_id[0] > e_pivot_test_id[1]) {
-    SWAP(SUID_Int, e_pivot_test_id[0], e_pivot_test_id[1]);
+    std::swap(e_pivot_test_id[0], e_pivot_test_id[1]);
   }
 
   if ((*r_e_pivot_best == nullptr) ||
@@ -1302,7 +1302,7 @@ static void bm_vert_fasthash_edge_order(const UIDFashMatch *fm,
   e_fm[1] = fm[BM_elem_index_get(e->v2)];
 
   if (e_fm[0] > e_fm[1]) {
-    SWAP(UIDFashMatch, e_fm[0], e_fm[1]);
+    std::swap(e_fm[0], e_fm[1]);
   }
 }
 

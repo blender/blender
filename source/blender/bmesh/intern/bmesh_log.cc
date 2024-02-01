@@ -331,7 +331,7 @@ static void bm_log_vert_values_swap(BMesh *bm, BMLog *log, GHash *verts)
 
     swap_v3_v3(v->co, lv->co);
     swap_v3_v3(v->no, lv->no);
-    SWAP(char, v->head.hflag, lv->hflag);
+    std::swap(v->head.hflag, lv->hflag);
     mask = lv->mask;
     lv->mask = vert_mask_get(v, cd_vert_mask_offset);
     vert_mask_set(v, mask, cd_vert_mask_offset);
@@ -347,7 +347,7 @@ static void bm_log_face_values_swap(BMLog *log, GHash *faces)
     uint id = POINTER_AS_UINT(key);
     BMFace *f = bm_log_face_from_id(log, id);
 
-    SWAP(char, f->head.hflag, lf->hflag);
+    std::swap(f->head.hflag, lf->hflag);
   }
 }
 

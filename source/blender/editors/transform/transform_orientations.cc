@@ -1050,7 +1050,7 @@ int getTransformOrientation_ex(const Scene *scene,
             }
 
             if (v_pair_swap) {
-              SWAP(BMVert *, v_pair[0], v_pair[1]);
+              std::swap(v_pair[0], v_pair[1]);
             }
 
             add_v3_v3v3(normal, v_pair[1]->no, v_pair[0]->no);
@@ -1099,7 +1099,7 @@ int getTransformOrientation_ex(const Scene *scene,
               }
 
               if (v_pair_swap) {
-                SWAP(BMVert *, v_pair[0], v_pair[1]);
+                std::swap(v_pair[0], v_pair[1]);
               }
 
               sub_v3_v3v3(dir_pair[0], v->co, v_pair[0]->co);

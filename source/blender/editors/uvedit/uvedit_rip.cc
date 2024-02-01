@@ -248,7 +248,7 @@ static void bm_loop_calc_uv_angle_from_dir(BMLoop *l,
   normalize_v2(dir_test[1]);
 
   /* Rotate 90 degrees. */
-  SWAP(float, dir_test[1][0], dir_test[1][1]);
+  std::swap(dir_test[1][0], dir_test[1][1]);
   dir_test[1][1] *= -1.0f;
 
   if (BM_face_uv_calc_cross(l->f, cd_loop_uv_offset) > 0.0f) {

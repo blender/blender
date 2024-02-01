@@ -771,7 +771,7 @@ bool BM_edgeloop_overlap_check(BMEdgeLoopStore *el_store_a, BMEdgeLoopStore *el_
 {
   /* A little more efficient if 'a' as smaller. */
   if (el_store_a->len > el_store_b->len) {
-    SWAP(BMEdgeLoopStore *, el_store_a, el_store_b);
+    std::swap(el_store_a, el_store_b);
   }
 
   /* init */

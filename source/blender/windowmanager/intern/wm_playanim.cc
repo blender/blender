@@ -607,10 +607,10 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
   BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
   if (draw_flip) {
     if (draw_flip[0]) {
-      SWAP(float, preview.xmin, preview.xmax);
+      std::swap(preview.xmin, preview.xmax);
     }
     if (draw_flip[1]) {
-      SWAP(float, preview.ymin, preview.ymax);
+      std::swap(preview.ymin, preview.ymax);
     }
   }
 

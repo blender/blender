@@ -325,7 +325,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
       v_tri[1] = e_act->v2;
       v_tri[2] = BM_vert_create(bm, center, nullptr, BM_CREATE_NOP);
       if (e_act->l && e_act->l->v == v_tri[0]) {
-        SWAP(BMVert *, v_tri[0], v_tri[1]);
+        std::swap(v_tri[0], v_tri[1]);
       }
       BM_face_create_verts(bm, v_tri, 3, f_reference, BM_CREATE_NOP, true);
       edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);
@@ -359,7 +359,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
     if (e_pair[1] != nullptr) {
       /* Quad from edge pair. */
       if (BM_edge_calc_length_squared(e_pair[0]) < BM_edge_calc_length_squared(e_pair[1])) {
-        SWAP(BMEdge *, e_pair[0], e_pair[1]);
+        std::swap(e_pair[0], e_pair[1]);
       }
 
       BMFace *f_reference = e_pair[0]->l ? e_pair[0]->l->f : nullptr;
@@ -374,7 +374,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
       v_quad[2] = BM_vert_create(bm, center, nullptr, BM_CREATE_NOP);
       v_quad[3] = BM_edge_other_vert(e_pair[1], v_act);
       if (e_pair[0]->l && e_pair[0]->l->v == v_quad[0]) {
-        SWAP(BMVert *, v_quad[1], v_quad[3]);
+        std::swap(v_quad[1], v_quad[3]);
       }
       // BMFace *f_new =
       BM_face_create_verts(bm, v_quad, 4, f_reference, BM_CREATE_NOP, true);

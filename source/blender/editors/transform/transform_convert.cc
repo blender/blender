@@ -700,9 +700,7 @@ static int countAndCleanTransDataContainer(TransInfo *t)
     if (tc->data_len == 0) {
       uint index = tc - t->data_container;
       if (index + 1 != t->data_container_len) {
-        SWAP(TransDataContainer,
-             t->data_container[index],
-             t->data_container[t->data_container_len - 1]);
+        std::swap(t->data_container[index], t->data_container[t->data_container_len - 1]);
       }
       t->data_container_len -= 1;
     }

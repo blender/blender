@@ -1252,7 +1252,7 @@ bool ED_armature_edit_select_op_from_tagged(bArmature *arm, const int sel_op)
     /* Cleanup flags. */
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
       if (ebone->flag & BONE_DONE) {
-        SWAP(int, ebone->temp.i, ebone->flag);
+        std::swap(ebone->temp.i, ebone->flag);
         ebone->flag |= BONE_DONE;
         if ((ebone->flag & BONE_CONNECTED) && ebone->parent) {
           if ((ebone->parent->flag & BONE_DONE) == 0) {
@@ -2268,7 +2268,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
     /* pass */
   }
   else if (ED_armature_ebone_is_child_recursive(ebone_dst, ebone_src)) {
-    SWAP(EditBone *, ebone_src, ebone_dst);
+    std::swap(ebone_src, ebone_dst);
   }
   else if ((ebone_isect_parent = ED_armature_ebone_find_shared_parent(ebone_isect_child, 2))) {
     /* pass */

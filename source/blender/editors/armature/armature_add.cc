@@ -179,7 +179,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
       if (flipbone == nullptr) {
         break;
       }
-      SWAP(EditBone *, flipbone, ebone);
+      std::swap(flipbone, ebone);
     }
 
     newbone = ED_armature_ebone_add(arm, ebone->name);
@@ -1493,7 +1493,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
               if (flipbone == nullptr) {
                 break;
               }
-              SWAP(EditBone *, flipbone, ebone);
+              std::swap(flipbone, ebone);
             }
 
             totbone++;
@@ -1567,7 +1567,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
             /* restore ebone if we were flipping */
             if (a == 1 && flipbone) {
-              SWAP(EditBone *, flipbone, ebone);
+              std::swap(flipbone, ebone);
             }
           }
         }

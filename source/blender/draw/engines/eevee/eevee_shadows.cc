@@ -52,9 +52,7 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
   }
 
   /* Flip buffers */
-  SWAP(EEVEE_ShadowCasterBuffer *,
-       sldata->lights->shcaster_frontbuffer,
-       sldata->lights->shcaster_backbuffer);
+  std::swap(sldata->lights->shcaster_frontbuffer, sldata->lights->shcaster_backbuffer);
 
   int sh_cube_size = scene_eval->eevee.shadow_cube_size;
   int sh_cascade_size = scene_eval->eevee.shadow_cascade_size;

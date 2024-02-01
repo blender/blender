@@ -529,6 +529,9 @@ ImBuf *IMB_double_y(ImBuf *ibuf1);
 void IMB_flipx(ImBuf *ibuf);
 void IMB_flipy(ImBuf *ibuf);
 
+/* Rotate by 90 degree increments. Returns true if the ImBuf is altered. */
+bool IMB_rotate_orthogonal(ImBuf *ibuf, int degrees);
+
 /* Pre-multiply alpha. */
 
 void IMB_premultiply_alpha(ImBuf *ibuf);

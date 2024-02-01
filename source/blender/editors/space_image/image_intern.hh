@@ -69,6 +69,7 @@ void IMAGE_OT_clipboard_copy(wmOperatorType *ot);
 void IMAGE_OT_clipboard_paste(wmOperatorType *ot);
 
 void IMAGE_OT_flip(wmOperatorType *ot);
+void IMAGE_OT_rotate_orthogonal(wmOperatorType *ot);
 void IMAGE_OT_invert(wmOperatorType *ot);
 void IMAGE_OT_resize(wmOperatorType *ot);
 

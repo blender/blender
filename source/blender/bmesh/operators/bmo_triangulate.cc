@@ -197,7 +197,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
     if (winding_votes < 0) {
       LISTBASE_FOREACH (ScanFillFace *, sf_tri, &sf_ctx.fillfacebase) {
-        SWAP(ScanFillVert *, sf_tri->v2, sf_tri->v3);
+        std::swap(sf_tri->v2, sf_tri->v3);
       }
     }
   }

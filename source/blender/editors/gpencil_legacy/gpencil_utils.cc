@@ -3051,10 +3051,10 @@ void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
 
   /* Ensure the bounding box is oriented to axis. */
   if (r_max[0] < r_min[0]) {
-    SWAP(float, r_min[0], r_max[0]);
+    std::swap(r_min[0], r_max[0]);
   }
   if (r_max[1] < r_min[1]) {
-    SWAP(float, r_min[1], r_max[1]);
+    std::swap(r_min[1], r_max[1]);
   }
 }
 

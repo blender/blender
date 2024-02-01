@@ -1120,9 +1120,8 @@ static int time_segment_move_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    SWAP(TimeGpencilModifierSegment,
-         gpmd->segments[gpmd->segment_active_index],
-         gpmd->segments[gpmd->segment_active_index - 1]);
+    std::swap(gpmd->segments[gpmd->segment_active_index],
+              gpmd->segments[gpmd->segment_active_index - 1]);
 
     gpmd->segment_active_index--;
   }
@@ -1131,9 +1130,8 @@ static int time_segment_move_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    SWAP(TimeGpencilModifierSegment,
-         gpmd->segments[gpmd->segment_active_index],
-         gpmd->segments[gpmd->segment_active_index + 1]);
+    std::swap(gpmd->segments[gpmd->segment_active_index],
+              gpmd->segments[gpmd->segment_active_index + 1]);
 
     gpmd->segment_active_index++;
   }
@@ -1365,9 +1363,8 @@ static int dash_segment_move_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    SWAP(DashGpencilModifierSegment,
-         dmd->segments[dmd->segment_active_index],
-         dmd->segments[dmd->segment_active_index - 1]);
+    std::swap(dmd->segments[dmd->segment_active_index],
+              dmd->segments[dmd->segment_active_index - 1]);
 
     dmd->segment_active_index--;
   }
@@ -1376,9 +1373,8 @@ static int dash_segment_move_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
 
-    SWAP(DashGpencilModifierSegment,
-         dmd->segments[dmd->segment_active_index],
-         dmd->segments[dmd->segment_active_index + 1]);
+    std::swap(dmd->segments[dmd->segment_active_index],
+              dmd->segments[dmd->segment_active_index + 1]);
 
     dmd->segment_active_index++;
   }

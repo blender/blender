@@ -1496,7 +1496,7 @@ static bool bm_vert_connect_select_history_edge_to_vert_path(BMesh *bm, ListBase
     return false;
   }
 
-  SWAP(ListBase, bm->selected, selected_orig);
+  std::swap(bm->selected, selected_orig);
 
   /* convert edge selection into 2 ordered loops (where the first edge ends up in the middle) */
   LISTBASE_FOREACH (BMEditSelection *, ese, &selected_orig) {
@@ -1568,7 +1568,7 @@ static int edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
       BMEditSelection *ese = static_cast<BMEditSelection *>(bm->selected.first);
       if (ese->htype == BM_EDGE) {
         if (bm_vert_connect_select_history_edge_to_vert_path(bm, &selected_orig)) {
-          SWAP(ListBase, bm->selected, selected_orig);
+          std::swap(bm->selected, selected_orig);
         }
       }
     }
@@ -7924,7 +7924,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
             float co[3], co_mirr[3];
 
             if ((v->co[axis] > v_mirr->co[axis]) == axis_sign) {
-              SWAP(BMVert *, v, v_mirr);
+              std::swap(v, v_mirr);
             }
 
             copy_v3_v3(co_mirr, v_mirr->co);

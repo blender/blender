@@ -2842,6 +2842,88 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Rotate Orthogonal Operator (90, 180, 270)
+ * \{ */
+
+static int image_rotate_orthogonal_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = image_from_context(C);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  const bool is_paint = ((sima != nullptr) && (sima->mode == SI_MODE_PAINT));
+
+  if (ibuf == nullptr) {
+    /* TODO: this should actually never happen, but does for render-results -> cleanup. */
+    return OPERATOR_CANCELLED;
+  }
+
+  int degrees = RNA_enum_get(op->ptr, "degrees");
+
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
+
+  if (is_paint) {
+    ED_imapaint_clear_partial_redraw();
+  }
+
+  if (!IMB_rotate_orthogonal(ibuf, degrees)) {
+    BKE_image_release_ibuf(ima, ibuf, nullptr);
+    return OPERATOR_CANCELLED;
+  }
+
+  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+  BKE_image_mark_dirty(ima, ibuf);
+
+  if (ibuf->mipmap[0]) {
+    ibuf->userflags |= IB_MIPMAP_INVALID;
+  }
+
+  ED_image_undo_push_end();
+
+  BKE_image_partial_update_mark_full_update(ima);
+
+  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
+  BKE_image_release_ibuf(ima, ibuf, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_rotate_orthogonal(wmOperatorType *ot)
+{
+  static const EnumPropertyItem orthogonal_rotation_items[] = {
+      {90, "90", 0, "90 Degrees", "Rotate 90 degrees clockwise"},
+      {180, "180", 0, "180 Degrees", "Rotate 180 degrees clockwise"},
+      {270, "270", 0, "270 Degrees", "Rotate 270 degrees clockwise"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* identifiers */
+  ot->name = "Rotate Image Orthogonal";
+  ot->idname = "IMAGE_OT_rotate_orthogonal";
+  ot->description = "Rotate the image";
+
+  /* api callbacks */
+  ot->exec = image_rotate_orthogonal_exec;
+  ot->poll = image_from_context_has_data_poll_active_tile;
+
+  /* properties */
+  PropertyRNA *prop;
+  prop = RNA_def_enum(ot->srna,
+                      "degrees",
+                      orthogonal_rotation_items,
+                      90,
+                      "Degrees",
+                      "Amount of rotation in degrees (90, 180, 270)");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Clipboard Copy Operator
  * \{ */
 

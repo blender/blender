@@ -860,7 +860,7 @@ void IDP_CopyPropertyContent(IDProperty *dst, const IDProperty *src)
   IDProperty *idprop_tmp = IDP_CopyProperty(src);
   idprop_tmp->prev = dst->prev;
   idprop_tmp->next = dst->next;
-  SWAP(IDProperty, *dst, *idprop_tmp);
+  std::swap(*dst, *idprop_tmp);
   IDP_FreeProperty(idprop_tmp);
 }
 

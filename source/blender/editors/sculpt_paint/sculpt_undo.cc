@@ -393,18 +393,18 @@ static void update_modified_node_grids(PBVHNode &node, PartialUpdateData &data)
   }
 }
 
-static bool test_swap_v3_v3(float a[3], float b[3])
+static bool test_swap_v3_v3(float3 &a, float3 &b)
 {
   /* No need for float comparison here (memory is exactly equal or not). */
   if (memcmp(a, b, sizeof(float[3])) != 0) {
-    swap_v3_v3(a, b);
+    std::swap(a, b);
     return true;
   }
   return false;
 }
 
 static bool restore_deformed(
-    const SculptSession *ss, Node &unode, int uindex, int oindex, float coord[3])
+    const SculptSession *ss, Node &unode, int uindex, int oindex, float3 &coord)
 {
   if (test_swap_v3_v3(coord, unode.orig_position[uindex])) {
     copy_v3_v3(unode.position[uindex], ss->deform_cos[oindex]);
@@ -446,24 +446,23 @@ static bool restore_coords(
 
     if (ss->shapekey_active) {
       float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
-      const Span key_positions(reinterpret_cast<const float3 *>(vertCos),
-                               ss->shapekey_active->totelem);
+      MutableSpan key_positions(reinterpret_cast<float3 *>(vertCos), ss->shapekey_active->totelem);
 
       if (!unode.orig_position.is_empty()) {
         if (ss->deform_modifiers_active) {
           for (const int i : index.index_range()) {
-            restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+            restore_deformed(ss, unode, i, index[i], key_positions[index[i]]);
           }
         }
         else {
           for (const int i : index.index_range()) {
-            swap_v3_v3(vertCos[index[i]], unode.orig_position[i]);
+            std::swap(key_positions[index[i]], unode.orig_position[i]);
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
-          swap_v3_v3(vertCos[index[i]], unode.position[i]);
+          std::swap(key_positions[index[i]], unode.position[i]);
         }
       }
 
@@ -486,14 +485,14 @@ static bool restore_coords(
         }
         else {
           for (const int i : index.index_range()) {
-            swap_v3_v3(positions[index[i]], unode.orig_position[i]);
+            std::swap(positions[index[i]], unode.orig_position[i]);
             modified_verts[index[i]] = true;
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
-          swap_v3_v3(positions[index[i]], unode.position[i]);
+          std::swap(positions[index[i]], unode.position[i]);
           modified_verts[index[i]] = true;
         }
       }

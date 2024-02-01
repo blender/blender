@@ -221,7 +221,7 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     }
 #endif
     if (dot_v3v3(dvec1, dvec2) < 0.0f) {
-      SWAP(BMVert *, v3, v4);
+      std::swap(v3, v4);
     }
 
     e = BM_edge_create(bm, v1, v3, nullptr, BM_CREATE_NO_DOUBLE);

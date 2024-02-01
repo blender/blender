@@ -360,7 +360,7 @@ static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *mesh)
     if (layer->type == CD_PROP_BYTE_COLOR) {
       MLoopCol *mloopcol = static_cast<MLoopCol *>(layer->data);
       for (int i = 0; i < mesh->corners_num; i++, mloopcol++) {
-        SWAP(uchar, mloopcol->r, mloopcol->b);
+        std::swap(mloopcol->r, mloopcol->b);
       }
     }
   }

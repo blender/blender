@@ -515,7 +515,7 @@ bool gpu_select_pick_load_id(uint id, bool end)
         ps->gpu.rect_depth = depth_buf_malloc(ps->src.rect_len);
       }
 
-      SWAP(DepthBufCache *, ps->gpu.rect_depth, ps->gpu.rect_depth_test);
+      std::swap(ps->gpu.rect_depth, ps->gpu.rect_depth_test);
 
       if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
         /* (fclem) This is to be on the safe side. I don't know if this is required. */

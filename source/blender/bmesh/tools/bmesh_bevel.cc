@@ -763,7 +763,7 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
    * should now have lef1 and lef2 being f1 and f2 in either order.
    */
   if (lef1->f == f2) {
-    SWAP(BMLoop *, lef1, lef2);
+    std::swap(lef1, lef2);
   }
   if (lef1->f != f1 || lef2->f != f2) {
     return false;
@@ -6405,13 +6405,13 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
     }
     if (ccw_test_sum < 0) {
       for (int i = 0; i <= (tot_edges / 2) - 1; i++) {
-        SWAP(EdgeHalf, bv->edges[i], bv->edges[tot_edges - i - 1]);
-        SWAP(BMFace *, bv->edges[i].fprev, bv->edges[i].fnext);
-        SWAP(BMFace *, bv->edges[tot_edges - i - 1].fprev, bv->edges[tot_edges - i - 1].fnext);
+        std::swap(bv->edges[i], bv->edges[tot_edges - i - 1]);
+        std::swap(bv->edges[i].fprev, bv->edges[i].fnext);
+        std::swap(bv->edges[tot_edges - i - 1].fprev, bv->edges[tot_edges - i - 1].fnext);
       }
       if (tot_edges % 2 == 1) {
         int i = tot_edges / 2;
-        SWAP(BMFace *, bv->edges[i].fprev, bv->edges[i].fnext);
+        std::swap(bv->edges[i].fprev, bv->edges[i].fnext);
       }
     }
   }
