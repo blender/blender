@@ -316,6 +316,8 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     import importlib
     from bpy_restrict_state import RestrictBlend
 
+    is_extension = module_name.startswith(_ext_base_pkg_idname_with_dot)
+
     if handle_error is None:
         def handle_error(_ex):
             import traceback
@@ -387,7 +389,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                     print("Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex)))
 
                 # Issue with an add-on from an extension repository, report a useful message.
-                elif module_name.startswith(ex.name + ".") and module_name.startswith(_ext_base_pkg_idname_with_dot):
+                elif is_extension and module_name.startswith(ex.name + "."):
                     repo_id = module_name[len(_ext_base_pkg_idname_with_dot):].rpartition(".")[0]
                     repo = next(
                         (repo for repo in _preferences.filepaths.extension_repos if repo.module == repo_id),
@@ -414,6 +416,21 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if default_set:
                 _addon_remove(module_name)
             return None
+
+        if is_extension:
+            # Handle the case the an extension has `bl_info` (which is not used for extensions).
+            # Note that internally a `bl_info` is added based on the extensions manifest - for compatibility.
+            # So it's important not to use this one.
+            bl_info = getattr(mod, "bl_info", None)
+            if bl_info is not None:
+                # Use `_init` to detect when `bl_info` was generated from the manifest, see: `_bl_info_from_extension`.
+                if type(bl_info) is dict and "_init" not in bl_info:
+                    print(
+                        "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
+                        (module_name, _ext_manifest_filename_toml)
+                    )
+                # Always remove as this is not expected to exist and will be lazily initialized.
+                del mod.bl_info
 
         # 2) Try register collected modules.
         # Removed register_module, addons need to handle their own registration now.
@@ -587,6 +604,14 @@ def module_bl_info(mod, *, info_basis=None):
         return addon_info
 
     if not addon_info:
+        if mod.__name__.startswith(_ext_base_pkg_idname_with_dot):
+            addon_info, filepath_toml = _bl_info_from_extension(mod.__name__, mod.__file__)
+            if addon_info is None:
+                # Unexpected, this is a malformed extension if meta-data can't be loaded.
+                print("module_bl_info: failed to extract meta-data from", filepath_toml)
+                # Continue to initialize dummy data.
+                addon_info = {}
+
         mod.bl_info = addon_info
 
     for key, value in info_basis.items():
@@ -611,8 +636,7 @@ def module_bl_info(mod, *, info_basis=None):
 # -----------------------------------------------------------------------------
 # Extension Utilities
 
-
-def _fake_module_from_extension(mod_name, mod_path, force_support=None):
+def _bl_info_from_extension(mod_name, mod_path, force_support=None):
     # Extract the `bl_info` from an extensions manifest.
     # This is returned as a module which has a `bl_info` variable.
     # When support for non-extension add-ons is dropped (Blender v5.0 perhaps)
@@ -628,40 +652,62 @@ def _fake_module_from_extension(mod_name, mod_path, force_support=None):
             data = tomllib.load(fh)
     except FileNotFoundError:
         print("Warning: add-on missing manifest, this can cause poor performance!:", repr(filepath_toml))
-        return None
+        return None, filepath_toml
     except BaseException as ex:
         print("Error:", str(ex), "in", filepath_toml)
-        return None
+        return None, filepath_toml
 
     # This isn't a full validation which happens on package install/update.
     if (value := data.get("name", None)) is None:
         print("Error: missing \"name\" from in", filepath_toml)
-        return None
+        return None, filepath_toml
     if type(value) is not str:
         print("Error: \"name\" is not a string in", filepath_toml)
-        return None
+        return None, filepath_toml
     bl_info["name"] = value
 
     if (value := data.get("version", None)) is None:
         print("Error: missing \"version\" from in", filepath_toml)
-        return None
+        return None, filepath_toml
     if type(value) is not str:
         print("Error: \"version\" is not a string in", filepath_toml)
-        return None
+        return None, filepath_toml
     bl_info["version"] = value
+
+    if (value := data.get("blender_version_min", None)) is None:
+        print("Error: missing \"blender_version_min\" from in", filepath_toml)
+        return None, filepath_toml
+    if type(value) is not str:
+        print("Error: \"blender_version_min\" is not a string in", filepath_toml)
+        return None, filepath_toml
+    try:
+        value = tuple(int(x) for x in value.split("."))
+    except BaseException as ex:
+        print("Error:", str(ex), "in \"blender_version\"", filepath_toml)
+        return None, filepath_toml
+    bl_info["blender"] = value
 
     if (value := data.get("author", None)) is None:
         print("Error: missing \"author\" from in", filepath_toml)
-        return None
+        return None, filepath_toml
     if (type(value) is not list) or any(x for x in value if type(x) is not str):
         print("Error: \"author\" is not a list of strings in", filepath_toml)
-        return None
+        return None, filepath_toml
     bl_info["author"] = ", ".join(value)
 
     bl_info["category"] = "Development"  # Dummy, will be removed.
 
     if force_support is not None:
         bl_info["support"] = force_support
+    return bl_info, filepath_toml
+
+
+def _fake_module_from_extension(mod_name, mod_path, force_support=None):
+    import os
+
+    bl_info, filepath_toml = _bl_info_from_extension(mod_name, mod_path, force_support=force_support)
+    if bl_info is None:
+        return None
 
     ModuleType = type(os)
     mod = ModuleType(mod_name)
