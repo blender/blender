@@ -209,18 +209,3 @@ GPU_SHADER_CREATE_INFO(eevee_legacy_material_surface_frag_alpha_blend)
     .fragment_out(0, Type::VEC4, "outTransmittance", DualBlend::SRC_1);
 
 /** \} */
-
-/* hair_refine_shader_transform_feedback_create */
-
-GPU_SHADER_INTERFACE_INFO(legacy_hair_refine_shader_transform_feedback_iface, "")
-    .smooth(Type::VEC4, "finalColor");
-
-GPU_SHADER_CREATE_INFO(legacy_hair_refine_shader_transform_feedback)
-    .define("HAIR_PHASE_SUBDIV")
-    .define("USE_TF")
-    .additional_info("eevee_legacy_hair_lib")
-    .vertex_source("common_hair_refine_vert.glsl")
-    .vertex_out(legacy_hair_refine_shader_transform_feedback_iface)
-    .transform_feedback_mode(GPU_SHADER_TFB_POINTS)
-    .transform_feedback_output_name("finalColor")
-    .do_static_compilation(true);

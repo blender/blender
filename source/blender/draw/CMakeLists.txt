@@ -673,7 +673,6 @@ set(GLSL_SRC
   intern/shaders/common_grease_pencil_lib.glsl
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_comp.glsl
-  intern/shaders/common_hair_refine_vert.glsl
   intern/shaders/common_intersect_lib.glsl
   intern/shaders/common_math_geom_lib.glsl
   intern/shaders/common_math_lib.glsl
