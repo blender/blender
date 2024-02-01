@@ -321,8 +321,14 @@ struct uiBut {
 
 /** Derived struct for #UI_BTYPE_NUM */
 struct uiButNumber : public uiBut {
-  float step_size = 0;
-  float precision = 0;
+  float step_size = 0.0f;
+  float precision = 0.0f;
+};
+
+/** Derived struct for #UI_BTYPE_NUM_SLIDER */
+struct uiButNumberSlider : public uiBut {
+  float step_size = 0.0f;
+  float precision = 0.0f;
 };
 
 /** Derived struct for #UI_BTYPE_COLOR */

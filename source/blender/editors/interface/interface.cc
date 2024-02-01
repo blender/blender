@@ -641,6 +641,9 @@ static float ui_but_get_float_precision(uiBut *but)
   if (but->type == UI_BTYPE_NUM) {
     return ((uiButNumber *)but)->precision;
   }
+  if (but->type == UI_BTYPE_NUM_SLIDER) {
+    return ((uiButNumberSlider *)but)->precision;
+  }
 
   return but->a2;
 }
@@ -649,6 +652,9 @@ static float ui_but_get_float_step_size(uiBut *but)
 {
   if (but->type == UI_BTYPE_NUM) {
     return ((uiButNumber *)but)->step_size;
+  }
+  if (but->type == UI_BTYPE_NUM_SLIDER) {
+    return ((uiButNumberSlider *)but)->step_size;
   }
 
   return but->a1;
@@ -3964,6 +3970,9 @@ static uiBut *ui_but_new(const eButType type)
     case UI_BTYPE_NUM:
       but = MEM_new<uiButNumber>("uiButNumber");
       break;
+    case UI_BTYPE_NUM_SLIDER:
+      but = MEM_new<uiButNumberSlider>("uiButNumber");
+      break;
     case UI_BTYPE_COLOR:
       but = MEM_new<uiButColor>("uiButColor");
       break;
@@ -4544,7 +4553,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   const PropertyType proptype = RNA_property_type(prop);
   int icon = 0;
   uiMenuCreateFunc func = nullptr;
-  const bool always_set_a1_a2 = ELEM(type, UI_BTYPE_NUM);
+  const bool always_set_a1_a2 = ELEM(type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER);
 
   if (ELEM(type, UI_BTYPE_COLOR, UI_BTYPE_HSVCIRCLE, UI_BTYPE_HSVCUBE)) {
     BLI_assert(index == -1);
@@ -4659,6 +4668,11 @@ static uiBut *ui_def_but_rna(uiBlock *block,
     UI_but_number_step_size_set(but, a1);
     UI_but_number_precision_set(but, a2);
   }
+  else if (but->type == UI_BTYPE_NUM_SLIDER) {
+    /* Set default values, can be overridden later. */
+    UI_but_number_slider_step_size_set(but, a1);
+    UI_but_number_slider_precision_set(but, a2);
+  }
 
   but->rnapoin = *ptr;
   but->rnaprop = prop;
@@ -4708,6 +4722,10 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   if ((proptype == PROP_FLOAT) && ui_but_is_unit(but)) {
     if (type == UI_BTYPE_NUM) {
       uiButNumber *number_but = (uiButNumber *)but;
+      number_but->step_size = ui_get_but_step_unit(but, number_but->step_size);
+    }
+    if (type == UI_BTYPE_NUM_SLIDER) {
+      uiButNumberSlider *number_but = (uiButNumberSlider *)but;
       number_but->step_size = ui_get_but_step_unit(but, number_but->step_size);
     }
     else {
@@ -6474,6 +6492,25 @@ void UI_but_number_precision_set(uiBut *but, float precision)
 {
   uiButNumber *but_number = (uiButNumber *)but;
   BLI_assert(but->type == UI_BTYPE_NUM);
+
+  but_number->precision = precision;
+  /* -1 is a valid value, UI code figures out an appropriate precision then. */
+  BLI_assert(precision > -2);
+}
+
+void UI_but_number_slider_step_size_set(uiBut *but, float step_size)
+{
+  uiButNumberSlider *but_number = (uiButNumberSlider *)but;
+  BLI_assert(but->type == UI_BTYPE_NUM_SLIDER);
+
+  but_number->step_size = step_size;
+  BLI_assert(step_size > 0);
+}
+
+void UI_but_number_slider_precision_set(uiBut *but, float precision)
+{
+  uiButNumberSlider *but_number = (uiButNumberSlider *)but;
+  BLI_assert(but->type == UI_BTYPE_NUM_SLIDER);
 
   but_number->precision = precision;
   /* -1 is a valid value, UI code figures out an appropriate precision then. */
