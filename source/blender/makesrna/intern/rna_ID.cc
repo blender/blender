@@ -2322,7 +2322,10 @@ static void rna_def_ID(BlenderRNA *brna)
   /* functions */
   func = RNA_def_function(srna, "evaluated_get", "rna_ID_evaluated_get");
   RNA_def_function_ui_description(
-      func, "Get corresponding evaluated ID from the given dependency graph");
+      func,
+      "Get corresponding evaluated ID from the given dependency graph. Note that this does not "
+      "ensure the dependency graph is fully evaluated, it just returns the result of the last "
+      "evaluation");
   parm = RNA_def_pointer(
       func, "depsgraph", "Depsgraph", "", "Dependency graph to perform lookup in");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
