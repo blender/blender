@@ -83,7 +83,7 @@ void GPU_storagebuf_copy_sub_from_vertbuf(
 
 /**
  * Ensure the ssbo is ready to be used as an indirect buffer in `GPU_batch_draw_indirect`.
- * NOTE: Internallly, this is only required for the OpenGL backend.
+ * NOTE: Internally, this is only required for the OpenGL backend.
  */
 void GPU_storagebuf_sync_as_indirect_buffer(GPUStorageBuf *ssbo);
 

@@ -69,7 +69,7 @@ class GLContext : public Context {
   static bool generate_mipmap_workaround;
   static float derivative_signs[2];
 
-  /** VBO for missing vertex attrib binding. Avoid undefined behavior on some implementation. */
+  /** VBO for missing vertex attribute binding. Avoid undefined behavior on some implementation. */
   GLuint default_attr_vbo_;
 
   /** Used for debugging purpose. Bitflags of all bound slots. */

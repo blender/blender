@@ -211,14 +211,14 @@ static bool angle_close(float a, float b)
  * value shifting etc.
  * Note that this code is much more forgiving than the spec. For example, in type A and B,
  * the range of vertical angles officially must be either exactly 0°-90° or -90°-90°.
- * However, in practise, IES files are all over the place. Therefore, the handling is as
+ * However, in practice, IES files are all over the place. Therefore, the handling is as
  * flexible as possible, and tries to turn any input into something useful. */
 
 void IESFile::process_type_b()
 {
   /* According to the standard, Type B defines a different coordinate system where the polar axis
    * is horizontal, not vertical.
-   * To avoid overcomplicating the conversion logic, we just transpose the angles and use the
+   * To avoid over complicating the conversion logic, we just transpose the angles and use the
    * regular Type A/C coordinate system. Users can just rotate the light to get the "proper"
    * orientation. */
   vector<vector<float>> newintensity;
