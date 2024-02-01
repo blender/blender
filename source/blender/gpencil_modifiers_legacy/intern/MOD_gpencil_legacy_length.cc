@@ -169,7 +169,7 @@ static void applyLength(GpencilModifierData *md,
 
   if (first_fac < 0) {
     std::swap(first_fac, second_fac);
-    std::swap( first_mode, second_mode);
+    std::swap(first_mode, second_mode);
   }
   const int first_extra_point_count = ceil(first_fac * lmd->point_density);
   const int second_extra_point_count = ceil(second_fac * lmd->point_density);

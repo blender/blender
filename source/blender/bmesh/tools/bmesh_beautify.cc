@@ -100,7 +100,7 @@ static GSet *erot_gset_new()
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1) \
   if (v0 > v1) { \
-    std::swap( v0, v1); \
+    std::swap(v0, v1); \
   } \
   (void)0
 

@@ -85,7 +85,7 @@ void ED_editors_init(bContext *C)
   ReportList *reports = CTX_wm_reports(C);
   int reports_flag_prev = reports->flag & ~RPT_STORE;
 
-  std::swap( reports->flag, reports_flag_prev);
+  std::swap(reports->flag, reports_flag_prev);
 
   /* Don't do undo pushes when calling an operator. */
   wm->op_undo_depth++;
@@ -208,7 +208,7 @@ void ED_editors_init(bContext *C)
 
   asset::list::storage_tag_main_data_dirty();
 
-  std::swap( reports->flag, reports_flag_prev);
+  std::swap(reports->flag, reports_flag_prev);
   wm->op_undo_depth--;
 }
 
