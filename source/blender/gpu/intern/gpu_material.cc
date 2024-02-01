@@ -30,7 +30,7 @@
 
 #include "NOD_shader.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"

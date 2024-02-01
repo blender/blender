@@ -72,7 +72,7 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "NOD_shader.h"
 

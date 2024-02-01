@@ -24,7 +24,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
 #include "GPU_context.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"

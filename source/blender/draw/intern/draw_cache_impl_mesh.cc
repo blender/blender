@@ -50,7 +50,7 @@
 #include "bmesh.hh"
 
 #include "GPU_batch.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "DRW_render.hh"
 

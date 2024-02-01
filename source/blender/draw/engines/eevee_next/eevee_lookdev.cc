@@ -13,7 +13,7 @@
 
 #include "NOD_shader.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "eevee_instance.hh"
 

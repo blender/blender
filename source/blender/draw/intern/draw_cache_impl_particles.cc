@@ -36,7 +36,7 @@
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "DEG_depsgraph_query.hh"
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 
 #ifdef __cplusplus

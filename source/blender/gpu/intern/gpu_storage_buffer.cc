@@ -14,7 +14,7 @@
 
 #include "gpu_backend.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_vertex_buffer.h" /* For GPUUsageType. */
 
 #include "GPU_storage_buffer.h"

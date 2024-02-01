@@ -59,7 +59,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_element_rna.hh"

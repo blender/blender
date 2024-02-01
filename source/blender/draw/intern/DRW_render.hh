@@ -30,7 +30,7 @@
 #include "DNA_world_types.h"
 
 #include "GPU_framebuffer.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_primitive.h"
 #include "GPU_shader.h"
 #include "GPU_storage_buffer.h"

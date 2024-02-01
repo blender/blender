@@ -40,7 +40,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "RE_texture.h"
 

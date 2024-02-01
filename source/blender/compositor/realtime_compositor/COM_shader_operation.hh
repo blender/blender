@@ -10,7 +10,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 
 #include "gpu_shader_create_info.hh"
@@ -33,7 +33,7 @@ using ShaderCompileUnit = VectorSet<DNode>;
  * Shader Operation
  *
  * An operation that evaluates a shader compiled from a contiguous subset of the node execution
- * schedule using the GPU material compiler, see GPU_material.h for more information. The subset
+ * schedule using the GPU material compiler, see GPU_material.hh for more information. The subset
  * of the node execution schedule is called a shader compile unit, see the discussion in
  * COM_compile_state.hh for more information.
  *
