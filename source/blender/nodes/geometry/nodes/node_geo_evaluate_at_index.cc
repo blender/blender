@@ -17,44 +17,6 @@
 
 #include "NOD_socket_search_link.hh"
 
-namespace blender::nodes {
-
-EvaluateAtIndexInput::EvaluateAtIndexInput(Field<int> index_field,
-                                           GField value_field,
-                                           AttrDomain value_field_domain)
-    : bke::GeometryFieldInput(value_field.cpp_type(), "Evaluate at Index"),
-      index_field_(std::move(index_field)),
-      value_field_(std::move(value_field)),
-      value_field_domain_(value_field_domain)
-{
-}
-
-GVArray EvaluateAtIndexInput::get_varray_for_context(const bke::GeometryFieldContext &context,
-                                                     const IndexMask &mask) const
-{
-  const std::optional<AttributeAccessor> attributes = context.attributes();
-  if (!attributes) {
-    return {};
-  }
-
-  const bke::GeometryFieldContext value_context{context, value_field_domain_};
-  FieldEvaluator value_evaluator{value_context, attributes->domain_size(value_field_domain_)};
-  value_evaluator.add(value_field_);
-  value_evaluator.evaluate();
-  const GVArray &values = value_evaluator.get_evaluated(0);
-
-  FieldEvaluator index_evaluator{context, &mask};
-  index_evaluator.add(index_field_);
-  index_evaluator.evaluate();
-  const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
-
-  GArray<> dst_array(values.type(), mask.min_array_size());
-  copy_with_checked_indices(values, indices, mask, dst_array);
-  return GVArray::ForGArray(std::move(dst_array));
-}
-
-}  // namespace blender::nodes
-
 namespace blender::nodes::node_geo_evaluate_at_index_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -109,7 +71,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bNode &node = params.node();
   const AttrDomain domain = AttrDomain(node.custom1);
 
-  GField output_field{std::make_shared<EvaluateAtIndexInput>(
+  GField output_field{std::make_shared<bke::EvaluateAtIndexInput>(
       params.extract_input<Field<int>>("Index"), params.extract_input<GField>("Value"), domain)};
   params.set_output<GField>("Value", std::move(output_field));
 }

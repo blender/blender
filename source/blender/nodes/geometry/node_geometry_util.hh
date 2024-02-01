@@ -61,45 +61,6 @@ void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
 
 int apply_offset_in_cyclic_range(IndexRange range, int start_index, int offset);
 
-class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
- private:
-  Field<int> index_field_;
-  GField value_field_;
-  AttrDomain value_field_domain_;
-
- public:
-  EvaluateAtIndexInput(Field<int> index_field, GField value_field, AttrDomain value_field_domain);
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask &mask) const final;
-
-  std::optional<AttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
-  {
-    return value_field_domain_;
-  }
-};
-
-class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
- private:
-  GField src_field_;
-  AttrDomain src_domain_;
-
- public:
-  EvaluateOnDomainInput(GField field, AttrDomain domain);
-
-  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask & /*mask*/) const final;
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override;
-
-  std::optional<AttrDomain> preferred_domain(
-      const GeometryComponent & /*component*/) const override;
-};
-
-void copy_with_checked_indices(const GVArray &src,
-                               const VArray<int> &indices,
-                               const IndexMask &mask,
-                               GMutableSpan dst);
-
 void mix_baked_data_item(eNodeSocketDatatype socket_type,
                          void *prev,
                          const void *next,
