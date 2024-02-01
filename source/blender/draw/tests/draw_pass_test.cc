@@ -304,13 +304,12 @@ static void test_draw_resource_id_gen()
   drw.resource_handle(obmat_2, float3(2), float3(1));
   drw.end_sync();
 
-  StringRefNull expected = "2 1 1 1 1 3 3 1 1 1 1 1 3 2 2 2 2 2 2 1 1 1 ";
-
   {
     /* Computed on CPU. */
     PassSimple pass = {"test.resource_id"};
     pass.init();
-    pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
+    pass.shader_set(
+        GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, -1, -1, handle2);
     pass.draw_procedural(GPU_PRIM_POINTS, 4, -1, -1, handle1);
     pass.draw_procedural(GPU_PRIM_TRIS, 2, -1, -1, handle3);
@@ -326,13 +325,16 @@ static void test_draw_resource_id_gen()
       result << val << " ";
     }
 
-    EXPECT_EQ(result.str(), expected);
+    StringRefNull expected_simple = "2 1 1 1 1 3 3 1 1 1 1 1 3 2 2 2 2 2 2 1 1 1 ";
+    EXPECT_EQ(result.str(), expected_simple);
   }
+
   {
     /* Same thing with PassMain (computed on GPU) */
-    PassSimple pass = {"test.resource_id"};
+    PassMain pass = {"test.resource_id"};
     pass.init();
-    pass.shader_set(GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR));
+    pass.shader_set(
+        GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, -1, -1, handle2);
     pass.draw_procedural(GPU_PRIM_POINTS, 4, -1, -1, handle1);
     pass.draw_procedural(GPU_PRIM_TRIS, 2, -1, -1, handle3);
@@ -348,7 +350,11 @@ static void test_draw_resource_id_gen()
       result << val << " ";
     }
 
-    EXPECT_EQ(result.str(), expected);
+    /* When using PassMain the handles are sorted based on their handles and GPUBatches. Different
+     * primitives use different batches.
+     */
+    StringRefNull expected_main = "2 3 3 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 ";
+    EXPECT_EQ(result.str(), expected_main);
   }
 
   GPU_render_end();
