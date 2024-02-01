@@ -689,8 +689,6 @@ static void ui_block_colorpicker(uiBlock *block,
                  cpicker->hsv_scene_linear,
                  0.0,
                  1.0,
-                 0,
-                 0,
                  TIP_("Hue"));
   UI_but_number_slider_step_size_set(bt, 10);
   UI_but_number_slider_precision_set(bt, 3);
@@ -708,8 +706,6 @@ static void ui_block_colorpicker(uiBlock *block,
                  cpicker->hsv_scene_linear + 1,
                  0.0,
                  1.0,
-                 0,
-                 0,
                  TIP_("Saturation"));
   UI_but_number_slider_step_size_set(bt, 10);
   UI_but_number_slider_precision_set(bt, 3);
@@ -728,8 +724,6 @@ static void ui_block_colorpicker(uiBlock *block,
                    cpicker->hsv_scene_linear + 2,
                    0.0,
                    1.0,
-                   0,
-                   0,
                    TIP_("Lightness"));
     UI_but_number_slider_step_size_set(bt, 10);
     UI_but_number_slider_precision_set(bt, 3);
@@ -746,8 +740,6 @@ static void ui_block_colorpicker(uiBlock *block,
                    cpicker->hsv_scene_linear + 2,
                    0.0,
                    softmax,
-                   0,
-                   0,
                    CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"));
   }
   UI_but_number_slider_step_size_set(bt, 10);

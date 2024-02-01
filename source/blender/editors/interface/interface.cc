@@ -5067,8 +5067,6 @@ uiBut *uiDefButF(uiBlock *block,
                  float *poin,
                  float min,
                  float max,
-                 float a1,
-                 float a2,
                  const char *tip)
 {
   return uiDefBut(block,
@@ -5082,8 +5080,8 @@ uiBut *uiDefButF(uiBlock *block,
                   (void *)poin,
                   min,
                   max,
-                  a1,
-                  a2,
+                  0.0f,
+                  0.0f,
                   tip);
 }
 uiBut *uiDefButI(uiBlock *block,
