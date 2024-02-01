@@ -4779,24 +4779,13 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block,
                                       int type,
                                       wmOperatorType *ot,
                                       wmOperatorCallContext opcontext,
-                                      const char *str,
+                                      const StringRef str,
                                       int x,
                                       int y,
                                       short width,
                                       short height,
                                       const char *tip)
 {
-  std::string operator_name;
-  if (!str) {
-    if (ot && ot->srna) {
-      operator_name = WM_operatortype_name(ot, nullptr);
-      str = operator_name.c_str();
-    }
-    else {
-      str = "";
-    }
-  }
-
   if ((!tip || tip[0] == '\0') && ot && ot->srna && !ot->get_description) {
     tip = RNA_struct_ui_description(ot->srna);
   }
@@ -4806,9 +4795,8 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block,
   but->opcontext = opcontext;
   but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_rna_undo(), we never need undo here */
 
-  const bool has_label = str && str[0];
   /* Enable quick tooltip label if this is a tool button without a label. */
-  if (!has_label && !ui_block_is_popover(block) && UI_but_is_tool(but)) {
+  if (str.is_empty() && !ui_block_is_popover(block) && UI_but_is_tool(but)) {
     UI_but_drawflag_enable(but, UI_BUT_HAS_TOOLTIP_LABEL);
   }
 
@@ -5319,7 +5307,7 @@ uiBut *uiDefButO_ptr(uiBlock *block,
                      int type,
                      wmOperatorType *ot,
                      wmOperatorCallContext opcontext,
-                     const char *str,
+                     const StringRef str,
                      int x,
                      int y,
                      short width,
@@ -5774,7 +5762,7 @@ uiBut *uiDefIconTextButO_ptr(uiBlock *block,
                              wmOperatorType *ot,
                              wmOperatorCallContext opcontext,
                              int icon,
-                             const char *str,
+                             const StringRef str,
                              int x,
                              int y,
                              short width,
@@ -5791,7 +5779,7 @@ uiBut *uiDefIconTextButO(uiBlock *block,
                          const char *opname,
                          wmOperatorCallContext opcontext,
                          int icon,
-                         const char *str,
+                         const StringRef str,
                          int x,
                          int y,
                          short width,
@@ -5799,7 +5787,7 @@ uiBut *uiDefIconTextButO(uiBlock *block,
                          const char *tip)
 {
   wmOperatorType *ot = WM_operatortype_find(opname, false);
-  if (str && str[0] == '\0') {
+  if (str.is_empty()) {
     return uiDefIconButO_ptr(block, type, ot, opcontext, icon, x, y, width, height, tip);
   }
   return uiDefIconTextButO_ptr(block, type, ot, opcontext, icon, str, x, y, width, height, tip);

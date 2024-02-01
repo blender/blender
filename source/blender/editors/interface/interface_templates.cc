@@ -5961,17 +5961,16 @@ void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propn
 
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  uiBut *but = uiDefIconTextButO(block,
-                                 UI_BTYPE_BUT,
-                                 "UI_OT_eyedropper_color",
-                                 WM_OP_INVOKE_DEFAULT,
-                                 icon,
-                                 "",
-                                 0,
-                                 0,
-                                 UI_UNIT_X,
-                                 UI_UNIT_Y,
-                                 RNA_property_ui_description(prop));
+  uiBut *but = uiDefIconButO(block,
+                             UI_BTYPE_BUT,
+                             "UI_OT_eyedropper_color",
+                             WM_OP_INVOKE_DEFAULT,
+                             icon,
+                             0,
+                             0,
+                             UI_UNIT_X,
+                             UI_UNIT_Y,
+                             RNA_property_ui_description(prop));
   but->rnapoin = *ptr;
   but->rnaprop = prop;
   but->rnaindex = -1;

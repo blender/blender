@@ -1458,17 +1458,18 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, nullptr, &sy);
 
     uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-    uiBut *but = uiDefIconTextButO(block,
-                                   UI_BTYPE_BUT,
-                                   "SCREEN_OT_userpref_show",
-                                   WM_OP_INVOKE_DEFAULT,
-                                   ICON_PREFERENCES,
-                                   nullptr,
-                                   sx + UI_UNIT_X,
-                                   sy - line_height - UI_UNIT_Y * 1.2f,
-                                   UI_UNIT_X * 8,
-                                   UI_UNIT_Y,
-                                   nullptr);
+    wmOperatorType *ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);
+    uiBut *but = uiDefIconTextButO_ptr(block,
+                                       UI_BTYPE_BUT,
+                                       ot,
+                                       WM_OP_INVOKE_DEFAULT,
+                                       ICON_PREFERENCES,
+                                       WM_operatortype_name(ot, nullptr),
+                                       sx + UI_UNIT_X,
+                                       sy - line_height - UI_UNIT_Y * 1.2f,
+                                       UI_UNIT_X * 8,
+                                       UI_UNIT_Y,
+                                       nullptr);
     PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
     RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
 
