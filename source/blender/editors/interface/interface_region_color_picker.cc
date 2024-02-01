@@ -623,9 +623,11 @@ static void ui_block_colorpicker(uiBlock *block,
                       0,
                       0.0,
                       0.0,
-                      10,
-                      3,
+                      0,
+                      0,
                       TIP_("Red"));
+  UI_but_number_slider_step_size_set(bt, 10);
+  UI_but_number_slider_precision_set(bt, 3);
   UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButR_prop(block,
@@ -641,9 +643,11 @@ static void ui_block_colorpicker(uiBlock *block,
                       1,
                       0.0,
                       0.0,
-                      10,
-                      3,
+                      0,
+                      0,
                       TIP_("Green"));
+  UI_but_number_slider_step_size_set(bt, 10);
+  UI_but_number_slider_precision_set(bt, 3);
   UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
   bt = uiDefButR_prop(block,
@@ -659,9 +663,11 @@ static void ui_block_colorpicker(uiBlock *block,
                       2,
                       0.0,
                       0.0,
-                      10,
-                      3,
+                      0,
+                      0,
                       TIP_("Blue"));
+  UI_but_number_slider_step_size_set(bt, 10);
+  UI_but_number_slider_precision_set(bt, 3);
   UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
 
@@ -683,9 +689,9 @@ static void ui_block_colorpicker(uiBlock *block,
                  cpicker->hsv_scene_linear,
                  0.0,
                  1.0,
-                 10,
-                 3,
                  TIP_("Hue"));
+  UI_but_number_slider_step_size_set(bt, 10);
+  UI_but_number_slider_precision_set(bt, 3);
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
@@ -700,9 +706,9 @@ static void ui_block_colorpicker(uiBlock *block,
                  cpicker->hsv_scene_linear + 1,
                  0.0,
                  1.0,
-                 10,
-                 3,
                  TIP_("Saturation"));
+  UI_but_number_slider_step_size_set(bt, 10);
+  UI_but_number_slider_precision_set(bt, 3);
   UI_but_flag_disable(bt, UI_BUT_UNDO);
   UI_but_func_set(bt, ui_colorpicker_hsv_update_cb, bt, nullptr);
   bt->custom_data = cpicker;
@@ -718,9 +724,9 @@ static void ui_block_colorpicker(uiBlock *block,
                    cpicker->hsv_scene_linear + 2,
                    0.0,
                    1.0,
-                   10,
-                   3,
                    TIP_("Lightness"));
+    UI_but_number_slider_step_size_set(bt, 10);
+    UI_but_number_slider_precision_set(bt, 3);
   }
   else {
     bt = uiDefButF(block,
@@ -734,10 +740,10 @@ static void ui_block_colorpicker(uiBlock *block,
                    cpicker->hsv_scene_linear + 2,
                    0.0,
                    softmax,
-                   10,
-                   3,
                    CTX_TIP_(BLT_I18NCONTEXT_COLOR, "Value"));
   }
+  UI_but_number_slider_step_size_set(bt, 10);
+  UI_but_number_slider_precision_set(bt, 3);
   UI_but_flag_disable(bt, UI_BUT_UNDO);
 
   bt->hardmax = hardmax; /* Not common but RGB may be over 1.0. */
@@ -760,9 +766,11 @@ static void ui_block_colorpicker(uiBlock *block,
                         3,
                         0.0,
                         0.0,
-                        10,
-                        3,
+                        0,
+                        0,
                         TIP_("Alpha"));
+    UI_but_number_slider_step_size_set(bt, 10);
+    UI_but_number_slider_precision_set(bt, 3);
     UI_but_func_set(bt, ui_colorpicker_rgba_update_cb, bt, nullptr);
     bt->custom_data = cpicker;
   }

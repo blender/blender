@@ -163,8 +163,8 @@ uiBut *uiDefAutoButR(uiBlock *block,
                              index,
                              0,
                              0,
-                             -1,
-                             -1,
+                             0,
+                             0,
                              nullptr);
       }
       else {

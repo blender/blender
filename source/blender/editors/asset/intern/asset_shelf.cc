@@ -644,20 +644,21 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
   const int pad_x = UI_UNIT_X * 0.3f;
   const int but_width = std::min(string_width + 2 * pad_x, UI_UNIT_X * 8);
 
-  uiBut *but = uiDefBut(&block,
-                        UI_BTYPE_TAB,
-                        0,
-                        name.c_str(),
-                        0,
-                        0,
-                        but_width,
-                        UI_UNIT_Y,
-                        nullptr,
-                        0,
-                        0,
-                        0,
-                        0,
-                        "Enable catalog, making contained assets visible in the asset shelf");
+  uiBut *but = uiDefBut(
+      &block,
+      UI_BTYPE_TAB,
+      0,
+      name,
+      0,
+      0,
+      but_width,
+      UI_UNIT_Y,
+      nullptr,
+      0,
+      0,
+      0,
+      0,
+      TIP_("Enable catalog, making contained assets visible in the asset shelf"));
 
   UI_but_drawflag_enable(but, UI_BUT_ALIGN_DOWN);
   UI_but_flag_disable(but, UI_BUT_UNDO);

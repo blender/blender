@@ -276,11 +276,7 @@ void GLBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
   GL_CHECK_RESOURCES("Batch");
 
   this->bind();
-
-  /* TODO(fclem): Make the barrier and binding optional if consecutive draws are issued. */
   dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
-  /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
-  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
   GLenum gl_type = to_gl(prim_type);
   if (elem) {
@@ -303,11 +299,7 @@ void GLBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
   GL_CHECK_RESOURCES("Batch");
 
   this->bind();
-
-  /* TODO(fclem): Make the barrier and binding optional if consecutive draws are issued. */
   dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
-  /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
-  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
   GLenum gl_type = to_gl(prim_type);
   if (elem) {
