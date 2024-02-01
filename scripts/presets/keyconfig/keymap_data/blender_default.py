@@ -4644,6 +4644,16 @@ def km_grease_pencil_edit_mode(params):
 
         # Context menu
         *_template_items_context_menu("VIEW3D_MT_greasepencil_edit_context_menu", params.context_menu_event),
+
+        # Reorder
+        ("grease_pencil.reorder", {"type": 'UP_ARROW', "value": 'PRESS',
+         "ctrl": True, "shift": True}, {"properties": [("direction", "TOP")]}),
+        ("grease_pencil.reorder", {"type": 'UP_ARROW', "value": 'PRESS',
+         "ctrl": True, "repeat": True}, {"properties": [("direction", "UP")]}),
+        ("grease_pencil.reorder", {"type": 'DOWN_ARROW', "value": 'PRESS',
+         "ctrl": True, "repeat": True}, {"properties": [("direction", "DOWN")]}),
+        ("grease_pencil.reorder", {"type": 'DOWN_ARROW', "value": 'PRESS',
+         "ctrl": True, "shift": True}, {"properties": [("direction", "BOTTOM")]}),
     ])
 
     return keymap

@@ -25,6 +25,11 @@ PointCloud *reorder_points(const PointCloud &src_pointcloud,
                            Span<int> old_by_new_map,
                            const bke::AnonymousAttributePropagationInfo &propagation_info);
 
+bke::CurvesGeometry reorder_curves_geometry(
+    const bke::CurvesGeometry &src_curves,
+    Span<int> old_by_new_map,
+    const bke::AnonymousAttributePropagationInfo &propagation_info);
+
 Curves *reorder_curves(const Curves &src_curves,
                        Span<int> old_by_new_map,
                        const bke::AnonymousAttributePropagationInfo &propagation_info);
