@@ -33,13 +33,6 @@ namespace blender::nodes {
 bool check_tool_context_and_error(GeoNodeExecParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
-void transform_mesh(Mesh &mesh, float3 translation, math::Quaternion rotation, float3 scale);
-
-void transform_geometry_set(GeoNodeExecParams &params,
-                            GeometrySet &geometry,
-                            const float4x4 &transform,
-                            const Depsgraph &depsgraph);
-
 /**
  * Returns the parts of the geometry that are on the selection for the given domain. If the domain
  * is not applicable for the component, e.g. face domain for point cloud, nothing happens to that

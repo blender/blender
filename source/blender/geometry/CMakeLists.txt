@@ -41,6 +41,7 @@ set(SRC
   intern/set_curve_type.cc
   intern/smooth_curves.cc
   intern/subdivide_curves.cc
+  intern/transform.cc
   intern/trim_curves.cc
   intern/uv_pack.cc
   intern/uv_parametrizer.cc
@@ -71,6 +72,7 @@ set(SRC
   GEO_set_curve_type.hh
   GEO_smooth_curves.hh
   GEO_subdivide_curves.hh
+  GEO_transform.hh
   GEO_trim_curves.hh
   GEO_uv_pack.hh
   GEO_uv_parametrizer.hh
