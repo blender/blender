@@ -33,18 +33,6 @@ namespace blender::nodes {
 bool check_tool_context_and_error(GeoNodeExecParams &params);
 void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params);
 
-/**
- * Returns the parts of the geometry that are on the selection for the given domain. If the domain
- * is not applicable for the component, e.g. face domain for point cloud, nothing happens to that
- * component. If no component can work with the domain, then `error_message` is set to true.
- */
-void separate_geometry(GeometrySet &geometry_set,
-                       AttrDomain domain,
-                       GeometryNodeDeleteGeometryMode mode,
-                       const Field<bool> &selection_field,
-                       const AnonymousAttributePropagationInfo &propagation_info,
-                       bool &r_is_error);
-
 void get_closest_in_bvhtree(BVHTreeFromMesh &tree_data,
                             const VArray<float3> &positions,
                             const IndexMask &mask,

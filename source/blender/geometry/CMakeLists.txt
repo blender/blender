@@ -38,6 +38,7 @@ set(SRC
   intern/reorder.cc
   intern/resample_curves.cc
   intern/reverse_uv_sampler.cc
+  intern/separate_geometry.cc
   intern/set_curve_type.cc
   intern/smooth_curves.cc
   intern/subdivide_curves.cc
@@ -69,6 +70,7 @@ set(SRC
   GEO_reorder.hh
   GEO_resample_curves.hh
   GEO_reverse_uv_sampler.hh
+  GEO_separate_geometry.hh
   GEO_set_curve_type.hh
   GEO_smooth_curves.hh
   GEO_subdivide_curves.hh
