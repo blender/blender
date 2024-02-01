@@ -17,7 +17,7 @@
 #include "DEG_depsgraph_query.hh"
 #include "DNA_object_types.h"
 #include "DRW_render.hh"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "eevee_shader_shared.hh"
 

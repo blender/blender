@@ -9,6 +9,8 @@
 
 #include "RNA_enum_types.hh"
 
+#include "GEO_separate_geometry.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_separate_geometry_cc {
@@ -59,21 +61,21 @@ static void node_geo_exec(GeoNodeExecParams params)
         bool is_error;
         if (domain == AttrDomain::Instance) {
           /* Only delete top level instances. */
-          separate_geometry(geometry_set,
-                            domain,
-                            GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                            selection,
-                            propagation_info,
-                            is_error);
+          geometry::separate_geometry(geometry_set,
+                                      domain,
+                                      GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
+                                      selection,
+                                      propagation_info,
+                                      is_error);
         }
         else {
           geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-            separate_geometry(geometry_set,
-                              domain,
-                              GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                              selection,
-                              propagation_info,
-                              is_error);
+            geometry::separate_geometry(geometry_set,
+                                        domain,
+                                        GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
+                                        selection,
+                                        propagation_info,
+                                        is_error);
           });
         }
       };

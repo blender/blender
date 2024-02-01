@@ -15,37 +15,6 @@
 
 namespace blender::nodes {
 
-template<typename T>
-void copy_with_checked_indices(const VArray<T> &src,
-                               const VArray<int> &indices,
-                               const IndexMask &mask,
-                               MutableSpan<T> dst)
-{
-  const IndexRange src_range = src.index_range();
-  devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    mask.foreach_index(GrainSize(4096), [&](const int i) {
-      const int index = indices[i];
-      if (src_range.contains(index)) {
-        dst[i] = src[index];
-      }
-      else {
-        dst[i] = {};
-      }
-    });
-  });
-}
-
-void copy_with_checked_indices(const GVArray &src,
-                               const VArray<int> &indices,
-                               const IndexMask &mask,
-                               GMutableSpan dst)
-{
-  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    copy_with_checked_indices(src.typed<T>(), indices, mask, dst.typed<T>());
-  });
-}
-
 }  // namespace blender::nodes
 
 namespace blender::nodes::node_geo_sample_index_cc {
@@ -220,7 +189,7 @@ class SampleIndexFunction : public mf::MultiFunction {
       });
     }
     else {
-      copy_with_checked_indices(*src_data_, indices, mask, dst);
+      bke::copy_with_checked_indices(*src_data_, indices, mask, dst);
     }
   }
 };

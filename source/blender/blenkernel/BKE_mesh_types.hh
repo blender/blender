@@ -29,6 +29,9 @@ struct SubsurfRuntimeData;
 namespace blender::bke {
 struct EditMeshData;
 }
+namespace blender::bke::bake {
+struct BakeMaterialsList;
+}
 
 /** #MeshRuntime.wrapper_type */
 enum eMeshWrapperType {
@@ -206,6 +209,9 @@ struct MeshRuntime {
    * Otherwise it will be empty.
    */
   BitVector<> subsurf_optimal_display_edges;
+
+  /** Stores weak references to material data blocks. */
+  std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 
   MeshRuntime();
   ~MeshRuntime();

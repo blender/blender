@@ -1100,14 +1100,14 @@ def dump_messages(do_messages, do_checks, settings):
     return pot  # Not used currently, but may be useful later (and to be consistent with dump_addon_messages!).
 
 
-def dump_addon_messages(module_name, do_checks, settings):
+def dump_addon_messages(addon_module_name, do_checks, settings):
     import addon_utils
 
     # Get current addon state (loaded or not):
-    was_loaded = addon_utils.check(module_name)[1]
+    was_loaded = addon_utils.check(addon_module_name)[1]
 
     # Enable our addon.
-    addon = utils.enable_addons(addons={module_name})[0]
+    addon = utils.enable_addons(addons={addon_module_name})[0]
 
     addon_info = addon_utils.module_bl_info(addon)
     ver = addon_info["name"] + " " + ".".join(str(v) for v in addon_info["version"])
@@ -1131,7 +1131,7 @@ def dump_addon_messages(module_name, do_checks, settings):
     print("C")
 
     # Now disable our addon, and re-scan RNA.
-    utils.enable_addons(addons={module_name}, disable=True)
+    utils.enable_addons(addons={addon_module_name}, disable=True)
     print("D")
     reports["check_ctxt"] = minus_check_ctxt
     print("E")
@@ -1140,7 +1140,7 @@ def dump_addon_messages(module_name, do_checks, settings):
 
     # Restore previous state if needed!
     if was_loaded:
-        utils.enable_addons(addons={module_name})
+        utils.enable_addons(addons={addon_module_name})
 
     # and make the diff!
     for key in minus_msgs:

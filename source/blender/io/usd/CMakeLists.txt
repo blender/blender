@@ -113,6 +113,7 @@ set(SRC
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
+  intern/usd_reader_pointinstancer.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
 
@@ -152,6 +153,7 @@ set(SRC
   intern/usd_reader_stage.h
   intern/usd_reader_volume.h
   intern/usd_reader_xform.h
+  intern/usd_reader_pointinstancer.h
   intern/usd_skel_convert.h
   intern/usd_skel_root_utils.h
 )

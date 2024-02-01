@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "BKE_cryptomatte.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "eevee_cryptomatte.hh"
 #include "eevee_instance.hh"

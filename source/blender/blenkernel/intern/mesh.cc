@@ -44,6 +44,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_attribute.hh"
+#include "BKE_bake_data_block_id.hh"
 #include "BKE_bpath.h"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
@@ -146,6 +147,10 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   mesh_dst->runtime->vert_to_face_map_cache = mesh_src->runtime->vert_to_face_map_cache;
   mesh_dst->runtime->vert_to_corner_map_cache = mesh_src->runtime->vert_to_corner_map_cache;
   mesh_dst->runtime->corner_to_face_map_cache = mesh_src->runtime->corner_to_face_map_cache;
+  if (mesh_src->runtime->bake_materials) {
+    mesh_dst->runtime->bake_materials = std::make_unique<blender::bke::bake::BakeMaterialsList>(
+        *mesh_src->runtime->bake_materials);
+  }
 
   /* Only do tessface if we have no faces. */
   const bool do_tessface = ((mesh_src->totface_legacy != 0) && (mesh_src->faces_num == 0));

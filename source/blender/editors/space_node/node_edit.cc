@@ -63,7 +63,7 @@
 #include "UI_view2d.hh"
 
 #include "GPU_capabilities.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "IMB_imbuf_types.hh"
 

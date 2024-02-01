@@ -38,13 +38,11 @@ void VKStorageBuffer::ensure_allocated()
 
 void VKStorageBuffer::allocate()
 {
-  const bool is_host_visible = ELEM(usage_, GPU_USAGE_STREAM);
-  VkBufferUsageFlags buffer_usage_flags = ELEM(usage_, GPU_USAGE_STREAM) ?
-                                              VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT :
-                                              VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
-                                                  VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                                                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-                                                  VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  const bool is_host_visible = false;
+  const VkBufferUsageFlags buffer_usage_flags = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
+                                                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                                VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                                                VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   buffer_.create(size_in_bytes_, usage_, buffer_usage_flags, is_host_visible);
   debug::object_label(buffer_.vk_handle(), name_);
 }

@@ -75,15 +75,15 @@ class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
         if unknown_addons:
             layout.label(text="Unknown add-ons", icon='ERROR')
             col = layout.box().column(align=True)
-            for module_name in sorted(unknown_addons):
+            for addon_module_name in sorted(unknown_addons):
                 row = col.row()
                 row.alignment = 'LEFT'
                 row.operator(
                     "wm.owner_disable",
                     icon='CHECKBOX_HLT',
-                    text=module_name,
+                    text=addon_module_name,
                     emboss=False,
-                ).owner_id = module_name
+                ).owner_id = addon_module_name
 
 
 class WORKSPACE_UL_addons_items(UIList):
@@ -95,8 +95,8 @@ class WORKSPACE_UL_addons_items(UIList):
         module = WORKSPACE_PT_addons.addon_map.get(addon.module)
         if not module:
             return addon.module
-        info = addon_utils.module_bl_info(module)
-        return "%s: %s" % (iface_(info["category"]), iface_(info["name"]))
+        bl_info = addon_utils.module_bl_info(module)
+        return "%s: %s" % (iface_(bl_info["category"]), iface_(bl_info["name"]))
 
     @staticmethod
     def _filter_addons_by_category_name(pattern, bitflag, addons, reverse=False):

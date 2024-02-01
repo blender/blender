@@ -18,7 +18,6 @@
 #include "draw_shader.hh"
 
 extern "C" char datatoc_common_hair_lib_glsl[];
-extern "C" char datatoc_common_hair_refine_vert_glsl[];
 
 static struct {
   GPUShader *hair_refine_sh[PART_REFINE_MAX_SHADER];
@@ -39,60 +38,21 @@ static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader /*refin
   return GPU_shader_create_from_info_name("draw_hair_refine_compute");
 }
 
-static GPUShader *hair_refine_shader_transform_feedback_create(ParticleRefineShader /*refinement*/)
-{
-  return GPU_shader_create_from_info_name("legacy_hair_refine_shader_transform_feedback");
-}
-
-static GPUShader *hair_refine_shader_transform_feedback_workaround_create(
-    ParticleRefineShader /*refinement*/)
-{
-  return GPU_shader_create_from_info_name("draw_hair_refine_transform_feedback_workaround");
-}
-
-GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
-                                      eParticleRefineShaderType sh_type)
+GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement)
 {
   if (e_data.hair_refine_sh[refinement] == nullptr) {
-    GPUShader *sh = nullptr;
-    switch (sh_type) {
-      case PART_REFINE_SHADER_COMPUTE:
-        sh = hair_refine_shader_compute_create(refinement);
-        break;
-      case PART_REFINE_SHADER_TRANSFORM_FEEDBACK:
-        sh = hair_refine_shader_transform_feedback_create(refinement);
-        break;
-      case PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND:
-        sh = hair_refine_shader_transform_feedback_workaround_create(refinement);
-        break;
-      default:
-        BLI_assert_msg(0, "Incorrect shader type");
-    }
+    GPUShader *sh = hair_refine_shader_compute_create(refinement);
     e_data.hair_refine_sh[refinement] = sh;
   }
 
   return e_data.hair_refine_sh[refinement];
 }
 
-GPUShader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type,
-                                        eParticleRefineShaderType sh_type)
+GPUShader *DRW_shader_curves_refine_get(blender::draw::CurvesEvalShader type)
 {
   /* TODO: Implement curves evaluation types (Bezier and Catmull Rom). */
   if (e_data.hair_refine_sh[type] == nullptr) {
-    GPUShader *sh = nullptr;
-    switch (sh_type) {
-      case PART_REFINE_SHADER_COMPUTE:
-        sh = hair_refine_shader_compute_create(PART_REFINE_CATMULL_ROM);
-        break;
-      case PART_REFINE_SHADER_TRANSFORM_FEEDBACK:
-        sh = hair_refine_shader_transform_feedback_create(PART_REFINE_CATMULL_ROM);
-        break;
-      case PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND:
-        sh = hair_refine_shader_transform_feedback_workaround_create(PART_REFINE_CATMULL_ROM);
-        break;
-      default:
-        BLI_assert_msg(0, "Incorrect shader type");
-    }
+    GPUShader *sh = hair_refine_shader_compute_create(PART_REFINE_CATMULL_ROM);
     e_data.hair_refine_sh[type] = sh;
   }
 

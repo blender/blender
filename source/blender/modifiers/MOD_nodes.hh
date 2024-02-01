@@ -37,4 +37,6 @@ struct NodesModifierRuntime {
   std::shared_ptr<bke::bake::ModifierCache> cache;
 };
 
+void nodes_modifier_data_block_destruct(NodesModifierDataBlock *data_block, bool do_id_user);
+
 }  // namespace blender

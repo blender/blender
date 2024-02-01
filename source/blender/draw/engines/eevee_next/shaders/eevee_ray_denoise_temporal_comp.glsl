@@ -32,10 +32,12 @@ struct LocalStatistics {
 
 LocalStatistics local_statistics_get(ivec2 texel, vec3 center_radiance)
 {
+  vec3 center_radiance_YCoCg = colorspace_YCoCg_from_scene_linear(center_radiance);
+
   /* Build Local statistics (slide 46). */
   LocalStatistics result;
-  result.mean = center_radiance;
-  result.variance = center_radiance;
+  result.mean = center_radiance_YCoCg;
+  result.moment = square(center_radiance_YCoCg);
   float weight_accum = 1.0;
 
   for (int x = -1; x <= 1; x++) {

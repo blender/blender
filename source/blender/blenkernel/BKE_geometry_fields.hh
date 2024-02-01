@@ -422,6 +422,47 @@ class CurveLengthFieldInput final : public CurvesFieldInput {
   std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry &curves) const final;
 };
 
+class EvaluateAtIndexInput final : public bke::GeometryFieldInput {
+ private:
+  fn::Field<int> index_field_;
+  fn::GField value_field_;
+  AttrDomain value_field_domain_;
+
+ public:
+  EvaluateAtIndexInput(fn::Field<int> index_field,
+                       fn::GField value_field,
+                       AttrDomain value_field_domain);
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask &mask) const final;
+
+  std::optional<AttrDomain> preferred_domain(const GeometryComponent & /*component*/) const final
+  {
+    return value_field_domain_;
+  }
+};
+
+void copy_with_checked_indices(const GVArray &src,
+                               const VArray<int> &indices,
+                               const IndexMask &mask,
+                               GMutableSpan dst);
+
+class EvaluateOnDomainInput final : public bke::GeometryFieldInput {
+ private:
+  fn::GField src_field_;
+  AttrDomain src_domain_;
+
+ public:
+  EvaluateOnDomainInput(fn::GField field, AttrDomain domain);
+
+  GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
+                                 const IndexMask & /*mask*/) const final;
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override;
+
+  std::optional<AttrDomain> preferred_domain(
+      const GeometryComponent & /*component*/) const override;
+};
+
 bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
                                    const fn::FieldContext &field_context,
                                    const AttributeIDRef &attribute_id,

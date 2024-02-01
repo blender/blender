@@ -162,11 +162,7 @@ def _fake_module(mod_name, mod_path, speedy=True, force_support=None):
 
         return mod
     else:
-        print(
-            "fake_module: addon missing 'bl_info' "
-            "gives bad performance!:",
-            repr(mod_path),
-        )
+        print("Warning: add-on missing 'bl_info', this can cause poor performance!:", repr(mod_path))
         return None
 
 
@@ -187,7 +183,7 @@ def modules_refresh(*, module_cache=addons_fake_modules):
         for mod_name, mod_path in _bpy.path.module_names(path, package=pkg_id):
             modules_stale.discard(mod_name)
             mod = module_cache.get(mod_name)
-            if mod:
+            if mod is not None:
                 if mod.__file__ != mod_path:
                     print(
                         "multiple addons with the same name:\n"
@@ -196,14 +192,12 @@ def modules_refresh(*, module_cache=addons_fake_modules):
                     )
                     error_duplicates.append((mod.bl_info["name"], mod.__file__, mod_path))
 
-                elif mod.__time__ != os.path.getmtime(mod_path):
-                    print(
-                        "reloading addon:",
-                        mod_name,
-                        mod.__time__,
-                        os.path.getmtime(mod_path),
-                        repr(mod_path),
-                    )
+                elif (
+                        (mod.__time__ != os.path.getmtime(metadata_path := mod_path)) if not pkg_id else
+                        # Check the manifest time as this is the source of the cache.
+                        (mod.__time_manifest__ != os.path.getmtime(metadata_path := mod.__file_manifest__))
+                ):
+                    print("reloading addon meta-data:", mod_name, repr(metadata_path), "(time-stamp change detected)")
                     del module_cache[mod_name]
                     mod = None
 
@@ -322,6 +316,8 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
     import importlib
     from bpy_restrict_state import RestrictBlend
 
+    is_extension = module_name.startswith(_ext_base_pkg_idname_with_dot)
+
     if handle_error is None:
         def handle_error(_ex):
             import traceback
@@ -393,7 +389,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
                     print("Add-on not loaded: \"%s\", cause: %s" % (module_name, str(ex)))
 
                 # Issue with an add-on from an extension repository, report a useful message.
-                elif module_name.startswith(ex.name + ".") and module_name.startswith(_ext_base_pkg_idname_with_dot):
+                elif is_extension and module_name.startswith(ex.name + "."):
                     repo_id = module_name[len(_ext_base_pkg_idname_with_dot):].rpartition(".")[0]
                     repo = next(
                         (repo for repo in _preferences.filepaths.extension_repos if repo.module == repo_id),
@@ -420,6 +416,21 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if default_set:
                 _addon_remove(module_name)
             return None
+
+        if is_extension:
+            # Handle the case the an extension has `bl_info` (which is not used for extensions).
+            # Note that internally a `bl_info` is added based on the extensions manifest - for compatibility.
+            # So it's important not to use this one.
+            bl_info = getattr(mod, "bl_info", None)
+            if bl_info is not None:
+                # Use `_init` to detect when `bl_info` was generated from the manifest, see: `_bl_info_from_extension`.
+                if type(bl_info) is dict and "_init" not in bl_info:
+                    print(
+                        "Add-on \"%s\" has a \"bl_info\" which will be ignored in favor of \"%s\"" %
+                        (module_name, _ext_manifest_filename_toml)
+                    )
+                # Always remove as this is not expected to exist and will be lazily initialized.
+                del mod.bl_info
 
         # 2) Try register collected modules.
         # Removed register_module, addons need to handle their own registration now.
@@ -593,6 +604,14 @@ def module_bl_info(mod, *, info_basis=None):
         return addon_info
 
     if not addon_info:
+        if mod.__name__.startswith(_ext_base_pkg_idname_with_dot):
+            addon_info, filepath_toml = _bl_info_from_extension(mod.__name__, mod.__file__)
+            if addon_info is None:
+                # Unexpected, this is a malformed extension if meta-data can't be loaded.
+                print("module_bl_info: failed to extract meta-data from", filepath_toml)
+                # Continue to initialize dummy data.
+                addon_info = {}
+
         mod.bl_info = addon_info
 
     for key, value in info_basis.items():
@@ -617,8 +636,7 @@ def module_bl_info(mod, *, info_basis=None):
 # -----------------------------------------------------------------------------
 # Extension Utilities
 
-
-def _fake_module_from_extension(mod_name, mod_path, force_support=None):
+def _bl_info_from_extension(mod_name, mod_path, force_support=None):
     # Extract the `bl_info` from an extensions manifest.
     # This is returned as a module which has a `bl_info` variable.
     # When support for non-extension add-ons is dropped (Blender v5.0 perhaps)
@@ -628,50 +646,82 @@ def _fake_module_from_extension(mod_name, mod_path, force_support=None):
 
     bl_info = _bl_info_basis()
 
-    filepath = os.path.join(os.path.dirname(mod_path), _ext_manifest_filename_toml)
+    filepath_toml = os.path.join(os.path.dirname(mod_path), _ext_manifest_filename_toml)
     try:
-        with open(filepath, "rb") as fh:
+        with open(filepath_toml, "rb") as fh:
             data = tomllib.load(fh)
+    except FileNotFoundError:
+        print("Warning: add-on missing manifest, this can cause poor performance!:", repr(filepath_toml))
+        return None, filepath_toml
     except BaseException as ex:
-        print("Error:", str(ex), "in", filepath)
-        return None
+        print("Error:", str(ex), "in", filepath_toml)
+        return None, filepath_toml
 
     # This isn't a full validation which happens on package install/update.
     if (value := data.get("name", None)) is None:
-        print("Error: missing \"name\" from in", filepath)
-        return None
+        print("Error: missing \"name\" from in", filepath_toml)
+        return None, filepath_toml
     if type(value) is not str:
-        print("Error: \"name\" is not a string in", filepath)
-        return None
+        print("Error: \"name\" is not a string in", filepath_toml)
+        return None, filepath_toml
     bl_info["name"] = value
 
     if (value := data.get("version", None)) is None:
-        print("Error: missing \"version\" from in", filepath)
-        return None
+        print("Error: missing \"version\" from in", filepath_toml)
+        return None, filepath_toml
     if type(value) is not str:
-        print("Error: \"version\" is not a string in", filepath)
-        return None
+        print("Error: \"version\" is not a string in", filepath_toml)
+        return None, filepath_toml
     bl_info["version"] = value
 
-    if (value := data.get("author", None)) is None:
-        print("Error: missing \"author\" from in", filepath)
-        return None
-    if (type(value) is not list) or any(x for x in value if type(x) is not str):
-        print("Error: \"author\" is not a list of strings in", filepath)
-        return None
-    bl_info["author"] = ", ".join(value)
+    if (value := data.get("blender_version_min", None)) is None:
+        print("Error: missing \"blender_version_min\" from in", filepath_toml)
+        return None, filepath_toml
+    if type(value) is not str:
+        print("Error: \"blender_version_min\" is not a string in", filepath_toml)
+        return None, filepath_toml
+    try:
+        value = tuple(int(x) for x in value.split("."))
+    except BaseException as ex:
+        print("Error:", str(ex), "in \"blender_version_min\"", filepath_toml)
+        return None, filepath_toml
+    bl_info["blender"] = value
+
+    if (value := data.get("maintainer", None)) is None:
+        print("Error: missing \"author\" from in", filepath_toml)
+        return None, filepath_toml
+    if type(value) is not str:
+        print("Error: \"maintainer\" is not a string", filepath_toml)
+        return None, filepath_toml
+    bl_info["author"] = value
 
     bl_info["category"] = "Development"  # Dummy, will be removed.
 
     if force_support is not None:
         bl_info["support"] = force_support
+    return bl_info, filepath_toml
+
+
+def _fake_module_from_extension(mod_name, mod_path, force_support=None):
+    import os
+
+    bl_info, filepath_toml = _bl_info_from_extension(mod_name, mod_path, force_support=force_support)
+    if bl_info is None:
+        return None
 
     ModuleType = type(os)
     mod = ModuleType(mod_name)
     mod.bl_info = bl_info
-    # TODO: implement a way to update based on the time of the TOML file.
     mod.__file__ = mod_path
     mod.__time__ = os.path.getmtime(mod_path)
+
+    # NOTE(@ideasman42): Add non-standard manifest variables to the "fake" module,
+    # this isn't ideal as it moves further away from the return value being minimal fake-module
+    # (where `__name__` and `__file__` are typically used).
+    # A custom type could be used, however this needs to be done carefully
+    # as all users of `addon_utils.modules(..)` need to be updated.
+    mod.__file_manifest__ = filepath_toml
+    mod.__time_manifest__ = os.path.getmtime(filepath_toml)
     return mod
 
 

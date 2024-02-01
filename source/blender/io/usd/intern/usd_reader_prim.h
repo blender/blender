@@ -94,6 +94,7 @@ class USDPrimReader {
   USDPrimReader *parent_reader_;
   const ImportSettings *settings_;
   int refcount_;
+  bool is_in_instancer_proto_;
 
  public:
   USDPrimReader(const pxr::UsdPrim &prim,
@@ -147,6 +148,18 @@ class USDPrimReader {
   {
     return prim_path_;
   }
+
+  void set_is_in_instancer_proto(bool flag)
+  {
+    is_in_instancer_proto_ = flag;
+  }
+
+  bool is_in_instancer_proto() const
+  {
+    return is_in_instancer_proto_;
+  }
+
+  bool is_in_proto() const;
 };
 
 }  // namespace blender::io::usd

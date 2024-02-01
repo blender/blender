@@ -698,7 +698,7 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 
           /* make sure the indices are well behaved */
           if (index1 > index2) {
-            std::swap( index1, index2);
+            std::swap(index1, index2);
           }
 
           edgetmp.uv1 = index1;

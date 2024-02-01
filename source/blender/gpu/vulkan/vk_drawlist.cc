@@ -16,12 +16,12 @@
 
 namespace blender::gpu {
 
-VKDrawList::VKDrawList(int list_length)
-    : command_buffer_(
-          list_length * sizeof(VkDrawIndexedIndirectCommand), GPU_USAGE_STREAM, __func__),
-      length_(list_length)
+VKDrawList::VKDrawList(int list_length) : length_(list_length)
 {
-  command_buffer_.ensure_allocated();
+  command_buffer_.create(list_length * sizeof(VkDrawIndexedIndirectCommand),
+                         GPU_USAGE_DYNAMIC,
+                         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+                         true);
 }
 
 void VKDrawList::append(GPUBatch *gpu_batch, int instance_first, int instance_count)
@@ -72,11 +72,14 @@ void VKDrawList::submit()
     batch_ = nullptr;
     return;
   }
+  if (command_index_ > 1) {
+    printf("%s: %d\n", __func__, command_index_);
+  }
 
   const VKIndexBuffer *index_buffer = batch_->index_buffer_get();
   const bool is_indexed = index_buffer != nullptr;
-  command_buffer_.buffer_get().flush();
-  batch_->multi_draw_indirect(wrap(wrap(&command_buffer_)),
+  command_buffer_.flush();
+  batch_->multi_draw_indirect(command_buffer_.vk_handle(),
                               command_index_,
                               0,
                               is_indexed ? sizeof(VkDrawIndexedIndirectCommand) :

@@ -554,31 +554,29 @@ void VKCommandBuffers::draw_indexed(
   command_buffer.command_recorded();
 }
 
-void VKCommandBuffers::draw_indirect(const VKStorageBuffer &buffer,
-                                     VkDeviceSize offset,
-                                     uint32_t draw_count,
-                                     uint32_t stride)
+void VKCommandBuffers::draw_indirect(const VkBuffer buffer,
+                                     const VkDeviceSize offset,
+                                     const uint32_t draw_count,
+                                     const uint32_t stride)
 {
   validate_framebuffer_exists();
   ensure_active_framebuffer();
 
   VKCommandBuffer &command_buffer = command_buffer_get(Type::Graphics);
-  vkCmdDrawIndirect(
-      command_buffer.vk_command_buffer(), buffer.vk_handle(), offset, draw_count, stride);
+  vkCmdDrawIndirect(command_buffer.vk_command_buffer(), buffer, offset, draw_count, stride);
   command_buffer.command_recorded();
 }
 
-void VKCommandBuffers::draw_indexed_indirect(const VKStorageBuffer &buffer,
-                                             VkDeviceSize offset,
-                                             uint32_t draw_count,
-                                             uint32_t stride)
+void VKCommandBuffers::draw_indexed_indirect(const VkBuffer buffer,
+                                             const VkDeviceSize offset,
+                                             const uint32_t draw_count,
+                                             const uint32_t stride)
 {
   validate_framebuffer_exists();
   ensure_active_framebuffer();
 
   VKCommandBuffer &command_buffer = command_buffer_get(Type::Graphics);
-  vkCmdDrawIndexedIndirect(
-      command_buffer.vk_command_buffer(), buffer.vk_handle(), offset, draw_count, stride);
+  vkCmdDrawIndexedIndirect(command_buffer.vk_command_buffer(), buffer, offset, draw_count, stride);
   command_buffer.command_recorded();
 }
 

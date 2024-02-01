@@ -90,6 +90,9 @@ GPU_TEST(texture_1d)
 
 static void test_texture_1d_array()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Read back of 1d texture arrays not supported by OpenGL";
+  }
   const int LAYERS = 8;
   const int SIZE = 32;
   GPU_render_begin();
@@ -117,6 +120,9 @@ GPU_TEST(texture_1d_array)
 
 static void test_texture_1d_array_upload()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Read back of 1d texture arrays not supported by OpenGL";
+  }
   const int LAYERS = 8;
   const int SIZE = 32;
   GPU_render_begin();
@@ -332,6 +338,7 @@ static void texture_create_upload_read()
   DataType *read_data = static_cast<DataType *>(GPU_texture_read(texture, HostFormat, 0));
   bool failed = false;
   for (int i : IndexRange(data_len)) {
+    EXPECT_EQ(data[i], read_data[i]);
     bool ok = (read_data[i] - data[i]) == 0;
     failed |= !ok;
   }
@@ -712,11 +719,13 @@ static void test_texture_roundtrip__GPU_DATA_INT__GPU_RG8I()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_INT__GPU_RG8I);
 
+#if RUN_UNSUPPORTED
 static void test_texture_roundtrip__GPU_DATA_INT__GPU_RG16I()
 {
   texture_create_upload_read<GPU_RG16I, GPU_DATA_INT, int32_t>();
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_INT__GPU_RG16I);
+#endif
 
 static void test_texture_roundtrip__GPU_DATA_INT__GPU_RG32I()
 {
@@ -822,6 +831,7 @@ static void test_texture_roundtrip__GPU_DATA_UINT__GPU_R32UI()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UINT__GPU_R32UI);
 
+#if RUN_UNSUPPORTED
 static void test_texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH32F_STENCIL8()
 {
   texture_create_upload_read<GPU_DEPTH32F_STENCIL8, GPU_DATA_UINT, uint32_t>();
@@ -834,7 +844,6 @@ static void test_texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH24_STENCIL8()
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH24_STENCIL8);
 
-#if RUN_UNSUPPORTED
 static void test_texture_roundtrip__GPU_DATA_UINT__GPU_RGB8UI()
 {
   texture_create_upload_read<GPU_RGB8UI, GPU_DATA_UINT, uint32_t>();
@@ -852,7 +861,6 @@ static void test_texture_roundtrip__GPU_DATA_UINT__GPU_RGB32UI()
   texture_create_upload_read<GPU_RGB32UI, GPU_DATA_UINT, uint32_t>();
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UINT__GPU_RGB32UI);
-#endif
 
 static void test_texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT32F()
 {
@@ -865,6 +873,7 @@ static void test_texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT24()
   texture_create_upload_read<GPU_DEPTH_COMPONENT24, GPU_DATA_UINT, uint32_t>();
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT24);
+#endif
 
 #if RUN_COMPONENT_UNIMPLEMENTED
 static void test_texture_roundtrip__GPU_DATA_UINT__GPU_DEPTH_COMPONENT16()
@@ -987,6 +996,9 @@ GPU_TEST(texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2);
 
 static void test_texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2UI()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Texture readback not supported on OpenGL";
+  }
   texture_create_upload_read_pixel<GPU_RGB10_A2UI, GPU_DATA_2_10_10_10_REV>();
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2UI);

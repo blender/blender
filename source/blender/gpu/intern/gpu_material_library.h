@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #ifdef __cplusplus
 extern "C" {

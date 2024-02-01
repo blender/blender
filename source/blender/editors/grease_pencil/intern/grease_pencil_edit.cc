@@ -35,6 +35,7 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 
+#include "GEO_reorder.hh"
 #include "GEO_smooth_curves.hh"
 #include "GEO_subdivide_curves.hh"
 
@@ -1537,6 +1538,161 @@ static void GREASE_PENCIL_OT_stroke_subdivide(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Reorder Operator
+ * \{ */
+
+enum class ReorderDirection : int8_t {
+  /** Move the selected strokes to be drawn in front. */
+  TOP = 0,
+  /** Increase the draw order of the selected strokes. */
+  UP = 1,
+  /** Decrease the draw order of the selected strokes. */
+  DOWN = 2,
+  /** Move the selected strokes to be drawn behind. */
+  BOTTOM = 3,
+};
+
+static Array<int> get_reordered_indices(const IndexRange universe,
+                                        const IndexMask &selected,
+                                        const ReorderDirection direction)
+{
+  Array<int> indices(universe.size());
+
+  if (ELEM(direction, ReorderDirection::UP, ReorderDirection::DOWN)) {
+    /* Initialize the indices. */
+    array_utils::fill_index_range<int>(indices);
+  }
+
+  if (ELEM(direction, ReorderDirection::TOP, ReorderDirection::BOTTOM)) {
+    /*
+     * Take the selected indices and move them to the start for `Bottom` or the end for `Top`
+     * And fill the reset with the unselected indices.
+     *
+     * Here's a diagram:
+     *
+     *        Input
+     * 0 1 2 3 4 5 6 7 8 9
+     *     ^   ^ ^
+     *
+     *         Top
+     * |-----A-----| |-B-|
+     * 0 1 3 6 7 8 9 2 4 5
+     *               ^ ^ ^
+     *
+     *        Bottom
+     * |-A-| |-----B-----|
+     * 2 4 5 0 1 3 6 7 8 9
+     * ^ ^ ^
+     */
+
+    IndexMaskMemory memory;
+    const IndexMask unselected = selected.complement(universe, memory);
+
+    const IndexMask &A = (direction == ReorderDirection::BOTTOM) ? selected : unselected;
+    const IndexMask &B = (direction == ReorderDirection::BOTTOM) ? unselected : selected;
+
+    A.to_indices(indices.as_mutable_span().take_front(A.size()));
+    B.to_indices(indices.as_mutable_span().take_back(B.size()));
+  }
+  else if (direction == ReorderDirection::DOWN) {
+    selected.foreach_index_optimized<int>([&](const int curve_i, const int pos) {
+      /* Check if the curve index is touching the beginning without any gaps. */
+      if (curve_i != pos) {
+        /* Move a index down by flipping it with the one below it. */
+        std::swap(indices[curve_i], indices[curve_i - 1]);
+      }
+    });
+  }
+  else if (direction == ReorderDirection::UP) {
+    Array<int> selected_indices(selected.size());
+    selected.to_indices(selected_indices.as_mutable_span());
+
+    /* Because each index is moving up we need to loop through the indices backwards,
+     * starting at the largest. */
+    for (const int i : selected_indices.index_range()) {
+      const int pos = selected_indices.index_range().last(i);
+      const int curve_i = selected_indices[pos];
+
+      /* Check if the curve index is touching the end without any gaps. */
+      if (curve_i != universe.last(i)) {
+        /* Move a index up by flipping it with the one above it. */
+        std::swap(indices[curve_i], indices[curve_i + 1]);
+      }
+    }
+  }
+
+  return indices;
+}
+
+static int grease_pencil_stroke_reorder_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const ReorderDirection direction = ReorderDirection(RNA_enum_get(op->ptr, "direction"));
+
+  std::atomic<bool> changed = false;
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, memory);
+    if (strokes.is_empty()) {
+      return;
+    }
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+
+    /* Return if everything is selected. */
+    if (strokes.size() == curves.curves_num()) {
+      return;
+    }
+
+    const Array<int> indices = get_reordered_indices(curves.curves_range(), strokes, direction);
+
+    curves = geometry::reorder_curves_geometry(curves, indices, {});
+    info.drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_stroke_reorder(wmOperatorType *ot)
+{
+  static const EnumPropertyItem prop_reorder_direction[] = {
+      {int(ReorderDirection::TOP), "TOP", 0, "Bring to Front", ""},
+      {int(ReorderDirection::UP), "UP", 0, "Bring Forward", ""},
+      RNA_ENUM_ITEM_SEPR,
+      {int(ReorderDirection::DOWN), "DOWN", 0, "Send Backward", ""},
+      {int(ReorderDirection::BOTTOM), "BOTTOM", 0, "Send to Back", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  /* Identifiers. */
+  ot->name = "Reorder";
+  ot->idname = "GREASE_PENCIL_OT_reorder";
+  ot->description = "Change the display order of the selected strokes";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_stroke_reorder_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Simplify parameters. */
+  ot->prop = RNA_def_enum(
+      ot->srna, "direction", prop_reorder_direction, int(ReorderDirection::TOP), "Direction", "");
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -1558,4 +1714,5 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_set_material);
   WM_operatortype_append(GREASE_PENCIL_OT_clean_loose);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_subdivide);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_reorder);
 }

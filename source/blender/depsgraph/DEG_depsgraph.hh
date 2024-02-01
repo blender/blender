@@ -173,18 +173,32 @@ void DEG_ids_restore_recalc(Depsgraph *depsgraph);
 /** \name Graph Evaluation
  * \{ */
 
+enum DepsgraphEvaluateSyncWriteback {
+  DEG_EVALUATE_SYNC_WRITEBACK_NO,
+  /**
+   * Allow writing back to original data after depsgraph evaluation. The change to original data
+   * may add new ID relations and may tag the depsgraph as changed again.
+   */
+  DEG_EVALUATE_SYNC_WRITEBACK_YES,
+};
+
 /**
  * Frame changed recalculation entry point.
  *
  * \note The frame-change happened for root scene that graph belongs to.
  */
-void DEG_evaluate_on_framechange(Depsgraph *graph, float frame);
+void DEG_evaluate_on_framechange(
+    Depsgraph *graph,
+    float frame,
+    DepsgraphEvaluateSyncWriteback sync_writeback = DEG_EVALUATE_SYNC_WRITEBACK_NO);
 
 /**
  * Data changed recalculation entry point.
  * Evaluate all nodes tagged for updating.
  */
-void DEG_evaluate_on_refresh(Depsgraph *graph);
+void DEG_evaluate_on_refresh(
+    Depsgraph *graph,
+    DepsgraphEvaluateSyncWriteback sync_writeback = DEG_EVALUATE_SYNC_WRITEBACK_NO);
 
 /** \} */
 
