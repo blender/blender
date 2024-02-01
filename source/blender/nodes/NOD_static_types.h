@@ -280,6 +280,7 @@ DefNode(FunctionNode, FN_NODE_INVERT_ROTATION, 0, "INVERT_ROTATION", InvertRotat
 DefNode(FunctionNode, FN_NODE_RANDOM_VALUE, def_fn_random_value, "RANDOM_VALUE", RandomValue, "Random Value", "")
 DefNode(FunctionNode, FN_NODE_REPLACE_STRING, 0, "REPLACE_STRING", ReplaceString, "Replace String", "")
 DefNode(FunctionNode, FN_NODE_ROTATE_EULER, def_fn_rotate_euler, "ROTATE_EULER", RotateEuler, "Rotate Euler", "")
+DefNode(FunctionNode, FN_NODE_ROTATE_ROTATION, 0, "ROTATE_ROTATION", RotateRotation, "Rotate Rotation", "")
 DefNode(FunctionNode, FN_NODE_ROTATE_VECTOR, 0, "ROTATE_VECTOR", RotateVector, "Rotate Vector", "")
 DefNode(FunctionNode, FN_NODE_ROTATION_TO_AXIS_ANGLE, 0, "ROTATION_TO_AXIS_ANGLE", RotationToAxisAngle, "Rotation to Axis Angle", "")
 DefNode(FunctionNode, FN_NODE_ROTATION_TO_EULER, 0, "ROTATION_TO_EULER", RotationToEuler, "Rotation to Euler", "")
