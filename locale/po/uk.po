@@ -71186,7 +71186,7 @@ msgid "Motion Threshold"
 msgstr "Поріг Руху"
 
 
-msgid "Number of pixels to before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
+msgid "Number of pixels to drag before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
 msgstr "Кількість пікселів перед тим, як курсор вважається переміщеним (вживається для обходу вибраних елементів по послідовних клацках)"
 
 

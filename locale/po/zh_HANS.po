@@ -89911,7 +89911,7 @@ msgid "Motion Threshold"
 msgstr "动作阈值"
 
 
-msgid "Number of pixels to before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
+msgid "Number of pixels to drag before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
 msgstr "认定光标移动所需的像素数 (用于在连续点击时切换所选项目)"
 
 

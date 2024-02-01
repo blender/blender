@@ -90336,7 +90336,7 @@ msgid "Motion Threshold"
 msgstr "移動のしきい値"
 
 
-msgid "Number of pixels to before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
+msgid "Number of pixels to drag before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
 msgstr ""
 "カーソルが移動したと見なされるのに必要なピクセル数\n"
 "（連続クリック時のアイテム選択の循環で使用）"

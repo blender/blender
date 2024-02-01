@@ -90225,7 +90225,7 @@ msgid "Motion Threshold"
 msgstr "Llindar de moviment"
 
 
-msgid "Number of pixels to before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
+msgid "Number of pixels to drag before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
 msgstr "[Motion Threshold]: Nombre de píxels abans que es consideri que s'ha mogut el cursor (utilitzat per a ciclitzar els elements seleccionats en clics successius)"
 
 

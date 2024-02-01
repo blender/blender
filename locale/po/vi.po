@@ -89938,7 +89938,7 @@ msgid "Motion Threshold"
 msgstr "Ngưỡng Chuyển Động"
 
 
-msgid "Number of pixels to before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
+msgid "Number of pixels to drag before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
 msgstr "Số điểm ảnh phải di chuyển trước khi con trỏ được coi là đã di chuyển (sử dụng để luân chuyển những cái được chọn trong những lần bấm tiếp theo)"
 
 

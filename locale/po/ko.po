@@ -61991,7 +61991,7 @@ msgid "Motion Threshold"
 msgstr "모션 임계 값"
 
 
-msgid "Number of pixels to before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
+msgid "Number of pixels to drag before the cursor is considered to have moved (used for cycling selected items on successive clicks)"
 msgstr "커서가 이동 한 것으로 간주되기 전까지의 픽셀 수 (연속 클릭시 선택한 항목을 순환시키기 위해 사용)"
 
 
