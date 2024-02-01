@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <fcntl.h>
 
 #include "DNA_packedFile_types.h"
 
@@ -179,10 +180,21 @@ static void rna_Image_update(Image *image, ReportList *reports)
   BKE_image_release_ibuf(image, ibuf, nullptr);
 }
 
-static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
+static void rna_Image_scale(
+    Image *image, ReportList *reports, int width, int height, int frame, int tile_index)
 {
-  if (!BKE_image_scale(image, width, height)) {
-    BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
+  ImageUser iuser{};
+  BKE_imageuser_default(&iuser);
+  iuser.framenr = frame;
+  if (image->source == IMA_SRC_TILED) {
+    const ImageTile *tile = static_cast<ImageTile *>(BLI_findlink(&image->tiles, tile_index));
+    if (tile != nullptr) {
+      iuser.tile = tile->tile_number;
+    }
+  }
+
+  if (!BKE_image_scale(image, width, height, &iuser)) {
+    BKE_reportf(reports, RPT_ERROR, "Image '%s' failed to load image buffer", image->id.name + 2);
     return;
   }
   BKE_image_partial_update_mark_full_update(image);
@@ -334,6 +346,9 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int(func, "height", 1, 1, INT_MAX, "", "Height", 1, INT_MAX);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  RNA_def_int(func, "frame", 0, 0, INT_MAX, "Frame", "Frame (for image sequences)", 0, INT_MAX);
+  RNA_def_int(
+      func, "tile_index", 0, 0, INT_MAX, "Tile", "Tile index (for tiled images)", 0, INT_MAX);
 
   func = RNA_def_function(srna, "gl_touch", "rna_Image_gl_touch");
   RNA_def_function_ui_description(

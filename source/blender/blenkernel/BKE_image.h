@@ -335,7 +335,7 @@ void BKE_image_merge(struct Main *bmain, struct Image *dest, struct Image *sourc
 /**
  * Scale the image.
  */
-bool BKE_image_scale(struct Image *image, int width, int height);
+bool BKE_image_scale(struct Image *image, int width, int height, struct ImageUser *iuser);
 
 /**
  * Check if texture has alpha `planes == 32 || planes == 16`.
