@@ -10,7 +10,7 @@
 
 #include "gpu_drawlist_private.hh"
 
-#include "vk_storage_buffer.hh"
+#include "vk_buffer.hh"
 
 namespace blender::gpu {
 class VKBatch;
@@ -23,15 +23,15 @@ class VKDrawList : public DrawList {
   VKBatch *batch_ = nullptr;
 
   /**
-   * Storage buffer containing the commands.
+   * Buffer containing the commands.
    *
-   * The storage buffer is host visible and new commands are directly added to the buffer. Reducing
+   * The buffer is host visible and new commands are directly added to the buffer. Reducing
    * the need to copy the commands from an intermediate buffer to the GPU. The commands are only
    * written once and used once.
    *
-   * The data can be used to record VkDrawIndirectCommands or VkDrawIndirectIndexedCommands.
+   * The buffer contains VkDrawIndirectCommands or VkDrawIndirectIndexedCommands.
    */
-  VKStorageBuffer command_buffer_;
+  VKBuffer command_buffer_;
 
   /**
    * Maximum number of commands that can be recorded per batch. Commands will be flushed when this
@@ -69,8 +69,7 @@ class VKDrawList : public DrawList {
   template<typename CommandType> CommandType &get_command() const
   {
     return MutableSpan<CommandType>(
-        static_cast<CommandType *>(command_buffer_.buffer_get().mapped_memory_get()),
-        length_)[command_index_];
+        static_cast<CommandType *>(command_buffer_.mapped_memory_get()), length_)[command_index_];
   }
 };
 
