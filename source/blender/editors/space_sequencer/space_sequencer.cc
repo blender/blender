@@ -974,7 +974,7 @@ static void sequencer_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_sequencer()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype sequencer");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_SEQ;
@@ -1088,7 +1088,7 @@ void ED_spacetype_sequencer()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 
   /* Set the sequencer callback when not in background mode. */
   if (G.background == 0) {

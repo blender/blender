@@ -1199,7 +1199,7 @@ static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_clip()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype clip");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_CLIP;
@@ -1281,8 +1281,6 @@ void ED_spacetype_clip()
 
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
-
   /* channels */
   art = MEM_cnew<ARegionType>("spacetype clip channels region");
   art->regionid = RGN_TYPE_CHANNELS;
@@ -1298,6 +1296,8 @@ void ED_spacetype_clip()
   /* regions: hud */
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
+
+  BKE_spacetype_register(std::move(st));
 }
 
 /** \} */

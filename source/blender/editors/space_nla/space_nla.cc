@@ -598,7 +598,7 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_nla()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype nla");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_NLA;
@@ -670,5 +670,5 @@ void ED_spacetype_nla()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

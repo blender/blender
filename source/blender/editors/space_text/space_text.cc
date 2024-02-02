@@ -405,7 +405,7 @@ static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_text()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype text"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_TEXT;
@@ -465,7 +465,7 @@ void ED_spacetype_text()
   art->draw = text_header_region_draw;
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 
   /* register formatters */
   ED_text_format_register_py();

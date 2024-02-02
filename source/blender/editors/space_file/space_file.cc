@@ -905,7 +905,7 @@ static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_file()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype file"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_FILE;
@@ -999,7 +999,7 @@ void ED_spacetype_file()
   file_tool_props_region_panels_register(art);
   file_external_operations_menu_register();
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }
 
 void ED_file_init()

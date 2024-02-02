@@ -172,7 +172,7 @@ static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_script()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype script"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_SCRIPT;
@@ -210,5 +210,5 @@ void ED_spacetype_script()
 
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

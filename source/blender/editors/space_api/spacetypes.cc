@@ -136,8 +136,7 @@ void ED_spacetypes_init()
   ED_gizmotypes_snap_3d();
 
   /* Register types for operators and gizmos. */
-  const ListBase *spacetypes = BKE_spacetypes_list();
-  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
+  for (const std::unique_ptr<SpaceType> &type : BKE_spacetypes_list()) {
     /* Initialize gizmo types first, operator types need them. */
     if (type->gizmos) {
       type->gizmos();
@@ -173,8 +172,7 @@ void ED_spacemacros_init()
 
   /* Register dropboxes (can use macros). */
   ED_dropboxes_ui();
-  const ListBase *spacetypes = BKE_spacetypes_list();
-  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
+  for (const std::unique_ptr<SpaceType> &type : BKE_spacetypes_list()) {
     if (type->dropboxes) {
       type->dropboxes();
     }
@@ -207,8 +205,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 
   ED_keymap_transform(keyconf);
 
-  const ListBase *spacetypes = BKE_spacetypes_list();
-  LISTBASE_FOREACH (const SpaceType *, type, spacetypes) {
+  for (const std::unique_ptr<SpaceType> &type : BKE_spacetypes_list()) {
     if (type->keymap) {
       type->keymap(keyconf);
     }
@@ -292,61 +289,3 @@ void ED_region_draw_cb_remove_by_type(ARegionType *art, void *draw_fn, void (*fr
     }
   }
 }
-
-/* ********************* space template *********************** */
-/* forward declare */
-void ED_spacetype_xxx();
-
-/* allocate and init some vars */
-static SpaceLink *xxx_create(const ScrArea * /*area*/, const Scene * /*scene*/)
-{
-  return nullptr;
-}
-
-/* Doesn't free the space-link itself. */
-static void xxx_free(SpaceLink * /*sl*/) {}
-
-/* spacetype; init callback for usage, should be re-doable. */
-static void xxx_init(wmWindowManager * /*wm*/, ScrArea * /*area*/)
-{
-
-  /* link area to SpaceXXX struct */
-
-  /* define how many regions, the order and types */
-
-  /* add types to regions */
-}
-
-static SpaceLink *xxx_duplicate(SpaceLink * /*sl*/)
-{
-  return nullptr;
-}
-
-static void xxx_operatortypes()
-{
-  /* register operator types for this space */
-}
-
-static void xxx_keymap(wmKeyConfig * /*keyconf*/)
-{
-  /* add default items to keymap */
-}
-
-/* only called once, from screen/spacetypes.cc */
-void ED_spacetype_xxx()
-{
-  static SpaceType st;
-
-  st.spaceid = SPACE_VIEW3D;
-
-  st.create = xxx_create;
-  st.free = xxx_free;
-  st.init = xxx_init;
-  st.duplicate = xxx_duplicate;
-  st.operatortypes = xxx_operatortypes;
-  st.keymap = xxx_keymap;
-
-  BKE_spacetype_register(&st);
-}
-
-/* ****************************** end template *********************** */
