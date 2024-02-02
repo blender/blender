@@ -180,7 +180,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
  protected:
   /** This label is used as the default way to identifying an item within its parent. */
-  std::string label_{};
+  std::string label_;
 
  public:
   /* virtual */ ~AbstractTreeViewItem() override = default;

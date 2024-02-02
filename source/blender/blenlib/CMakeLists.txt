@@ -29,7 +29,7 @@ set(SRC
   intern/BLI_dynstr.c
   intern/BLI_filelist.cc
   intern/BLI_ghash.c
-  intern/BLI_ghash_utils.c
+  intern/BLI_ghash_utils.cc
   intern/BLI_heap.c
   intern/BLI_heap_simple.c
   intern/BLI_index_range.cc
@@ -77,9 +77,9 @@ set(SRC
   intern/generic_virtual_array.cc
   intern/generic_virtual_vector_array.cc
   intern/gsqueue.c
-  intern/hash_md5.c
-  intern/hash_mm2a.c
-  intern/hash_mm3.c
+  intern/hash_md5.cc
+  intern/hash_mm2a.cc
+  intern/hash_mm3.cc
   intern/hash_tables.cc
   intern/implicit_sharing.cc
   intern/index_mask.cc
@@ -242,9 +242,9 @@ set(SRC
   BLI_gsqueue.h
   BLI_hash.h
   BLI_hash.hh
-  BLI_hash_md5.h
-  BLI_hash_mm2a.h
-  BLI_hash_mm3.h
+  BLI_hash_md5.hh
+  BLI_hash_mm2a.hh
+  BLI_hash_mm3.hh
   BLI_hash_tables.hh
   BLI_heap.h
   BLI_heap_simple.h

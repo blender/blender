@@ -87,11 +87,15 @@ BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
   return {blob_name_, {old_offset, size}};
 }
 
-BlobSharing::~BlobSharing()
+BlobWriteSharing::~BlobWriteSharing()
 {
   for (const ImplicitSharingInfo *sharing_info : stored_by_runtime_.keys()) {
     sharing_info->remove_weak_user_and_delete_if_last();
   }
+}
+
+BlobReadSharing::~BlobReadSharing()
+{
   for (const ImplicitSharingInfoAndData &value : runtime_by_stored_.values()) {
     if (value.sharing_info) {
       value.sharing_info->remove_user_and_delete_if_last();
@@ -99,8 +103,8 @@ BlobSharing::~BlobSharing()
   }
 }
 
-DictionaryValuePtr BlobSharing::write_shared(const ImplicitSharingInfo *sharing_info,
-                                             FunctionRef<DictionaryValuePtr()> write_fn)
+DictionaryValuePtr BlobWriteSharing::write_implicitly_shared(
+    const ImplicitSharingInfo *sharing_info, FunctionRef<DictionaryValuePtr()> write_fn)
 {
   if (sharing_info == nullptr) {
     return write_fn();
@@ -127,7 +131,7 @@ DictionaryValuePtr BlobSharing::write_shared(const ImplicitSharingInfo *sharing_
       });
 }
 
-std::optional<ImplicitSharingInfoAndData> BlobSharing::read_shared(
+std::optional<ImplicitSharingInfoAndData> BlobReadSharing::read_shared(
     const DictionaryValue &io_data,
     FunctionRef<std::optional<ImplicitSharingInfoAndData>()> read_fn) const
 {
@@ -318,18 +322,18 @@ static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob
 
 static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
     BlobWriter &blob_writer,
-    BlobSharing &blob_sharing,
+    BlobWriteSharing &blob_sharing,
     const GSpan data,
     const ImplicitSharingInfo *sharing_info)
 {
-  return blob_sharing.write_shared(sharing_info,
-                                   [&]() { return write_blob_simple_gspan(blob_writer, data); });
+  return blob_sharing.write_implicitly_shared(
+      sharing_info, [&]() { return write_blob_simple_gspan(blob_writer, data); });
 }
 
 [[nodiscard]] static const void *read_blob_shared_simple_gspan(
     const DictionaryValue &io_data,
     const BlobReader &blob_reader,
-    const BlobSharing &blob_sharing,
+    const BlobReadSharing &blob_sharing,
     const CPPType &cpp_type,
     const int size,
     const ImplicitSharingInfo **r_sharing_info)
@@ -355,7 +359,7 @@ static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
 template<typename T>
 [[nodiscard]] static bool read_blob_shared_simple_span(const DictionaryValue &io_data,
                                                        const BlobReader &blob_reader,
-                                                       const BlobSharing &blob_sharing,
+                                                       const BlobReadSharing &blob_sharing,
                                                        const int size,
                                                        T **r_data,
                                                        const ImplicitSharingInfo **r_sharing_info)
@@ -394,7 +398,7 @@ template<typename T>
 [[nodiscard]] static bool load_attributes(const io::serialize::ArrayValue &io_attributes,
                                           MutableAttributeAccessor &attributes,
                                           const BlobReader &blob_reader,
-                                          const BlobSharing &blob_sharing)
+                                          const BlobReadSharing &blob_sharing)
 {
   for (const auto &io_attribute_value : io_attributes.elements()) {
     const auto *io_attribute = io_attribute_value->as_dictionary_value();
@@ -453,7 +457,7 @@ template<typename T>
 
 static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
                                        const BlobReader &blob_reader,
-                                       const BlobSharing &blob_sharing)
+                                       const BlobReadSharing &blob_sharing)
 {
   const DictionaryValue *io_pointcloud = io_geometry.lookup_dict("pointcloud");
   if (!io_pointcloud) {
@@ -487,7 +491,7 @@ static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
 
 static Curves *try_load_curves(const DictionaryValue &io_geometry,
                                const BlobReader &blob_reader,
-                               const BlobSharing &blob_sharing)
+                               const BlobReadSharing &blob_sharing)
 {
   const DictionaryValue *io_curves = io_geometry.lookup_dict("curves");
   if (!io_curves) {
@@ -544,7 +548,7 @@ static Curves *try_load_curves(const DictionaryValue &io_geometry,
 
 static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
                            const BlobReader &blob_reader,
-                           const BlobSharing &blob_sharing)
+                           const BlobReadSharing &blob_sharing)
 {
   const DictionaryValue *io_mesh = io_geometry.lookup_dict("mesh");
   if (!io_mesh) {
@@ -603,11 +607,11 @@ static Mesh *try_load_mesh(const DictionaryValue &io_geometry,
 
 static GeometrySet load_geometry(const DictionaryValue &io_geometry,
                                  const BlobReader &blob_reader,
-                                 const BlobSharing &blob_sharing);
+                                 const BlobReadSharing &blob_sharing);
 
 static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_geometry,
                                                      const BlobReader &blob_reader,
-                                                     const BlobSharing &blob_sharing)
+                                                     const BlobReadSharing &blob_sharing)
 {
   const DictionaryValue *io_instances = io_geometry.lookup_dict("instances");
   if (!io_instances) {
@@ -664,7 +668,7 @@ static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_g
 
 static GeometrySet load_geometry(const DictionaryValue &io_geometry,
                                  const BlobReader &blob_reader,
-                                 const BlobSharing &blob_sharing)
+                                 const BlobReadSharing &blob_sharing)
 {
   GeometrySet geometry;
   geometry.replace_mesh(try_load_mesh(io_geometry, blob_reader, blob_sharing));
@@ -699,7 +703,7 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_materials(
 static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
     const AttributeAccessor &attributes,
     BlobWriter &blob_writer,
-    BlobSharing &blob_sharing,
+    BlobWriteSharing &blob_sharing,
     const Set<std::string> &attributes_to_ignore)
 {
   auto io_attributes = std::make_shared<io::serialize::ArrayValue>();
@@ -734,7 +738,7 @@ static std::shared_ptr<io::serialize::ArrayValue> serialize_attributes(
 
 static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet &geometry,
                                                                BlobWriter &blob_writer,
-                                                               BlobSharing &blob_sharing)
+                                                               BlobWriteSharing &blob_sharing)
 {
   auto io_geometry = std::make_shared<DictionaryValue>();
   if (geometry.has_mesh()) {
@@ -1007,7 +1011,7 @@ template<typename T>
 
 static void serialize_bake_item(const BakeItem &item,
                                 BlobWriter &blob_writer,
-                                BlobSharing &blob_sharing,
+                                BlobWriteSharing &blob_sharing,
                                 DictionaryValue &r_io_item)
 {
   if (!item.name.empty()) {
@@ -1046,7 +1050,7 @@ static void serialize_bake_item(const BakeItem &item,
 
 static std::unique_ptr<BakeItem> deserialize_bake_item(const DictionaryValue &io_item,
                                                        const BlobReader &blob_reader,
-                                                       const BlobSharing &blob_sharing)
+                                                       const BlobReadSharing &blob_sharing)
 {
 
   const std::optional<StringRefNull> state_item_type = io_item.lookup_str("type");
@@ -1115,7 +1119,7 @@ static constexpr int bake_file_version = 3;
 
 void serialize_bake(const BakeState &bake_state,
                     BlobWriter &blob_writer,
-                    BlobSharing &blob_sharing,
+                    BlobWriteSharing &blob_sharing,
                     std::ostream &r_stream)
 {
   io::serialize::DictionaryValue io_root;
@@ -1132,7 +1136,7 @@ void serialize_bake(const BakeState &bake_state,
 
 std::optional<BakeState> deserialize_bake(std::istream &stream,
                                           const BlobReader &blob_reader,
-                                          const BlobSharing &blob_sharing)
+                                          const BlobReadSharing &blob_sharing)
 {
   JsonFormatter formatter;
   std::unique_ptr<io::serialize::Value> io_root_value;

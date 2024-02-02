@@ -15,7 +15,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_compiler_compat.h"
-#include "BLI_hash_mm3.h" /* own include */
+#include "BLI_hash_mm3.hh" /* own include */
 
 #if defined(_MSC_VER)
 #  include <stdlib.h>

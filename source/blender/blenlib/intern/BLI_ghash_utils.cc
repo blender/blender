@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h" /* own include */
-#include "BLI_hash_mm2a.h"
+#include "BLI_hash_mm2a.hh"
 #include "BLI_utildefines.h"
 
 /* keep last */
@@ -136,7 +136,7 @@ uint BLI_ghashutil_strhash_p(const void *ptr)
   const signed char *p;
   uint h = 5381;
 
-  for (p = ptr; *p != '\0'; p++) {
+  for (p = static_cast<const signed char *>(ptr); *p != '\0'; p++) {
     h = (uint)((h << 5) + h) + (uint)*p;
   }
 
@@ -144,18 +144,18 @@ uint BLI_ghashutil_strhash_p(const void *ptr)
 }
 uint BLI_ghashutil_strhash_p_murmur(const void *ptr)
 {
-  const uchar *key = ptr;
+  const uchar *key = static_cast<const uchar *>(ptr);
 
   return BLI_hash_mm2(key, strlen((const char *)key) + 1, 0);
 }
 bool BLI_ghashutil_strcmp(const void *a, const void *b)
 {
-  return (a == b) ? false : !STREQ(a, b);
+  return (a == b) ? false : !STREQ(static_cast<const char *>(a), static_cast<const char *>(b));
 }
 
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 {
-  GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");
+  GHashPair *pair = static_cast<GHashPair *>(MEM_mallocN(sizeof(GHashPair), "GHashPair"));
   pair->first = first;
   pair->second = second;
   return pair;
@@ -163,15 +163,15 @@ GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 
 uint BLI_ghashutil_pairhash(const void *ptr)
 {
-  const GHashPair *pair = ptr;
+  const GHashPair *pair = static_cast<const GHashPair *>(ptr);
   uint hash = BLI_ghashutil_ptrhash(pair->first);
   return hash ^ BLI_ghashutil_ptrhash(pair->second);
 }
 
 bool BLI_ghashutil_paircmp(const void *a, const void *b)
 {
-  const GHashPair *A = a;
-  const GHashPair *B = b;
+  const GHashPair *A = static_cast<const GHashPair *>(a);
+  const GHashPair *B = static_cast<const GHashPair *>(b);
 
   return ((A->first != B->first) || (A->second != B->second));
 }

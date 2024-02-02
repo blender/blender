@@ -10,13 +10,12 @@
 
 #include "BPy_Convert.h"
 
+#include "BLI_hash_mm2a.hh"
 #include "BLI_math_vector.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_hash_mm2a.h"
 
 using namespace Freestyle;
 

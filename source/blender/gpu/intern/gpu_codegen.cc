@@ -15,7 +15,7 @@
 #include "DNA_material_types.h"
 
 #include "BLI_ghash.h"
-#include "BLI_hash_mm2a.h"
+#include "BLI_hash_mm2a.hh"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"

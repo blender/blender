@@ -197,7 +197,7 @@ class PreviewGridItem : public AbstractGridViewItem {
   bool hide_label_ = false;
 
  public:
-  std::string label{};
+  std::string label;
   int preview_icon_id = ICON_NONE;
 
   PreviewGridItem(StringRef identifier, StringRef label, int preview_icon_id);

@@ -48,10 +48,9 @@ class BlobWriter {
 };
 
 /**
- * Allows for simple data deduplication when writing or reading data by making use of implicit
- * sharing.
+ * Allows deduplicating data before it's written.
  */
-class BlobSharing {
+class BlobWriteSharing : NonCopyable, NonMovable {
  private:
   struct StoredByRuntimeValue {
     /**
@@ -73,6 +72,25 @@ class BlobSharing {
    */
   Map<const ImplicitSharingInfo *, StoredByRuntimeValue> stored_by_runtime_;
 
+ public:
+  ~BlobWriteSharing();
+
+  /**
+   * Check if the data referenced by `sharing_info` has been written before. If yes, return the
+   * identifier for the previously written data. Otherwise, write the data now and store the
+   * identifier for later use.
+   * \return Identifier that indicates from where the data has been written.
+   */
+  [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_implicitly_shared(
+      const ImplicitSharingInfo *sharing_info,
+      FunctionRef<std::shared_ptr<io::serialize::DictionaryValue>()> write_fn);
+};
+
+/**
+ * Avoids loading the same data multiple times by caching and sharing previously read buffers.
+ */
+class BlobReadSharing : NonCopyable, NonMovable {
+ private:
   /**
    * Use a mutex so that #read_shared can be implemented in a thread-safe way.
    */
@@ -84,17 +102,7 @@ class BlobSharing {
   mutable Map<std::string, ImplicitSharingInfoAndData> runtime_by_stored_;
 
  public:
-  ~BlobSharing();
-
-  /**
-   * Check if the data referenced by `sharing_info` has been written before. If yes, return the
-   * identifier for the previously written data. Otherwise, write the data now and store the
-   * identifier for later use.
-   * \return Identifier that indicates from where the data has been written.
-   */
-  [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_shared(
-      const ImplicitSharingInfo *sharing_info,
-      FunctionRef<std::shared_ptr<io::serialize::DictionaryValue>()> write_fn);
+  ~BlobReadSharing();
 
   /**
    * Check if the data identified by `io_data` has been read before or load it now.
@@ -139,11 +147,11 @@ class DiskBlobWriter : public BlobWriter {
 
 void serialize_bake(const BakeState &bake_state,
                     BlobWriter &blob_writer,
-                    BlobSharing &blob_sharing,
+                    BlobWriteSharing &blob_sharing,
                     std::ostream &r_stream);
 
 std::optional<BakeState> deserialize_bake(std::istream &stream,
                                           const BlobReader &blob_reader,
-                                          const BlobSharing &blob_sharing);
+                                          const BlobReadSharing &blob_sharing);
 
 }  // namespace blender::bke::bake

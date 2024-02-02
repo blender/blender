@@ -7,7 +7,7 @@
  */
 
 #include "BLI_fileops.h"
-#include "BLI_hash_md5.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf.hh"

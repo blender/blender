@@ -548,7 +548,7 @@ double BLI_gset_calc_quality(GSet *gs);
 /* -------------------------------------------------------------------- */
 /** \name GHash/GSet Utils
  *
- * Defined in `BLI_ghash_utils.c`
+ * Defined in `BLI_ghash_utils.cc`
  * \{ */
 
 /**

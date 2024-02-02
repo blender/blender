@@ -20,7 +20,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "BLI_hash_mm2a.h" /* own include */
+#include "BLI_hash_mm2a.hh" /* own include */
 
 /* Helpers. */
 #define MM2A_M 0x5bd1e995
