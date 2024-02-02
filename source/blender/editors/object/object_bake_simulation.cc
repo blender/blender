@@ -228,7 +228,7 @@ struct NodeBakeRequest {
   bake::BakePath path;
   int frame_start;
   int frame_end;
-  std::unique_ptr<bake::BlobSharing> blob_sharing;
+  std::unique_ptr<bake::BlobWriteSharing> blob_sharing;
 };
 
 struct BakeGeometryNodesJob {
@@ -481,7 +481,7 @@ static Vector<NodeBakeRequest> collect_simulations_to_bake(Main &bmain,
         request.nmd = nmd;
         request.bake_id = id;
         request.node_type = node->type;
-        request.blob_sharing = std::make_unique<bake::BlobSharing>();
+        request.blob_sharing = std::make_unique<bake::BlobWriteSharing>();
         std::optional<bake::BakePath> path = bake::get_node_bake_path(bmain, *object, *nmd, id);
         if (!path) {
           continue;
@@ -832,7 +832,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   request.nmd = &nmd;
   request.bake_id = bake_id;
   request.node_type = node->type;
-  request.blob_sharing = std::make_unique<bake::BlobSharing>();
+  request.blob_sharing = std::make_unique<bake::BlobWriteSharing>();
 
   const NodesModifierBake *bake = nmd.find_bake(bake_id);
   if (!bake) {

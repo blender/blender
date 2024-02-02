@@ -58,7 +58,7 @@ struct NodeBakeCache {
   /** Where to load blobs from disk when loading the baked data lazily. */
   std::optional<std::string> blobs_dir;
   /** Used to avoid reading blobs multiple times for different frames. */
-  std::unique_ptr<BlobSharing> blob_sharing;
+  std::unique_ptr<BlobReadSharing> blob_sharing;
   /** Used to avoid checking if a bake exists many times. */
   bool failed_finding_bake = false;
 
