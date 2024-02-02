@@ -5,7 +5,7 @@
 #include "testing/testing.h"
 
 #include "BLI_fileops.hh"
-#include "BLI_hash_mm2a.h"
+#include "BLI_hash_mm2a.hh"
 
 #include "ply_import.hh"
 #include "ply_import_buffer.hh"

@@ -8,9 +8,9 @@
  * \ingroup bli
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <cstdio>
+
+#include "BLI_sys_types.h"
 
 /**
  * Compute MD5 message digest for 'len' bytes beginning at 'buffer'.
@@ -27,7 +27,3 @@ void *BLI_hash_md5_buffer(const char *buffer, size_t len, void *resblock);
 int BLI_hash_md5_stream(FILE *stream, void *resblock);
 
 char *BLI_hash_md5_to_hexdigest(const void *resblock, char r_hex_digest[33]);
-
-#ifdef __cplusplus
-}
-#endif

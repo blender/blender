@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_compute_context.hh"
-#include "BLI_hash_md5.h"
+#include "BLI_hash_md5.hh"
 #include <sstream>
 
 namespace blender {

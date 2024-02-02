@@ -14,7 +14,7 @@
 
 #include "BKE_cryptomatte.h"
 
-#include "BLI_hash_mm3.h"
+#include "BLI_hash_mm3.hh"
 #include "BLI_map.hh"
 #include "BLI_string_ref.hh"
 

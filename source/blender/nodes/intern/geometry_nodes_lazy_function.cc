@@ -31,7 +31,7 @@
 #include "BLI_cpp_types.hh"
 #include "BLI_dot_export.hh"
 #include "BLI_hash.h"
-#include "BLI_hash_md5.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_lazy_threading.hh"
 #include "BLI_map.hh"
 

@@ -15,7 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "BLI_hash_md5.h" /* own include */
+#include "BLI_hash_md5.hh" /* own include */
 
 #if defined HAVE_LIMITS_H || defined _LIBC
 #  include <limits.h>
@@ -114,7 +114,7 @@ static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ct
 #define CYCLIC(w, s) (w = (w << s) | (w >> (32 - s)))
 
   md5_uint32 correct_words[16];
-  const md5_uint32 *words = buffer;
+  const md5_uint32 *words = static_cast<const md5_uint32 *>(buffer);
   size_t nwords = len / sizeof(md5_uint32);
   const md5_uint32 *endp = words + nwords;
   md5_uint32 A = ctx->A;
@@ -259,7 +259,7 @@ static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ct
  */
 static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 {
-  md5_uint32 *digest = resbuf;
+  md5_uint32 *digest = static_cast<md5_uint32 *>(resbuf);
   digest[0] = SWAP(ctx->A);
   digest[1] = SWAP(ctx->B);
   digest[2] = SWAP(ctx->C);
@@ -268,7 +268,8 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
   return resbuf;
 }
 
-/* Top level public functions. */
+/*
+Top level public functions. */
 
 int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {

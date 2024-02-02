@@ -15,7 +15,7 @@
 
 #include "BLI_binary_search.hh"
 #include "BLI_fileops.hh"
-#include "BLI_hash_md5.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
