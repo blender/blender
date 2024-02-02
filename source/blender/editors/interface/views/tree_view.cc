@@ -26,6 +26,8 @@
 
 namespace blender::ui {
 
+#define UI_TREEVIEW_INDENT short(0.7f * UI_UNIT_X)
+
 static int unpadded_item_height()
 {
   return UI_UNIT_Y;
@@ -162,14 +164,14 @@ void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
     rcti last_child_rect;
     ui_but_to_pixelrect(&last_child_rect, &region, block, &last_child_but);
 
-    /* Small vertical padding. */
-    const short line_padding = UI_UNIT_Y / 4.0f / aspect;
     const float x = first_child_rect.xmin + ((first_descendant->indent_width() -
                                               (0.5f * UI_ICON_SIZE) + U.pixelsize + UI_SCALE_FAC) /
                                              aspect);
+    const int first_child_top = first_child_rect.ymax - (2.0f * UI_SCALE_FAC / aspect);
+    const int last_child_bottom = last_child_rect.ymin + (4.0f * UI_SCALE_FAC / aspect);
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(pos, x, first_child_rect.ymax - line_padding);
-    immVertex2f(pos, x, last_child_rect.ymin + line_padding);
+    immVertex2f(pos, x, first_child_top);
+    immVertex2f(pos, x, last_child_bottom);
     immEnd();
   }
 }
@@ -180,20 +182,8 @@ void AbstractTreeView::draw_hierarchy_lines(const ARegion &region) const
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uchar col[4];
-
-  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
-
-  float viewport_size[4];
-  GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
-  immUniform1i("colors_len", 0); /* "simple"  mode */
-  immUniform1f("dash_width", 8.0f);
-  /* >= is 1.0 for un-dashed lines. */
-  immUniform1f("udash_factor", 1.0f);
-  UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
-  col[3] = 255;
-  immUniformColor4ubv(col);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformThemeColorAlpha(TH_TEXT, 0.2f);
 
   GPU_line_width(1.0f / aspect);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -317,7 +307,7 @@ void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
 
 int AbstractTreeViewItem::indent_width() const
 {
-  return count_parents() * UI_ICON_SIZE;
+  return count_parents() * UI_TREEVIEW_INDENT;
 }
 
 void AbstractTreeViewItem::add_indent(uiLayout &row) const
@@ -330,8 +320,9 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
 
   /* Indent items without collapsing icon some more within their parent. Makes it clear that they
    * are actually nested and not just a row at the same level without a chevron. */
-  if (!is_collapsible() && parent_) {
-    uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, 0.2f * UI_UNIT_X, 0, nullptr, 0.0, 0.0, 0, 0, "");
+  if (!is_collapsible()) {
+    uiDefBut(
+        block, UI_BTYPE_SEPR, 0, "", 0, 0, UI_TREEVIEW_INDENT, 0, nullptr, 0.0, 0.0, 0, 0, "");
   }
 
   /* Restore. */
@@ -369,9 +360,20 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
   }
 
   const BIFIconID icon = is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
-  uiBut *but = uiDefIconBut(
-      &block, UI_BTYPE_BUT_TOGGLE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
-  /* Note that we're passing the tree-row button here, not the chevron one. */
+  uiBut *but = uiDefIconBut(&block,
+                            UI_BTYPE_BUT_TOGGLE,
+                            0,
+                            icon,
+                            0,
+                            0,
+                            UI_TREEVIEW_INDENT,
+                            UI_UNIT_Y,
+                            nullptr,
+                            0,
+                            0,
+                            0,
+                            0,
+                            "");
   UI_but_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   UI_but_flag_disable(but, UI_BUT_UNDO);
 }
