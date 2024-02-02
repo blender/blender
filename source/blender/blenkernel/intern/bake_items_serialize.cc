@@ -103,8 +103,8 @@ BlobReadSharing::~BlobReadSharing()
   }
 }
 
-DictionaryValuePtr BlobWriteSharing::write_shared(const ImplicitSharingInfo *sharing_info,
-                                                  FunctionRef<DictionaryValuePtr()> write_fn)
+DictionaryValuePtr BlobWriteSharing::write_implicitly_shared(
+    const ImplicitSharingInfo *sharing_info, FunctionRef<DictionaryValuePtr()> write_fn)
 {
   if (sharing_info == nullptr) {
     return write_fn();
@@ -326,8 +326,8 @@ static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
     const GSpan data,
     const ImplicitSharingInfo *sharing_info)
 {
-  return blob_sharing.write_shared(sharing_info,
-                                   [&]() { return write_blob_simple_gspan(blob_writer, data); });
+  return blob_sharing.write_implicitly_shared(
+      sharing_info, [&]() { return write_blob_simple_gspan(blob_writer, data); });
 }
 
 [[nodiscard]] static const void *read_blob_shared_simple_gspan(
