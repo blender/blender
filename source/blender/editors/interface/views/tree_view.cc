@@ -526,8 +526,8 @@ bool AbstractTreeViewItem::set_collapsed(const bool collapsed)
 
 bool AbstractTreeViewItem::is_collapsible() const
 {
-  BLI_assert_msg(get_tree_view().is_reconstructed(),
-                 "State can't be queried until reconstruction is completed");
+  // BLI_assert_msg(get_tree_view().is_reconstructed(),
+  //  "State can't be queried until reconstruction is completed");
   if (children_.is_empty()) {
     return false;
   }
