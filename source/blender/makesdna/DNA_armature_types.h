@@ -540,7 +540,7 @@ typedef enum eBoneCollection_Flag {
    * \see eArmature_Flag::ARM_BCOLL_SOLO_ACTIVE
    */
   BONE_COLLECTION_SOLO = (1 << 4),
-  
+
   BONE_COLLECTION_EXPANDED = (1 << 5), /* Expanded in the tree view. */
 } eBoneCollection_Flag;
 ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_EXPANDED)
