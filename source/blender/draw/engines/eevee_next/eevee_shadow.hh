@@ -361,6 +361,7 @@ class ShadowModule {
  private:
   void remove_unused();
   void debug_page_map_call(DRWPass *pass);
+  bool shadow_update_finished();
 
   /** Compute approximate screen pixel space radius. */
   float screen_pixel_radius(const View &view, const int2 &extent);
