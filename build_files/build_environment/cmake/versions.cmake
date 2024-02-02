@@ -517,9 +517,9 @@ set(MATERIALX_HASH fad8f4e19305fb2ee920cbff638f3560)
 set(MATERIALX_HASH_TYPE MD5)
 set(MATERIALX_FILE materialx-v${MATERIALX_VERSION}.tar.gz)
 
-set(OIDN_VERSION 2.1.0)
+set(OIDN_VERSION 2.2.0-rc)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.tar.gz)
-set(OIDN_HASH 997251847c49ce0f3ab21c7fc712bfb4)
+set(OIDN_HASH 896d43b65c3fe71144914a1d6b8a5bfb)
 set(OIDN_HASH_TYPE MD5)
 set(OIDN_FILE oidn-${OIDN_VERSION}.src.tar.gz)
 
