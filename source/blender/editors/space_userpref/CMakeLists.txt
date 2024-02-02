@@ -9,6 +9,7 @@ set(INC
   ../../blentranslation
   ../../makesrna
   ../../windowmanager
+  ../../../../extern/fmtlib/include
 
 )
 
