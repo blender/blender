@@ -570,7 +570,6 @@ void USDMaterialReader::set_principled_node_inputs(bNode *principled,
   }
 
   if (pxr::UsdShadeInput metallic_input = usd_shader.GetInput(usdtokens::metallic)) {
-    ;
     set_node_input(metallic_input, principled, "Metallic", ntree, column, &context, false);
   }
 
