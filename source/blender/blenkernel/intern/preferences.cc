@@ -159,7 +159,7 @@ static size_t strncpy_py_module(char *dst, const char *src, const size_t dst_max
 bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
                                                        const char *name,
                                                        const char *module,
-                                                       const char *dirpath)
+                                                       const char *custom_dirpath)
 {
   bUserExtensionRepo *repo = DNA_struct_default_alloc(bUserExtensionRepo);
   BLI_addtail(&userdef->extension_repos, repo);
@@ -171,9 +171,9 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
   BKE_preferences_extension_repo_module_set(userdef, repo, module);
 
   /* Set the directory. */
-  STRNCPY(repo->dirpath, dirpath);
-  BLI_path_normalize(repo->dirpath);
-  BLI_path_slash_rstrip(repo->dirpath);
+  STRNCPY(repo->custom_dirpath, custom_dirpath);
+  BLI_path_normalize(repo->custom_dirpath);
+  BLI_path_slash_rstrip(repo->custom_dirpath);
 
   /* While not a strict rule, ignored paths that already exist, *
    * pointing to the same path is going to logical problems with package-management. */
@@ -181,8 +181,8 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
     if (repo == repo_iter) {
       continue;
     }
-    if (BLI_path_cmp(repo->dirpath, repo_iter->dirpath) == 0) {
-      repo->dirpath[0] = '\0';
+    if (BLI_path_cmp(repo->custom_dirpath, repo_iter->custom_dirpath) == 0) {
+      repo->custom_dirpath[0] = '\0';
       break;
     }
   }
@@ -228,9 +228,29 @@ void BKE_preferences_extension_repo_module_set(UserDef *userdef,
                  sizeof(repo->module));
 }
 
-void BKE_preferences_extension_repo_path_set(bUserExtensionRepo *repo, const char *path)
+void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo, const char *path)
 {
-  STRNCPY(repo->dirpath, path);
+  STRNCPY(repo->custom_dirpath, path);
+}
+
+void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
+                                                char *dirpath,
+                                                const int dirpath_maxncpy)
+{
+  if (repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) {
+    BLI_strncpy(dirpath, repo->custom_dirpath, dirpath_maxncpy);
+    return;
+  }
+
+  char subdir[16 + sizeof(bUserExtensionRepo::module)];
+  BLI_string_join(subdir, sizeof(subdir), "extensions", SEP_STR, repo->module);
+  const std::optional<std::string> path = BKE_appdir_folder_id(BLENDER_USER_SCRIPTS, subdir);
+  if (path.has_value()) {
+    BLI_strncpy(dirpath, path.value().c_str(), dirpath_maxncpy);
+  }
+  else {
+    dirpath[0] = '\0';
+  }
 }
 
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index)

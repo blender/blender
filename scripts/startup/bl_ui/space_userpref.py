@@ -1603,6 +1603,15 @@ class USERPREF_UL_extension_repos(UIList):
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.prop(repo, "name", text="", emboss=False)
+
+        # Show an error icon if this repository has unusable settings.
+        if repo.enabled:
+            if (
+                    (repo.use_custom_directory and repo.custom_directory == "") or
+                    (repo.use_remote_path and repo.remote_path == "")
+            ):
+                layout.label(text="", icon='ERROR')
+
         layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
 
 
@@ -2049,8 +2058,8 @@ class USERPREF_PT_extensions_repos(Panel):
         )
 
         col = row.column(align=True)
-        col.operator("preferences.extension_repo_add", text="", icon='ADD')
-        props = col.operator("preferences.extension_repo_remove", text="", icon='REMOVE')
+        col.operator_menu_enum("preferences.extension_repo_add", "type", text="", icon='ADD')
+        props = col.operator_menu_enum("preferences.extension_repo_remove", "type", text="", icon='REMOVE')
         props.index = active_library_index
 
         try:
@@ -2063,10 +2072,29 @@ class USERPREF_PT_extensions_repos(Panel):
 
         layout.separator()
 
-        layout.prop(active_repo, "remote_path")
+        layout.prop(active_repo, "use_remote_path", text="Use Remote URL")
+        row = layout.row()
+        if active_repo.use_remote_path:
+            if active_repo.remote_path == "":
+                row.alert = True
+        else:
+            row.active = False
+        row.prop(active_repo, "remote_path", text="")
 
         if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
-            layout_panel.prop(active_repo, "directory")
+
+            layout_panel.prop(active_repo, "use_custom_directory")
+
+            row = layout_panel.row()
+            if active_repo.use_custom_directory:
+                if active_repo.custom_directory == "":
+                    row.alert = True
+            else:
+                row.active = False
+            row.prop(active_repo, "custom_directory", text="")
+
+            layout_panel.separator()
+
             row = layout_panel.row()
             row.prop(active_repo, "use_cache")
             row.prop(active_repo, "module")

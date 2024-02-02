@@ -1316,10 +1316,10 @@ class UserExtensionRepo(StructRNA):
     __slots__ = ()
 
     @property
-    def directory_or_default(self):
+    def directory(self):
         """Return ``directory`` or a default path derived from the users scripts path."""
-        if directory := self.directory:
-            return directory
+        if self.use_custom_directory:
+            return self.custom_directory
         import os
         import bpy
         return os.path.join(bpy.utils.user_resource('SCRIPTS', path="extensions"), self.module)
