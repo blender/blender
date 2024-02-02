@@ -1010,6 +1010,9 @@ static void serialize_bake_item(const BakeItem &item,
                                 BlobSharing &blob_sharing,
                                 DictionaryValue &r_io_item)
 {
+  if (!item.name.empty()) {
+    r_io_item.append_str("name", item.name);
+  }
   if (const auto *geometry_state_item = dynamic_cast<const GeometryBakeItem *>(&item)) {
     r_io_item.append_str("type", "GEOMETRY");
 

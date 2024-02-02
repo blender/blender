@@ -17,6 +17,12 @@ namespace blender::bke::bake {
  */
 class BakeItem {
  public:
+  /**
+   * User-defined name. This is not necessarily unique and might change over time. It's purpose is
+   * to make bakes more inspectable.
+   */
+  std::string name;
+
   virtual ~BakeItem() = default;
 };
 

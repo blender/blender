@@ -101,6 +101,12 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(const Span<voi
     GeometryBakeItem::prepare_geometry_for_bake(geometry, data_block_map);
   }
 
+  for (const int i : bake_items.index_range()) {
+    if (std::unique_ptr<BakeItem> &item = bake_items[i]) {
+      item->name = config.names[i];
+    }
+  }
+
   return bake_items;
 }
 

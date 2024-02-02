@@ -24,6 +24,8 @@ struct BakeSocketConfig {
    * for some socket types).
    */
   Vector<AttrDomain> domains;
+  /** User-defined name of every socket. */
+  Vector<StringRef> names;
   /**
    * Determines which geometries a field socket should be evaluated on. This can be used to
    * implement rules like a field should only be evaluated on the preceding or on all geometries.
