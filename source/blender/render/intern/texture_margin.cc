@@ -274,10 +274,12 @@ class TextureMarginMap {
 
             if (found_pixel_in_polygon) {
               if (ibuf_ptr_fl) {
-                ibuf_ptr_fl[pixel_index] = imbuf::interpolate_bilinear_fl(ibuf, destX, destY);
+                ibuf_ptr_fl[pixel_index] = imbuf::interpolate_bilinear_border_fl(
+                    ibuf, destX, destY);
               }
               if (ibuf_ptr_ch) {
-                ibuf_ptr_ch[pixel_index] = imbuf::interpolate_bilinear_byte(ibuf, destX, destY);
+                ibuf_ptr_ch[pixel_index] = imbuf::interpolate_bilinear_border_byte(
+                    ibuf, destX, destY);
               }
               /* Add our new pixels to the assigned pixel map. */
               mask[pixel_index] = 1;

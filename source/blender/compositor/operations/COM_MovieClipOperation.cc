@@ -85,7 +85,7 @@ void MovieClipBaseOperation::execute_pixel_sampled(float output[4],
         imbuf::interpolate_nearest_fl(ibuf, output, x, y);
         break;
       case PixelSampler::Bilinear:
-        imbuf::interpolate_bilinear_fl(ibuf, output, x, y);
+        imbuf::interpolate_bilinear_border_fl(ibuf, output, x, y);
         break;
       case PixelSampler::Bicubic:
         imbuf::interpolate_cubic_bspline_fl(ibuf, output, x, y);

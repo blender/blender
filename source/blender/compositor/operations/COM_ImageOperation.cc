@@ -104,7 +104,7 @@ static void sample_image_at_location(ImBuf *ibuf,
         imbuf::interpolate_nearest_fl(ibuf, color, x, y);
         break;
       case PixelSampler::Bilinear:
-        imbuf::interpolate_bilinear_fl(ibuf, color, x, y);
+        imbuf::interpolate_bilinear_border_fl(ibuf, color, x, y);
         break;
       case PixelSampler::Bicubic:
         imbuf::interpolate_cubic_bspline_fl(ibuf, color, x, y);
@@ -118,7 +118,7 @@ static void sample_image_at_location(ImBuf *ibuf,
         byte_color = imbuf::interpolate_nearest_byte(ibuf, x, y);
         break;
       case PixelSampler::Bilinear:
-        byte_color = imbuf::interpolate_bilinear_byte(ibuf, x, y);
+        byte_color = imbuf::interpolate_bilinear_border_byte(ibuf, x, y);
         break;
       case PixelSampler::Bicubic:
         byte_color = imbuf::interpolate_cubic_bspline_byte(ibuf, x, y);

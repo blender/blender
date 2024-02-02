@@ -28,10 +28,10 @@ TEST(math_interp, BilinearCharExactSamples)
 {
   uchar4 res;
   uchar4 exp1 = {73, 108, 153, 251};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 1.0f, 2.0f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 1.0f, 2.0f);
   EXPECT_EQ(exp1, res);
   uchar4 exp2 = {240, 160, 90, 20};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 2.0f, 0.0f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 2.0f, 0.0f);
   EXPECT_EQ(exp2, res);
 }
 
@@ -39,10 +39,10 @@ TEST(math_interp, BilinearCharHalfwayUSamples)
 {
   uchar4 res;
   uchar4 exp1 = {31, 37, 42, 48};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0.5f, 1.0f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0.5f, 1.0f);
   EXPECT_EQ(exp1, res);
   uchar4 exp2 = {243, 242, 224, 223};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0.5f, 0.0f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0.5f, 0.0f);
   EXPECT_EQ(exp2, res);
 }
 
@@ -50,10 +50,10 @@ TEST(math_interp, BilinearCharHalfwayVSamples)
 {
   uchar4 res;
   uchar4 exp1 = {1, 2, 3, 4};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0.0f, 1.5f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0.0f, 1.5f);
   EXPECT_EQ(exp1, res);
   uchar4 exp2 = {127, 128, 129, 130};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 2.0f, 1.5f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 2.0f, 1.5f);
   EXPECT_EQ(exp2, res);
 }
 
@@ -61,10 +61,11 @@ TEST(math_interp, BilinearCharSamples)
 {
   uchar4 res;
   uchar4 exp1 = {136, 133, 132, 130};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 1.25f, 0.625f);
+  res = interpolate_bilinear_border_byte(
+      image_char[0][0], image_width, image_height, 1.25f, 0.625f);
   EXPECT_EQ(exp1, res);
   uchar4 exp2 = {219, 191, 167, 142};
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 1.4f, 0.1f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 1.4f, 0.1f);
   EXPECT_EQ(exp2, res);
 }
 
@@ -72,25 +73,39 @@ TEST(math_interp, BilinearFloatSamples)
 {
   float4 res;
   float4 exp1 = {135.9375f, 133.28125f, 131.5625f, 129.84375f};
-  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 1.25f, 0.625f);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 1.25f, 0.625f);
   EXPECT_V4_NEAR(exp1, res, float_tolerance);
   float4 exp2 = {219.36f, 191.2f, 166.64f, 142.08f};
-  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 1.4f, 0.1f);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 1.4f, 0.1f);
   EXPECT_V4_NEAR(exp2, res, float_tolerance);
+}
+
+TEST(math_interp, BilinearCharPartiallyOutsideImageBorder)
+{
+  uchar4 res;
+  uchar4 exp1 = {1, 1, 2, 2};
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, -0.5f, 2.0f);
+  EXPECT_EQ(exp1, res);
+  uchar4 exp2 = {9, 11, 15, 22};
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 1.25f, 2.9f);
+  EXPECT_EQ(exp2, res);
+  uchar4 exp3 = {173, 115, 65, 14};
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 2.2f, -0.1f);
+  EXPECT_EQ(exp3, res);
 }
 
 TEST(math_interp, BilinearCharPartiallyOutsideImage)
 {
   uchar4 res;
-  uchar4 exp1 = {1, 1, 2, 2};
+  uint4 exp1 = {1, 2, 3, 4};
   res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, -0.5f, 2.0f);
-  EXPECT_EQ(exp1, res);
-  uchar4 exp2 = {9, 11, 15, 22};
+  EXPECT_EQ(exp1, uint4(res));
+  uint4 exp2 = {87, 113, 147, 221};
   res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 1.25f, 2.9f);
-  EXPECT_EQ(exp2, res);
-  uchar4 exp3 = {173, 115, 65, 14};
+  EXPECT_EQ(exp2, uint4(res));
+  uint4 exp3 = {240, 160, 90, 20};
   res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 2.2f, -0.1f);
-  EXPECT_EQ(exp3, res);
+  EXPECT_EQ(exp3, uint4(res));
 }
 
 TEST(math_interp, BilinearCharPartiallyOutsideImageWrap)
@@ -107,16 +122,30 @@ TEST(math_interp, BilinearCharPartiallyOutsideImageWrap)
   EXPECT_EQ(exp3, res);
 }
 
-TEST(math_interp, BilinearFloatPartiallyOutsideImage)
+TEST(math_interp, BilinearFloatPartiallyOutsideImageBorder)
 {
   float4 res;
   float4 exp1 = {0.5f, 1, 1.5f, 2};
-  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, -0.5f, 2.0f);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, -0.5f, 2.0f);
   EXPECT_V4_NEAR(exp1, res, float_tolerance);
   float4 exp2 = {8.675f, 11.325f, 14.725f, 22.1f};
-  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 1.25f, 2.9f);
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 1.25f, 2.9f);
   EXPECT_V4_NEAR(exp2, res, float_tolerance);
   float4 exp3 = {172.8f, 115.2f, 64.8f, 14.4f};
+  res = interpolate_bilinear_border_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
+  EXPECT_V4_NEAR(exp3, res, float_tolerance);
+}
+
+TEST(math_interp, BilinearFloatPartiallyOutsideImage)
+{
+  float4 res;
+  float4 exp1 = {1.0f, 2.0f, 3.0f, 4.0f};
+  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, -0.5f, 2.0f);
+  EXPECT_V4_NEAR(exp1, res, float_tolerance);
+  float4 exp2 = {86.75f, 113.25f, 147.25f, 221.0f};
+  res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 1.25f, 2.9f);
+  EXPECT_V4_NEAR(exp2, res, float_tolerance);
+  float4 exp3 = {240.0f, 160.0f, 90.0f, 20.0f};
   res = interpolate_bilinear_fl(image_fl[0][0], image_width, image_height, 2.2f, -0.1f);
   EXPECT_V4_NEAR(exp3, res, float_tolerance);
 }
@@ -151,23 +180,23 @@ TEST(math_interp, BilinearCharFullyOutsideImage)
   uchar4 res;
   uchar4 exp = {0, 0, 0, 0};
   /* Out of range on U */
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, -1.5f, 0);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, -1.5f, 0);
   EXPECT_EQ(exp, res);
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, -1.1f, 0);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, -1.1f, 0);
   EXPECT_EQ(exp, res);
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 3, 0);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 3, 0);
   EXPECT_EQ(exp, res);
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 5, 0);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 5, 0);
   EXPECT_EQ(exp, res);
 
   /* Out of range on V */
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0, -3.2f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0, -3.2f);
   EXPECT_EQ(exp, res);
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0, -1.5f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0, -1.5f);
   EXPECT_EQ(exp, res);
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0, 3.1f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0, 3.1f);
   EXPECT_EQ(exp, res);
-  res = interpolate_bilinear_byte(image_char[0][0], image_width, image_height, 0, 500.0f);
+  res = interpolate_bilinear_border_byte(image_char[0][0], image_width, image_height, 0, 500.0f);
   EXPECT_EQ(exp, res);
 }
 

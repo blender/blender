@@ -1761,12 +1761,12 @@ static void *do_scale_thread(void *data_v)
       int offset = y * data->newx + x;
 
       if (data->byte_buffer) {
-        interpolate_bilinear_byte(ibuf, data->byte_buffer + 4 * offset, u, v);
+        interpolate_bilinear_border_byte(ibuf, data->byte_buffer + 4 * offset, u, v);
       }
 
       if (data->float_buffer) {
         float *pixel = data->float_buffer + ibuf->channels * offset;
-        blender::math::interpolate_bilinear_fl(
+        blender::math::interpolate_bilinear_border_fl(
             ibuf->float_buffer.data, pixel, ibuf->x, ibuf->y, ibuf->channels, u, v);
       }
     }
