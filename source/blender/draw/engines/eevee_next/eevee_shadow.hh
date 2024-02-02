@@ -228,6 +228,7 @@ class ShadowModule {
 
   Framebuffer usage_tag_fb;
 
+  PassSimple caster_update_ps_ = {"CasterUpdate"};
   /** List of Resource IDs (to get bounds) for tagging passes. */
   StorageVectorBuffer<uint, 128> past_casters_updated_ = {"PastCastersUpdated"};
   StorageVectorBuffer<uint, 128> curr_casters_updated_ = {"CurrCastersUpdated"};
