@@ -1,13 +1,17 @@
 diff -Naur external_levelzero_org/CMakeLists.txt external_levelzero/CMakeLists.txt
 --- external_levelzero_org/CMakeLists.txt       2022-03-07 13:22:11 -0700
 +++ external_levelzero/CMakeLists.txt   2022-03-29 13:22:15 -0600
-@@ -77,9 +77,6 @@
-     #enabling Control Flow Guard
-     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /guard:cf")
-     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /guard:cf")
--    # enable Spectre Mitigation
--    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qspectre")
--    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Qspectre")
+@@ -81,13 +81,6 @@ if(MSVC)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DYNAMICBASE")
+     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DYNAMICBASE")
+     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /guard:cf")
+-    # enable Spectre Mitigation, not supported by clang-cl
+-    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qspectre")
+-    endif()
+-    if(NOT CMAKE_C_COMPILER_ID STREQUAL Clang)
+-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Qspectre")
+-    endif()
  endif()
 
  #CXX compiler support

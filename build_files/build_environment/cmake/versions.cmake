@@ -634,9 +634,9 @@ set(OPENPGL_HASH 1ec806d434d45e43e098f82ee9be0cb74928343898c57490b34ff80584e9805
 set(OPENPGL_HASH_TYPE SHA256)
 set(OPENPGL_FILE openpgl-${OPENPGL_VERSION}.tar.gz)
 
-set(LEVEL_ZERO_VERSION v1.8.8)
-set(LEVEL_ZERO_URI https://github.com/oneapi-src/level-zero/archive/refs/tags/${LEVEL_ZERO_VERSION}.tar.gz)
-set(LEVEL_ZERO_HASH 3553ae8fa0d2d69c4210a8f3428bd6612bd8bb8a627faf52c3658a01851e66d2)
+set(LEVEL_ZERO_VERSION 1.15.8)
+set(LEVEL_ZERO_URI https://codeload.github.com/oneapi-src/level-zero/tar.gz/refs/tags/v${LEVEL_ZERO_VERSION})
+set(LEVEL_ZERO_HASH 80663dbd4d01d9519185c6e568f2e836bfea7484363f4da8cf5cf77c3bf58602)
 set(LEVEL_ZERO_HASH_TYPE SHA256)
 set(LEVEL_ZERO_FILE level-zero-${LEVEL_ZERO_VERSION}.tar.gz)
 
