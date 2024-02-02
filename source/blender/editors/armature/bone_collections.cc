@@ -1168,7 +1168,8 @@ static int move_to_collection_regular_invoke(bContext *C, wmOperator *op)
 
 static int move_to_new_collection_invoke(bContext *C, wmOperator *op)
 {
-  return WM_operator_props_dialog_popup(C, op, 200);
+  return WM_operator_props_dialog_popup(
+      C, op, 200, IFACE_("Move to New Collection"), IFACE_("Move"));
 }
 
 static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
