@@ -2455,7 +2455,7 @@ static int text_jump_exec(bContext *C, wmOperator *op)
 
 static int text_jump_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return WM_operator_props_dialog_popup(C, op, 200);
+  return WM_operator_props_dialog_popup(C, op, 200, IFACE_("Jump to Line Number"));
 }
 
 void TEXT_OT_jump(wmOperatorType *ot)
