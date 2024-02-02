@@ -249,17 +249,17 @@ class MemoryBuffer {
         single_y = rel_y - last_y;
       }
 
-      math::interpolate_bilinear_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
+      math::interpolate_bilinear_border_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
       return;
     }
 
-    math::interpolate_bilinear_fl(buffer_,
-                                  out,
-                                  get_width(),
-                                  get_height(),
-                                  num_channels_,
-                                  get_relative_x(x),
-                                  get_relative_y(y));
+    math::interpolate_bilinear_border_fl(buffer_,
+                                         out,
+                                         get_width(),
+                                         get_height(),
+                                         num_channels_,
+                                         get_relative_x(x),
+                                         get_relative_y(y));
   }
 
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const

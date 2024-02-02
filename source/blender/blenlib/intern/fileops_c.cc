@@ -536,7 +536,7 @@ void BLI_get_short_name(char short_name[256], const char *filepath)
   GetShortPathNameW(filepath_16, short_name_16, 256);
 
   for (i = 0; i < 256; i++) {
-    short_name[i] = (char)short_name_16[i];
+    short_name[i] = char(short_name_16[i]);
   }
 
   UTF16_UN_ENCODE(filepath);

@@ -72,6 +72,7 @@ static bke::bake::BakeSocketConfig make_bake_socket_config(
   bke::bake::BakeSocketConfig config;
   const int items_num = node_simulation_items.size();
   config.domains.resize(items_num);
+  config.names.resize(items_num);
   config.types.resize(items_num);
   config.geometries_by_attribute.resize(items_num);
 
@@ -79,6 +80,7 @@ static bke::bake::BakeSocketConfig make_bake_socket_config(
   for (const int item_i : node_simulation_items.index_range()) {
     const NodeSimulationItem &item = node_simulation_items[item_i];
     config.types[item_i] = eNodeSocketDatatype(item.socket_type);
+    config.names[item_i] = item.name;
     config.domains[item_i] = AttrDomain(item.attribute_domain);
     if (item.socket_type == SOCK_GEOMETRY) {
       last_geometry_index = item_i;

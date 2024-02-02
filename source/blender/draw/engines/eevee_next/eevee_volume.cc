@@ -225,7 +225,7 @@ void VolumeModule::end_sync()
   resolve_ps_.shader_set(inst_.shaders.static_shader_get(VOLUME_RESOLVE));
   resolve_ps_.bind_resources(inst_.uniform_data);
   resolve_ps_.bind_resources(this->result);
-  resolve_ps_.bind_texture("depth_tx", &inst_.render_buffers.depth_tx);
+  resolve_ps_.bind_resources(inst_.hiz_buffer.front);
   resolve_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
   resolve_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
   /* Sync with the integration pass. */
@@ -276,6 +276,8 @@ void VolumeModule::draw_resolve(View &view)
   if (!enabled_) {
     return;
   }
+
+  inst_.hiz_buffer.update();
 
   resolve_fb_.ensure(GPU_ATTACHMENT_NONE,
                      GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.combined_tx));

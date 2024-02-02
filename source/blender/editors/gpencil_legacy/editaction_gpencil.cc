@@ -527,8 +527,8 @@ static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 static bool gpencil_frame_snap_nearmarker(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = (int)ED_markers_find_nearest_marker_time(&scene->markers,
-                                                             float(gpf->framenum));
+    gpf->framenum = int(
+        ED_markers_find_nearest_marker_time(&scene->markers, float(gpf->framenum)));
   }
   return false;
 }

@@ -128,7 +128,7 @@ double BLI_dir_free_space(const char *dir)
 
   GetDiskFreeSpace(tmp, &sectorspc, &bytesps, &freec, &clusters);
 
-  return (double)(freec * bytesps * sectorspc);
+  return double(freec * bytesps * sectorspc);
 #else
 
 #  ifdef USE_STATFS_STATVFS

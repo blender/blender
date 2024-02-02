@@ -949,7 +949,7 @@ class VIEW3D_HT_header(Header):
                 layout.popover(
                     panel="VIEW3D_PT_gpencil_sculpt_automasking",
                     text="",
-                    icon='MOD_MASK',
+                    icon=VIEW3D_HT_header._gpencil_sculpt_automasking_icon(tool_settings.gpencil_sculpt)
                 )
 
         elif object_mode == 'SCULPT':
@@ -975,7 +975,7 @@ class VIEW3D_HT_header(Header):
             layout.popover(
                 panel="VIEW3D_PT_sculpt_automasking",
                 text="",
-                icon='MOD_MASK',
+                icon=VIEW3D_HT_header._sculpt_automasking_icon(tool_settings.sculpt)
             )
 
         elif object_mode == 'VERTEX_PAINT':
@@ -1079,6 +1079,29 @@ class VIEW3D_HT_header(Header):
 
         # sub.enabled = shading.type != 'RENDERED'
         sub.popover(panel="VIEW3D_PT_shading", text="")
+
+    @staticmethod
+    def _sculpt_automasking_icon(sculpt):
+        automask_enabled = (sculpt.use_automasking_topology or
+                            sculpt.use_automasking_face_sets or
+                            sculpt.use_automasking_boundary_edges or
+                            sculpt.use_automasking_boundary_face_sets or
+                            sculpt.use_automasking_cavity or
+                            sculpt.use_automasking_cavity_inverted or
+                            sculpt.use_automasking_start_normal or
+                            sculpt.use_automasking_view_normal)
+
+        return "CLIPUV_DEHLT" if automask_enabled else "CLIPUV_HLT"
+
+    @staticmethod
+    def _gpencil_sculpt_automasking_icon(gpencil_sculpt):
+        automask_enabled = (gpencil_sculpt.use_automasking_stroke or
+                            gpencil_sculpt.use_automasking_layer_stroke or
+                            gpencil_sculpt.use_automasking_material_stroke or
+                            gpencil_sculpt.use_automasking_material_active or
+                            gpencil_sculpt.use_automasking_layer_active)
+
+        return "CLIPUV_DEHLT" if automask_enabled else "CLIPUV_HLT"
 
 
 class VIEW3D_MT_editor_menus(Menu):

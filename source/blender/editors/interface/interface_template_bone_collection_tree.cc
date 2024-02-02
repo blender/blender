@@ -38,6 +38,8 @@ class BoneCollectionTreeView : public AbstractTreeView {
   explicit BoneCollectionTreeView(bArmature &armature);
   void build_tree() override;
 
+  bool listen(const wmNotifier &notifier) const override;
+
  private:
   void build_tree_node_recursive(TreeViewItemContainer &parent, const int bcoll_index);
 
@@ -281,6 +283,37 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     ED_undo_push(&const_cast<bContext &>(C), "Change Armature's Active Bone Collection");
   }
 
+  std::optional<bool> should_be_collapsed() const override
+  {
+    const bool is_collapsed = !bone_collection_.is_expanded();
+    return is_collapsed;
+  }
+
+  bool set_collapsed(const bool collapsed) override
+  {
+    if (!AbstractTreeViewItem::set_collapsed(collapsed)) {
+      return false;
+    }
+
+    /* Ensure that the flag in DNA is set. */
+    ANIM_armature_bonecoll_is_expanded_set(&bone_collection_, !collapsed);
+    return true;
+  }
+
+  void on_collapse_change(bContext &C, const bool is_collapsed) override
+  {
+    const bool is_expanded = !is_collapsed;
+
+    /* Let RNA handle the property change. This makes sure all the notifiers and DEG
+     * update calls are properly called. */
+    PointerRNA bcoll_ptr = RNA_pointer_create(
+        &armature_.id, &RNA_BoneCollection, &bone_collection_);
+    PropertyRNA *prop = RNA_struct_find_property(&bcoll_ptr, "is_expanded");
+
+    RNA_property_boolean_set(&bcoll_ptr, prop, is_expanded);
+    RNA_property_update(&C, &bcoll_ptr, prop);
+  }
+
   bool supports_renaming() const override
   {
     return ANIM_armature_bonecoll_is_editable(&armature_, &bone_collection_);
@@ -351,13 +384,16 @@ void BoneCollectionTreeView::build_tree_node_recursive(TreeViewItemContainer &pa
   const bool has_any_selected_bones = bcolls_with_selected_bones_.contains(bcoll);
   BoneCollectionItem &bcoll_tree_item = parent.add_tree_item<BoneCollectionItem>(
       armature_, bcoll_index, has_any_selected_bones);
-  bcoll_tree_item.set_collapsed(false);
-
   for (int child_index = bcoll->child_index; child_index < bcoll->child_index + bcoll->child_count;
        child_index++)
   {
     build_tree_node_recursive(bcoll_tree_item, child_index);
   }
+}
+
+bool BoneCollectionTreeView::listen(const wmNotifier &notifier) const
+{
+  return notifier.data == ND_BONE_COLLECTION;
 }
 
 void BoneCollectionTreeView::build_bcolls_with_selected_bones()

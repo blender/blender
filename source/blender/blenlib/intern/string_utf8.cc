@@ -1076,7 +1076,7 @@ int BLI_str_utf8_offset_to_column(const char *str, const size_t str_len, const i
   while (offset < offset_target_clamp) {
     const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);
     column += BLI_wcwidth_safe(code);
-    BLI_assert(offset <= (size_t)offset_target); /* See DOXY section comment. */
+    BLI_assert(offset <= size_t(offset_target)); /* See DOXY section comment. */
   }
   return column;
 }
@@ -1109,7 +1109,7 @@ int BLI_str_utf8_offset_to_column_with_tabs(const char *str,
     const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);
     /* The following line is the only change compared with #BLI_str_utf8_offset_to_column. */
     column += (code == '\t') ? (tab_width - (column % tab_width)) : BLI_wcwidth_safe(code);
-    BLI_assert(offset <= (size_t)offset_target); /* See DOXY section comment. */
+    BLI_assert(offset <= size_t(offset_target)); /* See DOXY section comment. */
   }
   return column;
 }

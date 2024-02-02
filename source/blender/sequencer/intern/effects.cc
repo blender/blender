@@ -1584,10 +1584,10 @@ static void transform_image(int x,
           break;
         case 1:
           if (dst_fl) {
-            dst_fl[offset] = imbuf::interpolate_bilinear_fl(ibuf, xt, yt);
+            dst_fl[offset] = imbuf::interpolate_bilinear_border_fl(ibuf, xt, yt);
           }
           else {
-            dst_ch[offset] = imbuf::interpolate_bilinear_byte(ibuf, xt, yt);
+            dst_ch[offset] = imbuf::interpolate_bilinear_border_byte(ibuf, xt, yt);
           }
           break;
         case 2:

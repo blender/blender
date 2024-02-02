@@ -135,6 +135,7 @@ static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
   }
 
   ANIM_armature_bonecoll_active_set(armature, bcoll);
+  /* TODO: ensure the ancestors of the new bone collection are all expanded. */
 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
   return OPERATOR_FINISHED;

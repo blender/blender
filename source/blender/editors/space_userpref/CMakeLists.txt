@@ -6,8 +6,10 @@ set(INC
   ../include
   ../../blenkernel
   ../../blenloader
+  ../../blentranslation
   ../../makesrna
   ../../windowmanager
+  ../../../../extern/fmtlib/include
 
 )
 

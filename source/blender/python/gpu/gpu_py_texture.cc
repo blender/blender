@@ -672,7 +672,7 @@ static PyObject *pygpu_texture_from_image(PyObject * /*self*/, PyObject *arg)
 
   ImageUser iuser;
   BKE_imageuser_default(&iuser);
-  GPUTexture *tex = BKE_image_get_gpu_texture(ima, &iuser, nullptr);
+  GPUTexture *tex = BKE_image_get_gpu_texture(ima, &iuser);
 
   return BPyGPUTexture_CreatePyObject(tex, true);
 }

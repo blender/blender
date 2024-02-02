@@ -91,7 +91,7 @@ void MultilayerColorOperation::execute_pixel_sampled(float output[4],
           imbuf::interpolate_nearest_fl(buffer_, output, x, y);
           break;
         case PixelSampler::Bilinear:
-          imbuf::interpolate_bilinear_fl(buffer_, output, x, y);
+          imbuf::interpolate_bilinear_border_fl(buffer_, output, x, y);
           break;
         case PixelSampler::Bicubic:
           imbuf::interpolate_cubic_bspline_fl(buffer_, output, x, y);

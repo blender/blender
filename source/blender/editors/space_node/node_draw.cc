@@ -357,7 +357,6 @@ float2 node_from_view(const bNode &node, const float2 &co)
 {
   const float2 node_location = co / UI_SCALE_FAC;
   return bke::nodeFromView(&node, node_location);
-  ;
 }
 
 static bool is_node_panels_supported(const bNode &node)

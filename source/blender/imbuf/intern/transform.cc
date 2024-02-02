@@ -38,6 +38,9 @@ struct TransformContext {
   /* Source UV step delta, when moving along one destination pixel in Y axis. */
   float2 add_y;
 
+  /* Source corners in destination pixel space, counter-clockwise. */
+  float2 src_corners[4];
+
   IndexRange dst_region_x_range;
   IndexRange dst_region_y_range;
 
@@ -66,14 +69,15 @@ struct TransformContext {
     rcti rect;
     BLI_rcti_init_minmax(&rect);
     float4x4 inverse = math::invert(transform_matrix);
-    for (const int2 &src_coords : {
-             int2(src_crop.xmin, src_crop.ymin),
-             int2(src_crop.xmax, src_crop.ymin),
-             int2(src_crop.xmin, src_crop.ymax),
-             int2(src_crop.xmax, src_crop.ymax),
-         })
-    {
-      float3 dst_co = math::transform_point(inverse, float3(src_coords.x, src_coords.y, 0.0f));
+    const int2 src_coords[4] = {int2(src_crop.xmin, src_crop.ymin),
+                                int2(src_crop.xmax, src_crop.ymin),
+                                int2(src_crop.xmax, src_crop.ymax),
+                                int2(src_crop.xmin, src_crop.ymax)};
+    for (int i = 0; i < 4; i++) {
+      int2 src_co = src_coords[i];
+      float3 dst_co = math::transform_point(inverse, float3(src_co.x, src_co.y, 0.0f));
+      src_corners[i] = float2(dst_co.x, dst_co.y);
+
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) + margin);
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) - margin);
     }
@@ -251,10 +255,8 @@ static void process_scanlines(const TransformContext &ctx, IndexRange y_range)
      *
      * Do a box filter: for each destination pixel, accumulate XxY samples from source,
      * based on scaling factors (length of X/Y pixel steps). Use at least 2 samples
-     * along each direction, so that in case of rotation the resulting edges get
-     * some anti-aliasing, to match previous Subsampled3x3 filter behavior. The
-     * "at least 2" can be removed once/if transform edge anti-aliasing is implemented
-     * in general way for all filters. Use at most 100 samples along each direction,
+     * along each direction, so that in case of rotation the image gets
+     * some anti-aliasing. Use at most 100 samples along each direction,
      * just as some way of clamping possible upper cost. Scaling something down by more
      * than 100x should rarely if ever happen, worst case they will get some aliasing.
      */
@@ -336,8 +338,9 @@ template<eIMBInterpolationFilterMode Filter>
 static void transform_scanlines_filter(const TransformContext &ctx, IndexRange y_range)
 {
   int channels = ctx.src->channels;
+
   if (ctx.dst->float_buffer.data && ctx.src->float_buffer.data) {
-    /* Float images. */
+    /* Float pixels. */
     if (channels == 4) {
       transform_scanlines<Filter, float, 4>(ctx, y_range);
     }
@@ -351,10 +354,105 @@ static void transform_scanlines_filter(const TransformContext &ctx, IndexRange y
       transform_scanlines<Filter, float, 1>(ctx, y_range);
     }
   }
-  else if (ctx.dst->byte_buffer.data && ctx.src->byte_buffer.data) {
-    /* Byte images. */
+
+  if (ctx.dst->byte_buffer.data && ctx.src->byte_buffer.data) {
+    /* Byte pixels. */
     if (channels == 4) {
       transform_scanlines<Filter, uchar, 4>(ctx, y_range);
+    }
+  }
+}
+
+static float calc_coverage(float2 pos, int2 ipos, float2 delta, bool is_steep)
+{
+  /* Very approximate: just take difference from coordinate (x or y based on
+   * steepness) to the integer coordinate. Adjust based on directions
+   * of the edges. */
+  float cov;
+  if (is_steep) {
+    cov = fabsf(ipos.x - pos.x);
+    if (delta.y < 0) {
+      cov = 1.0f - cov;
+    }
+  }
+  else {
+    cov = fabsf(ipos.y - pos.y);
+    if (delta.x > 0) {
+      cov = 1.0f - cov;
+    }
+  }
+  cov = math::clamp(cov, 0.0f, 1.0f);
+  /* Resulting coverage is 0.5 .. 1.0 range, since we are only covering
+   * half of the pixels that should be AA'd (the other half is outside the
+   * quad and does not get rasterized). Square the coverage to get
+   * more range, and it looks a bit nicer that way. */
+  cov *= cov;
+  return cov;
+}
+
+static void edge_aa(const TransformContext &ctx)
+{
+  /* Rasterize along outer source edges into the destination image,
+   * reducing alpha based on pixel distance to the edge at each pixel.
+   * This is very approximate and not 100% correct "analytical AA",
+   * but simple to do and better than nothing. */
+  for (int line_idx = 0; line_idx < 4; line_idx++) {
+    float2 ptA = ctx.src_corners[line_idx];
+    float2 ptB = ctx.src_corners[(line_idx + 1) & 3];
+    float2 delta = ptB - ptA;
+    float2 abs_delta = math::abs(delta);
+    float length = math::max(abs_delta.x, abs_delta.y);
+    if (length < 1) {
+      continue;
+    }
+    bool is_steep = length == abs_delta.y;
+
+    /* It is very common to have non-rotated strips; check if edge line is
+     * horizontal or vertical and would not alter the coverage and can
+     * be skipped. */
+    constexpr float NO_ROTATION = 1.0e-6f;
+    constexpr float NO_AA_CONTRIB = 1.0e-2f;
+    if (is_steep) {
+      if ((abs_delta.x < NO_ROTATION) && (fabsf(ptA.x - roundf(ptA.x)) < NO_AA_CONTRIB)) {
+        continue;
+      }
+    }
+    else {
+      if ((abs_delta.y < NO_ROTATION) && (fabsf(ptA.y - roundf(ptA.y)) < NO_AA_CONTRIB)) {
+        continue;
+      }
+    }
+
+    /* DDA line raster: step one pixel along the longer direction. */
+    delta /= length;
+    if (ctx.dst->float_buffer.data != nullptr) {
+      /* Float pixels. */
+      float *dst = ctx.dst->float_buffer.data;
+      for (int i = 0; i < length; i++) {
+        float2 pos = ptA + i * delta;
+        int2 ipos = int2(pos);
+        if (ipos.x >= 0 && ipos.x < ctx.dst->x && ipos.y >= 0 && ipos.y < ctx.dst->y) {
+          float cov = calc_coverage(pos, ipos, delta, is_steep);
+          size_t idx = (size_t(ipos.y) * ctx.dst->x + ipos.x) * 4;
+          dst[idx + 0] *= cov;
+          dst[idx + 1] *= cov;
+          dst[idx + 2] *= cov;
+          dst[idx + 3] *= cov;
+        }
+      }
+    }
+    if (ctx.dst->byte_buffer.data != nullptr) {
+      /* Byte pixels. */
+      uchar *dst = ctx.dst->byte_buffer.data;
+      for (int i = 0; i < length; i++) {
+        float2 pos = ptA + i * delta;
+        int2 ipos = int2(pos);
+        if (ipos.x >= 0 && ipos.x < ctx.dst->x && ipos.y >= 0 && ipos.y < ctx.dst->y) {
+          float cov = calc_coverage(pos, ipos, delta, is_steep);
+          size_t idx = (size_t(ipos.y) * ctx.dst->x + ipos.x) * 4;
+          dst[idx + 3] *= cov;
+        }
+      }
     }
   }
 }
@@ -403,4 +501,8 @@ void IMB_transform(const ImBuf *src,
       transform_scanlines_filter<IMB_FILTER_BOX>(ctx, y_range);
     }
   });
+
+  if (crop && (filter != IMB_FILTER_NEAREST)) {
+    edge_aa(ctx);
+  }
 }

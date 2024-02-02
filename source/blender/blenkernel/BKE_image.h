@@ -518,8 +518,7 @@ void BKE_image_ensure_gpu_texture(struct Image *image, struct ImageUser *iuser);
 /**
  * Get the #GPUTexture for a given `Image`.
  *
- * `iuser` and `ibuf` are mutual exclusive parameters. The caller can pass the `ibuf` when already
- * available. It is also required when requesting the #GPUTexture for a render result.
+ *
  *
  * The requested GPU texture will be cached for subsequent calls, but only a single layer, pass,
  * and view can be cached at a time, so the cache should be invalidated in operators and RNA
@@ -530,11 +529,26 @@ void BKE_image_ensure_gpu_texture(struct Image *image, struct ImageUser *iuser);
  * calling BKE_image_ensure_gpu_texture. This is a workaround until image can support a more
  * complete caching system.
  */
-struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image,
-                                             struct ImageUser *iuser,
-                                             struct ImBuf *ibuf);
-struct GPUTexture *BKE_image_get_gpu_tiles(struct Image *image, struct ImageUser *iuser);
-struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image, struct ImageUser *iuser);
+struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image, struct ImageUser *iuser);
+
+/*
+ * Like BKE_image_get_gpu_texture, but can also get render or compositing result.
+ */
+struct GPUTexture *BKE_image_get_gpu_viewer_texture(struct Image *image, struct ImageUser *iuser);
+
+/*
+ * Like BKE_image_get_gpu_texture, but can also return array and tile mapping texture for UDIM
+ * tiles as used in material shaders.
+ */
+typedef struct ImageGPUTextures {
+  struct GPUTexture *texture;
+  struct GPUTexture *tile_mapping;
+} ImageGPUTextures;
+
+ImageGPUTextures BKE_image_get_gpu_material_texture(struct Image *image,
+                                                    struct ImageUser *iuser,
+                                                    const bool use_tile_mapping);
+
 /**
  * Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied.
  */

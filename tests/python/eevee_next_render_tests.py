@@ -53,6 +53,7 @@ def setup():
         grid = bpy.context.selected_objects[0]
         grid.scale = (1.735, 1.735, 1.735)
         grid.data.bake_samples = 256
+        bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
     except:
         pass
 
@@ -62,8 +63,6 @@ def setup():
             ob.hide_probe_volume = True
             ob.hide_probe_sphere = True
             ob.hide_probe_plane = True
-
-    bpy.ops.scene.light_cache_bake()
 
 
 # When run from inside Blender, render and exit.

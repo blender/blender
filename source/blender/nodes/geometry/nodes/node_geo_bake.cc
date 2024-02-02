@@ -117,6 +117,7 @@ static bake::BakeSocketConfig make_bake_socket_config(const Span<NodeGeometryBak
   bake::BakeSocketConfig config;
   const int items_num = bake_items.size();
   config.domains.resize(items_num);
+  config.names.resize(items_num);
   config.types.resize(items_num);
   config.geometries_by_attribute.resize(items_num);
 
@@ -124,6 +125,7 @@ static bake::BakeSocketConfig make_bake_socket_config(const Span<NodeGeometryBak
   for (const int item_i : bake_items.index_range()) {
     const NodeGeometryBakeItem &item = bake_items[item_i];
     config.types[item_i] = eNodeSocketDatatype(item.socket_type);
+    config.names[item_i] = item.name;
     config.domains[item_i] = AttrDomain(item.attribute_domain);
     if (item.socket_type == SOCK_GEOMETRY) {
       last_geometry_index = item_i;

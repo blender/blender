@@ -1267,6 +1267,28 @@ float ShadowModule::tilemap_pixel_radius()
   return cubeface_diagonal / pixel_count;
 }
 
+bool ShadowModule::shadow_update_finished()
+{
+  if (inst_.is_viewport()) {
+    /* For viewport, only run the shadow update once per redraw.
+     * This avoids the stall from the readback and freezes from long shadow update. */
+    return true;
+  }
+
+  int max_updated_view_count = tilemap_pool.tilemaps_data.size();
+  if (max_updated_view_count <= SHADOW_VIEW_MAX) {
+    /* There is enough shadow views to cover all tilemap updates.
+     * No readback needed as it is guaranteed that all of them will be updated. */
+    return true;
+  }
+
+  /* Read back and check if there is still tile-map to update. */
+  statistics_buf_.current().read();
+  ShadowStatistics stats = statistics_buf_.current();
+  /* Rendering is finished if we rendered all the remaining pages. */
+  return stats.page_rendered_count == stats.page_update_count;
+}
+
 void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 {
   if (enabled_ == false) {
@@ -1313,8 +1335,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
 
   inst_.hiz_buffer.update();
 
-  bool tile_update_remains = true;
-  while (tile_update_remains) {
+  do {
     DRW_stats_group_start("Shadow");
     {
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
@@ -1369,26 +1390,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
       GPU_memory_barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS | GPU_BARRIER_TEXTURE_FETCH);
     }
     DRW_stats_group_end();
-
-    if (inst_.is_viewport()) {
-      tile_update_remains = false;
-    }
-    else {
-      /* This provoke a GPU/CPU sync. Avoid it if we are sure that all tile-maps will be rendered
-       * in a single iteration. */
-      bool enough_tilemap_for_single_iteration = tilemap_pool.tilemaps_data.size() <= fb_layers;
-      if (enough_tilemap_for_single_iteration) {
-        tile_update_remains = false;
-      }
-      else {
-        /* Read back and check if there is still tile-map to update. */
-        tile_update_remains = false;
-        statistics_buf_.current().read();
-        ShadowStatistics stats = statistics_buf_.current();
-        tile_update_remains = stats.page_rendered_count < stats.page_update_count;
-      }
-    }
-  }
+  } while (!shadow_update_finished());
 
   if (prev_fb) {
     GPU_framebuffer_bind(prev_fb);

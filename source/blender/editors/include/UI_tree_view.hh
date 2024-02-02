@@ -198,14 +198,41 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   std::optional<rctf> get_win_rect(const ARegion &region) const;
 
   void begin_renaming();
-  void toggle_collapsed();
-  void set_collapsed(bool collapsed);
+
+  /**
+   * Toggle the expanded/collapsed state.
+   *
+   * \note this does not call #on_collapse_change().
+   * \returns true when the collapsed state was changed, false otherwise.
+   */
+  bool toggle_collapsed();
+  /**
+   * Expand or collapse this tree view item.
+   *
+   * \note this does not call #on_collapse_change().
+   * \returns true when the collapsed state was changed, false otherwise.
+   */
+  virtual bool set_collapsed(bool collapsed);
+
   /**
    * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
    * can't be sure about the item state.
    */
   bool is_collapsed() const;
   bool is_collapsible() const;
+
+  /**
+   * Called when the view changes an item's state from expanded to collapsed, or vice versa. Will
+   * only be called if the state change is triggered through the view, not through external
+   * changes. E.g. a click on an item calls it, a change in the value returned by
+   * #should_be_collapsed() to reflect an external state change does not.
+   */
+  virtual void on_collapse_change(bContext &C, bool is_collapsed);
+  /**
+   * If the result is not empty, it controls whether the item should be collapsed or not, usually
+   * depending on the data that the view represents.
+   */
+  virtual std::optional<bool> should_be_collapsed() const;
 
  protected:
   /** See AbstractViewItem::get_rename_string(). */
@@ -218,6 +245,13 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
    * The default implementation returns true.
    */
   virtual bool supports_collapsing() const;
+
+  /**
+   * Toggle the collapsed/expanded state, and call on_collapse_change() if it changed.
+   */
+  void toggle_collapsed_from_view(bContext &C);
+
+  void change_state_delayed() override;
 
   /** See #AbstractViewItem::matches(). */
   /* virtual */ bool matches(const AbstractViewItem &other) const override;

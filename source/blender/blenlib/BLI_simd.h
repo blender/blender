@@ -30,3 +30,9 @@
 #else
 #  define BLI_HAVE_SSE2 0
 #endif
+
+#if defined(__SSE4_1__) || (defined(__ARM_NEON) && defined(WITH_SSE2NEON))
+#  define BLI_HAVE_SSE4 1
+#else
+#  define BLI_HAVE_SSE4 0
+#endif

@@ -306,6 +306,12 @@ typedef struct BoneCollection {
    * Return whether this collection is marked as 'solo'.
    */
   bool is_solo() const;
+  /**
+   * Whether or not this bone collection is expanded in the tree view.
+   *
+   * This corresponds to the #BONE_COLLECTION_EXPANDED flag.
+   */
+  bool is_expanded() const;
 #endif
 } BoneCollection;
 
@@ -534,8 +540,10 @@ typedef enum eBoneCollection_Flag {
    * \see eArmature_Flag::ARM_BCOLL_SOLO_ACTIVE
    */
   BONE_COLLECTION_SOLO = (1 << 4),
+
+  BONE_COLLECTION_EXPANDED = (1 << 5), /* Expanded in the tree view. */
 } eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_SOLO)
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_EXPANDED)
 
 #ifdef __cplusplus
 

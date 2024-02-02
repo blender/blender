@@ -97,6 +97,11 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 
   ED_armature_ebone_listbase_temp_clear(arm->edbo);
 
+  /* Before freeing the old bone collections, copy their 'expanded' flag. This
+   * flag is not supposed to be restored with any undo steps. */
+  bonecolls_copy_expanded_flag(blender::Span(uarm->collection_array, uarm->collection_array_num),
+                               arm->collections_span());
+
   /* Copy bone collections. */
   ANIM_bonecoll_array_free(&arm->collection_array, &arm->collection_array_num, true);
   auto bcoll_map = ANIM_bonecoll_array_copy_no_membership(&arm->collection_array,

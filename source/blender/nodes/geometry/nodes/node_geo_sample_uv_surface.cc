@@ -172,7 +172,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Use the output of the UV sampling to interpolate the mesh attribute. */
   GField field = params.extract_input<GField>("Value");
-  ;
+
   auto sample_op = FieldOperation::Create(
       std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(geometry),
                                                                      std::move(field)),

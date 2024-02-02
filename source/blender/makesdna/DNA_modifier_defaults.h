@@ -835,7 +835,7 @@
     .factor = 1.0f, \
     .step = 1, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilOffsetModifierData \
   { \
     .flag = 0, \
@@ -864,7 +864,7 @@
   { \
     .flag = MOD_GREASE_PENCIL_MIRROR_AXIS_X, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilThickModifierData \
   { \
     .flag = 0, \

@@ -82,7 +82,7 @@ void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NON
 bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
                                                        const char *name,
                                                        const char *module,
-                                                       const char *dirpath);
+                                                       const char *custom_dirpath);
 void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo *repo);
 
 void BKE_preferences_extension_repo_name_set(UserDef *userdef,
@@ -92,7 +92,11 @@ void BKE_preferences_extension_repo_module_set(UserDef *userdef,
                                                bUserExtensionRepo *repo,
                                                const char *module);
 
-void BKE_preferences_extension_repo_path_set(bUserExtensionRepo *repo, const char *path);
+void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo, const char *path);
+void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
+                                                char *dirpath,
+                                                int dirpath_maxncpy);
+
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index);
 bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef *userdef,
                                                                   const char *module);

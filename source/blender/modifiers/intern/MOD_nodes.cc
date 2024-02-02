@@ -1567,8 +1567,7 @@ static void add_data_block_items_writeback(const ModifierEvalContext &ctx,
 
   deg::sync_writeback::add(
       *depsgraph,
-      [depsgraph = depsgraph,
-       object_eval = ctx.object,
+      [object_eval = ctx.object,
        bmain,
        &nmd_orig,
        &nmd_eval,

@@ -127,7 +127,7 @@ class USDStageReader {
    * \param prim: Root of the subtree to convert to readers
    * \param pruned_prims: Set of paths to prune when iterating over the
    *                      stage during conversion.  I.e., these prims
-   *                      and their descendents will not be converted to
+   *                      and their descendants will not be converted to
    *                      readers.
    * \param defined_prims_only: If true, only defined prims will be converted,
    *                            skipping abstract and over prims.  This should
