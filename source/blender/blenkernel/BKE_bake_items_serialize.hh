@@ -72,6 +72,24 @@ class BlobWriteSharing : NonCopyable, NonMovable {
    */
   Map<const ImplicitSharingInfo *, StoredByRuntimeValue> stored_by_runtime_;
 
+  struct SliceHash {
+    uint64_t a;
+    uint64_t b;
+
+    BLI_STRUCT_EQUALITY_OPERATORS_2(SliceHash, a, b)
+
+    uint64_t hash() const
+    {
+      return get_default_hash(this->a, this->b);
+    }
+  };
+
+  /**
+   * Remembers where data was stored based on the hash of the data. This allows us to skip writing
+   * the same array again if it has the same hash.
+   */
+  Map<SliceHash, BlobSlice> slice_by_content_hash_;
+
  public:
   ~BlobWriteSharing();
 
@@ -84,6 +102,14 @@ class BlobWriteSharing : NonCopyable, NonMovable {
   [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_implicitly_shared(
       const ImplicitSharingInfo *sharing_info,
       FunctionRef<std::shared_ptr<io::serialize::DictionaryValue>()> write_fn);
+
+  /**
+   * Checks if the given data was written before. If it was, it's not written again, but a
+   * reference to the previously written data is returned. If the data is new, it's written now.
+   * Its hash is remembered so that the same data won't be written again.
+   */
+  [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_deduplicated(
+      BlobWriter &writer, const void *data, int64_t size_in_bytes);
 };
 
 /**
