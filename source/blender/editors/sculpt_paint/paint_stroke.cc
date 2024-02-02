@@ -316,21 +316,6 @@ static bool paint_brush_update(bContext *C,
     copy_v2_v2(ups->mask_tex_mouse, mouse);
     stroke->cached_size_pressure = pressure;
 
-    ups->do_linear_conversion = false;
-    ups->colorspace = nullptr;
-
-    /* check here if color sampling the main brush should do color conversion. This is done here
-     * to avoid locking up to get the image buffer during sampling */
-    if (brush->mtex.tex && brush->mtex.tex->type == TEX_IMAGE && brush->mtex.tex->ima) {
-      ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(
-          brush->mtex.tex->ima, &brush->mtex.tex->iuser, nullptr);
-      if (tex_ibuf && tex_ibuf->rect_float == nullptr) {
-        ups->do_linear_conversion = true;
-        ups->colorspace = tex_ibuf->rect_colorspace;
-      }
-      BKE_image_pool_release_ibuf(brush->mtex.tex->ima, tex_ibuf, nullptr);
-    }
-
     stroke->brush_init = true;
   }
 
@@ -930,6 +915,20 @@ PaintStroke *paint_stroke_new(bContext *C,
 
   get_imapaint_zoom(C, &zoomx, &zoomy);
   stroke->zoom_2d = max_ff(zoomx, zoomy);
+
+  /* Check here if color sampling the main brush should do color conversion. This is done here
+   * to avoid locking up to get the image buffer during sampling. */
+  ups->do_linear_conversion = false;
+  ups->colorspace = nullptr;
+
+  if (br->mtex.tex && br->mtex.tex->type == TEX_IMAGE && br->mtex.tex->ima) {
+    ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(br->mtex.tex->ima, &br->mtex.tex->iuser, NULL);
+    if (tex_ibuf && tex_ibuf->rect_float == nullptr) {
+      ups->do_linear_conversion = true;
+      ups->colorspace = tex_ibuf->rect_colorspace;
+    }
+    BKE_image_pool_release_ibuf(br->mtex.tex->ima, tex_ibuf, nullptr);
+  }
 
   if (stroke->stroke_mode == BRUSH_STROKE_INVERT) {
     if (br->flag & BRUSH_CURVE) {
