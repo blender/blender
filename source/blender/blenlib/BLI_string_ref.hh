@@ -449,7 +449,10 @@ inline StringRefNull::StringRefNull(const char *str) : StringRefBase(str, int64_
  * Reference a std::string. Remember that when the std::string is destructed, the StringRefNull
  * will point to uninitialized memory.
  */
-inline StringRefNull::StringRefNull(const std::string &str) : StringRefNull(str.c_str()) {}
+inline StringRefNull::StringRefNull(const std::string &str)
+    : StringRefNull(str.c_str(), int64_t(str.size()))
+{
+}
 
 /**
  * Get the char at the given index.
