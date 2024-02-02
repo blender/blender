@@ -399,6 +399,12 @@ static void rna_BoneCollection_is_solo_set(PointerRNA *ptr, const bool is_solo)
   ANIM_armature_bonecoll_solo_set(arm, bcoll, is_solo);
 }
 
+static void rna_BoneCollection_is_expanded_set(PointerRNA *ptr, const bool is_expanded)
+{
+  BoneCollection *bcoll = (BoneCollection *)ptr->data;
+  ANIM_armature_bonecoll_is_expanded_set(bcoll, is_expanded);
+}
+
 static std::optional<std::string> rna_BoneCollection_path(const PointerRNA *ptr)
 {
   const BoneCollection *bcoll = (const BoneCollection *)ptr->data;
@@ -2304,6 +2310,15 @@ static void rna_def_bonecollection(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "Unique within the Armature");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_BoneCollection_name_set");
+  RNA_def_property_update(prop, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
+
+  prop = RNA_def_property(srna, "is_expanded", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", BONE_COLLECTION_EXPANDED);
+  RNA_def_property_ui_text(
+      prop, "Expanded", "This bone collection is expanded in the bone collections tree view");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_BoneCollection_is_expanded_set");
   RNA_def_property_update(prop, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 
   prop = RNA_def_property(srna, "is_visible", PROP_BOOLEAN, PROP_NONE);

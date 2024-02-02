@@ -711,14 +711,21 @@ void ANIM_armature_bonecoll_remove(bArmature *armature, BoneCollection *bcoll)
                                            armature_bonecoll_find_index(armature, bcoll));
 }
 
-BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature, const char *name)
+template<typename MaybeConstBoneCollection>
+static MaybeConstBoneCollection *bonecolls_get_by_name(
+    blender::Span<MaybeConstBoneCollection *> bonecolls, const char *name)
 {
-  for (BoneCollection *bcoll : armature->collections_span()) {
+  for (MaybeConstBoneCollection *bcoll : bonecolls) {
     if (STREQ(bcoll->name, name)) {
       return bcoll;
     }
   }
   return nullptr;
+}
+
+BoneCollection *ANIM_armature_bonecoll_get_by_name(bArmature *armature, const char *name)
+{
+  return bonecolls_get_by_name(armature->collections_span(), name);
 }
 
 int ANIM_armature_bonecoll_get_index_by_name(bArmature *armature, const char *name)
@@ -844,6 +851,16 @@ bool ANIM_armature_bonecoll_is_visible_effectively(const bArmature *armature,
   }
 
   return bcoll->is_visible_with_ancestors();
+}
+
+void ANIM_armature_bonecoll_is_expanded_set(BoneCollection *bcoll, bool is_expanded)
+{
+  if (is_expanded) {
+    bcoll->flags |= BONE_COLLECTION_EXPANDED;
+  }
+  else {
+    bcoll->flags &= ~BONE_COLLECTION_EXPANDED;
+  }
 }
 
 /* Store the bone's membership on the collection. */
@@ -1235,6 +1252,45 @@ bool armature_bonecoll_is_descendant_of(const bArmature *armature,
 bool bonecoll_has_children(const BoneCollection *bcoll)
 {
   return bcoll->child_count > 0;
+}
+
+void bonecolls_copy_expanded_flag(Span<BoneCollection *> bcolls_dest,
+                                  Span<const BoneCollection *> bcolls_source)
+{
+  /* Try to preserve the bone collection expanded/collapsed states. These are UI
+   * changes that shouldn't impact undo steps. Care has to be taken to match the
+   * old and the new bone collections, though, as they may have been reordered
+   * or renamed.
+   *
+   * Reordering is handled by looking up collections by name.
+   * Renames are handled by skipping those that cannot be found by name. */
+
+  auto find_old = [bcolls_source](const char *name, const int index) -> const BoneCollection * {
+    /* Only check index when it's valid in the old armature. */
+    if (index < bcolls_source.size()) {
+      const BoneCollection *bcoll = bcolls_source[index];
+      if (STREQ(bcoll->name, name)) {
+        /* Index and name matches, let's use */
+        return bcoll;
+      }
+    }
+
+    /* Try to find by name as a last resort. This function only works with
+     * non-const pointers, hence the const_cast.  */
+    const BoneCollection *bcoll = bonecolls_get_by_name(bcolls_source, name);
+    return bcoll;
+  };
+
+  for (int i = 0; i < bcolls_dest.size(); i++) {
+    BoneCollection *bcoll_new = bcolls_dest[i];
+
+    const BoneCollection *bcoll_old = find_old(bcoll_new->name, i);
+    if (!bcoll_old) {
+      continue;
+    }
+
+    ANIM_armature_bonecoll_is_expanded_set(bcoll_new, bcoll_old->is_expanded());
+  }
 }
 
 int armature_bonecoll_move_to_parent(bArmature *armature,
