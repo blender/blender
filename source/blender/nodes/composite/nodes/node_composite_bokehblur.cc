@@ -81,7 +81,7 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute_constant_size()
   {
-    GPUShader *shader = context().get_shader("compositor_blur");
+    GPUShader *shader = context().get_shader("compositor_bokeh_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1i(shader, "radius", int(compute_blur_radius()));
@@ -117,7 +117,7 @@ class BokehBlurOperation : public NodeOperation {
 
   void execute_variable_size()
   {
-    GPUShader *shader = context().get_shader("compositor_blur_variable_size");
+    GPUShader *shader = context().get_shader("compositor_bokeh_blur_variable_size");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1f(shader, "base_size", compute_blur_radius());
