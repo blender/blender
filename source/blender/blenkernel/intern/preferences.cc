@@ -242,15 +242,14 @@ void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
     return;
   }
 
-  char subdir[16 + sizeof(bUserExtensionRepo::module)];
-  BLI_string_join(subdir, sizeof(subdir), "extensions", SEP_STR, repo->module);
-  const std::optional<std::string> path = BKE_appdir_folder_id(BLENDER_USER_SCRIPTS, subdir);
-  if (path.has_value()) {
-    BLI_strncpy(dirpath, path.value().c_str(), dirpath_maxncpy);
-  }
-  else {
+  /* TODO: support `BLENDER_USER_EXTENSIONS`, until then add to user resource. */
+  std::optional<std::string> path = BKE_appdir_resource_path_id(BLENDER_RESOURCE_PATH_USER, false);
+  /* Highly unlikely to fail as the directory doesn't have to exist. */
+  if (!path) {
     dirpath[0] = '\0';
+    return;
   }
+  BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), "extensions", repo->module);
 }
 
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index)
