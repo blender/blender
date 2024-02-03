@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_fileops.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_serialize.hh"
 
 #include "BKE_bake_items.hh"
@@ -33,6 +34,13 @@ class BlobReader {
    * \return True on success, otherwise false.
    */
   [[nodiscard]] virtual bool read(const BlobSlice &slice, void *r_data) const = 0;
+
+  /**
+   * Provides an #istream that can be used to read the data from the given slice.
+   * \return True on success, otherwise false.
+   */
+  [[nodiscard]] virtual bool read_as_stream(const BlobSlice &slice,
+                                            FunctionRef<bool(std::istream &)> fn) const;
 };
 
 /**
@@ -45,6 +53,15 @@ class BlobWriter {
    * \return Slice where the data has been written to.
    */
   virtual BlobSlice write(const void *data, int64_t size) = 0;
+
+  /**
+   * Provides an #ostream that can be used to write the blob.
+   * \param file_extension: May be used if the data is written to an independent file. Based on the
+   *   implementation, this may be ignored.
+   * \return Slice where the data has been written to.
+   */
+  virtual BlobSlice write_as_stream(StringRef file_extension,
+                                    FunctionRef<void(std::ostream &)> fn);
 };
 
 /**
@@ -161,16 +178,22 @@ class DiskBlobWriter : public BlobWriter {
   /** Directory path that contains all blob files. */
   std::string blob_dir_;
   /** Name of the file that data is written to. */
+  std::string base_name_;
   std::string blob_name_;
   /** File handle. The file is opened when the first data is written. */
   std::fstream blob_stream_;
   /** Current position in the file. */
   int64_t current_offset_ = 0;
+  /** Used to generate file names for bake data that is stored in independent files. */
+  int independent_file_count_ = 0;
 
  public:
-  DiskBlobWriter(std::string blob_dir, std::string blob_name);
+  DiskBlobWriter(std::string blob_dir, std::string base_name);
 
   BlobSlice write(const void *data, int64_t size) override;
+
+  BlobSlice write_as_stream(StringRef file_extension,
+                            FunctionRef<void(std::ostream &)> fn) override;
 };
 
 void serialize_bake(const BakeState &bake_state,

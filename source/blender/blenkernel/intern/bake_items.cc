@@ -9,6 +9,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
+#include "BKE_volume.hh"
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
@@ -16,6 +17,7 @@
 #include "BLI_path_util.h"
 
 #include "DNA_material_types.h"
+#include "DNA_volume_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -71,12 +73,17 @@ void GeometryBakeItem::prepare_geometry_for_bake(GeometrySet &main_geometry,
       pointcloud->runtime->bake_materials = materials_to_weak_references(
           &pointcloud->mat, &pointcloud->totcol, data_block_map);
     }
+    if (Volume *volume = geometry.get_volume_for_write()) {
+      volume->runtime->bake_materials = materials_to_weak_references(
+          &volume->mat, &volume->totcol, data_block_map);
+    }
     if (bke::Instances *instances = geometry.get_instances_for_write()) {
       instances->attributes_for_write().remove_anonymous();
     }
     geometry.keep_only_during_modify({GeometryComponent::Type::Mesh,
                                       GeometryComponent::Type::Curve,
                                       GeometryComponent::Type::PointCloud,
+                                      GeometryComponent::Type::Volume,
                                       GeometryComponent::Type::Instance});
   });
 }
@@ -123,6 +130,12 @@ void GeometryBakeItem::try_restore_data_blocks(GeometrySet &main_geometry,
       restore_materials(&pointcloud->mat,
                         &pointcloud->totcol,
                         std::move(pointcloud->runtime->bake_materials),
+                        data_block_map);
+    }
+    if (Volume *volume = geometry.get_volume_for_write()) {
+      restore_materials(&volume->mat,
+                        &volume->totcol,
+                        std::move(volume->runtime->bake_materials),
                         data_block_map);
     }
   });
