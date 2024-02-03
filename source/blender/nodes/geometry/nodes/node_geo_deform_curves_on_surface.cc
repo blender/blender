@@ -274,14 +274,14 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
     const std::string message = fmt::format(TIP_("Evaluated surface missing UV map: \"{}\""),
-                                            std::string_view(uv_map_name));
+                                            uv_map_name);
     params.error_message_add(NodeWarningType::Error, message);
     return;
   }
   if (!mesh_attributes_orig.contains(uv_map_name)) {
     pass_through_input();
     const std::string message = fmt::format(TIP_("Original surface missing UV map: \"{}\""),
-                                            std::string_view(uv_map_name));
+                                            uv_map_name);
     params.error_message_add(NodeWarningType::Error, message);
     return;
   }

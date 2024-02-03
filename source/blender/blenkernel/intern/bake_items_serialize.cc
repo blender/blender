@@ -134,7 +134,7 @@ BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
   BLI_assert(file_extension.startswith("."));
   independent_file_count_++;
   const std::string file_name = fmt::format(
-      "{}_file_{}{}", base_name_, independent_file_count_, std::string_view(file_extension));
+      "{}_file_{}{}", base_name_, independent_file_count_, file_extension);
 
   char path[FILE_MAX];
   BLI_path_join(path, sizeof(path), blob_dir_.c_str(), file_name.c_str());

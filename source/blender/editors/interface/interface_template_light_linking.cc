@@ -133,7 +133,7 @@ class ReorderCollectionDropTarget : public TreeViewItemDropTarget {
 
   std::string drop_tooltip(const DragInfo &drag) const override
   {
-    const std::string_view drop_name = std::string_view(drop_id_.name + 2);
+    const StringRef drop_name = drop_id_.name + 2;
 
     switch (drag.drop_location) {
       case DropLocation::Into:

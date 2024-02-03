@@ -131,8 +131,8 @@ class BoneCollectionDropTarget : public TreeViewItemDropTarget {
     const BoneCollection &drag_bcoll = drag_bone_collection->bcoll();
     const BoneCollection &drop_bcoll = drop_bonecoll_.bcoll();
 
-    std::string_view drag_name = drag_bcoll.name;
-    std::string_view drop_name = drop_bcoll.name;
+    const StringRef drag_name = drag_bcoll.name;
+    const StringRef drop_name = drop_bcoll.name;
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:
