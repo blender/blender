@@ -9,7 +9,6 @@ set(INC
   ../../blentranslation
   ../../makesrna
   ../../windowmanager
-  ../../../../extern/fmtlib/include
 
 )
 
@@ -27,6 +26,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
 )
 

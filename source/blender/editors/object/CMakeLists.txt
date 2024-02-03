@@ -19,7 +19,6 @@ set(INC
   ../../render
   ../../shader_fx
   ../../windowmanager
-  ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -69,6 +68,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_render

@@ -19,7 +19,6 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/ghost
-  ../../../../extern/fmtlib/include
   ../../bmesh
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -103,6 +102,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
 )
