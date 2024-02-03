@@ -23,9 +23,6 @@ TEST(math_geom, DistToLineSegment2DSimple)
   EXPECT_NEAR(sqrtf(2.0f), distance, 1e-6);
 }
 
-#include "BLI_rand.hh"
-#include "BLI_timeit.hh"
-
 TEST(math_geom, IsectPointTri2D)
 {
   float2 tri_cw[3] = {{-2, 1}, {4, 4}, {2, -3}};
