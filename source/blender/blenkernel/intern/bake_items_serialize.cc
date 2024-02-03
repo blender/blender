@@ -73,17 +73,22 @@ DiskBlobReader::DiskBlobReader(std::string blobs_dir) : blobs_dir_(std::move(blo
   return true;
 }
 
-DiskBlobWriter::DiskBlobWriter(std::string blob_name,
-                               std::ostream &blob_file,
-                               const int64_t current_offset)
-    : blob_name_(std::move(blob_name)), blob_file_(blob_file), current_offset_(current_offset)
+DiskBlobWriter::DiskBlobWriter(std::string blob_dir, std::string blob_name)
+    : blob_dir_(std::move(blob_dir)), blob_name_(std::move(blob_name))
 {
 }
 
 BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
 {
+  if (!blob_stream_.is_open()) {
+    char blob_path[FILE_MAX];
+    BLI_path_join(blob_path, sizeof(blob_path), blob_dir_.c_str(), blob_name_.c_str());
+    BLI_file_ensure_parent_dir_exists(blob_path);
+    blob_stream_.open(blob_path, std::ios::out | std::ios::binary);
+  }
+
   const int64_t old_offset = current_offset_;
-  blob_file_.write(static_cast<const char *>(data), size);
+  blob_stream_.write(static_cast<const char *>(data), size);
   current_offset_ += size;
   return {blob_name_, {old_offset, size}};
 }

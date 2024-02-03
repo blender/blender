@@ -158,15 +158,17 @@ class DiskBlobReader : public BlobReader {
  */
 class DiskBlobWriter : public BlobWriter {
  private:
+  /** Directory path that contains all blob files. */
+  std::string blob_dir_;
   /** Name of the file that data is written to. */
   std::string blob_name_;
-  /** File handle. */
-  std::ostream &blob_file_;
+  /** File handle. The file is opened when the first data is written. */
+  std::fstream blob_stream_;
   /** Current position in the file. */
-  int64_t current_offset_;
+  int64_t current_offset_ = 0;
 
  public:
-  DiskBlobWriter(std::string blob_name, std::ostream &blob_file, int64_t current_offset);
+  DiskBlobWriter(std::string blob_dir, std::string blob_name);
 
   BlobSlice write(const void *data, int64_t size) override;
 };
