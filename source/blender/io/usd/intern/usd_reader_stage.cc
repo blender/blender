@@ -55,7 +55,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-#include <iomanip>
+#include <fmt/format.h>
 
 static CLG_LogRef LOG = {"io.usd"};
 
@@ -690,7 +690,7 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
 
     /* Determine the max number of digits we will need for the possibly zero-padded
      * string representing the prototype index. */
-    int max_index_digits = integer_digits_i(instancer_reader->proto_paths().size());
+    const int max_index_digits = integer_digits_i(instancer_reader->proto_paths().size());
 
     int proto_index = 0;
 
@@ -698,9 +698,7 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
       BLI_assert(max_index_digits > 0);
 
       /* Format the collection name to follow the proto_<index> pattern. */
-      std::ostringstream ss;
-      ss << std::setw(max_index_digits) << std::setfill('0') << proto_index;
-      std::string coll_name = "proto_" + ss.str();
+      std::string coll_name = fmt::format("proto_{0:0{1}}", proto_index, max_index_digits);
 
       /* Create the collection and populate it with the prototype objects. */
       Collection *proto_coll = create_collection(bmain, instancer_protos_coll, coll_name.c_str());

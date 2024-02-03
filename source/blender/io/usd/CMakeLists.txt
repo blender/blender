@@ -77,6 +77,8 @@ set(INC_SYS
   ${BOOST_INCLUDE_DIR}
   ${TBB_INCLUDE_DIR}
   ${PYTHON_INCLUDE_DIR}
+
+  ../../../../extern/fmtlib/include
 )
 
 set(SRC
@@ -200,6 +202,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common
+  extern_fmtlib
 )
 
 list(APPEND LIB
