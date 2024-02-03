@@ -15,6 +15,9 @@
 
 #include "DNA_mesh_types.h"
 
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
+
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
 /* Materials */
@@ -140,7 +143,9 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
   BLI_assert(context.is_instance());
 
   if (context.export_path == context.original_export_path) {
-    printf("USD ref error: export path is reference path: %s\n", context.export_path.c_str());
+    CLOG_ERROR(&LOG,
+               "Reference error: export path matches reference path: %s",
+               context.export_path.c_str());
     BLI_assert_msg(0, "USD reference error");
     return false;
   }
@@ -150,9 +155,10 @@ bool USDAbstractWriter::mark_as_instance(const HierarchyContext &context, const 
     /* See this URL for a description for why referencing may fail"
      * https://graphics.pixar.com/usd/docs/api/class_usd_references.html#Usd_Failing_References
      */
-    printf("USD Export warning: unable to add reference from %s to %s, not instancing object\n",
-           context.export_path.c_str(),
-           context.original_export_path.c_str());
+    CLOG_WARN(&LOG,
+              "Unable to add reference from %s to %s, not instancing object for export",
+              context.export_path.c_str(),
+              context.original_export_path.c_str());
     return false;
   }
 

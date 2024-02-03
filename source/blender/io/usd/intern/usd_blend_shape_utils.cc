@@ -223,8 +223,9 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
   pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
 
   if (!skel_api) {
-    printf("WARNING: couldn't apply UsdSkelBindingAPI to prim %s\n",
-           mesh_prim.GetPath().GetAsString().c_str());
+    CLOG_WARN(&LOG,
+              "Couldn't apply UsdSkelBindingAPI to mesh prim %s",
+              mesh_prim.GetPath().GetAsString().c_str());
     return;
   }
 
