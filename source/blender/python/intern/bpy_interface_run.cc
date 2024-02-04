@@ -222,7 +222,9 @@ static bool python_script_exec(
         }
       }
     }
-    PyErr_Print();
+    if (!reports) {
+      PyErr_Print();
+    }
     PyErr_Clear();
   }
   else {
