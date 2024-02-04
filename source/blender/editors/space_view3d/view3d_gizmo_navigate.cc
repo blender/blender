@@ -207,8 +207,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     }
 
     wmOperatorType *ot = WM_operatortype_find(info->opname, true);
-    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot, NULL);
-    if (info->op_prop_fn != NULL) {
+    PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot, nullptr);
+    if (info->op_prop_fn != nullptr) {
       info->op_prop_fn(ptr);
     }
   }
