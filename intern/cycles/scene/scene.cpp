@@ -254,6 +254,7 @@ void Scene::device_update(Device *device_, Progress &progress)
   if (film->update_lightgroups(this)) {
     light_manager->tag_update(this, ccl::LightManager::LIGHT_MODIFIED);
     object_manager->tag_update(this, ccl::ObjectManager::OBJECT_MODIFIED);
+    background->tag_modified();
   }
 
   progress.set_status("Updating Shaders");
