@@ -4107,6 +4107,9 @@ static int text_jump_to_file_at_point_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  /* Useful to copy-paste from the terminal. */
+  printf("%s:%d:%d\n", filepath, line_index + 1, column_index);
+
   bool success;
   if (U.text_editor[0] != '\0') {
     success = text_jump_to_file_at_point_external(
