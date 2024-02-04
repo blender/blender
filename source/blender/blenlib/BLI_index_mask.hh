@@ -11,15 +11,13 @@
 
 #include "BLI_bit_span.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_offset_span.hh"
 #include "BLI_task.hh"
 #include "BLI_unique_sorted_indices.hh"
 #include "BLI_vector.hh"
-
-namespace blender {
-template<typename T> class VArray;
-}
+#include "BLI_virtual_array_fwd.hh"
 
 namespace blender::index_mask {
 
