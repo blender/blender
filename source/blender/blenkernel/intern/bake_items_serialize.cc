@@ -27,7 +27,7 @@
 #include <fmt/format.h>
 #include <sstream>
 
-#if WITH_OPENVDB
+#ifdef WITH_OPENVDB
 #  include <openvdb/io/Stream.h>
 #  include <openvdb/openvdb.h>
 
