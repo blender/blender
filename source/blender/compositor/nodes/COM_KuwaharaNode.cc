@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#define DNA_DEPRECATED_ALLOW /* For copy of deprecated NodeKuwaharaData members. */
+
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 

@@ -686,10 +686,7 @@ struct IntermediateNode {
   const char *sock_output_name;
 };
 
-static IntermediateNode add_normal_map(const pxr::UsdShadeShader &usd_shader,
-                                       bNodeTree *ntree,
-                                       int column,
-                                       NodePlacementContext *r_ctx)
+static IntermediateNode add_normal_map(bNodeTree *ntree, int column, NodePlacementContext *r_ctx)
 {
   float locx = 0.0f;
   float locy = 0.0f;
@@ -825,7 +822,7 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
     IntermediateNode normal_map{};
     const bool is_normal_map = STREQ(dest_socket_name, "Normal");
     if (is_normal_map) {
-      normal_map = add_normal_map(source_shader, ntree, column + shift, r_ctx);
+      normal_map = add_normal_map(ntree, column + shift, r_ctx);
       shift++;
     }
 
