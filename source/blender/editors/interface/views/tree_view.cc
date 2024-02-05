@@ -516,7 +516,7 @@ bool AbstractTreeViewItem::set_collapsed(const bool collapsed)
   if (!is_collapsible()) {
     return false;
   }
-  if (collapsed == is_collapsed()) {
+  if (collapsed == !is_open_) {
     return false;
   }
 
