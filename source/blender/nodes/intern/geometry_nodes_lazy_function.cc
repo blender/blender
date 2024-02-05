@@ -345,7 +345,7 @@ class LazyFunctionForGeometryNode : public LazyFunction {
     GField output_field{std::make_shared<AnonymousAttributeFieldInput>(
         std::move(attribute_id),
         *bsocket.typeinfo->base_cpp_type,
-        fmt::format(TIP_("{} node"), std::string_view(node_.label_or_name())))};
+        fmt::format(TIP_("{} node"), node_.label_or_name()))};
     void *r_value = params.get_output_data_ptr(lf_index);
     new (r_value) SocketValueVariant(std::move(output_field));
     params.output_set(lf_index);

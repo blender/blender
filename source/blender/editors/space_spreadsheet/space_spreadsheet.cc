@@ -718,7 +718,7 @@ static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void register_spacetype()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype spreadsheet");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_SPREADSHEET;
@@ -803,7 +803,7 @@ void register_spacetype()
   spreadsheet_data_set_region_panels_register(*art);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }
 
 }  // namespace blender::ed::spreadsheet

@@ -8,13 +8,7 @@
  * \ingroup bke
  */
 
-namespace blender {
-namespace index_mask {
-class IndexMask;
-}
-using index_mask::IndexMask;
-}  // namespace blender
-
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 
 #include "BKE_mesh.h"

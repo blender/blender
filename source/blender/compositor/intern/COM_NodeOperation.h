@@ -9,6 +9,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
+#include "BLI_math_base.hh"
 #include "BLI_rect.h"
 #include "BLI_span.hh"
 #include "BLI_threads.h"
@@ -589,6 +590,14 @@ class NodeOperation {
   inline void read(float result[4], int x, int y, void *chunk_data)
   {
     execute_pixel(result, x, y, chunk_data);
+  }
+
+  inline void read_clamped(float result[4], int x, int y, void *chunk_data)
+  {
+    execute_pixel(result,
+                  math::clamp(x, 0, int(this->get_width()) - 1),
+                  math::clamp(y, 0, int(this->get_height()) - 1),
+                  chunk_data);
   }
 
   virtual void *initialize_tile_data(rcti * /*rect*/)

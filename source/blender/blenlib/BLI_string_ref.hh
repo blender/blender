@@ -621,4 +621,18 @@ constexpr bool operator>=(StringRef a, StringRef b)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Formatting
+ * \{ */
+
+/**
+ * Support using the fmt library with #StringRef and implicitly also #StringRefNull.
+ */
+inline std::string_view format_as(StringRef str)
+{
+  return str;
+}
+
+/** \} */
+
 }  // namespace blender

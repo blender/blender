@@ -52,13 +52,15 @@ def html_extract_markdown_from_url(url: str) -> Optional[str]:
     with urllib.request.urlopen(req) as fh:
         data = fh.read().decode('utf-8')
 
+    # Quiet `mypy` checker warning.
+    assert isinstance(data, str)
     return data
 
 
 # -----------------------------------------------------------------------------
 # markdown Text Parsing
 
-def markdown_to_paths(markdown: str) -> Tuple[List[str], List[str]]:
+def markdown_to_paths(markdown: str) -> List[str]:
     file_paths = []
     markdown = markdown.replace("<p>", "")
     markdown = markdown.replace("</p>", "")
@@ -113,7 +115,7 @@ def report_incomplete(file_paths: List[str]) -> int:
     basedirs = {os.path.dirname(p) for p in file_paths}
     for base in sorted(basedirs):
         base_abs = os.path.join(SOURCE_DIR, base)
-        if(os.path.exists(base_abs)):
+        if os.path.exists(base_abs):
             for p in os.listdir(base_abs):
                 if not p.startswith("."):
                     p_abs = os.path.join(base_abs, p)

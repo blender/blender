@@ -616,7 +616,7 @@ void ED_spacetype_outliner()
 {
   using namespace blender::ed::outliner;
 
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype time");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_OUTLINER;
@@ -661,5 +661,5 @@ void ED_spacetype_outliner()
   art->listener = outliner_header_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

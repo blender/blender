@@ -920,7 +920,8 @@ PaintStroke *paint_stroke_new(bContext *C,
   ups->colorspace = nullptr;
 
   if (br->mtex.tex && br->mtex.tex->type == TEX_IMAGE && br->mtex.tex->ima) {
-    ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(br->mtex.tex->ima, &br->mtex.tex->iuser, NULL);
+    ImBuf *tex_ibuf = BKE_image_pool_acquire_ibuf(
+        br->mtex.tex->ima, &br->mtex.tex->iuser, nullptr);
     if (tex_ibuf && tex_ibuf->float_buffer.data == nullptr) {
       ups->do_linear_conversion = true;
       ups->colorspace = tex_ibuf->byte_buffer.colorspace;

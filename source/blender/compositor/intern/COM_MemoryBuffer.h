@@ -194,9 +194,24 @@ class MemoryBuffer {
     return buffer_ + get_coords_offset(x, y);
   }
 
+  /**
+   * Get buffer element at given coordinates, clamped to border.
+   */
+  const float *get_elem_clamped(int x, int y) const
+  {
+    const int clamped_x = math::clamp(x, 0, this->get_width() - 1);
+    const int clamped_y = math::clamp(y, 0, this->get_height() - 1);
+    return buffer_ + get_coords_offset(clamped_x, clamped_y);
+  }
+
   void read_elem(int x, int y, float *out) const
   {
     memcpy(out, get_elem(x, y), get_elem_bytes_len());
+  }
+
+  void read_elem_clamped(int x, int y, float *out) const
+  {
+    memcpy(out, get_elem_clamped(x, y), get_elem_bytes_len());
   }
 
   void read_elem_checked(int x, int y, float *out) const

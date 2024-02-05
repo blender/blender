@@ -978,7 +978,7 @@ static std::optional<std::string> rna_prepend_real_ID_path(Main * /*bmain*/,
   if (!path.is_empty()) {
     if (real_id) {
       if (prefix[0]) {
-        return fmt::format("{}{}{}", prefix, path[0] == '[' ? "" : ".", std::string_view(path));
+        return fmt::format("{}{}{}", prefix, path[0] == '[' ? "" : ".", path);
       }
       return path;
     }
@@ -1105,11 +1105,11 @@ static std::string rna_path_from_ptr_to_property_index_ex(const PointerRNA *ptr,
 
   if (!path_prefix.is_empty()) {
     if (is_rna) {
-      return fmt::format("{}.{}{}", std::string_view(path_prefix), propname, index_str);
+      return fmt::format("{}.{}{}", path_prefix, propname, index_str);
     }
     char propname_esc[MAX_IDPROP_NAME * 2];
     BLI_str_escape(propname_esc, propname, sizeof(propname_esc));
-    return fmt::format("{}[\"{}\"]{}", std::string_view(path_prefix), propname_esc, index_str);
+    return fmt::format("{}[\"{}\"]{}", path_prefix, propname_esc, index_str);
   }
 
   if (is_rna) {

@@ -209,8 +209,13 @@ static void default_initialize_socket_value(const eNodeSocketDatatype socket_typ
 {
   const char *socket_idname = nodeStaticSocketType(socket_type, 0);
   const bNodeSocketType *typeinfo = nodeSocketTypeFind(socket_idname);
-  typeinfo->geometry_nodes_cpp_type->copy_construct(typeinfo->geometry_nodes_default_cpp_value,
-                                                    r_value);
+  if (typeinfo->geometry_nodes_default_cpp_value) {
+    typeinfo->geometry_nodes_cpp_type->copy_construct(typeinfo->geometry_nodes_default_cpp_value,
+                                                      r_value);
+  }
+  else {
+    typeinfo->geometry_nodes_cpp_type->value_initialize(r_value);
+  }
 }
 
 void move_bake_items_to_socket_values(

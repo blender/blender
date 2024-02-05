@@ -24,6 +24,7 @@
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_vector.hh"
 
@@ -31,17 +32,11 @@
 
 struct Object;
 struct Collection;
-namespace blender {
-namespace index_mask {
-class IndexMask;
-}
-using index_mask::IndexMask;
-namespace bke {
+namespace blender::bke {
 class AnonymousAttributePropagationInfo;
 class AttributeAccessor;
 class MutableAttributeAccessor;
-}  // namespace bke
-}  // namespace blender
+}  // namespace blender::bke
 
 namespace blender::bke {
 

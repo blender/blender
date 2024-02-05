@@ -10,18 +10,29 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
+#include "BKE_volume.hh"
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_util.h"
 
 #include "DNA_material_types.h"
+#include "DNA_volume_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
+#include <fmt/format.h>
 #include <sstream>
+
+#ifdef WITH_OPENVDB
+#  include <openvdb/io/Stream.h>
+#  include <openvdb/openvdb.h>
+
+#  include "BKE_volume_grid.hh"
+#endif
 
 namespace blender::bke::bake {
 
@@ -49,6 +60,30 @@ std::optional<BlobSlice> BlobSlice::deserialize(const DictionaryValue &io_slice)
   return BlobSlice{*name, {*start, *size}};
 }
 
+BlobSlice BlobWriter::write_as_stream(const StringRef /*file_extension*/,
+                                      const FunctionRef<void(std::ostream &)> fn)
+{
+  std::ostringstream stream{std::ios::binary};
+  fn(stream);
+  std::string data = stream.rdbuf()->str();
+  return this->write(data.data(), data.size());
+}
+
+bool BlobReader::read_as_stream(const BlobSlice &slice, FunctionRef<bool(std::istream &)> fn) const
+{
+  const int64_t size = slice.range.size();
+  std::string buffer;
+  buffer.resize(size);
+  if (!this->read(slice, buffer.data())) {
+    return false;
+  }
+  std::istringstream stream{buffer, std::ios::binary};
+  if (!fn(stream)) {
+    return false;
+  }
+  return true;
+}
+
 DiskBlobReader::DiskBlobReader(std::string blobs_dir) : blobs_dir_(std::move(blobs_dir)) {}
 
 [[nodiscard]] bool DiskBlobReader::read(const BlobSlice &slice, void *r_data) const
@@ -72,19 +107,42 @@ DiskBlobReader::DiskBlobReader(std::string blobs_dir) : blobs_dir_(std::move(blo
   return true;
 }
 
-DiskBlobWriter::DiskBlobWriter(std::string blob_name,
-                               std::ostream &blob_file,
-                               const int64_t current_offset)
-    : blob_name_(std::move(blob_name)), blob_file_(blob_file), current_offset_(current_offset)
+DiskBlobWriter::DiskBlobWriter(std::string blob_dir, std::string base_name)
+    : blob_dir_(std::move(blob_dir)), base_name_(std::move(base_name))
 {
+  blob_name_ = base_name_ + ".blob";
 }
 
 BlobSlice DiskBlobWriter::write(const void *data, const int64_t size)
 {
+  if (!blob_stream_.is_open()) {
+    char blob_path[FILE_MAX];
+    BLI_path_join(blob_path, sizeof(blob_path), blob_dir_.c_str(), blob_name_.c_str());
+    BLI_file_ensure_parent_dir_exists(blob_path);
+    blob_stream_.open(blob_path, std::ios::out | std::ios::binary);
+  }
+
   const int64_t old_offset = current_offset_;
-  blob_file_.write(static_cast<const char *>(data), size);
+  blob_stream_.write(static_cast<const char *>(data), size);
   current_offset_ += size;
   return {blob_name_, {old_offset, size}};
+}
+
+BlobSlice DiskBlobWriter::write_as_stream(const StringRef file_extension,
+                                          const FunctionRef<void(std::ostream &)> fn)
+{
+  BLI_assert(file_extension.startswith("."));
+  independent_file_count_++;
+  const std::string file_name = fmt::format(
+      "{}_file_{}{}", base_name_, independent_file_count_, file_extension);
+
+  char path[FILE_MAX];
+  BLI_path_join(path, sizeof(path), blob_dir_.c_str(), file_name.c_str());
+  BLI_file_ensure_parent_dir_exists(path);
+  std::fstream stream{path, std::ios::out | std::ios::binary};
+  fn(stream);
+  const int64_t written_bytes_num = stream.tellg();
+  return {file_name, {0, written_bytes_num}};
 }
 
 BlobWriteSharing::~BlobWriteSharing()
@@ -129,6 +187,16 @@ DictionaryValuePtr BlobWriteSharing::write_implicitly_shared(
         }
         return value->io_data;
       });
+}
+
+std::shared_ptr<io::serialize::DictionaryValue> BlobWriteSharing::write_deduplicated(
+    BlobWriter &writer, const void *data, const int64_t size_in_bytes)
+{
+  SliceHash content_hash;
+  BLI_hash_md5_buffer(static_cast<const char *>(data), size_in_bytes, &content_hash);
+  const BlobSlice slice = slice_by_content_hash_.lookup_or_add_cb(
+      content_hash, [&]() { return writer.write(data, size_in_bytes); });
+  return slice.serialize();
 }
 
 std::optional<ImplicitSharingInfoAndData> BlobReadSharing::read_shared(
@@ -202,9 +270,12 @@ static std::optional<eCustomDataType> get_data_type_from_io_name(const StringRef
  * Write the data and remember which endianness the data had.
  */
 static std::shared_ptr<DictionaryValue> write_blob_raw_data_with_endian(
-    BlobWriter &blob_writer, const void *data, const int64_t size_in_bytes)
+    BlobWriter &blob_writer,
+    BlobWriteSharing &blob_sharing,
+    const void *data,
+    const int64_t size_in_bytes)
 {
-  auto io_data = blob_writer.write(data, size_in_bytes).serialize();
+  auto io_data = blob_sharing.write_deduplicated(blob_writer, data, size_in_bytes);
   if (ENDIAN_ORDER == B_ENDIAN) {
     io_data->append_str("endian", get_endian_io_name(ENDIAN_ORDER));
   }
@@ -255,10 +326,11 @@ static std::shared_ptr<DictionaryValue> write_blob_raw_data_with_endian(
 
 /** Write bytes ignoring endianness. */
 static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_writer,
+                                                             BlobWriteSharing &blob_sharing,
                                                              const void *data,
                                                              const int64_t size_in_bytes)
 {
-  return blob_writer.write(data, size_in_bytes).serialize();
+  return blob_sharing.write_deduplicated(blob_writer, data, size_in_bytes);
 }
 
 /** Read bytes ignoring endianness. */
@@ -278,14 +350,16 @@ static std::shared_ptr<DictionaryValue> write_blob_raw_bytes(BlobWriter &blob_wr
 }
 
 static std::shared_ptr<DictionaryValue> write_blob_simple_gspan(BlobWriter &blob_writer,
+                                                                BlobWriteSharing &blob_sharing,
                                                                 const GSpan data)
 {
   const CPPType &type = data.type();
   BLI_assert(type.is_trivial());
   if (type.size() == 1 || type.is<ColorGeometry4b>()) {
-    return write_blob_raw_bytes(blob_writer, data.data(), data.size_in_bytes());
+    return write_blob_raw_bytes(blob_writer, blob_sharing, data.data(), data.size_in_bytes());
   }
-  return write_blob_raw_data_with_endian(blob_writer, data.data(), data.size_in_bytes());
+  return write_blob_raw_data_with_endian(
+      blob_writer, blob_sharing, data.data(), data.size_in_bytes());
 }
 
 [[nodiscard]] static bool read_blob_simple_gspan(const BlobReader &blob_reader,
@@ -327,7 +401,7 @@ static std::shared_ptr<DictionaryValue> write_blob_shared_simple_gspan(
     const ImplicitSharingInfo *sharing_info)
 {
   return blob_sharing.write_implicitly_shared(
-      sharing_info, [&]() { return write_blob_simple_gspan(blob_writer, data); });
+      sharing_info, [&]() { return write_blob_simple_gspan(blob_writer, blob_sharing, data); });
 }
 
 [[nodiscard]] static const void *read_blob_shared_simple_gspan(
@@ -666,6 +740,54 @@ static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_g
   return instances;
 }
 
+#ifdef WITH_OPENVDB
+static Volume *try_load_volume(const DictionaryValue &io_geometry, const BlobReader &blob_reader)
+{
+  const DictionaryValue *io_volume = io_geometry.lookup_dict("volume");
+  if (!io_volume) {
+    return nullptr;
+  }
+  const auto *io_vdb = io_volume->lookup_dict("vdb");
+  if (!io_vdb) {
+    return nullptr;
+  }
+  openvdb::GridPtrVecPtr vdb_grids;
+  if (std::optional<BlobSlice> vdb_slice = BlobSlice::deserialize(*io_vdb)) {
+    if (!blob_reader.read_as_stream(*vdb_slice, [&](std::istream &stream) {
+          try {
+            openvdb::io::Stream vdb_stream{stream};
+            vdb_grids = vdb_stream.getGrids();
+            return true;
+          }
+          catch (...) {
+            return false;
+          }
+        }))
+    {
+      return nullptr;
+    }
+  }
+  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
+  auto cancel = [&]() {
+    BKE_id_free(nullptr, volume);
+    return nullptr;
+  };
+
+  for (openvdb::GridBase::Ptr &vdb_grid : *vdb_grids) {
+    if (vdb_grid) {
+      bke::GVolumeGrid grid{std::move(vdb_grid)};
+      BKE_volume_grid_add(volume, *grid.release());
+    }
+  }
+  if (const io::serialize::ArrayValue *io_materials = io_volume->lookup_array("materials")) {
+    if (!load_materials(*io_materials, volume->runtime->bake_materials)) {
+      return cancel();
+    }
+  }
+  return volume;
+}
+#endif
+
 static GeometrySet load_geometry(const DictionaryValue &io_geometry,
                                  const BlobReader &blob_reader,
                                  const BlobReadSharing &blob_sharing)
@@ -675,6 +797,9 @@ static GeometrySet load_geometry(const DictionaryValue &io_geometry,
   geometry.replace_pointcloud(try_load_pointcloud(io_geometry, blob_reader, blob_sharing));
   geometry.replace_curves(try_load_curves(io_geometry, blob_reader, blob_sharing));
   geometry.replace_instances(try_load_instances(io_geometry, blob_reader, blob_sharing).release());
+#ifdef WITH_OPENVDB
+  geometry.replace_volume(try_load_volume(io_geometry, blob_reader));
+#endif
   return geometry;
 }
 
@@ -801,6 +926,34 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
     auto io_attributes = serialize_attributes(curves.attributes(), blob_writer, blob_sharing, {});
     io_curves->append("attributes", io_attributes);
   }
+#ifdef WITH_OPENVDB
+  if (geometry.has_volume()) {
+    const Volume &volume = *geometry.get_volume();
+    const int grids_num = BKE_volume_num_grids(&volume);
+
+    auto io_volume = io_geometry->append_dict("volume");
+    auto io_vdb = blob_writer
+                      .write_as_stream(".vdb",
+                                       [&](std::ostream &stream) {
+                                         openvdb::GridCPtrVec vdb_grids;
+                                         Vector<bke::VolumeTreeAccessToken> tree_tokens;
+                                         for (const int i : IndexRange(grids_num)) {
+                                           const bke::VolumeGridData *grid = BKE_volume_grid_get(
+                                               &volume, i);
+                                           tree_tokens.append_as();
+                                           vdb_grids.push_back(grid->grid_ptr(tree_tokens.last()));
+                                         }
+
+                                         openvdb::io::Stream vdb_stream(stream);
+                                         vdb_stream.write(vdb_grids);
+                                       })
+                      .serialize();
+    io_volume->append("vdb", std::move(io_vdb));
+
+    auto io_materials = serialize_materials(volume.runtime->bake_materials);
+    io_volume->append("materials", io_materials);
+  }
+#endif
   if (geometry.has_instances()) {
     const Instances &instances = *geometry.get_instances();
     auto io_instances = io_geometry->append_dict("instances");
@@ -814,10 +967,11 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
           serialize_geometry_set(reference.geometry_set(), blob_writer, blob_sharing));
     }
 
-    io_instances->append("transforms",
-                         write_blob_simple_gspan(blob_writer, instances.transforms()));
-    io_instances->append("handles",
-                         write_blob_simple_gspan(blob_writer, instances.reference_handles()));
+    io_instances->append(
+        "transforms", write_blob_simple_gspan(blob_writer, blob_sharing, instances.transforms()));
+    io_instances->append(
+        "handles",
+        write_blob_simple_gspan(blob_writer, blob_sharing, instances.reference_handles()));
 
     auto io_attributes = serialize_attributes(
         instances.attributes(), blob_writer, blob_sharing, {"position"});
@@ -1037,7 +1191,8 @@ static void serialize_bake_item(const BakeItem &item,
       r_io_item.append_str("data", string_state_item->value());
     }
     else {
-      r_io_item.append("data", write_blob_raw_bytes(blob_writer, str.data(), str.size()));
+      r_io_item.append("data",
+                       write_blob_raw_bytes(blob_writer, blob_sharing, str.data(), str.size()));
     }
   }
   else if (const auto *primitive_state_item = dynamic_cast<const PrimitiveBakeItem *>(&item)) {

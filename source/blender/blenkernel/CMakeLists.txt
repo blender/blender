@@ -29,7 +29,6 @@ set(INC
   ../../../intern/memutil
   ../../../intern/mikktspace
   ../../../intern/opensubdiv
-  ../../../extern/fmtlib/include
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -575,7 +574,7 @@ set(LIB
   bf_rna
   bf_shader_fx
   bf_simulation
-  extern_fmtlib
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::atomic
   # For `vfontdata_freetype.c`.
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}

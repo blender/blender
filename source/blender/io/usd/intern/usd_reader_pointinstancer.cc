@@ -16,8 +16,6 @@
 
 #include "DNA_collection_types.h"
 
-#include <iostream>
-
 #include <pxr/usd/usdGeom/pointInstancer.h>
 
 namespace blender::io::usd {

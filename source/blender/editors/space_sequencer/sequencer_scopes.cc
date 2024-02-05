@@ -64,8 +64,8 @@ static blender::float2 rgb_to_uv_normalized(const float rgb[3])
   float u = -0.09991f * r - 0.33609f * g + 0.436f * b;
   float v = 0.615f * r - 0.55861f * g - 0.05639f * b;
 
-  /* Normalize: (U, V) range is +/- (0.436, 0.615) */
-  u = clamp_f(u * (0.5f / 0.436f) + 0.5f, 0.0f, 1.0f);
+  /* Normalize: possible range is +/- 0.615. */
+  u = clamp_f(u * (0.5f / 0.615f) + 0.5f, 0.0f, 1.0f);
   v = clamp_f(v * (0.5f / 0.615f) + 0.5f, 0.0f, 1.0f);
   return float2(u, v);
 }

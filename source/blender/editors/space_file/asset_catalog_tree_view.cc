@@ -406,9 +406,8 @@ std::string AssetCatalogDropTarget::drop_tooltip_asset_catalog(const wmDrag &dra
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
   const AssetCatalog *src_catalog = get_drag_catalog(drag, get_asset_library());
 
-  return fmt::format(TIP_("Move catalog {} into {}"),
-                     std::string_view(src_catalog->path.name()),
-                     std::string_view(catalog_item_.get_name()));
+  return fmt::format(
+      TIP_("Move catalog {} into {}"), src_catalog->path.name(), catalog_item_.get_name());
 }
 
 std::string AssetCatalogDropTarget::drop_tooltip_asset_list(const wmDrag &drag) const
@@ -623,7 +622,7 @@ std::string AssetCatalogTreeViewAllItem::DropTarget::drop_tooltip(
       drag_info.drag_data, *get_view<AssetCatalogTreeView>().asset_library_);
 
   return fmt::format(TIP_("Move catalog {} to the top level of the tree"),
-                     std::string_view(drag_catalog->path.name()));
+                     drag_catalog->path.name());
 }
 
 bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(bContext * /*C*/,

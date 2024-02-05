@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string_ref.hh"
 #include "BLI_timeit.hh"
 
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
-#include <string_view>
 
 #include <fmt/format.h>
 
@@ -43,7 +43,7 @@ void print_duration(Nanoseconds duration)
 {
   fmt::memory_buffer buf;
   format_duration(duration, buf);
-  std::cout << std::string_view(buf.data(), buf.size());
+  std::cout << StringRef(buf.data(), buf.size());
 }
 
 ScopedTimer::~ScopedTimer()
@@ -54,8 +54,8 @@ ScopedTimer::~ScopedTimer()
   fmt::memory_buffer buf;
   fmt::format_to(fmt::appender(buf), FMT_STRING("Timer '{}' took "), name_);
   format_duration(duration, buf);
-  buf.append(std::string_view("\n"));
-  std::cout << std::string_view(buf.data(), buf.size());
+  buf.append(StringRef("\n"));
+  std::cout << StringRef(buf.data(), buf.size());
 }
 
 ScopedTimerAveraged::~ScopedTimerAveraged()
@@ -70,12 +70,12 @@ ScopedTimerAveraged::~ScopedTimerAveraged()
   fmt::memory_buffer buf;
   fmt::format_to(fmt::appender(buf), FMT_STRING("Timer '{}': (Average: "), name_);
   format_duration(total_time_ / total_count_, buf);
-  buf.append(std::string_view(", Min: "));
+  buf.append(StringRef(", Min: "));
   format_duration(min_time_, buf);
-  buf.append(std::string_view(", Last: "));
+  buf.append(StringRef(", Last: "));
   format_duration(duration, buf);
-  buf.append(std::string_view(")\n"));
-  std::cout << std::string_view(buf.data(), buf.size());
+  buf.append(StringRef(")\n"));
+  std::cout << StringRef(buf.data(), buf.size());
 }
 
 }  // namespace blender::timeit

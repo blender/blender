@@ -18,7 +18,6 @@ set(INC
   ../../modifiers
   ../../render
   ../../windowmanager
-  ../../../../extern/fmtlib/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -215,7 +214,7 @@ set(LIB
   bf_geometry
   PRIVATE bf::intern::guardedalloc
   bf_nodes
-  extern_fmtlib
+  PRIVATE bf::extern::fmtlib
 )
 
 if(WITH_BULLET)

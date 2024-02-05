@@ -14,10 +14,11 @@ PATHS: Tuple[Tuple[str, Tuple[Any, ...], Dict[str, str]], ...] = (
     ("build_files/utils/", (), {'MYPYPATH': "modules"}),
     ("doc/manpage/blender.1.py", (), {}),
     ("release/datafiles/", (), {}),
-    ("tests/utils/", (), {}),
     ("tools/check_blender_release/", (), {}),
+    ("tools/check_docs/", (), {}),
     ("tools/check_source/", (), {'MYPYPATH': "modules"}),
-    ("tools/check_wiki/", (), {}),
+    ("tools/config/", (), {}),
+    ("tools/triage/", (), {}),
     ("tools/utils/", (), {}),
     ("tools/utils_api/", (), {}),
     ("tools/utils_build/", (), {}),
@@ -36,9 +37,6 @@ PATHS_EXCLUDE = set(
         "build_files/cmake/clang_array_check.py",
         "build_files/cmake/cmake_netbeans_project.py",
         "build_files/cmake/cmake_qtcreator_project.py",
-        "build_files/cmake/cmake_static_check_smatch.py",
-        "build_files/cmake/cmake_static_check_sparse.py",
-        "build_files/cmake/cmake_static_check_splint.py",
         "release/datafiles/blender_icons_geom.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators_event_simulate.py",  # Uses `bpy` too much.
@@ -54,6 +52,9 @@ PATHS_EXCLUDE = set(
         "tools/check_source/check_descriptions.py",
         "tools/check_source/check_header_duplicate.py",
         "tools/check_source/check_unused_defines.py",
+        "tools/triage/gitea_utils.py",  # TODO (low priority).
+        "tools/triage/issues_needing_info.py",  # TODO (low priority).
+        "tools/triage/weekly_report.py",  # TODO (low priority).
         "tools/utils/blend2json.py",
         "tools/utils/blender_keyconfig_export_permutations.py",
         "tools/utils/blender_merge_format_changes.py",
@@ -67,7 +68,6 @@ PATHS_EXCLUDE = set(
         "tools/utils/make_cursor_gui.py",
         "tools/utils/make_gl_stipple_from_xpm.py",
         "tools/utils/make_shape_2d_from_blend.py",
-        "tools/utils/weekly_report.py",
         "tools/utils_api/bpy_introspect_ui.py",  # Uses `bpy`.
         "tools/utils_doc/rna_manual_reference_updater.py",
         "tools/utils_ide/qtcreator/externaltools/qtc_assembler_preview.py",
@@ -87,3 +87,12 @@ PATHS = tuple(
     (os.path.join(SOURCE_DIR, p_items[0].replace("/", os.sep)), *p_items[1:])
     for p_items in PATHS
 )
+
+# Validate:
+for p_items in PATHS:
+    if not os.path.exists(os.path.join(SOURCE_DIR, p_items[0])):
+        print("PATH:", p_items[0], "doesn't exist")
+
+for p in PATHS_EXCLUDE:
+    if not os.path.exists(os.path.join(SOURCE_DIR, p)):
+        print("PATHS_EXCLUDE:", p, "doesn't exist")

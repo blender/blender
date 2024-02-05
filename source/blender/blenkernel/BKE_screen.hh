@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 
+#include <memory>
 #include <string>
 
 #include "BLI_compiler_attrs.h"
@@ -67,8 +68,6 @@ struct wmSpaceTypeListenerParams {
 };
 
 struct SpaceType {
-  SpaceType *next, *prev;
-
   char name[BKE_ST_MAXNAME]; /* for menus */
   int spaceid;               /* unique space identifier */
   int iconid;                /* icon lookup for menus */
@@ -147,6 +146,8 @@ struct SpaceType {
 
   /** Default key-maps to add. */
   int keymapflag;
+
+  ~SpaceType();
 };
 
 /* region types are also defined using spacetypes_init, via a callback */
@@ -547,8 +548,8 @@ struct AssetShelfType {
 
 SpaceType *BKE_spacetype_from_id(int spaceid);
 ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid);
-const ListBase *BKE_spacetypes_list();
-void BKE_spacetype_register(SpaceType *st);
+blender::Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list();
+void BKE_spacetype_register(std::unique_ptr<SpaceType> st);
 bool BKE_spacetype_exists(int spaceid);
 void BKE_spacetypes_free(); /* only for quitting blender */
 

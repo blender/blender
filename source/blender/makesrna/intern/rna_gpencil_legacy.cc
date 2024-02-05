@@ -1969,7 +1969,7 @@ static void rna_def_gpencil_layer_mask(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_MASK_INVERT);
-  RNA_def_property_ui_icon(prop, ICON_SELECT_INTERSECT, -1);
+  RNA_def_property_ui_icon(prop, ICON_SELECT_INTERSECT, 1);
   RNA_def_property_ui_text(prop, "Invert", "Invert mask");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }

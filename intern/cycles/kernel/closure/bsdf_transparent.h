@@ -76,8 +76,9 @@ ccl_device int bsdf_transparent_sample(ccl_private const ShaderClosure *sc,
 {
   // only one direction is possible
   *wo = -wi;
-  *pdf = 1;
-  *eval = one_spectrum();
+  /* Some high number for MIS. */
+  *pdf = 1e6f;
+  *eval = one_spectrum() * 1e6f;
   return LABEL_TRANSMIT | LABEL_TRANSPARENT;
 }
 
