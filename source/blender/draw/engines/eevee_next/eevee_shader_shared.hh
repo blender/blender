@@ -1277,6 +1277,9 @@ enum GBufferMode : uint32_t {
   GBUF_REFRACTION = 4u,
   GBUF_SUBSURFACE = 5u,
 
+  /** Used for surfaces that have no lit closure and just encode a normal layer. */
+  GBUF_UNLIT = 11u,
+
   /** Parameter Optimized. Packs one closure into less layer. */
   GBUF_REFLECTION_COLORLESS = 12u,
   GBUF_REFRACTION_COLORLESS = 13u,

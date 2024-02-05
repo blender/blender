@@ -23,6 +23,10 @@ struct bUserAssetLibrary;
 
 namespace blender::asset_system {
 
+class AllAssetLibrary;
+class OnDiskAssetLibrary;
+class RuntimeAssetLibrary;
+
 /**
  * Global singleton-ish that provides access to individual #AssetLibrary instances.
  *
@@ -44,13 +48,13 @@ class AssetLibraryService {
    * library may point to the same path as a custom library. */
   using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
   /* Mapping of a (type, root path) pair to the AssetLibrary instance. */
-  Map<OnDiskLibraryIdentifier, std::unique_ptr<AssetLibrary>> on_disk_libraries_;
+  Map<OnDiskLibraryIdentifier, std::unique_ptr<OnDiskAssetLibrary>> on_disk_libraries_;
   /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
    * above should be used. */
-  std::unique_ptr<AssetLibrary> current_file_library_;
+  std::unique_ptr<RuntimeAssetLibrary> current_file_library_;
   /** The "all" asset library, merging all other libraries into one. */
-  std::unique_ptr<AssetLibrary> all_library_;
+  std::unique_ptr<AllAssetLibrary> all_library_;
 
   /* Handlers for managing the life cycle of the AssetLibraryService instance. */
   bCallbackFuncStore on_load_callback_store_;
