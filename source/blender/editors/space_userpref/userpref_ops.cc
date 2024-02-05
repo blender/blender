@@ -243,7 +243,7 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
  * \{ */
 
 enum class bUserExtensionRepoAddType {
-  Online = 0,
+  Remote = 0,
   Local = 1,
 };
 
@@ -274,7 +274,7 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
     new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
   }
 
-  if (repo_type == bUserExtensionRepoAddType::Online) {
+  if (repo_type == bUserExtensionRepoAddType::Remote) {
     RNA_string_get(op->ptr, "remote_path", new_repo->remote_path);
     new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
   }
@@ -298,8 +298,8 @@ static int preferences_extension_repo_add_invoke(bContext *C, wmOperator *op, co
   PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
   if (!RNA_property_is_set(op->ptr, prop_name)) {
     const char *name_default = nullptr;
-    if (repo_type == bUserExtensionRepoAddType::Online) {
-      name_default = "Online Repository";
+    if (repo_type == bUserExtensionRepoAddType::Remote) {
+      name_default = "Remote Repository";
     }
     else {
       name_default = "User Repository";
@@ -321,7 +321,7 @@ static bool preferences_extension_repo_add_poll_property(const bContext * /*C*/,
 
   /* Only show remote_path for remote repositories. */
   if (STREQ(prop_id, "remote_path")) {
-    if (repo_type != bUserExtensionRepoAddType::Online) {
+    if (repo_type != bUserExtensionRepoAddType::Remote) {
       return false;
     }
   }
@@ -349,10 +349,10 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER;
 
   static const EnumPropertyItem repo_type_items[] = {
-      {int(bUserExtensionRepoAddType::Online),
-       "ONLINE",
+      {int(bUserExtensionRepoAddType::Remote),
+       "REMOTE",
        ICON_WORLD,
-       "Add Online Repository",
+       "Add Remote Repository",
        "Add a repository referencing an remote repository "
        "with support for listing and updating extensions"},
       {int(bUserExtensionRepoAddType::Local),
