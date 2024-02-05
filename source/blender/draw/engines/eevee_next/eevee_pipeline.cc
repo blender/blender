@@ -522,12 +522,9 @@ void DeferredLayer::begin_sync()
 
 void DeferredLayer::end_sync()
 {
-  eClosureBits evaluated_closures = CLOSURE_DIFFUSE | CLOSURE_TRANSLUCENT | CLOSURE_REFLECTION |
-                                    CLOSURE_REFRACTION;
-
   use_combined_lightprobe_eval = inst_.pipelines.data.use_combined_lightprobe_eval;
 
-  if (closure_bits_ & evaluated_closures) {
+  {
     RenderBuffersInfoData &rbuf_data = inst_.render_buffers.data;
 
     /* Add the stencil classification step at the end of the GBuffer pass. */

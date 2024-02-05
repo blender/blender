@@ -47,18 +47,13 @@ void main()
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
-  /* TODO: use stencil buffer to avoid fragment invocations here. */
-  out_combined = vec4(0.0, 0.0, 0.0, 0.0);
-  if (gbuf.closure_count == 0) {
-    return;
-  }
-
   vec3 diffuse_color = vec3(0.0);
   vec3 diffuse_light = vec3(0.0);
   vec3 specular_color = vec3(0.0);
   vec3 specular_light = vec3(0.0);
   vec3 average_normal = vec3(0.0);
 
+  out_combined = vec4(0.0, 0.0, 0.0, 0.0);
   for (int i = 0; i < GBUFFER_LAYER_MAX && i < gbuf.closure_count; i++) {
     vec3 closure_light = load_radiance_direct(texel, i);
     ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
