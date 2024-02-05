@@ -13,14 +13,14 @@
 
 #include "CLG_log.h"
 
-#include "curves.h"
-#include "instancer.h"
-#include "light.h"
-#include "mesh.h"
-#include "object.h"
-#include "volume.h"
-#include "volume_modifier.h"
-#include "world.h"
+#include "curves.hh"
+#include "instancer.hh"
+#include "light.hh"
+#include "mesh.hh"
+#include "object.hh"
+#include "volume.hh"
+#include "volume_modifier.hh"
+#include "world.hh"
 
 struct Depsgraph;
 struct Main;

@@ -15,12 +15,12 @@
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usdImaging/usdImaging/delegate.h>
 
-#include "hydra/hydra_scene_delegate.h"
-#include "hydra/settings.h"
-#include "hydra/usd_scene_delegate.h"
+#include "hydra/hydra_scene_delegate.hh"
+#include "hydra/settings.hh"
+#include "hydra/usd_scene_delegate.hh"
 
-#include "light_tasks_delegate.h"
-#include "render_task_delegate.h"
+#include "light_tasks_delegate.hh"
+#include "render_task_delegate.hh"
 
 struct bContext;
 struct RenderEngine;

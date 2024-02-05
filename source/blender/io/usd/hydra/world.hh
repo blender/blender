@@ -15,7 +15,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "light.h"
+#include "light.hh"
 
 namespace blender::io::hydra {
 

@@ -10,7 +10,7 @@
 
 #include "BKE_light.h"
 
-#include "object.h"
+#include "object.hh"
 
 namespace blender::io::hydra {
 

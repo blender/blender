@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "material.h"
+#include "material.hh"
 
 #include <Python.h>
 #include <unicodeobject.h>
@@ -30,8 +30,8 @@
 
 #include "bpy_rna.h"
 
-#include "hydra_scene_delegate.h"
-#include "image.h"
+#include "hydra_scene_delegate.hh"
+#include "image.hh"
 
 #include "intern/usd_exporter_context.hh"
 #include "intern/usd_writer_material.hh"

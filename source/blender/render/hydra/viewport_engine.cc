@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "viewport_engine.h"
-#include "camera.h"
+#include "viewport_engine.hh"
+#include "camera.hh"
 
 #include <pxr/base/gf/camera.h>
 #include <pxr/imaging/glf/drawTarget.h>

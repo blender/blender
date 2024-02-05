@@ -6,7 +6,7 @@
 
 #include "DNA_fluid_types.h"
 
-#include "volume.h"
+#include "volume.hh"
 
 namespace blender::io::hydra {
 

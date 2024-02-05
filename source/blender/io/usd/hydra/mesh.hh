@@ -11,8 +11,8 @@
 
 #include "BKE_duplilist.h"
 
-#include "material.h"
-#include "object.h"
+#include "material.hh"
+#include "object.hh"
 
 namespace blender::io::hydra {
 

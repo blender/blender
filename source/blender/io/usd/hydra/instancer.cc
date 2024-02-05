@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "instancer.h"
+#include "instancer.hh"
 
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/imaging/hd/light.h>
@@ -16,7 +16,7 @@
 
 #include "DNA_particle_types.h"
 
-#include "hydra_scene_delegate.h"
+#include "hydra_scene_delegate.hh"
 
 namespace blender::io::hydra {
 

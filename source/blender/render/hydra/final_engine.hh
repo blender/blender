@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "engine.h"
+#include "engine.hh"
 
 namespace blender::render::hydra {
 

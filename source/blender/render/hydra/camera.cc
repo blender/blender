@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "camera.h"
+#include "camera.hh"
 
 #include "BKE_camera.h"
 
@@ -10,7 +10,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "hydra/object.h"
+#include "hydra/object.hh"
 
 namespace blender::render::hydra {
 

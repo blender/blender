@@ -16,8 +16,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 
-#include "hydra_scene_delegate.h"
-#include "mesh.h"
+#include "hydra_scene_delegate.hh"
+#include "mesh.hh"
 
 namespace blender::io::hydra {
 

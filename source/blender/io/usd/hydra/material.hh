@@ -12,7 +12,7 @@
 
 #include "BLI_map.hh"
 
-#include "id.h"
+#include "id.hh"
 
 namespace blender::io::hydra {
 

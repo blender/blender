@@ -14,8 +14,8 @@
 #include "BLI_index_range.hh"
 #include "DNA_volume_types.h"
 
-#include "hydra_scene_delegate.h"
-#include "volume.h"
+#include "hydra_scene_delegate.hh"
+#include "volume.hh"
 
 namespace blender::io::hydra {
 

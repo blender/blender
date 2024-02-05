@@ -4,12 +4,12 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "curves.h"
-#include "hydra_scene_delegate.h"
-#include "light.h"
-#include "mesh.h"
-#include "object.h"
-#include "volume.h"
+#include "curves.hh"
+#include "hydra_scene_delegate.hh"
+#include "light.hh"
+#include "mesh.hh"
+#include "object.hh"
+#include "volume.hh"
 
 namespace blender::io::hydra {
 

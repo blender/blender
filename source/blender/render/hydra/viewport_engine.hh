@@ -10,7 +10,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "engine.h"
+#include "engine.hh"
 
 namespace blender::render::hydra {
 

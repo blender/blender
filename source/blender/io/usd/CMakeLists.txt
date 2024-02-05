@@ -175,19 +175,19 @@ if(WITH_HYDRA)
     hydra/volume_modifier.cc
     hydra/world.cc
 
-    hydra/curves.h
-    hydra/hydra_scene_delegate.h
-    hydra/id.h
-    hydra/image.h
-    hydra/instancer.h
-    hydra/light.h
-    hydra/material.h
-    hydra/mesh.h
-    hydra/object.h
-    hydra/usd_scene_delegate.h
-    hydra/volume.h
-    hydra/volume_modifier.h
-    hydra/world.h
+    hydra/curves.hh
+    hydra/hydra_scene_delegate.hh
+    hydra/id.hh
+    hydra/image.hh
+    hydra/instancer.hh
+    hydra/light.hh
+    hydra/material.hh
+    hydra/mesh.hh
+    hydra/object.hh
+    hydra/usd_scene_delegate.hh
+    hydra/volume.hh
+    hydra/volume_modifier.hh
+    hydra/world.hh
   )
 endif()
 

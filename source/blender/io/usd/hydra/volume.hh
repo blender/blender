@@ -6,7 +6,7 @@
 
 #include <pxr/imaging/hd/sceneDelegate.h>
 
-#include "object.h"
+#include "object.hh"
 
 namespace blender::io::hydra {
 

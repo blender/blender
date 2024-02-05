@@ -15,8 +15,8 @@
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 
-#include "id.h"
-#include "material.h"
+#include "id.hh"
+#include "material.hh"
 
 namespace blender::io::hydra {
 

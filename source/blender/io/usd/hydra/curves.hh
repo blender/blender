@@ -14,8 +14,8 @@
 #include "DNA_curves_types.h"
 #include "DNA_particle_types.h"
 
-#include "material.h"
-#include "object.h"
+#include "material.hh"
+#include "object.hh"
 
 namespace blender::io::hydra {
 

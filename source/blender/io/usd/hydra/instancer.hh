@@ -7,7 +7,7 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 
-#include "mesh.h"
+#include "mesh.hh"
 
 struct ParticleSystem;
 
