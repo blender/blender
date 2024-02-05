@@ -107,7 +107,7 @@ std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_i
 }
 
 const char *no_procedural_access_message = N_(
-    "This attribute can not be accessed in a procedural context");
+    "This attribute cannot be accessed in a procedural context");
 
 bool allow_procedural_attribute_access(StringRef attribute_name)
 {

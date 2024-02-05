@@ -3830,7 +3830,7 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "ds_ipoline");
   RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(
-      prop, "Interpolation Line", "Color of lines showing non-bezier interpolation modes");
+      prop, "Interpolation Line", "Color of lines showing non-Bézier interpolation modes");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "simulated_frames", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -4562,7 +4562,7 @@ static void rna_def_userdef_studiolight(BlenderRNA *brna)
                                     nullptr,
                                     nullptr);
   RNA_def_property_ui_text(
-      prop, "Solid Lights", "Lights user to display objects in solid draw mode");
+      prop, "Solid Lights", "Lights used to display objects in solid draw mode");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "light_ambient", PROP_FLOAT, PROP_COLOR);

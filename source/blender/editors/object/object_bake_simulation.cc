@@ -835,7 +835,7 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   const std::optional<bake::BakePath> bake_path = bake::get_node_bake_path(
       *bmain, *object, nmd, bake_id);
   if (!bake_path.has_value()) {
-    BKE_report(op->reports, RPT_ERROR, "Can not determine bake location on disk");
+    BKE_report(op->reports, RPT_ERROR, "Cannot determine bake location on disk");
     return {};
   }
   request.path = std::move(*bake_path);

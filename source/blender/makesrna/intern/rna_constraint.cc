@@ -153,7 +153,7 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_FLOOR,
      "Floor",
      "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the "
-     "owner can not cross"},
+     "owner cannot cross"},
     {CONSTRAINT_TYPE_FOLLOWPATH,
      "FOLLOW_PATH",
      ICON_CON_FOLLOWPATH,

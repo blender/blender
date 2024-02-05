@@ -19,7 +19,7 @@ When is used on evaluated object all modifiers are taken into account.
 
 .. note:: The result mesh is owned by the object. It can be freed by calling `object.to_mesh_clear()`.
 .. note::
-   The result mesh must be treated as temporary, and can not be referenced from objects in the main
+   The result mesh must be treated as temporary, and cannot be referenced from objects in the main
    database. If the mesh intended to be used in a persistent manner use bpy.data.meshes.new_from_object()
    instead.
 .. note:: If object does not have geometry (i.e. camera) the functions returns None.
@@ -40,7 +40,7 @@ class OBJECT_OT_object_to_mesh(bpy.types.Operator):
             return {'CANCELLED'}
         # Avoid annoying None checks later on.
         if obj.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
-            self.report({'INFO'}, "Object can not be converted to mesh")
+            self.report({'INFO'}, "Object cannot be converted to mesh")
             return {'CANCELLED'}
         depsgraph = context.evaluated_depsgraph_get()
         # Invoke to_mesh() for original object.

@@ -897,7 +897,7 @@ static void rna_def_keydata(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
   srna = RNA_def_struct(brna, "ShapeKeyBezierPoint", nullptr);
-  RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for Bezier curves");
+  RNA_def_struct_ui_text(srna, "Shape Key Bézier Point", "Point in a shape key for Bézier curves");
   /* there's nothing type specific here, so this is fine for now */
   RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path");
 

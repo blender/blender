@@ -2136,7 +2136,7 @@ static void rna_def_header(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "ID Name",
                            "If this is set, the header gets a custom ID, otherwise it takes the "
-                           "name of the class used to define the panel; for example, if the "
+                           "name of the class used to define the header; for example, if the "
                            "class name is \"OBJECT_HT_hello\", and bl_idname is not set by the "
                            "script, then bl_idname = \"OBJECT_HT_hello\"");
 
@@ -2280,7 +2280,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "ID Name",
                            "If this is set, the asset gets a custom ID, otherwise it takes the "
-                           "name of the class used to define the menu (for example, if the "
+                           "name of the class used to define the asset (for example, if the "
                            "class name is \"OBJECT_AST_hello\", and bl_idname is not set by the "
                            "script, then bl_idname = \"OBJECT_AST_hello\")");
 

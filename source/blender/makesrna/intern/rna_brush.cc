@@ -69,7 +69,7 @@ static const EnumPropertyItem sculpt_stroke_method_items[] = {
      "CURVE",
      0,
      "Curve",
-     "Define the stroke curve with a bezier curve (dabs are separated according to spacing)"},
+     "Define the stroke curve with a Bézier curve (dabs are separated according to spacing)"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1029,7 +1029,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
        "CURVE",
        0,
        "Curve",
-       "Define the stroke curve with a bezier curve. Dabs are separated according to spacing"},
+       "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -3612,7 +3612,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Curve",
-      "Define the stroke curve with a bezier curve. Dabs are separated according to spacing");
+      "Define the stroke curve with a Bézier curve. Dabs are separated according to spacing");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_smooth_stroke", PROP_BOOLEAN, PROP_NONE);

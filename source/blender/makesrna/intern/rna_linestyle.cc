@@ -95,7 +95,7 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
      ICON_MODIFIER,
      "Backbone Stretcher",
      ""},
-    {LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bezier Curve", ""},
+    {LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bézier Curve", ""},
     {LS_MODIFIER_BLUEPRINT, "BLUEPRINT", ICON_MODIFIER, "Blueprint", ""},
     {LS_MODIFIER_GUIDING_LINES, "GUIDING_LINES", ICON_MODIFIER, "Guiding Lines", ""},
     {LS_MODIFIER_PERLIN_NOISE_1D, "PERLIN_NOISE_1D", ICON_MODIFIER, "Perlin Noise 1D", ""},
@@ -1288,8 +1288,8 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   srna = RNA_def_struct(
       brna, "LineStyleGeometryModifier_BezierCurve", "LineStyleGeometryModifier");
   RNA_def_struct_ui_text(srna,
-                         "Bezier Curve",
-                         "Replace stroke backbone geometry by a Bezier curve approximation of the "
+                         "Bézier Curve",
+                         "Replace stroke backbone geometry by a Bézier curve approximation of the "
                          "original backbone geometry");
   rna_def_geometry_modifier(srna);
 
@@ -1297,7 +1297,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "error");
   RNA_def_property_ui_text(prop,
                            "Error",
-                           "Maximum distance allowed between the new Bezier curve and the "
+                           "Maximum distance allowed between the new Bézier curve and the "
                            "original backbone geometry");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 

@@ -737,12 +737,12 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       if (disabled_hint) {
         BKE_reportf(&reports,
                     RPT_WARNING,
-                    "Can not add node '%s' in a group:\n  %s",
+                    "Cannot add node '%s' in a group:\n  %s",
                     node->name,
                     disabled_hint);
       }
       else {
-        BKE_reportf(&reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
+        BKE_reportf(&reports, RPT_WARNING, "Cannot add node '%s' in a group", node->name);
       }
       return false;
     }
@@ -781,7 +781,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
         if (input_selected && !output_selected) {
           BKE_reportf(&reports,
                       RPT_WARNING,
-                      "Can not add zone input node '%s' to a group without its paired output '%s'",
+                      "Cannot add zone input node '%s' to a group without its paired output '%s'",
                       input_node->name,
                       output_node->name);
           return false;
@@ -789,7 +789,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
         if (output_selected && !input_selected) {
           BKE_reportf(&reports,
                       RPT_WARNING,
-                      "Can not add zone output node '%s' to a group without its paired input '%s'",
+                      "Cannot add zone output node '%s' to a group without its paired input '%s'",
                       output_node->name,
                       input_node->name);
           return false;
@@ -1306,7 +1306,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
     }
     if (ntreeContainsTree(reinterpret_cast<bNodeTree *>(group->id), ngroup)) {
       BKE_reportf(
-          op->reports, RPT_WARNING, "Can not insert group '%s' in '%s'", group->name, gnode->name);
+          op->reports, RPT_WARNING, "Cannot insert group '%s' in '%s'", group->name, gnode->name);
       return OPERATOR_CANCELLED;
     }
   }

@@ -1077,7 +1077,7 @@ void RNA_api_object(StructRNA *srna)
       func,
       "Create a Mesh data-block from the current state of the object. The object owns the "
       "data-block. To force free it use to_mesh_clear(). "
-      "The result is temporary and can not be used by objects from the main database");
+      "The result is temporary and cannot be used by objects from the main database");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_boolean(func,
                   "preserve_all_data_layers",
@@ -1104,7 +1104,7 @@ void RNA_api_object(StructRNA *srna)
       func,
       "Create a Curve data-block from the current state of the object. This only works for curve "
       "and text objects. The object owns the data-block. To force free it, use to_curve_clear(). "
-      "The result is temporary and can not be used by objects from the main database");
+      "The result is temporary and cannot be used by objects from the main database");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(
       func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph");

@@ -4373,7 +4373,7 @@ def km_3d_view_tool_select(params):
 
 def km_image_editor_tool_uv_select(params):
     return (
-        "Image Editor Tool: Uv, Tweak",
+        "Image Editor Tool: UV, Tweak",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "uv.select", extend="extend")},
     )

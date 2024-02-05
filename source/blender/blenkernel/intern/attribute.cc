@@ -176,7 +176,7 @@ bool BKE_id_attribute_rename(ID *id,
     return false;
   }
   if (STREQ(new_name, "")) {
-    BKE_report(reports, RPT_ERROR, "Attribute name can not be empty");
+    BKE_report(reports, RPT_ERROR, "Attribute name cannot be empty");
     return false;
   }
 

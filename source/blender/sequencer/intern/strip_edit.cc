@@ -220,12 +220,12 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
   ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, src_seq);
 
   if (dst_seqm->type != SEQ_TYPE_META) {
-    *error_str = N_("Can not move strip to non-meta strip");
+    *error_str = N_("Cannot move strip to non-meta strip");
     return false;
   }
 
   if (src_seq == dst_seqm) {
-    *error_str = N_("Strip can not be moved into itself");
+    *error_str = N_("Strip cannot be moved into itself");
     return false;
   }
 
@@ -240,7 +240,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
   }
 
   if (!SEQ_exists_in_seqbase(dst_seqm, &ed->seqbase)) {
-    *error_str = N_("Can not move strip to different scene");
+    *error_str = N_("Cannot move strip to different scene");
     return false;
   }
 

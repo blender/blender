@@ -4270,7 +4270,7 @@ static void rna_def_curve_paint_settings(BlenderRNA *brna)
 
   static const EnumPropertyItem curve_type_items[] = {
       {CU_POLY, "POLY", 0, "Poly", ""},
-      {CU_BEZIER, "BEZIER", 0, "Bezier", ""},
+      {CU_BEZIER, "BEZIER", 0, "Bézier", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

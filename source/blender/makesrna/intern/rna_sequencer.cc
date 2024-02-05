@@ -1471,7 +1471,7 @@ static void rna_SequenceModifier_strip_set(PointerRNA *ptr, PointerRNA value, Re
   Sequence *target = (Sequence *)value.data;
 
   if (target != nullptr && SEQ_relations_render_loop_check(target, seq)) {
-    BKE_report(reports, RPT_ERROR, "Recursion detected, can not use this strip");
+    BKE_report(reports, RPT_ERROR, "Recursion detected, cannot use this strip");
     return;
   }
 

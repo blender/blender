@@ -2909,7 +2909,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
   RNA_def_property_int_funcs(prop, "rna_HookModifier_vertex_indices_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop,
                            "Vertex Indices",
-                           "Indices of vertices bound to the modifier. For bezier curves, "
+                           "Indices of vertices bound to the modifier. For Bézier curves, "
                            "handles count as additional vertices");
 
   func = RNA_def_function(srna, "vertex_indices_set", "rna_HookModifier_vertex_indices_set");

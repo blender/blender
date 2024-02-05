@@ -673,7 +673,7 @@ IDTypeInfo IDType_ID_LS = {
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
     nullptr,         "Along Stroke",    "Distance from Camera", "Distance from Object",
-    "Material",      "Sampling",        "Bezier Curve",         "Sinus Displacement",
+    "Material",      "Sampling",        "Bézier Curve",         "Sinus Displacement",
     "Spatial Noise", "Perlin Noise 1D", "Perlin Noise 2D",      "Backbone Stretcher",
     "Tip Remover",   "Calligraphy",     "Polygonalization",     "Guiding Lines",
     "Blueprint",     "2D Offset",       "2D Transform",         "Tangent",

@@ -81,7 +81,7 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
     {BEZT_IPO_BEZ,
      "BEZIER",
      ICON_IPO_BEZIER,
-     "Bezier",
+     "Bézier",
      "Smooth interpolation between A and B, with some control over curve shape"},
 
     /* Easing. */
@@ -124,7 +124,7 @@ const EnumPropertyItem rna_enum_beztriple_interpolation_mode_items[] = {
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem curve_type_items[] = {
     {CU_POLY, "POLY", 0, "Poly", ""},
-    {CU_BEZIER, "BEZIER", 0, "Bezier", ""},
+    {CU_BEZIER, "BEZIER", 0, "Bézier", ""},
     {CU_NURBS, "NURBS", 0, "Ease", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -648,7 +648,7 @@ static void rna_Nurb_update_knot_v(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
   if (nu->type == CU_BEZIER) {
-    BKE_report(reports, RPT_ERROR, "Bezier spline cannot have points added");
+    BKE_report(reports, RPT_ERROR, "Bézier spline cannot have points added");
   }
   else if (number == 0) {
     /* do nothing */
@@ -667,7 +667,7 @@ static void rna_Curve_spline_points_add(ID *id, Nurb *nu, ReportList *reports, i
 static void rna_Curve_spline_bezpoints_add(ID *id, Nurb *nu, ReportList *reports, int number)
 {
   if (nu->type != CU_BEZIER) {
-    BKE_report(reports, RPT_ERROR, "Only Bezier splines can be added");
+    BKE_report(reports, RPT_ERROR, "Only Bézier splines can be added");
   }
   else if (number == 0) {
     /* do nothing */
@@ -945,7 +945,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "BezierSplinePoint", nullptr);
   RNA_def_struct_sdna(srna, "BezTriple");
-  RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles");
+  RNA_def_struct_ui_text(srna, "Bézier Curve Point", "Bézier curve point with two handles");
 
   /* Boolean values */
   prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
@@ -1505,7 +1505,7 @@ static void rna_def_curve_spline_bezpoints(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_srna(cprop, "SplineBezierPoints");
   srna = RNA_def_struct(brna, "SplineBezierPoints", nullptr);
   RNA_def_struct_sdna(srna, "Nurb");
-  RNA_def_struct_ui_text(srna, "Spline Bezier Points", "Collection of spline Bezier points");
+  RNA_def_struct_ui_text(srna, "Spline Bézier Points", "Collection of spline Bézier points");
 
   func = RNA_def_function(srna, "add", "rna_Curve_spline_bezpoints_add");
   RNA_def_function_ui_description(func, "Add a number of points to this spline");
@@ -1959,7 +1959,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna,
       "Spline",
-      "Element of a curve, either NURBS, Bezier or Polyline or a character with text objects");
+      "Element of a curve, either NURBS, Bézier or Polyline or a character with text objects");
 
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_collection_sdna(prop, nullptr, "bp", nullptr);
@@ -1980,21 +1980,21 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bezier_points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BezierSplinePoint");
   RNA_def_property_collection_sdna(prop, nullptr, "bezt", "pntsu");
-  RNA_def_property_ui_text(prop, "Bezier Points", "Collection of points for Bezier curves only");
+  RNA_def_property_ui_text(prop, "Bézier Points", "Collection of points for Bézier curves only");
   rna_def_curve_spline_bezpoints(brna, prop);
 
   prop = RNA_def_property(srna, "tilt_interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "tilt_interp");
   RNA_def_property_enum_items(prop, spline_interpolation_items);
   RNA_def_property_ui_text(
-      prop, "Tilt Interpolation", "The type of tilt interpolation for 3D, Bezier curves");
+      prop, "Tilt Interpolation", "The type of tilt interpolation for 3D, Bézier curves");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "radius_interpolation", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "radius_interp");
   RNA_def_property_enum_items(prop, spline_interpolation_items);
   RNA_def_property_ui_text(
-      prop, "Radius Interpolation", "The type of radius interpolation for Bezier curves");
+      prop, "Radius Interpolation", "The type of radius interpolation for Bézier curves");
   RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -2089,15 +2089,15 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop,
-      "Bezier U",
-      "Make this nurbs curve or surface act like a Bezier spline in the U direction");
+      "Bézier U",
+      "Make this nurbs curve or surface act like a Bézier spline in the U direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_u");
 
   prop = RNA_def_property(srna, "use_bezier_v", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flagv", CU_NURB_BEZIER);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Bezier V", "Make this nurbs surface act like a Bezier spline in the V direction");
+      prop, "Bézier V", "Make this nurbs surface act like a Bézier spline in the V direction");
   RNA_def_property_update(prop, 0, "rna_Nurb_update_knot_v");
 
   prop = RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
