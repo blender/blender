@@ -306,8 +306,6 @@ class CollectionViewItem : public BasicTreeViewItem {
                                   0,
                                   0.0f,
                                   0.0f,
-                                  0.0f,
-                                  0.0f,
                                   nullptr);
 
     UI_but_func_set(button, [&collection_light_linking = collection_light_linking_](bContext &) {

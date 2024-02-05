@@ -4324,8 +4324,6 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
                  &save_images_when_file_is_closed,
                  0,
                  0,
-                 0,
-                 0,
                  "");
     has_extra_checkboxes = true;
   }
@@ -4349,8 +4347,6 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
                               0,
                               UI_UNIT_Y,
                               &save_catalogs_when_file_is_closed,
-                              0,
-                              0,
                               0,
                               0,
                               "");

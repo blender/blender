@@ -154,8 +154,6 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
                                     (char *)&catalog_path_enabled_,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     TIP_("Toggle catalog visibility in the asset shelf"));
       UI_but_func_set(toggle_but, [&tree](bContext &C) {
         tree.update_shelf_settings_from_enabled_catalogs();

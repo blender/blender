@@ -627,8 +627,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                  &v3d->flag,
                  0,
                  0,
-                 0,
-                 0,
                  TIP_("Displays global values"));
     uiDefButBitS(block,
                  UI_BTYPE_TOGGLE_N,
@@ -640,8 +638,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                  100,
                  buth,
                  &v3d->flag,
-                 0,
-                 0,
                  0,
                  0,
                  TIP_("Displays local values"));
@@ -792,8 +788,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         0,
                         0.0,
                         1.0,
-                        0,
-                        0,
                         nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
@@ -810,8 +804,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         0,
                         0.0,
                         100.0,
-                        0,
-                        0,
                         nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
@@ -828,8 +820,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         0,
                         -tilt_limit,
                         tilt_limit,
-                        0,
-                        0,
                         nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
@@ -897,8 +887,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                   0,
                   0.0,
                   1.0,
-                  0,
-                  0,
                   nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);

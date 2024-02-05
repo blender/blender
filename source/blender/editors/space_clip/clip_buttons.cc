@@ -520,8 +520,6 @@ void uiTemplateMarker(uiLayout *layout,
                  &cb->marker_flag,
                  0,
                  0,
-                 0,
-                 0,
                  tip);
 
     uiLayout *col = uiLayoutColumn(layout, true);

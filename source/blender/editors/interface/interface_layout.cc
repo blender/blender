@@ -679,8 +679,6 @@ static void ui_item_array(uiLayout *layout,
                    -1,
                    0,
                    0,
-                   -1,
-                   -1,
                    nullptr);
   }
   else {
@@ -794,16 +792,16 @@ static void ui_item_enum_expand_elem_exec(uiLayout *layout,
   uiBut *but;
   if (icon && name[0] && !icon_only) {
     but = uiDefIconTextButR_prop(
-        block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, nullptr);
+        block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, nullptr);
   }
   else if (icon) {
     const int w = (is_first) ? itemw : ceilf(itemw - U.pixelsize);
     but = uiDefIconButR_prop(
-        block, but_type, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, nullptr);
+        block, but_type, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
   }
   else {
     but = uiDefButR_prop(
-        block, but_type, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, nullptr);
+        block, but_type, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, nullptr);
   }
 
   if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
@@ -1095,8 +1093,6 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          index,
                          0,
                          0,
-                         -1,
-                         -1,
                          nullptr);
   }
   else if ((flag & UI_ITEM_R_FULL_EVENT) && is_keymapitem_ptr) {
@@ -1118,8 +1114,6 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          0,
                          0,
                          0,
-                         -1,
-                         -1,
                          nullptr);
     UI_but_func_set(but, ui_keymap_but_cb, but, nullptr);
     if (flag & UI_ITEM_R_IMMEDIATE) {
@@ -2405,31 +2399,15 @@ void uiItemFullR(uiLayout *layout,
   /* enum item */
   else if (type == PROP_ENUM && index == RNA_ENUM_VALUE) {
     if (icon && name[0] && !icon_only) {
-      uiDefIconTextButR_prop(block,
-                             UI_BTYPE_ROW,
-                             0,
-                             icon,
-                             name,
-                             0,
-                             0,
-                             w,
-                             h,
-                             ptr,
-                             prop,
-                             -1,
-                             0,
-                             value,
-                             -1,
-                             -1,
-                             nullptr);
+      uiDefIconTextButR_prop(
+          block, UI_BTYPE_ROW, 0, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
     }
     else if (icon) {
       uiDefIconButR_prop(
-          block, UI_BTYPE_ROW, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, nullptr);
+          block, UI_BTYPE_ROW, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
     }
     else {
-      uiDefButR_prop(
-          block, UI_BTYPE_ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, nullptr);
+      uiDefButR_prop(block, UI_BTYPE_ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, nullptr);
     }
   }
   /* expanded enum */

@@ -1363,8 +1363,6 @@ static void template_ID(const bContext *C,
                     -1,
                     0,
                     0,
-                    -1,
-                    -1,
                     RNA_struct_ui_description(type));
     UI_but_funcN_set(
         but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_RENAME));
@@ -1509,8 +1507,6 @@ static void template_ID(const bContext *C,
                       -1,
                       0,
                       0,
-                      -1,
-                      -1,
                       nullptr);
       }
     }
@@ -1692,8 +1688,6 @@ static void template_ID_tabs(const bContext *C,
                                                0,
                                                0.0f,
                                                sizeof(id->name) - 2,
-                                               0.0f,
-                                               0.0f,
                                                "");
     UI_but_funcN_set(tab, template_ID_set_property_exec_fn, MEM_dupallocN(template_id), id);
     UI_but_drag_set_id(tab, id);
@@ -3904,27 +3898,11 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
                                    -1,
                                    0,
                                    value,
-                                   -1,
-                                   -1,
                                    nullptr);
     }
     else {
-      but = uiDefIconButR_prop(block,
-                               UI_BTYPE_ROW,
-                               0,
-                               icon,
-                               x,
-                               y,
-                               w,
-                               h,
-                               &args.ptr,
-                               args.prop,
-                               -1,
-                               0,
-                               value,
-                               -1,
-                               -1,
-                               nullptr);
+      but = uiDefIconButR_prop(
+          block, UI_BTYPE_ROW, 0, icon, x, y, w, h, &args.ptr, args.prop, -1, 0, value, nullptr);
     }
     ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
   }
@@ -4299,8 +4277,6 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *region, void *cumap
                     &cumap->flag,
                     0.0,
                     0.0,
-                    10,
-                    0,
                     "");
   UI_but_func_set(bt, curvemap_buttons_setclip, cumap, nullptr);
 
@@ -5664,8 +5640,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                                                -1,
                                                0.0,
                                                0.0,
-                                               0,
-                                               0,
                                                "");
       switch (U.color_picker_type) {
         case USER_CP_SQUARE_SV:
@@ -5698,8 +5672,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                            -1,
                            0.0,
                            0.0,
-                           0,
-                           0,
                            "");
       break;
   }
@@ -5734,8 +5706,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                                                  -1,
                                                  softmin,
                                                  softmax,
-                                                 0,
-                                                 0,
                                                  "");
         hsv_but->gradient_type = UI_GRAD_L_ALT;
         break;
@@ -5754,8 +5724,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                                                  -1,
                                                  softmin,
                                                  softmax,
-                                                 0,
-                                                 0,
                                                  "");
         hsv_but->gradient_type = eButGradientType(UI_GRAD_SV + 3);
         break;
@@ -5774,8 +5742,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                                                  -1,
                                                  softmin,
                                                  softmax,
-                                                 0,
-                                                 0,
                                                  "");
         hsv_but->gradient_type = eButGradientType(UI_GRAD_HS + 3);
         break;
@@ -5794,8 +5760,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                                                  -1,
                                                  softmin,
                                                  softmax,
-                                                 0,
-                                                 0,
                                                  "");
         hsv_but->gradient_type = eButGradientType(UI_GRAD_HV + 3);
         break;
@@ -5817,8 +5781,6 @@ void uiTemplateColorPicker(uiLayout *layout,
                                                  -1,
                                                  softmin,
                                                  softmax,
-                                                 0,
-                                                 0,
                                                  "");
         hsv_but->gradient_type = UI_GRAD_V_ALT;
         break;
@@ -5942,8 +5904,6 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
                                                     -1,
                                                     0.0,
                                                     1.0,
-                                                    0.0,
-                                                    0.0,
                                                     "");
     color_but->is_pallete_color = true;
     color_but->palette_color_index = col_id;

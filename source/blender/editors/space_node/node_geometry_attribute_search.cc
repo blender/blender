@@ -247,8 +247,6 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                  0,
                                  0.0f,
                                  0.0f,
-                                 0.0f,
-                                 0.0f,
                                  "");
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
