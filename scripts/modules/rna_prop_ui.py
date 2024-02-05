@@ -221,7 +221,7 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
         else:
             value_column.prop(rna_item, rna_idprop_quote_path(key), text="")
 
-        operator_row = value_row.row()
+        operator_row = value_row.row(align=True)
         operator_row.alignment = 'RIGHT'
 
         # Do not allow editing of overridden properties (we cannot use a poll function
@@ -241,9 +241,6 @@ def draw(layout, context, context_member, property_type, *, use_edit=True):
                 props = operator_row.operator("wm.properties_remove", text="", icon='X', emboss=False)
                 props.data_path = context_member
                 props.property_name = key
-        else:
-            # Add some spacing, so the right side of the buttons line up with layouts with decorators.
-            operator_row.label(text="", icon='BLANK1')
 
 
 class PropertyPanel:
