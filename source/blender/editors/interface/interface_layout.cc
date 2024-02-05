@@ -657,9 +657,11 @@ static void ui_item_array(uiLayout *layout,
       if (slider && but->type == UI_BTYPE_NUM) {
         uiButNumber *number_but = (uiButNumber *)but;
         const float step_size = number_but->step_size;
+        const float precision = number_but->precision;
         but = ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
         uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
         slider_but->step_size = step_size;
+        slider_but->precision = precision;
       }
     }
   }
@@ -728,9 +730,11 @@ static void ui_item_array(uiLayout *layout,
         if (slider && but->type == UI_BTYPE_NUM) {
           uiButNumber *number_but = (uiButNumber *)but;
           const float step_size = number_but->step_size;
+          const float precision = number_but->precision;
           but = ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
           uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
           slider_but->step_size = step_size;
+          slider_but->precision = precision;
         }
         if ((toggle == 1) && but->type == UI_BTYPE_CHECKBOX) {
           but->type = UI_BTYPE_TOGGLE;
@@ -2459,9 +2463,11 @@ void uiItemFullR(uiLayout *layout,
     if (slider && but->type == UI_BTYPE_NUM) {
       uiButNumber *number_but = (uiButNumber *)but;
       const float step_size = number_but->step_size;
+      const float precision = number_but->precision;
       but = ui_but_change_type(but, UI_BTYPE_NUM_SLIDER);
       uiButNumberSlider *slider_but = reinterpret_cast<uiButNumberSlider *>(but);
       slider_but->step_size = step_size;
+      slider_but->precision = precision;
     }
 
     if (flag & UI_ITEM_R_CHECKBOX_INVERT) {
