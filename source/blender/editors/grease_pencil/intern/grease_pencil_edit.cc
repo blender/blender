@@ -1698,9 +1698,17 @@ static void GREASE_PENCIL_OT_stroke_reorder(wmOperatorType *ot)
 /** \name Move To Layer Operator
  * \{ */
 
+static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
+  if (add_new_layer) {
+    return WM_operator_props_popup_confirm(C, op, event);
+  }
+  return OPERATOR_RUNNING_MODAL;
+}
+
 static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender::bke;
   using namespace bke::greasepencil;
   const Scene *scene = CTX_data_scene(C);
   bool changed = false;
@@ -1709,26 +1717,22 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   int target_layer_name_length;
-  char *target_layer_name = nullptr;
+  char *target_layer_name = RNA_string_get_alloc(
+      op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
   BLI_SCOPED_DEFER([&] { MEM_SAFE_FREE(target_layer_name); });
   const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
   if (add_new_layer) {
-    Layer &new_layer = grease_pencil.add_layer("Layer");
-    target_layer_name = BLI_strdup_null(new_layer.name().c_str());
-  }
-  else {
-    target_layer_name = RNA_string_get_alloc(
-        op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
+    grease_pencil.add_layer(target_layer_name);
   }
 
   TreeNode *target_node = grease_pencil.find_node_by_name(target_layer_name);
-  if (target_node == nullptr) {
+  if (target_node == nullptr || !target_node->is_layer()) {
     BKE_reportf(op->reports, RPT_ERROR, "There is no layer '%s'", target_layer_name);
     return OPERATOR_CANCELLED;
   }
 
-  Layer *layer_dst = &target_node->as_layer();
-  if (layer_dst->is_locked()) {
+  Layer &layer_dst = target_node->as_layer();
+  if (layer_dst.is_locked()) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s' Layer is locked", target_layer_name);
     return OPERATOR_CANCELLED;
   }
@@ -1743,10 +1747,10 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    if (!layer_dst->has_drawing_at(info.frame_number)) {
+    if (!layer_dst.has_drawing_at(info.frame_number)) {
       /* Move geometry to a new drawing in target layer. */
-      grease_pencil.insert_blank_frame(*layer_dst, info.frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
-      Drawing &drawing_dst = *grease_pencil.get_editable_drawing_at(*layer_dst, info.frame_number);
+      grease_pencil.insert_blank_frame(layer_dst, info.frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
+      Drawing &drawing_dst = *grease_pencil.get_editable_drawing_at(layer_dst, info.frame_number);
       drawing_dst.strokes_for_write() = bke::curves_copy_curve_selection(
           curves_src, selected_strokes, {});
 
@@ -1754,21 +1758,22 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
 
       drawing_dst.tag_topology_changed();
     }
-    else {
+    else if (Drawing *drawing_dst = grease_pencil.get_editable_drawing_at(layer_dst,
+                                                                          info.frame_number))
+    {
       /* Append geometry to drawing in target layer. */
-      Drawing &drawing_dst = *grease_pencil.get_editable_drawing_at(*layer_dst, info.frame_number);
       bke::CurvesGeometry selected_elems = curves_copy_curve_selection(
           curves_src, selected_strokes, {});
       Curves *selected_curves = bke::curves_new_nomain(std::move(selected_elems));
-      Curves *layer_curves = bke::curves_new_nomain(std::move(drawing_dst.strokes_for_write()));
-      std::array<GeometrySet, 2> geometry_sets{GeometrySet::from_curves(selected_curves),
-                                               GeometrySet::from_curves(layer_curves)};
-      GeometrySet joined = geometry::join_geometries(geometry_sets, {});
-      drawing_dst.strokes_for_write() = std::move(joined.get_curves_for_write()->geometry.wrap());
+      Curves *layer_curves = bke::curves_new_nomain(std::move(drawing_dst->strokes_for_write()));
+      std::array<bke::GeometrySet, 2> geometry_sets{bke::GeometrySet::from_curves(selected_curves),
+                                                    bke::GeometrySet::from_curves(layer_curves)};
+      bke::GeometrySet joined = geometry::join_geometries(geometry_sets, {});
+      drawing_dst->strokes_for_write() = std::move(joined.get_curves_for_write()->geometry.wrap());
 
       curves_src.remove_curves(selected_strokes, {});
 
-      drawing_dst.tag_topology_changed();
+      drawing_dst->tag_topology_changed();
     }
 
     info.drawing.tag_topology_changed();
@@ -1794,6 +1799,7 @@ static void GREASE_PENCIL_OT_move_to_layer(wmOperatorType *ot)
   ot->description = "Move selected strokes to another layer";
 
   /* callbacks. */
+  ot->invoke = grease_pencil_move_to_layer_invoke;
   ot->exec = grease_pencil_move_to_layer_exec;
   ot->poll = editable_grease_pencil_poll;
 
@@ -1802,7 +1808,7 @@ static void GREASE_PENCIL_OT_move_to_layer(wmOperatorType *ot)
 
   prop = RNA_def_string(
       ot->srna, "target_layer_name", "Layer", INT16_MAX, "Name", "Target Grease Pencil Layer");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(
       ot->srna, "add_new_layer", false, "New Layer", "Move selection to a new layer");
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
