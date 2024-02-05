@@ -16,7 +16,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_nla.h"
 #include "BKE_report.h"
 
@@ -757,7 +757,7 @@ static void sort_time_beztmaps(BeztMap *bezms, int totvert)
           bezm->newIndex++;
           (bezm + 1)->newIndex--;
 
-          SWAP(BeztMap, *bezm, *(bezm + 1));
+          std::swap(*bezm, *(bezm + 1));
 
           ok = 1;
         }

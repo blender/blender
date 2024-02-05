@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
-"PO-Revision-Date: 2023-12-06 06:42+0000\n"
-"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"PO-Revision-Date: 2024-01-18 19:12+0000\n"
+"Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -408,6 +408,10 @@ msgid "Display glTF UI to manage animations"
 msgstr "Exibe a interface de usuario do glTF para gerenciar animações"
 
 
+msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
+msgstr "Exibe o nó de saída de material glTF no Editor de Sombreamento (menu Adicionar > Saída)"
+
+
 msgid "Fribidi Library"
 msgstr "Biblioteca FriBidi"
 
@@ -698,6 +702,10 @@ msgstr "Do primeiro quadro ao último"
 
 msgid "Selected Keys"
 msgstr "Chaves Selecionadas"
+
+
+msgid "From the first selected keyframe to the last"
+msgstr "Do primeiro quadro-chave selecionado ao último"
 
 
 msgid "The entire Scene / Preview range"
@@ -1048,6 +1056,10 @@ msgid "Asset Data"
 msgstr "Dados de ativos"
 
 
+msgid "Additional data stored for an asset data-block"
+msgstr "Dados adicionais armazenados para um bloco de dados de ativos"
+
+
 msgid "Active Tag"
 msgstr "Etiqueta Ativa"
 
@@ -1080,6 +1092,10 @@ msgid "Simple name of the asset's catalog, for debugging and data recovery purpo
 msgstr "Nome simples do catálogo de ativos, para fins de depuração e recuperação de dados"
 
 
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "Aviso de direitos autorais para este recurso. Um aviso de direitos autorais vazio não indica necessariamente que este é livre de direitos autorais. Entre em contato com o autor se precisar de algum esclarecimento"
+
+
 msgid "Description"
 msgstr "Descrição"
 
@@ -1088,12 +1104,24 @@ msgid "A description of the asset to be displayed for the user"
 msgstr "Uma descrição do ativo a ser exibido para o usuário"
 
 
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "O tipo de licença sob a qual este ativo é distribuído. Um nome de licença vazio não indica necessariamente que esteja livre de termos de licenciamento. Entre em contato com o autor se precisar de algum esclarecimento"
+
+
 msgid "Tags"
 msgstr "Tags"
 
 
+msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
+msgstr "Etiquetas personalizadas (fichas de nome) para o ativo, usadas para filtragem e gerenciamento geral de ativos"
+
+
 msgid "Asset Representation"
 msgstr "Representação de Ativos"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Informações sobre uma entidade que possibilitam ao sistema de ativos tratar a entidade como ativo"
 
 
 msgid "Full Library Path"
@@ -1110,6 +1138,10 @@ msgstr "Caminho completo"
 
 msgid "Absolute path to the .blend file containing this asset extended with the path of the asset inside the file"
 msgstr "Caminho absoluto para o arquivo .blend que contém este ativo estendido com o caminho do ativo dentro do arquivo"
+
+
+msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
+msgstr "O tipo do bloco de dados, se o ativo representar algum ('NONE' caso contrário)"
 
 
 msgctxt "ID"
@@ -1154,7 +1186,12 @@ msgstr "Fonte"
 
 msgctxt "ID"
 msgid "Grease Pencil"
-msgstr "Lápis de cera"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
 
 
 msgctxt "ID"
@@ -3330,6 +3367,10 @@ msgstr "Ossos"
 
 msgid "Index"
 msgstr "Índice"
+
+
+msgid "Solo"
+msgstr "Solo"
 
 
 msgid "Visible"
@@ -17443,14 +17484,6 @@ msgid "Unit editing settings"
 msgstr "As definições das unidades de edição."
 
 
-msgid "Audio Muted"
-msgstr "Tornar o áudio mudo"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "A opção de reproduzir o áudio a partir do editor de sequências se tornará muda."
-
-
 msgid "Audio Scrubbing"
 msgstr "Reproduzir áudio ao reposicionar"
 
@@ -25657,14 +25690,6 @@ msgid "Object To"
 msgstr "Para o objeto"
 
 
-msgid "UV Layer"
-msgstr "Camada UV"
-
-
-msgid "UV Layer name"
-msgstr "Nome da camada UV"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Modificador - Editar peso de grupos de vértices"
 
@@ -27488,10 +27513,6 @@ msgid "NLA Track is active"
 msgstr "Trilha de animação não linear está ativa."
 
 
-msgid "Solo"
-msgstr "Solo"
-
-
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
 msgstr "Trilha de animação não linear é avaliada em si (por exemplo, a ação ativa e todas as outras trilhas de animação não linear dentro no mesmo bloco de dados de animação são desabilitadas)."
 
@@ -28863,6 +28884,10 @@ msgstr "Compartimentos para camadas EXR"
 
 msgid "Pixelate"
 msgstr "Pixelar"
+
+
+msgid "Pixel Size"
+msgstr "Tamanho do pixel"
 
 
 msgid "Plane Track Deform"
@@ -34646,12 +34671,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Converte rotações para o Euler ZYX."
 
 
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Salva o arquivo em formato de arquivo ASCII."
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportar PLY"
 
 
 msgid "X Forward"
@@ -34698,6 +34720,26 @@ msgid "-Z Up"
 msgstr "-Z Para cima"
 
 
+msgid "Apply Modifiers"
+msgstr "Aplicar modificadores"
+
+
+msgid "Selection Only"
+msgstr "Somente a seleção"
+
+
+msgid "Export selected objects only"
+msgstr "Exporta somente os objetos selecionados."
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Salva o arquivo em formato de arquivo ASCII."
+
+
 msgid "Batch Mode"
 msgstr "Modo de tarefas em lote"
 
@@ -34710,10 +34752,6 @@ msgid "Each object as a file"
 msgstr "Cada objeto como um arquivo"
 
 
-msgid "Apply Modifiers"
-msgstr "Aplicar modificadores"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Aplica os modificadores antes de salvar."
 
@@ -34724,14 +34762,6 @@ msgstr "Unidades da cena"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Aplica as unidades atuais da cena (como definidas pelas unidades de escala) para os dados exportados."
-
-
-msgid "Selection Only"
-msgstr "Somente a seleção"
-
-
-msgid "Export selected objects only"
-msgstr "Exporta somente os objetos selecionados."
 
 
 msgctxt "Operator"
@@ -35070,6 +35100,14 @@ msgstr "Geral"
 
 msgid "General settings"
 msgstr "Configurações gerais"
+
+
+msgid "Material Groups"
+msgstr "Grupos de materiais"
+
+
+msgid "Smooth Groups"
+msgstr "Grupos suavizados"
 
 
 msgctxt "Operator"
@@ -37911,6 +37949,11 @@ msgid "Shadeless"
 msgstr "Insensível a luzes ou sombras"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importar PLY"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "Carrega os dados de malha de triângulos STL."
 
@@ -38059,6 +38102,10 @@ msgstr "Importar glTF 2.0"
 
 msgid "Pack all images into .blend file"
 msgstr "Empacotar todas as imagens no arquivo .blend"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa os grupos OBJ como grupos de vértices."
 
 
 msgctxt "Operator"
@@ -41777,6 +41824,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Separa os mapas gerados e gravados por material, usando o nome do material no arquivo de saída (somente externamente)."
 
 
+msgid "UV Layer"
+msgstr "Camada UV"
+
+
 msgid "UV layer to override active"
 msgstr "Camada UV para sobreposição da ativa"
 
@@ -43144,14 +43195,6 @@ msgid "Select Same Collection"
 msgstr "Selecionar a Mesma Coleção"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Renderiza e mostra as faces de maneira uniforme, usando as normais das faces."
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Renderiza e mostra as faces suavizadas, usando normais de vértices interpoladas."
-
-
 msgctxt "Operator"
 msgid "Add Effect"
 msgstr "Adicionar efeito"
@@ -43249,6 +43292,10 @@ msgstr "Limpar chave de formato"
 
 msgid "Clear weights for all shape keys"
 msgstr "Limpa todos os pesos para todas as chaves de formato."
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Bloqueia a ação de ser executada em grupos de vértices."
 
 
 msgctxt "Operator"
@@ -43602,10 +43649,6 @@ msgstr "Numero máximo de pesos de deformação."
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Alterar os travamentos dos grupos de vértices"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Bloqueia a ação de ser executada em grupos de vértices."
 
 
 msgid "Unlock all vertex groups if there is at least one locked group, lock all in other case"
@@ -45725,6 +45768,10 @@ msgstr "Copiar as configurações anteriores"
 
 msgid "Copy settings from previous version"
 msgstr "Copia as configurações a partir da versão anterior."
+
+
+msgid "URL"
+msgstr "Localizador padrão de recursos - URL"
 
 
 msgctxt "Operator"
@@ -51116,10 +51163,6 @@ msgid "Export Wavefront OBJ"
 msgstr "Exportar Wavefront OBJ"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa os grupos OBJ como grupos de vértices."
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Abrir"
@@ -51179,16 +51222,6 @@ msgstr "Permite adicionar ou remover uma predefinição de operador."
 
 msgid "Open a path in a file browser"
 msgstr "Abre um caminho em um navegador de arquivos."
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportar PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importar PLY"
 
 
 msgctxt "Operator"
@@ -51723,10 +51756,6 @@ msgid "Toolbar Prompt"
 msgstr "Prompt da Barra de Ferramentas"
 
 
-msgid "URL"
-msgstr "Localizador padrão de recursos - URL"
-
-
 msgid "URL to open"
 msgstr "A localização do tipo \"URL\" a ser aberta"
 
@@ -51859,10 +51888,6 @@ msgstr "Pincel ativo"
 
 msgid "Editable cavity curve"
 msgstr "Curva de cavidade editável."
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "Perfaz uma média das entradas de múltiplas amostras em conjunto para suavizar o traço do pincel."
 
 
 msgid "Active Palette"
@@ -54617,16 +54642,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Inserção automática de quadro-chave disponível"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Inserção automática de quadro-chave dentro das curvas-f disponíveis."
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Inserção de quadros-chave necessários"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Inserção de quadros-chave somente quando necessários."
 
 
 msgid "Allow Negative Frames"
@@ -57163,10 +57180,6 @@ msgstr "Aspecto de pixel Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Proporção de aspecto vertical - para saída de pixeis anamórficos ou que não são exatamente quadrados."
-
-
-msgid "Pixel Size"
-msgstr "Tamanho do pixel"
 
 
 msgid "Pixel size for viewport rendering"
@@ -64924,6 +64937,16 @@ msgid "Rename %d %s"
 msgstr "Renomear %d %s"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Localização"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotação"
+
+
 msgid "Unknown"
 msgstr "Desconhecido"
 
@@ -65744,11 +65767,6 @@ msgstr "Solução"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Localização"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Afim"
 
@@ -65788,6 +65806,11 @@ msgstr "Nenhuma trilha ativa"
 
 msgid "No active plane track"
 msgstr "Sem planos de rastreamento ativos"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Ampliar"
 
 
 msgctxt "Operator"
@@ -66046,16 +66069,6 @@ msgstr "Salvar como..."
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontalmente"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Verticalmente"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Inverter canal vermelho"
 
@@ -66273,10 +66286,6 @@ msgid "Online Manual"
 msgstr "Manual na internet"
 
 
-msgid "Inputs:"
-msgstr "Entradas:"
-
-
 msgid "Timings"
 msgstr "Temporizações"
 
@@ -66476,11 +66485,6 @@ msgstr "Deslocamento:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Ampliar"
-
-
-msgctxt "Operator"
 msgid "Both"
 msgstr "Ambos"
 
@@ -66593,11 +66597,6 @@ msgstr "Recarregar as faixas e ajustar comprimento"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Posição"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotação"
 
 
 msgctxt "Operator"
@@ -66796,31 +66795,6 @@ msgstr "Instalar um Modelo de Aplicação..."
 msgctxt "Operator"
 msgid "Unused Data-Blocks"
 msgstr "Blocos de dados não utilizados"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Blocos de Dados não Utilizados Recursivos"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Blocos de Dados Vinculados Não Utilizados"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Linked Data-Blocks"
-msgstr "Blocos de Dados Vinculados Não Utilizados Recursivos"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Blocos de Dados Locais Não Utilizados"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Local Data-Blocks"
-msgstr "Blocos de Dados Locais Não Utilizados Recursivos"
 
 
 msgctxt "Operator"
@@ -67099,6 +67073,10 @@ msgid "Pan Sensitivity"
 msgstr "Sensibilidade para panorama"
 
 
+msgid "Preferences:"
+msgstr "Preferências:"
+
+
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Salvar como Luz de Estúdio"
@@ -67114,6 +67092,10 @@ msgstr "Múltiplos complementos com o mesmo nome encontrados !"
 
 msgid "Missing script files"
 msgstr "Faltando arquivos de script"
+
+
+msgid "Error (see console)"
+msgstr "Erro (veja o console)"
 
 
 msgid ":"
@@ -67148,25 +67130,9 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "descrição"
-
-
-msgid "location"
-msgstr "localização"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentação"
-
-
-msgid "Preferences:"
-msgstr "Preferências:"
-
-
-msgid "Error (see console)"
-msgstr "Erro (veja o console)"
 
 
 msgctxt "Operator"
@@ -69642,40 +69608,8 @@ msgid "Internal error!"
 msgstr "Erro interno!"
 
 
-msgid "Shortcut: %s"
-msgstr "Atalho: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Use Shift + clique ou arraste para múltipla seleção)"
-
-
-msgid "Value: %s"
-msgstr "Valor: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radianos: %f"
-
-
-msgid "Expression: %s"
-msgstr "Expressão: %s"
-
-
-msgid "Library: %s"
-msgstr "Biblioteca: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Desabilitado: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -69884,6 +69818,10 @@ msgid "Browse ID data to be linked"
 msgstr "Permite navegar entre os dados de identificadores a ser vinculados."
 
 
+msgid "File Not Found"
+msgstr "Arquivo Não Encontrado"
+
+
 msgid "Yesterday"
 msgstr "Ontem"
 
@@ -70047,14 +69985,6 @@ msgstr "Erro durante a exportação (veja o console)."
 
 msgid "Triangulated Mesh"
 msgstr "Malha Triangulada"
-
-
-msgid "Material Groups"
-msgstr "Grupos de materiais"
-
-
-msgid "Smooth Groups"
-msgstr "Grupos suavizados"
 
 
 msgid "Rigging"
@@ -74046,10 +73976,6 @@ msgstr "Fonte confiável [Caminho não garantido]"
 
 msgid "Don't Save"
 msgstr "Não Salvar"
-
-
-msgid "File Not Found"
-msgstr "Arquivo Não Encontrado"
 
 
 msgid "unable to open the file"

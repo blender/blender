@@ -181,7 +181,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> vert_index = params.extract_input<Field<int>>("Vertex Index");
   if (params.output_is_required("Total")) {
     params.set_output("Total",
-                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
+                      Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           vert_index,
                           Field<int>(std::make_shared<CornersOfVertCountInput>()),
                           AttrDomain::Point)));

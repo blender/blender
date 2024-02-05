@@ -304,7 +304,8 @@ static void node_rna(StructRNA *srna)
                                                SOCK_OBJECT,
                                                SOCK_COLLECTION,
                                                SOCK_MATERIAL,
-                                               SOCK_IMAGE);
+                                               SOCK_IMAGE,
+                                               SOCK_MENU);
                                  });
       });
 }

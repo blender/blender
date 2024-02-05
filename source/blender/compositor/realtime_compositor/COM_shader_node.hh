@@ -9,7 +9,7 @@
 
 #include "DNA_node_types.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "NOD_derived_node_tree.hh"
 
@@ -23,7 +23,7 @@ using namespace nodes::derived_node_tree_types;
  * A shader node encapsulates a compositor node tree that is capable of being used together with
  * other shader nodes to construct a Shader Operation using the GPU material compiler. A GPU node
  * stack for each of the node inputs and outputs is stored and populated during construction in
- * order to represent the node as a GPU node inside the GPU material graph, see GPU_material.h for
+ * order to represent the node as a GPU node inside the GPU material graph, see GPU_material.hh for
  * more information. Derived classes should implement the compile method to add the node and link
  * it to the GPU material given to the method. The compiler is expected to initialize the input
  * links of the node before invoking the compile method. See the discussion in

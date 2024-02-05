@@ -14,6 +14,9 @@
  * \todo document
  */
 
+#include <optional>
+#include <string>
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 #include "DNA_windowmanager_types.h"
@@ -685,6 +688,18 @@ int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
  */
 int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *event);
 int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *event);
+
+/**
+ * Like WM_operator_confirm, but with more options and can't be used as an invoke directly.
+ */
+int WM_operator_confirm_ex(bContext *C,
+                           wmOperator *op,
+                           const char *title = nullptr,
+                           const char *message = nullptr,
+                           const char *confirm_text = nullptr,
+                           int icon = 0, /* ALERT_ICON_WARNING. */
+                           bool cancel_default = false);
+
 /**
  * Invoke callback, file selector "filepath" unset + exec.
  *
@@ -708,7 +723,13 @@ int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent *
  */
 int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *event);
 int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width);
+
+int WM_operator_props_dialog_popup(bContext *C,
+                                   wmOperator *op,
+                                   int width,
+                                   const char *title = nullptr,
+                                   const char *confirm_text = nullptr);
+
 int WM_operator_redo_popup(bContext *C, wmOperator *op);
 int WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
 
@@ -901,33 +922,33 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
                                     short sort);
 
 /**
- * Tries to pass \a id to an operator via either a "session_uuid" or a "name" property defined in
+ * Tries to pass \a id to an operator via either a "session_uid" or a "name" property defined in
  * the properties of \a ptr. The former is preferred, since it works properly with linking and
  * library overrides (which may both result in multiple IDs with the same name and type).
  *
  * Also see #WM_operator_properties_id_lookup() and
- * #WM_operator_properties_id_lookup_from_name_or_session_uuid()
+ * #WM_operator_properties_id_lookup_from_name_or_session_uid()
  */
 void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id);
 /**
- * Tries to find an ID in \a bmain. There needs to be either a "session_uuid" int or "name" string
+ * Tries to find an ID in \a bmain. There needs to be either a "session_uid" int or "name" string
  * property defined and set. The former has priority. See #WM_operator_properties_id_lookup() for a
  * helper to add the properties.
  */
-ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
-                                                               PointerRNA *ptr,
-                                                               enum ID_Type type);
+ID *WM_operator_properties_id_lookup_from_name_or_session_uid(Main *bmain,
+                                                              PointerRNA *ptr,
+                                                              enum ID_Type type);
 /**
- * Check if either the "session_uuid" or "name" property is set inside \a ptr. If this is the case
- * the ID can be looked up by #WM_operator_properties_id_lookup_from_name_or_session_uuid().
+ * Check if either the "session_uid" or "name" property is set inside \a ptr. If this is the case
+ * the ID can be looked up by #WM_operator_properties_id_lookup_from_name_or_session_uid().
  */
 bool WM_operator_properties_id_lookup_is_set(PointerRNA *ptr);
 /**
- * Adds "name" and "session_uuid" properties so the caller can tell the operator which ID to act
- * on. See #WM_operator_properties_id_lookup_from_name_or_session_uuid(). Both properties will be
+ * Adds "name" and "session_uid" properties so the caller can tell the operator which ID to act
+ * on. See #WM_operator_properties_id_lookup_from_name_or_session_uid(). Both properties will be
  * hidden in the UI and not be saved over consecutive operator calls.
  *
- * \note New operators should probably use "session_uuid" only (set \a add_name_prop to #false),
+ * \note New operators should probably use "session_uid" only (set \a add_name_prop to #false),
  * since this works properly with linked data and/or library overrides (in both cases, multiple IDs
  * with the same name and type may be present). The "name" property is only kept to not break
  * compatibility with old scripts using some previously existing operators.
@@ -1027,9 +1048,9 @@ bool WM_operator_properties_checker_interval_test(const CheckerIntervalParams *o
                                                   int depth);
 
 /**
- * Operator as a Python command (resulting string must be freed).
+ * Operator as a Python command.
  *
- * Print a string representation of the operator,
+ * Return a string representation of the operator,
  * with the arguments that it runs so Python can run it again.
  *
  * When calling from an existing #wmOperator, better to use simple version:
@@ -1037,18 +1058,20 @@ bool WM_operator_properties_checker_interval_test(const CheckerIntervalParams *o
  *
  * \note Both \a op and \a opptr may be `NULL` (\a op is only used for macro operators).
  */
-char *WM_operator_pystring_ex(bContext *C,
-                              wmOperator *op,
-                              bool all_args,
-                              bool macro_args,
-                              wmOperatorType *ot,
-                              PointerRNA *opptr);
-char *WM_operator_pystring(bContext *C, wmOperator *op, bool all_args, bool macro_args);
-/**
- * \return true if the string was shortened.
- */
-bool WM_operator_pystring_abbreviate(char *str, int str_len_max);
-char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index);
+std::string WM_operator_pystring_ex(bContext *C,
+                                    wmOperator *op,
+                                    bool all_args,
+                                    bool macro_args,
+                                    wmOperatorType *ot,
+                                    PointerRNA *opptr);
+std::string WM_operator_pystring(bContext *C, wmOperator *op, bool all_args, bool macro_args);
+
+std::string WM_operator_pystring_abbreviate(std::string str, int str_len_max);
+
+std::optional<std::string> WM_prop_pystring_assign(bContext *C,
+                                                   PointerRNA *ptr,
+                                                   PropertyRNA *prop,
+                                                   int index);
 /**
  * Convert: `some.op` -> `SOME_OT_op` or leave as-is.
  * \return the length of `dst`.
@@ -1069,11 +1092,11 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
 /**
  * Calculate the path to `ptr` from context `C`, or return NULL if it can't be calculated.
  */
-char *WM_context_path_resolve_property_full(const bContext *C,
-                                            const PointerRNA *ptr,
-                                            PropertyRNA *prop,
-                                            int index);
-char *WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr);
+std::optional<std::string> WM_context_path_resolve_property_full(const bContext *C,
+                                                                 const PointerRNA *ptr,
+                                                                 PropertyRNA *prop,
+                                                                 int index);
+std::optional<std::string> WM_context_path_resolve_full(bContext *C, const PointerRNA *ptr);
 
 /* `wm_operator_type.cc` */
 

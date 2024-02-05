@@ -97,17 +97,17 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
                                                               reference_memfile->chunks.first) :
                                                           nullptr;
 
-  /* If we have a reference memfile, we generate a mapping between the session_uuid's of the
+  /* If we have a reference memfile, we generate a mapping between the session_uid's of the
    * IDs stored in that previous undo step, and its first matching memchunk. This will allow
    * us to easily find the existing undo memory storage of IDs even when some re-ordering in
    * current Main data-base broke the order matching with the memchunks from previous step.
    */
   if (reference_memfile != nullptr) {
-    uint current_session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+    uint current_session_uid = MAIN_ID_SESSION_UID_UNSET;
     LISTBASE_FOREACH (MemFileChunk *, mem_chunk, &reference_memfile->chunks) {
-      if (!ELEM(mem_chunk->id_session_uuid, MAIN_ID_SESSION_UUID_UNSET, current_session_uuid)) {
-        current_session_uuid = mem_chunk->id_session_uuid;
-        mem_data->id_session_uuid_mapping.add_new(current_session_uuid, mem_chunk);
+      if (!ELEM(mem_chunk->id_session_uid, MAIN_ID_SESSION_UID_UNSET, current_session_uid)) {
+        current_session_uid = mem_chunk->id_session_uid;
+        mem_data->id_session_uid_mapping.add_new(current_session_uid, mem_chunk);
       }
     }
   }
@@ -115,7 +115,7 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
 
 void BLO_memfile_write_finalize(MemFileWriteData *mem_data)
 {
-  mem_data->id_session_uuid_mapping.clear_and_shrink();
+  mem_data->id_session_uid_mapping.clear_and_shrink();
 }
 
 void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t size)
@@ -132,7 +132,7 @@ void BLO_memfile_chunk_add(MemFileWriteData *mem_data, const char *buf, size_t s
    * perform an undo push may make changes after the last undo push that
    * will then not be undo. Though it's not entirely clear that is wrong behavior. */
   curchunk->is_identical_future = true;
-  curchunk->id_session_uuid = mem_data->current_id_session_uuid;
+  curchunk->id_session_uid = mem_data->current_id_session_uid;
   BLI_addtail(&memfile->chunks, curchunk);
 
   /* we compare compchunk with buf */

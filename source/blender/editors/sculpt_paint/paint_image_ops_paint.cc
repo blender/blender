@@ -16,7 +16,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_paint.hh"
 #include "BKE_undo_system.hh"
 
@@ -319,7 +319,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-  ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
+  ED_image_undo_push_begin(op->type->name, PaintMode::Texture2D);
 
   return pop;
 }

@@ -48,7 +48,7 @@
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 enum ePoseBlendState {
   POSE_BLEND_INIT,
@@ -282,17 +282,19 @@ static Object *get_poselib_object(bContext *C)
 
 static void poselib_tempload_exit(PoseBlendData *pbd)
 {
-  ED_asset_temp_id_consumer_free(&pbd->temp_id_consumer);
+  using namespace blender::ed;
+  asset::temp_id_consumer_free(&pbd->temp_id_consumer);
 }
 
 static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
 {
+  using namespace blender::ed;
   const AssetRepresentationHandle *asset = CTX_wm_asset(C);
 
   PoseBlendData *pbd = static_cast<PoseBlendData *>(op->customdata);
 
-  pbd->temp_id_consumer = ED_asset_temp_id_consumer_create(asset);
-  return (bAction *)ED_asset_temp_id_consumer_ensure_local_id(
+  pbd->temp_id_consumer = asset::temp_id_consumer_create(asset);
+  return (bAction *)asset::temp_id_consumer_ensure_local_id(
       pbd->temp_id_consumer, ID_AC, CTX_data_main(C), op->reports);
 }
 

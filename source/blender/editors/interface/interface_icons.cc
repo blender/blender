@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -39,7 +40,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -47,9 +48,9 @@
 #include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_thumbs.hh"
 
 #include "BIF_glutil.hh"
 
@@ -798,10 +799,10 @@ static ImBuf *create_mono_icon_with_border(ImBuf *buf,
       const int blur_size = 2 / resolution_divider;
       for (int bx = 0; bx < icon_width; bx++) {
         const int asx = std::max(bx - blur_size, 0);
-        const int aex = MIN2(bx + blur_size + 1, icon_width);
+        const int aex = std::min(bx + blur_size + 1, icon_width);
         for (int by = 0; by < icon_height; by++) {
           const int asy = std::max(by - blur_size, 0);
-          const int aey = MIN2(by + blur_size + 1, icon_height);
+          const int aey = std::min(by + blur_size + 1, icon_height);
 
           /* blur alpha channel */
           const int write_offset = by * (ICON_GRID_W + 2 * ICON_MONO_BORDER_OUTSET) + bx;
@@ -949,11 +950,11 @@ static void init_internal_icons()
 {
 #  if 0 /* temp disabled */
   if ((btheme != nullptr) && btheme->tui.iconfile[0]) {
-    char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
+    std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
     char iconfilestr[FILE_MAX];
 
-    if (icondir) {
-      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
+    if (icondir.has_value()) {
+      BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), btheme->tui.iconfile);
 
       /* if the image is missing bbuf will just be nullptr */
       bbuf = IMB_loadiffname(iconfilestr, IB_rect, nullptr);
@@ -1053,14 +1054,14 @@ static void init_internal_icons()
 static void init_iconfile_list(ListBase *list)
 {
   BLI_listbase_clear(list);
-  const char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
+  const std::optional<std::string> icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
 
-  if (icondir == nullptr) {
+  if (!icondir.has_value()) {
     return;
   }
 
   direntry *dir;
-  const int totfile = BLI_filelist_dir_contents(icondir, &dir);
+  const int totfile = BLI_filelist_dir_contents(icondir->c_str(), &dir);
 
   int index = 1;
   for (int i = 0; i < totfile; i++) {
@@ -1077,7 +1078,7 @@ static void init_iconfile_list(ListBase *list)
         /* check to see if the image is the right size, continue if not */
         /* copying strings here should go ok, assuming that we never get back
          * a complete path to file longer than 256 chars */
-        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir, filename);
+        BLI_path_join(iconfilestr, sizeof(iconfilestr), icondir->c_str(), filename);
         bbuf = IMB_loadiffname(iconfilestr, IB_rect);
 
         if (bbuf) {
@@ -2104,7 +2105,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
   else {
     Object *ob = CTX_data_active_object(C);
     const EnumPropertyItem *items = nullptr;
-    ePaintMode paint_mode = PAINT_MODE_INVALID;
+    PaintMode paint_mode = PaintMode::Invalid;
     ScrArea *area = CTX_wm_area(C);
     char space_type = area->spacetype;
     /* Fallback to 3D view. */
@@ -2118,26 +2119,26 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 
     if ((space_type == SPACE_VIEW3D) && ob) {
       if (ob->mode & OB_MODE_SCULPT) {
-        paint_mode = PAINT_MODE_SCULPT;
+        paint_mode = PaintMode::Sculpt;
       }
       else if (ob->mode & OB_MODE_VERTEX_PAINT) {
-        paint_mode = PAINT_MODE_VERTEX;
+        paint_mode = PaintMode::Vertex;
       }
       else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
-        paint_mode = PAINT_MODE_WEIGHT;
+        paint_mode = PaintMode::Weight;
       }
       else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
-        paint_mode = PAINT_MODE_TEXTURE_3D;
+        paint_mode = PaintMode::Texture3D;
       }
       else if (ob->mode & OB_MODE_SCULPT_CURVES) {
-        paint_mode = PAINT_MODE_SCULPT_CURVES;
+        paint_mode = PaintMode::SculptCurves;
       }
     }
     else if (space_type == SPACE_IMAGE) {
       if (area->spacetype == space_type) {
         const SpaceImage *sima = static_cast<const SpaceImage *>(area->spacedata.first);
         if (sima->mode == SI_MODE_PAINT) {
-          paint_mode = PAINT_MODE_TEXTURE_2D;
+          paint_mode = PaintMode::Texture2D;
         }
       }
     }
@@ -2247,7 +2248,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       return id->icon_id;
     }
 
-    if (paint_mode != PAINT_MODE_INVALID) {
+    if (paint_mode != PaintMode::Invalid) {
       items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       const uint tool_offset = BKE_paint_get_brush_tool_offset_from_paintmode(paint_mode);
       const int tool_type = *(char *)POINTER_OFFSET(br, tool_offset);
@@ -2583,8 +2584,11 @@ ImBuf *UI_icon_alert_imbuf_get(eAlertIcon icon)
   UNUSED_VARS(icon);
   return nullptr;
 #else
+  if (icon == ALERT_ICON_NONE) {
+    return nullptr;
+  }
   const int ALERT_IMG_SIZE = 256;
-  icon = eAlertIcon(MIN2(icon, ALERT_ICON_MAX - 1));
+  icon = eAlertIcon(std::min<int>(icon, ALERT_ICON_MAX - 1));
   const int left = icon * ALERT_IMG_SIZE;
   const rcti crop = {left, left + ALERT_IMG_SIZE - 1, 0, ALERT_IMG_SIZE - 1};
   ImBuf *ibuf = IMB_ibImageFromMemory((const uchar *)datatoc_alert_icons_png,

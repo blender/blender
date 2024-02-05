@@ -85,37 +85,37 @@ class FormatHandler : NonCopyable, NonMovable {
   {
     write_impl("vn {:.4f} {:.4f} {:.4f}\n", x, y, z);
   }
-  void write_obj_poly_begin()
+  void write_obj_face_begin()
   {
     write_impl("f");
   }
-  void write_obj_poly_end()
+  void write_obj_face_end()
   {
     write_obj_newline();
   }
-  void write_obj_poly_v_uv_normal(int v, int uv, int n)
+  void write_obj_face_v_uv_normal(int v, int uv, int n)
   {
     write_impl(" {}/{}/{}", v, uv, n);
   }
-  void write_obj_poly_v_normal(int v, int n)
+  void write_obj_face_v_normal(int v, int n)
   {
     write_impl(" {}//{}", v, n);
   }
-  void write_obj_poly_v_uv(int v, int uv)
+  void write_obj_face_v_uv(int v, int uv)
   {
     write_impl(" {}/{}", v, uv);
   }
-  void write_obj_poly_v(int v)
+  void write_obj_face_v(int v)
   {
     write_impl(" {}", v);
   }
   void write_obj_usemtl(StringRef s)
   {
-    write_impl("usemtl {}\n", std::string_view(s));
+    write_impl("usemtl {}\n", s);
   }
   void write_obj_mtllib(StringRef s)
   {
-    write_impl("mtllib {}\n", std::string_view(s));
+    write_impl("mtllib {}\n", s);
   }
   void write_obj_smooth(int s)
   {
@@ -123,11 +123,11 @@ class FormatHandler : NonCopyable, NonMovable {
   }
   void write_obj_group(StringRef s)
   {
-    write_impl("g {}\n", std::string_view(s));
+    write_impl("g {}\n", s);
   }
   void write_obj_object(StringRef s)
   {
-    write_impl("o {}\n", std::string_view(s));
+    write_impl("o {}\n", s);
   }
   void write_obj_edge(int a, int b)
   {
@@ -172,7 +172,7 @@ class FormatHandler : NonCopyable, NonMovable {
 
   void write_mtl_newmtl(StringRef s)
   {
-    write_impl("newmtl {}\n", std::string_view(s));
+    write_impl("newmtl {}\n", s);
   }
   void write_mtl_float(const char *type, float v)
   {
@@ -189,12 +189,12 @@ class FormatHandler : NonCopyable, NonMovable {
   /* NOTE: options, if present, will have its own leading space. */
   void write_mtl_map(const char *type, StringRef options, StringRef value)
   {
-    write_impl("{}{} {}\n", type, std::string_view(options), std::string_view(value));
+    write_impl("{}{} {}\n", type, options, value);
   }
 
   void write_string(StringRef s)
   {
-    write_impl("{}\n", std::string_view(s));
+    write_impl("{}\n", s);
   }
 
  private:

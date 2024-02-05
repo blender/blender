@@ -22,7 +22,7 @@
 
 #include "WM_api.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 
@@ -156,7 +156,7 @@ static PointerRNA rna_gizmo_target_set_operator(wmGizmo *gz,
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s'",
-                ot ? RPT_("Unknown operator") : RPT_("Operator missing srna"),
+                ot ? RPT_("Operator missing srna") : RPT_("Unknown operator"),
                 opname);
     return PointerRNA_NULL;
   }

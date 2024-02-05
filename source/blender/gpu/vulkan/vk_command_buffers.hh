@@ -130,11 +130,8 @@ class VKCommandBuffers : public NonCopyable, NonMovable {
   void draw_indexed(
       int index_count, int instance_count, int first_index, int vertex_offset, int first_instance);
 
-  void draw_indirect(const VKStorageBuffer &buffer,
-                     VkDeviceSize offset,
-                     uint32_t draw_count,
-                     uint32_t stride);
-  void draw_indexed_indirect(const VKStorageBuffer &buffer,
+  void draw_indirect(VkBuffer buffer, VkDeviceSize offset, uint32_t draw_count, uint32_t stride);
+  void draw_indexed_indirect(VkBuffer buffer,
                              VkDeviceSize offset,
                              uint32_t draw_count,
                              uint32_t stride);

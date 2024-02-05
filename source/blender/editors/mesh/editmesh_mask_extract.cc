@@ -16,7 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -47,14 +47,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 static bool geometry_extract_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
   if (ob != nullptr && ob->mode == OB_MODE_SCULPT) {
     if (ob->sculpt->bm) {
-      CTX_wm_operator_poll_msg_set(C, "The geometry can not be extracted with dyntopo activated");
+      CTX_wm_operator_poll_msg_set(C, "The geometry cannot be extracted with dyntopo activated");
       return false;
     }
     return ED_operator_object_active_editable_mesh(C);
@@ -201,7 +201,7 @@ static int geometry_extract_apply(bContext *C,
 
   ushort local_view_bits = 0;
   if (v3d && v3d->localvd) {
-    local_view_bits = v3d->local_view_uuid;
+    local_view_bits = v3d->local_view_uid;
   }
   Object *new_ob = ED_object_add_type(
       C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);
@@ -495,7 +495,7 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
   if (RNA_boolean_get(op->ptr, "new_object")) {
     ushort local_view_bits = 0;
     if (v3d && v3d->localvd) {
-      local_view_bits = v3d->local_view_uuid;
+      local_view_bits = v3d->local_view_uid;
     }
     Object *new_ob = ED_object_add_type(
         C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);

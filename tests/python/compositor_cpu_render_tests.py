@@ -37,7 +37,7 @@ def create_argparse():
     parser.add_argument("-blender", nargs="+")
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-idiff", nargs=1)
+    parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -48,11 +48,11 @@ def main():
 
     blender = args.blender[0]
     test_dir = args.testdir[0]
-    idiff = args.idiff[0]
+    oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("Compositor CPU", output_dir, idiff)
+    report = render_report.Report("Compositor CPU", output_dir, oiiotool)
     report.set_pixelated(True)
     report.set_reference_dir("compositor_cpu_renders")
 

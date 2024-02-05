@@ -17,8 +17,8 @@
 
 #include "BKE_collection.h"
 #include "BKE_context.hh"
-#include "BKE_idtype.h"
-#include "BKE_layer.h"
+#include "BKE_idtype.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
@@ -497,15 +497,30 @@ static int collection_objects_select_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  LayerCollection *layer_collection = outliner_active_layer_collection(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   bool deselect = STREQ(op->idname, "OUTLINER_OT_collection_objects_deselect");
 
-  if (layer_collection == nullptr) {
+  IDsSelectedData selected_collections{};
+  outliner_tree_traverse(space_outliner,
+                         &space_outliner->tree,
+                         0,
+                         TSE_SELECTED,
+                         outliner_collect_selected_collections,
+                         &selected_collections);
+
+  if (selected_collections.selected_array.first == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
+  LISTBASE_FOREACH (LinkData *, link, &selected_collections.selected_array) {
+    TreeElement *te = static_cast<TreeElement *>(link->data);
+    if (te->store_elem->type == TSE_LAYER_COLLECTION) {
+      LayerCollection *layer_collection = static_cast<LayerCollection *>(te->directdata);
+      BKE_layer_collection_objects_select(scene, view_layer, layer_collection, deselect);
+    }
+  }
 
+  BLI_freelistN(&selected_collections.selected_array);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
   ED_outliner_select_sync_from_object_tag(C);

@@ -10,12 +10,11 @@
 #include "DNA_object_types.h"
 #include "DNA_world_types.h"
 
-#include "PIL_time.h"
-
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 
 #include "BKE_context.hh"
 #include "BKE_global.h"
@@ -24,7 +23,7 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GPU_capabilities.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 
 #include "WM_api.hh"
@@ -271,7 +270,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     DRW_deferred_shader_remove(mat);
     /* Shaders could already be compiling. Have to wait for compilation to finish. */
     while (GPU_material_status(mat) == GPU_MAT_QUEUED) {
-      PIL_sleep_ms(20);
+      BLI_sleep_ms(20);
     }
     if (GPU_material_status(mat) == GPU_MAT_CREATED) {
       GPU_material_compile(mat);
@@ -569,7 +568,7 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat)
       DRW_deferred_shader_optimize_remove(mat);
       /* If optimization job had already started, wait for it to complete. */
       while (GPU_material_optimization_status(mat) == GPU_MAT_OPTIMIZATION_QUEUED) {
-        PIL_sleep_ms(20);
+        BLI_sleep_ms(20);
       }
     }
     return;

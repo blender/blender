@@ -83,11 +83,11 @@ void ED_preview_set_visibility(Main *pr_main,
                                ViewLayer *view_layer,
                                ePreviewType pr_type,
                                ePreviewRenderMethod pr_method);
-struct World *ED_preview_prepare_world(Main *pr_main,
-                                       const Scene *scene,
-                                       const World *world,
-                                       ID_Type id_type,
-                                       ePreviewRenderMethod pr_method);
+World *ED_preview_prepare_world(Main *pr_main,
+                                const Scene *scene,
+                                const World *world,
+                                ID_Type id_type,
+                                ePreviewRenderMethod pr_method);
 
 void ED_preview_shader_job(const bContext *C,
                            void *owner,

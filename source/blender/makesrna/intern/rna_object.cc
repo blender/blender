@@ -35,7 +35,7 @@
 #include "BKE_collection.h"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 
@@ -43,7 +43,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.hh */
 #include "ED_mesh.hh"
@@ -314,6 +314,10 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
+#  include <fmt/format.h>
+
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
 #  include "DNA_gpencil_legacy_types.h"
@@ -326,11 +330,11 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
 #  include "BKE_curve.hh"
-#  include "BKE_deform.h"
+#  include "BKE_deform.hh"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
 #  include "BKE_gpencil_modifier_legacy.h"
-#  include "BKE_key.h"
+#  include "BKE_key.hh"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.hh"
@@ -1096,7 +1100,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr,
 static int rna_Object_active_material_index_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  return MAX2(ob->actcol - 1, 0);
+  return std::max<int>(ob->actcol - 1, 0);
 }
 
 static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
@@ -1460,10 +1464,10 @@ static void rna_MaterialSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_MaterialSlot_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_MaterialSlot_path(const PointerRNA *ptr)
 {
   int index = rna_MaterialSlot_index(ptr);
-  return BLI_sprintfN("material_slots[%d]", index);
+  return fmt::format("material_slots[{}]", index);
 }
 
 static int rna_Object_material_slots_length(PointerRNA *ptr)
@@ -1510,9 +1514,9 @@ static PointerRNA rna_Object_display_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ObjectDisplay, ptr->data);
 }
 
-static char *rna_ObjectDisplay_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ObjectDisplay_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("display");
+  return "display";
 }
 
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
@@ -1544,7 +1548,7 @@ static int rna_Object_active_shape_key_index_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
 
-  return MAX2(ob->shapenr - 1, 0);
+  return std::max<int>(ob->shapenr - 1, 0);
 }
 
 static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
@@ -2172,9 +2176,9 @@ static void rna_object_lineart_update(Main * /*bmain*/, Scene * /*scene*/, Point
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
 }
 
-static char *rna_ObjectLineArt_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ObjectLineArt_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("lineart");
+  return "lineart";
 }
 
 static bool mesh_symmetry_get_common(PointerRNA *ptr, const eMeshSymmetryType sym)
@@ -2276,9 +2280,9 @@ static PointerRNA rna_Object_light_linking_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ObjectLightLinking, ptr->data);
 }
 
-static char *rna_ObjectLightLinking_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ObjectLightLinking_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("light_linking");
+  return "light_linking";
 }
 
 static PointerRNA rna_LightLinking_receiver_collection_get(PointerRNA *ptr)

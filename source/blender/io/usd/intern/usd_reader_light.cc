@@ -20,6 +20,7 @@
 #include <pxr/usd/usdLux/shapingAPI.h>
 #include <pxr/usd/usdLux/sphereLight.h>
 
+<<<<<<< HEAD
 #include "usd_lux_api_wrapper.h"
 
 #include <iostream>
@@ -38,6 +39,8 @@ bool get_authored_value(const pxr::UsdAttribute attr, const double motionSampleT
 
 }  // End anonymous namespace.
 
+=======
+>>>>>>> main
 namespace blender::io::usd {
 
 USDLightReader::USDLightReader(const pxr::UsdPrim &prim,

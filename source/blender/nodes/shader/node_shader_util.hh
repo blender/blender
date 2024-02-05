@@ -15,7 +15,7 @@
 
 #include "DNA_node_types.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "NOD_socket_declarations.hh"
 

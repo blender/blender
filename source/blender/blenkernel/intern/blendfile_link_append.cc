@@ -10,6 +10,7 @@
  * collections/objects/object-data in current scene.
  */
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 
@@ -35,12 +36,12 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_idtype.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_idtype.hh"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
@@ -558,7 +559,7 @@ static void loose_data_instantiate_object_base_instance_init(Main *bmain,
   Base *base = BKE_view_layer_base_find(view_layer, ob);
 
   if (v3d != nullptr) {
-    base->local_view_bits |= v3d->local_view_uuid;
+    base->local_view_bits |= v3d->local_view_uid;
   }
 
   if (flag & FILE_AUTOSELECT) {
@@ -1656,7 +1657,7 @@ static void blendfile_library_relocate_remap(Main *bmain,
       old_id->name[dot_pos] = '~';
     }
     else {
-      len = MIN2(len, MAX_ID_NAME - 7);
+      len = std::min<size_t>(len, MAX_ID_NAME - 7);
       BLI_strncpy(&old_id->name[len], "~000", 7);
     }
 

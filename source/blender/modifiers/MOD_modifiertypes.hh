@@ -74,6 +74,14 @@ extern ModifierTypeInfo modifierType_MeshToVolume;
 extern ModifierTypeInfo modifierType_VolumeDisplace;
 extern ModifierTypeInfo modifierType_VolumeToMesh;
 extern ModifierTypeInfo modifierType_GreasePencilOpacity;
+extern ModifierTypeInfo modifierType_GreasePencilSubdiv;
+extern ModifierTypeInfo modifierType_GreasePencilColor;
+extern ModifierTypeInfo modifierType_GreasePencilTint;
+extern ModifierTypeInfo modifierType_GreasePencilSmooth;
+extern ModifierTypeInfo modifierType_GreasePencilOffset;
+extern ModifierTypeInfo modifierType_GreasePencilNoise;
+extern ModifierTypeInfo modifierType_GreasePencilMirror;
+extern ModifierTypeInfo modifierType_GreasePencilThickness;
 
 /* MOD_util.cc */
 

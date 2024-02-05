@@ -12,7 +12,7 @@
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 
 #include "id.h"

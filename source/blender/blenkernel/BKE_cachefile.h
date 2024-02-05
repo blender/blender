@@ -32,7 +32,7 @@ void BKE_cachefile_eval(struct Main *bmain,
                         struct CacheFile *cache_file);
 
 bool BKE_cachefile_filepath_get(const struct Main *bmain,
-                                const struct Depsgraph *depsgrah,
+                                const struct Depsgraph *depsgraph,
                                 const struct CacheFile *cache_file,
                                 char r_filepath[1024]);
 

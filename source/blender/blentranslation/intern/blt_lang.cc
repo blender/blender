@@ -25,9 +25,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
-#include "IMB_thumbs.h"
+#include "IMB_thumbs.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -65,16 +65,18 @@ static void free_locales()
 
 static void fill_locales()
 {
-  const char *const languages_path = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
+  std::optional<std::string> languages_path = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
   char languages[FILE_MAX];
-  LinkNode *lines = nullptr, *line;
+  LinkNode *lines = nullptr, *line = nullptr;
   char *str;
   int idx = 0;
 
   free_locales();
 
-  BLI_path_join(languages, FILE_MAX, languages_path, "languages");
-  line = lines = BLI_file_read_as_lines(languages);
+  if (languages_path.has_value()) {
+    BLI_path_join(languages, FILE_MAX, languages_path->c_str(), "languages");
+    line = lines = BLI_file_read_as_lines(languages);
+  }
 
   /* This whole "parsing" code is a bit weak, in that it expects strictly formatted input file...
    * Should not be a problem, though, as this file is script-generated! */
@@ -181,7 +183,7 @@ EnumPropertyItem *BLT_lang_RNA_enum_properties()
 void BLT_lang_init()
 {
 #ifdef WITH_INTERNATIONAL
-  const char *const messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
+  const std::optional<std::string> messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
 #endif
 
 /* Make sure LANG is correct and wouldn't cause #std::runtime_error. */
@@ -212,8 +214,8 @@ void BLT_lang_init()
 #endif
 
 #ifdef WITH_INTERNATIONAL
-  if (messagepath) {
-    bl_locale_init(messagepath, TEXT_DOMAIN_NAME);
+  if (messagepath.has_value()) {
+    bl_locale_init(messagepath->c_str(), TEXT_DOMAIN_NAME);
     fill_locales();
   }
   else {
@@ -232,8 +234,18 @@ void BLT_lang_free()
 }
 
 #ifdef WITH_INTERNATIONAL
-#  define ULANGUAGE \
-    ((U.language >= ULANGUAGE_AUTO && U.language < num_locales) ? U.language : ULANGUAGE_ENGLISH)
+static uint lang_from_userdef()
+{
+  const uint language = uint(U.language);
+  if ((language >= ULANGUAGE_AUTO) && (language < num_locales)) {
+    return language;
+  }
+  return uint(ULANGUAGE_ENGLISH);
+}
+#endif
+
+#ifdef WITH_INTERNATIONAL
+#  define ULANGUAGE lang_from_userdef()
 #  define LOCALE(_id) (locales ? locales[(_id)] : "")
 #endif
 

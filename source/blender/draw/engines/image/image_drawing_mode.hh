@@ -10,7 +10,8 @@
 
 #include "BKE_image_partial_update.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -503,11 +504,10 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
             float xf = x / (float)texture_width;
             float u = info.clipping_uv_bounds.xmax * xf +
                       info.clipping_uv_bounds.xmin * (1.0 - xf) - tile_offset_x;
-            nearest_interpolation_color(tile_buffer,
-                                        nullptr,
-                                        &extracted_buffer.float_buffer.data[offset * 4],
-                                        u * tile_buffer->x,
-                                        v * tile_buffer->y);
+            imbuf::interpolate_nearest_fl(tile_buffer,
+                                          &extracted_buffer.float_buffer.data[offset * 4],
+                                          u * tile_buffer->x,
+                                          v * tile_buffer->y);
             offset++;
           }
         }
@@ -616,7 +616,6 @@ template<typename TextureMethod> class ScreenSpaceDrawingMode : public AbstractD
                   &texture_buffer,
                   transform_mode,
                   IMB_FILTER_NEAREST,
-                  1,
                   uv_to_texel.ptr(),
                   crop_rect_ptr);
   }

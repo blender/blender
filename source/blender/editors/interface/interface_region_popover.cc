@@ -65,7 +65,7 @@ struct uiPopover {
   wmEventHandler_Keymap *keymap_handler;
 
   uiMenuCreateFunc menu_func;
-  void *menu_arg;
+  const PanelType *menu_arg;
 
   /* Size in pixels (ui scale applied). */
   int ui_size_x;
@@ -119,7 +119,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
     if (pup->menu_func) {
       pup->block->handle = handle;
-      pup->menu_func(C, pup->layout, pup->menu_arg);
+      pup->menu_func(C, pup->layout, const_cast<PanelType *>(pup->menu_arg));
       pup->block->handle = nullptr;
     }
 
@@ -239,12 +239,14 @@ static void ui_block_free_func_POPOVER(void *arg_pup)
   MEM_freeN(pup);
 }
 
-uiPopupBlockHandle *ui_popover_panel_create(
-    bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg)
+uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
+                                            ARegion *butregion,
+                                            uiBut *but,
+                                            uiMenuCreateFunc menu_func,
+                                            const PanelType *panel_type)
 {
   wmWindow *window = CTX_wm_window(C);
   const uiStyle *style = UI_style_get_dpi();
-  const PanelType *panel_type = (PanelType *)arg;
 
   /* Create popover, buttons are created from callback. */
   uiPopover *pup = MEM_cnew<uiPopover>(__func__);
@@ -261,7 +263,7 @@ uiPopupBlockHandle *ui_popover_panel_create(
   }
 
   pup->menu_func = menu_func;
-  pup->menu_arg = arg;
+  pup->menu_arg = panel_type;
 
 #ifdef USE_UI_POPOVER_ONCE
   {

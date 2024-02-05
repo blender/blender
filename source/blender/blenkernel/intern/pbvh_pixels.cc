@@ -16,8 +16,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
-
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "BKE_global.h"
 #include "BKE_image_wrappers.hh"
@@ -213,7 +212,7 @@ static void split_pixel_node(
         if (mid < co1[axis]) {
           t = 1.0f - (mid - co2[axis]) / (co1[axis] - co2[axis]);
 
-          SWAP(UDIMTilePixels *, tile1, tile2);
+          std::swap(tile1, tile2);
         }
         else {
           t = (mid - co1[axis]) / (co2[axis] - co1[axis]);

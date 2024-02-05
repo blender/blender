@@ -5,7 +5,7 @@
 #include "testing/testing.h"
 
 #include "BLI_fileops.hh"
-#include "BLI_hash_mm2a.h"
+#include "BLI_hash_mm2a.hh"
 
 #include "ply_import.hh"
 #include "ply_import_buffer.hh"
@@ -22,7 +22,7 @@ struct Expectation {
   float4 color_first = {-1, -1, -1, -1};
 };
 
-class ply_import_test : public testing::Test {
+class PLYImportTest : public testing::Test {
  public:
   void import_and_check(const char *path, const Expectation &exp)
   {
@@ -90,7 +90,7 @@ class ply_import_test : public testing::Test {
   }
 };
 
-TEST_F(ply_import_test, PLYImportCube)
+TEST_F(PLYImportTest, PLYImportCube)
 {
   Expectation expect = {24,
                         6,
@@ -106,21 +106,21 @@ TEST_F(ply_import_test, PLYImportCube)
   import_and_check("cube_ascii.ply", expect);
 }
 
-TEST_F(ply_import_test, PLYImportWireframeCube)
+TEST_F(PLYImportTest, PLYImportWireframeCube)
 {
   Expectation expect = {8, 0, 0, 12, 0, 31435, float3(-1, -1, -1), float3(1, 1, 1)};
   import_and_check("ASCII_wireframe_cube.ply", expect);
   import_and_check("wireframe_cube.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportBinaryDataStartsWithLF)
+TEST_F(PLYImportTest, PlyImportBinaryDataStartsWithLF)
 {
   Expectation expect = {4, 1, 4, 0, 37235, 0, float3(-1, -1, 0), float3(-1, 1, 0)};
   import_and_check("bin_data_starts_with_lf.ply", expect);
   import_and_check("bin_data_starts_with_lf_header_crlf.ply", expect);
 }
 
-TEST_F(ply_import_test, PLYImportBunny)
+TEST_F(PLYImportTest, PLYImportBunny)
 {
   Expectation expect = {1623,
                         1000,
@@ -133,7 +133,7 @@ TEST_F(ply_import_test, PLYImportBunny)
   import_and_check("bunny2.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportManySmallHoles)
+TEST_F(PLYImportTest, PlyImportManySmallHoles)
 {
   Expectation expect = {2004,
                         3524,
@@ -149,14 +149,14 @@ TEST_F(ply_import_test, PlyImportManySmallHoles)
   import_and_check("many_small_holes.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportColorNotFull)
+TEST_F(PLYImportTest, PlyImportColorNotFull)
 {
   Expectation expect = {4, 1, 4, 0, 37235, 0, float3(1, 0, 1), float3(-1, 0, 1)};
   import_and_check("color_not_full_a.ply", expect);
   import_and_check("color_not_full_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportCustomDataElements)
+TEST_F(PLYImportTest, PlyImportCustomDataElements)
 {
   Expectation expect = {600,
                         0,
@@ -172,7 +172,7 @@ TEST_F(ply_import_test, PlyImportCustomDataElements)
   import_and_check("custom_data_elements.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportDoubleXYZ)
+TEST_F(PLYImportTest, PlyImportDoubleXYZ)
 {
   Expectation expect = {4,
                         1,
@@ -189,28 +189,28 @@ TEST_F(ply_import_test, PlyImportDoubleXYZ)
   import_and_check("double_xyz_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportFaceIndicesNotFirstProp)
+TEST_F(PLYImportTest, PlyImportFaceIndicesNotFirstProp)
 {
   Expectation expect = {4, 2, 6, 0, 4136, 0, float3(1, 0, 1), float3(-1, 0, 1)};
   import_and_check("face_indices_not_first_prop_a.ply", expect);
   import_and_check("face_indices_not_first_prop_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportFaceIndicesPrecededByList)
+TEST_F(PLYImportTest, PlyImportFaceIndicesPrecededByList)
 {
   Expectation expect = {4, 2, 6, 0, 4136, 0, float3(1, 0, 1), float3(-1, 0, 1)};
   import_and_check("face_indices_preceded_by_list_a.ply", expect);
   import_and_check("face_indices_preceded_by_list_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportFaceUVsColors)
+TEST_F(PLYImportTest, PlyImportFaceUVsColors)
 {
   Expectation expect = {4, 1, 4, 0, 37235, 0, float3(1, 0, 1), float3(-1, 0, 1)};
   import_and_check("face_uvs_colors_a.ply", expect);
   import_and_check("face_uvs_colors_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportFacesFirst)
+TEST_F(PLYImportTest, PlyImportFacesFirst)
 {
   Expectation expect = {4,
                         1,
@@ -227,7 +227,7 @@ TEST_F(ply_import_test, PlyImportFacesFirst)
   import_and_check("faces_first_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportFloatFormats)
+TEST_F(PLYImportTest, PlyImportFloatFormats)
 {
   Expectation expect = {4,
                         1,
@@ -244,21 +244,21 @@ TEST_F(ply_import_test, PlyImportFloatFormats)
   import_and_check("float_formats_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportPositionNotFull)
+TEST_F(PLYImportTest, PlyImportPositionNotFull)
 {
   Expectation expect = {0, 0, 0, 0};
   import_and_check("position_not_full_a.ply", expect);
   import_and_check("position_not_full_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportTristrips)
+TEST_F(PLYImportTest, PlyImportTristrips)
 {
   Expectation expect = {6, 4, 12, 0, 3404, 0, float3(1, 0, 1), float3(-3, 0, 1)};
   import_and_check("tristrips_a.ply", expect);
   import_and_check("tristrips_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportTypeAliases)
+TEST_F(PLYImportTest, PlyImportTypeAliases)
 {
   Expectation expect = {4,
                         1,
@@ -276,7 +276,7 @@ TEST_F(ply_import_test, PlyImportTypeAliases)
   import_and_check("type_aliases_be_b.ply", expect);
 }
 
-TEST_F(ply_import_test, PlyImportVertexCompOrder)
+TEST_F(PLYImportTest, PlyImportVertexCompOrder)
 {
   Expectation expect = {4,
                         1,

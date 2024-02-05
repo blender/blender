@@ -21,7 +21,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 #include "BKE_vfont.hh"

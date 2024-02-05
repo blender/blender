@@ -23,7 +23,7 @@
 
 #include "BKE_global.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLT_translation.h"
 
@@ -279,14 +279,14 @@ void UI_fontstyle_draw_simple(
 void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
                                        float x,
                                        float y,
-                                       const char *str,
+                                       const blender::StringRef str,
                                        const float col_fg[4],
                                        const float col_bg[4])
 {
   UI_fontstyle_set(fs);
 
   {
-    const int width = BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+    const int width = BLF_width(fs->uifont_id, str.data(), str.size());
     const int height = BLF_height_max(fs->uifont_id);
     const int decent = BLF_descender(fs->uifont_id);
     const float margin = height / 4.0f;
@@ -302,7 +302,7 @@ void UI_fontstyle_draw_simple_backdrop(const uiFontStyle *fs,
 
   BLF_position(fs->uifont_id, x, y, 0.0f);
   BLF_color4fv(fs->uifont_id, col_fg);
-  BLF_draw(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
+  BLF_draw(fs->uifont_id, str.data(), str.size());
 }
 
 /* ************** helpers ************************ */
@@ -460,8 +460,10 @@ void uiStyleInit()
     if (U.text_render & USER_TEXT_DISABLE_AA) {
       flag_enable |= BLF_MONOCHROME;
     }
-    if (U.text_render & USER_TEXT_RENDER_SUBPIXELAA) {
-      flag_enable |= BLF_RENDER_SUBPIXELAA;
+    else {
+      if (U.text_render & USER_TEXT_RENDER_SUBPIXELAA) {
+        flag_enable |= BLF_RENDER_SUBPIXELAA;
+      }
     }
 
     LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {

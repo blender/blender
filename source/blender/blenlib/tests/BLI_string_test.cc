@@ -53,7 +53,7 @@ TEST(string, StrCopyUTF8_ASCII_Truncate)
     char dst[sizeof(src)]; \
     memset(dst, 0xff, sizeof(dst)); \
     BLI_strncpy_utf8(dst, src, maxncpy); \
-    int len_expect = MIN2(sizeof(src), maxncpy) - 1; \
+    int len_expect = std::min<int>(sizeof(src), maxncpy) - 1; \
     src[len_expect] = '\0'; /* To be able to use `EXPECT_STREQ`. */ \
     EXPECT_EQ(strlen(dst), len_expect); \
     EXPECT_STREQ(dst, src); \

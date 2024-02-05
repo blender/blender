@@ -33,7 +33,7 @@
   { \
     .name = {'\0'}, \
     .module = {'\0'}, \
-    .dirpath = {'\0'}, \
+    .custom_dirpath = {'\0'}, \
     .remote_path = {'\0'}, \
     .flag = 0, \
   }

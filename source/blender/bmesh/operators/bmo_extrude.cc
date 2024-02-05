@@ -265,7 +265,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
     /* not essential, but ensures face normals from extruded edges are contiguous */
     if (BM_vert_is_wire_endpoint(v)) {
       if (v->e->v1 == v) {
-        SWAP(BMVert *, v, dupev);
+        std::swap(v, dupev);
       }
     }
 
@@ -596,7 +596,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
     /* not essential, but ensures face normals from extruded edges are contiguous */
     if (BM_vert_is_wire_endpoint(v)) {
       if (v->e->v1 == v) {
-        SWAP(BMVert *, v, v2);
+        std::swap(v, v2);
       }
     }
 

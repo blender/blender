@@ -26,8 +26,8 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
@@ -50,7 +50,7 @@
 // #  define DEBUG_PRINT
 // #  define DEBUG_TIME
 #  ifdef DEBUG_TIME
-#    include "PIL_time_utildefines.h"
+#    include "BLI_time_utildefines.h"
 #  endif
 
 #  include "BLI_array_store.h"
@@ -680,13 +680,13 @@ static void um_arraystore_free(UndoMesh *um)
  */
 static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, int object_len)
 {
-  /* Map: `Mesh.id.session_uuid` -> `UndoMesh`. */
+  /* Map: `Mesh.id.session_uid` -> `UndoMesh`. */
   GHash *uuid_map = BLI_ghash_ptr_new_ex(__func__, object_len);
   UndoMesh **um_references = static_cast<UndoMesh **>(
       MEM_callocN(sizeof(UndoMesh *) * object_len, __func__));
   for (int i = 0; i < object_len; i++) {
     const Mesh *mesh = static_cast<const Mesh *>(object[i]->data);
-    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uuid), &um_references[i]);
+    BLI_ghash_insert(uuid_map, POINTER_FROM_INT(mesh->id.session_uid), &um_references[i]);
   }
   int uuid_map_len = object_len;
 
@@ -696,8 +696,8 @@ static UndoMesh **mesh_undostep_reference_elems_from_objects(Object **object, in
   UndoMesh *um_iter = static_cast<UndoMesh *>(um_arraystore.local_links.last);
   while (um_iter && (uuid_map_len != 0)) {
     UndoMesh **um_p;
-    if ((um_p = static_cast<UndoMesh **>(BLI_ghash_popkey(
-             uuid_map, POINTER_FROM_INT(um_iter->mesh.id.session_uuid), nullptr))))
+    if ((um_p = static_cast<UndoMesh **>(
+             BLI_ghash_popkey(uuid_map, POINTER_FROM_INT(um_iter->mesh.id.session_uid), nullptr))))
     {
       *um_p = um_iter;
       uuid_map_len--;
@@ -957,7 +957,7 @@ static bool mesh_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 
 #ifdef USE_ARRAY_STORE
     /** As this is only data storage it is safe to set the session ID here. */
-    elem->data.mesh.id.session_uuid = mesh->id.session_uuid;
+    elem->data.mesh.id.session_uid = mesh->id.session_uid;
 #endif
   }
   MEM_freeN(objects);

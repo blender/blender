@@ -14,7 +14,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
@@ -24,7 +24,7 @@
 #include "DNA_space_types.h"
 
 #include "BKE_brush.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 
@@ -265,9 +265,9 @@ static bool rna_ParticleEdit_hair_get(PointerRNA *ptr)
   return 0;
 }
 
-static char *rna_ParticleEdit_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ParticleEdit_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.particle_edit");
+  return "tool_settings.particle_edit";
 }
 
 static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
@@ -393,66 +393,64 @@ static void rna_Sculpt_update(bContext *C, PointerRNA * /*ptr*/)
   }
 }
 
-static char *rna_Sculpt_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_Sculpt_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.sculpt");
+  return "tool_settings.sculpt";
 }
 
-static char *rna_VertexPaint_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_VertexPaint_path(const PointerRNA *ptr)
 {
   const Scene *scene = (Scene *)ptr->owner_id;
   const ToolSettings *ts = scene->toolsettings;
   if (ptr->data == ts->vpaint) {
-    return BLI_strdup("tool_settings.vertex_paint");
+    return "tool_settings.vertex_paint";
   }
-  else {
-    return BLI_strdup("tool_settings.weight_paint");
-  }
+  return "tool_settings.weight_paint";
 }
 
-static char *rna_ImagePaintSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ImagePaintSettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.image_paint");
+  return "tool_settings.image_paint";
 }
 
-static char *rna_PaintModeSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_PaintModeSettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.paint_mode");
+  return "tool_settings.paint_mode";
 }
 
-static char *rna_UvSculpt_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_UvSculpt_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.uv_sculpt");
+  return "tool_settings.uv_sculpt";
 }
 
-static char *rna_CurvesSculpt_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_CurvesSculpt_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.curves_sculpt");
+  return "tool_settings.curves_sculpt";
 }
 
-static char *rna_GpPaint_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GpPaint_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.gpencil_paint");
+  return "tool_settings.gpencil_paint";
 }
 
-static char *rna_GpVertexPaint_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GpVertexPaint_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.gpencil_vertex_paint");
+  return "tool_settings.gpencil_vertex_paint";
 }
 
-static char *rna_GpSculptPaint_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GpSculptPaint_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.gpencil_sculpt_paint");
+  return "tool_settings.gpencil_sculpt_paint";
 }
 
-static char *rna_GpWeightPaint_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GpWeightPaint_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.gpencil_weight_paint");
+  return "tool_settings.gpencil_weight_paint";
 }
 
-static char *rna_ParticleBrush_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ParticleBrush_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.particle_edit.brush");
+  return "tool_settings.particle_edit.brush";
 }
 
 static void rna_Paint_brush_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -554,14 +552,14 @@ static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
   return imapaint->missing_data == 0;
 }
 
-static char *rna_GPencilSculptSettings_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GPencilSculptSettings_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.gpencil_sculpt");
+  return "tool_settings.gpencil_sculpt";
 }
 
-static char *rna_GPencilSculptGuide_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GPencilSculptGuide_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tool_settings.gpencil_sculpt.guide");
+  return "tool_settings.gpencil_sculpt.guide";
 }
 
 static void rna_Sculpt_automasking_invert_cavity_set(PointerRNA *ptr, bool val)
@@ -672,13 +670,6 @@ static void rna_def_paint(BlenderRNA *brna)
       prop,
       "Delay Viewport Updates",
       "Update the geometry when it enters the view, providing faster view navigation");
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
-
-  prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_int_sdna(prop, nullptr, "num_input_samples");
-  RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 1, -1);
-  RNA_def_property_ui_text(
-      prop, "Input Samples", "Average multiple input samples together to smooth the brush stroke");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "use_symmetry_x", PROP_BOOLEAN, PROP_NONE);
@@ -875,6 +866,17 @@ static void rna_def_sculpt(BlenderRNA *brna)
 
     RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
   } while ((++entry)->identifier);
+
+  prop = RNA_def_property(
+      srna, "automasking_boundary_edges_propagation_steps", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "automasking_boundary_edges_propagation_steps");
+  RNA_def_property_range(prop, 1, AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS);
+  RNA_def_property_ui_range(prop, 1, AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS, 1, -1);
+  RNA_def_property_ui_text(prop,
+                           "Propagation Steps",
+                           "Distance where boundary edge automasking is going to protect vertices "
+                           "from the fully masked edge");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "automasking_cavity_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "automasking_cavity_factor");

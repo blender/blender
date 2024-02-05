@@ -48,6 +48,7 @@ class StorageBuf {
   virtual void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) = 0;
   virtual void read(void *data) = 0;
   virtual void async_flush_to_host() = 0;
+  virtual void sync_as_indirect_buffer() = 0;
 };
 
 /* Syntactic sugar. */

@@ -57,13 +57,13 @@ static void set_curve_normal(bke::CurvesGeometry &curves,
                                      fn::make_constant_field<int8_t>(mode));
 
   if (mode == NORMAL_MODE_FREE) {
-    bke::try_capture_field_on_geometry(
-        curves.attributes_for_write(),
-        point_context,
-        "custom_normal",
-        AttrDomain::Point,
-        Field<bool>(std::make_shared<EvaluateOnDomainInput>(selection_field, AttrDomain::Curve)),
-        custom_normal);
+    bke::try_capture_field_on_geometry(curves.attributes_for_write(),
+                                       point_context,
+                                       "custom_normal",
+                                       AttrDomain::Point,
+                                       Field<bool>(std::make_shared<bke::EvaluateOnDomainInput>(
+                                           selection_field, AttrDomain::Curve)),
+                                       custom_normal);
   }
 
   curves.tag_normals_changed();

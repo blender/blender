@@ -10,7 +10,7 @@
  * Functions for generating and handling UUID structs according to RFC4122.
  *
  * Note that these are true UUIDs, not to be confused with the "session uuid" defined in
- * `BLI_session_uuid.h`.
+ * `BLI_session_uid.h`.
  */
 #include "DNA_uuid_types.h"
 

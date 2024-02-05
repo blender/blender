@@ -11,8 +11,6 @@
 #include "BLI_timeit.hh"
 #include "BLI_vector_set.hh"
 
-#include "PIL_time.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -21,6 +19,7 @@
 #include "BKE_image.h"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_update.hh"
@@ -487,6 +486,9 @@ class NodeTreeMainUpdater {
 
     this->propagate_runtime_flags(ntree);
     if (ntree.type == NTREE_GEOMETRY) {
+      if (this->propagate_enum_definitions(ntree)) {
+        result.interface_changed = true;
+      }
       if (node_field_inferencing::update_field_inferencing(ntree)) {
         result.interface_changed = true;
       }
@@ -801,6 +803,214 @@ class NodeTreeMainUpdater {
     }
   }
 
+  bool propagate_enum_definitions(bNodeTree &ntree)
+  {
+    ntree.ensure_interface_cache();
+
+    /* Propagation from right to left to determine which enum
+     * definition to use for menu sockets. */
+    for (bNode *node : ntree.toposort_right_to_left()) {
+      const bool node_updated = this->should_update_individual_node(ntree, *node);
+
+      if (node->typeinfo->type == GEO_NODE_MENU_SWITCH) {
+        /* Generate new enum items when the node has changed, otherwise keep existing items. */
+        if (node_updated) {
+          const NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node->storage);
+          const RuntimeNodeEnumItems *enum_items = this->create_runtime_enum_items(
+              storage.enum_definition);
+
+          bNodeSocket &input = *node->input_sockets()[0];
+          BLI_assert(input.is_available() && input.type == SOCK_MENU);
+          this->set_enum_ptr(*input.default_value_typed<bNodeSocketValueMenu>(), enum_items);
+          /* Remove initial user. */
+          enum_items->remove_user_and_delete_if_last();
+        }
+        continue;
+      }
+      else {
+        /* Clear current enum references. */
+        for (bNodeSocket *socket : node->input_sockets()) {
+          if (socket->is_available() && socket->type == SOCK_MENU) {
+            clear_enum_reference(*socket);
+          }
+        }
+        for (bNodeSocket *socket : node->output_sockets()) {
+          if (socket->is_available() && socket->type == SOCK_MENU) {
+            clear_enum_reference(*socket);
+          }
+        }
+      }
+
+      /* Propagate enum references from output links. */
+      for (bNodeSocket *output : node->output_sockets()) {
+        if (!output->is_available() || output->type != SOCK_MENU) {
+          continue;
+        }
+        for (const bNodeSocket *input : output->directly_linked_sockets()) {
+          if (!input->is_available() || input->type != SOCK_MENU) {
+            continue;
+          }
+          this->update_socket_enum_definition(*output->default_value_typed<bNodeSocketValueMenu>(),
+                                              *input->default_value_typed<bNodeSocketValueMenu>());
+        }
+      }
+
+      if (node->is_group()) {
+        /* Node groups expose internal enum definitions. */
+        if (node->id == nullptr) {
+          continue;
+        }
+        const bNodeTree *group_tree = reinterpret_cast<bNodeTree *>(node->id);
+        group_tree->ensure_interface_cache();
+
+        for (const int socket_i : group_tree->interface_inputs().index_range()) {
+          bNodeSocket &input = *node->input_sockets()[socket_i];
+          const bNodeTreeInterfaceSocket &iosocket = *group_tree->interface_inputs()[socket_i];
+          BLI_assert(STREQ(input.identifier, iosocket.identifier));
+          if (input.is_available() && input.type == SOCK_MENU) {
+            BLI_assert(STREQ(iosocket.socket_type, "NodeSocketMenu"));
+            this->update_socket_enum_definition(
+                *input.default_value_typed<bNodeSocketValueMenu>(),
+                *static_cast<bNodeSocketValueMenu *>(iosocket.socket_data));
+          }
+        }
+      }
+      else if (node->type == GEO_NODE_MENU_SWITCH) {
+        /* First input is always the node's own menu, propagate only to the enum case inputs. */
+        const bNodeSocket *output = node->output_sockets().first();
+        for (bNodeSocket *input : node->input_sockets().drop_front(1)) {
+          if (input->is_available() && input->type == SOCK_MENU) {
+            this->update_socket_enum_definition(
+                *input->default_value_typed<bNodeSocketValueMenu>(),
+                *output->default_value_typed<bNodeSocketValueMenu>());
+          }
+        }
+      }
+      else {
+        /* Propagate over internal relations. */
+        /* XXX Placeholder implementation just propagates all outputs
+         * to all inputs for built-in nodes This could perhaps use
+         * input/output relations to handle propagation generically? */
+        for (bNodeSocket *input : node->input_sockets()) {
+          if (input->is_available() && input->type == SOCK_MENU) {
+            for (const bNodeSocket *output : node->output_sockets()) {
+              if (output->is_available() && output->type == SOCK_MENU) {
+                this->update_socket_enum_definition(
+                    *input->default_value_typed<bNodeSocketValueMenu>(),
+                    *output->default_value_typed<bNodeSocketValueMenu>());
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* Build list of new enum items for the node tree interface. */
+    Vector<bNodeSocketValueMenu> interface_enum_items(ntree.interface_inputs().size(), {0});
+    for (const bNode *group_input_node : ntree.group_input_nodes()) {
+      for (const int socket_i : ntree.interface_inputs().index_range()) {
+        const bNodeSocket &output = *group_input_node->output_sockets()[socket_i];
+
+        if (output.is_available() && output.type == SOCK_MENU) {
+          this->update_socket_enum_definition(interface_enum_items[socket_i],
+                                              *output.default_value_typed<bNodeSocketValueMenu>());
+        }
+      }
+    }
+
+    /* Move enum items to the interface and detect if anything changed. */
+    bool changed = false;
+    for (const int socket_i : ntree.interface_inputs().index_range()) {
+      bNodeTreeInterfaceSocket &iosocket = *ntree.interface_inputs()[socket_i];
+      if (STREQ(iosocket.socket_type, "NodeSocketMenu")) {
+        bNodeSocketValueMenu &dst = *static_cast<bNodeSocketValueMenu *>(iosocket.socket_data);
+        const bNodeSocketValueMenu &src = interface_enum_items[socket_i];
+        if (dst.enum_items != src.enum_items || dst.has_conflict() != src.has_conflict()) {
+          changed = true;
+          if (dst.enum_items) {
+            dst.enum_items->remove_user_and_delete_if_last();
+          }
+          /* Items are moved, no need to change user count. */
+          dst.enum_items = src.enum_items;
+          SET_FLAG_FROM_TEST(dst.runtime_flag, src.has_conflict(), NODE_MENU_ITEMS_CONFLICT);
+        }
+      }
+    }
+
+    return changed;
+  }
+
+  /**
+   * Make a runtime copy of the DNA enum items.
+   * The runtime items list is shared by sockets.
+   */
+  const RuntimeNodeEnumItems *create_runtime_enum_items(const NodeEnumDefinition &enum_def)
+  {
+    RuntimeNodeEnumItems *enum_items = new RuntimeNodeEnumItems();
+    enum_items->items.reinitialize(enum_def.items_num);
+    for (const int i : enum_def.items().index_range()) {
+      const NodeEnumItem &src = enum_def.items()[i];
+      RuntimeNodeEnumItem &dst = enum_items->items[i];
+
+      dst.identifier = src.identifier;
+      dst.name = src.name ? src.name : "";
+      dst.description = src.description ? src.description : "";
+    }
+    return enum_items;
+  }
+
+  void clear_enum_reference(bNodeSocket &socket)
+  {
+    BLI_assert(socket.is_available() && socket.type == SOCK_MENU);
+    bNodeSocketValueMenu &default_value = *socket.default_value_typed<bNodeSocketValueMenu>();
+    this->reset_enum_ptr(default_value);
+    default_value.runtime_flag &= ~NODE_MENU_ITEMS_CONFLICT;
+  }
+
+  void update_socket_enum_definition(bNodeSocketValueMenu &dst, const bNodeSocketValueMenu &src)
+  {
+    if (dst.has_conflict()) {
+      /* Target enum already has a conflict. */
+      BLI_assert(dst.enum_items == nullptr);
+      return;
+    }
+
+    if (src.has_conflict()) {
+      /* Target conflict if any source enum has a conflict. */
+      this->reset_enum_ptr(dst);
+      dst.runtime_flag |= NODE_MENU_ITEMS_CONFLICT;
+    }
+    else if (!dst.enum_items) {
+      /* First connection, set the reference. */
+      this->set_enum_ptr(dst, src.enum_items);
+    }
+    else if (src.enum_items && dst.enum_items != src.enum_items) {
+      /* Error if enum ref does not match other connections. */
+      this->reset_enum_ptr(dst);
+      dst.runtime_flag |= NODE_MENU_ITEMS_CONFLICT;
+    }
+  }
+
+  void reset_enum_ptr(bNodeSocketValueMenu &dst)
+  {
+    if (dst.enum_items) {
+      dst.enum_items->remove_user_and_delete_if_last();
+      dst.enum_items = nullptr;
+    }
+  }
+
+  void set_enum_ptr(bNodeSocketValueMenu &dst, const RuntimeNodeEnumItems *enum_items)
+  {
+    if (dst.enum_items) {
+      dst.enum_items->remove_user_and_delete_if_last();
+      dst.enum_items = nullptr;
+    }
+    if (enum_items) {
+      enum_items->add_user();
+      dst.enum_items = enum_items;
+    }
+  }
+
   void update_link_validation(bNodeTree &ntree)
   {
     const Span<const bNode *> toposort = ntree.toposort_left_to_right();
@@ -812,9 +1022,21 @@ class NodeTreeMainUpdater {
       toposort_indices[node.index()] = i;
     }
 
+    /* Tests if enum references are undefined. */
+    const auto is_invalid_enum_ref = [](const bNodeSocket &socket) -> bool {
+      if (socket.type == SOCK_MENU) {
+        return socket.default_value_typed<bNodeSocketValueMenu>()->enum_items == nullptr;
+      }
+      return false;
+    };
+
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
       if (!link->fromsock->is_available() || !link->tosock->is_available()) {
+        link->flag &= ~NODE_LINK_VALID;
+        continue;
+      }
+      if (is_invalid_enum_ref(*link->fromsock) || is_invalid_enum_ref(*link->tosock)) {
         link->flag &= ~NODE_LINK_VALID;
         continue;
       }
@@ -839,8 +1061,8 @@ class NodeTreeMainUpdater {
   {
     tree.ensure_topology_cache();
 
-    /* Compute a hash that represents the node topology connected to the output. This always has to
-     * be updated even if it is not used to detect changes right now. Otherwise
+    /* Compute a hash that represents the node topology connected to the output. This always has
+     * to be updated even if it is not used to detect changes right now. Otherwise
      * #btree.runtime.output_topology_hash will go out of date. */
     const Vector<const bNodeSocket *> tree_output_sockets = this->find_output_sockets(tree);
     const uint32_t old_topology_hash = tree.runtime->output_topology_hash;
@@ -854,8 +1076,8 @@ class NodeTreeMainUpdater {
        * be used without causing updates all the time currently. In the future we could try to
        * handle other drivers better as well.
        * Note that this optimization only works in practice when the depsgraph didn't also get a
-       * copy-on-write tag for the node tree (which happens when changing node properties). It does
-       * work in a few situations like adding reroutes and duplicating nodes though. */
+       * copy-on-write tag for the node tree (which happens when changing node properties). It
+       * does work in a few situations like adding reroutes and duplicating nodes though. */
       LISTBASE_FOREACH (const FCurve *, fcurve, &adt->drivers) {
         const ChannelDriver *driver = fcurve->driver;
         const StringRef expression = driver->expression;
@@ -878,7 +1100,8 @@ class NodeTreeMainUpdater {
       return true;
     }
 
-    /* The topology hash can only be used when only topology-changing operations have been done. */
+    /* The topology hash can only be used when only topology-changing operations have been done.
+     */
     if (tree.runtime->changed_flag ==
         (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE)))
     {
@@ -931,15 +1154,15 @@ class NodeTreeMainUpdater {
   }
 
   /**
-   * Computes a hash that changes when the node tree topology connected to an output node changes.
-   * Adding reroutes does not have an effect on the hash.
+   * Computes a hash that changes when the node tree topology connected to an output node
+   * changes. Adding reroutes does not have an effect on the hash.
    */
   uint32_t get_combined_socket_topology_hash(const bNodeTree &tree,
                                              Span<const bNodeSocket *> sockets)
   {
     if (tree.has_available_link_cycle()) {
-      /* Return dummy value when the link has any cycles. The algorithm below could be improved to
-       * handle cycles more gracefully. */
+      /* Return dummy value when the link has any cycles. The algorithm below could be improved
+       * to handle cycles more gracefully. */
       return 0;
     }
     Array<uint32_t> hashes = this->get_socket_topology_hashes(tree, sockets);
@@ -1123,8 +1346,8 @@ class NodeTreeMainUpdater {
             }
           }
         }
-        /* The Normal node has a special case, because the value stored in the first output socket
-         * is used as input in the node. */
+        /* The Normal node has a special case, because the value stored in the first output
+         * socket is used as input in the node. */
         if (node.type == SH_NODE_NORMAL && socket.index() == 1) {
           BLI_assert(STREQ(socket.name, "Dot"));
           const bNodeSocket &normal_output = node.output_socket(0);
@@ -1189,7 +1412,7 @@ class NodeTreeMainUpdater {
     }
 
     /* Used to generate new unique IDs if necessary. */
-    RandomNumberGenerator rng(PIL_check_seconds_timer_i() & UINT_MAX);
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
     Map<int32_t, bNestedNodePath> new_path_by_id;
     for (const bNestedNodePath &path : nested_node_paths) {
@@ -1383,7 +1606,7 @@ void BKE_ntree_update_tag_image_user_changed(bNodeTree *ntree, ImageUser * /*ius
 
 uint64_t bNestedNodePath::hash() const
 {
-  return blender::get_default_hash_2(this->node_id, this->id_in_node);
+  return blender::get_default_hash(this->node_id, this->id_in_node);
 }
 
 bool operator==(const bNestedNodePath &a, const bNestedNodePath &b)

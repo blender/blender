@@ -20,7 +20,7 @@
 #include "BLI_fileops.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -15,7 +15,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -818,7 +818,7 @@ static void autokeyframe_object(bContext *C, Scene *scene, Object *ob, const eTf
   const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
       eRotationModes(ob->rotmode));
 
-  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+  if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
     rna_paths = get_affected_rna_paths_from_transform_mode(
         tmode, scene, view_layer, ob, rotation_path);
   }

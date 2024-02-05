@@ -162,7 +162,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 
   if (has_curves && !has_bezier) {
-    params.error_message_add(NodeWarningType::Info, TIP_("Input curves do not have Bezier type"));
+    params.error_message_add(NodeWarningType::Info, TIP_("Input curves do not have Bézier type"));
   }
 
   params.set_output("Curve", std::move(geometry_set));

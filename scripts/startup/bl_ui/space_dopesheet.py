@@ -240,23 +240,42 @@ class DOPESHEET_HT_editor_buttons:
         # Layer management
         if st.mode == 'GPENCIL':
             ob = context.active_object
-            enable_but = ob is not None and ob.type == 'GPENCIL'
 
-            row = layout.row(align=True)
-            row.enabled = enable_but
-            row.operator("gpencil.layer_add", icon='ADD', text="")
-            row.operator("gpencil.layer_remove", icon='REMOVE', text="")
-            row.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
+            if context.preferences.experimental.use_grease_pencil_version3:
+                enable_but = ob is not None and ob.type == 'GREASEPENCIL'
 
-            row = layout.row(align=True)
-            row.enabled = enable_but
-            row.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-            row.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("grease_pencil.layer_add", icon='ADD', text="")
+                row.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
+                row.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
 
-            row = layout.row(align=True)
-            row.enabled = enable_but
-            row.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
-            row.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("anim.channels_move", icon='TRIA_UP', text="").direction = 'UP'
+                row.operator("anim.channels_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("grease_pencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+                row.operator("grease_pencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
+            else:
+                enable_but = ob is not None and ob.type == 'GPENCIL'
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("gpencil.layer_add", icon='ADD', text="")
+                row.operator("gpencil.layer_remove", icon='REMOVE', text="")
+                row.menu("GPENCIL_MT_layer_context_menu", icon='DOWNARROW_HLT', text="")
+
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
+                row.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("gpencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+                row.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
 
         layout.separator_spacer()
 
@@ -363,11 +382,15 @@ class DOPESHEET_MT_view(Menu):
 
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
+        layout.separator()
 
+        layout.operator("action.view_selected")
+        layout.operator("action.view_all")
+        layout.operator("action.view_frame")
         layout.separator()
 
         layout.prop(st.dopesheet, "use_multi_word_filter", text="Multi-Word Match Search")
-
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
@@ -380,31 +403,24 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "show_interpolation")
         layout.prop(st, "show_extremes")
         layout.prop(st, "use_auto_merge_keyframes")
-
         layout.separator()
+
         layout.prop(st, "show_markers")
-
-        layout.separator()
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")
-
         layout.separator()
+
         layout.operator("anim.previewrange_set")
         layout.operator("anim.previewrange_clear")
         layout.operator("action.previewrange_set")
-
         layout.separator()
-        layout.operator("action.view_all")
-        layout.operator("action.view_selected")
-        layout.operator("action.view_frame")
 
         # Add this to show key-binding (reverse action in dope-sheet).
-        layout.separator()
         props = layout.operator("wm.context_set_enum", text="Toggle Graph Editor", icon='GRAPH')
         props.data_path = "area.type"
         props.value = 'GRAPH_EDITOR'
-
         layout.separator()
+
         layout.menu("INFO_MT_area")
 
 

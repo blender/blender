@@ -32,7 +32,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -271,6 +271,9 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+#  include <fmt/format.h>
+
 #  include "DNA_curve_types.h"
 #  include "DNA_fluid_types.h"
 #  include "DNA_material_types.h"
@@ -372,13 +375,13 @@ static void rna_GpencilModifier_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(nullptr, "grease_pencil_modifiers", oldname, gmd->name);
 }
 
-static char *rna_GpencilModifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_GpencilModifier_path(const PointerRNA *ptr)
 {
   const GpencilModifierData *gmd = static_cast<GpencilModifierData *>(ptr->data);
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
-  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"]", name_esc);
+  return fmt::format("grease_pencil_modifiers[\"{}\"]", name_esc);
 }
 
 static void rna_GpencilModifier_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -488,7 +491,7 @@ static void rna_TimeModifier_start_frame_set(PointerRNA *ptr, int value)
   tmd->sfra = value;
 
   if (tmd->sfra >= tmd->efra) {
-    tmd->efra = MIN2(tmd->sfra, MAXFRAME);
+    tmd->efra = std::min(tmd->sfra, MAXFRAME);
   }
 }
 
@@ -499,7 +502,7 @@ static void rna_TimeModifier_end_frame_set(PointerRNA *ptr, int value)
   tmd->efra = value;
 
   if (tmd->sfra >= tmd->efra) {
-    tmd->sfra = MAX2(tmd->efra, MINFRAME);
+    tmd->sfra = std::max(tmd->efra, MINFRAME);
   }
 }
 
@@ -795,7 +798,7 @@ static void rna_Lineart_start_level_set(PointerRNA *ptr, int value)
 
   CLAMP(value, 0, 128);
   lmd->level_start = value;
-  lmd->level_end = MAX2(value, lmd->level_end);
+  lmd->level_end = std::max<short>(value, lmd->level_end);
 }
 
 static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
@@ -804,7 +807,7 @@ static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
 
   CLAMP(value, 0, 128);
   lmd->level_end = value;
-  lmd->level_start = MIN2(value, lmd->level_start);
+  lmd->level_start = std::min<short>(value, lmd->level_start);
 }
 
 static void rna_GpencilDash_segments_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -825,7 +828,7 @@ static void rna_GpencilTime_segments_begin(CollectionPropertyIterator *iter, Poi
                            nullptr);
 }
 
-static char *rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
 {
   TimeGpencilModifierSegment *ds = (TimeGpencilModifierSegment *)ptr->data;
 
@@ -839,10 +842,10 @@ static char *rna_TimeGpencilModifierSegment_path(const PointerRNA *ptr)
   char ds_name_esc[sizeof(ds->name) * 2];
   BLI_str_escape(ds_name_esc, ds->name, sizeof(ds_name_esc));
 
-  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"].segments[\"%s\"]", name_esc, ds_name_esc);
+  return fmt::format("grease_pencil_modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
 }
 
-static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
 
 {
   const DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
@@ -857,7 +860,7 @@ static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
   char ds_name_esc[sizeof(ds->name) * 2];
   BLI_str_escape(ds_name_esc, ds->name, sizeof(ds_name_esc));
 
-  return BLI_sprintfN("grease_pencil_modifiers[\"%s\"].segments[\"%s\"]", name_esc, ds_name_esc);
+  return fmt::format("grease_pencil_modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
 }
 
 static bool dash_segment_name_exists_fn(void *arg, const char *name)
@@ -4705,7 +4708,7 @@ void RNA_def_greasepencil_modifier(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "ui_expand_flag", 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   prop = RNA_def_boolean(srna,
                          "is_override_data",

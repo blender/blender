@@ -41,8 +41,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "clip_intern.h" /* own include */
 
@@ -555,8 +555,6 @@ void uiTemplateMarker(uiLayout *layout,
                           &cb->marker_pos[0],
                           -10 * width,
                           10.0 * width,
-                          0,
-                          0,
                           TIP_("X-position of marker at frame in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -571,8 +569,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_pos[1],
                    -10 * height,
                    10.0 * height,
-                   0,
-                   0,
                    TIP_("Y-position of marker at frame in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -602,8 +598,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->track_offset[0],
                    -10 * width,
                    10.0 * width,
-                   0,
-                   0,
                    TIP_("X-offset to parenting point"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -618,8 +612,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->track_offset[1],
                    -10 * height,
                    10.0 * height,
-                   0,
-                   0,
                    TIP_("Y-offset to parenting point"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -649,8 +641,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_pat[0],
                    3.0f,
                    10.0 * width,
-                   0,
-                   0,
                    TIP_("Width of marker's pattern in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -665,8 +655,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_pat[1],
                    3.0f,
                    10.0 * height,
-                   0,
-                   0,
                    TIP_("Height of marker's pattern in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -696,8 +684,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_search_pos[0],
                    -width,
                    width,
-                   0,
-                   0,
                    TIP_("X-position of search at frame relative to marker's position"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -712,8 +698,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_search_pos[1],
                    -height,
                    height,
-                   0,
-                   0,
                    TIP_("Y-position of search at frame relative to marker's position"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -728,8 +712,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_search[0],
                    3.0f,
                    10.0 * width,
-                   0,
-                   0,
                    TIP_("Width of marker's search in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);
@@ -744,8 +726,6 @@ void uiTemplateMarker(uiLayout *layout,
                    &cb->marker_search[1],
                    3.0f,
                    10.0 * height,
-                   0,
-                   0,
                    TIP_("Height of marker's search in screen coordinates"));
     UI_but_number_step_size_set(bt, step);
     UI_but_number_precision_set(bt, digits);

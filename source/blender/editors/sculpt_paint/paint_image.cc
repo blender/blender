@@ -20,8 +20,8 @@
 
 #include "BLT_translation.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_material_types.h"
@@ -66,7 +66,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "paint_intern.hh"
 
@@ -489,7 +489,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
   }
 
   if (enabled) {
-    BKE_paint_init(bmain, scene, PAINT_MODE_TEXTURE_2D, PAINT_CURSOR_TEXTURE_PAINT);
+    BKE_paint_init(bmain, scene, PaintMode::Texture2D, PAINT_CURSOR_TEXTURE_PAINT);
 
     ED_paint_cursor_start(&imapaint->paint, ED_image_tools_paint_poll);
   }
@@ -642,7 +642,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
   ARegion *region = CTX_wm_region(C);
   wmWindow *win = CTX_wm_window(C);
   const bool show_cursor = ((paint->flags & PAINT_SHOW_BRUSH) != 0);
@@ -655,7 +655,7 @@ static int sample_color_exec(bContext *C, wmOperator *op)
 
   RNA_int_get_array(op->ptr, "location", location);
   const bool use_palette = RNA_boolean_get(op->ptr, "palette");
-  const bool use_sample_texture = (mode == PAINT_MODE_TEXTURE_3D) &&
+  const bool use_sample_texture = (mode == PaintMode::Texture3D) &&
                                   !RNA_boolean_get(op->ptr, "merged");
 
   paint_sample_color(C, region, location[0], location[1], use_sample_texture, use_palette);
@@ -695,8 +695,8 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent *event
 
   RNA_int_set_array(op->ptr, "location", event->mval);
 
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-  const bool use_sample_texture = (mode == PAINT_MODE_TEXTURE_3D) &&
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
+  const bool use_sample_texture = (mode == PaintMode::Texture3D) &&
                                   !RNA_boolean_get(op->ptr, "merged");
 
   paint_sample_color(C, region, event->mval[0], event->mval[1], use_sample_texture, false);
@@ -730,8 +730,8 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_FINISHED;
   }
 
-  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-  const bool use_sample_texture = (mode == PAINT_MODE_TEXTURE_3D) &&
+  PaintMode mode = BKE_paintmode_get_active_from_context(C);
+  const bool use_sample_texture = (mode == PaintMode::Texture3D) &&
                                   !RNA_boolean_get(op->ptr, "merged");
 
   switch (event->type) {
@@ -818,8 +818,12 @@ static blender::float3 paint_init_pivot_mesh(Object *ob)
 static blender::float3 paint_init_pivot_curves(Object *ob)
 {
   const Curves &curves = *static_cast<const Curves *>(ob->data);
-  const blender::Bounds<blender::float3> bounds = *curves.geometry.wrap().bounds_min_max();
-  return blender::math::midpoint(bounds.min, bounds.max);
+  const std::optional<blender::Bounds<blender::float3>> bounds =
+      curves.geometry.wrap().bounds_min_max();
+  if (bounds.has_value()) {
+    return blender::math::midpoint(bounds->min, bounds->max);
+  }
+  return blender::float3(0);
 }
 
 static blender::float3 paint_init_pivot_grease_pencil(Object *ob, const int frame)
@@ -894,7 +898,7 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain,
 
   ob->mode |= OB_MODE_TEXTURE_PAINT;
 
-  BKE_paint_init(bmain, scene, PAINT_MODE_TEXTURE_3D, PAINT_CURSOR_TEXTURE_PAINT);
+  BKE_paint_init(bmain, scene, PaintMode::Texture3D, PAINT_CURSOR_TEXTURE_PAINT);
 
   BKE_paint_toolslots_brush_validate(bmain, &imapaint->paint);
 
@@ -1087,7 +1091,7 @@ void ED_imapaint_bucket_fill(bContext *C, float color[3], wmOperator *op, const 
   if (sima && sima->image) {
     Image *ima = sima->image;
 
-    ED_image_undo_push_begin(op->type->name, PAINT_MODE_TEXTURE_2D);
+    ED_image_undo_push_begin(op->type->name, PaintMode::Texture2D);
 
     const float mouse_init[2] = {float(mouse[0]), float(mouse[1])};
     paint_2d_bucket_fill(C, color, nullptr, mouse_init, nullptr, nullptr);

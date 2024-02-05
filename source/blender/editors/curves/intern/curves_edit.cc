@@ -125,6 +125,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
     switch (meta_data.domain) {
       case bke::AttrDomain::Curve: {
         if (id.name() == "cyclic") {
+          attribute.finish();
           return true;
         }
         bke::attribute_math::gather(

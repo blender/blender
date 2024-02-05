@@ -10,6 +10,7 @@ if(WITH_COMPOSITOR_CPU)
     intern
     nodes
     operations
+    algorithms
     realtime_compositor
     ../blenkernel
     ../blentranslation
@@ -587,11 +588,11 @@ if(WITH_COMPOSITOR_CPU)
     operations/COM_MovieClipOperation.cc
     operations/COM_MovieClipOperation.h
 
-    operations/COM_AntiAliasOperation.cc
-    operations/COM_AntiAliasOperation.h
-
     operations/COM_MaskOperation.cc
     operations/COM_MaskOperation.h
+
+    algorithms/COM_JumpFloodingAlgorithm.cc
+    algorithms/COM_JumpFloodingAlgorithm.h
   )
 
   set(LIB

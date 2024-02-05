@@ -16,7 +16,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"

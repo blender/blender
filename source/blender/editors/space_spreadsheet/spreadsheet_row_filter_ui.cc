@@ -31,8 +31,7 @@
 
 #include <sstream>
 
-using namespace blender;
-using namespace blender::ed::spreadsheet;
+namespace blender::ed::spreadsheet {
 
 static void filter_panel_id_fn(void * /*row_filter_v*/, char *r_name)
 {
@@ -367,3 +366,5 @@ void register_row_filter_panels(ARegionType &region_type)
     BLI_addtail(&region_type.paneltypes, panel_type);
   }
 }
+
+}  // namespace blender::ed::spreadsheet

@@ -22,7 +22,6 @@
 #include <pxr/usd/usdSkel/tokens.h>
 
 #include <functional>
-#include <iostream>
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};

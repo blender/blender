@@ -16,6 +16,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -28,8 +29,6 @@
 #include "WM_types.hh"
 #include "wm.hh"
 #include "wm_event_types.hh"
-
-#include "PIL_time.h"
 
 /*
  * Add new job
@@ -498,7 +497,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
         wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, time_step);
       }
 
-      wm_job->start_time = PIL_check_seconds_timer();
+      wm_job->start_time = BLI_check_seconds_timer();
     }
     else {
       printf("job fails, not initialized\n");
@@ -680,7 +679,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
         if (G.debug & G_DEBUG_JOBS) {
           printf("Job '%s' finished in %f seconds\n",
                  wm_job->name,
-                 PIL_check_seconds_timer() - wm_job->start_time);
+                 BLI_check_seconds_timer() - wm_job->start_time);
         }
 
         wm_job->running = false;

@@ -10,12 +10,12 @@
 
 #include <cstdio>
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -23,8 +23,9 @@
 
 static int blf_load_font_default(const char *filename, const bool unique)
 {
-  const char *dir = BKE_appdir_folder_id(BLENDER_DATAFILES, BLF_DATAFILES_FONTS_DIR);
-  if (dir == nullptr) {
+  const std::optional<std::string> dir = BKE_appdir_folder_id(BLENDER_DATAFILES,
+                                                              BLF_DATAFILES_FONTS_DIR);
+  if (!dir.has_value()) {
     fprintf(stderr,
             "%s: 'fonts' data path not found for '%s', will not be able to display text\n",
             __func__,
@@ -33,7 +34,7 @@ static int blf_load_font_default(const char *filename, const bool unique)
   }
 
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), dir, filename);
+  BLI_path_join(filepath, sizeof(filepath), dir->c_str(), filename);
 
   return (unique) ? BLF_load_unique(filepath) : BLF_load(filepath);
 }
@@ -55,18 +56,15 @@ int BLF_load_mono_default(const bool unique)
 static void blf_load_datafiles_dir()
 {
   const char *datafiles_fonts_dir = BLF_DATAFILES_FONTS_DIR SEP_STR;
-  const char *path = BKE_appdir_folder_id(BLENDER_DATAFILES, datafiles_fonts_dir);
-  if (UNLIKELY(!path)) {
+  const std::optional<std::string> path = BKE_appdir_folder_id(BLENDER_DATAFILES,
+                                                               datafiles_fonts_dir);
+  if (!path.has_value()) {
     fprintf(stderr, "Font data directory \"%s\" could not be detected!\n", datafiles_fonts_dir);
-    return;
-  }
-  if (UNLIKELY(!BLI_exists(path))) {
-    fprintf(stderr, "Font data directory \"%s\" does not exist!\n", path);
     return;
   }
 
   direntry *file_list;
-  uint file_list_num = BLI_filelist_dir_contents(path, &file_list);
+  uint file_list_num = BLI_filelist_dir_contents(path->c_str(), &file_list);
   for (int i = 0; i < file_list_num; i++) {
     if (S_ISDIR(file_list[i].s.st_mode)) {
       continue;

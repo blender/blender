@@ -73,11 +73,11 @@ class ReleaseLogLine:
     def __format_as_steam(self) -> str:
         return f"* {self.title} ([url={self.url}]{self.ref}[/url])"
 
-    def __format_as_wiki(self) -> str:
+    def __format_as_markdown(self) -> str:
         if self.issue_id:
-            return f"* {self.title} [{{{{BugReport|{self.issue_id}}}}}]"
+            return f"* {self.title} ({self.issue_repo}#{self.issue_id})"
         else:
-            return f"* {self.title} [{{{{GitCommit|{self.commit_id[2:]}}}}}]"
+            return f"* {self.title} ({self.commit_repo}@{self.commit_id})"
 
     def format(self, format: str) -> str:
         """
@@ -90,8 +90,8 @@ class ReleaseLogLine:
             return self.__format_as_html()
         elif format == 'steam':
             return self.__format_as_steam()
-        elif format == 'wiki':
-            return self.__format_as_wiki()
+        elif format == 'markdown':
+            return self.__format_as_markdown()
         else:
             return self.__format_as_text()
 

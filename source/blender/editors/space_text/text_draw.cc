@@ -6,9 +6,11 @@
  * \ingroup sptext
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_blenlib.h"
 
@@ -254,7 +256,7 @@ void space_text_wrap_offset(
     *offc = 0;
     for (i = 0, j = 0; linep->line[j]; j += BLI_str_utf8_size_safe(linep->line + j)) {
       int chars;
-      int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
+      const int columns = BLI_str_utf8_char_width_safe(linep->line + j); /* = 1 for tab */
 
       /* Mimic replacement of tabs */
       ch = linep->line[j];
@@ -271,7 +273,7 @@ void space_text_wrap_offset(
 
       while (chars--) {
         if (i + columns - start > max) {
-          end = MIN2(end, i);
+          end = std::min(end, i);
 
           if (chop && linep == linein && i >= cursin) {
             if (i == cursin) {
@@ -331,7 +333,7 @@ void space_text_wrap_offset_in_line(
   cursin = BLI_str_utf8_offset_to_column(linein->line, linein->len, cursin);
 
   for (i = 0, j = 0; linein->line[j]; j += BLI_str_utf8_size_safe(linein->line + j)) {
-    int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
+    const int columns = BLI_str_utf8_char_width_safe(linein->line + j); /* = 1 for tab */
 
     /* Mimic replacement of tabs */
     ch = linein->line[j];
@@ -348,7 +350,7 @@ void space_text_wrap_offset_in_line(
 
     while (chars--) {
       if (i + columns - start > max) {
-        end = MIN2(end, i);
+        end = std::min(end, i);
 
         if (chop && i >= cursin) {
           if (i == cursin) {
@@ -395,10 +397,9 @@ int space_text_get_char_pos(const SpaceText *st, const char *line, int cur)
 
 static const char *txt_utf8_forward_columns(const char *str, int columns, int *padding)
 {
-  int col;
   const char *p = str;
   while (*p) {
-    col = BLI_str_utf8_char_width_safe(p);
+    const int col = BLI_str_utf8_char_width_safe(p);
     if (columns - col < 0) {
       break;
     }
@@ -524,12 +525,12 @@ static void space_text_draw(const SpaceText *st,
 {
   const bool use_syntax = (tdc->syntax_highlight && format);
   FlattenString fs;
-  int columns, size, n, w = 0, padding, amount = 0;
+  int n, w = 0, padding, amount = 0;
   const char *in = nullptr;
 
   for (n = flatten_string(st, &fs, str), str = fs.buf; n > 0; n--) {
-    columns = BLI_str_utf8_char_width_safe(str);
-    size = BLI_str_utf8_size_safe(str);
+    const int columns = BLI_str_utf8_char_width_safe(str);
+    const int size = BLI_str_utf8_size_safe(str);
 
     if (!in) {
       if (w >= cshift) {
@@ -817,7 +818,7 @@ int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, con
   start = 0;
   end = max;
   for (i = 0, j = 0; str[j]; j += BLI_str_utf8_size_safe(str + j)) {
-    int columns = BLI_str_utf8_char_width_safe(str + j); /* = 1 for tab */
+    const int columns = BLI_str_utf8_char_width_safe(str + j); /* = 1 for tab */
 
     /* Mimic replacement of tabs */
     ch = str[j];
@@ -940,7 +941,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *region, rcti *scroll, rcti *b
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->curl);
   sell_off = space_text_get_span_wrap(
       st, region, static_cast<TextLine *>(st->text->lines.first), st->text->sell);
-  lhlstart = MIN2(curl_off, sell_off);
+  lhlstart = std::min(curl_off, sell_off);
   lhlend = std::max(curl_off, sell_off);
 
   if (ltexth > 0) {
@@ -1673,7 +1674,7 @@ void space_text_update_character_width(SpaceText *st)
 
   text_font_begin(&tdc);
   st->runtime->cwidth_px = BLF_fixed_width(tdc.font_id);
-  st->runtime->cwidth_px = MAX2(st->runtime->cwidth_px, char(1));
+  st->runtime->cwidth_px = std::max(st->runtime->cwidth_px, 1);
   text_font_end(&tdc);
 }
 

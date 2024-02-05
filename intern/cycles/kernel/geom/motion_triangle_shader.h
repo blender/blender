@@ -35,13 +35,14 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   sd->shader = kernel_data_fetch(tri_shader, sd->prim);
 
   /* Compute motion info. */
-  int numsteps, numverts, step;
+  int numsteps, step;
   float t;
   uint3 tri_vindex;
   motion_triangle_compute_info(
-      kg, sd->object, sd->time, sd->prim, &tri_vindex, &numsteps, &numverts, &step, &t);
+      kg, sd->object, sd->time, sd->prim, &tri_vindex, &numsteps, &step, &t);
 
   float3 verts[3];
+  const int numverts = kernel_data_fetch(objects, sd->object).numverts;
   motion_triangle_vertices(kg, sd->object, tri_vindex, numsteps, numverts, step, t, verts);
 
   /* Compute refined position. */
@@ -64,7 +65,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   /* Compute smooth normal. */
   if (sd->shader & SHADER_SMOOTH_NORMAL) {
     sd->N = motion_triangle_smooth_normal(
-        kg, Ng, sd->object, tri_vindex, numsteps, numverts, step, t, sd->u, sd->v);
+        kg, Ng, sd->object, tri_vindex, numsteps, step, t, sd->u, sd->v);
   }
 }
 

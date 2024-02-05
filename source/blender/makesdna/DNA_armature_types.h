@@ -279,7 +279,7 @@ typedef struct BoneCollection {
    *
    * Note that its effective visibility depends on the visibility of its ancestors as well.
    *
-   * \see is_visible_effectively
+   * \see is_visible_with_ancestors
    * \see ANIM_bonecoll_show
    * \see ANIM_bonecoll_hide
    */
@@ -288,18 +288,30 @@ typedef struct BoneCollection {
   /**
    * Return whether this collection's ancestors are visible or not.
    *
-   * \see is_visible_effectively
+   * \see is_visible_with_ancestors
    */
   bool is_visible_ancestors() const;
 
   /**
-   * Return whether this collection is effectively visible.
+   * Return whether this collection is visible, taking into account the
+   * visibility of its ancestors.
    *
    * \return true when this collection and all its ancestors are visible.
    *
    * \see is_visible
    */
-  bool is_visible_effectively() const;
+  bool is_visible_with_ancestors() const;
+
+  /**
+   * Return whether this collection is marked as 'solo'.
+   */
+  bool is_solo() const;
+  /**
+   * Whether or not this bone collection is expanded in the tree view.
+   *
+   * This corresponds to the #BONE_COLLECTION_EXPANDED flag.
+   */
+  bool is_expanded() const;
 #endif
 } BoneCollection;
 
@@ -333,8 +345,14 @@ typedef enum eArmature_Flag {
    * from the tail, set = drawn from the head). Only controls the parent side of
    * the line; the child side is always drawn to the head of the bone. */
   ARM_DRAW_RELATION_FROM_HEAD = (1 << 5), /* Cleared in versioning of pre-2.80 files. */
-  ARM_FLAG_UNUSED_6 = (1 << 6),           /* cleared */
-  ARM_FLAG_UNUSED_7 = (1 << 7),           /* cleared */
+  /**
+   * Whether any bone collection is marked with the 'solo' flag.
+   * When this is the case, bone collection visibility flags don't matter any more, and only ones
+   * that have their 'solo' flag set will be visible.
+   *
+   * \see eBoneCollection_Flag::BONE_COLLECTION_SOLO */
+  ARM_BCOLL_SOLO_ACTIVE = (1 << 6), /* Cleared in versioning of pre-2.80 files. */
+  ARM_FLAG_UNUSED_7 = (1 << 7),     /* cleared */
   ARM_MIRROR_EDIT = (1 << 8),
   ARM_FLAG_UNUSED_9 = (1 << 9),
   /** Made option negative, for backwards compatibility. */
@@ -509,8 +527,23 @@ typedef enum eBoneCollection_Flag {
    * runtime struct yet, and the addition of one more flag doesn't seem worth
    * the effort. */
   BONE_COLLECTION_ANCESTORS_VISIBLE = (1 << 3),
+
+  /**
+   * Whether this bone collection is marked as 'solo'.
+   *
+   * If no bone collections have this flag set, visibility is determined by
+   * BONE_COLLECTION_VISIBLE.
+   *
+   * If there is any bone collection with the BONE_COLLECTION_SOLO flag enabled, all bone
+   * collections are effectively hidden, except other collections with this flag enabled.
+   *
+   * \see eArmature_Flag::ARM_BCOLL_SOLO_ACTIVE
+   */
+  BONE_COLLECTION_SOLO = (1 << 4),
+
+  BONE_COLLECTION_EXPANDED = (1 << 5), /* Expanded in the tree view. */
 } eBoneCollection_Flag;
-ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_ANCESTORS_VISIBLE)
+ENUM_OPERATORS(eBoneCollection_Flag, BONE_COLLECTION_EXPANDED)
 
 #ifdef __cplusplus
 

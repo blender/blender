@@ -19,6 +19,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_time.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -37,8 +38,6 @@
 #include "GPU_viewport.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "PIL_time.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1115,7 +1114,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
     return;
   }
 
-  const int64_t time_now = int64_t(PIL_check_seconds_timer() * 1000);
+  const int64_t time_now = int64_t(BLI_check_seconds_timer() * 1000);
 
   ListBase *active_modal_actions = &action_set->active_modal_actions;
   ListBase *active_haptic_actions = &action_set->active_haptic_actions;

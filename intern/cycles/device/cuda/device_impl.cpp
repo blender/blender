@@ -97,17 +97,29 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
   cuda_assert(cuDeviceGetAttribute(
       &pitch_alignment, CU_DEVICE_ATTRIBUTE_TEXTURE_PITCH_ALIGNMENT, cuDevice));
 
-  unsigned int ctx_flags = CU_CTX_LMEM_RESIZE_TO_MAX;
   if (can_map_host) {
-    ctx_flags |= CU_CTX_MAP_HOST;
     init_host_memory();
   }
 
+  int active = 0;
+  unsigned int ctx_flags = 0;
+  cuda_assert(cuDevicePrimaryCtxGetState(cuDevice, &ctx_flags, &active));
+
+  /* Configure primary context only once. */
+  if (active == 0) {
+    ctx_flags |= CU_CTX_LMEM_RESIZE_TO_MAX;
+    result = cuDevicePrimaryCtxSetFlags(cuDevice, ctx_flags);
+    if (result != CUDA_SUCCESS && result != CUDA_ERROR_PRIMARY_CONTEXT_ACTIVE) {
+      set_error(string_printf("Failed to configure CUDA context (%s)", cuewErrorString(result)));
+      return;
+    }
+  }
+
   /* Create context. */
-  result = cuCtxCreate(&cuContext, ctx_flags, cuDevice);
+  result = cuDevicePrimaryCtxRetain(&cuContext, cuDevice);
 
   if (result != CUDA_SUCCESS) {
-    set_error(string_printf("Failed to create CUDA context (%s)", cuewErrorString(result)));
+    set_error(string_printf("Failed to retain CUDA context (%s)", cuewErrorString(result)));
     return;
   }
 
@@ -124,7 +136,7 @@ CUDADevice::~CUDADevice()
 {
   texture_info.free();
 
-  cuda_assert(cuCtxDestroy(cuContext));
+  cuda_assert(cuDevicePrimaryCtxRelease(cuDevice));
 }
 
 bool CUDADevice::support_device(const uint /*kernel_features*/)
@@ -721,6 +733,15 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
 
   /* Image Texture Storage */
+  /* Cycles expects to read all texture data as normalized float values in
+   * kernel/device/gpu/image.h. But storing all data as floats would be very inefficient due to the
+   * huge size of float textures. So in the code below, we define different texture types including
+   * integer types, with the aim of using CUDA's default promotion behavior of integer data to
+   * floating point data in the range [0, 1], as noted in the CUDA documentation on
+   * cuTexObjectCreate API Call.
+   * Note that 32-bit integers are not supported by this promotion behavior and cannot be used
+   * with Cycles's current implementation in kernel/device/gpu/image.h.
+   */
   CUarray_format_enum format;
   switch (mem.data_type) {
     case TYPE_UCHAR:
@@ -728,12 +749,6 @@ void CUDADevice::tex_alloc(device_texture &mem)
       break;
     case TYPE_UINT16:
       format = CU_AD_FORMAT_UNSIGNED_INT16;
-      break;
-    case TYPE_UINT:
-      format = CU_AD_FORMAT_UNSIGNED_INT32;
-      break;
-    case TYPE_INT:
-      format = CU_AD_FORMAT_SIGNED_INT32;
       break;
     case TYPE_FLOAT:
       format = CU_AD_FORMAT_FLOAT;
@@ -888,6 +903,8 @@ void CUDADevice::tex_alloc(device_texture &mem)
     texDesc.addressMode[1] = address_mode;
     texDesc.addressMode[2] = address_mode;
     texDesc.filterMode = filter_mode;
+    /* CUDA's flag CU_TRSF_READ_AS_INTEGER is intentionally not used and it is
+     * significant, see above an explanation about how Blender treat textures. */
     texDesc.flags = CU_TRSF_NORMALIZED_COORDINATES;
 
     thread_scoped_lock lock(device_mem_map_mutex);

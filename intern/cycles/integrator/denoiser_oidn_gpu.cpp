@@ -111,6 +111,10 @@ uint OIDNDenoiserGPU::get_device_type_mask() const
 #  ifdef OIDN_DEVICE_SYCL
   device_mask |= DEVICE_MASK_ONEAPI;
 #  endif
+#  ifdef OIDN_DEVICE_CUDA
+  device_mask |= DEVICE_MASK_CUDA;
+  device_mask |= DEVICE_MASK_OPTIX;
+#  endif
 #  ifdef OIDN_DEVICE_HIP
   device_mask |= DEVICE_MASK_HIP;
 #  endif
@@ -155,8 +159,16 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
       oidn_device_ = oidnNewSYCLDevice(
           (const sycl::queue *)reinterpret_cast<OneapiDevice *>(denoiser_device_)->sycl_queue(),
           1);
-      denoiser_queue_->init_execution();
       break;
+#  endif
+#  if defined(OIDN_DEVICE_CUDA) && defined(WITH_CUDA)
+    case DEVICE_CUDA:
+    case DEVICE_OPTIX: {
+      /* Directly using the stream from the DeviceQueue returns "invalid resource handle". */
+      cudaStream_t stream = nullptr;
+      oidn_device_ = oidnNewCUDADevice(&denoiser_device_->info.num, &stream, 1);
+      break;
+    }
 #  endif
 #  if defined(OIDN_DEVICE_HIP) && defined(WITH_HIP)
     case DEVICE_HIP: {

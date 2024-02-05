@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This script is part of the official build environment, see wiki page for details.
-# https://wiki.blender.org/wiki/Building_Blender/Other/Rocky8ReleaseEnvironment
+# https://developer.blender.org/docs/handbook/release_process/build/rocky_8/
 
 set -e
 

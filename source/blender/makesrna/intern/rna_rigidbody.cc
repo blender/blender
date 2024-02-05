@@ -13,7 +13,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
@@ -150,9 +150,9 @@ static void rna_RigidBodyWorld_reset(Main * /*bmain*/, Scene * /*scene*/, Pointe
   BKE_rigidbody_cache_reset(rbw);
 }
 
-static char *rna_RigidBodyWorld_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_RigidBodyWorld_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("rigidbody_world");
+  return "rigidbody_world";
 }
 
 static void rna_RigidBodyWorld_num_solver_iterations_set(PointerRNA *ptr, int value)
@@ -243,10 +243,10 @@ static void rna_RigidBodyOb_mesh_source_update(Main *bmain, Scene *scene, Pointe
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-static char *rna_RigidBodyOb_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_RigidBodyOb_path(const PointerRNA * /*ptr*/)
 {
   /* NOTE: this hardcoded path should work as long as only Objects have this */
-  return BLI_strdup("rigid_body");
+  return "rigid_body";
 }
 
 static void rna_RigidBodyOb_type_set(PointerRNA *ptr, int value)
@@ -438,10 +438,10 @@ static void rna_RigidBodyOb_angular_damping_set(PointerRNA *ptr, float value)
 #  endif
 }
 
-static char *rna_RigidBodyCon_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_RigidBodyCon_path(const PointerRNA * /*ptr*/)
 {
   /* NOTE: this hardcoded path should work as long as only Objects have this */
-  return BLI_strdup("rigid_body_constraint");
+  return "rigid_body_constraint";
 }
 
 static void rna_RigidBodyCon_type_set(PointerRNA *ptr, int value)

@@ -55,6 +55,7 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
 
         col = row.column()
         sub = col.column(align=True)
+        sub.operator_context = 'EXEC_DEFAULT'
         sub.operator("grease_pencil.layer_add", icon='ADD', text="")
         sub.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
 

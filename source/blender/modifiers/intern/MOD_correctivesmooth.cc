@@ -25,7 +25,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -48,9 +48,9 @@
 
 // #define DEBUG_TIME
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 #ifdef DEBUG_TIME
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 
 #endif
 
@@ -858,4 +858,5 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
     /*panel_register*/ panel_register,
     /*blend_write*/ blend_write,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

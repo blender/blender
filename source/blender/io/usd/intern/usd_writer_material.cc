@@ -23,7 +23,7 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
@@ -44,8 +44,13 @@
 #include <pxr/pxr.h>
 #include <pxr/usd/usdGeom/scope.h>
 
+<<<<<<< HEAD
 #include <cctype>
 #include <iostream>
+=======
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
+>>>>>>> main
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -260,6 +265,45 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
         export_texture(usd_export_context, input_node);
       }
 
+      /* If a Vector Math node was detected ahead of the texture node, and it has
+       * the correct type, NODE_VECTOR_MATH_MULTIPLY_ADD, assume it's meant to be
+       * used for scale-bias. */
+      bNodeLink *scale_link = traverse_channel(sock, SH_NODE_VECTOR_MATH);
+      if (scale_link) {
+        bNode *vector_math_node = scale_link->fromnode;
+        if (vector_math_node->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
+          /* Attempt one more traversal in case the current node is not not the
+           * correct NODE_VECTOR_MATH_MULTIPLY_ADD (see code in usd_reader_material). */
+          bNodeSocket *sock_current = nodeFindSocket(vector_math_node, SOCK_IN, "Vector");
+          bNodeLink *temp_link = traverse_channel(sock_current, SH_NODE_VECTOR_MATH);
+          if (temp_link && temp_link->fromnode->custom1 == NODE_VECTOR_MATH_MULTIPLY_ADD) {
+            vector_math_node = temp_link->fromnode;
+          }
+
+          bNodeSocket *sock_scale = nodeFindSocket(vector_math_node, SOCK_IN, "Vector_001");
+          bNodeSocket *sock_bias = nodeFindSocket(vector_math_node, SOCK_IN, "Vector_002");
+          const float *scale_value =
+              static_cast<bNodeSocketValueVector *>(sock_scale->default_value)->value;
+          const float *bias_value =
+              static_cast<bNodeSocketValueVector *>(sock_bias->default_value)->value;
+
+          const pxr::GfVec4f scale(scale_value[0], scale_value[1], scale_value[2], 1.0f);
+          const pxr::GfVec4f bias(bias_value[0], bias_value[1], bias_value[2], 0.0f);
+
+          pxr::UsdShadeInput scale_attr = usd_shader.GetInput(usdtokens::scale);
+          if (!scale_attr) {
+            scale_attr = usd_shader.CreateInput(usdtokens::scale, pxr::SdfValueTypeNames->Float4);
+          }
+          scale_attr.Set(scale);
+
+          pxr::UsdShadeInput bias_attr = usd_shader.GetInput(usdtokens::bias);
+          if (!bias_attr) {
+            bias_attr = usd_shader.CreateInput(usdtokens::bias, pxr::SdfValueTypeNames->Float4);
+          }
+          bias_attr.Set(bias);
+        }
+      }
+
       /* Look for a connected uvmap node. */
       if (bNodeSocket *socket = nodeFindSocket(input_node, SOCK_IN, "Vector")) {
         if (pxr::UsdShadeInput st_input = usd_shader.CreateInput(usdtokens::st,
@@ -269,8 +313,6 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
               usd_export_context, socket, usd_material, st_input, default_uv_sampler, reports);
         }
       }
-
-      set_normal_texture_range(usd_shader, input_spec);
 
       /* Set opacityThreshold if an alpha cutout is used. */
       if ((input_spec.input_name == usdtokens::opacity) &&
@@ -618,7 +660,7 @@ static void export_in_memory_texture(Image *ima,
     return;
   }
 
-  std::cout << "Exporting in-memory texture to " << export_path << std::endl;
+  CLOG_INFO(&LOG, 2, "Exporting in-memory texture to '%s'", export_path);
 
   if (BLI_is_dir(export_dir.c_str())) {
     /* We are copying to a file system directory, so we can write the image buffer
@@ -2447,7 +2489,7 @@ static void copy_tiled_textures(Image *ima,
 
   /* Only <UDIM> tile formats are supported by USD right now. */
   if (tile_format != UDIM_TILE_FORMAT_UDIM) {
-    std::cout << "WARNING: unsupported tile format for `" << src_path << "`" << std::endl;
+    CLOG_WARN(&LOG, "Unsupported tile format for '%s'", src_path);
     MEM_SAFE_FREE(udim_pattern);
     return;
   }
@@ -2478,6 +2520,11 @@ static void copy_tiled_textures(Image *ima,
       continue;
     }
 
+<<<<<<< HEAD
+=======
+    CLOG_INFO(&LOG, 2, "Copying texture tile from '%s' to '%s'", src_tile_path, dest_tile_path);
+
+>>>>>>> main
     /* Copy the file. */
     if (!copy_asset(src_tile_path, dest_tile_path, tex_name_collision_mode, reports)) {
       BKE_reportf(reports,
@@ -2515,6 +2562,11 @@ static void copy_single_file(Image *ima,
     return;
   }
 
+<<<<<<< HEAD
+=======
+  CLOG_INFO(&LOG, 2, "Copying texture from '%s' to '%s'", source_path, dest_path);
+
+>>>>>>> main
   /* Copy the file. */
   if (!copy_asset(source_path,
                   dest_path,

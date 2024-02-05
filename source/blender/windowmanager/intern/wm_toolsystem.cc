@@ -28,7 +28,7 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
@@ -175,8 +175,8 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
       }
     }
     else {
-      const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
-      BLI_assert(paint_mode != PAINT_MODE_INVALID);
+      const PaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+      BLI_assert(paint_mode != PaintMode::Invalid);
       const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       BLI_assert(items != nullptr);
 
@@ -201,7 +201,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 
                 BKE_brush_tool_set(brush, paint, slot_index);
 
-                if (paint_mode == PAINT_MODE_SCULPT) {
+                if (paint_mode == PaintMode::Sculpt) {
                   BKE_brush_sculpt_reset(brush);
                 }
               }
@@ -384,7 +384,7 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
       }
     }
     else {
-      const ePaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
+      const PaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
       Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
       const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
       if (paint && paint->brush && items) {

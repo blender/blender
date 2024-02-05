@@ -263,6 +263,7 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_data)
     /* SHADOW_READ_ATOMIC macro indicating shadow functions should use `usampler2DArrayAtomic` as
      * the atlas type. */
     .define("SHADOW_READ_ATOMIC")
+    .builtins(BuiltinBits::TEXTURE_ATOMIC)
     .sampler(SHADOW_ATLAS_TEX_SLOT, ImageType::UINT_2D_ARRAY_ATOMIC, "shadow_atlas_tx")
     .sampler(SHADOW_TILEMAPS_TEX_SLOT, ImageType::UINT_2D, "shadow_tilemaps_tx");
 

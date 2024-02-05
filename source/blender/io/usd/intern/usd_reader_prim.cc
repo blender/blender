@@ -249,7 +249,8 @@ USDPrimReader::USDPrimReader(const pxr::UsdPrim &prim,
       import_params_(import_params),
       parent_reader_(nullptr),
       settings_(&settings),
-      refcount_(0)
+      refcount_(0),
+      is_in_instancer_proto_(false)
 {
 }
 
@@ -300,6 +301,11 @@ void USDPrimReader::decref()
 {
   refcount_--;
   BLI_assert(refcount_ >= 0);
+}
+
+bool USDPrimReader::is_in_proto() const
+{
+  return prim_ && (prim_.IsInPrototype() || is_in_instancer_proto_);
 }
 
 }  // namespace blender::io::usd

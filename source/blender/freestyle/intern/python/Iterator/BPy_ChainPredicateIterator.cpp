@@ -24,6 +24,7 @@ using namespace Freestyle;
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(
+    /* Wrap. */
     ChainPredicateIterator_doc,
 
     "Class hierarchy: :class:`freestyle.types.Iterator` >\n"

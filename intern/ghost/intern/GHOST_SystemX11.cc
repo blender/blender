@@ -106,7 +106,6 @@ using namespace std;
 GHOST_SystemX11::GHOST_SystemX11()
     : GHOST_System(),
       m_xkb_descr(nullptr),
-      m_start_time(0),
       m_keyboard_vector{0},
 #ifdef WITH_X11_XINPUT
       m_last_key_time(0),
@@ -174,14 +173,6 @@ GHOST_SystemX11::GHOST_SystemX11()
   m_last_warp_y = 0;
   m_last_release_keycode = 0;
   m_last_release_time = 0;
-
-  {
-    timespec ts = {0, 0};
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
-      GHOST_ASSERT(false, "Could not instantiate monotonic timer!");
-    }
-    m_start_time = (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
-  }
 
   /* Use detectable auto-repeat, mac and windows also do this. */
   int use_xkb;
@@ -278,8 +269,7 @@ uint64_t GHOST_SystemX11::getMilliSeconds() const
   }
   /* Taking care not to overflow the tv.tv_sec * 1000 */
   const uint64_t time = (uint64_t(ts.tv_sec) * 1000) + uint64_t(ts.tv_nsec / 1000000);
-  GHOST_ASSERT(m_start_time <= time, "Monotonic time unexpectedly went backwards!");
-  return time - m_start_time;
+  return time;
 }
 
 uint64_t GHOST_SystemX11::ms_from_input_time(Time timestamp) const
@@ -290,7 +280,7 @@ uint64_t GHOST_SystemX11::ms_from_input_time(Time timestamp) const
    * XORG/LIBINPUT which uses time-stamps based on the monotonic time,
    * Needed to resolve failure to detect double-clicking, see: #40009. */
 
-  /* Accumulate time rollover (as well as store the initial delta from `m_start_time`). */
+  /* Accumulate time rollover (as well as store the initial delta from #getMilliSeconds). */
   static uint64_t timestamp_offset = 0;
 
   /* The last event time (to detect rollover). */

@@ -33,10 +33,11 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
@@ -70,6 +71,7 @@
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
+using blender::Vector;
 
 static bool vertex_group_supported_poll_ex(bContext *C, const Object *ob);
 
@@ -86,9 +88,9 @@ static bool object_array_for_wpaint_filter(const Object *ob, void *user_data)
   return false;
 }
 
-static Object **object_array_for_wpaint(bContext *C, uint *r_objects_len)
+static Vector<Object *> object_array_for_wpaint(bContext *C)
 {
-  return ED_object_array_in_mode_or_selected(C, object_array_for_wpaint_filter, C, r_objects_len);
+  return ED_object_array_in_mode_or_selected(C, object_array_for_wpaint_filter, C);
 }
 
 static bool vertex_group_use_vert_sel(Object *ob)
@@ -1023,7 +1025,8 @@ static void vgroup_select_verts(Object *ob, int select)
   const int def_nr = BKE_object_defgroup_active_index_get(ob) - 1;
 
   const ListBase *defbase = BKE_object_defgroup_list(ob);
-  if (!BLI_findlink(defbase, def_nr)) {
+  const bDeformGroup *def_group = static_cast<bDeformGroup *>(BLI_findlink(defbase, def_nr));
+  if (!def_group) {
     return;
   }
 
@@ -1105,6 +1108,11 @@ static void vgroup_select_verts(Object *ob, int select)
         }
       }
     }
+  }
+  else if (ob->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    blender::bke::greasepencil::select_from_group(*grease_pencil, def_group->name, bool(select));
+    DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
   }
 }
 
@@ -2308,6 +2316,12 @@ static void vgroup_assign_verts(Object *ob, const float weight)
       }
     }
   }
+  else if (ob->type == OB_GREASE_PENCIL) {
+    GreasePencil *grease_pencil = static_cast<GreasePencil *>(ob->data);
+    const bDeformGroup *defgroup = static_cast<const bDeformGroup *>(
+        BLI_findlink(BKE_object_defgroup_list(ob), def_nr));
+    blender::bke::greasepencil::assign_to_vertex_group(*grease_pencil, defgroup->name, weight);
+  }
 }
 
 /** \} */
@@ -3050,9 +3064,9 @@ static std::string vertex_group_lock_description(bContext * /*C*/,
       }
       break;
     default:
-      return nullptr;
+      return {};
   }
-  return nullptr;
+  return {};
 }
 
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
@@ -3155,12 +3169,8 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "group_select_mode"));
   const float fac_expand = RNA_float_get(op->ptr, "expand");
 
-  uint objects_len;
-  Object **objects = object_array_for_wpaint(C, &objects_len);
-
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-
+  const Vector<Object *> objects = object_array_for_wpaint(C);
+  for (Object *ob : objects) {
     int subset_count, vgroup_tot;
 
     const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
@@ -3173,7 +3183,6 @@ static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -3220,12 +3229,8 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
   const eVGroupSelect subset_type = static_cast<eVGroupSelect>(
       RNA_enum_get(op->ptr, "group_select_mode"));
 
-  uint objects_len;
-  Object **objects = object_array_for_wpaint(C, &objects_len);
-
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
-
+  const Vector<Object *> objects = object_array_for_wpaint(C);
+  for (Object *ob : objects) {
     int subset_count, vgroup_tot;
 
     const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
@@ -3238,7 +3243,6 @@ static int vertex_group_clean_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -3333,10 +3337,8 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "group_select_mode"));
   int remove_multi_count = 0;
 
-  uint objects_len;
-  Object **objects = object_array_for_wpaint(C, &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
+  const Vector<Object *> objects = object_array_for_wpaint(C);
+  for (Object *ob : objects) {
 
     int subset_count, vgroup_tot;
     const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(
@@ -3352,7 +3354,6 @@ static int vertex_group_limit_total_exec(bContext *C, wmOperator *op)
     }
     remove_multi_count += remove_count;
   }
-  MEM_freeN(objects);
 
   if (remove_multi_count) {
     BKE_reportf(op->reports,

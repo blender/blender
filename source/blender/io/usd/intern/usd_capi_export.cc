@@ -39,7 +39,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
@@ -587,8 +587,8 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   /* For restoring the current frame after exporting animation is done. */
   const int orig_frame = scene->r.cfra;
 
-  /* Ensure Python types for invoking export hooks are registered. */
-  register_export_hook_converters();
+  /* Ensure Python types for invoking hooks are registered. */
+  register_hook_converters();
 
   ensure_root_prim(usd_stage, params);
 

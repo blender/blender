@@ -6,6 +6,7 @@
  * \ingroup render
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
@@ -17,8 +18,8 @@
 #  include <io.h>
 #endif
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
@@ -137,7 +138,7 @@ int imagewrap(Tex *tex,
 
   /* setup mapping */
   if (tex->imaflag & TEX_IMAROT) {
-    SWAP(float, fx, fy);
+    std::swap(fx, fy);
   }
 
   if (tex->extend == TEX_CHECKER) {
@@ -779,8 +780,8 @@ static void area_sample(TexResult *texr, ImBuf *ibuf, float fx, float fy, const 
   int xsam = int(0.5f * sqrtf(ux * ux + uy * uy) + 0.5f);
   int ysam = int(0.5f * sqrtf(vx * vx + vy * vy) + 0.5f);
   const int minsam = AFD->intpol ? 2 : 4;
-  xsam = CLAMPIS(xsam, minsam, ibuf->x * 2);
-  ysam = CLAMPIS(ysam, minsam, ibuf->y * 2);
+  xsam = std::clamp(xsam, minsam, ibuf->x * 2);
+  ysam = std::clamp(ysam, minsam, ibuf->y * 2);
   xsd = 1.0f / xsam;
   ysd = 1.0f / ysam;
   texr->trgba[0] = texr->trgba[1] = texr->trgba[2] = texr->trgba[3] = 0.0f;
@@ -1035,7 +1036,7 @@ static int imagewraposa_aniso(Tex *tex,
   if (tex->imaflag & TEX_FILTER_MIN) {
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
-    const float addval = (0.5f * tex->filtersize) / float(MIN2(ibuf->x, ibuf->y));
+    const float addval = (0.5f * tex->filtersize) / float(std::min(ibuf->x, ibuf->y));
     if (addval > minx) {
       minx = addval;
     }
@@ -1054,7 +1055,7 @@ static int imagewraposa_aniso(Tex *tex,
 
   if (tex->imaflag & TEX_IMAROT) {
     float t;
-    SWAP(float, minx, miny);
+    std::swap(minx, miny);
     /* must rotate dxt/dyt 90 deg
      * yet another blender problem is that swapping X/Y axes (or any tex projection switches)
      * should do something similar, but it doesn't, it only swaps coords,
@@ -1326,14 +1327,14 @@ static int imagewraposa_aniso(Tex *tex,
     texres->trgba[3] = 1.0f - texres->trgba[3];
   }
 
-  /* de-premul, this is being pre-multiplied in shade_input_do_shade()
+  /* de-pre-multiply, this is being pre-multiplied in shade_input_do_shade()
    * TXF: this currently does not (yet?) work properly, destroys edge AA in clip/checker mode,
-   * so for now commented out also disabled in imagewraposa()
+   * so for now commented out also disabled in #imagewraposa()
    * to be able to compare results with blender's default texture filtering */
 
   /* brecht: tried to fix this, see "TXF alpha" comments */
 
-  /* do not de-premul for generated alpha, it is already in straight */
+  /* do not de-pre-multiply for generated alpha, it is already in straight */
   if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     fx = 1.0f / texres->trgba[3];
     texres->trgba[0] *= fx;
@@ -1438,7 +1439,7 @@ int imagewraposa(Tex *tex,
   if (tex->imaflag & TEX_FILTER_MIN) {
     /* Make sure the filtersize is minimal in pixels
      * (normal, ref map can have miniature pixel dx/dy). */
-    float addval = (0.5f * tex->filtersize) / float(MIN2(ibuf->x, ibuf->y));
+    float addval = (0.5f * tex->filtersize) / float(std::min(ibuf->x, ibuf->y));
 
     if (addval > minx) {
       minx = addval;
@@ -1458,7 +1459,7 @@ int imagewraposa(Tex *tex,
   }
 
   if (tex->imaflag & TEX_IMAROT) {
-    SWAP(float, minx, miny);
+    std::swap(minx, miny);
   }
 
   if (minx > 0.25f) {
@@ -1641,7 +1642,7 @@ int imagewraposa(Tex *tex,
       maxd = 0.5f;
     }
 
-    pixsize = 1.0f / float(MIN2(ibuf->x, ibuf->y));
+    pixsize = 1.0f / float(std::min(ibuf->x, ibuf->y));
 
     curmap = 0;
     previbuf = curibuf = ibuf;
@@ -1651,7 +1652,7 @@ int imagewraposa(Tex *tex,
       }
       previbuf = curibuf;
       curibuf = ibuf->mipmap[curmap];
-      pixsize = 1.0f / float(MIN2(curibuf->x, curibuf->y));
+      pixsize = 1.0f / float(std::min(curibuf->x, curibuf->y));
       curmap++;
     }
 
@@ -1719,8 +1720,8 @@ int imagewraposa(Tex *tex,
     texres->trgba[3] = 1.0f - texres->trgba[3];
   }
 
-  /* de-premul, this is being pre-multiplied in shade_input_do_shade() */
-  /* do not de-premul for generated alpha, it is already in straight */
+  /* de-pre-multiply, this is being pre-multiplied in shade_input_do_shade() */
+  /* do not de-pre-multiply for generated alpha, it is already in straight */
   if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {
     mul_v3_fl(texres->trgba, 1.0f / texres->trgba[3]);
   }

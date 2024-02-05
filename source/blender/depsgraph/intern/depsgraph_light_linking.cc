@@ -139,8 +139,8 @@ bool LightSet::operator==(const LightSet &other) const
 
 uint64_t LightSet::hash() const
 {
-  return get_default_hash_2(get_default_hash(include_collection_mask),
-                            get_default_hash(exclude_collection_mask));
+  return get_default_hash(get_default_hash(include_collection_mask),
+                          get_default_hash(exclude_collection_mask));
 }
 
 /* EmitterSetMembership */

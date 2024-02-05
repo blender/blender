@@ -49,7 +49,9 @@ int UnaryFunction0DUnsigned_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char UnaryFunction0DUnsigned___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    UnaryFunction0DUnsigned___doc__,
     "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DUnsigned`\n"
     "\n"
     "Base class for unary functions (functors) that work on\n"
@@ -57,7 +59,7 @@ static char UnaryFunction0DUnsigned___doc__[] =
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.\n";
+    "   Default constructor.\n");
 
 static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned *self,
                                             PyObject *args,

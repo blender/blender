@@ -21,7 +21,7 @@
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 
 #include "DEG_depsgraph.hh"

@@ -21,10 +21,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_openexr.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_openexr.hh"
 
 #include "BKE_colortools.hh"
 #include "BKE_global.h"
@@ -813,7 +813,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
       /* We only store RGBA passes as half float, for
        * others precision loss can be problematic. */
-      const bool pass_RGBA = STR_ELEM(rp->chan_id, "RGB", "RGBA", "R", "G", "B", "A");
+      const bool pass_RGBA = RE_RenderPassIsColor(rp);
       const bool pass_half_float = half_float && pass_RGBA;
 
       /* Color-space conversion only happens on RGBA passes. */

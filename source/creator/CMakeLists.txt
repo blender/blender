@@ -704,7 +704,8 @@ if(UNIX AND NOT APPLE)
       # Pass.
     elseif(EXISTS ${LIBDIR}/mesa)
       install(
-        DIRECTORY ${LIBDIR}/mesa/lib
+        # Trailing slash is needed to install contents instead of directory itself.
+        DIRECTORY ${LIBDIR}/mesa/lib/
         DESTINATION "./lib/mesa"
       )
 

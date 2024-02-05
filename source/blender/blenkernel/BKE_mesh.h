@@ -485,7 +485,7 @@ bool BKE_mesh_validate_arrays(struct Mesh *mesh,
                               int *corner_verts,
                               int *corner_edges,
                               unsigned int corners_num,
-                              int *face_offsets,
+                              const int *face_offsets,
                               unsigned int faces_num,
                               struct MDeformVert *dverts, /* assume totvert length */
                               bool do_verbose,
@@ -498,7 +498,7 @@ bool BKE_mesh_validate_arrays(struct Mesh *mesh,
  * \returns is_valid.
  */
 bool BKE_mesh_validate_all_customdata(struct CustomData *vert_data,
-                                      uint totvert,
+                                      uint verts_num,
                                       struct CustomData *edge_data,
                                       uint edges_num,
                                       struct CustomData *corner_data,

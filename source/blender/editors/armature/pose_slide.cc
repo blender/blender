@@ -30,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dlrbTree.h"
 #include "BLI_math_rotation.h"
@@ -46,7 +47,7 @@
 #include "BKE_nla.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -80,9 +81,11 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
+
+using blender::Vector;
 
 /* Pixel distance from 0% to 100%. */
 #define SLIDE_PIXEL_DISTANCE (300 * U.pixelsize)
@@ -123,6 +126,16 @@ enum ePoseSlide_Channels {
   PS_TFM_PROPS, /* Custom Properties */
 };
 
+struct tPoseSlideObject {
+  /** Active object that Pose Info comes from. */
+  Object *ob;
+  /** `prev_frame`, but in local action time (for F-Curve look-ups to work). */
+  float prev_frame;
+  /** `next_frame`, but in local action time (for F-Curve look-ups to work). */
+  float next_frame;
+  bool valid;
+};
+
 /** Temporary data shared between these operators. */
 struct tPoseSlideOp {
   /** current scene */
@@ -132,7 +145,6 @@ struct tPoseSlideOp {
   /** Region we're operating in (needed for modal()). */
   ARegion *region;
   /** len of the PoseSlideObject array. */
-  uint objects_len;
 
   /** links between posechannels and f-curves for all the pose objects. */
   ListBase pfLinks;
@@ -165,17 +177,7 @@ struct tPoseSlideOp {
   /** Numeric input. */
   NumInput num;
 
-  struct tPoseSlideObject *ob_data_array;
-};
-
-struct tPoseSlideObject {
-  /** Active object that Pose Info comes from. */
-  Object *ob;
-  /** `prev_frame`, but in local action time (for F-Curve look-ups to work). */
-  float prev_frame;
-  /** `next_frame`, but in local action time (for F-Curve look-ups to work). */
-  float next_frame;
-  bool valid;
+  blender::Array<tPoseSlideObject> ob_data_array;
 };
 
 /** Property enum for #ePoseSlide_Channels. */
@@ -207,11 +209,8 @@ static const EnumPropertyItem prop_axis_lock_types[] = {
 /** Operator custom-data initialization. */
 static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 {
-  tPoseSlideOp *pso;
-
-  /* Init slide-op data. */
-  pso = static_cast<tPoseSlideOp *>(
-      op->customdata = MEM_callocN(sizeof(tPoseSlideOp), "tPoseSlideOp"));
+  tPoseSlideOp *pso = MEM_new<tPoseSlideOp>(__func__);
+  op->customdata = pso;
 
   /* Get info from context. */
   pso->scene = CTX_data_scene(C);
@@ -236,15 +235,11 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
    * and set the relevant transform flags. */
   poseAnim_mapping_get(C, &pso->pfLinks);
 
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(CTX_data_scene(C),
-                                                                           CTX_data_view_layer(C),
-                                                                           CTX_wm_view3d(C),
-                                                                           &pso->objects_len,
-                                                                           OB_MODE_POSE);
-  pso->ob_data_array = static_cast<tPoseSlideObject *>(
-      MEM_callocN(pso->objects_len * sizeof(tPoseSlideObject), "pose slide objects data"));
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
+      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), OB_MODE_POSE);
+  pso->ob_data_array.reinitialize(objects.size());
 
-  for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+  for (const int ob_index : objects.index_range()) {
     tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
     Object *ob_iter = poseAnim_object_get(objects[ob_index]);
 
@@ -267,7 +262,6 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
     ob_data->ob->pose->flag |= POSE_LOCKED;
     ob_data->ob->pose->flag &= ~POSE_DO_UNLOCK;
   }
-  MEM_freeN(objects);
 
   /* Do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up
    * to the caller of this (usually only invoke() will do it, to make things more efficient). */
@@ -303,12 +297,8 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
   /* Free RB-BST for keyframes (if it contained data). */
   ED_keylist_free(pso->keylist);
 
-  if (pso->ob_data_array != nullptr) {
-    MEM_freeN(pso->ob_data_array);
-  }
-
   /* Free data itself. */
-  MEM_freeN(pso);
+  MEM_delete(pso);
 
   /* Cleanup. */
   op->customdata = nullptr;
@@ -322,10 +312,9 @@ static void pose_slide_exit(bContext *C, wmOperator *op)
 static void pose_slide_refresh(bContext *C, tPoseSlideOp *pso)
 {
   /* Wrapper around the generic version, allowing us to add some custom stuff later still. */
-  for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
-    tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
-    if (ob_data->valid) {
-      poseAnim_mapping_refresh(C, pso->scene, ob_data->ob);
+  for (tPoseSlideObject &ob_data : pso->ob_data_array) {
+    if (ob_data.valid) {
+      poseAnim_mapping_refresh(C, pso->scene, ob_data.ob);
     }
   }
 }
@@ -339,13 +328,12 @@ static bool pose_frame_range_from_object_get(tPoseSlideOp *pso,
                                              float *prev_frame,
                                              float *next_frame)
 {
-  for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
-    tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
-    Object *ob_iter = ob_data->ob;
+  for (tPoseSlideObject &ob_data : pso->ob_data_array) {
+    Object *ob_iter = ob_data.ob;
 
     if (ob_iter == ob) {
-      *prev_frame = ob_data->prev_frame;
-      *next_frame = ob_data->next_frame;
+      *prev_frame = ob_data.prev_frame;
+      *next_frame = ob_data.next_frame;
       return true;
     }
   }
@@ -821,18 +809,16 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
     pso->prev_frame--;
     pso->next_frame++;
 
-    for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
-      tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
-
-      if (!ob_data->valid) {
+    for (tPoseSlideObject &ob_data : pso->ob_data_array) {
+      if (!ob_data.valid) {
         continue;
       }
 
       /* Apply NLA mapping corrections so the frame look-ups work. */
-      ob_data->prev_frame = BKE_nla_tweakedit_remap(
-          ob_data->ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
-      ob_data->next_frame = BKE_nla_tweakedit_remap(
-          ob_data->ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
+      ob_data.prev_frame = BKE_nla_tweakedit_remap(
+          ob_data.ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
+      ob_data.next_frame = BKE_nla_tweakedit_remap(
+          ob_data.ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
     }
   }
 
@@ -1059,13 +1045,12 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
   }
 
   /* Apply NLA mapping corrections so the frame look-ups work. */
-  for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
-    tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
-    if (ob_data->valid) {
-      ob_data->prev_frame = BKE_nla_tweakedit_remap(
-          ob_data->ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
-      ob_data->next_frame = BKE_nla_tweakedit_remap(
-          ob_data->ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
+  for (tPoseSlideObject &ob_data : pso->ob_data_array) {
+    if (ob_data.valid) {
+      ob_data.prev_frame = BKE_nla_tweakedit_remap(
+          ob_data.ob->adt, pso->prev_frame, NLATIME_CONVERT_UNMAP);
+      ob_data.next_frame = BKE_nla_tweakedit_remap(
+          ob_data.ob->adt, pso->next_frame, NLATIME_CONVERT_UNMAP);
     }
   }
 

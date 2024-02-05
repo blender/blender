@@ -25,15 +25,15 @@
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
-#include "BKE_blender_copybuffer.h"
+#include "BKE_blender_copybuffer.hh"
 #include "BKE_context.hh"
-#include "BKE_idtype.h"
-#include "BKE_layer.h"
+#include "BKE_idtype.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -59,7 +59,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "outliner_intern.hh"
 #include "tree/tree_element_rna.hh"
@@ -413,7 +413,7 @@ static int outliner_item_rename_invoke(bContext *C, wmOperator *op, const wmEven
   TreeElement *te = use_active ? outliner_item_rename_find_active(space_outliner, op->reports) :
                                  outliner_item_rename_find_hovered(space_outliner, region, event);
   if (!te) {
-    return OPERATOR_CANCELLED;
+    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   /* Force element into view. */

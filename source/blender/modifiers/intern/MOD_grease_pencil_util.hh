@@ -59,8 +59,31 @@ IndexMask get_filtered_stroke_mask(const Object *ob,
                                    const GreasePencilModifierInfluenceData &influence_data,
                                    IndexMaskMemory &memory);
 
+VArray<float> get_influence_vertex_weights(
+    const bke::CurvesGeometry &curves, const GreasePencilModifierInfluenceData &influence_data);
+
 Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease_pencil,
                                                             const IndexMask &layer_mask,
                                                             int frame);
+
+struct LayerDrawingInfo {
+  bke::greasepencil::Drawing *drawing;
+  /* Layer containing the drawing. */
+  int layer_index;
+};
+
+Vector<LayerDrawingInfo> get_drawing_infos_by_layer(GreasePencil &grease_pencil,
+                                                    const IndexMask &layer_mask,
+                                                    int frame);
+
+struct FrameDrawingInfo {
+  bke::greasepencil::Drawing *drawing;
+  /* Frame on which this drawing starts. */
+  int start_frame_number;
+};
+
+Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
+                                                    const IndexMask &layer_mask,
+                                                    int frame);
 
 }  // namespace blender::modifier::greasepencil

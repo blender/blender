@@ -6,7 +6,7 @@
  * \ingroup imbuf
  */
 
-#include "imbuf.h"
+#include "imbuf.hh"
 
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
@@ -17,9 +17,9 @@
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 /* gpu ibuf utils */
 
@@ -366,14 +366,14 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
 
   bool freebuf = false;
 
-  /* Create Texture. */
-  tex = GPU_texture_create_2d(
-      name, UNPACK2(size), 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+  /* Create Texture. Specify read usage to allow both shader and host reads, the latter is needed
+   * by the GPU compositor.  */
+  const eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ;
+  tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, usage, nullptr);
   if (tex == nullptr) {
     size[0] = max_ii(1, size[0] / 2);
     size[1] = max_ii(1, size[1] / 2);
-    tex = GPU_texture_create_2d(
-        name, UNPACK2(size), 9999, tex_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+    tex = GPU_texture_create_2d(name, UNPACK2(size), 9999, tex_format, usage, nullptr);
     do_rescale = true;
   }
   BLI_assert(tex != nullptr);

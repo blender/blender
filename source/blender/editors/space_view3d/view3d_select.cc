@@ -44,8 +44,8 @@
 /* vertex box select */
 #include "BKE_global.h"
 #include "BKE_main.hh"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
@@ -55,8 +55,8 @@
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_layer.h"
-#include "BKE_mball.h"
+#include "BKE_layer.hh"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -104,7 +104,9 @@
 
 #include "view3d_intern.h" /* own include */
 
-// #include "PIL_time_utildefines.h"
+// #include "BLI_time_utildefines.h"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Public Utilities
@@ -203,19 +205,17 @@ struct EditSelectBuf_Cache {
 static void editselect_buf_cache_init(ViewContext *vc, short select_mode)
 {
   if (vc->obedit) {
-    uint bases_len = 0;
-    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-        vc->scene, vc->view_layer, vc->v3d, &bases_len);
+    Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+        vc->scene, vc->view_layer, vc->v3d);
 
-    DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, select_mode);
-    MEM_freeN(bases);
+    DRW_select_buffer_context_create(vc->depsgraph, bases, select_mode);
   }
   else {
     /* Use for paint modes, currently only a single object at a time. */
     if (vc->obact) {
       BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
       Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
-      DRW_select_buffer_context_create(vc->depsgraph, &base, 1, select_mode);
+      DRW_select_buffer_context_create(vc->depsgraph, {base}, select_mode);
     }
   }
 }
@@ -3091,10 +3091,8 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   /* Setup view context for argument to callbacks. */
   ViewContext vc = ED_view3d_viewcontext_init(&C, depsgraph);
 
-  uint bases_len;
-  Base **bases_ptr = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc.scene, vc.view_layer, vc.v3d, &bases_len);
-  Span<Base *> bases(bases_ptr, bases_len);
+  const Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, vc.v3d);
 
   Curves &active_curves_id = *static_cast<Curves *>(vc.obedit->data);
   const bke::AttrDomain selection_domain = bke::AttrDomain(active_curves_id.selection_domain);
@@ -3105,7 +3103,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
       ClosestCurveDataBlock(),
       [&](const IndexRange range, const ClosestCurveDataBlock &init) {
         ClosestCurveDataBlock new_closest = init;
-        for (Base *base : bases.slice(range)) {
+        for (Base *base : bases.as_span().slice(range)) {
           Object &curves_ob = *base->object;
           Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
           bke::crazyspace::GeometryDeformation deformation =
@@ -3135,7 +3133,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   std::atomic<bool> deselected = false;
   if (params.deselect_all || params.sel_op == SEL_OP_SET) {
     threading::parallel_for(bases.index_range(), 1L, [&](const IndexRange range) {
-      for (Base *base : bases.slice(range)) {
+      for (Base *base : bases.as_span().slice(range)) {
         Curves &curves_id = *static_cast<Curves *>(base->object->data);
         bke::CurvesGeometry &curves = curves_id.geometry.wrap();
         if (!ed::curves::has_anything_selected(curves)) {
@@ -3156,7 +3154,6 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
   }
 
   if (!closest.curves_id) {
-    MEM_freeN(bases_ptr);
     return deselected;
   }
 
@@ -3170,8 +3167,6 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
    * generic attribute for now. */
   DEG_id_tag_update(&closest.curves_id->id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, closest.curves_id);
-
-  MEM_freeN(bases_ptr);
 
   return true;
 }
@@ -3995,16 +3990,15 @@ static bool do_armature_box_select(ViewContext *vc, const rcti *rect, const eSel
 
   hits = view3d_opengl_select(vc, &buffer, rect, VIEW3D_SELECT_ALL, VIEW3D_SELECT_FILTER_NOP);
 
-  uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc->scene, vc->view_layer, vc->v3d, &bases_len);
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc->scene, vc->view_layer, vc->v3d);
 
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    changed |= ED_armature_edit_deselect_all_visible_multi_ex(bases, bases_len);
+    changed |= ED_armature_edit_deselect_all_visible_multi_ex(bases);
   }
 
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Object *obedit = bases[base_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     obedit->id.tag &= ~LIB_TAG_DOIT;
 
     bArmature *arm = static_cast<bArmature *>(obedit->data);
@@ -4020,23 +4014,20 @@ static bool do_armature_box_select(ViewContext *vc, const rcti *rect, const eSel
       }
 
       EditBone *ebone;
-      Base *base_edit = ED_armature_base_and_ebone_from_select_buffer(
-          bases, bases_len, select_id, &ebone);
+      Base *base_edit = ED_armature_base_and_ebone_from_select_buffer(bases, select_id, &ebone);
       ebone->temp.i |= select_id & BONESEL_ANY;
       base_edit->object->id.tag |= LIB_TAG_DOIT;
     }
   }
 
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Object *obedit = bases[base_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     if (obedit->id.tag & LIB_TAG_DOIT) {
       obedit->id.tag &= ~LIB_TAG_DOIT;
       changed |= ED_armature_edit_select_op_from_tagged(static_cast<bArmature *>(obedit->data),
                                                         sel_op);
     }
   }
-
-  MEM_freeN(bases);
 
   return changed;
 }
@@ -4108,8 +4099,7 @@ static bool do_object_box_select(bContext *C,
        buf_iter++)
   {
     bPoseChannel *pchan_dummy;
-    Base *base = ED_armature_base_and_pchan_from_select_buffer(
-        bases.data(), bases.size(), buf_iter->id, &pchan_dummy);
+    Base *base = ED_armature_base_and_pchan_from_select_buffer(bases, buf_iter->id, &pchan_dummy);
     if (base != nullptr) {
       base->object->id.tag |= LIB_TAG_DOIT;
     }
@@ -4167,8 +4157,7 @@ static bool do_pose_box_select(bContext *C,
          buf_iter++)
     {
       Bone *bone;
-      Base *base = ED_armature_base_and_bone_from_select_buffer(
-          bases.data(), bases.size(), buf_iter->id, &bone);
+      Base *base = ED_armature_base_and_bone_from_select_buffer(bases, buf_iter->id, &bone);
 
       if (base == nullptr) {
         continue;

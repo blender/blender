@@ -17,9 +17,9 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_node.h"
 
@@ -710,7 +710,7 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
   if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0) {
     return false;
   }
-  else if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) != 0) {
+  if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) != 0) {
     /* This ID has not yet been fully processed. If this condition is reached, it means this is a
      * dependency loop case. */
     return true;

@@ -14,7 +14,6 @@
 #include "DNA_windowmanager_types.h"
 
 #ifdef WITH_FREESTYLE
-#  include "BKE_customdata.hh"
 #  include "DNA_meshdata_types.h"
 #endif
 
@@ -24,7 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_report.h"
 
 #include "ED_mesh.hh"
@@ -45,7 +44,9 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Path Select Struct & Properties
@@ -500,7 +501,7 @@ static void mouse_mesh_shortest_path_edge(
   EDBM_update(static_cast<Mesh *>(obedit->data), &params);
 
   if (op_params->edge_mode == EDGE_MODE_TAG_SEAM) {
-    ED_uvedit_live_unwrap(scene, &obedit, 1);
+    ED_uvedit_live_unwrap(scene, {obedit});
   }
 }
 
@@ -725,15 +726,13 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   {
     int base_index = -1;
-    uint bases_len = 0;
-    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-        vc.scene, vc.view_layer, vc.v3d, &bases_len);
-    if (EDBM_unified_findnearest(&vc, bases, bases_len, &base_index, &eve, &eed, &efa)) {
+    Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+        vc.scene, vc.view_layer, vc.v3d);
+    if (EDBM_unified_findnearest(&vc, bases, &base_index, &eve, &eed, &efa)) {
       basact = bases[base_index];
       ED_view3d_viewcontext_init_object(&vc, basact->object);
       em = vc.em;
     }
-    MEM_freeN(bases);
   }
 
   /* If nothing is selected, let's select the picked vertex/edge/face. */
@@ -855,11 +854,9 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
   bool found_valid_elements = false;
 
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     BMIter iter;
@@ -939,7 +936,6 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
       found_valid_elements = true;
     }
   }
-  MEM_freeN(objects);
 
   if (!found_valid_elements) {
     BKE_report(

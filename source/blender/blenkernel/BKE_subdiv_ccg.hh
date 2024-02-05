@@ -10,15 +10,9 @@
 
 #include <memory>
 
-namespace blender {
-namespace index_mask {
-class IndexMask;
-}
-using index_mask::IndexMask;
-}  // namespace blender
-
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_sys_types.h"
 

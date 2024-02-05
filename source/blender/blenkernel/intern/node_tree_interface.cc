@@ -4,8 +4,9 @@
 
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_node.hh"
+#include "BKE_node_enum.hh"
 #include "BKE_node_tree_interface.hh"
 
 #include "BLI_math_vector.h"
@@ -171,6 +172,12 @@ template<> void socket_data_init_impl(bNodeSocketValueMaterial &data)
 {
   data.value = nullptr;
 }
+template<> void socket_data_init_impl(bNodeSocketValueMenu &data)
+{
+  data.value = -1;
+  data.enum_items = nullptr;
+  data.runtime_flag = 0;
+}
 
 static void *make_socket_data(const StringRef socket_type)
 {
@@ -191,6 +198,13 @@ static void *make_socket_data(const StringRef socket_type)
  * \{ */
 
 template<typename T> void socket_data_free_impl(T & /*data*/, const bool /*do_id_user*/) {}
+template<> void socket_data_free_impl(bNodeSocketValueMenu &dst, const bool /*do_id_user*/)
+{
+  if (dst.enum_items) {
+    /* Release shared data pointer. */
+    dst.enum_items->remove_user_and_delete_if_last();
+  }
+}
 
 static void socket_data_free(bNodeTreeInterfaceSocket &socket, const bool do_id_user)
 {
@@ -210,6 +224,14 @@ static void socket_data_free(bNodeTreeInterfaceSocket &socket, const bool do_id_
  * \{ */
 
 template<typename T> void socket_data_copy_impl(T & /*dst*/, const T & /*src*/) {}
+template<>
+void socket_data_copy_impl(bNodeSocketValueMenu &dst, const bNodeSocketValueMenu & /*src*/)
+{
+  /* Copy of shared data pointer. */
+  if (dst.enum_items) {
+    dst.enum_items->add_user();
+  }
+}
 
 static void socket_data_copy(bNodeTreeInterfaceSocket &dst,
                              const bNodeTreeInterfaceSocket &src,
@@ -304,6 +326,10 @@ inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueMaterial
 {
   BLO_write_struct(writer, bNodeSocketValueMaterial, &data);
 }
+inline void socket_data_write_impl(BlendWriter *writer, bNodeSocketValueMenu &data)
+{
+  BLO_write_struct(writer, bNodeSocketValueMenu, &data);
+}
 
 static void socket_data_write(BlendWriter *writer, bNodeTreeInterfaceSocket &socket)
 {
@@ -322,6 +348,13 @@ static void socket_data_write(BlendWriter *writer, bNodeTreeInterfaceSocket &soc
 template<typename T> void socket_data_read_data_impl(BlendDataReader *reader, T **data)
 {
   BLO_read_data_address(reader, data);
+}
+template<> void socket_data_read_data_impl(BlendDataReader *reader, bNodeSocketValueMenu **data)
+{
+  BLO_read_data_address(reader, data);
+  /* Clear runtime data. */
+  (*data)->enum_items = nullptr;
+  (*data)->runtime_flag = 0;
 }
 
 static void socket_data_read_data(BlendDataReader *reader, bNodeTreeInterfaceSocket &socket)
@@ -999,7 +1032,6 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
                                              const StringRef socket_type,
                                              const NodeTreeInterfaceSocketFlag flag)
 {
-  BLI_assert(!name.is_empty());
   BLI_assert(!socket_type.is_empty());
 
   const char *idname = socket_types::try_get_supported_socket_type(socket_type);

@@ -247,7 +247,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
           pair_test.second = el_store_other;
 
           if (pair_test.first > pair_test.second) {
-            SWAP(const void *, pair_test.first, pair_test.second);
+            std::swap(pair_test.first, pair_test.second);
           }
 
           void **pair_key_p;

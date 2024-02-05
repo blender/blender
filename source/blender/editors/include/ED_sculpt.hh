@@ -10,6 +10,7 @@
 
 struct ARegion;
 struct Object;
+struct ReportList;
 struct UndoType;
 struct ViewContext;
 struct bContext;
@@ -18,6 +19,13 @@ struct wmOperator;
 struct wmKeyConfig;
 
 /* sculpt.cc */
+
+/**
+ * Checks if the currently active Sculpt Mode on the object is targeting a locked shape key,
+ * and produces an error message if so (unless \a reports is null).
+ * \return true if the shape key was locked.
+ */
+bool ED_sculpt_report_if_shape_key_is_locked(const Object *ob, ReportList *reports);
 
 void ED_operatortypes_sculpt();
 

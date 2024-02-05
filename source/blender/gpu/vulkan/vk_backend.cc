@@ -177,9 +177,9 @@ Batch *VKBackend::batch_alloc()
   return new VKBatch();
 }
 
-DrawList *VKBackend::drawlist_alloc(int /*list_length*/)
+DrawList *VKBackend::drawlist_alloc(int list_length)
 {
-  return new VKDrawList();
+  return new VKDrawList(list_length);
 }
 
 Fence *VKBackend::fence_alloc()
@@ -252,7 +252,6 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps = {};
   GCaps.compute_shader_support = true;
   GCaps.geometry_shader_support = true;
-  GCaps.shader_image_load_store_support = true;
   GCaps.shader_draw_parameters_support =
       device.physical_device_vulkan_11_features_get().shaderDrawParameters;
 

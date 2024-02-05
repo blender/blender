@@ -48,3 +48,10 @@ exclude = """
 
 # Omit settings such as `jobs`, `in_place` & `recursive` as they can cause editor utilities that auto-format on save
 # to fail if the STDIN/STDOUT is used for formatting (which isn't compatible with these options).
+
+# Black shouldn't be used as a formatter. But if it's accidentally
+# used, it certainly shouldn't change all the quote marks around
+# strings. This simply makes such a mistake easier to recover from.
+[tool.black]
+skip-string-normalization = true
+line-length = 120

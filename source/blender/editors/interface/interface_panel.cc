@@ -16,9 +16,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "BLI_blenlib.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -31,7 +30,7 @@
 
 #include "RNA_access.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1096,10 +1095,10 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     const float size_y = BLI_rcti_size_y(&widget_rect);
     GPU_blend(GPU_BLEND_ALPHA);
     UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
-                    widget_rect.ymin + size_y * 0.2f,
+                    widget_rect.ymin + size_y * (UI_panel_is_closed(panel) ? 0.17f : 0.14f),
                     UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                     aspect * UI_INV_SCALE_FAC,
-                    0.7f,
+                    0.8f,
                     0.0f,
                     title_color,
                     false,
@@ -1792,7 +1791,7 @@ static void ui_do_animate(bContext *C, Panel *panel)
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
 
-  float fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
+  float fac = (BLI_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
   fac = min_ff(sqrtf(fac), 1.0f);
 
   if (uiAlignPanelStep(region, fac, false)) {
@@ -2455,10 +2454,9 @@ int ui_handler_panel_region(bContext *C,
     if (panel == nullptr || panel->type == nullptr) {
       continue;
     }
-    /* We can't expand or collapse panels without headers, they would disappear. */
-    if (panel->type->flag & PANEL_TYPE_NO_HEADER) {
-      continue;
-    }
+    /* We can't expand or collapse panels without headers, they would disappear. Layout panels can
+     * be expanded and collapsed though. */
+    const bool has_panel_header = !(panel->type->flag & PANEL_TYPE_NO_HEADER);
 
     int mx = event->xy[0];
     int my = event->xy[1];
@@ -2466,7 +2464,7 @@ int ui_handler_panel_region(bContext *C,
 
     const uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
 
-    if (mouse_state != PANEL_MOUSE_OUTSIDE) {
+    if (has_panel_header && mouse_state != PANEL_MOUSE_OUTSIDE) {
       /* Mark panels that have been interacted with so their expansion
        * doesn't reset when property search finishes. */
       SET_FLAG_FROM_TEST(panel->flag, UI_panel_is_closed(panel), PNL_CLOSED);
@@ -2489,7 +2487,7 @@ int ui_handler_panel_region(bContext *C,
       continue;
     }
 
-    if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
+    if (has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
         retval = WM_UI_HANDLER_BREAK;
@@ -2651,7 +2649,7 @@ static void panel_handle_data_ensure(const bContext *C,
   data->startofsy = panel->ofsy;
   data->start_cur_xmin = region->v2d.cur.xmin;
   data->start_cur_ymin = region->v2d.cur.ymin;
-  data->starttime = PIL_check_seconds_timer();
+  data->starttime = BLI_check_seconds_timer();
 }
 
 /**

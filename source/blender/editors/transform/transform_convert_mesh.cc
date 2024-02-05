@@ -27,6 +27,7 @@
 #include "BKE_scene.h"
 
 #include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -1099,8 +1100,8 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
       if (BM_elem_flag_test(e, tag_loose) || (dists[i1] == FLT_MAX || dists[i2] == FLT_MAX)) {
         /* Propagate along edge from vertex with smallest to largest distance. */
         if (dists[i1] > dists[i2]) {
-          SWAP(int, i1, i2);
-          SWAP(BMVert *, v1, v2);
+          std::swap(i1, i2);
+          std::swap(v1, v2);
         }
 
         if (bmesh_test_dist_add(v2, v1, nullptr, dists, index, mtx)) {
@@ -1500,6 +1501,13 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     TransIslandData island_data = {nullptr};
     TransMirrorData mirror_data = {nullptr};
     TransMeshDataCrazySpace crazyspace_data = {};
+
+    /* Avoid editing locked shapes. */
+    if (t->mode != TFM_DUMMY &&
+        ED_object_edit_report_if_shape_key_is_locked(tc->obedit, t->reports))
+    {
+      continue;
+    }
 
     /**
      * Quick check if we can transform.

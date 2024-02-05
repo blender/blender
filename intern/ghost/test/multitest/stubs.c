@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "BLI_utildefines.h"
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 struct ColorSpace;
 struct ImBuf;

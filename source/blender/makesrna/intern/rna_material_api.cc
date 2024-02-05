@@ -15,7 +15,7 @@
 
 #include "DNA_material_types.h"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 

@@ -16,7 +16,7 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
@@ -700,7 +700,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
     vec = float3(nearest.co) - curr_co;
   }
 
-  float original_distance = math::length(math::transform_direction(obmat, vec));
+  float original_distance = math::length_squared(math::transform_direction(obmat, vec));
   if (r_nearest->dist_sq <= original_distance) {
     return false;
   }
@@ -727,7 +727,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
      * When multiple steps are tested, we cannot depend on the distance calculated for
      * `nearest.dist_sq`, as it reduces with each step. */
     vec = co - curr_co;
-    r_nearest->dist_sq = math::length(math::transform_direction(obmat, vec));
+    r_nearest->dist_sq = math::length_squared(math::transform_direction(obmat, vec));
   }
   return true;
 }
@@ -848,10 +848,8 @@ static eSnapMode snap_polygon(SnapObjectContext *sctx, eSnapMode snap_to_flag)
     return snap_polygon_mesh(
         sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
   }
-  else {
-    return snap_polygon_editmesh(
-        sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
-  }
+  return snap_polygon_editmesh(
+      sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
 }
 
 static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_sq_orig)
@@ -870,10 +868,8 @@ static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_s
     return snap_edge_points_mesh(
         sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
   }
-  else {
-    return snap_edge_points_editmesh(
-        sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
-  }
+  return snap_edge_points_editmesh(
+      sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, dist_px_sq_orig, sctx->ret.index);
 }
 
 /* May extend later (for now just snaps to empty or camera center). */

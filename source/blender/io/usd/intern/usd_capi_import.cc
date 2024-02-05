@@ -5,13 +5,18 @@
 #include "IO_types.hh"
 #include "usd.h"
 #include "usd_hierarchy_iterator.h"
+<<<<<<< HEAD
 
 #include "usd_light_convert.h"
+=======
+#include "usd_hook.h"
+>>>>>>> main
 #include "usd_reader_geom.h"
 #include "usd_reader_instance.h"
 #include "usd_reader_prim.h"
 #include "usd_reader_stage.h"
 
+<<<<<<< HEAD
 #include <pxr/base/plug/registry.h>
 
 #include "usd_writer_material.h"
@@ -40,12 +45,15 @@
 #include "DNA_world_types.h"
 
 #include "BKE_appdir.h"
+=======
+#include "BKE_appdir.hh"
+>>>>>>> main
 #include "BKE_blender_version.h"
 #include "BKE_cachefile.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -395,7 +403,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   data->archive = archive;
 
-  archive->collect_readers(data->bmain);
+  archive->collect_readers();
 
   if (data->params.import_lights && data->params.create_background_shader &&
       !archive->dome_lights().empty())
@@ -531,7 +539,7 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
-      if (reader->prim().IsInPrototype()) {
+      if (reader->is_in_proto()) {
         /* Skip prototype prims, as these are added to prototype collections. */
         continue;
       }
@@ -548,6 +556,7 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
+
       Object *ob = reader->object();
       if (!ob) {
         continue;
@@ -572,6 +581,11 @@ static void import_endjob(void *customdata)
     if (data->params.import_materials && data->params.import_all_materials) {
       data->archive->fake_users_for_unused_materials();
     }
+
+    /* Ensure Python types for invoking hooks are registered. */
+    register_hook_converters();
+
+    call_import_hooks(data->archive->stage(), data->params.worker_status->reports);
   }
 
   WM_set_locked_interface(data->wm, false);

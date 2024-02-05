@@ -31,12 +31,12 @@
 #include "BKE_collection.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_idtype.hh"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
@@ -53,10 +53,9 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_task.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
-
-#include "PIL_time.h"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -70,7 +69,7 @@
 // #define DEBUG_OVERRIDE_TIMEIT
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
 static CLG_LogRef LOG = {"bke.liboverride"};
@@ -2753,7 +2752,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
       BLI_assert(is_in_partial_resync_hierarchy);
       return;
     }
-    else if (!is_in_partial_resync_hierarchy) {
+    if (!is_in_partial_resync_hierarchy) {
       /* This ID is not tagged for resync, and is part of a loop where none of the other IDs are
        * tagged for resync, nothing else to do. */
       return;
@@ -2796,7 +2795,7 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
     }
     /* Else, if it is not being processed as part of a resync hierarchy, nothing more to do either,
      * its current status and the one of its whole dependency tree is also assumed valid. */
-    else if (!is_in_partial_resync_hierarchy) {
+    if (!is_in_partial_resync_hierarchy) {
       return;
     }
 
@@ -3171,7 +3170,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     BlendFileReadReport *reports)
 {
   const bool do_reports_recursive_resync_timing = (library_indirect_level != 0);
-  const double init_time = do_reports_recursive_resync_timing ? PIL_check_seconds_timer() : 0.0;
+  const double init_time = do_reports_recursive_resync_timing ? BLI_check_seconds_timer() : 0.0;
 
   BKE_main_relations_create(bmain, 0);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
@@ -3477,7 +3476,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
 
   if (do_reports_recursive_resync_timing) {
-    reports->duration.lib_overrides_recursive_resync += PIL_check_seconds_timer() - init_time;
+    reports->duration.lib_overrides_recursive_resync += BLI_check_seconds_timer() - init_time;
   }
 
   return process_lib_level_again;
@@ -3620,13 +3619,11 @@ void BKE_lib_override_library_main_resync(Main *bmain,
             level_reprocess_count);
         break;
       }
-      else {
-        CLOG_INFO(&LOG_RESYNC,
-                  4,
-                  "Applying reprocess %d for resyncing at library level %d",
-                  level_reprocess_count,
-                  library_indirect_level);
-      }
+      CLOG_INFO(&LOG_RESYNC,
+                4,
+                "Applying reprocess %d for resyncing at library level %d",
+                level_reprocess_count,
+                library_indirect_level);
     }
     library_indirect_level--;
   }

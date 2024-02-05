@@ -20,7 +20,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_movieclip_types.h"
@@ -42,13 +42,13 @@
 
 #  include "DEG_depsgraph.hh"
 
-#  include "IMB_imbuf.h"
+#  include "IMB_imbuf.hh"
 
 #  include "WM_api.hh"
 
-static char *rna_tracking_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_tracking_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tracking");
+  return "tracking";
 }
 
 static void rna_tracking_defaultSettings_patternUpdate(Main * /*bmain*/,
@@ -77,14 +77,14 @@ static void rna_tracking_defaultSettings_searchUpdate(Main * /*bmain*/,
   }
 }
 
-static char *rna_trackingTrack_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_trackingTrack_path(const PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
   /* Escaped object name, escaped track name, rest of the path. */
   char rna_path[MAX_NAME * 4 + 64];
   BKE_tracking_get_rna_path_for_track(&clip->tracking, track, rna_path, sizeof(rna_path));
-  return BLI_strdup(rna_path);
+  return rna_path;
 }
 
 static void rna_trackingTracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -333,7 +333,7 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
   }
 }
 
-static char *rna_trackingPlaneTrack_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_trackingPlaneTrack_path(const PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)ptr->data;
@@ -341,7 +341,7 @@ static char *rna_trackingPlaneTrack_path(const PointerRNA *ptr)
   char rna_path[MAX_NAME * 4 + 64];
   BKE_tracking_get_rna_path_for_plane_track(
       &clip->tracking, plane_track, rna_path, sizeof(rna_path));
-  return BLI_strdup(rna_path);
+  return rna_path;
 }
 
 static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
@@ -367,9 +367,9 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static char *rna_trackingCamera_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_trackingCamera_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tracking.camera");
+  return "tracking.camera";
 }
 
 static float rna_trackingCamera_focal_mm_get(PointerRNA *ptr)
@@ -413,9 +413,9 @@ static void rna_trackingCamera_principal_point_pixels_set(PointerRNA *ptr,
   BKE_tracking_camera_principal_point_pixel_set(clip, principal_point_pixels);
 }
 
-static char *rna_trackingStabilization_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_trackingStabilization_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("tracking.stabilization");
+  return "tracking.stabilization";
 }
 
 static int rna_track_2d_stabilization(CollectionPropertyIterator * /*iter*/, void *data)
@@ -2101,7 +2101,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", TRACKING_SHOW_STAB_TRACKS);
   RNA_def_property_ui_text(
       prop, "Show Tracks", "Show UI list of tracks participating in stabilization");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 }
 
 static void rna_def_reconstructedCamera(BlenderRNA *brna)

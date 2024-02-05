@@ -124,6 +124,27 @@ class JunctionModuleHandle:
         delattr(self._module, submodule_name)
         del sys.modules[name_full]
 
+        # Remove all sub-modules, to prevent them being reused in the future.
+        #
+        # While it might not seem like a problem to keep these around it means if a module
+        # with the same name is registered later, importing sub-modules uses the cached values
+        # from `sys.modules` and does *not* assign the module to the name-space of the new `submodule`.
+        # This isn't exactly a bug, it's often assumed that inspecting a module
+        # is a way to find its sub-modules, using `dir(submodule)` for example.
+        # For more technical example `sys.modules["foo.bar"] == sys.modules["foo"].bar`
+        # which can fail with and attribute error unless the modules are cleared here.
+        #
+        # An alternative solution could be re-attach sub-modules to the modules name-space when its re-registered.
+        # This has some advantages since the module doesn't have to be re-imported however it has the down
+        # side that stale data would be kept in `sys.modules` unnecessarily in many cases.
+        name_full_prefix = name_full + "."
+        submodule_name_list = [
+            submodule_name for submodule_name in sys.modules.keys()
+            if submodule_name.startswith(name_full_prefix)
+        ]
+        for submodule_name in submodule_name_list:
+            del sys.modules[submodule_name]
+
     def rename_submodule(self, submodule_name_src: str, submodule_name_dst: str) -> None:
         name_full_prev = self._module_name + "." + submodule_name_src
         name_full_next = self._module_name + "." + submodule_name_dst

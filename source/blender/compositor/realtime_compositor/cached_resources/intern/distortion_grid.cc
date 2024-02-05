@@ -40,7 +40,7 @@ DistortionGridKey::DistortionGridKey(MovieTrackingCamera camera,
 
 uint64_t DistortionGridKey::hash() const
 {
-  return get_default_hash_4(
+  return get_default_hash(
       BKE_tracking_camera_distortion_hash(&camera), size, type, calibration_size);
 }
 

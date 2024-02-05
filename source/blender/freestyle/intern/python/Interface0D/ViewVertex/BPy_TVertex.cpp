@@ -24,18 +24,20 @@ using namespace Freestyle;
 
 /*----------------------TVertex methods ----------------------------*/
 
-PyDoc_STRVAR(TVertex_doc,
-             "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`TVertex`\n"
-             "\n"
-             "Class to define a T vertex, i.e. an intersection between two edges.\n"
-             "It points towards two SVertex and four ViewEdges. Among the\n"
-             "ViewEdges, two are front and the other two are back. Basically a\n"
-             "front edge hides part of a back edge. So, among the back edges, one\n"
-             "is of invisibility N and the other of invisibility N+1.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "\n"
-             "   Default constructor.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    TVertex_doc,
+    "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`TVertex`\n"
+    "\n"
+    "Class to define a T vertex, i.e. an intersection between two edges.\n"
+    "It points towards two SVertex and four ViewEdges. Among the\n"
+    "ViewEdges, two are front and the other two are back. Basically a\n"
+    "front edge hides part of a back edge. So, among the back edges, one\n"
+    "is of invisibility N and the other of invisibility N+1.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "\n"
+    "   Default constructor.");
 
 /* NOTE: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
@@ -53,15 +55,17 @@ static int TVertex_init(BPy_TVertex *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
-PyDoc_STRVAR(TVertex_get_svertex_doc,
-             ".. method:: get_svertex(fedge)\n"
-             "\n"
-             "   Returns the SVertex (among the 2) belonging to the given FEdge.\n"
-             "\n"
-             "   :arg fedge: An FEdge object.\n"
-             "   :type fedge: :class:`FEdge`\n"
-             "   :return: The SVertex belonging to the given FEdge.\n"
-             "   :rtype: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    TVertex_get_svertex_doc,
+    ".. method:: get_svertex(fedge)\n"
+    "\n"
+    "   Returns the SVertex (among the 2) belonging to the given FEdge.\n"
+    "\n"
+    "   :arg fedge: An FEdge object.\n"
+    "   :type fedge: :class:`FEdge`\n"
+    "   :return: The SVertex belonging to the given FEdge.\n"
+    "   :rtype: :class:`SVertex`");
 
 static PyObject *TVertex_get_svertex(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -78,17 +82,19 @@ static PyObject *TVertex_get_svertex(BPy_TVertex *self, PyObject *args, PyObject
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(TVertex_get_mate_doc,
-             ".. method:: get_mate(viewedge)\n"
-             "\n"
-             "   Returns the mate edge of the ViewEdge given as argument. If the\n"
-             "   ViewEdge is frontEdgeA, frontEdgeB is returned. If the ViewEdge is\n"
-             "   frontEdgeB, frontEdgeA is returned. Same for back edges.\n"
-             "\n"
-             "   :arg viewedge: A ViewEdge object.\n"
-             "   :type viewedge: :class:`ViewEdge`\n"
-             "   :return: The mate edge of the given ViewEdge.\n"
-             "   :rtype: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    TVertex_get_mate_doc,
+    ".. method:: get_mate(viewedge)\n"
+    "\n"
+    "   Returns the mate edge of the ViewEdge given as argument. If the\n"
+    "   ViewEdge is frontEdgeA, frontEdgeB is returned. If the ViewEdge is\n"
+    "   frontEdgeB, frontEdgeA is returned. Same for back edges.\n"
+    "\n"
+    "   :arg viewedge: A ViewEdge object.\n"
+    "   :type viewedge: :class:`ViewEdge`\n"
+    "   :return: The mate edge of the given ViewEdge.\n"
+    "   :rtype: :class:`ViewEdge`");
 
 static PyObject *TVertex_get_mate(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
@@ -119,10 +125,12 @@ static PyMethodDef BPy_TVertex_methods[] = {
 
 /*----------------------TVertex get/setters ----------------------------*/
 
-PyDoc_STRVAR(TVertex_front_svertex_doc,
-             "The SVertex that is closer to the viewpoint.\n"
-             "\n"
-             ":type: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    TVertex_front_svertex_doc,
+    "The SVertex that is closer to the viewpoint.\n"
+    "\n"
+    ":type: :class:`SVertex`");
 
 static PyObject *TVertex_front_svertex_get(BPy_TVertex *self, void * /*closure*/)
 {
@@ -143,10 +151,12 @@ static int TVertex_front_svertex_set(BPy_TVertex *self, PyObject *value, void * 
   return 0;
 }
 
-PyDoc_STRVAR(TVertex_back_svertex_doc,
-             "The SVertex that is further away from the viewpoint.\n"
-             "\n"
-             ":type: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    TVertex_back_svertex_doc,
+    "The SVertex that is further away from the viewpoint.\n"
+    "\n"
+    ":type: :class:`SVertex`");
 
 static PyObject *TVertex_back_svertex_get(BPy_TVertex *self, void * /*closure*/)
 {
@@ -167,10 +177,12 @@ static int TVertex_back_svertex_set(BPy_TVertex *self, PyObject *value, void * /
   return 0;
 }
 
-PyDoc_STRVAR(TVertex_id_doc,
-             "The Id of this TVertex.\n"
-             "\n"
-             ":type: :class:`Id`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    TVertex_id_doc,
+    "The Id of this TVertex.\n"
+    "\n"
+    ":type: :class:`Id`");
 
 static PyObject *TVertex_id_get(BPy_TVertex *self, void * /*closure*/)
 {

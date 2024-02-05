@@ -9,6 +9,8 @@
  * tools operating on meshes
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -28,10 +30,10 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -1049,12 +1051,12 @@ static uint mirror_facehash(const void *ptr)
   uint v0, v1;
 
   if (mf->v4) {
-    v0 = MIN4(mf->v1, mf->v2, mf->v3, mf->v4);
-    v1 = MAX4(mf->v1, mf->v2, mf->v3, mf->v4);
+    v0 = std::min({mf->v1, mf->v2, mf->v3, mf->v4});
+    v1 = std::max({mf->v1, mf->v2, mf->v3, mf->v4});
   }
   else {
-    v0 = MIN3(mf->v1, mf->v2, mf->v3);
-    v1 = MAX3(mf->v1, mf->v2, mf->v3);
+    v0 = std::min({mf->v1, mf->v2, mf->v3});
+    v1 = std::min({mf->v1, mf->v2, mf->v3});
   }
 
   return ((v0 * 39) ^ (v1 * 31));
@@ -1456,10 +1458,7 @@ MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
   return nullptr;
 }
 
-void EDBM_mesh_stats_multi(Object **objects,
-                           const uint objects_len,
-                           int totelem[3],
-                           int totelem_sel[3])
+void EDBM_mesh_stats_multi(const Span<Object *> objects, int totelem[3], int totelem_sel[3])
 {
   if (totelem) {
     totelem[0] = 0;
@@ -1472,8 +1471,7 @@ void EDBM_mesh_stats_multi(Object **objects,
     totelem_sel[2] = 0;
   }
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     if (totelem) {
@@ -1489,11 +1487,10 @@ void EDBM_mesh_stats_multi(Object **objects,
   }
 }
 
-void EDBM_mesh_elem_index_ensure_multi(Object **objects, const uint objects_len, const char htype)
+void EDBM_mesh_elem_index_ensure_multi(const Span<Object *> objects, const char htype)
 {
   int elem_offset[4] = {0, 0, 0, 0};
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     BM_mesh_elem_index_ensure_ex(bm, htype, elem_offset);

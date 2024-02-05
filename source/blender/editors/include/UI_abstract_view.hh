@@ -6,7 +6,7 @@
  * \ingroup editorui
  *
  * Base class for all views (UIs to display data sets) and view items, supporting common features.
- * https://wiki.blender.org/wiki/Source/Interface/Views
+ * https://developer.blender.org/docs/features/interface/views/
  *
  * One of the most important responsibilities of the base class is managing reconstruction,
  * enabling state that is persistent over reconstructions/redraws. Other features:

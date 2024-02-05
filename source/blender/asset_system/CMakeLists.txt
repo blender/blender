@@ -33,8 +33,6 @@ set(SRC
   intern/asset_library_service.hh
   intern/asset_storage.hh
   intern/utils.hh
-
-  AS_asset_library.h
 )
 
 set(LIB

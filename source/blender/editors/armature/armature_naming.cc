@@ -32,9 +32,9 @@
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 
@@ -51,7 +51,9 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Unique Bone Name Utility (Edit Mode)
@@ -437,11 +439,9 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
 
   const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *ob : objects) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
 
     /* Paranoia check. */
@@ -484,7 +484,6 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
     /* update animation channels */
     WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -526,11 +525,9 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
   const short axis = RNA_enum_get(op->ptr, "type");
   bool changed_multi = false;
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *ob : objects) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bool changed = false;
 
@@ -575,7 +572,6 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
     /* NOTE: notifier might evolve. */
     WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
   }
-  MEM_freeN(objects);
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 

@@ -25,9 +25,13 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-PyDoc_STRVAR(bpy_bmeditselseq_active_doc,
-             "The last selected element or None (read-only).\n\n:type: :class:`BMVert`, "
-             ":class:`BMEdge` or :class:`BMFace`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmeditselseq_active_doc,
+    "The last selected element or None (read-only).\n"
+    "\n"
+    ":type: :class:`BMVert`, "
+    ":class:`BMEdge` or :class:`BMFace`");
 static PyObject *bpy_bmeditselseq_active_get(BPy_BMEditSelSeq *self, void * /*closure*/)
 {
   BMEditSelection *ese;
@@ -49,10 +53,12 @@ static PyGetSetDef bpy_bmeditselseq_getseters[] = {
     {nullptr, nullptr, nullptr, nullptr, nullptr} /* Sentinel */
 };
 
-PyDoc_STRVAR(bpy_bmeditselseq_validate_doc,
-             ".. method:: validate()\n"
-             "\n"
-             "   Ensures all elements in the selection history are selected.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmeditselseq_validate_doc,
+    ".. method:: validate()\n"
+    "\n"
+    "   Ensures all elements in the selection history are selected.\n");
 static PyObject *bpy_bmeditselseq_validate(BPy_BMEditSelSeq *self)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -60,10 +66,12 @@ static PyObject *bpy_bmeditselseq_validate(BPy_BMEditSelSeq *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bmeditselseq_clear_doc,
-             ".. method:: clear()\n"
-             "\n"
-             "   Empties the selection history.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmeditselseq_clear_doc,
+    ".. method:: clear()\n"
+    "\n"
+    "   Empties the selection history.\n");
 static PyObject *bpy_bmeditselseq_clear(BPy_BMEditSelSeq *self)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -72,6 +80,7 @@ static PyObject *bpy_bmeditselseq_clear(BPy_BMEditSelSeq *self)
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_bmeditselseq_add_doc,
     ".. method:: add(element)\n"
     "\n"
@@ -93,10 +102,12 @@ static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bmeditselseq_remove_doc,
-             ".. method:: remove(element)\n"
-             "\n"
-             "   Remove an element from the selection history.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bmeditselseq_remove_doc,
+    ".. method:: remove(element)\n"
+    "\n"
+    "   Remove an element from the selection history.\n");
 static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 {
   BPY_BM_CHECK_OBJ(self);
@@ -118,6 +129,7 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_bmeditselseq_discard_doc,
     ".. method:: discard(element)\n"
     "\n"

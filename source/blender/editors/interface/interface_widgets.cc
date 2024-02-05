@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <climits>
 #include <cstdlib>
 #include <cstring>
@@ -25,7 +26,7 @@
 
 #include "RNA_access.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "ED_node.hh"
 
@@ -965,14 +966,14 @@ static void shape_preset_trias_from_rect_dash(uiWidgetTrias *tria, const rcti *r
 static void shadecolors4(
     uchar coltop[4], uchar coldown[4], const uchar *color, short shadetop, short shadedown)
 {
-  coltop[0] = CLAMPIS(color[0] + shadetop, 0, 255);
-  coltop[1] = CLAMPIS(color[1] + shadetop, 0, 255);
-  coltop[2] = CLAMPIS(color[2] + shadetop, 0, 255);
+  coltop[0] = std::clamp(color[0] + shadetop, 0, 255);
+  coltop[1] = std::clamp(color[1] + shadetop, 0, 255);
+  coltop[2] = std::clamp(color[2] + shadetop, 0, 255);
   coltop[3] = color[3];
 
-  coldown[0] = CLAMPIS(color[0] + shadedown, 0, 255);
-  coldown[1] = CLAMPIS(color[1] + shadedown, 0, 255);
-  coldown[2] = CLAMPIS(color[2] + shadedown, 0, 255);
+  coldown[0] = std::clamp(color[0] + shadedown, 0, 255);
+  coldown[1] = std::clamp(color[1] + shadedown, 0, 255);
+  coldown[2] = std::clamp(color[2] + shadedown, 0, 255);
   coldown[3] = color[3];
 }
 
@@ -1598,11 +1599,14 @@ static void ui_text_clip_middle(const uiFontStyle *fstyle, uiBut *but, const rct
                          0 :
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
-  const size_t max_len = sizeof(but->drawstr);
   const float minwidth = float(UI_ICON_SIZE) / but->block->aspect * 2.0f;
 
   but->ofs = 0;
-  but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, '\0');
+  char new_drawstr[UI_MAX_DRAW_STR];
+  STRNCPY(new_drawstr, but->drawstr.c_str());
+  const size_t max_len = sizeof(new_drawstr);
+  but->strwidth = UI_text_clip_middle_ex(fstyle, new_drawstr, okwidth, minwidth, max_len, '\0');
+  but->drawstr = new_drawstr;
 }
 
 /**
@@ -1621,11 +1625,14 @@ static void ui_text_clip_middle_protect_right(const uiFontStyle *fstyle,
                          0 :
                          int(UI_TEXT_CLIP_MARGIN + 0.5f);
   const float okwidth = float(max_ii(BLI_rcti_size_x(rect) - border, 0));
-  const size_t max_len = sizeof(but->drawstr);
   const float minwidth = float(UI_ICON_SIZE) / but->block->aspect * 2.0f;
 
   but->ofs = 0;
-  but->strwidth = UI_text_clip_middle_ex(fstyle, but->drawstr, okwidth, minwidth, max_len, rsep);
+  char new_drawstr[UI_MAX_DRAW_STR];
+  STRNCPY(new_drawstr, but->drawstr.c_str());
+  const size_t max_len = sizeof(new_drawstr);
+  but->strwidth = UI_text_clip_middle_ex(fstyle, new_drawstr, okwidth, minwidth, max_len, rsep);
+  but->drawstr = new_drawstr;
 }
 
 /**
@@ -1693,13 +1700,17 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 {
   const int border = UI_TEXT_CLIP_MARGIN + 1;
   const int okwidth = max_ii(BLI_rcti_size_x(rect) - border, 0);
-  int drawstr_len = strlen(but->drawstr);
-  const char *cpend = but->drawstr + drawstr_len;
+
+  int drawstr_len = but->drawstr.size();
+  char new_drawstr[UI_MAX_DRAW_STR];
+  STRNCPY(new_drawstr, but->drawstr.c_str());
+
+  const char *cpend = new_drawstr + drawstr_len;
 
   /* need to set this first */
   UI_fontstyle_set(fstyle);
 
-  but->strwidth = BLF_width(fstyle->uifont_id, but->drawstr, sizeof(but->drawstr));
+  but->strwidth = BLF_width(fstyle->uifont_id, new_drawstr, drawstr_len);
 
   /* The string already fits, so do nothing. */
   if (but->strwidth <= okwidth) {
@@ -1722,14 +1733,14 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
    */
 
   /* find the space after ':' separator */
-  char *cpoin = strrchr(but->drawstr, ':');
+  char *cpoin = strrchr(new_drawstr, ':');
 
   if (cpoin && (cpoin < cpend - 2)) {
     char *cp2 = cpoin;
 
     /* chop off the leading text, starting from the right */
-    while (but->strwidth > okwidth && cp2 > but->drawstr) {
-      const char *prev_utf8 = BLI_str_find_prev_char_utf8(cp2, but->drawstr);
+    while (but->strwidth > okwidth && cp2 > new_drawstr) {
+      const char *prev_utf8 = BLI_str_find_prev_char_utf8(cp2, new_drawstr);
       const int bytes = cp2 - prev_utf8;
 
       /* shift the text after and including cp2 back by 1 char,
@@ -1738,11 +1749,10 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
       cp2 -= bytes;
 
       drawstr_len -= bytes;
-      // BLI_assert(strlen(but->drawstr) == drawstr_len);
 
       but->strwidth = BLF_width(fstyle->uifont_id,
-                                but->drawstr + but->ofs,
-                                sizeof(but->drawstr) - but->ofs) +
+                                new_drawstr + but->ofs,
+                                sizeof(new_drawstr) - but->ofs) +
                       sep_strwidth;
       if (but->strwidth < sep_strwidth) {
         break;
@@ -1751,9 +1761,9 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
 
     /* after the leading text is gone, chop off the : and following space, with ofs */
     while ((but->strwidth > okwidth) && (but->ofs < 2)) {
-      ui_text_clip_give_next_off(but, but->drawstr, but->drawstr + drawstr_len);
+      ui_text_clip_give_next_off(but, new_drawstr, new_drawstr + drawstr_len);
       but->strwidth = BLF_width(
-          fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
+          fstyle->uifont_id, new_drawstr + but->ofs, sizeof(new_drawstr) - but->ofs);
       if (but->strwidth < 10) {
         break;
       }
@@ -1765,23 +1775,25 @@ static void ui_text_clip_right_label(const uiFontStyle *fstyle, uiBut *but, cons
   if (but->strwidth > okwidth) {
     float strwidth;
     drawstr_len = BLF_width_to_strlen(fstyle->uifont_id,
-                                      but->drawstr + but->ofs,
+                                      new_drawstr + but->ofs,
                                       drawstr_len - but->ofs,
                                       okwidth,
                                       &strwidth) +
                   but->ofs;
     but->strwidth = strwidth;
-    but->drawstr[drawstr_len] = 0;
+    new_drawstr[drawstr_len] = 0;
   }
 
-  cpoin = strrchr(but->drawstr, ':');
-  if (cpoin && (cpoin - but->drawstr > 0) && (drawstr_len < (sizeof(but->drawstr) - sep_len))) {
+  cpoin = strrchr(new_drawstr, ':');
+  if (cpoin && (cpoin - new_drawstr > 0) && (drawstr_len < (sizeof(new_drawstr) - sep_len))) {
     /* We shortened the string and still have a colon, so insert ellipsis. */
     memmove(cpoin + sep_len, cpoin, cpend - cpoin);
     memcpy(cpoin, sep, sep_len);
     but->strwidth = BLF_width(
-        fstyle->uifont_id, but->drawstr + but->ofs, sizeof(but->drawstr) - but->ofs);
+        fstyle->uifont_id, new_drawstr + but->ofs, sizeof(new_drawstr) - but->ofs);
   }
+
+  but->drawstr = new_drawstr;
 }
 
 #ifdef WITH_INPUT_IME
@@ -1845,7 +1857,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                              rcti *rect)
 {
   int drawstr_left_len = UI_MAX_DRAW_STR;
-  const char *drawstr = but->drawstr;
+  const char *drawstr = but->drawstr.c_str();
   const char *drawstr_right = nullptr;
   bool use_right_only = false;
   const char *indeterminate_str = UI_VALUE_INDETERMINATE_CHAR;
@@ -2846,7 +2858,7 @@ static void ui_hsv_cursor(const float x,
   immUniform1f("outlineWidth", U.pixelsize);
 
   /* Alpha of outline colors just strong enough to give good contrast. */
-  const float fg = MIN2(1.0f - hsv[2] + 0.2, 0.8f);
+  const float fg = std::min(1.0f - hsv[2] + 0.2f, 0.8f);
   const float bg = hsv[2] / 2.0f;
 
   immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, bg);
@@ -5206,9 +5218,9 @@ static void ui_draw_popover_back_impl(const uiWidgetColors *wcol,
 {
   /* Alas, this isn't nice. */
   const float unit_half = unit_size / 2;
-  const float cent_x = mval_origin ? CLAMPIS(mval_origin[0],
-                                             rect->xmin + unit_size,
-                                             rect->xmax - unit_size) :
+  const float cent_x = mval_origin ? std::clamp(mval_origin[0],
+                                                rect->xmin + unit_size,
+                                                rect->xmax - unit_size) :
                                      BLI_rcti_cent_x(rect);
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -5635,7 +5647,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
 
 void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     rcti *rect,
-                                    const char *name,
+                                    const blender::StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
                                     eFontStyle_Align text_align,
@@ -5643,7 +5655,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 {
   rcti trect = *rect;
   const float text_size = UI_UNIT_Y;
-  const bool has_text = name && name[0];
+  const bool has_text = !name.is_empty();
 
   float alpha = 1.0f;
 
@@ -5686,7 +5698,8 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
     const size_t max_len = sizeof(drawstr);
     const float minwidth = float(UI_ICON_SIZE);
 
-    STRNCPY(drawstr, name);
+    memcpy(drawstr, name.data(), name.size());
+    drawstr[name.size()] = '\0';
     UI_text_clip_middle_ex(fstyle, drawstr, okwidth, minwidth, max_len, '\0');
 
     uiFontStyleDraw_Params params{};

@@ -4,16 +4,20 @@
 
 #include "COM_PixelateOperation.h"
 
+#include <algorithm>
+
 namespace blender::compositor {
 
-PixelateOperation::PixelateOperation(DataType data_type)
+PixelateOperation::PixelateOperation()
 {
-  this->add_input_socket(data_type);
-  this->add_output_socket(data_type);
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
   this->set_canvas_input_index(0);
   input_operation_ = nullptr;
 
   flags_.can_be_constant = true;
+
+  pixel_size_ = 1;
 }
 
 void PixelateOperation::init_execution()
@@ -26,14 +30,97 @@ void PixelateOperation::deinit_execution()
   input_operation_ = nullptr;
 }
 
-void PixelateOperation::execute_pixel_sampled(float output[4],
-                                              float x,
-                                              float y,
-                                              PixelSampler sampler)
+bool PixelateOperation::determine_depending_area_of_interest(rcti *input,
+                                                             ReadBufferOperation *read_operation,
+                                                             rcti *output)
 {
-  float nx = round(x);
-  float ny = round(y);
-  input_operation_->read_sampled(output, nx, ny, sampler);
+  rcti new_input;
+
+  new_input.xmin = input->xmin;
+  new_input.xmax = input->xmax + pixel_size_ - 1;
+  new_input.ymax = input->ymax;
+  new_input.ymax = input->ymax + pixel_size_ - 1;
+
+  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
+}
+
+void PixelateOperation::execute_pixel_sampled(float output[4],
+                                              const float x,
+                                              const float y,
+                                              const PixelSampler sampler)
+{
+  const int width = this->get_width();
+  const int height = this->get_height();
+
+  const int x_start = (int(x) / pixel_size_) * pixel_size_;
+  const int y_start = (int(y) / pixel_size_) * pixel_size_;
+
+  const int x_end = std::min(x_start + pixel_size_, width);
+  const int y_end = std::min(y_start + pixel_size_, height);
+
+  float4 color_accum(0, 0, 0, 0);
+
+  for (int iy = y_start; iy < y_end; ++iy) {
+    for (int ix = x_start; ix < x_end; ++ix) {
+      float4 color;
+      input_operation_->read_sampled(color, ix, iy, sampler);
+
+      color_accum += color;
+    }
+  }
+
+  const int scale = (x_end - x_start) * (y_end - y_start);
+
+  copy_v4_v4(output, color_accum / float(scale));
+}
+
+void PixelateOperation::get_area_of_interest(const int /*input_idx*/,
+                                             const rcti &output_area,
+                                             rcti &r_input_area)
+{
+  r_input_area.xmin = output_area.xmin;
+  r_input_area.ymin = output_area.ymin;
+
+  r_input_area.xmax = output_area.xmax + pixel_size_ - 1;
+  r_input_area.ymax = output_area.ymax + pixel_size_ - 1;
+}
+
+void PixelateOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                     const rcti &area,
+                                                     Span<MemoryBuffer *> inputs)
+{
+  MemoryBuffer *image = inputs[0];
+
+  if (image->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), image->get_elem(0, 0));
+    return;
+  }
+
+  const int width = image->get_width();
+  const int height = image->get_height();
+
+  for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
+    const int x_start = (it.x / pixel_size_) * pixel_size_;
+    const int y_start = (it.y / pixel_size_) * pixel_size_;
+
+    const int x_end = std::min(x_start + pixel_size_, width);
+    const int y_end = std::min(y_start + pixel_size_, height);
+
+    float4 color_accum(0, 0, 0, 0);
+
+    for (int y = y_start; y < y_end; ++y) {
+      for (int x = x_start; x < x_end; ++x) {
+        float4 color;
+        image->read_elem(x, y, color);
+
+        color_accum += color;
+      }
+    }
+
+    const int scale = (x_end - x_start) * (y_end - y_start);
+
+    copy_v4_v4(it.out, color_accum / float(scale));
+  }
 }
 
 }  // namespace blender::compositor

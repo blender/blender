@@ -115,6 +115,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_combine)
      * present will we instead dynamically look-up ID from the uniform buffer. */
     .specialization_constant(Type::BOOL, "render_pass_diffuse_light_enabled", true)
     .specialization_constant(Type::BOOL, "render_pass_specular_light_enabled", true)
+    .specialization_constant(Type::BOOL, "render_pass_normal_enabled", true)
     .specialization_constant(Type::BOOL, "use_combined_lightprobe_eval", false)
     .do_static_compilation(true);
 

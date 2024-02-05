@@ -10,7 +10,7 @@
 
 struct MovieClip;
 struct MovieClipCache;
-struct anim;
+struct ImBufAnim;
 
 namespace blender::deg {
 
@@ -26,7 +26,7 @@ class MovieClipBackup {
   void init_from_movieclip(MovieClip *movieclip);
   void restore_to_movieclip(MovieClip *movieclip);
 
-  struct anim *anim;
+  struct ImBufAnim *anim;
   struct MovieClipCache *cache;
 };
 

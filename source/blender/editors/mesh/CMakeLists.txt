@@ -57,7 +57,7 @@ set(SRC
   mesh_ops.cc
   meshtools.cc
 
-  mesh_intern.h
+  mesh_intern.hh
 )
 
 set(LIB

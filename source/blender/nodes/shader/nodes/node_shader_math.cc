@@ -181,15 +181,11 @@ static void sh_node_math_build_multi_function(NodeMultiFunctionBuilder &builder)
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  CLG_LogRef *LOG_MATERIALX_SHADER = materialx::LOG_MATERIALX_SHADER;
-
-  /* TODO: finish some math operations */
   NodeMathOperation op = NodeMathOperation(node_->custom1);
   NodeItem res = empty();
 
   /* Single operand operations */
   NodeItem x = get_input_value(0, NodeItem::Type::Float);
-  /* TODO: Seems we have to use average if Vector or Color are added */
 
   switch (op) {
     case NODE_MATH_SINE:
@@ -259,6 +255,7 @@ NODE_SHADER_MATERIALX_BEGIN
     default: {
       /* 2-operand operations */
       NodeItem y = get_input_value(1, NodeItem::Type::Float);
+
       switch (op) {
         case NODE_MATH_ADD:
           res = x + y;
@@ -297,22 +294,30 @@ NODE_SHADER_MATERIALX_BEGIN
           res = x.atan2(y);
           break;
         case NODE_MATH_SNAP:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = (x / y).floor() * y;
           break;
-        case NODE_MATH_PINGPONG:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+        case NODE_MATH_PINGPONG: {
+          NodeItem fract_part = (x - y) / (y * val(2.0f));
+          NodeItem if_branch = ((fract_part - fract_part.floor()) * y * val(2.0f) - y).abs();
+          res = y.if_else(NodeItem::CompareOp::NotEq, val(0.0f), if_branch, val(0.0f));
           break;
+        }
         case NODE_MATH_FLOORED_MODULO:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = y.if_else(
+              NodeItem::CompareOp::NotEq, val(0.0f), (x - (x / y).floor() * y), val(0.0f));
           break;
 
         default: {
           /* 3-operand operations */
           NodeItem z = get_input_value(2, NodeItem::Type::Float);
+
           switch (op) {
-            case NODE_MATH_WRAP:
-              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+            case NODE_MATH_WRAP: {
+              NodeItem range = (y - z);
+              NodeItem if_branch = x - (range * ((x - z) / range).floor());
+              res = range.if_else(NodeItem::CompareOp::NotEq, val(0.0f), if_branch, z);
               break;
+            }
             case NODE_MATH_COMPARE:
               res = z.if_else(NodeItem::CompareOp::Less, (x - y).abs(), val(1.0f), val(0.0f));
               break;
@@ -320,12 +325,20 @@ NODE_SHADER_MATERIALX_BEGIN
               res = x * y + z;
               break;
             case NODE_MATH_SMOOTH_MIN:
-              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+            case NODE_MATH_SMOOTH_MAX: {
+              auto make_smoothmin = [&](NodeItem a, NodeItem b, NodeItem k) {
+                NodeItem h = (k - (a - b).abs()).max(val(0.0f)) / k;
+                NodeItem if_branch = a.min(b) - h * h * h * k * val(1.0f / 6.0f);
+                return k.if_else(NodeItem::CompareOp::NotEq, val(0.0f), if_branch, a.min(b));
+              };
+              if (op == NODE_MATH_SMOOTH_MIN) {
+                res = make_smoothmin(x, y, z);
+              }
+              else {
+                res = -make_smoothmin(-x, -y, -z);
+              }
               break;
-            case NODE_MATH_SMOOTH_MAX:
-              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
-              break;
-
+            }
             default:
               BLI_assert_unreachable();
           }

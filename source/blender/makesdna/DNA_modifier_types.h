@@ -12,7 +12,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 
 #ifdef __cplusplus
 namespace blender {
@@ -94,6 +94,14 @@ typedef enum ModifierType {
   eModifierType_VolumeDisplace = 59,
   eModifierType_VolumeToMesh = 60,
   eModifierType_GreasePencilOpacity = 61,
+  eModifierType_GreasePencilSubdiv = 62,
+  eModifierType_GreasePencilColor = 63,
+  eModifierType_GreasePencilTint = 64,
+  eModifierType_GreasePencilSmooth = 65,
+  eModifierType_GreasePencilOffset = 66,
+  eModifierType_GreasePencilNoise = 67,
+  eModifierType_GreasePencilMirror = 68,
+  eModifierType_GreasePencilThickness = 69,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -135,7 +143,7 @@ typedef struct ModifierData {
   char *error;
 
   /** Runtime field which contains unique identifier of the modifier. */
-  SessionUUID session_uuid;
+  SessionUID session_uid;
 
   /** Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;
@@ -2334,6 +2342,31 @@ typedef struct NodesModifierSettings {
   struct IDProperty *properties;
 } NodesModifierSettings;
 
+/**
+ * Maps a name (+ optional library name) to a data-block. The name can be stored on disk and is
+ * remapped to the data-block when the data is loaded.
+ *
+ * At run-time, #BakeDataBlockID is used to pair up the data-block and library name.
+ */
+typedef struct NodesModifierDataBlock {
+  /**
+   * Name of the data-block. Can be empty in which case the name of the `id` below is used.
+   * This only needs to be set manually when the name stored on disk does not exist in the .blend
+   * file anymore, because e.g. the ID has been renamed.
+   */
+  char *id_name;
+  /**
+   * Name of the library the ID is in. Can be empty when the ID is not linked or when `id_name` is
+   * empty as well and thus the names from the `id` below are used.
+   */
+  char *lib_name;
+  /** ID that this is mapped to. */
+  struct ID *id;
+  /** Type of ID that is referenced by this mapping. */
+  int id_type;
+  char _pad[4];
+} NodesModifierDataBlock;
+
 typedef struct NodesModifierBake {
   /** An id that references a nested node in the node tree. Also see #bNestedNodeRef. */
   int id;
@@ -2353,6 +2386,17 @@ typedef struct NodesModifierBake {
    */
   int frame_start;
   int frame_end;
+
+  /**
+   * Maps data-block names to actual data-blocks, so that names stored in caches or on disk can be
+   * remapped to actual IDs on load. The mapping also makes sure that IDs referenced by baked data
+   * are not automatically removed because they are not referenced anymore. Furthermore, it allows
+   * the modifier to add all required IDs to the dependency graph before actually loading the baked
+   * data.
+   */
+  int data_blocks_num;
+  int active_data_block;
+  NodesModifierDataBlock *data_blocks;
 } NodesModifierBake;
 
 typedef struct NodesModifierPanel {
@@ -2390,6 +2434,7 @@ typedef struct NodesModifierData {
   char _pad[3];
   int bakes_num;
   NodesModifierBake *bakes;
+
   char _pad2[4];
   int panels_num;
   NodesModifierPanel *panels;
@@ -2541,9 +2586,181 @@ typedef enum GreasePencilModifierColorMode {
 } GreasePencilModifierColorMode;
 
 typedef enum GreasePencilOpacityModifierFlag {
-  MOD_GREASE_PENCIL_OPACITY_OPEN_INFLUENCE_PANEL = (1 << 0),
   /* Use vertex group as opacity factors instead of influence. */
-  MOD_GREASE_PENCIL_OPACITY_USE_WEIGHT_AS_FACTOR = (1 << 1),
+  MOD_GREASE_PENCIL_OPACITY_USE_WEIGHT_AS_FACTOR = (1 << 0),
   /* Set the opacity for every point in a stroke, otherwise multiply existing opacity. */
-  MOD_GREASE_PENCIL_OPACITY_USE_UNIFORM_OPACITY = (1 << 2),
+  MOD_GREASE_PENCIL_OPACITY_USE_UNIFORM_OPACITY = (1 << 1),
 } GreasePencilOpacityModifierFlag;
+
+typedef struct GreasePencilSubdivModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** #GreasePencilSubdivideType. */
+  int type;
+  /** Level of subdivisions, will generate 2^level segments. */
+  int level;
+
+  char _pad[8];
+  void *_pad1;
+} GreasePencilSubdivModifierData;
+
+typedef enum GreasePencilSubdivideType {
+  MOD_GREASE_PENCIL_SUBDIV_CATMULL = 0,
+  MOD_GREASE_PENCIL_SUBDIV_SIMPLE = 1,
+} GreasePencilSubdivideType;
+
+typedef struct GreasePencilColorModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** GreasePencilModifierColorMode */
+  char color_mode;
+  char _pad1[3];
+  /** HSV factors. */
+  float hsv[3];
+  void *_pad2;
+} GreasePencilColorModifierData;
+
+typedef struct GreasePencilTintModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** GreasePencilTintModifierFlag */
+  short flag;
+  /** GreasePencilModifierColorMode */
+  char color_mode;
+  /** GreasePencilTintModifierMode */
+  char tint_mode;
+  float factor;
+  /** Influence distance from the gradient object. */
+  float radius;
+  /** Simple tint color. */
+  float color[3];
+  /** Object for gradient direction. */
+  struct Object *object;
+  /** Color ramp for the gradient. */
+  struct ColorBand *color_ramp;
+  void *_pad;
+} GreasePencilTintModifierData;
+
+typedef enum GreasePencilTintModifierMode {
+  MOD_GREASE_PENCIL_TINT_UNIFORM = 0,
+  MOD_GREASE_PENCIL_TINT_GRADIENT = 1,
+} GreasePencilTintModifierMode;
+
+typedef enum GreasePencilTintModifierFlag {
+  /* Use vertex group as factors instead of influence. */
+  MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR = (1 << 0),
+} GreasePencilTintModifierFlag;
+
+typedef struct GreasePencilSmoothModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** `eGreasePencilSmooth_Flag. */
+  int flag;
+  /** Factor of smooth. */
+  float factor;
+  /** How many times apply smooth. */
+  int step;
+  char _pad[4];
+  void *_pad1;
+} GreasePencilSmoothModifierData;
+
+typedef enum eGreasePencilSmooth_Flag {
+  MOD_GREASE_PENCIL_SMOOTH_OPEN_INFLUENCE_PANEL = (1 << 0),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_LOCATION = (1 << 1),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_STRENGTH = (1 << 2),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_THICKNESS = (1 << 3),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_UV = (1 << 4),
+  MOD_GREASE_PENCIL_SMOOTH_KEEP_SHAPE = (1 << 5),
+  MOD_GREASE_PENCIL_SMOOTH_SMOOTH_ENDS = (1 << 6),
+} eGreasePencilSmooth_Flag;
+
+typedef struct GreasePencilOffsetModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** GreasePencilOffsetModifierFlag */
+  int flag;
+  /** GreasePencilOffsetModifierMode */
+  int offset_mode;
+  /** Global offset. */
+  float loc[3];
+  float rot[3];
+  float scale[3];
+  /** Offset per stroke. */
+  float stroke_loc[3];
+  float stroke_rot[3];
+  float stroke_scale[3];
+  int seed;
+  int stroke_step;
+  int stroke_start_offset;
+  char _pad1[4];
+  void *_pad2;
+} GreasePencilOffsetModifierData;
+
+typedef enum GreasePencilOffsetModifierFlag {
+  MOD_GREASE_PENCIL_OFFSET_UNIFORM_RANDOM_SCALE = (1 << 0),
+} GreasePencilOffsetModifierFlag;
+
+typedef enum GreasePencilOffsetModifierMode {
+  MOD_GREASE_PENCIL_OFFSET_RANDOM = 0,
+  MOD_GREASE_PENCIL_OFFSET_LAYER = 1,
+  MOD_GREASE_PENCIL_OFFSET_MATERIAL = 2,
+  MOD_GREASE_PENCIL_OFFSET_STROKE = 3,
+} GreasePencilOffsetModifierMode;
+
+typedef struct GreasePencilNoiseModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+
+  /** For convenience of versioning, these flags are kept in `eNoiseGpencil_Flag`. */
+  int flag;
+
+  /** Factor of noise. */
+  float factor;
+  float factor_strength;
+  float factor_thickness;
+  float factor_uvs;
+  /** Noise Frequency scaling */
+  float noise_scale;
+  float noise_offset;
+  short noise_mode;
+  char _pad[2];
+  /** How many frames before recalculate randoms. */
+  int step;
+  /** Random seed */
+  int seed;
+
+  void *_pad1;
+} GreasePencilNoiseModifierData;
+
+typedef struct GreasePencilMirrorModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  struct Object *object;
+  /** #GreasePencilMirrorModifierFlag */
+  int flag;
+  char _pad[4];
+} GreasePencilMirrorModifierData;
+
+typedef enum GreasePencilMirrorModifierFlag {
+  MOD_GREASE_PENCIL_MIRROR_AXIS_X = (1 << 0),
+  MOD_GREASE_PENCIL_MIRROR_AXIS_Y = (1 << 1),
+  MOD_GREASE_PENCIL_MIRROR_AXIS_Z = (1 << 2),
+} GreasePencilMirrorModifierFlag;
+
+typedef struct GreasePencilThickModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** #GreasePencilThicknessModifierFlag */
+  int flag;
+  /** Relative thickness factor. */
+  float thickness_fac;
+  /** Absolute thickness override. */
+  float thickness;
+  char _pad[4];
+  void *_pad1;
+} GreasePencilThickModifierData;
+
+typedef enum GreasePencilThicknessModifierFlag {
+  MOD_GREASE_PENCIL_THICK_NORMALIZE = (1 << 0),
+  MOD_GREASE_PENCIL_THICK_WEIGHT_FACTOR = (1 << 1),
+} GreasePencilThicknessModifierFlag;

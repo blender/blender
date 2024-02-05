@@ -24,8 +24,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_dynamicpaint.h"
-#include "BKE_layer.h"
-#include "BKE_lib_query.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
@@ -223,4 +223,5 @@ ModifierTypeInfo modifierType_DynamicPaint = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

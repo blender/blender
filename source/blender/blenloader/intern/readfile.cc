@@ -56,8 +56,7 @@
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
-
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "BLT_translation.h"
 
@@ -68,11 +67,11 @@
 #include "BKE_collection.h"
 #include "BKE_global.h" /* for G */
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
-#include "BKE_layer.h"
+#include "BKE_idtype.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh" /* for Main */
 #include "BKE_main_idmap.hh"
@@ -699,7 +698,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh8_from_bh4(&bhead, &bhead4);
           }
           else {
-            /* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
+            /* std::min is only to quiet '-Warray-bounds' compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead4));
             memcpy(&bhead, &bhead4, std::min(sizeof(bhead), sizeof(bhead4)));
           }
@@ -722,7 +721,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh4_from_bh8(&bhead, &bhead8, (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0);
           }
           else {
-            /* MIN2 is only to quiet `-Warray-bounds` compiler warning. */
+            /* std::min is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead8));
             memcpy(&bhead, &bhead8, std::min(sizeof(bhead), sizeof(bhead8)));
           }
@@ -1355,11 +1354,11 @@ void blo_filedata_free(FileData *fd)
     if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP)) {
       oldnewmap_free(fd->libmap);
     }
-    if (fd->old_idmap_uuid != nullptr) {
-      BKE_main_idmap_destroy(fd->old_idmap_uuid);
+    if (fd->old_idmap_uid != nullptr) {
+      BKE_main_idmap_destroy(fd->old_idmap_uid);
     }
-    if (fd->new_idmap_uuid != nullptr) {
-      BKE_main_idmap_destroy(fd->new_idmap_uuid);
+    if (fd->new_idmap_uid != nullptr) {
+      BKE_main_idmap_destroy(fd->new_idmap_uid);
     }
     blo_cache_storage_end(fd);
     if (fd->bheadmap) {
@@ -1592,10 +1591,10 @@ void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
 
 void blo_make_old_idmap_from_main(FileData *fd, Main *bmain)
 {
-  if (fd->old_idmap_uuid != nullptr) {
-    BKE_main_idmap_destroy(fd->old_idmap_uuid);
+  if (fd->old_idmap_uid != nullptr) {
+    BKE_main_idmap_destroy(fd->old_idmap_uid);
   }
-  fd->old_idmap_uuid = BKE_main_idmap_create(bmain, false, nullptr, MAIN_IDMAP_TYPE_UUID);
+  fd->old_idmap_uid = BKE_main_idmap_create(bmain, false, nullptr, MAIN_IDMAP_TYPE_UID);
 }
 
 struct BLOCacheStorage {
@@ -1612,7 +1611,7 @@ struct BLOCacheStorageValue {
 static void blo_cache_storage_entry_register(
     ID *id, const IDCacheKey *key, void **cache_p, uint /*flags*/, void *cache_storage_v)
 {
-  BLI_assert(key->id_session_uuid == id->session_uuid);
+  BLI_assert(key->id_session_uid == id->session_uid);
   UNUSED_VARS_NDEBUG(id);
 
   BLOCacheStorage *cache_storage = static_cast<BLOCacheStorage *>(cache_storage_v);
@@ -2070,13 +2069,13 @@ static void direct_link_id_common(
     BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int id_tag)
 {
   if (!BLO_read_data_is_undo(reader)) {
-    /* When actually reading a file, we do want to reset/re-generate session UUIDS.
+    /* When actually reading a file, we do want to reset/re-generate session UIDS.
      * In undo case, we want to re-use existing ones. */
-    id->session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+    id->session_uid = MAIN_ID_SESSION_UID_UNSET;
   }
 
   if ((id_tag & LIB_TAG_TEMP_MAIN) == 0) {
-    BKE_lib_libblock_session_uuid_ensure(id);
+    BKE_lib_libblock_session_uid_ensure(id);
   }
 
   id->lib = current_library;
@@ -2384,7 +2383,7 @@ static ID *create_placeholder(Main *mainvar,
   }
 
   if ((tag & LIB_TAG_TEMP_MAIN) == 0) {
-    BKE_lib_libblock_session_uuid_ensure(ph_id);
+    BKE_lib_libblock_session_uid_ensure(ph_id);
   }
 
   return ph_id;
@@ -2626,7 +2625,7 @@ static void read_undo_reuse_noundo_local_ids(FileData *fd)
 
     /* Update mappings accordingly. */
     LISTBASE_FOREACH (ID *, id_iter, new_lb) {
-      BKE_main_idmap_insert_id(fd->new_idmap_uuid, id_iter);
+      BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
       id_iter->tag |= LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
     }
   }
@@ -2643,14 +2642,14 @@ static void read_undo_move_libmain_data(
   BLI_addtail(&new_main->libraries, libmain->curlib);
 
   curlib->id.tag |= LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO;
-  BKE_main_idmap_insert_id(fd->new_idmap_uuid, &curlib->id);
+  BKE_main_idmap_insert_id(fd->new_idmap_uid, &curlib->id);
   if (bhead != nullptr) {
     oldnewmap_lib_insert(fd, bhead->old, &curlib->id, GS(curlib->id.name));
   }
 
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (libmain, id_iter) {
-    BKE_main_idmap_insert_id(fd->new_idmap_uuid, id_iter);
+    BKE_main_idmap_insert_id(fd->new_idmap_uid, id_iter);
   }
   FOREACH_MAIN_ID_END;
 }
@@ -2710,7 +2709,7 @@ static bool read_libblock_undo_restore_linked(
   CLOG_INFO(&LOG_UNDO, 2, "UNDO: restore linked datablock %s", id->name);
 
   if (*r_id_old == nullptr) {
-    /* If the linked ID had to be re-read at some point, its session_uuid may not be the same as
+    /* If the linked ID had to be re-read at some point, its session_uid may not be the same as
      * its reference stored in the memfile anymore. Do a search by name then. */
     *r_id_old = library_id_is_yet_read(fd, libmain, bhead);
 
@@ -2730,19 +2729,19 @@ static bool read_libblock_undo_restore_linked(
               libmain->curlib ? libmain->curlib->filepath : "<nullptr>");
     /* The Library ID 'owning' this linked ID should already have been moved to new main by a call
      * to #read_libblock_undo_restore_library. */
-    BLI_assert(*r_id_old == static_cast<ID *>(BKE_main_idmap_lookup_uuid(
-                                fd->new_idmap_uuid, (*r_id_old)->session_uuid)));
+    BLI_assert(*r_id_old == static_cast<ID *>(BKE_main_idmap_lookup_uid(
+                                fd->new_idmap_uid, (*r_id_old)->session_uid)));
   }
   else {
     CLOG_INFO(&LOG_UNDO,
               2,
-              "    from %s (%s): found by session_uuid",
+              "    from %s (%s): found by session_uid",
               libmain->curlib ? libmain->curlib->id.name : "<nullptr>",
               libmain->curlib ? libmain->curlib->filepath : "<nullptr>");
     /* The Library ID 'owning' this linked ID should already have been moved to new main by a call
      * to #read_libblock_undo_restore_library. */
-    BLI_assert(*r_id_old == static_cast<ID *>(
-                                BKE_main_idmap_lookup_uuid(fd->new_idmap_uuid, id->session_uuid)));
+    BLI_assert(*r_id_old ==
+               static_cast<ID *>(BKE_main_idmap_lookup_uid(fd->new_idmap_uid, id->session_uid)));
   }
 
   oldnewmap_lib_insert(fd, bhead->old, *r_id_old, GS((*r_id_old)->name));
@@ -2790,7 +2789,7 @@ static void read_libblock_undo_restore_identical(
    * remapped, so no need to store this info here. */
   oldnewmap_lib_insert(fd, bhead->old, id_old, bhead->code);
 
-  BKE_main_idmap_insert_id(fd->new_idmap_uuid, id_old);
+  BKE_main_idmap_insert_id(fd->new_idmap_uid, id_old);
 
   if (GS(id_old->name) == ID_OB) {
     Object *ob = (Object *)id_old;
@@ -2844,7 +2843,7 @@ static void read_libblock_undo_restore_at_old_address(FileData *fd, Main *main, 
 static bool read_libblock_undo_restore(
     FileData *fd, Main *main, BHead *bhead, int id_tag, ID **r_id_old)
 {
-  BLI_assert(fd->old_idmap_uuid != nullptr);
+  BLI_assert(fd->old_idmap_uid != nullptr);
 
   /* Get pointer to memory of new ID that we will be reading. */
   const ID *id = static_cast<const ID *>(peek_struct_undo(fd, bhead));
@@ -2860,8 +2859,8 @@ static bool read_libblock_undo_restore(
 
   /* Find the 'current' existing ID we want to reuse instead of the one we
    * would read from the undo memfile. */
-  ID *id_old = (fd->old_idmap_uuid != nullptr) ?
-                   BKE_main_idmap_lookup_uuid(fd->old_idmap_uuid, id->session_uuid) :
+  ID *id_old = (fd->old_idmap_uid != nullptr) ?
+                   BKE_main_idmap_lookup_uid(fd->old_idmap_uid, id->session_uid) :
                    nullptr;
 
   if (bhead->code == ID_LI) {
@@ -2882,14 +2881,14 @@ static bool read_libblock_undo_restore(
 
     /* If that local noundo ID still exists currently, the call to
      * #read_undo_reuse_noundo_local_ids at the beginning of #blo_read_file_internal will already
-     * have moved it into the new main, and populated accordingly the new_idmap_uuid.
+     * have moved it into the new main, and populated accordingly the new_idmap_uid.
      *
      * If this is the case, it can also be remapped for newly read data. Otherwise, this is 'lost'
      * data that cannot be restored on undo, so no remapping should exist for it in the ID
      * oldnewmap. */
     if (id_old) {
-      BLI_assert(id_old == static_cast<ID *>(
-                               BKE_main_idmap_lookup_uuid(fd->new_idmap_uuid, id->session_uuid)));
+      BLI_assert(id_old ==
+                 static_cast<ID *>(BKE_main_idmap_lookup_uid(fd->new_idmap_uid, id->session_uid)));
       oldnewmap_lib_insert(fd, bhead->old, id_old, bhead->code);
     }
     return true;
@@ -2898,9 +2897,9 @@ static bool read_libblock_undo_restore(
   if (!do_partial_undo) {
     CLOG_INFO(&LOG_UNDO,
               2,
-              "UNDO: read %s (uuid %u) -> no partial undo, always read at new address",
+              "UNDO: read %s (uid %u) -> no partial undo, always read at new address",
               id->name,
-              id->session_uuid);
+              id->session_uid);
     return false;
   }
 
@@ -2909,9 +2908,9 @@ static bool read_libblock_undo_restore(
     /* Local datablock was unchanged, restore from the old main. */
     CLOG_INFO(&LOG_UNDO,
               2,
-              "UNDO: read %s (uuid %u) -> keep identical datablock",
+              "UNDO: read %s (uid %u) -> keep identical datablock",
               id->name,
-              id->session_uuid);
+              id->session_uid);
 
     read_libblock_undo_restore_identical(fd, main, id, id_old, bhead, id_tag);
 
@@ -2922,16 +2921,16 @@ static bool read_libblock_undo_restore(
     /* Local datablock was changed. Restore at the address of the old datablock. */
     CLOG_INFO(&LOG_UNDO,
               2,
-              "UNDO: read %s (uuid %u) -> read to old existing address",
+              "UNDO: read %s (uid %u) -> read to old existing address",
               id->name,
-              id->session_uuid);
+              id->session_uid);
     *r_id_old = id_old;
     return false;
   }
 
   /* Local datablock does not exist in the undo step, so read from scratch. */
   CLOG_INFO(
-      &LOG_UNDO, 2, "UNDO: read %s (uuid %u) -> read at new address", id->name, id->session_uuid);
+      &LOG_UNDO, 2, "UNDO: read %s (uid %u) -> read at new address", id->name, id->session_uid);
   return false;
 }
 
@@ -3052,8 +3051,8 @@ static BHead *read_libblock(FileData *fd,
       /* For undo, store contents read into id at id_old. */
       read_libblock_undo_restore_at_old_address(fd, main, id, id_old);
     }
-    if (fd->new_idmap_uuid != nullptr) {
-      BKE_main_idmap_insert_id(fd->new_idmap_uuid, id_target);
+    if (fd->new_idmap_uid != nullptr) {
+      BKE_main_idmap_insert_id(fd->new_idmap_uid, id_target);
     }
     if (main->id_map != nullptr) {
       BKE_main_idmap_insert_id(main->id_map, id_target);
@@ -3110,25 +3109,21 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
   bfd->fileflags = fg->fileflags;
   bfd->globalf = fg->globalf;
-  STRNCPY(bfd->filepath, fg->filepath);
 
-  /* Error in 2.65 and older: `main->filepath` was not set if you save from startup
-   * (not after loading file). */
-  if (bfd->filepath[0] == 0) {
-    if (fd->fileversion < 265 || (fd->fileversion == 265 && fg->subversion < 1)) {
-      if ((G.fileflags & G_FILE_RECOVER_READ) == 0) {
-        STRNCPY(bfd->filepath, BKE_main_blendfile_path(bfd->main));
-      }
-    }
-
-    /* early 2.50 version patch - filepath not in FileGlobal struct at all */
-    if (fd->fileversion <= 250) {
-      STRNCPY(bfd->filepath, BKE_main_blendfile_path(bfd->main));
-    }
-  }
-
+  /* Note: since 88b24bc6bb, `fg->filepath` is only written for crash recovery and autosave files,
+   * so only overwrite `fd->relabase` if it is not empty, in case a regular blendfile is opened
+   * through one of the 'recover' operators.
+   *
+   * In all other cases, the path is just set to the current path of the blendfile being read, so
+   * there is no need to handle anymore older files (pre-2.65) that did not store (correctly) their
+   * path. */
   if (G.fileflags & G_FILE_RECOVER_READ) {
-    STRNCPY(fd->relabase, fg->filepath);
+    if (fg->filepath[0] != '\0') {
+      STRNCPY(fd->relabase, fg->filepath);
+      /* Used to set expected original filepath in read Main, instead of the path of the recovery
+       * file itself. */
+      STRNCPY(bfd->filepath, fg->filepath);
+    }
   }
 
   bfd->curscreen = fg->curscreen;
@@ -3521,10 +3516,10 @@ static int read_undo_remap_noundo_data_cb(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  IDNameLib_Map *new_idmap_uuid = static_cast<IDNameLib_Map *>(cb_data->user_data);
+  IDNameLib_Map *new_idmap_uid = static_cast<IDNameLib_Map *>(cb_data->user_data);
   ID **id_pointer = cb_data->id_pointer;
   if (*id_pointer != nullptr) {
-    *id_pointer = BKE_main_idmap_lookup_uuid(new_idmap_uuid, (*id_pointer)->session_uuid);
+    *id_pointer = BKE_main_idmap_lookup_uid(new_idmap_uid, (*id_pointer)->session_uid);
   }
 
   return IDWALK_RET_NOP;
@@ -3536,7 +3531,7 @@ static int read_undo_remap_noundo_data_cb(LibraryIDLinkCallbackData *cb_data)
  * re-used IDs (the 'unchanged' ones), there is no guarantee that all the ID pointers they use are
  * still valid.
  *
- * This code performs a remapping based on the session_uuid. */
+ * This code performs a remapping based on the session_uid. */
 static void read_undo_remap_noundo_data(FileData *fd)
 {
   Main *new_bmain = static_cast<Main *>(fd->mainlist->first);
@@ -3550,7 +3545,7 @@ static void read_undo_remap_noundo_data(FileData *fd)
     }
 
     BKE_library_foreach_ID_link(
-        new_bmain, id_iter, read_undo_remap_noundo_data_cb, fd->new_idmap_uuid, IDWALK_INCLUDE_UI);
+        new_bmain, id_iter, read_undo_remap_noundo_data_cb, fd->new_idmap_uid, IDWALK_INCLUDE_UI);
   }
   FOREACH_MAIN_ID_END;
 }
@@ -3590,6 +3585,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
   bfd->main = BKE_main_new();
   bfd->main->versionfile = fd->fileversion;
+  STRNCPY(bfd->filepath, filepath);
 
   bfd->type = BLENFILETYPE_BLEND;
 
@@ -3622,10 +3618,10 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if (is_undo) {
-    /* This idmap will store uuids of all IDs ending up in the new main, whether they are newly
+    /* This idmap will store uids of all IDs ending up in the new main, whether they are newly
      * read, or re-used from the old main. */
-    fd->new_idmap_uuid = BKE_main_idmap_create(
-        static_cast<Main *>(fd->mainlist->first), false, nullptr, MAIN_IDMAP_TYPE_UUID);
+    fd->new_idmap_uid = BKE_main_idmap_create(
+        static_cast<Main *>(fd->mainlist->first), false, nullptr, MAIN_IDMAP_TYPE_UID);
 
     /* Copy all 'no undo' local data from old to new bmain. */
     read_undo_reuse_noundo_local_ids(fd);
@@ -3723,7 +3719,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-    fd->reports->duration.libraries = PIL_check_seconds_timer();
+    fd->reports->duration.libraries = BLI_check_seconds_timer();
     read_libraries(fd, &mainlist);
 
     blo_join_main(&mainlist);
@@ -3738,7 +3734,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       read_undo_remap_noundo_data(fd);
     }
 
-    fd->reports->duration.libraries = PIL_check_seconds_timer() - fd->reports->duration.libraries;
+    fd->reports->duration.libraries = BLI_check_seconds_timer() - fd->reports->duration.libraries;
 
     /* Skip in undo case. */
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
@@ -3796,7 +3792,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
      * we can re-generate overrides from their references. */
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
       /* Do not apply in undo case! */
-      fd->reports->duration.lib_overrides = PIL_check_seconds_timer();
+      fd->reports->duration.lib_overrides = BLI_check_seconds_timer();
 
       std::string cur_view_layer_name = bfd->cur_view_layer != nullptr ?
                                             bfd->cur_view_layer->name :
@@ -3817,7 +3813,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        * Proper fix involves first addressing #90610. */
       BKE_main_collections_parent_relations_rebuild(bfd->main);
 
-      fd->reports->duration.lib_overrides = PIL_check_seconds_timer() -
+      fd->reports->duration.lib_overrides = BLI_check_seconds_timer() -
                                             fd->reports->duration.lib_overrides;
     }
 
@@ -4859,9 +4855,9 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader,
   return static_cast<ID *>(newlibadr(reader->fd, self_id, is_linked_only, id));
 }
 
-ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
+ID *BLO_read_get_new_id_address_from_session_uid(BlendLibReader *reader, uint session_uid)
 {
-  return BKE_main_idmap_lookup_uuid(reader->fd->new_idmap_uuid, session_uuid);
+  return BKE_main_idmap_lookup_uid(reader->fd->new_idmap_uid, session_uid);
 }
 
 int BLO_read_fileversion_get(BlendDataReader *reader)

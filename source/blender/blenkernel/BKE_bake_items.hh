@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "BKE_bake_data_block_map.hh"
 #include "BKE_geometry_set.hh"
 
 namespace blender::bke::bake {
@@ -16,6 +17,12 @@ namespace blender::bke::bake {
  */
 class BakeItem {
  public:
+  /**
+   * User-defined name. This is not necessarily unique and might change over time. It's purpose is
+   * to make bakes more inspectable.
+   */
+  std::string name;
+
   virtual ~BakeItem() = default;
 };
 
@@ -42,13 +49,18 @@ class GeometryBakeItem : public BakeItem {
   GeometryBakeItem(GeometrySet geometry);
 
   /**
-   * Removes parts of the geometry that can't be stored in the simulation state:
-   * - Anonymous attributes can't be stored because it is not known which of them will or will not
-   * be used in the future.
-   * - Materials can't be stored directly, because they are linked ID data blocks that can't be
-   *   restored from baked data currently.
+   * Removes parts of the geometry that can't be baked/cached (anonymous attributes) and replaces
+   * data-block pointers with #BakeDataBlockID.
    */
-  static void cleanup_geometry(GeometrySet &geometry);
+  static void prepare_geometry_for_bake(GeometrySet &geometry, BakeDataBlockMap *data_block_map);
+
+  /**
+   * The baked data does not have raw pointers to referenced data-blocks because those would become
+   * dangling quickly. Instead it has weak name-based references (#BakeDataBlockID). This function
+   * attempts to restore the actual data block pointers based on the weak references using the
+   * given mapping.
+   */
+  static void try_restore_data_blocks(GeometrySet &geometry, BakeDataBlockMap *data_block_map);
 };
 
 /**

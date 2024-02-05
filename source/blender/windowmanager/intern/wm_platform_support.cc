@@ -19,7 +19,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_global.h"
 
 #include "GPU_platform.h"
@@ -36,14 +36,14 @@ static bool wm_platform_support_check_approval(const char *platform_support_key,
   if (G.factory_startup) {
     return false;
   }
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
-  if (!cfgdir) {
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  if (!cfgdir.has_value()) {
     return false;
   }
 
   bool result = false;
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_PLATFORM_SUPPORT_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_PLATFORM_SUPPORT_FILE);
   LinkNode *lines = BLI_file_read_as_lines(filepath);
   for (LinkNode *line_node = lines; line_node; line_node = line_node->next) {
     const char *line = static_cast<char *>(line_node->link);

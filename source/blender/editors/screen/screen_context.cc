@@ -32,7 +32,7 @@
 #include "BKE_blender.h"
 #include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_tracking.h"
 
@@ -55,6 +55,8 @@
 #include "ANIM_bone_collections.hh"
 
 #include "screen_intern.h"
+
+using blender::Vector;
 
 const char *screen_context_dir[] = {
     "scene",
@@ -270,11 +272,9 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
   EditBone *flipbone = nullptr;
 
   if (arm && arm->edbo) {
-    uint objects_len;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, CTX_wm_view3d(C), &objects_len);
-    for (uint i = 0; i < objects_len; i++) {
-      Object *ob = objects[i];
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, CTX_wm_view3d(C));
+    for (Object *ob : objects) {
       arm = static_cast<bArmature *>(ob->data);
 
       /* Attention: X-Axis Mirroring is also handled here... */
@@ -314,7 +314,6 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
         }
       }
     }
-    MEM_freeN(objects);
 
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
     return CTX_RESULT_OK;
@@ -343,11 +342,9 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
   EditBone *flipbone = nullptr;
 
   if (arm && arm->edbo) {
-    uint objects_len;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, CTX_wm_view3d(C), &objects_len);
-    for (uint i = 0; i < objects_len; i++) {
-      Object *ob = objects[i];
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, CTX_wm_view3d(C));
+    for (Object *ob : objects) {
       arm = static_cast<bArmature *>(ob->data);
 
       /* Attention: X-Axis Mirroring is also handled here... */
@@ -387,7 +384,6 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
         }
       }
     }
-    MEM_freeN(objects);
 
     CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
     return CTX_RESULT_OK;

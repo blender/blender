@@ -50,8 +50,8 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
@@ -295,7 +295,7 @@ static void update_modified_node_mesh(PBVHNode &node, PartialUpdateData &data)
   if (!data.modified_position_verts.is_empty()) {
     for (const int vert : verts) {
       if (data.modified_position_verts[vert]) {
-        BKE_pbvh_node_mark_normals_update(&node);
+        BKE_pbvh_node_mark_positions_update(&node);
         break;
       }
     }
@@ -393,18 +393,18 @@ static void update_modified_node_grids(PBVHNode &node, PartialUpdateData &data)
   }
 }
 
-static bool test_swap_v3_v3(float a[3], float b[3])
+static bool test_swap_v3_v3(float3 &a, float3 &b)
 {
   /* No need for float comparison here (memory is exactly equal or not). */
   if (memcmp(a, b, sizeof(float[3])) != 0) {
-    swap_v3_v3(a, b);
+    std::swap(a, b);
     return true;
   }
   return false;
 }
 
 static bool restore_deformed(
-    const SculptSession *ss, Node &unode, int uindex, int oindex, float coord[3])
+    const SculptSession *ss, Node &unode, int uindex, int oindex, float3 &coord)
 {
   if (test_swap_v3_v3(coord, unode.orig_position[uindex])) {
     copy_v3_v3(unode.position[uindex], ss->deform_cos[oindex]);
@@ -445,33 +445,35 @@ static bool restore_coords(
     MutableSpan<float3> positions = ss->vert_positions;
 
     if (ss->shapekey_active) {
-      MutableSpan<float3> vertCos(static_cast<float3 *>(ss->shapekey_active->data),
-                                  ss->shapekey_active->totelem);
+      float(*vertCos)[3] = BKE_keyblock_convert_to_vertcos(ob, ss->shapekey_active);
+      MutableSpan key_positions(reinterpret_cast<float3 *>(vertCos), ss->shapekey_active->totelem);
 
       if (!unode.orig_position.is_empty()) {
         if (ss->deform_modifiers_active) {
           for (const int i : index.index_range()) {
-            restore_deformed(ss, unode, i, index[i], vertCos[index[i]]);
+            restore_deformed(ss, unode, i, index[i], key_positions[index[i]]);
           }
         }
         else {
           for (const int i : index.index_range()) {
-            swap_v3_v3(vertCos[index[i]], unode.orig_position[i]);
+            std::swap(key_positions[index[i]], unode.orig_position[i]);
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
-          swap_v3_v3(vertCos[index[i]], unode.position[i]);
+          std::swap(key_positions[index[i]], unode.position[i]);
         }
       }
 
       /* Propagate new coords to keyblock. */
-      SCULPT_vertcos_to_key(ob, ss->shapekey_active, vertCos);
+      SCULPT_vertcos_to_key(ob, ss->shapekey_active, key_positions);
 
       /* PBVH uses its own vertex array, so coords should be */
       /* propagated to PBVH here. */
-      BKE_pbvh_vert_coords_apply(ss->pbvh, vertCos);
+      BKE_pbvh_vert_coords_apply(ss->pbvh, key_positions);
+
+      MEM_freeN(vertCos);
     }
     else {
       if (!unode.orig_position.is_empty()) {
@@ -483,14 +485,14 @@ static bool restore_coords(
         }
         else {
           for (const int i : index.index_range()) {
-            swap_v3_v3(positions[index[i]], unode.orig_position[i]);
+            std::swap(positions[index[i]], unode.orig_position[i]);
             modified_verts[index[i]] = true;
           }
         }
       }
       else {
         for (const int i : index.index_range()) {
-          swap_v3_v3(positions[index[i]], unode.position[i]);
+          std::swap(positions[index[i]], unode.position[i]);
           modified_verts[index[i]] = true;
         }
       }
@@ -1340,8 +1342,9 @@ static void store_hidden(Object *ob, Node *unode)
 
   PBVHNode *node = static_cast<PBVHNode *>(unode->node);
   const Span<int> verts = BKE_pbvh_node_get_vert_indices(node);
-  for (const int i : verts.index_range())
+  for (const int i : verts.index_range()) {
     unode->vert_hidden[i].set(hide_vert[verts[i]]);
+  }
 }
 
 static void store_face_hidden(Object &object, Node &unode)
@@ -1354,8 +1357,9 @@ static void store_face_hidden(Object &object, Node &unode)
     return;
   }
   const Span<int> faces = unode.face_indices;
-  for (const int i : faces.index_range())
+  for (const int i : faces.index_range()) {
     unode.face_hidden[i].set(hide_poly[faces[i]]);
+  }
 }
 
 static void store_mask(Object *ob, Node *unode)
@@ -1988,7 +1992,7 @@ static UndoSculpt *get_nodes()
 
 static bool use_multires_mesh(bContext *C)
 {
-  if (BKE_paintmode_get_active_from_context(C) != PAINT_MODE_SCULPT) {
+  if (BKE_paintmode_get_active_from_context(C) != PaintMode::Sculpt) {
     return false;
   }
 

@@ -34,7 +34,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_shrinkwrap.hh"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh" /* for OMP limits. */
 #include "BKE_mesh_runtime.hh"
@@ -49,7 +49,7 @@
 
 /* for timing... */
 #if 0
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #else
 #  define TIMEIT_BENCH(expr, id) (expr)
 #endif

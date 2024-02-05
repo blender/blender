@@ -504,7 +504,7 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    float3 snap_source_local;
+    float3 snap_source_local(0);
     if (rotate_mode != TRANSLATE_ROTATE_OFF) {
       snap_source_local = t->tsnap.snap_source;
       if (tc->use_local_mat) {

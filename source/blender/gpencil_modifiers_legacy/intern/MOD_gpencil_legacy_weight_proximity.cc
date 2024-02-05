@@ -23,10 +23,10 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
 
@@ -108,8 +108,8 @@ static void deform_stroke(GpencilModifierData *md,
     return;
   }
 
-  const float dist_max = MAX2(mmd->dist_start, mmd->dist_end);
-  const float dist_min = MIN2(mmd->dist_start, mmd->dist_end);
+  const float dist_max = std::max(mmd->dist_start, mmd->dist_end);
+  const float dist_min = std::min(mmd->dist_start, mmd->dist_end);
   const int target_def_nr = BKE_object_defgroup_name_index(ob, mmd->target_vgname);
 
   if (target_def_nr == -1) {

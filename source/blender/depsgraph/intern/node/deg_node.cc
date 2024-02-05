@@ -87,8 +87,8 @@ const char *nodeTypeAsString(NodeType type)
       return "IMAGE_ANIMATION";
     case NodeType::BATCH_CACHE:
       return "BATCH_CACHE";
-    case NodeType::DUPLI:
-      return "DUPLI";
+    case NodeType::INSTANCING:
+      return "INSTANCING";
     case NodeType::SYNCHRONIZATION:
       return "SYNCHRONIZATION";
     case NodeType::AUDIO:
@@ -97,6 +97,8 @@ const char *nodeTypeAsString(NodeType type)
       return "ARMATURE";
     case NodeType::GENERIC_DATABLOCK:
       return "GENERIC_DATABLOCK";
+    case NodeType::SCENE:
+      return "SCENE";
     case NodeType::VISIBILITY:
       return "VISIBILITY";
     case NodeType::NTREE_OUTPUT:
@@ -145,12 +147,13 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::AUDIO:
     case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK:
+    case NodeType::SCENE:
     case NodeType::PARTICLE_SYSTEM:
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::POINT_CACHE:
     case NodeType::IMAGE_ANIMATION:
     case NodeType::BATCH_CACHE:
-    case NodeType::DUPLI:
+    case NodeType::INSTANCING:
     case NodeType::SYNCHRONIZATION:
     case NodeType::UNDEFINED:
     case NodeType::NUM_TYPES:
@@ -228,12 +231,13 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::AUDIO:
     case NodeType::ARMATURE:
     case NodeType::GENERIC_DATABLOCK:
+    case NodeType::SCENE:
     case NodeType::PARTICLE_SYSTEM:
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::POINT_CACHE:
     case NodeType::IMAGE_ANIMATION:
     case NodeType::BATCH_CACHE:
-    case NodeType::DUPLI:
+    case NodeType::INSTANCING:
     case NodeType::SYNCHRONIZATION:
     case NodeType::NTREE_OUTPUT:
     case NodeType::NTREE_GEOMETRY_PREPROCESS:

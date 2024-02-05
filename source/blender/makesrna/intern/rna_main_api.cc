@@ -21,7 +21,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -35,7 +35,7 @@
 #  include "BKE_displist.h"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
-#  include "BKE_idtype.h"
+#  include "BKE_idtype.hh"
 #  include "BKE_image.h"
 #  include "BKE_lattice.hh"
 #  include "BKE_lib_remap.hh"
@@ -44,7 +44,7 @@
 #  include "BKE_linestyle.h"
 #  include "BKE_mask.h"
 #  include "BKE_material.h"
-#  include "BKE_mball.h"
+#  include "BKE_mball.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
@@ -120,7 +120,7 @@ static void rna_Main_ID_remove(Main *bmain,
   if (id->tag & LIB_TAG_NO_MAIN) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is outside of main database and can not be removed from it",
+                "%s '%s' is outside of main database and cannot be removed from it",
                 BKE_idtype_idcode_to_name(GS(id->name)),
                 id->name + 2);
     return;
@@ -212,7 +212,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
   if (data != nullptr && (data->tag & LIB_TAG_NO_MAIN)) {
     BKE_report(reports,
                RPT_ERROR,
-               "Can not create object in main database with an evaluated data data-block");
+               "Cannot create object in main database with an evaluated data data-block");
     return nullptr;
   }
 

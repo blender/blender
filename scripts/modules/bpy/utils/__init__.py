@@ -219,8 +219,8 @@ def load_scripts(*, reload_scripts=False, refresh_scripts=False, extensions=True
         # to reload. note that they will only actually reload of the
         # modification time changes. This `won't` work for packages so...
         # its not perfect.
-        for module_name in [ext.module for ext in _preferences.addons]:
-            _addon_utils.disable(module_name)
+        for addon_module_name in [ext.module for ext in _preferences.addons]:
+            _addon_utils.disable(addon_module_name)
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)

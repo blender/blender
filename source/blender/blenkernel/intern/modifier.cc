@@ -36,7 +36,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_session_uuid.h"
+#include "BLI_session_uid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
@@ -45,17 +45,17 @@
 #include "BLT_translation.h"
 
 #include "BKE_DerivedMesh.hh"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_idtype.h"
-#include "BKE_key.h"
+#include "BKE_idtype.hh"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_multires.hh"
@@ -162,7 +162,7 @@ ModifierData *BKE_modifier_new(int type)
 {
   ModifierData *md = modifier_allocate_and_init(ModifierType(type));
 
-  BKE_modifier_session_uuid_generate(md);
+  BKE_modifier_session_uid_generate(md);
 
   return md;
 }
@@ -220,9 +220,9 @@ void BKE_modifier_remove_from_list(Object *ob, ModifierData *md)
   BLI_remlink(&ob->modifiers, md);
 }
 
-void BKE_modifier_session_uuid_generate(ModifierData *md)
+void BKE_modifier_session_uid_generate(ModifierData *md)
 {
-  md->session_uuid = BLI_session_uuid_generate();
+  md->session_uid = BLI_session_uid_generate();
 }
 
 void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
@@ -266,10 +266,10 @@ ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name)
       BLI_findstring(&(ob->modifiers), name, offsetof(ModifierData, name)));
 }
 
-ModifierData *BKE_modifiers_findby_session_uuid(const Object *ob, const SessionUUID *session_uuid)
+ModifierData *BKE_modifiers_findby_session_uid(const Object *ob, const SessionUID *session_uid)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (BLI_session_uuid_is_equal(&md->session_uuid, session_uuid)) {
+    if (BLI_session_uid_is_equal(&md->session_uid, session_uid)) {
       return md;
     }
   }
@@ -370,14 +370,14 @@ void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, cons
   }
 
   if (flag & LIB_ID_CREATE_NO_MAIN) {
-    /* Make sure UUID is the same between the source and the target.
-     * This is needed in the cases when UUID is to be preserved and when there is no copy_data
+    /* Make sure UID is the same between the source and the target.
+     * This is needed in the cases when UID is to be preserved and when there is no copy_data
      * callback, or the copy_data does not do full byte copy of the modifier data. */
-    target->session_uuid = md->session_uuid;
+    target->session_uid = md->session_uid;
   }
   else {
-    /* In the case copy_data made full byte copy force UUID to be re-generated. */
-    BKE_modifier_session_uuid_generate(target);
+    /* In the case copy_data made full byte copy force UID to be re-generated. */
+    BKE_modifier_session_uid_generate(target);
   }
 }
 
@@ -985,7 +985,7 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 ModifierData *BKE_modifier_get_original(const Object *object, ModifierData *md)
 {
   const Object *object_orig = DEG_get_original_object((Object *)object);
-  return BKE_modifiers_findby_session_uuid(object_orig, &md->session_uuid);
+  return BKE_modifiers_findby_session_uid(object_orig, &md->session_uid);
 }
 
 ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, ModifierData *md)
@@ -994,30 +994,30 @@ ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, M
   if (object_eval == object) {
     return md;
   }
-  return BKE_modifiers_findby_session_uuid(object_eval, &md->session_uuid);
+  return BKE_modifiers_findby_session_uid(object_eval, &md->session_uid);
 }
 
-void BKE_modifier_check_uuids_unique_and_report(const Object *object)
+void BKE_modifier_check_uids_unique_and_report(const Object *object)
 {
-  GSet *used_uuids = BLI_gset_new(
-      BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "modifier used uuids");
+  GSet *used_uids = BLI_gset_new(
+      BLI_session_uid_ghash_hash, BLI_session_uid_ghash_compare, "modifier used uids");
 
   LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-    const SessionUUID *session_uuid = &md->session_uuid;
-    if (!BLI_session_uuid_is_generated(session_uuid)) {
-      printf("Modifier %s -> %s does not have UUID generated.\n", object->id.name + 2, md->name);
+    const SessionUID *session_uid = &md->session_uid;
+    if (!BLI_session_uid_is_generated(session_uid)) {
+      printf("Modifier %s -> %s does not have UID generated.\n", object->id.name + 2, md->name);
       continue;
     }
 
-    if (BLI_gset_lookup(used_uuids, session_uuid) != nullptr) {
-      printf("Modifier %s -> %s has duplicate UUID generated.\n", object->id.name + 2, md->name);
+    if (BLI_gset_lookup(used_uids, session_uid) != nullptr) {
+      printf("Modifier %s -> %s has duplicate UID generated.\n", object->id.name + 2, md->name);
       continue;
     }
 
-    BLI_gset_insert(used_uuids, (void *)session_uuid);
+    BLI_gset_insert(used_uids, (void *)session_uid);
   }
 
-  BLI_gset_free(used_uuids, nullptr);
+  BLI_gset_free(used_uids, nullptr);
 }
 
 void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase)
@@ -1245,7 +1245,7 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
   BLO_read_list(reader, lb);
 
   LISTBASE_FOREACH (ModifierData *, md, lb) {
-    BKE_modifier_session_uuid_generate(md);
+    BKE_modifier_session_uid_generate(md);
 
     md->error = nullptr;
     md->runtime = nullptr;

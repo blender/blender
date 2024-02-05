@@ -33,7 +33,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh" /* free_libblock */
 #include "BKE_main.hh"
 #include "BKE_material.h"

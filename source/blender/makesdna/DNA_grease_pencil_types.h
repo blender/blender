@@ -51,6 +51,7 @@ struct GreasePencil;
 struct BlendDataReader;
 struct BlendWriter;
 struct Object;
+struct bDeformGroup;
 
 typedef enum GreasePencilStrokeCapType {
   GP_STROKE_CAP_TYPE_ROUND = 0,
@@ -433,6 +434,11 @@ typedef struct GreasePencil {
    * Global flag on the data-block.
    */
   uint32_t flag;
+
+  ListBase vertex_group_names;
+  int vertex_group_active_index;
+  char _pad4[4];
+
   /**
    * Onion skinning settings.
    */
@@ -462,7 +468,7 @@ typedef struct GreasePencil {
   blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
   blender::Span<blender::bke::greasepencil::TreeNode *> nodes_for_write();
 
-  /* Return the index of the layer if it's found, otherwise std::nullopt. */
+  /* Return the index of the layer if it's found, otherwise `std::nullopt`. */
   std::optional<int> get_layer_index(const blender::bke::greasepencil::Layer &layer) const;
 
   /* Active layer functions. */

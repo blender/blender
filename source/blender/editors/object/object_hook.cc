@@ -27,9 +27,9 @@
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -497,7 +497,7 @@ static Object *add_hook_object_new(
   Base *basact = BKE_view_layer_active_base_get(view_layer);
   BLI_assert(basact->object == ob);
   if (v3d && v3d->localvd) {
-    basact->local_view_bits |= v3d->local_view_uuid;
+    basact->local_view_bits |= v3d->local_view_uid;
   }
 
   /* icky, BKE_object_add sets new base as active.

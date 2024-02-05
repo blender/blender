@@ -650,6 +650,13 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bak
   integrator->set_use_direct_light(use_direct_light);
   integrator->set_use_indirect_light(use_indirect_light);
 
+  /* Disable denoiser if the pass does not support it.
+   * For the passes which support denoising follow the user configuration. */
+  const PassInfo pass_info = Pass::get_info(type);
+  if (integrator->get_use_denoise() && !pass_info.support_denoise) {
+    integrator->set_use_denoise(false);
+  }
+
   return true;
 }
 
@@ -674,6 +681,11 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   sync->sync_camera(b_render, b_camera_override, width, height, "");
   sync->sync_data(
       b_render, b_depsgraph, b_v3d, b_camera_override, width, height, &python_thread_state);
+
+  /* Save the current state of the denoiser, as it might be disabled by the pass configuration (for
+   * passed which do not support denoising). */
+  Integrator *integrator = scene->integrator;
+  const bool was_denoiser_enabled = integrator->get_use_denoise();
 
   /* Add render pass that we want to bake, and name it Combined so that it is
    * used as that on the Blender side. */
@@ -737,6 +749,10 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   if (bake_object) {
     bake_object->set_is_shadow_catcher(was_shadow_catcher);
   }
+
+  /* Restore the state of denoiser to before it was possibly disabled by the pass, so that the
+   * next baking pass can use the original value. */
+  integrator->set_use_denoise(was_denoiser_enabled);
 }
 
 void BlenderSession::synchronize(BL::Depsgraph &b_depsgraph_)

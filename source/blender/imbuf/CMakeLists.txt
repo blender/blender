@@ -36,6 +36,7 @@ set(SRC
   intern/format_tiff.cc
   intern/imageprocess.cc
   intern/indexer.cc
+  intern/interp.cc
   intern/iris.cc
   intern/jpeg.cc
   intern/metadata.cc
@@ -54,20 +55,22 @@ set(SRC
   intern/util_gpu.cc
   intern/writeimage.cc
 
-  IMB_colormanagement.h
-  IMB_imbuf.h
-  IMB_imbuf_types.h
-  IMB_metadata.h
-  IMB_moviecache.h
-  IMB_openexr.h
-  IMB_thumbs.h
-  intern/IMB_allocimbuf.h
-  intern/IMB_anim.h
-  intern/IMB_colormanagement_intern.h
-  intern/IMB_filetype.h
-  intern/IMB_filter.h
-  intern/IMB_indexer.h
-  intern/imbuf.h
+  IMB_colormanagement.hh
+  IMB_imbuf.hh
+  IMB_imbuf_enums.h
+  IMB_imbuf_types.hh
+  IMB_interp.hh
+  IMB_metadata.hh
+  IMB_moviecache.hh
+  IMB_openexr.hh
+  IMB_thumbs.hh
+  intern/IMB_allocimbuf.hh
+  intern/IMB_anim.hh
+  intern/IMB_colormanagement_intern.hh
+  intern/IMB_filetype.hh
+  intern/IMB_filter.hh
+  intern/IMB_indexer.hh
+  intern/imbuf.hh
 
   # orphan include
   ../../../intern/ffmpeg/ffmpeg_compat.h
@@ -188,6 +191,10 @@ if(WIN32)
   list(APPEND INC
     ../../../intern/utfconv
   )
+endif()
+
+if(WIN32)
+  add_definitions(-DNOMINMAX)
 endif()
 
 # no need to compile object files for inline headers.

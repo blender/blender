@@ -7,7 +7,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_rand.h"
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include <fstream>
 #include <iostream>
@@ -1877,9 +1877,9 @@ void text_test(
   }
   in.epsilon = b_before_arcs_in.epsilon;
   in.need_ids = need_ids;
-  double tstart = PIL_check_seconds_timer();
+  double tstart = BLI_check_seconds_timer();
   CDT_result<T> out = delaunay_2d_calc(in, otype);
-  double tend = PIL_check_seconds_timer();
+  double tend = BLI_check_seconds_timer();
   if (print_timing) {
     std::cout << "time = " << tend - tstart << "\n";
   }
@@ -2190,10 +2190,10 @@ void rand_delaunay_test(int test_kind,
       }
 
       /* Run the test. */
-      double tstart = PIL_check_seconds_timer();
+      double tstart = BLI_check_seconds_timer();
       CDT_result<T> out = delaunay_2d_calc(in, otype);
       EXPECT_NE(out.vert.size(), 0);
-      times[lg_size] += PIL_check_seconds_timer() - tstart;
+      times[lg_size] += BLI_check_seconds_timer() - tstart;
       if (DO_DRAW) {
         graph_draw<T>(test_label, out.vert, out.edge, out.face);
       }

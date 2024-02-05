@@ -23,13 +23,13 @@
 #include "DNA_object_types.h"
 
 #include "BKE_gpencil_curve_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "ED_outliner.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #define MESH_DM_INFO_STR_MAX 16384
 
@@ -57,9 +57,9 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_crazyspace.hh"
 #  include "BKE_customdata.hh"
 #  include "BKE_global.h"
-#  include "BKE_layer.h"
+#  include "BKE_layer.hh"
 #  include "BKE_main.hh"
-#  include "BKE_mball.h"
+#  include "BKE_mball.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_modifier.hh"
@@ -252,7 +252,7 @@ static bool rna_Object_local_view_get(Object *ob, ReportList *reports, View3D *v
     return false;
   }
 
-  return ((ob->base_local_view_bits & v3d->local_view_uuid) != 0);
+  return ((ob->base_local_view_bits & v3d->local_view_uid) != 0);
 }
 
 static void rna_Object_local_view_set(Object *ob,
@@ -268,7 +268,7 @@ static void rna_Object_local_view_set(Object *ob,
     return; /* Error reported. */
   }
   const short local_view_bits_prev = base->local_view_bits;
-  SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uuid);
+  SET_FLAG_FROM_TEST(base->local_view_bits, state, v3d->local_view_uid);
   if (local_view_bits_prev != base->local_view_bits) {
     DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
     ScrArea *area = ED_screen_area_find_with_spacedata(screen, (SpaceLink *)v3d, true);
@@ -1077,7 +1077,7 @@ void RNA_api_object(StructRNA *srna)
       func,
       "Create a Mesh data-block from the current state of the object. The object owns the "
       "data-block. To force free it use to_mesh_clear(). "
-      "The result is temporary and can not be used by objects from the main database");
+      "The result is temporary and cannot be used by objects from the main database");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   RNA_def_boolean(func,
                   "preserve_all_data_layers",
@@ -1104,7 +1104,7 @@ void RNA_api_object(StructRNA *srna)
       func,
       "Create a Curve data-block from the current state of the object. This only works for curve "
       "and text objects. The object owns the data-block. To force free it, use to_curve_clear(). "
-      "The result is temporary and can not be used by objects from the main database");
+      "The result is temporary and cannot be used by objects from the main database");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(
       func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph");

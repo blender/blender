@@ -7,6 +7,7 @@
  */
 
 #include <cstring>
+#include <fmt/format.h>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -15,6 +16,7 @@
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
+#include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
 #include "BKE_callbacks.h"
@@ -23,6 +25,8 @@
 #include "BKE_preferences.h"
 
 #include "BKE_report.h"
+
+#include "BLT_translation.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -238,21 +242,42 @@ static void PREFERENCES_OT_asset_library_remove(wmOperatorType *ot)
 /** \name Add Extension Repository Operator
  * \{ */
 
+enum class bUserExtensionRepoAddType {
+  Remote = 0,
+  Local = 1,
+};
+
 static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 {
-  char name[FILE_MAXFILE];
-  char directory[FILE_MAX];
+  const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(
+      RNA_enum_get(op->ptr, "type"));
 
   Main *bmain = CTX_data_main(C);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
 
-  RNA_string_get(op->ptr, "directory", directory);
-  BLI_path_slash_rstrip(directory);
+  char name[sizeof(bUserExtensionRepo::name)];
+  char custom_directory[FILE_MAX] = "";
 
-  BLI_path_split_file_part(directory, name, sizeof(name));
+  const bool use_custom_directory = RNA_boolean_get(op->ptr, "use_custom_directory");
+  RNA_string_get(op->ptr, "name", name);
 
-  const char *module = name;
-  bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(&U, name, module, directory);
+  if (use_custom_directory) {
+    RNA_string_get(op->ptr, "custom_directory", custom_directory);
+    BLI_path_slash_rstrip(custom_directory);
+  }
+
+  const char *module = custom_directory[0] ? BLI_path_basename(custom_directory) : name;
+  bUserExtensionRepo *new_repo = BKE_preferences_extension_repo_add(
+      &U, name, module, custom_directory);
+
+  if (use_custom_directory) {
+    new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY;
+  }
+
+  if (repo_type == bUserExtensionRepoAddType::Remote) {
+    RNA_string_get(op->ptr, "remote_path", new_repo->remote_path);
+    new_repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+  }
 
   /* Activate new repository in the UI for further setup. */
   U.active_extension_repo = BLI_findindex(&U.extension_repos, new_repo);
@@ -266,16 +291,49 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int preferences_extension_repo_add_invoke(bContext *C,
-                                                 wmOperator *op,
-                                                 const wmEvent * /*event*/)
+static int preferences_extension_repo_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  if (!RNA_struct_property_is_set(op->ptr, "directory")) {
-    WM_event_add_fileselect(C, op);
-    return OPERATOR_RUNNING_MODAL;
+  const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(
+      RNA_enum_get(op->ptr, "type"));
+  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
+  if (!RNA_property_is_set(op->ptr, prop_name)) {
+    const char *name_default = nullptr;
+    if (repo_type == bUserExtensionRepoAddType::Remote) {
+      name_default = "Remote Repository";
+    }
+    else {
+      name_default = "User Repository";
+    }
+    RNA_property_string_set(op->ptr, prop_name, name_default);
   }
 
-  return preferences_extension_repo_add_exec(C, op);
+  return WM_operator_props_popup_confirm(C, op, event);
+}
+
+static bool preferences_extension_repo_add_poll_property(const bContext * /*C*/,
+                                                         wmOperator *op,
+                                                         const PropertyRNA *prop)
+{
+  PointerRNA *ptr = op->ptr;
+
+  const char *prop_id = RNA_property_identifier(prop);
+  const bUserExtensionRepoAddType repo_type = bUserExtensionRepoAddType(RNA_enum_get(ptr, "type"));
+
+  /* Only show remote_path for remote repositories. */
+  if (STREQ(prop_id, "remote_path")) {
+    if (repo_type != bUserExtensionRepoAddType::Remote) {
+      return false;
+    }
+  }
+
+  if (STREQ(prop_id, "custom_directory")) {
+    if (!RNA_boolean_get(ptr, "use_custom_directory")) {
+      return false;
+    }
+  }
+
+  /* Else, show it! */
+  return true;
 }
 
 static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
@@ -284,18 +342,52 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
   ot->idname = "PREFERENCES_OT_extension_repo_add";
   ot->description = "Add a directory to be used as a local extension repository";
 
-  ot->exec = preferences_extension_repo_add_exec;
   ot->invoke = preferences_extension_repo_add_invoke;
+  ot->exec = preferences_extension_repo_add_exec;
+  ot->poll_property = preferences_extension_repo_add_poll_property;
 
-  ot->flag = OPTYPE_INTERNAL;
+  ot->flag = OPTYPE_INTERNAL | OPTYPE_REGISTER;
 
-  WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER,
-                                 FILE_SPECIAL,
-                                 FILE_OPENFILE,
-                                 WM_FILESEL_DIRECTORY,
-                                 FILE_DEFAULTDISPLAY,
-                                 FILE_SORT_DEFAULT);
+  static const EnumPropertyItem repo_type_items[] = {
+      {int(bUserExtensionRepoAddType::Remote),
+       "REMOTE",
+       ICON_WORLD,
+       "Add Remote Repository",
+       "Add a repository referencing an remote repository "
+       "with support for listing and updating extensions"},
+      {int(bUserExtensionRepoAddType::Local),
+       "LOCAL",
+       ICON_DISK_DRIVE,
+       "Add Local Repository",
+       "Add a repository managed manually without referencing an external repository"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  PropertyRNA *prop;
+
+  prop = RNA_def_string(ot->srna, "name", nullptr, sizeof(bUserExtensionRepo::name), "Name", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_string(
+      ot->srna, "remote_path", nullptr, sizeof(bUserExtensionRepo::remote_path), "URL", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_boolean(ot->srna, "use_custom_directory", false, "Custom Directory", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  /* WARNING: `RNA_def_string_dir_path` should be used but the file selector crashes from
+   * #WM_operator_props_popup_confirm as it closes the popup before showing the file-selector. */
+  prop = RNA_def_string(ot->srna,
+                        "custom_directory",
+                        nullptr,
+                        sizeof(bUserExtensionRepo::remote_path),
+                        "Directory",
+                        "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", repo_type_items, 0, "Type", "The kind of repository to add");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -303,6 +395,11 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Remove Extension Repository Operator
  * \{ */
+
+enum class bUserExtensionRepoRemoveType {
+  RepoOnly = 0,
+  RepoWithDirectory = 1,
+};
 
 static bool preferences_extension_repo_remove_poll(bContext *C)
 {
@@ -313,9 +410,49 @@ static bool preferences_extension_repo_remove_poll(bContext *C)
   return true;
 }
 
+static int preferences_extension_repo_remove_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent * /*event*/)
+{
+  const int index = RNA_int_get(op->ptr, "index");
+  bUserExtensionRepoRemoveType repo_type = bUserExtensionRepoRemoveType(
+      RNA_enum_get(op->ptr, "type"));
+  bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
+      BLI_findlink(&U.extension_repos, index));
+
+  if (!repo) {
+    return OPERATOR_CANCELLED;
+  }
+  std::string message;
+  if (repo_type == bUserExtensionRepoRemoveType::RepoWithDirectory) {
+    char dirpath[FILE_MAX];
+    BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
+
+    if (dirpath[0]) {
+      message = fmt::format(IFACE_("Remove all files in \"{}\"."), dirpath);
+    }
+    else {
+      message = IFACE_("Remove, local files not found.");
+      repo_type = bUserExtensionRepoRemoveType::RepoOnly;
+    }
+  }
+  else {
+    message = IFACE_("Remove, keeping local files.");
+  }
+
+  const char *confirm_text = (repo_type == bUserExtensionRepoRemoveType::RepoWithDirectory) ?
+                                 IFACE_("Remove Repository & Files") :
+                                 IFACE_("Remove Repository");
+
+  return WM_operator_confirm_ex(
+      C, op, nullptr, message.c_str(), confirm_text, ALERT_ICON_WARNING, true);
+}
+
 static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
 {
   const int index = RNA_int_get(op->ptr, "index");
+  const bUserExtensionRepoRemoveType repo_type = bUserExtensionRepoRemoveType(
+      RNA_enum_get(op->ptr, "type"));
   bUserExtensionRepo *repo = static_cast<bUserExtensionRepo *>(
       BLI_findlink(&U.extension_repos, index));
   if (!repo) {
@@ -324,6 +461,19 @@ static int preferences_extension_repo_remove_exec(bContext *C, wmOperator *op)
 
   Main *bmain = CTX_data_main(C);
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_PRE);
+
+  if (repo_type == bUserExtensionRepoRemoveType::RepoWithDirectory) {
+    char dirpath[FILE_MAX];
+    BKE_preferences_extension_repo_dirpath_get(repo, dirpath, sizeof(dirpath));
+    if (dirpath[0] && BLI_is_dir(dirpath)) {
+      if (BLI_delete(dirpath, true, true) != 0) {
+        BKE_reportf(op->reports,
+                    RPT_ERROR,
+                    "Error removing directory: %s",
+                    errno ? strerror(errno) : "unknown");
+      }
+    }
+  }
 
   BKE_preferences_extension_repo_remove(&U, repo);
   const int count_remaining = BLI_listbase_count(&U.extension_repos);
@@ -345,12 +495,27 @@ static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
   ot->idname = "PREFERENCES_OT_extension_repo_remove";
   ot->description = "Remove an extension repository";
 
+  ot->invoke = preferences_extension_repo_remove_invoke;
   ot->exec = preferences_extension_repo_remove_exec;
   ot->poll = preferences_extension_repo_remove_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 
+  static const EnumPropertyItem repo_type_items[] = {
+      {int(bUserExtensionRepoRemoveType::RepoOnly), "REPO_ONLY", 0, "Remove Repository"},
+      {int(bUserExtensionRepoRemoveType::RepoWithDirectory),
+       "REPO_AND_DIRECTORY",
+       0,
+       "Remove Repository & Files",
+       "Delete all associated local files when removing"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "", 0, 1000);
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", repo_type_items, 0, "Type", "Method for removing the repository");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */

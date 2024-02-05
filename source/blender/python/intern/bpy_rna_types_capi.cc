@@ -109,7 +109,12 @@ static PyMethodDef pyrna_text_methods[] = {
  * and creating the buffer, causing writes past the allocated length.
  * \{ */
 
-PyDoc_STRVAR(pyrna_WindowManager_clipboard_doc, "Clipboard text storage.\n\n:type: string");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pyrna_WindowManager_clipboard_doc,
+    "Clipboard text storage.\n"
+    "\n"
+    ":type: string");
 static PyObject *pyrna_WindowManager_clipboard_get(PyObject * /*self*/, void * /*flag*/)
 {
   int text_len = 0;
@@ -141,6 +146,7 @@ static int pyrna_WindowManager_clipboard_set(PyObject * /*self*/, PyObject *valu
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     pyrna_draw_cursor_add_doc,
     ".. classmethod:: draw_cursor_add(callback, args, space_type, region_type)\n"
     "\n"
@@ -165,13 +171,15 @@ PyDoc_STRVAR(
     "   :return: Handler that can be removed later on.\n"
     "   :rtype: object\n");
 
-PyDoc_STRVAR(pyrna_draw_cursor_remove_doc,
-             ".. classmethod:: draw_cursor_remove(handler)\n"
-             "\n"
-             "   Remove a draw cursor handler that was added previously.\n"
-             "\n"
-             "   :arg handler: The draw cursor handler that should be removed.\n"
-             "   :type handler: object\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pyrna_draw_cursor_remove_doc,
+    ".. classmethod:: draw_cursor_remove(handler)\n"
+    "\n"
+    "   Remove a draw cursor handler that was added previously.\n"
+    "\n"
+    "   :arg handler: The draw cursor handler that should be removed.\n"
+    "   :type handler: object\n");
 
 static PyMethodDef pyrna_windowmanager_methods[] = {
     {"draw_cursor_add",
@@ -212,6 +220,7 @@ static PyMethodDef pyrna_context_methods[] = {
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     pyrna_draw_handler_add_doc,
     ".. classmethod:: draw_handler_add(callback, args, region_type, draw_type)\n"
     "\n"
@@ -235,15 +244,17 @@ PyDoc_STRVAR(
     "   :return: Handler that can be removed later on.\n"
     "   :rtype: object");
 
-PyDoc_STRVAR(pyrna_draw_handler_remove_doc,
-             ".. classmethod:: draw_handler_remove(handler, region_type)\n"
-             "\n"
-             "   Remove a draw handler that was added previously.\n"
-             "\n"
-             "   :arg handler: The draw handler that should be removed.\n"
-             "   :type handler: object\n"
-             "   :arg region_type: Region type the callback was added to.\n"
-             "   :type region_type: str\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pyrna_draw_handler_remove_doc,
+    ".. classmethod:: draw_handler_remove(handler, region_type)\n"
+    "\n"
+    "   Remove a draw handler that was added previously.\n"
+    "\n"
+    "   :arg handler: The draw handler that should be removed.\n"
+    "   :type handler: object\n"
+    "   :arg region_type: Region type the callback was added to.\n"
+    "   :type region_type: str\n");
 
 static PyMethodDef pyrna_space_methods[] = {
     {"draw_handler_add",

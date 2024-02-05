@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-10-06 09:54+0000\n"
 "Last-Translator: Eitan Traurig <eitant13@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.blender.org/projects/blender-ui/ui/he/>\n"
@@ -971,34 +971,6 @@ msgstr ":לוחכ"
 
 msgid "Saturation:"
 msgstr ":היוור"
-
-
-msgid "Shortcut: %s"
-msgstr "‬%s‪ :ךרד־רוציק"
-
-
-msgid "Python: %s"
-msgstr "Python: ‪%s‬"
-
-
-msgid "Radians: %f"
-msgstr "‬%f‪ :םינאידר"
-
-
-msgid "Expression: %s"
-msgstr "‬%s‪ :יוטיב"
-
-
-msgid "Library: %s"
-msgstr "‬%s‪ :היירפס"
-
-
-msgid "Disabled: %s"
-msgstr "‬%s‪ :תבשומ"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: ‪%s‬.‪%s‬"
 
 
 msgid "No Properties"

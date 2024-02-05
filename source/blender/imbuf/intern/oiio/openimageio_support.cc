@@ -11,9 +11,9 @@
 #include "BKE_idprop.h"
 #include "DNA_ID.h" /* ID property definitions. */
 
-#include "IMB_allocimbuf.h"
-#include "IMB_colormanagement.h"
-#include "IMB_metadata.h"
+#include "IMB_allocimbuf.hh"
+#include "IMB_colormanagement.hh"
+#include "IMB_metadata.hh"
 
 OIIO_NAMESPACE_USING
 

@@ -930,13 +930,16 @@ ccl_device float surface_shader_average_roughness(ccl_private const ShaderData *
     if (CLOSURE_IS_BSDF(sc->type)) {
       /* sqrt once to undo the squaring from multiplying roughness on the
        * two axes, and once for the squared roughness convention. */
-      float weight = fabsf(average(sc->weight));
-      roughness += weight * sqrtf(safe_sqrtf(bsdf_get_roughness_squared(sc)));
-      sum_weight += weight;
+      float value = bsdf_get_roughness_pass_squared(sc);
+      if (value >= 0.0f) {
+        float weight = fabsf(average(sc->weight));
+        roughness += weight * sqrtf(sqrtf(value));
+        sum_weight += weight;
+      }
     }
   }
 
-  return (sum_weight > 0.0f) ? roughness / sum_weight : 0.0f;
+  return (sum_weight > 0.0f) ? roughness / sum_weight : 1.0f;
 }
 
 ccl_device Spectrum surface_shader_transparency(KernelGlobals kg, ccl_private const ShaderData *sd)

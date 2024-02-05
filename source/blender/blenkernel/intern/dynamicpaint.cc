@@ -45,7 +45,7 @@
 #include "BKE_colorband.hh"
 #include "BKE_constraint.h"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_dynamicpaint.h"
 #include "BKE_effect.h"
 #include "BKE_image.h"
@@ -66,8 +66,8 @@
 #include "DEG_depsgraph_query.hh"
 
 /* for image output */
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_texture.h"
 

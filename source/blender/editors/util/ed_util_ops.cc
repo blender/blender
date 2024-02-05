@@ -156,6 +156,7 @@ static bool lib_id_generate_preview_poll(bContext *C)
 
 static int lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::ed;
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
 
@@ -169,7 +170,7 @@ static int lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
   UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 
   WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
-  ED_assetlist_storage_tag_main_data_dirty();
+  asset::list::storage_tag_main_data_dirty();
 
   return OPERATOR_FINISHED;
 }
@@ -201,6 +202,7 @@ static bool lib_id_generate_preview_from_object_poll(bContext *C)
 
 static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::ed;
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
 
@@ -213,7 +215,7 @@ static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*
   UI_icon_render_id_ex(C, nullptr, &object_to_render->id, ICON_SIZE_PREVIEW, true, preview_image);
 
   WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
-  ED_assetlist_storage_tag_main_data_dirty();
+  asset::list::storage_tag_main_data_dirty();
 
   return OPERATOR_FINISHED;
 }

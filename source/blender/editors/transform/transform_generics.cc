@@ -16,8 +16,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
-
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "BLT_translation.h"
 
@@ -27,7 +26,7 @@
 #include "GPU_matrix.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
@@ -322,7 +321,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else if (t->spacetype == SPACE_SEQ && region->regiontype == RGN_TYPE_PREVIEW) {
     t->options |= CTX_SEQUENCER_IMAGE;
 
-    /* Needed for autokeying transforms in preview during playback. */
+    /* Needed for auto-keying transforms in preview during playback. */
     bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
     t->animtimer = (animscreen) ? animscreen->animtimer : nullptr;
   }
@@ -1329,7 +1328,7 @@ void calculatePropRatio(TransInfo *t)
             case PROP_RANDOM:
               if (t->rng == nullptr) {
                 /* Lazy initialization. */
-                uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+                uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
                 t->rng = BLI_rng_new(rng_seed);
               }
               td->factor = BLI_rng_get_float(t->rng) * dist;

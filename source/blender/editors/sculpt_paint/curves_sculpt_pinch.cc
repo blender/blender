@@ -10,8 +10,6 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
 #include "DEG_depsgraph.hh"
 
 #include "BKE_brush.hh"

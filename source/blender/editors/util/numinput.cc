@@ -404,7 +404,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
                                  true);
         if (t_cur != cur) {
           if (t_cur < cur) {
-            SWAP(int, t_cur, cur);
+            std::swap(t_cur, cur);
             n->str_cur = cur;
           }
           /* +1 for trailing '\0'. */

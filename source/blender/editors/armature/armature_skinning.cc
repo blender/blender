@@ -23,7 +23,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_runtime.hh"
@@ -41,7 +41,7 @@
 
 #include "ANIM_bone_collections.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 #include "meshlaplacian.h"
 
 /* ******************************* Bone Skinning *********************************************** */

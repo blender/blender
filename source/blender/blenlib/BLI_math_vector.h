@@ -41,10 +41,6 @@ MINLINE void swap_v2_v2(float a[2], float b[2]);
 MINLINE void swap_v3_v3(float a[3], float b[3]);
 MINLINE void swap_v4_v4(float a[4], float b[4]);
 
-MINLINE void swap_v2_v2_db(double a[2], double b[2]);
-MINLINE void swap_v3_v3_db(double a[3], double b[3]);
-MINLINE void swap_v4_v4_db(double a[4], double b[4]);
-
 /* unsigned char */
 
 MINLINE void copy_v2_v2_uchar(unsigned char r[2], const unsigned char a[2]);

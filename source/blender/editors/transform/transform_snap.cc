@@ -8,13 +8,12 @@
 
 #include <cfloat>
 
-#include "PIL_time.h"
-
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_immediate.h"
@@ -23,7 +22,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -569,7 +568,7 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
   }
 
   if (t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) {
-    double current = PIL_check_seconds_timer();
+    double current = BLI_check_seconds_timer();
 
     /* Time base quirky code to go around find-nearest slowness. */
     /* TODO: add exception for object mode, no need to slow it down then. */
@@ -1181,15 +1180,14 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_IMAGE);
   if (t->tsnap.mode & SCE_SNAP_TO_VERTEX) {
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-        t->scene, t->view_layer, nullptr, &objects_len);
+    const Vector<Object *> objects =
+        BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+            t->scene, t->view_layer, nullptr);
 
     float dist_sq = square_f(float(SNAP_MIN_DISTANCE));
     if (ED_uvedit_nearest_uv_multi(&t->region->v2d,
                                    t->scene,
                                    objects,
-                                   objects_len,
                                    t->mval,
                                    t->tsnap.target_operation & SCE_SNAP_TARGET_NOT_SELECTED,
                                    &dist_sq,
@@ -1203,7 +1201,6 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
     else {
       t->tsnap.status &= ~SNAP_TARGET_FOUND;
     }
-    MEM_freeN(objects);
   }
 }
 

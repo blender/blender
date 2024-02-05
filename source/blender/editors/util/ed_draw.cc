@@ -23,10 +23,10 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

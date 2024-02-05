@@ -29,7 +29,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
@@ -641,6 +641,145 @@ void FONT_OT_text_paste_from_file(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Insert Unicode Character
+ * \{ */
+
+static void text_insert_unicode_cancel(bContext *C, void *arg_block, void * /*arg2*/)
+{
+  uiBlock *block = static_cast<uiBlock *>(arg_block);
+  UI_popup_block_close(C, CTX_wm_window(C), block);
+}
+
+static void text_insert_unicode_confirm(bContext *C, void *arg_block, void *arg_string)
+{
+  uiBlock *block = static_cast<uiBlock *>(arg_block);
+  char *edit_string = static_cast<char *>(arg_string);
+
+  if (edit_string[0] == 0) {
+    /* Blank text is probably purposeful closure. */
+    UI_popup_block_close(C, CTX_wm_window(C), block);
+    return;
+  }
+
+  uint val = strtoul(edit_string, nullptr, 16);
+  if (val > 31 && val < 0x10FFFF) {
+    Object *obedit = CTX_data_edit_object(C);
+    if (obedit) {
+      char32_t utf32[2] = {val, 0};
+      font_paste_wchar(obedit, utf32, 1, nullptr);
+      text_update_edited(C, obedit, FO_EDIT);
+    }
+    UI_popup_block_close(C, CTX_wm_window(C), block);
+  }
+  else {
+    /* Invalid. Clear text and keep dialog open. */
+    edit_string[0] = 0;
+  }
+}
+
+static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, void *arg_string)
+{
+  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  char *edit_string = static_cast<char *>(arg_string);
+
+  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+  UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
+  const uiStyle *style = UI_style_get_dpi();
+  uiLayout *layout = UI_block_layout(
+      block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200 * UI_SCALE_FAC, UI_UNIT_Y, 0, style);
+
+  uiItemL_ex(layout, "Insert Unicode Character", ICON_NONE, true, false);
+  uiItemL(layout, "Enter a Unicode codepoint hex value", ICON_NONE);
+
+  uiBut *text_but = uiDefBut(block,
+                             UI_BTYPE_TEXT,
+                             0,
+                             "",
+                             0,
+                             0,
+                             100,
+                             UI_UNIT_Y,
+                             edit_string,
+                             0,
+                             7,
+                             0,
+                             0,
+                             TIP_("Unicode codepoint hex value"));
+  UI_but_flag_enable(text_but, UI_BUT_ACTIVATE_ON_INIT);
+  /* Hitting Enter in the text input is treated the same as clicking the Confirm button. */
+  UI_but_func_set(text_but, text_insert_unicode_confirm, block, edit_string);
+
+  uiItemS(layout);
+
+  /* Buttons. */
+
+#ifdef _WIN32
+  const bool windows_layout = true;
+#else
+  const bool windows_layout = false;
+#endif
+
+  uiBut *confirm = nullptr;
+  uiBut *cancel = nullptr;
+  uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
+  uiLayoutColumn(split, false);
+
+  if (windows_layout) {
+    confirm = uiDefIconTextBut(
+        block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, nullptr);
+    uiLayoutColumn(split, false);
+  }
+
+  cancel = uiDefIconTextBut(
+      block, UI_BTYPE_BUT, 0, 0, "Cancel", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, nullptr);
+
+  if (!windows_layout) {
+    uiLayoutColumn(split, false);
+    confirm = uiDefIconTextBut(
+        block, UI_BTYPE_BUT, 0, 0, "Insert", 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, nullptr);
+  }
+
+  UI_block_func_set(block, nullptr, nullptr, nullptr);
+  UI_but_func_set(confirm, text_insert_unicode_confirm, block, edit_string);
+  UI_but_func_set(cancel, text_insert_unicode_cancel, block, nullptr);
+  UI_but_drawflag_disable(confirm, UI_BUT_TEXT_LEFT);
+  UI_but_drawflag_disable(cancel, UI_BUT_TEXT_LEFT);
+  UI_but_flag_enable(confirm, UI_BUT_ACTIVE_DEFAULT);
+
+  int bounds_offset[2];
+  bounds_offset[0] = uiLayoutGetWidth(layout) * -0.2f;
+  bounds_offset[1] = UI_UNIT_Y * 2.5;
+  UI_block_bounds_set_popup(block, 7 * UI_SCALE_FAC, bounds_offset);
+
+  return block;
+}
+
+static int text_insert_unicode_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+{
+  char *edit_string = static_cast<char *>(MEM_mallocN(24, __func__));
+  edit_string[0] = 0;
+  UI_popup_block_invoke(C, wm_block_insert_unicode_create, edit_string, MEM_freeN);
+  return OPERATOR_FINISHED;
+}
+
+void FONT_OT_text_insert_unicode(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Insert Unicode";
+  ot->description = "Insert Unicode Character";
+  ot->idname = "FONT_OT_text_insert_unicode";
+
+  /* api callbacks */
+  ot->invoke = text_insert_unicode_invoke;
+  ot->poll = ED_operator_editfont;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /** \} */

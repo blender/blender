@@ -20,7 +20,7 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
@@ -43,6 +43,8 @@
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Internal API
@@ -83,8 +85,7 @@ static bool gizmo_preselect_poll_for_draw(const bContext *C, wmGizmo *gz)
 
 struct MeshElemGizmo3D {
   wmGizmo gizmo;
-  Base **bases;
-  uint bases_len;
+  Vector<Base *> bases;
   int base_index;
   int vert_index;
   int edge_index;
@@ -134,12 +135,10 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     ViewLayer *view_layer = CTX_data_view_layer(C);
     View3D *v3d = CTX_wm_view3d(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
-    if ((gz_ele->bases) == nullptr ||
+    if (gz_ele->bases.is_empty() ||
         (gz_ele->bases[0] != BKE_view_layer_active_base_get(view_layer)))
     {
-      MEM_SAFE_FREE(gz_ele->bases);
-      gz_ele->bases = BKE_view_layer_array_from_bases_in_edit_mode(
-          scene, view_layer, v3d, &gz_ele->bases_len);
+      gz_ele->bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, v3d);
     }
   }
 
@@ -157,7 +156,6 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
 
     if (EDBM_unified_findnearest_from_raycast(&vc,
                                               gz_ele->bases,
-                                              gz_ele->bases_len,
                                               false,
                                               true,
                                               &base_index_vert,
@@ -276,6 +274,7 @@ static void gizmo_preselect_elem_setup(wmGizmo *gz)
     gz_ele->psel = EDBM_preselect_elem_create();
   }
   gz_ele->base_index = -1;
+  new (&gz_ele->bases) Vector<Base *>();
 }
 
 static void gizmo_preselect_elem_free(wmGizmo *gz)
@@ -283,7 +282,7 @@ static void gizmo_preselect_elem_free(wmGizmo *gz)
   MeshElemGizmo3D *gz_ele = (MeshElemGizmo3D *)gz;
   EDBM_preselect_elem_destroy(gz_ele->psel);
   gz_ele->psel = nullptr;
-  MEM_SAFE_FREE(gz_ele->bases);
+  gz_ele->bases.~Vector();
 }
 
 static int gizmo_preselect_elem_invoke(bContext * /*C*/,
@@ -321,8 +320,7 @@ static void GIZMO_GT_mesh_preselect_elem_3d(wmGizmoType *gzt)
 
 struct MeshEdgeRingGizmo3D {
   wmGizmo gizmo;
-  Base **bases;
-  uint bases_len;
+  Vector<Base *> bases;
   int base_index;
   int edge_index;
   EditMesh_PreSelEdgeRing *psel;
@@ -364,12 +362,10 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     ViewLayer *view_layer = CTX_data_view_layer(C);
     View3D *v3d = CTX_wm_view3d(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
-    if ((gz_ring->bases) == nullptr ||
+    if (gz_ring->bases.is_empty() ||
         (gz_ring->bases[0] != BKE_view_layer_active_base_get(view_layer)))
     {
-      MEM_SAFE_FREE(gz_ring->bases);
-      gz_ring->bases = BKE_view_layer_array_from_bases_in_edit_mode(
-          scene, view_layer, v3d, &gz_ring->bases_len);
+      gz_ring->bases = BKE_view_layer_array_from_bases_in_edit_mode(scene, view_layer, v3d);
     }
   }
 
@@ -377,15 +373,8 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
   copy_v2_v2_int(vc.mval, mval);
 
   uint base_index;
-  BMEdge *eed_test = EDBM_edge_find_nearest_ex(&vc,
-                                               &best.dist,
-                                               nullptr,
-                                               false,
-                                               false,
-                                               nullptr,
-                                               gz_ring->bases,
-                                               gz_ring->bases_len,
-                                               &base_index);
+  BMEdge *eed_test = EDBM_edge_find_nearest_ex(
+      &vc, &best.dist, nullptr, false, false, nullptr, gz_ring->bases, &base_index);
 
   if (eed_test) {
     best.ob = gz_ring->bases[base_index]->object;
@@ -446,6 +435,7 @@ static void gizmo_preselect_edgering_setup(wmGizmo *gz)
     gz_ring->psel = EDBM_preselect_edgering_create();
   }
   gz_ring->base_index = -1;
+  new (&gz_ring->bases) Vector<Base *>();
 }
 
 static void gizmo_preselect_edgering_free(wmGizmo *gz)
@@ -453,7 +443,7 @@ static void gizmo_preselect_edgering_free(wmGizmo *gz)
   MeshEdgeRingGizmo3D *gz_ring = (MeshEdgeRingGizmo3D *)gz;
   EDBM_preselect_edgering_destroy(gz_ring->psel);
   gz_ring->psel = nullptr;
-  MEM_SAFE_FREE(gz_ring->bases);
+  gz_ring->bases.~Vector();
 }
 
 static int gizmo_preselect_edgering_invoke(bContext * /*C*/,
@@ -516,14 +506,12 @@ void ED_view3d_gizmo_mesh_preselect_get_active(bContext *C,
   Base *base = nullptr;
   Object *obedit = nullptr;
   {
-    uint bases_len;
-    Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-        scene, view_layer, CTX_wm_view3d(C), &bases_len);
-    if (object_index < bases_len) {
+    Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+        scene, view_layer, CTX_wm_view3d(C));
+    if (object_index < bases.size()) {
       base = bases[object_index];
       obedit = base->object;
     }
-    MEM_freeN(bases);
   }
 
   *r_base = base;

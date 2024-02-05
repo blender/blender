@@ -28,8 +28,6 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "CLG_log.h"
 
 #include "BLI_fileops.h"
@@ -39,11 +37,12 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_image.h"
 
@@ -57,7 +56,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "DNA_scene_types.h"
 #include "ED_datafiles.h" /* for fonts */
 #include "GHOST_C-api.h"
@@ -337,7 +336,7 @@ struct PlayAnimPict {
   /** The allocated error message to show if the file cannot be loaded. */
   char *error_message;
   ImBuf *ibuf;
-  struct anim *anim;
+  ImBufAnim *anim;
   int frame;
   int IB_flags;
 
@@ -487,7 +486,7 @@ static int pupdate_time()
 {
   static double time_last;
 
-  double time = PIL_check_seconds_timer();
+  double time = BLI_check_seconds_timer();
 
   g_playanim.total_time += (time - time_last);
   time_last = time;
@@ -608,10 +607,10 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
   BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
   if (draw_flip) {
     if (draw_flip[0]) {
-      SWAP(float, preview.xmin, preview.xmax);
+      std::swap(preview.xmin, preview.xmax);
     }
     if (draw_flip[1]) {
-      SWAP(float, preview.ymin, preview.ymax);
+      std::swap(preview.ymin, preview.ymax);
     }
   }
 
@@ -845,7 +844,7 @@ static void build_pict_list_from_anim(ListBase *picsbase,
                                       const int frame_offset)
 {
   /* OCIO_TODO: support different input color space. */
-  anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, nullptr);
+  ImBufAnim *anim = IMB_open_anim(filepath_first, IB_rect, 0, nullptr);
   if (anim == nullptr) {
     CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
     return;
@@ -1808,7 +1807,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 
   if (IMB_isanim(filepath)) {
     /* OCIO_TODO: support different input color spaces. */
-    anim *anim = IMB_open_anim(filepath, IB_rect, 0, nullptr);
+    ImBufAnim *anim = IMB_open_anim(filepath, IB_rect, 0, nullptr);
     if (anim) {
       ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
       IMB_close_anim(anim);
@@ -1919,7 +1918,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 #ifdef WITH_AUDASPACE
   g_audaspace.source = AUD_Sound_file(filepath);
   if (!BLI_listbase_is_empty(&ps.picsbase)) {
-    anim *anim_movie = static_cast<PlayAnimPict *>(ps.picsbase.first)->anim;
+    ImBufAnim *anim_movie = static_cast<PlayAnimPict *>(ps.picsbase.first)->anim;
     if (anim_movie) {
       short frs_sec = 25;
       float frs_sec_base = 1.0;
@@ -2023,7 +2022,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
 #endif
 
         while (pupdate_time()) {
-          PIL_sleep_ms(1);
+          BLI_sleep_ms(1);
         }
         g_playanim.total_time -= g_playanim.swap_time;
         playanim_toscreen(&ps, ps.picture, ibuf);
@@ -2054,7 +2053,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
       }
       playanim_change_frame(&ps);
       if (!has_event) {
-        PIL_sleep_ms(1);
+        BLI_sleep_ms(1);
       }
       if (ps.wait) {
         continue;

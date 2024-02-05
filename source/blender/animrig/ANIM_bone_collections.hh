@@ -240,6 +240,28 @@ void ANIM_armature_bonecoll_is_visible_set(bArmature *armature,
                                            bool is_visible);
 
 /**
+ * Set or clear this bone collection's solo flag.
+ */
+void ANIM_armature_bonecoll_solo_set(bArmature *armature, BoneCollection *bcoll, bool is_solo);
+
+/**
+ * Refresh the ARM_BCOLL_SOLO_ACTIVE flag.
+ */
+void ANIM_armature_refresh_solo_active(bArmature *armature);
+
+/**
+ * Determine whether this bone collection is visible, taking into account the visibility of its
+ * ancestors and the "solo" flags that are in use.
+ */
+bool ANIM_armature_bonecoll_is_visible_effectively(const bArmature *armature,
+                                                   const BoneCollection *bcoll);
+
+/**
+ * Expand or collapse a bone collection in the tree view.
+ */
+void ANIM_armature_bonecoll_is_expanded_set(BoneCollection *bcoll, bool is_expanded);
+
+/**
  * Assign the bone to the bone collection.
  *
  * No-op if the bone is already a member of the collection.
@@ -363,6 +385,16 @@ bool armature_bonecoll_is_descendant_of(const bArmature *armature,
                                         int potential_descendant_index);
 
 bool bonecoll_has_children(const BoneCollection *bcoll);
+
+/**
+ * For each bone collection in the destination armature, copy its #BONE_COLLECTION_EXPANDED flag
+ * from the corresponding bone collection in the source armature.
+ *
+ * This is used in the handling of undo steps, to ensure that undo'ing does _not_
+ * modify this flag.
+ */
+void bonecolls_copy_expanded_flag(Span<BoneCollection *> bcolls_dest,
+                                  Span<const BoneCollection *> bcolls_source);
 
 /**
  * Move a bone collection from one parent to another.

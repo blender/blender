@@ -34,7 +34,7 @@
 #include "WM_types.hh"
 
 #include "ED_asset.hh"
-#include "ED_asset_shelf.h"
+#include "ED_asset_shelf.hh"
 #include "ED_buttons.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
@@ -47,10 +47,10 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
@@ -1317,14 +1317,14 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
         bTheme *theme = UI_GetTheme();
         return theme->space_view3d.header[3] != 255;
       }
-      else if (ELEM(regiontype,
-                    RGN_TYPE_TOOLS,
-                    RGN_TYPE_UI,
-                    RGN_TYPE_TOOL_PROPS,
-                    RGN_TYPE_FOOTER,
-                    RGN_TYPE_TOOL_HEADER,
-                    RGN_TYPE_ASSET_SHELF,
-                    RGN_TYPE_ASSET_SHELF_HEADER))
+      if (ELEM(regiontype,
+               RGN_TYPE_TOOLS,
+               RGN_TYPE_UI,
+               RGN_TYPE_TOOL_PROPS,
+               RGN_TYPE_FOOTER,
+               RGN_TYPE_TOOL_HEADER,
+               RGN_TYPE_ASSET_SHELF,
+               RGN_TYPE_ASSET_SHELF_HEADER))
       {
         return true;
       }
@@ -1348,6 +1348,7 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 static void region_rect_recursive(
     ScrArea *area, ARegion *region, rcti *remainder, rcti *overlap_remainder, int quad)
 {
+  using namespace blender::ed;
   rcti *remainder_prev = remainder;
 
   if (region == nullptr) {
@@ -1409,10 +1410,10 @@ static void region_rect_recursive(
   }
   else if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
     prefsizey = region->sizey > 1 ? (UI_SCALE_FAC * (region->sizey + 0.5f)) :
-                                    ED_asset_shelf_region_prefsizey();
+                                    asset::shelf::region_prefsizey();
   }
   else if (region->regiontype == RGN_TYPE_ASSET_SHELF_HEADER) {
-    prefsizey = ED_asset_shelf_header_region_size();
+    prefsizey = asset::shelf::header_region_size();
   }
   else if (ED_area_is_global(area)) {
     prefsizey = ED_region_global_size_y();
@@ -2334,11 +2335,11 @@ void ED_area_data_copy(ScrArea *area_dst, ScrArea *area_src, const bool do_free)
 
 void ED_area_data_swap(ScrArea *area_dst, ScrArea *area_src)
 {
-  SWAP(char, area_dst->spacetype, area_src->spacetype);
-  SWAP(SpaceType *, area_dst->type, area_src->type);
+  std::swap(area_dst->spacetype, area_src->spacetype);
+  std::swap(area_dst->type, area_src->type);
 
-  SWAP(ListBase, area_dst->spacedata, area_src->spacedata);
-  SWAP(ListBase, area_dst->regionbase, area_src->regionbase);
+  std::swap(area_dst->spacedata, area_src->spacedata);
+  std::swap(area_dst->regionbase, area_src->regionbase);
 }
 
 /* -------------------------------------------------------------------- */
@@ -3111,6 +3112,7 @@ static int panel_draw_width_from_max_width_get(const ARegion *region,
 void ED_region_panels_layout_ex(const bContext *C,
                                 ARegion *region,
                                 ListBase *paneltypes,
+                                wmOperatorCallContext op_context,
                                 const char *contexts[],
                                 const char *category_override)
 {
@@ -3184,6 +3186,10 @@ void ED_region_panels_layout_ex(const bContext *C,
     if (panel && UI_panel_is_dragging(panel)) {
       /* Prevent View2d.tot rectangle size changes while dragging panels. */
       update_tot_size = false;
+    }
+
+    if (panel && panel->layout) {
+      uiLayoutSetOperatorContext(panel->layout, op_context);
     }
 
     ed_panel_draw(C, region, &region->panels, pt, panel, width, em, nullptr, search_filter);
@@ -3279,7 +3285,8 @@ void ED_region_panels_layout_ex(const bContext *C,
 
 void ED_region_panels_layout(const bContext *C, ARegion *region)
 {
-  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, nullptr, nullptr);
+  ED_region_panels_layout_ex(
+      C, region, &region->type->paneltypes, WM_OP_INVOKE_REGION_WIN, nullptr, nullptr);
 }
 
 void ED_region_panels_draw(const bContext *C, ARegion *region)
@@ -3331,10 +3338,13 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw_ex(v2d, use_mask ? &mask : nullptr, use_full_hide);
 }
 
-void ED_region_panels_ex(const bContext *C, ARegion *region, const char *contexts[])
+void ED_region_panels_ex(const bContext *C,
+                         ARegion *region,
+                         wmOperatorCallContext op_context,
+                         const char *contexts[])
 {
   /* TODO: remove? */
-  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, nullptr);
+  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, op_context, contexts, nullptr);
   ED_region_panels_draw(C, region);
 }
 

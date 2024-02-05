@@ -16,7 +16,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_fair.hh"
 #include "BKE_mesh_mapping.hh"

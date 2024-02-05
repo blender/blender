@@ -228,11 +228,11 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
 
 void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id)
 {
-  PropertyRNA *prop_session_uuid = RNA_struct_find_property(ptr, "session_uuid");
+  PropertyRNA *prop_session_uid = RNA_struct_find_property(ptr, "session_uid");
   PropertyRNA *prop_name = RNA_struct_find_property(ptr, "name");
 
-  if (prop_session_uuid) {
-    RNA_int_set(ptr, "session_uuid", int(id->session_uuid));
+  if (prop_session_uid) {
+    RNA_int_set(ptr, "session_uid", int(id->session_uid));
   }
   else if (prop_name) {
     RNA_string_set(ptr, "name", id->name + 2);
@@ -242,14 +242,14 @@ void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id)
   }
 }
 
-ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
-                                                               PointerRNA *ptr,
-                                                               const ID_Type type)
+ID *WM_operator_properties_id_lookup_from_name_or_session_uid(Main *bmain,
+                                                              PointerRNA *ptr,
+                                                              const ID_Type type)
 {
-  PropertyRNA *prop_session_uuid = RNA_struct_find_property(ptr, "session_uuid");
-  if (prop_session_uuid && RNA_property_is_set(ptr, prop_session_uuid)) {
-    const uint32_t session_uuid = uint32_t(RNA_property_int_get(ptr, prop_session_uuid));
-    return BKE_libblock_find_session_uuid(bmain, type, session_uuid);
+  PropertyRNA *prop_session_uid = RNA_struct_find_property(ptr, "session_uid");
+  if (prop_session_uid && RNA_property_is_set(ptr, prop_session_uid)) {
+    const uint32_t session_uid = uint32_t(RNA_property_int_get(ptr, prop_session_uid));
+    return BKE_libblock_find_session_uid(bmain, type, session_uid);
   }
 
   PropertyRNA *prop_name = RNA_struct_find_property(ptr, "name");
@@ -264,8 +264,7 @@ ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
 
 bool WM_operator_properties_id_lookup_is_set(PointerRNA *ptr)
 {
-  return RNA_struct_property_is_set(ptr, "session_uuid") ||
-         RNA_struct_property_is_set(ptr, "name");
+  return RNA_struct_property_is_set(ptr, "session_uid") || RNA_struct_property_is_set(ptr, "name");
 }
 
 void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_prop)
@@ -283,12 +282,12 @@ void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_pr
   }
 
   prop = RNA_def_int(ot->srna,
-                     "session_uuid",
+                     "session_uid",
                      0,
                      INT32_MIN,
                      INT32_MAX,
-                     "Session UUID",
-                     "Session UUID of the data-block to use by the operator",
+                     "Session UID",
+                     "Session UID of the data-block to use by the operator",
                      INT32_MIN,
                      INT32_MAX);
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));

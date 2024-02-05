@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -39,13 +40,12 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
-#include "PIL_time.h"
-
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_cloth.hh"
 #include "BKE_collection.h"
 #include "BKE_dynamicpaint.h"
@@ -61,6 +61,8 @@
 #include "BKE_softbody.h"
 
 #include "BLO_read_write.hh"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "BIK_api.h"
 
@@ -409,7 +411,7 @@ static void ptcache_particle_interpolate(int index,
     return;
   }
 
-  cfra = MIN2(cfra, pa->dietime);
+  cfra = std::min(cfra, pa->dietime);
   cfra1 = std::min(cfra1, pa->dietime);
   cfra2 = std::min(cfra2, pa->dietime);
 
@@ -443,7 +445,7 @@ static void ptcache_particle_interpolate(int index,
   }
 
   if (cfra > pa->time) {
-    cfra1 = MAX2(cfra1, pa->time);
+    cfra1 = std::max(cfra1, pa->time);
   }
 
   dfra = cfra2 - cfra1;
@@ -2195,7 +2197,7 @@ static int ptcache_read(PTCacheID *pid, int cfra)
 
       if (totpoint != pid_totpoint) {
         pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
-        totpoint = MIN2(totpoint, pid_totpoint);
+        totpoint = std::min(totpoint, pid_totpoint);
       }
     }
 
@@ -2252,7 +2254,7 @@ static int ptcache_interpolate(PTCacheID *pid, float cfra, int cfra1, int cfra2)
 
       if (totpoint != pid_totpoint) {
         pid->error(pid->owner_id, pid->calldata, "Number of points in cache does not match mesh");
-        totpoint = MIN2(totpoint, pid_totpoint);
+        totpoint = std::min(totpoint, pid_totpoint);
       }
     }
 
@@ -3228,7 +3230,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
         cache->flag |= PTCACHE_BAKING;
       }
       else {
-        endframe = MIN2(endframe, cache->endframe);
+        endframe = std::min(endframe, cache->endframe);
       }
 
       cache->flag &= ~PTCACHE_BAKED;
@@ -3268,13 +3270,13 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
             BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
           }
 
-          startframe = MIN2(startframe, cache->startframe);
+          startframe = std::min(startframe, cache->startframe);
 
           if (bake || render) {
             cache->flag |= PTCACHE_BAKING;
 
             if (bake) {
-              endframe = MAX2(endframe, cache->endframe);
+              endframe = std::max(endframe, cache->endframe);
             }
           }
 
@@ -3295,7 +3297,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   char run[32], cur[32], etd[32];
   int cancel = 0;
 
-  stime = ptime = PIL_check_seconds_timer();
+  stime = ptime = BLI_check_seconds_timer();
 
   for (int fr = scene->r.cfra; fr <= endframe; fr += baker->quick_step, scene->r.cfra = fr) {
     BKE_scene_graph_update_for_newframe(depsgraph);
@@ -3309,7 +3311,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       printf("bake: frame %d :: %d\n", scene->r.cfra, endframe);
     }
     else {
-      ctime = PIL_check_seconds_timer();
+      ctime = BLI_check_seconds_timer();
 
       fetd = (ctime - ptime) * (endframe - scene->r.cfra) / baker->quick_step;
 
@@ -3341,7 +3343,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
   if (use_timer) {
     /* start with newline because of \r above */
-    ptcache_dt_to_str(run, sizeof(run), PIL_check_seconds_timer() - stime);
+    ptcache_dt_to_str(run, sizeof(run), BLI_check_seconds_timer() - stime);
     printf("\nBake %s %s (%i frames simulated).\n",
            (cancel ? "canceled after" : "finished in"),
            run,
@@ -3356,7 +3358,20 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       cache->flag |= PTCACHE_BAKED;
       /* write info file */
       if (cache->flag & PTCACHE_DISK_CACHE) {
-        BKE_ptcache_write(pid, 0);
+        if (pid->type == PTCACHE_TYPE_PARTICLES) {
+          /* Since writing this from outside the bake job, make sure the ParticleSystem and
+           * PTCacheID is in a fully evaluated state. */
+          PTCacheID pid_eval;
+          Object *ob = reinterpret_cast<Object *>(pid->owner_id);
+          Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+          ParticleSystem *psys = static_cast<ParticleSystem *>(pid->calldata);
+          ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
+          BKE_ptcache_id_from_particles(&pid_eval, ob_eval, psys_eval);
+          BKE_ptcache_write(&pid_eval, 0);
+        }
+        else {
+          BKE_ptcache_write(pid, 0);
+        }
       }
     }
   }
@@ -3386,7 +3401,20 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
         if (bake) {
           cache->flag |= PTCACHE_BAKED;
           if (cache->flag & PTCACHE_DISK_CACHE) {
-            BKE_ptcache_write(pid, 0);
+            if (pid->type == PTCACHE_TYPE_PARTICLES) {
+              /* Since writing this from outside the bake job, make sure the ParticleSystem and
+               * PTCacheID is in a fully evaluated state. */
+              PTCacheID pid_eval;
+              Object *ob = reinterpret_cast<Object *>(pid->owner_id);
+              Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+              ParticleSystem *psys = static_cast<ParticleSystem *>(pid->calldata);
+              ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
+              BKE_ptcache_id_from_particles(&pid_eval, ob_eval, psys_eval);
+              BKE_ptcache_write(&pid_eval, 0);
+            }
+            else {
+              BKE_ptcache_write(pid, 0);
+            }
           }
         }
       }

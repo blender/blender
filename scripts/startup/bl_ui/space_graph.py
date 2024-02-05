@@ -148,42 +148,42 @@ class GRAPH_MT_view(Menu):
 
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
+        layout.separator()
+
+        layout.operator("graph.view_selected")
+        layout.operator("graph.view_all")
+        layout.operator("graph.view_frame")
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
-        layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
         layout.prop(st, "use_auto_merge_keyframes")
+        layout.separator()
 
         if st.mode != 'DRIVERS':
-            layout.separator()
             layout.prop(st, "show_markers")
-
-        layout.prop(st, "show_extrapolation")
-
-        layout.prop(st, "show_handles")
-        layout.prop(st, "use_only_selected_keyframe_handles")
-
+        layout.prop(st, "show_cursor")
         layout.prop(st, "show_seconds")
         layout.prop(st, "show_locked_time")
-
         layout.separator()
+
+        layout.prop(st, "show_extrapolation")
+        layout.prop(st, "show_handles")
+        layout.prop(st, "use_only_selected_keyframe_handles")
+        layout.separator()
+
         layout.operator("anim.previewrange_set")
         layout.operator("anim.previewrange_clear")
         layout.operator("graph.previewrange_set")
-
         layout.separator()
-        layout.operator("graph.view_all")
-        layout.operator("graph.view_selected")
-        layout.operator("graph.view_frame")
 
         # Add this to show key-binding (reverse action in dope-sheet).
-        layout.separator()
         props = layout.operator("wm.context_set_enum", text="Toggle Dope Sheet")
         props.data_path = "area.type"
         props.value = 'DOPESHEET_EDITOR'
-
         layout.separator()
+
         layout.menu("INFO_MT_area")
 
 

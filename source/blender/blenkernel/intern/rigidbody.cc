@@ -7,6 +7,7 @@
  * \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -38,7 +39,7 @@
 #include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -50,7 +51,7 @@
 #include "BKE_scene.h"
 #ifdef WITH_BULLET
 #  include "BKE_lib_id.hh"
-#  include "BKE_lib_query.h"
+#  include "BKE_lib_query.hh"
 #endif
 
 #include "DEG_depsgraph.hh"
@@ -505,7 +506,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
     /* take radius to the largest dimension to try and encompass everything */
-    radius = MAX3(size[0], size[1], size[2]);
+    radius = std::max({size[0], size[1], size[2]});
   }
 
   /* create new shape */
@@ -531,7 +532,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
 
     case RB_SHAPE_CONVEXH:
       /* try to embed collision margin */
-      has_volume = (MIN3(size[0], size[1], size[2]) > 0.0f);
+      has_volume = (std::min({size[0], size[1], size[2]}) > 0.0f);
 
       if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && has_volume) {
         hull_margin = 0.04f;
@@ -636,7 +637,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 
   if (ELEM(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
     /* take radius as largest x/y dimension, and height as z-dimension */
-    radius = MAX2(size[0], size[1]) * 0.5f;
+    radius = std::max(size[0], size[1]) * 0.5f;
     height = size[2];
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
@@ -1790,7 +1791,8 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
       /* compensate for embedded convex hull collision margin */
       if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && rbo->shape == RB_SHAPE_CONVEXH) {
         RB_shape_set_margin(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
-                            RBO_GET_MARGIN(rbo) * MIN3(new_scale[0], new_scale[1], new_scale[2]));
+                            RBO_GET_MARGIN(rbo) *
+                                std::min({new_scale[0], new_scale[1], new_scale[2]}));
       }
     }
   }
@@ -2026,7 +2028,7 @@ static void rigidbody_update_kinematic_obj_substep(ListBase *substep_targets, fl
     /* compensate for embedded convex hull collision margin */
     if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && rbo->shape == RB_SHAPE_CONVEXH) {
       RB_shape_set_margin(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
-                          RBO_GET_MARGIN(rbo) * MIN3(scale[0], scale[1], scale[2]));
+                          RBO_GET_MARGIN(rbo) * std::min({scale[0], scale[1], scale[2]}));
     }
   }
 }

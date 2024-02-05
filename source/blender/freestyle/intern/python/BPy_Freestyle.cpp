@@ -33,7 +33,7 @@
 #include "BPy_ViewMap.h"
 #include "BPy_ViewShape.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "DNA_scene_types.h"
 #include "FRS_freestyle.h"
 #include "RNA_access.hh"
@@ -53,13 +53,15 @@ extern "C" {
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
 
-static char Freestyle_getCurrentScene___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    Freestyle_getCurrentScene___doc__,
     ".. function:: getCurrentScene()\n"
     "\n"
     "   Returns the current scene.\n"
     "\n"
     "   :return: The current scene.\n"
-    "   :rtype: :class:`bpy.types.Scene`\n";
+    "   :rtype: :class:`bpy.types.Scene`\n");
 
 static PyObject *Freestyle_getCurrentScene(PyObject * /*self*/)
 {
@@ -138,7 +140,9 @@ static int ramp_blend_type(const char *type)
 
 #include "BKE_material.h" /* ramp_blend() */
 
-static char Freestyle_blendRamp___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    Freestyle_blendRamp___doc__,
     ".. function:: blendRamp(type, color1, fac, color2)\n"
     "\n"
     "   Blend two colors according to a ramp blend type.\n"
@@ -152,7 +156,7 @@ static char Freestyle_blendRamp___doc__[] =
     "   :arg color2: 1st color.\n"
     "   :type color2: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
     "   :return: Blended color in RGB format.\n"
-    "   :rtype: :class:`mathutils.Vector`\n";
+    "   :rtype: :class:`mathutils.Vector`\n");
 
 static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
 {
@@ -191,7 +195,9 @@ static PyObject *Freestyle_blendRamp(PyObject * /*self*/, PyObject *args)
   return Vector_CreatePyObject(a, 3, nullptr);
 }
 
-static char Freestyle_evaluateColorRamp___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    Freestyle_evaluateColorRamp___doc__,
     ".. function:: evaluateColorRamp(ramp, in)\n"
     "\n"
     "   Evaluate a color ramp at a point in the interval 0 to 1.\n"
@@ -201,7 +207,7 @@ static char Freestyle_evaluateColorRamp___doc__[] =
     "   :arg in: Value in the interval 0 to 1.\n"
     "   :type in: float\n"
     "   :return: color in RGBA format.\n"
-    "   :rtype: :class:`mathutils.Vector`\n";
+    "   :rtype: :class:`mathutils.Vector`\n");
 
 static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args)
 {
@@ -226,7 +232,9 @@ static PyObject *Freestyle_evaluateColorRamp(PyObject * /*self*/, PyObject *args
 
 #include "DNA_color_types.h"
 
-static char Freestyle_evaluateCurveMappingF___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    Freestyle_evaluateCurveMappingF___doc__,
     ".. function:: evaluateCurveMappingF(cumap, cur, value)\n"
     "\n"
     "   Evaluate a curve mapping at a point in the interval 0 to 1.\n"
@@ -238,7 +246,7 @@ static char Freestyle_evaluateCurveMappingF___doc__[] =
     "   :arg value: Input value in the interval 0 to 1.\n"
     "   :type value: float\n"
     "   :return: Mapped output value.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *args)
 {
@@ -270,7 +278,9 @@ static PyObject *Freestyle_evaluateCurveMappingF(PyObject * /*self*/, PyObject *
 
 /*-----------------------Freestyle module docstring----------------------------*/
 
-static char module_docstring[] =
+PyDoc_STRVAR(
+    /* Force wrapped line. */
+    module_docstring,
     "This module provides classes for defining line drawing rules (such as\n"
     "predicates, functions, chaining iterators, and stroke shaders), as well\n"
     "as helper functions for style module writing.\n"
@@ -492,7 +502,7 @@ static char module_docstring[] =
     "- :class:`IntegrationType`\n"
     "- :class:`MediumType`\n"
     "- :class:`Nature`\n"
-    "\n";
+    "\n");
 
 /*-----------------------Freestyle module method def---------------------------*/
 
@@ -540,10 +550,11 @@ PyObject *Freestyle_Init()
   PyDict_SetItemString(PySys_GetObject("modules"), module_definition.m_name, module);
 
   // update 'sys.path' for Freestyle Python API modules
-  const char *const path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, "freestyle");
-  if (path) {
+  const std::optional<std::string> path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS,
+                                                               "freestyle");
+  if (path.has_value()) {
     char modpath[FILE_MAX];
-    BLI_path_join(modpath, sizeof(modpath), path, "modules");
+    BLI_path_join(modpath, sizeof(modpath), path->c_str(), "modules");
     PyObject *sys_path = PySys_GetObject("path"); /* borrow */
     PyObject *py_modpath = PyC_UnicodeFromBytes(modpath);
     PyList_Append(sys_path, py_modpath);

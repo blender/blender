@@ -6,7 +6,7 @@
 
 #include "COM_ConvertColorSpaceNode.h"
 #include "COM_MultiThreadedOperation.h"
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 

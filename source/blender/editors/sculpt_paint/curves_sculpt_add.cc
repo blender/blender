@@ -12,8 +12,6 @@
 #include "BLI_rand.hh"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
 #include "DEG_depsgraph.hh"
 
 #include "BKE_attribute_math.hh"
@@ -179,9 +177,7 @@ struct AddOperationExecutor {
       return;
     }
 
-    const double time = PIL_check_seconds_timer() * 1000000.0;
-    /* Use a pointer cast to avoid overflow warnings. */
-    RandomNumberGenerator rng{*(uint32_t *)(&time)};
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
     /* Sample points on the surface using one of multiple strategies. */
     Vector<float2> sampled_uvs;

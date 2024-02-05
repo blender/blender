@@ -12,7 +12,7 @@
  *
  * \subsection implinks Important Links
  * - <a href="https://developer.blender.org">developer.blender.org</a> with bug tracker.
- * - <a href="https://wiki.blender.org">Development documents</a> on our wiki.
+ * - <a href="https://developer.blender.org/docs/">Development documentation</a>.
  *
  * \subsection blother Other
  * For more information on using Blender browse to https://www.blender.org

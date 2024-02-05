@@ -15,7 +15,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_particle.h"
 
 #include "RNA_access.hh"
@@ -136,4 +136,5 @@ ModifierTypeInfo modifierType_ShapeKey = {
     /*panel_register*/ nullptr,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

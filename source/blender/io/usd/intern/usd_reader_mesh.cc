@@ -46,7 +46,8 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 
-#include <iostream>
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
 
 namespace usdtokens {
 /* Materials */
@@ -108,8 +109,8 @@ static void assign_materials(Main *bmain,
       pxr::UsdShadeMaterial usd_mat(prim);
 
       if (!usd_mat) {
-        std::cout << "WARNING: Couldn't construct USD material from prim " << item.key
-                  << std::endl;
+        CLOG_WARN(
+            &LOG, "Couldn't construct USD material from prim %s", item.key.GetAsString().c_str());
         continue;
       }
 
@@ -117,8 +118,9 @@ static void assign_materials(Main *bmain,
       assigned_mat = mat_reader.add_material(usd_mat);
 
       if (!assigned_mat) {
-        std::cout << "WARNING: Couldn't create Blender material from USD material " << item.key
-                  << std::endl;
+        CLOG_WARN(&LOG,
+                  "Couldn't create Blender material from USD material %s",
+                  item.key.GetAsString().c_str());
         continue;
       }
 
@@ -137,7 +139,7 @@ static void assign_materials(Main *bmain,
     }
     else {
       /* This shouldn't happen. */
-      std::cout << "WARNING: Couldn't assign material " << item.key << std::endl;
+      CLOG_WARN(&LOG, "Couldn't assign material %s", item.key.GetAsString().c_str());
     }
   }
   if (ob->totcol > 0) {
@@ -744,13 +746,13 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
 
   /* It is fine to have fewer indices than vertices, but never the other way other. */
   if (corner_indices.size() > mesh->verts_num) {
-    std::cerr << "WARNING: too many vertex crease for mesh " << prim_path_ << std::endl;
+    CLOG_WARN(&LOG, "Too many vertex creases for mesh %s", prim_path_.c_str());
     return;
   }
 
   if (corner_indices.size() != corner_sharpnesses.size()) {
-    std::cerr << "WARNING: vertex crease indices and sharpnesses count mismatch for mesh "
-              << prim_path_ << std::endl;
+    CLOG_WARN(
+        &LOG, "Vertex crease and sharpnesses count mismatch for mesh %s", prim_path_.c_str());
     return;
   }
 
@@ -775,8 +777,7 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   if (normals_.size() != mesh->verts_num) {
-    std::cerr << "WARNING: vertex varying normals count mismatch for mesh " << prim_path_
-              << std::endl;
+    CLOG_WARN(&LOG, "Vertex varying normals count mismatch for mesh %s", prim_path_.c_str());
     return;
   }
 
@@ -793,7 +794,7 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh)
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->corners_num) {
-    std::cerr << "WARNING: loop normal count mismatch for mesh " << mesh->id.name << std::endl;
+    CLOG_WARN(&LOG, "Loop normal count mismatch for mesh %s", mesh->id.name);
     return;
   }
 
@@ -834,7 +835,7 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh)
 
   /* Check for normals count mismatches to prevent crashes. */
   if (normals_.size() != mesh->faces_num) {
-    std::cerr << "WARNING: uniform normal count mismatch for mesh " << mesh->id.name << std::endl;
+    CLOG_WARN(&LOG, "Uniform normal count mismatch for mesh %s", mesh->id.name);
     return;
   }
 

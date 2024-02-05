@@ -29,7 +29,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_effect.h"
 #include "BKE_lattice.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_particle.h"
@@ -670,4 +670,5 @@ ModifierTypeInfo modifierType_ParticleInstance = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

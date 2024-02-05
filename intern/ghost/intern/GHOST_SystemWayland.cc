@@ -4317,10 +4317,8 @@ static void tablet_tool_handle_tilt(void *data,
   CLOG_INFO(LOG, 2, "tilt (x=%.4f, y=%.4f)", UNPACK2(tilt_unit));
   GWL_TabletTool *tablet_tool = static_cast<GWL_TabletTool *>(data);
   GHOST_TabletData &td = tablet_tool->data;
-  td.Xtilt = tilt_unit[0];
-  td.Ytilt = tilt_unit[1];
-  CLAMP(td.Xtilt, -1.0f, 1.0f);
-  CLAMP(td.Ytilt, -1.0f, 1.0f);
+  td.Xtilt = std::clamp(tilt_unit[0], -1.0f, 1.0f);
+  td.Ytilt = std::clamp(tilt_unit[1], -1.0f, 1.0f);
 
   gwl_tablet_tool_frame_event_add(tablet_tool, GWL_TabletTool_EventTypes::Tilt);
 }

@@ -46,7 +46,9 @@ int UnaryFunction0DId_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char UnaryFunction0DId___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    UnaryFunction0DId___doc__,
     "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DId`\n"
     "\n"
     "Base class for unary functions (functors) that work on\n"
@@ -54,7 +56,7 @@ static char UnaryFunction0DId___doc__[] =
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.\n";
+    "   Default constructor.\n");
 
 static int UnaryFunction0DId___init__(BPy_UnaryFunction0DId *self, PyObject *args, PyObject *kwds)
 {

@@ -36,7 +36,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -653,10 +653,8 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
           handle_armature_parent_orientation(ob, r_mat);
           break;
         }
-        else {
-          handle_object_parent_orientation(ob, r_mat);
-          break;
-        }
+        handle_object_parent_orientation(ob, r_mat);
+        break;
       }
       /* No break; we define 'parent' as 'normal' otherwise. */
       ATTR_FALLTHROUGH;
@@ -1052,7 +1050,7 @@ int getTransformOrientation_ex(const Scene *scene,
             }
 
             if (v_pair_swap) {
-              SWAP(BMVert *, v_pair[0], v_pair[1]);
+              std::swap(v_pair[0], v_pair[1]);
             }
 
             add_v3_v3v3(normal, v_pair[1]->no, v_pair[0]->no);
@@ -1101,7 +1099,7 @@ int getTransformOrientation_ex(const Scene *scene,
               }
 
               if (v_pair_swap) {
-                SWAP(BMVert *, v_pair[0], v_pair[1]);
+                std::swap(v_pair[0], v_pair[1]);
               }
 
               sub_v3_v3v3(dir_pair[0], v->co, v_pair[0]->co);

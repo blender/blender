@@ -22,7 +22,7 @@
 #include "BKE_context.hh"
 #include "BKE_duplilist.h"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
@@ -226,7 +226,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   }
 
   if (ob_gpencil == nullptr) {
-    ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uuid : 0;
+    ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
     const float loc[3] = {0.0f, 0.0f, 0.0f};
     ob_gpencil = ED_gpencil_add_object(C, loc, local_view_bits);
     newob = true;

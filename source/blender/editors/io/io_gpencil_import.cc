@@ -9,6 +9,7 @@
 #ifdef WITH_IO_GPENCIL
 
 #  include "BLI_path_util.h"
+#  include "BLI_string.h"
 
 #  include "MEM_guardedalloc.h"
 
@@ -16,6 +17,7 @@
 #  include "DNA_space_types.h"
 
 #  include "BKE_context.hh"
+#  include "BKE_file_handler.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_report.h"
 
@@ -36,6 +38,7 @@
 #  include "ED_gpencil_legacy.hh"
 
 #  include "io_gpencil.hh"
+#  include "io_utils.hh"
 
 #  include "gpencil_io.h"
 
@@ -53,13 +56,6 @@ static bool wm_gpencil_import_svg_common_check(bContext * /*C*/, wmOperator *op)
   }
 
   return false;
-}
-
-static int wm_gpencil_import_svg_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  WM_event_add_fileselect(C, op);
-
-  return OPERATOR_RUNNING_MODAL;
 }
 
 static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
@@ -136,7 +132,8 @@ static void ui_gpencil_import_svg_settings(uiLayout *layout, PointerRNA *imfptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *box = uiLayoutBox(layout);
+  uiLayout *col = uiLayoutColumn(box, false);
   uiItemR(col, imfptr, "resolution", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, imfptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
@@ -161,7 +158,7 @@ void WM_OT_gpencil_import_svg(wmOperatorType *ot)
   ot->description = "Import SVG into grease pencil";
   ot->idname = "WM_OT_gpencil_import_svg";
 
-  ot->invoke = wm_gpencil_import_svg_invoke;
+  ot->invoke = blender::ed::io::filesel_drop_import_invoke;
   ot->exec = wm_gpencil_import_svg_exec;
   ot->poll = wm_gpencil_import_svg_poll;
   ot->ui = wm_gpencil_import_svg_draw;
@@ -196,5 +193,18 @@ void WM_OT_gpencil_import_svg(wmOperatorType *ot)
                 0.001f,
                 100.0f);
 }
+
+namespace blender::ed::io {
+void gpencil_file_handler_add()
+{
+  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  STRNCPY(fh->idname, "IO_FH_gpencil_svg");
+  STRNCPY(fh->import_operator, "WM_OT_gpencil_import_svg");
+  STRNCPY(fh->label, "SVG as Grease Pencil");
+  STRNCPY(fh->file_extensions_str, ".svg");
+  fh->poll_drop = poll_file_object_drop;
+  bke::file_handler_add(std::move(fh));
+}
+}  // namespace blender::ed::io
 
 #endif /* WITH_IO_GPENCIL */

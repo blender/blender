@@ -1636,12 +1636,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "XX.X.101.4824"
+                    driver_version = "XX.X.101.5186"
                     col.label(text=rpt_("Requires Intel GPU with Xe-HPG architecture"), icon='BLANK1', translate=False)
                     col.label(text=rpt_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "XX.XX.25812.14"
+                    driver_version = "XX.XX.26918.50"
                     col.label(
                         text=rpt_("Requires Intel GPU with Xe-HPG architecture and"),
                         icon='BLANK1',
@@ -1718,10 +1718,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.prop(self, "metalrt")
 
         if compute_device_type == 'HIP':
-            has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
-            row = layout.row()
-            row.enabled = has_hiprt
-            row.prop(self, "use_hiprt")
+            import platform
+            if platform.system() == "Windows":  # HIP-RT is currently only supported on Windows
+                has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
+                row = layout.row()
+                row.enabled = has_hiprt
+                row.prop(self, "use_hiprt")
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()

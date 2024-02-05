@@ -12,7 +12,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_customdata_types.h"
@@ -164,6 +164,8 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "DEG_depsgraph.hh"
 
 #  include "BLT_translation.h"
@@ -172,12 +174,12 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 /* Attribute */
 
-static char *rna_Attribute_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_Attribute_path(const PointerRNA *ptr)
 {
   const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
   char layer_name_esc[sizeof(layer->name) * 2];
   BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
-  return BLI_sprintfN("attributes[\"%s\"]", layer_name_esc);
+  return fmt::format("attributes[\"{}\"]", layer_name_esc);
 }
 
 static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
@@ -387,28 +389,6 @@ static void rna_FloatColorAttributeValue_color_srgb_set(PointerRNA *ptr, const f
 {
   MPropCol *col = (MPropCol *)ptr->data;
   srgb_to_linearrgb_v4(col->color, values);
-}
-
-/* Int8 Attribute. */
-
-static int rna_ByteIntAttributeValue_get(PointerRNA *ptr)
-{
-  int8_t *value = (int8_t *)ptr->data;
-  return int(*value);
-}
-
-static void rna_ByteIntAttributeValue_set(PointerRNA *ptr, const int new_value)
-{
-  int8_t *value = (int8_t *)ptr->data;
-  if (new_value > INT8_MAX) {
-    *value = INT8_MAX;
-  }
-  else if (new_value < INT8_MIN) {
-    *value = INT8_MIN;
-  }
-  else {
-    *value = int8_t(new_value);
-  }
 }
 
 /* Attribute Group */
@@ -1044,8 +1024,7 @@ static void rna_def_attribute_int8(BlenderRNA *brna)
   RNA_def_struct_ui_text(
       srna, "8-bit Integer Attribute Value", "8-bit value in geometry attribute");
   prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
-  RNA_def_property_int_funcs(
-      prop, "rna_ByteIntAttributeValue_get", "rna_ByteIntAttributeValue_set", nullptr);
+  RNA_def_property_int_sdna(prop, nullptr, "i");
 }
 
 static void rna_def_attribute_int2(BlenderRNA *brna)

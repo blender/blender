@@ -18,7 +18,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_session_uuid.h"
+#include "BLI_session_uid.h"
 #include "BLI_string.h"
 
 #ifdef WIN32
@@ -36,10 +36,9 @@
 
 #include "WM_types.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_proxy.hh"
@@ -68,7 +67,7 @@ struct SeqIndexBuildContext {
   Depsgraph *depsgraph;
   Scene *scene;
   Sequence *seq, *orig_seq;
-  SessionUUID orig_seq_uuid;
+  SessionUID orig_seq_uid;
 };
 
 int SEQ_rendersize_to_proxysize(int render_size)
@@ -413,7 +412,7 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
-static bool seq_proxy_need_rebuild(Sequence *seq, anim *anim)
+static bool seq_proxy_need_rebuild(Sequence *seq, ImBufAnim *anim)
 {
   if ((seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0) {
     return true;
@@ -478,7 +477,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     context->depsgraph = depsgraph;
     context->scene = scene;
     context->orig_seq = seq;
-    context->orig_seq_uuid = seq->runtime.session_uuid;
+    context->orig_seq_uid = seq->runtime.session_uid;
     context->seq = nseq;
 
     context->view_id = i; /* only for images */
@@ -551,7 +550,6 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
   render_context.view_id = context->view_id;
 
   SeqRenderState state;
-  seq_render_state_init(&state);
 
   for (timeline_frame = SEQ_time_left_handle_frame_get(scene, seq);
        timeline_frame < SEQ_time_right_handle_frame_get(scene, seq);
@@ -609,7 +607,7 @@ void SEQ_proxy_set(Sequence *seq, bool value)
   }
 }
 
-void seq_proxy_index_dir_set(anim *anim, const char *base_dir)
+void seq_proxy_index_dir_set(ImBufAnim *anim, const char *base_dir)
 {
   char dirname[FILE_MAX];
   char filename[FILE_MAXFILE];

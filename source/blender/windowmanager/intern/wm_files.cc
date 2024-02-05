@@ -40,16 +40,15 @@
 #include "BLI_math_time.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
 
-#include "PIL_time.h"
-
 #include "BLO_readfile.h"
 #include "BLT_translation.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -60,11 +59,11 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "AS_asset_library.h"
+#include "AS_asset_library.hh"
 
 #include "BKE_addon.h"
-#include "BKE_appdir.h"
-#include "BKE_autoexec.h"
+#include "BKE_appdir.hh"
+#include "BKE_autoexec.hh"
 #include "BKE_blender.h"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
@@ -91,10 +90,10 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "IMB_thumbs.hh"
 
 #include "ED_asset.hh"
 #include "ED_datafiles.h"
@@ -191,6 +190,7 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
                                                             Main *bmain,
                                                             const bool is_read_homefile)
 {
+  using namespace blender;
   BLI_assert(BLI_listbase_count_at_most(&bmain->wm, 2) <= 1);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
@@ -240,7 +240,7 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
 
   /* Asset loading is done by the UI/editors and they keep pointers into it. So make sure to clear
    * it after UI/editors. */
-  ED_assetlist_storage_exit();
+  ed::asset::list::storage_exit();
   AS_asset_libraries_exit();
 
   /* NOTE: `wm_setup_data->old_wm` cannot be set here, as this pointer may be swapped with the
@@ -1022,7 +1022,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
-    bf_reports.duration.whole = PIL_check_seconds_timer();
+    bf_reports.duration.whole = BLI_check_seconds_timer();
     BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
       wm_file_read_pre(use_data, use_userdef);
@@ -1069,7 +1069,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       read_file_post_params.is_alloc = false;
       wm_file_read_post(C, filepath, &read_file_post_params);
 
-      bf_reports.duration.whole = PIL_check_seconds_timer() - bf_reports.duration.whole;
+      bf_reports.duration.whole = BLI_check_seconds_timer() - bf_reports.duration.whole;
       file_read_reports_finalize(&bf_reports);
 
       success = true;
@@ -1280,13 +1280,15 @@ void wm_homefile_read_ex(bContext *C,
   app_template_system[0] = '\0';
   app_template_config[0] = '\0';
 
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
   if (!use_factory_settings) {
-    if (cfgdir) {
-      BLI_path_join(filepath_startup, sizeof(filepath_startup), cfgdir, BLENDER_STARTUP_FILE);
+    if (cfgdir.has_value()) {
+      BLI_path_join(
+          filepath_startup, sizeof(filepath_startup), cfgdir->c_str(), BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = false;
       if (use_userdef) {
-        BLI_path_join(filepath_userdef, sizeof(filepath_startup), cfgdir, BLENDER_USERPREF_FILE);
+        BLI_path_join(
+            filepath_userdef, sizeof(filepath_startup), cfgdir->c_str(), BLENDER_USERPREF_FILE);
       }
     }
     else {
@@ -1329,8 +1331,9 @@ void wm_homefile_read_ex(bContext *C,
 
     /* note that the path is being set even when 'use_factory_settings == true'
      * this is done so we can load a templates factory-settings */
-    if (!use_factory_settings) {
-      BLI_path_join(app_template_config, sizeof(app_template_config), cfgdir, app_template);
+    if (!use_factory_settings && cfgdir.has_value()) {
+      BLI_path_join(
+          app_template_config, sizeof(app_template_config), cfgdir->c_str(), app_template);
       BLI_path_join(
           filepath_startup, sizeof(filepath_startup), app_template_config, BLENDER_STARTUP_FILE);
       filepath_startup_is_factory = false;
@@ -1535,8 +1538,8 @@ void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file
 
 void wm_history_file_read()
 {
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
-  if (!cfgdir) {
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  if (!cfgdir.has_value()) {
     return;
   }
 
@@ -1544,7 +1547,7 @@ void wm_history_file_read()
   LinkNode *l;
   int num;
 
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_HISTORY_FILE);
 
   LinkNode *lines = BLI_file_read_as_lines(filepath);
 
@@ -1598,17 +1601,17 @@ static RecentFile *wm_file_history_find(const char *filepath)
  */
 static void wm_history_file_write()
 {
-  const char *user_config_dir;
   char filepath[FILE_MAX];
   FILE *fp;
 
   /* will be nullptr in background mode */
-  user_config_dir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr);
-  if (!user_config_dir) {
+  const std::optional<std::string> user_config_dir = BKE_appdir_folder_id_create(
+      BLENDER_USER_CONFIG, nullptr);
+  if (!user_config_dir.has_value()) {
     return;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_HISTORY_FILE);
+  BLI_path_join(filepath, sizeof(filepath), user_config_dir->c_str(), BLENDER_HISTORY_FILE);
 
   fp = BLI_fopen(filepath, "w");
   if (fp) {
@@ -1950,7 +1953,7 @@ static bool wm_file_write(bContext *C,
     return false;
   }
 
-  ED_assets_pre_save(bmain);
+  blender::ed::asset::pre_save_assets(bmain);
 
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
@@ -2094,10 +2097,11 @@ static void wm_autosave_location(char filepath[FILE_MAX])
    * If this is still the case on WIN32 - other features such as copy-paste will also fail.
    * We could support #BLENDER_USER_AUTOSAVE on all platforms or remove it entirely. */
 #ifdef WIN32
+  std::optional<std::string> savedir;
   if (!BLI_exists(tempdir_base)) {
-    const char *savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, nullptr);
-    if (savedir) {
-      tempdir_base = savedir;
+    savedir = BKE_appdir_folder_id_create(BLENDER_USER_AUTOSAVE, nullptr);
+    if (savedir.has_value()) {
+      tempdir_base = savedir->c_str();
     }
   }
 #endif
@@ -2278,8 +2282,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   int fileflags;
 
   const char *app_template = U.app_template[0] ? U.app_template : nullptr;
-  const char *const cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, app_template);
-  if (cfgdir == nullptr) {
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG,
+                                                                        app_template);
+  if (!cfgdir.has_value()) {
     BKE_report(op->reports, RPT_ERROR, "Unable to create user config path");
     return OPERATOR_CANCELLED;
   }
@@ -2287,7 +2292,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   /* NOTE: either #BKE_CB_EVT_SAVE_POST or #BKE_CB_EVT_SAVE_POST_FAIL must run.
    * Runs at the end of this function, don't return beforehand. */
   BKE_callback_exec_string(bmain, BKE_CB_EVT_SAVE_PRE, "");
-  ED_assets_pre_save(bmain);
+  blender::ed::asset::pre_save_assets(bmain);
 
   /* check current window and close it if temp */
   if (win && WM_window_is_temp_screen(win)) {
@@ -2297,7 +2302,7 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   /* update keymaps in user preferences */
   WM_keyconfig_update(wm);
 
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_STARTUP_FILE);
+  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_STARTUP_FILE);
 
   printf("Writing homefile: \"%s\" ", filepath);
 
@@ -3400,6 +3405,12 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
   }
 
   WM_event_add_notifier(C, NC_WM | ND_FILESAVE, nullptr);
+  if (wmWindowManager *wm = CTX_wm_manager(C)) {
+    /* Restart auto-save timer to avoid unnecessary unexpected freezing (because of auto-save) when
+     * often saving manually. */
+    wm_autosave_timer_end(wm);
+    wm_autosave_timer_begin(wm);
+  }
 
   if (!is_save_as && RNA_boolean_get(op->ptr, "exit")) {
     wm_exit_schedule_delayed(C);
@@ -3576,15 +3587,15 @@ void WM_OT_save_mainfile(wmOperatorType *ot)
 /** \name Clear Recent Files List Operator
  * \{ */
 
-static void wm_clear_recent_files_confirm(bContext * /*C*/,
-                                          wmOperator * /*op*/,
-                                          wmConfirmDetails *confirm)
+static int wm_clear_recent_files_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  STRNCPY(confirm->message, IFACE_("Remove all items from the recent files list"));
-  STRNCPY(confirm->confirm_button, IFACE_("Remove All"));
-  confirm->position = WM_WARNING_POSITION_CENTER;
-  confirm->size = WM_WARNING_SIZE_LARGE;
-  confirm->cancel_default = true;
+  return WM_operator_confirm_ex(C,
+                                op,
+                                nullptr,
+                                IFACE_("Remove all items from the recent files list"),
+                                IFACE_("Remove All"),
+                                ALERT_ICON_WARNING,
+                                false);
 }
 
 static int wm_clear_recent_files_exec(bContext * /*C*/, wmOperator * /*op*/)
@@ -3601,9 +3612,8 @@ void WM_OT_clear_recent_files(wmOperatorType *ot)
   ot->idname = "WM_OT_clear_recent_files";
   ot->description = "Clear the recent files list";
 
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = wm_clear_recent_files_invoke;
   ot->exec = wm_clear_recent_files_exec;
-  ot->confirm = wm_clear_recent_files_confirm;
 }
 
 /** \} */
@@ -4225,11 +4235,13 @@ static const char *close_file_dialog_name = "file_close_popup";
 static void save_catalogs_when_file_is_closed_set_fn(bContext * /*C*/, void *arg1, void * /*arg2*/)
 {
   char *save_catalogs_when_file_is_closed = static_cast<char *>(arg1);
-  ED_asset_catalogs_set_save_catalogs_when_file_is_saved(*save_catalogs_when_file_is_closed != 0);
+  blender::ed::asset::catalogs_set_save_catalogs_when_file_is_saved(
+      *save_catalogs_when_file_is_closed != 0);
 }
 
 static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, void *arg1)
 {
+  using namespace blender;
   wmGenericCallback *post_action = (wmGenericCallback *)arg1;
   Main *bmain = CTX_data_main(C);
 
@@ -4321,7 +4333,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
   if (AS_asset_library_has_any_unsaved_catalogs()) {
     static char save_catalogs_when_file_is_closed;
 
-    save_catalogs_when_file_is_closed = ED_asset_catalogs_get_save_catalogs_when_file_is_saved();
+    save_catalogs_when_file_is_closed = ed::asset::catalogs_get_save_catalogs_when_file_is_saved();
 
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {

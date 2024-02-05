@@ -16,7 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_base.h"
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include <jerror.h>
 #include <jpeglib.h>

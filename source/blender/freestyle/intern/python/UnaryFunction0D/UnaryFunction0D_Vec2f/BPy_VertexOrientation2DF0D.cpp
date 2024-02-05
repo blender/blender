@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char VertexOrientation2DF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    VertexOrientation2DF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DVec2f` > :class:`VertexOrientation2DF0D`\n"
     "\n"
@@ -39,7 +41,7 @@ static char VertexOrientation2DF0D___doc__[] =
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The 2D oriented tangent to the 1D element evaluated at the\n"
     "      pointed Interface0D.\n"
-    "   :rtype: :class:`mathutils.Vector`\n";
+    "   :rtype: :class:`mathutils.Vector`\n");
 
 static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D *self,
                                            PyObject *args,

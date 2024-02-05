@@ -16,7 +16,7 @@
 #include "AVI_avi.h"
 #include "avi_rgb.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "BLI_utildefines.h"
 

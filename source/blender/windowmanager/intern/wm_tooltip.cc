@@ -11,6 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_vector.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -21,8 +22,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "PIL_time.h"
 
 static double g_tooltip_time_closed;
 double WM_tooltip_time_closed()
@@ -89,7 +88,7 @@ void WM_tooltip_clear(bContext *C, wmWindow *win)
     if (screen->tool_tip->region) {
       UI_tooltip_free(C, screen, screen->tool_tip->region);
       screen->tool_tip->region = nullptr;
-      g_tooltip_time_closed = PIL_check_seconds_timer();
+      g_tooltip_time_closed = BLI_check_seconds_timer();
     }
     MEM_freeN(screen->tool_tip);
     screen->tool_tip = nullptr;

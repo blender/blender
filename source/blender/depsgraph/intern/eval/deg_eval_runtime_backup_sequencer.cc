@@ -27,9 +27,9 @@ static bool seq_init_cb(Sequence *seq, void *user_data)
   SequenceBackup sequence_backup(sb->depsgraph);
   sequence_backup.init_from_sequence(seq);
   if (!sequence_backup.isEmpty()) {
-    const SessionUUID &session_uuid = seq->runtime.session_uuid;
-    BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
-    sb->sequences_backup.add(session_uuid, sequence_backup);
+    const SessionUID &session_uid = seq->runtime.session_uid;
+    BLI_assert(BLI_session_uid_is_generated(&session_uid));
+    sb->sequences_backup.add(session_uid, sequence_backup);
   }
   return true;
 }
@@ -44,9 +44,9 @@ void SequencerBackup::init_from_scene(Scene *scene)
 static bool seq_restore_cb(Sequence *seq, void *user_data)
 {
   SequencerBackup *sb = (SequencerBackup *)user_data;
-  const SessionUUID &session_uuid = seq->runtime.session_uuid;
-  BLI_assert(BLI_session_uuid_is_generated(&session_uuid));
-  SequenceBackup *sequence_backup = sb->sequences_backup.lookup_ptr(session_uuid);
+  const SessionUID &session_uid = seq->runtime.session_uid;
+  BLI_assert(BLI_session_uid_is_generated(&session_uid));
+  SequenceBackup *sequence_backup = sb->sequences_backup.lookup_ptr(session_uid);
   if (sequence_backup != nullptr) {
     sequence_backup->restore_to_sequence(seq);
   }

@@ -28,6 +28,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_task.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -43,8 +44,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_clip.hh"
 #include "ED_screen.hh"
@@ -56,8 +57,6 @@
 #include "RNA_enum_types.hh"
 
 #include "UI_view2d.hh"
-
-#include "PIL_time.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -557,7 +556,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vpd->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vpd->timer_lastdraw = PIL_check_seconds_timer();
+    vpd->timer_lastdraw = BLI_check_seconds_timer();
   }
 
   vpd->x = event->xy[0];
@@ -649,7 +648,7 @@ static void view_zoom_apply(
 
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     SpaceClip *sclip = CTX_wm_space_clip(C);
-    double time = PIL_check_seconds_timer();
+    double time = BLI_check_seconds_timer();
     float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
 

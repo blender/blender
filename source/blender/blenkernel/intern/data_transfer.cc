@@ -21,7 +21,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
@@ -269,11 +269,11 @@ static void data_transfer_mesh_attributes_transfer_active_color_string(
   {
     return;
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
-                                    active_color_src,
-                                    CD_MASK_PROP_BYTE_COLOR,
-                                    ATTR_DOMAIN_MASK_COLOR))
+  if ((data_type == CD_PROP_BYTE_COLOR) &&
+      !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                               active_color_src,
+                               CD_MASK_PROP_BYTE_COLOR,
+                               ATTR_DOMAIN_MASK_COLOR))
   {
     return;
   }
@@ -320,11 +320,11 @@ static void data_transfer_mesh_attributes_transfer_default_color_string(
   {
     return;
   }
-  else if ((data_type == CD_PROP_BYTE_COLOR) &&
-           !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
-                                    default_color_src,
-                                    CD_MASK_PROP_BYTE_COLOR,
-                                    ATTR_DOMAIN_MASK_COLOR))
+  if ((data_type == CD_PROP_BYTE_COLOR) &&
+      !BKE_id_attribute_search(&const_cast<ID &>(mesh_src->id),
+                               default_color_src,
+                               CD_MASK_PROP_BYTE_COLOR,
+                               ATTR_DOMAIN_MASK_COLOR))
   {
     return;
   }
@@ -1060,7 +1060,9 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
         dst_data = static_cast<float3 *>(CustomData_add_layer(
             &me_dst->corner_data, CD_NORMAL, CD_SET_DEFAULT, me_dst->corners_num));
       }
-      MutableSpan(dst_data, me_dst->corners_num).copy_from(me_dst->corner_normals());
+      if (mix_factor != 1.0f || mix_weights) {
+        MutableSpan(dst_data, me_dst->corners_num).copy_from(me_dst->corner_normals());
+      }
       /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
       data_transfer_layersmapping_add_item_cd(r_map,
                                               CD_NORMAL,

@@ -91,7 +91,7 @@ static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const bool zoom_i
       len2 = (vod->region->winrct.ymax - vod->init.event_xy[1]) + 5;
     }
     if (zoom_invert) {
-      SWAP(float, len1, len2);
+      std::swap(len1, len2);
     }
 
     zfac = 1.0f + ((len1 - len2) * 0.01f * vod->rv3d->dist);

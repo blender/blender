@@ -808,4 +808,68 @@
     .hardness_factor = 1.0f, \
   }
 
+#define _DNA_DEFAULT_GreasePencilSubdivModifierData \
+  { \
+    .level = 1, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilColorModifierData \
+  { \
+    .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
+    .hsv = {0.5f, 1.0f, 1.0f}, \
+  }
+
+
+#define _DNA_DEFAULT_GreasePencilTintModifierData \
+  { \
+    .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
+    .tint_mode = MOD_GREASE_PENCIL_TINT_UNIFORM, \
+    .factor = 0.5f, \
+    .radius = 1.0f, \
+    .color = {1.0f, 1.0f, 1.0f}, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilSmoothModifierData \
+  { \
+    .flag = MOD_GREASE_PENCIL_SMOOTH_MOD_LOCATION, \
+    .factor = 1.0f, \
+    .step = 1, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilOffsetModifierData \
+  { \
+    .flag = 0, \
+    .offset_mode = MOD_GREASE_PENCIL_OFFSET_RANDOM, \
+    .loc = {0.0f, 0.0f, 0.0f}, \
+    .rot = {0.0f, 0.0f, 0.0f}, \
+    .scale = {1.0f, 1.0f, 1.0f}, \
+    .stroke_step = 1, \
+    .stroke_start_offset = 0, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilNoiseModifierData \
+  { \
+    .flag = GP_NOISE_FULL_STROKE | GP_NOISE_USE_RANDOM, \
+    .factor = 0.5f, \
+    .factor_strength = 0.0f, \
+    .factor_thickness = 0.0f, \
+    .factor_uvs = 0.0f, \
+    .noise_scale = 0.0f, \
+    .noise_offset = 0.0f, \
+    .step = 4, \
+    .seed = 1, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilMirrorModifierData \
+  { \
+    .flag = MOD_GREASE_PENCIL_MIRROR_AXIS_X, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilThickModifierData \
+  { \
+    .flag = 0, \
+    .thickness_fac = 1.0f, \
+    .thickness = 0.02, \
+  }
+
 /* clang-format off */

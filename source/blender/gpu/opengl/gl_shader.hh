@@ -72,6 +72,21 @@ class GLShader : public Shader {
     GLuint geom_shader = 0;
     GLuint frag_shader = 0;
     GLuint compute_shader = 0;
+
+    GLProgram() {}
+    GLProgram(GLProgram &&other)
+    {
+      program_id = other.program_id;
+      vert_shader = other.vert_shader;
+      geom_shader = other.geom_shader;
+      frag_shader = other.frag_shader;
+      compute_shader = other.compute_shader;
+      other.program_id = 0;
+      other.vert_shader = 0;
+      other.geom_shader = 0;
+      other.frag_shader = 0;
+      other.compute_shader = 0;
+    }
     ~GLProgram();
   };
 

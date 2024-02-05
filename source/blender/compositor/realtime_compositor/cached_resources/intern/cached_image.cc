@@ -15,8 +15,8 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
@@ -42,7 +42,7 @@ CachedImageKey::CachedImageKey(ImageUser image_user, std::string pass_name)
 
 uint64_t CachedImageKey::hash() const
 {
-  return get_default_hash_4(image_user.framenr, image_user.layer, image_user.view, pass_name);
+  return get_default_hash(image_user.framenr, image_user.layer, image_user.view, pass_name);
 }
 
 bool operator==(const CachedImageKey &a, const CachedImageKey &b)

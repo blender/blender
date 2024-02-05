@@ -244,6 +244,8 @@ void ShadowPipeline::render(View &view)
 void ForwardPipeline::sync()
 {
   camera_forward_ = inst_.camera.forward();
+  has_opaque_ = false;
+  has_transparent_ = false;
 
   DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
   DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
@@ -330,6 +332,9 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
                                                    GPUMaterial *gpumat,
                                                    bool has_motion)
 {
+  BLI_assert_msg(GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT) == false,
+                 "Forward Transparent should be registered directly without calling "
+                 "PipelineModule::material_add()");
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
                             (has_motion ? prepass_single_sided_moving_ps_ :
                                           prepass_single_sided_static_ps_) :
@@ -340,6 +345,7 @@ PassMain::Sub *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
   /* TODO(fclem): To skip it, we need to know if the transparent BSDF is fully white AND if there
    * is no mix shader (could do better constant folding but that's expensive). */
 
+  has_opaque_ = true;
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
@@ -350,6 +356,7 @@ PassMain::Sub *ForwardPipeline::material_opaque_add(::Material *blender_mat, GPU
                  "PipelineModule::material_add()");
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ? opaque_single_sided_ps_ :
                                                                           opaque_double_sided_ps_;
+  has_opaque_ = true;
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
@@ -364,6 +371,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
+  has_transparent_ = true;
   float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
@@ -379,6 +387,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
+  has_transparent_ = true;
   float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
@@ -388,6 +397,11 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
 
 void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &combined_fb)
 {
+  if (!has_transparent_ && !has_opaque_) {
+    inst_.volume.draw_resolve(view);
+    return;
+  }
+
   DRW_stats_group_start("Forward.Opaque");
 
   prepass_fb.bind();
@@ -398,15 +412,19 @@ void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &c
   inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
   inst_.irradiance_cache.set_view(view);
 
-  combined_fb.bind();
-  inst_.manager->submit(opaque_ps_, view);
+  if (has_opaque_) {
+    combined_fb.bind();
+    inst_.manager->submit(opaque_ps_, view);
+  }
 
   DRW_stats_group_end();
 
   inst_.volume.draw_resolve(view);
 
-  combined_fb.bind();
-  inst_.manager->submit(transparent_ps_, view);
+  if (has_transparent_) {
+    combined_fb.bind();
+    inst_.manager->submit(transparent_ps_, view);
+  }
 }
 
 /** \} */
@@ -590,10 +608,15 @@ void DeferredLayer::end_sync()
       /* TODO(fclem): Could specialize directly with the pass index but this would break it for
        * OpenGL and Vulkan implementation which aren't fully supporting the specialize
        * constant. */
-      pass.specialize_constant(
-          sh, "render_pass_diffuse_light_enabled", rbuf_data.diffuse_light_id != -1);
-      pass.specialize_constant(
-          sh, "render_pass_specular_light_enabled", rbuf_data.specular_light_id != -1);
+      pass.specialize_constant(sh,
+                               "render_pass_diffuse_light_enabled",
+                               (rbuf_data.diffuse_light_id != -1) ||
+                                   (rbuf_data.diffuse_color_id != -1));
+      pass.specialize_constant(sh,
+                               "render_pass_specular_light_enabled",
+                               (rbuf_data.specular_light_id != -1) ||
+                                   (rbuf_data.specular_color_id != -1));
+      pass.specialize_constant(sh, "render_pass_normal_enabled", rbuf_data.normal_id != -1);
       pass.specialize_constant(sh, "use_combined_lightprobe_eval", use_combined_lightprobe_eval);
       pass.shader_set(sh);
       /* Use stencil test to reject pixels not written by this layer. */

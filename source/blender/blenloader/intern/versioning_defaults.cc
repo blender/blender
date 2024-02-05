@@ -42,7 +42,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -50,7 +50,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
@@ -383,6 +383,15 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   if (idprop) {
     IDP_ClearProperty(idprop);
   }
+
+  if (ts->sculpt) {
+    ts->sculpt->automasking_boundary_edges_propagation_steps = 1;
+  }
+
+  /* Ensure input_samples has a correct default value of 1. */
+  if (ts->unified_paint_settings.input_samples == 0) {
+    ts->unified_paint_settings.input_samples = 1;
+  }
 }
 
 void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
@@ -497,9 +506,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       }
 
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
 
       /* Enable cursor. */
       if (ts->gp_paint) {
@@ -675,6 +684,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     /* Enable anti-aliasing by default. */
     brush->sampling_flag |= BRUSH_PAINT_ANTIALIASING;
+
+    /* By default, each brush should use a single input sample. */
+    brush->input_samples = 1;
   }
 
   {
@@ -817,12 +829,28 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   {
-    /* Use the same tool icon color in the brush cursor */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      /* Use the same tool icon color in the brush cursor */
       if (brush->ob_mode & OB_MODE_SCULPT) {
         BLI_assert(brush->sculpt_tool != 0);
         BKE_brush_sculpt_reset(brush);
       }
+
+      /* Set the default texture mapping.
+       * Do it for all brushes, since some of them might be coming from the startup file. */
+      brush->mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
+      brush->mask_mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
+    }
+  }
+
+  {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
+      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
+
+      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
+      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
     }
   }
 }

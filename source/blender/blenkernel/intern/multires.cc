@@ -358,11 +358,11 @@ void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
   mmd->totlvl = lvl;
 
   if (ob->mode != OB_MODE_SCULPT) {
-    mmd->lvl = CLAMPIS(MAX2(mmd->lvl, lvl), 0, mmd->totlvl);
+    mmd->lvl = std::clamp<char>(std::max<char>(mmd->lvl, lvl), 0, mmd->totlvl);
   }
 
-  mmd->sculptlvl = CLAMPIS(MAX2(mmd->sculptlvl, lvl), 0, mmd->totlvl);
-  mmd->renderlvl = CLAMPIS(MAX2(mmd->renderlvl, lvl), 0, mmd->totlvl);
+  mmd->sculptlvl = std::clamp<char>(std::max<char>(mmd->sculptlvl, lvl), 0, mmd->totlvl);
+  mmd->renderlvl = std::clamp<char>(std::max<char>(mmd->renderlvl, lvl), 0, mmd->totlvl);
 }
 
 static void multires_ccg_mark_as_modified(SubdivCCG *subdiv_ccg, MultiresModifiedFlags flags)
@@ -934,7 +934,7 @@ static void multires_disp_run_cb(void *__restrict userdata,
             case CALC_DISPLACEMENTS:
               /* Copy mask from DM to gpm */
               mask = *CCG_grid_elem_mask(key, grid, x, y);
-              gpm->data[y * gridSize + x] = CLAMPIS(mask, 0, 1);
+              gpm->data[y * gridSize + x] = std::clamp(mask, 0.0f, 1.0f);
               break;
             case ADD_DISPLACEMENTS:
               /* Add mask displacement to gpm */

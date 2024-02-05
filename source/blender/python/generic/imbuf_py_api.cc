@@ -21,8 +21,8 @@
 
 #include "imbuf_py_api.h" /* own include */
 
-#include "../../imbuf/IMB_imbuf.h"
-#include "../../imbuf/IMB_imbuf_types.h"
+#include "../../imbuf/IMB_imbuf.hh"
+#include "../../imbuf/IMB_imbuf_types.hh"
 
 /* File IO */
 #include "BLI_fileops.h"
@@ -71,15 +71,17 @@ static int py_imbuf_valid_check(Py_ImBuf *self)
 /** \name Methods
  * \{ */
 
-PyDoc_STRVAR(py_imbuf_resize_doc,
-             ".. method:: resize(size, method='FAST')\n"
-             "\n"
-             "   Resize the image.\n"
-             "\n"
-             "   :arg size: New size.\n"
-             "   :type size: pair of ints\n"
-             "   :arg method: Method of resizing ('FAST', 'BILINEAR')\n"
-             "   :type method: str\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_resize_doc,
+    ".. method:: resize(size, method='FAST')\n"
+    "\n"
+    "   Resize the image.\n"
+    "\n"
+    "   :arg size: New size.\n"
+    "   :type size: pair of ints\n"
+    "   :arg method: Method of resizing ('FAST', 'BILINEAR')\n"
+    "   :type method: str\n");
 static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -126,15 +128,17 @@ static PyObject *py_imbuf_resize(Py_ImBuf *self, PyObject *args, PyObject *kw)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(py_imbuf_crop_doc,
-             ".. method:: crop(min, max)\n"
-             "\n"
-             "   Crop the image.\n"
-             "\n"
-             "   :arg min: X, Y minimum.\n"
-             "   :type min: pair of ints\n"
-             "   :arg max: X, Y maximum.\n"
-             "   :type max: pair of ints\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_crop_doc,
+    ".. method:: crop(min, max)\n"
+    "\n"
+    "   Crop the image.\n"
+    "\n"
+    "   :arg min: X, Y minimum.\n"
+    "   :type min: pair of ints\n"
+    "   :arg max: X, Y maximum.\n"
+    "   :type max: pair of ints\n");
 static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -172,11 +176,13 @@ static PyObject *py_imbuf_crop(Py_ImBuf *self, PyObject *args, PyObject *kw)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(py_imbuf_copy_doc,
-             ".. method:: copy()\n"
-             "\n"
-             "   :return: A copy of the image.\n"
-             "   :rtype: :class:`ImBuf`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_copy_doc,
+    ".. method:: copy()\n"
+    "\n"
+    "   :return: A copy of the image.\n"
+    "   :rtype: :class:`ImBuf`\n");
 static PyObject *py_imbuf_copy(Py_ImBuf *self)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -199,10 +205,12 @@ static PyObject *py_imbuf_deepcopy(Py_ImBuf *self, PyObject *args)
   return py_imbuf_copy(self);
 }
 
-PyDoc_STRVAR(py_imbuf_free_doc,
-             ".. method:: free()\n"
-             "\n"
-             "   Clear image data immediately (causing an error on re-use).\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_free_doc,
+    ".. method:: free()\n"
+    "\n"
+    "   Clear image data immediately (causing an error on re-use).\n");
 static PyObject *py_imbuf_free(Py_ImBuf *self)
 {
   if (self->ibuf) {
@@ -237,7 +245,12 @@ static PyMethodDef Py_ImBuf_methods[] = {
 /** \name Attributes
  * \{ */
 
-PyDoc_STRVAR(py_imbuf_size_doc, "size of the image in pixels.\n\n:type: pair of ints");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_size_doc,
+    "size of the image in pixels.\n"
+    "\n"
+    ":type: pair of ints");
 static PyObject *py_imbuf_size_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -245,7 +258,12 @@ static PyObject *py_imbuf_size_get(Py_ImBuf *self, void * /*closure*/)
   return PyC_Tuple_Pack_I32({ibuf->x, ibuf->y});
 }
 
-PyDoc_STRVAR(py_imbuf_ppm_doc, "pixels per meter.\n\n:type: pair of floats");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_ppm_doc,
+    "pixels per meter.\n"
+    "\n"
+    ":type: pair of floats");
 static PyObject *py_imbuf_ppm_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -273,7 +291,12 @@ static int py_imbuf_ppm_set(Py_ImBuf *self, PyObject *value, void * /*closure*/)
   return 0;
 }
 
-PyDoc_STRVAR(py_imbuf_filepath_doc, "filepath associated with this image.\n\n:type: string");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_filepath_doc,
+    "filepath associated with this image.\n"
+    "\n"
+    ":type: string");
 static PyObject *py_imbuf_filepath_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -302,7 +325,12 @@ static int py_imbuf_filepath_set(Py_ImBuf *self, PyObject *value, void * /*closu
   return 0;
 }
 
-PyDoc_STRVAR(py_imbuf_planes_doc, "Number of bits associated with this image.\n\n:type: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_planes_doc,
+    "Number of bits associated with this image.\n"
+    "\n"
+    ":type: int");
 static PyObject *py_imbuf_planes_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -310,7 +338,12 @@ static PyObject *py_imbuf_planes_get(Py_ImBuf *self, void * /*closure*/)
   return PyLong_FromLong(imbuf->planes);
 }
 
-PyDoc_STRVAR(py_imbuf_channels_doc, "Number of bit-planes.\n\n:type: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_imbuf_channels_doc,
+    "Number of bit-planes.\n"
+    "\n"
+    ":type: int");
 static PyObject *py_imbuf_channels_get(Py_ImBuf *self, void * /*closure*/)
 {
   PY_IMBUF_CHECK_OBJ(self);
@@ -431,15 +464,17 @@ static PyObject *Py_ImBuf_CreatePyObject(ImBuf *ibuf)
 /** \name Module Functions
  * \{ */
 
-PyDoc_STRVAR(M_imbuf_new_doc,
-             ".. function:: new(size)\n"
-             "\n"
-             "   Load a new image.\n"
-             "\n"
-             "   :arg size: The size of the image in pixels.\n"
-             "   :type size: pair of ints\n"
-             "   :return: the newly loaded image.\n"
-             "   :rtype: :class:`ImBuf`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_imbuf_new_doc,
+    ".. function:: new(size)\n"
+    "\n"
+    "   Load a new image.\n"
+    "\n"
+    "   :arg size: The size of the image in pixels.\n"
+    "   :type size: pair of ints\n"
+    "   :return: the newly loaded image.\n"
+    "   :rtype: :class:`ImBuf`\n");
 static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   int size[2];
@@ -494,15 +529,17 @@ static PyObject *imbuf_load_impl(const char *filepath)
   return Py_ImBuf_CreatePyObject(ibuf);
 }
 
-PyDoc_STRVAR(M_imbuf_load_doc,
-             ".. function:: load(filepath)\n"
-             "\n"
-             "   Load an image from a file.\n"
-             "\n"
-             "   :arg filepath: the filepath of the image.\n"
-             "   :type filepath: string or bytes\n"
-             "   :return: the newly loaded image.\n"
-             "   :rtype: :class:`ImBuf`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_imbuf_load_doc,
+    ".. function:: load(filepath)\n"
+    "\n"
+    "   Load an image from a file.\n"
+    "\n"
+    "   :arg filepath: the filepath of the image.\n"
+    "   :type filepath: string or bytes\n"
+    "   :return: the newly loaded image.\n"
+    "   :rtype: :class:`ImBuf`\n");
 static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   PyC_UnicodeAsBytesAndSize_Data filepath_data = {nullptr};
@@ -538,6 +575,7 @@ static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     M_imbuf_write_doc,
     ".. function:: write(image, filepath=image.filepath)\n"
     "\n"
@@ -605,11 +643,13 @@ static PyMethodDef IMB_methods[] = {
 #  pragma GCC diagnostic pop
 #endif
 
-PyDoc_STRVAR(IMB_doc,
-             "This module provides access to Blender's image manipulation API.\n"
-             "\n"
-             "It provides access to image buffers outside of Blender's\n"
-             ":class:`bpy.types.Image` data-block context.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    IMB_doc,
+    "This module provides access to Blender's image manipulation API.\n"
+    "\n"
+    "It provides access to image buffers outside of Blender's\n"
+    ":class:`bpy.types.Image` data-block context.\n");
 static PyModuleDef IMB_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "imbuf",
@@ -646,13 +686,15 @@ PyObject *BPyInit_imbuf()
  * for docs and the ability to use with built-ins such as `isinstance`, `issubclass`.
  * \{ */
 
-PyDoc_STRVAR(IMB_types_doc,
-             "This module provides access to image buffer types.\n"
-             "\n"
-             ".. note::\n"
-             "\n"
-             "   Image buffer is also the structure used by :class:`bpy.types.Image`\n"
-             "   ID type to store and manipulate image data at runtime.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    IMB_types_doc,
+    "This module provides access to image buffer types.\n"
+    "\n"
+    ".. note::\n"
+    "\n"
+    "   Image buffer is also the structure used by :class:`bpy.types.Image`\n"
+    "   ID type to store and manipulate image data at runtime.\n");
 
 static PyModuleDef IMB_types_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,

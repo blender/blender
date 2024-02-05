@@ -6,7 +6,10 @@
  * \ingroup edlattice
  */
 
+#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
+
+#include "BKE_key.hh"
 
 #include "WM_api.hh"
 
@@ -31,4 +34,11 @@ void ED_keymap_lattice(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Lattice", SPACE_EMPTY, RGN_TYPE_WINDOW);
   keymap->poll = ED_operator_editlattice;
+}
+
+KeyBlock *ED_lattice_get_edit_shape_key(const Lattice *latt)
+{
+  BLI_assert(latt->editlatt);
+
+  return BKE_keyblock_find_by_index(latt->key, latt->editlatt->shapenr - 1);
 }

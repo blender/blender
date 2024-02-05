@@ -25,7 +25,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
@@ -700,9 +700,7 @@ static int countAndCleanTransDataContainer(TransInfo *t)
     if (tc->data_len == 0) {
       uint index = tc - t->data_container;
       if (index + 1 != t->data_container_len) {
-        SWAP(TransDataContainer,
-             t->data_container[index],
-             t->data_container[t->data_container_len - 1]);
+        std::swap(t->data_container[index], t->data_container[t->data_container_len - 1]);
       }
       t->data_container_len -= 1;
     }
@@ -790,10 +788,7 @@ static void init_proportional_edit(TransInfo *t)
 }
 
 /* For multi object editing. */
-static void init_TransDataContainers(TransInfo *t,
-                                     Object *obact,
-                                     Object **objects,
-                                     uint objects_len)
+static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *> objects)
 {
   if (!ELEM(t->data_type,
             &TransConvertType_Pose,
@@ -825,26 +820,25 @@ static void init_TransDataContainers(TransInfo *t,
       MEM_freeN(t->data_container);
     }
 
-    bool free_objects = false;
-    if (objects == nullptr) {
+    Vector<Object *> local_objects;
+    if (objects.is_empty()) {
       ObjectsInModeParams params = {0};
       params.object_mode = object_mode;
       /* Pose transform operates on `ob->pose` so don't skip duplicate object-data. */
       params.no_dup_data = (object_mode & OB_MODE_POSE) == 0;
-      objects = BKE_view_layer_array_from_objects_in_mode_params(
+      local_objects = BKE_view_layer_array_from_objects_in_mode_params(
           t->scene,
           t->view_layer,
           static_cast<const View3D *>((t->spacetype == SPACE_VIEW3D) ? t->view : nullptr),
-          &objects_len,
           &params);
-      free_objects = true;
+      objects = local_objects;
     }
 
     t->data_container = static_cast<TransDataContainer *>(
-        MEM_callocN(sizeof(*t->data_container) * objects_len, __func__));
-    t->data_container_len = objects_len;
+        MEM_callocN(sizeof(*t->data_container) * objects.size(), __func__));
+    t->data_container_len = objects.size();
 
-    for (int i = 0; i < objects_len; i++) {
+    for (int i = 0; i < objects.size(); i++) {
       TransDataContainer *tc = &t->data_container[i];
       if (!(t->flag & T_NO_MIRROR) && (objects[i]->type == OB_MESH)) {
         tc->use_mirror_axis_x = (((Mesh *)objects[i]->data)->symmetry & ME_SYMMETRY_X) != 0;
@@ -881,10 +875,6 @@ static void init_TransDataContainers(TransInfo *t,
         normalize_m3_m3(tc->mat3_unit, tc->mat3);
       }
       /* Otherwise leave as zero. */
-    }
-
-    if (free_objects) {
-      MEM_freeN(objects);
     }
   }
 }
@@ -1046,12 +1036,12 @@ void create_trans_data(bContext *C, TransInfo *t)
   t->flag |= eTFlag(t->data_type->flags);
 
   if (ob_armature) {
-    init_TransDataContainers(t, ob_armature, &ob_armature, 1);
+    init_TransDataContainers(t, ob_armature, {ob_armature});
   }
   else {
     BKE_view_layer_synced_ensure(t->scene, t->view_layer);
     Object *ob = BKE_view_layer_active_object_get(t->view_layer);
-    init_TransDataContainers(t, ob, nullptr, 0);
+    init_TransDataContainers(t, ob, {});
   }
 
   if (t->data_type == &TransConvertType_Object) {
@@ -1203,8 +1193,8 @@ void animrecord_check_state(TransInfo *t, ID *id)
    * - we're not only keying for available channels
    * - the option to add new actions for each round is not enabled
    */
-  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE) == 0 &&
-      (scene->toolsettings->autokey_flag & AUTOKEY_FLAG_LAYERED_RECORD))
+  if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTAVAILABLE) == 0 &&
+      (scene->toolsettings->keying_flag & AUTOKEY_FLAG_LAYERED_RECORD))
   {
     /* if playback has just looped around,
      * we need to add a new NLA track+strip to allow a clean pass to occur */

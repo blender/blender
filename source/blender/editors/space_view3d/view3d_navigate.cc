@@ -23,7 +23,7 @@
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
@@ -1141,7 +1141,7 @@ bool ED_view3d_navigation_do(bContext *C,
 
     return true;
   }
-  else if (vod->rv3d->rflag & RV3D_NAVIGATING) {
+  if (vod->rv3d->rflag & RV3D_NAVIGATING) {
     /* Add a fake confirmation. */
     vod->rv3d->rflag &= ~RV3D_NAVIGATING;
     return true;

@@ -36,7 +36,7 @@ class OBJECT_OT_mesh_from_object(bpy.types.Operator):
             return {'CANCELLED'}
         # Avoid annoying None checks later on.
         if obj.type not in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
-            self.report({'INFO'}, "Object can not be converted to mesh")
+            self.report({'INFO'}, "Object cannot be converted to mesh")
             return {'CANCELLED'}
         depsgraph = context.evaluated_depsgraph_get()
         object_eval = obj.evaluated_get(depsgraph)

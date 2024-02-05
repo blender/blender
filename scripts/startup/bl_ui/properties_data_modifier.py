@@ -71,14 +71,16 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
         if geometry_nodes_supported:
             self.operator_modifier_add(layout, 'NODES')
             layout.separator()
-        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE', 'GREASEPENCIL'}:
+        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE'}:
             layout.menu("OBJECT_MT_modifier_add_edit")
-        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'VOLUME'}:
+        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'VOLUME', 'GREASEPENCIL'}:
             layout.menu("OBJECT_MT_modifier_add_generate")
-        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE', 'VOLUME'}:
+        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE', 'VOLUME', 'GREASEPENCIL'}:
             layout.menu("OBJECT_MT_modifier_add_deform")
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE'}:
             layout.menu("OBJECT_MT_modifier_add_physics")
+        if ob_type in {'GREASEPENCIL'}:
+            layout.menu("OBJECT_MT_modifier_add_color")
 
         if geometry_nodes_supported:
             layout.menu_contents("OBJECT_MT_modifier_add_root_catalogs")
@@ -105,8 +107,6 @@ class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_EDIT')
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_MIX')
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_PROXIMITY')
-        if ob_type == 'GREASEPENCIL':
-            self.operator_modifier_add(layout, 'GREASE_PENCIL_OPACITY')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
 
@@ -149,6 +149,9 @@ class OBJECT_MT_modifier_add_generate(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'WELD')
         if ob_type == 'MESH':
             self.operator_modifier_add(layout, 'WIREFRAME')
+        if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_MIRROR')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_SUBDIV')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
 
@@ -185,6 +188,11 @@ class OBJECT_MT_modifier_add_deform(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'WAVE')
         if ob_type == 'VOLUME':
             self.operator_modifier_add(layout, 'VOLUME_DISPLACE')
+        if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_NOISE')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_OFFSET')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_SMOOTH')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_THICKNESS')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
 
@@ -206,6 +214,20 @@ class OBJECT_MT_modifier_add_physics(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'PARTICLE_SYSTEM')
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE'}:
             self.operator_modifier_add(layout, 'SOFT_BODY')
+        layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
+
+
+class OBJECT_MT_modifier_add_color(ModifierAddMenu, Menu):
+    bl_label = "Color"
+    bl_options = {'SEARCH_ON_KEY_PRESS'}
+
+    def draw(self, context):
+        layout = self.layout
+        ob_type = context.object.type
+        if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_COLOR')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_TINT')
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_OPACITY')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
 
@@ -247,6 +269,7 @@ classes = (
     OBJECT_MT_modifier_add_generate,
     OBJECT_MT_modifier_add_deform,
     OBJECT_MT_modifier_add_physics,
+    OBJECT_MT_modifier_add_color,
     DATA_PT_gpencil_modifiers,
     AddModifierMenu,
 )

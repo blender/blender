@@ -19,7 +19,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_dynstr.h"
-#include "BLI_hash_mm3.h"
+#include "BLI_hash_mm3.hh"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 

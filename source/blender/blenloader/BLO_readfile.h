@@ -57,6 +57,11 @@ typedef struct BlendFileData {
 
   int fileflags;
   int globalf;
+  /** Typically the actual filepath of the read blend-file, except when recovering
+   * save-on-exit/autosave files. In the latter case, it will be the path of the file that
+   * generated the auto-saved one being recovered.
+   *
+   * NOTE: Currently expected to be the same path as #BlendFileData.filepath. */
   char filepath[1024]; /* 1024 = FILE_MAX */
 
   /** TODO: think this isn't needed anymore? */

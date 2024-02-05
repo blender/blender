@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char SamplingShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    SamplingShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`SamplingShader`\n"
     "\n"
     "[Geometry shader]\n"
@@ -37,7 +39,7 @@ static char SamplingShader___doc__[] =
     "   Resamples the stroke.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int SamplingShader___init__(BPy_SamplingShader *self, PyObject *args, PyObject *kwds)
 {

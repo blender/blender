@@ -28,6 +28,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_system.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -36,7 +37,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
@@ -65,15 +66,13 @@
 #include "ED_scene.hh"
 #include "ED_screen.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
-#include "PIL_time.h"
-
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_context.h"
@@ -1727,7 +1726,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  const double time = PIL_check_seconds_timer();
+  const double time = BLI_check_seconds_timer();
   bool has_event = false;
 
   const int sleep_us = *sleep_us_p;
@@ -1834,11 +1833,11 @@ void wm_window_events_process(const bContext *C)
    * events are typically generated from a timer that runs in the main loop. */
   if ((has_event == false) && (sleep_us != 0) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
     if (sleep_us == sleep_us_default) {
-      /* NOTE(@ideasman42): prefer #PIL_sleep_ms over `sleep_for(..)` in the common case
+      /* NOTE(@ideasman42): prefer #BLI_sleep_ms over `sleep_for(..)` in the common case
        * because this function uses lower resolution (millisecond) resolution sleep timers
        * which are tried & true for the idle loop. We could move to C++ `sleep_for(..)`
        * if this works well on all platforms but this needs further testing. */
-      PIL_sleep_ms(sleep_us_default / 1000);
+      BLI_sleep_ms(sleep_us_default / 1000);
     }
     else {
       /* The time was shortened to resume for the upcoming timer, use a high resolution sleep.
@@ -2099,7 +2098,7 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, 
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
-  wt->time_last = PIL_check_seconds_timer();
+  wt->time_last = BLI_check_seconds_timer();
   wt->time_next = wt->time_last + time_step;
   wt->time_start = wt->time_last;
   wt->time_step = time_step;
@@ -2119,7 +2118,7 @@ wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
-  wt->time_last = PIL_check_seconds_timer();
+  wt->time_last = BLI_check_seconds_timer();
   wt->time_next = wt->time_last + time_step;
   wt->time_start = wt->time_last;
   wt->time_step = time_step;

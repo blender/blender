@@ -21,14 +21,14 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.h"
@@ -401,12 +401,11 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
                                                  bool is_recursive_check)
 {
   float cfra = seq_prefetch_cfra(pfjob);
-  Sequence *seq_arr[MAXSEQ + 1];
-  int count = seq_get_shown_sequences(pfjob->scene_eval, channels, seqbase, cfra, 0, seq_arr);
+  blender::Vector<Sequence *> strips = seq_get_shown_sequences(
+      pfjob->scene_eval, channels, seqbase, cfra, 0);
 
   /* Iterate over rendered strips. */
-  for (int i = 0; i < count; i++) {
-    Sequence *seq = seq_arr[i];
+  for (Sequence *seq : strips) {
     if (seq->type == SEQ_TYPE_META &&
         seq_prefetch_scene_strip_is_rendered(pfjob, channels, &seq->seqbase, scene_strips, true))
     {

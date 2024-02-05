@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef __POINTCLOUD__
 
 ccl_device_inline float4
-motion_point_for_step(KernelGlobals kg, int offset, int numkeys, int numsteps, int step, int prim)
+motion_point_for_step(KernelGlobals kg, int offset, int numverts, int numsteps, int step, int prim)
 {
   if (step == numsteps) {
     /* center step: regular key location */
@@ -27,7 +27,7 @@ motion_point_for_step(KernelGlobals kg, int offset, int numkeys, int numsteps, i
     if (step > numsteps)
       step--;
 
-    offset += step * numkeys;
+    offset += step * numverts;
 
     return kernel_data_fetch(attributes_float4, offset + prim);
   }
@@ -37,8 +37,8 @@ motion_point_for_step(KernelGlobals kg, int offset, int numkeys, int numsteps, i
 ccl_device_inline float4 motion_point(KernelGlobals kg, int object, int prim, float time)
 {
   /* get motion info */
-  int numsteps, numkeys;
-  object_motion_info(kg, object, &numsteps, NULL, &numkeys);
+  const int numsteps = kernel_data_fetch(objects, object).numsteps;
+  const int numverts = kernel_data_fetch(objects, object).numverts;
 
   /* figure out which steps we need to fetch and their interpolation factor */
   int maxstep = numsteps * 2;
@@ -50,8 +50,8 @@ ccl_device_inline float4 motion_point(KernelGlobals kg, int object, int prim, fl
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
 
   /* fetch key coordinates */
-  float4 point = motion_point_for_step(kg, offset, numkeys, numsteps, step, prim);
-  float4 next_point = motion_point_for_step(kg, offset, numkeys, numsteps, step + 1, prim);
+  float4 point = motion_point_for_step(kg, offset, numverts, numsteps, step, prim);
+  float4 next_point = motion_point_for_step(kg, offset, numverts, numsteps, step + 1, prim);
 
   /* interpolate between steps */
   return (1.0f - t) * point + t * next_point;

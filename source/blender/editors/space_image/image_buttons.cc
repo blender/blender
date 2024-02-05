@@ -28,9 +28,9 @@
 
 #include "RE_pipeline.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_image.hh"
@@ -1242,7 +1242,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     int duration = 0;
 
     if (ima->source == IMA_SRC_MOVIE && BKE_image_has_anim(ima)) {
-      anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+      ImBufAnim *anim = ((ImageAnim *)ima->anims.first)->anim;
       if (anim) {
         duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
       }

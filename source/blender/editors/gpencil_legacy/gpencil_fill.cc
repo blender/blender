@@ -28,7 +28,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
@@ -49,8 +49,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"

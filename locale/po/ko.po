@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -2979,6 +2979,10 @@ msgstr "본"
 
 msgid "Index"
 msgstr "인덱스"
+
+
+msgid "Solo"
+msgstr "솔로"
 
 
 msgid "Visible"
@@ -20863,14 +20867,6 @@ msgid "Unit editing settings"
 msgstr "단위 편집 설정"
 
 
-msgid "Audio Muted"
-msgstr "음소거된 오디오"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "시퀀스 에디터에서 오디오의 재생이 음소거됨"
-
-
 msgid "Audio Scrubbing"
 msgstr "오디오 스크러빙"
 
@@ -29755,14 +29751,6 @@ msgid "Object To"
 msgstr "다음으로 오브젝트"
 
 
-msgid "UV Layer"
-msgstr "UV 레이어"
-
-
-msgid "UV Layer name"
-msgstr "UV 레이어 이름"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "웨이트VG 편집 모디파이어"
 
@@ -31662,10 +31650,6 @@ msgid "NLA Track is active"
 msgstr "NLA 트랙이 활성"
 
 
-msgid "Solo"
-msgstr "솔로"
-
-
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
 msgstr "NLA 트랙 자체가 평가됩니다 (즉, 활성 액션 및 동일한 AnimData 블록의 다른 모든 NLA 트랙은 사용 중지됨)"
 
@@ -33215,6 +33199,10 @@ msgid "Pixelate"
 msgstr "픽셀레이트"
 
 
+msgid "Pixel Size"
+msgstr "픽셀 크기"
+
+
 msgid "Plane Track Deform"
 msgstr "플레인 트랙 변형"
 
@@ -33529,6 +33517,10 @@ msgstr "동일한"
 
 msgid "Compare"
 msgstr "비교"
+
+
+msgid "Menu"
+msgstr "메뉴"
 
 
 msgid "Dot Product"
@@ -39149,16 +39141,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "오일러 ZYX에 회전을 변환"
 
 
-msgid "Save STL triangle mesh data"
-msgstr "STL 삼각형 메쉬 데이터를 저장"
-
-
-msgid "Ascii"
-msgstr "아스키"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "ASCII 파일 형식으로 파일을 저장"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLY를 내보내기"
 
 
 msgid "X Forward"
@@ -39205,6 +39190,30 @@ msgid "-Z Up"
 msgstr "-Z 위쪽"
 
 
+msgid "Apply Modifiers"
+msgstr "모디파이어를 적용"
+
+
+msgid "Selection Only"
+msgstr "선택 만"
+
+
+msgid "Export selected objects only"
+msgstr "선택된 오브젝트 만 내보내기"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "STL 삼각형 메쉬 데이터를 저장"
+
+
+msgid "Ascii"
+msgstr "아스키"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "ASCII 파일 형식으로 파일을 저장"
+
+
 msgid "Batch Mode"
 msgstr "일괄 모드"
 
@@ -39217,10 +39226,6 @@ msgid "Each object as a file"
 msgstr "각 오브젝트를 파일로"
 
 
-msgid "Apply Modifiers"
-msgstr "모디파이어를 적용"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "저장하기 이전에 모디파이어를 적용"
 
@@ -39231,14 +39236,6 @@ msgstr "씬 단위"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "내보내기된 데이터로 현재 씬의 단위(단위 축적으로 한정된)를 적용"
-
-
-msgid "Selection Only"
-msgstr "선택 만"
-
-
-msgid "Export selected objects only"
-msgstr "선택된 오브젝트 만 내보내기"
 
 
 msgctxt "Operator"
@@ -39797,6 +39794,14 @@ msgstr "내보내기 설정 저장"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "블렌더 프로젝트에 glTF 내보내기 설정을 저장"
+
+
+msgid "Material Groups"
+msgstr "매테리얼 그룹"
+
+
+msgid "Smooth Groups"
+msgstr "스무스 그룹"
 
 
 msgctxt "Operator"
@@ -43026,6 +43031,11 @@ msgid "Use alpha channel for transparency"
 msgstr "투명도를 위해 알파 채널을 사용"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLY를 가져오기"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "STL 삼각형 메쉬 데이터를 불러오기"
 
@@ -43194,6 +43204,10 @@ msgstr "플랫 셰이딩"
 
 msgid "Log Level"
 msgstr "로그 레벨"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "버텍스 그룹으로 OBJ 그룹을 가져오기"
 
 
 msgctxt "Operator"
@@ -47395,6 +47409,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "매테리얼 당 베이크된 맵을 분할, 출력 파일에 매테리얼 이름을 사용 (외부 만)"
 
 
+msgid "UV Layer"
+msgstr "UV 레이어"
+
+
 msgid "UV layer to override active"
 msgstr "활성을 재정의 하는 UV 레이어"
 
@@ -48827,14 +48845,6 @@ msgid "Name of the collection to select"
 msgstr "선택할 컬렉션의 이름"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "페이스 노멀을 사용하여 페이스를 균일하게 렌더링하고 표시"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "매끄러운 페이스를 표시 및 렌더, 보간 버텍스 노멀을 사용"
-
-
 msgctxt "Operator"
 msgid "Add Effect"
 msgstr "이팩트를 추가"
@@ -48953,6 +48963,10 @@ msgstr "셰이프 키를 지우기"
 
 msgid "Clear weights for all shape keys"
 msgstr "모든 셰이프 키에 대한 웨이트를 지우기"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "버텍스 그룹에 실행하는 액션을 잠금"
 
 
 msgctxt "Operator"
@@ -49309,10 +49323,6 @@ msgstr "변형 웨이트의 최대치 수"
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "버텍스 그룹에 대한 잠금을 변경"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "버텍스 그룹에 실행하는 액션을 잠금"
 
 
 msgid "Unlock all vertex groups if there is at least one locked group, lock all in other case"
@@ -51483,6 +51493,10 @@ msgid "Copy settings from previous version"
 msgstr "이전 버전의 설정을 복사"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Activate Keyconfig"
 msgstr "활성 키 설정"
@@ -52776,10 +52790,6 @@ msgstr "키맵"
 
 msgid "File Paths"
 msgstr "파일 경로"
-
-
-msgid "Extensions"
-msgstr "확장자"
 
 
 msgid "Experimental"
@@ -57683,10 +57693,6 @@ msgid "Object Properties"
 msgstr "오브젝트 프로퍼티스"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "버텍스 그룹으로 OBJ 그룹을 가져오기"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "열기"
@@ -57753,16 +57759,6 @@ msgstr "UI 테그"
 
 msgid "Open a path in a file browser"
 msgstr "파일 브라우저에서 경로를 열기"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY를 내보내기"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLY를 가져오기"
 
 
 msgctxt "Operator"
@@ -58339,10 +58335,6 @@ msgid "Leader key like functionality for accessing tools"
 msgstr "도구에 액세스하기 위한 기능과 같은 리더 키"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "URL로 열기"
 
@@ -58489,10 +58481,6 @@ msgstr "활성 브러시"
 
 msgid "Editable cavity curve"
 msgstr "편집 가능한 캐비티 커브"
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "브러시 스트로크를 매끄럽게 하는 평균의 다중 입력 샘플"
 
 
 msgid "Active Palette"
@@ -59862,10 +59850,6 @@ msgstr "아이콘 컬러"
 
 msgid "Styles"
 msgstr "스타일"
-
-
-msgid "Menu"
-msgstr "메뉴"
 
 
 msgid "Menu Item"
@@ -61747,16 +61731,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "자동 키 프레임 삽입 가능"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "사용 가능한 F-커브에서 자동으로 키 프레임을 삽입합니다"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "필요한 키 프레임 삽입"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "키 프레임이 필요할 때만 키 프레임 삽입"
 
 
 msgid "Cursor Surface Project"
@@ -64797,10 +64773,6 @@ msgstr "픽셀 측면 Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "수직 화면 비율 - 아나모픽 또는 비정방 픽셀 출력에 대해"
-
-
-msgid "Pixel Size"
-msgstr "픽셀 크기"
 
 
 msgid "Pixel size for viewport rendering"
@@ -74657,6 +74629,10 @@ msgid "Invert Selection"
 msgstr "선택을 반전"
 
 
+msgid "Extensions"
+msgstr "확장자"
+
+
 msgctxt "Operator"
 msgid "New"
 msgstr "새로운"
@@ -74715,6 +74691,16 @@ msgstr "지원"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "사용자 커뮤니티"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "위치"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "회전"
 
 
 msgid "Unknown"
@@ -76243,11 +76229,6 @@ msgstr "프록시 크기"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "위치"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "어파인"
 
@@ -76304,6 +76285,11 @@ msgstr "활성 플레인 트랙 없음"
 
 msgid "Timecode Index"
 msgstr "타임코드 인덱스"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "줌"
 
 
 msgctxt "Operator"
@@ -76973,10 +76959,6 @@ msgid "Online Manual"
 msgstr "온라인 설명서"
 
 
-msgid "Inputs:"
-msgstr "입력:"
-
-
 msgctxt "Operator"
 msgid "Backdrop Zoom In"
 msgstr "배경 화면 줌 확대"
@@ -77221,11 +77203,6 @@ msgstr "배경 화면으로 미리보기"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "줌"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "창에서 미리보기를 맞추기"
 
@@ -77337,11 +77314,6 @@ msgstr "선택되지 않은 스트립을 음소거"
 msgctxt "Operator"
 msgid "Unmute Deselected Strips"
 msgstr "선택 해제된 스트립 음소거를 해제"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "회전"
 
 
 msgctxt "Operator"
@@ -77753,16 +77725,16 @@ msgid "Only Insert Needed"
 msgstr "필요할 때 만 삽입"
 
 
+msgid "Enable in New Scenes"
+msgstr "새로운 씬에서 사용"
+
+
 msgid "Show Warning"
 msgstr "경고를 표시"
 
 
 msgid "Only Insert Available"
 msgstr "사용 가능할 때 만 삽입"
-
-
-msgid "Enable in New Scenes"
-msgstr "새로운 씬에서 사용"
 
 
 msgid "Default Smoothing Mode"
@@ -77858,6 +77830,10 @@ msgid "Pan Sensitivity"
 msgstr "팬 감도"
 
 
+msgid "Preferences:"
+msgstr "환경 설정:"
+
+
 msgid "Use Light"
 msgstr "라이트를 사용"
 
@@ -77885,6 +77861,10 @@ msgstr "리솔브에 각 쌍 중 하나를 삭제:"
 
 msgid "Missing script files"
 msgstr "스크립트 파일이 누락 됨"
+
+
+msgid "Error (see console)"
+msgstr "오류 (콘솔 참조)"
 
 
 msgid ":"
@@ -77919,25 +77899,9 @@ msgid "Internet:"
 msgstr "인터넷:"
 
 
-msgid "description"
-msgstr "설명"
-
-
-msgid "location"
-msgstr "위치"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "문서"
-
-
-msgid "Preferences:"
-msgstr "환경 설정:"
-
-
-msgid "Error (see console)"
-msgstr "오류 (콘솔 참조)"
 
 
 msgctxt "Operator"
@@ -80890,44 +80854,8 @@ msgid "Internal error!"
 msgstr "내부 오류!"
 
 
-msgid "Shortcut: %s"
-msgstr "단축 키: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Shortcut Cycle: %s"
-msgstr "단축 키 사이클: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(여러 개를 선택하려면 Shift 키를 누른 채로 드래그하십시오)"
-
-
-msgid "Value: %s"
-msgstr "값: %s"
-
-
-msgid "Radians: %f"
-msgstr "라디안: %f"
-
-
-msgid "Expression: %s"
-msgstr "표현식: %s"
-
-
-msgid "Library: %s"
-msgstr "라이브러리: %s"
-
-
-msgid "Disabled: %s"
-msgstr "사용 중지됨: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -81348,14 +81276,6 @@ msgstr "내보내기 중 오류 (콘솔 참조)"
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "문서의 구문 분석 오류 (Blender Console 참조)"
-
-
-msgid "Material Groups"
-msgstr "매테리얼 그룹"
-
-
-msgid "Smooth Groups"
-msgstr "스무스 그룹"
 
 
 msgid "Rigging"

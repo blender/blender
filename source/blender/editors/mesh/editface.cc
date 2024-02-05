@@ -17,8 +17,8 @@
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

@@ -28,15 +28,15 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 
-#include "blf_internal.h"
-#include "blf_internal_types.h"
+#include "blf_internal.hh"
+#include "blf_internal_types.hh"
 
 #define BLF_RESULT_CHECK_INIT(r_info) \
   if (r_info) { \

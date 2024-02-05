@@ -7,6 +7,7 @@
  */
 
 #include <cstring>
+#include <fmt/format.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -22,6 +23,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_array_utils.hh"
 #include "DNA_collection_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_defaults.h"
@@ -39,6 +41,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_bake_data_block_map.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_customdata.hh"
@@ -47,7 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -65,6 +68,7 @@
 
 #include "BLT_translation.h"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "RNA_access.hh"
@@ -73,6 +77,7 @@
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph_writeback_sync.hh"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_nodes.hh"
@@ -177,6 +182,14 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
     }
   }
 
+  for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
+    for (const NodesModifierDataBlock &data_block : Span(bake.data_blocks, bake.data_blocks_num)) {
+      if (data_block.id) {
+        used_ids.add(data_block.id);
+      }
+    }
+  }
+
   for (ID *id : used_ids) {
     switch ((ID_Type)GS(id->name)) {
       case ID_OB: {
@@ -270,6 +283,13 @@ static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void 
             settings->user_data, settings->ob, (ID **)&id_prop->data.pointer, IDWALK_CB_USER);
       },
       &settings);
+
+  for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
+    for (NodesModifierDataBlock &data_block : MutableSpan(bake.data_blocks, bake.data_blocks_num))
+    {
+      walk(user_data, ob, &data_block.id, IDWALK_CB_USER);
+    }
+  }
 }
 
 static void foreach_tex_link(ModifierData *md, Object *ob, TexWalkFunc walk, void *user_data)
@@ -326,7 +346,7 @@ static void update_id_properties_from_node_group(NodesModifierData *nmd)
   }
 }
 
-static void update_existing_bake_caches(NodesModifierData &nmd)
+static void remove_outdated_bake_caches(NodesModifierData &nmd)
 {
   if (!nmd.runtime->cache) {
     if (nmd.bakes_num == 0) {
@@ -337,49 +357,15 @@ static void update_existing_bake_caches(NodesModifierData &nmd)
   bake::ModifierCache &modifier_cache = *nmd.runtime->cache;
   std::lock_guard lock{modifier_cache.mutex};
 
-  Map<int, std::unique_ptr<bake::SimulationNodeCache>> &old_simulation_cache_by_id =
-      modifier_cache.simulation_cache_by_id;
-  Map<int, std::unique_ptr<bake::BakeNodeCache>> &old_bake_cache_by_id =
-      modifier_cache.bake_cache_by_id;
-
-  Map<int, std::unique_ptr<bake::SimulationNodeCache>> new_simulation_cache_by_id;
-  Map<int, std::unique_ptr<bake::BakeNodeCache>> new_bake_cache_by_id;
-  if (nmd.node_group) {
-    for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
-      const bNode *node = nmd.node_group->find_nested_node(ref.id);
-      switch (node->type) {
-        case GEO_NODE_SIMULATION_OUTPUT: {
-          std::unique_ptr<bake::SimulationNodeCache> node_cache;
-          if (std::unique_ptr<bake::SimulationNodeCache> *old_node_cache_ptr =
-                  old_simulation_cache_by_id.lookup_ptr(ref.id))
-          {
-            node_cache = std::move(*old_node_cache_ptr);
-          }
-          else {
-            node_cache = std::make_unique<bake::SimulationNodeCache>();
-          }
-          new_simulation_cache_by_id.add(ref.id, std::move(node_cache));
-          break;
-        }
-        case GEO_NODE_BAKE: {
-          std::unique_ptr<bake::BakeNodeCache> node_cache;
-          if (std::unique_ptr<bake::BakeNodeCache> *old_node_cache_ptr =
-                  old_bake_cache_by_id.lookup_ptr(ref.id))
-          {
-            node_cache = std::move(*old_node_cache_ptr);
-          }
-          else {
-            node_cache = std::make_unique<bake::BakeNodeCache>();
-          }
-          new_bake_cache_by_id.add(ref.id, std::move(node_cache));
-          break;
-        }
-      }
-    }
+  Set<int> existing_bake_ids;
+  for (const NodesModifierBake &bake : Span{nmd.bakes, nmd.bakes_num}) {
+    existing_bake_ids.add(bake.id);
   }
 
-  modifier_cache.simulation_cache_by_id = std::move(new_simulation_cache_by_id);
-  modifier_cache.bake_cache_by_id = std::move(new_bake_cache_by_id);
+  auto remove_predicate = [&](auto item) { return !existing_bake_ids.contains(item.key); };
+
+  modifier_cache.bake_cache_by_id.remove_if(remove_predicate);
+  modifier_cache.simulation_cache_by_id.remove_if(remove_predicate);
 }
 
 static void update_bakes_from_node_group(NodesModifierData &nmd)
@@ -432,7 +418,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
   nmd.bakes = new_bake_data;
   nmd.bakes_num = new_bake_ids.size();
 
-  update_existing_bake_caches(nmd);
+  remove_outdated_bake_caches(nmd);
 }
 
 static void update_panels_from_node_group(NodesModifierData &nmd)
@@ -866,6 +852,53 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
   }
 }
 
+class NodesModifierBakeDataBlockMap : public bake::BakeDataBlockMap {
+  /** Protects access to `new_mappings` which may be added to from multiple threads. */
+  std::mutex mutex_;
+
+ public:
+  Map<bake::BakeDataBlockID, ID *> old_mappings;
+  Map<bake::BakeDataBlockID, ID *> new_mappings;
+
+  ID *lookup_or_remember_missing(const bake::BakeDataBlockID &key) override
+  {
+    if (ID *id = this->old_mappings.lookup_default(key, nullptr)) {
+      return id;
+    }
+    if (this->old_mappings.contains(key)) {
+      /* Don't allow overwriting old mappings. */
+      return nullptr;
+    }
+    std::lock_guard lock{mutex_};
+    return this->new_mappings.lookup_or_add(key, nullptr);
+  }
+
+  void try_add(ID &id) override
+  {
+    bake::BakeDataBlockID key{id};
+    if (this->old_mappings.contains(key)) {
+      return;
+    }
+    std::lock_guard lock{mutex_};
+    this->new_mappings.add_overwrite(std::move(key), &id);
+  }
+
+ private:
+  ID *lookup_in_map(Map<bake::BakeDataBlockID, ID *> &map,
+                    const bake::BakeDataBlockID &key,
+                    const std::optional<ID_Type> &type)
+  {
+    ID *id = map.lookup_default(key, nullptr);
+    if (!id) {
+      return nullptr;
+    }
+    if (type && GS(id->name) != *type) {
+      return nullptr;
+    }
+    return id;
+  }
+};
+
 namespace sim_input = nodes::sim_input;
 namespace sim_output = nodes::sim_output;
 
@@ -946,7 +979,7 @@ static bool try_find_baked_data(bake::NodeBakeCache &bake,
     bake.frames.append(std::move(frame_cache));
   }
   bake.blobs_dir = bake_path->blobs_dir;
-  bake.blob_sharing = std::make_unique<bake::BlobSharing>();
+  bake.blob_sharing = std::make_unique<bake::BlobReadSharing>();
   return true;
 }
 
@@ -954,7 +987,6 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
  private:
   static constexpr float max_delta_frames = 1.0f;
 
-  mutable Map<int, std::unique_ptr<nodes::SimulationZoneBehavior>> behavior_by_zone_id_;
   const NodesModifierData &nmd_;
   const ModifierEvalContext &ctx_;
   const Main *bmain_;
@@ -967,6 +999,13 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
   bool has_invalid_simulation_ = false;
 
  public:
+  struct DataPerZone {
+    nodes::SimulationZoneBehavior behavior;
+    NodesModifierBakeDataBlockMap data_block_map;
+  };
+
+  mutable Map<int, std::unique_ptr<DataPerZone>> data_by_zone_id;
+
   NodesModifierSimulationParams(NodesModifierData &nmd, const ModifierEvalContext &ctx)
       : nmd_(nmd), ctx_(ctx)
   {
@@ -1039,24 +1078,26 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
       return nullptr;
     }
     std::lock_guard lock{modifier_cache_->mutex};
-    return behavior_by_zone_id_
-        .lookup_or_add_cb(zone_id,
-                          [&]() {
-                            auto info = std::make_unique<nodes::SimulationZoneBehavior>();
-                            this->init_simulation_info(zone_id, *info);
-                            return info;
-                          })
-        .get();
+    return &this->data_by_zone_id
+                .lookup_or_add_cb(zone_id,
+                                  [&]() {
+                                    auto data = std::make_unique<DataPerZone>();
+                                    data->behavior.data_block_map = &data->data_block_map;
+                                    this->init_simulation_info(
+                                        zone_id, data->behavior, data->data_block_map);
+                                    return data;
+                                  })
+                ->behavior;
   }
 
-  void init_simulation_info(const int zone_id, nodes::SimulationZoneBehavior &zone_behavior) const
+  void init_simulation_info(const int zone_id,
+                            nodes::SimulationZoneBehavior &zone_behavior,
+                            NodesModifierBakeDataBlockMap &data_block_map) const
   {
-    if (!modifier_cache_->simulation_cache_by_id.contains(zone_id)) {
-      /* Should have been created in #update_existing_bake_caches. */
-      return;
-    }
-    bake::SimulationNodeCache &node_cache = *modifier_cache_->simulation_cache_by_id.lookup(
-        zone_id);
+    bake::SimulationNodeCache &node_cache =
+        *modifier_cache_->simulation_cache_by_id.lookup_or_add_cb(
+            zone_id, []() { return std::make_unique<bake::SimulationNodeCache>(); });
+    const NodesModifierBake &bake = *nmd_.find_bake(zone_id);
     const IndexRange sim_frame_range = *bake::get_node_bake_frame_range(
         *scene_, *ctx_.object, nmd_, zone_id);
     const SubFrame sim_start_frame{int(sim_frame_range.first())};
@@ -1071,6 +1112,14 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
         else {
           node_cache.bake.failed_finding_bake = true;
         }
+      }
+    }
+
+    /* If there are no baked frames, we don't need keep track of the data-blocks. */
+    if (!node_cache.bake.frames.is_empty()) {
+      for (const NodesModifierDataBlock &data_block : Span{bake.data_blocks, bake.data_blocks_num})
+      {
+        data_block_map.old_mappings.add(data_block, data_block.id);
       }
     }
 
@@ -1267,7 +1316,6 @@ class NodesModifierSimulationParams : public nodes::GeoNodesSimulationParams {
 
 class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
  private:
-  mutable Map<int, std::unique_ptr<nodes::BakeNodeBehavior>> behavior_by_node_id_;
   const NodesModifierData &nmd_;
   const ModifierEvalContext &ctx_;
   Main *bmain_;
@@ -1276,6 +1324,13 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
   bool depsgraph_is_active_;
 
  public:
+  struct DataPerNode {
+    nodes::BakeNodeBehavior behavior;
+    NodesModifierBakeDataBlockMap data_block_map;
+  };
+
+  mutable Map<int, std::unique_ptr<DataPerNode>> data_by_node_id;
+
   NodesModifierBakeParams(NodesModifierData &nmd, const ModifierEvalContext &ctx)
       : nmd_(nmd), ctx_(ctx)
   {
@@ -1292,30 +1347,36 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
       return nullptr;
     }
     std::lock_guard lock{modifier_cache_->mutex};
-    return behavior_by_node_id_
-        .lookup_or_add_cb(id,
-                          [&]() {
-                            auto info = std::make_unique<nodes::BakeNodeBehavior>();
-                            this->init_bake_behavior(id, *info);
-                            return info;
-                          })
-        .get();
+    return &this->data_by_node_id
+                .lookup_or_add_cb(id,
+                                  [&]() {
+                                    auto data = std::make_unique<DataPerNode>();
+                                    data->behavior.data_block_map = &data->data_block_map;
+                                    this->init_bake_behavior(
+                                        id, data->behavior, data->data_block_map);
+                                    return data;
+                                  })
+                ->behavior;
     return nullptr;
   }
 
  private:
-  void init_bake_behavior(const int id, nodes::BakeNodeBehavior &behavior) const
+  void init_bake_behavior(const int id,
+                          nodes::BakeNodeBehavior &behavior,
+                          NodesModifierBakeDataBlockMap &data_block_map) const
   {
-    if (!modifier_cache_->bake_cache_by_id.contains(id)) {
-      /* Should have been created in #update_existing_bake_caches. */
-      return;
+    bake::BakeNodeCache &node_cache = *modifier_cache_->bake_cache_by_id.lookup_or_add_cb(
+        id, []() { return std::make_unique<bake::BakeNodeCache>(); });
+    const NodesModifierBake &bake = *nmd_.find_bake(id);
+
+    for (const NodesModifierDataBlock &data_block : Span{bake.data_blocks, bake.data_blocks_num}) {
+      data_block_map.old_mappings.add(data_block, data_block.id);
     }
-    bake::BakeNodeCache &node_cache = *modifier_cache_->bake_cache_by_id.lookup(id);
 
     if (depsgraph_is_active_) {
       if (modifier_cache_->requested_bakes.contains(id)) {
         /* This node is baked during the current evaluation. */
-        auto &store_info = behavior.emplace<sim_output::StoreNewState>();
+        auto &store_info = behavior.behavior.emplace<sim_output::StoreNewState>();
         store_info.store_fn = [modifier_cache = modifier_cache_,
                                node_cache = &node_cache,
                                current_frame = current_frame_](bake::BakeState state) {
@@ -1344,7 +1405,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
     }
 
     if (node_cache.bake.frames.is_empty()) {
-      behavior.emplace<sim_output::PassThrough>();
+      behavior.behavior.emplace<sim_output::PassThrough>();
       return;
     }
     const BakeFrameIndices frame_indices = get_bake_frame_indices(node_cache.bake.frames,
@@ -1377,7 +1438,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
     if (this->check_read_error(frame_cache, behavior)) {
       return;
     }
-    auto &read_single_info = behavior.emplace<sim_output::ReadSingle>();
+    auto &read_single_info = behavior.behavior.emplace<sim_output::ReadSingle>();
     read_single_info.state = frame_cache.state;
   }
 
@@ -1395,7 +1456,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
     {
       return;
     }
-    auto &read_interpolated_info = behavior.emplace<sim_output::ReadInterpolated>();
+    auto &read_interpolated_info = behavior.behavior.emplace<sim_output::ReadInterpolated>();
     read_interpolated_info.mix_factor = (float(current_frame_) - float(prev_frame_cache.frame)) /
                                         (float(next_frame_cache.frame) -
                                          float(prev_frame_cache.frame));
@@ -1407,13 +1468,175 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
                                       nodes::BakeNodeBehavior &behavior) const
   {
     if (frame_cache.meta_path && frame_cache.state.items_by_id.is_empty()) {
-      auto &read_error_info = behavior.emplace<sim_output::ReadError>();
-      read_error_info.message = RPT_("Can not load the baked data");
+      auto &read_error_info = behavior.behavior.emplace<sim_output::ReadError>();
+      read_error_info.message = RPT_("Cannot load the baked data");
       return true;
     }
     return false;
   }
 };
+
+static void add_missing_data_block_mappings(
+    NodesModifierBake &bake,
+    const Span<bake::BakeDataBlockID> missing,
+    FunctionRef<ID *(const bake::BakeDataBlockID &)> get_data_block)
+{
+  const int old_num = bake.data_blocks_num;
+  const int new_num = old_num + missing.size();
+  bake.data_blocks = reinterpret_cast<NodesModifierDataBlock *>(
+      MEM_recallocN(bake.data_blocks, sizeof(NodesModifierDataBlock) * new_num));
+  for (const int i : missing.index_range()) {
+    NodesModifierDataBlock &data_block = bake.data_blocks[old_num + i];
+    const blender::bke::bake::BakeDataBlockID &key = missing[i];
+
+    data_block.id_name = BLI_strdup(key.id_name.c_str());
+    if (!key.lib_name.empty()) {
+      data_block.lib_name = BLI_strdup(key.lib_name.c_str());
+    }
+    data_block.id_type = int(key.type);
+    ID *id = get_data_block(key);
+    if (id) {
+      data_block.id = id;
+    }
+  }
+  bake.data_blocks_num = new_num;
+}
+
+void nodes_modifier_data_block_destruct(NodesModifierDataBlock *data_block, const bool do_id_user)
+{
+  MEM_SAFE_FREE(data_block->id_name);
+  MEM_SAFE_FREE(data_block->lib_name);
+  if (do_id_user) {
+    id_us_min(data_block->id);
+  }
+}
+
+/**
+ * During evaluation we might have baked geometry that contains references to other data-blocks
+ * (such as materials). We need to make sure that those data-blocks stay dependencies of the
+ * modifier. Otherwise, the data-block references might not work when the baked data is loaded
+ * again. Therefor, the dependencies are written back to the original modifier.
+ */
+static void add_data_block_items_writeback(const ModifierEvalContext &ctx,
+                                           NodesModifierData &nmd_eval,
+                                           NodesModifierData &nmd_orig,
+                                           NodesModifierSimulationParams &simulation_params,
+                                           NodesModifierBakeParams &bake_params)
+{
+  Depsgraph *depsgraph = ctx.depsgraph;
+  Main *bmain = DEG_get_bmain(depsgraph);
+
+  struct DataPerBake {
+    bool reset_first = false;
+    Map<bake::BakeDataBlockID, ID *> new_mappings;
+  };
+  Map<int, DataPerBake> writeback_data;
+  for (auto item : simulation_params.data_by_zone_id.items()) {
+    DataPerBake data;
+    NodesModifierBake &bake = *nmd_eval.find_bake(item.key);
+    if (item.value->data_block_map.old_mappings.size() < bake.data_blocks_num) {
+      data.reset_first = true;
+    }
+    if (bake::SimulationNodeCache *node_cache = nmd_eval.runtime->cache->get_simulation_node_cache(
+            item.key))
+    {
+      /* Only writeback if the bake node has actually baked anything. */
+      if (!node_cache->bake.frames.is_empty()) {
+        data.new_mappings = std::move(item.value->data_block_map.new_mappings);
+      }
+    }
+    if (data.reset_first || !data.new_mappings.is_empty()) {
+      writeback_data.add(item.key, std::move(data));
+    }
+  }
+  for (auto item : bake_params.data_by_node_id.items()) {
+    if (bake::BakeNodeCache *node_cache = nmd_eval.runtime->cache->get_bake_node_cache(item.key)) {
+      /* Only writeback if the bake node has actually baked anything. */
+      if (!node_cache->bake.frames.is_empty()) {
+        DataPerBake data;
+        data.new_mappings = std::move(item.value->data_block_map.new_mappings);
+        writeback_data.add(item.key, std::move(data));
+      }
+    }
+  }
+
+  if (writeback_data.is_empty()) {
+    /* Nothing to do. */
+    return;
+  }
+
+  deg::sync_writeback::add(
+      *depsgraph,
+      [object_eval = ctx.object,
+       bmain,
+       &nmd_orig,
+       &nmd_eval,
+       writeback_data = std::move(writeback_data)]() {
+        for (auto item : writeback_data.items()) {
+          const int bake_id = item.key;
+          DataPerBake data = item.value;
+
+          NodesModifierBake &bake_orig = *nmd_orig.find_bake(bake_id);
+          NodesModifierBake &bake_eval = *nmd_eval.find_bake(bake_id);
+
+          if (data.reset_first) {
+            /* Reset data-block list on original data. */
+            dna::array::clear<NodesModifierDataBlock>(&bake_orig.data_blocks,
+                                                      &bake_orig.data_blocks_num,
+                                                      &bake_orig.active_data_block,
+                                                      [](NodesModifierDataBlock *data_block) {
+                                                        nodes_modifier_data_block_destruct(
+                                                            data_block, true);
+                                                      });
+            /* Reset data-block list on evaluated data. */
+            dna::array::clear<NodesModifierDataBlock>(&bake_eval.data_blocks,
+                                                      &bake_eval.data_blocks_num,
+                                                      &bake_eval.active_data_block,
+                                                      [](NodesModifierDataBlock *data_block) {
+                                                        nodes_modifier_data_block_destruct(
+                                                            data_block, false);
+                                                      });
+          }
+
+          Vector<bake::BakeDataBlockID> sorted_new_mappings;
+          sorted_new_mappings.extend(data.new_mappings.keys().begin(),
+                                     data.new_mappings.keys().end());
+          bool needs_reevaluation = false;
+          /* Add new data block mappings to the original modifier. This may do a name lookup in
+           * bmain to find the data block if there is not faster way to get it. */
+          add_missing_data_block_mappings(
+              bake_orig, sorted_new_mappings, [&](const bake::BakeDataBlockID &key) -> ID * {
+                ID *id_orig = nullptr;
+                if (ID *id_eval = data.new_mappings.lookup_default(key, nullptr)) {
+                  id_orig = DEG_get_original_id(id_eval);
+                }
+                else {
+                  needs_reevaluation = true;
+                  id_orig = BKE_libblock_find_name_and_library(
+                      bmain, short(key.type), key.id_name.c_str(), key.lib_name.c_str());
+                }
+                if (id_orig) {
+                  id_us_plus(id_orig);
+                }
+                return id_orig;
+              });
+          /* Add new data block mappings to the evaluated modifier. In most cases this makes it so
+           * the evaluated modifier is in the same state as if it were copied from the updated
+           * original again. The exception is when a missing data block was found that is not in
+           * the depsgraph currently. */
+          add_missing_data_block_mappings(
+              bake_eval, sorted_new_mappings, [&](const bake::BakeDataBlockID &key) -> ID * {
+                return data.new_mappings.lookup_default(key, nullptr);
+              });
+
+          if (needs_reevaluation) {
+            Object *object_orig = DEG_get_original_object(object_eval);
+            DEG_id_tag_update(&object_orig->id, ID_RECALC_GEOMETRY);
+            DEG_relations_tag_update(bmain);
+          }
+        }
+      });
+}
 
 static void modifyGeometry(ModifierData *md,
                            const ModifierEvalContext *ctx,
@@ -1506,6 +1729,10 @@ static void modifyGeometry(ModifierData *md,
     nmd_orig->runtime->eval_log = std::move(eval_log);
   }
 
+  if (DEG_is_active(ctx->depsgraph)) {
+    add_data_block_items_writeback(*ctx, *nmd, *nmd_orig, simulation_params, bake_params);
+  }
+
   if (use_orig_index_verts || use_orig_index_edges || use_orig_index_faces) {
     if (Mesh *mesh = geometry_set.get_mesh_for_write()) {
       /* Add #CD_ORIGINDEX layers if they don't exist already. This is required because the
@@ -1565,7 +1792,7 @@ static NodesModifierData *get_modifier_data(Main &bmain,
     return nullptr;
   }
 
-  const Object *object = (Object *)BKE_libblock_find_session_uuid(
+  const Object *object = (Object *)BKE_libblock_find_session_uid(
       &bmain, ID_OB, data.object_session_uid);
   if (object == nullptr) {
     return nullptr;
@@ -1702,7 +1929,7 @@ static void add_attribute_search_button(const bContext &C,
   }
 
   AttributeSearchData *data = MEM_new<AttributeSearchData>(__func__);
-  data->object_session_uid = object->id.session_uuid;
+  data->object_session_uid = object->id.session_uid;
   STRNCPY(data->modifier_name, nmd.modifier.name);
   STRNCPY(data->socket_identifier, socket.identifier);
   data->is_output = is_output;
@@ -1914,8 +2141,8 @@ static void draw_interface_panel_content(const bContext *C,
       NodesModifierPanel *panel = find_panel_by_id(nmd, sub_interface_panel.identifier);
       PointerRNA panel_ptr = RNA_pointer_create(
           modifier_ptr->owner_id, &RNA_NodesModifierPanel, panel);
-      if (uiLayout *panel_layout = uiLayoutPanel(
-              C, layout, sub_interface_panel.name, &panel_ptr, "is_open"))
+      if (uiLayout *panel_layout = uiLayoutPanelProp(
+              C, layout, &panel_ptr, "is_open", sub_interface_panel.name))
       {
         draw_interface_panel_content(C, panel_layout, modifier_ptr, nmd, sub_interface_panel);
       }
@@ -1931,37 +2158,48 @@ static void draw_interface_panel_content(const bContext *C,
   }
 }
 
+static bool has_output_attribute(const NodesModifierData &nmd)
+{
+  if (!nmd.node_group) {
+    return false;
+  }
+  for (const bNodeTreeInterfaceSocket *interface_socket : nmd.node_group->interface_outputs()) {
+    const bNodeSocketType *typeinfo = interface_socket->socket_typeinfo();
+    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (nodes::socket_type_has_attribute_toggle(type)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void draw_output_attributes_panel(const bContext *C,
                                          uiLayout *layout,
                                          const NodesModifierData &nmd,
                                          PointerRNA *ptr)
 {
-  bool has_output_attribute = false;
   if (nmd.node_group != nullptr && nmd.settings.properties != nullptr) {
     for (const bNodeTreeInterfaceSocket *socket : nmd.node_group->interface_outputs()) {
       const bNodeSocketType *typeinfo = socket->socket_typeinfo();
       const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
                                                   SOCK_CUSTOM;
       if (nodes::socket_type_has_attribute_toggle(type)) {
-        has_output_attribute = true;
         draw_property_for_output_socket(*C, layout, nmd, ptr, *socket);
       }
     }
   }
-  if (!has_output_attribute) {
-    uiItemL(layout, RPT_("No group output attributes connected"), ICON_INFO);
-  }
 }
 
-static void draw_internal_dependencies_panel(uiLayout *layout,
-                                             PointerRNA *ptr,
-                                             const NodesModifierData &nmd)
+static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 {
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
-  uiItemR(col, ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake"), ICON_NONE);
+  uiItemR(col, modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
+}
 
+static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd)
+{
   geo_log::GeoTreeLog *tree_log = get_root_tree_log(nmd);
   if (tree_log == nullptr) {
     return;
@@ -2026,6 +2264,23 @@ static void draw_internal_dependencies_panel(uiLayout *layout,
   }
 }
 
+static void draw_manage_panel(const bContext *C,
+                              uiLayout *layout,
+                              PointerRNA *modifier_ptr,
+                              NodesModifierData &nmd)
+{
+  if (uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, modifier_ptr, "open_bake_panel", IFACE_("Bake")))
+  {
+    draw_bake_panel(panel_layout, modifier_ptr);
+  }
+  if (uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, modifier_ptr, "open_named_attributes_panel", IFACE_("Named Attributes")))
+  {
+    draw_named_attributes_panel(panel_layout, nmd);
+  }
+}
+
 static void panel_draw(const bContext *C, Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -2069,15 +2324,17 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   modifier_panel_end(layout, ptr);
 
-  if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, IFACE_("Output Attributes"), ptr, "open_output_attributes_panel"))
-  {
-    draw_output_attributes_panel(C, panel_layout, *nmd, ptr);
+  if (has_output_attribute(*nmd)) {
+    if (uiLayout *panel_layout = uiLayoutPanelProp(
+            C, layout, ptr, "open_output_attributes_panel", IFACE_("Output Attributes")))
+    {
+      draw_output_attributes_panel(C, panel_layout, *nmd, ptr);
+    }
   }
-  if (uiLayout *panel_layout = uiLayoutPanel(
-          C, layout, IFACE_("Internal Dependencies"), ptr, "open_internal_dependencies_panel"))
+  if (uiLayout *panel_layout = uiLayoutPanelProp(
+          C, layout, ptr, "open_manage_panel", IFACE_("Manage")))
   {
-    draw_internal_dependencies_panel(panel_layout, ptr, *nmd);
+    draw_manage_panel(C, panel_layout, ptr, *nmd);
   }
 }
 
@@ -2118,6 +2375,13 @@ static void blend_write(BlendWriter *writer, const ID * /*id_owner*/, const Modi
     BLO_write_struct_array(writer, NodesModifierBake, nmd->bakes_num, nmd->bakes);
     for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
       BLO_write_string(writer, bake.directory);
+
+      BLO_write_struct_array(
+          writer, NodesModifierDataBlock, bake.data_blocks_num, bake.data_blocks);
+      for (const NodesModifierDataBlock &item : Span(bake.data_blocks, bake.data_blocks_num)) {
+        BLO_write_string(writer, item.id_name);
+        BLO_write_string(writer, item.lib_name);
+      }
     }
     BLO_write_struct_array(writer, NodesModifierPanel, nmd->panels_num, nmd->panels);
 
@@ -2151,6 +2415,13 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   BLO_read_data_address(reader, &nmd->bakes);
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     BLO_read_data_address(reader, &bake.directory);
+
+    BLO_read_data_address(reader, &bake.data_blocks);
+    for (NodesModifierDataBlock &data_block : MutableSpan(bake.data_blocks, bake.data_blocks_num))
+    {
+      BLO_read_data_address(reader, &data_block.id_name);
+      BLO_read_data_address(reader, &data_block.lib_name);
+    }
   }
   BLO_read_data_address(reader, &nmd->panels);
 
@@ -2172,6 +2443,18 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
       if (bake.directory) {
         bake.directory = BLI_strdup(bake.directory);
       }
+      if (bake.data_blocks) {
+        bake.data_blocks = static_cast<NodesModifierDataBlock *>(MEM_dupallocN(bake.data_blocks));
+        for (const int i : IndexRange(bake.data_blocks_num)) {
+          NodesModifierDataBlock &data_block = bake.data_blocks[i];
+          if (data_block.id_name) {
+            data_block.id_name = BLI_strdup(data_block.id_name);
+          }
+          if (data_block.lib_name) {
+            data_block.lib_name = BLI_strdup(data_block.lib_name);
+          }
+        }
+      }
     }
   }
 
@@ -2189,7 +2472,6 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   }
   else {
     tnmd->runtime->cache = std::make_shared<bake::ModifierCache>();
-    update_existing_bake_caches(*tnmd);
     /* Clear the bake path when duplicating. */
     tnmd->bake_directory = nullptr;
   }
@@ -2209,6 +2491,13 @@ static void free_data(ModifierData *md)
 
   for (NodesModifierBake &bake : MutableSpan(nmd->bakes, nmd->bakes_num)) {
     MEM_SAFE_FREE(bake.directory);
+
+    for (NodesModifierDataBlock &data_block : MutableSpan(bake.data_blocks, bake.data_blocks_num))
+    {
+      MEM_SAFE_FREE(data_block.id_name);
+      MEM_SAFE_FREE(data_block.lib_name);
+    }
+    MEM_SAFE_FREE(bake.data_blocks);
   }
   MEM_SAFE_FREE(nmd->bakes);
 
@@ -2264,4 +2553,5 @@ ModifierTypeInfo modifierType_Nodes = {
     /*panel_register*/ blender::panel_register,
     /*blend_write*/ blender::blend_write,
     /*blend_read*/ blender::blend_read,
+    /*foreach_cache*/ nullptr,
 };

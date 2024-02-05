@@ -486,6 +486,14 @@ def km_outliner(params):
          {"properties": [("extend", False), ("extend_range", True), ("deselect_all", True)]}),
         ("outliner.item_activate", {"type": 'LEFTMOUSE', "value": 'CLICK', "ctrl": True, "shift": True},
          {"properties": [("extend", True), ("extend_range", True), ("deselect_all", True)]}),
+        ("outliner.item_activate", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'},
+         {"properties": [("recurse", True), ("deselect_all", True)]}),
+        ("outliner.item_activate", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "ctrl": True},
+         {"properties": [("recurse", True), ("extend", True), ("deselect_all", True)]}),
+        ("outliner.item_activate", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "shift": True},
+         {"properties": [("recurse", True), ("extend_range", True), ("deselect_all", True)]}),
+        ("outliner.item_activate", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK', "ctrl": True, "shift": True},
+            {"properties": [("recurse", True), ("extend", True), ("extend_range", True), ("deselect_all", True)]}),
         ("outliner.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, {"properties": [("tweak", True)]}),
         ("outliner.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG', "shift": True},
          {"properties": [("tweak", True), ("mode", 'ADD')]}),
@@ -4365,7 +4373,7 @@ def km_3d_view_tool_select(params):
 
 def km_image_editor_tool_uv_select(params):
     return (
-        "Image Editor Tool: Uv, Tweak",
+        "Image Editor Tool: UV, Tweak",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "uv.select", extend="extend")},
     )

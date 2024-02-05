@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
-"PO-Revision-Date: 2023-11-15 02:54+0000\n"
-"Last-Translator: bitigchi <bitigchi@me.com>\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"PO-Revision-Date: 2024-01-18 08:08+0000\n"
+"Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
@@ -343,12 +343,28 @@ msgid "Optimize all kernels. Fastest rendering, may result in extra background C
 msgstr "Tüm çekirdekleri eniyile. En hızlı sunum, arka planda ek CPU kullanımına neden olabilir"
 
 
+msgid "MetalRT"
+msgstr "MetalRT"
+
+
+msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases"
+msgstr "MetalRT, eğrileri kapsamlı bir biçimde kullanan sahnelerde ışın izleme yaparken daha az bellek kullanır ve belirli durumlarda daha iyi başarım gösterebilir. Ancak bu destek deneyseldir ve bazı sahneler yanlış sunulabilir"
+
+
+msgid "Disable MetalRT (uses BVH2 layout for intersection queries)"
+msgstr "MetalRT'yi devre dışı bırak (kesişim sorguları için BVH2 yerleşimini kullanır)"
+
+
 msgid "On"
 msgstr "Açık"
 
 
 msgid "Auto"
 msgstr "Otomatik"
+
+
+msgid "Automatically pick the fastest intersection method"
+msgstr "En hızlı kesişim yöntemini kendiliğinden seç"
 
 
 msgid "Distribute memory across devices"
@@ -876,7 +892,7 @@ msgstr "Düğüm tabanlı gölgelendirme ve bileşikleştirme araçları için d
 
 
 msgid "Video Sequencer"
-msgstr "Video Sekansı"
+msgstr "Video Sekansçısı"
 
 
 msgid "Video editing tools"
@@ -1409,6 +1425,22 @@ msgid "All"
 msgstr "Tümü"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Listelenen tüm varlık kitaplıklarından varlıkları göster"
+
+
+msgid "Current File"
+msgstr "Geçerli Dosya"
+
+
+msgid "Essentials"
+msgstr "Temel Bilgiler"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Blender ile gelen temel yapı taşlarını ve izlenceleri göster"
+
+
 msgid "Custom"
 msgstr "Özel"
 
@@ -1487,6 +1519,10 @@ msgstr "Varlık Etiketleri"
 
 msgid "Collection of custom asset tags"
 msgstr "Özel varlık etiketleri koleksiyonu"
+
+
+msgid "Weak reference to some asset"
+msgstr "Kimi varlığa zayıf başvuru"
 
 
 msgid "Geometry attribute"
@@ -1643,6 +1679,10 @@ msgstr "Örnekteki öznitelik"
 
 msgid "Layer"
 msgstr "Katman"
+
+
+msgid "Attribute on Grease Pencil layer"
+msgstr "Gres kalemi katmanında öznitelik"
 
 
 msgid "Is Internal"
@@ -2327,6 +2367,14 @@ msgstr "Gres Kalemi"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Gres Kalemi veri blokları"
+
+
+msgid "Grease Pencil v3"
+msgstr "Gres Kalemi 3.0"
+
+
+msgid "Grease Pencil v3 data-blocks"
+msgstr "Gres Kalemi 3.0 veri blokları"
 
 
 msgid "Hair Curves"
@@ -3849,6 +3897,10 @@ msgstr "Bir armatür veri blokundaki kemik koleksiyonu"
 
 msgid "Bones"
 msgstr "Kemikler"
+
+
+msgid "Bones assigned to this bone collection. In armature edit mode this will always return an empty list of bones, as the bone collection memberships are only synchronized when exiting edit mode"
+msgstr "Bu kemik koleksiyonuna atanan kemikler. Armatür düzenleme kipinde, kemik koleksiyonu üyelikleri yalnızca düzenleme kipinden çıkıldığında eşzamanlandığından, bu her zaman boş bir kemik listesi döndürür"
 
 
 msgid "Is Editable"
@@ -5846,16 +5898,364 @@ msgid "Dynamic Base Mesh"
 msgstr "Devingen Taban Örgüsü"
 
 
+msgid "Make simulation respect deformations in the base mesh"
+msgstr "Benzetimin temel örgüdeki deformasyonlara uymasını sağla"
+
+
+msgid "Create Internal Springs"
+msgstr "İçsel Yaylar Oluştur"
+
+
+msgid "Simulate an internal volume structure by creating springs connecting the opposite sides of the mesh"
+msgstr "Örgünün karşılıklı kenarlarını birbirine bağlayan yaylar oluşturarak bir iç hacim yapısını benzet"
+
+
+msgid "Simulate pressure inside a closed cloth mesh"
+msgstr "Kapalı kumaş bir örgünün içindeki basıncı benzet"
+
+
+msgid "Use Custom Volume"
+msgstr "Özel Hacim Kullan"
+
+
+msgid "Use the Target Volume parameter as the initial volume, instead of calculating it from the mesh itself"
+msgstr "Hedef Hacim parametresini örgünün kendisinden hesaplamak yerine başlangıç hacmi olarak kullan"
+
+
 msgid "Sew Cloth"
 msgstr "Kumaş Dik"
+
+
+msgid "Pulls loose edges together"
+msgstr "Gevşek kenarları bir araya getirir"
+
+
+msgid "Bending Stiffness Vertex Group"
+msgstr "Eğilme Sertliği Tepecik Grubu"
+
+
+msgid "Vertex group for fine control over bending stiffness"
+msgstr "Eğilme sertliği üzerinde hassas denetim için tepecik grubu"
+
+
+msgid "Internal Springs Vertex Group"
+msgstr "İçsel Yaylar Tepecik Grubu"
+
+
+msgid "Pin Vertex Group"
+msgstr "Pim Tepecik Grubu"
+
+
+msgid "Vertex Group for pinning of vertices"
+msgstr "Tepeciklerin sabitlenmesi için tepecik grubu"
+
+
+msgid "Pressure Vertex Group"
+msgstr "Basınç Tepecik Grubu"
+
+
+msgid "Vertex Group for where to apply pressure. Zero weight means no pressure while a weight of one means full pressure. Faces with a vertex that has zero weight will be excluded from the volume calculation"
+msgstr "Basınç uygulanacak yer için tepecik grubu. Sıfır ağırlık basınç yok anlamına gelirken, bir ağırlık tam basınç anlamına gelir. Sıfır ağırlığa sahip olan bir tepecik, hacim hesaplamasının dışında tutulacaktır"
+
+
+msgid "Shear Stiffness Vertex Group"
+msgstr "Yamulma Sertliği Tepecik Grubu"
+
+
+msgid "Vertex group for fine control over shear stiffness"
+msgstr "Yamulma sertliği üzerinde hassas denetim için tepecik grubu"
+
+
+msgid "Shrink Vertex Group"
+msgstr "Küçültme Tepecik Grubu"
+
+
+msgid "Vertex Group for shrinking cloth"
+msgstr "Kumaş küçültmek için tepecik grubu"
+
+
+msgid "Structural Stiffness Vertex Group"
+msgstr "Yapısal Sertlik Tepecik Grubu"
+
+
+msgid "Vertex group for fine control over structural stiffness"
+msgstr "Yapısal sertlik üzerinde hassas denetim için tepecik grubu"
+
+
+msgid "Voxel Grid Cell Size"
+msgstr "Oylum Izgara Hücresi Boyutu"
+
+
+msgid "Size of the voxel grid cells for interaction effects"
+msgstr "Etkileşim efektleri için oylum ızgara hücrelerinin boyutu"
+
+
+msgid "Solver Result"
+msgstr "Çözücü Sonucu"
+
+
+msgid "Result of cloth solver iteration"
+msgstr "Kumaş çözücüsü yinelemesinin sonucu"
+
+
+msgid "Average Error"
+msgstr "Ortalama Hata"
+
+
+msgid "Average error during substeps"
+msgstr "Alt adımlar sırasındaki ortalama hata"
+
+
+msgid "Average Iterations"
+msgstr "Ortalama Yinelemeler"
+
+
+msgid "Average iterations during substeps"
+msgstr "Alt adımlar sırasındaki ortalama yinelemeler"
+
+
+msgid "Maximum Error"
+msgstr "En Çok Hata"
+
+
+msgid "Maximum error during substeps"
+msgstr "Alt adımlar sırasındaki en çok hata"
+
+
+msgid "Maximum Iterations"
+msgstr "En Çok Yinelemeler"
+
+
+msgid "Maximum iterations during substeps"
+msgstr "Alt adımlar sırasındaki en çok yinelemeler"
+
+
+msgid "Minimum Error"
+msgstr "En Az Hata"
+
+
+msgid "Minimum error during substeps"
+msgstr "Alt adımlar sırasındaki en az hata"
+
+
+msgid "Minimum Iterations"
+msgstr "En Az Yinelemeler"
+
+
+msgid "Minimum iterations during substeps"
+msgstr "Alt adımlar sırasındaki en az yinelemeler"
+
+
+msgid "Status"
+msgstr "Durum"
+
+
+msgid "Status of the solver iteration"
+msgstr "Çözücü yinelemesinin durumu"
+
+
+msgid "Success"
+msgstr "Başarılı"
+
+
+msgid "Computation was successful"
+msgstr "Hesaplama başarılı oldu"
+
+
+msgid "Numerical Issue"
+msgstr "Sayısal Sorun"
+
+
+msgid "The provided data did not satisfy the prerequisites"
+msgstr "Sağlanan veri ön koşulları karşılamadı"
+
+
+msgid "No Convergence"
+msgstr "Yakınsama Yok"
+
+
+msgid "Iterative procedure did not converge"
+msgstr "Yinelemeli prosedür yakınsamadı"
+
+
+msgid "Invalid Input"
+msgstr "Geçersiz Girdi"
+
+
+msgid "The inputs are invalid, or the algorithm has been improperly called"
+msgstr "Girdiler geçersiz veya algoritma düzgün olmayan bir biçimde çağrıldı"
 
 
 msgid "Collection Child"
 msgstr "Koleksiyon Alt Ögesi"
 
 
+msgid "Child collection with its collection related settings"
+msgstr "Koleksiyonla ilgili ayarlarıyla birlikte alt koleksiyon"
+
+
+msgid "Light Linking"
+msgstr "Işık Bağlantılaması"
+
+
+msgid "Light linking settings of the collection object"
+msgstr "Koleksiyon nesnesinin ışık bağlantılama ayarları"
+
+
+msgid "Collection Children"
+msgstr "Koleksiyon Alt Ögeleri"
+
+
+msgid "Collection of child collections"
+msgstr "Alt koleksiyonlar koleksiyonu"
+
+
+msgid "Collection Light Linking"
+msgstr "Işık Bağlantılaması Koleksiyonu"
+
+
+msgid "Light linking settings of objects and children collections of a collection"
+msgstr "Nesnelerin ve bir koleksiyonun alt koleksiyonlarının ışık bağlantılama ayarları"
+
+
+msgid "Link State"
+msgstr "Bağlantı Durumu"
+
+
+msgid "Light or shadow receiving state of the object or collection"
+msgstr "Nesnenin veya koleksiyonun ışık veya gölge alma durumu"
+
+
+msgid "Include"
+msgstr "İçer"
+
+
+msgid "Exclude"
+msgstr "Dışla"
+
+
 msgid "Collection Object"
 msgstr "Koleksiyon Nesnesi"
+
+
+msgid "Object of a collection with its collection related settings"
+msgstr "Koleksiyonla ilgili ayarlarıyla birlikte bir koleksiyonun nesnesi"
+
+
+msgid "Light linking settings of the collection"
+msgstr "Koleksiyonun ışık bağlantılama ayarları"
+
+
+msgid "Collection Objects"
+msgstr "Koleksiyon Nesneleri"
+
+
+msgid "Collection of collection objects"
+msgstr "Koleksiyon nesneleri koleksiyonu"
+
+
+msgid "Collision Settings"
+msgstr "Çarpışma Ayarları"
+
+
+msgid "Collision settings for object in physics simulation"
+msgstr "Fizik benzetiminde nesne için çarpışma ayarları"
+
+
+msgid "Absorption"
+msgstr "Soğurma"
+
+
+msgid "How much of effector force gets lost during collision with this object (in percent)"
+msgstr "Bu nesneyle çarpışma sırasında efektör kuvvetinin ne kadarının kaybolduğu (yüzde olarak)"
+
+
+msgid "Friction for cloth collisions"
+msgstr "Kumaş çarpışmaları için sürtünme"
+
+
+msgid "Damping"
+msgstr "Sönümleme"
+
+
+msgid "Amount of damping during collision"
+msgstr "Çarpışma sırasındaki sönümleme miktarı"
+
+
+msgid "Damping Factor"
+msgstr "Sönümleme Çarpanı"
+
+
+msgid "Amount of damping during particle collision"
+msgstr "Parçacık çarpışması sırasındaki sönümleme miktarı"
+
+
+msgid "Random Damping"
+msgstr "Rastgele Sönümleme"
+
+
+msgid "Random variation of damping"
+msgstr "Sönümlemenin rastgele varyasyonu"
+
+
+msgid "Friction Factor"
+msgstr "Sürtünme Çarpanı"
+
+
+msgid "Amount of friction during particle collision"
+msgstr "Parçacık çarpışması sırasındaki sürtünme miktarı"
+
+
+msgid "Random Friction"
+msgstr "Rastgele Sürtünme"
+
+
+msgid "Random variation of friction"
+msgstr "Sürtünmenin rastgele varyasyonu"
+
+
+msgid "Permeability"
+msgstr "Geçirgenlik"
+
+
+msgid "Chance that the particle will pass through the mesh"
+msgstr "Parçacığın örgünün içinden geçme olasılığı"
+
+
+msgid "Stickiness"
+msgstr "Yapışkanlık"
+
+
+msgid "Amount of stickiness to surface collision"
+msgstr "Yüzey çarpışmasına yapışkanlık miktarı"
+
+
+msgid "Inner Thickness"
+msgstr "İç Kalınlık"
+
+
+msgid "Inner face thickness (only used by softbodies)"
+msgstr "İç yüz kalınlığı (yalnızca yumuşak gövdeler tarafından kullanılır)"
+
+
+msgid "Outer Thickness"
+msgstr "Dış Kalınlık"
+
+
+msgid "Outer face thickness"
+msgstr "Dış yüz kalınlığı"
+
+
+msgid "Enabled"
+msgstr "Etkin"
+
+
+msgid "Enable this object as a collider for physics systems"
+msgstr "Bu nesneyi fizik sistemleri için bir çarpıştırıcı olarak etkinleştir"
+
+
+msgid "Single Sided"
+msgstr "Tek Taraflı"
 
 
 msgid "Curve"
@@ -8059,6 +8459,10 @@ msgid "Z Axis"
 msgstr "Z Eks"
 
 
+msgid "Active item"
+msgstr "Etkin öge"
+
+
 msgid "Collection of repeat items"
 msgstr "Yinelenen ögeler koleksiyonu"
 
@@ -8075,10 +8479,6 @@ msgid "Tooltip"
 msgstr "Araç İpucu"
 
 
-msgid "Active item"
-msgstr "Etkin öge"
-
-
 msgid "Active Index"
 msgstr "Etkin İndeks"
 
@@ -8089,6 +8489,14 @@ msgstr "Öge Türü"
 
 msgid "Default Closed"
 msgstr "Saptanmış Kapalı"
+
+
+msgid "Bake ID"
+msgstr "Pişirme Kimliği"
+
+
+msgid "Data-Block"
+msgstr "Veri Bloku"
 
 
 msgid "Object Constraints"
@@ -8173,11 +8581,6 @@ msgstr "Kemik Koleksiyonu"
 msgctxt "Operator"
 msgid "Move Bone Collection"
 msgstr "Kemik Koleksiyonunu Taşı"
-
-
-msgctxt "Operator"
-msgid "Solo Visibility"
-msgstr "Tekli Görünürlük"
 
 
 msgid "Flip Names"
@@ -8607,14 +9010,6 @@ msgid "Asset Library Identifier"
 msgstr "Varlık Kitaplığı Tanımlayıcısı"
 
 
-msgid "Session UUID"
-msgstr "Oturum UUID'si"
-
-
-msgid "Session UUID of the data-block to use by the operator"
-msgstr "İşleç tarafından kullanılacak veri blokunun oturum UUID'si"
-
-
 msgid "Open Arrow"
 msgstr "Ok Aç"
 
@@ -8917,17 +9312,9 @@ msgid "Transfer Mesh Data Layout"
 msgstr "Örgü Verisi Yerleşimini Aktar"
 
 
-msgid "Session UUID of the geometry node group being dropped"
-msgstr "Bırakılan geometri düğümü grubunun oturum UUID'si"
-
-
 msgctxt "Operator"
 msgid "Duplicate Objects"
 msgstr "Nesneleri Çoğalt"
-
-
-msgid "Bake ID"
-msgstr "Pişirme Kimliği"
 
 
 msgid "Input Name"
@@ -8985,6 +9372,10 @@ msgstr "Kıl Yarıçapı"
 msgctxt "Operator"
 msgid "Bake Simulation"
 msgstr "Pişirme Benzetimi"
+
+
+msgid "Session UUID"
+msgstr "Oturum UUID'si"
 
 
 msgctxt "Operator"
@@ -9750,10 +10141,6 @@ msgstr "Tüm Gölgelendirme Türleri"
 msgctxt "Operator"
 msgid "Refresh Data-Block Previews"
 msgstr "Veri Bloku Önizlemelerini Yenile"
-
-
-msgid "Data-Block"
-msgstr "Veri Bloku"
 
 
 msgctxt "Operator"
@@ -11709,31 +12096,6 @@ msgid "Unused Data-Blocks"
 msgstr "Kullanılmayan Veri Blokları"
 
 
-msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Kullanılmayan Özyineli Veri Blokları"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Kullanılmayan Bağlantılı Veri Blokları"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Linked Data-Blocks"
-msgstr "Kullanılmayan Özyineli Bağlantılı Veri Blokları"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Kullanılmayan Yerel Veri Blokları"
-
-
-msgctxt "Operator"
-msgid "Recursive Unused Local Data-Blocks"
-msgstr "Kullanılmayan Özyineli Yerel Veri Blokları"
-
-
 msgctxt "WindowManager"
 msgid "New"
 msgstr "Yeni"
@@ -11955,6 +12317,10 @@ msgid "Default To"
 msgstr "Saptanmışlara Dön"
 
 
+msgid "Preferences:"
+msgstr "Tercihler:"
+
+
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "Blender Fabrika Tercihlerini Yükle"
@@ -11964,12 +12330,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Tersine Çevir"
 
 
-msgid "Load Factory %s Preferences"
-msgstr "%s Fabrika Tercihlerini Yükle"
-
-
-msgid "Color %d"
-msgstr "Renk %d"
+msgid "Error (see console)"
+msgstr "Hata (konsola bakın)"
 
 
 msgid "Description:"
@@ -12004,25 +12366,17 @@ msgid "User:"
 msgstr "Kullanıcı:"
 
 
-msgid "description"
-msgstr "açıklama"
+msgid "Load Factory %s Preferences"
+msgstr "%s Fabrika Tercihlerini Yükle"
 
 
-msgid "location"
-msgstr "konum"
+msgid "Color %d"
+msgstr "Renk %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Belgelendirme"
-
-
-msgid "Preferences:"
-msgstr "Tercihler:"
-
-
-msgid "Error (see console)"
-msgstr "Hata (konsola bakın)"
 
 
 msgctxt "Operator"
@@ -12339,38 +12693,6 @@ msgid "Internal error!"
 msgstr "İçsel hata!"
 
 
-msgid "Shortcut: %s"
-msgstr "Kısayol: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Değer: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radyan: %f"
-
-
-msgid "Expression: %s"
-msgstr "İfade: %s"
-
-
-msgid "Library: %s"
-msgstr "Kütüphane: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Devre Dışı: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
-
-
 msgid "Reset View"
 msgstr "Görünüşü Sıfırla"
 
@@ -12653,10 +12975,6 @@ msgstr "Kuş Benzeri Nesne"
 
 msgid "To New Empty Object"
 msgstr "Yeni Boş Nesneye"
-
-
-msgid "Add modifier with node group \"%s\" on object \"%s\""
-msgstr "Şu nesnede \"%s\" düğüm grubu olan değiştirici ekle: \"%s\""
 
 
 msgid "Editmode lattice is not supported yet"

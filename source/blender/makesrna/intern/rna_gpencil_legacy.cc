@@ -28,7 +28,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_types.hh"
 
@@ -149,6 +149,8 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_ghash.h"
 #  include "BLI_listbase.h"
 #  include "BLI_string_utils.hh"
@@ -157,7 +159,7 @@ static const EnumPropertyItem rna_enum_gpencil_caps_modes_items[] = {
 
 #  include "BKE_action.h"
 #  include "BKE_animsys.h"
-#  include "BKE_deform.h"
+#  include "BKE_deform.hh"
 #  include "BKE_gpencil_curve_legacy.h"
 #  include "BKE_gpencil_geom_legacy.h"
 #  include "BKE_gpencil_legacy.h"
@@ -311,14 +313,14 @@ bool rna_GPencil_datablocks_obdata_poll(PointerRNA * /*ptr*/, const PointerRNA v
   return (gpd->flag & GP_DATA_ANNOTATIONS) == 0;
 }
 
-static char *rna_GPencilLayer_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_GPencilLayer_path(const PointerRNA *ptr)
 {
   bGPDlayer *gpl = (bGPDlayer *)ptr->data;
   char name_esc[sizeof(gpl->info) * 2];
 
   BLI_str_escape(name_esc, gpl->info, sizeof(name_esc));
 
-  return BLI_sprintfN("layers[\"%s\"]", name_esc);
+  return fmt::format("layers[\"{}\"]", name_esc);
 }
 
 static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr, const char ** /*r_info*/)
@@ -411,7 +413,7 @@ static void rna_GPencilLayer_parent_bone_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static char *rna_GPencilLayerMask_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_GPencilLayerMask_path(const PointerRNA *ptr)
 {
   bGPdata *gpd = (bGPdata *)ptr->owner_id;
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -423,7 +425,7 @@ static char *rna_GPencilLayerMask_path(const PointerRNA *ptr)
   BLI_str_escape(gpl_info_esc, gpl->info, sizeof(gpl_info_esc));
   BLI_str_escape(mask_name_esc, mask->name, sizeof(mask_name_esc));
 
-  return BLI_sprintfN("layers[\"%s\"].mask_layers[\"%s\"]", gpl_info_esc, mask_name_esc);
+  return fmt::format("layers[\"{}\"].mask_layers[\"{}\"]", gpl_info_esc, mask_name_esc);
 }
 
 static int rna_GPencil_active_mask_index_get(PointerRNA *ptr)
@@ -1136,9 +1138,9 @@ static void rna_GPencil_clear(bGPdata *gpd)
   WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
 }
 
-static char *rna_GreasePencilGrid_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_GreasePencilGrid_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("grid");
+  return "grid";
 }
 
 static void rna_GpencilCurvePoint_BezTriple_handle1_get(PointerRNA *ptr, float *values)
@@ -1436,7 +1438,7 @@ static void rna_def_gpencil_curve_point(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "GPencilEditCurvePoint", nullptr);
   RNA_def_struct_sdna(srna, "bGPDcurve_point");
-  RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles");
+  RNA_def_struct_ui_text(srna, "Bézier Curve Point", "Bézier curve point with two handles");
 
   /* Boolean values */
   prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
@@ -1967,7 +1969,7 @@ static void rna_def_gpencil_layer_mask(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_MASK_INVERT);
-  RNA_def_property_ui_icon(prop, ICON_CLIPUV_HLT, -1);
+  RNA_def_property_ui_icon(prop, ICON_SELECT_INTERSECT, 1);
   RNA_def_property_ui_text(prop, "Invert", "Invert mask");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }

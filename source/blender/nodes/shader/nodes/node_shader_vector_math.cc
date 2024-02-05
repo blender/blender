@@ -319,14 +319,13 @@ static void sh_node_vector_math_build_multi_function(NodeMultiFunctionBuilder &b
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  CLG_LogRef *LOG_MATERIALX_SHADER = materialx::LOG_MATERIALX_SHADER;
-
-  /* TODO: finish some math operations */
   auto op = node_->custom1;
   NodeItem res = empty();
+  const NodeItem null_vec = val(MaterialX::Vector3(0.0f));
 
   /* Single operand operations */
   NodeItem x = get_input_value(0, NodeItem::Type::Vector3);
+
   switch (op) {
     case NODE_VECTOR_MATH_SINE:
       res = x.sin();
@@ -350,15 +349,19 @@ NODE_SHADER_MATERIALX_BEGIN
       res = x % val(1.0f);
       break;
     case NODE_VECTOR_MATH_LENGTH:
-      CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+      res = x.length();
       break;
-    case NODE_VECTOR_MATH_NORMALIZE:
-      CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+    case NODE_VECTOR_MATH_NORMALIZE: {
+      NodeItem length = x.length();
+      res = length.if_else(NodeItem::CompareOp::Eq, val(0.0f), null_vec, x / length);
       break;
+    }
 
     default: {
       /* 2-operand operations */
       NodeItem y = get_input_value(1, NodeItem::Type::Vector3);
+      NodeItem w = get_input_value(3, NodeItem::Type::Float);
+
       switch (op) {
         case NODE_VECTOR_MATH_ADD:
           res = x + y;
@@ -382,44 +385,65 @@ NODE_SHADER_MATERIALX_BEGIN
           res = x % y;
           break;
         case NODE_VECTOR_MATH_SNAP:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = (x / y).floor() * y;
           break;
         case NODE_VECTOR_MATH_CROSS_PRODUCT:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = create_node("crossproduct", NodeItem::Type::Vector3, {{"in1", x}, {"in2", y}});
           break;
         case NODE_VECTOR_MATH_DOT_PRODUCT:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = x.dotproduct(y);
           break;
-        case NODE_VECTOR_MATH_PROJECT:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+        case NODE_VECTOR_MATH_PROJECT: {
+          NodeItem len_sq = y.dotproduct(y);
+          res = len_sq.if_else(
+              NodeItem::CompareOp::NotEq, val(0.0f), (x.dotproduct(y) / len_sq) * y, null_vec);
           break;
+        }
         case NODE_VECTOR_MATH_REFLECT:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          /* TODO: use <reflect> node in MaterialX 1.38.9 */
+          res = x - val(2.0f) * y.dotproduct(x) * y;
           break;
         case NODE_VECTOR_MATH_DISTANCE:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = (y - x).length();
           break;
         case NODE_VECTOR_MATH_SCALE:
-          CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+          res = x * w;
           break;
 
         default: {
           /* 3-operand operations */
           NodeItem z = get_input_value(2, NodeItem::Type::Vector3);
+
           switch (op) {
             case NODE_VECTOR_MATH_MULTIPLY_ADD:
               res = x * y + z;
               break;
-            case NODE_VECTOR_MATH_REFRACT:
-              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+            case NODE_VECTOR_MATH_REFRACT: {
+              /* TODO: use <refract> node in MaterialX 1.38.9 */
+              NodeItem dot_yx = y.dotproduct(x);
+              NodeItem k = val(1.0f) - (w * w * (val(1.0f) - (dot_yx * dot_yx)));
+              NodeItem r = w * x - ((w * dot_yx + k.sqrt()) * y);
+              res = k.if_else(NodeItem::CompareOp::GreaterEq, val(0.0f), r, null_vec);
               break;
-            case NODE_VECTOR_MATH_FACEFORWARD:
-              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
+            }
+            case NODE_VECTOR_MATH_FACEFORWARD: {
+              res = z.dotproduct(y).if_else(NodeItem::CompareOp::GreaterEq, val(0.0f), -x, x);
               break;
-            case NODE_VECTOR_MATH_WRAP:
-              CLOG_WARN(LOG_MATERIALX_SHADER, "Unimplemented math operation %d", op);
-              break;
+            }
+            case NODE_VECTOR_MATH_WRAP: {
+              NodeItem range = (y - z);
+              NodeItem if_branch = x - (range * ((x - z) / range).floor());
 
+              res = create_node("combine3", NodeItem::Type::Vector3);
+              std::vector<std::string> inputs = {"in1", "in2", "in3"};
+
+              for (size_t i = 0; i < inputs.size(); ++i) {
+                res.set_input(
+                    inputs[i],
+                    range[i].if_else(NodeItem::CompareOp::NotEq, val(0.0f), if_branch[i], z[i]));
+              }
+              break;
+            }
             default:
               BLI_assert_unreachable();
           }

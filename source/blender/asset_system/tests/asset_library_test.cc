@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "AS_asset_catalog.hh"
-#include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 
 #include "BKE_callbacks.h"
@@ -44,13 +43,11 @@ TEST_F(AssetLibraryTest, AS_asset_library_load)
 
   /* Load the asset library. */
   const std::string library_dirpath = test_files_dir + "/" + "asset_library";
-  ::AssetLibrary *library_c_ptr = AS_asset_library_load(__func__, library_dirpath.data());
-  ASSERT_NE(nullptr, library_c_ptr);
+  AssetLibrary *library = AS_asset_library_load(__func__, library_dirpath.data());
+  ASSERT_NE(nullptr, library);
 
   /* Check that it can be cast to the C++ type and has a Catalog Service. */
-  asset_system::AssetLibrary *library_cpp_ptr = reinterpret_cast<asset_system::AssetLibrary *>(
-      library_c_ptr);
-  AssetCatalogService *service = library_cpp_ptr->catalog_service.get();
+  AssetCatalogService *service = library->catalog_service.get();
   ASSERT_NE(nullptr, service);
 
   /* Check that the catalogs defined in the library are actually loaded. This just tests one single
@@ -72,13 +69,11 @@ TEST_F(AssetLibraryTest, load_nonexistent_directory)
   /* Load the asset library. */
   const std::string library_dirpath = test_files_dir + "/" +
                                       "asset_library/this/subdir/does/not/exist";
-  ::AssetLibrary *library_c_ptr = AS_asset_library_load(__func__, library_dirpath.data());
-  ASSERT_NE(nullptr, library_c_ptr);
+  AssetLibrary *library = AS_asset_library_load(__func__, library_dirpath.data());
+  ASSERT_NE(nullptr, library);
 
   /* Check that it can be cast to the C++ type and has a Catalog Service. */
-  asset_system::AssetLibrary *library_cpp_ptr = reinterpret_cast<asset_system::AssetLibrary *>(
-      library_c_ptr);
-  AssetCatalogService *service = library_cpp_ptr->catalog_service.get();
+  AssetCatalogService *service = library->catalog_service.get();
   ASSERT_NE(nullptr, service);
 
   /* Check that the catalog service doesn't have any catalogs. */

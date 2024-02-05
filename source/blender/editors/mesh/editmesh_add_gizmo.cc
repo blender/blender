@@ -39,7 +39,7 @@
 
 #include "BLT_translation.h"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions

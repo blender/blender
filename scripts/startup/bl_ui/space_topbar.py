@@ -77,6 +77,7 @@ class TOPBAR_PT_tool_settings_extra(Panel):
     bl_region_type = 'HEADER'
     bl_space_type = 'TOPBAR'
     bl_label = "Extra Options"
+    bl_description = "Extra options"
 
     def draw(self, context):
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
@@ -156,7 +157,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
             srow = col.row(align=True)
             srow.prop(gpl, "opacity", text="Opacity", slider=True)
             srow.prop(gpl, "use_mask_layer", text="",
-                      icon='MOD_MASK' if gpl.use_mask_layer else 'LAYER_ACTIVE')
+                      icon='CLIPUV_DEHLT' if gpl.use_mask_layer else 'CLIPUV_HLT')
 
             srow = col.row(align=True)
             srow.prop(gpl, "use_lights", text="Lights")
@@ -708,7 +709,7 @@ class TOPBAR_MT_help(Menu):
                 "wm.url_open",
                 text="Developer Documentation",
                 icon='URL',
-            ).url = "https://wiki.blender.org/wiki/Main_Page"
+            ).url = "https://developer.blender.org/docs/"
             layout.operator("wm.url_open", text="Developer Community").url = "https://devtalk.blender.org"
             layout.operator("wm.url_open_preset", text="Python API Reference").type = 'API'
             layout.operator("wm.operator_cheat_sheet", icon='TEXT')

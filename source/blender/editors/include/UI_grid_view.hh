@@ -6,7 +6,7 @@
  * \ingroup editorui
  *
  * API for simple creation of grid UIs, supporting typically needed features.
- * https://wiki.blender.org/wiki/Source/Interface/Views/Grid_Views
+ * https://developer.blender.org/docs/features/interface/views/grid_views/
  */
 
 #pragma once
@@ -197,7 +197,7 @@ class PreviewGridItem : public AbstractGridViewItem {
   bool hide_label_ = false;
 
  public:
-  std::string label{};
+  std::string label;
   int preview_icon_id = ICON_NONE;
 
   PreviewGridItem(StringRef identifier, StringRef label, int preview_icon_id);

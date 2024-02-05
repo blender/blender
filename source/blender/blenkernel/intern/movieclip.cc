@@ -48,20 +48,20 @@
 #include "BKE_bpath.h"
 #include "BKE_colortools.hh"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_image.h" /* openanim */
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_moviecache.h"
-#include "IMB_openexr.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_moviecache.hh"
+#include "IMB_openexr.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -141,11 +141,11 @@ static void movie_clip_foreach_cache(ID *id,
 {
   MovieClip *movie_clip = (MovieClip *)id;
   IDCacheKey key{};
-  key.id_session_uuid = id->session_uuid;
-  key.offset_in_ID = offsetof(MovieClip, cache);
+  key.id_session_uid = id->session_uid;
+  key.identifier = offsetof(MovieClip, cache);
   function_callback(id, &key, (void **)&movie_clip->cache, 0, user_data);
 
-  key.offset_in_ID = offsetof(MovieClip, tracking.camera.intrinsics);
+  key.identifier = offsetof(MovieClip, tracking.camera.intrinsics);
   function_callback(id, &key, (void **)&movie_clip->tracking.camera.intrinsics, 0, user_data);
 }
 

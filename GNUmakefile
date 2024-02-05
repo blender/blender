@@ -73,10 +73,10 @@ Static Source Code Checking
 
 Documentation Checking
 
-   * check_wiki_file_structure:
-     Check the WIKI documentation for the source-tree's file structure
+   * check_docs_file_structure:
+     Check the documentation for the source-tree's file structure
      matches Blender's source-code.
-     See: https://wiki.blender.org/wiki/Source/File_Structure
+     See: https://developer.blender.org/docs/features/code_layout/
 
 Spell Checkers
    This runs the spell checker from the developer tools repositor.
@@ -236,6 +236,10 @@ ifndef PYTHON
 		ifeq (, $(shell command -v $(PYTHON)))
 			PYTHON:=python
 		endif
+	else
+		# Don't generate __pycache__ files in lib folder, they
+		# can interfere with updates.
+		PYTHON:=$(PYTHON) -B
 	endif
 endif
 
@@ -499,9 +503,9 @@ check_clang_array: .FORCE
 check_mypy: .FORCE
 	@$(PYTHON) "$(BLENDER_DIR)/tools/check_source/check_mypy.py"
 
-check_wiki_file_structure: .FORCE
+check_docs_file_structure: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/tools/check_wiki/check_wiki_file_structure.py"
+	    "$(BLENDER_DIR)/tools/check_docs/check_docs_code_layout.py"
 
 check_spelling_py: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
@@ -566,14 +570,10 @@ source_archive_complete: .FORCE
 # This assumes CMake is still using a default `PACKAGE_DIR` variable:
 	@$(PYTHON) ./build_files/utils/make_source_archive.py --include-packages "$(BUILD_DIR)/source_archive/packages"
 
-INKSCAPE_BIN?="inkscape"
 icons: .FORCE
-	@BLENDER_BIN=$(BLENDER_BIN) INKSCAPE_BIN=$(INKSCAPE_BIN) \
-	    "$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
-	@INKSCAPE_BIN=$(INKSCAPE_BIN) \
-	    "$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
-	@INKSCAPE_BIN=$(INKSCAPE_BIN) \
-	    "$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
+	@BLENDER_BIN=$(BLENDER_BIN) "$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
+	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
+	"$(BLENDER_DIR)/release/datafiles/alert_icons_update.py"
 
 icons_geom: .FORCE
 	@BLENDER_BIN=$(BLENDER_BIN) \

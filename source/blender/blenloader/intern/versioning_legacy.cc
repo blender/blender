@@ -6,6 +6,7 @@
  * \ingroup blenloader
  */
 
+#include <algorithm>
 #include <climits>
 
 #ifndef WIN32
@@ -49,13 +50,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve.h"
 #include "BKE_lattice.hh"
 #include "BKE_main.hh" /* for Main */
@@ -73,8 +75,6 @@
 #include "BLO_readfile.h"
 
 #include "readfile.hh"
-
-#include "PIL_time.h"
 
 #include <cerrno>
 
@@ -1324,8 +1324,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(
               eModifierType_Subsurf);
 
-          smd->levels = MAX2(1, mesh->subdiv);
-          smd->renderLevels = MAX2(1, mesh->subdivr);
+          smd->levels = std::max<short>(1, mesh->subdiv);
+          smd->renderLevels = std::max<short>(1, mesh->subdivr);
           smd->subdivType = mesh->subsurftype;
 
           smd->modifier.mode = 0;
@@ -2593,7 +2593,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->pd) {
-        ob->pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+        ob->pd->seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
       }
     }
   }

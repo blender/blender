@@ -7,6 +7,8 @@ struct Main;
 
 #include "WM_types.hh"
 
+#include "BLI_set.hh"
+
 #include "usd.h"
 #include "usd_hash_types.h"
 #include "usd_reader_prim.h"
@@ -22,11 +24,15 @@ struct ImportSettings;
 
 namespace blender::io::usd {
 
+class USDPointInstancerReader;
+
 /**
  * Map a USD prototype prim path to the list of readers that convert
  * the prototype data.
  */
 using ProtoReaderMap = blender::Map<pxr::SdfPath, blender::Vector<USDPrimReader *>>;
+
+using UsdPathSet = blender::Set<pxr::SdfPath>;
 
 class USDStageReader {
 
@@ -48,6 +54,9 @@ class USDStageReader {
   /* Readers for scene-graph instance prototypes. */
   ProtoReaderMap proto_readers_;
 
+  /* Readers for point instancer prototypes. */
+  ProtoReaderMap instancer_proto_readers_;
+
  public:
   USDStageReader(pxr::UsdStageRefPtr stage,
                  const USDImportParams &params,
@@ -60,7 +69,7 @@ class USDStageReader {
 
   USDPrimReader *create_reader(const pxr::UsdPrim &prim, pxr::UsdGeomXformCache *xf_cache);
 
-  void collect_readers(struct Main *bmain);
+  void collect_readers();
 
   /**
    * Complete setting up the armature modifiers that
@@ -102,9 +111,8 @@ class USDStageReader {
     return params_.worker_status ? params_.worker_status->reports : nullptr;
   }
 
+  /** Clear all cached reader collections. */
   void clear_readers();
-
-  void clear_proto_readers();
 
   const blender::Vector<USDPrimReader *> &readers() const
   {
@@ -124,9 +132,32 @@ class USDStageReader {
   void create_proto_collections(Main *bmain, Collection *parent_collection);
 
  private:
+<<<<<<< HEAD
   USDPrimReader *collect_readers(Main *bmain,
                                  const pxr::UsdPrim &prim,
                                  pxr::UsdGeomXformCache *xf_cache,
+=======
+  /**
+   * Create readers for the subtree rooted at the given prim and append the
+   * new readers in r_readers.
+   *
+   * \param prim: Root of the subtree to convert to readers
+   * \param pruned_prims: Set of paths to prune when iterating over the
+   *                      stage during conversion.  I.e., these prims
+   *                      and their descendants will not be converted to
+   *                      readers.
+   * \param defined_prims_only: If true, only defined prims will be converted,
+   *                            skipping abstract and over prims.  This should
+   *                            be set to false when converting point instancer
+   *                            prototype prims, which can be declared as overs.
+   * \param r_readers: Readers created for the prims in the converted subtree.
+   * \return: A pointer to the reader created for the given prim or null if
+   *          the prim cannot be converted.
+   */
+  USDPrimReader *collect_readers(const pxr::UsdPrim &prim,
+                                 const UsdPathSet &pruned_prims,
+                                 bool defined_prims_only,
+>>>>>>> main
                                  blender::Vector<USDPrimReader *> &r_readers);
 
   /**
@@ -154,6 +185,23 @@ class USDStageReader {
    * procedural shape, such as UsdGeomCube.
    */
   bool is_primitive_prim(const pxr::UsdPrim &prim) const;
+
+  /**
+   * Iterate over the stage and return the paths of all prototype
+   * primitives references by point instancers.
+   *
+   * \return: The prototype paths, or an empty path set if the scene
+   *          does not contain any point instancers.
+   */
+  UsdPathSet collect_point_instancer_proto_paths() const;
+
+  /**
+   * Populate the instancer_proto_readers_ map for the prototype prims
+   * in the given set.  For each prototype path, this function will
+   * create readers for the prims in the subtree rooted at the prototype
+   * prim.
+   */
+  void create_point_instancer_proto_readers(const UsdPathSet &proto_paths);
 };
 
 }  // namespace blender::io::usd

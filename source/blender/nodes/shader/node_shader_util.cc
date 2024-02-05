@@ -15,7 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_node_runtime.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "node_shader_util.hh"
 

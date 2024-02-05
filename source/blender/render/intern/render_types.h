@@ -259,4 +259,10 @@ struct Render : public BaseRender {
 /* **************** defines ********************* */
 
 /** #R.flag */
-#define R_ANIMATION 1
+#define R_ANIMATION 1 << 0
+/* Indicates that the render pipeline should not write its render result. This happens for instance
+ * when the render pipeline uses the compositor, but the compositor node tree does not have an
+ * output composite node or a render layer input, and consequently no render result. In that case,
+ * the output will be written from the File Output nodes, since the render pipeline will early fail
+ * if neither a File Output nor a Composite node exist in the scene. */
+#define R_SKIP_WRITE 1 << 1

@@ -107,12 +107,14 @@ int Iterator_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-PyDoc_STRVAR(Iterator_doc,
-             "Base class to define iterators.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "\n"
-             "   Default constructor.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Iterator_doc,
+    "Base class to define iterators.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "\n"
+    "   Default constructor.");
 
 static int Iterator_init(BPy_Iterator *self, PyObject *args, PyObject *kwds)
 {
@@ -136,10 +138,12 @@ static PyObject *Iterator_repr(BPy_Iterator *self)
   return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->it);
 }
 
-PyDoc_STRVAR(Iterator_increment_doc,
-             ".. method:: increment()\n"
-             "\n"
-             "   Makes the iterator point the next element.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Iterator_increment_doc,
+    ".. method:: increment()\n"
+    "\n"
+    "   Makes the iterator point the next element.");
 
 static PyObject *Iterator_increment(BPy_Iterator *self)
 {
@@ -151,10 +155,12 @@ static PyObject *Iterator_increment(BPy_Iterator *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Iterator_decrement_doc,
-             ".. method:: decrement()\n"
-             "\n"
-             "   Makes the iterator point the previous element.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Iterator_decrement_doc,
+    ".. method:: decrement()\n"
+    "\n"
+    "   Makes the iterator point the previous element.");
 
 static PyObject *Iterator_decrement(BPy_Iterator *self)
 {
@@ -174,30 +180,36 @@ static PyMethodDef BPy_Iterator_methods[] = {
 
 /*----------------------Iterator get/setters ----------------------------*/
 
-PyDoc_STRVAR(Iterator_name_doc,
-             "The string of the name of this iterator.\n"
-             "\n"
-             ":type: str");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Iterator_name_doc,
+    "The string of the name of this iterator.\n"
+    "\n"
+    ":type: str");
 
 static PyObject *Iterator_name_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }
 
-PyDoc_STRVAR(Iterator_is_begin_doc,
-             "True if the iterator points to the first element.\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Iterator_is_begin_doc,
+    "True if the iterator points to the first element.\n"
+    "\n"
+    ":type: bool");
 
 static PyObject *Iterator_is_begin_get(BPy_Iterator *self, void * /*closure*/)
 {
   return PyBool_from_bool(self->it->isBegin());
 }
 
-PyDoc_STRVAR(Iterator_is_end_doc,
-             "True if the iterator points to the last element.\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Iterator_is_end_doc,
+    "True if the iterator points to the last element.\n"
+    "\n"
+    ":type: bool");
 
 static PyObject *Iterator_is_end_get(BPy_Iterator *self, void * /*closure*/)
 {

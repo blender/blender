@@ -11,6 +11,8 @@
 #include <cstring>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "AS_asset_representation.hh"
@@ -34,12 +36,12 @@
 
 #include "BLT_translation.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "IMB_thumbs.hh"
 
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -114,16 +116,14 @@ void ED_file_path_button(bScreen *screen,
   UI_block_func_set(block, nullptr, nullptr, nullptr);
 }
 
-struct file_tooltip_data {
+struct FileTooltipData {
   const SpaceFile *sfile;
   const FileDirEntry *file;
 };
 
-static file_tooltip_data *file_tooltip_data_create(const SpaceFile *sfile,
-                                                   const FileDirEntry *file)
+static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const FileDirEntry *file)
 {
-  file_tooltip_data *data = (file_tooltip_data *)MEM_mallocN(sizeof(file_tooltip_data),
-                                                             "tooltip_data");
+  FileTooltipData *data = (FileTooltipData *)MEM_mallocN(sizeof(FileTooltipData), __func__);
   data->sfile = sfile;
   data->file = file;
   return data;
@@ -131,7 +131,7 @@ static file_tooltip_data *file_tooltip_data_create(const SpaceFile *sfile,
 
 static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, void *argN)
 {
-  file_tooltip_data *file_data = static_cast<file_tooltip_data *>(argN);
+  FileTooltipData *file_data = static_cast<FileTooltipData *>(argN);
   const SpaceFile *sfile = file_data->sfile;
   const FileList *files = sfile->files;
   const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
@@ -145,9 +145,8 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
   /* Only free if it is loaded later. */
   bool free_imbuf = (thumb == nullptr);
 
-  UI_tooltip_text_field_add(
-      tip, BLI_strdup(file->name), nullptr, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
-  UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+  UI_tooltip_text_field_add(tip, file->name, {}, UI_TIP_STYLE_HEADER, UI_TIP_LC_MAIN);
+  UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
 
   if (!(file->typeflag & FILE_TYPE_BLENDERLIB)) {
 
@@ -157,37 +156,27 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
     if (params->recursion_level > 0) {
       char root[FILE_MAX];
       BLI_path_split_dir_part(full_path, root, FILE_MAX);
-      UI_tooltip_text_field_add(
-          tip, BLI_strdup(root), nullptr, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+      UI_tooltip_text_field_add(tip, root, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
     }
 
     if (file->redirection_path) {
       UI_tooltip_text_field_add(tip,
-                                BLI_sprintfN("%s: %s", N_("Link target"), file->redirection_path),
-                                nullptr,
+                                fmt::format("{}: {}", N_("Link target"), file->redirection_path),
+                                {},
                                 UI_TIP_STYLE_NORMAL,
                                 UI_TIP_LC_NORMAL);
     }
     if (file->attributes & FILE_ATTR_OFFLINE) {
-      UI_tooltip_text_field_add(tip,
-                                BLI_strdup(N_("This file is offline")),
-                                nullptr,
-                                UI_TIP_STYLE_NORMAL,
-                                UI_TIP_LC_ALERT);
+      UI_tooltip_text_field_add(
+          tip, N_("This file is offline"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     }
     if (file->attributes & FILE_ATTR_READONLY) {
-      UI_tooltip_text_field_add(tip,
-                                BLI_strdup(N_("This file is read-only")),
-                                nullptr,
-                                UI_TIP_STYLE_NORMAL,
-                                UI_TIP_LC_ALERT);
+      UI_tooltip_text_field_add(
+          tip, N_("This file is read-only"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     }
     if (file->attributes & (FILE_ATTR_SYSTEM | FILE_ATTR_RESTRICTED)) {
-      UI_tooltip_text_field_add(tip,
-                                BLI_strdup(N_("This is a restricted system file")),
-                                nullptr,
-                                UI_TIP_STYLE_NORMAL,
-                                UI_TIP_LC_ALERT);
+      UI_tooltip_text_field_add(
+          tip, N_("This is a restricted system file"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     }
 
     if (file->typeflag & (FILE_TYPE_BLENDER | FILE_TYPE_BLENDER_BACKUP)) {
@@ -211,12 +200,9 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
       }
 
       if (version_st[0]) {
-        UI_tooltip_text_field_add(tip,
-                                  BLI_sprintfN("Blender %s", version_st),
-                                  nullptr,
-                                  UI_TIP_STYLE_NORMAL,
-                                  UI_TIP_LC_NORMAL);
-        UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+        UI_tooltip_text_field_add(
+            tip, fmt::format("Blender {}", version_st), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_NORMAL);
+        UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
       }
     }
     else if (file->typeflag & FILE_TYPE_IMAGE) {
@@ -233,11 +219,11 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
                 thumb->metadata, "Thumb::Image::Height", value2, sizeof(value2)))
         {
           UI_tooltip_text_field_add(tip,
-                                    BLI_sprintfN("%s \u00D7 %s", value1, value2),
-                                    nullptr,
+                                    fmt::format("{} \u00D7 {}", value1, value2),
+                                    {},
                                     UI_TIP_STYLE_NORMAL,
                                     UI_TIP_LC_NORMAL);
-          UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+          UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
         }
       }
     }
@@ -256,8 +242,8 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
                 thumb->metadata, "Thumb::Video::Height", value2, sizeof(value2)))
         {
           UI_tooltip_text_field_add(tip,
-                                    BLI_sprintfN("%s \u00D7 %s", value1, value2),
-                                    nullptr,
+                                    fmt::format("{} \u00D7 {}", value1, value2),
+                                    {},
                                     UI_TIP_STYLE_NORMAL,
                                     UI_TIP_LC_NORMAL);
         }
@@ -269,16 +255,16 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
         {
           UI_tooltip_text_field_add(
               tip,
-              BLI_sprintfN("%s %s @ %s %s", value1, N_("Frames"), value2, N_("FPS")),
-              nullptr,
+              fmt::format("{} {} @ {} {}", value1, N_("Frames"), value2, N_("FPS")),
+              {},
               UI_TIP_STYLE_NORMAL,
               UI_TIP_LC_NORMAL);
           UI_tooltip_text_field_add(tip,
-                                    BLI_sprintfN("%s %s", value3, N_("seconds")),
-                                    nullptr,
+                                    fmt::format("{} {}", value3, N_("seconds")),
+                                    {},
                                     UI_TIP_STYLE_NORMAL,
                                     UI_TIP_LC_NORMAL);
-          UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+          UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
         }
       }
     }
@@ -292,12 +278,12 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
       day_string = (is_today ? N_("Today") : N_("Yesterday")) + std::string(" ");
     }
     UI_tooltip_text_field_add(tip,
-                              BLI_sprintfN("%s: %s%s%s",
-                                           N_("Modified"),
-                                           day_string.c_str(),
-                                           (is_today || is_yesterday) ? "" : date_st,
-                                           (is_today || is_yesterday) ? time_st : ""),
-                              nullptr,
+                              fmt::format("{}: {}{}{}",
+                                          N_("Modified"),
+                                          day_string,
+                                          (is_today || is_yesterday) ? "" : date_st,
+                                          (is_today || is_yesterday) ? time_st : ""),
+                              {},
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_NORMAL);
 
@@ -309,15 +295,15 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
         BLI_str_format_uint64_grouped(size_full, file->size);
         UI_tooltip_text_field_add(
             tip,
-            BLI_sprintfN("%s: %s (%s %s)", N_("Size"), size, size_full, N_("bytes")),
-            nullptr,
+            fmt::format("{}: {} ({} {})", N_("Size"), size, size_full, N_("bytes")),
+            {},
             UI_TIP_STYLE_NORMAL,
             UI_TIP_LC_NORMAL);
       }
       else {
         UI_tooltip_text_field_add(tip,
-                                  BLI_sprintfN("%s: %s", N_("Size"), size),
-                                  nullptr,
+                                  fmt::format("{}: {}", N_("Size"), size),
+                                  {},
                                   UI_TIP_STYLE_NORMAL,
                                   UI_TIP_LC_NORMAL);
       }
@@ -325,10 +311,10 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
   }
 
   if (thumb && params->display != FILE_IMGDISPLAY) {
-    float scale = (96.0f * UI_SCALE_FAC) / float(MAX2(thumb->x, thumb->y));
+    float scale = (96.0f * UI_SCALE_FAC) / float(std::max(thumb->x, thumb->y));
     short size[2] = {short(float(thumb->x) * scale), short(float(thumb->y) * scale)};
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
-    UI_tooltip_text_field_add(tip, nullptr, nullptr, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
+    UI_tooltip_text_field_add(tip, {}, {}, UI_TIP_STYLE_SPACER, UI_TIP_LC_NORMAL);
     UI_tooltip_image_field_add(tip, thumb, size);
   }
 
@@ -337,7 +323,7 @@ static void file_draw_tooltip_custom_func(bContext * /*C*/, uiTooltipData *tip, 
   }
 }
 
-static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
   std::string complete_string = asset->get_name();
@@ -346,7 +332,7 @@ static char *file_draw_asset_tooltip_func(bContext * /*C*/, void *argN, const ch
     complete_string += '\n';
     complete_string += meta_data.description;
   }
-  return BLI_strdupn(complete_string.c_str(), complete_string.size());
+  return complete_string;
 }
 
 static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
@@ -1295,7 +1281,8 @@ void file_draw_list(const bContext *C, ARegion *region)
       if (do_drag) {
         const uiStyle *style = UI_style_get();
         const int str_width = UI_fontstyle_string_width(&style->widget, file->name);
-        const int drag_width = MIN2(str_width + icon_ofs, column_width - ATTRIBUTE_COLUMN_PADDING);
+        const int drag_width = std::min(str_width + icon_ofs,
+                                        int(column_width - ATTRIBUTE_COLUMN_PADDING));
         if (drag_width > 0) {
           uiBut *drag_but = uiDefBut(block,
                                      UI_BTYPE_LABEL,
@@ -1471,18 +1458,19 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, nullptr, &sy);
 
     uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
-    uiBut *but = uiDefIconTextButO(block,
-                                   UI_BTYPE_BUT,
-                                   "SCREEN_OT_userpref_show",
-                                   WM_OP_INVOKE_DEFAULT,
-                                   ICON_PREFERENCES,
-                                   nullptr,
-                                   sx + UI_UNIT_X,
-                                   sy - line_height - UI_UNIT_Y * 1.2f,
-                                   UI_UNIT_X * 8,
-                                   UI_UNIT_Y,
-                                   nullptr);
-    PointerRNA *but_opptr = UI_but_operator_ptr_get(but);
+    wmOperatorType *ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);
+    uiBut *but = uiDefIconTextButO_ptr(block,
+                                       UI_BTYPE_BUT,
+                                       ot,
+                                       WM_OP_INVOKE_DEFAULT,
+                                       ICON_PREFERENCES,
+                                       WM_operatortype_name(ot, nullptr),
+                                       sx + UI_UNIT_X,
+                                       sy - line_height - UI_UNIT_Y * 1.2f,
+                                       UI_UNIT_X * 8,
+                                       UI_UNIT_Y,
+                                       nullptr);
+    PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
     RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
 
     UI_block_end(C, block);

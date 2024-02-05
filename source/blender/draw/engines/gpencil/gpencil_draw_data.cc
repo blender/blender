@@ -18,7 +18,7 @@
 
 #include "GPU_uniform_buffer.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "gpencil_engine.h"
 
@@ -41,18 +41,11 @@ static GPENCIL_MaterialPool *gpencil_material_pool_add(GPENCIL_PrivateData *pd)
 
 static GPUTexture *gpencil_image_texture_get(Image *image, bool *r_alpha_premult)
 {
-  ImBuf *ibuf;
   ImageUser iuser = {nullptr};
   GPUTexture *gpu_tex = nullptr;
-  void *lock;
 
-  ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
-
-  if (ibuf != nullptr && ibuf->byte_buffer.data != nullptr) {
-    gpu_tex = BKE_image_get_gpu_texture(image, &iuser, ibuf);
-    *r_alpha_premult = (image->alpha_mode == IMA_ALPHA_PREMUL);
-  }
-  BKE_image_release_ibuf(image, ibuf, lock);
+  gpu_tex = BKE_image_get_gpu_texture(image, &iuser);
+  *r_alpha_premult = (gpu_tex) ? (image->alpha_mode == IMA_ALPHA_PREMUL) : false;
 
   return gpu_tex;
 }

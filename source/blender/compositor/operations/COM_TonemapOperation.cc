@@ -6,7 +6,7 @@
 
 #include "COM_ExecutionSystem.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 
@@ -41,7 +41,7 @@ void TonemapOperation::execute_pixel(float output[4], int x, int y, void *data)
   const float igm = avg->igm;
   if (igm != 0.0f) {
     output[0] = powf(std::max(output[0], 0.0f), igm);
-    output[1] = powf(MAX2(output[1], 0.0f), igm);
+    output[1] = powf(std::max(output[1], 0.0f), igm);
     output[2] = powf(std::max(output[2], 0.0f), igm);
   }
 }
@@ -115,7 +115,7 @@ void *TonemapOperation::initialize_tile_data(rcti *rect)
       float L = IMB_colormanagement_get_luminance(bc);
       Lav += L;
       add_v3_v3(cav, bc);
-      lsum += logf(MAX2(L, 0.0f) + 1e-5f);
+      lsum += logf(std::max(L, 0.0f) + 1e-5f);
       maxl = (L > maxl) ? L : maxl;
       minl = (L < minl) ? L : minl;
       bc += 4;
@@ -164,9 +164,9 @@ static Luminance calc_area_luminance(const MemoryBuffer *input, const rcti &area
     const float lu = IMB_colormanagement_get_luminance(elem);
     lum.sum += lu;
     add_v3_v3(lum.color_sum, elem);
-    lum.log_sum += logf(MAX2(lu, 0.0f) + 1e-5f);
-    lum.max = MAX2(lu, lum.max);
-    lum.min = MIN2(lu, lum.min);
+    lum.log_sum += logf(std::max(lu, 0.0f) + 1e-5f);
+    lum.max = std::max(lu, lum.max);
+    lum.min = std::min(lu, lum.min);
     lum.num_pixels++;
   }
   return lum;
@@ -235,8 +235,8 @@ void TonemapOperation::update_memory_buffer_partial(MemoryBuffer *output,
     it.out[1] /= ((dg == 0.0f) ? 1.0f : dg);
     it.out[2] /= ((db == 0.0f) ? 1.0f : db);
     if (igm != 0.0f) {
-      it.out[0] = powf(MAX2(it.out[0], 0.0f), igm);
-      it.out[1] = powf(MAX2(it.out[1], 0.0f), igm);
+      it.out[0] = powf(std::max(it.out[0], 0.0f), igm);
+      it.out[1] = powf(std::max(it.out[1], 0.0f), igm);
       it.out[2] = powf(std::max(it.out[2], 0.0f), igm);
     }
   }

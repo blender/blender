@@ -21,16 +21,19 @@
 
 #include "BKE_context.hh"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DEG_depsgraph.hh"
 
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "lattice_intern.h"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Make Regular Operator
@@ -48,7 +51,7 @@ static bool make_regular_poll(bContext *C)
   return (ob && ob->type == OB_LATTICE);
 }
 
-static int make_regular_exec(bContext *C, wmOperator * /*op*/)
+static int make_regular_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -56,14 +59,16 @@ static int make_regular_exec(bContext *C, wmOperator * /*op*/)
   const bool is_editmode = CTX_data_edit_object(C) != nullptr;
 
   if (is_editmode) {
-    uint objects_len;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, CTX_wm_view3d(C), &objects_len);
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob = objects[ob_index];
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, CTX_wm_view3d(C));
+    for (Object *ob : objects) {
       Lattice *lt = static_cast<Lattice *>(ob->data);
 
       if (lt->editlatt->latt == nullptr) {
+        continue;
+      }
+
+      if (ED_object_edit_report_if_shape_key_is_locked(ob, op->reports)) {
         continue;
       }
 
@@ -72,7 +77,6 @@ static int make_regular_exec(bContext *C, wmOperator * /*op*/)
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
     }
-    MEM_freeN(objects);
   }
   else {
     FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob) {
@@ -199,14 +203,12 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
   bool changed = false;
   const eLattice_FlipAxes axis = eLattice_FlipAxes(RNA_enum_get(op->ptr, "axis"));
 
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     Lattice *lt;
 
     int numU, numV, numW;
@@ -218,6 +220,10 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
     /* get lattice - we need the "edit lattice" from the lattice... confusing... */
     lt = (Lattice *)obedit->data;
     lt = lt->editlatt->latt;
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      continue;
+    }
 
     numU = lt->pntsu;
     numV = lt->pntsv;
@@ -323,7 +329,6 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     changed = true;
   }
-  MEM_freeN(objects);
 
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

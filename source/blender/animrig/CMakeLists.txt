@@ -24,6 +24,7 @@ set(SRC
   intern/animdata.cc
   intern/bone_collections.cc
   intern/bonecolor.cc
+  intern/driver.cc
   intern/fcurve.cc
   intern/keyframing.cc
   intern/keyframing_auto.cc
@@ -34,6 +35,7 @@ set(SRC
   ANIM_armature_iter.hh
   ANIM_bone_collections.hh
   ANIM_bonecolor.hh
+  ANIM_driver.hh
   ANIM_fcurve.hh
   ANIM_keyframing.hh
   ANIM_rna.hh

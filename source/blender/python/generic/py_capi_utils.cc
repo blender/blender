@@ -1053,6 +1053,11 @@ PyObject *PyC_UnicodeFromBytes(const char *str)
   return PyC_UnicodeFromBytesAndSize(str, strlen(str));
 }
 
+PyObject *PyC_UnicodeFromStdStr(const std::string &str)
+{
+  return PyC_UnicodeFromBytesAndSize(str.c_str(), str.length());
+}
+
 int PyC_ParseUnicodeAsBytesAndSize(PyObject *o, void *p)
 {
   PyC_UnicodeAsBytesAndSize_Data *data = static_cast<PyC_UnicodeAsBytesAndSize_Data *>(p);
@@ -1166,7 +1171,7 @@ bool PyC_IsInterpreterActive()
 void PyC_RunQuicky(const char *filepath, int n, ...)
 {
   /* NOTE: Would be nice if python had this built in
-   * See: https://wiki.blender.org/wiki/Tools/Debugging/PyFromC */
+   * See: https://developer.blender.org/docs/handbook/tooling/pyfromc/ */
 
   FILE *fp = fopen(filepath, "r");
 

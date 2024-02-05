@@ -89,10 +89,8 @@ class MaterialModule {
   /* Returns the correct flag for this texture. */
   gpMaterialFlag texture_sync(::Image *image, gpMaterialFlag use_flag, gpMaterialFlag premul_flag)
   {
-    ImBuf *ibuf;
     ImageUser iuser = {nullptr};
     GPUTexture *gpu_tex = nullptr;
-    void *lock;
     bool premul = false;
 
     if (image == nullptr) {
@@ -100,13 +98,10 @@ class MaterialModule {
       return GP_FLAG_NONE;
     }
 
-    ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
-
-    if (ibuf != nullptr) {
-      gpu_tex = BKE_image_get_gpu_texture(image, &iuser, ibuf);
+    gpu_tex = BKE_image_get_gpu_texture(image, &iuser);
+    if (gpu_tex) {
       premul = (image->alpha_mode == IMA_ALPHA_PREMUL) != 0;
     }
-    BKE_image_release_ibuf(image, ibuf, lock);
 
     texture_pool_.append(gpu_tex);
 

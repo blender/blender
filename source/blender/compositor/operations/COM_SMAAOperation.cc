@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,9 +6,7 @@
 #include "BKE_node.hh"
 #include "COM_SMAAAreaTexture.h"
 
-extern "C" {
-#include "IMB_colormanagement.h"
-}
+#include "IMB_colormanagement.hh"
 
 namespace blender::compositor {
 
@@ -102,8 +100,8 @@ static void sample_bilinear_horizontal(T *reader, int x, int y, float xoffset, f
 
 static inline const float *areatex_sample_internal(const float *areatex, int x, int y)
 {
-  return &areatex[(CLAMPIS(x, 0, SMAA_AREATEX_SIZE - 1) +
-                   CLAMPIS(y, 0, SMAA_AREATEX_SIZE - 1) * SMAA_AREATEX_SIZE) *
+  return &areatex[(std::clamp(x, 0, SMAA_AREATEX_SIZE - 1) +
+                   std::clamp(y, 0, SMAA_AREATEX_SIZE - 1) * SMAA_AREATEX_SIZE) *
                   2];
 }
 
@@ -950,8 +948,8 @@ void SMAABlendingWeightCalculationOperation::detect_horizontal_corner_pattern(
     factor[1] -= rounding * e[0];
   }
 
-  weights[0] *= CLAMPIS(factor[0], 0.0f, 1.0f);
-  weights[1] *= CLAMPIS(factor[1], 0.0f, 1.0f);
+  weights[0] *= std::clamp(factor[0], 0.0f, 1.0f);
+  weights[1] *= std::clamp(factor[1], 0.0f, 1.0f);
 }
 
 void SMAABlendingWeightCalculationOperation::detect_vertical_corner_pattern(
@@ -979,8 +977,8 @@ void SMAABlendingWeightCalculationOperation::detect_vertical_corner_pattern(
     factor[1] -= rounding * e[1];
   }
 
-  weights[0] *= CLAMPIS(factor[0], 0.0f, 1.0f);
-  weights[1] *= CLAMPIS(factor[1], 0.0f, 1.0f);
+  weights[0] *= std::clamp(factor[0], 0.0f, 1.0f);
+  weights[1] *= std::clamp(factor[1], 0.0f, 1.0f);
 }
 
 /*-----------------------------------------------------------------------------*/

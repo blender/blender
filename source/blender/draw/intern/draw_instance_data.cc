@@ -21,7 +21,7 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh" /* For DRW_shgroup_get_instance_count() */
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "DNA_particle_types.h"
 

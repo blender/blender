@@ -38,7 +38,7 @@ set(SRC
   pose_transform.cc
   pose_utils.cc
 
-  armature_intern.h
+  armature_intern.hh
   meshlaplacian.h
 )
 

@@ -25,15 +25,15 @@
 #include "BKE_main.hh"
 #include "BKE_node.h"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 // static CLG_LogRef LOG = {"bke.idtype"};
 
 uint BKE_idtype_cache_key_hash(const void *key_v)
 {
   const IDCacheKey *key = static_cast<const IDCacheKey *>(key_v);
-  size_t hash = BLI_ghashutil_uinthash(key->id_session_uuid);
-  hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_uinthash(uint(key->offset_in_ID)));
+  size_t hash = BLI_ghashutil_uinthash(key->id_session_uid);
+  hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_uinthash(uint(key->identifier)));
   return uint(hash);
 }
 
@@ -41,8 +41,8 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
 {
   const IDCacheKey *key_a = static_cast<const IDCacheKey *>(key_a_v);
   const IDCacheKey *key_b = static_cast<const IDCacheKey *>(key_b_v);
-  return (key_a->id_session_uuid != key_b->id_session_uuid) ||
-         (key_a->offset_in_ID != key_b->offset_in_ID);
+  return (key_a->id_session_uid != key_b->id_session_uid) ||
+         (key_a->identifier != key_b->identifier);
 }
 
 static IDTypeInfo *id_types[INDEX_ID_MAX] = {nullptr};

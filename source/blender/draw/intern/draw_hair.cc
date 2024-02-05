@@ -24,7 +24,7 @@
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
 #include "GPU_context.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
@@ -35,21 +35,6 @@
 #include "draw_shader.hh"
 #include "draw_shader_shared.h"
 
-BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()
-{
-  /* NOTE: Hair refine is faster using transform feedback via vertex processing pipeline with Metal
-   * and Apple Silicon GPUs. This is also because vertex work can more easily be executed in
-   * parallel with fragment work, whereas compute inserts an explicit dependency,
-   * due to switching of command encoder types. */
-  if (GPU_compute_shader_support() && (GPU_backend_get_type() != GPU_BACKEND_METAL)) {
-    return PART_REFINE_SHADER_COMPUTE;
-  }
-  if (GPU_transform_feedback_support()) {
-    return PART_REFINE_SHADER_TRANSFORM_FEEDBACK;
-  }
-  return PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND;
-}
-
 struct ParticleRefineCall {
   ParticleRefineCall *next;
   GPUVertBuf *vbo;
@@ -57,19 +42,9 @@ struct ParticleRefineCall {
   uint vert_len;
 };
 
-static ParticleRefineCall *g_tf_calls = nullptr;
-static int g_tf_id_offset;
-static int g_tf_target_width;
-static int g_tf_target_height;
-
 static GPUVertBuf *g_dummy_vbo = nullptr;
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple #DRWManager in the future */
 static blender::draw::UniformBuffer<CurvesInfos> *g_dummy_curves_info = nullptr;
-
-static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
-{
-  return DRW_shader_hair_refine_get(refinement, drw_hair_shader_type_get());
-}
 
 static void drw_hair_ensure_vbo()
 {
@@ -122,7 +97,7 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
   const int strands_len = cache->strands_len;
   const int final_points_len = cache->final[subdiv].strands_res * strands_len;
   if (final_points_len > 0) {
-    GPUShader *shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
+    GPUShader *shader = DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM);
     DRWShadingGroup *shgrp = DRW_shgroup_create(shader, g_tf_pass);
     drw_hair_particle_cache_shgrp_attach_resources(shgrp, cache, subdiv);
     DRW_shgroup_vertex_buffer(shgrp, "posTime", cache->final[subdiv].proc_buf);
@@ -139,38 +114,6 @@ static void drw_hair_particle_cache_update_compute(ParticleHairCache *cache, con
   }
 }
 
-static void drw_hair_particle_cache_update_transform_feedback(ParticleHairCache *cache,
-                                                              const int subdiv)
-{
-  const int final_points_len = cache->final[subdiv].strands_res * cache->strands_len;
-  if (final_points_len > 0) {
-    GPUShader *tf_shader = hair_refine_shader_get(PART_REFINE_CATMULL_ROM);
-
-    DRWShadingGroup *tf_shgrp = nullptr;
-    if (GPU_transform_feedback_support()) {
-      tf_shgrp = DRW_shgroup_transform_feedback_create(
-          tf_shader, g_tf_pass, cache->final[subdiv].proc_buf);
-    }
-    else {
-      tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
-
-      ParticleRefineCall *pr_call = (ParticleRefineCall *)MEM_mallocN(sizeof(*pr_call), __func__);
-      pr_call->next = g_tf_calls;
-      pr_call->vbo = cache->final[subdiv].proc_buf;
-      pr_call->shgrp = tf_shgrp;
-      pr_call->vert_len = final_points_len;
-      g_tf_calls = pr_call;
-      DRW_shgroup_uniform_int(tf_shgrp, "targetHeight", &g_tf_target_height, 1);
-      DRW_shgroup_uniform_int(tf_shgrp, "targetWidth", &g_tf_target_width, 1);
-      DRW_shgroup_uniform_int(tf_shgrp, "idOffset", &g_tf_id_offset, 1);
-    }
-    BLI_assert(tf_shgrp != nullptr);
-
-    drw_hair_particle_cache_shgrp_attach_resources(tf_shgrp, cache, subdiv);
-    DRW_shgroup_call_procedural_points(tf_shgrp, nullptr, final_points_len);
-  }
-}
-
 static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
                                                       ParticleSystem *psys,
                                                       ModifierData *md,
@@ -184,12 +127,7 @@ static ParticleHairCache *drw_hair_particle_cache_get(Object *object,
       object, psys, md, &cache, gpu_material, subdiv, thickness_res);
 
   if (update) {
-    if (drw_hair_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
-      drw_hair_particle_cache_update_compute(cache, subdiv);
-    }
-    else {
-      drw_hair_particle_cache_update_transform_feedback(cache, subdiv);
-    }
+    drw_hair_particle_cache_update_compute(cache, subdiv);
   }
   return cache;
 }
@@ -315,120 +253,9 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
 
 void DRW_hair_update()
 {
-  if (drw_hair_shader_type_get() == PART_REFINE_SHADER_TRANSFORM_FEEDBACK_WORKAROUND) {
-    /**
-     * Workaround to transform feedback not working on mac.
-     * On some system it crashes (see #58489) and on some other it renders garbage (see #60171).
-     *
-     * So instead of using transform feedback we render to a texture,
-     * read back the result to system memory and re-upload as VBO data.
-     * It is really not ideal performance wise, but it is the simplest
-     * and the most local workaround that still uses the power of the GPU.
-     */
-
-    if (g_tf_calls == nullptr) {
-      return;
-    }
-
-    /* Search ideal buffer size. */
-    uint max_size = 0;
-    for (ParticleRefineCall *pr_call = g_tf_calls; pr_call; pr_call = pr_call->next) {
-      max_size = max_ii(max_size, pr_call->vert_len);
-    }
-
-    /* Create target Texture / Frame-buffer */
-    /* Don't use max size as it can be really heavy and fail.
-     * Do chunks of maximum 2048 * 2048 hair points. */
-    int width = 2048;
-    int height = min_ii(width, 1 + max_size / width);
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-    GPUTexture *tex = DRW_texture_pool_query_2d_ex(
-        width, height, GPU_RGBA32F, usage, (DrawEngineType *)DRW_hair_update);
-    g_tf_target_height = height;
-    g_tf_target_width = width;
-
-    GPUFrameBuffer *fb = nullptr;
-    GPU_framebuffer_ensure_config(&fb,
-                                  {
-                                      GPU_ATTACHMENT_NONE,
-                                      GPU_ATTACHMENT_TEXTURE(tex),
-                                  });
-
-    float *data = (float *)MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer");
-
-    GPU_framebuffer_bind(fb);
-    while (g_tf_calls != nullptr) {
-      ParticleRefineCall *pr_call = g_tf_calls;
-      g_tf_calls = g_tf_calls->next;
-
-      g_tf_id_offset = 0;
-      while (pr_call->vert_len > 0) {
-        int max_read_px_len = min_ii(width * height, pr_call->vert_len);
-
-        DRW_draw_pass_subset(g_tf_pass, pr_call->shgrp, pr_call->shgrp);
-        /* Read back result to main memory. */
-        GPU_framebuffer_read_color(fb, 0, 0, width, height, 4, 0, GPU_DATA_FLOAT, data);
-        /* Upload back to VBO. */
-        GPU_vertbuf_use(pr_call->vbo);
-        GPU_vertbuf_update_sub(pr_call->vbo,
-                               sizeof(float[4]) * g_tf_id_offset,
-                               sizeof(float[4]) * max_read_px_len,
-                               data);
-
-        g_tf_id_offset += max_read_px_len;
-        pr_call->vert_len -= max_read_px_len;
-      }
-
-      MEM_freeN(pr_call);
-    }
-
-    MEM_freeN(data);
-    GPU_framebuffer_free(fb);
-  }
-  else {
-    /* NOTE(Metal): If compute is not supported, bind a temporary frame-buffer to avoid
-     * side-effects from rendering in the active buffer.
-     * We also need to guarantee that a frame-buffer is active to perform any rendering work,
-     * even if there is no output. */
-    GPUFrameBuffer *temp_fb = nullptr;
-    GPUFrameBuffer *prev_fb = nullptr;
-    if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-      if (!GPU_compute_shader_support()) {
-        prev_fb = GPU_framebuffer_active_get();
-        char errorOut[256];
-        /* if the frame-buffer is invalid we need a dummy frame-buffer to be bound. */
-        if (!GPU_framebuffer_check_valid(prev_fb, errorOut)) {
-          int width = 64;
-          int height = 64;
-          eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
-                                   GPU_TEXTURE_USAGE_SHADER_WRITE;
-          GPUTexture *tex = DRW_texture_pool_query_2d_ex(
-              width, height, GPU_DEPTH_COMPONENT32F, usage, (DrawEngineType *)DRW_hair_update);
-          g_tf_target_height = height;
-          g_tf_target_width = width;
-
-          GPU_framebuffer_ensure_config(&temp_fb, {GPU_ATTACHMENT_TEXTURE(tex)});
-
-          GPU_framebuffer_bind(temp_fb);
-        }
-      }
-    }
-
-    /* Just render the pass when using compute shaders or transform feedback. */
-    DRW_draw_pass(g_tf_pass);
-    if (drw_hair_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
-      GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
-    }
-
-    /* Release temporary frame-buffer. */
-    if (temp_fb != nullptr) {
-      GPU_framebuffer_free(temp_fb);
-    }
-    /* Rebind existing frame-buffer */
-    if (prev_fb != nullptr) {
-      GPU_framebuffer_bind(prev_fb);
-    }
-  }
+  /* Just render the pass when using compute shaders or transform feedback. */
+  DRW_draw_pass(g_tf_pass);
+  GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
 }
 
 void DRW_hair_free()
@@ -474,8 +301,7 @@ static ParticleHairCache *hair_particle_cache_get(Object *object,
   if (final_points_len > 0) {
     PassSimple::Sub &ob_ps = g_pass->sub("Object Pass");
 
-    ob_ps.shader_set(
-        DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM, PART_REFINE_SHADER_COMPUTE));
+    ob_ps.shader_set(DRW_shader_hair_refine_get(PART_REFINE_CATMULL_ROM));
 
     ob_ps.bind_texture("hairPointBuffer", cache->proc_point_buf);
     ob_ps.bind_texture("hairStrandBuffer", cache->proc_strand_buf);

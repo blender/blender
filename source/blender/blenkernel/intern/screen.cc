@@ -43,9 +43,9 @@
 
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
@@ -56,11 +56,14 @@
 
 /* TODO(@JulianEisel): For asset shelf region reading/writing. Region read/write should be done via
  * a #ARegionType callback. */
-#include "../editors/asset/ED_asset_shelf.h"
+#include "../editors/asset/ED_asset_shelf.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
+
+using blender::Span;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name ID Type Implementation
@@ -201,12 +204,16 @@ IDTypeInfo IDType_ID_SCR = {
  * \{ */
 
 /** Keep global; this has to be accessible outside of window-manager. */
-static ListBase spacetypes = {nullptr, nullptr};
+static Vector<std::unique_ptr<SpaceType>> &get_space_types()
+{
+  static Vector<std::unique_ptr<SpaceType>> space_types;
+  return space_types;
+}
 
 /* not SpaceType itself */
-static void spacetype_free(SpaceType *st)
+SpaceType::~SpaceType()
 {
-  LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {
+  LISTBASE_FOREACH (ARegionType *, art, &this->regiontypes) {
 #ifdef WITH_PYTHON
     BPY_callback_screen_free(art);
 #endif
@@ -230,24 +237,19 @@ static void spacetype_free(SpaceType *st)
     BLI_freelistN(&art->headertypes);
   }
 
-  BLI_freelistN(&st->regiontypes);
-  BLI_freelistN(&st->asset_shelf_types);
+  BLI_freelistN(&this->regiontypes);
 }
 
 void BKE_spacetypes_free()
 {
-  LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
-    spacetype_free(st);
-  }
-
-  BLI_freelistN(&spacetypes);
+  get_space_types().clear_and_shrink();
 }
 
 SpaceType *BKE_spacetype_from_id(int spaceid)
 {
-  LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
+  for (std::unique_ptr<SpaceType> &st : get_space_types()) {
     if (st->spaceid == spaceid) {
-      return st;
+      return st.get();
     }
   }
   return nullptr;
@@ -263,22 +265,21 @@ ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid)
   return nullptr;
 }
 
-const ListBase *BKE_spacetypes_list()
+Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list()
 {
-  return &spacetypes;
+  return get_space_types();
 }
 
-void BKE_spacetype_register(SpaceType *st)
+void BKE_spacetype_register(std::unique_ptr<SpaceType> st)
 {
   /* sanity check */
   SpaceType *stype = BKE_spacetype_from_id(st->spaceid);
   if (stype) {
     printf("error: redefinition of spacetype %s\n", stype->name);
-    spacetype_free(stype);
-    MEM_freeN(stype);
+    return;
   }
 
-  BLI_addtail(&spacetypes, st);
+  get_space_types().append(std::move(st));
 }
 
 bool BKE_spacetype_exists(int spaceid)
@@ -408,7 +409,7 @@ void BKE_spacedata_copylist(ListBase *lb_dst, ListBase *lb_src)
 
 void BKE_spacedata_draw_locks(bool set)
 {
-  LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
+  for (std::unique_ptr<SpaceType> &st : get_space_types()) {
     LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {
       if (set) {
         art->do_lock = art->lock;
@@ -1044,7 +1045,7 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
     }
 
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-      ED_asset_shelf_region_blend_write(writer, region);
+      blender::ed::asset::shelf::region_blend_write(writer, region);
       return;
     }
 
@@ -1208,7 +1209,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
       }
     }
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-      ED_asset_shelf_region_blend_read_data(reader, region);
+      blender::ed::asset::shelf::region_blend_read_data(reader, region);
     }
   }
 

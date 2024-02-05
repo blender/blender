@@ -20,7 +20,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"

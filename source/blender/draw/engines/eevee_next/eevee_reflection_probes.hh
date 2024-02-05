@@ -243,6 +243,13 @@ class ReflectionProbeModule {
     return probes_tx_.width();
   }
 
+  /**
+   * Get the resolution of a single cube-map side when rendering probes.
+   *
+   * The cube-maps are rendered half size of the size of the octahedral texture.
+   */
+  int probe_render_extent() const;
+
   ReflectionProbeAtlasCoordinate world_atlas_coord_get() const;
 
  private:

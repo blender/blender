@@ -11,7 +11,7 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
@@ -379,8 +379,11 @@ typedef struct Mesh {
    * When possible, it's preferred to use face normals over vertex normals and vertex normals over
    * face corner normals, since there is a 2-4x performance cost increase for each more complex
    * domain.
+   *
+   * Optionally the consumer of the mesh can indicate that they support the sharp_face attribute
+   * natively, to avoid using corner normals in some cases.
    */
-  blender::bke::MeshNormalDomain normals_domain() const;
+  blender::bke::MeshNormalDomain normals_domain(const bool support_sharp_face = false) const;
   /**
    * Normal direction of polygons, defined by positions and the winding direction of face corners.
    */
@@ -407,6 +410,8 @@ typedef struct Mesh {
   void tag_positions_changed_no_normals();
   /** Call when changing "sharp_face" or "sharp_edge" data. */
   void tag_sharpness_changed();
+  /** Call when changing #CD_CUSTOMLOOPNORMAL data. */
+  void tag_custom_normals_changed();
   /** Call when face vertex order has changed but positions and faces haven't changed. */
   void tag_face_winding_changed();
   /** Call when new edges and vertices have been created but vertices and faces haven't changed. */

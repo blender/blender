@@ -19,7 +19,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_workspace_types.h"
 
@@ -99,13 +99,13 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 static int rna_WorkSpace_asset_library_get(PointerRNA *ptr)
 {
   const WorkSpace *workspace = static_cast<WorkSpace *>(ptr->data);
-  return ED_asset_library_reference_to_enum_value(&workspace->asset_library_ref);
+  return blender::ed::asset::library_reference_to_enum_value(&workspace->asset_library_ref);
 }
 
 static void rna_WorkSpace_asset_library_set(PointerRNA *ptr, int value)
 {
   WorkSpace *workspace = static_cast<WorkSpace *>(ptr->data);
-  workspace->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
+  workspace->asset_library_ref = blender::ed::asset::library_reference_from_enum_value(value);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,

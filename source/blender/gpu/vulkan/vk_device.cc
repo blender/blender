@@ -182,7 +182,6 @@ void VKDevice::init_glsl_patch()
 
   ss << "#define gl_VertexID gl_VertexIndex\n";
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";
-  ss << "#define GPU_ARB_texture_cube_map_array\n";
   ss << "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n";
 
   /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */

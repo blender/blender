@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -3037,6 +3037,10 @@ msgstr "Tulang"
 
 msgid "Index"
 msgstr "Index"
+
+
+msgid "Solo"
+msgstr "Sendiri"
 
 
 msgid "Visible"
@@ -12414,14 +12418,6 @@ msgid "Object To"
 msgstr "Objek Ke"
 
 
-msgid "UV Layer"
-msgstr "Layer UV"
-
-
-msgid "UV Layer name"
-msgstr "Nama layer UV"
-
-
 msgid "Null action"
 msgstr "Aksi null"
 
@@ -13178,10 +13174,6 @@ msgstr "Pengaruh Teranimasi"
 
 msgid "Animated Strip Time"
 msgstr "Waktu Strip Teranimasi"
-
-
-msgid "Solo"
-msgstr "Sendiri"
 
 
 msgid "Node in a node tree"
@@ -14195,6 +14187,10 @@ msgstr "Bandingkan"
 
 msgid "Input Type"
 msgstr "Tipe Masukan"
+
+
+msgid "Menu"
+msgstr "Menu"
 
 
 msgid "Dot Product"
@@ -16977,6 +16973,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Pisah map yang terbakar per material, menggunakan nama material di dokumen output (eksternal saja)"
 
 
+msgid "UV Layer"
+msgstr "Layer UV"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Tambah Kamera"
@@ -17428,6 +17428,10 @@ msgid "Add Shape Key"
 msgstr "Tambah Kunci Bentuk"
 
 
+msgid "Lock action to execute on vertex groups"
+msgstr "Warna Standar"
+
+
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Induk"
@@ -17502,10 +17506,6 @@ msgstr "Warna Standar"
 
 msgctxt "Operator"
 msgid "Vertex Group Levels"
-msgstr "Warna Standar"
-
-
-msgid "Lock action to execute on vertex groups"
 msgstr "Warna Standar"
 
 
@@ -20193,10 +20193,6 @@ msgid "Icon Colors"
 msgstr "Warna Icon"
 
 
-msgid "Menu"
-msgstr "Menu"
-
-
 msgid "Menu Item"
 msgstr "Item Menu"
 
@@ -22436,6 +22432,16 @@ msgid "Date: %s %s"
 msgstr "Tanggal: %s %s"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Lokasi"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotasi"
+
+
 msgid "After"
 msgstr "Setelah"
 
@@ -23359,11 +23365,6 @@ msgstr "Setelah"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Lokasi"
-
-
-msgctxt "Operator"
 msgid "Set Viewport Background"
 msgstr "Set Latar Belakang Viewport"
 
@@ -23782,16 +23783,6 @@ msgstr "Membuat Pensil Grease"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Secara Horizontal"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Secara Vertikal"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Membalikkan Saluran Merah"
 
@@ -23940,10 +23931,6 @@ msgstr "Pilih Dikelompokkan..."
 msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Material"
-
-
-msgid "Inputs:"
-msgstr "Input:"
 
 
 msgctxt "Operator"
@@ -24154,11 +24141,6 @@ msgstr "Adegan..."
 
 
 msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotasi"
-
-
-msgctxt "Operator"
 msgid "Scale To Fit"
 msgstr "Skala ke Cukup"
 
@@ -24336,6 +24318,10 @@ msgid "Invert Pan Axis"
 msgstr "Membalikkan Sumbu Pan"
 
 
+msgid "Preferences:"
+msgstr "Pengaturan Pengguna:"
+
+
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Simpan sebagai cahaya Studio"
@@ -24369,16 +24355,12 @@ msgid "No custom %s configured"
 msgstr "Tidak ada %s kustom yang dikonfigurasi"
 
 
+msgid "Error (see console)"
+msgstr "Error (lihat konsol)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Set Warna %d"
-
-
-msgid "Color %d"
-msgstr "Warna %d"
 
 
 msgid "Description:"
@@ -24413,25 +24395,17 @@ msgid "User:"
 msgstr "Pengguna:"
 
 
-msgid "description"
-msgstr "deskripsi"
+msgid "Color Set %d"
+msgstr "Set Warna %d"
 
 
-msgid "location"
-msgstr "lokasi"
+msgid "Color %d"
+msgstr "Warna %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentasi"
-
-
-msgid "Preferences:"
-msgstr "Pengaturan Pengguna:"
-
-
-msgid "Error (see console)"
-msgstr "Error (lihat konsol)"
 
 
 msgctxt "Operator"
@@ -25064,18 +25038,6 @@ msgstr "Keringanan:"
 
 msgid "Alpha:"
 msgstr "Alpha:"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Nilai: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgid "Anim Player"

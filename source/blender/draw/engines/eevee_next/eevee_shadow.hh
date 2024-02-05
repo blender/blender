@@ -228,6 +228,7 @@ class ShadowModule {
 
   Framebuffer usage_tag_fb;
 
+  PassSimple caster_update_ps_ = {"CasterUpdate"};
   /** List of Resource IDs (to get bounds) for tagging passes. */
   StorageVectorBuffer<uint, 128> past_casters_updated_ = {"PastCastersUpdated"};
   StorageVectorBuffer<uint, 128> curr_casters_updated_ = {"CurrCastersUpdated"};
@@ -361,6 +362,7 @@ class ShadowModule {
  private:
   void remove_unused();
   void debug_page_map_call(DRWPass *pass);
+  bool shadow_update_finished();
 
   /** Compute approximate screen pixel space radius. */
   float screen_pixel_radius(const View &view, const int2 &extent);

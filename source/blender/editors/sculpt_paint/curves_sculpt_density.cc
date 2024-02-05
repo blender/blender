@@ -28,8 +28,6 @@
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
 
-#include "PIL_time.h"
-
 #include "GEO_add_curves_on_mesh.hh"
 
 #include "DNA_brush_types.h"
@@ -164,8 +162,7 @@ struct DensityAddOperationExecutor {
 
     Vector<float3> new_positions_cu;
     Vector<float2> new_uvs;
-    const double time = PIL_check_seconds_timer() * 1000000.0;
-    RandomNumberGenerator rng{*(uint32_t *)(&time)};
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
     /* Find potential new curve root points. */
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
@@ -634,7 +631,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
       for (const int curve_i : range) {
         if (!curves_to_keep[curve_i]) {
@@ -724,7 +721,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
       for (const int curve_i : range) {
         if (!curves_to_keep[curve_i]) {

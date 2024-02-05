@@ -298,7 +298,7 @@ template<const ComponentAttributeProviders &providers>
 inline bool for_all(const void *owner,
                     FunctionRef<bool(const AttributeIDRef &, const AttributeMetaData &)> fn)
 {
-  Set<AttributeIDRef> handled_attribute_ids;
+  Set<AttributeIDRef, 16> handled_attribute_ids;
   for (const BuiltinAttributeProvider *provider : providers.builtin_attribute_providers().values())
   {
     if (provider->exists(owner)) {

@@ -60,8 +60,8 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
         static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
     Layer &drag_layer = drag_grease_pencil->layer->wrap();
 
-    std::string_view drag_name = drag_layer.name();
-    std::string_view drop_name = drop_tree_node_.name();
+    const StringRef drag_name = drag_layer.name();
+    const StringRef drop_name = drop_tree_node_.name();
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:

@@ -27,7 +27,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 /* confusing 2 enums mixed up here */
 const EnumPropertyItem rna_enum_window_cursor_items[] = {
@@ -209,13 +209,38 @@ static void rna_progress_end(wmWindowManager *wm)
 }
 
 /* wrap these because of 'const wmEvent *' */
-static int rna_Operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
+static int rna_Operator_confirm(bContext *C,
+                                wmOperator *op,
+                                wmEvent * /*event*/,
+                                const char *title,
+                                const char *message,
+                                const char *confirm_text,
+                                const int icon,
+                                const char *text_ctxt,
+                                const bool translate)
 {
-  return WM_operator_confirm(C, op, event);
+  title = RNA_translate_ui_text(title, text_ctxt, nullptr, nullptr, translate);
+  message = RNA_translate_ui_text(message, text_ctxt, nullptr, nullptr, translate);
+  confirm_text = RNA_translate_ui_text(confirm_text, text_ctxt, nullptr, nullptr, translate);
+  return WM_operator_confirm_ex(C, op, title, message, confirm_text, icon);
 }
+
 static int rna_Operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
   return WM_operator_props_popup(C, op, event);
+}
+
+static int rna_Operator_props_dialog_popup(bContext *C,
+                                           wmOperator *op,
+                                           const int width,
+                                           const char *title,
+                                           const char *confirm_text,
+                                           const char *text_ctxt,
+                                           const bool translate)
+{
+  title = RNA_translate_ui_text(title, text_ctxt, nullptr, nullptr, translate);
+  confirm_text = RNA_translate_ui_text(confirm_text, text_ctxt, nullptr, nullptr, translate);
+  return WM_operator_props_dialog_popup(C, op, width, title, confirm_text);
 }
 
 static int keymap_item_modifier_flag_from_args(bool any, int shift, int ctrl, int alt, int oskey)
@@ -317,7 +342,7 @@ static wmKeyMapItem *rna_KeyMap_item_new_from_item(wmKeyMap *km,
   // wmWindowManager *wm = CTX_wm_manager(C);
 
   if ((km->flag & KEYMAP_MODAL) == (kmi_src->idname[0] != '\0')) {
-    BKE_report(reports, RPT_ERROR, "Can not mix modal/non-modal items");
+    BKE_report(reports, RPT_ERROR, "Cannot mix modal/non-modal items");
     return nullptr;
   }
 
@@ -775,6 +800,15 @@ void RNA_api_window(StructRNA *srna)
   RNA_def_function_return(func, parm);
 }
 
+const EnumPropertyItem rna_operator_popup_icon_items[] = {
+    {ALERT_ICON_NONE, "NONE", 0, "None", ""},
+    {ALERT_ICON_WARNING, "WARNING", 0, "Warning", ""},
+    {ALERT_ICON_QUESTION, "QUESTION", 0, "Question", ""},
+    {ALERT_ICON_ERROR, "ERROR", 0, "Error", ""},
+    {ALERT_ICON_INFO, "INFO", 0, "Info", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 void RNA_api_wm(StructRNA *srna)
 {
   FunctionRNA *func;
@@ -859,12 +893,21 @@ void RNA_api_wm(StructRNA *srna)
   rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
 
   /* invoked dialog opens popup with OK button, does not auto-exec operator. */
-  func = RNA_def_function(srna, "invoke_props_dialog", "WM_operator_props_dialog_popup");
+  func = RNA_def_function(srna, "invoke_props_dialog", "rna_Operator_props_dialog_popup");
   RNA_def_function_ui_description(
       func,
       "Operator dialog (non-autoexec popup) invoke "
       "(show operator properties and only execute it on click on OK button)");
   rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE | WM_GEN_INVOKE_RETURN);
+
+  parm = RNA_def_property(func, "title", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(parm, "Title", "Optional text to show as title of the popup");
+  parm = RNA_def_property(func, "confirm_text", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      parm,
+      "Confirm Text",
+      "Optional text to show instead to the default \"OK\" confirmation button text");
+  api_ui_item_common_translation(func);
 
   /* invoke enum */
   func = RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
@@ -888,6 +931,24 @@ void RNA_api_wm(StructRNA *srna)
       "Operator confirmation popup "
       "(only to let user confirm the execution, no operator properties shown)");
   rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT | WM_GEN_INVOKE_RETURN);
+
+  parm = RNA_def_property(func, "title", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(parm, "Title", "Optional text to show as title of the popup");
+
+  parm = RNA_def_property(func, "message", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(parm, "Message", "Optional first line of content text");
+
+  parm = RNA_def_property(func, "confirm_text", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      parm,
+      "Confirm Text",
+      "Optional text to show instead to the default \"OK\" confirmation button text");
+
+  parm = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(parm, rna_operator_popup_icon_items);
+  RNA_def_property_ui_text(parm, "Icon", "Optional icon displayed in the dialog");
+
+  api_ui_item_common_translation(func);
 
   /* wrap UI_popup_menu_begin */
   func = RNA_def_function(srna, "popmenu_begin__internal", "rna_PopMenuBegin");

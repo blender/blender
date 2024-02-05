@@ -1240,7 +1240,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, rpt_("Type \"%s\" can not be found") % class_name)
+                    report({'ERROR'}, rpt_("Type \"%s\" cannot be found") % class_name)
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1907,7 +1907,7 @@ class WM_OT_properties_edit(Operator):
 
         item = eval("context.%s" % data_path)
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
-            self.report({'ERROR'}, "Properties from override data can not be edited")
+            self.report({'ERROR'}, "Properties from override data cannot be edited")
             return {'CANCELLED'}
 
         # Set operator's property type with the type of the existing property, to display the right settings.
@@ -2655,10 +2655,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
 
 
 class WM_OT_batch_rename(Operator):
+    """Rename multiple items at once"""
+
     bl_idname = "wm.batch_rename"
     bl_label = "Batch Rename"
 
-    bl_description = "Rename multiple items at once"
     bl_options = {'UNDO'}
 
     data_type: EnumProperty(
@@ -3228,7 +3229,7 @@ class WM_MT_splash_quick_setup(Menu):
             )
             col.operator(
                 "wm.url_open", text="See What's New...", icon='URL',
-            ).url = "https://wiki.blender.org/wiki/Reference/Release_Notes/4.0"
+            ).url = "https://developer.blender.org/docs/release_notes/%d.%d" % bpy.app.version[:2]
             col.separator(factor=2.0)
 
         if can_import:

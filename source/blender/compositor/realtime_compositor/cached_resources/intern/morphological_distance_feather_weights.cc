@@ -35,7 +35,7 @@ MorphologicalDistanceFeatherWeightsKey::MorphologicalDistanceFeatherWeightsKey(i
 
 uint64_t MorphologicalDistanceFeatherWeightsKey::hash() const
 {
-  return get_default_hash_2(type, radius);
+  return get_default_hash(type, radius);
 }
 
 bool operator==(const MorphologicalDistanceFeatherWeightsKey &a,

@@ -3,7 +3,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Header, Menu, Panel
+from bpy.types import (
+    Header,
+    Menu,
+    Panel,
+    UIList,
+)
 from bpy.app.translations import (
     pgettext_iface as iface_,
     contexts as i18n_contexts,
@@ -980,7 +985,7 @@ def draw_socket_item_in_list(uilist, layout, item, icon):
         layout.template_node_socket(color=item.color)
 
 
-class NODE_UL_simulation_zone_items(bpy.types.UIList):
+class NODE_UL_simulation_zone_items(UIList):
     def draw_item(self, context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)
 
@@ -1052,7 +1057,7 @@ class NODE_PT_simulation_zone_items(Panel):
                 layout.prop(active_item, "attribute_domain")
 
 
-class NODE_UL_repeat_zone_items(bpy.types.UIList):
+class NODE_UL_repeat_zone_items(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)
 
@@ -1122,7 +1127,7 @@ class NODE_PT_repeat_zone_items(Panel):
         layout.prop(output_node, "inspection_index")
 
 
-class NODE_UL_bake_node_items(bpy.types.UIList):
+class NODE_UL_bake_node_items(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         draw_socket_item_in_list(self, layout, item, icon)
 
@@ -1208,6 +1213,60 @@ class NODE_PT_index_switch_node_items(Panel):
             row.operator("node.index_switch_item_remove", icon='REMOVE', text="").index = i
 
 
+class NODE_UL_enum_definition_items(bpy.types.UIList):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+        layout.prop(item, "name", text="", emboss=False, icon_value=icon)
+
+
+class NODE_PT_menu_switch_items(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Node"
+    bl_label = "Menu Switch"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        if snode is None:
+            return False
+        node = context.active_node
+        if node is None or node.bl_idname != "GeometryNodeMenuSwitch":
+            return False
+        return True
+
+    def draw(self, context):
+        node = context.active_node
+        layout = self.layout
+        split = layout.row()
+        split.template_list(
+            "NODE_UL_enum_definition_items",
+            "",
+            node.enum_definition,
+            "enum_items",
+            node.enum_definition,
+            "active_index")
+
+        ops_col = split.column()
+
+        add_remove_col = ops_col.column(align=True)
+        add_remove_col.operator("node.enum_definition_item_add", icon='ADD', text="")
+        add_remove_col.operator("node.enum_definition_item_remove", icon='REMOVE', text="")
+
+        ops_col.separator()
+
+        up_down_col = ops_col.column(align=True)
+        props = up_down_col.operator("node.enum_definition_item_move", icon='TRIA_UP', text="")
+        props.direction = 'UP'
+        props = up_down_col.operator("node.enum_definition_item_move", icon='TRIA_DOWN', text="")
+        props.direction = 'DOWN'
+
+        active_item = node.enum_definition.active_item
+        if active_item is not None:
+            layout.use_property_split = True
+            layout.use_property_decorate = False
+            layout.prop(active_item, "description")
+
+
 # Grease Pencil properties
 class NODE_PT_annotation(AnnotationDataPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
@@ -1280,6 +1339,8 @@ classes = (
     NODE_PT_bake_node_items,
     NODE_PT_index_switch_node_items,
     NODE_PT_repeat_zone_items,
+    NODE_UL_enum_definition_items,
+    NODE_PT_menu_switch_items,
     NODE_PT_active_node_properties,
 
     node_panel(EEVEE_MATERIAL_PT_settings),

@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char GetShapeF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    GetShapeF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DViewShape` > :class:`GetShapeF0D`\n"
     "\n"
@@ -36,7 +38,7 @@ static char GetShapeF0D___doc__[] =
     "   :arg it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The ViewShape containing the pointed Interface0D.\n"
-    "   :rtype: :class:`freestyle.types.ViewShape`\n";
+    "   :rtype: :class:`freestyle.types.ViewShape`\n");
 
 static int GetShapeF0D___init__(BPy_GetShapeF0D *self, PyObject *args, PyObject *kwds)
 {

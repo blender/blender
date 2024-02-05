@@ -18,7 +18,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_particle.h"
 #include "BKE_screen.hh"
 #include "BKE_softbody.h"
@@ -123,4 +123,5 @@ ModifierTypeInfo modifierType_Softbody = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

@@ -10,6 +10,8 @@
 #  include "device/cuda/device_impl.h"
 #  include "device/device.h"
 
+#  include "integrator/denoiser_oidn_gpu.h"
+
 #  include "util/string.h"
 #  include "util/windows.h"
 #endif /* WITH_CUDA */
@@ -161,6 +163,12 @@ void device_cuda_info(vector<DeviceInfo> &devices)
                             (unsigned int)pci_location[0],
                             (unsigned int)pci_location[1],
                             (unsigned int)pci_location[2]);
+
+#  if defined(WITH_OPENIMAGEDENOISE)
+    if (OIDNDenoiserGPU::is_device_supported(info)) {
+      info.denoisers |= DENOISER_OPENIMAGEDENOISE;
+    }
+#  endif
 
     /* If device has a kernel timeout and no compute preemption, we assume
      * it is connected to a display and will freeze the display while doing

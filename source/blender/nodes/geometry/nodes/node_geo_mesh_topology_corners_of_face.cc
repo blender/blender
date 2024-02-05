@@ -175,7 +175,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<int> face_index = params.extract_input<Field<int>>("Face Index");
   if (params.output_is_required("Total")) {
     params.set_output("Total",
-                      Field<int>(std::make_shared<EvaluateAtIndexInput>(
+                      Field<int>(std::make_shared<bke::EvaluateAtIndexInput>(
                           face_index,
                           Field<int>(std::make_shared<CornersOfFaceCountInput>()),
                           AttrDomain::Face)));

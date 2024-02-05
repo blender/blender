@@ -11,15 +11,13 @@
 
 #include "BLI_bit_span.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_offset_span.hh"
 #include "BLI_task.hh"
 #include "BLI_unique_sorted_indices.hh"
 #include "BLI_vector.hh"
-
-namespace blender {
-template<typename T> class VArray;
-}
+#include "BLI_virtual_array_fwd.hh"
 
 namespace blender::index_mask {
 
@@ -142,8 +140,8 @@ using IndexMaskSegment = OffsetSpan<int64_t, int16_t>;
  *   various sources. Those generally need additional memory which is provided with by an
  *   #IndexMaskMemory.
  *
- *   Some of the `IndexMask::from_*` functions are have an `IndexMask universe` input. When
- *   provided, the function will only consider the indices in the "universe". The term comes from
+ *   Some of the `IndexMask::from_*` functions have an `IndexMask universe` input. When provided,
+ *   the function will only consider the indices in the "universe". The term comes from
  *   mathematics: https://en.wikipedia.org/wiki/Universe_(mathematics).
  *
  * Iteration:
@@ -188,6 +186,18 @@ class IndexMask : private IndexMaskData {
   static IndexMask from_bools(const IndexMask &universe,
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);
+  /**
+   * Construct a mask from the given segments. The provided segments are expected to be
+   * sorted and owned by #memory already.
+   */
+  static IndexMask from_segments(Span<IndexMaskSegment> segments, IndexMaskMemory &memory);
+  /**
+   * Construct a mask from some parts. This is mainly meant for more concise testing code.
+   * The individual items are unioned together.
+   */
+  using Initializer = std::variant<IndexRange, Span<int64_t>, Span<int>, int64_t>;
+  static IndexMask from_initializers(const Span<Initializer> initializers,
+                                     IndexMaskMemory &memory);
   /** Construct a mask from the union of two other masks. */
   static IndexMask from_union(const IndexMask &mask_a,
                               const IndexMask &mask_b,
@@ -221,6 +231,8 @@ class IndexMask : private IndexMaskData {
    * \return Position where the #query_index is stored, or none if the index is not in the mask.
    */
   std::optional<RawMaskIterator> find(int64_t query_index) const;
+  std::optional<RawMaskIterator> find_larger_equal(int64_t query_index) const;
+  std::optional<RawMaskIterator> find_smaller_equal(int64_t query_index) const;
   /**
    * \return True when the #query_index is stored in the mask.
    */
@@ -248,6 +260,13 @@ class IndexMask : private IndexMaskData {
    */
   IndexMask slice(IndexRange range) const;
   IndexMask slice(int64_t start, int64_t size) const;
+  IndexMask slice(RawMaskIterator first_it, RawMaskIterator last_it, int64_t size) const;
+  /**
+   * Slices the mask based on the stored indices. The resulting mask only contains the indices that
+   * are within the given range.
+   */
+  IndexMask slice_content(IndexRange range) const;
+  IndexMask slice_content(int64_t start, int64_t size) const;
   /**
    * Same as above but can also add an offset to every index in the mask.
    * Takes O(log n + range.size()) time but with a very small constant factor.
@@ -472,7 +491,7 @@ inline void init_empty_mask(IndexMaskData &data)
   data.indices_num_ = 0;
   data.segments_num_ = 0;
   data.cumulative_segment_sizes_ = cumulative_sizes_for_empty_mask;
-  /* Intentionally leave some pointer uninitialized which must not be accessed on empty masks
+  /* Intentionally leave some pointers uninitialized which must not be accessed on empty masks
    * anyway. */
 }
 

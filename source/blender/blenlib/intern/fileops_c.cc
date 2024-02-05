@@ -6,6 +6,7 @@
  * \ingroup bli
  */
 
+#include <algorithm>
 #include <cstdlib> /* malloc */
 #include <cstring>
 
@@ -106,7 +107,7 @@ int64_t BLI_read(int fd, void *buf, size_t nbytes)
                                buf,
 #ifdef WIN32
                                /* Read must not exceed INT_MAX on WIN32, clamp. */
-                               MIN2(nbytes, INT_MAX)
+                               std::min<size_t>(nbytes, INT_MAX)
 #else
                                nbytes
 #endif
@@ -535,7 +536,7 @@ void BLI_get_short_name(char short_name[256], const char *filepath)
   GetShortPathNameW(filepath_16, short_name_16, 256);
 
   for (i = 0; i < 256; i++) {
-    short_name[i] = (char)short_name_16[i];
+    short_name[i] = char(short_name_16[i]);
   }
 
   UTF16_UN_ENCODE(filepath);
@@ -857,44 +858,95 @@ enum {
 
 typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
 
-/**
- * Append `file` to `dir` (ensures for buffer size before appending).
- * \param dst: The destination memory (allocated by `malloc`).
- */
-static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, const char *file)
+[[maybe_unused]] static bool path_has_trailing_slash(const char *path)
 {
-  size_t len = strlen(dir) + strlen(file) + 1;
-
-  if (*dst == nullptr) {
-    *dst = static_cast<char *>(malloc(len + 1));
+  const int path_len = strlen(path);
+  if (path_len == 0) {
+    return false;
   }
-  else if (*alloc_len < len) {
-    *dst = static_cast<char *>(realloc(*dst, len + 1));
+  return BLI_path_slash_is_native_compat(path[path_len - 1]);
+}
+
+static size_t path_len_no_trailing_slash(const char *path)
+{
+  int len = strlen(path);
+  int len_found = len;
+  while (len) {
+    len--;
+    if (!BLI_path_slash_is_native_compat(path[len])) {
+      break;
+    }
+    len_found = len;
   }
+  return len_found;
+}
 
-  *alloc_len = len;
+/* -------------------------------------------------------------------- */
+/** \name Simple String Buffer
+ * \{ */
 
-  BLI_path_join(*dst, len + 1, dir, file);
+/**
+ * Simple string buffer type, needed when guarded-malloc can't be used.
+ */
+struct StrBuf {
+  char *str;
+  size_t str_len;
+  size_t str_len_alloc;
+};
+
+static void strbuf_init(StrBuf *buf, const char *str, size_t str_len, size_t str_len_alloc)
+{
+  str_len_alloc = std::max(str_len + 1, str_len_alloc);
+  buf->str = static_cast<char *>(malloc(str_len_alloc));
+  memcpy(buf->str, str, str_len);
+  buf->str[str_len] = '\0';
+  buf->str_len = str_len;
+  buf->str_len_alloc = str_len_alloc;
+}
+
+static void strbuf_free(StrBuf *buf)
+{
+  free(buf->str);
 }
 
 /**
- * Scans \a startfrom, generating a corresponding destination name for each item found by
- * prefixing it with startto, recursively scanning subdirectories, and invoking the specified
- * callbacks for files and subdirectories found as appropriate.
- *
- * \param startfrom: Top-level source path.
- * \param startto: Top-level destination path.
- * \param callback_dir_pre: Optional, to be invoked before entering a subdirectory, can return
- *                          RecursiveOp_Callback_StopRecurs to skip the subdirectory.
- * \param callback_file: Optional, to be invoked on each file found.
- * \param callback_dir_post: optional, to be invoked after leaving a subdirectory.
- * \return Zero on success.
+ * Appending of filename to dir (ensures for buffer size before appending).
  */
-static int recursive_operation(const char *startfrom,
-                               const char *startto,
-                               RecursiveOp_Callback callback_dir_pre,
-                               RecursiveOp_Callback callback_file,
-                               RecursiveOp_Callback callback_dir_post)
+static void strbuf_append_path(StrBuf *buf, const char *filename)
+{
+  BLI_assert(strlen(buf->str) == buf->str_len);
+  BLI_assert(!path_has_trailing_slash(buf->str));
+  bool has_slash = (buf->str_len > 0 &&
+                    BLI_path_slash_is_native_compat(buf->str[buf->str_len - 1]));
+  const size_t filename_len = strlen(filename);
+  const size_t len = buf->str_len + (has_slash ? 0 : 1) + filename_len;
+
+  if (buf->str_len_alloc < len) {
+    buf->str = static_cast<char *>(realloc(static_cast<void *>(buf->str), len + 1));
+    buf->str_len_alloc = len;
+  }
+  if (has_slash == false) {
+    buf->str[buf->str_len++] = SEP;
+  }
+  memcpy(buf->str + buf->str_len, filename, filename_len + 1);
+  buf->str_len += filename_len;
+  BLI_assert(buf->str_len <= buf->str_len_alloc);
+}
+
+static void strbuf_trim(StrBuf *buf, size_t len)
+{
+  BLI_assert(len <= buf->str_len);
+  buf->str_len = len;
+  buf->str[len] = '\0';
+}
+
+/** \} */
+
+static int recursive_operation_impl(StrBuf *src_buf,
+                                    StrBuf *dst_buf,
+                                    RecursiveOp_Callback callback_dir_pre,
+                                    RecursiveOp_Callback callback_file,
+                                    RecursiveOp_Callback callback_dir_post)
 {
   /* NOTE(@ideasman42): This function must *not* use any `MEM_*` functions
    * as it's used to purge temporary files on when the processed is aborted,
@@ -902,24 +954,18 @@ static int recursive_operation(const char *startfrom,
    * causing freed memory access, potentially crashing. This constraint doesn't apply to the
    * callbacks themselves - unless they might also be called when aborting. */
   struct stat st;
-  char *from = nullptr, *to = nullptr;
-  char *from_path = nullptr, *to_path = nullptr;
-  size_t from_alloc_len = -1, to_alloc_len = -1;
   int ret = 0;
 
   dirent **dirlist = nullptr;
   int dirlist_num = 0;
 
-  do { /* once */
-    /* ensure there's no trailing slash in file path */
-    from = strdup(startfrom);
-    BLI_path_slash_rstrip(from);
-    if (startto) {
-      to = strdup(startto);
-      BLI_path_slash_rstrip(to);
-    }
+  /* Check there's no trailing slash in file paths. */
+  BLI_assert(!path_has_trailing_slash(src_buf->str));
+  BLI_assert(!(dst_buf && path_has_trailing_slash(dst_buf->str)));
 
-    ret = lstat(from, &st);
+  do { /* once */
+
+    ret = lstat(src_buf->str, &st);
     if (ret < 0) {
       /* source wasn't found, nothing to operate with */
       break;
@@ -929,7 +975,7 @@ static int recursive_operation(const char *startfrom,
       /* source isn't a directory, can't do recursive walking for it,
        * so just call file callback and leave */
       if (callback_file != nullptr) {
-        ret = callback_file(from, to);
+        ret = callback_file(src_buf->str, dst_buf ? dst_buf->str : nullptr);
         if (ret != RecursiveOp_Callback_OK) {
           ret = -1;
         }
@@ -937,7 +983,7 @@ static int recursive_operation(const char *startfrom,
       break;
     }
 
-    dirlist_num = scandir(startfrom, &dirlist, nullptr, alphasort);
+    dirlist_num = scandir(src_buf->str, &dirlist, nullptr, alphasort);
     if (dirlist_num < 0) {
       /* error opening directory for listing */
       perror("scandir");
@@ -946,7 +992,7 @@ static int recursive_operation(const char *startfrom,
     }
 
     if (callback_dir_pre != nullptr) {
-      ret = callback_dir_pre(from, to);
+      ret = callback_dir_pre(src_buf->str, dst_buf ? dst_buf->str : nullptr);
       if (ret != RecursiveOp_Callback_OK) {
         if (ret == RecursiveOp_Callback_StopRecurs) {
           /* callback requested not to perform recursive walking, not an error */
@@ -958,6 +1004,8 @@ static int recursive_operation(const char *startfrom,
         break;
       }
     }
+    const size_t src_len = src_buf->str_len;
+    const size_t dst_len = dst_buf ? dst_buf->str_len : 0;
 
     for (int i = 0; i < dirlist_num; i++) {
       const dirent *const dirent = dirlist[i];
@@ -966,9 +1014,9 @@ static int recursive_operation(const char *startfrom,
         continue;
       }
 
-      join_dirfile_alloc(&from_path, &from_alloc_len, from, dirent->d_name);
-      if (to) {
-        join_dirfile_alloc(&to_path, &to_alloc_len, to, dirent->d_name);
+      strbuf_append_path(src_buf, dirent->d_name);
+      if (dst_buf) {
+        strbuf_append_path(dst_buf, dirent->d_name);
       }
 
       bool is_dir;
@@ -976,7 +1024,7 @@ static int recursive_operation(const char *startfrom,
 #  ifdef __HAIKU__
       {
         struct stat st_dir;
-        lstat(from_path, &st_dir);
+        lstat(src_buf->str, &st_dir);
         is_dir = S_ISDIR(st_dir.st_mode);
       }
 #  else
@@ -985,14 +1033,18 @@ static int recursive_operation(const char *startfrom,
 
       if (is_dir) {
         /* Recurse into sub-directories. */
-        ret = recursive_operation(
-            from_path, to_path, callback_dir_pre, callback_file, callback_dir_post);
+        ret = recursive_operation_impl(
+            src_buf, dst_buf, callback_dir_pre, callback_file, callback_dir_post);
       }
       else if (callback_file != nullptr) {
-        ret = callback_file(from_path, to_path);
+        ret = callback_file(src_buf->str, dst_buf ? dst_buf->str : nullptr);
         if (ret != RecursiveOp_Callback_OK) {
           ret = -1;
         }
+      }
+      strbuf_trim(src_buf, src_len);
+      if (dst_buf) {
+        strbuf_trim(dst_buf, dst_len);
       }
 
       if (ret != 0) {
@@ -1004,7 +1056,7 @@ static int recursive_operation(const char *startfrom,
     }
 
     if (callback_dir_post != nullptr) {
-      ret = callback_dir_post(from, to);
+      ret = callback_dir_post(src_buf->str, dst_buf ? dst_buf->str : nullptr);
       if (ret != RecursiveOp_Callback_OK) {
         ret = -1;
       }
@@ -1017,20 +1069,54 @@ static int recursive_operation(const char *startfrom,
     }
     free(dirlist);
   }
-  if (from_path != nullptr) {
-    free(from_path);
-  }
-  if (to_path != nullptr) {
-    free(to_path);
-  }
-  if (from != nullptr) {
-    free(from);
-  }
-  if (to != nullptr) {
-    free(to);
-  }
 
   return ret;
+}
+
+/**
+ * Scans \a path_src, generating a corresponding destination name for each item found by
+ * prefixing it with path_dst, recursively scanning subdirectories, and invoking the specified
+ * callbacks for files and subdirectories found as appropriate.
+ *
+ * \param path_src: Top-level source path.
+ * \param path_dst: Top-level destination path.
+ * \param callback_dir_pre: Optional, to be invoked before entering a subdirectory,
+ * can return #RecursiveOp_Callback_StopRecurs to skip the subdirectory.
+ * \param callback_file: Optional, to be invoked on each file found.
+ * \param callback_dir_post: Optional, to be invoked after leaving a subdirectory.
+ * \return Zero on success.
+ */
+static int recursive_operation(const char *path_src,
+                               const char *path_dst,
+                               RecursiveOp_Callback callback_dir_pre,
+                               RecursiveOp_Callback callback_file,
+                               RecursiveOp_Callback callback_dir_post)
+
+{
+  StrBuf src_buf_stack = {};
+  StrBuf dst_buf_stack = {};
+  StrBuf *src_buf = &src_buf_stack;
+  StrBuf *dst_buf = path_dst ? &dst_buf_stack : nullptr;
+#  ifndef NDEBUG
+  /* Don't over allocate to ensure resizing works as expected. */
+  const size_t str_len_over_alloc = 0;
+#  else
+  const size_t str_len_over_alloc = FILE_MAX;
+#  endif
+
+  strbuf_init(src_buf, path_src, path_len_no_trailing_slash(path_src), str_len_over_alloc);
+  if (dst_buf) {
+    strbuf_init(dst_buf, path_dst, path_len_no_trailing_slash(path_dst), str_len_over_alloc);
+  }
+
+  const int result = recursive_operation_impl(
+      src_buf, dst_buf, callback_dir_pre, callback_file, callback_dir_post);
+
+  strbuf_free(src_buf);
+  if (dst_buf) {
+    strbuf_free(dst_buf);
+  }
+  return result;
 }
 
 static int delete_callback_post(const char *from, const char * /*to*/)

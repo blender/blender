@@ -10,7 +10,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"

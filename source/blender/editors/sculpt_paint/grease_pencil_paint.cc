@@ -21,6 +21,8 @@
 #include "ED_grease_pencil.hh"
 #include "ED_view3d.hh"
 
+#include "GEO_smooth_curves.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -278,13 +280,13 @@ struct PaintOperationExecutor {
      * stable) fit. */
     Array<float2> coords_pre_blur(smooth_window.size());
     const int pre_blur_iterations = 3;
-    ed::greasepencil::gaussian_blur_1D(coords_to_smooth,
-                                       pre_blur_iterations,
-                                       settings_->active_smooth,
-                                       true,
-                                       true,
-                                       false,
-                                       coords_pre_blur.as_mutable_span());
+    geometry::gaussian_blur_1D(coords_to_smooth,
+                               pre_blur_iterations,
+                               settings_->active_smooth,
+                               true,
+                               true,
+                               false,
+                               coords_pre_blur.as_mutable_span());
 
     /* Curve fitting. The output will be a set of handles (float2 triplets) in a flat array. */
     const float max_error_threshold_px = 5.0f;

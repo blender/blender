@@ -47,16 +47,17 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
@@ -65,8 +66,6 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "PIL_time.h"
 
 static CLG_LogRef LOG = {"bke.softbody"};
 
@@ -3358,7 +3357,7 @@ static void softbody_step(
   float forcetime;
   double sct, sst;
 
-  sst = PIL_check_seconds_timer();
+  sst = BLI_check_seconds_timer();
   /* Integration back in time is possible in theory, but pretty useless here.
    * So we refuse to do so. Since we do not know anything about 'outside' changes
    * especially colliders we refuse to go more than 10 frames.
@@ -3454,7 +3453,7 @@ static void softbody_step(
       }
       loops++;
       if (sb->solverflags & SBSO_MONITOR) {
-        sct = PIL_check_seconds_timer();
+        sct = BLI_check_seconds_timer();
         if (sct - sst > 0.5) {
           printf("%3.0f%% \r", 100.0f * timedone / dtime);
         }
@@ -3495,7 +3494,7 @@ static void softbody_step(
   }
 
   if (sb->solverflags & SBSO_MONITOR) {
-    sct = PIL_check_seconds_timer();
+    sct = BLI_check_seconds_timer();
     if ((sct - sst > 0.5) || (G.debug & G_DEBUG)) {
       printf(" solver time %f sec %s\n", sct - sst, ob->id.name);
     }

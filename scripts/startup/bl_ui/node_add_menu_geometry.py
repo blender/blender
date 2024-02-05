@@ -543,10 +543,11 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.separator()
+        node_add_menu.add_node_type(layout, "GeometryNodeIndexSwitch")
+        node_add_menu.add_node_type(layout, "GeometryNodeMenuSwitch")
         node_add_menu.add_node_type(layout, "FunctionNodeRandomValue")
         node_add_menu.add_repeat_zone(layout, label="Repeat Zone")
         node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
-        node_add_menu.add_node_type(layout, "GeometryNodeIndexSwitch")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
@@ -572,7 +573,7 @@ class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeAxisAngleToRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeEulerToRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeInvertRotation")
-        node_add_menu.add_node_type(layout, "FunctionNodeRotateEuler")
+        node_add_menu.add_node_type(layout, "FunctionNodeRotateRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeRotateVector")
         node_add_menu.add_node_type(layout, "FunctionNodeRotationToAxisAngle")
         node_add_menu.add_node_type(layout, "FunctionNodeRotationToEuler")

@@ -8,7 +8,7 @@
 
 #include "BLI_assert.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "COM_shader_node.hh"
 

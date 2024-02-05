@@ -15,8 +15,6 @@
 #include <pxr/usd/usdVol/openVDBAsset.h>
 #include <pxr/usd/usdVol/volume.h>
 
-#include <iostream>
-
 namespace usdtokens {
 
 static const pxr::TfToken density("density", pxr::TfToken::Immortal);

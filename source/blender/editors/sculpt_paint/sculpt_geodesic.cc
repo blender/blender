@@ -168,7 +168,7 @@ static float *geodesic_mesh_create(Object *ob, GSet *initial_verts, const float 
 
       if (dists[v1] == FLT_MAX || dists[v2] == FLT_MAX) {
         if (dists[v1] > dists[v2]) {
-          SWAP(int, v1, v2);
+          std::swap(v1, v2);
         }
         sculpt_geodesic_mesh_test_dist_add(
             vert_positions, v2, v1, SCULPT_GEODESIC_VERTEX_NONE, dists, initial_verts);

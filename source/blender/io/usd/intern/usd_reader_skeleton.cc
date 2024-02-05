@@ -16,8 +16,6 @@
 
 #include "WM_api.hh"
 
-#include <iostream>
-
 namespace blender::io::usd {
 
 bool USDSkeletonReader::valid() const

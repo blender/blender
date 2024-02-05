@@ -70,6 +70,7 @@ static const PyC_StringEnumItems pygpu_state_faceculling_items[] = {
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     pygpu_state_blend_set_doc,
     ".. function:: blend_set(mode)\n"
     "\n"
@@ -101,24 +102,28 @@ static PyObject *pygpu_state_blend_set(PyObject * /*self*/, PyObject *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_blend_get_doc,
-             ".. function:: blend_get()\n"
-             "\n"
-             "    Current blending equation.\n"
-             "\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_blend_get_doc,
+    ".. function:: blend_get()\n"
+    "\n"
+    "    Current blending equation.\n"
+    "\n");
 static PyObject *pygpu_state_blend_get(PyObject * /*self*/)
 {
   eGPUBlend blend = GPU_blend_get();
   return PyUnicode_FromString(PyC_StringEnum_FindIDFromValue(pygpu_state_blend_items, blend));
 }
 
-PyDoc_STRVAR(pygpu_state_clip_distances_set_doc,
-             ".. function:: clip_distances_set(distances_enabled)\n"
-             "\n"
-             "   Sets the number of `gl_ClipDistance` planes used for clip geometry.\n"
-             "\n"
-             "   :arg distances_enabled: Number of clip distances enabled.\n"
-             "   :type distances_enabled: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_clip_distances_set_doc,
+    ".. function:: clip_distances_set(distances_enabled)\n"
+    "\n"
+    "   Sets the number of `gl_ClipDistance` planes used for clip geometry.\n"
+    "\n"
+    "   :arg distances_enabled: Number of clip distances enabled.\n"
+    "   :type distances_enabled: int\n");
 static PyObject *pygpu_state_clip_distances_set(PyObject * /*self*/, PyObject *value)
 {
   int distances_enabled = int(PyLong_AsUnsignedLong(value));
@@ -134,15 +139,17 @@ static PyObject *pygpu_state_clip_distances_set(PyObject * /*self*/, PyObject *v
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_depth_test_set_doc,
-             ".. function:: depth_test_set(mode)\n"
-             "\n"
-             "   Defines the depth_test equation.\n"
-             "\n"
-             "   :arg mode: The depth test equation name.\n"
-             "      Possible values are `NONE`, `ALWAYS`, `LESS`, `LESS_EQUAL`, `EQUAL`, "
-             "`GREATER` and `GREATER_EQUAL`.\n"
-             "   :type mode: str\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_depth_test_set_doc,
+    ".. function:: depth_test_set(mode)\n"
+    "\n"
+    "   Defines the depth_test equation.\n"
+    "\n"
+    "   :arg mode: The depth test equation name.\n"
+    "      Possible values are `NONE`, `ALWAYS`, `LESS`, `LESS_EQUAL`, `EQUAL`, "
+    "`GREATER` and `GREATER_EQUAL`.\n"
+    "   :type mode: str\n");
 static PyObject *pygpu_state_depth_test_set(PyObject * /*self*/, PyObject *value)
 {
   PyC_StringEnum pygpu_depth_test = {pygpu_state_depthtest_items};
@@ -153,24 +160,28 @@ static PyObject *pygpu_state_depth_test_set(PyObject * /*self*/, PyObject *value
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_depth_test_get_doc,
-             ".. function:: depth_test_get()\n"
-             "\n"
-             "    Current depth_test equation.\n"
-             "\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_depth_test_get_doc,
+    ".. function:: depth_test_get()\n"
+    "\n"
+    "    Current depth_test equation.\n"
+    "\n");
 static PyObject *pygpu_state_depth_test_get(PyObject * /*self*/)
 {
   eGPUDepthTest test = GPU_depth_test_get();
   return PyUnicode_FromString(PyC_StringEnum_FindIDFromValue(pygpu_state_depthtest_items, test));
 }
 
-PyDoc_STRVAR(pygpu_state_depth_mask_set_doc,
-             ".. function:: depth_mask_set(value)\n"
-             "\n"
-             "   Write to depth component.\n"
-             "\n"
-             "   :arg value: True for writing to the depth component.\n"
-             "   :type near: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_depth_mask_set_doc,
+    ".. function:: depth_mask_set(value)\n"
+    "\n"
+    "   Write to depth component.\n"
+    "\n"
+    "   :arg value: True for writing to the depth component.\n"
+    "   :type near: bool\n");
 static PyObject *pygpu_state_depth_mask_set(PyObject * /*self*/, PyObject *value)
 {
   bool write_to_depth;
@@ -181,25 +192,29 @@ static PyObject *pygpu_state_depth_mask_set(PyObject * /*self*/, PyObject *value
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_depth_mask_get_doc,
-             ".. function:: depth_mask_get()\n"
-             "\n"
-             "   Writing status in the depth component.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_depth_mask_get_doc,
+    ".. function:: depth_mask_get()\n"
+    "\n"
+    "   Writing status in the depth component.\n");
 static PyObject *pygpu_state_depth_mask_get(PyObject * /*self*/)
 {
   return PyBool_FromLong(GPU_depth_mask_get());
 }
 
-PyDoc_STRVAR(pygpu_state_viewport_set_doc,
-             ".. function:: viewport_set(x, y, xsize, ysize)\n"
-             "\n"
-             "   Specifies the viewport of the active framebuffer.\n"
-             "   Note: The viewport state is not saved upon framebuffer rebind.\n"
-             "\n"
-             "   :arg x, y: lower left corner of the viewport_set rectangle, in pixels.\n"
-             "   :type x, y: int\n"
-             "   :arg xsize, ysize: width and height of the viewport_set.\n"
-             "   :type xsize, ysize: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_viewport_set_doc,
+    ".. function:: viewport_set(x, y, xsize, ysize)\n"
+    "\n"
+    "   Specifies the viewport of the active framebuffer.\n"
+    "   Note: The viewport state is not saved upon framebuffer rebind.\n"
+    "\n"
+    "   :arg x, y: lower left corner of the viewport_set rectangle, in pixels.\n"
+    "   :type x, y: int\n"
+    "   :arg xsize, ysize: width and height of the viewport_set.\n"
+    "   :type xsize, ysize: int\n");
 static PyObject *pygpu_state_viewport_set(PyObject * /*self*/, PyObject *args)
 {
   int x, y, xsize, ysize;
@@ -211,10 +226,12 @@ static PyObject *pygpu_state_viewport_set(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_viewport_get_doc,
-             ".. function:: viewport_get()\n"
-             "\n"
-             "   Viewport of the active framebuffer.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_viewport_get_doc,
+    ".. function:: viewport_get()\n"
+    "\n"
+    "   Viewport of the active framebuffer.\n");
 static PyObject *pygpu_state_viewport_get(PyObject * /*self*/, PyObject * /*args*/)
 {
   int viewport[4];
@@ -229,16 +246,18 @@ static PyObject *pygpu_state_viewport_get(PyObject * /*self*/, PyObject * /*args
   return ret;
 }
 
-PyDoc_STRVAR(pygpu_state_scissor_set_doc,
-             ".. function:: scissor_set(x, y, xsize, ysize)\n"
-             "\n"
-             "   Specifies the scissor area of the active framebuffer.\n"
-             "   Note: The scissor state is not saved upon framebuffer rebind.\n"
-             "\n"
-             "   :arg x, y: lower left corner of the scissor rectangle, in pixels.\n"
-             "   :type x, y: int\n"
-             "   :arg xsize, ysize: width and height of the scissor rectangle.\n"
-             "   :type xsize, ysize: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_scissor_set_doc,
+    ".. function:: scissor_set(x, y, xsize, ysize)\n"
+    "\n"
+    "   Specifies the scissor area of the active framebuffer.\n"
+    "   Note: The scissor state is not saved upon framebuffer rebind.\n"
+    "\n"
+    "   :arg x, y: lower left corner of the scissor rectangle, in pixels.\n"
+    "   :type x, y: int\n"
+    "   :arg xsize, ysize: width and height of the scissor rectangle.\n"
+    "   :type xsize, ysize: int\n");
 static PyObject *pygpu_state_scissor_set(PyObject * /*self*/, PyObject *args)
 {
   int x, y, xsize, ysize;
@@ -250,17 +269,19 @@ static PyObject *pygpu_state_scissor_set(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_scissor_get_doc,
-             ".. function:: scissor_get()\n"
-             "\n"
-             "   Retrieve the scissors of the active framebuffer.\n"
-             "   Note: Only valid between 'scissor_set' and a framebuffer rebind.\n"
-             "\n"
-             "   :return: The scissor of the active framebuffer as a tuple\n"
-             "        (x, y, xsize, ysize).\n"
-             "        x, y: lower left corner of the scissor rectangle, in pixels.\n"
-             "        xsize, ysize: width and height of the scissor rectangle.\n"
-             "   :rtype: tuple(int, int, int, int)\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_scissor_get_doc,
+    ".. function:: scissor_get()\n"
+    "\n"
+    "   Retrieve the scissors of the active framebuffer.\n"
+    "   Note: Only valid between 'scissor_set' and a framebuffer rebind.\n"
+    "\n"
+    "   :return: The scissor of the active framebuffer as a tuple\n"
+    "        (x, y, xsize, ysize).\n"
+    "        x, y: lower left corner of the scissor rectangle, in pixels.\n"
+    "        xsize, ysize: width and height of the scissor rectangle.\n"
+    "   :rtype: tuple(int, int, int, int)\n");
 static PyObject *pygpu_state_scissor_get(PyObject * /*self*/, PyObject * /*args*/)
 {
   int scissor[4];
@@ -275,15 +296,17 @@ static PyObject *pygpu_state_scissor_get(PyObject * /*self*/, PyObject * /*args*
   return ret;
 }
 
-PyDoc_STRVAR(pygpu_state_scissor_test_set_doc,
-             ".. function:: scissor_test_set(enable)\n"
-             "\n"
-             "   Enable/disable scissor testing on the active framebuffer.\n"
-             "\n"
-             "   :arg enable:\n"
-             "        True - enable scissor testing.\n"
-             "        False - disable scissor testing.\n"
-             "   :type enable: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_scissor_test_set_doc,
+    ".. function:: scissor_test_set(enable)\n"
+    "\n"
+    "   Enable/disable scissor testing on the active framebuffer.\n"
+    "\n"
+    "   :arg enable:\n"
+    "        True - enable scissor testing.\n"
+    "        False - disable scissor testing.\n"
+    "   :type enable: bool\n");
 static PyObject *pygpu_state_scissor_test_set(PyObject * /*self*/, PyObject *value)
 {
   bool enabled;
@@ -295,13 +318,15 @@ static PyObject *pygpu_state_scissor_test_set(PyObject * /*self*/, PyObject *val
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_line_width_set_doc,
-             ".. function:: line_width_set(width)\n"
-             "\n"
-             "   Specify the width of rasterized lines.\n"
-             "\n"
-             "   :arg size: New width.\n"
-             "   :type mode: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_line_width_set_doc,
+    ".. function:: line_width_set(width)\n"
+    "\n"
+    "   Specify the width of rasterized lines.\n"
+    "\n"
+    "   :arg size: New width.\n"
+    "   :type mode: float\n");
 static PyObject *pygpu_state_line_width_set(PyObject * /*self*/, PyObject *value)
 {
   float width = float(PyFloat_AsDouble(value));
@@ -313,23 +338,27 @@ static PyObject *pygpu_state_line_width_set(PyObject * /*self*/, PyObject *value
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_line_width_get_doc,
-             ".. function:: line_width_get()\n"
-             "\n"
-             "   Current width of rasterized lines.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_line_width_get_doc,
+    ".. function:: line_width_get()\n"
+    "\n"
+    "   Current width of rasterized lines.\n");
 static PyObject *pygpu_state_line_width_get(PyObject * /*self*/)
 {
   float width = GPU_line_width_get();
   return PyFloat_FromDouble(double(width));
 }
 
-PyDoc_STRVAR(pygpu_state_point_size_set_doc,
-             ".. function:: point_size_set(size)\n"
-             "\n"
-             "   Specify the diameter of rasterized points.\n"
-             "\n"
-             "   :arg size: New diameter.\n"
-             "   :type mode: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_point_size_set_doc,
+    ".. function:: point_size_set(size)\n"
+    "\n"
+    "   Specify the diameter of rasterized points.\n"
+    "\n"
+    "   :arg size: New diameter.\n"
+    "   :type mode: float\n");
 static PyObject *pygpu_state_point_size_set(PyObject * /*self*/, PyObject *value)
 {
   float size = float(PyFloat_AsDouble(value));
@@ -341,13 +370,15 @@ static PyObject *pygpu_state_point_size_set(PyObject * /*self*/, PyObject *value
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_color_mask_set_doc,
-             ".. function:: color_mask_set(r, g, b, a)\n"
-             "\n"
-             "   Enable or disable writing of frame buffer color components.\n"
-             "\n"
-             "   :arg r, g, b, a: components red, green, blue, and alpha.\n"
-             "   :type r, g, b, a: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_color_mask_set_doc,
+    ".. function:: color_mask_set(r, g, b, a)\n"
+    "\n"
+    "   Enable or disable writing of frame buffer color components.\n"
+    "\n"
+    "   :arg r, g, b, a: components red, green, blue, and alpha.\n"
+    "   :type r, g, b, a: bool\n");
 static PyObject *pygpu_state_color_mask_set(PyObject * /*self*/, PyObject *args)
 {
   int r, g, b, a;
@@ -359,13 +390,15 @@ static PyObject *pygpu_state_color_mask_set(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_face_culling_set_doc,
-             ".. function:: face_culling_set(culling)\n"
-             "\n"
-             "   Specify whether none, front-facing or back-facing facets can be culled.\n"
-             "\n"
-             "   :arg mode: `NONE`, `FRONT` or `BACK`.\n"
-             "   :type mode: str\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_face_culling_set_doc,
+    ".. function:: face_culling_set(culling)\n"
+    "\n"
+    "   Specify whether none, front-facing or back-facing facets can be culled.\n"
+    "\n"
+    "   :arg mode: `NONE`, `FRONT` or `BACK`.\n"
+    "   :type mode: str\n");
 static PyObject *pygpu_state_face_culling_set(PyObject * /*self*/, PyObject *value)
 {
   PyC_StringEnum pygpu_faceculling = {pygpu_state_faceculling_items};
@@ -377,13 +410,15 @@ static PyObject *pygpu_state_face_culling_set(PyObject * /*self*/, PyObject *val
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_front_facing_set_doc,
-             ".. function:: front_facing_set(invert)\n"
-             "\n"
-             "   Specifies the orientation of front-facing polygons.\n"
-             "\n"
-             "   :arg invert: True for clockwise polygons as front-facing.\n"
-             "   :type mode: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_front_facing_set_doc,
+    ".. function:: front_facing_set(invert)\n"
+    "\n"
+    "   Specifies the orientation of front-facing polygons.\n"
+    "\n"
+    "   :arg invert: True for clockwise polygons as front-facing.\n"
+    "   :type mode: bool\n");
 static PyObject *pygpu_state_front_facing_set(PyObject * /*self*/, PyObject *value)
 {
   bool invert;
@@ -395,14 +430,16 @@ static PyObject *pygpu_state_front_facing_set(PyObject * /*self*/, PyObject *val
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_program_point_size_set_doc,
-             ".. function:: program_point_size_set(enable)\n"
-             "\n"
-             "   If enabled, the derived point size is taken from the (potentially clipped) "
-             "shader builtin gl_PointSize.\n"
-             "\n"
-             "   :arg enable: True for shader builtin gl_PointSize.\n"
-             "   :type enable: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_program_point_size_set_doc,
+    ".. function:: program_point_size_set(enable)\n"
+    "\n"
+    "   If enabled, the derived point size is taken from the (potentially clipped) "
+    "shader builtin gl_PointSize.\n"
+    "\n"
+    "   :arg enable: True for shader builtin gl_PointSize.\n"
+    "   :type enable: bool\n");
 static PyObject *pygpu_state_program_point_size_set(PyObject * /*self*/, PyObject *value)
 {
   bool enable;
@@ -414,10 +451,12 @@ static PyObject *pygpu_state_program_point_size_set(PyObject * /*self*/, PyObjec
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_state_framebuffer_active_get_doc,
-             ".. function:: framebuffer_active_get(enable)\n"
-             "\n"
-             "   Return the active frame-buffer in context.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state_framebuffer_active_get_doc,
+    ".. function:: framebuffer_active_get(enable)\n"
+    "\n"
+    "   Return the active frame-buffer in context.\n");
 static PyObject *pygpu_state_framebuffer_active_get(PyObject * /*self*/)
 {
   GPUFrameBuffer *fb = GPU_framebuffer_active_get();
@@ -518,7 +557,10 @@ static PyMethodDef pygpu_state__tp_methods[] = {
 #  pragma GCC diagnostic pop
 #endif
 
-PyDoc_STRVAR(pygpu_state__tp_doc, "This module provides access to the gpu state.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_state__tp_doc,
+    "This module provides access to the gpu state.");
 static PyModuleDef pygpu_state_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.state",

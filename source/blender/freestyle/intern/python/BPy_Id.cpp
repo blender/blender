@@ -37,6 +37,7 @@ int Id_Init(PyObject *module)
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Id_doc,
     "Class for representing an object Id.\n"
     "\n"
@@ -107,10 +108,12 @@ static PyObject *Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
 
 /*----------------------Id get/setters ----------------------------*/
 
-PyDoc_STRVAR(Id_first_doc,
-             "The first number constituting the Id.\n"
-             "\n"
-             ":type: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Id_first_doc,
+    "The first number constituting the Id.\n"
+    "\n"
+    ":type: int");
 
 static PyObject *Id_first_get(BPy_Id *self, void * /*closure*/)
 {
@@ -128,10 +131,12 @@ static int Id_first_set(BPy_Id *self, PyObject *value, void * /*closure*/)
   return 0;
 }
 
-PyDoc_STRVAR(Id_second_doc,
-             "The second number constituting the Id.\n"
-             "\n"
-             ":type: int");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Id_second_doc,
+    "The second number constituting the Id.\n"
+    "\n"
+    ":type: int");
 
 static PyObject *Id_second_get(BPy_Id *self, void * /*closure*/)
 {

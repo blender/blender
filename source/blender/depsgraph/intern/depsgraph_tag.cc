@@ -30,7 +30,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.h"
@@ -507,6 +507,41 @@ void deg_graph_node_tag_zero(Main *bmain,
   deg_graph_id_tag_legacy_compat(bmain, graph, id, (IDRecalcFlag)0, update_source);
 }
 
+/* Implicit tagging of the parameters component on other changes.
+ *
+ * This takes care of ensuring that if a change made in C side on parameters which affect,
+ * say, geometry and explicit tag only done for geometry, parameters are also tagged to give
+ * drivers a chance to re-evaluate for the new values. */
+void deg_graph_tag_parameters_if_needed(Main *bmain,
+                                        Depsgraph *graph,
+                                        ID *id,
+                                        IDNode *id_node,
+                                        const uint flags,
+                                        const eUpdateSource update_source)
+{
+  if (flags == 0) {
+    /* Tagging for 0 flags is handled in deg_graph_node_tag_zero(), and parameters are handled
+     * there as well. */
+    return;
+  }
+
+  if (flags & ID_RECALC_PARAMETERS) {
+    /* Parameters are already tagged for update explicitly, no need to run extra logic here. */
+    return;
+  }
+
+  /* Clear flags which are known to not affect parameters usable by drivers. */
+  const uint clean_flags = flags &
+                           ~(ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT | ID_RECALC_BASE_FLAGS);
+
+  if (clean_flags == 0) {
+    /* Changes are limited to only things which are not usable by drivers. */
+    return;
+  }
+
+  graph_id_tag_update_single_flag(bmain, graph, id, id_node, ID_RECALC_PARAMETERS, update_source);
+}
+
 void graph_tag_on_visible_update(Depsgraph *graph, const bool do_time)
 {
   graph->need_tag_id_on_graph_visibility_update = true;
@@ -709,6 +744,7 @@ void graph_id_tag_update(
     graph_id_tag_update_single_flag(
         bmain, graph, id, id_node, ID_RECALC_POINT_CACHE, update_source);
   }
+  deg_graph_tag_parameters_if_needed(bmain, graph, id, id_node, flags, update_source);
 }
 
 }  // namespace blender::deg

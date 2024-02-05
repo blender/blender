@@ -394,6 +394,9 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       else if (dynamic_cast<const decl::String *>(&socket_decl)) {
         item.socket_type = SOCK_STRING;
       }
+      else if (dynamic_cast<const decl::Menu *>(&socket_decl)) {
+        item.socket_type = SOCK_MENU;
+      }
       else if (dynamic_cast<const decl::Image *>(&socket_decl)) {
         item.socket_type = SOCK_IMAGE;
       }
@@ -799,8 +802,7 @@ static void ui_node_draw_panel(uiLayout &layout,
   uiBut *but = uiDefIconTextBut(block,
                                 UI_BTYPE_BUT,
                                 0,
-                                panel_state.is_collapsed() ? ICON_DISCLOSURE_TRI_RIGHT :
-                                                             ICON_DISCLOSURE_TRI_DOWN,
+                                panel_state.is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                                 IFACE_(panel_decl.name.c_str()),
                                 0,
                                 0,
@@ -925,8 +927,7 @@ static void ui_node_draw_input(uiLayout &layout,
       if (lnode &&
           (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP)))
       {
-        int icon = (input.flag & SOCK_COLLAPSED) ? ICON_DISCLOSURE_TRI_RIGHT :
-                                                   ICON_DISCLOSURE_TRI_DOWN;
+        int icon = (input.flag & SOCK_COLLAPSED) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
         uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
       }
 
@@ -994,6 +995,9 @@ static void ui_node_draw_input(uiLayout &layout,
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
         }
+        case SOCK_MENU:
+          uiItemL(sub, RPT_("Unsupported Menu Socket"), ICON_NONE);
+          break;
         case SOCK_CUSTOM:
           input.typeinfo->draw(&C, sub, &inputptr, &nodeptr, input.name);
           break;

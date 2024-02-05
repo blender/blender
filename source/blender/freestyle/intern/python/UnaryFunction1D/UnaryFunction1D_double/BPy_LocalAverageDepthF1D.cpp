@@ -22,7 +22,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char LocalAverageDepthF1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    LocalAverageDepthF1D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > "
     ":class:`freestyle.types.UnaryFunction1DDouble` > :class:`LocalAverageDepthF1D`\n"
     "\n"
@@ -48,7 +50,7 @@ static char LocalAverageDepthF1D___doc__[] =
     "   :arg inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The average depth evaluated for the Interface1D.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D *self,
                                          PyObject *args,

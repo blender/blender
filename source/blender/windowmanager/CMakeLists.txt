@@ -20,7 +20,6 @@ set(INC
   ../render
   ../sequencer
   ../../../intern/memutil
-  ../../../extern/fmtlib/include
   ../bmesh
 
   # RNA_prototypes.h
@@ -101,6 +100,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

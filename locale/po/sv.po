@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
-"PO-Revision-Date: 2024-01-10 17:10+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
@@ -3717,6 +3717,14 @@ msgid "Clone Image"
 msgstr "Klona bild"
 
 
+msgid "Image for clone tool"
+msgstr "Bild för klonverktyg"
+
+
+msgid "Clone Offset"
+msgstr "Klon förskjutning"
+
+
 msgid "Local"
 msgstr "Lokal"
 
@@ -3725,9 +3733,47 @@ msgid "Global"
 msgstr "Global"
 
 
+msgid "Simulates the entire mesh"
+msgstr "Simulera hela meshen"
+
+
+msgid "Dynamic"
+msgstr "Dynamisk"
+
+
+msgid "The active simulation area moves with the brush"
+msgstr "Den aktiva simulationsytan flyttas med penseln"
+
+
+msgid "Color Type"
+msgstr "Färgtyp"
+
+
+msgid "Use single color or gradient when painting"
+msgstr "Använda enskild färg eller övertoning när du målar"
+
+
+msgid "Paint with a single color"
+msgstr "Måla med en färg"
+
+
+msgid "Paint with a gradient"
+msgstr "Måla med övertoning"
+
+
 msgctxt "Curves"
 msgid "Custom"
 msgstr "Anpassad"
+
+
+msgctxt "Curves"
+msgid "Smooth"
+msgstr "Jämn"
+
+
+msgctxt "Curves"
+msgid "Smoother"
+msgstr "Jämnare"
 
 
 msgctxt "Curves"
@@ -3738,6 +3784,16 @@ msgstr "Sfär"
 msgctxt "Curves"
 msgid "Sharp"
 msgstr "Skarp"
+
+
+msgctxt "Curves"
+msgid "Linear"
+msgstr "Linjär"
+
+
+msgctxt "Curves"
+msgid "Sharper"
+msgstr "Skarpare"
 
 
 msgctxt "Curves"
@@ -3760,9 +3816,42 @@ msgid "Density"
 msgstr "Densitet"
 
 
+msgctxt "Curves"
+msgid "Comb"
+msgstr "Kamma"
+
+
+msgctxt "Curves"
+msgid "Grow / Shrink"
+msgstr "Väx / krymp"
+
+
+msgctxt "Curves"
+msgid "Pinch"
+msgstr "Nyp"
+
+
 msgctxt "Brush"
 msgid "Scale"
 msgstr "Skala"
+
+
+msgctxt "Brush"
+msgid "Draw"
+msgstr "Rita"
+
+
+msgid "The brush is of type used for drawing strokes"
+msgstr "Penseln är av typen som används för att rita streck"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "Fyll"
+
+
+msgid "The brush is of type used for filling areas"
+msgstr "Penseln är av typen som används för att fylla ytor"
 
 
 msgctxt "Brush"
@@ -3770,8 +3859,22 @@ msgid "Erase"
 msgstr "Sudda ut"
 
 
+msgid "The brush is used for erasing strokes"
+msgstr "Penseln används för att sudda ut streck"
+
+
 msgid "Repeat"
 msgstr "Upprepa"
+
+
+msgctxt "Brush"
+msgid "Soften"
+msgstr "Mjukna"
+
+
+msgctxt "Brush"
+msgid "Smear"
+msgstr "Smeta"
 
 
 msgctxt "Brush"
@@ -3779,8 +3882,36 @@ msgid "Clone"
 msgstr "Klona"
 
 
+msgctxt "Brush"
+msgid "Mask"
+msgstr "Maska"
+
+
+msgid "Invert Pressure for Density"
+msgstr "Invertera tryck för densitet"
+
+
+msgctxt "Mask"
+msgid "Mask Tool"
+msgstr "Maskverktyg"
+
+
+msgctxt "Mask"
+msgid "Draw"
+msgstr "Rita"
+
+
+msgctxt "Mask"
+msgid "Smooth"
+msgstr "Jämna"
+
+
 msgid "Topology"
 msgstr "Topologi"
+
+
+msgid "Rake"
+msgstr "Kratta"
 
 
 msgid "Rate"
@@ -5729,6 +5860,10 @@ msgstr "Linsförvrängning"
 
 msgid "Rotate"
 msgstr "Rotera"
+
+
+msgid "Menu"
+msgstr "Meny"
 
 
 msgid "Invert Rotation"
@@ -8329,6 +8464,10 @@ msgstr "Separera"
 msgctxt "Operator"
 msgid "Smooth"
 msgstr "Jämn"
+
+
+msgid "Handles"
+msgstr "Handtag"
 
 
 msgid "Subdivide selected segments"
@@ -12233,10 +12372,6 @@ msgid "Styles"
 msgstr "Stilar"
 
 
-msgid "Menu"
-msgstr "Meny"
-
-
 msgid "Menu Background"
 msgstr "Meny bakgrund"
 
@@ -14289,6 +14424,11 @@ msgid "Brush(es)"
 msgstr "Pensel/lar"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Position"
+
+
 msgid "Unknown"
 msgstr "Okänt"
 
@@ -14830,8 +14970,8 @@ msgstr "Efter"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Position"
+msgid "Zoom"
+msgstr "Zooma"
 
 
 msgid "Normalization"
@@ -15107,16 +15247,6 @@ msgstr "Spara som..."
 msgctxt "Operator"
 msgid "Generate Grease Pencil"
 msgstr "Generera Grease Pencil"
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horisontellt"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikalt"
 
 
 msgctxt "Operator"
@@ -15488,11 +15618,6 @@ msgstr "Förskjutning:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Zooma"
-
-
-msgctxt "Operator"
 msgid "Both"
 msgstr "Båda"
 
@@ -15857,12 +15982,16 @@ msgid "Auto-Save"
 msgstr "Auto-spara"
 
 
+msgid "Preferences:"
+msgstr "Inställningar:"
+
+
 msgid "Multiple add-ons with the same name found!"
 msgstr "Flera tillägg med samma namn hittades!"
 
 
-msgid "Color %d"
-msgstr "Färg %d"
+msgid "Error (see console)"
+msgstr "Fel (se konsol)"
 
 
 msgid "Description:"
@@ -15897,25 +16026,13 @@ msgid "User:"
 msgstr "Användare:"
 
 
-msgid "description"
-msgstr "beskrivning"
-
-
-msgid "location"
-msgstr "placering"
+msgid "Color %d"
+msgstr "Färg %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentation"
-
-
-msgid "Preferences:"
-msgstr "Inställningar:"
-
-
-msgid "Error (see console)"
-msgstr "Fel (se konsol)"
 
 
 msgctxt "Operator"

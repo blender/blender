@@ -48,11 +48,11 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_ipo.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.h"
 
@@ -443,7 +443,7 @@ static char *shapekey_adrcodes_to_paths(ID *id, int adrcode, int * /*r_array_ind
   else {
     /* Find the name of the ShapeKey (i.e. KeyBlock) to look for */
     Key *key = (Key *)id;
-    KeyBlock *kb = BKE_keyblock_from_key(key, adrcode);
+    KeyBlock *kb = BKE_keyblock_find_by_index(key, adrcode);
 
     /* setting that we alter is the "value" (i.e. keyblock.curval) */
     if (kb) {

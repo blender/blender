@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2689,6 +2689,10 @@ msgstr "Kosti"
 
 msgid "Index"
 msgstr "Index"
+
+
+msgid "Solo"
+msgstr "Barva"
 
 
 msgid "Visible"
@@ -12008,10 +12012,6 @@ msgid "Unit editing settings"
 msgstr "Zobrazit nastaveni hran"
 
 
-msgid "Audio Muted"
-msgstr "Audio hlasitost"
-
-
 msgid "Audio Scrubbing"
 msgstr "NLA Proužky"
 
@@ -16215,14 +16215,6 @@ msgid "Object defining offset"
 msgstr "Objekt"
 
 
-msgid "UV Layer"
-msgstr "Vrstva"
-
-
-msgid "UV Layer name"
-msgstr "Název vrstvy"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Váha vertexů"
 
@@ -17019,10 +17011,6 @@ msgstr "Sledování"
 
 msgid "NLA Track is active"
 msgstr "Přidat primitivum"
-
-
-msgid "Solo"
-msgstr "Barva"
 
 
 msgid "NLA Track is locked"
@@ -17849,6 +17837,10 @@ msgid "Pixelate"
 msgstr "Pixely"
 
 
+msgid "Pixel Size"
+msgstr "Velikost Pixelu"
+
+
 msgid "Alpha Convert"
 msgstr "Činitel"
 
@@ -18031,6 +18023,10 @@ msgstr "Nerovná se"
 
 msgid "Compare"
 msgstr "Porovnat"
+
+
+msgid "Menu"
+msgstr "Nabídka"
 
 
 msgid "Less Than"
@@ -21769,12 +21765,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Původni rotace"
 
 
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Uložit současný soubor na vybrané umístění"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exportovat"
 
 
 msgid "X Forward"
@@ -21821,20 +21814,12 @@ msgid "-Z Up"
 msgstr "-Z nahoru"
 
 
-msgid "Batch Mode"
-msgstr "Pózy kostí"
-
-
-msgid "All data in one file"
-msgstr "Všechna data v jednom souboru"
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "Apply Modifiers"
 msgstr "Aplikovat modifikátor"
-
-
-msgid "Apply the modifiers before saving"
-msgstr "Před kreslením aplikovat normály vertexů"
 
 
 msgid "Selection Only"
@@ -21843,6 +21828,26 @@ msgstr "Pouze vybrané"
 
 msgid "Export selected objects only"
 msgstr "Ostranit označené Objekt(y) Globálně"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Uložit současný soubor na vybrané umístění"
+
+
+msgid "Batch Mode"
+msgstr "Pózy kostí"
+
+
+msgid "All data in one file"
+msgstr "Všechna data v jednom souboru"
+
+
+msgid "Apply the modifiers before saving"
+msgstr "Před kreslením aplikovat normály vertexů"
 
 
 msgctxt "Operator"
@@ -22009,6 +22014,14 @@ msgstr "Vykreslovatelné objekty"
 
 msgid "Remember Export Settings"
 msgstr "Zapamatovat si Nastavení Exportu"
+
+
+msgid "Material Groups"
+msgstr "Materiál"
+
+
+msgid "Smooth Groups"
+msgstr "Přidat do skupiny"
 
 
 msgctxt "Operator"
@@ -23394,6 +23407,11 @@ msgid "Emission Shader"
 msgstr "Shader záření"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importovat"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "Trojúhelníková síť"
 
@@ -23430,6 +23448,10 @@ msgstr "Data Dělení"
 msgctxt "Operator"
 msgid "Import glTF 2.0"
 msgstr "Importovat glTF 2.0"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Odstranit ze skupiny vertexů"
 
 
 msgctxt "Operator"
@@ -25933,6 +25955,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Bake obrázkové textury vybraných objektů"
 
 
+msgid "UV Layer"
+msgstr "Vrstva"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Přidat kameru"
@@ -26919,6 +26945,10 @@ msgid "Clear Shape Keys"
 msgstr "Zrušit šev"
 
 
+msgid "Lock action to execute on vertex groups"
+msgstr "Vybrat řádek"
+
+
 msgctxt "Operator"
 msgid "Mirror Shape Key"
 msgstr "Zrcadlit UV"
@@ -27123,10 +27153,6 @@ msgstr "Číslo ve stupních určující počet otočení"
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Aktuální skupina vertexů"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Vybrat řádek"
 
 
 msgid "Lock all vertex groups"
@@ -28417,6 +28443,10 @@ msgid "Copy settings from previous version"
 msgstr "Kopírovat nastavení z předcházející verze"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Export Key Configuration..."
 msgstr "Exportovat Konfiguraci Klíčů..."
@@ -29053,10 +29083,6 @@ msgstr "Mapa kláves"
 
 msgid "File Paths"
 msgstr "Cesty k souborům"
-
-
-msgid "Extensions"
-msgstr "Rozšíření"
 
 
 msgid "Experimental"
@@ -31779,10 +31805,6 @@ msgid "Object Properties"
 msgstr "Vlastnosti objektu"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Odstranit ze skupiny vertexů"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Otevřít"
@@ -31820,16 +31842,6 @@ msgstr "Přidat, nebo odstranit přednastavení operátoru"
 
 msgid "Open a path in a file browser"
 msgstr "Skrýt skryté soubory"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exportovat"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importovat"
 
 
 msgid "Save Backups"
@@ -32151,10 +32163,6 @@ msgstr "Panelu nástrojů"
 
 msgid "Open a website in the web browser"
 msgstr "Otevřít webovou stránku ve webovém prohlížeči"
-
-
-msgid "URL"
-msgstr "URL"
 
 
 msgid "URL to open"
@@ -33223,10 +33231,6 @@ msgstr "Barvy kolekce"
 
 msgid "Styles"
 msgstr "Styly"
-
-
-msgid "Menu"
-msgstr "Nabídka"
 
 
 msgid "Menu Item"
@@ -34469,10 +34473,6 @@ msgstr "Celkové vrácení"
 
 msgid "Auto Keyframe Insert Available"
 msgstr "Vložit hodnotu"
-
-
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
 
 
 msgid "Allow Negative Frames"
@@ -35777,10 +35777,6 @@ msgstr "Pixel Aspekt Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Svislý poměr stran - pro anamorfní a nečtvercové pixelové výstupy"
-
-
-msgid "Pixel Size"
-msgstr "Velikost Pixelu"
 
 
 msgid "Resolution Scale"
@@ -40291,6 +40287,10 @@ msgid "Invert Selection"
 msgstr "Vybrat cestu"
 
 
+msgid "Extensions"
+msgstr "Rozšíření"
+
+
 msgid "Note:"
 msgstr "Poznámka:"
 
@@ -40389,6 +40389,16 @@ msgstr "Znaky"
 
 msgid "Date: %s %s"
 msgstr "Datum: %s %s"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Umístění"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotace"
 
 
 msgid "Frame Numbers"
@@ -41425,11 +41435,6 @@ msgstr "Použít Původní Nastavení"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Umístění"
-
-
-msgctxt "Operator"
 msgid "Set Viewport Background"
 msgstr "Nastavit Obrázek Pozadí"
 
@@ -41465,6 +41470,11 @@ msgstr "Nastavit Osu Y"
 
 msgid "No active track"
 msgstr "Žádná aktivní stopa"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Přiblížit"
 
 
 msgctxt "Operator"
@@ -41749,16 +41759,6 @@ msgstr "Generovat skicovací tužku"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontálně"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikálně"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Invertovat červený kanál"
 
@@ -41930,10 +41930,6 @@ msgid "Online Manual"
 msgstr "Online Návod"
 
 
-msgid "Inputs:"
-msgstr "Vstupy:"
-
-
 msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Zobrazit jednu úroveň"
@@ -42062,11 +42058,6 @@ msgstr "Odsazení:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Přiblížit"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Přizpůsobit Náhled v Okně"
 
@@ -42154,11 +42145,6 @@ msgstr "Gaussovské Rozostření"
 msgctxt "Operator"
 msgid "Reload Strips and Adjust Length"
 msgstr "Přidat vazbu aktivní kosti"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotace"
 
 
 msgid "Resolutions"
@@ -42573,16 +42559,16 @@ msgid "Minimum Grid Spacing"
 msgstr "Minimální rozestupy mřížky"
 
 
+msgid "Enable in New Scenes"
+msgstr "Povolit v nových scénách"
+
+
 msgid "Show Warning"
 msgstr "Zobrazit upozornění"
 
 
 msgid "Only Insert Available"
 msgstr "Vložit hodnotu"
-
-
-msgid "Enable in New Scenes"
-msgstr "Povolit v nových scénách"
 
 
 msgid "XYZ to RGB"
@@ -42642,6 +42628,10 @@ msgid "Swap Y and Z Axes"
 msgstr "Vyměnit osy Y a Z"
 
 
+msgid "Preferences:"
+msgstr "Předvolby:"
+
+
 msgid "Use Light"
 msgstr "Použít světlo"
 
@@ -42669,14 +42659,6 @@ msgstr "Létat/Chodit"
 
 msgid "No custom %s configured"
 msgstr "Žádná vlastní %s nastavena"
-
-
-msgid "Color Set %d"
-msgstr "Sada Barev %d"
-
-
-msgid "Color %d"
-msgstr "Barva %d"
 
 
 msgid "Description:"
@@ -42707,21 +42689,17 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "popis"
+msgid "Color Set %d"
+msgstr "Sada Barev %d"
 
 
-msgid "location"
-msgstr "umístění"
+msgid "Color %d"
+msgstr "Barva %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentace"
-
-
-msgid "Preferences:"
-msgstr "Předvolby:"
 
 
 msgctxt "Operator"
@@ -44354,38 +44332,6 @@ msgid "Unsupported context"
 msgstr "Nepodporovaný kontext"
 
 
-msgid "Shortcut: %s"
-msgstr "Zkratka: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Hodnota: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radiány: %f"
-
-
-msgid "Expression: %s"
-msgstr "Výraz: %s"
-
-
-msgid "Library: %s"
-msgstr "Knihovna: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Zakázané: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "Kliknout"
@@ -44652,6 +44598,10 @@ msgid "Can't edit external library data"
 msgstr "Nelze upravovat data externí knihovny"
 
 
+msgid "File Not Found"
+msgstr "Soubor nebyl nalezen"
+
+
 msgid "Today"
 msgstr "Dnes"
 
@@ -44842,18 +44792,6 @@ msgstr "Nelze vytvořit exportní soubor"
 
 msgid "Can't overwrite export file"
 msgstr "Nelze přepsat exportní soubor"
-
-
-msgid "Material Groups"
-msgstr "Materiál"
-
-
-msgid "Smooth Groups"
-msgstr "Přidat do skupiny"
-
-
-msgid "ASCII"
-msgstr "ASCII"
 
 
 msgctxt "Mesh"
@@ -46635,10 +46573,6 @@ msgstr "Nahoře"
 
 msgid "Don't Save"
 msgstr "Neukládat"
-
-
-msgid "File Not Found"
-msgstr "Soubor nebyl nalezen"
 
 
 msgid "unable to open the file"

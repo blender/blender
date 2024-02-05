@@ -17,7 +17,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -95,7 +95,7 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
      ICON_MODIFIER,
      "Backbone Stretcher",
      ""},
-    {LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bezier Curve", ""},
+    {LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bézier Curve", ""},
     {LS_MODIFIER_BLUEPRINT, "BLUEPRINT", ICON_MODIFIER, "Blueprint", ""},
     {LS_MODIFIER_GUIDING_LINES, "GUIDING_LINES", ICON_MODIFIER, "Guiding Lines", ""},
     {LS_MODIFIER_PERLIN_NOISE_1D, "PERLIN_NOISE_1D", ICON_MODIFIER, "Perlin Noise 1D", ""},
@@ -114,6 +114,8 @@ const EnumPropertyItem rna_enum_linestyle_geometry_modifier_type_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
 
 #  include "BLI_string_utils.hh"
 
@@ -244,36 +246,36 @@ static StructRNA *rna_LineStyle_geometry_modifier_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_LineStyle_color_modifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_LineStyle_color_modifier_path(const PointerRNA *ptr)
 {
   const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
-  return BLI_sprintfN("color_modifiers[\"%s\"]", name_esc);
+  return fmt::format("color_modifiers[\"{}\"]", name_esc);
 }
 
-static char *rna_LineStyle_alpha_modifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_LineStyle_alpha_modifier_path(const PointerRNA *ptr)
 {
   const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
-  return BLI_sprintfN("alpha_modifiers[\"%s\"]", name_esc);
+  return fmt::format("alpha_modifiers[\"{}\"]", name_esc);
 }
 
-static char *rna_LineStyle_thickness_modifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_LineStyle_thickness_modifier_path(const PointerRNA *ptr)
 {
   const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
-  return BLI_sprintfN("thickness_modifiers[\"%s\"]", name_esc);
+  return fmt::format("thickness_modifiers[\"{}\"]", name_esc);
 }
 
-static char *rna_LineStyle_geometry_modifier_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_LineStyle_geometry_modifier_path(const PointerRNA *ptr)
 {
   const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
-  return BLI_sprintfN("geometry_modifiers[\"%s\"]", name_esc);
+  return fmt::format("geometry_modifiers[\"{}\"]", name_esc);
 }
 
 static void rna_LineStyleColorModifier_name_set(PointerRNA *ptr, const char *value)
@@ -1286,8 +1288,8 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   srna = RNA_def_struct(
       brna, "LineStyleGeometryModifier_BezierCurve", "LineStyleGeometryModifier");
   RNA_def_struct_ui_text(srna,
-                         "Bezier Curve",
-                         "Replace stroke backbone geometry by a Bezier curve approximation of the "
+                         "Bézier Curve",
+                         "Replace stroke backbone geometry by a Bézier curve approximation of the "
                          "original backbone geometry");
   rna_def_geometry_modifier(srna);
 
@@ -1295,7 +1297,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "error");
   RNA_def_property_ui_text(prop,
                            "Error",
-                           "Maximum distance allowed between the new Bezier curve and the "
+                           "Maximum distance allowed between the new Bézier curve and the "
                            "original backbone geometry");
   RNA_def_property_update(prop, NC_LINESTYLE, "rna_LineStyle_update");
 

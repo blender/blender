@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ColorNoiseShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    ColorNoiseShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > :class:`ColorNoiseShader`\n"
     "\n"
     "[Color shader]\n"
@@ -39,7 +41,7 @@ static char ColorNoiseShader___doc__[] =
     "   Shader to add noise to the stroke colors.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int ColorNoiseShader___init__(BPy_ColorNoiseShader *self, PyObject *args, PyObject *kwds)
 {

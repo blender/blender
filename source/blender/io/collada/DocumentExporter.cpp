@@ -67,7 +67,7 @@
 
 #include "BKE_action.h" /* pose functions */
 #include "BKE_animsys.h"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_armature.hh"
 #include "BKE_blender_version.h"
 #include "BKE_customdata.hh"

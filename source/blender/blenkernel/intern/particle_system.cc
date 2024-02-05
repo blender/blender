@@ -7,9 +7,9 @@
  * \ingroup bke
  */
 
-#include <cstddef>
-
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 
@@ -41,6 +41,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
@@ -50,7 +51,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_effect.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_particle.h"
@@ -69,8 +70,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "PIL_time.h"
 
 #include "RE_texture.h"
 
@@ -233,7 +232,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
     }
 
     if (psys->particles) {
-      totsaved = MIN2(psys->totpart, totpart);
+      totsaved = std::min(psys->totpart, totpart);
       /* Save old pars. */
       if (totsaved) {
         memcpy(newpars, psys->particles, totsaved * sizeof(ParticleData));
@@ -3398,7 +3397,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
       mul_m4_m4m4(root_mat, sim->ob->object_to_world, hairmat);
       normalize_m4(root_mat);
 
-      bending_stiffness = CLAMPIS(
+      bending_stiffness = std::clamp(
           1.0f - part->bending_random * psys_frand(psys, p + 666), 0.0f, 1.0f);
 
       for (k = 0, key = pa->hair; k < pa->totkey; k++, key++) {
@@ -4405,7 +4404,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           sub_v3_v3v3(size, max, min);
 
           /* Biggest dimension will be used for up-scaling. */
-          max_size = MAX3(size[0] / float(upres), size[1] / float(upres), size[2] / float(upres));
+          max_size = std::max(
+              {size[0] / float(upres), size[1] / float(upres), size[2] / float(upres)});
 
           /* Set particle position. */
           const float posParticle[3] = {posX, posY, posZ};

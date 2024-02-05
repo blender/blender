@@ -6,6 +6,7 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -20,11 +21,12 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rand.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.h"
 
-#include "PIL_time.h"
+#include "BLT_translation.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
@@ -42,7 +44,7 @@
 #include "BKE_collection.h"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -1770,7 +1772,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
     point2D.m_xy[0] = float(x + 64);
     gpencil_stroke_convertcoords_tpoint(scene, region, ob, &point2D, nullptr, p2);
     /* Clip extreme zoom level (and avoid division by zero). */
-    distance = MAX2(len_v3v3(p1, p2), 0.001f);
+    distance = std::max(len_v3v3(p1, p2), 0.001f);
 
     /* Handle layer thickness change. */
     float brush_size = float(brush->size);
@@ -2841,7 +2843,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
                                      const int mval[2],
                                      GpRandomSettings *random_settings)
 {
-  int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+  int seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
   /* Use mouse position to get randomness. */
   int ix = mval[0] * seed;
   int iy = mval[1] * seed;
@@ -2887,12 +2889,12 @@ static void gpencil_sbuffer_vertex_color_random(
 {
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
-    int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+    int seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
 
     int ix = int(tpt->m_xy[0] * seed);
     int iy = int(tpt->m_xy[1] * seed);
     int iz = ix + iy * seed;
-    float hsv[3];
+    blender::float3 hsv;
     float factor_value[3];
     zero_v3(factor_value);
 
@@ -2959,7 +2961,7 @@ static void gpencil_sbuffer_vertex_color_random(
       hsv[0] -= 1.0f;
     }
 
-    CLAMP3(hsv, 0.0f, 1.0f);
+    hsv = blender::math::clamp(hsv, 0.0f, 1.0f);
     hsv_to_rgb_v(hsv, tpt->vert_color);
   }
 }
@@ -3049,10 +3051,10 @@ void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
 
   /* Ensure the bounding box is oriented to axis. */
   if (r_max[0] < r_min[0]) {
-    SWAP(float, r_min[0], r_max[0]);
+    std::swap(r_min[0], r_max[0]);
   }
   if (r_max[1] < r_min[1]) {
-    SWAP(float, r_min[1], r_max[1]);
+    std::swap(r_min[1], r_max[1]);
   }
 }
 

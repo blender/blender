@@ -417,7 +417,7 @@ static void make_child_duplis(const DupliContext *ctx,
   }
   else {
     /* FIXME: using a mere counter to generate a 'persistent' dupli id is very weak. One possible
-     * better solution could be to use `session_uuid` of ID's instead? */
+     * better solution could be to use `session_uid` of ID's instead? */
     int persistent_dupli_id = 0;
     DEGObjectIterSettings deg_iter_settings{};
     deg_iter_settings.depsgraph = ctx->depsgraph;

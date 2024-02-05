@@ -40,8 +40,8 @@
 #include "WM_api.hh"
 #include "wm_cursors.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_grease_pencil.hh"
 #include "ED_image.hh"
@@ -544,7 +544,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
                                    int x,
                                    int y,
                                    float zoom,
-                                   const ePaintMode mode,
+                                   const PaintMode mode,
                                    bool col,
                                    bool primary)
 {
@@ -556,7 +556,7 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
                             (brush->overlay_flags & BRUSH_OVERLAY_SECONDARY) != 0);
   int overlay_alpha = (primary) ? brush->texture_overlay_alpha : brush->mask_overlay_alpha;
 
-  if (mode == PAINT_MODE_TEXTURE_3D) {
+  if (mode == PaintMode::Texture3D) {
     if (primary && brush->imagepaint_tool != PAINT_TOOL_DRAW) {
       /* All non-draw tools don't use the primary texture (clone, smear, soften.. etc). */
       return false;
@@ -781,11 +781,11 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
                                      int x,
                                      int y,
                                      float zoom,
-                                     ePaintMode mode)
+                                     PaintMode mode)
 {
   /* Color means that primary brush texture is colored and
    * secondary is used for alpha/mask control. */
-  bool col = ELEM(mode, PAINT_MODE_TEXTURE_3D, PAINT_MODE_TEXTURE_2D, PAINT_MODE_VERTEX);
+  bool col = ELEM(mode, PaintMode::Texture3D, PaintMode::Texture2D, PaintMode::Vertex);
 
   bool alpha_overlay_active = false;
 
@@ -813,7 +813,7 @@ static bool paint_draw_alpha_overlay(UnifiedPaintSettings *ups,
     }
   }
   else {
-    if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != PAINT_MODE_WEIGHT)) {
+    if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY) && (mode != PaintMode::Weight)) {
       alpha_overlay_active = paint_draw_tex_overlay(ups, brush, vc, x, y, zoom, mode, false, true);
     }
     if (!(flags & PAINT_OVERLAY_OVERRIDE_CURSOR)) {
@@ -1205,23 +1205,23 @@ static void SCULPT_layer_brush_height_preview_draw(const uint gpuattr,
   GPU_matrix_pop();
 }
 
-static bool paint_use_2d_cursor(ePaintMode mode)
+static bool paint_use_2d_cursor(PaintMode mode)
 {
   switch (mode) {
-    case PAINT_MODE_SCULPT:
-    case PAINT_MODE_VERTEX:
-    case PAINT_MODE_WEIGHT:
+    case PaintMode::Sculpt:
+    case PaintMode::Vertex:
+    case PaintMode::Weight:
       return false;
-    case PAINT_MODE_TEXTURE_3D:
-    case PAINT_MODE_TEXTURE_2D:
-    case PAINT_MODE_SCULPT_UV:
-    case PAINT_MODE_VERTEX_GPENCIL:
-    case PAINT_MODE_SCULPT_GPENCIL:
-    case PAINT_MODE_WEIGHT_GPENCIL:
-    case PAINT_MODE_SCULPT_CURVES:
-    case PAINT_MODE_GPENCIL:
+    case PaintMode::Texture3D:
+    case PaintMode::Texture2D:
+    case PaintMode::SculptUV:
+    case PaintMode::VertexGPencil:
+    case PaintMode::SculptGPencil:
+    case PaintMode::WeightGPencil:
+    case PaintMode::SculptCurves:
+    case PaintMode::GPencil:
       return true;
-    case PAINT_MODE_INVALID:
+    case PaintMode::Invalid:
       BLI_assert_unreachable();
   }
   return true;
@@ -1243,7 +1243,7 @@ struct PaintCursorContext {
   UnifiedPaintSettings *ups;
   Brush *brush;
   Paint *paint;
-  ePaintMode mode;
+  PaintMode mode;
   ViewContext vc;
 
   /* Sculpt related data. */
@@ -1350,7 +1350,7 @@ static bool paint_cursor_context_init(bContext *C,
     copy_v3_fl(pcontext->outline_col, 0.8f);
   }
 
-  const bool is_brush_tool = PAINT_brush_tool_poll(C);
+  const bool is_brush_tool = blender::ed::sculpt_paint::paint_brush_tool_poll(C);
   if (!is_brush_tool) {
     /* Use a default color for tools that are not brushes. */
     pcontext->outline_alpha = 0.8f;
@@ -1389,7 +1389,7 @@ static void paint_cursor_update_pixel_radius(PaintCursorContext *pcontext)
 static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcontext)
 {
   BLI_assert(pcontext->ss != nullptr);
-  BLI_assert(pcontext->mode == PAINT_MODE_SCULPT);
+  BLI_assert(pcontext->mode == PaintMode::Sculpt);
 
   bContext *C = pcontext->C;
   SculptSession *ss = pcontext->ss;
@@ -1440,7 +1440,7 @@ static void paint_update_mouse_cursor(PaintCursorContext *pcontext)
      * with the UI (dragging a number button for e.g.), see: #102792. */
     return;
   }
-  if (pcontext->mode == PAINT_MODE_GPENCIL) {
+  if (pcontext->mode == PaintMode::GPencil) {
     WM_cursor_set(pcontext->win, WM_CURSOR_DOT);
   }
   else {
@@ -1523,7 +1523,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
   const int y = pcontext->y;
 
   /* for paint use paint brush size and color */
-  if (pcontext->mode == PAINT_MODE_GPENCIL) {
+  if (pcontext->mode == PaintMode::GPencil) {
     Paint *paint = pcontext->paint;
     Brush *brush = pcontext->brush;
     if ((brush == nullptr) || (brush->gpencil_settings == nullptr)) {
@@ -1602,7 +1602,7 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext *pcontext)
 static void paint_draw_2D_view_brush_cursor(PaintCursorContext *pcontext)
 {
   switch (pcontext->mode) {
-    case PAINT_MODE_GPENCIL: {
+    case PaintMode::GPencil: {
       grease_pencil_brush_cursor_draw(pcontext);
       break;
     }
@@ -1796,7 +1796,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
                                     pcontext->radius);
   }
 
-  const bool is_brush_tool = PAINT_brush_tool_poll(pcontext->C);
+  const bool is_brush_tool = paint_brush_tool_poll(pcontext->C);
 
   /* Pose brush updates and rotation origins. */
 
@@ -1914,7 +1914,7 @@ static void paint_cursor_cursor_draw_3d_view_brush_cursor_active(PaintCursorCont
 {
   using namespace blender::ed::sculpt_paint;
   BLI_assert(pcontext->ss != nullptr);
-  BLI_assert(pcontext->mode == PAINT_MODE_SCULPT);
+  BLI_assert(pcontext->mode == PaintMode::Sculpt);
 
   SculptSession *ss = pcontext->ss;
   Brush *brush = pcontext->brush;
@@ -1995,7 +1995,7 @@ static void paint_cursor_draw_3D_view_brush_cursor(PaintCursorContext *pcontext)
 
   /* These paint tools are not using the SculptSession, so they need to use the default 2D brush
    * cursor in the 3D view. */
-  if (pcontext->mode != PAINT_MODE_SCULPT || !pcontext->ss) {
+  if (pcontext->mode != PaintMode::Sculpt || !pcontext->ss) {
     paint_draw_legacy_3D_view_brush_cursor(pcontext);
     return;
   }
@@ -2019,7 +2019,7 @@ static bool paint_cursor_is_3d_view_navigating(PaintCursorContext *pcontext)
 static bool paint_cursor_is_brush_cursor_enabled(PaintCursorContext *pcontext)
 {
   if (pcontext->paint->flags & PAINT_SHOW_BRUSH) {
-    if (ELEM(pcontext->mode, PAINT_MODE_TEXTURE_2D, PAINT_MODE_TEXTURE_3D) &&
+    if (ELEM(pcontext->mode, PaintMode::Texture2D, PaintMode::Texture3D) &&
         pcontext->brush->imagepaint_tool == PAINT_TOOL_FILL)
     {
       return false;

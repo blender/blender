@@ -124,7 +124,7 @@ bool USDXformReader::is_root_xform_prim() const
     return false;
   }
 
-  if (prim_.IsInPrototype()) {
+  if (is_in_proto()) {
     /* We don't consider prototypes to be root prims,
      * because we never want to apply global scaling
      * or rotations to the prototypes themselves. */

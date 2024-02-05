@@ -1181,7 +1181,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
           if (len < val.jump_speed * mul || bbd->part->boids->options & BOID_ALLOW_FLIGHT) {
             jump = 1;
 
-            len = MIN2(len, val.jump_speed);
+            len = std::min(len, val.jump_speed);
 
             copy_v3_v3(jump_v, dir);
             jump_v[2] = z_v;
@@ -1320,7 +1320,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
     old_speed = len_v3(pa->prev_state.vel);
 
     if (bbd->wanted_speed < old_speed) {
-      new_speed = MAX2(bbd->wanted_speed, old_speed - val.max_acc);
+      new_speed = std::max(bbd->wanted_speed, old_speed - val.max_acc);
     }
     else {
       new_speed = std::min(bbd->wanted_speed, old_speed + val.max_acc);
@@ -1346,7 +1346,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 
     /* finally constrain speed to max speed */
     new_speed = normalize_v3(new_vel);
-    mul_v3_fl(new_vel, MIN2(new_speed, val.max_speed));
+    mul_v3_fl(new_vel, std::min(new_speed, val.max_speed));
 
     /* get acceleration from difference of velocities */
     sub_v3_v3v3(acc, new_vel, pa->prev_state.vel);

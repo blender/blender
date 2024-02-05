@@ -33,6 +33,9 @@ class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
 }  // namespace blender::bke
+namespace blender::bke::bake {
+struct BakeMaterialsList;
+}
 
 namespace blender::bke {
 
@@ -111,6 +114,9 @@ class CurvesGeometryRuntime {
 
   /** Normal direction vectors for each evaluated point. */
   mutable SharedCache<Vector<float3>> evaluated_normal_cache;
+
+  /** Stores weak references to material data blocks. */
+  std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 };
 
 /**

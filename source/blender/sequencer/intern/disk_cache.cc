@@ -16,9 +16,9 @@
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h" /* for FILE_MAX. */
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_endian_defines.h"

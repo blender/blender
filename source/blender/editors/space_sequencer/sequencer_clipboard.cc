@@ -27,13 +27,13 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 
-#include "BKE_appdir.h"
-#include "BKE_blender_copybuffer.h"
+#include "BKE_appdir.hh"
+#include "BKE_blender_copybuffer.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
@@ -350,7 +350,7 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   ListBase nseqbase = {nullptr, nullptr};
   /* NOTE: SEQ_sequence_base_dupli_recursive() takes care of generating
-   * new UUIDs for sequences in the new list. */
+   * new UIDs for sequences in the new list. */
   SEQ_sequence_base_dupli_recursive(
       scene_src, scene_dst, &nseqbase, &scene_src->ed->seqbase, 0, 0);
 

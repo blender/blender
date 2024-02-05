@@ -96,15 +96,15 @@ void BLI_string_replace_char(char *str, char src, char dst)
 }
 
 bool BLI_string_replace_table_exact(char *string,
-                                    const size_t string_maxncpy,
+                                    const size_t string_len,
                                     const char *replace_table[][2],
                                     int replace_table_len)
 {
-  BLI_string_debug_size_after_nil(string, string_maxncpy);
+  BLI_string_debug_size_after_nil(string, string_len);
 
   for (int i = 0; i < replace_table_len; i++) {
     if (STREQ(string, replace_table[i][0])) {
-      BLI_strncpy(string, replace_table[i][1], string_maxncpy);
+      BLI_strncpy(string, replace_table[i][1], string_len);
       return true;
     }
   }

@@ -14,6 +14,8 @@
  * - matrix_offset: used to store the orientation.
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -29,7 +31,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -225,12 +227,12 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
         if (is_aligned_front) {
           interp_v4_v4v4(
               negative_color, blender::float4{1.0f, 1.0f, 1.0f, 1.0f}, axis_color[axis], 0.5f);
-          negative_color[3] = MIN2(depth + 1, 1.0f);
+          negative_color[3] = std::min(depth + 1, 1.0f);
           outline_color = negative_color;
         }
         else {
           interp_v4_v4v4(negative_color, view_color, axis_color[axis], 0.25f);
-          negative_color[3] = MIN2(depth + 1, 1.0f);
+          negative_color[3] = std::min(depth + 1, 1.0f);
           inner_color = negative_color;
         }
       }

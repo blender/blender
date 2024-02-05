@@ -16,7 +16,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -24,9 +24,12 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_object.hh"
 #include "ED_transverts.hh"
 
 #include "object_intern.h"
+
+using blender::Vector;
 
 /**
  * Generic randomize vertices function
@@ -90,10 +93,9 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
   const uint seed = RNA_int_get(op->ptr, "seed");
 
   bool changed_multi = false;
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len, eObjectMode(ob_mode));
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C), eObjectMode(ob_mode));
+  for (const int ob_index : objects.index_range()) {
     Object *ob_iter = objects[ob_index];
 
     TransVertStore tvs = {nullptr};
@@ -103,6 +105,10 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
 
       if (normal_factor != 0.0f) {
         mode |= TX_VERT_USE_NORMAL;
+      }
+
+      if (ED_object_edit_report_if_shape_key_is_locked(ob_iter, op->reports)) {
+        continue;
       }
 
       ED_transverts_create_from_obedit(&tvs, ob_iter, mode);
@@ -125,7 +131,6 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
       changed_multi = true;
     }
   }
-  MEM_freeN(objects);
 
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

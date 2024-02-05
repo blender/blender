@@ -48,7 +48,7 @@ using namespace Freestyle;
 
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "pipeline.hh"
 

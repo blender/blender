@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_vector_types.hh"
+
 #include "COM_CropOperation.h"
 
 namespace blender::compositor {
@@ -17,42 +19,30 @@ CropBaseOperation::CropBaseOperation()
 
 void CropBaseOperation::update_area()
 {
-  SocketReader *input_reference = this->get_input_socket_reader(0);
-  float width = input_reference->get_width();
-  float height = input_reference->get_height();
-  NodeTwoXYs local_settings = *settings_;
-
-  if (width > 0.0f && height > 0.0f) {
-    if (relative_) {
-      local_settings.x1 = width * local_settings.fac_x1;
-      local_settings.x2 = width * local_settings.fac_x2;
-      local_settings.y1 = height * local_settings.fac_y1;
-      local_settings.y2 = height * local_settings.fac_y2;
-    }
-    if (width < local_settings.x1) {
-      local_settings.x1 = width;
-    }
-    if (height < local_settings.y1) {
-      local_settings.y1 = height;
-    }
-    if (width < local_settings.x2) {
-      local_settings.x2 = width;
-    }
-    if (height < local_settings.y2) {
-      local_settings.y2 = height;
-    }
-
-    xmax_ = std::max(local_settings.x1, local_settings.x2);
-    xmin_ = std::min(local_settings.x1, local_settings.x2);
-    ymax_ = std::max(local_settings.y1, local_settings.y2);
-    ymin_ = std::min(local_settings.y1, local_settings.y2);
+  const NodeTwoXYs &node_two_xys = *settings_;
+  const SocketReader *input = this->get_input_socket_reader(0);
+  const int2 input_size = int2(input->get_width(), input->get_height());
+  if (relative_) {
+    /* The cropping bounds are relative to the image size. The factors are in the [0, 1] range,
+     * so it is guaranteed that they won't go over the input image size. */
+    xmin_ = input_size.x * node_two_xys.fac_x1;
+    ymin_ = input_size.y * node_two_xys.fac_y2;
+    xmax_ = input_size.x * node_two_xys.fac_x2;
+    ymax_ = input_size.y * node_two_xys.fac_y1;
   }
   else {
-    xmax_ = 0;
-    xmin_ = 0;
-    ymax_ = 0;
-    ymin_ = 0;
+    /* Make sure the bounds don't go over the input image size. */
+    xmin_ = min_ii(node_two_xys.x1, input_size.x);
+    ymin_ = min_ii(node_two_xys.y2, input_size.y);
+    xmax_ = min_ii(node_two_xys.x2, input_size.x);
+    ymax_ = min_ii(node_two_xys.y1, input_size.y);
   }
+
+  /* Make sure upper bound is actually higher than the lower bound. */
+  xmin_ = min_ii(xmin_, xmax_);
+  ymin_ = min_ii(ymin_, ymax_);
+  xmax_ = max_ii(xmin_, xmax_);
+  ymax_ = max_ii(ymin_, ymax_);
 }
 
 void CropBaseOperation::init_execution()

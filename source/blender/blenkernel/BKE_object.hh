@@ -15,6 +15,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
+#include "BLI_vector.hh"
 
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
@@ -292,33 +293,27 @@ Object *BKE_object_pose_armature_get_visible(Object *ob,
 /**
  * Access pose array with special check to get pose object when in weight paint mode.
  */
-Object **BKE_object_pose_array_get_ex(const Scene *scene,
-                                      ViewLayer *view_layer,
-                                      View3D *v3d,
-                                      unsigned int *r_objects_len,
-                                      bool unique);
-Object **BKE_object_pose_array_get_unique(const Scene *scene,
-                                          ViewLayer *view_layer,
-                                          View3D *v3d,
-                                          unsigned int *r_objects_len);
-Object **BKE_object_pose_array_get(const Scene *scene,
-                                   ViewLayer *view_layer,
-                                   View3D *v3d,
-                                   unsigned int *r_objects_len);
+blender::Vector<Object *> BKE_object_pose_array_get_ex(const Scene *scene,
+                                                       ViewLayer *view_layer,
+                                                       View3D *v3d,
+                                                       bool unique);
+blender::Vector<Object *> BKE_object_pose_array_get_unique(const Scene *scene,
+                                                           ViewLayer *view_layer,
+                                                           View3D *v3d);
+blender::Vector<Object *> BKE_object_pose_array_get(const Scene *scene,
+                                                    ViewLayer *view_layer,
+                                                    View3D *v3d);
 
-Base **BKE_object_pose_base_array_get_ex(const Scene *scene,
-                                         ViewLayer *view_layer,
-                                         View3D *v3d,
-                                         unsigned int *r_bases_len,
-                                         bool unique);
-Base **BKE_object_pose_base_array_get_unique(const Scene *scene,
-                                             ViewLayer *view_layer,
-                                             View3D *v3d,
-                                             unsigned int *r_bases_len);
-Base **BKE_object_pose_base_array_get(const Scene *scene,
-                                      ViewLayer *view_layer,
-                                      View3D *v3d,
-                                      unsigned int *r_bases_len);
+blender::Vector<Base *> BKE_object_pose_base_array_get_ex(const Scene *scene,
+                                                          ViewLayer *view_layer,
+                                                          View3D *v3d,
+                                                          bool unique);
+blender::Vector<Base *> BKE_object_pose_base_array_get_unique(const Scene *scene,
+                                                              ViewLayer *view_layer,
+                                                              View3D *v3d);
+blender::Vector<Base *> BKE_object_pose_base_array_get(const Scene *scene,
+                                                       ViewLayer *view_layer,
+                                                       View3D *v3d);
 
 void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4]);
 
@@ -685,7 +680,7 @@ Curve *BKE_object_to_curve(Object *object, Depsgraph *depsgraph, bool apply_modi
 
 void BKE_object_to_curve_clear(Object *object);
 
-void BKE_object_check_uuids_unique_and_report(const Object *object);
+void BKE_object_check_uids_unique_and_report(const Object *object);
 
 /**
  * Return the last subsurf modifier of an object, this does not check whether modifiers on top of

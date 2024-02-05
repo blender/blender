@@ -6,6 +6,7 @@
  * \ingroup edphys
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -26,13 +27,14 @@
 #include "BLI_rand.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
+#include "BLI_time_utildefines.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
@@ -69,8 +71,6 @@
 #include "RNA_define.hh"
 
 #include "DEG_depsgraph_query.hh"
-
-#include "PIL_time_utildefines.h"
 
 #include "physics_intern.h"
 
@@ -550,7 +550,7 @@ static void PE_free_shape_tree(PEData *data)
 
 static void PE_create_random_generator(PEData *data)
 {
-  uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
   rng_seed ^= POINTER_AS_UINT(data->ob);
   rng_seed ^= POINTER_AS_UINT(data->edit);
   data->rng = BLI_rng_new(rng_seed);
@@ -4638,7 +4638,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
           mul_v3_fl(key3[0].co, weight[0]);
 
           /* TODO: interpolating the weight would be nicer */
-          thkey->weight = (ppa->hair + MIN2(k, ppa->totkey - 1))->weight;
+          thkey->weight = (ppa->hair + std::min(k, ppa->totkey - 1))->weight;
 
           if (maxw > 1) {
             key3[1].time = key3[0].time;

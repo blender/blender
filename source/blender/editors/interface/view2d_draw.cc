@@ -6,6 +6,7 @@
  * \ingroup edinterface
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -28,7 +29,7 @@
 
 #include "WM_api.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
@@ -148,7 +149,7 @@ static void get_parallel_lines_draw_steps(const ParallelLinesSet *lines,
              lines->offset;
 
   if (region_start <= *r_first && region_end >= *r_first) {
-    *r_steps = MAX2(0, floorf((region_end - *r_first) / lines->distance)) + 1;
+    *r_steps = std::max(0.0f, floorf((region_end - *r_first) / lines->distance)) + 1;
   }
   else {
     *r_steps = 0;

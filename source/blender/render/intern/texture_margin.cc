@@ -18,8 +18,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_interp.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -221,9 +221,12 @@ class TextureMarginMap {
    */
   void lookup_pixels(ImBuf *ibuf, char *mask, int maxPolygonSteps)
   {
+    float4 *ibuf_ptr_fl = reinterpret_cast<float4 *>(ibuf->float_buffer.data);
+    uchar4 *ibuf_ptr_ch = reinterpret_cast<uchar4 *>(ibuf->byte_buffer.data);
+    size_t pixel_index = 0;
     for (int y = 0; y < h_; y++) {
       for (int x = 0; x < w_; x++) {
-        uint32_t dp = get_pixel(x, y);
+        uint32_t dp = pixel_data_[pixel_index];
         if (IsDijkstraPixel(dp) && !DijkstraPixelIsUnset(dp)) {
           int dist = DijkstraPixelGetDistance(dp);
           int direction = DijkstraPixelGetDirection(dp);
@@ -270,9 +273,16 @@ class TextureMarginMap {
             }
 
             if (found_pixel_in_polygon) {
-              bilinear_interpolation(ibuf, ibuf, destX, destY, x, y);
+              if (ibuf_ptr_fl) {
+                ibuf_ptr_fl[pixel_index] = imbuf::interpolate_bilinear_border_fl(
+                    ibuf, destX, destY);
+              }
+              if (ibuf_ptr_ch) {
+                ibuf_ptr_ch[pixel_index] = imbuf::interpolate_bilinear_border_byte(
+                    ibuf, destX, destY);
+              }
               /* Add our new pixels to the assigned pixel map. */
-              mask[y * w_ + x] = 1;
+              mask[pixel_index] = 1;
             }
           }
         }
@@ -280,8 +290,9 @@ class TextureMarginMap {
           /* These are not margin pixels, make sure the extend filter which is run after this step
            * leaves them alone.
            */
-          mask[y * w_ + x] = 1;
+          mask[pixel_index] = 1;
         }
+        pixel_index++;
       }
     }
   }

@@ -35,6 +35,7 @@
 #include "../generic/python_compat.h"
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_lib_write_doc,
     ".. method:: write(filepath, datablocks, path_remap=False, fake_user=False, compress=False)\n"
     "\n"

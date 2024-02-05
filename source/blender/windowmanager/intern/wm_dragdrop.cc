@@ -30,7 +30,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
@@ -47,7 +47,7 @@
 #include "GPU_state.h"
 #include "GPU_viewport.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
@@ -417,18 +417,15 @@ void WM_drag_free_list(ListBase *lb)
   }
 }
 
-static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox *drop)
+static std::string dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox *drop)
 {
-  char *tooltip = nullptr;
   if (drop->tooltip) {
-    tooltip = drop->tooltip(C, drag, xy, drop);
+    return drop->tooltip(C, drag, xy, drop);
   }
-  if (!tooltip && drop->ot) {
-    tooltip = BLI_strdup(WM_operatortype_name(drop->ot, drop->ptr).c_str());
+  if (drop->ot) {
+    return WM_operatortype_name(drop->ot, drop->ptr);
   }
-  /* XXX Doing translation here might not be ideal, but later we have no more
-   *     access to ot (and hence op context)... */
-  return tooltip;
+  return {};
 }
 
 static wmDropBox *dropbox_active(bContext *C,
@@ -785,9 +782,9 @@ void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
   }
 
   ID_Type asset_id_type = asset_drag->asset->get_id_type();
-  /* Try to find the imported ID. For this to work either a "session_uuid" or "name" property must
+  /* Try to find the imported ID. For this to work either a "session_uid" or "name" property must
    * have been defined (see #WM_operator_properties_id_lookup()). */
-  ID *id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
+  ID *id = WM_operator_properties_id_lookup_from_name_or_session_uid(
       bmain, drop->ptr, asset_id_type);
   if (id != nullptr) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
@@ -880,9 +877,9 @@ const char *WM_drag_get_single_path(const wmDrag *drag, int file_type)
     return nullptr;
   }
   const wmDragPath *path_data = static_cast<const wmDragPath *>(drag->poin);
-  auto const file_types = path_data->file_types;
+  const blender::Span<int> file_types = path_data->file_types;
 
-  auto itr = std::find_if(
+  const auto *itr = std::find_if(
       file_types.begin(), file_types.end(), [file_type](const int file_fype_test) {
         return file_fype_test & file_type;
       });
@@ -925,7 +922,7 @@ int WM_drag_get_path_file_type(const wmDrag *drag)
 
 /* ************** draw ***************** */
 
-static void wm_drop_operator_draw(const char *name, int x, int y)
+static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
@@ -940,7 +937,7 @@ static void wm_drop_operator_draw(const char *name, int x, int y)
   UI_fontstyle_draw_simple_backdrop(fstyle, x, y, name, col_fg, col_bg);
 }
 
-static void wm_drop_redalert_draw(const char *redalert_str, int x, int y)
+static void wm_drop_redalert_draw(const blender::StringRef redalert_str, int x, int y)
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
   const bTheme *btheme = UI_GetTheme();
@@ -1058,14 +1055,14 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int iconsize = UI_ICON_SIZE;
   int padding = 4 * UI_SCALE_FAC;
 
-  char *tooltip = nullptr;
+  std::string tooltip;
   if (drag->drop_state.active_dropbox) {
     tooltip = dropbox_tooltip(C, drag, xy, drag->drop_state.active_dropbox);
   }
 
   const bool has_disabled_info = drag->drop_state.disabled_info &&
                                  drag->drop_state.disabled_info[0];
-  if (!tooltip && !has_disabled_info) {
+  if (tooltip.empty() && !has_disabled_info) {
     return;
   }
 
@@ -1095,9 +1092,8 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
     }
   }
 
-  if (tooltip) {
+  if (!tooltip.empty()) {
     wm_drop_operator_draw(tooltip, x, y);
-    MEM_freeN(tooltip);
   }
   else if (has_disabled_info) {
     wm_drop_redalert_draw(drag->drop_state.disabled_info, x, y);

@@ -13,8 +13,8 @@
 #include "BLI_math_color.h"
 #include "BLI_sys_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include <type_traits>
 

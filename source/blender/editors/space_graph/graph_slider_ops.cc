@@ -432,7 +432,7 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
-      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
+      WM_report(RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
     }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
@@ -2440,8 +2440,7 @@ void GRAPH_OT_scale_from_neighbor(wmOperatorType *ot)
   ot->name = "Scale from Neighbor";
   ot->idname = "GRAPH_OT_scale_from_neighbor";
   ot->description =
-      "Increase or decrease the value of selected keys \n\
-  in relationship to the neighboring one";
+      "Increase or decrease the value of selected keys in relationship to the neighboring one";
 
   /* API callbacks. */
   ot->invoke = scale_from_neighbor_invoke;

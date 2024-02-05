@@ -89,5 +89,4 @@ void BM_mesh_bm_to_me(struct Main *bmain, BMesh *bm, Mesh *mesh, const BMeshToMe
  *
  * \note Was `cddm_from_bmesh_ex` in 2.7x, removed `MFace` support.
  */
-void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *mesh, const CustomData_MeshMasks *cd_mask_extra)
-    ATTR_NONNULL(1, 2);
+void BM_mesh_bm_to_me_for_eval(BMesh &bm, Mesh &mesh, const CustomData_MeshMasks *cd_mask_extra);

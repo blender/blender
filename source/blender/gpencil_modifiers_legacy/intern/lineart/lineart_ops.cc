@@ -237,6 +237,7 @@ static void lineart_gpencil_bake_startjob(void *customdata, wmJobWorkerStatus *w
 
     BKE_scene_frame_set(bj->scene, frame);
     BKE_scene_graph_update_for_newframe(bj->dg);
+    DEG_graph_build_from_view_layer(bj->dg);
 
     for (LinkNode *l = bj->objects; l; l = l->next) {
       Object *ob = static_cast<Object *>(l->link);

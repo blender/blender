@@ -9,15 +9,14 @@
 #include <cmath>
 
 #include "BLI_math_color.h"
-#include "BLI_math_interp.hh"
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "imbuf.h"
-
-#include "IMB_filter.h"
+#include "IMB_filter.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
+#include "imbuf.hh"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -1745,6 +1744,7 @@ static void scale_thread_init(void *data_v, int start_line, int tot_line, void *
 
 static void *do_scale_thread(void *data_v)
 {
+  using namespace blender::imbuf;
   ScaleThreadData *data = (ScaleThreadData *)data_v;
   ImBuf *ibuf = data->ibuf;
   int i;
@@ -1761,13 +1761,12 @@ static void *do_scale_thread(void *data_v)
       int offset = y * data->newx + x;
 
       if (data->byte_buffer) {
-        uchar *pixel = data->byte_buffer + 4 * offset;
-        BLI_bilinear_interpolation_char(ibuf->byte_buffer.data, pixel, ibuf->x, ibuf->y, u, v);
+        interpolate_bilinear_border_byte(ibuf, data->byte_buffer + 4 * offset, u, v);
       }
 
       if (data->float_buffer) {
         float *pixel = data->float_buffer + ibuf->channels * offset;
-        BLI_bilinear_interpolation_fl(
+        blender::math::interpolate_bilinear_border_fl(
             ibuf->float_buffer.data, pixel, ibuf->x, ibuf->y, ibuf->channels, u, v);
       }
     }

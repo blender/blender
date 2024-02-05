@@ -9,11 +9,11 @@
 #pragma once
 
 #include "DNA_object_types.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 
 #include "BKE_object_types.hh"
 
-#include "BLI_session_uuid.h"
+#include "BLI_session_uid.h"
 
 #include "intern/depsgraph_type.hh"
 #include "intern/eval/deg_eval_runtime_backup_modifier.h"
@@ -46,8 +46,8 @@ class ObjectRuntimeBackup {
   optional<LightLinkingRuntime> light_linking_runtime;
   short base_flag;
   unsigned short base_local_view_bits;
-  Map<SessionUUID, ModifierDataBackup> modifier_runtime_data;
-  Map<SessionUUID, bPoseChannel_Runtime> pose_channel_runtime_data;
+  Map<SessionUID, ModifierDataBackup> modifier_runtime_data;
+  Map<SessionUID, bPoseChannel_Runtime> pose_channel_runtime_data;
 };
 
 }  // namespace blender::deg

@@ -322,7 +322,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    * very root is visible (aka not restricted.). */
   bool is_parent_collection_visible_;
 
-  /* Indexed by original ID.session_uuid, values are IDInfo. */
+  /* Indexed by original ID.session_uid, values are IDInfo. */
   Map<uint, IDInfo *> id_info_hash_;
 
   /* Set of IDs which were already build. Makes it easier to keep track of

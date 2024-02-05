@@ -19,7 +19,7 @@ class AbstractImBufTest(unittest.TestCase):
         cls.reference_load_dir = pathlib.Path(args.test_dir).joinpath("reference_load")
         cls.output_dir = pathlib.Path(args.output_dir)
         cls.diff_dir = pathlib.Path(args.output_dir).joinpath("diff")
-        cls.idiff = pathlib.Path(args.idiff)
+        cls.oiiotool = pathlib.Path(args.oiiotool)
         cls.optional_formats = args.optional_formats
 
         os.makedirs(cls.diff_dir, exist_ok=True)
@@ -51,11 +51,12 @@ class AbstractImBufTest(unittest.TestCase):
         if os.path.exists(ref_filepath):
             # Diff images test with threshold.
             command = (
-                str(self.idiff),
-                "-fail", str(self.fail_threshold),
-                "-failpercent", str(self.fail_percent),
+                str(self.oiiotool),
                 ref_filepath,
                 out_filepath,
+                "--fail", str(self.fail_threshold),
+                "--failpercent", str(self.fail_percent),
+                "--diff",
             )
             try:
                 subprocess.check_output(command)
@@ -63,7 +64,7 @@ class AbstractImBufTest(unittest.TestCase):
             except subprocess.CalledProcessError as e:
                 if self.verbose:
                     print_message(e.output.decode("utf-8", 'ignore'))
-                failed = e.returncode != 1
+                failed = e.returncode != 0
         else:
             if not self.update:
                 return False
@@ -78,13 +79,13 @@ class AbstractImBufTest(unittest.TestCase):
         # Generate diff image (set fail thresholds high to reduce output spam).
         diff_img = str(self.diff_dir.joinpath(out_name + ".diff.png"))
         command = (
-            str(self.idiff),
-            "-fail", "1",
-            "-failpercent", "100",
-            "-abs", "-scale", "16",
-            "-o", diff_img,
+            str(self.oiiotool),
             ref_filepath,
-            out_filepath
+            out_filepath,
+            "--sub",
+            "--abs",
+            "--mulc", "16",
+            "-o", diff_img,
         )
 
         try:

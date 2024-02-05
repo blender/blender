@@ -27,9 +27,9 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -46,7 +46,6 @@
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -224,8 +223,9 @@ void create_blend_shapes(pxr::UsdStageRefPtr stage,
   pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
 
   if (!skel_api) {
-    printf("WARNING: couldn't apply UsdSkelBindingAPI to prim %s\n",
-           mesh_prim.GetPath().GetAsString().c_str());
+    CLOG_WARN(&LOG,
+              "Couldn't apply UsdSkelBindingAPI to mesh prim %s",
+              mesh_prim.GetPath().GetAsString().c_str());
     return;
   }
 

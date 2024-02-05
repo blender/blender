@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -138,13 +140,15 @@ static PyObject *Euler_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 /** \name Euler Methods
  * \{ */
 
-PyDoc_STRVAR(Euler_to_quaternion_doc,
-             ".. method:: to_quaternion()\n"
-             "\n"
-             "   Return a quaternion representation of the euler.\n"
-             "\n"
-             "   :return: Quaternion representation of the euler.\n"
-             "   :rtype: :class:`Quaternion`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_to_quaternion_doc,
+    ".. method:: to_quaternion()\n"
+    "\n"
+    "   Return a quaternion representation of the euler.\n"
+    "\n"
+    "   :return: Quaternion representation of the euler.\n"
+    "   :rtype: :class:`Quaternion`\n");
 static PyObject *Euler_to_quaternion(EulerObject *self)
 {
   float quat[4];
@@ -158,13 +162,15 @@ static PyObject *Euler_to_quaternion(EulerObject *self)
   return Quaternion_CreatePyObject(quat, nullptr);
 }
 
-PyDoc_STRVAR(Euler_to_matrix_doc,
-             ".. method:: to_matrix()\n"
-             "\n"
-             "   Return a matrix representation of the euler.\n"
-             "\n"
-             "   :return: A 3x3 rotation matrix representation of the euler.\n"
-             "   :rtype: :class:`Matrix`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_to_matrix_doc,
+    ".. method:: to_matrix()\n"
+    "\n"
+    "   Return a matrix representation of the euler.\n"
+    "\n"
+    "   :return: A 3x3 rotation matrix representation of the euler.\n"
+    "   :rtype: :class:`Matrix`\n");
 static PyObject *Euler_to_matrix(EulerObject *self)
 {
   float mat[9];
@@ -178,10 +184,12 @@ static PyObject *Euler_to_matrix(EulerObject *self)
   return Matrix_CreatePyObject(mat, 3, 3, nullptr);
 }
 
-PyDoc_STRVAR(Euler_zero_doc,
-             ".. method:: zero()\n"
-             "\n"
-             "   Set all values to zero.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_zero_doc,
+    ".. method:: zero()\n"
+    "\n"
+    "   Set all values to zero.\n");
 static PyObject *Euler_zero(EulerObject *self)
 {
   if (BaseMath_Prepare_ForWrite(self) == -1) {
@@ -197,16 +205,18 @@ static PyObject *Euler_zero(EulerObject *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Euler_rotate_axis_doc,
-             ".. method:: rotate_axis(axis, angle)\n"
-             "\n"
-             "   Rotates the euler a certain amount and returning a unique euler rotation\n"
-             "   (no 720 degree pitches).\n"
-             "\n"
-             "   :arg axis: single character in ['X, 'Y', 'Z'].\n"
-             "   :type axis: string\n"
-             "   :arg angle: angle in radians.\n"
-             "   :type angle: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_rotate_axis_doc,
+    ".. method:: rotate_axis(axis, angle)\n"
+    "\n"
+    "   Rotates the euler a certain amount and returning a unique euler rotation\n"
+    "   (no 720 degree pitches).\n"
+    "\n"
+    "   :arg axis: single character in ['X, 'Y', 'Z'].\n"
+    "   :type axis: string\n"
+    "   :arg angle: angle in radians.\n"
+    "   :type angle: float\n");
 static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
 {
   float angle = 0.0f;
@@ -237,13 +247,15 @@ static PyObject *Euler_rotate_axis(EulerObject *self, PyObject *args)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Euler_rotate_doc,
-             ".. method:: rotate(other)\n"
-             "\n"
-             "   Rotates the euler by another mathutils value.\n"
-             "\n"
-             "   :arg other: rotation component of mathutils value\n"
-             "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_rotate_doc,
+    ".. method:: rotate(other)\n"
+    "\n"
+    "   Rotates the euler by another mathutils value.\n"
+    "\n"
+    "   :arg other: rotation component of mathutils value\n"
+    "   :type other: :class:`Euler`, :class:`Quaternion` or :class:`Matrix`\n");
 static PyObject *Euler_rotate(EulerObject *self, PyObject *value)
 {
   float self_rmat[3][3], other_rmat[3][3], rmat[3][3];
@@ -265,13 +277,15 @@ static PyObject *Euler_rotate(EulerObject *self, PyObject *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Euler_make_compatible_doc,
-             ".. method:: make_compatible(other)\n"
-             "\n"
-             "   Make this euler compatible with another,\n"
-             "   so interpolating between them works as intended.\n"
-             "\n"
-             "   .. note:: the rotation order is not taken into account for this function.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_make_compatible_doc,
+    ".. method:: make_compatible(other)\n"
+    "\n"
+    "   Make this euler compatible with another,\n"
+    "   so interpolating between them works as intended.\n"
+    "\n"
+    "   .. note:: the rotation order is not taken into account for this function.\n");
 static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
 {
   float teul[EULER_SIZE];
@@ -296,16 +310,18 @@ static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Euler_copy_doc,
-             ".. function:: copy()\n"
-             "\n"
-             "   Returns a copy of this euler.\n"
-             "\n"
-             "   :return: A copy of the euler.\n"
-             "   :rtype: :class:`Euler`\n"
-             "\n"
-             "   .. note:: use this to get a copy of a wrapped euler with\n"
-             "      no reference to the original data.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_copy_doc,
+    ".. function:: copy()\n"
+    "\n"
+    "   Returns a copy of this euler.\n"
+    "\n"
+    "   :return: A copy of the euler.\n"
+    "   :rtype: :class:`Euler`\n"
+    "\n"
+    "   .. note:: use this to get a copy of a wrapped euler with\n"
+    "      no reference to the original data.\n");
 static PyObject *Euler_copy(EulerObject *self)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -517,7 +533,7 @@ static PyObject *Euler_slice(EulerObject *self, int begin, int end)
     end = (EULER_SIZE + 1) + end;
   }
   CLAMP(end, 0, EULER_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -542,7 +558,7 @@ static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
     end = (EULER_SIZE + 1) + end;
   }
   CLAMP(end, 0, EULER_SIZE);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   if ((size = mathutils_array_parse(eul, 0, EULER_SIZE, seq, "mathutils.Euler[begin:end] = []")) ==
       -1)
@@ -668,7 +684,12 @@ static PyMappingMethods Euler_AsMapping = {
 
 /* Euler axis: `euler.x/y/z`. */
 
-PyDoc_STRVAR(Euler_axis_doc, "Euler axis angle in radians.\n\n:type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Euler_axis_doc,
+    "Euler axis angle in radians.\n"
+    "\n"
+    ":type: float");
 static PyObject *Euler_axis_get(EulerObject *self, void *type)
 {
   return Euler_item(self, POINTER_AS_INT(type));
@@ -682,8 +703,11 @@ static int Euler_axis_set(EulerObject *self, PyObject *value, void *type)
 /* Euler rotation order: `euler.order`. */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Euler_order_doc,
-    "Euler rotation order.\n\n:type: string in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']");
+    "Euler rotation order.\n"
+    "\n"
+    ":type: string in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX']");
 static PyObject *Euler_order_get(EulerObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -791,6 +815,7 @@ static PyMethodDef Euler_methods[] = {
 #endif
 
 PyDoc_STRVAR(
+    /* Wrap. */
     euler_doc,
     ".. class:: Euler(angles, order='XYZ')\n"
     "\n"

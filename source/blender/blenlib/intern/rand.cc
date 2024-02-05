@@ -10,17 +10,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <random>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
 #include "BLI_threads.h"
-
-/* defines BLI_INLINE */
-#include "BLI_compiler_compat.h"
 
 #include "BLI_strict_flags.h"
 #include "BLI_sys_types.h"
@@ -362,6 +361,15 @@ void BLI_hammersley_2d_sequence(uint n, double *r)
 }
 
 namespace blender {
+
+RandomNumberGenerator RandomNumberGenerator::from_random_seed()
+{
+  std::random_device rd;
+  std::mt19937 e{rd()};
+  std::uniform_int_distribution<uint32_t> dist;
+  const uint32_t seed = dist(e);
+  return RandomNumberGenerator(seed);
+}
 
 void RandomNumberGenerator::seed_random(uint32_t seed)
 {

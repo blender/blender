@@ -9,6 +9,8 @@
 #pragma once
 
 struct Base;
+struct KeyBlock;
+struct Lattice;
 struct Object;
 struct SelectPick_Params;
 struct UndoType;
@@ -19,6 +21,8 @@ struct wmKeyConfig;
 void ED_operatortypes_lattice();
 void ED_keymap_lattice(wmKeyConfig *keyconf);
 
+KeyBlock *ED_lattice_get_edit_shape_key(const Lattice *latt);
+
 /* `editlattice_select.cc` */
 
 bool ED_lattice_flags_set(Object *obedit, int flag);
@@ -27,7 +31,6 @@ bool ED_lattice_flags_set(Object *obedit, int flag);
  */
 bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params);
 
-bool ED_lattice_deselect_all_multi_ex(Base **bases, uint bases_len);
 bool ED_lattice_deselect_all_multi(bContext *C);
 
 /* `editlattice_undo.cc` */

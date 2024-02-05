@@ -701,7 +701,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
                    &data->spline->points[0],
                    &data->spline->points[data->spline->tot_point - 1]))
           {
-            SWAP(float, delta[0], delta[1]);
+            std::swap(delta[0], delta[1]);
             delta[1] *= -1;
 
             /* flip last point */

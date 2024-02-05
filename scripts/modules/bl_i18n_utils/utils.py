@@ -9,7 +9,7 @@ import os
 import re
 import struct
 import tempfile
-# import time
+import time
 
 from bl_i18n_utils import (
     settings,
@@ -212,7 +212,7 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
         support = {}
 
     prefs = bpy.context.preferences
-    used_ext = {ext.module for ext in prefs.addons}
+    used_addon_module_names = {addon.module for addon in prefs.addons}
     # In case we need to blacklist some add-ons...
     black_list = {}
 
@@ -226,17 +226,17 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     if not check_only:
         for mod in ret:
             try:
-                module_name = mod.__name__
+                addon_module_name = mod.__name__
                 if disable:
-                    if module_name not in used_ext:
+                    if addon_module_name not in used_addon_module_names:
                         continue
-                    print("    Disabling module ", module_name)
-                    bpy.ops.preferences.addon_disable(module=module_name)
+                    print("    Disabling module ", addon_module_name)
+                    bpy.ops.preferences.addon_disable(module=addon_module_name)
                 else:
-                    if module_name in used_ext:
+                    if addon_module_name in used_addon_module_names:
                         continue
-                    print("    Enabling module ", module_name)
-                    bpy.ops.preferences.addon_enable(module=module_name)
+                    print("    Enabling module ", addon_module_name)
+                    bpy.ops.preferences.addon_enable(module=addon_module_name)
             except BaseException as ex:  # XXX TEMP WORKAROUND
                 print(ex)
 
@@ -478,13 +478,17 @@ class I18nMessages:
         return getattr(collections, "OrderedDict", dict)()
 
     @classmethod
-    def gen_empty_messages(cls, uid, blender_ver, blender_hash, time, year, default_copyright=True, settings=settings):
+    def gen_empty_messages(cls, uid, blender_ver, blender_hash, bl_time, default_copyright=True, settings=settings):
         """Generate an empty I18nMessages object (only header is present!)."""
         fmt = settings.PO_HEADER_MSGSTR
-        msgstr = fmt.format(blender_ver=str(blender_ver), blender_hash=blender_hash, time=str(time), uid=str(uid))
+        msgstr = fmt.format(
+            blender_ver=str(blender_ver),
+            blender_hash=blender_hash,
+            time=time.strftime("%Y-%m-%d %H:%M%z", bl_time),
+            uid=str(uid))
         comment = ""
         if default_copyright:
-            comment = settings.PO_HEADER_COMMENT_COPYRIGHT.format(year=str(year))
+            comment = settings.PO_HEADER_COMMENT_COPYRIGHT.format(year=str(time.gmtime().tm_year))
         comment = comment + settings.PO_HEADER_COMMENT
 
         msgs = cls(uid=uid, settings=settings)

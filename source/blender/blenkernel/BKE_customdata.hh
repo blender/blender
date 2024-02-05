@@ -395,7 +395,7 @@ BMCustomDataCopyMap CustomData_bmesh_copy_map_calc(const CustomData &src,
 void CustomData_bmesh_copy_block(CustomData &dst_data,
                                  const BMCustomDataCopyMap &map,
                                  const void *src_block,
-                                 void **dest_block);
+                                 void **dst_block);
 
 /**
  * Copies data of a single layer of a given type.

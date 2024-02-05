@@ -749,21 +749,21 @@ static uint get_material_type(MaterialGPencilStyle *gp_style,
                               char *name,
                               size_t name_maxncpy)
 {
-  uint r_i = 0;
+  uint i = 0;
   if ((use_stroke) && (use_fill)) {
     switch (gp_style->mode) {
       case GP_MATERIAL_MODE_LINE: {
-        r_i = 1;
+        i = 1;
         BLI_strncpy(name, "Line Stroke-Fill", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_DOT: {
-        r_i = 2;
+        i = 2;
         BLI_strncpy(name, "Dots Stroke-Fill", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_SQUARE: {
-        r_i = 3;
+        i = 3;
         BLI_strncpy(name, "Squares Stroke-Fill", name_maxncpy);
         break;
       }
@@ -774,17 +774,17 @@ static uint get_material_type(MaterialGPencilStyle *gp_style,
   else if (use_stroke) {
     switch (gp_style->mode) {
       case GP_MATERIAL_MODE_LINE: {
-        r_i = 4;
+        i = 4;
         BLI_strncpy(name, "Line Stroke", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_DOT: {
-        r_i = 5;
+        i = 5;
         BLI_strncpy(name, "Dots Stroke", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_SQUARE: {
-        r_i = 6;
+        i = 6;
         BLI_strncpy(name, "Squares Stroke", name_maxncpy);
         break;
       }
@@ -793,20 +793,20 @@ static uint get_material_type(MaterialGPencilStyle *gp_style,
     }
   }
   else {
-    r_i = 7;
+    i = 7;
     BLI_strncpy(name, "Solid Fill", name_maxncpy);
   }
 
   /* Create key TSSSSFFFF (T: Type S: Stroke Alpha F: Fill Alpha) */
-  r_i *= 1e8;
+  i *= 1e8;
   if (use_stroke) {
-    r_i += gp_style->stroke_rgba[3] * 1e7;
+    i += gp_style->stroke_rgba[3] * 1e7;
   }
   if (use_fill) {
-    r_i += gp_style->fill_rgba[3] * 1e3;
+    i += gp_style->fill_rgba[3] * 1e3;
   }
 
-  return r_i;
+  return i;
 }
 
 static bool gpencil_material_to_vertex_poll(bContext *C)

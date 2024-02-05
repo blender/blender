@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -3948,6 +3948,11 @@ msgid "Export BVH"
 msgstr "Exporteer BVH"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exporteer PLY"
+
+
 msgid "Apply Modifiers"
 msgstr "Pas Aanpassers Toe"
 
@@ -4484,6 +4489,11 @@ msgstr "Importeer SVG"
 msgctxt "Operator"
 msgid "Import Images as Planes"
 msgstr "Importeer Afbeeldingen als Vlakken"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importeer PLY"
 
 
 msgctxt "Operator"
@@ -6311,16 +6321,6 @@ msgid "Open a Blender file"
 msgstr "Open een Blender Bestand"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporteer PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importeer PLY"
-
-
 msgid "All Types"
 msgstr "Alle Types"
 
@@ -7468,6 +7468,16 @@ msgid "Characters"
 msgstr "Karakters"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Locatie"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotatie"
+
+
 msgid "Frame Range Before"
 msgstr "Framebereik Voor"
 
@@ -7777,11 +7787,6 @@ msgstr "Solutie"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Locatie"
-
-
-msgctxt "Operator"
 msgid "Set Floor"
 msgstr "Zet Vloer"
 
@@ -7933,11 +7938,6 @@ msgstr "Selectie"
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Opslaan Als..."
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontaal"
 
 
 msgctxt "Operator"
@@ -8100,11 +8100,6 @@ msgstr "Gloed"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Positie"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotatie"
 
 
 msgctxt "Operator"
@@ -8286,6 +8281,10 @@ msgid "Double Click Speed"
 msgstr "Snelheid Dubbelklik"
 
 
+msgid "Preferences:"
+msgstr "Instellingen:"
+
+
 msgid "Use Light"
 msgstr "Gebruik Licht"
 
@@ -8322,21 +8321,9 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "beschrijving"
-
-
-msgid "location"
-msgstr "locatie"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentatie"
-
-
-msgid "Preferences:"
-msgstr "Instellingen:"
 
 
 msgctxt "Operator"
@@ -8967,10 +8954,6 @@ msgid "Copy All to Selected"
 msgstr "Kopieer Alles naar Geselecteerd"
 
 
-msgid "Value: %s"
-msgstr "Waarde: %s"
-
-
 msgid "Double click to rename"
 msgstr "Dubbelklik om te hernoemen"
 
@@ -8989,6 +8972,10 @@ msgstr "Verwijder punten"
 
 msgid "Choose Screen layout"
 msgstr "Kies Scherm indeling"
+
+
+msgid "File Not Found"
+msgstr "Bestand Niet Gevonden"
 
 
 msgid "Today"
@@ -9546,10 +9533,6 @@ msgstr "Opslaan Als..."
 
 msgid "Don't Save"
 msgstr "Niet Opslaan"
-
-
-msgid "File Not Found"
-msgstr "Bestand Niet Gevonden"
 
 
 msgid "unable to open the file"

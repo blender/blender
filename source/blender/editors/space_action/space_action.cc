@@ -21,7 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_nla.h"
 #include "BKE_screen.hh"
@@ -865,7 +865,7 @@ static void action_main_region_view2d_changed(const bContext * /*C*/, ARegion *r
 
 void ED_spacetype_action()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype action");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_ACTION;
@@ -942,7 +942,7 @@ void ED_spacetype_action()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }
 
 /** \} */

@@ -13,6 +13,13 @@ struct SeqRenderData;
 struct Sequence;
 struct TextVars;
 
+enum class StripEarlyOut {
+  NoInput = -1,  /* No input needed. */
+  DoEffect = 0,  /* No early out (do the effect). */
+  UseInput1 = 1, /* Output = input1. */
+  UseInput2 = 2, /* Output = input2. */
+};
+
 /* Wipe effect */
 enum {
   DO_SINGLE_WIPE,
@@ -40,19 +47,18 @@ struct SeqEffectHandle {
   void (*load)(Sequence *seqconst);
 
   /* duplicate */
-  void (*copy)(Sequence *dst, Sequence *src, int flag);
+  void (*copy)(Sequence *dst, const Sequence *src, int flag);
 
   /* destruct */
   void (*free)(Sequence *seq, bool do_id_user);
 
-  /* returns: -1: no input needed,
-   * 0: no early out,
-   * 1: out = ibuf1,
-   * 2: out = ibuf2 */
-  int (*early_out)(Sequence *seq, float fac);
+  StripEarlyOut (*early_out)(const Sequence *seq, float fac);
 
   /* sets the default `fac` value */
-  void (*get_default_fac)(const Scene *scene, Sequence *seq, float timeline_frame, float *fac);
+  void (*get_default_fac)(const Scene *scene,
+                          const Sequence *seq,
+                          float timeline_frame,
+                          float *fac);
 
   /* execute the effect
    * sequence effects are only required to either support
@@ -73,9 +79,9 @@ struct SeqEffectHandle {
                         Sequence *seq,
                         float timeline_frame,
                         float fac,
-                        ImBuf *ibuf1,
-                        ImBuf *ibuf2,
-                        ImBuf *ibuf3,
+                        const ImBuf *ibuf1,
+                        const ImBuf *ibuf2,
+                        const ImBuf *ibuf3,
                         int start_line,
                         int total_lines,
                         ImBuf *out);

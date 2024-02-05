@@ -145,6 +145,9 @@ class ForwardPipeline {
   PassSortable transparent_ps_ = {"Forward.Transparent"};
   float3 camera_forward_;
 
+  bool has_opaque_ = false;
+  bool has_transparent_ = false;
+
  public:
   ForwardPipeline(Instance &inst) : inst_(inst){};
 

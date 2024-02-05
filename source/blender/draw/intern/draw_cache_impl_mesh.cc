@@ -31,7 +31,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_editmesh_tangent.hh"
@@ -50,7 +50,7 @@
 #include "bmesh.hh"
 
 #include "GPU_batch.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "DRW_render.hh"
 

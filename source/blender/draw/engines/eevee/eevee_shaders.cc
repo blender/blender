@@ -20,7 +20,7 @@
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 
 #include "NOD_shader.h"
@@ -177,7 +177,6 @@ extern "C" char datatoc_closure_type_lib_glsl[];
 extern "C" char datatoc_closure_eval_volume_lib_glsl[];
 extern "C" char datatoc_common_uniforms_lib_glsl[];
 extern "C" char datatoc_common_utiltex_lib_glsl[];
-extern "C" char datatoc_cubemap_lib_glsl[];
 extern "C" char datatoc_effect_dof_lib_glsl[];
 extern "C" char datatoc_effect_reflection_lib_glsl[];
 extern "C" char datatoc_irradiance_lib_glsl[];
@@ -225,7 +224,6 @@ static void eevee_shader_library_ensure()
     DRW_SHADER_LIB_ADD(e_data.lib, bsdf_common_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, common_utiltex_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, bsdf_sampling_lib);
-    DRW_SHADER_LIB_ADD(e_data.lib, cubemap_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, raytrace_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, ambient_occlusion_lib);
     DRW_SHADER_LIB_ADD(e_data.lib, octahedron_lib);

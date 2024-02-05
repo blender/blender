@@ -44,10 +44,10 @@
 #include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_displist.h"
-#include "BKE_idtype.h"
-#include "BKE_key.h"
+#include "BKE_idtype.hh"
+#include "BKE_key.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -4767,10 +4767,10 @@ bool BKE_nurb_valid_message(const int pnts,
       msg_template = RPT_("Must have more control points than Order");
       break;
     case NURBSValidationStatus::MoreRowsForBezierRequired:
-      msg_template = RPT_("%d more %s row(s) needed for Bezier");
+      msg_template = RPT_("%d more %s row(s) needed for Bézier");
       break;
     case NURBSValidationStatus::MorePointsForBezierRequired:
-      msg_template = RPT_("%d more point(s) needed for Bezier");
+      msg_template = RPT_("%d more point(s) needed for Bézier");
       break;
   }
 

@@ -17,7 +17,7 @@
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -39,7 +39,9 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, LinkNode *polys)
 {
@@ -126,14 +128,12 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 
   ViewContext vc = em_setup_viewcontext(C);
 
-  uint objects_len;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      vc.scene, vc.view_layer, vc.v3d, &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, vc.v3d);
 
-  EDBM_mesh_knife(&vc, objects, objects_len, polys, true, cut_through);
+  EDBM_mesh_knife(&vc, objects, polys, true, cut_through);
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
@@ -146,7 +146,6 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
 
     BM_mesh_select_mode_flush(em->bm);
   }
-  MEM_freeN(objects);
 
   BLI_linklist_freeN(polys);
 

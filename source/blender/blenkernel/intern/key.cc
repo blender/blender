@@ -37,13 +37,13 @@
 #include "BKE_anim_data.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_idtype.h"
-#include "BKE_key.h"
+#include "BKE_idtype.hh"
+#include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_scene.h"
@@ -1897,12 +1897,7 @@ KeyBlock *BKE_keyblock_from_object(Object *ob)
 {
   Key *key = BKE_key_from_object(ob);
 
-  if (key) {
-    KeyBlock *kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
-    return kb;
-  }
-
-  return nullptr;
+  return BKE_keyblock_find_by_index(key, ob->shapenr - 1);
 }
 
 KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
@@ -1916,21 +1911,13 @@ KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
   return nullptr;
 }
 
-KeyBlock *BKE_keyblock_from_key(Key *key, int index)
+KeyBlock *BKE_keyblock_find_by_index(Key *key, int index)
 {
-  if (key) {
-    KeyBlock *kb = static_cast<KeyBlock *>(key->block.first);
-
-    for (int i = 1; i < key->totkey; i++) {
-      kb = kb->next;
-
-      if (index == i) {
-        return kb;
-      }
-    }
+  if (!key) {
+    return nullptr;
   }
 
-  return nullptr;
+  return static_cast<KeyBlock *>(BLI_findlink(&key->block, index));
 }
 
 KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
@@ -1959,21 +1946,13 @@ void BKE_keyblock_copy_settings(KeyBlock *kb_dst, const KeyBlock *kb_src)
   kb_dst->slidermax = kb_src->slidermax;
 }
 
-char *BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb)
+std::optional<std::string> BKE_keyblock_curval_rnapath_get(const Key *key, const KeyBlock *kb)
 {
-  PropertyRNA *prop;
-
-  /* sanity checks */
   if (ELEM(nullptr, key, kb)) {
     return nullptr;
   }
-
-  /* create the RNA pointer */
   PointerRNA ptr = RNA_pointer_create((ID *)&key->id, &RNA_ShapeKey, (KeyBlock *)kb);
-  /* get pointer to the property too */
-  prop = RNA_struct_find_property(&ptr, "value");
-
-  /* return the path */
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, "value");
   return RNA_path_from_ID_to_property(&ptr, prop);
 }
 

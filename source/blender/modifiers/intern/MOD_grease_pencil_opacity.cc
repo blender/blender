@@ -6,8 +6,6 @@
  * \ingroup modifiers
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -17,10 +15,9 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_modifier.hh"
+#include "BKE_screen.hh"
 
 #include "BLO_read_write.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -36,8 +33,6 @@
 #include "MOD_grease_pencil_util.hh"
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
-
-#include <iostream>
 
 namespace blender {
 
@@ -92,10 +87,8 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   bke::SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
       "opacity", bke::AttrDomain::Point);
-  const VArray<float> vgroup_weights =
-      attributes
-          .lookup_or_default<float>(omd.influence.vertex_group_name, bke::AttrDomain::Point, 1.0f)
-          .varray;
+  const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
+      curves, omd.influence);
 
   curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
     const IndexRange points = points_by_curve[curve_i];
@@ -120,7 +113,7 @@ static void modify_stroke_color(const GreasePencilOpacityModifierData &omd,
         const float vgroup_weight = vgroup_weights[point_i];
         const float vgroup_influence = invert_vertex_group ? 1.0f - vgroup_weight : vgroup_weight;
         opacities.span[point_i] = std::clamp(
-            opacities.span[point_i] + omd.color_factor * curve_factor * vgroup_influence - 1.0f,
+            opacities.span[point_i] + (omd.color_factor * curve_factor - 1.0f) * vgroup_influence,
             0.0f,
             1.0f);
       }
@@ -143,11 +136,8 @@ static void modify_fill_color(const GreasePencilOpacityModifierData &omd,
   /* Fill color opacity per stroke. */
   bke::SpanAttributeWriter<float> fill_opacities = attributes.lookup_or_add_for_write_span<float>(
       "fill_opacity", bke::AttrDomain::Curve);
-  VArray<float> vgroup_weights = attributes
-                                     .lookup_or_default<float>(omd.influence.vertex_group_name,
-                                                               bke::AttrDomain::Point,
-                                                               1.0f)
-                                     .varray;
+  const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
+      curves, omd.influence);
 
   curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
     if (use_vgroup_opacity) {
@@ -188,10 +178,10 @@ static void modify_curves(ModifierData *md,
                           const ModifierEvalContext *ctx,
                           bke::CurvesGeometry &curves)
 {
-  auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
+  const auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
 
   IndexMaskMemory mask_memory;
-  IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
+  const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx->object, curves, omd->influence, mask_memory);
 
   switch (omd->color_mode) {
@@ -215,9 +205,7 @@ static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
                                 bke::GeometrySet *geometry_set)
 {
-  auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
-  const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  const int frame = scene->r.cfra;
+  const auto *omd = reinterpret_cast<GreasePencilOpacityModifierData *>(md);
 
   GreasePencil *grease_pencil = geometry_set->get_grease_pencil_for_write();
   if (grease_pencil == nullptr) {
@@ -225,9 +213,10 @@ static void modify_geometry_set(ModifierData *md,
   }
 
   IndexMaskMemory mask_memory;
-  IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
+  const IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
       *grease_pencil, omd->influence, mask_memory);
-  Vector<Drawing *> drawings = modifier::greasepencil::get_drawings_for_write(
+  const int frame = grease_pencil->runtime->eval_frame;
+  const Vector<Drawing *> drawings = modifier::greasepencil::get_drawings_for_write(
       *grease_pencil, layer_mask, frame);
   threading::parallel_for_each(
       drawings, [&](Drawing *drawing) { modify_curves(md, ctx, drawing->strokes_for_write()); });
@@ -267,8 +256,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanel(
-          C, layout, "Influence", ptr, "open_influence_panel"))
+  if (uiLayout *influence_panel = uiLayoutPanelProp(
+          C, layout, ptr, "open_influence_panel", "Influence"))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
@@ -307,11 +296,9 @@ ModifierTypeInfo modifierType_GreasePencilOpacity = {
     /*struct_name*/ "GreasePencilOpacityModifierData",
     /*struct_size*/ sizeof(GreasePencilOpacityModifierData),
     /*srna*/ &RNA_GreasePencilOpacityModifier,
-    /*type*/ ModifierTypeType::Nonconstructive,
-    /*flags*/
-    static_cast<ModifierTypeFlag>(
-        eModifierTypeFlag_AcceptsGreasePencil | eModifierTypeFlag_SupportsEditmode |
-        eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping),
+    /*type*/ ModifierTypeType::NonGeometrical,
+    /*flags*/ eModifierTypeFlag_AcceptsGreasePencil | eModifierTypeFlag_SupportsEditmode |
+        eModifierTypeFlag_EnableInEditmode | eModifierTypeFlag_SupportsMapping,
     /*icon*/ ICON_MOD_OPACITY,
 
     /*copy_data*/ blender::copy_data,
@@ -336,4 +323,5 @@ ModifierTypeInfo modifierType_GreasePencilOpacity = {
     /*panel_register*/ blender::panel_register,
     /*blend_write*/ blender::blend_write,
     /*blend_read*/ blender::blend_read,
+    /*foreach_cache*/ nullptr,
 };

@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -269,7 +270,7 @@ bool MOD_meshcache_read_pc2_times(const char *filepath,
         return false;
       }
 
-      frame = CLAMPIS(time, 0.0f, 1.0f) * float(pc2_head.frame_tot);
+      frame = std::clamp(time, 0.0f, 1.0f) * float(pc2_head.frame_tot);
       rewind(fp);
       break;
     }

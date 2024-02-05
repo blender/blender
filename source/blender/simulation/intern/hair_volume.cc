@@ -6,6 +6,8 @@
  * \ingroup sim
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -544,7 +546,7 @@ void SIM_hair_volume_add_segment(HairGrid *grid,
     float shift1, shift2; /* fraction of a full cell shift [0.0, 1.0) */
     int jmin, jmax, kmin, kmax;
 
-    h = CLAMPIS(float(i), start0, end0);
+    h = std::clamp(float(i), start0, end0);
 
     shift1 = start1 + (h - start0) * inc1;
     shift2 = start2 + (h - start0) * inc2;
@@ -810,11 +812,11 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
           grid_to_world(grid, wloc, loc);
 
           if (divergence > 0.0f) {
-            fac = CLAMPIS(divergence * target_strength, 0.0, 1.0);
+            fac = std::clamp(divergence * target_strength, 0.0, 1.0);
             interp_v3_v3v3(col, col0, colp, fac);
           }
           else {
-            fac = CLAMPIS(-divergence * target_strength, 0.0, 1.0);
+            fac = std::clamp(-divergence * target_strength, 0.0, 1.0);
             interp_v3_v3v3(col, col0, coln, fac);
           }
           if (fac > 0.05f) {
@@ -977,11 +979,11 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
 
             float pressure = p[u];
             if (pressure > 0.0f) {
-              fac = CLAMPIS(pressure * grid->debug1, 0.0, 1.0);
+              fac = std::clamp(pressure * grid->debug1, 0.0, 1.0);
               interp_v3_v3v3(col, col0, colp, fac);
             }
             else {
-              fac = CLAMPIS(-pressure * grid->debug1, 0.0, 1.0);
+              fac = std::clamp(-pressure * grid->debug1, 0.0, 1.0);
               interp_v3_v3v3(col, col0, coln, fac);
             }
             if (fac > 0.05f) {
@@ -999,7 +1001,7 @@ bool SIM_hair_volume_solve_divergence(HairGrid *grid,
             }
 
             if (!is_margin) {
-              float d = CLAMPIS(vert->density * grid->debug2, 0.0f, 1.0f);
+              float d = std::clamp(vert->density * grid->debug2, 0.0f, 1.0f);
               float col0[3] = {0.3, 0.3, 0.3};
               float colp[3] = {0.0, 0.0, 1.0};
               float col[3];

@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <optional>
 
-#include "ED_asset_indexer.h"
+#include "ED_asset_indexer.hh"
 
 #include "DNA_asset_types.h"
 #include "DNA_userdef_types.h"
@@ -27,7 +27,7 @@
 #include "BLI_uuid.h"
 
 #include "AS_asset_catalog.hh"
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_asset.hh"
 #include "BKE_idprop.hh"
 
@@ -648,7 +648,7 @@ struct AssetIndex {
   const int UNKNOWN_VERSION = -1;
 
   /**
-   * `blender::io::serialize::Value` representing the contents of an index file.
+   * `io::serialize::Value` representing the contents of an index file.
    *
    * Value is used over #DictionaryValue as the contents of the index could be corrupted and
    * doesn't represent an object. In case corrupted files are detected the `get_version` would
@@ -940,8 +940,6 @@ constexpr FileIndexerType asset_indexer()
   return indexer;
 }
 
-}  // namespace blender::ed::asset::index
+const FileIndexerType file_indexer_asset = asset_indexer();
 
-extern "C" {
-const FileIndexerType file_indexer_asset = blender::ed::asset::index::asset_indexer();
-}
+}  // namespace blender::ed::asset::index

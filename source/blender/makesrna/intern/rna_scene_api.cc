@@ -10,6 +10,8 @@
 #include <cstdlib>
 
 #include "BLI_kdopbvh.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
@@ -20,7 +22,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"

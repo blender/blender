@@ -26,7 +26,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -2711,12 +2711,12 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_expanded_items", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", KEYMAP_EXPANDED);
   RNA_def_property_ui_text(prop, "Items Expanded", "Expanded in the user interface");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   prop = RNA_def_property(srna, "show_expanded_children", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", KEYMAP_CHILDREN_EXPANDED);
   RNA_def_property_ui_text(prop, "Children Expanded", "Children expanded in the user interface");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   prop = RNA_def_property(srna, "modal_event_values", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -2884,7 +2884,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", KMI_EXPANDED);
   RNA_def_property_ui_text(
       prop, "Expanded", "Show key map event and property details in the user interface");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
   /* Display only, no need to call `rna_KeyMapItem_update`. */
 
   prop = RNA_def_property(srna, "propvalue", PROP_ENUM, PROP_NONE);

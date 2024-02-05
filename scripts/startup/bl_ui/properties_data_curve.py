@@ -289,7 +289,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                 sub.prop(act_spline, "use_cyclic_v", text="V")
 
             if act_spline.type == 'NURBS':
-                sub = col.column(heading="Bezier", align=True)
+                sub = col.column(heading="Bézier", align=True)
                 # sub.active = (not act_spline.use_cyclic_u)
                 sub.prop(act_spline, "use_bezier_u", text="U")
 

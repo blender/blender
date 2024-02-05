@@ -65,32 +65,34 @@ static PyNumberMethods nature_as_number = {
 
 /*-----------------------BPy_Nature doc-string -----------------------------------*/
 
-PyDoc_STRVAR(Nature_doc,
-             "Class hierarchy: int > :class:`Nature`\n"
-             "\n"
-             "Different possible natures of 0D and 1D elements of the ViewMap.\n"
-             "\n"
-             "Vertex natures:\n"
-             "\n"
-             "* Nature.POINT: True for any 0D element.\n"
-             "* Nature.S_VERTEX: True for SVertex.\n"
-             "* Nature.VIEW_VERTEX: True for ViewVertex.\n"
-             "* Nature.NON_T_VERTEX: True for NonTVertex.\n"
-             "* Nature.T_VERTEX: True for TVertex.\n"
-             "* Nature.CUSP: True for CUSP.\n"
-             "\n"
-             "Edge natures:\n"
-             "\n"
-             "* Nature.NO_FEATURE: True for non feature edges (always false for 1D\n"
-             "  elements of the ViewMap).\n"
-             "* Nature.SILHOUETTE: True for silhouettes.\n"
-             "* Nature.BORDER: True for borders.\n"
-             "* Nature.CREASE: True for creases.\n"
-             "* Nature.RIDGE: True for ridges.\n"
-             "* Nature.VALLEY: True for valleys.\n"
-             "* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n"
-             "* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n"
-             "* Nature.EDGE_MARK: True for edges having user-defined edge marks.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Nature_doc,
+    "Class hierarchy: int > :class:`Nature`\n"
+    "\n"
+    "Different possible natures of 0D and 1D elements of the ViewMap.\n"
+    "\n"
+    "Vertex natures:\n"
+    "\n"
+    "* Nature.POINT: True for any 0D element.\n"
+    "* Nature.S_VERTEX: True for SVertex.\n"
+    "* Nature.VIEW_VERTEX: True for ViewVertex.\n"
+    "* Nature.NON_T_VERTEX: True for NonTVertex.\n"
+    "* Nature.T_VERTEX: True for TVertex.\n"
+    "* Nature.CUSP: True for CUSP.\n"
+    "\n"
+    "Edge natures:\n"
+    "\n"
+    "* Nature.NO_FEATURE: True for non feature edges (always false for 1D\n"
+    "  elements of the ViewMap).\n"
+    "* Nature.SILHOUETTE: True for silhouettes.\n"
+    "* Nature.BORDER: True for borders.\n"
+    "* Nature.CREASE: True for creases.\n"
+    "* Nature.RIDGE: True for ridges.\n"
+    "* Nature.VALLEY: True for valleys.\n"
+    "* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n"
+    "* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n"
+    "* Nature.EDGE_MARK: True for edges having user-defined edge marks.");
 
 /*-----------------------BPy_Nature type definition ------------------------------*/
 

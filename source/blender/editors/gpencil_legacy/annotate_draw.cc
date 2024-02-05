@@ -20,7 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "BLT_translation.h"
 
 #include "DNA_gpencil_legacy_types.h"

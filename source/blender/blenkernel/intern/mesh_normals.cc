@@ -198,7 +198,7 @@ void normals_calc_verts(const Span<float3> vert_positions,
 /** \name Mesh Normal Calculation
  * \{ */
 
-blender::bke::MeshNormalDomain Mesh::normals_domain() const
+blender::bke::MeshNormalDomain Mesh::normals_domain(const bool support_sharp_face) const
 {
   using namespace blender;
   using namespace blender::bke;
@@ -227,7 +227,7 @@ blender::bke::MeshNormalDomain Mesh::normals_domain() const
   }
 
   if (edge_mix == array_utils::BooleanMix::AllFalse &&
-      face_mix == array_utils::BooleanMix::AllFalse)
+      (face_mix == array_utils::BooleanMix::AllFalse || support_sharp_face))
   {
     return MeshNormalDomain::Point;
   }
@@ -884,7 +884,7 @@ static void lnor_space_for_single_fan(CornerSplitTaskDataCommon *common_data,
 static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
                                        const int ml_curr_index,
                                        const int space_index,
-                                       Vector<float3> *edge_vectors)
+                                       Vector<float3, 16> *edge_vectors)
 {
   CornerNormalSpaceArray *lnors_spacearr = common_data->lnors_spacearr;
   MutableSpan<float3> corner_normals = common_data->corner_normals;
@@ -920,7 +920,7 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
 
   int2 clnors_avg(0);
 
-  Vector<int, 8> processed_corners;
+  Vector<int, 32> processed_corners;
 
   /* `mlfan_vert_index` the corner of our current edge might not be the corner of our current
    * vertex!
@@ -1098,8 +1098,8 @@ static bool corner_split_generator_check_cyclic_smooth_fan(const Span<int> corne
 }
 
 static void corner_split_generator(CornerSplitTaskDataCommon *common_data,
-                                   Vector<int> &r_single_corners,
-                                   Vector<int> &r_fan_corners)
+                                   Vector<int, 32> &r_single_corners,
+                                   Vector<int, 32> &r_fan_corners)
 {
   const Span<int> corner_verts = common_data->corner_verts;
   const Span<int> corner_edges = common_data->corner_edges;
@@ -1242,8 +1242,8 @@ void normals_calc_corners(const Span<float3> vert_positions,
   build_edge_to_corner_map_with_flip_and_sharp(
       faces, corner_verts, corner_edges, sharp_faces, sharp_edges, edge_to_corners);
 
-  Vector<int> single_corners;
-  Vector<int> fan_corners;
+  Vector<int, 32> single_corners;
+  Vector<int, 32> fan_corners;
   corner_split_generator(&common_data, single_corners, fan_corners);
 
   if (r_lnors_spacearr) {
@@ -1262,7 +1262,7 @@ void normals_calc_corners(const Span<float3> vert_positions,
   });
 
   threading::parallel_for(fan_corners.index_range(), 1024, [&](const IndexRange range) {
-    Vector<float3> edge_vectors;
+    Vector<float3, 16> edge_vectors;
     for (const int i : range) {
       const int corner = fan_corners[i];
       const int space_index = single_corners.size() + i;

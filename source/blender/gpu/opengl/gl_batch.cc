@@ -208,29 +208,6 @@ void GLVaoCache::context_check()
   }
 }
 
-GLuint GLVaoCache::base_instance_vao_get(GPUBatch *batch, int i_first)
-{
-  this->context_check();
-  /* Make sure the interface is up to date. */
-  Shader *shader = GLContext::get()->shader;
-  GLShaderInterface *interface = static_cast<GLShaderInterface *>(shader->interface);
-  if (interface_ != interface) {
-    vao_get(batch);
-    /* Trigger update. */
-    base_instance_ = 0;
-  }
-
-  if (vao_base_instance_ == 0) {
-    glGenVertexArrays(1, &vao_base_instance_);
-  }
-
-  if (base_instance_ != i_first) {
-    base_instance_ = i_first;
-    GLVertArray::update_bindings(vao_base_instance_, batch, interface_, i_first);
-  }
-  return vao_base_instance_;
-}
-
 GLuint GLVaoCache::vao_get(GPUBatch *batch)
 {
   this->context_check();
@@ -258,7 +235,7 @@ GLuint GLVaoCache::vao_get(GPUBatch *batch)
 /** \name Drawing
  * \{ */
 
-void GLBatch::bind(int i_first)
+void GLBatch::bind()
 {
   GLContext::get()->state_manager->apply_state();
 
@@ -267,27 +244,14 @@ void GLBatch::bind(int i_first)
     vao_cache_.clear();
   }
 
-#if GPU_TRACK_INDEX_RANGE
-  /* Can be removed if GL 4.3 is required. */
-  if (!GLContext::fixed_restart_index_support) {
-    glPrimitiveRestartIndex((elem != nullptr) ? this->elem_()->restart_index() : 0xFFFFFFFFu);
-  }
-#endif
-
-  /* Can be removed if GL 4.2 is required. */
-  if (!GLContext::base_instance_support && (i_first > 0)) {
-    glBindVertexArray(vao_cache_.base_instance_vao_get(this, i_first));
-  }
-  else {
-    glBindVertexArray(vao_cache_.vao_get(this));
-  }
+  glBindVertexArray(vao_cache_.vao_get(this));
 }
 
 void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 {
   GL_CHECK_RESOURCES("Batch");
 
-  this->bind(i_first);
+  this->bind();
 
   BLI_assert(v_count > 0 && i_count > 0);
 
@@ -299,22 +263,11 @@ void GLBatch::draw(int v_first, int v_count, int i_first, int i_count)
     GLint base_index = el->index_base_;
     void *v_first_ofs = el->offset_ptr(v_first);
 
-    if (GLContext::base_instance_support) {
-      glDrawElementsInstancedBaseVertexBaseInstance(
-          gl_type, v_count, index_type, v_first_ofs, i_count, base_index, i_first);
-    }
-    else {
-      glDrawElementsInstancedBaseVertex(
-          gl_type, v_count, index_type, v_first_ofs, i_count, base_index);
-    }
+    glDrawElementsInstancedBaseVertexBaseInstance(
+        gl_type, v_count, index_type, v_first_ofs, i_count, base_index, i_first);
   }
   else {
-    if (GLContext::base_instance_support) {
-      glDrawArraysInstancedBaseInstance(gl_type, v_first, v_count, i_count, i_first);
-    }
-    else {
-      glDrawArraysInstanced(gl_type, v_first, v_count, i_count);
-    }
+    glDrawArraysInstancedBaseInstance(gl_type, v_first, v_count, i_count, i_first);
   }
 }
 
@@ -322,12 +275,8 @@ void GLBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
 {
   GL_CHECK_RESOURCES("Batch");
 
-  this->bind(0);
-
-  /* TODO(fclem): Make the barrier and binding optional if consecutive draws are issued. */
+  this->bind();
   dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
-  /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
-  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
   GLenum gl_type = to_gl(prim_type);
   if (elem) {
@@ -349,12 +298,8 @@ void GLBatch::multi_draw_indirect(GPUStorageBuf *indirect_buf,
 {
   GL_CHECK_RESOURCES("Batch");
 
-  this->bind(0);
-
-  /* TODO(fclem): Make the barrier and binding optional if consecutive draws are issued. */
+  this->bind();
   dynamic_cast<GLStorageBuf *>(unwrap(indirect_buf))->bind_as(GL_DRAW_INDIRECT_BUFFER);
-  /* This barrier needs to be here as it only work on the currently bound indirect buffer. */
-  glMemoryBarrier(GL_COMMAND_BARRIER_BIT);
 
   GLenum gl_type = to_gl(prim_type);
   if (elem) {

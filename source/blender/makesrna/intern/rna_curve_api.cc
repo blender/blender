@@ -17,7 +17,7 @@
 
 #include "BKE_curve.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 static void rna_Curve_transform(Curve *cu, const float mat[16], bool shape_keys)

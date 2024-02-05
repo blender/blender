@@ -18,8 +18,8 @@
 
 #include "BIF_glutil.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_context.h"
 #include "GPU_immediate.h"

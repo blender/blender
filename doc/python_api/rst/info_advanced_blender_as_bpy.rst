@@ -13,7 +13,7 @@ allowing ``import bpy`` to be added to any Python script, providing access to Bl
    - A pre-compiled ``bpy`` module is
      `available via PIP <https://pypi.org/project/bpy/>`__.
    - Or you may compile this yourself using the
-     `build instructions <https://wiki.blender.org/w/index.php?title=Building_Blender/Other/BlenderAsPyModule>`__.
+     `build instructions <https://developer.blender.org/docs/handbook/building_blender/python_module/>`__.
 
 
 Use Cases

@@ -4,6 +4,7 @@
 
 #include "COM_RenderLayersProg.h"
 
+#include "BLI_math_interp.hh"
 #include "BLI_string.h"
 
 #include "BKE_image.h"
@@ -55,7 +56,6 @@ void RenderLayersProg::init_execution()
 
 void RenderLayersProg::do_interpolation(float output[4], float x, float y, PixelSampler sampler)
 {
-  uint offset;
   int width = this->get_width(), height = this->get_height();
 
   int ix = x, iy = y;
@@ -73,27 +73,15 @@ void RenderLayersProg::do_interpolation(float output[4], float x, float y, Pixel
   }
 
   switch (sampler) {
-    case PixelSampler::Nearest: {
-      offset = (iy * width + ix) * elementsize_;
-
-      if (elementsize_ == 1) {
-        output[0] = input_buffer_[offset];
-      }
-      else if (elementsize_ == 3) {
-        copy_v3_v3(output, &input_buffer_[offset]);
-      }
-      else {
-        copy_v4_v4(output, &input_buffer_[offset]);
-      }
+    case PixelSampler::Nearest:
+      math::interpolate_nearest_fl(input_buffer_, output, width, height, elementsize_, x, y);
       break;
-    }
-
     case PixelSampler::Bilinear:
-      BLI_bilinear_interpolation_fl(input_buffer_, output, width, height, elementsize_, x, y);
+      math::interpolate_bilinear_border_fl(
+          input_buffer_, output, width, height, elementsize_, x, y);
       break;
-
     case PixelSampler::Bicubic:
-      BLI_bicubic_interpolation_fl(input_buffer_, output, width, height, elementsize_, x, y);
+      math::interpolate_cubic_bspline_fl(input_buffer_, output, width, height, elementsize_, x, y);
       break;
   }
 }

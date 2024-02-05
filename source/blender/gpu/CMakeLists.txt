@@ -97,7 +97,7 @@ set(SRC
   GPU_immediate_util.h
   GPU_index_buffer.h
   GPU_init_exit.h
-  GPU_material.h
+  GPU_material.hh
   GPU_matrix.h
   GPU_platform.h
   GPU_primitive.h

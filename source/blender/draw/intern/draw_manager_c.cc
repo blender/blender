@@ -16,7 +16,7 @@
 #include "BLI_task.h"
 #include "BLI_threads.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLT_translation.h"
 
@@ -30,7 +30,7 @@
 #include "BKE_grease_pencil.h"
 #include "BKE_lattice.hh"
 #include "BKE_main.hh"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -64,8 +64,6 @@
 #include "GPU_state.h"
 #include "GPU_uniform_buffer.h"
 #include "GPU_viewport.h"
-
-#include "IMB_colormanagement.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -978,7 +976,7 @@ void DRW_cache_free_old_batches(Main *bmain)
   using namespace blender::draw;
   Scene *scene;
   static int lasttime = 0;
-  int ctime = int(PIL_check_seconds_timer());
+  int ctime = int(BLI_check_seconds_timer());
 
   if (U.vbotimeout == 0 || (ctime - lasttime) < U.vbocollectrate || ctime == lasttime) {
     return;
@@ -1147,21 +1145,14 @@ void DRW_draw_region_engine_info(int xoffset, int *yoffset, int line_height)
     if (data->info[0] != '\0') {
       const int font_id = BLF_default();
       UI_FontThemeColor(font_id, TH_TEXT_HI);
-
-      BLF_enable(font_id, BLF_SHADOW);
-      BLF_shadow(font_id, 5, blender::float4{0.0f, 0.0f, 0.0f, 1.0f});
-      BLF_shadow_offset(font_id, 1, -1);
-
       const char *buf_step = IFACE_(data->info);
       do {
         const char *buf = buf_step;
         buf_step = BLI_strchr_or_end(buf, '\n');
         const int buf_len = buf_step - buf;
         *yoffset -= line_height;
-        BLF_draw_default(xoffset, *yoffset, 0.0f, buf, buf_len);
+        BLF_draw_default_shadowed(xoffset, *yoffset, 0.0f, buf, buf_len);
       } while (*buf_step ? ((void)buf_step++, true) : false);
-
-      BLF_disable(font_id, BLF_SHADOW);
     }
   }
 }

@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "blf_internal.h"
+#include "blf_internal.hh"
 
 uint blf_next_p2(uint x)
 {

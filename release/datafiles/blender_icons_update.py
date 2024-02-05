@@ -8,8 +8,16 @@ import os
 import subprocess
 import sys
 
+from typing import (
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
-def run(cmd, *, env=None):
+
+def run(cmd: Sequence[str], *, env: Optional[Dict[str, str]] = None) -> None:
     print("   ", " ".join(cmd))
     subprocess.check_call(cmd, env=env)
 
@@ -26,23 +34,15 @@ if sys.platform[:3] == "win":
     env["SystemDrive"] = os.environ.get("SystemDrive", "")
     env["SystemRoot"] = os.environ.get("SystemRoot", "")
 
-inkscape_bin = "inkscape"
-blender_bin = "blender"
-
-if sys.platform == 'darwin':
-    inkscape_app_path = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
-    if os.path.exists(inkscape_app_path):
-        inkscape_bin = inkscape_app_path
-    blender_app_path = '/Applications/Blender.app/Contents/MacOS/Blender'
-    if os.path.exists(blender_app_path):
-        blender_bin = blender_app_path
+if not (inkscape_bin := os.environ.get("INKSCAPE_BIN")):
+    if sys.platform == 'darwin':
+        inkscape_bin = '/Applications/Inkscape.app/Contents/MacOS/inkscape'
     else:
-        blender_bin = "Blender"
+        inkscape_bin = "inkscape"
 
-inkscape_bin = os.environ.get("INKSCAPE_BIN", inkscape_bin)
-blender_bin = os.environ.get("BLENDER_BIN", blender_bin)
+blender_bin = os.environ.get("BLENDER_BIN", "blender")
 
-cmd = (
+cmd: Tuple[str, ...] = (
     inkscape_bin,
     os.path.join(BASEDIR, "blender_icons.svg"),
     "--export-width=602",

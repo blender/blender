@@ -29,11 +29,11 @@
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_idtype.h"
-#include "BKE_layer.h"
+#include "BKE_idtype.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_library.hh"
@@ -91,7 +91,7 @@ static void outliner_tree_dimensions_impl(SpaceOutliner *space_outliner,
                                           int *height)
 {
   LISTBASE_FOREACH (TreeElement *, te, lb) {
-    *width = MAX2(*width, te->xend);
+    *width = std::max(*width, int(te->xend));
     if (height != nullptr) {
       *height += UI_UNIT_Y;
     }
@@ -1964,8 +1964,8 @@ static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut 
   const ID *id_a = (const ID *)idptr_a->data;
   const ID *id_b = (const ID *)idptr_b->data;
 
-  /* Using session UUID to compare is safer than using the pointer. */
-  return id_a->session_uuid == id_b->session_uuid;
+  /* Using session UID to compare is safer than using the pointer. */
+  return id_a->session_uid == id_b->session_uid;
 }
 
 static void outliner_draw_overrides_restrictbuts(Main *bmain,
@@ -2555,6 +2555,12 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       return ICON_SEQUENCE;
     case ID_PC:
       return ICON_CURVE_BEZCURVE;
+    case ID_PA:
+      return ICON_PARTICLES;
+    case ID_PAL:
+      return ICON_COLOR;
+    case ID_VF:
+      return ICON_FILE_FONT;
     default:
       return ICON_NONE;
   }
@@ -3433,16 +3439,12 @@ static void outliner_draw_tree_element(bContext *C,
 
       /* Icons a bit higher. */
       if (TSELEM_OPEN(tselem, space_outliner)) {
-        UI_icon_draw_alpha(float(icon_x) + 2 * ufac,
-                           float(*starty) + 1 * ufac,
-                           ICON_DISCLOSURE_TRI_DOWN,
-                           alpha_fac);
+        UI_icon_draw_alpha(
+            float(icon_x) + 2 * ufac, float(*starty) + 1 * ufac, ICON_DOWNARROW_HLT, alpha_fac);
       }
       else {
-        UI_icon_draw_alpha(float(icon_x) + 2 * ufac,
-                           float(*starty) + 1 * ufac,
-                           ICON_DISCLOSURE_TRI_RIGHT,
-                           alpha_fac);
+        UI_icon_draw_alpha(
+            float(icon_x) + 2 * ufac, float(*starty) + 1 * ufac, ICON_RIGHTARROW, alpha_fac);
       }
     }
     offsx += UI_UNIT_X;

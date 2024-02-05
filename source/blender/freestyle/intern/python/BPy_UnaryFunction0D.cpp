@@ -56,7 +56,9 @@ int UnaryFunction0D_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char UnaryFunction0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    UnaryFunction0D___doc__,
     "Base class for Unary Functions (functors) working on\n"
     ":class:`Interface0DIterator`. A unary function will be used by\n"
     "invoking __call__() on an Interface0DIterator. In Python, several\n"
@@ -74,7 +76,7 @@ static char UnaryFunction0D___doc__[] =
     "* :class:`UnaryFunction0DVec2f`\n"
     "* :class:`UnaryFunction0DVec3f`\n"
     "* :class:`UnaryFunction0DVectorViewShape`\n"
-    "* :class:`UnaryFunction0DViewShape`\n";
+    "* :class:`UnaryFunction0DViewShape`\n");
 
 static void UnaryFunction0D___dealloc__(BPy_UnaryFunction0D *self)
 {
@@ -88,10 +90,12 @@ static PyObject *UnaryFunction0D___repr__(BPy_UnaryFunction0D * /*self*/)
 
 /*----------------------UnaryFunction0D get/setters ----------------------------*/
 
-PyDoc_STRVAR(UnaryFunction0D_name_doc,
-             "The name of the unary 0D function.\n"
-             "\n"
-             ":type: str");
+PyDoc_STRVAR(
+    /* Wrap. */
+    UnaryFunction0D_name_doc,
+    "The name of the unary 0D function.\n"
+    "\n"
+    ":type: str");
 
 static PyObject *UnaryFunction0D_name_get(BPy_UnaryFunction0D *self, void * /*closure*/)
 {

@@ -14,7 +14,7 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -405,11 +405,13 @@ static void WORKSPACE_OT_append_activate(wmOperatorType *ot)
 
 static WorkspaceConfigFileData *workspace_config_file_read(const char *app_template)
 {
-  const char *cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, app_template);
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG,
+                                                                 app_template);
   char startup_file_path[FILE_MAX] = {0};
 
-  if (cfgdir) {
-    BLI_path_join(startup_file_path, sizeof(startup_file_path), cfgdir, BLENDER_STARTUP_FILE);
+  if (cfgdir.has_value()) {
+    BLI_path_join(
+        startup_file_path, sizeof(startup_file_path), cfgdir->c_str(), BLENDER_STARTUP_FILE);
   }
 
   bool has_path = BLI_exists(startup_file_path);

@@ -18,7 +18,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 const EnumPropertyItem rna_enum_context_mode_items[] = {
     {CTX_MODE_EDIT_MESH, "EDIT_MESH", 0, "Mesh Edit", ""},

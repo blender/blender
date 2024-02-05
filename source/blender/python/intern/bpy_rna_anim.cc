@@ -30,7 +30,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_report.h"
 
@@ -142,7 +142,8 @@ static int pyrna_struct_anim_args_parse_ex(PointerRNA *ptr,
     *r_path_full = BLI_strdup(path);
   }
   else {
-    *r_path_full = RNA_path_from_ID_to_property(&r_ptr, prop);
+    const std::optional<std::string> path_full = RNA_path_from_ID_to_property(&r_ptr, prop);
+    *r_path_full = path_full ? BLI_strdup(path_full->c_str()) : nullptr;
 
     if (*r_path_full == nullptr) {
       PyErr_Format(PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
@@ -176,8 +177,8 @@ static int pyrna_struct_anim_args_parse_no_resolve(PointerRNA *ptr,
     return 0;
   }
 
-  char *path_prefix = RNA_path_from_ID_to_struct(ptr);
-  if (path_prefix == nullptr) {
+  const std::optional<std::string> path_prefix = RNA_path_from_ID_to_struct(ptr);
+  if (!path_prefix) {
     PyErr_Format(PyExc_TypeError,
                  "%.200s could not make path for type %s",
                  error_prefix,
@@ -186,12 +187,11 @@ static int pyrna_struct_anim_args_parse_no_resolve(PointerRNA *ptr,
   }
 
   if (*path == '[') {
-    *r_path_full = BLI_string_joinN(path_prefix, path);
+    *r_path_full = BLI_string_joinN(path_prefix->c_str(), path);
   }
   else {
-    *r_path_full = BLI_string_join_by_sep_charN('.', path_prefix, path);
+    *r_path_full = BLI_string_join_by_sep_charN('.', path_prefix->c_str(), path);
   }
-  MEM_freeN(path_prefix);
 
   return 0;
 }
@@ -341,9 +341,8 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
    * it turns out to be necessary for some reason to insert keyframes on evaluated objects, we can
    * revisit this and add an explicit `depsgraph` keyword argument to the function call.
    *
-   * It is unlikely that driver code (which is the reason this depsgraph pointer is obtained) will
-   * be executed from this function call, as this only happens when `options` has
-   * `INSERTKEY_DRIVER`, which is not exposed to Python. */
+   * The depsgraph is only used for evaluating the NLA so this might not be needed in the future.
+   */
   bContext *C = BPY_context_get();
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,

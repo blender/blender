@@ -529,35 +529,12 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
-  int mib[2];
-  struct timeval boottime;
-  size_t len;
-  char *rstring = nullptr;
-
   m_modifierMask = 0;
   m_outsideLoopEventProcessed = false;
   m_needDelayedApplicationBecomeActiveEventProcessing = false;
   m_displayManager = new GHOST_DisplayManagerCocoa();
   GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
   m_displayManager->initialize();
-
-  // NSEvent timeStamp is given in system uptime, state start date is boot time
-  mib[0] = CTL_KERN;
-  mib[1] = KERN_BOOTTIME;
-  len = sizeof(struct timeval);
-
-  sysctl(mib, 2, &boottime, &len, nullptr, 0);
-  m_start_time = ((boottime.tv_sec * 1000) + (boottime.tv_usec / 1000));
-
-  /* Detect multi-touch trackpad. */
-  mib[0] = CTL_HW;
-  mib[1] = HW_MODEL;
-  sysctl(mib, 2, nullptr, &len, nullptr, 0);
-  rstring = (char *)malloc(len);
-  sysctl(mib, 2, rstring, &len, nullptr, 0);
-
-  free(rstring);
-  rstring = nullptr;
 
   m_ignoreWindowSizedMessages = false;
   m_ignoreMomentumScroll = false;
@@ -696,14 +673,8 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 
 uint64_t GHOST_SystemCocoa::getMilliSeconds() const
 {
-  // Cocoa equivalent exists in 10.6 ([[NSProcessInfo processInfo] systemUptime])
-  struct timeval currentTime;
-
-  gettimeofday(&currentTime, nullptr);
-
-  // Return timestamp of system uptime
-
-  return ((currentTime.tv_sec * 1000) + (currentTime.tv_usec / 1000) - m_start_time);
+  // For comparing to NSEvent timestamp, this particular API function matches.
+  return (uint64_t)([[NSProcessInfo processInfo] systemUptime] * 1000);
 }
 
 uint8_t GHOST_SystemCocoa::getNumDisplays() const

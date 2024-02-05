@@ -50,6 +50,11 @@ class DrawingRuntime {
   mutable SharedCache<Vector<uint3>> triangles_cache;
 
   /**
+   * Normal vector cache for every stroke. Computed using Newell's method.
+   */
+  mutable SharedCache<Vector<float3>> curve_plane_normals_cache;
+
+  /**
    * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
    * Different frames can refer to the same drawing, so we need to make sure we count these users
    * and remove a drawing if it has zero users.
@@ -69,6 +74,10 @@ class Drawing : public ::GreasePencilDrawing {
    * The triangles for all the fills in the geometry.
    */
   Span<uint3> triangles() const;
+  /**
+   * Normal vectors for a plane that fits the stroke.
+   */
+  Span<float3> curve_plane_normals() const;
   void tag_positions_changed();
   void tag_topology_changed();
 
@@ -324,6 +333,10 @@ class LayerRuntime {
 
   /* Runtime data used for frame transformations. */
   LayerTransformData trans_data_;
+
+ public:
+  /* Reset all runtime data. */
+  void clear();
 };
 
 /**
@@ -400,9 +413,9 @@ class Layer : public ::GreasePencilLayer {
   bool has_drawing_at(const int frame_number) const;
 
   /**
-   * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
+   * \returns the key of the active frame at \a frame_number or #std::nullopt if there is no frame.
    */
-  FramesMapKey frame_key_at(int frame_number) const;
+  std::optional<FramesMapKey> frame_key_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
@@ -423,6 +436,16 @@ class Layer : public ::GreasePencilLayer {
    * added, removed or updated.
    */
   void tag_frames_map_keys_changed();
+
+  /**
+   * Prepare the DNA #GreasePencilLayer data before blend-file writing.
+   */
+  void prepare_for_dna_write();
+
+  /**
+   * Update from DNA #GreasePencilLayer data after blend-file reading.
+   */
+  void update_from_dna_read();
 
  private:
   using SortedKeysIterator = const int *;
@@ -518,6 +541,16 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * Print the nodes. For debugging purposes.
    */
   void print_nodes(StringRefNull header) const;
+
+  /**
+   * Prepare the DNA #GreasePencilLayerTreeGroup data before blend-file writing.
+   */
+  void prepare_for_dna_write();
+
+  /**
+   * Update from DNA #GreasePencilLayerTreeGroup data after blend-file reading.
+   */
+  void update_from_dna_read();
 
  protected:
   /**

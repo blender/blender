@@ -29,7 +29,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Curve Deform Internal Utilities

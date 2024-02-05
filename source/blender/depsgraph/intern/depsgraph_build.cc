@@ -13,8 +13,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "PIL_time.h"
-#include "PIL_time_utildefines.h"
+#include "BLI_time.h"
+#include "BLI_time_utildefines.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
@@ -281,15 +281,19 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
   DEG_DEBUG_PRINTF(graph, TAG, "%s: Tagging relations for update.\n", __func__);
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
   deg_graph->need_update_relations = true;
-  /* NOTE: When relations are updated, it's quite possible that
-   * we've got new bases in the scene. This means, we need to
-   * re-create flat array of bases in view layer.
-   *
-   * TODO(sergey): Try to make it so we don't flush updates
-   * to the whole depsgraph. */
+
+  /* NOTE: When relations are updated, it's quite possible that we've got new bases in the scene.
+   * This means, we need to re-create flat array of bases in view layer. */
+  /* TODO(sergey): It is expected that bases manipulation tags scene for update to tag bases array
+   * for re-creation. Once it is ensured to happen from all places this implicit tag can be
+   * removed. */
   deg::IDNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
   if (id_node != nullptr) {
-    id_node->tag_update(deg_graph, deg::DEG_UPDATE_SOURCE_RELATIONS);
+    graph_id_tag_update(deg_graph->bmain,
+                        deg_graph,
+                        &deg_graph->scene->id,
+                        ID_RECALC_BASE_FLAGS,
+                        deg::DEG_UPDATE_SOURCE_RELATIONS);
   }
 }
 

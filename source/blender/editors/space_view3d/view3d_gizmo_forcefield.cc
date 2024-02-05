@@ -9,7 +9,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"

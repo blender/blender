@@ -13,7 +13,7 @@
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_preview_image.hh"
@@ -23,14 +23,16 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_asset_list.h"
-#include "ED_asset_mark_clear.h"
-#include "ED_asset_type.h"
+#include "ED_asset_list.hh"
+#include "ED_asset_mark_clear.hh"
+#include "ED_asset_type.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-bool ED_asset_mark_id(ID *id)
+namespace blender::ed::asset {
+
+bool mark_id(ID *id)
 {
   if (id->asset_data) {
     return false;
@@ -49,12 +51,12 @@ bool ED_asset_mark_id(ID *id)
   }
 
   /* Important for asset storage to update properly! */
-  ED_assetlist_storage_tag_main_data_dirty();
+  list::storage_tag_main_data_dirty();
 
   return true;
 }
 
-void ED_asset_generate_preview(const bContext *C, ID *id)
+void generate_preview(const bContext *C, ID *id)
 {
   PreviewImage *preview = BKE_previewimg_id_get(id);
   if (preview) {
@@ -64,7 +66,7 @@ void ED_asset_generate_preview(const bContext *C, ID *id)
   UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
 }
 
-bool ED_asset_clear_id(ID *id)
+bool clear_id(ID *id)
 {
   if (!id->asset_data) {
     return false;
@@ -73,12 +75,12 @@ bool ED_asset_clear_id(ID *id)
   id_fake_user_clear(id);
 
   /* Important for asset storage to update properly! */
-  ED_assetlist_storage_tag_main_data_dirty();
+  list::storage_tag_main_data_dirty();
 
   return true;
 }
 
-void ED_assets_pre_save(Main *bmain)
+void pre_save_assets(Main *bmain)
 {
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
@@ -93,7 +95,7 @@ void ED_assets_pre_save(Main *bmain)
   FOREACH_MAIN_ID_END;
 }
 
-bool ED_asset_can_mark_single_from_context(const bContext *C)
+bool can_mark_single_from_context(const bContext *C)
 {
   /* Context needs a "id" pointer to be set for #ASSET_OT_mark()/#ASSET_OT_mark_single() and
    * #ASSET_OT_clear()/#ASSET_OT_clear_single() to use. */
@@ -101,10 +103,10 @@ bool ED_asset_can_mark_single_from_context(const bContext *C)
   if (!id) {
     return false;
   }
-  return ED_asset_type_is_supported(id);
+  return id_type_is_supported(id);
 }
 
-bool ED_asset_copy_to_id(const AssetMetaData *asset_data, ID *destination)
+bool copy_to_id(const AssetMetaData *asset_data, ID *destination)
 {
   if (!BKE_id_can_be_asset(destination)) {
     return false;
@@ -116,3 +118,5 @@ bool ED_asset_copy_to_id(const AssetMetaData *asset_data, ID *destination)
   destination->asset_data = BKE_asset_metadata_copy(asset_data);
   return true;
 }
+
+}  // namespace blender::ed::asset

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -7600,40 +7600,8 @@ msgid "Menu \"%s\" not found"
 msgstr "Nie odnaleziono menu \"%s\""
 
 
-msgid "Shortcut: %s"
-msgstr "Skrót: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Shift klik/ciągnij by zaznaczyć wiele)"
-
-
-msgid "Value: %s"
-msgstr "Wartość: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radiany: %f"
-
-
-msgid "Expression: %s"
-msgstr "Wyrażenie: %s"
-
-
-msgid "Library: %s"
-msgstr "Biblioteka: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Wyłączone: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgid "ID-Block:"

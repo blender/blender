@@ -28,7 +28,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -1247,4 +1247,5 @@ ModifierTypeInfo modifierType_Explode = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

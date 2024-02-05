@@ -14,7 +14,7 @@
 
 #include "RNA_define.hh"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 
@@ -22,8 +22,8 @@
 #  include "BKE_global.h"
 #  include "BLI_math_vector.h"
 #  include "DNA_scene_types.h"
-#  include "IMB_imbuf.h"
-#  include "IMB_imbuf_types.h"
+#  include "IMB_imbuf.hh"
+#  include "IMB_imbuf_types.hh"
 #  include "RE_pipeline.h"
 #  include "RE_texture.h"
 

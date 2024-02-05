@@ -7,6 +7,7 @@ from bpy.types import (
     Header,
     Menu,
     Panel,
+    UIList,
 )
 from bpy.app.translations import (
     contexts as i18n_contexts,
@@ -109,7 +110,10 @@ class USERPREF_MT_save_load(Menu):
         if prefs.use_preferences_save:
             layout.operator("wm.save_userpref", text="Save Preferences")
         sub_revert = layout.column(align=True)
-        sub_revert.active = prefs.is_dirty
+        # NOTE: regarding `factory_startup`. To correctly show the active state of this menu item,
+        # the user preferences themselves would need to have a `factory_startup` state.
+        # Since showing an active menu item whenever factory-startup is used is not such a problem, leave this as-is.
+        sub_revert.active = prefs.is_dirty or bpy.app.factory_startup
         sub_revert.operator("wm.read_userpref", text="Revert to Saved Preferences")
 
         layout.operator_context = 'INVOKE_AREA'
@@ -579,14 +583,17 @@ class USERPREF_PT_animation_keyframes(AnimationPanel, CenterAlignMixIn, Panel):
 
         layout.prop(edit, "key_insert_channels", expand=True)
 
-        col = layout.column()
+        row = layout.row(align=True, heading="Only Insert Needed")
+        row.prop(edit, "use_keyframe_insert_needed", text="Manual", toggle=1)
+        row.prop(edit, "use_auto_keyframe_insert_needed", text="Auto", toggle=1)
+
+        col = layout.column(heading="Keyframing")
         col.prop(edit, "use_visual_keying")
-        col.prop(edit, "use_keyframe_insert_needed", text="Only Insert Needed")
 
         col = layout.column(heading="Auto-Keyframing")
+        col.prop(edit, "use_auto_keying", text="Enable in New Scenes")
         col.prop(edit, "use_auto_keying_warning", text="Show Warning")
         col.prop(edit, "use_keyframe_insert_available", text="Only Insert Available")
-        col.prop(edit, "use_auto_keying", text="Enable in New Scenes")
 
 
 class USERPREF_PT_animation_fcurves(AnimationPanel, CenterAlignMixIn, Panel):
@@ -1107,13 +1114,13 @@ class USERPREF_PT_theme_text_style(ThemePanel, CenterAlignMixIn, Panel):
 
         layout.separator()
 
-        layout.label(text="Widget")
-        self._ui_font_style(layout, style.widget)
+        layout.label(text="Widget Label")
+        self._ui_font_style(layout, style.widget_label)
 
         layout.separator()
 
-        layout.label(text="Widget Label")
-        self._ui_font_style(layout, style.widget_label)
+        layout.label(text="Widget")
+        self._ui_font_style(layout, style.widget)
 
 
 class USERPREF_PT_theme_bone_color_sets(ThemePanel, CenterAlignMixIn, Panel):
@@ -1576,7 +1583,7 @@ class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
         layout.prop(active_library, "use_relative_path")
 
 
-class USERPREF_UL_asset_libraries(bpy.types.UIList):
+class USERPREF_UL_asset_libraries(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         asset_library = item
 
@@ -1587,7 +1594,7 @@ class USERPREF_UL_asset_libraries(bpy.types.UIList):
             layout.prop(asset_library, "name", text="", emboss=False)
 
 
-class USERPREF_UL_extension_repos(bpy.types.UIList):
+class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
 
@@ -1596,6 +1603,15 @@ class USERPREF_UL_extension_repos(bpy.types.UIList):
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.prop(repo, "name", text="", emboss=False)
+
+        # Show an error icon if this repository has unusable settings.
+        if repo.enabled:
+            if (
+                    (repo.use_custom_directory and repo.custom_directory == "") or
+                    (repo.use_remote_path and repo.remote_path == "")
+            ):
+                layout.label(text="", icon='ERROR')
+
         layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
 
 
@@ -1993,39 +2009,37 @@ class USERPREF_PT_keymap(KeymapPanel, Panel):
 # -----------------------------------------------------------------------------
 # Extension Panels
 
-class ExtensionsPanel:
-    bl_space_type = 'PREFERENCES'
-    bl_region_type = 'WINDOW'
-    bl_context = "extensions"
-
-
-class USERPREF_PT_extensions(ExtensionsPanel, Panel):
-    bl_label = "Extensions"
+class USERPREF_PT_extensions_repos(Panel):
+    bl_label = "Repositories"
     bl_options = {'HIDE_HEADER'}
 
-    # NOTE: currently disabled by an add-on when used.
-    unused = True
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+
+    # Show wider than most panels so the URL & directory aren't overly clipped.
+    bl_ui_units_x = 24
+
+    # NOTE: ideally `if panel := layout.panel("extensions_repo_advanced", default_closed=True):`
+    # would be used but it isn't supported here, use a kludge to achieve a similar UI.
+    _panel_layout_kludge_state = False
 
     @classmethod
-    def poll(cls, _context):
-        return cls.unused
+    def _panel_layout_kludge(cls, layout, *, text):
+        row = layout.row(align=True)
+        row.alignment = 'LEFT'
+        show_advanced = USERPREF_PT_extensions_repos._panel_layout_kludge_state
+        props = row.operator(
+            "wm.context_toggle",
+            text="Advanced",
+            icon='DOWNARROW_HLT' if show_advanced else 'RIGHTARROW',
+            emboss=False,
+        )
+        props.module = "bl_ui.space_userpref"
+        props.data_path = "USERPREF_PT_extensions_repos._panel_layout_kludge_state"
 
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.row()
-        row.label(text="The add-on to use extensions is disabled! See:")
-        row.operator(
-            "wm.url_open", text="Extension Add-on Repository", icon='URL',
-        ).url = "https://projects.blender.org/ideasman42/bl_ext"
-
-
-class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
-    bl_label = "Extension Repositories"
-
-    @classmethod
-    def poll(cls, context):
-        return context.preferences.experimental.use_extension_repos
+        if show_advanced:
+            return layout.column()
+        return None
 
     def draw(self, context):
         layout = self.layout
@@ -2044,8 +2058,8 @@ class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
         )
 
         col = row.column(align=True)
-        col.operator("preferences.extension_repo_add", text="", icon='ADD')
-        props = col.operator("preferences.extension_repo_remove", text="", icon='REMOVE')
+        col.operator_menu_enum("preferences.extension_repo_add", "type", text="", icon='ADD')
+        props = col.operator_menu_enum("preferences.extension_repo_remove", "type", text="", icon='REMOVE')
         props.index = active_library_index
 
         try:
@@ -2058,15 +2072,48 @@ class USERPREF_PT_extensions_repos(ExtensionsPanel, Panel):
 
         layout.separator()
 
-        layout.prop(active_repo, "directory")
-        layout.prop(active_repo, "remote_path")
+        layout.prop(active_repo, "use_remote_path", text="Use Remote URL")
         row = layout.row()
-        row.prop(active_repo, "use_cache")
-        row.prop(active_repo, "module")
+        if active_repo.use_remote_path:
+            if active_repo.remote_path == "":
+                row.alert = True
+        else:
+            row.active = False
+        row.prop(active_repo, "remote_path", text="")
+
+        if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
+
+            layout_panel.prop(active_repo, "use_custom_directory")
+
+            row = layout_panel.row()
+            if active_repo.use_custom_directory:
+                if active_repo.custom_directory == "":
+                    row.alert = True
+            else:
+                row.active = False
+            row.prop(active_repo, "custom_directory", text="")
+
+            layout_panel.separator()
+
+            row = layout_panel.row()
+            row.prop(active_repo, "use_cache")
+            row.prop(active_repo, "module")
 
 
 # -----------------------------------------------------------------------------
 # Add-On Panels
+
+# Only a popover.
+class USERPREF_PT_addons_filter(Panel):
+    bl_label = "Add-ons Filter"
+
+    bl_space_type = 'TOPBAR'  # dummy.
+    bl_region_type = 'HEADER'
+    bl_ui_units_x = 12
+
+    def draw(self, context):
+        USERPREF_PT_addons._draw_addon_header_for_extensions_popover(self.layout, context)
+
 
 class AddOnPanel:
     bl_space_type = 'PREFERENCES'
@@ -2102,6 +2149,23 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         return False
 
     @staticmethod
+    def draw_addon_preferences(layout, context, addon_preferences):
+        if (draw := getattr(addon_preferences, "draw", None)) is None:
+            return
+
+        addon_preferences_class = type(addon_preferences)
+        box_prefs = layout.box()
+        box_prefs.label(text="Preferences:")
+        addon_preferences_class.layout = box_prefs
+        try:
+            draw(context)
+        except BaseException:
+            import traceback
+            traceback.print_exc()
+            box_prefs.label(text="Error (see console)", icon='ERROR')
+        del addon_preferences_class.layout
+
+    @staticmethod
     def draw_error(layout, message):
         lines = message.split("\n")
         box = layout.box()
@@ -2111,15 +2175,54 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         for l in lines[1:]:
             box.label(text=l)
 
+    @staticmethod
+    def _draw_addon_header(layout, prefs, wm):
+        split = layout.split(factor=0.6)
+
+        row = split.row()
+        row.prop(wm, "addon_support", expand=True)
+
+        row = split.row(align=True)
+        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
+        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
+
+        row = layout.row()
+        row.prop(prefs.view, "show_addons_enabled_only")
+        row.prop(wm, "addon_filter", text="")
+        row.prop(wm, "addon_search", text="", icon='VIEWZOOM')
+
+    @staticmethod
+    def _draw_addon_header_for_extensions_popover(layout, context):
+
+        wm = context.window_manager
+        prefs = context.preferences
+
+        row = layout.row()
+        row.prop(wm, "addon_support", expand=True)
+
+        row = layout.row()
+        row.prop(prefs.view, "show_addons_enabled_only")
+
+        # Not filter, we could expose elsewhere.
+        row = layout.row()
+        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
+        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
+
     def draw(self, context):
         import os
         import addon_utils
 
-        layout = self.layout
-
-        wm = context.window_manager
         prefs = context.preferences
-        used_ext = {ext.module for ext in prefs.addons}
+
+        use_extension_repos = prefs.experimental.use_extension_repos
+        if use_extension_repos and self.is_extended():
+            # Rely on the draw function being appended to by the extensions add-on.
+            return
+
+        layout = self.layout
+        wm = context.window_manager
+
+        used_addon_module_name_map = {addon.module: addon for addon in prefs.addons}
 
         addon_user_dirs = tuple(
             p for p in (
@@ -2135,19 +2238,7 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
             for mod in addon_utils.modules(refresh=False)
         ]
 
-        split = layout.split(factor=0.6)
-
-        row = split.row()
-        row.prop(wm, "addon_support", expand=True)
-
-        row = split.row(align=True)
-        row.operator("preferences.addon_install", icon='IMPORT', text="Install...")
-        row.operator("preferences.addon_refresh", icon='FILE_REFRESH', text="Refresh")
-
-        row = layout.row()
-        row.prop(prefs.view, "show_addons_enabled_only")
-        row.prop(wm, "addon_filter", text="")
-        row.prop(wm, "addon_search", text="", icon='VIEWZOOM')
+        self._draw_addon_header(layout, prefs, wm)
 
         col = layout.column()
 
@@ -2180,151 +2271,150 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
         # initialized on demand
         user_addon_paths = []
 
-        for mod, info in addons:
-            module_name = mod.__name__
+        for mod, bl_info in addons:
+            addon_module_name = mod.__name__
 
-            is_enabled = module_name in used_ext
+            is_enabled = addon_module_name in used_addon_module_name_map
 
-            if info["support"] not in support:
+            if bl_info["support"] not in support:
                 continue
 
             # check if addon should be visible with current filters
             is_visible = (
                 (filter == "All") or
-                (filter == info["category"]) or
+                (filter == bl_info["category"]) or
                 (filter == "User" and (mod.__file__.startswith(addon_user_dirs)))
             )
             if show_enabled_only:
                 is_visible = is_visible and is_enabled
 
-            if is_visible:
-                if search and not (
-                        (search in info["name"].lower() or
-                         search in iface_(info["name"]).lower()) or
-                        (info["author"] and (search in info["author"].lower())) or
-                        ((filter == "All") and (search in info["category"].lower() or
-                                                search in iface_(info["category"]).lower()))
-                ):
-                    continue
+            if not is_visible:
+                continue
 
-                # Addon UI Code
-                col_box = col.column()
-                box = col_box.box()
-                colsub = box.column()
-                row = colsub.row(align=True)
+            if search and not (
+                    (search in bl_info["name"].lower() or
+                     search in iface_(bl_info["name"]).lower()) or
+                    (bl_info["author"] and (search in bl_info["author"].lower())) or
+                    ((filter == "All") and (search in bl_info["category"].lower() or
+                                            search in iface_(bl_info["category"]).lower()))
+            ):
+                continue
 
-                row.operator(
-                    "preferences.addon_expand",
-                    icon='DISCLOSURE_TRI_DOWN' if info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
-                    emboss=False,
-                ).module = module_name
+            # Addon UI Code
+            col_box = col.column()
+            box = col_box.box()
+            colsub = box.column()
+            row = colsub.row(align=True)
 
-                row.operator(
-                    "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
-                    icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
-                    emboss=False,
-                ).module = module_name
+            is_extension = addon_utils.check_extension(addon_module_name)
 
-                sub = row.row()
-                sub.active = is_enabled
-                sub.label(text=iface_("%s: %s") % (iface_(info["category"]), iface_(info["name"])))
+            row.operator(
+                "preferences.addon_expand",
+                icon='DISCLOSURE_TRI_DOWN' if bl_info["show_expanded"] else 'DISCLOSURE_TRI_RIGHT',
+                emboss=False,
+            ).module = addon_module_name
 
-                if info["warning"]:
-                    sub.label(icon='ERROR')
+            row.operator(
+                "preferences.addon_disable" if is_enabled else "preferences.addon_enable",
+                icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT', text="",
+                emboss=False,
+            ).module = addon_module_name
 
-                # icon showing support level.
-                sub.label(icon=self._support_icon_mapping.get(info["support"], 'QUESTION'))
+            sub = row.row()
+            sub.active = is_enabled
+            sub.label(text="%s: %s" % (iface_(bl_info["category"]), iface_(bl_info["name"])))
 
-                # Expanded UI (only if additional info is available)
-                if info["show_expanded"]:
-                    if info["description"]:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="Description:")
-                        split.label(text=iface_(info["description"]))
-                    if info["location"]:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="Location:")
-                        split.label(text=iface_(info["location"]))
-                    if mod:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="File:")
-                        split.label(text=mod.__file__, translate=False)
-                    if info["author"]:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="Author:")
-                        split.label(text=info["author"], translate=False)
-                    if info["version"]:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="Version:")
-                        split.label(text=".".join(str(x) for x in info["version"]), translate=False)
-                    if info["warning"]:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="Warning:")
-                        split.label(text="  " + iface_(info["warning"]), icon='ERROR')
+            if bl_info["warning"]:
+                sub.label(icon='ERROR')
 
-                    user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
-                    if info["doc_url"] or info.get("tracker_url"):
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="Internet:")
-                        sub = split.row()
-                        if info["doc_url"]:
-                            sub.operator(
-                                "wm.url_open", text="Documentation", icon='HELP',
-                            ).url = info["doc_url"]
-                        # Only add "Report a Bug" button if tracker_url is set
-                        # or the add-on is bundled (use official tracker then).
-                        if info.get("tracker_url"):
-                            sub.operator(
-                                "wm.url_open", text="Report a Bug", icon='URL',
-                            ).url = info["tracker_url"]
-                        elif not user_addon:
-                            addon_info = (
-                                "Name: %s %s\n"
-                                "Author: %s\n"
-                            ) % (info["name"], str(info["version"]), info["author"])
-                            props = sub.operator(
-                                "wm.url_open_preset", text="Report a Bug", icon='URL',
-                            )
-                            props.type = 'BUG_ADDON'
-                            props.id = addon_info
+            # icon showing support level.
+            sub.label(icon=self._support_icon_mapping.get(bl_info["support"], 'QUESTION'))
 
-                    if user_addon:
-                        split = colsub.row().split(factor=0.15)
-                        split.label(text="User:")
-                        split.operator(
-                            "preferences.addon_remove", text="Remove", icon='CANCEL',
-                        ).module = mod.__name__
+            # Expanded UI (only if additional bl_info is available)
+            if bl_info["show_expanded"]:
+                if value := bl_info["description"]:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="Description:")
+                    split.label(text=iface_(value))
+                if value := bl_info["location"]:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="Location:")
+                    split.label(text=iface_(value))
+                if mod:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="File:")
+                    split.label(text=mod.__file__, translate=False)
+                if value := bl_info["author"]:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="Author:")
+                    split.label(text=value, translate=False)
+                if value := bl_info["version"]:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="Version:")
+                    # Extensions use SEMVER.
+                    if is_extension:
+                        split.label(text=value, translate=False)
+                    else:
+                        split.label(text=".".join(str(x) for x in value), translate=False)
+                if value := bl_info["warning"]:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="Warning:")
+                    split.label(text="  " + iface_(value), icon='ERROR')
+                del value
 
-                    # Show addon user preferences
-                    if is_enabled:
-                        addon_preferences = prefs.addons[module_name].preferences
-                        if addon_preferences is not None:
-                            draw = getattr(addon_preferences, "draw", None)
-                            if draw is not None:
-                                addon_preferences_class = type(addon_preferences)
-                                box_prefs = col_box.box()
-                                box_prefs.label(text="Preferences:")
-                                addon_preferences_class.layout = box_prefs
-                                try:
-                                    draw(context)
-                                except BaseException:
-                                    import traceback
-                                    traceback.print_exc()
-                                    box_prefs.label(text="Error (see console)", icon='ERROR')
-                                del addon_preferences_class.layout
+                user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
+                if bl_info["doc_url"] or bl_info.get("tracker_url"):
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="Internet:")
+                    sub = split.row()
+                    if bl_info["doc_url"]:
+                        sub.operator(
+                            "wm.url_open", text="Documentation", icon='HELP',
+                        ).url = bl_info["doc_url"]
+                    # Only add "Report a Bug" button if tracker_url is set
+                    # or the add-on is bundled (use official tracker then).
+                    if bl_info.get("tracker_url"):
+                        sub.operator(
+                            "wm.url_open", text="Report a Bug", icon='URL',
+                        ).url = bl_info["tracker_url"]
+                    elif not user_addon:
+                        addon_info = (
+                            "Name: %s %s\n"
+                            "Author: %s\n"
+                        ) % (bl_info["name"], str(bl_info["version"]), bl_info["author"])
+                        props = sub.operator(
+                            "wm.url_open_preset", text="Report a Bug", icon='URL',
+                        )
+                        props.type = 'BUG_ADDON'
+                        props.id = addon_info
+
+                if user_addon:
+                    split = colsub.row().split(factor=0.15)
+                    split.label(text="User:")
+                    split.operator(
+                        "preferences.addon_remove", text="Remove", icon='CANCEL',
+                    ).module = mod.__name__
+
+                # Show addon user preferences
+                if is_enabled:
+                    if (addon_preferences := used_addon_module_name_map[addon_module_name].preferences) is not None:
+                        self.draw_addon_preferences(col_box, context, addon_preferences)
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
-        module_names = {mod.__name__ for mod, info in addons}
-        missing_modules = {ext for ext in used_ext if ext not in module_names}
+        module_names = {mod.__name__ for mod, bl_info in addons}
+        missing_modules = {
+            addon_module_name for addon_module_name in used_addon_module_name_map
+            if addon_module_name not in module_names
+        }
 
         if missing_modules and filter in {"All", "Enabled"}:
             col.column().separator()
             col.column().label(text="Missing script files")
 
-            module_names = {mod.__name__ for mod, info in addons}
-            for module_name in sorted(missing_modules):
-                is_enabled = module_name in used_ext
+            module_names = {mod.__name__ for mod, bl_info in addons}
+            for addon_module_name in sorted(missing_modules):
+                is_enabled = addon_module_name in used_addon_module_name_map
                 # Addon UI Code
                 box = col.column().box()
                 colsub = box.column()
@@ -2335,9 +2425,9 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                 if is_enabled:
                     row.operator(
                         "preferences.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False,
-                    ).module = module_name
+                    ).module = addon_module_name
 
-                row.label(text=module_name, translate=False)
+                row.label(text=addon_module_name, translate=False)
 
 
 # -----------------------------------------------------------------------------
@@ -2703,7 +2793,6 @@ classes = (
 
     USERPREF_PT_addons,
 
-    USERPREF_PT_extensions,
     USERPREF_PT_extensions_repos,
 
     USERPREF_PT_studiolight_lights,
@@ -2713,6 +2802,7 @@ classes = (
 
     # Popovers.
     USERPREF_PT_ndof_settings,
+    USERPREF_PT_addons_filter,
 
     USERPREF_PT_experimental_new_features,
     USERPREF_PT_experimental_prototypes,

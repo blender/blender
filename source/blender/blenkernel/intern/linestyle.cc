@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -29,9 +30,9 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_freestyle.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_linestyle.h"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -672,7 +673,7 @@ IDTypeInfo IDType_ID_LS = {
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
     nullptr,         "Along Stroke",    "Distance from Camera", "Distance from Object",
-    "Material",      "Sampling",        "Bezier Curve",         "Sinus Displacement",
+    "Material",      "Sampling",        "Bézier Curve",         "Sinus Displacement",
     "Spatial Noise", "Perlin Noise 1D", "Perlin Noise 2D",      "Backbone Stretcher",
     "Tip Remover",   "Calligraphy",     "Polygonalization",     "Guiding Lines",
     "Blueprint",     "2D Offset",       "2D Transform",         "Tangent",
@@ -1844,7 +1845,8 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, List
   }
 }
 
-char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
+std::optional<std::string> BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle,
+                                                            ColorBand *color_ramp)
 {
   bool found = false;
 
@@ -1895,11 +1897,11 @@ char *BKE_linestyle_path_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand 
     if (found) {
       char name_esc[sizeof(m->name) * 2];
       BLI_str_escape(name_esc, m->name, sizeof(name_esc));
-      return BLI_sprintfN("color_modifiers[\"%s\"].color_ramp", name_esc);
+      return fmt::format("color_modifiers[\"{}\"].color_ramp", name_esc);
     }
   }
   printf("BKE_linestyle_path_to_color_ramp: No color ramps correspond to the given pointer.\n");
-  return nullptr;
+  return std::nullopt;
 }
 
 bool BKE_linestyle_use_textures(FreestyleLineStyle *linestyle, const bool use_shading_nodes)

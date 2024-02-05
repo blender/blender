@@ -26,7 +26,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_sound_types.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "RNA_prototypes.h"
 
@@ -189,8 +189,8 @@ static void seq_retiming_line_segments_tangent_circle(const SeqRetimingKey *star
   sub_v2_v2v2_db(v1, s1_1, s1_2);
   sub_v2_v2v2_db(v2, s2_1, s2_2);
   /* Rotate segments by 90 degrees around seg. 1 end and seg. 2 start point. */
-  SWAP(double, v1[0], v1[1]);
-  SWAP(double, v2[0], v2[1]);
+  std::swap(v1[0], v1[1]);
+  std::swap(v2[0], v2[1]);
   v1[0] *= -1;
   v2[0] *= -1;
   copy_v2_v2_db(s1_1, s1_2);

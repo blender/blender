@@ -24,7 +24,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
 

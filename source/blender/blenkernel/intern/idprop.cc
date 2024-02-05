@@ -57,6 +57,7 @@ static size_t idp_size_table[] = {
     sizeof(double),    /* #IDP_DOUBLE */
     0,                 /* #IDP_IDPARRAY (no fixed size). */
     sizeof(int8_t),    /* #IDP_BOOLEAN */
+    sizeof(int),       /* #IDP_ENUM */
 };
 
 /* -------------------------------------------------------------------- */
@@ -859,7 +860,7 @@ void IDP_CopyPropertyContent(IDProperty *dst, const IDProperty *src)
   IDProperty *idprop_tmp = IDP_CopyProperty(src);
   idprop_tmp->prev = dst->prev;
   idprop_tmp->next = dst->next;
-  SWAP(IDProperty, *dst, *idprop_tmp);
+  std::swap(*dst, *idprop_tmp);
   IDP_FreeProperty(idprop_tmp);
 }
 

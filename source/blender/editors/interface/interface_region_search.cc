@@ -1098,7 +1098,7 @@ void ui_but_search_refresh(uiButSearch *but)
     items->names[i] = (char *)MEM_callocN(but->hardmax + 1, __func__);
   }
 
-  ui_searchbox_update_fn((bContext *)but->block->evil_C, but, but->drawstr, items);
+  ui_searchbox_update_fn((bContext *)but->block->evil_C, but, but->drawstr.c_str(), items);
 
   if (!but->results_are_suggestions) {
     /* Only red-alert when we are sure of it, this can miss cases when >10 matches. */
@@ -1106,7 +1106,7 @@ void ui_but_search_refresh(uiButSearch *but)
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
     else if (items->more == 0) {
-      if (UI_search_items_find_index(items, but->drawstr) == -1) {
+      if (UI_search_items_find_index(items, but->drawstr.c_str()) == -1) {
         UI_but_flag_enable(but, UI_BUT_REDALERT);
       }
     }

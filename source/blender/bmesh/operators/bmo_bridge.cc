@@ -150,8 +150,8 @@ static void bridge_loop_pair(BMesh *bm,
   el_store_b_len = BM_edgeloop_length_get((BMEdgeLoopStore *)el_store_b);
 
   if (el_store_a_len < el_store_b_len) {
-    SWAP(int, el_store_a_len, el_store_b_len);
-    SWAP(BMEdgeLoopStore *, el_store_a, el_store_b);
+    std::swap(el_store_a_len, el_store_b_len);
+    std::swap(el_store_a, el_store_b);
   }
 
   if (use_merge) {

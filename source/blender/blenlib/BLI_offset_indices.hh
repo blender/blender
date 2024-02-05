@@ -6,13 +6,7 @@
 
 #include <algorithm>
 
-namespace blender {
-namespace index_mask {
-class IndexMask;
-}
-using index_mask::IndexMask;
-}  // namespace blender
-
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
@@ -177,7 +171,7 @@ void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 /**
  * Build offsets to group the elements of \a indices pointing to the same index.
  */
-void build_reverse_offsets(Span<int> indices, MutableSpan<int> r_map);
+void build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
 
 }  // namespace blender::offset_indices
 

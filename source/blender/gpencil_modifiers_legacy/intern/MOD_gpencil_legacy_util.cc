@@ -19,7 +19,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_material.h"
 #include "BKE_scene.h"

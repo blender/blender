@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'acbb91b192da')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-15 10:52:30\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -16918,14 +16918,6 @@ msgid "Unit editing settings"
 msgstr "Partikelsystem-Einstellungen"
 
 
-msgid "Audio Muted"
-msgstr "Ton stummschalten"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "Ton vom Sequenzeditor beim Abspielen stumm schalten"
-
-
 msgid "Audio Scrubbing"
 msgstr "Audio Schruppen"
 
@@ -22593,14 +22585,6 @@ msgid "Object To"
 msgstr "Objekt zu"
 
 
-msgid "UV Layer"
-msgstr "Ebene"
-
-
-msgid "UV Layer name"
-msgstr "Ebenenname"
-
-
 msgid "Default Weight"
 msgstr "Standardgewicht"
 
@@ -25161,6 +25145,10 @@ msgid "Pixelate"
 msgstr "Pixel"
 
 
+msgid "Pixel Size"
+msgstr "Pixelgröße"
+
+
 msgid "Alpha Convert"
 msgstr "Umwandeln"
 
@@ -25443,6 +25431,10 @@ msgstr "Vergleichen"
 
 msgid "Input Type"
 msgstr "Eingabetyp"
+
+
+msgid "Menu"
+msgstr "Menü"
 
 
 msgid "Dot Product"
@@ -29825,16 +29817,9 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Rotationen zu Euler-ZYX konvertieren"
 
 
-msgid "Save STL triangle mesh data"
-msgstr "Speichern von STL-Dreiecksmaschendaten"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Speichern der Datei im ASCII-Dateiformat"
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLY exportieren"
 
 
 msgid "X Forward"
@@ -29881,6 +29866,30 @@ msgid "-Z Up"
 msgstr "-Z Oben"
 
 
+msgid "ASCII"
+msgstr "ASCII"
+
+
+msgid "Selection Only"
+msgstr "Nur Auswahl"
+
+
+msgid "Export selected objects only"
+msgstr "Nur ausgewählte Objekte exportieren"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Speichern von STL-Dreiecksmaschendaten"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Speichern der Datei im ASCII-Dateiformat"
+
+
 msgid "Batch Mode"
 msgstr "Batch-Modus"
 
@@ -29907,14 +29916,6 @@ msgstr "Szeneneinheit"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Anwenden der Aktuellen Szeneneinheit (wie durch Einheitenmaßstab definiert) auf exportierte Daten"
-
-
-msgid "Selection Only"
-msgstr "Nur Auswahl"
-
-
-msgid "Export selected objects only"
-msgstr "Nur ausgewählte Objekte exportieren"
 
 
 msgctxt "Operator"
@@ -30105,6 +30106,10 @@ msgstr "Renderfähige Objekte"
 
 msgid "Remember Export Settings"
 msgstr "Exporteinstellungen merken"
+
+
+msgid "Material Groups"
+msgstr "Materialgruppe"
 
 
 msgctxt "Operator"
@@ -32377,6 +32382,11 @@ msgstr "Alphakanal für Transparenz verwenden"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLY importieren"
+
+
+msgctxt "Operator"
 msgid "Import FBX"
 msgstr "FBX importieren"
 
@@ -32428,6 +32438,10 @@ msgstr "Normale Daten verwenden"
 
 msgid "Flat Shading"
 msgstr "Flaches Shading"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "OBJ-Gruppen als Punktgruppen importieren"
 
 
 msgctxt "Operator"
@@ -34936,6 +34950,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Bildtexturen von ausgewählten Objekten backen"
 
 
+msgid "UV Layer"
+msgstr "Ebene"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Kamera hinzufügen"
@@ -35889,14 +35907,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Namensfilter mit '*' und '?' als Platzhaltern"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Rendern und Darstellen von einheitlichen Flächen, durch Verwendung der Flächen-Normalen"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Rendern und Darstellen von weichen Flächen, durch Verwendung von interpolierten Knoten-Normalen"
-
-
 msgctxt "Operator"
 msgid "Add Effect"
 msgstr "Effekt hinzufügen"
@@ -35979,6 +35989,10 @@ msgstr "Formschlüssel hinzufügen"
 msgctxt "Operator"
 msgid "Clear Shape Keys"
 msgstr "Formschlüssel löschen"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Kopie der aktiven Knotengruppe erstellen"
 
 
 msgctxt "Operator"
@@ -36158,10 +36172,6 @@ msgstr "Maximale Anzahl der transparenten Begrenzung"
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Die Sperrung von Knotengruppen ändern"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Kopie der aktiven Knotengruppe erstellen"
 
 
 msgid "Lock all vertex groups"
@@ -37481,6 +37491,10 @@ msgid "Copy settings from previous version"
 msgstr "Einstellungen von voriger Version übernehmen"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Activate Keyconfig"
 msgstr "Keyconfig aktivieren"
@@ -38275,10 +38289,6 @@ msgstr "Add-Ons"
 
 msgid "File Paths"
 msgstr "Dateipfade"
-
-
-msgid "Extensions"
-msgstr "Erweiterungen"
 
 
 msgid "Experimental"
@@ -41301,10 +41311,6 @@ msgid "Negative Z axis"
 msgstr "Negative Z Achse"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "OBJ-Gruppen als Punktgruppen importieren"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Öffnen"
@@ -41367,16 +41373,6 @@ msgstr "UI Schild"
 
 msgid "Open a path in a file browser"
 msgstr "Einen Pfad in einem Dateibrowser öffnen"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY exportieren"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLY importieren"
 
 
 msgctxt "Operator"
@@ -41763,10 +41759,6 @@ msgstr "Symbolleiste"
 
 msgid "Open a website in the web browser"
 msgstr "Eine Webseite im Webbrowser öffnen"
-
-
-msgid "URL"
-msgstr "URL"
 
 
 msgid "URL to open"
@@ -42931,10 +42923,6 @@ msgstr "Symbolfarbe"
 
 msgid "Styles"
 msgstr "Stile"
-
-
-msgid "Menu"
-msgstr "Menü"
 
 
 msgid "Menu Item"
@@ -44358,16 +44346,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Automatische Schlüsselbilder fügen Verfügbares ein"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automatisches Schlüsselbild-Einfügen in verfügbaren F-Kurven"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Schlüsselbilder bei Bedarf einfügen"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Schlüsselbilder nur einfügen wenn sie benötigt werden"
 
 
 msgid "Allow Negative Frames"
@@ -46476,10 +46456,6 @@ msgstr "Pixelverhältnis Y"
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Vertikales Seitenverhältnis - für verzerrte oder nicht-quadratische Pixelausgabe"
-
-
-msgid "Pixel Size"
-msgstr "Pixelgröße"
 
 
 msgid "Render at full resolution"
@@ -53209,6 +53185,10 @@ msgid "Gamepad"
 msgstr "Gamepad"
 
 
+msgid "Extensions"
+msgstr "Erweiterungen"
+
+
 msgid "HP Reverb G2"
 msgstr "HP Reverb G2"
 
@@ -53673,6 +53653,16 @@ msgstr "Abzweig: %s"
 
 msgid "Type \"%s\" can not be found"
 msgstr "Typ \"%s\" konnte nicht gefunden werden"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Position"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotation"
 
 
 msgid "Unknown"
@@ -55165,11 +55155,6 @@ msgstr "Anwenden der Standardeinstellungen"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Position"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Affine"
 
@@ -55222,6 +55207,11 @@ msgstr "Keine aktive Ebenenspur"
 
 msgid "Tracks for Location"
 msgstr "Tracks für Ort"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Zoom"
 
 
 msgctxt "Operator"
@@ -55710,16 +55700,6 @@ msgstr "Wachsstift erzeugen"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontal"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikal"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Rotkanal invertieren"
 
@@ -55937,10 +55917,6 @@ msgstr "Verknüpfungen ersetzen und erzeugen"
 msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Online-Handbuch"
-
-
-msgid "Inputs:"
-msgstr "Eingaben:"
 
 
 msgid "Timings"
@@ -56205,11 +56181,6 @@ msgstr "Vorschau als Hintergrund"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Zoom"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Vorschau in Fenster einpassen"
 
@@ -56321,11 +56292,6 @@ msgstr "Gaußscher Weichzeichner"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Position"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotation"
 
 
 msgctxt "Operator"
@@ -56590,21 +56556,6 @@ msgstr "Unbenutzte Datenblöcke"
 
 
 msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Rekursive nicht verwendete Datenblöcke"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Nicht verwendete verknüpfte Datenblöcke"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Nicht verwendete lokale Datenblöcke"
-
-
-msgctxt "Operator"
 msgid "Quit"
 msgstr "Beenden"
 
@@ -56843,16 +56794,16 @@ msgid "Auto-Keyframing"
 msgstr "Auto-Schlüsselbilder"
 
 
+msgid "Enable in New Scenes"
+msgstr "Aktivieren in neuer Szene"
+
+
 msgid "Show Warning"
 msgstr "Warnung anzeigen"
 
 
 msgid "Only Insert Available"
 msgstr "Nur Verfügbare einfügen"
-
-
-msgid "Enable in New Scenes"
-msgstr "Aktivieren in neuer Szene"
 
 
 msgid "Default Interpolation"
@@ -56976,6 +56927,10 @@ msgid "Invert Pan Axis"
 msgstr "Schwenkachse umkehren"
 
 
+msgid "Preferences:"
+msgstr "Benutzereinstellungen:"
+
+
 msgid "Use Light"
 msgstr "Verwende Licht"
 
@@ -57009,16 +56964,12 @@ msgid "No custom %s configured"
 msgstr "Kein Benutzerdefiniertes %s konfiguriert"
 
 
+msgid "Error (see console)"
+msgstr "Fehler (siehe Konsole)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Farbset %d"
-
-
-msgid "Color %d"
-msgstr "Farbe %d"
 
 
 msgid "Description:"
@@ -57049,25 +57000,17 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "Beschreibung"
+msgid "Color Set %d"
+msgstr "Farbset %d"
 
 
-msgid "location"
-msgstr "Position"
+msgid "Color %d"
+msgstr "Farbe %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentation"
-
-
-msgid "Preferences:"
-msgstr "Benutzereinstellungen:"
-
-
-msgid "Error (see console)"
-msgstr "Fehler (siehe Konsole)"
 
 
 msgctxt "Operator"
@@ -59487,44 +59430,8 @@ msgid "Internal error!"
 msgstr "Interner Fehler!"
 
 
-msgid "Shortcut: %s"
-msgstr "Tastenkürzel: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Shortcut Cycle: %s"
-msgstr "Tastenkürzel: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Umschalt-Klick/Ziehen um mehreres zu selektieren)"
-
-
-msgid "Value: %s"
-msgstr "Wert: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radiant: %f"
-
-
-msgid "Expression: %s"
-msgstr "Ausdruck: %s"
-
-
-msgid "Library: %s"
-msgstr "Bibliothek: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Deaktiviert: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -59817,6 +59724,10 @@ msgid "Can't edit external library data"
 msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
 
 
+msgid "File Not Found"
+msgstr "Datei nicht gefunden"
+
+
 msgid "Today"
 msgstr "Heute"
 
@@ -60052,14 +59963,6 @@ msgstr "Gruppierung"
 
 msgid "Object Groups"
 msgstr "Objektgruppen"
-
-
-msgid "Material Groups"
-msgstr "Materialgruppe"
-
-
-msgid "ASCII"
-msgstr "ASCII"
 
 
 msgid "Rigging"
@@ -62523,10 +62426,6 @@ msgid "Save External..."
 msgstr "Speichern Extern..."
 
 
-msgid "Internal Dependencies"
-msgstr "Interne Abhängigkeiten"
-
-
 msgid "No named attributes used"
 msgstr "Keine benannten Attribute verwendet"
 
@@ -63373,10 +63272,6 @@ msgstr "Ausführung erlauben"
 
 msgid "Don't Save"
 msgstr "Nicht speichern"
-
-
-msgid "File Not Found"
-msgstr "Datei nicht gefunden"
 
 
 msgid "Reload file with execution of Python scripts enabled"

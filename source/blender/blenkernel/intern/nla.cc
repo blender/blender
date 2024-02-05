@@ -34,7 +34,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.h"
 #include "BKE_sound.h"
@@ -778,7 +778,7 @@ bool BKE_nlastrips_has_space(ListBase *strips, float start, float end)
   }
   if (start > end) {
     puts("BKE_nlastrips_has_space() error... start and end arguments swapped");
-    SWAP(float, start, end);
+    std::swap(start, end);
   }
 
   /* loop over NLA strips checking for any overlaps with this area... */
@@ -1235,7 +1235,7 @@ bool BKE_nlatrack_has_space(NlaTrack *nlt, float start, float end)
 
   if (start > end) {
     puts("BKE_nlatrack_has_space() error... start and end arguments swapped");
-    SWAP(float, start, end);
+    std::swap(start, end);
   }
 
   /* check if there's any space left in the track for a strip of the given length */

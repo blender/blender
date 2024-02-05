@@ -6,9 +6,12 @@
  * \ingroup bgpencil
  */
 
+#include <algorithm>
+
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
@@ -245,7 +248,7 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
     HPDF_Page_SetLineJoin(page_, HPDF_ROUND_JOIN);
     const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
     const float estimated_width = (radius * 2.0f) + gpl->line_change;
-    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+    const float final_width = (avg_pressure == 1.0f) ? std::max(defined_width, estimated_width) :
                                                        estimated_width;
     HPDF_Page_SetLineWidth(page_, std::max(final_width, 1.0f));
   }
@@ -285,11 +288,11 @@ void GpencilExporterPDF::color_set(bGPDlayer *gpl, const bool do_fill)
   HPDF_Page_GSave(page_);
   HPDF_ExtGState gstate = (need_state) ? HPDF_CreateExtGState(pdf_) : nullptr;
 
-  float col[3];
+  float3 col;
   if (do_fill) {
     interp_v3_v3v3(col, fill_color_, gpl->tintcolor, gpl->tintcolor[3]);
     linearrgb_to_srgb_v3_v3(col, col);
-    CLAMP3(col, 0.0f, 1.0f);
+    col = math::clamp(col, 0.0f, 1.0f);
     HPDF_Page_SetRGBFill(page_, col[0], col[1], col[2]);
     if (gstate) {
       HPDF_ExtGState_SetAlphaFill(gstate, clamp_f(fill_opacity, 0.0f, 1.0f));
@@ -298,7 +301,7 @@ void GpencilExporterPDF::color_set(bGPDlayer *gpl, const bool do_fill)
   else {
     interp_v3_v3v3(col, stroke_color_, gpl->tintcolor, gpl->tintcolor[3]);
     linearrgb_to_srgb_v3_v3(col, col);
-    CLAMP3(col, 0.0f, 1.0f);
+    col = math::clamp(col, 0.0f, 1.0f);
 
     HPDF_Page_SetRGBFill(page_, col[0], col[1], col[2]);
     HPDF_Page_SetRGBStroke(page_, col[0], col[1], col[2]);

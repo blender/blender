@@ -18,6 +18,8 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -28,7 +30,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_image.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
@@ -48,9 +50,9 @@
 #include "GPU_state.h"
 #include "GPU_texture.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 
 #include "RE_texture.h"
 
@@ -372,6 +374,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
 void paint_sample_color(
     bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
 {
+  using namespace blender;
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -445,46 +448,31 @@ void paint_sample_color(
           }
 
           if (image) {
-            float uv[2];
-            float u, v;
             /* XXX get appropriate ImageUser instead */
             ImageUser iuser;
             BKE_imageuser_default(&iuser);
             iuser.framenr = image->lastframe;
 
+            float uv[2];
             imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
 
             if (image->source == IMA_SRC_TILED) {
               float new_uv[2];
               iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, nullptr);
-              u = new_uv[0];
-              v = new_uv[1];
-            }
-            else {
-              u = fmodf(uv[0], 1.0f);
-              v = fmodf(uv[1], 1.0f);
-
-              if (u < 0.0f) {
-                u += 1.0f;
-              }
-              if (v < 0.0f) {
-                v += 1.0f;
-              }
+              uv[0] = new_uv[0];
+              uv[1] = new_uv[1];
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
             if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
-              u = u * ibuf->x;
-              v = v * ibuf->y;
+              float u = uv[0] * ibuf->x;
+              float v = uv[1] * ibuf->y;
 
               if (ibuf->float_buffer.data) {
-                float rgba_f[4];
-                if (interp == SHD_INTERP_CLOSEST) {
-                  nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
-                }
-                else {
-                  bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
-                }
+                float4 rgba_f = interp == SHD_INTERP_CLOSEST ?
+                                    imbuf::interpolate_nearest_wrap_fl(ibuf, u, v) :
+                                    imbuf::interpolate_bilinear_wrap_fl(ibuf, u, v);
+                rgba_f = math::clamp(rgba_f, 0.0f, 1.0f);
                 straight_to_premul_v4(rgba_f);
                 if (use_palette) {
                   linearrgb_to_srgb_v3_v3(color->rgb, rgba_f);
@@ -495,13 +483,9 @@ void paint_sample_color(
                 }
               }
               else {
-                uchar rgba[4];
-                if (interp == SHD_INTERP_CLOSEST) {
-                  nearest_interpolation_color_wrap(ibuf, rgba, nullptr, u, v);
-                }
-                else {
-                  bilinear_interpolation_color_wrap(ibuf, rgba, nullptr, u, v);
-                }
+                uchar4 rgba = interp == SHD_INTERP_CLOSEST ?
+                                  imbuf::interpolate_nearest_wrap_byte(ibuf, u, v) :
+                                  imbuf::interpolate_bilinear_wrap_byte(ibuf, u, v);
                 if (use_palette) {
                   rgb_uchar_to_float(color->rgb, rgba);
                 }

@@ -209,7 +209,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
         curves,
         selectable_elements,
         selection_domain,
-        blender::get_default_hash_2<int>(seed, info.layer_index),
+        blender::get_default_hash<int>(seed, info.layer_index),
         ratio,
         memory);
 

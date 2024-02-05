@@ -22,7 +22,7 @@
 #include "BKE_main.hh"
 #include "BKE_report.h"
 
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
 #include "BKE_scene.h"
@@ -60,7 +60,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 using blender::float2;
 using blender::float2x2;

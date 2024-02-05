@@ -630,9 +630,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       float(*diff_feather_points_flip)[2];
       uint tot_diff_feather_points;
 
-      const uint resol_a = BKE_mask_spline_resolution(spline, width, height) / 4;
+      const uint resol_a = uint(BKE_mask_spline_resolution(spline, width, height) / 4);
       const uint resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
-      const uint resol = CLAMPIS(std::max(resol_a, resol_b), 4, 512);
+      const uint resol = std::clamp(std::max(resol_a, resol_b), 4u, 512u);
 
       diff_points = BKE_mask_spline_differentiate_with_resolution(spline, resol, &tot_diff_point);
 

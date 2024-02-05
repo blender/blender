@@ -14,7 +14,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_report.h"
 
 #include "BLI_math_geom.h"
@@ -30,9 +30,10 @@
 
 #include "bmesh.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 using blender::float2;
+using blender::Vector;
 
 /* uses total number of selected edges around a vertex to choose how to extend */
 #define USE_TRICKY_EXTEND
@@ -43,12 +44,10 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -217,8 +216,6 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);
     }
   }
-
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }

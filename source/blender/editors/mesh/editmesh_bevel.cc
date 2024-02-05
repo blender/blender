@@ -19,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_unit.hh"
 
 #include "DNA_curveprofile_types.h"
@@ -43,7 +43,9 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 #define MVAL_PIXEL_MARGIN 5.0f
 
@@ -80,8 +82,7 @@ struct BevelData {
   float max_obj_scale;
   bool is_modal;
 
-  BevelObjectStore *ob_store;
-  uint ob_store_len;
+  Vector<BevelObjectStore> ob_store;
 
   /* modal only */
   int launch_event;
@@ -231,32 +232,24 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
     RNA_float_set(op->ptr, "offset_pct", 0.0f);
   }
 
-  op->customdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
+  op->customdata = MEM_new<BevelData>(__func__);
   BevelData *opdata = static_cast<BevelData *>(op->customdata);
-  uint objects_used_len = 0;
   opdata->max_obj_scale = FLT_MIN;
 
   /* Put the Curve Profile from the toolsettings into the opdata struct */
   opdata->custom_profile = ts->custom_bevel_profile_preset;
 
   {
-    uint ob_store_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, v3d, &ob_store_len);
-    opdata->ob_store = static_cast<BevelObjectStore *>(
-        MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__));
-    for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
-      Object *obedit = objects[ob_index];
+    const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, v3d);
+    for (Object *obedit : objects) {
       float scale = mat4_to_scale(obedit->object_to_world);
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {
-        opdata->ob_store[objects_used_len].ob = obedit;
-        objects_used_len++;
+        opdata->ob_store.append(BevelObjectStore{obedit, {}});
       }
     }
-    MEM_freeN(objects);
-    opdata->ob_store_len = objects_used_len;
   }
 
   opdata->is_modal = is_modal;
@@ -288,10 +281,10 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
   if (is_modal) {
     ARegion *region = CTX_wm_region(C);
 
-    for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      Object *obedit = opdata->ob_store[ob_index].ob;
+    for (BevelObjectStore &ob_store : opdata->ob_store) {
+      Object *obedit = ob_store.ob;
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(em);
+      ob_store.mesh_backup = EDBM_redo_state_store(em);
     }
     opdata->draw_handle_pixel = ED_region_draw_cb_activate(
         region->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
@@ -325,16 +318,16 @@ static bool edbm_bevel_calc(wmOperator *op)
   const float spread = RNA_float_get(op->ptr, "spread");
   const int vmesh_method = RNA_enum_get(op->ptr, "vmesh_method");
 
-  for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-    Object *obedit = opdata->ob_store[ob_index].ob;
+  for (BevelObjectStore &ob_store : opdata->ob_store) {
+    Object *obedit = ob_store.ob;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     /* revert to original mesh */
     if (opdata->is_modal) {
-      EDBM_redo_state_restore(&opdata->ob_store[ob_index].mesh_backup, em, false);
+      EDBM_redo_state_restore(&ob_store.mesh_backup, em, false);
     }
 
-    const int material = CLAMPIS(material_init, -1, obedit->totcol - 1);
+    const int material = std::clamp(material_init, -1, obedit->totcol - 1);
 
     EDBM_op_init(em,
                  &bmop,
@@ -398,9 +391,8 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
     ED_area_status_text(area, nullptr);
   }
 
-  for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-    Object *obedit = opdata->ob_store[ob_index].ob;
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+  for (BevelObjectStore &ob_store : opdata->ob_store) {
+    BMEditMesh *em = BKE_editmesh_from_object(ob_store.ob);
     /* Without this, faces surrounded by selected edges/verts will be unselected. */
     if ((em->selectmode & SCE_SELECT_FACE) == 0) {
       EDBM_selectmode_flush(em);
@@ -409,14 +401,13 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 
   if (opdata->is_modal) {
     ARegion *region = CTX_wm_region(C);
-    for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup);
+    for (BevelObjectStore &ob_store : opdata->ob_store) {
+      EDBM_redo_state_free(&ob_store.mesh_backup);
     }
     ED_region_draw_cb_exit(region->type, opdata->draw_handle_pixel);
     G.moving = 0;
   }
-  MEM_SAFE_FREE(opdata->ob_store);
-  MEM_SAFE_FREE(op->customdata);
+  MEM_delete(opdata);
   op->customdata = nullptr;
 }
 
@@ -424,10 +415,10 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
 {
   BevelData *opdata = static_cast<BevelData *>(op->customdata);
   if (opdata->is_modal) {
-    for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
-      Object *obedit = opdata->ob_store[ob_index].ob;
+    for (BevelObjectStore &ob_store : opdata->ob_store) {
+      Object *obedit = ob_store.ob;
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
-      EDBM_redo_state_restore_and_free(&opdata->ob_store[ob_index].mesh_backup, em, true);
+      EDBM_redo_state_restore_and_free(&ob_store.mesh_backup, em, true);
 
       EDBMUpdate_Params params{};
       params.calc_looptris = false;

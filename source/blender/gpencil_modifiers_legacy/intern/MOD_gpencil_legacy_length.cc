@@ -27,7 +27,7 @@
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_screen.hh"
@@ -168,8 +168,8 @@ static void applyLength(GpencilModifierData *md,
   }
 
   if (first_fac < 0) {
-    SWAP(float, first_fac, second_fac);
-    SWAP(int, first_mode, second_mode);
+    std::swap(first_fac, second_fac);
+    std::swap(first_mode, second_mode);
   }
   const int first_extra_point_count = ceil(first_fac * lmd->point_density);
   const int second_extra_point_count = ceil(second_fac * lmd->point_density);

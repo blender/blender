@@ -6,9 +6,8 @@
 
 #include "BLI_path_util.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -64,7 +63,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   float fps = 0.0f;
 
   if (ImageAnim *ianim = static_cast<ImageAnim *>(image->anims.first)) {
-    anim *anim = ianim->anim;
+    ImBufAnim *anim = ianim->anim;
     if (anim) {
       frames = IMB_anim_get_duration(anim, IMB_TC_NONE);
 

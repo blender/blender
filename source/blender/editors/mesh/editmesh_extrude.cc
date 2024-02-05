@@ -16,7 +16,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_report.h"
 
 #include "RNA_access.hh"
@@ -32,7 +32,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Extrude Internal Utilities
@@ -287,14 +289,12 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  for (Object *obedit : objects) {
     float offset_local[3], tmat[3][3];
 
-    Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     copy_m3_m4(tmat, obedit->object_to_world);
@@ -313,8 +313,6 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -432,12 +430,10 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     if (em->bm->totvertsel == 0) {
       continue;
@@ -454,7 +450,6 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -491,12 +486,10 @@ static int edbm_extrude_context_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     if (em->bm->totvertsel == 0) {
       continue;
@@ -512,7 +505,6 @@ static int edbm_extrude_context_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -545,12 +537,10 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     if (em->bm->totvertsel == 0) {
       continue;
@@ -564,7 +554,6 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -598,12 +587,10 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     if (em->bm->totedgesel == 0) {
       continue;
@@ -617,7 +604,6 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -651,12 +637,10 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     if (em->bm->totfacesel == 0) {
       continue;
@@ -670,7 +654,6 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -720,11 +703,9 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
   zero_v3(center);
   verts_len = 0;
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      vc.scene, vc.view_layer, vc.v3d, &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, vc.v3d);
+  for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
     const int local_verts_len = vc.em->bm->totvertsel;
 
@@ -754,8 +735,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
   }
 
   /* Then we process the meshes. */
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     ED_view3d_viewcontext_init_object(&vc, obedit);
 
     if (verts_len != 0) {
@@ -912,7 +892,6 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   /* Support dragging to move after extrude, see: #114282. */
   const int retval = OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;

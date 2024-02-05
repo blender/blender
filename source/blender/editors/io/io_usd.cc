@@ -14,6 +14,7 @@
 #  include <cstring>
 
 #  include "BKE_context.hh"
+#  include "BKE_file_handler.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.h"
 #  include "BKE_screen.hh"
@@ -46,6 +47,7 @@
 #  include "IO_orientation.hh"
 #  include "io_ops.hh"
 #  include "io_usd.hh"
+#  include "io_utils.hh"
 #  include "usd.h"
 
 #  include <cstdio>
@@ -1031,7 +1033,7 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
   options->as_background_job = true;
   op->customdata = options;
 
-  return WM_operator_filesel(C, op, event);
+  return blender::ed::io::filesel_drop_import_invoke(C, op, event);
 }
 
 static int wm_usd_import_exec(bContext *C, wmOperator *op)
@@ -1200,6 +1202,63 @@ static void wm_usd_import_draw(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
+<<<<<<< HEAD
+=======
+  uiLayout *box = uiLayoutBox(layout);
+  uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("Data Types"));
+  uiItemR(col, ptr, "import_cameras", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_lights", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_volumes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_shapes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_skeletons", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_blendshapes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(box, ptr, "prim_path_mask", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(box, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Mesh Data"));
+  uiItemR(col, ptr, "read_mesh_uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "read_mesh_colors", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "read_mesh_attributes", UI_ITEM_NONE, nullptr, ICON_NONE);
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Include"));
+  uiItemR(col, ptr, "import_subdiv", UI_ITEM_NONE, IFACE_("Subdivision"), ICON_NONE);
+  uiItemR(col, ptr, "support_scene_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_visible_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_guide", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_proxy", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_render", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Options"));
+  uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "create_collection", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(box, ptr, "light_intensity_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("Materials"));
+  uiItemR(col, ptr, "import_all_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "import_usd_preview", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
+  uiLayout *row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "set_material_blend", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
+  uiItemR(col, ptr, "mtl_name_collision_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumn(box, true);
+  uiItemR(col, ptr, "import_textures_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "import_textures_dir", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayoutSetEnabled(row, copy_textures);
+  row = uiLayoutRow(col, true);
+  uiItemR(row, ptr, "tex_name_collision_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayoutSetEnabled(row, copy_textures);
+  uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
+>>>>>>> main
 }
 
 void WM_OT_usd_import(wmOperatorType *ot)
@@ -1214,7 +1273,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_import_draw;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
+  ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_USD,
@@ -1428,6 +1487,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
       "Behavior when the name of an imported texture file conflicts with an existing file");
 }
 
+<<<<<<< HEAD
 /* Panel Types */
 static wmOperator *get_named_operator(const bContext *C, const char *idname)
 {
@@ -2091,5 +2151,19 @@ void WM_PT_USDImportPanelsRegister()
   usd_import_panel_register_animation();
   usd_import_panel_register_particles();
 }
+=======
+namespace blender::ed::io {
+void usd_file_handler_add()
+{
+  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  STRNCPY(fh->idname, "IO_FH_usd");
+  STRNCPY(fh->import_operator, "WM_OT_usd_import");
+  STRNCPY(fh->label, "Universal Scene Description");
+  STRNCPY(fh->file_extensions_str, ".usd;.usda;.usdc;.usdz");
+  fh->poll_drop = poll_file_object_drop;
+  bke::file_handler_add(std::move(fh));
+}
+}  // namespace blender::ed::io
+>>>>>>> main
 
 #endif /* WITH_USD */

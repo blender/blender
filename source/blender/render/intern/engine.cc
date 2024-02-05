@@ -25,7 +25,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_node.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -42,7 +42,7 @@
 #  include "BPY_extern.h"
 #endif
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_bake.h"
 #include "RE_engine.h"
@@ -960,7 +960,7 @@ bool RE_engine_render(Render *re, bool do_all)
   if ((type->flag & RE_USE_GPU_CONTEXT) && !GPU_backend_supported()) {
     /* Clear UI drawing locks. */
     re->draw_unlock();
-    BKE_report(re->reports, RPT_ERROR, "Can not initialize the GPU");
+    BKE_report(re->reports, RPT_ERROR, "Cannot initialize the GPU");
     G.is_break = true;
     return true;
   }

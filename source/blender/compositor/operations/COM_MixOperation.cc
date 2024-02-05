@@ -308,7 +308,7 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
     }
     else {
       tmp = 1.0f - (1.0f - p.color1[0]) / tmp;
-      p.out[0] = CLAMPIS(tmp, 0.0f, 1.0f);
+      p.out[0] = std::clamp(tmp, 0.0f, 1.0f);
     }
 
     tmp = value_m + value * p.color2[1];
@@ -317,7 +317,7 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
     }
     else {
       tmp = 1.0f - (1.0f - p.color1[1]) / tmp;
-      p.out[1] = CLAMPIS(tmp, 0.0f, 1.0f);
+      p.out[1] = std::clamp(tmp, 0.0f, 1.0f);
     }
 
     tmp = value_m + value * p.color2[2];
@@ -326,7 +326,7 @@ void MixColorBurnOperation::update_memory_buffer_row(PixelCursor &p)
     }
     else {
       tmp = 1.0f - (1.0f - p.color1[2]) / tmp;
-      p.out[2] = CLAMPIS(tmp, 0.0f, 1.0f);
+      p.out[2] = std::clamp(tmp, 0.0f, 1.0f);
     }
     p.out[3] = p.color1[3];
 
@@ -803,9 +803,9 @@ void MixGlareOperation::execute_pixel_sampled(float output[4],
     input_weight = 1.0f - value;
     glare_weight = 1.0f;
   }
-  output[0] = input_weight * MAX2(input_color1[0], 0.0f) + glare_weight * input_color2[0];
-  output[1] = input_weight * MAX2(input_color1[1], 0.0f) + glare_weight * input_color2[1];
-  output[2] = input_weight * MAX2(input_color1[2], 0.0f) + glare_weight * input_color2[2];
+  output[0] = input_weight * std::max(input_color1[0], 0.0f) + glare_weight * input_color2[0];
+  output[1] = input_weight * std::max(input_color1[1], 0.0f) + glare_weight * input_color2[1];
+  output[2] = input_weight * std::max(input_color1[2], 0.0f) + glare_weight * input_color2[2];
   output[3] = input_color1[3];
 
   clamp_if_needed(output);
@@ -828,9 +828,9 @@ void MixGlareOperation::update_memory_buffer_row(PixelCursor &p)
       input_weight = 1.0f - value;
       glare_weight = 1.0f;
     }
-    p.out[0] = input_weight * MAX2(p.color1[0], 0.0f) + glare_weight * p.color2[0];
-    p.out[1] = input_weight * MAX2(p.color1[1], 0.0f) + glare_weight * p.color2[1];
-    p.out[2] = input_weight * MAX2(p.color1[2], 0.0f) + glare_weight * p.color2[2];
+    p.out[0] = input_weight * std::max(p.color1[0], 0.0f) + glare_weight * p.color2[0];
+    p.out[1] = input_weight * std::max(p.color1[1], 0.0f) + glare_weight * p.color2[1];
+    p.out[2] = input_weight * std::max(p.color1[2], 0.0f) + glare_weight * p.color2[2];
     p.out[3] = p.color1[3];
 
     clamp_if_needed(p.out);
@@ -927,28 +927,10 @@ void MixLightenOperation::execute_pixel_sampled(float output[4],
   if (this->use_value_alpha_multiply()) {
     value *= input_color2[3];
   }
-  float tmp;
-  tmp = value * input_color2[0];
-  if (tmp > input_color1[0]) {
-    output[0] = tmp;
-  }
-  else {
-    output[0] = input_color1[0];
-  }
-  tmp = value * input_color2[1];
-  if (tmp > input_color1[1]) {
-    output[1] = tmp;
-  }
-  else {
-    output[1] = input_color1[1];
-  }
-  tmp = value * input_color2[2];
-  if (tmp > input_color1[2]) {
-    output[2] = tmp;
-  }
-  else {
-    output[2] = input_color1[2];
-  }
+  float valuem = 1.0f - value;
+  output[0] = max_ff(input_color1[0], input_color2[0]) * value + input_color1[0] * valuem;
+  output[1] = max_ff(input_color1[1], input_color2[1]) * value + input_color1[1] * valuem;
+  output[2] = max_ff(input_color1[2], input_color2[2]) * value + input_color1[2] * valuem;
   output[3] = input_color1[3];
 
   clamp_if_needed(output);
@@ -961,16 +943,10 @@ void MixLightenOperation::update_memory_buffer_row(PixelCursor &p)
     if (this->use_value_alpha_multiply()) {
       value *= p.color2[3];
     }
-
-    float tmp = value * p.color2[0];
-    p.out[0] = MAX2(tmp, p.color1[0]);
-
-    tmp = value * p.color2[1];
-    p.out[1] = MAX2(tmp, p.color1[1]);
-
-    tmp = value * p.color2[2];
-    p.out[2] = MAX2(tmp, p.color1[2]);
-
+    float value_m = 1.0f - value;
+    p.out[0] = max_ff(p.color1[0], p.color2[0]) * value + p.color1[0] * value_m;
+    p.out[1] = max_ff(p.color1[1], p.color2[1]) * value + p.color1[1] * value_m;
+    p.out[2] = max_ff(p.color1[2], p.color2[2]) * value + p.color1[2] * value_m;
     p.out[3] = p.color1[3];
 
     clamp_if_needed(p.out);

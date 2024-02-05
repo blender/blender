@@ -35,7 +35,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_bpath.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.h"

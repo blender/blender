@@ -26,10 +26,11 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_bake_data_block_id.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 namespace blender::bke {
 
@@ -119,6 +120,11 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   dst.runtime->evaluated_length_cache = src.runtime->evaluated_length_cache;
   dst.runtime->evaluated_tangent_cache = src.runtime->evaluated_tangent_cache;
   dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
+
+  if (src.runtime->bake_materials) {
+    dst.runtime->bake_materials = std::make_unique<bake::BakeMaterialsList>(
+        *src.runtime->bake_materials);
+  }
 }
 
 CurvesGeometry::CurvesGeometry(const CurvesGeometry &other) : CurvesGeometry()

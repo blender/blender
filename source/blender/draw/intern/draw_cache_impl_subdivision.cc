@@ -24,9 +24,8 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_time.h"
 #include "BLI_virtual_array.hh"
-
-#include "PIL_time.h"
 
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
@@ -2324,7 +2323,7 @@ void DRW_create_subdivision(Object *ob,
 #undef TIME_SUBDIV
 
 #ifdef TIME_SUBDIV
-  const double begin_time = PIL_check_seconds_timer();
+  const double begin_time = BLI_check_seconds_timer();
 #endif
 
   if (!draw_subdiv_create_requested_buffers(ob,
@@ -2346,7 +2345,7 @@ void DRW_create_subdivision(Object *ob,
   }
 
 #ifdef TIME_SUBDIV
-  const double end_time = PIL_check_seconds_timer();
+  const double end_time = BLI_check_seconds_timer();
   fprintf(stderr, "Time to update subdivision: %f\n", end_time - begin_time);
   fprintf(stderr, "Maximum FPS: %f\n", 1.0 / (end_time - begin_time));
 #endif

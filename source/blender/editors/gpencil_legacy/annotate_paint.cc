@@ -15,18 +15,17 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_screen.hh"
@@ -2152,7 +2151,7 @@ static void annotation_draw_apply_event(
     }
   }
 
-  p->curtime = PIL_check_seconds_timer();
+  p->curtime = BLI_check_seconds_timer();
 
   /* handle pressure sensitivity (which is supplied by tablets or otherwise 1.0) */
   p->pressure = event->tablet.pressure;

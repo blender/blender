@@ -30,7 +30,7 @@
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
@@ -57,7 +57,7 @@
 #  include "BKE_bvhutils.hh"
 #  include "BKE_collision.h"
 #  include "BKE_customdata.hh"
-#  include "BKE_deform.h"
+#  include "BKE_deform.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_object.hh"
@@ -442,7 +442,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   }
 
   /* Define grid resolutions from longest domain side. */
-  if (size[0] >= MAX2(size[1], size[2])) {
+  if (size[0] >= std::max(size[1], size[2])) {
     scale = res / size[0];
     fds->scale = size[0] / fabsf(ob->scale[0]);
     fds->base_res[0] = res;
@@ -793,8 +793,8 @@ static void bb_combineMaps(FluidObjectBB *output,
                                                       output->influence[index_out]);
             }
           }
-          output->distances[index_out] = MIN2(bb2->distances[index_in],
-                                              output->distances[index_out]);
+          output->distances[index_out] = std::min(bb2->distances[index_in],
+                                                  output->distances[index_out]);
           if (output->velocity && bb2->velocity) {
             /* Last sample replaces the velocity. */
             output->velocity[index_out * 3] = ADD_IF_LOWER(output->velocity[index_out * 3],
@@ -832,7 +832,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 {
   /* Ensure that distance value is "joined" into the levelset. */
   if (dest_phi_in) {
-    dest_phi_in[index] = MIN2(src_distance_value, dest_phi_in[index]);
+    dest_phi_in[index] = std::min(src_distance_value, dest_phi_in[index]);
   }
 
   /* Accumulate effector object count (important once effector object overlap). */
@@ -914,15 +914,15 @@ static void update_velocities(FluidEffectorSettings *fes,
           velocity_map[index * 3 + 2] = hit_vel[2];
           break;
         case FLUID_EFFECTOR_GUIDE_MIN:
-          velocity_map[index * 3] = MIN2(abs_hit_vel[0], abs_vel[0]);
-          velocity_map[index * 3 + 1] = MIN2(abs_hit_vel[1], abs_vel[1]);
-          velocity_map[index * 3 + 2] = MIN2(abs_hit_vel[2], abs_vel[2]);
+          velocity_map[index * 3] = std::min(abs_hit_vel[0], abs_vel[0]);
+          velocity_map[index * 3 + 1] = std::min(abs_hit_vel[1], abs_vel[1]);
+          velocity_map[index * 3 + 2] = std::min(abs_hit_vel[2], abs_vel[2]);
           break;
         case FLUID_EFFECTOR_GUIDE_MAX:
         default:
-          velocity_map[index * 3] = MAX2(abs_hit_vel[0], abs_vel[0]);
-          velocity_map[index * 3 + 1] = MAX2(abs_hit_vel[1], abs_vel[1]);
-          velocity_map[index * 3 + 2] = MAX2(abs_hit_vel[2], abs_vel[2]);
+          velocity_map[index * 3] = std::max(abs_hit_vel[0], abs_vel[0]);
+          velocity_map[index * 3 + 1] = std::max(abs_hit_vel[1], abs_vel[1]);
+          velocity_map[index * 3 + 2] = std::max(abs_hit_vel[2], abs_vel[2]);
           break;
       }
     }
@@ -1792,7 +1792,7 @@ static void update_distances(int index,
   }
 
   /* Update global distance array but ensure that older entries are not overridden. */
-  distance_map[index] = MIN2(distance_map[index], min_dist);
+  distance_map[index] = std::min(distance_map[index], min_dist);
 
   /* Sanity check: Ensure that distances don't explode. */
   CLAMP(distance_map[index], -PHI_MAX, PHI_MAX);
@@ -1973,8 +1973,8 @@ static void sample_mesh(FluidFlowSettings *ffs,
       float convert_vel[3];
       copy_v3_v3(convert_vel, ffs->vel_coord);
       float time_mult = 1.0 / (25.0f * DT_DEFAULT);
-      float size_mult = MAX3(base_res[0], base_res[1], base_res[2]) /
-                        MAX3(global_size[0], global_size[1], global_size[2]);
+      float size_mult = std::max({base_res[0], base_res[1], base_res[2]}) /
+                        std::max({global_size[0], global_size[1], global_size[2]});
       mul_v3_v3fl(convert_vel, ffs->vel_coord, size_mult * time_mult);
 
       velocity_map[index * 3] += convert_vel[0];
@@ -1990,7 +1990,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
   }
 
   /* Apply final influence value but also consider volume initialization factor. */
-  influence_map[index] = MAX2(volume_factor, emission_strength);
+  influence_map[index] = std::max(volume_factor, emission_strength);
 }
 
 struct EmitFromDMData {
@@ -2269,7 +2269,7 @@ static void adaptive_domain_adjust(
                                 y - fds->res_min[1],
                                 fds->res[1],
                                 z - fds->res_min[2]);
-        max_den = (fuel) ? MAX2(density[index], fuel[index]) : density[index];
+        max_den = (fuel) ? std::max(density[index], fuel[index]) : density[index];
 
         /* Check high resolution bounds if max density isn't already high enough. */
         if (max_den < fds->adapt_threshold && fds->flags & FLUID_DOMAIN_USE_NOISE && fds->fluid) {
@@ -2283,7 +2283,7 @@ static void adaptive_domain_adjust(
             for (j = 0; j < block_size; j++) {
               for (k = 0; k < block_size; k++) {
                 int big_index = manta_get_index(xx + i, wt_res[0], yy + j, wt_res[1], zz + k);
-                float den = (bigfuel) ? MAX2(bigdensity[big_index], bigfuel[big_index]) :
+                float den = (bigfuel) ? std::max(bigdensity[big_index], bigfuel[big_index]) :
                                         bigdensity[big_index];
                 if (den > max_den) {
                   max_den = den;
@@ -2433,7 +2433,7 @@ BLI_INLINE void apply_outflow_fields(int index,
   /* Set levelset value for liquid inflow.
    * Ensure that distance value is "joined" into the levelset. */
   if (phiout) {
-    phiout[index] = MIN2(distance_value, phiout[index]);
+    phiout[index] = std::min(distance_value, phiout[index]);
   }
 
   /* Set smoke outflow, i.e. reset cell to zero. */
@@ -2478,7 +2478,7 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *ffs,
   /* Set levelset value for liquid inflow.
    * Ensure that distance value is "joined" into the levelset. */
   if (phi_in) {
-    phi_in[index] = MIN2(distance_value, phi_in[index]);
+    phi_in[index] = std::min(distance_value, phi_in[index]);
   }
 
   /* Set emission value for smoke inflow.
@@ -2504,13 +2504,13 @@ BLI_INLINE void apply_inflow_fields(FluidFlowSettings *ffs,
   if (absolute_flow) {
     if (density && density_in) {
       if (ffs->type != FLUID_FLOW_TYPE_FIRE && dens_flow > density[index]) {
-        /* Use MAX2 to preserve values from other emitters at this cell. */
+        /* Use std::max to preserve values from other emitters at this cell. */
         density_in[index] = std::max(dens_flow, density_in[index]);
       }
     }
     if (fuel && fuel_in) {
       if (ffs->type != FLUID_FLOW_TYPE_SMOKE && fuel_flow && fuel_flow > fuel[index]) {
-        /* Use MAX2 to preserve values from other emitters at this cell. */
+        /* Use std::max to preserve values from other emitters at this cell. */
         fuel_in[index] = std::max(fuel_flow, fuel_in[index]);
       }
     }
@@ -3130,7 +3130,7 @@ static void update_effectors_task_cb(void *__restrict userdata,
       float voxel_center[3] = {0, 0, 0}, vel[3] = {0, 0, 0}, retvel[3] = {0, 0, 0};
       const uint index = manta_get_index(x, fds->res[0], y, fds->res[1], z);
 
-      if ((data->fuel && MAX2(data->density[index], data->fuel[index]) < FLT_EPSILON) ||
+      if ((data->fuel && std::max(data->density[index], data->fuel[index]) < FLT_EPSILON) ||
           (data->density && data->density[index] < FLT_EPSILON) ||
           (data->phi_obs_in && data->phi_obs_in[index] < 0.0f) ||
           data->flags[index] & 2) /* Manta-flow convention: `2 == FlagObstacle`. */
@@ -3276,7 +3276,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   sub_v3_v3v3(size, max, min);
 
   /* Biggest dimension will be used for up-scaling. */
-  float max_size = MAX3(size[0], size[1], size[2]);
+  float max_size = std::max({size[0], size[1], size[2]});
 
   float co_scale[3];
   co_scale[0] = max_size / ob->scale[0];
@@ -4379,8 +4379,8 @@ float BKE_fluid_get_velocity_at(Object *ob, float position[3], float velocity[3]
   if (fmd && (fmd->type & MOD_FLUID_TYPE_DOMAIN) && fmd->domain && fmd->domain->fluid) {
     FluidDomainSettings *fds = fmd->domain;
     float time_mult = 25.0f * DT_DEFAULT;
-    float size_mult = MAX3(fds->global_size[0], fds->global_size[1], fds->global_size[2]) /
-                      MAX3(fds->base_res[0], fds->base_res[1], fds->base_res[2]);
+    float size_mult = std::max({fds->global_size[0], fds->global_size[1], fds->global_size[2]}) /
+                      std::max({fds->base_res[0], fds->base_res[1], fds->base_res[2]});
     float vel_mag;
     float density = 0.0f, fuel = 0.0f;
     float pos[3];

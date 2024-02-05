@@ -21,7 +21,7 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "UI_resources.hh"
 

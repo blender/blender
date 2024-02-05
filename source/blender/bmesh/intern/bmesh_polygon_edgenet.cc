@@ -201,7 +201,7 @@ static bool bm_face_split_edgenet_find_loop_pair(BMVert *v_init,
     swap = !swap;
   }
   if (swap) {
-    SWAP(BMEdge *, e_pair[0], e_pair[1]);
+    std::swap(e_pair[0], e_pair[1]);
   }
 
   return true;

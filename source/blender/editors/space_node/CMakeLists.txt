@@ -18,7 +18,6 @@ set(INC
   ../../nodes
   ../../render
   ../../windowmanager
-  ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -58,7 +57,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_screen
   PRIVATE bf::intern::guardedalloc
-  extern_fmtlib
+  PRIVATE bf::extern::fmtlib
 )
 
 if(WITH_COMPOSITOR_CPU)

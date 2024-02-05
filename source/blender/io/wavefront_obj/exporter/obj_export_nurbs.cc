@@ -76,11 +76,11 @@ int OBJCurve::total_spline_control_points(const int spline_index) const
   int degree = nurb->type == CU_POLY ? 1 : nurb->orderu - 1;
   /* Total control points = Number of points in the curve (+ degree of the
    * curve if it is cyclic). */
-  int r_tot_control_points = nurb->pntsv * nurb->pntsu;
+  int tot_control_points = nurb->pntsv * nurb->pntsu;
   if (nurb->flagu & CU_NURB_CYCLIC) {
-    r_tot_control_points += degree;
+    tot_control_points += degree;
   }
-  return r_tot_control_points;
+  return tot_control_points;
 }
 
 int OBJCurve::get_nurbs_degree(const int spline_index) const

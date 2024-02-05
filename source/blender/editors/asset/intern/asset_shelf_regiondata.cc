@@ -47,12 +47,12 @@ RegionAssetShelf *regiondata_duplicate(const RegionAssetShelf *shelf_regiondata)
   return new_shelf_regiondata;
 }
 
-void regiondata_free(RegionAssetShelf **shelf_regiondata)
+void regiondata_free(RegionAssetShelf *shelf_regiondata)
 {
-  LISTBASE_FOREACH_MUTABLE (AssetShelf *, shelf, &(*shelf_regiondata)->shelves) {
+  LISTBASE_FOREACH_MUTABLE (AssetShelf *, shelf, &shelf_regiondata->shelves) {
     MEM_delete(shelf);
   }
-  MEM_SAFE_FREE(*shelf_regiondata);
+  MEM_freeN(shelf_regiondata);
 }
 
 void regiondata_blend_write(BlendWriter *writer, const RegionAssetShelf *shelf_regiondata)

@@ -9,6 +9,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cfloat>
 #include <cstring>
 
@@ -77,8 +78,8 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
@@ -100,8 +101,8 @@
 
 #include "NOD_shader.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -2883,10 +2884,10 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       ToolSettings *ts = scene->toolsettings;
 
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::GPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
 
       /* Set default Draw brush. */
       if (brush != nullptr) {
@@ -2927,9 +2928,9 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     /* Reset all grease pencil brushes. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
     }
   }
 
@@ -3312,8 +3313,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Calculate window width/height from screen vertices */
       int win_width = 0, win_height = 0;
       LISTBASE_FOREACH (ScrVert *, vert, &screen->vertbase) {
-        win_width = MAX2(win_width, vert->vec.x);
-        win_height = MAX2(win_height, vert->vec.y);
+        win_width = std::max<int>(win_width, vert->vec.x);
+        win_height = std::max<int>(win_height, vert->vec.y);
       }
 
       for (ScrArea *area = static_cast<ScrArea *>(screen->areabase.first), *area_next; area;
@@ -4580,7 +4581,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "SceneDisplay", "float", "shadow_focus")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         float *dir = scene->display.light_direction;
-        SWAP(float, dir[2], dir[1]);
+        std::swap(dir[2], dir[1]);
         dir[2] = -dir[2];
         dir[0] = -dir[0];
       }
@@ -4887,7 +4888,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      arm->flag &= ~(ARM_FLAG_UNUSED_1 | ARM_DRAW_RELATION_FROM_HEAD | ARM_FLAG_UNUSED_6 |
+      arm->flag &= ~(ARM_FLAG_UNUSED_1 | ARM_DRAW_RELATION_FROM_HEAD | ARM_BCOLL_SOLO_ACTIVE |
                      ARM_FLAG_UNUSED_7 | ARM_FLAG_UNUSED_12);
     }
 
@@ -5366,7 +5367,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      arm->flag &= ~(ARM_FLAG_UNUSED_6);
+      arm->flag &= ~(ARM_BCOLL_SOLO_ACTIVE);
     }
   }
 

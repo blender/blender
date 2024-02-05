@@ -36,7 +36,13 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_buts_map_uv(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
+  uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+}
+
+static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
+{
+  node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
 }
 
 using namespace blender::realtime_compositor;
@@ -51,16 +57,27 @@ class MapUVOperation : public NodeOperation {
       get_input("Image").pass_through(get_result("Image"));
       return;
     }
+    bool nearest_neighbour = get_nearest_neighbour();
 
-    GPUShader *shader = context().get_shader("compositor_map_uv");
+    GPUShader *shader = context().get_shader(get_shader_name());
+
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(
-        shader, "gradient_attenuation_factor", get_gradient_attenuation_factor());
+    if (!nearest_neighbour) {
+      GPU_shader_uniform_1f(
+          shader, "gradient_attenuation_factor", get_gradient_attenuation_factor());
+    }
 
     const Result &input_image = get_input("Image");
-    GPU_texture_mipmap_mode(input_image.texture(), true, true);
-    GPU_texture_anisotropic_filter(input_image.texture(), true);
+    if (nearest_neighbour) {
+      GPU_texture_mipmap_mode(input_image.texture(), false, false);
+      GPU_texture_anisotropic_filter(input_image.texture(), false);
+    }
+    else {
+      GPU_texture_mipmap_mode(input_image.texture(), true, true);
+      GPU_texture_anisotropic_filter(input_image.texture(), true);
+    }
+
     GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
     input_image.bind_as_texture(shader, "input_tx");
 
@@ -87,6 +104,17 @@ class MapUVOperation : public NodeOperation {
   {
     return bnode().custom1 / 100.0f;
   }
+
+  bool get_nearest_neighbour()
+  {
+    return bnode().custom2 == CMP_NODE_MAP_UV_FILTERING_NEAREST;
+  }
+
+  char const *get_shader_name()
+  {
+    return get_nearest_neighbour() ? "compositor_map_uv_nearest_neighbour" :
+                                     "compositor_map_uv_anisotropic";
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -106,6 +134,7 @@ void register_node_type_cmp_mapuv()
   ntype.declare = file_ns::cmp_node_map_uv_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_uv;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.initfunc = file_ns::node_composit_init_map_uv;
 
   nodeRegisterType(&ntype);
 }

@@ -25,7 +25,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "DEG_depsgraph_query.hh"
 

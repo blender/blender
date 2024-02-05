@@ -10,7 +10,7 @@
 #include "BKE_image.h"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "RE_pipeline.h"
 

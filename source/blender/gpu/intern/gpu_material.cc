@@ -8,6 +8,7 @@
  * Manages materials, lights and textures.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -20,6 +21,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.hh"
@@ -28,14 +30,12 @@
 
 #include "NOD_shader.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
 #include "DRW_engine.hh"
-
-#include "PIL_time.h"
 
 #include "gpu_codegen.h"
 #include "gpu_node_graph.h"
@@ -434,8 +434,8 @@ static void compute_sss_kernel(GPUSssKernelData *kd, const float radii[3], int s
 {
   float rad[3];
   /* Minimum radius */
-  rad[0] = MAX2(radii[0], 1e-15f);
-  rad[1] = MAX2(radii[1], 1e-15f);
+  rad[0] = std::max(radii[0], 1e-15f);
+  rad[1] = std::max(radii[1], 1e-15f);
   rad[2] = std::max(radii[2], 1e-15f);
 
   kd->avg_inv_radius = 3.0f / (rad[0] + rad[1] + rad[2]);
@@ -449,7 +449,7 @@ static void compute_sss_kernel(GPUSssKernelData *kd, const float radii[3], int s
   /* XXX 0.6f Out of nowhere to match cycles! Empirical! Can be tweak better. */
   mul_v3_v3fl(d, l, 0.6f / s);
   mul_v3_v3fl(rad, d, BURLEY_TRUNCATE);
-  kd->max_radius = MAX3(rad[0], rad[1], rad[2]);
+  kd->max_radius = std::max({rad[0], rad[1], rad[2]});
 
   copy_v3_v3(kd->param, d);
 
@@ -747,7 +747,7 @@ void GPU_material_optimization_status_set(GPUMaterial *mat, eGPUMaterialOptimiza
   mat->optimization_status = status;
   if (mat->optimization_status == GPU_MAT_OPTIMIZATION_READY) {
     /* Reset creation timer to delay optimization pass. */
-    mat->creation_time = PIL_check_seconds_timer();
+    mat->creation_time = BLI_check_seconds_timer();
   }
 }
 
@@ -761,7 +761,7 @@ bool GPU_material_optimization_ready(GPUMaterial *mat)
    * to do this quickly to avoid build-up and improve runtime performance.
    * The threshold just prevents compilations being queued frame after frame. */
   const double optimization_time_threshold_s = 1.2;
-  return ((PIL_check_seconds_timer() - mat->creation_time) >= optimization_time_threshold_s);
+  return ((BLI_check_seconds_timer() - mat->creation_time) >= optimization_time_threshold_s);
 }
 
 void GPU_material_set_default(GPUMaterial *material, GPUMaterial *default_material)

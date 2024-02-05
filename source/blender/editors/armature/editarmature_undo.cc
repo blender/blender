@@ -23,7 +23,7 @@
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_undo_system.hh"
@@ -75,6 +75,7 @@ struct UndoArmature {
   ListBase /* EditBone */ ebones;
   BoneCollection **collection_array;
   int collection_array_num;
+  int collection_root_count;
   size_t undo_size;
 };
 
@@ -96,6 +97,11 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 
   ED_armature_ebone_listbase_temp_clear(arm->edbo);
 
+  /* Before freeing the old bone collections, copy their 'expanded' flag. This
+   * flag is not supposed to be restored with any undo steps. */
+  bonecolls_copy_expanded_flag(blender::Span(uarm->collection_array, uarm->collection_array_num),
+                               arm->collections_span());
+
   /* Copy bone collections. */
   ANIM_bonecoll_array_free(&arm->collection_array, &arm->collection_array_num, true);
   auto bcoll_map = ANIM_bonecoll_array_copy_no_membership(&arm->collection_array,
@@ -103,6 +109,7 @@ static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
                                                           uarm->collection_array,
                                                           uarm->collection_array_num,
                                                           true);
+  arm->collection_root_count = uarm->collection_root_count;
 
   /* Always do a lookup-by-name and assignment. Even when the name of the active collection is
    * still the same, the order may have changed and thus the index needs to be updated. */
@@ -137,6 +144,7 @@ static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
                                                           arm->collection_array_num,
                                                           false);
   STRNCPY(uarm->active_collection_name, arm->active_collection_name);
+  uarm->collection_root_count = arm->collection_root_count;
 
   /* Point the new edit bones at the new collections. */
   remap_ebone_bone_collection_references(&uarm->ebones, bcoll_map);

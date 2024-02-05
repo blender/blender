@@ -6,9 +6,10 @@
  * \ingroup pythonintern
  */
 
+#include "BLI_time.h"
 #include "BLI_timer.h"
 #include "BLI_utildefines.h"
-#include "PIL_time.h"
+
 #include <Python.h>
 
 #include "BPY_extern.h"
@@ -74,6 +75,7 @@ static void py_timer_free(uintptr_t /*uuid*/, void *user_data)
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_timers_register_doc,
     ".. function:: register(function, first_interval=0, persistent=False)\n"
     "\n"
@@ -123,13 +125,15 @@ static PyObject *bpy_app_timers_register(PyObject * /*self*/, PyObject *args, Py
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_app_timers_unregister_doc,
-             ".. function:: unregister(function)\n"
-             "\n"
-             "   Unregister timer.\n"
-             "\n"
-             "   :arg function: Function to unregister.\n"
-             "   :type function: function\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_timers_unregister_doc,
+    ".. function:: unregister(function)\n"
+    "\n"
+    "   Unregister timer.\n"
+    "\n"
+    "   :arg function: Function to unregister.\n"
+    "   :type function: function\n");
 static PyObject *bpy_app_timers_unregister(PyObject * /*self*/, PyObject *function)
 {
   if (!BLI_timer_unregister(intptr_t(function))) {
@@ -139,15 +143,17 @@ static PyObject *bpy_app_timers_unregister(PyObject * /*self*/, PyObject *functi
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_app_timers_is_registered_doc,
-             ".. function:: is_registered(function)\n"
-             "\n"
-             "   Check if this function is registered as a timer.\n"
-             "\n"
-             "   :arg function: Function to check.\n"
-             "   :type function: int\n"
-             "   :return: True when this function is registered, otherwise False.\n"
-             "   :rtype: bool\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_timers_is_registered_doc,
+    ".. function:: is_registered(function)\n"
+    "\n"
+    "   Check if this function is registered as a timer.\n"
+    "\n"
+    "   :arg function: Function to check.\n"
+    "   :type function: int\n"
+    "   :return: True when this function is registered, otherwise False.\n"
+    "   :rtype: bool\n");
 static PyObject *bpy_app_timers_is_registered(PyObject * /*self*/, PyObject *function)
 {
   const bool ret = BLI_timer_is_registered(intptr_t(function));

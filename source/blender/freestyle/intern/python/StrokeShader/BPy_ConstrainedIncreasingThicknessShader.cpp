@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ConstrainedIncreasingThicknessShader___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    ConstrainedIncreasingThicknessShader___doc__,
     "Class hierarchy: :class:`freestyle.types.StrokeShader` > "
     ":class:`ConstrainedIncreasingThicknessShader`\n"
     "\n"
@@ -44,7 +46,7 @@ static char ConstrainedIncreasingThicknessShader___doc__[] =
     "   fat short lines.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"
-    "   :type stroke: :class:`freestyle.types.Stroke`\n";
+    "   :type stroke: :class:`freestyle.types.Stroke`\n");
 
 static int ConstrainedIncreasingThicknessShader___init__(
     BPy_ConstrainedIncreasingThicknessShader *self, PyObject *args, PyObject *kwds)

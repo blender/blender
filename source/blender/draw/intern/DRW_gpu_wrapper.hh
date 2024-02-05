@@ -399,10 +399,10 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
 
   static void swap(StorageArrayBuffer &a, StorageArrayBuffer &b)
   {
-    SWAP(T *, a.data_, b.data_);
-    SWAP(GPUStorageBuf *, a.ssbo_, b.ssbo_);
-    SWAP(int64_t, a.len_, b.len_);
-    SWAP(const char *, a.name_, b.name_);
+    std::swap(a.data_, b.data_);
+    std::swap(a.ssbo_, b.ssbo_);
+    std::swap(a.len_, b.len_);
+    std::swap(a.name_, b.name_);
   }
 };
 
@@ -486,7 +486,7 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
   static void swap(StorageVectorBuffer &a, StorageVectorBuffer &b)
   {
     StorageArrayBuffer<T, len, false>::swap(a, b);
-    SWAP(int64_t, a.item_len_, b.item_len_);
+    std::swap(a.item_len_, b.item_len_);
   }
 };
 
@@ -1264,8 +1264,8 @@ class Framebuffer : NonCopyable {
    */
   static void swap(Framebuffer &a, Framebuffer &b)
   {
-    SWAP(GPUFrameBuffer *, a.fb_, b.fb_);
-    SWAP(const char *, a.name_, b.name_);
+    std::swap(a.fb_, b.fb_);
+    std::swap(a.name_, b.name_);
   }
 };
 
@@ -1288,7 +1288,7 @@ template<typename T, int64_t len> class SwapChain {
     for (auto i : IndexRange(len - 1)) {
       auto i_next = (i + 1) % len;
       if constexpr (std::is_trivial_v<T>) {
-        SWAP(T, chain_[i], chain_[i_next]);
+        std::swap(chain_[i], chain_[i_next]);
       }
       else {
         T::swap(chain_[i], chain_[i_next]);

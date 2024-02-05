@@ -37,6 +37,7 @@ set(SRC
   io_ply_ops.cc
   io_stl_ops.cc
   io_usd.cc
+  io_utils.cc
 
   io_alembic.hh
   io_cache.hh
@@ -48,6 +49,7 @@ set(SRC
   io_ply_ops.hh
   io_stl_ops.hh
   io_usd.hh
+  io_utils.hh
 )
 
 set(LIB

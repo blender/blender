@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -52,12 +52,14 @@ const RecentCache *get_recent_cache_or_null()
 
 static std::optional<std::string> get_recent_searches_file_path()
 {
-  const char *user_config_dir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr);
-  if (!user_config_dir) {
+  const std::optional<std::string> user_config_dir = BKE_appdir_folder_id_create(
+      BLENDER_USER_CONFIG, nullptr);
+  if (!user_config_dir.has_value()) {
     return std::nullopt;
   }
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), user_config_dir, BLENDER_RECENT_SEARCHES_FILE);
+  BLI_path_join(
+      filepath, sizeof(filepath), user_config_dir->c_str(), BLENDER_RECENT_SEARCHES_FILE);
   return std::string(filepath);
 }
 

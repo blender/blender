@@ -12,7 +12,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
@@ -59,14 +59,14 @@ struct DummyVolumeGridData;
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-static char *rna_VolumeRender_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_VolumeRender_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("render");
+  return "render";
 }
 
-static char *rna_VolumeDisplay_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_VolumeDisplay_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("display");
+  return "display";
 }
 
 /* Updates */

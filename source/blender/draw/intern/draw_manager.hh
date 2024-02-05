@@ -17,7 +17,7 @@
 #include "BLI_map.hh"
 #include "BLI_sys_types.h"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "draw_resource.hh"
 #include "draw_view.hh"

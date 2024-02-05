@@ -103,9 +103,14 @@ class VolumeModule {
 
   ~VolumeModule(){};
 
-  bool needs_shadow_tagging()
+  bool needs_shadow_tagging() const
   {
     return enabled_ && use_lights_;
+  }
+
+  bool enabled() const
+  {
+    return enabled_;
   }
 
   int3 grid_size()

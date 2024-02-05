@@ -38,7 +38,7 @@
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
 #include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -49,11 +49,11 @@
 #include "BKE_scene.h"
 #include "BKE_type_conversions.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "DEG_depsgraph.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BIF_glutil.hh"
 
@@ -289,6 +289,9 @@ static bool compare_node_depth(const bNode *a, const bNode *b)
 void tree_draw_order_update(bNodeTree &ntree)
 {
   Array<bNode *> sort_nodes = ntree.all_nodes();
+  std::sort(sort_nodes.begin(), sort_nodes.end(), [](bNode *a, bNode *b) {
+    return a->ui_order < b->ui_order;
+  });
   std::stable_sort(sort_nodes.begin(), sort_nodes.end(), compare_node_depth);
   for (const int i : sort_nodes.index_range()) {
     sort_nodes[i]->ui_order = i;
@@ -324,8 +327,8 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
   Array<uiBlock *> blocks(nodes.size());
   /* Add node uiBlocks in drawing order - prevents events going to overlapping nodes. */
   for (const int i : nodes.index_range()) {
-    const std::string block_name = "node_" + std::string(nodes[i]->name);
-    blocks[i] = UI_block_begin(&C, CTX_wm_region(&C), block_name.c_str(), UI_EMBOSS);
+    std::string block_name = "node_" + std::string(nodes[i]->name);
+    blocks[i] = UI_block_begin(&C, CTX_wm_region(&C), std::move(block_name), UI_EMBOSS);
     /* This cancels events for background nodes. */
     UI_block_flag_enable(blocks[i], UI_BLOCK_CLIP_EVENTS);
   }
@@ -354,7 +357,6 @@ float2 node_from_view(const bNode &node, const float2 &co)
 {
   const float2 node_location = co / UI_SCALE_FAC;
   return bke::nodeFromView(&node, node_location);
-  ;
 }
 
 static bool is_node_panels_supported(const bNode &node)
@@ -995,7 +997,7 @@ static void node_update_hidden(bNode &node, uiBlock &block)
   }
 
   float hiddenrad = HIDDEN_RAD;
-  float tot = MAX2(totin, totout);
+  float tot = std::max(totin, totout);
   if (tot > 4) {
     hiddenrad += 5.0f * float(tot - 4);
   }
@@ -1547,9 +1549,9 @@ static bool node_socket_has_tooltip(const bNodeTree &ntree, const bNodeSocket &s
   return false;
 }
 
-static char *node_socket_get_tooltip(const SpaceNode *snode,
-                                     const bNodeTree &ntree,
-                                     const bNodeSocket &socket)
+static std::string node_socket_get_tooltip(const SpaceNode *snode,
+                                           const bNodeTree &ntree,
+                                           const bNodeSocket &socket)
 {
   TreeDrawContext tree_draw_ctx;
   if (snode != nullptr) {
@@ -1598,7 +1600,7 @@ static char *node_socket_get_tooltip(const SpaceNode *snode,
     output << bke::nodeSocketLabel(&socket);
   }
 
-  return BLI_strdup(output.str().c_str());
+  return output.str();
 }
 
 static void node_socket_add_tooltip_in_node_editor(const bNodeTree &ntree,
@@ -2298,7 +2300,7 @@ struct NodeErrorsTooltipData {
   Span<geo_log::NodeWarning> warnings;
 };
 
-static char *node_errors_tooltip_fn(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string node_errors_tooltip_fn(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
   NodeErrorsTooltipData &data = *(NodeErrorsTooltipData *)argN;
 
@@ -2315,7 +2317,7 @@ static char *node_errors_tooltip_fn(bContext * /*C*/, void *argN, const char * /
   /* Let the tooltip system automatically add the last period. */
   complete_string += data.warnings.last().message;
 
-  return BLI_strdupn(complete_string.c_str(), complete_string.size());
+  return complete_string;
 }
 
 #define NODE_HEADER_ICON_SIZE (0.8f * U.widget_unit)
@@ -2497,7 +2499,7 @@ struct NamedAttributeTooltipArg {
   Map<StringRefNull, geo_log::NamedAttributeUsage> usage_by_attribute;
 };
 
-static char *named_attribute_tooltip(bContext * /*C*/, void *argN, const char * /*tip*/)
+static std::string named_attribute_tooltip(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
   NamedAttributeTooltipArg &arg = *static_cast<NamedAttributeTooltipArg *>(argN);
 
@@ -2522,7 +2524,7 @@ static char *named_attribute_tooltip(bContext * /*C*/, void *argN, const char * 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull name = attribute.name;
     const geo_log::NamedAttributeUsage usage = attribute.usage;
-    ss << fmt::format(TIP_("  \u2022 \"{}\": "), std::string_view(name));
+    ss << fmt::format(TIP_("  \u2022 \"{}\": "), name);
     Vector<std::string> usages;
     if ((usage & geo_log::NamedAttributeUsage::Read) != geo_log::NamedAttributeUsage::None) {
       usages.append(TIP_("read"));
@@ -2544,7 +2546,7 @@ static char *named_attribute_tooltip(bContext * /*C*/, void *argN, const char * 
   ss << "\n";
   ss << TIP_(
       "Attributes with these names used within the group may conflict with existing attributes");
-  return BLI_strdup(ss.str().c_str());
+  return ss.str();
 }
 
 static NodeExtraInfoRow row_from_used_named_attribute(

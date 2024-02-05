@@ -261,15 +261,25 @@ PointCloud *reorder_points(const PointCloud &src_pointcloud,
   return dst_pointcloud;
 }
 
+bke::CurvesGeometry reorder_curves_geometry(
+    const bke::CurvesGeometry &src_curves,
+    Span<int> old_by_new_map,
+    const bke::AnonymousAttributePropagationInfo &propagation_info)
+{
+  bke::CurvesGeometry dst_curves = bke::CurvesGeometry(src_curves);
+  clean_unused_attributes(propagation_info, dst_curves.attributes_for_write());
+  reorder_curves_exec(src_curves, old_by_new_map, dst_curves);
+  return dst_curves;
+}
+
 Curves *reorder_curves(const Curves &src_curves,
                        Span<int> old_by_new_map,
                        const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::CurvesGeometry src_curve_geometry = src_curves.geometry.wrap();
   Curves *dst_curves = BKE_curves_copy_for_eval(&src_curves);
-  bke::CurvesGeometry &dst_curve_geometry = dst_curves->geometry.wrap();
-  clean_unused_attributes(propagation_info, dst_curve_geometry.attributes_for_write());
-  reorder_curves_exec(src_curve_geometry, old_by_new_map, dst_curve_geometry);
+  dst_curves->geometry.wrap() = reorder_curves_geometry(
+      src_curve_geometry, old_by_new_map, propagation_info);
   return dst_curves;
 }
 

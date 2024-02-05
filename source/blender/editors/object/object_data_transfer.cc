@@ -19,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_mesh_runtime.hh"
@@ -476,7 +476,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
   }
 
   if (reverse_transfer) {
-    SWAP(int, layers_src, layers_dst);
+    std::swap(layers_src, layers_dst);
   }
 
   if (fromto_idx != DT_MULTILAYER_INDEX_INVALID) {
@@ -490,7 +490,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
     Object *ob_dst = static_cast<Object *>(ctx_ob_dst->ptr.data);
 
     if (reverse_transfer) {
-      SWAP(Object *, ob_src, ob_dst);
+      std::swap(ob_src, ob_dst);
     }
 
     if (data_transfer_exec_is_object_valid(op, ob_src, ob_dst, reverse_transfer)) {
@@ -529,7 +529,7 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
     }
 
     if (reverse_transfer) {
-      SWAP(Object *, ob_src, ob_dst);
+      std::swap(ob_src, ob_dst);
     }
   }
 

@@ -15,7 +15,7 @@
 #include "DNA_ID.h"
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
 #include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
@@ -197,7 +197,7 @@ typedef struct bPoseChannel_BBoneSegmentBoundary {
 } bPoseChannel_BBoneSegmentBoundary;
 
 typedef struct bPoseChannel_Runtime {
-  SessionUUID session_uuid;
+  SessionUID session_uid;
 
   /* Cached dual quaternion for deformation. */
   struct DualQuat deform_dual_quat;

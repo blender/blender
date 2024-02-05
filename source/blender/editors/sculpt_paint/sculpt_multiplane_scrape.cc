@@ -61,7 +61,8 @@ static void calc_multiplane_scrape_surface_task(Object *ob,
   test_radius *= brush->normal_radius_factor;
   test.radius_squared = test_radius * test_radius;
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, ss->cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -120,7 +121,8 @@ static void do_multiplane_scrape_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, ss->cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
 

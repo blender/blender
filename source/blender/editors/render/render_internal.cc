@@ -17,10 +17,9 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
 
 #include "BLT_translation.h"
 
@@ -34,7 +33,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -60,8 +59,8 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -461,7 +460,7 @@ static void make_renderinfo_string(const RenderStats *rs,
     info_time = info_buffers.time_elapsed;
     BLI_timecode_string_from_time_simple(info_buffers.time_elapsed,
                                          sizeof(info_buffers.time_elapsed),
-                                         PIL_check_seconds_timer() - rs->starttime);
+                                         BLI_check_seconds_timer() - rs->starttime);
   }
 
   ret_array[i++] = RPT_("Time:");
@@ -1185,7 +1184,7 @@ void RENDER_OT_render(wmOperatorType *ot)
       "write_still",
       false,
       "Write Image",
-      "Save rendered the image to the output path (used only when animation is disabled)");
+      "Save the rendered image to the output path (used only when animation is disabled)");
   prop = RNA_def_boolean(ot->srna,
                          "use_viewport",
                          false,

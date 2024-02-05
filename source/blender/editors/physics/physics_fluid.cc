@@ -19,6 +19,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_path_util.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -35,7 +36,6 @@
 
 #include "ED_object.hh"
 #include "ED_screen.hh"
-#include "PIL_time.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -338,7 +338,7 @@ static void fluid_bake_endjob(void *customdata)
   if (job->success) {
     /* Show bake info. */
     WM_reportf(
-        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
+        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, BLI_check_seconds_timer() - job->start);
   }
   else {
     if (fds->error[0] != '\0') {
@@ -361,7 +361,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   job->stop = &worker_status->stop;
   job->do_update = &worker_status->do_update;
   job->progress = &worker_status->progress;
-  job->start = PIL_check_seconds_timer();
+  job->start = BLI_check_seconds_timer();
   job->success = 1;
 
   G.is_break = false;
@@ -446,7 +446,7 @@ static void fluid_free_endjob(void *customdata)
   if (job->success) {
     /* Show free job info */
     WM_reportf(
-        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, PIL_check_seconds_timer() - job->start);
+        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, BLI_check_seconds_timer() - job->start);
   }
   else {
     if (fds->error[0] != '\0') {
@@ -466,7 +466,7 @@ static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   job->stop = &worker_status->stop;
   job->do_update = &worker_status->do_update;
   job->progress = &worker_status->progress;
-  job->start = PIL_check_seconds_timer();
+  job->start = BLI_check_seconds_timer();
   job->success = 1;
 
   G.is_break = false;

@@ -43,14 +43,14 @@
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
-#include "BKE_mball.h"
-#include "BKE_mball_tessellate.h"
+#include "BKE_mball.hh"
+#include "BKE_mball_tessellate.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
@@ -59,6 +59,8 @@
 #include "DEG_depsgraph.hh"
 
 #include "BLO_read_write.hh"
+
+using blender::Span;
 
 static void metaball_init_data(ID *id)
 {
@@ -280,10 +282,10 @@ bool BKE_mball_is_any_selected(const MetaBall *mb)
   return false;
 }
 
-bool BKE_mball_is_any_selected_multi(Base **bases, int bases_len)
+bool BKE_mball_is_any_selected_multi(const Span<Base *> bases)
 {
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Object *obedit = bases[base_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     MetaBall *mb = (MetaBall *)obedit->data;
     if (BKE_mball_is_any_selected(mb)) {
       return true;
@@ -540,11 +542,11 @@ int BKE_mball_select_count(const MetaBall *mb)
   return sel;
 }
 
-int BKE_mball_select_count_multi(Base **bases, int bases_len)
+int BKE_mball_select_count_multi(const Span<Base *> bases)
 {
   int sel = 0;
-  for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
-    const Object *obedit = bases[ob_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     const MetaBall *mb = (MetaBall *)obedit->data;
     sel += BKE_mball_select_count(mb);
   }
@@ -563,11 +565,11 @@ bool BKE_mball_select_all(MetaBall *mb)
   return changed;
 }
 
-bool BKE_mball_select_all_multi_ex(Base **bases, int bases_len)
+bool BKE_mball_select_all_multi_ex(const Span<Base *> bases)
 {
   bool changed_multi = false;
-  for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
-    Object *obedit = bases[ob_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     MetaBall *mb = static_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_select_all(mb);
   }
@@ -586,11 +588,11 @@ bool BKE_mball_deselect_all(MetaBall *mb)
   return changed;
 }
 
-bool BKE_mball_deselect_all_multi_ex(Base **bases, int bases_len)
+bool BKE_mball_deselect_all_multi_ex(const Span<Base *> bases)
 {
   bool changed_multi = false;
-  for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
-    Object *obedit = bases[ob_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     MetaBall *mb = static_cast<MetaBall *>(obedit->data);
     changed_multi |= BKE_mball_deselect_all(mb);
     DEG_id_tag_update(&mb->id, ID_RECALC_SELECT);
@@ -608,11 +610,11 @@ bool BKE_mball_select_swap(MetaBall *mb)
   return changed;
 }
 
-bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
+bool BKE_mball_select_swap_multi_ex(const Span<Base *> bases)
 {
   bool changed_multi = false;
-  for (uint ob_index = 0; ob_index < bases_len; ob_index++) {
-    Object *obedit = bases[ob_index]->object;
+  for (Base *base : bases) {
+    Object *obedit = base->object;
     MetaBall *mb = (MetaBall *)obedit->data;
     changed_multi |= BKE_mball_select_swap(mb);
   }

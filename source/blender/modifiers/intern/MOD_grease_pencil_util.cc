@@ -18,7 +18,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
 
 #include "BLO_read_write.hh"
@@ -37,6 +37,7 @@
 namespace blender::modifier::greasepencil {
 
 using bke::greasepencil::Drawing;
+using bke::greasepencil::FramesMapKey;
 using bke::greasepencil::Layer;
 
 void init_influence_data(GreasePencilModifierInfluenceData *influence_data,
@@ -172,7 +173,7 @@ void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropDecorate(row, false);
   uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, "Custom Curve", ICON_NONE);
   if (use_custom_curve) {
-    uiTemplateCurveMapping(row, ptr, "custom_curve", 0, false, false, false, false);
+    uiTemplateCurveMapping(layout, ptr, "custom_curve", 0, false, false, false, false);
   }
 }
 
@@ -308,14 +309,26 @@ IndexMask get_filtered_stroke_mask(const Object *ob,
       memory);
 }
 
+VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
+                                           const GreasePencilModifierInfluenceData &influence_data)
+{
+  if (influence_data.vertex_group_name[0] == '\0') {
+    /* If vertex group is not set, use full weight for all vertices. */
+    return VArray<float>::ForSingle(1.0f, curves.point_num);
+  }
+  /* Vertex group weights, with zero weight as fallback. */
+  return *curves.attributes().lookup_or_default<float>(
+      influence_data.vertex_group_name, bke::AttrDomain::Point, 0.0f);
+}
+
 Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease_pencil,
                                                             const IndexMask &layer_mask,
-                                                            int frame)
+                                                            const int frame)
 {
   /* Set of unique drawing indices. */
   Set<int> drawing_indices;
   for (const int64_t i : layer_mask.index_range()) {
-    Layer *layer = grease_pencil.layers_for_write()[layer_mask[i]];
+    const Layer *layer = grease_pencil.layers()[layer_mask[i]];
     const int drawing_index = layer->drawing_index_at(frame);
     if (drawing_index >= 0) {
       drawing_indices.add(drawing_index);
@@ -332,6 +345,57 @@ Vector<bke::greasepencil::Drawing *> get_drawings_for_write(GreasePencil &grease
     }
   }
   return drawings;
+}
+
+Vector<LayerDrawingInfo> get_drawing_infos_by_layer(GreasePencil &grease_pencil,
+                                                    const IndexMask &layer_mask,
+                                                    const int frame)
+{
+  Set<int> drawing_indices;
+  Vector<LayerDrawingInfo> drawing_infos;
+  for (const int64_t i : layer_mask.index_range()) {
+    const int layer_index = layer_mask[i];
+    const Layer *layer = grease_pencil.layers()[layer_index];
+    const int drawing_index = layer->drawing_index_at(frame);
+    if (drawing_index < 0) {
+      continue;
+    }
+
+    if (!drawing_indices.contains(drawing_index)) {
+      drawing_indices.add(drawing_index);
+      GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(drawing_index);
+      if (drawing_base->type == GP_DRAWING) {
+        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+        drawing_infos.append({&drawing->wrap(), layer_index});
+      }
+    }
+  }
+  return drawing_infos;
+}
+
+Vector<FrameDrawingInfo> get_drawing_infos_by_frame(GreasePencil &grease_pencil,
+                                                    const IndexMask &layer_mask,
+                                                    const int frame)
+{
+  Set<int> drawing_indices;
+  Vector<FrameDrawingInfo> drawing_infos;
+  for (const int64_t i : layer_mask.index_range()) {
+    const Layer *layer = grease_pencil.layers()[layer_mask[i]];
+    const std::optional<FramesMapKey> start_frame = layer->frame_key_at(frame);
+    if (!start_frame) {
+      continue;
+    }
+    const GreasePencilFrame &frame = layer->frames().lookup(*start_frame);
+    if (!drawing_indices.contains(frame.drawing_index)) {
+      drawing_indices.add(frame.drawing_index);
+      GreasePencilDrawingBase *drawing_base = grease_pencil.drawing(frame.drawing_index);
+      if (drawing_base->type == GP_DRAWING) {
+        GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
+        drawing_infos.append({&drawing->wrap(), *start_frame});
+      }
+    }
+  }
+  return drawing_infos;
 }
 
 }  // namespace blender::modifier::greasepencil

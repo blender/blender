@@ -20,11 +20,10 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -38,7 +37,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -369,7 +368,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   gpencil_primitive_allocate_memory(tgpi);
 
   /* Random generator, only init once. */
-  uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
   tgpi->rng = BLI_rng_new(rng_seed);
 
   DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);

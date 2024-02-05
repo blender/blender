@@ -21,7 +21,7 @@
 #include "BKE_volume.hh"
 #include "BKE_volume_render.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "draw_common.h"
 #include "draw_manager.h"

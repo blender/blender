@@ -8,7 +8,7 @@
 
 #include "BKE_global.h"
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "BLI_string.h"
 #include <algorithm>
@@ -316,6 +316,8 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     options.fastMathEnabled = YES;
 
     if (@available(macOS 11.00, *)) {
+      options.preserveInvariance = YES;
+
       /* Raster order groups for tile data in struct require Metal 2.3.
        * Retaining Metal 2.2. for old shaders to maintain backwards
        * compatibility for existing features. */

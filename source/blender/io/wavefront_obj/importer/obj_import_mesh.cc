@@ -14,7 +14,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node_tree_update.hh"
@@ -48,17 +48,16 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   }
   fixup_invalid_faces();
 
-  /* Total explicitly imported edges, not the ones belonging the polygons to be created. */
-  const int64_t tot_edges{mesh_geometry_.edges_.size()};
-  const int64_t tot_face_elems{mesh_geometry_.face_elements_.size()};
-  const int64_t tot_loops{mesh_geometry_.total_loops_};
-
-  Mesh *mesh = BKE_mesh_new_nomain(tot_verts_object, tot_edges, tot_face_elems, tot_loops);
+  /* Includes explicitly imported edges, not the ones belonging the faces to be created. */
+  Mesh *mesh = BKE_mesh_new_nomain(tot_verts_object,
+                                   mesh_geometry_.edges_.size(),
+                                   mesh_geometry_.face_elements_.size(),
+                                   mesh_geometry_.total_corner_);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name.c_str());
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
   create_vertices(mesh);
-  create_faces_loops(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
+  create_faces(mesh, import_params.import_vertex_groups && !import_params.use_split_groups);
   create_edges(mesh);
   create_uv_verts(mesh);
   create_normals(mesh);
@@ -85,11 +84,11 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
 void MeshFromGeometry::fixup_invalid_faces()
 {
   for (int64_t face_idx = 0; face_idx < mesh_geometry_.face_elements_.size(); ++face_idx) {
-    const PolyElem &curr_face = mesh_geometry_.face_elements_[face_idx];
+    const FaceElem &curr_face = mesh_geometry_.face_elements_[face_idx];
 
     if (curr_face.corner_count_ < 3) {
       /* Skip and remove faces that have fewer than 3 corners. */
-      mesh_geometry_.total_loops_ -= curr_face.corner_count_;
+      mesh_geometry_.total_corner_ -= curr_face.corner_count_;
       mesh_geometry_.face_elements_.remove_and_reorder(face_idx);
       --face_idx;
       continue;
@@ -122,7 +121,7 @@ void MeshFromGeometry::fixup_invalid_faces()
     face_normals.reserve(curr_face.corner_count_);
     for (int i = 0; i < curr_face.corner_count_; ++i) {
       int corner_idx = curr_face.start_index_ + i;
-      const PolyCorner &corner = mesh_geometry_.face_corners_[corner_idx];
+      const FaceCorner &corner = mesh_geometry_.face_corners_[corner_idx];
       face_verts.append(corner.vert_index);
       face_normals.append(corner.vertex_normal_index);
       face_uvs.append(corner.uv_vert_index);
@@ -132,18 +131,18 @@ void MeshFromGeometry::fixup_invalid_faces()
     bool face_shaded_smooth = curr_face.shaded_smooth;
 
     /* Remove the invalid face. */
-    mesh_geometry_.total_loops_ -= curr_face.corner_count_;
+    mesh_geometry_.total_corner_ -= curr_face.corner_count_;
     mesh_geometry_.face_elements_.remove_and_reorder(face_idx);
     --face_idx;
 
-    Vector<Vector<int>> new_faces = fixup_invalid_polygon(global_vertices_.vertices, face_verts);
+    Vector<Vector<int>> new_faces = fixup_invalid_face(global_vertices_.vertices, face_verts);
 
     /* Create the newly formed faces. */
     for (Span<int> face : new_faces) {
       if (face.size() < 3) {
         continue;
       }
-      PolyElem new_face{};
+      FaceElem new_face{};
       new_face.vertex_group_index = face_vertex_group;
       new_face.material_index = face_material;
       new_face.shaded_smooth = face_shaded_smooth;
@@ -154,7 +153,7 @@ void MeshFromGeometry::fixup_invalid_faces()
         mesh_geometry_.face_corners_.append({face_verts[idx], face_uvs[idx], face_normals[idx]});
       }
       mesh_geometry_.face_elements_.append(new_face);
-      mesh_geometry_.total_loops_ += face.size();
+      mesh_geometry_.total_corner_ += face.size();
     }
   }
 }
@@ -180,7 +179,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
   }
 }
 
-void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
+void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
 {
   MutableSpan<MDeformVert> dverts;
   const int64_t total_verts = mesh_geometry_.get_vertex_count();
@@ -196,18 +195,17 @@ void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
   bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_face", bke::AttrDomain::Face);
 
-  const int64_t tot_face_elems{mesh->faces_num};
-  int tot_loop_idx = 0;
+  int corner_index = 0;
 
-  for (int face_idx = 0; face_idx < tot_face_elems; ++face_idx) {
-    const PolyElem &curr_face = mesh_geometry_.face_elements_[face_idx];
+  for (int face_idx = 0; face_idx < mesh->faces_num; ++face_idx) {
+    const FaceElem &curr_face = mesh_geometry_.face_elements_[face_idx];
     if (curr_face.corner_count_ < 3) {
       /* Don't add single vertex face, or edges. */
       std::cerr << "Face with less than 3 vertices found, skipping." << std::endl;
       continue;
     }
 
-    face_offsets[face_idx] = tot_loop_idx;
+    face_offsets[face_idx] = corner_index;
     sharp_faces.span[face_idx] = !curr_face.shaded_smooth;
     material_indices.span[face_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
@@ -217,8 +215,8 @@ void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
     }
 
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
-      const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
-      corner_verts[tot_loop_idx] = mesh_geometry_.global_to_local_vertices_.lookup_default(
+      const FaceCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
+      corner_verts[corner_index] = mesh_geometry_.global_to_local_vertices_.lookup_default(
           curr_corner.vert_index, 0);
 
       /* Setup vertex group data, if needed. */
@@ -226,13 +224,13 @@ void MeshFromGeometry::create_faces_loops(Mesh *mesh, bool use_vertex_groups)
         const int group_index = curr_face.vertex_group_index;
         /* NOTE: face might not belong to any group. */
         if (group_index >= 0 || true) {
-          MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[corner_verts[tot_loop_idx]],
+          MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[corner_verts[corner_index]],
                                                        group_index);
           dw->weight = 1.0f;
         }
       }
 
-      tot_loop_idx++;
+      corner_index++;
     }
   }
 
@@ -267,7 +265,7 @@ void MeshFromGeometry::create_edges(Mesh *mesh)
   }
 
   /* Set argument `update` to true so that existing, explicitly imported edges can be merged
-   * with the new ones created from polygons. */
+   * with the new ones created from faces. */
   bke::mesh_calc_edges(*mesh, true, false);
 }
 
@@ -281,22 +279,22 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
   bke::SpanAttributeWriter<float2> uv_map = attributes.lookup_or_add_for_write_only_span<float2>(
       "UVMap", bke::AttrDomain::Corner);
 
-  int tot_loop_idx = 0;
+  int corner_index = 0;
   bool added_uv = false;
 
-  for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
+  for (const FaceElem &curr_face : mesh_geometry_.face_elements_) {
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
-      const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
+      const FaceCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       if (curr_corner.uv_vert_index >= 0 &&
           curr_corner.uv_vert_index < global_vertices_.uv_vertices.size())
       {
-        uv_map.span[tot_loop_idx] = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
+        uv_map.span[corner_index] = global_vertices_.uv_vertices[curr_corner.uv_vert_index];
         added_uv = true;
       }
       else {
-        uv_map.span[tot_loop_idx] = {0.0f, 0.0f};
+        uv_map.span[corner_index] = {0.0f, 0.0f};
       }
-      tot_loop_idx++;
+      corner_index++;
     }
   }
 
@@ -368,27 +366,25 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
     return;
   }
   /* Custom normals can only be stored on face corners. */
-  if (mesh_geometry_.total_loops_ == 0) {
+  if (mesh_geometry_.total_corner_ == 0) {
     return;
   }
 
-  float(*corner_normals)[3] = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(mesh_geometry_.total_loops_, sizeof(float[3]), __func__));
-  int tot_loop_idx = 0;
-  for (const PolyElem &curr_face : mesh_geometry_.face_elements_) {
+  Array<float3> corner_normals(mesh_geometry_.total_corner_);
+  int corner_index = 0;
+  for (const FaceElem &curr_face : mesh_geometry_.face_elements_) {
     for (int idx = 0; idx < curr_face.corner_count_; ++idx) {
-      const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
+      const FaceCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       int n_index = curr_corner.vertex_normal_index;
       float3 normal(0, 0, 0);
       if (n_index >= 0 && n_index < global_vertices_.vert_normals.size()) {
         normal = global_vertices_.vert_normals[n_index];
       }
-      copy_v3_v3(corner_normals[tot_loop_idx], normal);
-      tot_loop_idx++;
+      corner_normals[corner_index] = normal;
+      corner_index++;
     }
   }
-  BKE_mesh_set_custom_normals(mesh, corner_normals);
-  MEM_freeN(corner_normals);
+  BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(corner_normals.data()));
 }
 
 void MeshFromGeometry::create_colors(Mesh *mesh)

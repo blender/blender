@@ -45,7 +45,7 @@
 #endif
 
 #include "GPU_capabilities.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_uniform_buffer.h"
 
 #include "intern/gpu_codegen.h"
@@ -1803,18 +1803,15 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
   /* Bind all textures needed by the material. */
   LISTBASE_FOREACH (GPUMaterialTexture *, tex, &textures) {
     if (tex->ima) {
-      /* Image */
-      GPUTexture *gputex;
+      const bool use_tile_mapping = tex->tiled_mapping_name[0];
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-      if (tex->tiled_mapping_name[0]) {
-        gputex = BKE_image_get_gpu_tiles(tex->ima, iuser, nullptr);
-        drw_shgroup_material_texture(grp, gputex, tex->sampler_name, tex->sampler_state);
-        gputex = BKE_image_get_gpu_tilemap(tex->ima, iuser, nullptr);
-        drw_shgroup_material_texture(grp, gputex, tex->tiled_mapping_name, tex->sampler_state);
-      }
-      else {
-        gputex = BKE_image_get_gpu_texture(tex->ima, iuser, nullptr);
-        drw_shgroup_material_texture(grp, gputex, tex->sampler_name, tex->sampler_state);
+      ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(
+          tex->ima, iuser, use_tile_mapping);
+
+      drw_shgroup_material_texture(grp, gputex.texture, tex->sampler_name, tex->sampler_state);
+      if (gputex.tile_mapping) {
+        drw_shgroup_material_texture(
+            grp, gputex.tile_mapping, tex->tiled_mapping_name, tex->sampler_state);
       }
     }
     else if (tex->colorband) {
