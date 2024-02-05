@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_reader_geom.h"
+#include "usd_reader_geom.hh"
 
 #include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"

@@ -10,8 +10,8 @@ struct Main;
 #include "BLI_set.hh"
 
 #include "usd.h"
-#include "usd_hash_types.h"
-#include "usd_reader_prim.h"
+#include "usd_hash_types.hh"
+#include "usd_reader_prim.hh"
 
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/imageable.h>

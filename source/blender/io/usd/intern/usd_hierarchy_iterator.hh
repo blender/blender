@@ -5,8 +5,8 @@
 
 #include "IO_abstract_hierarchy_iterator.h"
 #include "usd.h"
-#include "usd_exporter_context.h"
-#include "usd_skel_convert.h"
+#include "usd_exporter_context.hh"
+#include "usd_skel_convert.hh"
 
 #include <string>
 

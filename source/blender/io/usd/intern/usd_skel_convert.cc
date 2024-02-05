@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_skel_convert.h"
+#include "usd_skel_convert.hh"
 
 #include "usd.h"
-#include "usd_armature_utils.h"
-#include "usd_blend_shape_utils.h"
-#include "usd_hash_types.h"
+#include "usd_armature_utils.hh"
+#include "usd_blend_shape_utils.hh"
+#include "usd_hash_types.hh"
 
 #include <pxr/usd/sdf/namespaceEdit.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>

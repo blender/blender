@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "usd_reader_xform.h"
+#include "usd_reader_xform.hh"
 
 struct Collection;
 

@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_writer_material.h"
+#include "usd_writer_material.hh"
 
 #include "usd.h"
-#include "usd_exporter_context.h"
-#include "usd_hook.h"
+#include "usd_exporter_context.hh"
+#include "usd_hook.hh"
 
 #include "BKE_image.h"
 #include "BKE_image_format.h"

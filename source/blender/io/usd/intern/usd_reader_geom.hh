@@ -4,7 +4,7 @@
 #pragma once
 
 #include "usd.h"
-#include "usd_reader_xform.h"
+#include "usd_reader_xform.hh"
 
 struct Mesh;
 

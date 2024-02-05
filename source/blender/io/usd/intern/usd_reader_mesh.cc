@@ -5,10 +5,10 @@
  * Modifications Copyright 2021 Tangent Animation and
  * NVIDIA Corporation. All rights reserved. */
 
-#include "usd_reader_mesh.h"
-#include "usd_hash_types.h"
-#include "usd_reader_material.h"
-#include "usd_skel_convert.h"
+#include "usd_reader_mesh.hh"
+#include "usd_hash_types.hh"
+#include "usd_reader_material.hh"
+#include "usd_skel_convert.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"

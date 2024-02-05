@@ -1,28 +1,20 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "usd_writer_abstract.h"
-
-#include "BLI_map.hh"
-
-struct Bone;
-struct Object;
+#include "usd_writer_abstract.hh"
 
 namespace blender::io::usd {
 
-class USDArmatureWriter : public USDAbstractWriter {
+/* Writer for writing hair particle data as USD curves. */
+class USDHairWriter : public USDAbstractWriter {
  public:
-  USDArmatureWriter(const USDExporterContext &ctx);
+  USDHairWriter(const USDExporterContext &ctx);
 
  protected:
   virtual void do_write(HierarchyContext &context) override;
-
   virtual bool check_is_animated(const HierarchyContext &context) const override;
-
- private:
-  Map<StringRef, const Bone *> deform_map_;
 };
 
 }  // namespace blender::io::usd

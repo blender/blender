@@ -7,8 +7,8 @@
 #include "IO_subdiv_disabler.hh"
 #include "usd.h"
 #include "usd.hh"
-#include "usd_hierarchy_iterator.h"
-#include "usd_hook.h"
+#include "usd_hierarchy_iterator.hh"
+#include "usd_hook.hh"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>

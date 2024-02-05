@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_reader_light.h"
+#include "usd_reader_light.hh"
 
 #include "BLI_math_rotation.h"
 

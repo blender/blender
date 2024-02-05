@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "usd_writer_abstract.h"
+#include "usd_writer_abstract.hh"
 
 namespace blender::io::usd {
 

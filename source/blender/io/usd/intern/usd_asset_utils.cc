@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_asset_utils.h"
+#include "usd_asset_utils.hh"
 
 #include <pxr/usd/ar/asset.h>
 #include <pxr/usd/ar/packageUtils.h>

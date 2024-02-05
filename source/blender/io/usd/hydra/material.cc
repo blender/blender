@@ -33,8 +33,8 @@
 #include "hydra_scene_delegate.h"
 #include "image.h"
 
-#include "intern/usd_exporter_context.h"
-#include "intern/usd_writer_material.h"
+#include "intern/usd_exporter_context.hh"
+#include "intern/usd_writer_material.hh"
 
 #ifdef WITH_MATERIALX
 #  include "shader/materialx/node_parser.h"

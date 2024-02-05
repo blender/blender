@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_reader_material.h"
+#include "usd_reader_material.hh"
 
-#include "usd_asset_utils.h"
+#include "usd_asset_utils.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_image.h"

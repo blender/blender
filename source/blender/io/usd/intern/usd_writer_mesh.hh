@@ -4,7 +4,7 @@
 #pragma once
 
 #include "DNA_modifier_types.h"
-#include "usd_writer_abstract.h"
+#include "usd_writer_abstract.hh"
 
 #include "BLI_map.hh"
 

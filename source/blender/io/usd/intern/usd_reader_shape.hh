@@ -5,8 +5,8 @@
 #pragma once
 
 #include "usd.h"
-#include "usd_reader_geom.h"
-#include "usd_reader_xform.h"
+#include "usd_reader_geom.hh"
+#include "usd_reader_xform.hh"
 #include <pxr/usd/usdGeom/gprim.h>
 
 struct Mesh;

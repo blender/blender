@@ -5,7 +5,7 @@
  *
  * Adapted from the Blender Alembic importer implementation. */
 
-#include "usd_reader_prim.h"
+#include "usd_reader_prim.hh"
 
 #include "BLI_utildefines.h"
 

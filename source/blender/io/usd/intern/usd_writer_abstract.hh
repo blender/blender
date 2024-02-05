@@ -4,7 +4,7 @@
 #pragma once
 
 #include "IO_abstract_hierarchy_iterator.h"
-#include "usd_exporter_context.h"
+#include "usd_exporter_context.hh"
 
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/stage.h>

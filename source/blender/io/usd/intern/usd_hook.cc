@@ -4,7 +4,7 @@
 
 #include "usd.h"
 
-#include "usd_hook.h"
+#include "usd_hook.hh"
 
 #include <boost/python/call_method.hpp>
 #include <boost/python/class.hpp>

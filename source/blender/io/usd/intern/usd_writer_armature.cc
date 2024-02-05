@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_writer_armature.h"
-#include "usd_armature_utils.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_writer_transform.h"
+#include "usd_writer_armature.hh"
+#include "usd_armature_utils.hh"
+#include "usd_hierarchy_iterator.hh"
+#include "usd_writer_transform.hh"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
