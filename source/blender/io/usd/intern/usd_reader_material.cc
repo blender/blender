@@ -37,6 +37,8 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/shader.h>
 
+#include <iostream>
+
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
 

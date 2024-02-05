@@ -10,7 +10,7 @@
 #include "usd_hook.h"
 #include "usd_umm.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curve.hh"
@@ -44,13 +44,11 @@
 #include <pxr/pxr.h>
 #include <pxr/usd/usdGeom/scope.h>
 
-<<<<<<< HEAD
 #include <cctype>
 #include <iostream>
-=======
+
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
->>>>>>> main
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -2520,11 +2518,8 @@ static void copy_tiled_textures(Image *ima,
       continue;
     }
 
-<<<<<<< HEAD
-=======
     CLOG_INFO(&LOG, 2, "Copying texture tile from '%s' to '%s'", src_tile_path, dest_tile_path);
 
->>>>>>> main
     /* Copy the file. */
     if (!copy_asset(src_tile_path, dest_tile_path, tex_name_collision_mode, reports)) {
       BKE_reportf(reports,
@@ -2562,11 +2557,8 @@ static void copy_single_file(Image *ima,
     return;
   }
 
-<<<<<<< HEAD
-=======
   CLOG_INFO(&LOG, 2, "Copying texture from '%s' to '%s'", source_path, dest_path);
 
->>>>>>> main
   /* Copy the file. */
   if (!copy_asset(source_path,
                   dest_path,

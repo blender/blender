@@ -132,11 +132,7 @@ class USDStageReader {
   void create_proto_collections(Main *bmain, Collection *parent_collection);
 
  private:
-<<<<<<< HEAD
-  USDPrimReader *collect_readers(Main *bmain,
-                                 const pxr::UsdPrim &prim,
-                                 pxr::UsdGeomXformCache *xf_cache,
-=======
+
   /**
    * Create readers for the subtree rooted at the given prim and append the
    * new readers in r_readers.
@@ -150,6 +146,7 @@ class USDStageReader {
    *                            skipping abstract and over prims.  This should
    *                            be set to false when converting point instancer
    *                            prototype prims, which can be declared as overs.
+   * \param xf_cache: Optional cache for transform computations.
    * \param r_readers: Readers created for the prims in the converted subtree.
    * \return: A pointer to the reader created for the given prim or null if
    *          the prim cannot be converted.
@@ -157,7 +154,7 @@ class USDStageReader {
   USDPrimReader *collect_readers(const pxr::UsdPrim &prim,
                                  const UsdPathSet &pruned_prims,
                                  bool defined_prims_only,
->>>>>>> main
+                                 pxr::UsdGeomXformCache *xf_cache,
                                  blender::Vector<USDPrimReader *> &r_readers);
 
   /**
@@ -201,7 +198,8 @@ class USDStageReader {
    * create readers for the prims in the subtree rooted at the prototype
    * prim.
    */
-  void create_point_instancer_proto_readers(const UsdPathSet &proto_paths);
+  void create_point_instancer_proto_readers(const UsdPathSet &proto_paths,
+                                            pxr::UsdGeomXformCache *xf_cache);
 };
 
 }  // namespace blender::io::usd

@@ -65,14 +65,12 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-<<<<<<< HEAD
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-struct Object;
-=======
 #include <fmt/format.h>
->>>>>>> main
+
+struct Object;
 
 static CLG_LogRef LOG = {"io.usd"};
 
@@ -181,15 +179,6 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   if (params_.support_scene_instancing && prim.IsInstance()) {
     return new USDInstanceReader(prim, params_, settings_);
   }
-<<<<<<< HEAD
-=======
-  if (params_.import_shapes && is_primitive_prim(prim)) {
-    return new USDShapeReader(prim, params_, settings_);
-  }
-  if (prim.IsA<pxr::UsdGeomPointInstancer>()) {
-    return new USDPointInstancerReader(prim, params_, settings_);
-  }
->>>>>>> main
   if (params_.import_cameras && prim.IsA<pxr::UsdGeomCamera>()) {
     return new USDCameraReader(prim, params_, settings_);
   }
@@ -222,6 +211,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
   }
   if (params_.import_shapes && is_primitive_prim(prim)) {
     return new USDShapeReader(prim, params_, settings_);
+  }
+  if (prim.IsA<pxr::UsdGeomPointInstancer>()) {
+    return new USDPointInstancerReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomImageable>()) {
     return new USDXformReader(prim, params_, settings_);
@@ -386,15 +378,10 @@ bool USDStageReader::merge_with_parent(USDPrimReader *reader) const
   return true;
 }
 
-<<<<<<< HEAD
-USDPrimReader *USDStageReader::collect_readers(Main *bmain,
-                                               const pxr::UsdPrim &prim,
-                                               pxr::UsdGeomXformCache *xf_cache,
-=======
 USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
                                                const UsdPathSet &pruned_prims,
                                                const bool defined_prims_only,
->>>>>>> main
+                                               pxr::UsdGeomXformCache *xf_cache,
                                                blender::Vector<USDPrimReader *> &r_readers)
 {
   if (prim.IsA<pxr::UsdGeomImageable>()) {
@@ -409,24 +396,14 @@ USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
     }
   }
 
-<<<<<<< HEAD
   if (prim.IsA<pxr::UsdLuxDomeLight>()) {
     dome_lights_.push_back(pxr::UsdLuxDomeLight(prim));
   }
-=======
-  pxr::Usd_PrimFlagsConjunction filter_flags = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
-                                               !pxr::UsdPrimIsAbstract;
-  if (defined_prims_only) {
-    filter_flags &= pxr::UsdPrimIsDefined;
-  }
-
-  pxr::Usd_PrimFlagsPredicate filter_predicate(filter_flags);
->>>>>>> main
 
   pxr::Usd_PrimFlagsConjunction filter_flags = pxr::UsdPrimIsActive && pxr::UsdPrimIsLoaded &&
                                                !pxr::UsdPrimIsAbstract;
 
-  if (params_.import_defined_only) {
+  if (defined_prims_only && params_.import_defined_only) {
     filter_flags &= pxr::UsdPrimIsDefined;
   }
 
@@ -437,10 +414,6 @@ USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
 
   blender::Vector<USDPrimReader *> child_readers;
 
-<<<<<<< HEAD
-  for (const auto &childPrim : children) {
-    if (USDPrimReader *child_reader = collect_readers(bmain, childPrim, xf_cache, r_readers)) {
-=======
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_predicate);
 
   for (const auto &child_prim : children) {
@@ -448,9 +421,8 @@ USDPrimReader *USDStageReader::collect_readers(const pxr::UsdPrim &prim,
       continue;
     }
     if (USDPrimReader *child_reader = collect_readers(
-            child_prim, pruned_prims, defined_prims_only, r_readers))
+            child_prim, pruned_prims, defined_prims_only, xf_cache, r_readers))
     {
->>>>>>> main
       child_readers.append(child_reader);
     }
   }
@@ -516,28 +488,21 @@ void USDStageReader::collect_readers()
   }
 
   clear_readers();
-<<<<<<< HEAD
-  clear_proto_readers();
   dome_lights_.clear();
-=======
 
   /* Identify paths to point instancer prototypes, as these will be converted
    * in a separate pass over the stage. */
   UsdPathSet instancer_proto_paths = collect_point_instancer_proto_paths();
->>>>>>> main
 
   /* Iterate through the stage. */
   pxr::UsdPrim root = stage_->GetPseudoRoot();
 
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
 
-<<<<<<< HEAD
   pxr::UsdGeomXformCache xf_cache;
-  collect_readers(bmain, root, &xf_cache, readers_);
-=======
+
   /* Create readers, skipping over prototype prims in this pass. */
-  collect_readers(root, instancer_proto_paths, true, readers_);
->>>>>>> main
+  collect_readers(root, instancer_proto_paths, true, &xf_cache, readers_);
 
   if (params_.support_scene_instancing) {
     /* Collect the scene-graph instance prototypes. */
@@ -545,11 +510,7 @@ void USDStageReader::collect_readers()
 
     for (const pxr::UsdPrim &proto_prim : protos) {
       blender::Vector<USDPrimReader *> proto_readers;
-<<<<<<< HEAD
-      collect_readers(bmain, proto_prim, &xf_cache, proto_readers);
-=======
-      collect_readers(proto_prim, instancer_proto_paths, true, proto_readers);
->>>>>>> main
+      collect_readers(proto_prim, instancer_proto_paths, true, &xf_cache, proto_readers);
       proto_readers_.add(proto_prim.GetPath(), proto_readers);
 
       for (USDPrimReader *reader : proto_readers) {
@@ -560,7 +521,7 @@ void USDStageReader::collect_readers()
   }
 
   if (!instancer_proto_paths.is_empty()) {
-    create_point_instancer_proto_readers(instancer_proto_paths);
+    create_point_instancer_proto_readers(instancer_proto_paths, &xf_cache);
   }
 }
 
@@ -808,7 +769,8 @@ void USDStageReader::create_proto_collections(Main *bmain, Collection *parent_co
   }
 }
 
-void USDStageReader::create_point_instancer_proto_readers(const UsdPathSet &proto_paths)
+void USDStageReader::create_point_instancer_proto_readers(const UsdPathSet &proto_paths,
+                                                          pxr::UsdGeomXformCache *xf_cache)
 {
   if (proto_paths.is_empty()) {
     return;
@@ -826,7 +788,7 @@ void USDStageReader::create_point_instancer_proto_readers(const UsdPathSet &prot
 
     /* Note that point instancer prototypes may be defined as overs, so
      * we must call collect readers with argument defined_prims_only = false. */
-    collect_readers(proto_prim, proto_paths, false /* include undefined prims */, proto_readers);
+    collect_readers(proto_prim, proto_paths, false /* include undefined prims */, xf_cache, proto_readers);
 
     instancer_proto_readers_.add(path, proto_readers);
 

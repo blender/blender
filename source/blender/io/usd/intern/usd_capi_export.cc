@@ -405,7 +405,7 @@ static void process_usdz_textures(const ExportJobData *data, const char *path)
       if (longest > image_size) {
         const int width_adjusted = (float)width * scale;
         const int height_adjusted = (float)height * scale;
-        BKE_image_scale(im, width_adjusted, height_adjusted);
+        BKE_image_scale(im, width_adjusted, height_adjusted, nullptr);
 
         ImageSaveOptions opts;
 

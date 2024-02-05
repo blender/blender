@@ -5,18 +5,14 @@
 #include "IO_types.hh"
 #include "usd.h"
 #include "usd_hierarchy_iterator.h"
-<<<<<<< HEAD
+#include "usd_hook.h"
 
 #include "usd_light_convert.h"
-=======
-#include "usd_hook.h"
->>>>>>> main
 #include "usd_reader_geom.h"
 #include "usd_reader_instance.h"
 #include "usd_reader_prim.h"
 #include "usd_reader_stage.h"
 
-<<<<<<< HEAD
 #include <pxr/base/plug/registry.h>
 
 #include "usd_writer_material.h"
@@ -44,10 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_appdir.h"
-=======
 #include "BKE_appdir.hh"
->>>>>>> main
+
 #include "BKE_blender_version.h"
 #include "BKE_cachefile.h"
 #include "BKE_cdderivedmesh.h"
@@ -556,7 +550,6 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
-
       Object *ob = reader->object();
       if (!ob) {
         continue;

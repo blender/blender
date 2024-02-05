@@ -104,13 +104,13 @@ set(SRC
   intern/usd_reader_material.cc
   intern/usd_reader_mesh.cc
   intern/usd_reader_nurbs.cc
+  intern/usd_reader_pointinstancer.cc
   intern/usd_reader_prim.cc
   intern/usd_reader_shape.cc
   intern/usd_reader_skeleton.cc
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
-<<<<<<< HEAD
 
   intern/usd_hook.cc
   intern/usd_umm.cc
@@ -127,11 +127,6 @@ set(SRC
   intern/usd_writer_particle.cc
   intern/usd_writer_transform.cc
   intern/usd_writer_volume.cc
-=======
-  intern/usd_reader_pointinstancer.cc
-  intern/usd_skel_convert.cc
-  intern/usd_skel_root_utils.cc
->>>>>>> main
 
   usd.h
   usd.hh
@@ -156,13 +151,13 @@ set(SRC
   intern/usd_reader_material.h
   intern/usd_reader_mesh.h
   intern/usd_reader_nurbs.h
+  intern/usd_reader_pointinstancer.h
   intern/usd_reader_prim.h
   intern/usd_reader_skeleton.h
   intern/usd_reader_shape.h
   intern/usd_reader_stage.h
   intern/usd_reader_volume.h 
   intern/usd_reader_xform.h
-<<<<<<< HEAD
 
   intern/usd_hook.h
   intern/usd_umm.h
@@ -179,11 +174,6 @@ set(SRC
   intern/usd_writer_particle.h
   intern/usd_writer_transform.h
   intern/usd_writer_volume.h
-=======
-  intern/usd_reader_pointinstancer.h
-  intern/usd_skel_convert.h
-  intern/usd_skel_root_utils.h
->>>>>>> main
 )
 
 if(WITH_HYDRA)

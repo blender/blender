@@ -90,13 +90,11 @@ void ED_operatortypes_io(void)
 #ifdef WITH_USD
   WM_operatortype_append(WM_OT_usd_import);
   WM_operatortype_append(WM_OT_usd_export);
-<<<<<<< HEAD
 
   WM_PT_USDExportPanelsRegister();
   WM_PT_USDImportPanelsRegister();
-=======
+
   ed::io::usd_file_handler_add();
->>>>>>> main
 #endif
 
 #ifdef WITH_IO_GPENCIL

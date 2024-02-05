@@ -150,10 +150,6 @@ class USDPrimReader {
     return prim_path_;
   }
 
-<<<<<<< HEAD
- protected:
-  void set_props(ID *id, const pxr::UsdPrim &prim, double motionSampleTime);
-=======
   void set_is_in_instancer_proto(bool flag)
   {
     is_in_instancer_proto_ = flag;
@@ -165,7 +161,9 @@ class USDPrimReader {
   }
 
   bool is_in_proto() const;
->>>>>>> main
+
+ protected:
+  void set_props(ID *id, const pxr::UsdPrim &prim, double motionSampleTime);
 };
 
 }  // namespace blender::io::usd
