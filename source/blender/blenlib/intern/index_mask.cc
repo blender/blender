@@ -133,6 +133,46 @@ IndexMask IndexMask::slice(const int64_t start, const int64_t size) const
   return sliced;
 }
 
+IndexMask IndexMask::slice(const RawMaskIterator first_it,
+                           const RawMaskIterator last_it,
+                           const int64_t size) const
+{
+  BLI_assert(this->iterator_to_index(last_it) - this->iterator_to_index(first_it) + 1 == size);
+  IndexMask sliced = *this;
+  sliced.indices_num_ = size;
+  sliced.segments_num_ = last_it.segment_i - first_it.segment_i + 1;
+  sliced.indices_by_segment_ += first_it.segment_i;
+  sliced.segment_offsets_ += first_it.segment_i;
+  sliced.cumulative_segment_sizes_ += first_it.segment_i;
+  sliced.begin_index_in_segment_ = first_it.index_in_segment;
+  sliced.end_index_in_segment_ = last_it.index_in_segment + 1;
+  return sliced;
+}
+
+IndexMask IndexMask::slice_content(const IndexRange range) const
+{
+  return this->slice_content(range.start(), range.size());
+}
+
+IndexMask IndexMask::slice_content(const int64_t start, const int64_t size) const
+{
+  if (size <= 0) {
+    return {};
+  }
+  const std::optional<RawMaskIterator> first_it = this->find_larger_equal(start);
+  const std::optional<RawMaskIterator> last_it = this->find_smaller_equal(start + size - 1);
+  if (!first_it || !last_it) {
+    return {};
+  }
+  const int64_t first_index = this->iterator_to_index(*first_it);
+  const int64_t last_index = this->iterator_to_index(*last_it);
+  if (last_index < first_index) {
+    return {};
+  }
+  const int64_t sliced_mask_size = last_index - first_index + 1;
+  return this->slice(*first_it, *last_it, sliced_mask_size);
+}
+
 IndexMask IndexMask::slice_and_offset(const IndexRange range,
                                       const int64_t offset,
                                       IndexMaskMemory &memory) const

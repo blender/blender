@@ -260,6 +260,13 @@ class IndexMask : private IndexMaskData {
    */
   IndexMask slice(IndexRange range) const;
   IndexMask slice(int64_t start, int64_t size) const;
+  IndexMask slice(RawMaskIterator first_it, RawMaskIterator last_it, int64_t size) const;
+  /**
+   * Slices the mask based on the stored indices. The resulting mask only contains the indices that
+   * are within the given range.
+   */
+  IndexMask slice_content(IndexRange range) const;
+  IndexMask slice_content(int64_t start, int64_t size) const;
   /**
    * Same as above but can also add an offset to every index in the mask.
    * Takes O(log n + range.size()) time but with a very small constant factor.
