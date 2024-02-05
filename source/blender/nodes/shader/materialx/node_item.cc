@@ -689,9 +689,9 @@ NodeItem NodeItem::if_else(CompareOp op,
 {
   switch (op) {
     case CompareOp::Less:
-      return other.if_else(CompareOp::Greater, *this, else_val, if_val);
+      return if_else(CompareOp::GreaterEq, other, else_val, if_val);
     case CompareOp::LessEq:
-      return other.if_else(CompareOp::GreaterEq, *this, else_val, if_val);
+      return if_else(CompareOp::Greater, other, else_val, if_val);
     case CompareOp::NotEq:
       return if_else(CompareOp::Eq, other, else_val, if_val);
     default:
