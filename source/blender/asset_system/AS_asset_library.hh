@@ -65,8 +65,6 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
-  std::function<void(AssetLibrary &self)> on_refresh_;
-
   std::optional<eAssetImportMethod> import_method_;
   /** Assets owned by this library may be imported with a different method than set in
    * #import_method_ above, it's just a default. */
@@ -95,7 +93,7 @@ class AssetLibrary {
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
   AssetLibrary(eAssetLibraryType library_type, StringRef name = "", StringRef root_path = "");
-  ~AssetLibrary();
+  virtual ~AssetLibrary();
 
   /**
    * Execute \a fn for every asset library that is loaded. The asset library is passed to the
@@ -108,9 +106,6 @@ class AssetLibrary {
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
   void load_catalogs();
-
-  /** Load catalogs that have changed on disk. */
-  void refresh();
 
   /**
    * Create a representation of an asset to be considered part of this library. Once the
@@ -171,6 +166,10 @@ class AssetLibrary {
   eAssetLibraryType library_type() const;
   StringRefNull name() const;
   StringRefNull root_path() const;
+
+ protected:
+  /** Load catalogs that have changed on disk. */
+  virtual void refresh_catalogs();
 };
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();

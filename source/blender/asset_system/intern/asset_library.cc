@@ -216,12 +216,7 @@ void AssetLibrary::load_catalogs()
   this->catalog_service = std::move(catalog_service);
 }
 
-void AssetLibrary::refresh()
-{
-  if (on_refresh_) {
-    on_refresh_(*this);
-  }
-}
+void AssetLibrary::refresh_catalogs() {}
 
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,
                                                       StringRef name,
