@@ -370,6 +370,64 @@ static void GREASE_PENCIL_OT_layer_reveal(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int grease_pencil_layer_isolate_exec(bContext *C, wmOperator *op)
+{
+  using namespace ::blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const int affect_visibility = RNA_boolean_get(op->ptr, "affect_visibility");
+  bool isolate = false;
+
+  for (const Layer *layer : grease_pencil.layers()) {
+    if (grease_pencil.is_layer_active(layer)) {
+      continue;
+    }
+    if ((affect_visibility && layer->is_visible()) || !layer->is_locked()) {
+      isolate = true;
+      break;
+    }
+  }
+
+  for (Layer *layer : grease_pencil.layers_for_write()) {
+    if (grease_pencil.is_layer_active(layer) || !isolate) {
+      layer->set_locked(false);
+      if (affect_visibility) {
+        layer->set_visible(true);
+      }
+    }
+    else {
+      layer->set_locked(true);
+      if (affect_visibility) {
+        layer->set_visible(false);
+      }
+    }
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_isolate(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Isolate Layers";
+  ot->idname = "GREASE_PENCIL_OT_layer_isolate";
+  ot->description = "Make only active layer visible/editable";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_isolate_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_boolean(
+      ot->srna, "affect_visibility", false, "Affect Visibility", "Also affect the visibility");
+}
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_layers()
@@ -381,6 +439,7 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_active);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_hide);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_reveal);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_isolate);
 
   WM_operatortype_append(GREASE_PENCIL_OT_layer_group_add);
 }
