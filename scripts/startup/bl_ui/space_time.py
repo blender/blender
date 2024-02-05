@@ -124,6 +124,7 @@ class TIME_MT_view(Menu):
         st = context.space_data
 
         layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
         layout.separator()
 
         # NOTE: "action" now, since timeline is in the dopesheet editor, instead of as own editor

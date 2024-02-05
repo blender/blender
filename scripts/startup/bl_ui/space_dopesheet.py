@@ -377,6 +377,7 @@ class DOPESHEET_MT_view(Menu):
 
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
         layout.separator()
 
         layout.operator("action.view_selected")
