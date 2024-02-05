@@ -5,6 +5,7 @@
 #include "IO_types.hh"
 #include "usd.h"
 #include "usd_hierarchy_iterator.h"
+#include "usd_hook.h"
 #include "usd_reader_geom.h"
 #include "usd_reader_prim.h"
 #include "usd_reader_stage.h"
@@ -451,6 +452,11 @@ static void import_endjob(void *customdata)
     if (data->params.import_materials && data->params.import_all_materials) {
       data->archive->fake_users_for_unused_materials();
     }
+
+    /* Ensure Python types for invoking hooks are registered. */
+    register_hook_converters();
+
+    call_import_hooks(data->archive->stage(), data->params.worker_status->reports);
   }
 
   WM_set_locked_interface(data->wm, false);

@@ -102,6 +102,21 @@ struct USDSceneExportContext {
   PointerRNA depsgraph_ptr;
 };
 
+/* Encapsulate arguments for scene import. */
+struct USDSceneImportContext {
+
+  USDSceneImportContext() {}
+
+  USDSceneImportContext(pxr::UsdStageRefPtr in_stage) : stage(in_stage) {}
+
+  pxr::UsdStageRefPtr get_stage()
+  {
+    return stage;
+  }
+
+  pxr::UsdStageRefPtr stage;
+};
+
 /* Encapsulate arguments for material export. */
 struct USDMaterialExportContext {
   USDMaterialExportContext() {}
@@ -116,7 +131,7 @@ struct USDMaterialExportContext {
   pxr::UsdStageRefPtr stage;
 };
 
-void register_export_hook_converters()
+void register_hook_converters()
 {
   static bool registered = false;
 
@@ -149,6 +164,9 @@ void register_export_hook_converters()
 
   python::class_<USDMaterialExportContext>("USDMaterialExportContext")
       .def("get_stage", &USDMaterialExportContext::get_stage);
+
+  python::class_<USDSceneImportContext>("USDSceneImportContext")
+      .def("get_stage", &USDSceneImportContext::get_stage);
 
   PyGILState_Release(gilstate);
 }
@@ -287,6 +305,28 @@ class OnMaterialExportInvoker : public USDHookInvoker {
   }
 };
 
+class OnImportInvoker : public USDHookInvoker {
+ private:
+  USDSceneImportContext hook_context_;
+
+ public:
+  OnImportInvoker(pxr::UsdStageRefPtr stage, ReportList *reports) : hook_context_(stage)
+  {
+    reports_ = reports;
+  }
+
+ protected:
+  const char *function_name() const override
+  {
+    return "on_import";
+  }
+
+  void call_hook(PyObject *hook_obj) const override
+  {
+    python::call_method<bool>(hook_obj, function_name(), hook_context_);
+  }
+};
+
 void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportList *reports)
 {
   if (g_usd_hooks.empty()) {
@@ -308,6 +348,16 @@ void call_material_export_hooks(pxr::UsdStageRefPtr stage,
 
   OnMaterialExportInvoker on_material_export(stage, material, usd_material, reports);
   on_material_export.call();
+}
+
+void call_import_hooks(pxr::UsdStageRefPtr stage, ReportList *reports)
+{
+  if (g_usd_hooks.empty()) {
+    return;
+  }
+
+  OnImportInvoker on_import(stage, reports);
+  on_import.call();
 }
 
 }  // namespace blender::io::usd

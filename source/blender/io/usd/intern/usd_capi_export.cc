@@ -255,8 +255,8 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   /* For restoring the current frame after exporting animation is done. */
   const int orig_frame = scene->r.cfra;
 
-  /* Ensure Python types for invoking export hooks are registered. */
-  register_export_hook_converters();
+  /* Ensure Python types for invoking hooks are registered. */
+  register_hook_converters();
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
   ensure_root_prim(usd_stage, params);
