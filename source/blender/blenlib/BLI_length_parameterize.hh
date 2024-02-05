@@ -31,8 +31,8 @@ template<typename T>
 void accumulate_lengths(const Span<T> values, const bool cyclic, MutableSpan<float> lengths)
 {
   /* For cyclic curves with a single point the lengths array is empty. */
-  BLI_assert(
-      lengths.size() == (cyclic && values.size() <= 1) ? 0 : segments_num(values.size(), cyclic));
+  BLI_assert(lengths.size() ==
+             (cyclic && values.size() <= 1 ? 0 : segments_num(values.size(), cyclic)));
   float length = 0.0f;
   for (const int i : IndexRange(values.size() - 1)) {
     length += math::distance(values[i], values[i + 1]);
