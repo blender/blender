@@ -61,7 +61,7 @@ bool AbstractViewItem::set_state_active()
   }
 
   /* Deactivate other items in the view. */
-  get_view().foreach_view_item([](auto &item) { item.deactivate(); });
+  this->get_view().foreach_view_item([](auto &item) { item.deactivate(); });
 
   is_active_ = true;
   return true;
@@ -125,7 +125,7 @@ bool AbstractViewItem::is_renaming() const
 
 void AbstractViewItem::begin_renaming()
 {
-  AbstractView &view = get_view();
+  AbstractView &view = this->get_view();
   if (view.is_renaming() || !supports_renaming()) {
     return;
   }
@@ -134,13 +134,13 @@ void AbstractViewItem::begin_renaming()
     is_renaming_ = true;
   }
 
-  StringRef initial_str = get_rename_string();
+  StringRef initial_str = this->get_rename_string();
   std::copy(std::begin(initial_str), std::end(initial_str), std::begin(view.get_rename_buffer()));
 }
 
 void AbstractViewItem::rename_apply(const bContext &C)
 {
-  const AbstractView &view = get_view();
+  const AbstractView &view = this->get_view();
   rename(C, view.get_rename_buffer().data());
   end_renaming();
 }
@@ -153,7 +153,7 @@ void AbstractViewItem::end_renaming()
 
   is_renaming_ = false;
 
-  AbstractView &view = get_view();
+  AbstractView &view = this->get_view();
   view.end_renaming();
 }
 
@@ -189,7 +189,7 @@ static void rename_button_fn(bContext *C, void *arg, char * /*origstr*/)
 
 void AbstractViewItem::add_rename_button(uiBlock &block)
 {
-  AbstractView &view = get_view();
+  AbstractView &view = this->get_view();
   uiBut *rename_but = uiDefBut(&block,
                                UI_BTYPE_TEXT,
                                1,
@@ -312,7 +312,7 @@ bool AbstractViewItem::is_interactive() const
 
 bool AbstractViewItem::is_active() const
 {
-  BLI_assert_msg(get_view().is_reconstructed(),
+  BLI_assert_msg(this->get_view().is_reconstructed(),
                  "State can't be queried until reconstruction is completed");
   return is_active_;
 }
