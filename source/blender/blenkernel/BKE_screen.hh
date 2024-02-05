@@ -22,6 +22,7 @@ class AssetRepresentation;
 }
 
 struct ARegion;
+struct AssetShelfType;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
@@ -140,7 +141,7 @@ struct SpaceType {
   ListBase regiontypes;
 
   /** Asset shelf type definitions. */
-  ListBase asset_shelf_types; /* #AssetShelfType */
+  blender::Vector<std::unique_ptr<AssetShelfType>> asset_shelf_types;
 
   /* read and write... */
 
@@ -518,8 +519,6 @@ enum AssetShelfTypeFlag {
 ENUM_OPERATORS(AssetShelfTypeFlag, ASSET_SHELF_TYPE_FLAG_MAX);
 
 struct AssetShelfType {
-  AssetShelfType *next, *prev;
-
   char idname[BKE_ST_MAXNAME]; /* unique name */
 
   int space_type;

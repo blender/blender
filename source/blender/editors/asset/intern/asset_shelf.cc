@@ -59,23 +59,27 @@ static bool asset_shelf_type_poll(const bContext &C,
     return false;
   }
 
-  BLI_assert_msg(BLI_findindex(&space_type.asset_shelf_types, shelf_type) != -1,
+  BLI_assert_msg(std::find_if(space_type.asset_shelf_types.begin(),
+                              space_type.asset_shelf_types.end(),
+                              [&](const std::unique_ptr<AssetShelfType> &type) {
+                                return type.get() == shelf_type;
+                              }) != space_type.asset_shelf_types.end(),
                  "Asset shelf type is not registered");
   UNUSED_VARS_NDEBUG(space_type);
 
   return !shelf_type->poll || shelf_type->poll(&C, shelf_type);
 }
 
-static AssetShelfType *asset_shelf_type_ensure(const SpaceType &space_type, AssetShelf &shelf)
+static AssetShelfType *asset_shelf_type_ensure(SpaceType &space_type, AssetShelf &shelf)
 {
   if (shelf.type) {
     return shelf.type;
   }
 
-  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
+  for (std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
     if (STREQ(shelf.idname, shelf_type->idname)) {
-      shelf.type = shelf_type;
-      return shelf_type;
+      shelf.type = shelf_type.get();
+      return shelf_type.get();
     }
   }
 
@@ -133,7 +137,7 @@ static void activate_shelf(RegionAssetShelf &shelf_regiondata, AssetShelf &shelf
  *         current context (all polls failed).
  */
 static AssetShelf *update_active_shelf(const bContext &C,
-                                       const SpaceType &space_type,
+                                       SpaceType &space_type,
                                        RegionAssetShelf &shelf_regiondata)
 {
   /* Note: Don't access #AssetShelf.type directly, use #asset_shelf_type_ensure(). */
@@ -163,8 +167,8 @@ static AssetShelf *update_active_shelf(const bContext &C,
   }
 
   /* Case 3: */
-  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type.asset_shelf_types) {
-    if (asset_shelf_type_poll(C, space_type, shelf_type)) {
+  for (std::unique_ptr<AssetShelfType> &shelf_type : space_type.asset_shelf_types) {
+    if (asset_shelf_type_poll(C, space_type, shelf_type.get())) {
       AssetShelf *new_shelf = create_shelf_from_type(*shelf_type);
       BLI_addhead(&shelf_regiondata.shelves, new_shelf);
       /* Moves ownership to the regiondata. */
@@ -211,8 +215,8 @@ static bool asset_shelf_space_poll(const bContext *C, const SpaceLink *space_lin
   const SpaceType *space_type = BKE_spacetype_from_id(space_link->spacetype);
 
   /* Is there any asset shelf type registered that returns true for it's poll? */
-  LISTBASE_FOREACH (AssetShelfType *, shelf_type, &space_type->asset_shelf_types) {
-    if (asset_shelf_type_poll(*C, *space_type, shelf_type)) {
+  for (const std::unique_ptr<AssetShelfType> &shelf_type : space_type->asset_shelf_types) {
+    if (asset_shelf_type_poll(*C, *space_type, shelf_type.get())) {
       return true;
     }
   }
@@ -410,7 +414,7 @@ int region_prefsizey()
 void region_layout(const bContext *C, ARegion *region)
 {
   const SpaceLink *space = CTX_wm_space_data(C);
-  const SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
+  SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
 
   RegionAssetShelf *shelf_regiondata = RegionAssetShelf::get_from_asset_shelf_region(*region);
   if (!shelf_regiondata) {
@@ -486,7 +490,7 @@ void header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 void header_region(const bContext *C, ARegion *region)
 {
   const SpaceLink *space = CTX_wm_space_data(C);
-  const SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
+  SpaceType *space_type = BKE_spacetype_from_id(space->spacetype);
   const ARegion *main_shelf_region = BKE_area_find_region_type(CTX_wm_area(C),
                                                                RGN_TYPE_ASSET_SHELF);
 

@@ -238,7 +238,6 @@ SpaceType::~SpaceType()
   }
 
   BLI_freelistN(&this->regiontypes);
-  BLI_freelistN(&this->asset_shelf_types);
 }
 
 void BKE_spacetypes_free()
