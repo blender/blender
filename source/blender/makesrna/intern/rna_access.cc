@@ -532,6 +532,7 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
             idprop->ui_data);
         if (ui_data_int && ui_data_int->enum_items_num > 0) {
           r_prop_rna_or_id->rnaprop = &rna_PropertyGroupItem_enum;
+          return;
         }
       }
       r_prop_rna_or_id->rnaprop = typemap[int(idprop->type)];
