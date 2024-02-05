@@ -401,12 +401,11 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
                                                  bool is_recursive_check)
 {
   float cfra = seq_prefetch_cfra(pfjob);
-  Sequence *seq_arr[MAXSEQ + 1];
-  int count = seq_get_shown_sequences(pfjob->scene_eval, channels, seqbase, cfra, 0, seq_arr);
+  blender::Vector<Sequence *> strips = seq_get_shown_sequences(
+      pfjob->scene_eval, channels, seqbase, cfra, 0);
 
   /* Iterate over rendered strips. */
-  for (int i = 0; i < count; i++) {
-    Sequence *seq = seq_arr[i];
+  for (Sequence *seq : strips) {
     if (seq->type == SEQ_TYPE_META &&
         seq_prefetch_scene_strip_is_rendered(pfjob, channels, &seq->seqbase, scene_strips, true))
     {
