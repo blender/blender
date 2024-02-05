@@ -860,7 +860,7 @@ static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main
   return can_produce_frames;
 }
 
-static PointerRNA rna_MovieSequence_metadata_get(Sequence *seq)
+static PointerRNA rna_MovieSequence_metadata_get(ID *scene_id, Sequence *seq)
 {
   if (seq == nullptr || seq->anims.first == nullptr) {
     return PointerRNA_NULL;
@@ -876,7 +876,7 @@ static PointerRNA rna_MovieSequence_metadata_get(Sequence *seq)
     return PointerRNA_NULL;
   }
 
-  PointerRNA ptr = RNA_pointer_create(nullptr, &RNA_IDPropertyWrapPtr, metadata);
+  PointerRNA ptr = RNA_pointer_create(scene_id, &RNA_IDPropertyWrapPtr, metadata);
   return ptr;
 }
 
@@ -2957,6 +2957,7 @@ static void rna_def_movie(BlenderRNA *brna)
 
   /* metadata */
   func = RNA_def_function(srna, "metadata", "rna_MovieSequence_metadata_get");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   RNA_def_function_ui_description(func, "Retrieve metadata of the movie file");
   /* return type */
   parm = RNA_def_pointer(

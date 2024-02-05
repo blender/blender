@@ -3463,10 +3463,12 @@ static void colorband_tools_dofunc(bContext *C, void *coba_v, int event)
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 
-static uiBlock *colorband_tools_func(bContext *C, ARegion *region, void *coba_v)
+static uiBlock *colorband_tools_func(bContext *C, ARegion *region, void *arg_cb)
 {
+  RNAUpdateCb *cb = (RNAUpdateCb *)arg_cb;
   const uiStyle *style = UI_style_get_dpi();
-  ColorBand *coba = static_cast<ColorBand *>(coba_v);
+  PointerRNA coba_ptr = RNA_property_pointer_get(&cb->ptr, cb->prop);
+  ColorBand *coba = static_cast<ColorBand *>(coba_ptr.data);
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
@@ -3484,7 +3486,6 @@ static uiBlock *colorband_tools_func(bContext *C, ARegion *region, void *coba_v)
                                      style);
   UI_block_layout_set_current(block, layout);
   {
-    PointerRNA coba_ptr = RNA_pointer_create(nullptr, &RNA_ColorRamp, coba);
     uiLayoutSetContextPointer(layout, "color_ramp", &coba_ptr);
   }
 
@@ -3661,9 +3662,10 @@ static void colorband_buttons_layout(uiLayout *layout,
                         TIP_("Delete the active position"));
   UI_but_funcN_set(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
+  RNAUpdateCb *tools_cb = static_cast<RNAUpdateCb *>(MEM_dupallocN(cb));
   bt = uiDefIconBlockBut(block,
                          colorband_tools_func,
-                         coba,
+                         tools_cb,
                          0,
                          ICON_DOWNARROW_HLT,
                          xs + 4.0f * unit,
@@ -3671,7 +3673,7 @@ static void colorband_buttons_layout(uiLayout *layout,
                          2.0f * unit,
                          UI_UNIT_Y,
                          TIP_("Tools"));
-  UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), coba);
+  UI_but_funcN_set(bt, rna_update_cb, tools_cb, coba);
 
   UI_block_align_end(block);
   UI_block_emboss_set(block, UI_EMBOSS);
