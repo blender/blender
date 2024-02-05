@@ -6,13 +6,22 @@
  * \ingroup asset_system
  */
 
-#include "BLI_path_util.h"
-
 #include "BKE_appdir.hh"
 
+#include "utils.hh"
+
 #include "AS_essentials_library.hh"
+#include "asset_library_essentials.hh"
 
 namespace blender::asset_system {
+
+EssentialsAssetLibrary::EssentialsAssetLibrary()
+    : OnDiskAssetLibrary(ASSET_LIBRARY_ESSENTIALS,
+                         {},
+                         utils::normalize_directory_path(essentials_directory_path()))
+{
+  import_method_ = ASSET_IMPORT_APPEND_REUSE;
+}
 
 StringRefNull essentials_directory_path()
 {

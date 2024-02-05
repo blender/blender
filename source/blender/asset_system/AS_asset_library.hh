@@ -65,6 +65,7 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
+ protected:
   std::optional<eAssetImportMethod> import_method_;
   /** Assets owned by this library may be imported with a different method than set in
    * #import_method_ above, it's just a default. */
