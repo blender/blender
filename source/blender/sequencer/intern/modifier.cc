@@ -86,7 +86,6 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
   if (mask_input_type == SEQUENCE_MASK_INPUT_STRIP) {
     if (mask_sequence) {
       SeqRenderState state;
-      seq_render_state_init(&state);
 
       mask_input = seq_render_strip(context, &state, mask_sequence, timeline_frame);
 

@@ -266,7 +266,7 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
     if (disabled_hint) {
       BKE_reportf(&reports,
                   RPT_ERROR,
-                  "Can not add node group '%s' to '%s':\n  %s",
+                  "Cannot add node group '%s' to '%s':\n  %s",
                   node_group.id.name + 2,
                   node_tree.id.name + 2,
                   disabled_hint);
@@ -274,7 +274,7 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
     else {
       BKE_reportf(&reports,
                   RPT_ERROR,
-                  "Can not add node group '%s' to '%s'",
+                  "Cannot add node group '%s' to '%s'",
                   node_group.id.name + 2,
                   node_tree.id.name + 2);
     }

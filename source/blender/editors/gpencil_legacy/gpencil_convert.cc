@@ -99,12 +99,12 @@ enum {
 /* RNA enum define */
 static const EnumPropertyItem prop_gpencil_convertmodes[] = {
     {GP_STROKECONVERT_PATH, "PATH", ICON_CURVE_PATH, "Path", "Animation path"},
-    {GP_STROKECONVERT_CURVE, "CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", "Smooth Bezier curve"},
+    {GP_STROKECONVERT_CURVE, "CURVE", ICON_CURVE_BEZCURVE, "Bézier Curve", "Smooth Bézier curve"},
     {GP_STROKECONVERT_POLY,
      "POLY",
      ICON_MESH_DATA,
      "Polygon Curve",
-     "Bezier curve with straight-line segments (vector handles)"},
+     "Bézier curve with straight-line segments (vector handles)"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

@@ -778,7 +778,7 @@ def dump_src_messages(msgs, reports, settings):
 
     def clean_str(s):
         # The encode/decode to/from 'raw_unicode_escape' allows to transform the C-type unicode hexadecimal escapes
-        # (like '\u2715' for the '×' symbol) back into a proper unicode character.
+        # (like '\u00d7' for the '×' symbol) back into a proper unicode character.
         return "".join(
             m.group("clean") for m in _clean_str(s)
         ).encode('raw_unicode_escape').decode('raw_unicode_escape')

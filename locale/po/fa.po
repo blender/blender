@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -4196,6 +4196,10 @@ msgid "Copy Pose"
 msgstr "ﺖﺳﮊ ﯽﭙﮐ"
 
 
+msgid "URL"
+msgstr "ﯽﺘﻧﺮﺘﻨﯾﺍ ﺱﺭﺩﺁ"
+
+
 msgctxt "Operator"
 msgid "Render"
 msgstr "ﺭﺪﻧﺭ"
@@ -4418,10 +4422,6 @@ msgstr "ﻥﺪﯿﺸﮐﺯﺎﺑ ﻥﺎﻣﺯ"
 msgctxt "Operator"
 msgid "Splash Screen"
 msgstr "ﺖﺴﺨﻧ ﻪﺤﻔﺻ"
-
-
-msgid "URL"
-msgstr "ﯽﺘﻧﺮﺘﻨﯾﺍ ﺱﺭﺩﺁ"
 
 
 msgid "URL to open"
@@ -5026,14 +5026,6 @@ msgstr ":ﺭﺍﺪﺸﻫ"
 
 msgid "Internet:"
 msgstr ":ﺖﻧﺮﺘﻨﯾﺍ"
-
-
-msgid "description"
-msgstr "ﺡﺮﺷ"
-
-
-msgid "location"
-msgstr "ﻥﺎﮑﻣ"
 
 
 msgctxt "Operator"

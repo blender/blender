@@ -6200,7 +6200,7 @@ static void def_cmp_vector_blur(StructRNA *srna)
   prop = RNA_def_property(srna, "use_curved", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "curved", 1);
   RNA_def_property_ui_text(
-      prop, "Curved", "Interpolate between frames in a Bezier curve, rather than linearly");
+      prop, "Curved", "Interpolate between frames in a Bézier curve, rather than linearly");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

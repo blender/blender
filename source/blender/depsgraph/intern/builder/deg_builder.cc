@@ -195,7 +195,8 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
     if (id_node->customdata_masks != id_node->previous_customdata_masks) {
       flag |= ID_RECALC_GEOMETRY;
     }
-    if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+    const bool is_expanded = deg_copy_on_write_is_expanded(id_node->id_cow);
+    if (!is_expanded) {
       flag |= ID_RECALC_COPY_ON_WRITE;
       /* This means ID is being added to the dependency graph first
        * time, which is similar to "ob-visible-change" */
@@ -216,8 +217,19 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
       }
     }
     /* Restore recalc flags from original ID, which could possibly contain recalc flags set by
-     * an operator and then were carried on by the undo system. */
-    flag |= id_orig->recalc;
+     * an operator and then were carried on by the undo system.
+     *
+     * Only do it for active dependency graph, because otherwise modifications to the original
+     * objects might keep affecting the render pipeline. For example, when a Python script is
+     * executed in headless mode it will tag original objects for recalculation, and the flag
+     * will never be reset to 0 because there is no active dependency graph (since the
+     * DEG_ids_clear_recalc() only clears original ID recalc flags for the active depsgraph.
+     *
+     * A bit of a safety is to also consider the accumulated recalc flags from the original
+     * data-block for the first evaluation of the data-block within an inactive graph. */
+    if (graph->is_active || !is_expanded) {
+      flag |= id_orig->recalc;
+    }
     if (flag != 0) {
       graph_id_tag_update(bmain, graph, id_node->id_orig, flag, DEG_UPDATE_SOURCE_RELATIONS);
     }

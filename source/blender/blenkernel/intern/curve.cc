@@ -4767,10 +4767,10 @@ bool BKE_nurb_valid_message(const int pnts,
       msg_template = RPT_("Must have more control points than Order");
       break;
     case NURBSValidationStatus::MoreRowsForBezierRequired:
-      msg_template = RPT_("%d more %s row(s) needed for Bezier");
+      msg_template = RPT_("%d more %s row(s) needed for Bézier");
       break;
     case NURBSValidationStatus::MorePointsForBezierRequired:
-      msg_template = RPT_("%d more point(s) needed for Bezier");
+      msg_template = RPT_("%d more point(s) needed for Bézier");
       break;
   }
 

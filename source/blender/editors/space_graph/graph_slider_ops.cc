@@ -432,7 +432,7 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
-      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
+      WM_report(RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
     }
 
     ale->update |= ANIM_UPDATE_DEFAULT;

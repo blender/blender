@@ -9,6 +9,7 @@
 #include "COM_BuffersIterator.h"
 #include "COM_Enums.h"
 
+#include "BLI_math_base.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"

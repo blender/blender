@@ -588,7 +588,7 @@ def view3d_multi_mode_select():
             ("Add -> Armature", "Armature"),
             ("Add -> Text", "Text"),
             ("Add -> Mesh -> Cube", "Cube"),
-            ("Add -> Curve -> Bezier", "Curve"),
+            ("Add -> Curve -> Bézier", "Curve"),
             ("Add -> Volume -> Empty", "Volume Empty"),
             ("Add -> Metaball -> Ball", "Metaball"),
             ("Add -> Lattice", "Lattice"),

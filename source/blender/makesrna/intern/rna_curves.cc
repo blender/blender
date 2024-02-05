@@ -20,7 +20,7 @@
 const EnumPropertyItem rna_enum_curves_type_items[] = {
     {CURVE_TYPE_CATMULL_ROM, "CATMULL_ROM", 0, "Catmull Rom", ""},
     {CURVE_TYPE_POLY, "POLY", 0, "Poly", ""},
-    {CURVE_TYPE_BEZIER, "BEZIER", 0, "Bezier", ""},
+    {CURVE_TYPE_BEZIER, "BEZIER", 0, "Bézier", ""},
     {CURVE_TYPE_NURBS, "NURBS", 0, "NURBS", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };

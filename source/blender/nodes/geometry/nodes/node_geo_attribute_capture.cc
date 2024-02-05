@@ -116,7 +116,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (!params.output_is_required("Geometry")) {
     params.error_message_add(
         NodeWarningType::Info,
-        TIP_("The attribute output can not be used without the geometry output"));
+        TIP_("The attribute output cannot be used without the geometry output"));
     params.set_default_remaining_outputs();
     return;
   }

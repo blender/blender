@@ -254,6 +254,11 @@ class DOPESHEET_HT_editor_buttons:
                 row.enabled = enable_but
                 row.operator("anim.channels_move", icon='TRIA_UP', text="").direction = 'UP'
                 row.operator("anim.channels_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+                row = layout.row(align=True)
+                row.enabled = enable_but
+                row.operator("grease_pencil.layer_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
+                row.operator("grease_pencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
             else:
                 enable_but = ob is not None and ob.type == 'GPENCIL'
                 row = layout.row(align=True)
@@ -377,6 +382,7 @@ class DOPESHEET_MT_view(Menu):
 
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
         layout.separator()
 
         layout.operator("action.view_selected")

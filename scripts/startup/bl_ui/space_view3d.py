@@ -2403,7 +2403,7 @@ class VIEW3D_MT_curve_add(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
+        layout.operator("curve.primitive_bezier_curve_add", text="Bézier", icon='CURVE_BEZCURVE')
         layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
 
         layout.separator()
@@ -5838,6 +5838,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
+        layout.menu("GREASE_PENCIL_MT_move_to_layer")
         layout.menu("VIEW3D_MT_grease_pencil_assign_material")
         layout.operator("grease_pencil.set_active_material")
 

@@ -274,6 +274,30 @@ class GPENCIL_MT_layer_active(Menu):
                 i -= 1
 
 
+class GREASE_PENCIL_MT_move_to_layer(Menu):
+    bl_label = "Move to Layer"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        grease_pencil = context.active_object.data
+
+        layout.operator("grease_pencil.move_to_layer", text="New Layer", icon='ADD').add_new_layer = True
+
+        if not grease_pencil.layers:
+            return
+
+        layout.separator()
+
+        for i in range(len(grease_pencil.layers) - 1, -1, -1):
+            layer = grease_pencil.layers[i]
+            if layer == grease_pencil.layers.active:
+                icon = 'GREASEPENCIL'
+            else:
+                icon = 'NONE'
+            layout.operator("grease_pencil.move_to_layer", text=layer.name, icon=icon).target_layer_name = layer.name
+
+
 class GREASE_PENCIL_MT_layer_active(Menu):
     bl_label = "Change Active Layer"
 
@@ -942,6 +966,7 @@ classes = (
     GPENCIL_UL_layer,
     GPENCIL_UL_masks,
 
+    GREASE_PENCIL_MT_move_to_layer,
     GREASE_PENCIL_MT_layer_active,
 
     GreasePencilFlipTintColors,

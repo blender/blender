@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
-"PO-Revision-Date: 2024-01-20 16:19+0000\n"
-"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"PO-Revision-Date: 2024-01-27 09:55+0000\n"
+"Last-Translator: 李隆基 <mikufsgen@outlook.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
 "MIME-Version: 1.0\n"
@@ -3957,6 +3957,10 @@ msgstr "已本地覆盖"
 
 msgid "This collection was added via a library override in the current blend file"
 msgstr "此集合经由此Blend文件库重写添加"
+
+
+msgid "Solo"
+msgstr "孤立"
 
 
 msgid "Visible"
@@ -19868,6 +19872,30 @@ msgstr "腔体系数"
 
 msgid "The contrast of the cavity mask"
 msgstr "腔体遮罩的对比度"
+
+
+msgid "Area Normal Falloff"
+msgstr "区域衰减"
+
+
+msgid "Extend the angular range with a falloff gradient"
+msgstr "使用衰减梯度扩展角度范围"
+
+
+msgid "Area Normal Limit"
+msgstr "区域法向限值"
+
+
+msgid "The range of angles that will be affected"
+msgstr "将受到影响的角度范围"
+
+
+msgid "View Normal Falloff"
+msgstr "视图法向衰减"
+
+
+msgid "View Normal Limit"
+msgstr "视图法向限值"
 
 
 msgid "Blending Mode"
@@ -40292,14 +40320,6 @@ msgid "2D Scale for the warp"
 msgstr "用于弯绕的平面缩放"
 
 
-msgid "UV Layer"
-msgstr "UV 层"
-
-
-msgid "UV Layer name"
-msgstr "UV 层名称"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "权重顶点组编辑修改器"
 
@@ -42554,10 +42574,6 @@ msgstr "重写轨道"
 
 msgid "In a local override data, whether this NLA track comes from the linked reference data, or is local to the override"
 msgstr "在本地重写数据中，此NLA 轨道是来自关联的引用数据，或者对重写而是本地的"
-
-
-msgid "Solo"
-msgstr "孤立"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -45209,6 +45225,10 @@ msgstr "比较"
 
 msgid "Input Type"
 msgstr "输入类型"
+
+
+msgid "Menu"
+msgstr "菜单"
 
 
 msgid "Element-Wise"
@@ -49344,6 +49364,10 @@ msgid "Value to Normal"
 msgstr "值转法线"
 
 
+msgid "Active item"
+msgstr "活动项"
+
+
 msgid "Bake Item"
 msgstr "烘焙项目"
 
@@ -49772,10 +49796,6 @@ msgid "Declaration of sockets and ui panels of a node group"
 msgstr "接口和节点组的界面面板的声明"
 
 
-msgid "Active item"
-msgstr "活动项"
-
-
 msgid "Active Index"
 msgstr "活动编号"
 
@@ -50078,6 +50098,10 @@ msgstr "烘焙"
 
 msgid "Bake data for every bake node"
 msgstr "烘焙每个烘焙节点的数据"
+
+
+msgid "Data-Block"
+msgstr "数据块"
 
 
 msgid "Nodes Modifier Panel"
@@ -51032,6 +51056,22 @@ msgid "New keys will be constant"
 msgstr "新关键帧是常值类型"
 
 
+msgid "The range in which to create new keys"
+msgstr "用于创建新关键帧的范围"
+
+
+msgid "Remove Outside Range"
+msgstr "删除范围外的关键帧"
+
+
+msgid "Removes keys outside the given range, leaving only the newly baked"
+msgstr "删除范围外的，除最新烘培之外的关键帧"
+
+
+msgid "At which interval to add keys"
+msgstr "以何间隔添加关键帧"
+
+
 msgctxt "Operator"
 msgid "Remove Empty Animation Data"
 msgstr "删除空白动画数据"
@@ -51592,6 +51632,10 @@ msgid "Assign to Collection"
 msgstr "分配到集合"
 
 
+msgid "Assign all selected bones to a collection, or unassign them, depending on whether the active bone is already assigned or not"
+msgstr "分配所有选中的骨骼到一个集合内，或取消分配，取决于活动骨骼是否已被分配"
+
+
 msgid "Collection Index"
 msgstr "集合编号"
 
@@ -51747,6 +51791,14 @@ msgid "Add Selected Bones to New Collection"
 msgstr "添加选中的骨骼到新集合"
 
 
+msgid "Create a new bone collection and assign all selected bones"
+msgstr "创建新的骨骼集合然后分配到所有选中的骨骼"
+
+
+msgid "Name of the bone collection to create"
+msgstr "新建骨骼集合的名称"
+
+
 msgctxt "Operator"
 msgid "Deselect Bone Collection"
 msgstr "取消选择骨骼集合"
@@ -51797,11 +51849,6 @@ msgstr "显示全部骨骼集合"
 
 
 msgctxt "Operator"
-msgid "Solo Visibility"
-msgstr "单独显示"
-
-
-msgctxt "Operator"
 msgid "Remove Selected from Bone collections"
 msgstr "从骨骼集合中移除选择体"
 
@@ -51817,6 +51864,10 @@ msgstr "要解除分配此骨骼的骨骼集合的名称；空为从活动骨骼
 msgctxt "Operator"
 msgid "Remove Bone from Bone Collection"
 msgstr "从骨骼集合中移除骨骼"
+
+
+msgid "Unassign the named bone from this bone collection"
+msgstr "从此骨骼集合解除分配已命名骨骼"
 
 
 msgid "Name of the bone to unassign from the collection; empty to use the active bone"
@@ -58213,14 +58264,6 @@ msgstr "操作要使用的数据块的名称"
 
 msgid "Relative Asset Identifier"
 msgstr "相对资产标识符"
-
-
-msgid "Session UUID"
-msgstr "会话UUID"
-
-
-msgid "Session UUID of the data-block to use by the operator"
-msgstr "操作要使用的数据块的会话 UUID"
 
 
 msgctxt "Operator"
@@ -67379,6 +67422,16 @@ msgstr "复制选定的节点，但不复制其节点树，并移动它们"
 
 
 msgctxt "Operator"
+msgid "Add Item"
+msgstr "添加项目"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "移除条目"
+
+
+msgctxt "Operator"
 msgid "Find Node"
 msgstr "查找节点"
 
@@ -67466,18 +67519,8 @@ msgid "Toggle hiding of selected nodes"
 msgstr "切换隐藏的已选节点"
 
 
-msgctxt "Operator"
-msgid "Add Item"
-msgstr "添加项目"
-
-
 msgid "Add an item to the index switch"
 msgstr "给编号切换添加一个条目"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "移除条目"
 
 
 msgid "Remove an item from the index switch"
@@ -68163,6 +68206,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "使用输出文件中的材质名称，拆分每个材质中烘焙的贴图(仅限外部)"
 
 
+msgid "UV Layer"
+msgstr "UV 层"
+
+
 msgid "UV layer to override active"
 msgstr "重写活动层的UV 层"
 
@@ -68496,10 +68543,6 @@ msgstr "从所有场景中移除物体"
 msgctxt "Operator"
 msgid "Drop Geometry Node Group on Object"
 msgstr "拖放几何节点组到物体"
-
-
-msgid "Session UUID of the geometry node group being dropped"
-msgstr "要删除的几何节点组的会话 UUID"
 
 
 msgid "Show the datablock selector in the modifier"
@@ -69399,10 +69442,6 @@ msgstr "对选定的关联物体及其依赖项层级创建本地重写"
 
 msgid "Override Collection"
 msgstr "重写集合"
-
-
-msgid "Session UUID of the directly linked collection containing the selected object, to make an override from"
-msgstr "包含选定物体的直接关联集合的会话 UUID，将被重写的目标"
 
 
 msgid "Make linked data local to each object"
@@ -70951,8 +70990,8 @@ msgid "Snap selected item(s) to the mouse location"
 msgstr "吸附选中项到鼠标位置"
 
 
-msgid "Object name to place (uses the active object when this and 'session_uuid' are unset)"
-msgstr "要放置的物体名称(如果未设置此名称和“session_uuid”，则使用活动物体)"
+msgid "Session UUID"
+msgstr "会话UUID"
 
 
 msgid "Session UUID of the object to place (uses the active object when this and 'name' are unset)"
@@ -74056,6 +74095,10 @@ msgid "Add a directory to be used as a local extension repository"
 msgstr "添加用作本地扩展存储库的目录"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Remove Extension Repository"
 msgstr "删除扩展存储库"
@@ -75621,10 +75664,6 @@ msgstr "主题"
 
 msgid "Editing"
 msgstr "编辑"
-
-
-msgid "Extensions"
-msgstr "扩展(名)"
 
 
 msgid "Add-ons"
@@ -83809,10 +83848,6 @@ msgid "A string value"
 msgstr "字符串值"
 
 
-msgid "Data-Block"
-msgstr "数据块"
-
-
 msgid "A data-block value"
 msgstr "一个数据块值"
 
@@ -84461,10 +84496,6 @@ msgstr "类似访问工具的关键功能"
 
 msgid "Open a website in the web browser"
 msgstr "在网页浏览器中打开网站"
-
-
-msgid "URL"
-msgstr "URL"
 
 
 msgid "URL to open"
@@ -85219,10 +85250,6 @@ msgid "Editable cavity curve"
 msgstr "可编辑空腔曲线"
 
 
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "同时均化多重输入采样, 以平滑笔刷的笔画"
-
-
 msgid "Active Palette"
 msgstr "活动调色板"
 
@@ -85493,30 +85520,6 @@ msgstr "镂版层"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "通过 UV 贴图按钮设置遮罩层"
-
-
-msgid "Area Normal Falloff"
-msgstr "区域衰减"
-
-
-msgid "Extend the angular range with a falloff gradient"
-msgstr "使用衰减梯度扩展角度范围"
-
-
-msgid "Area Normal Limit"
-msgstr "区域法向限值"
-
-
-msgid "The range of angles that will be affected"
-msgstr "将受到影响的角度范围"
-
-
-msgid "View Normal Falloff"
-msgstr "视图法向衰减"
-
-
-msgid "View Normal Limit"
-msgstr "视图法向限值"
 
 
 msgid "Maximum edge length for dynamic topology sculpting (as divisor of Blender unit - higher value means smaller edge length)"
@@ -86829,10 +86832,6 @@ msgid "Prototypes"
 msgstr "原型"
 
 
-msgid "Extension Repositories"
-msgstr "扩展存储库"
-
-
 msgid "Applications"
 msgstr "应用"
 
@@ -87000,10 +86999,6 @@ msgstr "样式"
 
 msgid "Transparent Checkerboard"
 msgstr "透明棋盘格"
-
-
-msgid "Menu"
-msgstr "菜单"
 
 
 msgid "Menu Background"
@@ -89369,16 +89364,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "自动插入可用关键帧"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "自动在可用的函数曲线中插入关键帧"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "仅在需要时插入关键帧"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "仅在需要关键帧的位置插入关键帧"
 
 
 msgid "Cursor Surface Project"
@@ -89483,6 +89470,10 @@ msgstr "扩展资产浏览器"
 
 msgid "Enable Asset Browser editor and operators to manage regular data-blocks as assets, not just poses"
 msgstr "启用资产浏览器编辑器和操作将数据块作为资产管理，而非仅姿态"
+
+
+msgid "Extension Repositories"
+msgstr "扩展存储库"
 
 
 msgid "Enables extension repositories, accessible from the \"Extension Repositories\" panel in the \"File Paths\" section of the preferences. These paths are exposed as add-ons, package management is not yet integrated"
@@ -97875,14 +97866,6 @@ msgid "Type of filter to use for image transformation"
 msgstr "用于图像转换的滤镜类型"
 
 
-msgid "Subsampling (3×3)"
-msgstr "子采样 (3x3)"
-
-
-msgid "Use nearest with 3×3 subsamples during rendering"
-msgstr "在渲染过程中使用最近点 3x3 子采样"
-
-
 msgid "Move along X axis"
 msgstr "沿 X 轴移动"
 
@@ -105248,11 +105231,6 @@ msgid "Settings to define an extension repository"
 msgstr "定义扩展存储库的设置"
 
 
-msgctxt "File browser"
-msgid "Local Directory"
-msgstr "本地目录"
-
-
 msgid "The local directory containing extensions"
 msgstr "包含扩展的本地目录"
 
@@ -111473,6 +111451,10 @@ msgid "Gamepad"
 msgstr "游戏手柄"
 
 
+msgid "Extensions"
+msgstr "扩展(名)"
+
+
 msgid "HP Reverb G2"
 msgstr "HP Reverb G2"
 
@@ -112402,6 +112384,16 @@ msgstr "场景"
 
 msgid "Brush(es)"
 msgstr "笔刷"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "位置"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "旋转"
 
 
 msgid "Unknown"
@@ -114617,11 +114609,6 @@ msgstr "应用默认设置"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "位置"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "仿射"
 
@@ -114690,6 +114677,11 @@ msgstr "位置轨迹"
 
 msgid "Timecode Index"
 msgstr "时间码编号"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "缩放"
 
 
 msgctxt "Operator"
@@ -115308,16 +115300,6 @@ msgstr "提取调色板"
 msgctxt "Operator"
 msgid "Generate Grease Pencil"
 msgstr "生成蜡笔"
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "水平"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "垂直"
 
 
 msgctxt "Operator"
@@ -116094,11 +116076,6 @@ msgstr "变换过程中预览"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "缩放"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "在窗口中匹配预览"
 
@@ -116235,11 +116212,6 @@ msgstr "取消屏蔽弃选片段"
 msgctxt "Operator"
 msgid "Position"
 msgstr "位置"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "旋转"
 
 
 msgctxt "Operator"
@@ -117196,8 +117168,8 @@ msgid "Invert Pan Axis"
 msgstr "反转平移轴向"
 
 
-msgid "The add-on to use extensions is disabled! See:"
-msgstr "使用扩展的插件已禁用！请参阅："
+msgid "Preferences:"
+msgstr "偏好设置:"
 
 
 msgid "No custom MatCaps configured"
@@ -117272,11 +117244,6 @@ msgid "Fly/Walk"
 msgstr "飞行/行走"
 
 
-msgctxt "Operator"
-msgid "Extension Add-on Repository"
-msgstr "扩展插件存储库"
-
-
 msgid "Multiple add-ons with the same name found!"
 msgstr "找到多个同名插件!"
 
@@ -117297,20 +117264,12 @@ msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "启用Cycles渲染引擎插件以使用Cycles"
 
 
+msgid "Error (see console)"
+msgstr "错误 (详见控制台)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Load Factory %s Preferences"
-msgstr "加载初始 %s 偏好设置"
-
-
-msgid "Color Set %d"
-msgstr "颜色集 %d"
-
-
-msgid "Color %d"
-msgstr "颜色 %d"
 
 
 msgid "Description:"
@@ -117345,25 +117304,21 @@ msgid "User:"
 msgstr "用户："
 
 
-msgid "description"
-msgstr "描述"
+msgid "Load Factory %s Preferences"
+msgstr "加载初始 %s 偏好设置"
 
 
-msgid "location"
-msgstr "位置"
+msgid "Color Set %d"
+msgstr "颜色集 %d"
+
+
+msgid "Color %d"
+msgstr "颜色 %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "文档"
-
-
-msgid "Preferences:"
-msgstr "偏好设置:"
-
-
-msgid "Error (see console)"
-msgstr "错误 (详见控制台)"
 
 
 msgctxt "Operator"
@@ -117714,11 +117669,6 @@ msgstr "背景"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "转为本地项..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "使用插帧集插入关键帧"
 
 
 msgctxt "Operator"
@@ -118699,6 +118649,11 @@ msgstr "集合实例"
 msgctxt "Operator"
 msgid "Delete Global"
 msgstr "全局删除"
+
+
+msgctxt "Operator"
+msgid "Insert Keyframe with Keying Set"
+msgstr "使用插帧集插入关键帧"
 
 
 msgctxt "Operator"
@@ -120197,6 +120152,10 @@ msgid "During resync of data-block %s, %d obsolete overrides were deleted, that 
 msgstr "在数据块 %s 的重新同步过程中，删除了 %d 个过时的覆写，这些覆写由用户定义了本地修改"
 
 
+msgid "Library override templates have been removed: removing all override data from the data-block '%s'"
+msgstr "库重写模板已被移除：从数据块 '%s' 移除所有重写数据"
+
+
 msgid "Data corruption: data-block '%s' is using itself as library override reference, removing all override data"
 msgstr "数据损坏: 数据块 '%s' 正在将自身用作库重写引用, 移除所有重写数据"
 
@@ -121204,10 +121163,6 @@ msgstr "编译着色器中 (剩余 %d)"
 
 msgid "Optimizing Shaders (%d remaining)"
 msgstr "优化着色器中 (剩余 %d)"
-
-
-msgid "EEVEE (Legacy)"
-msgstr "EEVEE (旧版)"
 
 
 msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
@@ -128455,14 +128410,6 @@ msgid "Level Set"
 msgstr "级数集"
 
 
-msgid ""
-"Byte Color (sRGB encoded):\n"
-"%3d  %3d  %3d  %3d"
-msgstr ""
-"字节颜色 (sRGB编码):\n"
-"%3d  %3d  %3d  %3d"
-
-
 msgid "Data Set"
 msgstr "数据集"
 
@@ -129503,10 +129450,6 @@ msgstr "模式(TAB) %s, (S)吸附 %s, (M)中间点 %s, (L)限制 %.2f (Alt 滚�
 
 msgid "Could not initialize stitching on any selected object"
 msgstr "无法初始化任何选定物体的缝合"
-
-
-msgid "Stitching only works with less than %i objects selected (%u selected)"
-msgstr "缝合仅适用于选定少于 %i 个物体的情况(%u 选中)"
 
 
 msgid "Lock Method"
@@ -131519,12 +131462,12 @@ msgid "%s area type does not support gizmos"
 msgstr "%s 区域类型不支持操控器"
 
 
-msgid "Unknown operator"
-msgstr "未知操作符"
-
-
 msgid "Operator missing srna"
 msgstr "srna中丢失操作符"
+
+
+msgid "Unknown operator"
+msgstr "未知操作符"
 
 
 msgid "Gizmo target property '%s.%s' not found"
@@ -133928,10 +133871,6 @@ msgid "Shade Smooth"
 msgstr "平滑着色"
 
 
-msgid "Delta Time"
-msgstr "增量时间"
-
-
 msgid "Baked %d - %d"
 msgstr "烘焙 %d - %d"
 
@@ -133942,6 +133881,10 @@ msgstr "帧 %d - %d"
 
 msgid "Skip"
 msgstr "跳过"
+
+
+msgid "Delta Time"
+msgstr "增量时间"
 
 
 msgid "Forward the output of the simulation input node directly to the output node and ignore the nodes in the simulation zone"

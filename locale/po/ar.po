@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -1917,6 +1917,10 @@ msgstr "ﻡﺎﻈﻌﻟﺍ"
 
 msgid "Index"
 msgstr "ﺮﺷﺆﻤﻟﺍ"
+
+
+msgid "Solo"
+msgstr "ﺪﻴﺣﻭ"
 
 
 msgid "Visible"
@@ -18273,14 +18277,6 @@ msgid "Object To"
 msgstr "ﻦﺋﺎﻜﻟﺍ ﻰﻟﺇ"
 
 
-msgid "UV Layer"
-msgstr "ﺔﻘﺒﻃ"
-
-
-msgid "UV Layer name"
-msgstr "ﺔﻘﺒﻄﻟﺍ ﻢﺳﺇ"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﻥﺯﻭ ﺮﻳﺮﺤﺗ ﺮﻴﻐﻣ"
 
@@ -19254,10 +19250,6 @@ msgstr "ﺔﻛﺮﺣ ﺭﺎﺴﻣ"
 
 msgid "NLA Track is active"
 msgstr "ﻞﻌﻔﻣ ﺔﻛﺮﺤﻟﺍ ﺭﺎﺴﻣ"
-
-
-msgid "Solo"
-msgstr "ﺪﻴﺣﻭ"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -25673,6 +25665,10 @@ msgid "Bake"
 msgstr "ﻥﺰّﺧ"
 
 
+msgid "UV Layer"
+msgstr "ﺔﻘﺒﻃ"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "ﺍﺮﻴﻤﻜﻟﺍ ﻒﺿﺍ"
@@ -29593,10 +29589,6 @@ msgid "Active Brush"
 msgstr "ﺔﻴﻟﺎﺤﻟﺍ ﺓﺎﺷﺮﻔﻟﺍ"
 
 
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﺔﺒﻄﺷ ﻢﻴﻌﻨﺘﻟ ﺾﻌﺒﻟﺍ ﺎﻬﻀﻌﺑ ﻊﻣ ﻝﺎﺧﺩﺇ ﺕﺎﻨﻴﻋ ﺓﺪﻋ ﻂﺳّﻭ"
-
-
 msgid "Show Brush"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﺮﻬﻇﺃ"
 
@@ -31286,16 +31278,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "ﺮﻓﺍﻮﺘﻤﻠﻟ ﻲﺗﺍﺫ ﺢﻴﺗﺎﻔﻣ ﻝﺎﺧﺩﺇ"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "ﺓﺮﻓﺍﻮﺘﻤﻟﺍ ﻞﻤﻌﻟﺍ ﺕﺎﻴﻨﺤﻨﻣ ﻲﻓ ﻲﺗﺍﺬﻟﺍ ﺢﻴﺗﺎﻔﻤﻟﺍ ﻝﺎﺧﺩﺇ"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "ﻡﺯﻼ﻿ﻟ ﺢﻴﺗﺎﻔﻣ ﻞﺧﺩﺍ"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "ﺔﺟﺎﺤﻟﺍ ﺪﻨﻋ ﻂﻘﻓ ﺢﻴﺗﺎﻔﻤﻟﺍ ﺔﻓﺎﺿﺇ"
 
 
 msgid "Allow Negative Frames"
@@ -36032,6 +36016,16 @@ msgid "Manual"
 msgstr "ﻞﻴﻟﺪﻟﺍ"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "ﻥﺍﺭﻭﺪﻟﺍ"
+
+
 msgid "Frame Numbers"
 msgstr "ﺭﺎﻃﻹ﻿ﺍ ﻡﺎﻗﺭﺍ"
 
@@ -36486,11 +36480,6 @@ msgstr "ﻦﻣﺯ ﺓﺮﻔﻴﺷ / ﺏﻭﺪﻨﻣ ﺊﺸﻧﺃ"
 msgctxt "Operator"
 msgid "Build Proxy"
 msgstr "ﺏﻭﺪﻨﻣ ﻲﻨﺑﺍ"
-
-
-msgctxt "Operator"
-msgid "Location"
-msgstr "ﺔﺣﺍﺯﻹ﻿ﺍ"
 
 
 msgctxt "Operator"
@@ -36956,11 +36945,6 @@ msgid "Reload Strips and Adjust Length"
 msgstr "ﻝﻮﻄﻟﺍ ﻞﻳﺪﻌﺗ ﻭ ﺔﻃﺮﺷﻷ﻿ﺍ ﺚﻳﺪﺤﺗ"
 
 
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "ﻥﺍﺭﻭﺪﻟﺍ"
-
-
 msgid "Unpack"
 msgstr "ﻍﺮّﻓ"
 
@@ -37104,6 +37088,10 @@ msgid "Limit Size"
 msgstr "ﻢﺠﺤﻟﺍ ﺪﺣ"
 
 
+msgid "Preferences:"
+msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
+
+
 msgid "Invert Wheel Zoom Direction"
 msgstr "ﺐﻳﺮﻘﺘﻟﺍ ﺔﻠﺠﻋ ﻩﺎﺠﺗﺍ ﺐﻠﻗ"
 
@@ -37140,21 +37128,9 @@ msgid "Internet:"
 msgstr ":ﺖﻴﻧﺮﺘﻧﺃ"
 
 
-msgid "description"
-msgstr "ﻒﺻﻭ"
-
-
-msgid "location"
-msgstr "ﻊﻗﻮﻣ"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "ﻖﻴﺛﻮﺘﻟﺍ"
-
-
-msgid "Preferences:"
-msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ"
 
 
 msgctxt "Operator"

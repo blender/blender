@@ -1438,7 +1438,7 @@ static void rna_def_gpencil_curve_point(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "GPencilEditCurvePoint", nullptr);
   RNA_def_struct_sdna(srna, "bGPDcurve_point");
-  RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles");
+  RNA_def_struct_ui_text(srna, "Bézier Curve Point", "Bézier curve point with two handles");
 
   /* Boolean values */
   prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);

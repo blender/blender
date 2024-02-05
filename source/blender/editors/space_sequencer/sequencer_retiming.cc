@@ -139,7 +139,7 @@ static bool retiming_poll(bContext *C)
     return false;
   }
   if (!SEQ_retiming_is_allowed(seq)) {
-    CTX_wm_operator_poll_msg_set(C, "This strip type can not be retimed");
+    CTX_wm_operator_poll_msg_set(C, "This strip type cannot be retimed");
     return false;
   }
   return true;
@@ -205,7 +205,7 @@ static bool retiming_key_add_new_for_seq(bContext *C,
   const SeqRetimingKey *key = SEQ_retiming_find_segment_start_key(seq, frame_index);
 
   if (key != nullptr && SEQ_retiming_key_is_transition_start(key)) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create key inside of speed transition");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create key inside of speed transition");
     return false;
   }
 
@@ -325,18 +325,18 @@ static bool freeze_frame_add_new_for_seq(const bContext *C,
   }
 
   if (SEQ_retiming_key_is_transition_start(key)) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create key inside of speed transition");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create key inside of speed transition");
     return false;
   }
   if (key == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create freeze frame");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create freeze frame");
     return false;
   }
 
   SeqRetimingKey *freeze = SEQ_retiming_add_freeze_frame(scene, seq, key, duration);
 
   if (freeze == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create freeze frame");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create freeze frame");
     return false;
   }
 
@@ -449,14 +449,14 @@ static bool transition_add_new_for_seq(const bContext *C,
   }
 
   if (SEQ_retiming_is_last_key(seq, key) || key->strip_frame_index == 0) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create transition from first or last key");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create transition from first or last key");
     return false;
   }
 
   SeqRetimingKey *transition = SEQ_retiming_add_transition(scene, seq, key, duration);
 
   if (transition == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create transition");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create transition");
     return false;
   }
 
@@ -676,7 +676,7 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "keep_retiming",
                   true,
-                  "Preserve Current retiming",
+                  "Preserve Current Retiming",
                   "Keep speed of other segments unchanged, change strip length instead");
 }
 

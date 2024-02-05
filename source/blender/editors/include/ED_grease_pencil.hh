@@ -16,6 +16,8 @@
 
 #include "ED_keyframes_edit.hh"
 
+#include "WM_api.hh"
+
 struct bContext;
 struct Main;
 struct Object;

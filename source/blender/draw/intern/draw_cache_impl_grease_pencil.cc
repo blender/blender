@@ -604,7 +604,7 @@ static void grease_pencil_geom_batch_ensure(Object &object,
 
       if (is_cyclic) {
         const int idx = points.size() + 1;
-        const float length = lengths[points.size() - 1];
+        const float length = points.size() > 1 ? lengths[points.size() - 1] : 0.0f;
         populate_point(verts_range,
                        curve_i,
                        start_caps[curve_i],

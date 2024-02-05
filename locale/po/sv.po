@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5860,6 +5860,10 @@ msgstr "Linsförvrängning"
 
 msgid "Rotate"
 msgstr "Rotera"
+
+
+msgid "Menu"
+msgstr "Meny"
 
 
 msgid "Invert Rotation"
@@ -12368,10 +12372,6 @@ msgid "Styles"
 msgstr "Stilar"
 
 
-msgid "Menu"
-msgstr "Meny"
-
-
 msgid "Menu Background"
 msgstr "Meny bakgrund"
 
@@ -14424,6 +14424,11 @@ msgid "Brush(es)"
 msgstr "Pensel/lar"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Position"
+
+
 msgid "Unknown"
 msgstr "Okänt"
 
@@ -14965,8 +14970,8 @@ msgstr "Efter"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Position"
+msgid "Zoom"
+msgstr "Zooma"
 
 
 msgid "Normalization"
@@ -15242,16 +15247,6 @@ msgstr "Spara som..."
 msgctxt "Operator"
 msgid "Generate Grease Pencil"
 msgstr "Generera Grease Pencil"
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horisontellt"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikalt"
 
 
 msgctxt "Operator"
@@ -15623,11 +15618,6 @@ msgstr "Förskjutning:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Zooma"
-
-
-msgctxt "Operator"
 msgid "Both"
 msgstr "Båda"
 
@@ -15992,12 +15982,16 @@ msgid "Auto-Save"
 msgstr "Auto-spara"
 
 
+msgid "Preferences:"
+msgstr "Inställningar:"
+
+
 msgid "Multiple add-ons with the same name found!"
 msgstr "Flera tillägg med samma namn hittades!"
 
 
-msgid "Color %d"
-msgstr "Färg %d"
+msgid "Error (see console)"
+msgstr "Fel (se konsol)"
 
 
 msgid "Description:"
@@ -16032,25 +16026,13 @@ msgid "User:"
 msgstr "Användare:"
 
 
-msgid "description"
-msgstr "beskrivning"
-
-
-msgid "location"
-msgstr "placering"
+msgid "Color %d"
+msgstr "Färg %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentation"
-
-
-msgid "Preferences:"
-msgstr "Inställningar:"
-
-
-msgid "Error (see console)"
-msgstr "Fel (se konsol)"
 
 
 msgctxt "Operator"

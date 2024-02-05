@@ -4312,7 +4312,7 @@ static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
 }
 
 static const EnumPropertyItem channel_bake_key_options[] = {
-    {BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", "New keys will be beziers"},
+    {BEZT_IPO_BEZ, "BEZIER", 0, "Bézier", "New keys will be Bézier"},
     {BEZT_IPO_LIN, "LIN", 0, "Linear", "New keys will be linear"},
     {BEZT_IPO_CONST, "CONST", 0, "Constant", "New keys will be constant"},
     {0, nullptr, 0, nullptr, nullptr},

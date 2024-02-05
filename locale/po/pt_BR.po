@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2024-01-18 19:12+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3367,6 +3367,10 @@ msgstr "Ossos"
 
 msgid "Index"
 msgstr "Índice"
+
+
+msgid "Solo"
+msgstr "Solo"
 
 
 msgid "Visible"
@@ -25686,14 +25690,6 @@ msgid "Object To"
 msgstr "Para o objeto"
 
 
-msgid "UV Layer"
-msgstr "Camada UV"
-
-
-msgid "UV Layer name"
-msgstr "Nome da camada UV"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Modificador - Editar peso de grupos de vértices"
 
@@ -27515,10 +27511,6 @@ msgstr "Trilha de animação não linear"
 
 msgid "NLA Track is active"
 msgstr "Trilha de animação não linear está ativa."
-
-
-msgid "Solo"
-msgstr "Solo"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -41832,6 +41824,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Separa os mapas gerados e gravados por material, usando o nome do material no arquivo de saída (somente externamente)."
 
 
+msgid "UV Layer"
+msgstr "Camada UV"
+
+
 msgid "UV layer to override active"
 msgstr "Camada UV para sobreposição da ativa"
 
@@ -45772,6 +45768,10 @@ msgstr "Copiar as configurações anteriores"
 
 msgid "Copy settings from previous version"
 msgstr "Copia as configurações a partir da versão anterior."
+
+
+msgid "URL"
+msgstr "Localizador padrão de recursos - URL"
 
 
 msgctxt "Operator"
@@ -51756,10 +51756,6 @@ msgid "Toolbar Prompt"
 msgstr "Prompt da Barra de Ferramentas"
 
 
-msgid "URL"
-msgstr "Localizador padrão de recursos - URL"
-
-
 msgid "URL to open"
 msgstr "A localização do tipo \"URL\" a ser aberta"
 
@@ -51892,10 +51888,6 @@ msgstr "Pincel ativo"
 
 msgid "Editable cavity curve"
 msgstr "Curva de cavidade editável."
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "Perfaz uma média das entradas de múltiplas amostras em conjunto para suavizar o traço do pincel."
 
 
 msgid "Active Palette"
@@ -54650,16 +54642,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Inserção automática de quadro-chave disponível"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Inserção automática de quadro-chave dentro das curvas-f disponíveis."
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Inserção de quadros-chave necessários"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Inserção de quadros-chave somente quando necessários."
 
 
 msgid "Allow Negative Frames"
@@ -64953,6 +64937,16 @@ msgid "Rename %d %s"
 msgstr "Renomear %d %s"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Localização"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotação"
+
+
 msgid "Unknown"
 msgstr "Desconhecido"
 
@@ -65773,11 +65767,6 @@ msgstr "Solução"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Localização"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Afim"
 
@@ -65817,6 +65806,11 @@ msgstr "Nenhuma trilha ativa"
 
 msgid "No active plane track"
 msgstr "Sem planos de rastreamento ativos"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Ampliar"
 
 
 msgctxt "Operator"
@@ -66072,16 +66066,6 @@ msgstr "Editar externamente"
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Salvar como..."
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontalmente"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Verticalmente"
 
 
 msgctxt "Operator"
@@ -66501,11 +66485,6 @@ msgstr "Deslocamento:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Ampliar"
-
-
-msgctxt "Operator"
 msgid "Both"
 msgstr "Ambos"
 
@@ -66618,11 +66597,6 @@ msgstr "Recarregar as faixas e ajustar comprimento"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Posição"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotação"
 
 
 msgctxt "Operator"
@@ -67099,6 +67073,10 @@ msgid "Pan Sensitivity"
 msgstr "Sensibilidade para panorama"
 
 
+msgid "Preferences:"
+msgstr "Preferências:"
+
+
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Salvar como Luz de Estúdio"
@@ -67114,6 +67092,10 @@ msgstr "Múltiplos complementos com o mesmo nome encontrados !"
 
 msgid "Missing script files"
 msgstr "Faltando arquivos de script"
+
+
+msgid "Error (see console)"
+msgstr "Erro (veja o console)"
 
 
 msgid ":"
@@ -67148,25 +67130,9 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "descrição"
-
-
-msgid "location"
-msgstr "localização"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentação"
-
-
-msgid "Preferences:"
-msgstr "Preferências:"
-
-
-msgid "Error (see console)"
-msgstr "Erro (veja o console)"
 
 
 msgctxt "Operator"

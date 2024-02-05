@@ -2723,6 +2723,8 @@ class SEQUENCER_PT_annotation_onion(AnnotationOnionSkin, SequencerButtonsPanel_O
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
     bl_category = "View"
+    bl_parent_id = "SEQUENCER_PT_annotation"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @staticmethod
     def has_preview(context):

@@ -1240,7 +1240,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, rpt_("Type \"%s\" can not be found") % class_name)
+                    report({'ERROR'}, rpt_("Type \"%s\" cannot be found") % class_name)
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1907,7 +1907,7 @@ class WM_OT_properties_edit(Operator):
 
         item = eval("context.%s" % data_path)
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
-            self.report({'ERROR'}, "Properties from override data can not be edited")
+            self.report({'ERROR'}, "Properties from override data cannot be edited")
             return {'CANCELLED'}
 
         # Set operator's property type with the type of the existing property, to display the right settings.

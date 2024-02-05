@@ -4125,7 +4125,7 @@ PyDoc_STRVAR(
     "*items*, or integer matching an item number.\n"
     "      If the *ENUM_FLAG* option is used this must be a set of such string identifiers "
     "instead.\n"
-    "      WARNING: Strings can not be specified for dynamic enums\n"
+    "      WARNING: Strings cannot be specified for dynamic enums\n"
     "      (i.e. if a callback function is given as *items* parameter).\n"
     "   :type default: string, integer or set\n" BPY_PROPDEF_OPTIONS_ENUM_DOC
         BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_UPDATE_DOC

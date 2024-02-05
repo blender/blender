@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -2979,6 +2979,10 @@ msgstr "본"
 
 msgid "Index"
 msgstr "인덱스"
+
+
+msgid "Solo"
+msgstr "솔로"
 
 
 msgid "Visible"
@@ -29747,14 +29751,6 @@ msgid "Object To"
 msgstr "다음으로 오브젝트"
 
 
-msgid "UV Layer"
-msgstr "UV 레이어"
-
-
-msgid "UV Layer name"
-msgstr "UV 레이어 이름"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "웨이트VG 편집 모디파이어"
 
@@ -31654,10 +31650,6 @@ msgid "NLA Track is active"
 msgstr "NLA 트랙이 활성"
 
 
-msgid "Solo"
-msgstr "솔로"
-
-
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
 msgstr "NLA 트랙 자체가 평가됩니다 (즉, 활성 액션 및 동일한 AnimData 블록의 다른 모든 NLA 트랙은 사용 중지됨)"
 
@@ -33525,6 +33517,10 @@ msgstr "동일한"
 
 msgid "Compare"
 msgstr "비교"
+
+
+msgid "Menu"
+msgstr "메뉴"
 
 
 msgid "Dot Product"
@@ -47413,6 +47409,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "매테리얼 당 베이크된 맵을 분할, 출력 파일에 매테리얼 이름을 사용 (외부 만)"
 
 
+msgid "UV Layer"
+msgstr "UV 레이어"
+
+
 msgid "UV layer to override active"
 msgstr "활성을 재정의 하는 UV 레이어"
 
@@ -51493,6 +51493,10 @@ msgid "Copy settings from previous version"
 msgstr "이전 버전의 설정을 복사"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Activate Keyconfig"
 msgstr "활성 키 설정"
@@ -52774,10 +52778,6 @@ msgstr "테마"
 
 msgid "Editing"
 msgstr "편집"
-
-
-msgid "Extensions"
-msgstr "확장자"
 
 
 msgid "Add-ons"
@@ -58335,10 +58335,6 @@ msgid "Leader key like functionality for accessing tools"
 msgstr "도구에 액세스하기 위한 기능과 같은 리더 키"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "URL로 열기"
 
@@ -58485,10 +58481,6 @@ msgstr "활성 브러시"
 
 msgid "Editable cavity curve"
 msgstr "편집 가능한 캐비티 커브"
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "브러시 스트로크를 매끄럽게 하는 평균의 다중 입력 샘플"
 
 
 msgid "Active Palette"
@@ -59858,10 +59850,6 @@ msgstr "아이콘 컬러"
 
 msgid "Styles"
 msgstr "스타일"
-
-
-msgid "Menu"
-msgstr "메뉴"
 
 
 msgid "Menu Item"
@@ -61743,16 +61731,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "자동 키 프레임 삽입 가능"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "사용 가능한 F-커브에서 자동으로 키 프레임을 삽입합니다"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "필요한 키 프레임 삽입"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "키 프레임이 필요할 때만 키 프레임 삽입"
 
 
 msgid "Cursor Surface Project"
@@ -74649,6 +74629,10 @@ msgid "Invert Selection"
 msgstr "선택을 반전"
 
 
+msgid "Extensions"
+msgstr "확장자"
+
+
 msgctxt "Operator"
 msgid "New"
 msgstr "새로운"
@@ -74707,6 +74691,16 @@ msgstr "지원"
 msgctxt "Operator"
 msgid "User Communities"
 msgstr "사용자 커뮤니티"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "위치"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "회전"
 
 
 msgid "Unknown"
@@ -76235,11 +76229,6 @@ msgstr "프록시 크기"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "위치"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "어파인"
 
@@ -76296,6 +76285,11 @@ msgstr "활성 플레인 트랙 없음"
 
 msgid "Timecode Index"
 msgstr "타임코드 인덱스"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "줌"
 
 
 msgctxt "Operator"
@@ -77209,11 +77203,6 @@ msgstr "배경 화면으로 미리보기"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "줌"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "창에서 미리보기를 맞추기"
 
@@ -77325,11 +77314,6 @@ msgstr "선택되지 않은 스트립을 음소거"
 msgctxt "Operator"
 msgid "Unmute Deselected Strips"
 msgstr "선택 해제된 스트립 음소거를 해제"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "회전"
 
 
 msgctxt "Operator"
@@ -77846,6 +77830,10 @@ msgid "Pan Sensitivity"
 msgstr "팬 감도"
 
 
+msgid "Preferences:"
+msgstr "환경 설정:"
+
+
 msgid "Use Light"
 msgstr "라이트를 사용"
 
@@ -77873,6 +77861,10 @@ msgstr "리솔브에 각 쌍 중 하나를 삭제:"
 
 msgid "Missing script files"
 msgstr "스크립트 파일이 누락 됨"
+
+
+msgid "Error (see console)"
+msgstr "오류 (콘솔 참조)"
 
 
 msgid ":"
@@ -77907,25 +77899,9 @@ msgid "Internet:"
 msgstr "인터넷:"
 
 
-msgid "description"
-msgstr "설명"
-
-
-msgid "location"
-msgstr "위치"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "문서"
-
-
-msgid "Preferences:"
-msgstr "환경 설정:"
-
-
-msgid "Error (see console)"
-msgstr "오류 (콘솔 참조)"
 
 
 msgctxt "Operator"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-12-17 02:53+0000\n"
 "Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -23674,14 +23674,6 @@ msgid "Object To"
 msgstr "Oggetto A"
 
 
-msgid "UV Layer"
-msgstr "Livello UV"
-
-
-msgid "UV Layer name"
-msgstr "Nome del livello UV"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Modificatore WeightVG Edit"
 
@@ -26138,6 +26130,10 @@ msgstr "Uguale"
 
 msgid "Compare"
 msgstr "Compara"
+
+
+msgid "Menu"
+msgstr "Menu"
 
 
 msgid "Dot Product"
@@ -35846,6 +35842,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Precalcola immagini texture degli oggetti selezionati"
 
 
+msgid "UV Layer"
+msgstr "Livello UV"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Aggiungi Camera"
@@ -38944,6 +38944,10 @@ msgstr "Copia Impostazioni Precedenti"
 
 msgid "Copy settings from previous version"
 msgstr "Copia le impostazioni dalla versione precedente"
+
+
+msgid "URL"
+msgstr "URL"
 
 
 msgctxt "Operator"
@@ -43738,10 +43742,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "Genera le informazioni di sistema, salvate in un file di testo"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "URL da aprire"
 
@@ -44778,10 +44778,6 @@ msgstr "Colori Icone"
 
 msgid "Styles"
 msgstr "Stili"
-
-
-msgid "Menu"
-msgstr "Menu"
 
 
 msgid "Menu Item"
@@ -46174,16 +46170,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Auto Inserisci Fotogrammi Chiave Disponibile"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Inserimento automatico del fotogramma chiave nelle Curve-F disponibili"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Necessario inserimento di fotogramma"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Inserisce fotogramma chiave solo quando è necessario"
 
 
 msgid "Allow Negative Frames"
@@ -53829,6 +53817,16 @@ msgid "Failed to assign value: "
 msgstr "Impossibile impostare il valore: "
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Posizione"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotazione"
+
+
 msgid "Unknown"
 msgstr "Sconosciuto"
 
@@ -54630,11 +54628,6 @@ msgstr "Dopo"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Posizione"
-
-
-msgctxt "Operator"
 msgid "Set Viewport Background"
 msgstr "Imposta Sfondo Vista"
 
@@ -55390,11 +55383,6 @@ msgid "Position"
 msgstr "Posizione"
 
 
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotazione"
-
-
 msgid "Tracker"
 msgstr "Tracciatore"
 
@@ -55830,6 +55818,10 @@ msgid "Pan Sensitivity"
 msgstr "Sensibilità Pan"
 
 
+msgid "Preferences:"
+msgstr "Preferenze:"
+
+
 msgid "Use Light"
 msgstr "Usa Luce"
 
@@ -55850,12 +55842,12 @@ msgid "Missing script files"
 msgstr "File di script mancanti"
 
 
+msgid "Error (see console)"
+msgstr "Errore (vedi console)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Set Colori %d"
 
 
 msgid "Description:"
@@ -55890,25 +55882,13 @@ msgid "User:"
 msgstr "Utente:"
 
 
-msgid "description"
-msgstr "descrizione"
-
-
-msgid "location"
-msgstr "posizione"
+msgid "Color Set %d"
+msgstr "Set Colori %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentazione"
-
-
-msgid "Preferences:"
-msgstr "Preferenze:"
-
-
-msgid "Error (see console)"
-msgstr "Errore (vedi console)"
 
 
 msgctxt "Operator"

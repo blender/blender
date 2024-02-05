@@ -1864,7 +1864,7 @@ class _defs_image_uv_transform:
             icon="ops.transform.translate",
             widget="IMAGE_GGT_gizmo2d_translate",
             operator="transform.translate",
-            keymap="Image Editor Tool: Uv, Move",
+            keymap="Image Editor Tool: UV, Move",
         )
 
     @ToolDef.from_fn
@@ -1875,7 +1875,7 @@ class _defs_image_uv_transform:
             icon="ops.transform.rotate",
             widget="IMAGE_GGT_gizmo2d_rotate",
             operator="transform.rotate",
-            keymap="Image Editor Tool: Uv, Rotate",
+            keymap="Image Editor Tool: UV, Rotate",
         )
 
     @ToolDef.from_fn
@@ -1886,7 +1886,7 @@ class _defs_image_uv_transform:
             icon="ops.transform.resize",
             widget="IMAGE_GGT_gizmo2d_resize",
             operator="transform.resize",
-            keymap="Image Editor Tool: Uv, Scale",
+            keymap="Image Editor Tool: UV, Scale",
         )
 
     @ToolDef.from_fn
@@ -2016,7 +2016,7 @@ class _defs_image_uv_sculpt:
             attr="uv_sculpt_tool",
             tooldef_keywords=dict(
                 operator="sculpt.uv_sculpt_stroke",
-                keymap="Image Editor Tool: Uv, Sculpt Stroke",
+                keymap="Image Editor Tool: UV, Sculpt Stroke",
                 draw_cursor=draw_cursor,
                 options={'KEYMAP_FALLBACK'},
             ),

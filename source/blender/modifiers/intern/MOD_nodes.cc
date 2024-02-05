@@ -1469,7 +1469,7 @@ class NodesModifierBakeParams : public nodes::GeoNodesBakeParams {
   {
     if (frame_cache.meta_path && frame_cache.state.items_by_id.is_empty()) {
       auto &read_error_info = behavior.behavior.emplace<sim_output::ReadError>();
-      read_error_info.message = RPT_("Can not load the baked data");
+      read_error_info.message = RPT_("Cannot load the baked data");
       return true;
     }
     return false;

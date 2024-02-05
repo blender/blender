@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2689,6 +2689,10 @@ msgstr "Kosti"
 
 msgid "Index"
 msgstr "Index"
+
+
+msgid "Solo"
+msgstr "Barva"
 
 
 msgid "Visible"
@@ -16211,14 +16215,6 @@ msgid "Object defining offset"
 msgstr "Objekt"
 
 
-msgid "UV Layer"
-msgstr "Vrstva"
-
-
-msgid "UV Layer name"
-msgstr "Název vrstvy"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Váha vertexů"
 
@@ -17015,10 +17011,6 @@ msgstr "Sledování"
 
 msgid "NLA Track is active"
 msgstr "Přidat primitivum"
-
-
-msgid "Solo"
-msgstr "Barva"
 
 
 msgid "NLA Track is locked"
@@ -18031,6 +18023,10 @@ msgstr "Nerovná se"
 
 msgid "Compare"
 msgstr "Porovnat"
+
+
+msgid "Menu"
+msgstr "Nabídka"
 
 
 msgid "Less Than"
@@ -25959,6 +25955,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Bake obrázkové textury vybraných objektů"
 
 
+msgid "UV Layer"
+msgstr "Vrstva"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Přidat kameru"
@@ -28443,6 +28443,10 @@ msgid "Copy settings from previous version"
 msgstr "Kopírovat nastavení z předcházející verze"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Export Key Configuration..."
 msgstr "Exportovat Konfiguraci Klíčů..."
@@ -29067,10 +29071,6 @@ msgstr "Motivy"
 
 msgid "Editing"
 msgstr "Úpravy"
-
-
-msgid "Extensions"
-msgstr "Rozšíření"
 
 
 msgid "Add-ons"
@@ -32165,10 +32165,6 @@ msgid "Open a website in the web browser"
 msgstr "Otevřít webovou stránku ve webovém prohlížeči"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "URL k otevření"
 
@@ -33235,10 +33231,6 @@ msgstr "Barvy kolekce"
 
 msgid "Styles"
 msgstr "Styly"
-
-
-msgid "Menu"
-msgstr "Nabídka"
 
 
 msgid "Menu Item"
@@ -34481,10 +34473,6 @@ msgstr "Celkové vrácení"
 
 msgid "Auto Keyframe Insert Available"
 msgstr "Vložit hodnotu"
-
-
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
 
 
 msgid "Allow Negative Frames"
@@ -40299,6 +40287,10 @@ msgid "Invert Selection"
 msgstr "Vybrat cestu"
 
 
+msgid "Extensions"
+msgstr "Rozšíření"
+
+
 msgid "Note:"
 msgstr "Poznámka:"
 
@@ -40397,6 +40389,16 @@ msgstr "Znaky"
 
 msgid "Date: %s %s"
 msgstr "Datum: %s %s"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Umístění"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotace"
 
 
 msgid "Frame Numbers"
@@ -41433,11 +41435,6 @@ msgstr "Použít Původní Nastavení"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Umístění"
-
-
-msgctxt "Operator"
 msgid "Set Viewport Background"
 msgstr "Nastavit Obrázek Pozadí"
 
@@ -41473,6 +41470,11 @@ msgstr "Nastavit Osu Y"
 
 msgid "No active track"
 msgstr "Žádná aktivní stopa"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Přiblížit"
 
 
 msgctxt "Operator"
@@ -41754,16 +41756,6 @@ msgstr "Uložit jako..."
 msgctxt "Operator"
 msgid "Generate Grease Pencil"
 msgstr "Generovat skicovací tužku"
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontálně"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikálně"
 
 
 msgctxt "Operator"
@@ -42066,11 +42058,6 @@ msgstr "Odsazení:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Přiblížit"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Přizpůsobit Náhled v Okně"
 
@@ -42158,11 +42145,6 @@ msgstr "Gaussovské Rozostření"
 msgctxt "Operator"
 msgid "Reload Strips and Adjust Length"
 msgstr "Přidat vazbu aktivní kosti"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotace"
 
 
 msgid "Resolutions"
@@ -42646,6 +42628,10 @@ msgid "Swap Y and Z Axes"
 msgstr "Vyměnit osy Y a Z"
 
 
+msgid "Preferences:"
+msgstr "Předvolby:"
+
+
 msgid "Use Light"
 msgstr "Použít světlo"
 
@@ -42673,14 +42659,6 @@ msgstr "Létat/Chodit"
 
 msgid "No custom %s configured"
 msgstr "Žádná vlastní %s nastavena"
-
-
-msgid "Color Set %d"
-msgstr "Sada Barev %d"
-
-
-msgid "Color %d"
-msgstr "Barva %d"
 
 
 msgid "Description:"
@@ -42711,21 +42689,17 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "popis"
+msgid "Color Set %d"
+msgstr "Sada Barev %d"
 
 
-msgid "location"
-msgstr "umístění"
+msgid "Color %d"
+msgstr "Barva %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentace"
-
-
-msgid "Preferences:"
-msgstr "Předvolby:"
 
 
 msgctxt "Operator"
