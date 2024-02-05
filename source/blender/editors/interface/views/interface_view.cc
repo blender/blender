@@ -22,6 +22,7 @@
 #include <variant>
 
 #include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_screen.hh"
 
@@ -199,9 +200,9 @@ uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region)
   return item_but->view_item;
 }
 
-uiBut *UI_region_views_find_active_item_but(const ARegion *region)
+uiBut *UI_region_views_find_mouse_over_but(const wmWindow *win, const ARegion *region)
 {
-  return ui_view_item_find_active(region);
+  return ui_view_item_find_mouse_over(region, win->eventstate->xy);
 }
 
 namespace blender::ui {

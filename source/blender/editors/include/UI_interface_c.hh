@@ -3418,4 +3418,4 @@ uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], int
 uiViewItemHandle *UI_region_views_find_item_at(const ARegion *region, const int xy[2])
     ATTR_NONNULL();
 uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region);
-uiBut *UI_region_views_find_active_item_but(const ARegion *region);
+uiBut *UI_region_views_find_mouse_over_but(const wmWindow *win, const ARegion *region);

@@ -46,13 +46,44 @@ AssetWeakReference::~AssetWeakReference()
   MEM_delete(relative_asset_identifier);
 }
 
+AssetWeakReference &AssetWeakReference::operator=(AssetWeakReference &&other)
+{
+  if (&other == this) {
+    return *this;
+  }
+  asset_library_type = other.asset_library_type;
+  asset_library_identifier = other.asset_library_identifier;
+  relative_asset_identifier = other.relative_asset_identifier;
+  other.asset_library_type = 0; /* Not a valid type. */
+  other.asset_library_identifier = nullptr;
+  other.relative_asset_identifier = nullptr;
+  return *this;
+}
+
+bool AssetWeakReference::operator==(const AssetWeakReference &other) const
+{
+  if (asset_library_type != other.asset_library_type) {
+    return false;
+  }
+  if (StringRef(asset_library_identifier) != StringRef(other.asset_library_identifier)) {
+    return false;
+  }
+
+  return StringRef(relative_asset_identifier) == StringRef(other.relative_asset_identifier);
+}
+
+bool AssetWeakReference::operator!=(const AssetWeakReference &other) const
+{
+  return !(*this == other);
+}
+
 void BKE_asset_weak_reference_free(AssetWeakReference **weak_ref)
 {
   MEM_delete(*weak_ref);
   *weak_ref = nullptr;
 }
 
-AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref)
+AssetWeakReference *BKE_asset_weak_reference_copy(const AssetWeakReference *weak_ref)
 {
   if (weak_ref == nullptr) {
     return nullptr;
@@ -60,8 +91,8 @@ AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref)
 
   AssetWeakReference *weak_ref_copy = MEM_new<AssetWeakReference>(__func__);
   weak_ref_copy->asset_library_type = weak_ref->asset_library_type;
-  weak_ref_copy->asset_library_identifier = BLI_strdup(weak_ref->asset_library_identifier);
-  weak_ref_copy->relative_asset_identifier = BLI_strdup(weak_ref->relative_asset_identifier);
+  weak_ref_copy->asset_library_identifier = BLI_strdup_null(weak_ref->asset_library_identifier);
+  weak_ref_copy->relative_asset_identifier = BLI_strdup_null(weak_ref->relative_asset_identifier);
 
   return weak_ref_copy;
 }

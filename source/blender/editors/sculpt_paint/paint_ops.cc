@@ -1014,6 +1014,7 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
+  WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
   WM_toolsystem_ref_set_by_id(C, "builtin.brush");
 

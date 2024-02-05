@@ -8779,6 +8779,11 @@ class BrushAssetShelf:
 
         return asset.metadata.get(cls.mode_prop, False)
 
+    @classmethod
+    def get_active_asset(cls):
+        paint_settings = UnifiedPaintPanel.paint_settings(bpy.context)
+        return paint_settings.brush_asset_reference if paint_settings else None
+
 
 class VIEW3D_AST_brush_sculpt(BrushAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT'

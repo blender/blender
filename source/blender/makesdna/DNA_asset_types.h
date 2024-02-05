@@ -180,6 +180,10 @@ typedef struct AssetWeakReference {
   AssetWeakReference(AssetWeakReference &&);
   AssetWeakReference(const AssetWeakReference &) = delete;
   ~AssetWeakReference();
+  AssetWeakReference &operator=(AssetWeakReference &&);
+
+  bool operator==(const AssetWeakReference &other) const;
+  bool operator!=(const AssetWeakReference &other) const;
 
   /**
    * See AssetRepresentation::make_weak_reference(). Must be freed using
