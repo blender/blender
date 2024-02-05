@@ -500,6 +500,30 @@ static bool seq_image_transform_transparency_gained(const SeqRenderData *context
                               seq_image_quad[3]);
 }
 
+/* Automatic filter:
+ * - No scale, no rotation and non-fractional position: nearest.
+ * - Scale up by more than 2x: cubic mitchell.
+ * - Scale down by more than 2x: box.
+ * - Otherwise: bilinear. */
+static eIMBInterpolationFilterMode get_auto_filter(const StripTransform *transform)
+{
+  const float sx = fabsf(transform->scale_x);
+  const float sy = fabsf(transform->scale_y);
+  if (sx > 2.0f && sy > 2.0f) {
+    return IMB_FILTER_CUBIC_MITCHELL;
+  }
+  if (sx < 0.5f && sy < 0.5f) {
+    return IMB_FILTER_BOX;
+  }
+  const float px = transform->xofs;
+  const float py = transform->yofs;
+  const float rot = transform->rotation;
+  if (sx == 1.0f && sy == 1.0f && roundf(px) == px && roundf(py) == py && rot == 0.0f) {
+    return IMB_FILTER_NEAREST;
+  }
+  return IMB_FILTER_BILINEAR;
+}
+
 static void sequencer_preprocess_transform_crop(
     ImBuf *in, ImBuf *out, const SeqRenderData *context, Sequence *seq, const bool is_proxy_image)
 {
@@ -524,6 +548,9 @@ static void sequencer_preprocess_transform_crop(
   const StripTransform *transform = seq->strip->transform;
   eIMBInterpolationFilterMode filter = IMB_FILTER_NEAREST;
   switch (transform->filter) {
+    case SEQ_TRANSFORM_FILTER_AUTO:
+      filter = get_auto_filter(seq->strip->transform);
+      break;
     case SEQ_TRANSFORM_FILTER_NEAREST:
       filter = IMB_FILTER_NEAREST;
       break;

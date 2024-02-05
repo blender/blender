@@ -27,6 +27,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
 #include "DNA_defaults.h"
@@ -61,6 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
 
+#include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 
@@ -1936,6 +1938,15 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
   }
 }
 
+static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
+{
+  StripTransform *transform = seq->strip->transform;
+  if (transform != nullptr && transform->filter == SEQ_TRANSFORM_FILTER_BILINEAR) {
+    transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
+  }
+  return true;
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -2845,6 +2856,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       brush->input_samples = 1;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_filter_bilinear_to_auto, nullptr);
+      }
     }
   }
 
