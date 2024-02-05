@@ -418,4 +418,39 @@ TEST(index_mask, FindSmallerEqual)
   }
 }
 
+TEST(index_mask, SliceContent)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask;
+    EXPECT_TRUE(mask.slice_content(IndexRange(50, 10)).is_empty());
+  }
+  {
+    const IndexMask mask{IndexRange(10, 90)};
+    const IndexMask a = mask.slice_content(IndexRange(30));
+    EXPECT_EQ(a.size(), 20);
+    const IndexMask b = mask.slice_content(IndexRange(10, 90));
+    EXPECT_EQ(b.size(), 90);
+    const IndexMask c = mask.slice_content(IndexRange(80, 100));
+    EXPECT_EQ(c.size(), 20);
+    const IndexMask d = mask.slice_content(IndexRange(1000, 100));
+    EXPECT_EQ(d.size(), 0);
+  }
+  {
+    const IndexMask mask = IndexMask::from_initializers(
+        {4, 5, 100, 1'000, 10'000, 20'000, 25'000, 100'000}, memory);
+    EXPECT_EQ(mask.slice_content(IndexRange(10)).size(), 2);
+    EXPECT_EQ(mask.slice_content(IndexRange(200)).size(), 3);
+    EXPECT_EQ(mask.slice_content(IndexRange(2'000)).size(), 4);
+    EXPECT_EQ(mask.slice_content(IndexRange(10'000)).size(), 4);
+    EXPECT_EQ(mask.slice_content(IndexRange(10'001)).size(), 5);
+    EXPECT_EQ(mask.slice_content(IndexRange(1'000'000)).size(), 8);
+    EXPECT_EQ(mask.slice_content(IndexRange(10'000, 100'000)).size(), 4);
+    EXPECT_EQ(mask.slice_content(IndexRange(1'001, 100'000)).size(), 4);
+    EXPECT_EQ(mask.slice_content(IndexRange(1'000, 100'000)).size(), 5);
+    EXPECT_EQ(mask.slice_content(IndexRange(1'000, 99'000)).size(), 4);
+    EXPECT_EQ(mask.slice_content(IndexRange(1'000, 10'000)).size(), 2);
+  }
+}
+
 }  // namespace blender::index_mask::tests
