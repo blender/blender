@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
 "\"POT-Creation-Date: 2019-02-25 20:41:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -440,6 +440,11 @@ msgid "Location"
 msgstr "Аҭыԥ"
 
 
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Агьежьра"
+
+
 msgctxt "Image"
 msgid "New"
 msgstr "Аҿыц"
@@ -450,18 +455,9 @@ msgid "Text"
 msgstr "Аҳәоу"
 
 
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Агьежьра"
-
-
 msgctxt "Text"
 msgid "New"
 msgstr "Аҿыц"
-
-
-msgid "location"
-msgstr "Аҭыԥ"
 
 
 msgctxt "Operator"

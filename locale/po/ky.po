@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -3364,6 +3364,10 @@ msgid "New Data"
 msgstr "Жаңы маалыматтар"
 
 
+msgid "Error (see console)"
+msgstr "Ката (консолду караңыз)"
+
+
 msgid "Description:"
 msgstr "Баяндамасы:"
 
@@ -3388,21 +3392,9 @@ msgid "Internet:"
 msgstr "Интернет:"
 
 
-msgid "description"
-msgstr "баяндама"
-
-
-msgid "location"
-msgstr "жайгашкан жери"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Документация"
-
-
-msgid "Error (see console)"
-msgstr "Ката (консолду караңыз)"
 
 
 msgctxt "Operator"

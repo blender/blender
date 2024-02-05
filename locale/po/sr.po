@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -1269,6 +1269,10 @@ msgstr "Кости"
 
 msgid "Index"
 msgstr "Индекс"
+
+
+msgid "Solo"
+msgstr "Соло"
 
 
 msgid "Visible"
@@ -10344,14 +10348,6 @@ msgid "UV Center"
 msgstr "UV средиште"
 
 
-msgid "UV Layer"
-msgstr "UV Слој"
-
-
-msgid "UV Layer name"
-msgstr "Име UV слоја"
-
-
 msgid "Add Threshold"
 msgstr "Праг додавања"
 
@@ -10889,10 +10885,6 @@ msgstr "NLA стаза"
 
 msgid "NLA Track is active"
 msgstr "NLA стаза је активна"
-
-
-msgid "Solo"
-msgstr "Соло"
 
 
 msgid "NLA Track is locked"
@@ -16723,6 +16715,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Испеци текстуре изабраних објеката"
 
 
+msgid "UV Layer"
+msgstr "UV Слој"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Додај камеру"
@@ -18010,6 +18006,10 @@ msgstr "Циљна путања"
 msgctxt "Operator"
 msgid "Refresh"
 msgstr "Освежи"
+
+
+msgid "URL"
+msgstr "Адреса"
 
 
 msgctxt "Operator"
@@ -20376,10 +20376,6 @@ msgid "Import STL"
 msgstr "Увоз у STL"
 
 
-msgid "URL"
-msgstr "Адреса"
-
-
 msgid "UV Maps"
 msgstr "UV Мапе"
 
@@ -21363,10 +21359,6 @@ msgstr "Омогућава копирање текста помоћу Shift+D"
 
 msgid "Global Undo"
 msgstr "Општа сцена"
-
-
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Самостално умећи кључеве на ipo кривој акција"
 
 
 msgid "MPlayer"
@@ -24576,6 +24568,16 @@ msgid "Manual"
 msgstr "Упутство"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Локација"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Окретање"
+
+
 msgid "Unknown"
 msgstr "Непознато"
 
@@ -24864,11 +24866,6 @@ msgstr "Калибрација"
 
 msgid "Track:"
 msgstr "Стазе:"
-
-
-msgctxt "Operator"
-msgid "Location"
-msgstr "Локација"
 
 
 msgctxt "Operator"
@@ -25205,11 +25202,6 @@ msgid "Glow"
 msgstr "Сјај"
 
 
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Окретање"
-
-
 msgctxt "Text"
 msgid "New"
 msgstr "Ново"
@@ -25329,6 +25321,10 @@ msgid "View Name"
 msgstr "Назив погледа"
 
 
+msgid "Preferences:"
+msgstr "Ваша подешавања"
+
+
 msgid "Invert Wheel Zoom Direction"
 msgstr "Обрнути смер приближавања точкићем"
 
@@ -25363,18 +25359,6 @@ msgstr "Упозорење:"
 
 msgid "Internet:"
 msgstr "Интернет:"
-
-
-msgid "description"
-msgstr "опис"
-
-
-msgid "location"
-msgstr "локација"
-
-
-msgid "Preferences:"
-msgstr "Ваша подешавања"
 
 
 msgctxt "Operator"

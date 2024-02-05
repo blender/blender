@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -3216,6 +3216,10 @@ msgstr "Кістки"
 
 msgid "Index"
 msgstr "Індекс"
+
+
+msgid "Solo"
+msgstr "Соло"
 
 
 msgid "Visible"
@@ -33684,14 +33688,6 @@ msgid "2D Scale for the warp"
 msgstr "2D Масштаб для жолоблення"
 
 
-msgid "UV Layer"
-msgstr "Шар UV"
-
-
-msgid "UV Layer name"
-msgstr "Назва UV шару"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Модифікатор редагування вагомості вершин групи"
 
@@ -35811,10 +35807,6 @@ msgid "NLA Track is active"
 msgstr "Доріжка НЛА активна"
 
 
-msgid "Solo"
-msgstr "Соло"
-
-
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
 msgstr "Доріжка НЛА обчислюється окремо (тобто активна дія та всі інші доріжки НЛА у тому ж блоці даних анімації відключені)"
 
@@ -37894,6 +37886,10 @@ msgstr "Порівняти"
 
 msgid "Input Type"
 msgstr "Тип Уводу"
+
+
+msgid "Menu"
+msgstr "Меню"
 
 
 msgid "Dot Product"
@@ -54012,6 +54008,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Розділити карти запікання за матеріалами, використавши назву матеріалу у вихідному файлі (лише зовнішньо)"
 
 
+msgid "UV Layer"
+msgstr "Шар UV"
+
+
 msgid "UV layer to override active"
 msgstr "UV-шар для перекриття активного"
 
@@ -58819,6 +58819,10 @@ msgid "Copy settings from previous version"
 msgstr "Скопіювати налаштування з попередньої версії"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Activate Keyconfig"
 msgstr "Активувати конфігурацію клавіш"
@@ -60192,10 +60196,6 @@ msgstr "Теми"
 
 msgid "Editing"
 msgstr "Редагування"
-
-
-msgid "Extensions"
-msgstr "Розширення"
 
 
 msgid "Add-ons"
@@ -67145,10 +67145,6 @@ msgid "Open a website in the web browser"
 msgstr "Відкрити вебсайт у веббраузері"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "URL для відкриття"
 
@@ -67325,10 +67321,6 @@ msgstr "Активний пензель"
 
 msgid "Editable cavity curve"
 msgstr "Редагованоздатна крива впадин"
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "Взяти середнє значення декількох вибірок, щоб згладити штрих пензля"
 
 
 msgid "Active Palette"
@@ -68811,10 +68803,6 @@ msgstr "Стилі"
 
 msgid "Transparent Checkerboard"
 msgstr "Шахівниця прозорості"
-
-
-msgid "Menu"
-msgstr "Меню"
 
 
 msgid "Menu Item"
@@ -70898,16 +70886,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Доступне автовставлення ключових кадрів"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Автоматичне вставлення ключових кадрів на доступних Ф-кривих"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Необхідно вставити ключовий кадр"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Вставляння ключового кадру лише тоді, коли він потрібний"
 
 
 msgid "Cursor Surface Project"
@@ -85830,6 +85810,10 @@ msgid "Invert Selection"
 msgstr "Інвертувати Вибрання"
 
 
+msgid "Extensions"
+msgstr "Розширення"
+
+
 msgid "Note:"
 msgstr "Примітка:"
 
@@ -86373,6 +86357,16 @@ msgstr "Тип \"%s\" неможливо знайти"
 
 msgid "Invalid regular expression (replace): "
 msgstr "Недійсний регулярний вираз (заміна):"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Локація"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Обертання"
 
 
 msgid "Unknown"
@@ -88214,11 +88208,6 @@ msgstr "Застосувати Устави Стандартів"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Локація"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Споріднено"
 
@@ -88283,6 +88272,11 @@ msgstr "Відстеження для Локації"
 
 msgid "Timecode Index"
 msgstr "Індекс Часкоду"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Зум"
 
 
 msgctxt "Operator"
@@ -88810,16 +88804,6 @@ msgstr "Генерувати Нарисний Олівець"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Горизонтально"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Вертикально"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Інвертувати Канал Червоного"
 
@@ -89343,11 +89327,6 @@ msgstr "Передогляд як Тло"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Зум"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Підігнати Передогляд під Вікно"
 
@@ -89479,11 +89458,6 @@ msgstr "Приглушити Невибрані Смужки"
 msgctxt "Operator"
 msgid "Unmute Deselected Strips"
 msgstr "Знеглушити Зневибрані Смужки"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Обертання"
 
 
 msgctxt "Operator"
@@ -90238,6 +90212,10 @@ msgid "Invert Pan Axis"
 msgstr "Інвертувати Панорамування Вісь"
 
 
+msgid "Preferences:"
+msgstr "Уподобання:"
+
+
 msgid "Use Light"
 msgstr "Вжити Освітлювач"
 
@@ -90279,16 +90257,12 @@ msgid "No custom %s configured"
 msgstr "Нема власного %s сконфігурованого"
 
 
+msgid "Error (see console)"
+msgstr "Помилка (дивіться консоль)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Набір Кольорів %d"
-
-
-msgid "Color %d"
-msgstr "Колір %d"
 
 
 msgid "Description:"
@@ -90319,25 +90293,17 @@ msgid "Internet:"
 msgstr "Інтернет:"
 
 
-msgid "description"
-msgstr "опис"
+msgid "Color Set %d"
+msgstr "Набір Кольорів %d"
 
 
-msgid "location"
-msgstr "локація"
+msgid "Color %d"
+msgstr "Колір %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Документація"
-
-
-msgid "Preferences:"
-msgstr "Уподобання:"
-
-
-msgid "Error (see console)"
-msgstr "Помилка (дивіться консоль)"
 
 
 msgctxt "Operator"

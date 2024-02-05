@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2024-01-10 17:11+0000\n"
 "Last-Translator: 楊 景貴 <issacsopp@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3504,6 +3504,10 @@ msgstr "骨骼"
 
 msgid "Index"
 msgstr "索引"
+
+
+msgid "Solo"
+msgstr "獨演"
 
 
 msgid "Visible"
@@ -22096,14 +22100,6 @@ msgid "Object defining offset"
 msgstr "定義偏移的物體"
 
 
-msgid "UV Layer"
-msgstr "UV 分層"
-
-
-msgid "UV Layer name"
-msgstr "UV 分層名稱"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "權重點群編輯修改器"
 
@@ -23701,10 +23697,6 @@ msgstr "NLA 軌道"
 
 msgid "NLA Track is active"
 msgstr "作用中 NLA 軌道"
-
-
-msgid "Solo"
-msgstr "獨演"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -25389,6 +25381,10 @@ msgstr "等於"
 
 msgid "Compare"
 msgstr "比較"
+
+
+msgid "Menu"
+msgstr "選單"
 
 
 msgid "Dot Product"
@@ -35101,6 +35097,10 @@ msgid "Type of pass to bake, some of them may not be supported by the current re
 msgstr "要烘焙的通遞類型，有些可能目前的算繪引擎不支援"
 
 
+msgid "UV Layer"
+msgstr "UV 分層"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "添加攝影機"
@@ -37899,6 +37899,10 @@ msgstr "複製先版設定"
 
 msgid "Copy settings from previous version"
 msgstr "複製之前版本的設定"
+
+
+msgid "URL"
+msgstr "URL"
 
 
 msgctxt "Operator"
@@ -43022,10 +43026,6 @@ msgid "Save System Info"
 msgstr "儲存系統資訊"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "要開啟的 URL"
 
@@ -43085,10 +43085,6 @@ msgstr "作用中筆刷"
 
 msgid "Editable cavity curve"
 msgstr "可編輯坑腔曲線"
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "平均多個輸入樣本來讓筆刷筆觸變得平滑"
 
 
 msgid "Active Palette"
@@ -43884,10 +43880,6 @@ msgstr "面板色彩"
 
 msgid "Styles"
 msgstr "樣式"
-
-
-msgid "Menu"
-msgstr "選單"
 
 
 msgid "Menu Item"
@@ -45243,16 +45235,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "自動插入可用鍵幀"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "自動在可用的 F 曲線中插入鍵幀"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "需要時插入鍵幀"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "僅在需要鍵幀的位置插入鍵幀"
 
 
 msgid "Allow Negative Frames"
@@ -53426,6 +53410,16 @@ msgid "Manual"
 msgstr "手冊"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "位置"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "旋轉"
+
+
 msgid "Unknown"
 msgstr "未知"
 
@@ -54014,11 +54008,6 @@ msgstr "重建代理"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "位置"
-
-
-msgctxt "Operator"
 msgid "Set Floor"
 msgstr "設定地面"
 
@@ -54512,11 +54501,6 @@ msgid "Reload Strips and Adjust Length"
 msgstr "重新載入片段並調整長度"
 
 
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "旋轉"
-
-
 msgid "Fractional Preview Zoom"
 msgstr "無階段式預覽縮放"
 
@@ -54729,6 +54713,10 @@ msgid "Excluded Paths"
 msgstr "排除的路徑"
 
 
+msgid "Preferences:"
+msgstr "偏好設定："
+
+
 msgid "Invert Wheel Zoom Direction"
 msgstr "反轉滾輪遠近調焦方向"
 
@@ -54741,8 +54729,8 @@ msgid "Missing script files"
 msgstr "遺失的命令稿檔案"
 
 
-msgid "Color Set %d"
-msgstr "色彩集 %d"
+msgid "Error (see console)"
+msgstr "錯誤 (查看主控臺)"
 
 
 msgid "Description:"
@@ -54773,25 +54761,13 @@ msgid "Internet:"
 msgstr "網際網路："
 
 
-msgid "description"
-msgstr "描述"
-
-
-msgid "location"
-msgstr "位置"
+msgid "Color Set %d"
+msgstr "色彩集 %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "文件"
-
-
-msgid "Preferences:"
-msgstr "偏好設定："
-
-
-msgid "Error (see console)"
-msgstr "錯誤 (查看主控臺)"
 
 
 msgctxt "Operator"

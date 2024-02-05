@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2024-01-18 11:33+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -3965,6 +3965,10 @@ msgid "This collection was added via a library override in the current blend fil
 msgstr "Táto kolekcia bola pridaná prostredníctvom prepisu knižnice v aktuálnom blend súbore"
 
 
+msgid "Solo"
+msgstr "Sólo"
+
+
 msgid "Visible"
 msgstr "Viditeľné"
 
@@ -3983,10 +3987,6 @@ msgstr "PRAVDA, keď sú všetci rodičia tejto kolekcie kostí označení ako v
 
 msgid "Effective Visibility"
 msgstr "Efektívna viditeľnosť"
-
-
-msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible"
-msgstr "Určuje, či je táto kolekcia kostí skutočne viditeľná na obrazovke. Táto hodnota je PRAVDA, keď je táto kolekcia kostí a všetci jej rodičia viditeľní"
 
 
 msgid "Unique within the Armature"
@@ -19926,6 +19926,30 @@ msgstr "Faktor dutiny"
 
 msgid "The contrast of the cavity mask"
 msgstr "Kontrast masky dutiny"
+
+
+msgid "Area Normal Falloff"
+msgstr "Dopad normálnej oblasti"
+
+
+msgid "Extend the angular range with a falloff gradient"
+msgstr "Rozšírenie uhlového rozsahu na stupňovanie dopadu"
+
+
+msgid "Area Normal Limit"
+msgstr "Limit normálnej oblasti"
+
+
+msgid "The range of angles that will be affected"
+msgstr "Rozsah uhlov, ktoré budú ovplyvnené"
+
+
+msgid "View Normal Falloff"
+msgstr "Zobraziť normálny dopad"
+
+
+msgid "View Normal Limit"
+msgstr "Zobraziť normálny limit"
 
 
 msgid "Blending Mode"
@@ -40358,14 +40382,6 @@ msgid "2D Scale for the warp"
 msgstr "2D mierka deformácie"
 
 
-msgid "UV Layer"
-msgstr "Vrstva UV"
-
-
-msgid "UV Layer name"
-msgstr "Názov UV vrstvy"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Modifikátor úpravy váh SV"
 
@@ -42620,10 +42636,6 @@ msgstr "Prepis stopy"
 
 msgid "In a local override data, whether this NLA track comes from the linked reference data, or is local to the override"
 msgstr "V lokálnom prepise údajov určuje, či táto stopa NLA pochádza z prepojených referenčných údajov, alebo je lokálna pre prepis"
-
-
-msgid "Solo"
-msgstr "Sólo"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -45275,6 +45287,10 @@ msgstr "Porovnať"
 
 msgid "Input Type"
 msgstr "Typ vstupu"
+
+
+msgid "Menu"
+msgstr "Ponuka"
 
 
 msgid "Element-Wise"
@@ -49410,6 +49426,10 @@ msgid "Value to Normal"
 msgstr "Hodnota na normálu"
 
 
+msgid "Active item"
+msgstr "Aktívna položka"
+
+
 msgid "Bake Item"
 msgstr "Položka zapečenia"
 
@@ -49838,10 +49858,6 @@ msgid "Declaration of sockets and ui panels of a node group"
 msgstr "Deklarácia zásuviek a užívateľských panelov skupiny uzlov"
 
 
-msgid "Active item"
-msgstr "Aktívna položka"
-
-
 msgid "Active Index"
 msgstr "Aktívny index"
 
@@ -50144,6 +50160,10 @@ msgstr "Zapečenia"
 
 msgid "Bake data for every bake node"
 msgstr "Údaje o zapečení pre každý uzol zapečenia"
+
+
+msgid "Data-Block"
+msgstr "Blok údajov"
 
 
 msgid "Nodes Modifier Panel"
@@ -51896,11 +51916,6 @@ msgstr "Zobraziť všetko"
 
 msgid "Show all bone collections"
 msgstr "Zobraziť všetky kolekcie kostí"
-
-
-msgctxt "Operator"
-msgid "Solo Visibility"
-msgstr "Samostatná viditeľnosť"
 
 
 msgctxt "Operator"
@@ -58329,14 +58344,6 @@ msgid "Relative Asset Identifier"
 msgstr "Relatívny identifikátor aktív"
 
 
-msgid "Session UUID"
-msgstr "UUID relácia"
-
-
-msgid "Session UUID of the data-block to use by the operator"
-msgstr "UUID relácie bloku údajov na použitie operátorom"
-
-
 msgctxt "Operator"
 msgid "Set Geometry Randomization"
 msgstr "Nastaviť náhodnú geometriu"
@@ -61395,14 +61402,6 @@ msgstr "Faktor mierky použitý na segmenty krivky"
 msgctxt "Operator"
 msgid "Scale from Neighbor"
 msgstr "Mierka od suseda"
-
-
-msgid ""
-"Increase or decrease the value of selected keys \n"
-"  in relationship to the neighboring one"
-msgstr ""
-"Zvýši alebo zníži hodnotu vybraných kľúčov \n"
-"vo vzťahu k susednému"
 
 
 msgid "Which end of the segment to use as a reference to scale from"
@@ -67513,6 +67512,16 @@ msgstr "Vytvorí kópie vybraných uzlov, ale nie ich stromy uzlov a presunie ic
 
 
 msgctxt "Operator"
+msgid "Add Item"
+msgstr "Pridať položku"
+
+
+msgctxt "Operator"
+msgid "Remove Item"
+msgstr "Odstrániť položku"
+
+
+msgctxt "Operator"
 msgid "Find Node"
 msgstr "Nájsť uzol"
 
@@ -67600,18 +67609,8 @@ msgid "Toggle hiding of selected nodes"
 msgstr "Prepne skrytie vybraných uzlov"
 
 
-msgctxt "Operator"
-msgid "Add Item"
-msgstr "Pridať položku"
-
-
 msgid "Add an item to the index switch"
 msgstr "Pridá položku do prepínača indexov"
-
-
-msgctxt "Operator"
-msgid "Remove Item"
-msgstr "Odstrániť položku"
 
 
 msgid "Remove an item from the index switch"
@@ -68297,6 +68296,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Rozdelí zapečené mapy podľa materiálu, použitím názvu materiálu vo výstupnom súbore (iba externý)"
 
 
+msgid "UV Layer"
+msgstr "Vrstva UV"
+
+
 msgid "UV layer to override active"
 msgstr "UV vrstva na prepísanie aktíva"
 
@@ -68630,10 +68633,6 @@ msgstr "Odstráni objekt zo všetkých scén"
 msgctxt "Operator"
 msgid "Drop Geometry Node Group on Object"
 msgstr "Pustiť geometriu skupiny uzlov na objekt"
-
-
-msgid "Session UUID of the geometry node group being dropped"
-msgstr "Relácia UUID skupiny geometrických uzlov, ktorá bude spustená"
 
 
 msgid "Show the datablock selector in the modifier"
@@ -69533,10 +69532,6 @@ msgstr "Vytvorí lokálny prepis tohto prepojeného bloku údajov a jeho hierarc
 
 msgid "Override Collection"
 msgstr "Prepísať kolekciu"
-
-
-msgid "Session UUID of the directly linked collection containing the selected object, to make an override from"
-msgstr "UUID relácia priamo prepojenej kolekcie, ktorá obsahuje vybraný objekt na vytvorenie prepisu"
 
 
 msgid "Make linked data local to each object"
@@ -71085,8 +71080,8 @@ msgid "Snap selected item(s) to the mouse location"
 msgstr "Prichytí vybranú položku (položky) na polohu myši"
 
 
-msgid "Object name to place (uses the active object when this and 'session_uuid' are unset)"
-msgstr "Názov objektu pre umiestnenie (použije aktívny objekt, ak nie je nastavené toto a 'session_uuid')"
+msgid "Session UUID"
+msgstr "UUID relácia"
 
 
 msgid "Session UUID of the object to place (uses the active object when this and 'name' are unset)"
@@ -74198,6 +74193,10 @@ msgid "Add a directory to be used as a local extension repository"
 msgstr "Pridá priečinok pre používanie lokálneho úložiska rozšírení"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Remove Extension Repository"
 msgstr "Odstrániť úložisko rozšírení"
@@ -75763,10 +75762,6 @@ msgstr "Motívy"
 
 msgid "Editing"
 msgstr "Editácia"
-
-
-msgid "Extensions"
-msgstr "Prípony"
 
 
 msgid "Add-ons"
@@ -83964,10 +83959,6 @@ msgid "A string value"
 msgstr "Hodnota raťazca"
 
 
-msgid "Data-Block"
-msgstr "Blok údajov"
-
-
 msgid "A data-block value"
 msgstr "Hodnota bloku údajov"
 
@@ -84624,10 +84615,6 @@ msgstr "Riadiaci kľúč ako funkčnosť pre prístup k nástrojom"
 
 msgid "Open a website in the web browser"
 msgstr "Otvorí webovú lokalitu vo webovom prehľadávači"
-
-
-msgid "URL"
-msgstr "URL"
 
 
 msgid "URL to open"
@@ -85382,10 +85369,6 @@ msgid "Editable cavity curve"
 msgstr "Upraviteľná krivka dutiny"
 
 
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "Priemer spoločných viacnásobných vstupných snímok na vyhladenie ťahu štetca"
-
-
 msgid "Active Palette"
 msgstr "Aktívna paleta"
 
@@ -85656,30 +85639,6 @@ msgstr "Vrstva šablóny"
 
 msgid "Set the mask layer from the UV map buttons"
 msgstr "Nastaví vrstvu masky z tlačidiel UV máp"
-
-
-msgid "Area Normal Falloff"
-msgstr "Dopad normálnej oblasti"
-
-
-msgid "Extend the angular range with a falloff gradient"
-msgstr "Rozšírenie uhlového rozsahu na stupňovanie dopadu"
-
-
-msgid "Area Normal Limit"
-msgstr "Limit normálnej oblasti"
-
-
-msgid "The range of angles that will be affected"
-msgstr "Rozsah uhlov, ktoré budú ovplyvnené"
-
-
-msgid "View Normal Falloff"
-msgstr "Zobraziť normálny dopad"
-
-
-msgid "View Normal Limit"
-msgstr "Zobraziť normálny limit"
 
 
 msgid "Maximum edge length for dynamic topology sculpting (as divisor of Blender unit - higher value means smaller edge length)"
@@ -86992,10 +86951,6 @@ msgid "Prototypes"
 msgstr "Prototypy"
 
 
-msgid "Extension Repositories"
-msgstr "Úložiská rozšírení"
-
-
 msgid "Applications"
 msgstr "Aplikácie"
 
@@ -87163,10 +87118,6 @@ msgstr "Štýly"
 
 msgid "Transparent Checkerboard"
 msgstr "Priehľadná šachovnica"
-
-
-msgid "Menu"
-msgstr "Ponuka"
 
 
 msgid "Menu Background"
@@ -89532,16 +89483,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Vložiť do dostupných automatické kľúčové snímky"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automaticky vloží kľúčovú snímku do dostupných F-kriviek"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Vložiť potrebné kľúčové snímky"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Vloží kľúčové snímky len ak je to potrebné"
 
 
 msgid "Cursor Surface Project"
@@ -89646,6 +89589,10 @@ msgstr "Rozšírený prehliadač aktív"
 
 msgid "Enable Asset Browser editor and operators to manage regular data-blocks as assets, not just poses"
 msgstr "Povolí editoru a operátorom prehliadača aktív spravovať bežné bloky údajov ako aktíva, nielen ako pózy"
+
+
+msgid "Extension Repositories"
+msgstr "Úložiská rozšírení"
 
 
 msgid "Enables extension repositories, accessible from the \"Extension Repositories\" panel in the \"File Paths\" section of the preferences. These paths are exposed as add-ons, package management is not yet integrated"
@@ -98038,14 +97985,6 @@ msgid "Type of filter to use for image transformation"
 msgstr "Typ filtra na použitie pre transformáciu obrázku"
 
 
-msgid "Subsampling (3×3)"
-msgstr "Medzisnímkovanie (3×3)"
-
-
-msgid "Use nearest with 3×3 subsamples during rendering"
-msgstr "Používanie najbližších 3×3 medzisnímok počas prekresľovania"
-
-
 msgid "Move along X axis"
 msgstr "Presúvať pozdĺž osi X"
 
@@ -105411,11 +105350,6 @@ msgid "Settings to define an extension repository"
 msgstr "Nastaví definovanie úložiska rozšírení"
 
 
-msgctxt "File browser"
-msgid "Local Directory"
-msgstr "Miestny priečinok"
-
-
 msgid "The local directory containing extensions"
 msgstr "Miestny priečinok obsahujúci rozšírenia"
 
@@ -111636,6 +111570,10 @@ msgid "Gamepad"
 msgstr "Gamepad"
 
 
+msgid "Extensions"
+msgstr "Prípony"
+
+
 msgid "HP Reverb G2"
 msgstr "HP Reverb G2"
 
@@ -112565,6 +112503,16 @@ msgstr "Scéna(y)"
 
 msgid "Brush(es)"
 msgstr "Štetec(ce)"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Umiestnenie"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotácia"
 
 
 msgid "Unknown"
@@ -114780,11 +114728,6 @@ msgstr "Použiť predvolené nastavenia"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Umiestnenie"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Príbuznosť"
 
@@ -114853,6 +114796,11 @@ msgstr "Stopy pre polohu"
 
 msgid "Timecode Index"
 msgstr "Index časového kódu"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Priblíženie"
 
 
 msgctxt "Operator"
@@ -115471,16 +115419,6 @@ msgstr "Extrahovať paletu"
 msgctxt "Operator"
 msgid "Generate Grease Pencil"
 msgstr "Vygenerovať pastelku"
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontálne"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikálne"
 
 
 msgctxt "Operator"
@@ -116257,11 +116195,6 @@ msgstr "Náhľad počas transformácie"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Priblíženie"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Prispôsobiť náhľad oknu"
 
@@ -116398,11 +116331,6 @@ msgstr "Zrušiť útlm nevybraných pásov"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Pozícia"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotácia"
 
 
 msgctxt "Operator"
@@ -117359,8 +117287,8 @@ msgid "Invert Pan Axis"
 msgstr "Invertovať os posunu"
 
 
-msgid "The add-on to use extensions is disabled! See:"
-msgstr "Doplnok na používanie rozšírení je vypnutý! Pozrite si:"
+msgid "Preferences:"
+msgstr "Predvoľby:"
 
 
 msgid "No custom MatCaps configured"
@@ -117435,11 +117363,6 @@ msgid "Fly/Walk"
 msgstr "Lietanie/Chôdza"
 
 
-msgctxt "Operator"
-msgid "Extension Add-on Repository"
-msgstr "Úložisko rozšírení doplnkov"
-
-
 msgid "Multiple add-ons with the same name found!"
 msgstr "Nenájdených viac doplnkov s rovnakým názvom!"
 
@@ -117460,20 +117383,12 @@ msgid "Enable Cycles Render Engine add-on to use Cycles"
 msgstr "Povoliť doplnok Cycles Render Engine (Mechanizmus prekreslenia Cykly) pre používanie Cyklov"
 
 
+msgid "Error (see console)"
+msgstr "Chyba (pozri konzolu)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Load Factory %s Preferences"
-msgstr "Načítať továrenské %s predvoľby"
-
-
-msgid "Color Set %d"
-msgstr "Sústava farieb %d"
-
-
-msgid "Color %d"
-msgstr "Farba %d"
 
 
 msgid "Description:"
@@ -117508,25 +117423,21 @@ msgid "User:"
 msgstr "Užívateľ:"
 
 
-msgid "description"
-msgstr "popis"
+msgid "Load Factory %s Preferences"
+msgstr "Načítať továrenské %s predvoľby"
 
 
-msgid "location"
-msgstr "umiestnenie"
+msgid "Color Set %d"
+msgstr "Sústava farieb %d"
+
+
+msgid "Color %d"
+msgstr "Farba %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentácia"
-
-
-msgid "Preferences:"
-msgstr "Predvoľby:"
-
-
-msgid "Error (see console)"
-msgstr "Chyba (pozri konzolu)"
 
 
 msgctxt "Operator"
@@ -117877,11 +117788,6 @@ msgstr "Pozadie"
 msgctxt "Operator"
 msgid "Make Local..."
 msgstr "Vytvoriť lokálne..."
-
-
-msgctxt "Operator"
-msgid "Insert Keyframe with Keying Set"
-msgstr "Vloží kľúčovú snímku so sústavou kľúčov"
 
 
 msgctxt "Operator"
@@ -118862,6 +118768,11 @@ msgstr "Inštancie kolekcií"
 msgctxt "Operator"
 msgid "Delete Global"
 msgstr "Odstrániť globálne"
+
+
+msgctxt "Operator"
+msgid "Insert Keyframe with Keying Set"
+msgstr "Vloží kľúčovú snímku so sústavou kľúčov"
 
 
 msgctxt "Operator"
@@ -121375,10 +121286,6 @@ msgstr "Kompilácia tieňovačov (%d zostávajúce)"
 
 msgid "Optimizing Shaders (%d remaining)"
 msgstr "Optimalizácia tieňovačov (%d zostávajúce)"
-
-
-msgid "EEVEE (Legacy)"
-msgstr "EEVEE (zdedené)"
 
 
 msgid "%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"
@@ -128654,14 +128561,6 @@ msgid "Level Set"
 msgstr "Nastavenie úrovne"
 
 
-msgid ""
-"Byte Color (sRGB encoded):\n"
-"%3d  %3d  %3d  %3d"
-msgstr ""
-"Farba bajtu (kódované v sRGB):\n"
-"%3d %3d  %3d  %3d"
-
-
 msgid "Data Set"
 msgstr "Nastavenie údajov"
 
@@ -129706,10 +129605,6 @@ msgstr "Režim(TAB) %s, (S)prichytiť %s, (M)medián %s, (L)imit %.2f (Alt posun
 
 msgid "Could not initialize stitching on any selected object"
 msgstr "Nepodarilo sa inicializovať zošitie na žiadnom vybranom objekte"
-
-
-msgid "Stitching only works with less than %i objects selected (%u selected)"
-msgstr "Zošitie funguje len pri vybratých menej ako %i objektoch (vybrané %u)"
 
 
 msgid "Lock Method"
@@ -131738,12 +131633,12 @@ msgid "%s area type does not support gizmos"
 msgstr "Typ oblasti %s nepodporuje manipulačné prvky"
 
 
-msgid "Unknown operator"
-msgstr "Neznámy operátor"
-
-
 msgid "Operator missing srna"
 msgstr "Chýbajúci operátor srna"
+
+
+msgid "Unknown operator"
+msgstr "Neznámy operátor"
 
 
 msgid "Gizmo target property '%s.%s' not found"
@@ -134147,10 +134042,6 @@ msgid "Shade Smooth"
 msgstr "Vyhladiť tieň"
 
 
-msgid "Delta Time"
-msgstr "Čas delta"
-
-
 msgid "Baked %d - %d"
 msgstr "Zapečené %d - %d"
 
@@ -134161,6 +134052,10 @@ msgstr "Snímky %d - %d"
 
 msgid "Skip"
 msgstr "Preskočiť"
+
+
+msgid "Delta Time"
+msgstr "Čas delta"
 
 
 msgid "Forward the output of the simulation input node directly to the output node and ignore the nodes in the simulation zone"

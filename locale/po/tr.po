@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -8459,6 +8459,10 @@ msgid "Z Axis"
 msgstr "Z Eks"
 
 
+msgid "Active item"
+msgstr "Etkin öge"
+
+
 msgid "Collection of repeat items"
 msgstr "Yinelenen ögeler koleksiyonu"
 
@@ -8475,10 +8479,6 @@ msgid "Tooltip"
 msgstr "Araç İpucu"
 
 
-msgid "Active item"
-msgstr "Etkin öge"
-
-
 msgid "Active Index"
 msgstr "Etkin İndeks"
 
@@ -8493,6 +8493,10 @@ msgstr "Saptanmış Kapalı"
 
 msgid "Bake ID"
 msgstr "Pişirme Kimliği"
+
+
+msgid "Data-Block"
+msgstr "Veri Bloku"
 
 
 msgid "Object Constraints"
@@ -8577,11 +8581,6 @@ msgstr "Kemik Koleksiyonu"
 msgctxt "Operator"
 msgid "Move Bone Collection"
 msgstr "Kemik Koleksiyonunu Taşı"
-
-
-msgctxt "Operator"
-msgid "Solo Visibility"
-msgstr "Tekli Görünürlük"
 
 
 msgid "Flip Names"
@@ -9011,14 +9010,6 @@ msgid "Asset Library Identifier"
 msgstr "Varlık Kitaplığı Tanımlayıcısı"
 
 
-msgid "Session UUID"
-msgstr "Oturum UUID'si"
-
-
-msgid "Session UUID of the data-block to use by the operator"
-msgstr "İşleç tarafından kullanılacak veri blokunun oturum UUID'si"
-
-
 msgid "Open Arrow"
 msgstr "Ok Aç"
 
@@ -9321,10 +9312,6 @@ msgid "Transfer Mesh Data Layout"
 msgstr "Örgü Verisi Yerleşimini Aktar"
 
 
-msgid "Session UUID of the geometry node group being dropped"
-msgstr "Bırakılan geometri düğümü grubunun oturum UUID'si"
-
-
 msgctxt "Operator"
 msgid "Duplicate Objects"
 msgstr "Nesneleri Çoğalt"
@@ -9385,6 +9372,10 @@ msgstr "Kıl Yarıçapı"
 msgctxt "Operator"
 msgid "Bake Simulation"
 msgstr "Pişirme Benzetimi"
+
+
+msgid "Session UUID"
+msgstr "Oturum UUID'si"
 
 
 msgctxt "Operator"
@@ -10150,10 +10141,6 @@ msgstr "Tüm Gölgelendirme Türleri"
 msgctxt "Operator"
 msgid "Refresh Data-Block Previews"
 msgstr "Veri Bloku Önizlemelerini Yenile"
-
-
-msgid "Data-Block"
-msgstr "Veri Bloku"
 
 
 msgctxt "Operator"
@@ -12330,6 +12317,10 @@ msgid "Default To"
 msgstr "Saptanmışlara Dön"
 
 
+msgid "Preferences:"
+msgstr "Tercihler:"
+
+
 msgctxt "Operator"
 msgid "Load Factory Blender Preferences"
 msgstr "Blender Fabrika Tercihlerini Yükle"
@@ -12339,12 +12330,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Tersine Çevir"
 
 
-msgid "Load Factory %s Preferences"
-msgstr "%s Fabrika Tercihlerini Yükle"
-
-
-msgid "Color %d"
-msgstr "Renk %d"
+msgid "Error (see console)"
+msgstr "Hata (konsola bakın)"
 
 
 msgid "Description:"
@@ -12379,25 +12366,17 @@ msgid "User:"
 msgstr "Kullanıcı:"
 
 
-msgid "description"
-msgstr "açıklama"
+msgid "Load Factory %s Preferences"
+msgstr "%s Fabrika Tercihlerini Yükle"
 
 
-msgid "location"
-msgstr "konum"
+msgid "Color %d"
+msgstr "Renk %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Belgelendirme"
-
-
-msgid "Preferences:"
-msgstr "Tercihler:"
-
-
-msgid "Error (see console)"
-msgstr "Hata (konsola bakın)"
 
 
 msgctxt "Operator"

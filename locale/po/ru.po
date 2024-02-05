@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2023-12-11 03:52+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
@@ -3943,6 +3943,10 @@ msgstr "Локально переопределена"
 
 msgid "This collection was added via a library override in the current blend file"
 msgstr "Эта коллекция была добавлена через переопределение библиотеки в текущем blend-файле"
+
+
+msgid "Solo"
+msgstr "Соло"
 
 
 msgid "Visible"
@@ -33905,14 +33909,6 @@ msgid "Object To"
 msgstr "Объект-получатель"
 
 
-msgid "UV Layer"
-msgstr "UV-слой"
-
-
-msgid "UV Layer name"
-msgstr "Имя UV-слоя"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Модификатор редактирования весов вершин группы"
 
@@ -35851,10 +35847,6 @@ msgstr "НЛА-трек"
 
 msgid "NLA Track is active"
 msgstr "НЛА-трек активен"
-
-
-msgid "Solo"
-msgstr "Соло"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -37906,6 +37898,10 @@ msgstr "Импликация"
 
 msgid "Compare"
 msgstr "Сравнить"
+
+
+msgid "Menu"
+msgstr "Меню"
 
 
 msgid "Element-Wise"
@@ -52463,6 +52459,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Разделить запекаемые карты по материалу, используя имя материала в качестве имени выходного файла (только для внешнего сохранения)"
 
 
+msgid "UV Layer"
+msgstr "UV-слой"
+
+
 msgid "UV layer to override active"
 msgstr "UV-слой для использования вместо активного"
 
@@ -56606,6 +56606,10 @@ msgstr "Копировать предыдущие настройки"
 
 msgid "Copy settings from previous version"
 msgstr "Копировать настройки из предыдущей версии"
+
+
+msgid "URL"
+msgstr "URL"
 
 
 msgctxt "Operator"
@@ -63558,10 +63562,6 @@ msgid "Toolbar Prompt"
 msgstr "Запрос панели инструментов"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "Открываемый адрес URL"
 
@@ -63716,10 +63716,6 @@ msgstr "Активная кисть"
 
 msgid "Editable cavity curve"
 msgstr "Редактируемая кривая углублений"
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "Взять среднее значение от нескольких сэмплов, чтобы сгладить штрих кисти"
 
 
 msgid "Active Palette"
@@ -65092,10 +65088,6 @@ msgstr "Цвета иконок"
 
 msgid "Styles"
 msgstr "Стили"
-
-
-msgid "Menu"
-msgstr "Меню"
 
 
 msgid "Menu Item"
@@ -66996,16 +66988,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Автоматически вставлять ключевые кадры при доступности"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Автоматически вставлять ключевые кадры для имеющихся F-кривых"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Обязательный ключевой кадр"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Вставлять ключевые кадры только при необходимости"
 
 
 msgid "Cursor Surface Project"
@@ -80634,6 +80618,16 @@ msgid "Load Blender %d.%d Settings"
 msgstr "Загрузить настройки Blender %d.%d"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Положение"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Повернуть"
+
+
 msgid "Unknown"
 msgstr "Неизвестно"
 
@@ -82049,11 +82043,6 @@ msgstr "Размер прокси"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Положение"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Аффинное"
 
@@ -82110,6 +82099,11 @@ msgstr "Нет активного трека-плоскости"
 
 msgid "Timecode Index"
 msgstr "Таймкод"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Масштаб"
 
 
 msgctxt "Operator"
@@ -83097,11 +83091,6 @@ msgstr "Использовать подложку для предпросмот�
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Масштаб"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Вписать предпросмотр в окно"
 
@@ -83213,11 +83202,6 @@ msgstr "Выключить невыделенные клипы"
 msgctxt "Operator"
 msgid "Unmute Deselected Strips"
 msgstr "Включить невыделенные клипы"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Повернуть"
 
 
 msgctxt "Operator"
@@ -83844,6 +83828,10 @@ msgid "Swap Y and Z Axes"
 msgstr "Поменять местами оси Y и Z"
 
 
+msgid "Preferences:"
+msgstr "Настройки:"
+
+
 msgid "Use Light"
 msgstr "Использовать свет"
 
@@ -83881,16 +83869,12 @@ msgid "No custom %s configured"
 msgstr "Нет настроенных объектов %s"
 
 
+msgid "Error (see console)"
+msgstr "Ошибка (см. консоль)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Цветовой набор %d"
-
-
-msgid "Color %d"
-msgstr "Цвет %d"
 
 
 msgid "Description:"
@@ -83925,25 +83909,17 @@ msgid "User:"
 msgstr "Пользователь:"
 
 
-msgid "description"
-msgstr "описание"
+msgid "Color Set %d"
+msgstr "Цветовой набор %d"
 
 
-msgid "location"
-msgstr "положение"
+msgid "Color %d"
+msgstr "Цвет %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Документация"
-
-
-msgid "Preferences:"
-msgstr "Настройки:"
-
-
-msgid "Error (see console)"
-msgstr "Ошибка (см. консоль)"
 
 
 msgctxt "Operator"

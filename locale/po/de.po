@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -22585,14 +22585,6 @@ msgid "Object To"
 msgstr "Objekt zu"
 
 
-msgid "UV Layer"
-msgstr "Ebene"
-
-
-msgid "UV Layer name"
-msgstr "Ebenenname"
-
-
 msgid "Default Weight"
 msgstr "Standardgewicht"
 
@@ -25439,6 +25431,10 @@ msgstr "Vergleichen"
 
 msgid "Input Type"
 msgstr "Eingabetyp"
+
+
+msgid "Menu"
+msgstr "Menü"
 
 
 msgid "Dot Product"
@@ -34954,6 +34950,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Bildtexturen von ausgewählten Objekten backen"
 
 
+msgid "UV Layer"
+msgstr "Ebene"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Kamera hinzufügen"
@@ -37491,6 +37491,10 @@ msgid "Copy settings from previous version"
 msgstr "Einstellungen von voriger Version übernehmen"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Activate Keyconfig"
 msgstr "Keyconfig aktivieren"
@@ -38277,10 +38281,6 @@ msgstr "Themen"
 
 msgid "Editing"
 msgstr "Bearbeitung"
-
-
-msgid "Extensions"
-msgstr "Erweiterungen"
 
 
 msgid "Add-ons"
@@ -41761,10 +41761,6 @@ msgid "Open a website in the web browser"
 msgstr "Eine Webseite im Webbrowser öffnen"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "Zu öffnende URL"
 
@@ -42927,10 +42923,6 @@ msgstr "Symbolfarbe"
 
 msgid "Styles"
 msgstr "Stile"
-
-
-msgid "Menu"
-msgstr "Menü"
 
 
 msgid "Menu Item"
@@ -44354,16 +44346,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Automatische Schlüsselbilder fügen Verfügbares ein"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automatisches Schlüsselbild-Einfügen in verfügbaren F-Kurven"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Schlüsselbilder bei Bedarf einfügen"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Schlüsselbilder nur einfügen wenn sie benötigt werden"
 
 
 msgid "Allow Negative Frames"
@@ -53201,6 +53185,10 @@ msgid "Gamepad"
 msgstr "Gamepad"
 
 
+msgid "Extensions"
+msgstr "Erweiterungen"
+
+
 msgid "HP Reverb G2"
 msgstr "HP Reverb G2"
 
@@ -53665,6 +53653,16 @@ msgstr "Abzweig: %s"
 
 msgid "Type \"%s\" can not be found"
 msgstr "Typ \"%s\" konnte nicht gefunden werden"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Position"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotation"
 
 
 msgid "Unknown"
@@ -55157,11 +55155,6 @@ msgstr "Anwenden der Standardeinstellungen"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Position"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Affine"
 
@@ -55214,6 +55207,11 @@ msgstr "Keine aktive Ebenenspur"
 
 msgid "Tracks for Location"
 msgstr "Tracks für Ort"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Zoom"
 
 
 msgctxt "Operator"
@@ -55702,16 +55700,6 @@ msgstr "Wachsstift erzeugen"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontal"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikal"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Rotkanal invertieren"
 
@@ -56193,11 +56181,6 @@ msgstr "Vorschau als Hintergrund"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Zoom"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Vorschau in Fenster einpassen"
 
@@ -56309,11 +56292,6 @@ msgstr "Gaußscher Weichzeichner"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Position"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotation"
 
 
 msgctxt "Operator"
@@ -56949,6 +56927,10 @@ msgid "Invert Pan Axis"
 msgstr "Schwenkachse umkehren"
 
 
+msgid "Preferences:"
+msgstr "Benutzereinstellungen:"
+
+
 msgid "Use Light"
 msgstr "Verwende Licht"
 
@@ -56982,16 +56964,12 @@ msgid "No custom %s configured"
 msgstr "Kein Benutzerdefiniertes %s konfiguriert"
 
 
+msgid "Error (see console)"
+msgstr "Fehler (siehe Konsole)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Farbset %d"
-
-
-msgid "Color %d"
-msgstr "Farbe %d"
 
 
 msgid "Description:"
@@ -57022,25 +57000,17 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "Beschreibung"
+msgid "Color Set %d"
+msgstr "Farbset %d"
 
 
-msgid "location"
-msgstr "Position"
+msgid "Color %d"
+msgstr "Farbe %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentation"
-
-
-msgid "Preferences:"
-msgstr "Benutzereinstellungen:"
-
-
-msgid "Error (see console)"
-msgstr "Fehler (siehe Konsole)"
 
 
 msgctxt "Operator"

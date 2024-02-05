@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -9057,14 +9057,6 @@ msgid "Object defining offset"
 msgstr "Objektum által meghatározott eltolás"
 
 
-msgid "UV Layer"
-msgstr "UV Réteg"
-
-
-msgid "UV Layer name"
-msgstr "UV réteg neve"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Súly csúcspont-csoport szerkesztő módosító"
 
@@ -9646,6 +9638,10 @@ msgstr "Y tengely"
 
 msgid "Tile Order"
 msgstr "Csempe sorrend"
+
+
+msgid "Menu"
+msgstr "Menü"
 
 
 msgid "Grease Pencil component containing layers and curves data"
@@ -11275,6 +11271,10 @@ msgstr "Sütés"
 
 msgid "Bake image textures of selected objects"
 msgstr "A kijelölt objektumok kép textúráinak kisütése"
+
+
+msgid "UV Layer"
+msgstr "UV Réteg"
 
 
 msgid "Add a camera object to the scene"
@@ -13568,10 +13568,6 @@ msgid "Axis & Gizmo Colors"
 msgstr "Tengelyek & kütyük színei"
 
 
-msgid "Menu"
-msgstr "Menü"
-
-
 msgid "Menu Item"
 msgstr "Menü elem"
 
@@ -13779,14 +13775,6 @@ msgstr "A globális visszavonás a fájl teljes másolatának a memóriában val
 
 msgid "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis"
 msgstr "Szín az újonnan hozzáadott transzformációs F-Görbéhez (Helyzet, Forgatás, Méretezés), a szín a transzformáció tengelyén is alapszik"
-
-
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automatikus kulcsképkocka beszúrás az elérhető F-görbékben"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Kulcsképkocka beszúrása csak ha szükséges"
 
 
 msgid "Allow Negative Frames"
@@ -16134,6 +16122,16 @@ msgid "Material(s)"
 msgstr "Anyag(ok)"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Hely"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Forgatás"
+
+
 msgid "Frame Numbers"
 msgstr "Képkocka-számok"
 
@@ -16356,11 +16354,6 @@ msgstr "Exportálás fájlba"
 
 msgid "Merge:"
 msgstr "Összefésülés:"
-
-
-msgctxt "Operator"
-msgid "Location"
-msgstr "Hely"
 
 
 msgctxt "Operator"
@@ -16607,11 +16600,6 @@ msgid "Reload Strips and Adjust Length"
 msgstr "Sáv(ok) újratöltése és hossz beállítása"
 
 
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Forgatás"
-
-
 msgid "Unpack"
 msgstr "Kicsomagolás"
 
@@ -16807,6 +16795,10 @@ msgid "Auto-Save"
 msgstr "Automatikus mentés"
 
 
+msgid "Preferences:"
+msgstr "Preferenciák:"
+
+
 msgid "Invert Wheel Zoom Direction"
 msgstr "Görgős zoomolás irányának megfordítása"
 
@@ -16846,10 +16838,6 @@ msgstr "Felhasználó:"
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentáció"
-
-
-msgid "Preferences:"
-msgstr "Preferenciák:"
 
 
 msgctxt "Operator"

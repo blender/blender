@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5193,14 +5193,6 @@ msgid "UV Center"
 msgstr "UV-keskus"
 
 
-msgid "UV Layer"
-msgstr "UV-taso"
-
-
-msgid "UV Layer name"
-msgstr "UV-tason nimi"
-
-
 msgid "Use Channel"
 msgstr "Käytä kanavaa"
 
@@ -7431,6 +7423,10 @@ msgid "Save Sequence"
 msgstr "Tallenna sekvenssi"
 
 
+msgid "UV Layer"
+msgstr "UV-taso"
+
+
 msgid "Column"
 msgstr "Sarake"
 
@@ -8202,16 +8198,6 @@ msgstr "Tallenna nimellä..."
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horisontaalisesti"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikaalisesti"
-
-
-msgctxt "Operator"
 msgid "Vertex"
 msgstr "Kärki"
 
@@ -8418,6 +8404,10 @@ msgid "Axis X"
 msgstr "X-akselit"
 
 
+msgid "Preferences:"
+msgstr "Mieltymykset:"
+
+
 msgid "Use Light"
 msgstr "Käytä valoa"
 
@@ -8432,6 +8422,10 @@ msgstr "Pöyrä"
 
 msgid "Fly/Walk"
 msgstr "Lennä/kävele"
+
+
+msgid "Error (see console)"
+msgstr "Virhe (katso konsoli)"
 
 
 msgid "Description:"
@@ -8456,22 +8450,6 @@ msgstr "Varoitus:"
 
 msgid "Internet:"
 msgstr "Internet:"
-
-
-msgid "description"
-msgstr "kuvaus"
-
-
-msgid "location"
-msgstr "sijainti"
-
-
-msgid "Preferences:"
-msgstr "Mieltymykset:"
-
-
-msgid "Error (see console)"
-msgstr "Virhe (katso konsoli)"
 
 
 msgctxt "Operator"

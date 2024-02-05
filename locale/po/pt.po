@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'8b1da14f0a3d')\n"
+"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-01-22 11:04+0000\n"
-"PO-Revision-Date: 2024-01-17 02:55+0000\n"
+"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"PO-Revision-Date: 2024-01-30 23:55+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -1108,6 +1108,14 @@ msgstr "Osso ativo na edição da armação de ossos."
 
 msgid "Catalog Path"
 msgstr "Caminho do Catálogo"
+
+
+msgid "User Asset Libraries"
+msgstr "Bibliotecas de Recursos do Utilizador"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Colecção de bibliotecas de recursos do utilizador"
 
 
 msgid "Asset Library Reference"
@@ -3952,6 +3960,10 @@ msgid "Index"
 msgstr "Índice"
 
 
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Índice desta colecção de ossos na lista armature.collections_all da armação. Tenha em atenção que encontrar este índice requer analisar todas as colecções de ossos, aceda com moderação"
+
+
 msgid "Is Editable"
 msgstr "É Editável"
 
@@ -3966,6 +3978,10 @@ msgstr "É Revogação Local"
 
 msgid "This collection was added via a library override in the current blend file"
 msgstr "Esta colecção foi adicionada via revogação de biblioteca no actual ficheiro blend"
+
+
+msgid "Solo"
+msgstr "Solo"
 
 
 msgid "Visible"
@@ -3986,10 +4002,6 @@ msgstr "Verdadeiro quando todos os ascendentes desta colecção de ossos estão 
 
 msgid "Effective Visibility"
 msgstr "Efectividade de Visibilidade"
-
-
-msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible"
-msgstr "Se esta colecção de ossos está efectivamente visível na janela de visualização. Verdadeiro quando esta colecção de ossos e todos os ascendentes estão visíveis"
 
 
 msgid "Unique within the Armature"
@@ -10072,6 +10084,14 @@ msgid "Show options for whether channels related to certain types of data are in
 msgstr "Mostra as opções para definir a inclusão ou exclusão de canais relacionados a certos tipos de dados."
 
 
+msgid "Variable Fallback As Error"
+msgstr "Reserva de Variável como Erro"
+
+
+msgid "Include drivers that relied on any fallback values for their evaluation in the Only Show Errors filter, even if the driver evaluation succeeded"
+msgstr "Incluir drivers que dependem de quaisquer valores de reserva para a sua avaliação no filtro Mostrar Apenas Erros, mesmo que a avaliação do driver seja bem sucedida"
+
+
 msgid "Collapse Summary"
 msgstr "Recolher sumário"
 
@@ -10430,6 +10450,14 @@ msgid "RNA Path (from ID-block) to property used"
 msgstr "Caminho RNA (a partir do identificador de bloco) para a propriedade utilizada."
 
 
+msgid "Fallback"
+msgstr "Reserva"
+
+
+msgid "The value to use if the data path can't be resolved"
+msgstr "Valor a ser usado se o caminho dos dados não poder ser resolvido"
+
+
 msgid "ID-block that the specific property used can be found from (id_type property must be set first)"
 msgstr "O identificador de bloco a partir do qual é possível encontrar a propriedade específica usada (primeiramente, a propriedade id_type deve ser definida)."
 
@@ -10441,6 +10469,14 @@ msgstr "Tipo de identificador"
 
 msgid "Type of ID-block that can be used"
 msgstr "O tipo de identificador de bloco que pode ser usado."
+
+
+msgid "Is Fallback Used"
+msgstr "Reserva utilizada"
+
+
+msgid "Indicates that the most recent variable evaluation used the fallback value"
+msgstr "Indica que a mais recente avaliação da variável usa um valor de reserva"
 
 
 msgid "Rotation Mode"
@@ -10481,6 +10517,14 @@ msgstr "Rotação W"
 
 msgid "Average Scale"
 msgstr "Escala Média"
+
+
+msgid "Use Fallback"
+msgstr "Usar Reserva"
+
+
+msgid "Use the fallback value if the data path can't be resolved, instead of failing to evaluate the driver"
+msgstr "Usar valor de reserva se o o caminho dos dados não poder ser resolvido, em vez de falhar avaliação do driver"
 
 
 msgid "Driver Variable"
@@ -14853,6 +14897,10 @@ msgid "Use Viscosity"
 msgstr "Usar Viscosidade"
 
 
+msgid "Simulate fluids with high viscosity using a special solver"
+msgstr "Simular fluidos com alta viscosidade usando um solucionador"
+
+
 msgid "Display Type"
 msgstr "Tipo de amostragem"
 
@@ -16791,6 +16839,22 @@ msgstr "Mostrar ao Arrstar"
 
 msgid "Scale Offset"
 msgstr "Afastamento de Escala"
+
+
+msgid "Scale the offset matrix (use to apply screen-space offset)"
+msgstr "Redimensionar a matriz de afastamento (usar para aplicar afastamento em contexto do ecrã)"
+
+
+msgid "Use scale when calculating the matrix"
+msgstr "Usar escala no cálculo da matriz"
+
+
+msgid "Show Value"
+msgstr "Mostrar Valor"
+
+
+msgid "Show an indicator for the current value while dragging"
+msgstr "Mostrar um indicador para o valor actual enquanto arrasta"
 
 
 msgid "Grab Cursor"
@@ -30004,14 +30068,6 @@ msgid "Object To"
 msgstr "Para o objeto"
 
 
-msgid "UV Layer"
-msgstr "Camada UV"
-
-
-msgid "UV Layer name"
-msgstr "Nome da camada UV"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Modificador - Editar peso de grupos de vértices"
 
@@ -31821,10 +31877,6 @@ msgstr "Trilha de animação não linear"
 
 msgid "NLA Track is active"
 msgstr "Trilha de animação não linear está ativa."
-
-
-msgid "Solo"
-msgstr "Solo"
 
 
 msgid "NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)"
@@ -44458,6 +44510,10 @@ msgid "Split baked maps per material, using material name in output file (extern
 msgstr "Separa os mapas gerados e gravados por material, usando o nome do material no ficheiro de saída (somente externamente)."
 
 
+msgid "UV Layer"
+msgstr "Camada UV"
+
+
 msgid "UV layer to override active"
 msgstr "Camada UV para sobrepor a ativa"
 
@@ -47631,6 +47687,10 @@ msgstr "Copiar as definições anteriores"
 
 msgid "Copy settings from previous version"
 msgstr "Copia as definições a partir da versão anterior."
+
+
+msgid "URL"
+msgstr "Localizador padrão de recursos - URL"
 
 
 msgctxt "Operator"
@@ -53083,10 +53143,6 @@ msgid "Generate system information, saved into a text file"
 msgstr "Gera informações sobre o sistema, guardando-as em um ficheiro de texto."
 
 
-msgid "URL"
-msgstr "Localizador padrão de recursos - URL"
-
-
 msgid "URL to open"
 msgstr "A localização do tipo \"URL\" a ser aberta"
 
@@ -53136,10 +53192,6 @@ msgstr "Pincel ativo"
 
 msgid "Editable cavity curve"
 msgstr "Curva de cavidade editável."
-
-
-msgid "Average multiple input samples together to smooth the brush stroke"
-msgstr "Perfaz uma média das entradas de múltiplas amostras em conjunto para suavizar o traço do pincel."
 
 
 msgid "Active Palette"
@@ -55326,16 +55378,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Inserção automática de fotograma chave disponível"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Inserção automática de fotograma chave dentro das curvas-f disponíveis."
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Inserção de fotogramas chave necessários"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Inserção de fotogramas chave somente quando necessários."
 
 
 msgid "Allow Negative Frames"
@@ -64535,6 +64579,16 @@ msgid "Manual"
 msgstr "Manual"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Localização"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotação"
+
+
 msgid "Unknown"
 msgstr "Desconhecido"
 
@@ -65119,11 +65173,6 @@ msgstr "Construir aproximação"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Localização"
-
-
-msgctxt "Operator"
 msgid "Set Floor"
 msgstr "Definir piso"
 
@@ -65694,11 +65743,6 @@ msgstr "Recarregar as faixas e ajustar comprimento"
 
 
 msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotação"
-
-
-msgctxt "Operator"
 msgid "Clip"
 msgstr "Clipe"
 
@@ -65886,6 +65930,10 @@ msgid "Pan Sensitivity"
 msgstr "Sensibilidade para panorama"
 
 
+msgid "Preferences:"
+msgstr "Preferências:"
+
+
 msgid "Invert Wheel Zoom Direction"
 msgstr "Inverter ampliação pela roda do rato"
 
@@ -65896,6 +65944,10 @@ msgstr "Múltiplos complementos com o mesmo nome encontrados !"
 
 msgid "Missing script files"
 msgstr "Faltando ficheiros de script"
+
+
+msgid "Error (see console)"
+msgstr "Erro (veja a linha de comando)"
 
 
 msgid ":"
@@ -65930,25 +65982,9 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "descrição"
-
-
-msgid "location"
-msgstr "localização"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentação"
-
-
-msgid "Preferences:"
-msgstr "Preferências:"
-
-
-msgid "Error (see console)"
-msgstr "Erro (veja a linha de comando)"
 
 
 msgctxt "Operator"
