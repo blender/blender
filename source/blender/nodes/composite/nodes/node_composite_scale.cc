@@ -137,6 +137,10 @@ class ScaleOperation : public NodeOperation {
 
   float2 get_scale_render_size()
   {
+    if (!context().is_valid_compositing_region()) {
+      return float2(1.0f);
+    }
+
     switch (get_scale_render_size_method()) {
       case CMP_NODE_SCALE_RENDER_SIZE_STRETCH:
         return get_scale_render_size_stretch();

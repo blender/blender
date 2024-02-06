@@ -745,6 +745,11 @@ class RenderLayerOperation : public NodeOperation {
       return;
     }
 
+    if (!context().is_valid_compositing_region()) {
+      result.allocate_invalid();
+      return;
+    }
+
     GPUShader *shader = context().get_shader(shader_name);
     GPU_shader_bind(shader);
 

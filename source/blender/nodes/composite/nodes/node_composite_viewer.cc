@@ -72,6 +72,11 @@ class ViewerOperation : public NodeOperation {
 
   void execute() override
   {
+    /* See the compute_domain method for more information on the first condition. */
+    if (!context().use_composite_output() && !context().is_valid_compositing_region()) {
+      return;
+    }
+
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
 
