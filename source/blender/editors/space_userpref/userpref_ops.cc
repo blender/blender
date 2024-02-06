@@ -579,7 +579,7 @@ static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sync Extension Repository Operator
+/** \name Check for Extension Repository Updates Operator
  * \{ */
 
 static int preferences_extension_repo_sync_exec(bContext *C, wmOperator * /*op*/)
@@ -592,9 +592,9 @@ static int preferences_extension_repo_sync_exec(bContext *C, wmOperator * /*op*/
 
 static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
 {
-  ot->name = "Sync Extension Repository";
+  ot->name = "Check for Updates";
   ot->idname = "PREFERENCES_OT_extension_repo_sync";
-  ot->description = "Sync the active extension repository";
+  ot->description = "Synchronize the active extension repository with its remote URL";
 
   ot->exec = preferences_extension_repo_sync_exec;
   ot->poll = preferences_extension_repo_active_enabled_poll;
@@ -605,7 +605,7 @@ static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Upgrade Extension Repository Operator
+/** \name Update Extension Repository Operator
  * \{ */
 
 static int preferences_extension_repo_upgrade_exec(bContext *C, wmOperator * /*op*/)
@@ -618,9 +618,9 @@ static int preferences_extension_repo_upgrade_exec(bContext *C, wmOperator * /*o
 
 static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 {
-  ot->name = "Upgrade Extension Repository";
+  ot->name = "Update Repository";
   ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
-  ot->description = "Upgrade the active extension repository";
+  ot->description = "Update any outdated extensions for the active extension repository";
 
   ot->exec = preferences_extension_repo_upgrade_exec;
   ot->poll = preferences_extension_repo_active_enabled_poll;
