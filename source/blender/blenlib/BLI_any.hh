@@ -307,7 +307,7 @@ class Any {
       return buffer_.ptr();
     }
     else {
-      /* Using #malloc so that the #unique_ptr can free the memory. */
+      /* Using raw allocation here. The caller is responsible for constructing the value. */
       T *value = static_cast<T *>(::operator new(sizeof(T)));
       new (&buffer_) std::unique_ptr<T>(value);
       return value;
