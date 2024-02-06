@@ -779,12 +779,13 @@ bool RNA_struct_override_matches(Main *bmain,
 
     CLOG_INFO(&LOG, 5, "Override Checking %s", rna_path->c_str());
 
-    IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride,
-                                                                           rna_path->c_str());
-    if (ignore_overridden && op != nullptr) {
-      BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);
-
-      continue;
+    if (ignore_overridden) {
+      IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride,
+                                                                             rna_path->c_str());
+      if (op != nullptr) {
+        BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);
+        continue;
+      }
     }
 
 #ifdef DEBUG_OVERRIDE_TIMEIT
@@ -819,7 +820,8 @@ bool RNA_struct_override_matches(Main *bmain,
 
     if (diff != 0) {
       /* XXX TODO: refine this for per-item overriding of arrays... */
-      op = BKE_lib_override_library_property_find(liboverride, rna_path->c_str());
+      IDOverrideLibraryProperty *op = BKE_lib_override_library_property_find(liboverride,
+                                                                             rna_path->c_str());
       IDOverrideLibraryPropertyOperation *opop = static_cast<IDOverrideLibraryPropertyOperation *>(
           op ? op->operations.first : nullptr);
 
