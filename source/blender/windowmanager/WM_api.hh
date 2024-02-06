@@ -901,7 +901,6 @@ enum eFileSel_Flag {
   WM_FILESEL_FILES = 1 << 4,
   /** Show the properties sidebar by default. */
   WM_FILESEL_SHOW_PROPS = 1 << 5,
-  WM_FILESEL_SKIP_PATHS_PRESETS = 1 << 5,
 };
 ENUM_OPERATORS(eFileSel_Flag, WM_FILESEL_SHOW_PROPS)
 
