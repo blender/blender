@@ -224,6 +224,29 @@ Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
   return editable_drawings.as_span();
 }
 
+Array<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
+    const Scene &scene,
+    GreasePencil &grease_pencil,
+    const blender::bke::greasepencil::Layer &layer)
+{
+  using namespace blender::bke::greasepencil;
+  const int current_frame = scene.r.cfra;
+  const ToolSettings *toolsettings = scene.toolsettings;
+  const bool use_multi_frame_editing = (toolsettings->gpencil_flags &
+                                        GP_USE_MULTI_FRAME_EDITING) != 0;
+
+  Vector<MutableDrawingInfo> editable_drawings;
+  const Array<int> frame_numbers = get_frame_numbers_for_layer(
+      layer, current_frame, use_multi_frame_editing);
+  for (const int frame_number : frame_numbers) {
+    if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
+      editable_drawings.append({*drawing, layer.drawing_index_at(frame_number), frame_number});
+    }
+  }
+
+  return editable_drawings.as_span();
+}
+
 Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene, const GreasePencil &grease_pencil)
 {
   using namespace blender::bke::greasepencil;
@@ -312,6 +335,42 @@ IndexMask retrieve_editable_strokes(Object &object,
       curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
         const int material_index = materials[curve_i];
         return editable_material_indices.contains(material_index);
+      });
+}
+
+IndexMask retrieve_editable_strokes_by_material(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                const int mat_i,
+                                                IndexMaskMemory &memory)
+{
+  using namespace blender;
+
+  /* Get all the editable material indices */
+  VectorSet<int> editable_material_indices = get_editable_material_indices(object);
+  if (editable_material_indices.is_empty()) {
+    return {};
+  }
+
+  const bke::CurvesGeometry &curves = drawing.strokes();
+  const IndexRange curves_range = drawing.strokes().curves_range();
+  const bke::AttributeAccessor attributes = curves.attributes();
+
+  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  if (!materials) {
+    /* If the attribute does not exist then the default is the first material. */
+    if (editable_material_indices.contains(0)) {
+      return curves_range;
+    }
+    return {};
+  }
+  /* Get all the strokes that share the same material and have it unlocked. */
+  return IndexMask::from_predicate(
+      curves_range, GrainSize(4096), memory, [&](const int64_t curve_i) {
+        const int material_index = materials[curve_i];
+        if (material_index == mat_i) {
+          return editable_material_indices.contains(material_index);
+        }
+        return false;
       });
 }
 
