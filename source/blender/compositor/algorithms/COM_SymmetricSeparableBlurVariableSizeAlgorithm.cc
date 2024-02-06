@@ -11,6 +11,7 @@
 #include "RE_pipeline.h"
 
 #include "COM_MemoryBuffer.h"
+#include "COM_SymmetricSeparableBlurVariableSizeAlgorithm.h"
 
 namespace blender::compositor {
 
@@ -59,8 +60,6 @@ static void blur_pass(const MemoryBuffer &input,
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(size.x)) {
-        int2 texel = int2(x, y);
-
         float accumulated_weight = 0.0f;
         float4 accumulated_color = float4(0.0f);
 

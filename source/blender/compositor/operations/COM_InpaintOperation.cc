@@ -26,8 +26,6 @@ void InpaintSimpleOperation::compute_inpainting_region(
   threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(size.x)) {
-        int2 texel = int2(x, y);
-
         float4 color = float4(input->get_elem(x, y));
 
         if (color.w == 1.0f) {
