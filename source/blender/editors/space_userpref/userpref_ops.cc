@@ -30,6 +30,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
 #include "UI_interface.hh"
@@ -363,25 +364,65 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  PropertyRNA *prop;
+  /* After creating a new repository some settings can't be easily changed
+   * (especially the custom directory). To avoid showing a partially initialized repository,
+   * set these values upon creation instead of having the user create the repository and change
+   * them afterwards.
+   *
+   * An alternative solution could be implemented by creating an "uninitialized" repository,
+   * setting up all it's properties then running an "initialize" operator however this seems
+   * unnecessarily confusing as in most cases a user can do this in one step by naming and
+   * setting the repositories URL (optionally the custom-directory). */
 
-  prop = RNA_def_string(ot->srna, "name", nullptr, sizeof(bUserExtensionRepo::name), "Name", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  /* Copy the RNA values are copied into the operator to avoid repetition. */
+  StructRNA *type_ref = &RNA_UserExtensionRepo;
 
-  prop = RNA_def_string(
-      ot->srna, "remote_path", nullptr, sizeof(bUserExtensionRepo::remote_path), "URL", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Name. */
+    const char *prop_id = "name";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       sizeof(bUserExtensionRepo::name),
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 
-  prop = RNA_def_boolean(ot->srna, "use_custom_directory", false, "Custom Directory", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Remote Path. */
+    const char *prop_id = "remote_path";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       sizeof(bUserExtensionRepo::remote_path),
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 
-  prop = RNA_def_string_dir_path(ot->srna,
-                                 "custom_directory",
-                                 nullptr,
-                                 sizeof(bUserExtensionRepo::remote_path),
-                                 "Directory",
-                                 "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Use Custom Directory. */
+    const char *prop_id = "use_custom_directory";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                        prop_id,
+                                        false,
+                                        RNA_property_ui_name_raw(prop_ref),
+                                        RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+
+  { /* Custom Directory. */
+    const char *prop_id = "custom_directory";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string_dir_path(ot->srna,
+                                                prop_id,
+                                                nullptr,
+                                                sizeof(bUserExtensionRepo::remote_path),
+                                                RNA_property_ui_name_raw(prop_ref),
+                                                RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 
   ot->prop = RNA_def_enum(
       ot->srna, "type", repo_type_items, 0, "Type", "The kind of repository to add");
