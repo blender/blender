@@ -17,7 +17,7 @@
 #include "WM_types.hh"
 
 #include "usd.h"
-#include "usd.hh"
+#include "usd_private.hh"
 
 namespace blender::io::hydra {
 

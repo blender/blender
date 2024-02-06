@@ -6,7 +6,7 @@
 
 #include "IO_subdiv_disabler.hh"
 #include "usd.h"
-#include "usd.hh"
+#include "usd_private.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
 

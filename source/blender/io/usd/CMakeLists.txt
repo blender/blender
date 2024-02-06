@@ -119,7 +119,7 @@ set(SRC
   intern/usd_skel_root_utils.cc
 
   usd.h
-  usd.hh
+  usd_private.hh
 
   intern/usd_armature_utils.hh
   intern/usd_asset_utils.hh
