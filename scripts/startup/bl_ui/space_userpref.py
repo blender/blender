@@ -2062,6 +2062,10 @@ class USERPREF_PT_extensions_repos(Panel):
         props = col.operator_menu_enum("preferences.extension_repo_remove", "type", text="", icon='REMOVE')
         props.index = active_library_index
 
+        col.separator()
+        col.operator("preferences.extension_repo_sync", text="", icon='FILE_REFRESH')
+        col.operator("preferences.extension_repo_upgrade", text="", icon='IMPORT')
+
         try:
             active_repo = None if active_library_index < 0 else paths.extension_repos[active_library_index]
         except IndexError:

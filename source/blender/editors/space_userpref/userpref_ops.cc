@@ -286,6 +286,8 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+
   /* There's no dedicated notifier for the Preferences. */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
@@ -432,6 +434,23 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Generic Extension Repository Utilities
+ * \{ */
+
+static bool preferences_extension_repo_active_enabled_poll(bContext *C)
+{
+  const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
+      &U, U.active_extension_repo);
+  if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
+    CTX_wm_operator_poll_msg_set(C, "An enabled repository must be selected");
+    return false;
+  }
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Remove Extension Repository Operator
  * \{ */
 
@@ -555,6 +574,58 @@ static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
   ot->prop = RNA_def_enum(
       ot->srna, "type", repo_type_items, 0, "Type", "Method for removing the repository");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sync Extension Repository Operator
+ * \{ */
+
+static int preferences_extension_repo_sync_exec(bContext *C, wmOperator * /*op*/)
+{
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
+{
+  ot->name = "Sync Extension Repository";
+  ot->idname = "PREFERENCES_OT_extension_repo_sync";
+  ot->description = "Sync the active extension repository";
+
+  ot->exec = preferences_extension_repo_sync_exec;
+  ot->poll = preferences_extension_repo_active_enabled_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Upgrade Extension Repository Operator
+ * \{ */
+
+static int preferences_extension_repo_upgrade_exec(bContext *C, wmOperator * /*op*/)
+{
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPGRADE);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
+{
+  ot->name = "Upgrade Extension Repository";
+  ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
+  ot->description = "Upgrade the active extension repository";
+
+  ot->exec = preferences_extension_repo_upgrade_exec;
+  ot->poll = preferences_extension_repo_active_enabled_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
 }
 
 /** \} */
@@ -687,6 +758,8 @@ void ED_operatortypes_userpref()
 
   WM_operatortype_append(PREFERENCES_OT_extension_repo_add);
   WM_operatortype_append(PREFERENCES_OT_extension_repo_remove);
+  WM_operatortype_append(PREFERENCES_OT_extension_repo_sync);
+  WM_operatortype_append(PREFERENCES_OT_extension_repo_upgrade);
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);
   WM_operatortype_append(PREFERENCES_OT_unassociate_blend);
