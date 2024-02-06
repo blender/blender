@@ -136,6 +136,10 @@ NODE_DEFINE(Integrator)
   denoiser_prefilter_enum.insert("fast", DENOISER_PREFILTER_FAST);
   denoiser_prefilter_enum.insert("accurate", DENOISER_PREFILTER_ACCURATE);
 
+  static NodeEnum denoiser_quality_enum;
+  denoiser_quality_enum.insert("high", DENOISER_QUALITY_HIGH);
+  denoiser_quality_enum.insert("balanced", DENOISER_QUALITY_BALANCED);
+
   /* Default to accurate denoising with OpenImageDenoise. For interactive viewport
    * it's best use OptiX and disable the normal pass since it does not always have
    * the desired effect for that denoiser. */
@@ -149,6 +153,7 @@ NODE_DEFINE(Integrator)
               denoiser_prefilter_enum,
               DENOISER_PREFILTER_ACCURATE);
   SOCKET_BOOLEAN(denoise_use_gpu, "Denoise on GPU", true);
+  SOCKET_ENUM(denoiser_quality, "Denoiser Quality", denoiser_quality_enum, DENOISER_QUALITY_HIGH);
 
   return type;
 }
@@ -402,6 +407,7 @@ DenoiseParams Integrator::get_denoise_params() const
   denoise_params.use_pass_normal = use_denoise_pass_normal;
 
   denoise_params.prefilter = denoiser_prefilter;
+  denoise_params.quality = denoiser_quality;
 
   return denoise_params;
 }

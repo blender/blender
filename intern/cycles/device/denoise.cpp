@@ -48,12 +48,25 @@ const NodeEnum *DenoiseParams::get_prefilter_enum()
   return &prefilter_enum;
 }
 
+const NodeEnum *DenoiseParams::get_quality_enum()
+{
+  static NodeEnum quality_enum;
+
+  if (quality_enum.empty()) {
+    quality_enum.insert("high", DENOISER_QUALITY_HIGH);
+    quality_enum.insert("balanced", DENOISER_QUALITY_BALANCED);
+  }
+
+  return &quality_enum;
+}
+
 NODE_DEFINE(DenoiseParams)
 {
   NodeType *type = NodeType::add("denoise_params", create);
 
   const NodeEnum *type_enum = get_type_enum();
   const NodeEnum *prefilter_enum = get_prefilter_enum();
+  const NodeEnum *quality_enum = get_quality_enum();
 
   SOCKET_BOOLEAN(use, "Use", false);
 
@@ -67,6 +80,7 @@ NODE_DEFINE(DenoiseParams)
   SOCKET_BOOLEAN(temporally_stable, "Temporally Stable", false);
 
   SOCKET_ENUM(prefilter, "Prefilter", *prefilter_enum, DENOISER_PREFILTER_FAST);
+  SOCKET_ENUM(quality, "Quality", *quality_enum, DENOISER_QUALITY_HIGH);
 
   return type;
 }
