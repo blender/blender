@@ -85,6 +85,8 @@ void device_metal_info(vector<DeviceInfo> &devices)
 
     devices.push_back(info);
     device_index++;
+
+    VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
   }
 }
 

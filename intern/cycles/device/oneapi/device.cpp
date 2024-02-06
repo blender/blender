@@ -131,7 +131,7 @@ static void device_iterator_cb(
 #  endif
 
   devices->push_back(info);
-  VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
+  VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 }
 #endif
 

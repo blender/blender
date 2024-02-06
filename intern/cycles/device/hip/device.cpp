@@ -206,7 +206,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
       devices.push_back(info);
     }
 
-    VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
+    VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
   }
 
   if (!display_devices.empty())
