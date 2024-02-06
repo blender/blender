@@ -189,29 +189,15 @@ static int wm_stl_import_exec(bContext *C, wmOperator *op)
   params.global_scale = RNA_float_get(op->ptr, "global_scale");
   params.use_mesh_validate = RNA_boolean_get(op->ptr, "use_mesh_validate");
 
-  int files_len = RNA_collection_length(op->ptr, "files");
+  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
-  if (files_len) {
-    PointerRNA fileptr;
-    PropertyRNA *prop;
-    char dir_only[FILE_MAX], file_only[FILE_MAX];
-
-    RNA_string_get(op->ptr, "directory", dir_only);
-    prop = RNA_struct_find_property(op->ptr, "files");
-    for (int i = 0; i < files_len; i++) {
-      RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
-      RNA_string_get(&fileptr, "name", file_only);
-      BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
-      STL_import(C, &params);
-    }
-  }
-  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    RNA_string_get(op->ptr, "filepath", params.filepath);
-    STL_import(C, &params);
-  }
-  else {
+  if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
+  }
+  for (const auto &path : paths) {
+    STRNCPY(params.filepath, path.c_str());
+    STL_import(C, &params);
   }
 
   Scene *scene = CTX_data_scene(C);

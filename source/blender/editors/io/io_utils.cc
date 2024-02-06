@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_path_util.h"
+
 #include "BKE_context.hh"
 
 #include "DNA_space_types.h"
@@ -9,6 +11,7 @@
 #include "ED_fileselect.hh"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.h"
 
 #include "WM_api.hh"
 
@@ -46,5 +49,36 @@ bool poll_file_object_drop(const bContext *C, blender::bke::FileHandlerType * /*
     return true;
   }
   return false;
+}
+
+Vector<std::string> paths_from_operator_properties(PointerRNA *ptr)
+{
+  Vector<std::string> paths;
+  PropertyRNA *directory_prop = RNA_struct_find_property(ptr, "directory");
+  if (RNA_property_is_set(ptr, directory_prop)) {
+    char directory[FILE_MAX], name[FILE_MAX];
+
+    RNA_string_get(ptr, "directory", directory);
+
+    PropertyRNA *files_prop = RNA_struct_find_collection_property_check(
+        *ptr, "files", &RNA_OperatorFileListElement);
+
+    BLI_assert(files_prop);
+
+    RNA_PROP_BEGIN (ptr, file_ptr, files_prop) {
+      RNA_string_get(&file_ptr, "name", name);
+      char path[FILE_MAX];
+      BLI_path_join(path, sizeof(path), directory, name);
+      paths.append_non_duplicates(path);
+    }
+    RNA_PROP_END;
+  }
+  PropertyRNA *filepath_prop = RNA_struct_find_property(ptr, "filepath");
+  if (filepath_prop && RNA_property_is_set(ptr, filepath_prop)) {
+    char filepath[FILE_MAX];
+    RNA_string_get(ptr, "filepath", filepath);
+    paths.append_non_duplicates(filepath);
+  }
+  return paths;
 }
 }  // namespace blender::ed::io

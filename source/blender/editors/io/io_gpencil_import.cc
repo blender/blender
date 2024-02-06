@@ -100,29 +100,16 @@ static int wm_gpencil_import_svg_exec(bContext *C, wmOperator *op)
 
   /* Loop all selected files to import them. All SVG imported shared the same import
    * parameters, but they are created in separated grease pencil objects. */
-  PropertyRNA *prop;
-  if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
-    char *directory = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
-
-    if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
-      char file_path[FILE_MAX];
-      RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        char *filename = RNA_string_get_alloc(&itemptr, "name", nullptr, 0, nullptr);
-        BLI_path_join(file_path, sizeof(file_path), directory, filename);
-        MEM_freeN(filename);
-
-        /* Do Import. */
-        WM_cursor_wait(true);
-        RNA_string_get(&itemptr, "name", params.filename);
-        const bool done = gpencil_io_import(file_path, &params);
-        WM_cursor_wait(false);
-        if (!done) {
-          BKE_reportf(op->reports, RPT_WARNING, "Unable to import '%s'", file_path);
-        }
-      }
-      RNA_PROP_END;
+  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
+  for (const auto &path : paths) {
+    /* Do Import. */
+    WM_cursor_wait(true);
+    BLI_path_split_file_part(path.c_str(), params.filename, ARRAY_SIZE(params.filename));
+    const bool done = gpencil_io_import(path.c_str(), &params);
+    WM_cursor_wait(false);
+    if (!done) {
+      BKE_reportf(op->reports, RPT_WARNING, "Unable to import '%s'", path.c_str());
     }
-    MEM_freeN(directory);
   }
 
   return OPERATOR_FINISHED;
