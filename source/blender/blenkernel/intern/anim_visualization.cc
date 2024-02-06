@@ -149,6 +149,13 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   if (*dst != nullptr) {
     mpath = *dst;
 
+    if (avs->path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE) {
+      mpath->flag |= MOTIONPATH_FLAG_BAKE_CAMERA;
+    }
+    else {
+      mpath->flag &= ~MOTIONPATH_FLAG_BAKE_CAMERA;
+    }
+
     /* Only reuse a path if it was already a valid path, and of the expected length. */
     if (mpath->start_frame != mpath->end_frame && mpath->length == expected_length) {
       mpath->start_frame = avs->path_sf;
@@ -174,6 +181,13 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   }
   else {
     mpath->flag &= ~MOTIONPATH_FLAG_BHEAD;
+  }
+
+  if (avs->path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE) {
+    mpath->flag |= MOTIONPATH_FLAG_BAKE_CAMERA;
+  }
+  else {
+    mpath->flag &= ~MOTIONPATH_FLAG_BAKE_CAMERA;
   }
 
   /* Set default custom values (RGB). */

@@ -42,6 +42,9 @@ class MotionPathButtonsPanel:
             start_end_group.prop(mps, "frame_end", text="End")
             col.prop(mps, "frame_step", text="Step")
 
+        row = col.row()
+        row.prop(mps, "bake_in_camera_space", text="Bake to Active Camera")
+
         if bones:
             op_category = "pose"
             icon = 'BONE_DATA'

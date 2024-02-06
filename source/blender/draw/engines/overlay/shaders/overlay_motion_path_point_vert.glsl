@@ -12,7 +12,7 @@
 
 void main()
 {
-  gl_Position = drw_view.winmat * (drw_view.viewmat * vec4(pos, 1.0));
+  gl_Position = drw_view.winmat * (drw_view.viewmat * (camera_space_matrix * vec4(pos, 1.0)));
   gl_PointSize = float(pointSize + 2);
 
   int frame = gl_VertexID + cacheStart;
