@@ -179,7 +179,7 @@ enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 11, 13, 14, 15. */
+ * FREE FLAGS: 13, 14, 15. */
 enum PropertyFlag {
   /**
    * Editable means the property is editable in the user
@@ -212,9 +212,9 @@ enum PropertyFlag {
   PROP_ICONS_CONSECUTIVE = (1 << 12),
   PROP_ICONS_REVERSE = (1 << 8),
 
-  /** Hidden in the user interface. */
+  /** Hidden in the user interface. Inherits #ROP_SKIP_PRESET. */
   PROP_HIDDEN = (1 << 19),
-  /** Do not write in presets. */
+  /** Do not use ghost values. Inherits #PROP_SKIP_PRESET. */
   PROP_SKIP_SAVE = (1 << 28),
 
   /* numbers */
@@ -311,6 +311,9 @@ enum PropertyFlag {
    * as having the +/- operators available in the file browser.
    */
   PROP_PATH_OUTPUT = (1 << 2),
+
+  /** Do not write in presets. */
+  PROP_SKIP_PRESET = (1 << 11),
 };
 ENUM_OPERATORS(PropertyFlag, PROP_TEXTEDIT_UPDATE)
 
