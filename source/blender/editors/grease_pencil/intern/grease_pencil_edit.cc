@@ -2155,7 +2155,7 @@ static int grease_pencil_separate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void GREASE_PENCIL_OT_separate(wmOperatorType *ot)
+static void GREASE_PENCIL_OT_separate(wmOperatorType *ot)
 {
   /* identifiers. */
   ot->name = "Separate";

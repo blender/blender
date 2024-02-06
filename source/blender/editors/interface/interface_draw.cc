@@ -903,7 +903,7 @@ static void vectorscope_draw_target(
 {
   float y, u, v;
   float tangle = 0.0f, tampli;
-  float dangle, dampli, dangle2, dampli2;
+  float dangle, dampli;
   char labelstr[2] = {label, '\0'};
 
   rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v, BLI_YUV_ITU_BT709);
