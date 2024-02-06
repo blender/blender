@@ -1389,6 +1389,11 @@ bool MetalDevice::should_use_graphics_interop()
   return false;
 }
 
+void *MetalDevice::get_native_buffer(device_ptr ptr)
+{
+  return ((MetalMem *)ptr)->mtlBuffer;
+}
+
 void MetalDevice::flush_delayed_free_list()
 {
   /* free any Metal buffers that may have been freed by host while a command

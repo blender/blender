@@ -47,7 +47,7 @@ inline void PassAccessorCPU::run_get_pass_kernel_processor_float(
 
   parallel_for(0, buffer_params.window_height, [&](int64_t y) {
     const float *buffer = window_data + y * buffer_row_stride;
-    float *pixel = destination.pixels +
+    float *pixel = destination.pixels + destination.pixel_offset +
                    (y * buffer_params.width + destination.offset) * pixel_stride;
     func(kfilm_convert, buffer, pixel, buffer_params.window_width, pass_stride, pixel_stride);
   });

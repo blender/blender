@@ -48,6 +48,20 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
       device_type = OIDN_DEVICE_TYPE_CUDA;
       break;
 #  endif
+#  ifdef OIDN_DEVICE_METAL
+    case DEVICE_METAL: {
+      int num_devices = oidnGetNumPhysicalDevices();
+      for (int i = 0; i < num_devices; i++) {
+        if (oidnGetPhysicalDeviceUInt(i, "type") == OIDN_DEVICE_TYPE_METAL) {
+          const char *name = oidnGetPhysicalDeviceString(i, "name");
+          if (device.id.find(name) != std::string::npos) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+#  endif
     case DEVICE_CPU:
       /* This is the GPU denoiser - CPU devices shouldn't end up here. */
       assert(0);
@@ -111,6 +125,9 @@ uint OIDNDenoiserGPU::get_device_type_mask() const
 #  ifdef OIDN_DEVICE_SYCL
   device_mask |= DEVICE_MASK_ONEAPI;
 #  endif
+#  ifdef OIDN_DEVICE_METAL
+  device_mask |= DEVICE_MASK_METAL;
+#  endif
 #  ifdef OIDN_DEVICE_CUDA
   device_mask |= DEVICE_MASK_CUDA;
   device_mask |= DEVICE_MASK_OPTIX;
@@ -161,6 +178,13 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
           (const sycl::queue *)reinterpret_cast<OneapiDevice *>(denoiser_device_)->sycl_queue(),
           1);
       break;
+#  endif
+#  if defined(OIDN_DEVICE_METAL) && defined(WITH_METAL)
+    case DEVICE_METAL: {
+      denoiser_queue_->init_execution();
+      const MTLCommandQueue_id queue = (const MTLCommandQueue_id)denoiser_queue_->native_queue();
+      oidn_device_ = oidnNewMetalDevice(&queue, 1);
+    } break;
 #  endif
 #  if defined(OIDN_DEVICE_CUDA) && defined(WITH_CUDA)
     case DEVICE_CUDA:
@@ -262,24 +286,24 @@ bool OIDNDenoiserGPU::denoise_run(const DenoiseContext &context, const DenoisePa
   /* Color pass. */
   const int64_t pass_stride_in_bytes = context.buffer_params.pass_stride * sizeof(float);
 
-  oidnSetSharedFilterImage(oidn_filter_,
-                           "color",
-                           (void *)context.render_buffers->buffer.device_pointer,
-                           OIDN_FORMAT_FLOAT3,
-                           context.buffer_params.width,
-                           context.buffer_params.height,
-                           pass.denoised_offset * sizeof(float),
-                           pass_stride_in_bytes,
-                           pass_stride_in_bytes * context.buffer_params.stride);
-  oidnSetSharedFilterImage(oidn_filter_,
-                           "output",
-                           (void *)context.render_buffers->buffer.device_pointer,
-                           OIDN_FORMAT_FLOAT3,
-                           context.buffer_params.width,
-                           context.buffer_params.height,
-                           pass.denoised_offset * sizeof(float),
-                           pass_stride_in_bytes,
-                           pass_stride_in_bytes * context.buffer_params.stride);
+  set_filter_pass(oidn_filter_,
+                  "color",
+                  context.render_buffers->buffer.device_pointer,
+                  OIDN_FORMAT_FLOAT3,
+                  context.buffer_params.width,
+                  context.buffer_params.height,
+                  pass.denoised_offset * sizeof(float),
+                  pass_stride_in_bytes,
+                  pass_stride_in_bytes * context.buffer_params.stride);
+  set_filter_pass(oidn_filter_,
+                  "output",
+                  context.render_buffers->buffer.device_pointer,
+                  OIDN_FORMAT_FLOAT3,
+                  context.buffer_params.width,
+                  context.buffer_params.height,
+                  pass.denoised_offset * sizeof(float),
+                  pass_stride_in_bytes,
+                  pass_stride_in_bytes * context.buffer_params.stride);
 
   /* Optional albedo and color passes. */
   if (context.num_input_passes > 1) {
@@ -289,95 +313,95 @@ bool OIDNDenoiserGPU::denoise_run(const DenoiseContext &context, const DenoisePa
 
     if (context.use_pass_albedo) {
       if (params_.prefilter == DENOISER_PREFILTER_NONE) {
-        oidnSetSharedFilterImage(oidn_filter_,
-                                 "albedo",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_albedo * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(oidn_filter_,
+                        "albedo",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_albedo * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
       }
       else {
-        oidnSetSharedFilterImage(albedo_filter_,
-                                 "color",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_albedo * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
-        oidnSetSharedFilterImage(albedo_filter_,
-                                 "output",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_albedo * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(albedo_filter_,
+                        "color",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_albedo * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
+        set_filter_pass(albedo_filter_,
+                        "output",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_albedo * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
         oidnCommitFilter(albedo_filter_);
         oidnExecuteFilterAsync(albedo_filter_);
 
-        oidnSetSharedFilterImage(oidn_filter_,
-                                 "albedo",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_albedo * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(oidn_filter_,
+                        "albedo",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_albedo * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
       }
     }
 
     if (context.use_pass_normal) {
       if (params_.prefilter == DENOISER_PREFILTER_NONE) {
-        oidnSetSharedFilterImage(oidn_filter_,
-                                 "normal",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_normal * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(oidn_filter_,
+                        "normal",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_normal * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
       }
       else {
-        oidnSetSharedFilterImage(normal_filter_,
-                                 "color",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_normal * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(normal_filter_,
+                        "color",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_normal * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
 
-        oidnSetSharedFilterImage(normal_filter_,
-                                 "output",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_normal * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(normal_filter_,
+                        "output",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_normal * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
 
         oidnCommitFilter(normal_filter_);
         oidnExecuteFilterAsync(normal_filter_);
 
-        oidnSetSharedFilterImage(oidn_filter_,
-                                 "normal",
-                                 (void *)d_guiding_buffer,
-                                 OIDN_FORMAT_FLOAT3,
-                                 context.buffer_params.width,
-                                 context.buffer_params.height,
-                                 context.guiding_params.pass_normal * sizeof(float),
-                                 pixel_stride_in_bytes,
-                                 row_stride_in_bytes);
+        set_filter_pass(oidn_filter_,
+                        "normal",
+                        d_guiding_buffer,
+                        OIDN_FORMAT_FLOAT3,
+                        context.buffer_params.width,
+                        context.buffer_params.height,
+                        context.guiding_params.pass_normal * sizeof(float),
+                        pixel_stride_in_bytes,
+                        row_stride_in_bytes);
       }
     }
   }
@@ -407,6 +431,48 @@ bool OIDNDenoiserGPU::denoise_run(const DenoiseContext &context, const DenoisePa
     return false;
   }
   return true;
+}
+
+void OIDNDenoiserGPU::set_filter_pass(OIDNFilter filter,
+                                      const char *name,
+                                      device_ptr ptr,
+                                      int format,
+                                      int width,
+                                      int height,
+                                      size_t offset_in_bytes,
+                                      size_t pixel_stride_in_bytes,
+                                      size_t row_stride_in_bytes)
+{
+#  if defined(OIDN_DEVICE_METAL) && defined(WITH_METAL)
+  if (denoiser_device_->info.type == DEVICE_METAL) {
+    void *mtl_buffer = denoiser_device_->get_native_buffer(ptr);
+    OIDNBuffer oidn_buffer = oidnNewSharedBufferFromMetal(oidn_device_, mtl_buffer);
+
+    oidnSetFilterImage(filter,
+                       name,
+                       oidn_buffer,
+                       (OIDNFormat)format,
+                       width,
+                       height,
+                       offset_in_bytes,
+                       pixel_stride_in_bytes,
+                       row_stride_in_bytes);
+
+    oidnReleaseBuffer(oidn_buffer);
+  }
+  else
+#  endif
+  {
+    oidnSetSharedFilterImage(filter,
+                             name,
+                             (void *)ptr,
+                             (OIDNFormat)format,
+                             width,
+                             height,
+                             offset_in_bytes,
+                             pixel_stride_in_bytes,
+                             row_stride_in_bytes);
+  }
 }
 
 CCL_NAMESPACE_END
