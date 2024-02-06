@@ -1054,7 +1054,7 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
 
     GPU_blend(GPU_BLEND_ALPHA);
     circle_draw_rgb(
-        circle_fill_points, tot_points + 2, circle_fill_vertex_colors, GPU_PRIM_TRI_FAN);
+        circle_fill_points, tot_points + 1, circle_fill_vertex_colors, GPU_PRIM_TRI_FAN);
   }
   /* draw filled Gray circle for background, only for RGB mode */
   else if (scopes->vecscope_mode == SCOPES_VECSCOPE_RGB) {
