@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import glob
+from pathlib import PurePath
 
 # XXX Relative import does not work here when used from Blender...
 from bl_i18n_utils import settings as settings_i18n, utils
@@ -664,6 +665,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
             root_node = ast.parse(filedata.read(), fp, 'exec')
 
         fp_rel = make_rel(fp)
+        fp_rel = PurePath(fp_rel).as_posix()
 
         for node in ast.walk(root_node):
             if type(node) == ast.Call:
