@@ -123,6 +123,7 @@ def use_optix(context):
 
     return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU' and backend_has_active_gpu(context))
 
+
 def use_oneapi(context):
     cscene = context.scene.cycles
 
@@ -154,6 +155,7 @@ def get_effective_preview_denoiser(context):
         return 'OPTIX'
 
     return 'OIDN'
+
 
 def has_oidn_gpu_devices(context):
     return context.preferences.addons[__package__].preferences.has_oidn_gpu_devices()
