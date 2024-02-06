@@ -496,7 +496,15 @@ class PassSortable : public PassMain {
     int64_t index = sub_passes_.append_and_get_index(
         PassBase(name, draw_commands_buf_, sub_passes_, shader_));
     headers_.append({Type::SubPass, uint(index)});
-    sorting_values_.append(sorting_value);
+    /* Some sub-pass can also create sub-sub-passes (curve, point-clouds...) which will de-sync
+     * the `sub_passes_.size()` and `sorting_values_.size()`, making the  `Header::index` not
+     * reusable for the sorting value in the `sort()` function. To fix this, we flood the
+     * `sorting_values_` to ensure the same index is valid for `sorting_values_` and
+     * `sub_passes_`. */
+    int64_t sorting_index;
+    do {
+      sorting_index = sorting_values_.append_and_get_index(sorting_value);
+    } while (sorting_index != index);
     return sub_passes_[index];
   }
 
