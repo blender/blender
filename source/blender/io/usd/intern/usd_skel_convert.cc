@@ -4,7 +4,7 @@
 
 #include "usd_skel_convert.hh"
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
 #include "usd_hash_types.hh"

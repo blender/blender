@@ -46,7 +46,7 @@
 #endif
 
 #ifdef WITH_USD
-#  include "usd.h"
+#  include "usd.hh"
 #endif
 
 static void cachefile_handle_free(CacheFile *cache_file);
@@ -188,7 +188,8 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
       /* Open USD cache reader. */
-      *reader = CacheReader_open_usd_object(cache_file->handle, *reader, object, object_path);
+      *reader = blender::io::usd::CacheReader_open_usd_object(
+          cache_file->handle, *reader, object, object_path);
 #  endif
       break;
     case CACHE_FILE_TYPE_INVALID:
@@ -232,7 +233,7 @@ void BKE_cachefile_reader_free(CacheFile *cache_file, CacheReader **reader)
           break;
         case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-          USD_CacheReader_free(*reader);
+          blender::io::usd::USD_CacheReader_free(*reader);
 #  endif
           break;
         case CACHE_FILE_TYPE_INVALID:
@@ -272,7 +273,7 @@ static void cachefile_handle_free(CacheFile *cache_file)
             break;
           case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-            USD_CacheReader_free(*reader);
+            blender::io::usd::USD_CacheReader_free(*reader);
 #  endif
             break;
           case CACHE_FILE_TYPE_INVALID:
@@ -299,7 +300,7 @@ static void cachefile_handle_free(CacheFile *cache_file)
         break;
       case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-        USD_free_handle(cache_file->handle);
+        blender::io::usd::USD_free_handle(cache_file->handle);
 #  endif
         break;
       case CACHE_FILE_TYPE_INVALID:
@@ -365,7 +366,8 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
 #ifdef WITH_USD
   if (BLI_path_extension_check_glob(filepath, "*.usd;*.usda;*.usdc;*.usdz")) {
     cache_file->type = CACHEFILE_TYPE_USD;
-    cache_file->handle = USD_create_handle(bmain, filepath, &cache_file->object_paths);
+    cache_file->handle = blender::io::usd::USD_create_handle(
+        bmain, filepath, &cache_file->object_paths);
     STRNCPY(cache_file->handle_filepath, filepath);
   }
 #endif

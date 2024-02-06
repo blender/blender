@@ -5,7 +5,7 @@
  * Modifications Copyright 2021 Tangent Animation. All rights reserved. */
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_reader_geom.hh"
 
 #include "pxr/usd/usdGeom/basisCurves.h"

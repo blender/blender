@@ -4,7 +4,7 @@
 #pragma once
 
 #include "IO_abstract_hierarchy_iterator.h"
-#include "usd.h"
+#include "usd.hh"
 #include "usd_exporter_context.hh"
 #include "usd_skel_convert.hh"
 

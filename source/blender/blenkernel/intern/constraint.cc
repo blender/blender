@@ -88,7 +88,7 @@
 #endif
 
 #ifdef WITH_USD
-#  include "usd.h"
+#  include "usd.hh"
 #endif
 
 /* ---------------------------------------------------------------------------- */
@@ -5395,7 +5395,8 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
       break;
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-      USD_get_transform(data->reader, cob->matrix, time * FPS, cache_file->scale);
+      blender::io::usd::USD_get_transform(
+          data->reader, cob->matrix, time * FPS, cache_file->scale);
 #  endif
       break;
     case CACHE_FILE_TYPE_INVALID:

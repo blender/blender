@@ -44,9 +44,11 @@
 
 #  include "io_usd.hh"
 #  include "io_utils.hh"
-#  include "usd.h"
+#  include "usd.hh"
 
 #  include <cstdio>
+
+using namespace blender::io::usd;
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,

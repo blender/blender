@@ -5,7 +5,7 @@
 #include "usd_blend_shape_utils.hh"
 #include "usd_skel_convert.hh"
 
-#include "usd.h"
+#include "usd.hh"
 
 #include <pxr/usd/sdf/namespaceEdit.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>

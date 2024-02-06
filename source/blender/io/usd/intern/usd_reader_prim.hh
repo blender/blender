@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 
 #include "BLI_map.hh"
 

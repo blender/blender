@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "IO_types.hh"
-#include "usd.h"
+#include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
 #include "usd_reader_geom.hh"
@@ -487,10 +487,6 @@ static void import_freejob(void *user_data)
   delete data;
 }
 
-}  // namespace blender::io::usd
-
-using namespace blender::io::usd;
-
 bool USD_import(bContext *C,
                 const char *filepath,
                 const USDImportParams *params,
@@ -720,3 +716,5 @@ void USD_get_transform(CacheReader *reader, float r_mat_world[4][4], float time,
   mul_m4_m4m4(r_mat_world, mat_parent, object->parentinv);
   mul_m4_m4m4(r_mat_world, r_mat_world, mat_local);
 }
+
+}  // namespace blender::io::usd

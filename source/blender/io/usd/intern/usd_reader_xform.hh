@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_reader_prim.hh"
 
 namespace blender::io::usd {

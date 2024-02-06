@@ -6,8 +6,9 @@
 
 #include <pxr/usd/usd/stage.h>
 
+#include "usd.hh"
+
 struct Depsgraph;
-struct USDExportParams;
 
 namespace blender::io::usd {
 

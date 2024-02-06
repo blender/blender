@@ -1,7 +1,7 @@
 /* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
-#include "usd.h"
+#include "usd.hh"
 
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_reader_geom.hh"
 
 #include "pxr/usd/usdGeom/nurbsCurves.h"

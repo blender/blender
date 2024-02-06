@@ -5,10 +5,10 @@
 #include <iostream>
 
 #include "IO_subdiv_disabler.hh"
-#include "usd.h"
-#include "usd_private.hh"
+#include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+#include "usd_private.hh"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
@@ -425,8 +425,6 @@ static void export_endjob(void *customdata)
   report_job_duration(data);
 }
 
-}  // namespace blender::io::usd
-
 /* To create a usdz file, we must first create a .usd/a/c file and then covert it to .usdz. The
  * temporary files will be created in Blender's temporary session storage. The .usdz file will then
  * be moved to job->usdz_filepath. */
@@ -537,3 +535,5 @@ int USD_get_version()
    */
   return PXR_VERSION;
 }
+
+}  // namespace blender::io::usd

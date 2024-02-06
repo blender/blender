@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/common.h>

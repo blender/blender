@@ -8,7 +8,7 @@
 #include "BLI_map.hh"
 #include "BLI_span.hh"
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_reader_geom.hh"
 
 #include "pxr/usd/usdGeom/mesh.h"

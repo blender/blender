@@ -9,7 +9,7 @@ struct Main;
 
 #include "BLI_set.hh"
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_hash_types.hh"
 #include "usd_reader_prim.hh"
 

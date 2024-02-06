@@ -39,7 +39,7 @@
 
 #include "WM_api.hh"
 
-#include "usd.h"
+#include "usd.hh"
 
 namespace blender::io::usd {
 

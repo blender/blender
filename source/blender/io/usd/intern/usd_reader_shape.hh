@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_reader_geom.hh"
 #include "usd_reader_xform.hh"
 #include <pxr/usd/usdGeom/gprim.h>

@@ -4,7 +4,7 @@
 
 #include "usd_writer_material.hh"
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
 

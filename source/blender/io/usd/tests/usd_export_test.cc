@@ -36,7 +36,7 @@
 
 #include "WM_api.hh"
 
-#include "usd.h"
+#include "usd.hh"
 #include "usd_writer_material.hh"
 
 namespace blender::io::usd {

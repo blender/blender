@@ -42,6 +42,8 @@
 #  include "shader/materialx/material.h"
 #endif
 
+using namespace blender::io::usd;
+
 namespace blender::io::hydra {
 
 MaterialData::MaterialData(HydraSceneDelegate *scene_delegate,
