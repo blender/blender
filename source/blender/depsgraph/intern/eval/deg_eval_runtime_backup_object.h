@@ -46,7 +46,7 @@ class ObjectRuntimeBackup {
   optional<LightLinkingRuntime> light_linking_runtime;
   short base_flag;
   unsigned short base_local_view_bits;
-  Map<SessionUID, ModifierDataBackup> modifier_runtime_data;
+  Map<int, ModifierDataBackup> modifier_runtime_data;
   Map<SessionUID, bPoseChannel_Runtime> pose_channel_runtime_data;
 };
 

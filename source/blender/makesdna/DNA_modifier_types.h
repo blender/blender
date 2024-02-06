@@ -153,9 +153,6 @@ typedef struct ModifierData {
 
   char *error;
 
-  /** Runtime field which contains unique identifier of the modifier. */
-  SessionUID session_uid;
-
   /** Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;
 } ModifierData;

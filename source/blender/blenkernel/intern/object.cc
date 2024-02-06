@@ -5329,7 +5329,6 @@ void BKE_object_to_curve_clear(Object *object)
 void BKE_object_check_uids_unique_and_report(const Object *object)
 {
   BKE_pose_check_uids_unique_and_report(object->pose);
-  BKE_modifier_check_uids_unique_and_report(object);
 }
 
 SubsurfModifierData *BKE_object_get_last_subsurf_modifier(const Object *ob)
