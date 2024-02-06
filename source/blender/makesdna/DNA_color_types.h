@@ -150,21 +150,22 @@ typedef struct Scopes {
   int ok;
   int sample_full;
   int sample_lines;
-  float accuracy;
   int wavefrm_mode;
+  int vecscope_mode;
+  int wavefrm_height;
+  int vecscope_height;
+  int waveform_tot;
+  float accuracy;
   float wavefrm_alpha;
   float wavefrm_yfac;
-  int wavefrm_height;
   float vecscope_alpha;
-  int vecscope_height;
   float minmax[3][2];
   struct Histogram hist;
   float *waveform_1;
   float *waveform_2;
   float *waveform_3;
   float *vecscope;
-  int waveform_tot;
-  char _pad[4];
+  float *vecscope_rgb;
 } Scopes;
 
 /** #Scopes.wavefrm_mode */
@@ -175,6 +176,12 @@ enum {
   SCOPES_WAVEFRM_YCC_709 = 3,
   SCOPES_WAVEFRM_YCC_JPEG = 4,
   SCOPES_WAVEFRM_RGB = 5,
+};
+
+/** #Scopes.vecscope_mode */
+enum {
+  SCOPES_VECSCOPE_RGB = 0,
+  SCOPES_VECSCOPE_LUMA = 1,
 };
 
 typedef struct ColorManagedViewSettings {

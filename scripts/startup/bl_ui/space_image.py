@@ -1431,8 +1431,11 @@ class IMAGE_PT_view_vectorscope(ImageScopesPanel, Panel):
         layout = self.layout
 
         sima = context.space_data
+
         layout.template_vectorscope(sima, "scopes")
-        layout.prop(sima.scopes, "vectorscope_alpha")
+        row = layout.split(factor=0.75)
+        row.prop(sima.scopes, "vectorscope_alpha")
+        row.prop(sima.scopes, "vectorscope_mode", text="")
 
 
 class IMAGE_PT_sample_line(ImageScopesPanel, Panel):
