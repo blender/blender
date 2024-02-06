@@ -197,6 +197,7 @@ ModifierData *ED_object_modifier_add(
     else {
       BLI_addtail(&ob->modifiers, new_md);
     }
+    BKE_modifiers_persistent_uid_init(*ob, *new_md);
 
     if (name) {
       STRNCPY_UTF8(new_md->name, name);
@@ -1234,6 +1235,7 @@ bool ED_object_modifier_copy(
   BKE_modifier_copydata(md, nmd);
   BLI_insertlinkafter(&ob->modifiers, md, nmd);
   BKE_modifier_unique_name(&ob->modifiers, nmd);
+  BKE_modifiers_persistent_uid_init(*ob, *nmd);
   BKE_object_modifier_set_active(ob, nmd);
 
   nmd->flag |= eModifierFlag_OverrideLibrary_Local;
@@ -3024,6 +3026,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
   if (arm_md) {
     skin_md = edit_modifier_property_get(op, ob, eModifierType_Skin);
     BLI_insertlinkafter(&ob->modifiers, skin_md, arm_md);
+    BKE_modifiers_persistent_uid_init(*arm_ob, arm_md->modifier);
 
     arm_md->object = arm_ob;
     arm_md->deformflag = ARM_DEF_VGROUP | ARM_DEF_QUATERNION;

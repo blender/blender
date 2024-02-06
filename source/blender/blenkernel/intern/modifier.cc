@@ -36,6 +36,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_rand.hh"
 #include "BLI_session_uid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -276,6 +277,16 @@ ModifierData *BKE_modifiers_findby_session_uid(const Object *ob, const SessionUI
   return nullptr;
 }
 
+ModifierData *BKE_modifiers_findby_persistent_uid(const Object *ob, const int persistent_uid)
+{
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+    if (md->persistent_uid == persistent_uid) {
+      return md;
+    }
+  }
+  return nullptr;
+}
+
 void BKE_modifiers_clear_errors(Object *ob)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -358,6 +369,7 @@ void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, cons
   target->mode = md->mode;
   target->flag = md->flag;
   target->ui_expand_flag = md->ui_expand_flag;
+  target->persistent_uid = md->persistent_uid;
 
   if (mti->copy_data) {
     mti->copy_data(md, target, flag);
@@ -1018,6 +1030,48 @@ void BKE_modifier_check_uids_unique_and_report(const Object *object)
   }
 
   BLI_gset_free(used_uids, nullptr);
+}
+
+void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
+{
+  uint64_t hash = blender::get_default_hash(blender::StringRef(md.name));
+  if (ID_IS_LINKED(&object)) {
+    hash = blender::get_default_hash(hash, blender::StringRef(object.id.lib->filepath_abs));
+  }
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(&object)) {
+    BLI_assert(ID_IS_LINKED(object.id.override_library->reference));
+    hash = blender::get_default_hash(
+        hash, blender::StringRef(object.id.override_library->reference->lib->filepath_abs));
+  }
+  blender::RandomNumberGenerator rng{uint32_t(hash)};
+  while (true) {
+    const int new_uid = rng.get_int32();
+    if (new_uid <= 0) {
+      continue;
+    }
+    if (BKE_modifiers_findby_persistent_uid(&object, new_uid) != nullptr) {
+      continue;
+    }
+    md.persistent_uid = new_uid;
+    break;
+  }
+}
+
+bool BKE_modifiers_persistent_uids_are_valid(const Object &object)
+{
+  blender::Set<int> uids;
+  int modifiers_num = 0;
+  LISTBASE_FOREACH (const ModifierData *, md, &object.modifiers) {
+    if (md->persistent_uid <= 0) {
+      return false;
+    }
+    uids.add(md->persistent_uid);
+    modifiers_num++;
+  }
+  if (uids.size() != modifiers_num) {
+    return false;
+  }
+  return true;
 }
 
 void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase)

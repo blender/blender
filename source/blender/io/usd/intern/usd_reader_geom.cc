@@ -28,6 +28,7 @@ void USDGeomReader::add_cache_modifier()
 
   ModifierData *md = BKE_modifier_new(eModifierType_MeshSequenceCache);
   BLI_addtail(&object_->modifiers, md);
+  BKE_modifiers_persistent_uid_init(*object_, *md);
 
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
@@ -42,6 +43,7 @@ void USDGeomReader::add_subdiv_modifier()
 {
   ModifierData *md = BKE_modifier_new(eModifierType_Subsurf);
   BLI_addtail(&object_->modifiers, md);
+  BKE_modifiers_persistent_uid_init(*object_, *md);
 }
 
 }  // namespace blender::io::usd

@@ -2273,6 +2273,7 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     else {
       BLI_addtail(&object->modifiers, md);
     }
+    BKE_modifiers_persistent_uid_init(*object, md->modifier);
 
     md->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
     IDProperty *angle_prop =
