@@ -95,6 +95,9 @@ void World::sync()
     has_update = lookdev_world_.sync(LookdevParameters(inst_.v3d));
     bl_world = lookdev_world_.world_get();
   }
+  else if ((inst_.view_layer->layflag & SCE_LAY_SKY) == 0) {
+    bl_world = default_world_get();
+  }
   else if (has_volume_absorption_) {
     bl_world = default_world_get();
   }

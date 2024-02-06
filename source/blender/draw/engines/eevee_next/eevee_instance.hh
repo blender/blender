@@ -128,6 +128,10 @@ class Instance {
   bool gpencil_engine_enabled;
   /** True if the instance is created for light baking. */
   bool is_light_bake = false;
+  /** View-layer overrides. */
+  bool use_surfaces = true;
+  bool use_curves = true;
+  bool use_volumes = true;
 
   /** Info string displayed at the top of the render / viewport. */
   std::string info = "";
