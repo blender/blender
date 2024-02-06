@@ -811,7 +811,7 @@ void ANIM_copy_as_driver(ID *target_id, const char *target_path, const char *var
 
   target->idtype = GS(target_id->name);
   target->id = target_id;
-  target->rna_path = static_cast<char *>(MEM_dupallocN(target_path));
+  target->rna_path = BLI_strdup(target_path);
 
   /* Set the variable name. */
   if (var_name) {
