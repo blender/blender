@@ -219,7 +219,7 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
         /* During undo the sequence strips might obtain a new session ID, which will disallow the
          * audio handles to be re-used. Tag for the audio and sequence update to ensure the audio
          * handles are open.
-         * MOTE: This is not something shat should be required, and perhaps indicates a weakness in
+         * NOTE: This is not something that should be required, and perhaps indicates a weakness in
          * design somewhere else. For the cause of the problem check #117760. */
         flag |= ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS;
       }

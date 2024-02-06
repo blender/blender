@@ -467,7 +467,7 @@ void gbuffer_additional_info_load(inout GBufferReader gbuf, samplerGBufferNormal
  *
  * \{ */
 
-/* Outputing dummy closure is required for correct render passes in case of unlit materials. */
+/** Outputting dummy closure is required for correct render passes in case of unlit materials. */
 void gbuffer_closure_unlit_pack(inout GBufferWriter gbuf, vec3 N)
 {
   gbuffer_append_closure(gbuf, GBUF_UNLIT);

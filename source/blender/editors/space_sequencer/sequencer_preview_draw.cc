@@ -640,7 +640,7 @@ static void draw_vectorscope_graticule(ARegion *region, SeqQuadsBatch &quads, co
   const float w = BLI_rctf_size_x(&area);
   const float h = BLI_rctf_size_y(&area);
   const float2 center{BLI_rctf_cent_x(&area), BLI_rctf_cent_y(&area)};
-  /* Vectorscope image is scaled over UV range (+/-0.615). */
+  /* Vector-scope image is scaled over UV range (+/-0.615). */
   const float radius = ((w < h) ? w : h) * 0.5f * (0.5f / 0.615f);
 
   /* Precalculate circle points/colors. */

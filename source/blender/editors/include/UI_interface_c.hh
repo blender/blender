@@ -2284,7 +2284,7 @@ uiLayout *uiLayoutPanelProp(const bContext *C,
 /**
  * Variant of #uiLayoutPanelProp that automatically stores the open-close-state in the root
  * panel. When a dynamic number of panels is required, it's recommended to use #uiLayoutPanelProp
- * instead of passing in generated idnames.
+ * instead of passing in generated id names.
  *
  * \param idname: String that identifies the open-close-state in the root panel.
  */

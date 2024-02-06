@@ -626,7 +626,7 @@ constexpr bool operator>=(StringRef a, StringRef b)
  * \{ */
 
 /**
- * Support using the fmt library with #StringRef and implicitly also #StringRefNull.
+ * Support using the `fmt` library with #StringRef and implicitly also #StringRefNull.
  */
 inline std::string_view format_as(StringRef str)
 {

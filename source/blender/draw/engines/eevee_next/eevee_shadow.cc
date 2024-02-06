@@ -1273,14 +1273,14 @@ bool ShadowModule::shadow_update_finished()
 {
   if (inst_.is_viewport()) {
     /* For viewport, only run the shadow update once per redraw.
-     * This avoids the stall from the readback and freezes from long shadow update. */
+     * This avoids the stall from the read-back and freezes from long shadow update. */
     return true;
   }
 
   int max_updated_view_count = tilemap_pool.tilemaps_data.size() * SHADOW_TILEMAP_LOD;
   if (max_updated_view_count <= SHADOW_VIEW_MAX) {
-    /* There is enough shadow views to cover all tilemap updates.
-     * No readback needed as it is guaranteed that all of them will be updated. */
+    /* There is enough shadow views to cover all tile-map updates.
+     * No read-back needed as it is guaranteed that all of them will be updated. */
     return true;
   }
 
