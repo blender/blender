@@ -1603,7 +1603,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def has_oidn_gpu_devices(self):
         import _cycles
-        compute_device_type = context.preferences.addons[__package__].preferences.get_compute_device_type()
+        compute_device_type = self.get_compute_device_type()
 
         # We need non-CPU devices, used for rendering and supporting OIDN GPU denoising
         for device in _cycles.available_devices(compute_device_type):
