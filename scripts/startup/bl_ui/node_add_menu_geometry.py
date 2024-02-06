@@ -542,6 +542,7 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
+        layout.menu("NODE_MT_category_GEO_UTILITIES_DEPRECATED")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodeIndexSwitch")
         node_add_menu.add_node_type(layout, "GeometryNodeMenuSwitch")
@@ -549,6 +550,15 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         node_add_menu.add_repeat_zone(layout, label="Repeat Zone")
         node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
+class NODE_MT_category_GEO_UTILITIES_DEPRECATED(Menu):
+    bl_idname = "NODE_MT_category_GEO_UTILITIES_DEPRECATED"
+    bl_label = "Deprecated"
+
+    def draw(self, context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "FunctionNodeRotateEuler")
 
 
 class NODE_MT_category_GEO_UTILITIES_FIELD(Menu):
@@ -769,6 +779,7 @@ classes = (
     NODE_MT_category_GEO_UTILITIES_FIELD,
     NODE_MT_category_GEO_UTILITIES_MATH,
     NODE_MT_category_GEO_UTILITIES_ROTATION,
+    NODE_MT_category_GEO_UTILITIES_DEPRECATED,
     NODE_MT_category_GEO_GROUP,
 )
 
