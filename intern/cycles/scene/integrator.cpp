@@ -148,6 +148,7 @@ NODE_DEFINE(Integrator)
               "Denoiser Prefilter",
               denoiser_prefilter_enum,
               DENOISER_PREFILTER_ACCURATE);
+  SOCKET_BOOLEAN(denoise_use_gpu, "Denoise on GPU", true);
 
   return type;
 }
@@ -392,6 +393,8 @@ DenoiseParams Integrator::get_denoise_params() const
   denoise_params.use = use_denoise;
 
   denoise_params.type = denoiser_type;
+
+  denoise_params.use_gpu = denoise_use_gpu;
 
   denoise_params.start_sample = denoise_start_sample;
 

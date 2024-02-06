@@ -352,6 +352,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         items=enum_denoising_input_passes,
         default='RGB_ALBEDO_NORMAL',
     )
+    denoising_use_gpu: BoolProperty(
+        name="Denoise on GPU",
+        description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
+        default=True,
+    )
 
     use_preview_denoising: BoolProperty(
         name="Use Viewport Denoising",
@@ -381,6 +386,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Sample to start denoising the preview at",
         min=0, max=(1 << 24),
         default=1,
+    )
+    preview_denoising_use_gpu: BoolProperty(
+        name="Denoise Preview on GPU",
+        description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
+        default=True,
     )
 
     samples: IntProperty(
@@ -1590,6 +1600,22 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def has_active_device(self):
         return self.get_num_gpu_devices() > 0
+
+    def has_oidn_gpu_devices(self):
+        import _cycles
+        compute_device_type = context.preferences.addons[__package__].preferences.get_compute_device_type()
+
+        # We need non-CPU devices, used for rendering and supporting OIDN GPU denoising
+        for device in _cycles.available_devices(compute_device_type):
+            device_type = device[1]
+            if device_type == 'CPU':
+                continue
+
+            has_device_oidn_support = device[5]
+            if has_device_oidn_support and self.find_existing_device_entry(device).use:
+                return True
+
+        return False
 
     def _draw_devices(self, layout, device_type, devices):
         box = layout.box()

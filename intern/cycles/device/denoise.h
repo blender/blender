@@ -63,6 +63,11 @@ class DenoiseParams : public Node {
   /* Configure the denoiser to use motion vectors, previous image and a temporally stable model. */
   bool temporally_stable = false;
 
+  /* If true, then allow, if supported, OpenImageDenoise to use GPU device.
+   * If false, then OpenImageDenoise will always use CPU regardless of GPU device
+   * precense. */
+  bool use_gpu = true;
+
   DenoiserPrefilter prefilter = DENOISER_PREFILTER_FAST;
 
   static const NodeEnum *get_type_enum();
@@ -75,7 +80,8 @@ class DenoiseParams : public Node {
     return !(use == other.use && type == other.type && start_sample == other.start_sample &&
              use_pass_albedo == other.use_pass_albedo &&
              use_pass_normal == other.use_pass_normal &&
-             temporally_stable == other.temporally_stable && prefilter == other.prefilter);
+             temporally_stable == other.temporally_stable && use_gpu == other.use_gpu &&
+             prefilter == other.prefilter);
   }
 };
 

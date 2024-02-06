@@ -474,6 +474,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
    * is that the interface and the integrator are technically out of sync. */
   if (denoise_params.use) {
     integrator->set_denoiser_type(denoise_params.type);
+    integrator->set_denoise_use_gpu(denoise_params.use_gpu);
     integrator->set_denoise_start_sample(denoise_params.start_sample);
     integrator->set_use_denoise_pass_albedo(denoise_params.use_pass_albedo);
     integrator->set_use_denoise_pass_normal(denoise_params.use_pass_normal);
@@ -970,6 +971,7 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
     /* Final Render Denoising */
     denoising.use = get_boolean(cscene, "use_denoising");
     denoising.type = (DenoiserType)get_enum(cscene, "denoiser", DENOISER_NUM, DENOISER_NONE);
+    denoising.use_gpu = get_boolean(cscene, "denoising_use_gpu");
     denoising.prefilter = (DenoiserPrefilter)get_enum(
         cscene, "denoising_prefilter", DENOISER_PREFILTER_NUM, DENOISER_PREFILTER_NONE);
 
@@ -988,6 +990,7 @@ DenoiseParams BlenderSync::get_denoise_params(BL::Scene &b_scene,
     denoising.use = get_boolean(cscene, "use_preview_denoising");
     denoising.type = (DenoiserType)get_enum(
         cscene, "preview_denoiser", DENOISER_NUM, DENOISER_NONE);
+    denoising.use_gpu = get_boolean(cscene, "preview_denoising_use_gpu");
     denoising.prefilter = (DenoiserPrefilter)get_enum(
         cscene, "preview_denoising_prefilter", DENOISER_PREFILTER_NUM, DENOISER_PREFILTER_FAST);
     denoising.start_sample = get_int(cscene, "preview_denoising_start_sample");
