@@ -375,14 +375,12 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna, "use_custom_directory", false, "Custom Directory", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  /* WARNING: `RNA_def_string_dir_path` should be used but the file selector crashes from
-   * #WM_operator_props_popup_confirm as it closes the popup before showing the file-selector. */
-  prop = RNA_def_string(ot->srna,
-                        "custom_directory",
-                        nullptr,
-                        sizeof(bUserExtensionRepo::remote_path),
-                        "Directory",
-                        "");
+  prop = RNA_def_string_dir_path(ot->srna,
+                                 "custom_directory",
+                                 nullptr,
+                                 sizeof(bUserExtensionRepo::remote_path),
+                                 "Directory",
+                                 "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   ot->prop = RNA_def_enum(
