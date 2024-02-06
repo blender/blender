@@ -170,6 +170,30 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
   return ibuf;
 }
 
+/**
+ * Close the splash when opening a file-selector.
+ */
+static void wm_block_splash_close_on_fileselect(bContext *C, void *arg1, void * /*arg2*/)
+{
+  wmWindow *win = CTX_wm_window(C);
+  if (!win) {
+    return;
+  }
+
+  /* Check for the event as this will run before the new window/area has been created. */
+  bool has_fileselect = false;
+  LISTBASE_FOREACH (const wmEvent *, event, &win->event_queue) {
+    if (event->type == EVT_FILESELECT) {
+      has_fileselect = true;
+      break;
+    }
+  }
+
+  if (has_fileselect) {
+    wm_block_close(C, arg1, nullptr);
+  }
+}
+
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*arg*/)
 {
   const uiStyle *style = UI_style_get_dpi();
@@ -233,6 +257,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*ar
   else {
     mt = WM_menutype_find("WM_MT_splash", true);
   }
+
+  UI_block_func_set(block, wm_block_splash_close_on_fileselect, block, nullptr);
 
   if (mt) {
     UI_menutype_draw(C, mt, layout);

@@ -4298,9 +4298,6 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   ScrArea *root_area = nullptr;
   ARegion *root_region = nullptr;
 
-  /* Close any popups, like when opening a file browser from the splash. */
-  UI_popup_handlers_remove_all(C, &root_win->modalhandlers);
-
   /* Setting the context window unsets the context area & screen. Avoid doing that, so operators
    * calling the file browser can operate in the context the browser was opened in. */
   if (ctx_win != root_win) {
