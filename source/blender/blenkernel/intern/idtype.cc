@@ -110,17 +110,20 @@ void BKE_idtype_init()
   id_type_init();
 }
 
-const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
+const IDTypeInfo *BKE_idtype_get_info_from_idtype_index(const int idtype_index)
 {
-  int id_index = BKE_idtype_idcode_to_index(id_code);
-
-  if (id_index >= 0 && id_index < ARRAY_SIZE(id_types) && id_types[id_index] != nullptr &&
-      id_types[id_index]->name[0] != '\0')
+  if (idtype_index >= 0 && idtype_index < ARRAY_SIZE(id_types) &&
+      id_types[idtype_index] != nullptr && id_types[idtype_index]->name[0] != '\0')
   {
-    return id_types[id_index];
+    return id_types[idtype_index];
   }
 
   return nullptr;
+}
+
+const IDTypeInfo *BKE_idtype_get_info_from_idcode(const short id_code)
+{
+  return BKE_idtype_get_info_from_idtype_index(BKE_idtype_idcode_to_index(id_code));
 }
 
 const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id)
