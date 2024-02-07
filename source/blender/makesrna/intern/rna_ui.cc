@@ -2324,7 +2324,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   prop = RNA_def_property(srna, "bl_default_preview_size", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "type->default_preview_size");
   RNA_def_property_range(prop, 32, 256);
-  RNA_def_property_flag(prop, PROP_REGISTER);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(
       prop, "Default Preview Size", "Default size of the asset preview thumbnails in pixels");
 
