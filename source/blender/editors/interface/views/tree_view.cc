@@ -178,7 +178,10 @@ void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
 
 void AbstractTreeView::draw_hierarchy_lines(const ARegion &region) const
 {
-  const float aspect = BLI_rctf_size_y(&region.v2d.cur) / (BLI_rcti_size_y(&region.v2d.mask) + 1);
+  const float aspect = (region.v2d.flag & V2D_IS_INIT) ?
+                           BLI_rctf_size_y(&region.v2d.cur) /
+                               (BLI_rcti_size_y(&region.v2d.mask) + 1) :
+                           1.0f;
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
