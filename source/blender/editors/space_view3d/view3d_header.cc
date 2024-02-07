@@ -127,6 +127,9 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
+  if (ob->type != OB_MESH) {
+    return;
+  }
 
   /* Gizmos aren't used in paint modes */
   if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
