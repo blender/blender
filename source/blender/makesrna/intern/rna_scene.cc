@@ -2018,7 +2018,10 @@ static void rna_Scene_uv_select_mode_update(bContext *C, PointerRNA * /*ptr*/)
   ED_uvedit_selectmode_clean_multi(C);
 }
 
-static void object_simplify_update(Scene *scene, Object *ob, bool update_normals)
+static void object_simplify_update(Scene *scene,
+                                   Object *ob,
+                                   bool update_normals,
+                                   Depsgraph *depsgraph)
 {
   ModifierData *md;
   ParticleSystem *psys;
@@ -2030,6 +2033,14 @@ static void object_simplify_update(Scene *scene, Object *ob, bool update_normals
   ob->id.tag &= ~LIB_TAG_DOIT;
 
   for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
+    if (md->type == eModifierType_Nodes && depsgraph != nullptr) {
+      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      const blender::bke::GeometrySet *geometry_set = ob_eval->runtime->geometry_set_eval;
+      if (geometry_set != nullptr && geometry_set->has_volume()) {
+        DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+      }
+      continue;
+    }
     if (ELEM(
             md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
     {
@@ -2043,7 +2054,7 @@ static void object_simplify_update(Scene *scene, Object *ob, bool update_normals
 
   if (ob->instance_collection) {
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (ob->instance_collection, ob_collection) {
-      object_simplify_update(scene, ob_collection, update_normals);
+      object_simplify_update(scene, ob_collection, update_normals, depsgraph);
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
@@ -2059,19 +2070,22 @@ static void object_simplify_update(Scene *scene, Object *ob, bool update_normals
   }
 }
 
-static void rna_Scene_simplify_update_impl(Main *bmain, Scene *sce, bool update_normals)
+static void rna_Scene_simplify_update_impl(Main *bmain,
+                                           Scene *sce,
+                                           bool update_normals,
+                                           Depsgraph *depsgraph)
 {
   Scene *sce_iter;
   Base *base;
 
   BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
   FOREACH_SCENE_OBJECT_BEGIN (sce, ob) {
-    object_simplify_update(sce, ob, update_normals);
+    object_simplify_update(sce, ob, update_normals, depsgraph);
   }
   FOREACH_SCENE_OBJECT_END;
 
   for (SETLOOPER_SET_ONLY(sce, sce_iter, base)) {
-    object_simplify_update(sce, base->object, update_normals);
+    object_simplify_update(sce, base->object, update_normals, depsgraph);
   }
 
   WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
@@ -2079,16 +2093,28 @@ static void rna_Scene_simplify_update_impl(Main *bmain, Scene *sce, bool update_
   DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
 }
 
-static void rna_Scene_use_simplify_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+static void rna_Scene_use_simplify_update(bContext *C, PointerRNA *ptr)
 {
-  Scene *sce = (Scene *)ptr->owner_id;
-  rna_Scene_simplify_update_impl(bmain, sce, false);
+  Scene *scene = (Scene *)ptr->owner_id;
+  Main *bmain = CTX_data_main(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  rna_Scene_simplify_update_impl(bmain, scene, false, depsgraph);
+}
+
+static void rna_Scene_simplify_volume_update(bContext *C, PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  Main *bmain = CTX_data_main(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  if (scene->r.mode & R_SIMPLIFY) {
+    rna_Scene_simplify_update_impl(bmain, scene, false, depsgraph);
+  }
 }
 
 static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA * /*ptr*/)
 {
   if (scene->r.mode & R_SIMPLIFY) {
-    rna_Scene_simplify_update_impl(bmain, scene, false);
+    rna_Scene_simplify_update_impl(bmain, scene, false, nullptr);
   }
 }
 
@@ -2097,7 +2123,7 @@ static void rna_Scene_use_simplify_normals_update(Main *bmain, Scene *scene, Poi
   /* NOTE: Ideally this would just force recalculation of the draw batch cache normals.
    * That's complicated enough to not be worth it here. */
   if (scene->r.mode & R_SIMPLIFY) {
-    rna_Scene_simplify_update_impl(bmain, scene, true);
+    rna_Scene_simplify_update_impl(bmain, scene, true, nullptr);
   }
 }
 
@@ -7205,6 +7231,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "mode", R_SIMPLIFY);
   RNA_def_property_ui_text(
       prop, "Use Simplify", "Enable simplification of scene for quicker preview renders");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_Scene_use_simplify_update");
 
   prop = RNA_def_property(srna, "simplify_subdivision", PROP_INT, PROP_UNSIGNED);
@@ -7235,7 +7262,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0, 1.0f);
   RNA_def_property_ui_text(
       prop, "Simplify Volumes", "Resolution percentage of volume objects in viewport");
-  RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(prop, 0, "rna_Scene_simplify_volume_update");
 
   prop = RNA_def_property(srna, "use_simplify_normals", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "mode", R_SIMPLIFY_NORMALS);
