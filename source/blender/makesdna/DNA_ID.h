@@ -1327,7 +1327,7 @@ typedef enum eID_Index {
   INDEX_ID_WS,
   INDEX_ID_WM,
 
-  /* Special values. */
+  /* Special values, keep last. */
   INDEX_ID_NULL,
 } eID_Index;
 
