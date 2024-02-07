@@ -298,7 +298,7 @@ typedef struct GreasePencilLayer {
   struct Object *parent;
   char *parsubstr;
   /**
-   * Layer transform UI settings. These should *not* be used to do any computation. 
+   * Layer transform UI settings. These should *not* be used to do any computation.
    * Use the functions is the `bke::greasepencil::Layer` class instead.
    */
   float translation[3], rotation[3], scale[3];
