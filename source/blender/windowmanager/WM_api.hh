@@ -728,8 +728,8 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *event);
 int WM_operator_props_dialog_popup(bContext *C,
                                    wmOperator *op,
                                    int width,
-                                   const char *title = nullptr,
-                                   const char *confirm_text = nullptr);
+                                   std::optional<std::string> title = std::nullopt,
+                                   std::optional<std::string> confirm_text = std::nullopt);
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op);
 int WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
