@@ -40,6 +40,7 @@ struct View3D;
 struct ViewLayer;
 struct bContext;
 struct rcti;
+struct uiListType;
 struct WorkSpace;
 struct WorkSpaceLayout;
 struct wmDrag;

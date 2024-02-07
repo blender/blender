@@ -28,6 +28,7 @@ struct SpaceType;
 struct uiBlock;
 struct uiLayout;
 struct uiList;
+struct uiListType;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
