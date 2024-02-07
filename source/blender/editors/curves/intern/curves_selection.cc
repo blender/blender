@@ -768,12 +768,12 @@ bool select_lasso(const ViewContext &vc,
                   const Span<float3> positions,
                   const IndexMask &mask,
                   const bke::AttrDomain selection_domain,
-                  const Span<int2> coords,
+                  const Span<int2> lasso_coords,
                   const eSelectOp sel_op)
 {
   rcti bbox;
-  const int(*coord_array)[2] = reinterpret_cast<const int(*)[2]>(coords.data());
-  BLI_lasso_boundbox(&bbox, coord_array, coords.size());
+  const int(*coord_array)[2] = reinterpret_cast<const int(*)[2]>(lasso_coords.data());
+  BLI_lasso_boundbox(&bbox, coord_array, lasso_coords.size());
 
   bke::GSpanAttributeWriter selection = ensure_selection_attribute(
       curves, selection_domain, CD_PROP_BOOL);
@@ -794,7 +794,7 @@ bool select_lasso(const ViewContext &vc,
       /* Check the lasso bounding box first as an optimization. */
       if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
           BLI_lasso_is_point_inside(
-              coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+              coord_array, lasso_coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
       {
         apply_selection_operation_at_index(selection.span, point_i, sel_op);
         changed = true;
@@ -810,7 +810,7 @@ bool select_lasso(const ViewContext &vc,
         /* Check the lasso bounding box first as an optimization. */
         if (BLI_rcti_isect_pt_v(&bbox, int2(pos_proj)) &&
             BLI_lasso_is_point_inside(
-                coord_array, coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
+                coord_array, lasso_coords.size(), int(pos_proj.x), int(pos_proj.y), IS_CLIPPED))
         {
           apply_selection_operation_at_index(selection.span, curve_i, sel_op);
           changed = true;
@@ -827,7 +827,7 @@ bool select_lasso(const ViewContext &vc,
         /* Check the lasso bounding box first as an optimization. */
         if (BLI_rcti_isect_segment(&bbox, int2(pos1_proj), int2(pos2_proj)) &&
             BLI_lasso_is_edge_inside(coord_array,
-                                     coords.size(),
+                                     lasso_coords.size(),
                                      int(pos1_proj.x),
                                      int(pos1_proj.y),
                                      int(pos2_proj.x),
