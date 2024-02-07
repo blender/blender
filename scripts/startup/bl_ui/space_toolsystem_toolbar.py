@@ -1384,12 +1384,11 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_brush_tool(context):
-        if not context:
-            return ()
-        brush = context.tool_settings.sculpt.brush
-        if not brush:
-            return ()
-        tool = brush.sculpt_tool
+        tool = None
+        if context:
+            brush = context.tool_settings.sculpt.brush
+            if brush:
+                tool = brush.sculpt_tool
         return [
             ToolDef.from_dict(
                 dict(
@@ -2449,12 +2448,11 @@ class _defs_curves_sculpt:
 
     @staticmethod
     def generate_brush_tool(context):
-        if not context:
-            return ()
-        brush = context.tool_settings.curves_sculpt.brush
-        if not brush:
-            return ()
-        tool = brush.curves_sculpt_tool
+        tool = None
+        if context:
+            brush = context.tool_settings.sculpt.brush
+            if brush:
+                tool = brush.curves_sculpt_tool
         return [
             ToolDef.from_dict(
                 dict(
