@@ -96,18 +96,7 @@ OIDNDenoiserGPU::OIDNDenoiserGPU(Device *path_trace_device, const DenoiseParams 
 
 OIDNDenoiserGPU::~OIDNDenoiserGPU()
 {
-  if (albedo_filter_) {
-    oidnReleaseFilter(albedo_filter_);
-  }
-  if (normal_filter_) {
-    oidnReleaseFilter(normal_filter_);
-  }
-  if (oidn_filter_) {
-    oidnReleaseFilter(oidn_filter_);
-  }
-  if (oidn_device_) {
-    oidnReleaseDevice(oidn_device_);
-  }
+  release_all_resources();
 }
 
 bool OIDNDenoiserGPU::denoise_buffer(const BufferParams &buffer_params,
@@ -208,14 +197,8 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
     return true;
   }
 
-  /* Destroy existing handle before creating new one. */
-  if (oidn_filter_) {
-    oidnReleaseFilter(oidn_filter_);
-  }
-
-  if (oidn_device_) {
-    oidnReleaseDevice(oidn_device_);
-  }
+  /* Destroy existing handles before creating new ones. */
+  release_all_resources();
 
   switch (denoiser_device_->info.type) {
 #  if defined(OIDN_DEVICE_SYCL) && defined(WITH_ONEAPI)
@@ -462,6 +445,26 @@ void OIDNDenoiserGPU::set_filter_pass(OIDNFilter filter,
                              offset_in_bytes,
                              pixel_stride_in_bytes,
                              row_stride_in_bytes);
+  }
+}
+
+void OIDNDenoiserGPU::release_all_resources()
+{
+  if (albedo_filter_) {
+    oidnReleaseFilter(albedo_filter_);
+    albedo_filter_ = nullptr;
+  }
+  if (normal_filter_) {
+    oidnReleaseFilter(normal_filter_);
+    normal_filter_ = nullptr;
+  }
+  if (oidn_filter_) {
+    oidnReleaseFilter(oidn_filter_);
+    oidn_filter_ = nullptr;
+  }
+  if (oidn_device_) {
+    oidnReleaseDevice(oidn_device_);
+    oidn_device_ = nullptr;
   }
 }
 
