@@ -691,8 +691,8 @@ static bool brush_smear_apply(tGP_BrushVertexpaintData *gso,
 static void gpencil_vertexpaint_brush_header_set(bContext *C)
 {
   ED_workspace_status_text(C,
-                           RPT_("GPencil Vertex Paint: LMB to paint | RMB/Escape to Exit"
-                                " | Ctrl to Invert Action"));
+                           IFACE_("GPencil Vertex Paint: LMB to paint | RMB/Escape to Exit"
+                                  " | Ctrl to Invert Action"));
 }
 
 /* ************************************************ */

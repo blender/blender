@@ -171,21 +171,21 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
       C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &affect_str);
 
   SNPRINTF(status_text,
-           RPT_("%s: Confirm, "
-                "%s: Cancel, "
-                "%s: Width Type (%s), "
-                "%s: Width (%s), "
-                "%s: Segments (%d), "
-                "%s: Profile (%.3f), "
-                "%s: Clamp Overlap (%s), "
-                "%s: Affect (%s), "
-                "%s: Outer Miter (%s), "
-                "%s: Inner Miter (%s), "
-                "%s: Harden Normals (%s), "
-                "%s: Mark Seam (%s), "
-                "%s: Mark Sharp (%s), "
-                "%s: Profile Type (%s), "
-                "%s: Intersection (%s)"),
+           IFACE_("%s: Confirm, "
+                  "%s: Cancel, "
+                  "%s: Width Type (%s), "
+                  "%s: Width (%s), "
+                  "%s: Segments (%d), "
+                  "%s: Profile (%.3f), "
+                  "%s: Clamp Overlap (%s), "
+                  "%s: Affect (%s), "
+                  "%s: Outer Miter (%s), "
+                  "%s: Inner Miter (%s), "
+                  "%s: Harden Normals (%s), "
+                  "%s: Mark Seam (%s), "
+                  "%s: Mark Sharp (%s), "
+                  "%s: Profile Type (%s), "
+                  "%s: Intersection (%s)"),
            WM_MODALKEY(BEV_MODAL_CONFIRM),
            WM_MODALKEY(BEV_MODAL_CANCEL),
            WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),

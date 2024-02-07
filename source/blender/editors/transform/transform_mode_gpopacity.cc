@@ -51,10 +51,10 @@ static void applyGPOpacity(TransInfo *t)
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, &t->scene->unit);
-    SNPRINTF(str, RPT_("Opacity: %s"), c);
+    SNPRINTF(str, IFACE_("Opacity: %s"), c);
   }
   else {
-    SNPRINTF(str, RPT_("Opacity: %3f"), ratio);
+    SNPRINTF(str, IFACE_("Opacity: %3f"), ratio);
   }
 
   bool recalc = false;

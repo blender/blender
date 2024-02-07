@@ -53,7 +53,7 @@ static void headerTimeScale(TransInfo *t, char str[UI_MAX_DRAW_STR])
     BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", t->values_final[0]);
   }
 
-  BLI_snprintf(str, UI_MAX_DRAW_STR, RPT_("ScaleX: %s"), &tvec[0]);
+  BLI_snprintf(str, UI_MAX_DRAW_STR, IFACE_("ScaleX: %s"), &tvec[0]);
 }
 
 static void applyTimeScaleValue(TransInfo *t, float value)

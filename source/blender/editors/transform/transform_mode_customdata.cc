@@ -138,12 +138,12 @@ static void apply_value_impl(TransInfo *t, const char *value_name)
 
 static void applyCrease(TransInfo *t)
 {
-  apply_value_impl(t, RPT_("Crease"));
+  apply_value_impl(t, IFACE_("Crease"));
 }
 
 static void applyBevelWeight(TransInfo *t)
 {
-  apply_value_impl(t, RPT_("Bevel Weight"));
+  apply_value_impl(t, IFACE_("Bevel Weight"));
 }
 
 static void init_mode_impl(TransInfo *t)

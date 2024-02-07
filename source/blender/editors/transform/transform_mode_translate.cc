@@ -264,7 +264,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     ofs += BLI_snprintf_rlen(str + ofs,
                              UI_MAX_DRAW_STR - ofs,
                              "%s %s: %s   ",
-                             RPT_("Proportional Size"),
+                             IFACE_("Proportional Size"),
                              t->proptext,
                              prop_str);
   }
@@ -273,7 +273,7 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
     short chainlen = t->settings->autoik_chainlen;
     if (chainlen) {
       ofs += BLI_snprintf_rlen(
-          str + ofs, UI_MAX_DRAW_STR - ofs, RPT_("Auto IK Length: %d"), chainlen);
+          str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Auto IK Length: %d"), chainlen);
       ofs += BLI_strncpy_rlen(str + ofs, "   ", UI_MAX_DRAW_STR - ofs);
     }
   }
@@ -310,9 +310,10 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       SpaceNode *snode = (SpaceNode *)t->area->spacedata.first;
       if (U.uiflag & USER_NODE_AUTO_OFFSET) {
         const char *str_dir = (snode->insert_ofs_dir == SNODE_INSERTOFS_DIR_RIGHT) ?
-                                  RPT_("right") :
-                                  RPT_("left");
-        ofs += BLI_snprintf_rlen(str, UI_MAX_DRAW_STR, RPT_("Auto-offset direction: %s"), str_dir);
+                                  IFACE_("right") :
+                                  IFACE_("left");
+        ofs += BLI_snprintf_rlen(
+            str, UI_MAX_DRAW_STR, IFACE_("Auto-offset direction: %s"), str_dir);
       }
     }
     else {

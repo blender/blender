@@ -49,10 +49,10 @@ static void applyBoneEnvelope(TransInfo *t)
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, &t->scene->unit);
-    SNPRINTF(str, RPT_("Envelope: %s"), c);
+    SNPRINTF(str, IFACE_("Envelope: %s"), c);
   }
   else {
-    SNPRINTF(str, RPT_("Envelope: %3f"), ratio);
+    SNPRINTF(str, IFACE_("Envelope: %3f"), ratio);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
