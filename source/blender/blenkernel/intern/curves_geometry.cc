@@ -89,89 +89,85 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   this->runtime->type_counts[CURVE_TYPE_CATMULL_ROM] = curve_num;
 }
 
-/**
- * \note Expects `dst` to be initialized, since the original attributes must be freed.
- */
-static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
+CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
 {
-  CustomData_free(&dst.point_data, dst.point_num);
-  CustomData_free(&dst.curve_data, dst.curve_num);
-  dst.point_num = src.point_num;
-  dst.curve_num = src.curve_num;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, dst.point_num);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, dst.curve_num);
-
-  dst.vertex_group_active_index = src.vertex_group_active_index;
-  BKE_defgroup_copy_list(&dst.vertex_group_names, &src.vertex_group_names);
-
-  implicit_sharing::copy_shared_pointer(src.curve_offsets,
-                                        src.runtime->curve_offsets_sharing_info,
-                                        &dst.curve_offsets,
-                                        &dst.runtime->curve_offsets_sharing_info);
-
-  dst.tag_topology_changed();
-
-  /* Though type counts are a cache, they must be copied because they are calculated eagerly. */
-  dst.runtime->type_counts = src.runtime->type_counts;
-  dst.runtime->evaluated_offsets_cache = src.runtime->evaluated_offsets_cache;
-  dst.runtime->nurbs_basis_cache = src.runtime->nurbs_basis_cache;
-  dst.runtime->evaluated_position_cache = src.runtime->evaluated_position_cache;
-  dst.runtime->bounds_cache = src.runtime->bounds_cache;
-  dst.runtime->evaluated_length_cache = src.runtime->evaluated_length_cache;
-  dst.runtime->evaluated_tangent_cache = src.runtime->evaluated_tangent_cache;
-  dst.runtime->evaluated_normal_cache = src.runtime->evaluated_normal_cache;
-
-  if (src.runtime->bake_materials) {
-    dst.runtime->bake_materials = std::make_unique<bake::BakeMaterialsList>(
-        *src.runtime->bake_materials);
+  this->curve_offsets = other.curve_offsets;
+  if (other.runtime->curve_offsets_sharing_info) {
+    other.runtime->curve_offsets_sharing_info->add_user();
   }
-}
 
-CurvesGeometry::CurvesGeometry(const CurvesGeometry &other) : CurvesGeometry()
-{
-  copy_curves_geometry(*this, other);
+  CustomData_copy(&other.point_data, &this->point_data, CD_MASK_ALL, other.point_num);
+  CustomData_copy(&other.curve_data, &this->curve_data, CD_MASK_ALL, other.curve_num);
+
+  this->point_num = other.point_num;
+  this->curve_num = other.curve_num;
+
+  BKE_defgroup_copy_list(&this->vertex_group_names, &other.vertex_group_names);
+  this->vertex_group_active_index = other.vertex_group_active_index;
+
+  this->runtime = MEM_new<CurvesGeometryRuntime>(
+      __func__,
+      CurvesGeometryRuntime{other.runtime->curve_offsets_sharing_info,
+                            other.runtime->type_counts,
+                            other.runtime->evaluated_offsets_cache,
+                            other.runtime->nurbs_basis_cache,
+                            other.runtime->evaluated_position_cache,
+                            other.runtime->bounds_cache,
+                            other.runtime->evaluated_length_cache,
+                            other.runtime->evaluated_tangent_cache,
+                            other.runtime->evaluated_normal_cache,
+                            {}});
+
+  if (other.runtime->bake_materials) {
+    this->runtime->bake_materials = std::make_unique<bake::BakeMaterialsList>(
+        *other.runtime->bake_materials);
+  }
 }
 
 CurvesGeometry &CurvesGeometry::operator=(const CurvesGeometry &other)
 {
-  if (this != &other) {
-    copy_curves_geometry(*this, other);
+  if (this == &other) {
+    return *this;
   }
+  std::destroy_at(this);
+  new (this) CurvesGeometry(other);
   return *this;
 }
 
-/* The source should be empty, but in a valid state so that using it further will work. */
-static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
+CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
 {
-  dst.point_num = src.point_num;
-  std::swap(dst.point_data, src.point_data);
-  CustomData_free(&src.point_data, src.point_num);
-  src.point_num = 0;
+  this->curve_offsets = other.curve_offsets;
+  other.curve_offsets = nullptr;
 
-  dst.curve_num = src.curve_num;
-  std::swap(dst.curve_data, src.curve_data);
-  CustomData_free(&src.curve_data, src.curve_num);
-  src.curve_num = 0;
+  this->point_data = other.point_data;
+  CustomData_reset(&other.point_data);
 
-  std::swap(dst.curve_offsets, src.curve_offsets);
+  this->curve_data = other.curve_data;
+  CustomData_reset(&other.curve_data);
 
-  std::swap(dst.vertex_group_names.first, src.vertex_group_names.first);
-  std::swap(dst.vertex_group_names.last, src.vertex_group_names.last);
-  std::swap(dst.vertex_group_active_index, src.vertex_group_active_index);
+  this->point_num = other.point_num;
+  other.point_num = 0;
 
-  std::swap(dst.runtime, src.runtime);
-}
+  this->curve_num = other.curve_num;
+  other.curve_num = 0;
 
-CurvesGeometry::CurvesGeometry(CurvesGeometry &&other) : CurvesGeometry()
-{
-  move_curves_geometry(*this, other);
+  this->vertex_group_names = other.vertex_group_names;
+  BLI_listbase_clear(&other.vertex_group_names);
+
+  this->vertex_group_active_index = other.vertex_group_active_index;
+  other.vertex_group_active_index = 0;
+
+  this->runtime = other.runtime;
+  other.runtime = nullptr;
 }
 
 CurvesGeometry &CurvesGeometry::operator=(CurvesGeometry &&other)
 {
-  if (this != &other) {
-    move_curves_geometry(*this, other);
+  if (this == &other) {
+    return *this;
   }
+  std::destroy_at(this);
+  new (this) CurvesGeometry(std::move(other));
   return *this;
 }
 
@@ -179,11 +175,12 @@ CurvesGeometry::~CurvesGeometry()
 {
   CustomData_free(&this->point_data, this->point_num);
   CustomData_free(&this->curve_data, this->curve_num);
-  implicit_sharing::free_shared_data(&this->curve_offsets,
-                                     &this->runtime->curve_offsets_sharing_info);
   BLI_freelistN(&this->vertex_group_names);
-  MEM_delete(this->runtime);
-  this->runtime = nullptr;
+  if (this->runtime) {
+    implicit_sharing::free_shared_data(&this->curve_offsets,
+                                       &this->runtime->curve_offsets_sharing_info);
+    MEM_delete(this->runtime);
+  }
 }
 
 /** \} */
