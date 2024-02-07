@@ -256,6 +256,9 @@ void MESH_OT_delete_loose(wmOperatorType *ot);
 void MESH_OT_edge_collapse(wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(wmOperatorType *ot);
 void MESH_OT_faces_shade_flat(wmOperatorType *ot);
+namespace blender::ed::mesh {
+void MESH_OT_set_sharpness_by_angle(wmOperatorType *ot);
+}
 void MESH_OT_split(wmOperatorType *ot);
 void MESH_OT_edge_rotate(wmOperatorType *ot);
 void MESH_OT_hide(wmOperatorType *ot);
