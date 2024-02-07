@@ -1538,11 +1538,11 @@ static void wpaint_paint_leaves(bContext *C,
 /** \name Enter Weight Paint Mode
  * \{ */
 
-static void grease_pencil_wpaintmode_enter(Scene *scene, Object *ob)
+static void grease_pencil_wpaintmode_enter(Main *bmain, Scene *scene, Object *ob)
 {
   const PaintMode paint_mode = PaintMode::Weight;
   Paint *weight_paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-  BKE_paint_ensure(scene->toolsettings, &weight_paint);
+  BKE_paint_ensure(bmain, scene->toolsettings, &weight_paint);
 
   ob->mode |= OB_MODE_WEIGHT_PAINT;
 
@@ -1557,7 +1557,7 @@ void ED_object_wpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *sce
       vwpaint::mode_enter_generic(bmain, depsgraph, scene, ob, OB_MODE_WEIGHT_PAINT);
       break;
     case OB_GREASE_PENCIL:
-      grease_pencil_wpaintmode_enter(scene, ob);
+      grease_pencil_wpaintmode_enter(bmain, scene, ob);
       break;
     default:
       BLI_assert_unreachable();
