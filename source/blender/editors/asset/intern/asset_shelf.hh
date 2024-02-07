@@ -52,20 +52,20 @@ void regiondata_blend_read_data(BlendDataReader *reader, RegionAssetShelf **shel
 void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &settings);
 void settings_blend_read_data(BlendDataReader *reader, AssetShelfSettings &settings);
 
-void settings_clear_enabled_catalogs(AssetShelfSettings &settings);
 void settings_set_active_catalog(AssetShelfSettings &settings,
                                  const asset_system::AssetCatalogPath &path);
 void settings_set_all_catalog_active(AssetShelfSettings &settings);
 bool settings_is_active_catalog(const AssetShelfSettings &settings,
                                 const asset_system::AssetCatalogPath &path);
 bool settings_is_all_catalog_active(const AssetShelfSettings &settings);
-bool settings_is_catalog_path_enabled(const AssetShelfSettings &settings,
+void settings_clear_enabled_catalogs(const AssetShelf &shelf);
+bool settings_is_catalog_path_enabled(const AssetShelf &shelf,
                                       const asset_system::AssetCatalogPath &path);
-void settings_set_catalog_path_enabled(AssetShelfSettings &settings,
+void settings_set_catalog_path_enabled(const AssetShelf &shelf,
                                        const asset_system::AssetCatalogPath &path);
 
 void settings_foreach_enabled_catalog_path(
-    const AssetShelfSettings &settings,
+    const AssetShelf &shelf,
     FunctionRef<void(const asset_system::AssetCatalogPath &catalog_path)> fn);
 
 }  // namespace blender::ed::asset::shelf

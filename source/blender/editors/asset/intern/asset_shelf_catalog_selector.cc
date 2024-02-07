@@ -74,7 +74,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
   Item &build_catalog_items_recursive(ui::TreeViewOrItem &parent_view_item,
                                       asset_system::AssetCatalogTreeItem &catalog_item) const
   {
-    Item &view_item = parent_view_item.add_tree_item<Item>(catalog_item, shelf_settings_);
+    Item &view_item = parent_view_item.add_tree_item<Item>(catalog_item, shelf_);
 
     catalog_item.foreach_child([&view_item, this](asset_system::AssetCatalogTreeItem &child) {
       build_catalog_items_recursive(view_item, child);
@@ -92,11 +92,11 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
     char catalog_path_enabled_ = false;
 
    public:
-    Item(asset_system::AssetCatalogTreeItem &catalog_item, AssetShelfSettings &shelf_settings)
+    Item(asset_system::AssetCatalogTreeItem &catalog_item, AssetShelf &shelf)
         : ui::BasicTreeViewItem(catalog_item.get_name()),
           catalog_item_(catalog_item),
           catalog_path_enabled_(
-              settings_is_catalog_path_enabled(shelf_settings, catalog_item.catalog_path()))
+              settings_is_catalog_path_enabled(shelf, catalog_item.catalog_path()))
     {
       disable_activatable();
     }
@@ -169,11 +169,11 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
 void AssetCatalogSelectorTree::update_shelf_settings_from_enabled_catalogs()
 {
-  settings_clear_enabled_catalogs(shelf_settings_);
+  settings_clear_enabled_catalogs(shelf_);
   foreach_item([this](ui::AbstractTreeViewItem &view_item) {
     const auto &selector_tree_item = dynamic_cast<AssetCatalogSelectorTree::Item &>(view_item);
     if (selector_tree_item.is_catalog_path_enabled()) {
-      settings_set_catalog_path_enabled(shelf_settings_, selector_tree_item.catalog_path());
+      settings_set_catalog_path_enabled(shelf_, selector_tree_item.catalog_path());
     }
   });
 }

@@ -739,6 +739,20 @@ typedef struct bUserScriptDirectory {
   char dir_path[768]; /* FILE_MAXDIR */
 } bUserScriptDirectory;
 
+/**
+ * Settings for an asset shelf, stored in the Preferences. Most settings are still stored in the
+ * asset shelf instance in #AssetShelfSettings. This is just for the options that should be shared
+ * as Preferences.
+ */
+typedef struct bUserAssetShelfSettings {
+  struct bUserAssetShelfSettings *next, *prev;
+
+  /** Identifier that matches the #AssetShelfType.idname of the shelf these settings apply to. */
+  char shelf_idname[64]; /* MAX_NAME */
+
+  ListBase enabled_catalog_paths; /* #LinkData */
+} bUserAssetShelfSettings;
+
 typedef struct UserDef {
   DNA_DEFINE_CXX_METHODS(UserDef)
 
@@ -861,6 +875,7 @@ typedef struct UserDef {
   struct ListBase asset_libraries;
   /** #bUserExtensionRepo */
   struct ListBase extension_repos;
+  struct ListBase asset_shelves_settings; /* #bUserAssetShelfSettings */
 
   char keyconfigstr[64];
 

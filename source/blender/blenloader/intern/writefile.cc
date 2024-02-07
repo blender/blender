@@ -933,6 +933,15 @@ static void write_userdef(BlendWriter *writer, const UserDef *userdef)
   LISTBASE_FOREACH (const bUserExtensionRepo *, repo_ref, &userdef->extension_repos) {
     BLO_write_struct(writer, bUserExtensionRepo, repo_ref);
   }
+  LISTBASE_FOREACH (
+      const bUserAssetShelfSettings *, shelf_settings, &userdef->asset_shelves_settings)
+  {
+    BLO_write_struct(writer, bUserAssetShelfSettings, shelf_settings);
+    LISTBASE_FOREACH (const LinkData *, path_link, &shelf_settings->enabled_catalog_paths) {
+      BLO_write_struct(writer, LinkData, path_link);
+      BLO_write_string(writer, (const char *)path_link->data);
+    }
+  }
 
   LISTBASE_FOREACH (const uiStyle *, style, &userdef->uistyles) {
     BLO_write_struct(writer, uiStyle, style);

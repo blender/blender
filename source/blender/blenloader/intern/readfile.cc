@@ -3439,6 +3439,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   BLO_read_list(reader, &user->script_directories);
   BLO_read_list(reader, &user->asset_libraries);
   BLO_read_list(reader, &user->extension_repos);
+  BLO_read_list(reader, &user->asset_shelves_settings);
 
   LISTBASE_FOREACH (wmKeyMap *, keymap, &user->user_keymaps) {
     keymap->modal_items = nullptr;
@@ -3484,6 +3485,13 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
   LISTBASE_FOREACH (bAddon *, addon, &user->addons) {
     BLO_read_data_address(reader, &addon->prop);
     IDP_BlendDataRead(reader, &addon->prop);
+  }
+
+  LISTBASE_FOREACH (bUserAssetShelfSettings *, shelf_settings, &user->asset_shelves_settings) {
+    BLO_read_list(reader, &shelf_settings->enabled_catalog_paths);
+    LISTBASE_FOREACH (LinkData *, path_link, &shelf_settings->enabled_catalog_paths) {
+      BLO_read_data_address(reader, &path_link->data);
+    }
   }
 
   /* XXX */

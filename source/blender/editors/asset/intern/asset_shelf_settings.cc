@@ -20,6 +20,8 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
+#include "BKE_preferences.h"
+
 #include "asset_shelf.hh"
 
 using namespace blender;
@@ -45,18 +47,11 @@ AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &othe
   if (active_catalog_path) {
     active_catalog_path = BLI_strdup(other.active_catalog_path);
   }
-  BLI_listbase_clear(&enabled_catalog_paths);
-
-  LISTBASE_FOREACH (LinkData *, catalog_path_item, &other.enabled_catalog_paths) {
-    LinkData *new_path_item = BLI_genericNodeN(BLI_strdup((char *)catalog_path_item->data));
-    BLI_addtail(&enabled_catalog_paths, new_path_item);
-  }
   return *this;
 }
 
 AssetShelfSettings::~AssetShelfSettings()
 {
-  shelf::settings_clear_enabled_catalogs(*this);
   MEM_delete(active_catalog_path);
 }
 
@@ -65,31 +60,12 @@ namespace blender::ed::asset::shelf {
 void settings_blend_write(BlendWriter *writer, const AssetShelfSettings &settings)
 {
   BLO_write_struct(writer, AssetShelfSettings, &settings);
-
-  LISTBASE_FOREACH (LinkData *, catalog_path_item, &settings.enabled_catalog_paths) {
-    BLO_write_struct(writer, LinkData, catalog_path_item);
-    BLO_write_string(writer, (const char *)catalog_path_item->data);
-  }
-
   BLO_write_string(writer, settings.active_catalog_path);
 }
 
 void settings_blend_read_data(BlendDataReader *reader, AssetShelfSettings &settings)
 {
-  BLO_read_list(reader, &settings.enabled_catalog_paths);
-  LISTBASE_FOREACH (LinkData *, catalog_path_item, &settings.enabled_catalog_paths) {
-    BLO_read_data_address(reader, &catalog_path_item->data);
-  }
   BLO_read_data_address(reader, &settings.active_catalog_path);
-}
-
-void settings_clear_enabled_catalogs(AssetShelfSettings &settings)
-{
-  LISTBASE_FOREACH_MUTABLE (LinkData *, catalog_path_item, &settings.enabled_catalog_paths) {
-    MEM_freeN(catalog_path_item->data);
-    BLI_freelinkN(&settings.enabled_catalog_paths, catalog_path_item);
-  }
-  BLI_assert(BLI_listbase_is_empty(&settings.enabled_catalog_paths));
 }
 
 void settings_set_active_catalog(AssetShelfSettings &settings,
@@ -116,30 +92,40 @@ bool settings_is_all_catalog_active(const AssetShelfSettings &settings)
   return !settings.active_catalog_path || !settings.active_catalog_path[0];
 }
 
-bool settings_is_catalog_path_enabled(const AssetShelfSettings &settings,
-                                      const asset_system::AssetCatalogPath &path)
+void settings_clear_enabled_catalogs(const AssetShelf &shelf)
 {
-  LISTBASE_FOREACH (LinkData *, catalog_path_item, &settings.enabled_catalog_paths) {
-    if (StringRef((const char *)catalog_path_item->data) == path.str()) {
-      return true;
-    }
-  }
-  return false;
+  BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(&U, shelf.idname);
 }
 
-void settings_set_catalog_path_enabled(AssetShelfSettings &settings,
+bool settings_is_catalog_path_enabled(const AssetShelf &shelf,
+                                      const asset_system::AssetCatalogPath &path)
+{
+  return BKE_preferences_asset_shelf_settings_is_catalog_path_enabled(
+      &U, shelf.idname, path.c_str());
+}
+
+void settings_set_catalog_path_enabled(const AssetShelf &shelf,
                                        const asset_system::AssetCatalogPath &path)
 {
-  char *path_copy = BLI_strdupn(path.c_str(), path.length());
-  BLI_addtail(&settings.enabled_catalog_paths, BLI_genericNodeN(path_copy));
+  if (BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(
+          &U, shelf.idname, path.c_str()))
+  {
+    U.runtime.is_dirty = true;
+  }
 }
 
 void settings_foreach_enabled_catalog_path(
-    const AssetShelfSettings &settings,
+    const AssetShelf &shelf,
     FunctionRef<void(const asset_system::AssetCatalogPath &catalog_path)> fn)
 {
-  LISTBASE_FOREACH (LinkData *, catalog_path_item, &settings.enabled_catalog_paths) {
-    fn(asset_system::AssetCatalogPath((char *)catalog_path_item->data));
+  const bUserAssetShelfSettings *pref_settings = BKE_preferences_asset_shelf_settings_get(
+      &U, shelf.idname);
+  if (!pref_settings) {
+    return;
+  }
+
+  LISTBASE_FOREACH (LinkData *, path_link, &pref_settings->enabled_catalog_paths) {
+    fn(asset_system::AssetCatalogPath((char *)path_link->data));
   }
 }
 

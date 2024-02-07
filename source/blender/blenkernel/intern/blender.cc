@@ -35,6 +35,7 @@
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_node.h"
+#include "BKE_preferences.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
@@ -343,6 +344,12 @@ void BKE_blender_userdef_data_free(UserDef *userdef, bool clear_fonts)
   BLI_freelistN(&userdef->script_directories);
   BLI_freelistN(&userdef->asset_libraries);
   BLI_freelistN(&userdef->extension_repos);
+  LISTBASE_FOREACH_MUTABLE (bUserAssetShelfSettings *, settings, &userdef->asset_shelves_settings)
+  {
+    BKE_preferences_asset_shelf_settings_clear_enabled_catalog_paths(settings);
+    MEM_freeN(settings);
+  }
+  BLI_listbase_clear(&userdef->asset_shelves_settings);
 
   BLI_freelistN(&userdef->uistyles);
   BLI_freelistN(&userdef->uifonts);

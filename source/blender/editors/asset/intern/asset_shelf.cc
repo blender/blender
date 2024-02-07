@@ -674,9 +674,10 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
   return but;
 }
 
-static void add_catalog_tabs(AssetShelfSettings &shelf_settings, uiLayout &layout)
+static void add_catalog_tabs(AssetShelf &shelf, uiLayout &layout)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
+  AssetShelfSettings &shelf_settings = shelf.settings;
 
   /* "All" tab. */
   {
@@ -694,7 +695,7 @@ static void add_catalog_tabs(AssetShelfSettings &shelf_settings, uiLayout &layou
 
   /* Regular catalog tabs. */
   settings_foreach_enabled_catalog_path(
-      shelf_settings, [&shelf_settings, block](const asset_system::AssetCatalogPath &path) {
+      shelf, [&shelf_settings, block](const asset_system::AssetCatalogPath &path) {
         uiBut *but = add_tab_button(*block, path.name());
 
         UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
@@ -730,9 +731,8 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiItemS(layout);
 
   PointerRNA shelf_ptr = active_shelf_ptr_from_context(C);
-  AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data);
-  if (shelf) {
-    add_catalog_tabs(shelf->settings, *layout);
+  if (AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data)) {
+    add_catalog_tabs(*shelf, *layout);
   }
 
   uiItemSpacer(layout);
