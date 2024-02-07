@@ -1096,15 +1096,13 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          nullptr);
   }
   else if ((flag & UI_ITEM_R_FULL_EVENT) && is_keymapitem_ptr) {
-    char buf[128];
-
-    WM_keymap_item_to_string(
-        static_cast<const wmKeyMapItem *>(ptr->data), false, buf, sizeof(buf));
+    std::string kmi_str =
+        WM_keymap_item_to_string(static_cast<const wmKeyMapItem *>(ptr->data), false).value_or("");
 
     but = uiDefButR_prop(block,
                          UI_BTYPE_HOTKEY_EVENT,
                          0,
-                         buf,
+                         kmi_str.c_str(),
                          x,
                          y,
                          prop_but_width,
@@ -3667,11 +3665,10 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
 
   /* add hotkey here, lower UI code can't detect it */
   if ((layout->root->block->flag & UI_BLOCK_LOOP) && (ot->prop && ot->invoke)) {
-    char keybuf[128];
-    if (WM_key_event_operator_string(
-            C, ot->idname, layout->root->opcontext, nullptr, false, keybuf, sizeof(keybuf)))
+    if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
+            C, ot->idname, layout->root->opcontext, nullptr, false))
     {
-      ui_but_add_shortcut(but, keybuf, false);
+      ui_but_add_shortcut(but, shortcut_str->c_str(), false);
     }
   }
 }

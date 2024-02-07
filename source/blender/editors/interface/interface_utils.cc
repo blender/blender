@@ -1024,33 +1024,31 @@ static bool ui_key_event_property_match(const char *opname,
   return match;
 }
 
-const char *UI_key_event_operator_string(const bContext *C,
-                                         const char *opname,
-                                         IDProperty *properties,
-                                         const bool is_strict,
-                                         char *result,
-                                         const int result_maxncpy)
+std::optional<std::string> UI_key_event_operator_string(const bContext *C,
+                                                        const char *opname,
+                                                        IDProperty *properties,
+                                                        const bool is_strict)
 {
   /* NOTE: currently only actions on UI Lists are supported (for the asset manager).
    * Other kinds of events can be supported as needed. */
 
   ARegion *region = CTX_wm_region(C);
   if (region == nullptr) {
-    return nullptr;
+    return std::nullopt;
   }
 
   /* Early exit regions which don't have UI-Lists. */
   if ((region->type->keymapflag & ED_KEYMAP_UI) == 0) {
-    return nullptr;
+    return std::nullopt;
   }
 
   uiBut *but = UI_region_active_but_get(region);
   if (but == nullptr) {
-    return nullptr;
+    return std::nullopt;
   }
 
   if (but->type != UI_BTYPE_PREVIEW_TILE) {
-    return nullptr;
+    return std::nullopt;
   }
 
   short event_val = KM_NOTHING;
@@ -1090,12 +1088,11 @@ const char *UI_key_event_operator_string(const bContext *C,
   }
 
   if ((event_val != KM_NOTHING) && (event_type != KM_NOTHING)) {
-    WM_keymap_item_raw_to_string(
-        false, false, false, false, 0, event_val, event_type, false, result, result_maxncpy);
-    return result;
+    return WM_keymap_item_raw_to_string(
+        false, false, false, false, 0, event_val, event_type, false);
   }
 
-  return nullptr;
+  return std::nullopt;
 }
 
 /** \} */

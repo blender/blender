@@ -7,6 +7,7 @@
  */
 
 #include <cstddef>
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -8349,41 +8350,33 @@ static void point_normals_cancel(bContext *C, wmOperator *op)
 
 static void point_normals_update_header(bContext *C, wmOperator *op)
 {
-  char header[UI_MAX_DRAW_STR];
-  char buf[UI_MAX_DRAW_STR];
+  auto get_modal_key_str = [&](int id) {
+    return WM_modalkeymap_operator_items_to_string(op->type, id, true).value_or("");
+  };
 
-  char *p = buf;
-  int available_len = sizeof(buf);
+  const std::string header = fmt::format(
+      IFACE_("{}: confirm, {}: cancel, "
+             "{}: point to mouse ({}), {}: point to Pivot, "
+             "{}: point to object origin, {}: reset normals, "
+             "{}: set & point to 3D cursor, {}: select & point to mesh item, "
+             "{}: invert normals ({}), {}: spherize ({}), {}: align ({})"),
+      get_modal_key_str(EDBM_CLNOR_MODAL_CONFIRM),
+      get_modal_key_str(EDBM_CLNOR_MODAL_CANCEL),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),
+      WM_bool_as_string(RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_RESET),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_INVERT),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
+      get_modal_key_str(EDBM_CLNOR_MODAL_POINTTO_ALIGN),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
 
-#define WM_MODALKEY(_id) \
-  WM_modalkeymap_operator_items_to_string_buf( \
-      op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
-
-  SNPRINTF(header,
-           IFACE_("%s: confirm, %s: cancel, "
-                  "%s: point to mouse (%s), %s: point to Pivot, "
-                  "%s: point to object origin, %s: reset normals, "
-                  "%s: set & point to 3D cursor, %s: select & point to mesh item, "
-                  "%s: invert normals (%s), %s: spherize (%s), %s: align (%s)"),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_CONFIRM),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_CANCEL),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_MOUSE),
-           WM_bool_as_string(RNA_enum_get(op->ptr, "mode") == EDBM_CLNOR_POINTTO_MODE_MOUSE),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_PIVOT),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_USE_OBJECT),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_RESET),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_INVERT),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
-           WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_ALIGN),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
-
-#undef WM_MODALKEY
-
-  ED_area_status_text(CTX_wm_area(C), header);
+  ED_area_status_text(CTX_wm_area(C), header.c_str());
 }
 
 /* TODO: move that to generic function in BMesh? */

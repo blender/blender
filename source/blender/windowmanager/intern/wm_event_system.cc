@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "AS_asset_library.hh"
 
@@ -2913,21 +2914,15 @@ static const char *keymap_handler_log_action_str(const eHandlerActionFlag action
   return "un-handled";
 }
 
-static const char *keymap_handler_log_kmi_event_str(const wmKeyMapItem *kmi,
-                                                    char *buf,
-                                                    size_t buf_maxncpy)
+static std::optional<std::string> keymap_handler_log_kmi_event_str(const wmKeyMapItem *kmi)
 {
   /* Short representation of the key that was pressed,
    * include this since it may differ from the event in minor details
    * which can help looking up the key-map definition. */
-  WM_keymap_item_to_string(kmi, false, buf, buf_maxncpy);
-  return buf;
+  return WM_keymap_item_to_string(kmi, false);
 }
 
-static const char *keymap_handler_log_kmi_op_str(bContext *C,
-                                                 const wmKeyMapItem *kmi,
-                                                 char *buf,
-                                                 size_t buf_maxncpy)
+static std::string keymap_handler_log_kmi_op_str(bContext *C, const wmKeyMapItem *kmi)
 {
   /* The key-map item properties can further help distinguish this item from others. */
   std::optional<std::string> kmi_props;
@@ -2937,11 +2932,12 @@ static const char *keymap_handler_log_kmi_op_str(bContext *C,
       kmi_props = RNA_pointer_as_string_keywords(C, kmi->ptr, false, false, true, 512);
     }
     else { /* Fallback. */
-      kmi_props = IDP_reprN(kmi->properties, nullptr);
+      char *c_str = IDP_reprN(kmi->properties, nullptr);
+      kmi_props = c_str;
+      MEM_freeN(c_str);
     }
   }
-  BLI_snprintf(buf, buf_maxncpy, "%s(%s)", kmi->idname, kmi_props.value_or("").c_str());
-  return buf;
+  return fmt::format("{}({})", kmi->idname, kmi_props.value_or(""));
 }
 
 #define PRINT \
@@ -2978,15 +2974,13 @@ static eHandlerActionFlag wm_handlers_do_keymap_with_keymap_handler(
           action |= wm_handler_operator_call(
               C, handlers, &handler->head, event, kmi->ptr, kmi->idname);
 
-          char op_buf[512];
-          char kmi_buf[128];
           CLOG_INFO(WM_LOG_HANDLERS,
                     2,
                     "keymap '%s', %s, %s, event: %s",
                     keymap->idname,
-                    keymap_handler_log_kmi_op_str(C, kmi, op_buf, sizeof(op_buf)),
+                    keymap_handler_log_kmi_op_str(C, kmi).c_str(),
                     keymap_handler_log_action_str(action),
-                    keymap_handler_log_kmi_event_str(kmi, kmi_buf, sizeof(kmi_buf)));
+                    keymap_handler_log_kmi_event_str(kmi).value_or("").c_str());
 
           if (action & WM_HANDLER_BREAK) {
             /* Not always_pass here, it denotes removed handler_base. */
@@ -6379,15 +6373,10 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
       }
     }
     if (show_text) {
-      char buf[UI_MAX_DRAW_STR];
-      int available_len = sizeof(buf);
-      char *p = buf;
-      WM_modalkeymap_operator_items_to_string_buf(
-          op->type, items[i].value, true, UI_MAX_SHORTCUT_STR, &available_len, &p);
-      p -= 1;
-      if (p > buf) {
-        BLI_snprintf(p, available_len, ": %s", items[i].name);
-        uiItemL(row, buf, ICON_NONE);
+      if (std::optional<std::string> str = WM_modalkeymap_operator_items_to_string(
+              op->type, items[i].value, true))
+      {
+        uiItemL(row, fmt::format("{}: {}", *str, items[i].name).c_str(), ICON_NONE);
       }
     }
   }

@@ -136,7 +136,6 @@ static void shortcut_free_operator_property(IDProperty *prop)
 static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
 {
   uiBut *but = (uiBut *)arg1;
-  char shortcut_str[128];
 
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
@@ -145,10 +144,10 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int /*event*/)
   }
 
   /* complex code to change name of button */
-  if (WM_key_event_operator_string(
-          C, idname, but->opcontext, prop, true, shortcut_str, sizeof(shortcut_str)))
+  if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
+          C, idname, but->opcontext, prop, true))
   {
-    ui_but_add_shortcut(but, shortcut_str, true);
+    ui_but_add_shortcut(but, shortcut_str->c_str(), true);
   }
   else {
     /* simply strip the shortcut */

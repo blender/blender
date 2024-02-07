@@ -865,9 +865,8 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
       wmKeyMapItem *kmi = menu_to_kmi.lookup_default(item->mt, nullptr);
       if (kmi != nullptr) {
-        char kmi_str[128];
-        WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
-        BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str);
+        std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
+        BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str.c_str());
       }
 
       BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");
