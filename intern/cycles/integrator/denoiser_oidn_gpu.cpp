@@ -263,6 +263,8 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
 
   oidnCommitDevice(oidn_device_);
 
+  quality_ = params_.quality;
+
   oidn_filter_ = create_filter();
   if (oidn_filter_ == nullptr) {
     return false;
@@ -270,8 +272,6 @@ bool OIDNDenoiserGPU::denoise_create_if_needed(DenoiseContext &context)
 
   oidnSetFilterBool(oidn_filter_, "hdr", true);
   oidnSetFilterBool(oidn_filter_, "srgb", false);
-
-  quality_ = params_.quality;
 
   if (context.use_pass_albedo) {
     albedo_filter_ = create_filter();
