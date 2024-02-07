@@ -1299,7 +1299,6 @@ def km_outliner(params):
         ("outliner.show_one_level", {"type": 'NUMPAD_MINUS', "value": 'PRESS'},
          {"properties": [("open", False)]}),
         *_template_items_select_actions(params, "outliner.select_all"),
-        ("outliner.expanded_toggle", {"type": 'A', "value": 'PRESS', "shift": True}, None),
         ("outliner.keyingset_add_selected", {"type": 'K', "value": 'PRESS'}, None),
         ("outliner.keyingset_remove_selected", {"type": 'K', "value": 'PRESS', "alt": True}, None),
         ("anim.keyframe_insert", {"type": 'I', "value": 'PRESS'}, None),
@@ -1318,6 +1317,11 @@ def km_outliner(params):
         # Copy/paste.
         ("outliner.id_copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
+
+        op_menu("VIEW3D_MT_add", {"type": 'A', "value": 'PRESS', "shift": True}),
+        ("object.duplicate", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("object.duplicate", {"type": 'D', "value": 'PRESS', "alt": True},
+         {"properties": [("linked", True)]}),
     ])
 
     return keymap
