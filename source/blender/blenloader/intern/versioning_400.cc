@@ -2887,6 +2887,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  /* Keep point/spot light soft falloff for files created before 4.0. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 0)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      if (light->type == LA_LOCAL || light->type == LA_SPOT) {
+        light->mode |= LA_USE_SOFT_FALLOFF;
+      }
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 1)) {
     using namespace blender::bke::greasepencil;
     /* Initialize newly added scale layer transform to one. */

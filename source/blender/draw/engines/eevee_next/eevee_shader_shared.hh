@@ -712,8 +712,13 @@ BLI_STATIC_ASSERT_ALIGN(LightCullingData, 16)
 enum eLightType : uint32_t {
   LIGHT_SUN = 0u,
   LIGHT_SUN_ORTHO = 1u,
-  LIGHT_POINT = 10u,
-  LIGHT_SPOT = 11u,
+  /* Point light. */
+  LIGHT_OMNI_SPHERE = 10u,
+  LIGHT_OMNI_DISK = 11u,
+  /* Spot light. */
+  LIGHT_SPOT_SPHERE = 12u,
+  LIGHT_SPOT_DISK = 13u,
+  /* Area light. */
   LIGHT_RECT = 20u,
   LIGHT_ELLIPSE = 21u
 };
@@ -730,9 +735,19 @@ static inline bool is_area_light(eLightType type)
   return type >= LIGHT_RECT;
 }
 
+static inline bool is_spot_light(eLightType type)
+{
+  return type == LIGHT_SPOT_SPHERE || type == LIGHT_SPOT_DISK;
+}
+
+static inline bool is_sphere_light(eLightType type)
+{
+  return type == LIGHT_SPOT_SPHERE || type == LIGHT_OMNI_SPHERE;
+}
+
 static inline bool is_sun_light(eLightType type)
 {
-  return type < LIGHT_POINT;
+  return type < LIGHT_OMNI_SPHERE;
 }
 
 struct LightData {
