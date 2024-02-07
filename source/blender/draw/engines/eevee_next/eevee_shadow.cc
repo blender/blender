@@ -226,7 +226,7 @@ void ShadowPunctual::sync(eLightType light_type,
                           float max_distance,
                           float softness_factor)
 {
-  if (light_type == LIGHT_SPOT) {
+  if (is_spot_light(light_type)) {
     tilemaps_needed_ = (cone_aperture > DEG2RADF(90.0f)) ? 5 : 1;
   }
   else if (is_area_light(light_type)) {

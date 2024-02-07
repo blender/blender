@@ -193,7 +193,7 @@ ccl_device_inline float background_portal_pdf(
     if (is_round) {
       float t;
       float3 D = normalize_len(lightpos - P, &t);
-      portal_pdf += fabsf(klight->area.invarea) * lamp_light_pdf(dir, -D, t);
+      portal_pdf += fabsf(klight->area.invarea) * light_pdf_area_to_solid_angle(dir, -D, t);
     }
     else {
       portal_pdf += area_light_rect_sample(
@@ -256,7 +256,7 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
         lightpos += ellipse_sample(axis_u * len_u * 0.5f, axis_v * len_v * 0.5f, rand);
         float t;
         D = normalize_len(lightpos - P, &t);
-        *pdf = fabsf(klight->area.invarea) * lamp_light_pdf(dir, -D, t);
+        *pdf = fabsf(klight->area.invarea) * light_pdf_area_to_solid_angle(dir, -D, t);
       }
       else {
         *pdf = area_light_rect_sample(P, &lightpos, axis_u, len_u, axis_v, len_v, rand, true);

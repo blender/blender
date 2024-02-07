@@ -107,7 +107,7 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
   if (is_directional) {
     return 1.0;
   }
-  if (light.type == LIGHT_SPOT) {
+  if (is_spot_light(light.type)) {
     return light_spot_attenuation(light, L);
   }
   if (is_area_light(light.type)) {
@@ -183,7 +183,7 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
 float light_ltc(
     sampler2DArray utility_tx, LightData light, vec3 N, vec3 V, LightVector lv, vec4 ltc_mat)
 {
-  if (light.type == LIGHT_POINT && lv.dist < light._radius) {
+  if (is_sphere_light(light.type) && lv.dist < light._radius) {
     /* Inside the sphere light, integrate over the hemisphere. */
     return 1.0;
   }
@@ -213,12 +213,20 @@ float light_ltc(
       make_orthonormal_basis(lv.L, Px, Py);
     }
 
-    vec2 size = vec2(light._area_size_x, light._area_size_y);
-    if (light.type == LIGHT_POINT) {
-      /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
-       * half-angle spanned by a disk light with the same radius. */
+    vec2 size;
+    if (is_sphere_light(light.type)) {
+      /* Spherical omni or spot light. */
       size = vec2(light_sphere_disk_radius(light._radius, lv.dist));
     }
+    else if (light.type == LIGHT_OMNI_DISK || light.type == LIGHT_SPOT_DISK) {
+      /* View direction-aligned disk. */
+      size = vec2(light._radius);
+    }
+    else {
+      /* Sun light and elliptical area light. */
+      size = vec2(light._area_size_x, light._area_size_y);
+    }
+
     vec3 points[3];
     points[0] = Px * -size.x + Py * -size.y;
     points[1] = Px * size.x + Py * -size.y;

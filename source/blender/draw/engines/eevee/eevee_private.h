@@ -447,7 +447,9 @@ typedef struct EEVEE_Light {
   float diff, spec, volume, volume_radius;
 } EEVEE_Light;
 
-/* Special type for elliptic area lights, matches lamps_lib.glsl */
+/* Special type for elliptic area lights and point/spot disk lights, matches lights_lib.glsl */
+#define LAMPTYPE_OMNI_DISK 0.5f
+#define LAMPTYPE_SPOT_DISK 2.5f
 #define LAMPTYPE_AREA_ELLIPSE 100.0f
 
 typedef struct EEVEE_Shadow {
