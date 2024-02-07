@@ -127,7 +127,7 @@ static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const ch
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, RPT_(operator_name));
+  STRNCPY(mode_str, IFACE_(operator_name));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -451,7 +451,7 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, RPT_("Decimate Keyframes"));
+  STRNCPY(mode_str, IFACE_("Decimate Keyframes"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1451,7 +1451,7 @@ static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
   char slider_string[UI_MAX_DRAW_STR];
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, RPT_("Shear Keys"));
+  STRNCPY(mode_str, IFACE_("Shear Keys"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1461,7 +1461,7 @@ static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
   else {
-    const char *operator_string = "D - Toggle Direction";
+    const char *operator_string = IFACE_("D - Toggle Direction");
     SNPRINTF(status_str, "%s: %s | %s", mode_str, slider_string, operator_string);
   }
 
@@ -2330,15 +2330,15 @@ static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
   const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
   switch (anchor) {
     case FCurveSegmentAnchor::LEFT:
-      SNPRINTF(op_slider_string, "%s | %s", slider_string, "[D] - Scale From Right End");
+      SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[D] - Scale From Right End"));
       break;
 
     case FCurveSegmentAnchor::RIGHT:
-      SNPRINTF(op_slider_string, "%s | %s", slider_string, "[D] - Scale From Left End");
+      SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[D] - Scale From Left End"));
       break;
   }
 
-  STRNCPY(mode_str, RPT_("Scale from Neighbor Keys"));
+  STRNCPY(mode_str, IFACE_("Scale from Neighbor Keys"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];

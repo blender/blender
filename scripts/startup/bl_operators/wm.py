@@ -3487,7 +3487,8 @@ class WM_MT_region_toggle_pie(Menu):
             text = enum_items[region_type].name
             attr = cls._region_info[region_type]
             value = getattr(space_data, attr)
-            props = pie.operator("wm.context_toggle", text=text, icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
+            props = pie.operator("wm.context_toggle", text=text, text_ctxt=i18n_contexts.default,
+                                 icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
             props.data_path = "space_data." + attr
 
     def draw(self, context):

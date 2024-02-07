@@ -1786,16 +1786,19 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent * /*event
   return wm_operator_props_popup_ex(C, op, false, true);
 }
 
-int WM_operator_props_dialog_popup(
-    bContext *C, wmOperator *op, int width, const char *title, const char *confirm_text)
+int WM_operator_props_dialog_popup(bContext *C,
+                                   wmOperator *op,
+                                   int width,
+                                   std::optional<std::string> title,
+                                   std::optional<std::string> confirm_text)
 {
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
   data->width = int(float(width) * UI_SCALE_FAC * UI_style_get()->widgetlabel.points /
                     UI_DEFAULT_TEXT_POINTS);
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
-  data->title = (title == nullptr) ? WM_operatortype_name(op->type, op->ptr) : title;
-  data->confirm_text = (confirm_text == nullptr) ? IFACE_("OK") : confirm_text;
+  data->title = title ? std::move(*title) : WM_operatortype_name(op->type, op->ptr);
+  data->confirm_text = confirm_text ? std::move(*confirm_text) : IFACE_("OK");
   data->icon = ALERT_ICON_NONE;
   data->size = WM_POPUP_SIZE_SMALL;
   data->position = WM_POPUP_POSITION_MOUSE;
@@ -1803,7 +1806,7 @@ int WM_operator_props_dialog_popup(
   data->mouse_move_quit = false;
   data->include_properties = true;
 
-  /* op is not executed until popup OK but is clicked */
+  /* The operator is not executed until popup OK button is clicked. */
   UI_popup_block_ex(
       C, wm_block_dialog_create, wm_operator_ui_popup_ok, wm_operator_ui_popup_cancel, data, op);
 

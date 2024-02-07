@@ -8,9 +8,13 @@ echo by dragging them into the text area of your bug report, please include both
 echo blender_debug_output.txt and blender_system_info.txt in your report. 
 echo.
 pause
-mkdir "%temp%\blender\debug_logs" > NUL 2>&1
 echo.
 echo Starting blender and waiting for it to exit....
+setlocal
+
 set PYTHONPATH=
-"%~dp0\blender" --factory-startup --python-expr "import bpy; bpy.ops.wm.sysinfo(filepath=r'%temp%\blender\debug_logs\blender_system_info.txt')" > "%temp%\blender\debug_logs\blender_debug_output.txt" 2>&1
-explorer "%temp%\blender\debug_logs"
+set DEBUGLOGS="%temp%\blender\debug_logs"
+mkdir "%DEBUGLOGS%" > NUL 2>&1
+
+"%~dp0\blender" --factory-startup --python-expr "import bpy; bpy.context.preferences.filepaths.temporary_directory=r'%DEBUGLOGS%'; bpy.ops.wm.sysinfo(filepath=r'%DEBUGLOGS%\blender_system_info.txt')" > "%DEBUGLOGS%\blender_debug_output.txt" 2>&1 < %0
+explorer "%DEBUGLOGS%"

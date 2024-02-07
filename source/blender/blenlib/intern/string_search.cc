@@ -343,7 +343,7 @@ static std::optional<float> score_query_against_words(Span<StringRef> query_word
   Array<int, 64> word_match_map(item.normalized_words.size(), unused_word);
 
   /* Start with some high score, because otherwise the final score might become negative. */
-  float total_match_score = 1000;
+  float total_match_score = item.is_deprecated ? 500 : 1000;
 
   for (const int query_word_index : query_words.index_range()) {
     const StringRef query_word = query_words[query_word_index];
@@ -514,6 +514,9 @@ void StringSearchBase::add_impl(const StringRef str, void *user_data, const int 
     }
   }
 
+  /* Not checking for the "D" to avoid problems with upper/lower-case. */
+  const bool is_deprecated = str.find("eprecated") != StringRef::not_found;
+
   items_.append({user_data,
                  allocator_.construct_array_copy(words.as_span()),
                  allocator_.construct_array_copy(word_group_ids.as_span()),
@@ -521,7 +524,8 @@ void StringSearchBase::add_impl(const StringRef str, void *user_data, const int 
                  main_group_length,
                  int(str.size()),
                  weight,
-                 recent_time});
+                 recent_time,
+                 is_deprecated});
 }
 
 Vector<void *> StringSearchBase::query_impl(const StringRef query) const

@@ -177,7 +177,7 @@ static void applyMirror(TransInfo *t)
       special_axis = bitscan_forward_i(special_axis_bitmap);
     }
 
-    SNPRINTF(str, RPT_("Mirror%s"), t->con.text);
+    SNPRINTF(str, IFACE_("Mirror%s"), t->con.text);
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
@@ -209,10 +209,10 @@ static void applyMirror(TransInfo *t)
     recalc_data(t);
 
     if (t->flag & T_2D_EDIT) {
-      ED_area_status_text(t->area, RPT_("Select a mirror axis (X, Y)"));
+      ED_area_status_text(t->area, IFACE_("Select a mirror axis (X, Y)"));
     }
     else {
-      ED_area_status_text(t->area, RPT_("Select a mirror axis (X, Y, Z)"));
+      ED_area_status_text(t->area, IFACE_("Select a mirror axis (X, Y, Z)"));
     }
   }
 }

@@ -32,7 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value").hide_value().field_on_all();
   }
-  b.add_input<decl::Vector>("Source UV Map")
+  b.add_input<decl::Vector>("UV Map", "Source UV Map")
       .hide_value()
       .field_on_all()
       .description("The mesh UV map to sample. Should not have overlapping faces");

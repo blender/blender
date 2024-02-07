@@ -2,20 +2,20 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_reader_stage.h"
-#include "usd_reader_camera.h"
-#include "usd_reader_curve.h"
-#include "usd_reader_instance.h"
-#include "usd_reader_light.h"
-#include "usd_reader_material.h"
-#include "usd_reader_mesh.h"
-#include "usd_reader_nurbs.h"
-#include "usd_reader_pointinstancer.h"
-#include "usd_reader_prim.h"
-#include "usd_reader_shape.h"
-#include "usd_reader_skeleton.h"
-#include "usd_reader_volume.h"
-#include "usd_reader_xform.h"
+#include "usd_reader_stage.hh"
+#include "usd_reader_camera.hh"
+#include "usd_reader_curve.hh"
+#include "usd_reader_instance.hh"
+#include "usd_reader_light.hh"
+#include "usd_reader_material.hh"
+#include "usd_reader_mesh.hh"
+#include "usd_reader_nurbs.hh"
+#include "usd_reader_pointinstancer.hh"
+#include "usd_reader_prim.hh"
+#include "usd_reader_shape.hh"
+#include "usd_reader_skeleton.hh"
+#include "usd_reader_volume.hh"
+#include "usd_reader_xform.hh"
 
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/primRange.h>

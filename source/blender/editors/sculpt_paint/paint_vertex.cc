@@ -405,7 +405,7 @@ void mode_exit_generic(Object *ob, const eObjectMode mode_flag)
 bool mode_toggle_poll_test(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr || ob->type != OB_MESH) {
+  if (ob == nullptr || !ELEM(ob->type, OB_MESH, OB_GREASE_PENCIL)) {
     return false;
   }
   if (!ob->data || ID_IS_LINKED(ob->data)) {

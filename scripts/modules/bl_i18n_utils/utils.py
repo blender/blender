@@ -15,6 +15,7 @@ from bl_i18n_utils import (
     settings,
     utils_rtl,
 )
+from typing import Dict
 
 
 ##### Misc Utils #####
@@ -737,6 +738,7 @@ class I18nMessages:
         self._reverse_cache = None
         if rebuild_now:
             src_to_msg, ctxt_to_msg, msgid_to_msg, msgstr_to_msg = {}, {}, {}, {}
+            ctxt_to_msg.setdefault(self.settings.DEFAULT_CONTEXT, set())
             for key, msg in self.msgs.items():
                 if msg.is_commented:
                     continue
@@ -799,7 +801,7 @@ class I18nMessages:
         rlbl = getattr(msgs, msgmap["rna_label"]["msgstr"])
         # print("rna label: " + rlbl, rlbl in msgid_to_msg, rlbl in msgstr_to_msg)
         if rlbl:
-            k = ctxt_to_msg[rna_ctxt].copy()
+            k = ctxt_to_msg.get(rna_ctxt, set()).copy()
             if k and rlbl in msgid_to_msg:
                 k &= msgid_to_msg[rlbl]
             elif k and rlbl in msgstr_to_msg:
@@ -1253,7 +1255,7 @@ class I18n:
 
     def __init__(self, kind=None, src=None, langs=set(), settings=settings):
         self.settings = settings
-        self.trans = {}
+        self.trans: Dict[str, I18nMessages] = {}
         self.src = {}  # Should have the same keys as self.trans (plus PARSER_PY_ID for py file)!
         self.dst = self._dst  # A callable that transforms src_path into dst_path!
         if kind and src:
@@ -1485,6 +1487,7 @@ class I18n:
             if langs:
                 translations &= langs
             translations = [('"' + lng + '"', " " * (len(lng) + 6), self.trans[lng]) for lng in sorted(translations)]
+            print("Translated keys saved to .py file:")
             print(*(k for k in keys.keys()))
             for key in keys.keys():
                 if ref.msgs[key].is_commented:

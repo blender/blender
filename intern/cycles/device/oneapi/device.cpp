@@ -131,7 +131,11 @@ static void device_iterator_cb(
 #  endif
 
   devices->push_back(info);
-  VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
+  VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
+
+  if (info.denoisers & DENOISER_OPENIMAGEDENOISE)
+    VLOG_INFO << "Device with id \"" << info.id << "\" is supporting "
+              << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
 }
 #endif
 

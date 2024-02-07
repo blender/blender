@@ -20,6 +20,8 @@
 #include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
 #include "asset_library_all.hh"
+#include "asset_library_essentials.hh"
+#include "asset_library_from_preferences.hh"
 #include "asset_library_on_disk.hh"
 #include "asset_library_runtime.hh"
 #include "asset_library_service.hh"
@@ -72,10 +74,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk_builtin(type, root_path);
-      library->import_method_ = ASSET_IMPORT_APPEND_REUSE;
-
-      return library;
+      return get_asset_library_on_disk_builtin(type, root_path);
     }
     case ASSET_LIBRARY_LOCAL: {
       /* For the "Current File" library  we get the asset library root path based on main. */
@@ -132,8 +131,19 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
     return lib;
   }
 
-  std::unique_ptr lib_uptr = std::make_unique<OnDiskAssetLibrary>(
-      library_type, name, normalized_root_path);
+  std::unique_ptr<OnDiskAssetLibrary> lib_uptr;
+  switch (library_type) {
+    case ASSET_LIBRARY_CUSTOM:
+      lib_uptr = std::make_unique<PreferencesOnDiskAssetLibrary>(name, normalized_root_path);
+      break;
+    case ASSET_LIBRARY_ESSENTIALS:
+      lib_uptr = std::make_unique<EssentialsAssetLibrary>();
+      break;
+    default:
+      lib_uptr = std::make_unique<OnDiskAssetLibrary>(library_type, name, normalized_root_path);
+      break;
+  }
+
   AssetLibrary *lib = lib_uptr.get();
 
   lib->load_catalogs();

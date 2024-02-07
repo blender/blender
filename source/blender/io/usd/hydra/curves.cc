@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "curves.h"
+#include "curves.hh"
 
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/imaging/hd/tokens.h>
@@ -19,7 +19,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
-#include "hydra_scene_delegate.h"
+#include "hydra_scene_delegate.hh"
 
 namespace blender::io::hydra {
 

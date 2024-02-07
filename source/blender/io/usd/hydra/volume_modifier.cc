@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "volume_modifier.h"
+#include "volume_modifier.hh"
 
 #include <pxr/usdImaging/usdVolImaging/tokens.h>
 
@@ -15,7 +15,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.hh"
 
-#include "hydra_scene_delegate.h"
+#include "hydra_scene_delegate.hh"
 
 namespace blender::io::hydra {
 

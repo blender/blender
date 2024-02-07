@@ -118,13 +118,15 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("armature.collection_add", icon='ADD', text="")
         col.operator("armature.collection_remove", icon='REMOVE', text="")
+
+        col.separator()
+
+        col.menu("ARMATURE_MT_collection_context_menu", icon='DOWNARROW_HLT', text="")
+
         if active_bcoll:
             col.separator()
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-            col.separator()
-
-        col.menu("ARMATURE_MT_collection_context_menu", icon='DOWNARROW_HLT', text="")
 
         row = layout.row()
 

@@ -52,7 +52,7 @@ static void headerSeqSlide(TransInfo *t, const float val[2], char str[UI_MAX_DRA
   }
 
   ofs += BLI_snprintf_rlen(
-      str + ofs, UI_MAX_DRAW_STR - ofs, RPT_("Sequence Slide: %s%s"), &tvec[0], t->con.text);
+      str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Sequence Slide: %s%s"), &tvec[0], t->con.text);
 }
 
 static void applySeqSlideValue(TransInfo *t, const float val[2])

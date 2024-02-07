@@ -5,10 +5,10 @@
  * Modifications Copyright 2021 Tangent Animation and
  * NVIDIA Corporation. All rights reserved. */
 
-#include "usd_reader_mesh.h"
-#include "usd_hash_types.h"
-#include "usd_reader_material.h"
-#include "usd_skel_convert.h"
+#include "usd_reader_mesh.hh"
+#include "usd_hash_types.hh"
+#include "usd_reader_material.hh"
+#include "usd_skel_convert.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
@@ -81,7 +81,7 @@ static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
 static void assign_materials(Main *bmain,
                              Object *ob,
                              const blender::Map<pxr::SdfPath, int> &mat_index_map,
-                             const USDImportParams &params,
+                             const blender::io::usd::USDImportParams &params,
                              pxr::UsdStageRefPtr stage,
                              blender::Map<std::string, Material *> &mat_name_to_mat,
                              blender::Map<std::string, std::string> &usd_path_to_mat_name)
@@ -125,7 +125,7 @@ static void assign_materials(Main *bmain,
       const std::string mat_name = pxr::TfMakeValidIdentifier(assigned_mat->id.name + 2);
       mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
 
-      if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+      if (params.mtl_name_collision_mode == blender::io::usd::USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the name of the Blender material we created for the USD material
          * with the given path. */
         usd_path_to_mat_name.lookup_or_add_default(item.key.GetAsString()) = mat_name;

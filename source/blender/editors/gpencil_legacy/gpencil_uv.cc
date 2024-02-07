@@ -79,7 +79,7 @@ enum {
 static void gpencil_uv_transform_update_header(wmOperator *op, bContext *C)
 {
   const int mode = RNA_enum_get(op->ptr, "mode");
-  const char *str = RPT_("Confirm: Enter/LMB, Cancel: (Esc/RMB) %s");
+  const char *str = IFACE_("Confirm: Enter/LMB, Cancel: (Esc/RMB) %s");
 
   char msg[UI_MAX_DRAW_STR];
   ScrArea *area = CTX_wm_area(C);
@@ -91,19 +91,21 @@ static void gpencil_uv_transform_update_header(wmOperator *op, bContext *C)
         float location[2];
         RNA_float_get_array(op->ptr, "location", location);
         BLI_snprintf(
-            flts_str, NUM_STR_REP_LEN, ", Translation: (%f, %f)", location[0], location[1]);
+            flts_str, NUM_STR_REP_LEN, RPT_(", Translation: (%f, %f)"), location[0], location[1]);
         break;
       }
       case GP_UV_ROTATE: {
         BLI_snprintf(flts_str,
                      NUM_STR_REP_LEN,
-                     ", Rotation: %f",
+                     RPT_(", Rotation: %f"),
                      RAD2DEG(RNA_float_get(op->ptr, "rotation")));
         break;
       }
       case GP_UV_SCALE: {
-        BLI_snprintf(
-            flts_str, NUM_STR_REP_LEN, ", Scale: %f", RAD2DEG(RNA_float_get(op->ptr, "scale")));
+        BLI_snprintf(flts_str,
+                     NUM_STR_REP_LEN,
+                     RPT_(", Scale: %f"),
+                     RAD2DEG(RNA_float_get(op->ptr, "scale")));
         break;
       }
       default:

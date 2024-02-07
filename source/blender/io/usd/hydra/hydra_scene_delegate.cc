@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "hydra_scene_delegate.h"
+#include "hydra_scene_delegate.hh"
 
 #include <bitset>
 

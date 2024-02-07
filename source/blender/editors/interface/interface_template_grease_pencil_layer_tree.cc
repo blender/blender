@@ -268,8 +268,6 @@ class LayerViewItem : public AbstractTreeViewItem {
                         0,
                         0.0f,
                         0.0f,
-                        0.0f,
-                        0.0f,
                         nullptr);
     if (!layer_.parent_group().is_visible()) {
       UI_but_flag_enable(but, UI_BUT_INACTIVE);
@@ -286,8 +284,6 @@ class LayerViewItem : public AbstractTreeViewItem {
                         &layer_ptr,
                         "lock",
                         0,
-                        0.0f,
-                        0.0f,
                         0.0f,
                         0.0f,
                         nullptr);

@@ -1597,12 +1597,12 @@ class USERPREF_UL_asset_libraries(UIList):
 class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
-
+        icon = 'WORLD' if repo.use_remote_path else 'DISK_DRIVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(repo, "name", text="", emboss=False)
+            layout.prop(repo, "name", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.prop(repo, "name", text="", emboss=False)
+            layout.prop(repo, "name", text="", icon=icon, emboss=False)
 
         # Show an error icon if this repository has unusable settings.
         if repo.enabled:
@@ -2047,7 +2047,7 @@ class USERPREF_PT_extensions_repos(Panel):
         layout.use_property_decorate = False
 
         paths = context.preferences.filepaths
-        active_library_index = paths.active_extension_repo
+        active_repo_index = paths.active_extension_repo
 
         row = layout.row()
 
@@ -2060,10 +2060,14 @@ class USERPREF_PT_extensions_repos(Panel):
         col = row.column(align=True)
         col.operator_menu_enum("preferences.extension_repo_add", "type", text="", icon='ADD')
         props = col.operator_menu_enum("preferences.extension_repo_remove", "type", text="", icon='REMOVE')
-        props.index = active_library_index
+        props.index = active_repo_index
+
+        col.separator()
+        col.operator("preferences.extension_repo_sync", text="", icon='FILE_REFRESH')
+        col.operator("preferences.extension_repo_upgrade", text="", icon='IMPORT')
 
         try:
-            active_repo = None if active_library_index < 0 else paths.extension_repos[active_library_index]
+            active_repo = None if active_repo_index < 0 else paths.extension_repos[active_repo_index]
         except IndexError:
             active_repo = None
 
@@ -2072,14 +2076,16 @@ class USERPREF_PT_extensions_repos(Panel):
 
         layout.separator()
 
-        layout.prop(active_repo, "use_remote_path", text="Use Remote URL")
-        row = layout.row()
+        # NOTE: changing repositories from remote to local & vice versa could be supported but is obscure enough
+        # that it can be hidden entirely. If there is a some justification to show this, it can be exposed.
+        # For now it can be accessed from Python if someone is.
+        # `layout.prop(active_repo, "use_remote_path", text="Use Remote URL")`
+
         if active_repo.use_remote_path:
+            row = layout.row()
             if active_repo.remote_path == "":
                 row.alert = True
-        else:
-            row.active = False
-        row.prop(active_repo, "remote_path", text="")
+            row.prop(active_repo, "remote_path", text="URL")
 
         if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
 

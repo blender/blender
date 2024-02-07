@@ -1,8 +1,8 @@
 /* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
-#include "usd_writer_transform.h"
-#include "usd_hierarchy_iterator.h"
+#include "usd_writer_transform.hh"
+#include "usd_hierarchy_iterator.hh"
 
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/usd/usdGeom/xform.h>

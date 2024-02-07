@@ -10,6 +10,7 @@
  */
 
 #include <cstring>
+#include <fmt/format.h>
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -71,27 +72,15 @@ static void operator_search_update_fn(const bContext *C,
 
     if (BLI_string_all_words_matched(ot_ui_name, str, (int(*)[2])words.data(), words_len)) {
       if (WM_operator_poll((bContext *)C, ot)) {
-        char name[256];
-        const int len = strlen(ot_ui_name);
-
-        /* display name for menu, can hold hotkey */
-        STRNCPY(name, ot_ui_name);
-
-        /* check for hotkey */
-        if (len < sizeof(name) - 6) {
-          if (WM_key_event_operator_string(C,
-                                           ot->idname,
-                                           WM_OP_EXEC_DEFAULT,
-                                           nullptr,
-                                           true,
-                                           &name[len + 1],
-                                           sizeof(name) - len - 1))
-          {
-            name[len] = UI_SEP_CHAR;
-          }
+        std::string name = ot_ui_name;
+        if (const std::optional<std::string> kmi_str = WM_key_event_operator_string(
+                C, ot->idname, WM_OP_EXEC_DEFAULT, nullptr, true))
+        {
+          name += UI_SEP_CHAR;
+          name += *kmi_str;
         }
 
-        if (!UI_search_item_add(items, name, ot, ICON_NONE, 0, 0)) {
+        if (!UI_search_item_add(items, name.c_str(), ot, ICON_NONE, 0, 0)) {
           break;
         }
       }

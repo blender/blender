@@ -1,8 +1,8 @@
 /* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
-#include "usd_writer_metaball.h"
-#include "usd_hierarchy_iterator.h"
+#include "usd_writer_metaball.hh"
+#include "usd_hierarchy_iterator.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdShade/material.h>

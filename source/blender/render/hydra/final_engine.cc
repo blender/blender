@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "final_engine.h"
-#include "camera.h"
+#include "final_engine.hh"
+#include "camera.hh"
 
 #include <pxr/imaging/hd/light.h>
 #include <pxr/imaging/hd/renderBuffer.h>

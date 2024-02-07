@@ -368,7 +368,7 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   nseqbase.first = iseq_first;
 
   LISTBASE_FOREACH (Sequence *, iseq, &nseqbase) {
-    if (STREQ(iseq->name, active_seq_name.c_str())) {
+    if (iseq->name == active_seq_name) {
       SEQ_select_active_set(scene_dst, iseq);
     }
     /* Make sure, that pasted strips have unique names. This has to be done after

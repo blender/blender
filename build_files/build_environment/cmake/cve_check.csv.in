@@ -25,9 +25,14 @@ vendor,product,version,cve_number,remarks,comment
 @TIFF_ID@,CVE-2022-3599,Ignored,issue in tiff command line tool not used by blender
 @TIFF_ID@,CVE-2022-3626,Ignored,issue in tiff command line tool not used by blender
 @TIFF_ID@,CVE-2022-3627,Ignored,issue in tiff command line tool not used by blender
+@TIFF_ID@,CVE-2023-40745,Ignored,issue in tiff command line tool not used by blender
+@TIFF_ID@,CVE-2023-41175,Ignored,issue in tiff command line tool not used by blender
 @XML2_ID@,CVE-2016-3709,Ignored,not affecting blender and not considered a security issue upstream
 @XML2_ID@,CVE-2023-39615,Ignored,not affecting blender and not considered a security issue upstream
 @XML2_ID@,CVE-2020-7595,Ignored,already fixed in the libxml2 version used
 @GMP_ID@,CVE-2021-43618,Mitigated,patched using upstream commit 561a9c25298e
 @SQLITE_ID@,CVE-2022-35737,Ignored,only affects SQLITE_ENABLE_STAT4 compile option not used by blender or python
+@SQLITE_ID@,CVE-2023-7104,Ignored,does not affect blender use of sqlite
+@SQLITE_ID@,CVE-2024-0232,Ignored,does not affect blender use of sqlite
+@ZLIB_ID@,CVE-2023-45853,Ignored,only affects minizip not used by blender
 @SBOMCONTENTS@

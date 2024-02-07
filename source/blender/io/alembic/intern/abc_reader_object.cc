@@ -270,6 +270,7 @@ void AbcObjectReader::addCacheModifier()
 {
   ModifierData *md = BKE_modifier_new(eModifierType_MeshSequenceCache);
   BLI_addtail(&m_object->modifiers, md);
+  BKE_modifiers_persistent_uid_init(*m_object, *md);
 
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 

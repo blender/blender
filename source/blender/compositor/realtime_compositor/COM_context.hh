@@ -69,7 +69,8 @@ class Context {
    * the compositing region. In the base case, the compositing region covers the entirety of the
    * render region with a lower bound of zero and an upper bound of the render size returned by the
    * get_render_size method. In other cases, the compositing region might be a subset of the render
-   * region. */
+   * region. Callers should check the validity of the region through is_valid_compositing_region(),
+   * since the region can be zero sized. */
   virtual rcti get_compositing_region() const = 0;
 
   /* Get the texture where the result of the compositor should be written. This should be called by
@@ -111,8 +112,14 @@ class Context {
    * render pipeline. */
   virtual RenderContext *render_context() const;
 
-  /* Get the size of the compositing region. See get_compositing_region(). */
+  /* Get the size of the compositing region. See get_compositing_region(). The output size is
+   * sanitized such that it is at least 1 in both dimensions. However, the developer is expected to
+   * gracefully handled zero sizes regions by checking the is_valid_compositing_region method. */
   int2 get_compositing_region_size() const;
+
+  /* Returns true if the compositing region has a valid size, that is, has at least one pixel in
+   * both dimensions, returns false otherwise. */
+  bool is_valid_compositing_region() const;
 
   /* Get the normalized render percentage of the active scene. */
   float get_render_percentage() const;

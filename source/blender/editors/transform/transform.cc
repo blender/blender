@@ -883,30 +883,30 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
   /* Initialize */
   switch (modal_type) {
     case TFM_MODAL_AXIS_X:
-      msg_2d = RPT_("along X");
-      msg_3d = RPT_("along %s X");
+      msg_2d = IFACE_("along X");
+      msg_3d = IFACE_("along %s X");
       constraint_new = CON_AXIS0;
       break;
     case TFM_MODAL_AXIS_Y:
-      msg_2d = RPT_("along Y");
-      msg_3d = RPT_("along %s Y");
+      msg_2d = IFACE_("along Y");
+      msg_3d = IFACE_("along %s Y");
       constraint_new = CON_AXIS1;
       break;
     case TFM_MODAL_AXIS_Z:
-      msg_2d = RPT_("along Z");
-      msg_3d = RPT_("along %s Z");
+      msg_2d = IFACE_("along Z");
+      msg_3d = IFACE_("along %s Z");
       constraint_new = CON_AXIS2;
       break;
     case TFM_MODAL_PLANE_X:
-      msg_3d = RPT_("locking %s X");
+      msg_3d = IFACE_("locking %s X");
       constraint_new = CON_AXIS1 | CON_AXIS2;
       break;
     case TFM_MODAL_PLANE_Y:
-      msg_3d = RPT_("locking %s Y");
+      msg_3d = IFACE_("locking %s Y");
       constraint_new = CON_AXIS0 | CON_AXIS2;
       break;
     case TFM_MODAL_PLANE_Z:
-      msg_3d = RPT_("locking %s Z");
+      msg_3d = IFACE_("locking %s Z");
       constraint_new = CON_AXIS0 | CON_AXIS1;
       break;
     default:
@@ -1250,7 +1250,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             if (t->options & CTX_CAMERA) {
               /* Exception for switching to dolly, or trackball, in camera view. */
               if (t->mode == TFM_TRANSLATION) {
-                setLocalConstraint(t, (CON_AXIS2), RPT_("along local Z"));
+                setLocalConstraint(t, (CON_AXIS2), IFACE_("along local Z"));
               }
               else if (t->mode == TFM_ROTATION) {
                 restoreTransObjects(t);

@@ -68,11 +68,11 @@ static void headerTimeTranslate(TransInfo *t, char str[UI_MAX_DRAW_STR])
     }
   }
 
-  ofs += BLI_snprintf_rlen(str, UI_MAX_DRAW_STR, RPT_("DeltaX: %s"), &tvec[0]);
+  ofs += BLI_snprintf_rlen(str, UI_MAX_DRAW_STR, IFACE_("DeltaX: %s"), &tvec[0]);
 
   if (t->flag & T_PROP_EDIT_ALL) {
     ofs += BLI_snprintf_rlen(
-        str + ofs, UI_MAX_DRAW_STR - ofs, RPT_(" Proportional size: %.2f"), t->prop_size);
+        str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 }
 

@@ -43,7 +43,7 @@ class TextureOperation : public NodeOperation {
   {
     Result &color_result = get_result("Color");
     Result &value_result = get_result("Value");
-    if (!get_texture()) {
+    if (!get_texture() || !context().is_valid_compositing_region()) {
       if (color_result.should_compute()) {
         color_result.allocate_invalid();
       }

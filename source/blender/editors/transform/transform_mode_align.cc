@@ -64,7 +64,7 @@ static void applyAlign(TransInfo *t)
 
   recalc_data(t);
 
-  ED_area_status_text(t->area, RPT_("Align"));
+  ED_area_status_text(t->area, IFACE_("Align"));
 }
 
 static void initAlign(TransInfo *t, wmOperator * /*op*/)

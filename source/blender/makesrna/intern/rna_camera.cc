@@ -337,7 +337,7 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Flip Vertically", "Flip the background image vertically");
   RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, nullptr);
 
-  prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "alpha");
   RNA_def_property_ui_text(
       prop, "Opacity", "Image opacity to blend the image against the background color");

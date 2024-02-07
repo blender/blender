@@ -70,7 +70,6 @@ class DrawingPlacement {
 
   DrawingPlacementDepth depth_;
   DrawingPlacementPlane plane_;
-  bke::greasepencil::DrawingTransforms transforms_;
   ViewDepths *depth_cache_ = nullptr;
   float surface_offset_;
 
@@ -78,12 +77,16 @@ class DrawingPlacement {
   float3 placement_normal_;
   float4 placement_plane_;
 
+  float4x4 layer_space_to_world_space_;
+  float4x4 world_space_to_layer_space_;
+
  public:
   DrawingPlacement() = default;
   DrawingPlacement(const Scene &scene,
                    const ARegion &region,
                    const View3D &view3d,
-                   const Object &object);
+                   const Object &eval_object,
+                   const bke::greasepencil::Layer &layer);
   ~DrawingPlacement();
 
  public:
@@ -171,12 +174,18 @@ struct MutableDrawingInfo {
 };
 Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
                                                      GreasePencil &grease_pencil);
+Array<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
+    const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer);
 Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
                                              const GreasePencil &grease_pencil);
 
 IndexMask retrieve_editable_strokes(Object &grease_pencil_object,
                                     const bke::greasepencil::Drawing &drawing,
                                     IndexMaskMemory &memory);
+IndexMask retrieve_editable_strokes_by_material(Object &object,
+                                                const bke::greasepencil::Drawing &drawing,
+                                                const int mat_i,
+                                                IndexMaskMemory &memory);
 IndexMask retrieve_editable_points(Object &object,
                                    const bke::greasepencil::Drawing &drawing,
                                    IndexMaskMemory &memory);

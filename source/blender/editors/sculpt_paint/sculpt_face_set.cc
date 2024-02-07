@@ -491,8 +491,10 @@ static void face_sets_update(Object &object,
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(
-          pbvh, *node, tls.face_indices);
+      const Span<int> faces =
+          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
+              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
       tls.new_face_sets.reinitialize(faces.size());
       MutableSpan<int> new_face_sets = tls.new_face_sets;

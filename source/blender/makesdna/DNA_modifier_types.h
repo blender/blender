@@ -136,14 +136,22 @@ typedef struct ModifierData {
    * and easily conflict with the explicit mapping of bits to panels here.
    */
   uint16_t layout_panel_open_flag;
-  char _pad[6];
+  char _pad[2];
+  /**
+   * Uniquely identifies the modifier within the object. This identifier is stable across Blender
+   * sessions. Modifiers on the original and corresponding evaluated object have matching
+   * identifiers. The identifier stays the same if the modifier is renamed or moved in the modifier
+   * stack.
+   *
+   * A valid identifier is non-negative (>= 1). Modifiers that are currently not on an object may
+   * have invalid identifiers. It has to be initialized with #BKE_modifiers_persistent_uid_init
+   * when it is added to an object.
+   */
+  int persistent_uid;
   /** MAX_NAME. */
   char name[64];
 
   char *error;
-
-  /** Runtime field which contains unique identifier of the modifier. */
-  SessionUID session_uid;
 
   /** Runtime field which contains runtime data which is specific to a modifier type. */
   void *runtime;

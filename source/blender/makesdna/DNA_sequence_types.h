@@ -836,6 +836,7 @@ typedef enum SequenceColorTag {
 
 /* Sequence->StripTransform->filter */
 enum {
+  SEQ_TRANSFORM_FILTER_AUTO = -1,
   SEQ_TRANSFORM_FILTER_NEAREST = 0,
   SEQ_TRANSFORM_FILTER_BILINEAR = 1,
   SEQ_TRANSFORM_FILTER_BOX = 2,

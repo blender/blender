@@ -979,6 +979,11 @@ void MetalDeviceQueue::close_blit_encoder()
   }
 }
 
+void *MetalDeviceQueue::native_queue()
+{
+  return mtlCommandQueue_;
+}
+
 CCL_NAMESPACE_END
 
 #endif /* WITH_METAL */

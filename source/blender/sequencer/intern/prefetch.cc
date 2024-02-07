@@ -433,7 +433,7 @@ static blender::VectorSet<Sequence *> query_scene_strips(ListBase *seqbase)
 {
   blender::VectorSet<Sequence *> strips;
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->type != SEQ_TYPE_SCENE || (seq->flag & SEQ_SCENE_STRIPS) != 0) {
+    if (seq->type == SEQ_TYPE_SCENE && (seq->flag & SEQ_SCENE_STRIPS) == 0) {
       strips.add(seq);
     }
   }

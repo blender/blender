@@ -155,6 +155,7 @@ class OUTLINER_MT_view_pie(Menu):
         pie = layout.menu_pie()
         pie.operator("outliner.show_hierarchy")
         pie.operator("outliner.show_active", icon='ZOOM_SELECTED')
+        pie.operator("outliner.expanded_toggle")
 
 
 class OUTLINER_MT_edit_datablocks(Menu):

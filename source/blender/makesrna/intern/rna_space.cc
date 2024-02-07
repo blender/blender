@@ -6422,6 +6422,13 @@ static void rna_def_space_graph(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Show Handles", "Show handles of Bézier control points");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
 
+  prop = RNA_def_property(srna, "autolock_translation_axis", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SIPO_AUTOLOCK_AXIS);
+  RNA_def_property_ui_text(prop,
+                           "Auto-Lock Key Axis",
+                           "Automatically locks the movement of keyframes to the dominant axis");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, nullptr);
+
   prop = RNA_def_property(srna, "use_only_selected_keyframe_handles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SIPO_SELVHANDLESONLY);
   RNA_def_property_ui_text(

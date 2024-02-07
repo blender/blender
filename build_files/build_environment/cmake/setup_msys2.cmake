@@ -111,9 +111,9 @@ endif()
 
 message("Checking for perl")
 # download perl for libvpx
-if(NOT EXISTS "${DOWNLOAD_DIR}/strawberry-perl-5.22.1.3-64bit-portable.zip")
+if(NOT EXISTS "${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip")
   message("Downloading perl")
-  file(DOWNLOAD "http://strawberryperl.com/download/5.22.1.3/strawberry-perl-5.22.1.3-64bit-portable.zip" "${DOWNLOAD_DIR}/strawberry-perl-5.22.1.3-64bit-portable.zip")
+  file(DOWNLOAD "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip" "${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip")
 endif()
 
 # make perl root directory
@@ -125,10 +125,10 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/perl")
 endif()
 
 # extract perl
-if((NOT EXISTS "${DOWNLOAD_DIR}/perl/portable.perl") AND (EXISTS "${DOWNLOAD_DIR}/strawberry-perl-5.22.1.3-64bit-portable.zip"))
+if((NOT EXISTS "${DOWNLOAD_DIR}/perl/portable.perl") AND (EXISTS "${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip"))
   message("Extracting perl")
   execute_process(
-    COMMAND ${CMAKE_COMMAND} -E tar jxf ${DOWNLOAD_DIR}/strawberry-perl-5.22.1.3-64bit-portable.zip
+    COMMAND ${CMAKE_COMMAND} -E tar jxf ${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/perl
   )
 endif()

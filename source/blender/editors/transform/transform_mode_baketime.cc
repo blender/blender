@@ -63,19 +63,19 @@ static void applyBakeTime(TransInfo *t)
     outputNumInput(&(t->num), c, &t->scene->unit);
 
     if (time >= 0.0f) {
-      SNPRINTF(str, RPT_("Time: +%s %s"), c, t->proptext);
+      SNPRINTF(str, IFACE_("Time: +%s %s"), c, t->proptext);
     }
     else {
-      SNPRINTF(str, RPT_("Time: %s %s"), c, t->proptext);
+      SNPRINTF(str, IFACE_("Time: %s %s"), c, t->proptext);
     }
   }
   else {
     /* default header print */
     if (time >= 0.0f) {
-      SNPRINTF(str, RPT_("Time: +%.3f %s"), time, t->proptext);
+      SNPRINTF(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
     }
     else {
-      SNPRINTF(str, RPT_("Time: %.3f %s"), time, t->proptext);
+      SNPRINTF(str, IFACE_("Time: %.3f %s"), time, t->proptext);
     }
   }
 

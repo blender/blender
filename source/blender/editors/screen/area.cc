@@ -2796,8 +2796,6 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
             0,
             0.0f,
             0.0f,
-            0.0f,
-            0.0f,
             "");
 
   return xco + 1.7 * U.widget_unit;

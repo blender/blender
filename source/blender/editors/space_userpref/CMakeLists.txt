@@ -10,6 +10,8 @@ set(INC
   ../../makesrna
   ../../windowmanager
 
+  # RNA_prototypes.h
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -31,3 +33,6 @@ set(LIB
 )
 
 blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.h
+add_dependencies(bf_editor_space_userpref bf_rna)

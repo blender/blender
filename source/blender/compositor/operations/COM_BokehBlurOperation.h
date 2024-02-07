@@ -18,9 +18,6 @@ class BokehBlurOperation : public MultiThreadedOperation, public QualityStepHelp
   float size_;
   bool sizeavailable_;
 
-  float bokeh_mid_x_;
-  float bokeh_mid_y_;
-  float bokehDimension_;
   bool extend_bounds_;
 
  public:

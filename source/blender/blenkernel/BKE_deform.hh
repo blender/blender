@@ -93,7 +93,7 @@ void BKE_object_defgroup_unique_name(bDeformGroup *dg, Object *ob);
 
 MDeformWeight *BKE_defvert_find_index(const MDeformVert *dv, int defgroup);
 /**
- * Ensures that `dv` has a deform weight entry for the specified defweight group.
+ * Ensures that `dv` has a deform weight entry for the specified group (`defgroup`).
  *
  * \note this function is mirrored in editmesh_tools.cc, for use for edit-vertices.
  */

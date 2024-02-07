@@ -10,6 +10,8 @@
 
 #include "BKE_context.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 
@@ -24,6 +26,7 @@ namespace blender::ed::transform::greasepencil {
 
 static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
@@ -81,15 +84,15 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
     if (tc.data_len == 0) {
       continue;
     }
-
-    float mtx[3][3], smtx[3][3];
-    copy_m3_m4(mtx, tc.obedit->object_to_world);
-    pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+    Object *object_eval = DEG_get_evaluated_object(depsgraph, tc.obedit);
+    GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object_eval->data);
+    Span<const bke::greasepencil::Layer *> layers = grease_pencil.layers();
 
     int layer_points_offset = 0;
-
     const Array<ed::greasepencil::MutableDrawingInfo> drawings = all_drawings[i];
     for (ed::greasepencil::MutableDrawingInfo info : drawings) {
+      const bke::greasepencil::Layer &layer = *layers[info.layer_index];
+      const float4x4 layer_space_to_world_space = layer.to_world_space(*object_eval);
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
       const IndexMask points = points_per_layer_per_object[layer_offset];
 
@@ -108,6 +111,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
             *object, info.drawing, memory);
         curve_populate_trans_data_structs(tc,
                                           curves,
+                                          layer_space_to_world_space,
                                           value_attribute,
                                           points,
                                           true,
@@ -118,6 +122,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       else {
         curve_populate_trans_data_structs(tc,
                                           curves,
+                                          layer_space_to_world_space,
                                           value_attribute,
                                           points,
                                           false,

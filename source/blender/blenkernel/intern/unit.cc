@@ -1844,6 +1844,18 @@ static bool ch_is_op(char op)
   }
 }
 
+static bool ch_is_op_unary(char op)
+{
+  switch (op) {
+    case '+':
+    case '-':
+    case '~':
+      return true;
+    default:
+      return false;
+  }
+}
+
 /**
  * Helper function for #unit_distribute_negatives to find the next negative to distribute.
  *
@@ -1913,6 +1925,18 @@ static char *find_next_op(const char *str, char *remaining_str, int remaining_st
 }
 
 /**
+ * Skip over multiple successive unary operators (typically `-`), skipping spaces.
+ * This allows for `--90d` to be handled properly, see: #117783.
+ */
+static char *skip_unary_op(char *str)
+{
+  while (*str == ' ' || ch_is_op_unary(*str)) {
+    str++;
+  }
+  return str;
+}
+
+/**
  * Put parentheses around blocks of values after negative signs to get rid of an implied "+"
  * between numbers without an operation between them. For example:
  *
@@ -1937,8 +1961,9 @@ static bool unit_distribute_negatives(char *str, const int str_maxncpy)
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = '(';
 
-    /* Add the ')' before the next operation or at the end. */
-    remaining_str = find_next_op(str, remaining_str + 1, remaining_str_maxncpy);
+    /* Add the ')' before the next operation or at the end.
+     * Unary operators are skipped to allow `--` to be a supported prefix. */
+    remaining_str = find_next_op(str, skip_unary_op(remaining_str + 1), remaining_str_maxncpy);
     remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = ')';

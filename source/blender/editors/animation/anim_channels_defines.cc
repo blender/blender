@@ -5616,8 +5616,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
                       -1,
                       0,
                       0,
-                      -1,
-                      -1,
                       nullptr);
 
       /* copy what outliner does here, see outliner_buttons */

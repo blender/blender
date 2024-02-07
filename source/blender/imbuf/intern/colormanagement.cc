@@ -2572,8 +2572,6 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
    * display transform for renders, or a user specified color space for the file. */
   const bool byte_output = BKE_image_format_is_byte(image_format);
 
-  BLI_assert(!(byte_output && linear_float_output));
-
   /* If we're saving from RGBA to RGB buffer then it's not so much useful to just ignore alpha --
    * it leads to bad artifacts especially when saving byte images.
    *

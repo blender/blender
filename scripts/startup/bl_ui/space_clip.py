@@ -363,7 +363,7 @@ class CLIP_PT_tools_clip(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Clip"
-    bl_translation_context = bpy.app.translations.contexts.id_movieclip
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_category = "Track"
 
     @classmethod
@@ -473,6 +473,7 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Track"
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_category = "Track"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -725,6 +726,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Track"
+    bl_translation_context = i18n_contexts.id_movieclip
 
     def draw(self, context):
         layout = self.layout
@@ -1265,7 +1267,6 @@ class CLIP_PT_tools_scenesetup(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Scene Setup"
-    bl_translation_context = bpy.app.translations.contexts.id_movieclip
     bl_category = "Solve"
 
     @classmethod
@@ -1364,7 +1365,7 @@ class CLIP_MT_view(Menu):
 
 class CLIP_MT_clip(Menu):
     bl_label = "Clip"
-    bl_translation_context = bpy.app.translations.contexts.id_movieclip
+    bl_translation_context = i18n_contexts.id_movieclip
 
     def draw(self, context):
         layout = self.layout

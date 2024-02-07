@@ -428,7 +428,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, (use_viewers) ? &lock : nullptr);
   if (ibuf == nullptr) {
-    BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? &lock : nullptr);
+    BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? lock : nullptr);
     *tex = image_gpu_texture_error_create(textarget);
     result.texture = *tex;
 
@@ -473,7 +473,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
     GPU_texture_original_size_set(*tex, ibuf->x, ibuf->y);
   }
 
-  BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? &lock : nullptr);
+  BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? lock : nullptr);
 
   return result;
 }

@@ -396,6 +396,8 @@ typedef struct bNodeType {
 
   /** True when the node cannot be muted. */
   bool no_muting;
+  /** True when the node still works but it's usage is discouraged. */
+  const char *deprecation_notice;
 
   /* RNA integration */
   ExtensionRNA rna_ext;

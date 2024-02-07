@@ -36,6 +36,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_rand.hh"
 #include "BLI_session_uid.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -161,9 +162,6 @@ static ModifierData *modifier_allocate_and_init(ModifierType type)
 ModifierData *BKE_modifier_new(int type)
 {
   ModifierData *md = modifier_allocate_and_init(ModifierType(type));
-
-  BKE_modifier_session_uid_generate(md);
-
   return md;
 }
 
@@ -220,11 +218,6 @@ void BKE_modifier_remove_from_list(Object *ob, ModifierData *md)
   BLI_remlink(&ob->modifiers, md);
 }
 
-void BKE_modifier_session_uid_generate(ModifierData *md)
-{
-  md->session_uid = BLI_session_uid_generate();
-}
-
 void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md)
 {
   if (modifiers && md) {
@@ -266,10 +259,10 @@ ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name)
       BLI_findstring(&(ob->modifiers), name, offsetof(ModifierData, name)));
 }
 
-ModifierData *BKE_modifiers_findby_session_uid(const Object *ob, const SessionUID *session_uid)
+ModifierData *BKE_modifiers_findby_persistent_uid(const Object *ob, const int persistent_uid)
 {
   LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-    if (BLI_session_uid_is_equal(&md->session_uid, session_uid)) {
+    if (md->persistent_uid == persistent_uid) {
       return md;
     }
   }
@@ -358,6 +351,7 @@ void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, cons
   target->mode = md->mode;
   target->flag = md->flag;
   target->ui_expand_flag = md->ui_expand_flag;
+  target->persistent_uid = md->persistent_uid;
 
   if (mti->copy_data) {
     mti->copy_data(md, target, flag);
@@ -367,17 +361,6 @@ void BKE_modifier_copydata_ex(const ModifierData *md, ModifierData *target, cons
     if (mti->foreach_ID_link) {
       mti->foreach_ID_link(target, nullptr, modifier_copy_data_id_us_cb, nullptr);
     }
-  }
-
-  if (flag & LIB_ID_CREATE_NO_MAIN) {
-    /* Make sure UID is the same between the source and the target.
-     * This is needed in the cases when UID is to be preserved and when there is no copy_data
-     * callback, or the copy_data does not do full byte copy of the modifier data. */
-    target->session_uid = md->session_uid;
-  }
-  else {
-    /* In the case copy_data made full byte copy force UID to be re-generated. */
-    BKE_modifier_session_uid_generate(target);
   }
 }
 
@@ -985,7 +968,7 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 ModifierData *BKE_modifier_get_original(const Object *object, ModifierData *md)
 {
   const Object *object_orig = DEG_get_original_object((Object *)object);
-  return BKE_modifiers_findby_session_uid(object_orig, &md->session_uid);
+  return BKE_modifiers_findby_persistent_uid(object_orig, md->persistent_uid);
 }
 
 ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, ModifierData *md)
@@ -994,30 +977,49 @@ ModifierData *BKE_modifier_get_evaluated(Depsgraph *depsgraph, Object *object, M
   if (object_eval == object) {
     return md;
   }
-  return BKE_modifiers_findby_session_uid(object_eval, &md->session_uid);
+  return BKE_modifiers_findby_persistent_uid(object_eval, md->persistent_uid);
 }
 
-void BKE_modifier_check_uids_unique_and_report(const Object *object)
+void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md)
 {
-  GSet *used_uids = BLI_gset_new(
-      BLI_session_uid_ghash_hash, BLI_session_uid_ghash_compare, "modifier used uids");
-
-  LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-    const SessionUID *session_uid = &md->session_uid;
-    if (!BLI_session_uid_is_generated(session_uid)) {
-      printf("Modifier %s -> %s does not have UID generated.\n", object->id.name + 2, md->name);
-      continue;
-    }
-
-    if (BLI_gset_lookup(used_uids, session_uid) != nullptr) {
-      printf("Modifier %s -> %s has duplicate UID generated.\n", object->id.name + 2, md->name);
-      continue;
-    }
-
-    BLI_gset_insert(used_uids, (void *)session_uid);
+  uint64_t hash = blender::get_default_hash(blender::StringRef(md.name));
+  if (ID_IS_LINKED(&object)) {
+    hash = blender::get_default_hash(hash, blender::StringRef(object.id.lib->filepath_abs));
   }
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(&object)) {
+    BLI_assert(ID_IS_LINKED(object.id.override_library->reference));
+    hash = blender::get_default_hash(
+        hash, blender::StringRef(object.id.override_library->reference->lib->filepath_abs));
+  }
+  blender::RandomNumberGenerator rng{uint32_t(hash)};
+  while (true) {
+    const int new_uid = rng.get_int32();
+    if (new_uid <= 0) {
+      continue;
+    }
+    if (BKE_modifiers_findby_persistent_uid(&object, new_uid) != nullptr) {
+      continue;
+    }
+    md.persistent_uid = new_uid;
+    break;
+  }
+}
 
-  BLI_gset_free(used_uids, nullptr);
+bool BKE_modifiers_persistent_uids_are_valid(const Object &object)
+{
+  blender::Set<int> uids;
+  int modifiers_num = 0;
+  LISTBASE_FOREACH (const ModifierData *, md, &object.modifiers) {
+    if (md->persistent_uid <= 0) {
+      return false;
+    }
+    uids.add(md->persistent_uid);
+    modifiers_num++;
+  }
+  if (uids.size() != modifiers_num) {
+    return false;
+  }
+  return true;
 }
 
 void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase)
@@ -1245,8 +1247,6 @@ void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object 
   BLO_read_list(reader, lb);
 
   LISTBASE_FOREACH (ModifierData *, md, lb) {
-    BKE_modifier_session_uid_generate(md);
-
     md->error = nullptr;
     md->runtime = nullptr;
 

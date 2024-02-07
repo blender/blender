@@ -380,7 +380,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                     col = box.column()
                     if bg.image is not None:
                         col.prop(bg.image, "use_view_as_render")
-                    col.prop(bg, "alpha", slider=True)
+                    col.prop(bg, "alpha")
                     col.row().prop(bg, "display_depth", expand=True)
 
                     col.row().prop(bg, "frame_method", expand=True)

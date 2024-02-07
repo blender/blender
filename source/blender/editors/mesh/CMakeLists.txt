@@ -49,6 +49,7 @@ set(SRC
   editmesh_rip_edge.cc
   editmesh_select.cc
   editmesh_select_similar.cc
+  editmesh_set_sharpness_by_angle.cc
   editmesh_tools.cc
   editmesh_undo.cc
   editmesh_utils.cc
@@ -66,6 +67,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager

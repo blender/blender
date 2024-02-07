@@ -1918,8 +1918,6 @@ static void add_attribute_search_button(const bContext &C,
                                  0,
                                  0.0f,
                                  0.0f,
-                                 0.0f,
-                                 0.0f,
                                  socket.description);
 
   const Object *object = ED_object_context(&C);

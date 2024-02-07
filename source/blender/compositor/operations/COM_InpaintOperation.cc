@@ -2,201 +2,170 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "MEM_guardedalloc.h"
+#include "BLI_array.hh"
+#include "BLI_math_base.hh"
+#include "BLI_math_numbers.hh"
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+#include "BLI_span.hh"
+#include "BLI_task.hh"
 
 #include "COM_InpaintOperation.h"
+#include "COM_JumpFloodingAlgorithm.h"
+#include "COM_SymmetricSeparableBlurVariableSizeAlgorithm.h"
 
 namespace blender::compositor {
 
-#define ASSERT_XY_RANGE(x, y) \
-  BLI_assert(x >= 0 && x < this->get_width() && y >= 0 && y < this->get_height())
+void InpaintSimpleOperation::compute_inpainting_region(
+    const MemoryBuffer *input,
+    const MemoryBuffer &inpainted_region,
+    const MemoryBuffer &distance_to_boundary_buffer,
+    MemoryBuffer *output)
+{
+  const int2 size = int2(this->get_width(), this->get_height());
+  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(size.x)) {
+        float4 color = float4(input->get_elem(x, y));
+
+        if (color.w == 1.0f) {
+          copy_v4_v4(output->get_elem(x, y), color);
+          continue;
+        }
+
+        float distance_to_boundary = *distance_to_boundary_buffer.get_elem(x, y);
+
+        if (distance_to_boundary > max_distance_) {
+          copy_v4_v4(output->get_elem(x, y), color);
+          continue;
+        }
+
+        float4 inpainted_color = float4(inpainted_region.get_elem(x, y));
+        float4 final_color = float4(math::interpolate(inpainted_color, color, color.w).xyz(),
+                                    1.0f);
+        copy_v4_v4(output->get_elem(x, y), final_color);
+      }
+    }
+  });
+}
+
+void InpaintSimpleOperation::fill_inpainting_region(const MemoryBuffer *input,
+                                                    Span<int2> flooded_boundary,
+                                                    MemoryBuffer &filled_region,
+                                                    MemoryBuffer &distance_to_boundary_buffer,
+                                                    MemoryBuffer &smoothing_radius_buffer)
+{
+  const int2 size = int2(this->get_width(), this->get_height());
+  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(size.x)) {
+        int2 texel = int2(x, y);
+        const size_t index = size_t(y) * size.x + x;
+
+        float4 color = float4(input->get_elem(x, y));
+
+        if (color.w == 1.0f) {
+          copy_v4_v4(filled_region.get_elem(x, y), color);
+          *smoothing_radius_buffer.get_elem(x, y) = 0.0f;
+          *distance_to_boundary_buffer.get_elem(x, y) = 0.0f;
+          continue;
+        }
+
+        int2 closest_boundary_texel = flooded_boundary[index];
+        float distance_to_boundary = math::distance(float2(texel), float2(closest_boundary_texel));
+        *distance_to_boundary_buffer.get_elem(x, y) = distance_to_boundary;
+
+        float blur_window_size = math::min(float(max_distance_), distance_to_boundary) /
+                                 math::numbers::sqrt2;
+        bool skip_smoothing = distance_to_boundary > (max_distance_ * 2.0f);
+        float smoothing_radius = skip_smoothing ? 0.0f : blur_window_size;
+        *smoothing_radius_buffer.get_elem(x, y) = smoothing_radius;
+
+        float4 boundary_color = float4(
+            input->get_elem_clamped(closest_boundary_texel.x, closest_boundary_texel.y));
+        float4 final_color = math::interpolate(boundary_color, color, color.w);
+        copy_v4_v4(filled_region.get_elem(x, y), final_color);
+      }
+    }
+  });
+}
+
+Array<int2> InpaintSimpleOperation::compute_inpainting_boundary(const MemoryBuffer *input)
+{
+  const int2 size = int2(this->get_width(), this->get_height());
+  Array<int2> boundary(size_t(size.x) * size.y);
+
+  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      for (const int64_t x : IndexRange(size.x)) {
+        int2 texel = int2(x, y);
+
+        bool has_transparent_neighbors = false;
+        for (int j = -1; j <= 1; j++) {
+          for (int i = -1; i <= 1; i++) {
+            int2 offset = int2(i, j);
+
+            if (offset != int2(0)) {
+              if (float4(input->get_elem_clamped(x + i, y + j)).w < 1.0f) {
+                has_transparent_neighbors = true;
+                break;
+              }
+            }
+          }
+        }
+
+        bool is_opaque = float4(input->get_elem(x, y)).w == 1.0f;
+        bool is_boundary_pixel = is_opaque && has_transparent_neighbors;
+
+        int2 jump_flooding_value = initialize_jump_flooding_value(texel, is_boundary_pixel);
+
+        const size_t index = size_t(y) * size.x + x;
+        boundary[index] = jump_flooding_value;
+      }
+    }
+  });
+
+  return boundary;
+}
+
+/* Identical to  realtime_compositor::InpaintOperation::execute see that function, its
+ * sub-functions and shaders for more details. */
+void InpaintSimpleOperation::inpaint(const MemoryBuffer *input, MemoryBuffer *output)
+{
+  const int2 size = int2(this->get_width(), this->get_height());
+  Array<int2> inpainting_boundary = compute_inpainting_boundary(input);
+  Array<int2> flooded_boundary = jump_flooding(inpainting_boundary, size);
+
+  MemoryBuffer filled_region(DataType::Color, input->get_rect());
+  MemoryBuffer distance_to_boundary(DataType::Value, input->get_rect());
+  MemoryBuffer smoothing_radius(DataType::Value, input->get_rect());
+  fill_inpainting_region(
+      input, flooded_boundary, filled_region, distance_to_boundary, smoothing_radius);
+
+  MemoryBuffer smoothed_region(DataType::Color, input->get_rect());
+  symmetric_separable_blur_variable_size(
+      filled_region, smoothed_region, smoothing_radius, R_FILTER_GAUSS, max_distance_);
+
+  compute_inpainting_region(input, smoothed_region, distance_to_boundary, output);
+}
 
 InpaintSimpleOperation::InpaintSimpleOperation()
 {
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
-  flags_.complex = true;
   input_image_program_ = nullptr;
-  pixelorder_ = nullptr;
-  manhattan_distance_ = nullptr;
   cached_buffer_ = nullptr;
   cached_buffer_ready_ = false;
+  flags_.complex = true;
   flags_.is_fullframe_operation = true;
   flags_.can_be_constant = true;
 }
 void InpaintSimpleOperation::init_execution()
 {
   input_image_program_ = this->get_input_socket_reader(0);
-
-  pixelorder_ = nullptr;
-  manhattan_distance_ = nullptr;
   cached_buffer_ = nullptr;
   cached_buffer_ready_ = false;
-
   this->init_mutex();
-}
-
-void InpaintSimpleOperation::clamp_xy(int &x, int &y)
-{
-  int width = this->get_width();
-  int height = this->get_height();
-
-  if (x < 0) {
-    x = 0;
-  }
-  else if (x >= width) {
-    x = width - 1;
-  }
-
-  if (y < 0) {
-    y = 0;
-  }
-  else if (y >= height) {
-    y = height - 1;
-  }
-}
-
-float *InpaintSimpleOperation::get_pixel(int x, int y)
-{
-  int width = this->get_width();
-
-  ASSERT_XY_RANGE(x, y);
-
-  return &cached_buffer_[y * width * COM_DATA_TYPE_COLOR_CHANNELS +
-                         x * COM_DATA_TYPE_COLOR_CHANNELS];
-}
-
-int InpaintSimpleOperation::mdist(int x, int y)
-{
-  int width = this->get_width();
-
-  ASSERT_XY_RANGE(x, y);
-
-  return manhattan_distance_[y * width + x];
-}
-
-bool InpaintSimpleOperation::next_pixel(int &x, int &y, int &curr, int iters)
-{
-  int width = this->get_width();
-
-  if (curr >= area_size_) {
-    return false;
-  }
-
-  int r = pixelorder_[curr++];
-
-  x = r % width;
-  y = r / width;
-
-  if (this->mdist(x, y) > iters) {
-    return false;
-  }
-
-  return true;
-}
-
-void InpaintSimpleOperation::calc_manhattan_distance()
-{
-  int width = this->get_width();
-  int height = this->get_height();
-  short *m = manhattan_distance_ = (short *)MEM_mallocN(sizeof(short) * width * height, __func__);
-  int *offsets;
-
-  offsets = (int *)MEM_callocN(sizeof(int) * (width + height + 1),
-                               "InpaintSimpleOperation offsets");
-
-  for (int j = 0; j < height; j++) {
-    for (int i = 0; i < width; i++) {
-      int r = 0;
-      /* no need to clamp here */
-      if (this->get_pixel(i, j)[3] < 1.0f) {
-        r = width + height;
-        if (i > 0) {
-          r = min_ii(r, m[j * width + i - 1] + 1);
-        }
-        if (j > 0) {
-          r = min_ii(r, m[(j - 1) * width + i] + 1);
-        }
-      }
-      m[j * width + i] = r;
-    }
-  }
-
-  for (int j = height - 1; j >= 0; j--) {
-    for (int i = width - 1; i >= 0; i--) {
-      int r = m[j * width + i];
-
-      if (i + 1 < width) {
-        r = min_ii(r, m[j * width + i + 1] + 1);
-      }
-      if (j + 1 < height) {
-        r = min_ii(r, m[(j + 1) * width + i] + 1);
-      }
-
-      m[j * width + i] = r;
-
-      offsets[r]++;
-    }
-  }
-
-  offsets[0] = 0;
-
-  for (int i = 1; i < width + height + 1; i++) {
-    offsets[i] += offsets[i - 1];
-  }
-
-  area_size_ = offsets[width + height];
-  pixelorder_ = (int *)MEM_mallocN(sizeof(int) * area_size_, __func__);
-
-  for (int i = 0; i < width * height; i++) {
-    if (m[i] > 0) {
-      pixelorder_[offsets[m[i] - 1]++] = i;
-    }
-  }
-
-  MEM_freeN(offsets);
-}
-
-void InpaintSimpleOperation::pix_step(int x, int y)
-{
-  const int d = this->mdist(x, y);
-  float pix[3] = {0.0f, 0.0f, 0.0f};
-  float pix_divider = 0.0f;
-
-  for (int dx = -1; dx <= 1; dx++) {
-    for (int dy = -1; dy <= 1; dy++) {
-      /* changing to both != 0 gives dithering artifacts */
-      if (dx != 0 || dy != 0) {
-        int x_ofs = x + dx;
-        int y_ofs = y + dy;
-
-        this->clamp_xy(x_ofs, y_ofs);
-
-        if (this->mdist(x_ofs, y_ofs) < d) {
-
-          float weight;
-
-          if (dx == 0 || dy == 0) {
-            weight = 1.0f;
-          }
-          else {
-            weight = M_SQRT1_2; /* `1.0f / sqrt(2)`. */
-          }
-
-          madd_v3_v3fl(pix, this->get_pixel(x_ofs, y_ofs), weight);
-          pix_divider += weight;
-        }
-      }
-    }
-  }
-
-  float *output = this->get_pixel(x, y);
-  if (pix_divider != 0.0f) {
-    mul_v3_fl(pix, 1.0f / pix_divider);
-    /* use existing pixels alpha to blend into */
-    interp_v3_v3v3(output, pix, output, output[3]);
-    output[3] = 1.0f;
-  }
 }
 
 void *InpaintSimpleOperation::initialize_tile_data(rcti *rect)
@@ -206,17 +175,9 @@ void *InpaintSimpleOperation::initialize_tile_data(rcti *rect)
   }
   lock_mutex();
   if (!cached_buffer_ready_) {
-    MemoryBuffer *buf = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
-    cached_buffer_ = (float *)MEM_dupallocN(buf->get_buffer());
-
-    this->calc_manhattan_distance();
-
-    int curr = 0;
-    int x, y;
-
-    while (this->next_pixel(x, y, curr, iterations_)) {
-      this->pix_step(x, y);
-    }
+    MemoryBuffer *input = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
+    cached_buffer_ = new MemoryBuffer(DataType::Color, *rect);
+    inpaint(input, cached_buffer_);
     cached_buffer_ready_ = true;
   }
 
@@ -226,8 +187,7 @@ void *InpaintSimpleOperation::initialize_tile_data(rcti *rect)
 
 void InpaintSimpleOperation::execute_pixel(float output[4], int x, int y, void * /*data*/)
 {
-  this->clamp_xy(x, y);
-  copy_v4_v4(output, this->get_pixel(x, y));
+  copy_v4_v4(output, cached_buffer_->get_elem(x, y));
 }
 
 void InpaintSimpleOperation::deinit_execution()
@@ -235,19 +195,10 @@ void InpaintSimpleOperation::deinit_execution()
   input_image_program_ = nullptr;
   this->deinit_mutex();
   if (cached_buffer_) {
-    MEM_freeN(cached_buffer_);
+    delete cached_buffer_;
     cached_buffer_ = nullptr;
   }
 
-  if (pixelorder_) {
-    MEM_freeN(pixelorder_);
-    pixelorder_ = nullptr;
-  }
-
-  if (manhattan_distance_) {
-    MEM_freeN(manhattan_distance_);
-    manhattan_distance_ = nullptr;
-  }
   cached_buffer_ready_ = false;
 }
 
@@ -278,10 +229,9 @@ void InpaintSimpleOperation::get_area_of_interest(const int input_idx,
 }
 
 void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
-                                                  const rcti &area,
+                                                  const rcti & /*area*/,
                                                   Span<MemoryBuffer *> inputs)
 {
-  /* TODO(manzanilla): once tiled implementation is removed, run multi-threaded where possible. */
   MemoryBuffer *input = inputs[0];
 
   if (input->is_a_single_elem()) {
@@ -290,21 +240,9 @@ void InpaintSimpleOperation::update_memory_buffer(MemoryBuffer *output,
   }
 
   if (!cached_buffer_ready_) {
-    cached_buffer_ = (float *)MEM_dupallocN(input->get_buffer());
-
-    this->calc_manhattan_distance();
-
-    int curr = 0;
-    int x, y;
-    while (this->next_pixel(x, y, curr, iterations_)) {
-      this->pix_step(x, y);
-    }
+    inpaint(input, output);
     cached_buffer_ready_ = true;
   }
-
-  const int num_channels = COM_data_type_num_channels(get_output_socket()->get_data_type());
-  MemoryBuffer buf(cached_buffer_, num_channels, input->get_width(), input->get_height());
-  output->copy_from(&buf, area);
 }
 
 }  // namespace blender::compositor

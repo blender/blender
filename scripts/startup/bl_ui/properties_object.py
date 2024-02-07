@@ -395,7 +395,7 @@ class OBJECT_PT_visibility(ObjectButtonsPanel, Panel):
                 col = layout.column(heading="Ray Visibility")
                 col.prop(ob, "visible_shadow", text="Shadow", toggle=False)
 
-            if ob.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'CURVES', 'POINTCLOUD', 'VOLUME', 'LIGHT'}:
+            if ob.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'CURVES', 'POINTCLOUD', 'VOLUME'}:
                 layout.separator()
                 col = layout.column(heading="Light Probes")
                 col.prop(ob, "hide_probe_volume", text="Volume", toggle=False, invert_checkbox=True)

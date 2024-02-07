@@ -368,7 +368,6 @@ static std::string ui_tooltip_text_python_from_op(bContext *C,
 static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data, wmKeyMap *keymap)
 {
   const int fields_len_init = data->fields.size();
-  char buf[512];
 
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
@@ -384,12 +383,9 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data,
                               true);
 
     /* Shortcut. */
-    bool found = false;
-    if (WM_keymap_item_to_string(kmi, false, buf, sizeof(buf))) {
-      found = true;
-    }
+    const std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("None");
     UI_tooltip_text_field_add(data,
-                              fmt::format(TIP_("Shortcut: {}"), found ? buf : "None"),
+                              fmt::format(TIP_("Shortcut: {}"), kmi_str),
                               {},
                               UI_TIP_STYLE_NORMAL,
                               UI_TIP_LC_NORMAL);
@@ -588,16 +584,14 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
           RNA_enum_set(&op_props, tool_attr, items[i].value);
 
           /* Check for direct access to the tool. */
-          char shortcut_brush[128] = "";
-          if (WM_key_event_operator_string(C,
-                                           ot->idname,
-                                           WM_OP_INVOKE_REGION_WIN,
-                                           static_cast<IDProperty *>(op_props.data),
-                                           true,
-                                           shortcut_brush,
-                                           ARRAY_SIZE(shortcut_brush)))
+          if (std::optional<std::string> shortcut_brush = WM_key_event_operator_string(
+                  C,
+                  ot->idname,
+                  WM_OP_INVOKE_REGION_WIN,
+                  static_cast<IDProperty *>(op_props.data),
+                  true))
           {
-            shortcut = shortcut_brush;
+            shortcut = *shortcut_brush;
           }
           WM_operator_properties_free(&op_props);
         }
@@ -606,14 +600,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
     if (shortcut.empty()) {
       /* Check for direct access to the tool. */
-      char shortcut_toolbar[128] = "";
-      if (WM_key_event_operator_string(C,
-                                       "WM_OT_toolbar",
-                                       WM_OP_INVOKE_REGION_WIN,
-                                       nullptr,
-                                       true,
-                                       shortcut_toolbar,
-                                       ARRAY_SIZE(shortcut_toolbar)))
+      if (std::optional<std::string> shortcut_toolbar = WM_key_event_operator_string(
+              C, "WM_OT_toolbar", WM_OP_INVOKE_REGION_WIN, nullptr, true))
       {
         /* Generate keymap in order to inspect it.
          * NOTE: we could make a utility to avoid the keymap generation part of this. */
@@ -639,9 +627,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                 char tool_id_test[MAX_NAME];
                 RNA_string_get(kmi->ptr, "name", tool_id_test);
                 if (STREQ(tool_id, tool_id_test)) {
-                  char buf[128];
-                  WM_keymap_item_to_string(kmi, false, buf, sizeof(buf));
-                  shortcut = fmt::format("{}, {}", shortcut_toolbar, buf);
+                  std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
+                  shortcut = fmt::format("{}, {}", *shortcut_toolbar, kmi_str);
                   break;
                 }
               }
@@ -705,21 +692,19 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       WM_operator_properties_create_ptr(&op_props, but->optype);
       RNA_boolean_set(&op_props, "cycle", true);
 
-      char shortcut[128] = "";
+      std::optional<std::string> shortcut;
 
       const char *item_end = expr_result + expr_result_len;
       const char *item_step = expr_result;
 
       while (item_step < item_end) {
         RNA_string_set(&op_props, "name", item_step);
-        if (WM_key_event_operator_string(C,
-                                         but->optype->idname,
-                                         WM_OP_INVOKE_REGION_WIN,
-                                         static_cast<IDProperty *>(op_props.data),
-                                         true,
-                                         shortcut,
-                                         ARRAY_SIZE(shortcut)))
-        {
+        shortcut = WM_key_event_operator_string(C,
+                                                but->optype->idname,
+                                                WM_OP_INVOKE_REGION_WIN,
+                                                static_cast<IDProperty *>(op_props.data),
+                                                true);
+        if (shortcut) {
           break;
         }
         item_step += strlen(item_step) + 1;
@@ -728,9 +713,9 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       WM_operator_properties_free(&op_props);
       MEM_freeN(expr_result);
 
-      if (shortcut[0] != '\0') {
+      if (shortcut) {
         UI_tooltip_text_field_add(data,
-                                  fmt::format(TIP_("Shortcut Cycle: {}"), shortcut),
+                                  fmt::format(TIP_("Shortcut Cycle: {}"), *shortcut),
                                   {},
                                   UI_TIP_STYLE_NORMAL,
                                   UI_TIP_LC_VALUE,
@@ -1008,7 +993,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       call_params.opcontext = opcontext;
       CTX_wm_operator_poll_msg_clear(C);
       ui_but_context_poll_operator_ex(C, but, &call_params);
-      disabled_msg = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
+      disabled_msg = TIP_(CTX_wm_operator_poll_msg_get(C, &disabled_msg_free));
     }
     /* Alternatively, buttons can store some reasoning too. */
     else if (!extra_icon && but->disabled_info) {
@@ -1099,12 +1084,11 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
         /* Shortcut */
         {
           IDProperty *prop = static_cast<IDProperty *>(gzop->ptr.data);
-          char buf[128];
-          if (WM_key_event_operator_string(
-                  C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true, buf, ARRAY_SIZE(buf)))
+          if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
+                  C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true))
           {
             UI_tooltip_text_field_add(data,
-                                      fmt::format(TIP_("Shortcut: {}"), buf),
+                                      fmt::format(TIP_("Shortcut: {}"), *shortcut_str),
                                       {},
                                       UI_TIP_STYLE_NORMAL,
                                       UI_TIP_LC_VALUE,

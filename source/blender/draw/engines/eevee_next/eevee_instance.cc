@@ -191,6 +191,16 @@ void Instance::begin_sync()
   irradiance_cache.sync();
   lookdev.sync();
 
+  use_surfaces = (view_layer->layflag & SCE_LAY_SOLID) != 0;
+  use_curves = (view_layer->layflag & SCE_LAY_STRAND) != 0;
+  use_volumes = (view_layer->layflag & SCE_LAY_VOLUMES) != 0;
+
+  if (is_light_bake) {
+    /* Do not use render layer visibility during bake.
+     * Note: This is arbitrary and could be changed if needed. */
+    use_surfaces = use_curves = use_volumes = true;
+  }
+
   if (is_viewport() && velocity.camera_has_motion()) {
     sampling.reset();
   }

@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "engine.h"
+#include "engine.hh"
 
 #include <pxr/base/plug/plugin.h>
 #include <pxr/base/plug/registry.h>

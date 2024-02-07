@@ -229,7 +229,7 @@ static void Bend(TransInfo *t)
     outputNumInput(&(t->num), c, &t->scene->unit);
 
     SNPRINTF(str,
-             RPT_("Bend Angle: %s, Radius: %s, Alt: Clamp %s"),
+             IFACE_("Bend Angle: %s, Radius: %s, Alt: Clamp %s"),
              &c[0],
              &c[NUM_STR_REP_LEN],
              WM_bool_as_string(is_clamp));
@@ -237,7 +237,7 @@ static void Bend(TransInfo *t)
   else {
     /* default header print */
     SNPRINTF(str,
-             RPT_("Bend Angle: %.3f, Radius: %.4f, Alt: Clamp %s"),
+             IFACE_("Bend Angle: %.3f, Radius: %.4f, Alt: Clamp %s"),
              RAD2DEGF(values.angle),
              values.scale * bend_data->warp_init_dist,
              WM_bool_as_string(is_clamp));

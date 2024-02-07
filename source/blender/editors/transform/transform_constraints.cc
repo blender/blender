@@ -1081,11 +1081,11 @@ static void setNearestAxis2d(TransInfo *t)
   blender::float2 dvec = t->mval - t->mouse.imval;
   if (abs(dvec.x) < abs(dvec.y)) {
     t->con.mode |= CON_AXIS1;
-    STRNCPY(t->con.text, RPT_(" along Y axis"));
+    STRNCPY(t->con.text, IFACE_(" along Y axis"));
   }
   else {
     t->con.mode |= CON_AXIS0;
-    STRNCPY(t->con.text, RPT_(" along X axis"));
+    STRNCPY(t->con.text, IFACE_(" along X axis"));
   }
 }
 
@@ -1139,31 +1139,31 @@ static void setNearestAxis3d(TransInfo *t)
   if (len[0] <= len[1] && len[0] <= len[2]) {
     if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS1 | CON_AXIS2);
-      SNPRINTF(t->con.text, RPT_(" locking %s X axis"), t->spacename);
+      SNPRINTF(t->con.text, IFACE_(" locking %s X axis"), t->spacename);
     }
     else {
       t->con.mode |= CON_AXIS0;
-      SNPRINTF(t->con.text, RPT_(" along %s X axis"), t->spacename);
+      SNPRINTF(t->con.text, IFACE_(" along %s X axis"), t->spacename);
     }
   }
   else if (len[1] <= len[0] && len[1] <= len[2]) {
     if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS0 | CON_AXIS2);
-      SNPRINTF(t->con.text, RPT_(" locking %s Y axis"), t->spacename);
+      SNPRINTF(t->con.text, IFACE_(" locking %s Y axis"), t->spacename);
     }
     else {
       t->con.mode |= CON_AXIS1;
-      SNPRINTF(t->con.text, RPT_(" along %s Y axis"), t->spacename);
+      SNPRINTF(t->con.text, IFACE_(" along %s Y axis"), t->spacename);
     }
   }
   else if (len[2] <= len[1] && len[2] <= len[0]) {
     if (t->modifiers & MOD_CONSTRAINT_SELECT_PLANE) {
       t->con.mode |= (CON_AXIS0 | CON_AXIS1);
-      SNPRINTF(t->con.text, RPT_(" locking %s Z axis"), t->spacename);
+      SNPRINTF(t->con.text, IFACE_(" locking %s Z axis"), t->spacename);
     }
     else {
       t->con.mode |= CON_AXIS2;
-      SNPRINTF(t->con.text, RPT_(" along %s Z axis"), t->spacename);
+      SNPRINTF(t->con.text, IFACE_(" along %s Z axis"), t->spacename);
     }
   }
 }
