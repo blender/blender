@@ -189,7 +189,7 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  const float scale_defaults[3] = {1.0f, 1.0f, 1.0f};
+  static const float scale_defaults[3] = {1.0f, 1.0f, 1.0f};
 
   srna = RNA_def_struct(brna, "GreasePencilLayer", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencilLayer");
