@@ -47,8 +47,8 @@ int filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent * /* e
       RNA_string_get(op->ptr, "filepath", filepath);
       title = filepath;
     }
-    const std::string operator_name = WM_operatortype_name(op->type, op->ptr);
-    return WM_operator_props_dialog_popup(C, op, 350, title.c_str(), operator_name.c_str());
+    return WM_operator_props_dialog_popup(
+        C, op, 350, std::move(title), WM_operatortype_name(op->type, op->ptr));
   }
 
   WM_event_add_fileselect(C, op);
