@@ -23,6 +23,7 @@
 
 #include "ED_asset_handle.hh"
 #include "ED_asset_list.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_asset_shelf.hh"
 
 #include "UI_grid_view.hh"
@@ -206,16 +207,17 @@ void AssetViewItem::disable_asset_drag()
 
 void AssetViewItem::build_grid_tile(uiLayout &layout) const
 {
-  PointerRNA file_ptr = RNA_pointer_create(
-      nullptr,
-      &RNA_FileSelectEntry,
-      /* XXX passing file pointer here, should be asset handle or asset representation. */
-      const_cast<FileDirEntry *>(asset_.file_data));
+  const AssetView &asset_view = reinterpret_cast<const AssetView &>(this->get_view());
+  const AssetShelfType &shelf_type = *asset_view.shelf_.type;
 
-  uiBlock *block = uiLayoutGetBlock(&layout);
-  UI_but_context_ptr_set(
-      block, reinterpret_cast<uiBut *>(view_item_but_), "active_file", &file_ptr);
-  ui::PreviewGridItem::build_grid_tile(layout);
+  wmOperatorType *ot = WM_operatortype_find(shelf_type.activate_operator.c_str(), true);
+  PointerRNA op_props = PointerRNA_NULL;
+  if (ot) {
+    WM_operator_properties_create_ptr(&op_props, ot);
+    asset::operator_asset_reference_props_set(*handle_get_representation(&asset_), op_props);
+  }
+
+  ui::PreviewGridItem::build_grid_tile_button(layout, ot, &op_props);
 }
 
 void AssetViewItem::build_context_menu(bContext &C, uiLayout &column) const

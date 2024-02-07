@@ -45,6 +45,7 @@
 #include "ED_asset_handle.hh"
 #include "ED_asset_list.hh"
 #include "ED_asset_mark_clear.hh"
+#include "ED_asset_menu_utils.hh"
 #include "ED_image.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
@@ -987,21 +988,18 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 
 /**************************** Brush Assets **********************************/
 
-static bool brush_asset_select_poll(bContext *C)
-{
-  if (BKE_paint_get_active_from_context(C) == nullptr) {
-    return false;
-  }
-
-  return CTX_wm_asset(C) != nullptr;
-}
-
 static int brush_asset_select_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
+  using namespace blender::ed;
   /* This operator currently covers both cases: the file/asset browser file list and the asset list
    * used for the asset-view template. Once the asset list design is used by the Asset Browser,
    * this can be simplified to just that case. */
-  blender::asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
+  const asset_system::AssetRepresentation *asset =
+      asset::operator_asset_reference_props_get_asset_from_all_library(*C, *op->ptr, op->reports);
+  if (!asset) {
+    return OPERATOR_CANCELLED;
+  }
 
   AssetWeakReference *brush_asset_reference = asset->make_weak_reference();
   Brush *brush = BKE_brush_asset_runtime_ensure(CTX_data_main(C), brush_asset_reference);
@@ -1023,12 +1021,14 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
 
 static void BRUSH_OT_asset_select(wmOperatorType *ot)
 {
+  using namespace blender::ed;
   ot->name = "Select Brush Asset";
   ot->description = "Select a brush asset as current sculpt and paint tool";
   ot->idname = "BRUSH_OT_asset_select";
 
   ot->exec = brush_asset_select_exec;
-  ot->poll = brush_asset_select_poll;
+
+  asset::operator_asset_reference_props_register(*ot->srna);
 }
 
 /* FIXME Quick dirty hack to generate a weak ref from 'raw' paths.

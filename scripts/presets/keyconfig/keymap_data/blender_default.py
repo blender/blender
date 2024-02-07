@@ -6802,21 +6802,6 @@ def km_node_link_modal_map(_params):
     return keymap
 
 
-def km_asset_shelf_brushes(_params):
-    items = []
-    keymap = (
-        "Asset Shelf",
-        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
-        {"items": items},
-    )
-
-    items.extend([
-        ("brush.asset_select", {"type": 'LEFTMOUSE', "value": 'CLICK'}, None),
-    ])
-
-    return keymap
-
-
 # Fallback for gizmos that don't have custom a custom key-map.
 def km_generic_gizmo(_params):
     keymap = (
@@ -8651,9 +8636,6 @@ def generate_keymaps(params=None):
         km_sculpt_mesh_filter_modal_map(params),
         km_curve_pen_modal_map(params),
         km_node_link_modal_map(params),
-
-        # Asset Shelf Keymaps.
-        km_asset_shelf_brushes(params),
 
         # Gizmos.
         km_generic_gizmo(params),

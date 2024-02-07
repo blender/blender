@@ -8785,6 +8785,7 @@ class VIEW3D_PT_viewport_debug(Panel):
 class BrushAssetShelf:
     bl_space_type = "VIEW_3D"
     bl_options = {'NO_ASSET_DRAG'}
+    bl_activate_operator = "BRUSH_OT_asset_select"
     bl_default_preview_size = 40
 
     @classmethod

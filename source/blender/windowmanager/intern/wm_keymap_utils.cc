@@ -204,11 +204,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
 wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 {
   /* Op types purposely skipped for now:
-   *     BRUSH_OT
    *     BOID_OT
    *     BUTTONS_OT
    *     CONSTRAINT_OT
-   *     PAINT_OT
    *     ED_OT
    *     FLUID_OT
    *     TEXTURE_OT
@@ -331,7 +329,7 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
     km = WM_keymap_find_all(
         wm, "Paint Face Mask (Weight, Vertex, Texture)", SPACE_EMPTY, RGN_TYPE_WINDOW);
   }
-  else if (STRPREFIX(opname, "PAINT_OT")) {
+  else if (STRPREFIX(opname, "PAINT_OT") || STRPREFIX(opname, "BRUSH_OT")) {
     /* check for relevant mode */
     switch (CTX_data_mode_enum(C)) {
       case CTX_MODE_PAINT_WEIGHT:
@@ -345,6 +343,9 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
         break;
       case CTX_MODE_SCULPT:
         km = WM_keymap_find_all(wm, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);
+        break;
+      case CTX_MODE_SCULPT_CURVES:
+        km = WM_keymap_find_all(wm, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
         break;
       default:
         break;
