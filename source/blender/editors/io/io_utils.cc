@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLI_path_util.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 
@@ -27,7 +31,24 @@ int filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent * /* e
   if ((filepath_prop && RNA_property_is_set(op->ptr, filepath_prop)) ||
       (directory_prop && RNA_property_is_set(op->ptr, directory_prop)))
   {
-    return WM_operator_props_dialog_popup(C, op, 350);
+    std::string title;
+    PropertyRNA *files_prop = RNA_struct_find_property(op->ptr, "files");
+    if (directory_prop && files_prop) {
+      const auto files = paths_from_operator_properties(op->ptr);
+      if (files.size() == 1) {
+        title = files[0];
+      }
+      else {
+        title = fmt::format(TIP_("Import {} files"), files.size());
+      }
+    }
+    else {
+      char filepath[FILE_MAX];
+      RNA_string_get(op->ptr, "filepath", filepath);
+      title = filepath;
+    }
+    const std::string operator_name = WM_operatortype_name(op->type, op->ptr);
+    return WM_operator_props_dialog_popup(C, op, 350, title.c_str(), operator_name.c_str());
   }
 
   WM_event_add_fileselect(C, op);
