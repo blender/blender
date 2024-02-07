@@ -5863,9 +5863,6 @@ const char *ui_but_placeholder_get(uiBut *but)
       else if (type && !STREQ(RNA_struct_identifier(type), "UnknownType")) {
         placeholder = RNA_struct_ui_name(type);
       }
-      else {
-        placeholder = RNA_property_ui_name(but->rnaprop);
-      }
     }
     else if (but->type == UI_BTYPE_TEXT && but->icon == ICON_VIEWZOOM) {
       placeholder = CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Search");
