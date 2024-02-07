@@ -194,6 +194,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_data_light(Object *object);
   virtual void build_object_data_lightprobe(Object *object);
   virtual void build_object_data_speaker(Object *object);
+  virtual void build_object_data_grease_pencil(Object *object);
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);

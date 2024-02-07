@@ -34,9 +34,12 @@ namespace blender::ed::greasepencil {
 DrawingPlacement::DrawingPlacement(const Scene &scene,
                                    const ARegion &region,
                                    const View3D &view3d,
-                                   const Object &object)
-    : region_(&region), view3d_(&view3d), transforms_(object)
+                                   const Object &eval_object,
+                                   const bke::greasepencil::Layer &layer)
+    : region_(&region), view3d_(&view3d)
 {
+  layer_space_to_world_space_ = layer.to_world_space(eval_object);
+  world_space_to_layer_space_ = math::invert(layer_space_to_world_space_);
   /* Initialize DrawingPlacementPlane from toolsettings. */
   switch (scene.toolsettings->gp_sculpt.lock_axis) {
     case GP_LOCKAXIS_VIEW:
@@ -66,7 +69,7 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
   switch (scene.toolsettings->gpencil_v3d_align) {
     case GP_PROJECT_VIEWSPACE:
       depth_ = DrawingPlacementDepth::ObjectOrigin;
-      placement_loc_ = transforms_.layer_space_to_world_space.location();
+      placement_loc_ = layer_space_to_world_space_.location();
       break;
     case (GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR):
       depth_ = DrawingPlacementDepth::Cursor;
@@ -76,12 +79,12 @@ DrawingPlacement::DrawingPlacement(const Scene &scene,
       depth_ = DrawingPlacementDepth::Surface;
       surface_offset_ = scene.toolsettings->gpencil_surface_offset;
       /* Default to view placement with the object origin if we don't hit a surface. */
-      placement_loc_ = transforms_.layer_space_to_world_space.location();
+      placement_loc_ = layer_space_to_world_space_.location();
       break;
     case (GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_STROKE):
       depth_ = DrawingPlacementDepth::NearestStroke;
       /* Default to view placement with the object origin if we don't hit a stroke. */
-      placement_loc_ = transforms_.layer_space_to_world_space.location();
+      placement_loc_ = layer_space_to_world_space_.location();
       break;
   }
 
@@ -133,7 +136,7 @@ void DrawingPlacement::set_origin_to_nearest_stroke(const float2 co)
   }
   else {
     /* If nothing was hit, use origin. */
-    placement_loc_ = transforms_.layer_space_to_world_space.location();
+    placement_loc_ = layer_space_to_world_space_.location();
   }
   plane_from_point_normal_v3(placement_plane_, placement_loc_, placement_normal_);
 }
@@ -169,7 +172,7 @@ float3 DrawingPlacement::project(const float2 co) const
       ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
     }
   }
-  return math::transform_point(transforms_.world_space_to_layer_space, proj_point);
+  return math::transform_point(world_space_to_layer_space_, proj_point);
 }
 
 void DrawingPlacement::project(const Span<float2> src, MutableSpan<float3> dst) const

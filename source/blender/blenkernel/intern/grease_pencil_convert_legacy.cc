@@ -282,6 +282,13 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
 
     new_layer.blend_mode = int8_t(gpl->blend_mode);
 
+    new_layer.parent = gpl->parent;
+    new_layer.set_parent_bone_name(gpl->parsubstr);
+
+    copy_v3_v3(new_layer.translation, gpl->location);
+    copy_v3_v3(new_layer.rotation, gpl->rotation);
+    copy_v3_v3(new_layer.scale, gpl->scale);
+
     /* Convert the layer masks. */
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
       LayerMask *new_mask = new LayerMask(mask->name);

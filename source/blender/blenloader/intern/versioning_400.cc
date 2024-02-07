@@ -2887,6 +2887,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 1)) {
+    using namespace blender::bke::greasepencil;
+    /* Initialize newly added scale layer transform to one. */
+    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+      for (Layer *layer : grease_pencil->layers_for_write()) {
+        copy_v3_fl(layer->scale, 1.0f);
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

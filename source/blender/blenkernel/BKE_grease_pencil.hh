@@ -34,14 +34,6 @@ namespace blender::bke {
 
 namespace greasepencil {
 
-struct DrawingTransforms {
-  float4x4 world_space_to_layer_space;
-  float4x4 layer_space_to_world_space;
-
-  DrawingTransforms() = default;
-  DrawingTransforms(const Object &grease_pencil_ob);
-};
-
 class DrawingRuntime {
  public:
   /**
@@ -447,6 +439,23 @@ class Layer : public ::GreasePencilLayer {
    */
   void update_from_dna_read();
 
+  /**
+   * Returns the transformation from layer space to object space.
+   */
+  float4x4 to_object_space(const Object &object) const;
+
+  /**
+   * Returns the transformation from layer space to world space.
+   */
+  float4x4 to_world_space(const Object &object) const;
+
+  /**
+   * Returns the name of the parent bone. Should only be used in case the parent object is an
+   * armature.
+   */
+  StringRefNull parent_bone_name() const;
+  void set_parent_bone_name(const char *new_name);
+
  private:
   using SortedKeysIterator = const int *;
 
@@ -460,6 +469,16 @@ class Layer : public ::GreasePencilLayer {
    */
   SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
                                                          SortedKeysIterator end);
+
+  /**
+   * The local transform of the layer (in layer space, not object space).
+   */
+  float4x4 local_transform() const;
+
+  /**
+   * Get the parent to world marix for this layer.
+   */
+  float4x4 parent_to_world(const Object &parent) const;
 };
 
 class LayerGroupRuntime {

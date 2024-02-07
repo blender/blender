@@ -70,7 +70,6 @@ class DrawingPlacement {
 
   DrawingPlacementDepth depth_;
   DrawingPlacementPlane plane_;
-  bke::greasepencil::DrawingTransforms transforms_;
   ViewDepths *depth_cache_ = nullptr;
   float surface_offset_;
 
@@ -78,12 +77,16 @@ class DrawingPlacement {
   float3 placement_normal_;
   float4 placement_plane_;
 
+  float4x4 layer_space_to_world_space_;
+  float4x4 world_space_to_layer_space_;
+
  public:
   DrawingPlacement() = default;
   DrawingPlacement(const Scene &scene,
                    const ARegion &region,
                    const View3D &view3d,
-                   const Object &object);
+                   const Object &eval_object,
+                   const bke::greasepencil::Layer &layer);
   ~DrawingPlacement();
 
  public:

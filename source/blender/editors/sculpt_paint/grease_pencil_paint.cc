@@ -424,10 +424,12 @@ struct PaintOperationExecutor {
 
 void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start_sample)
 {
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
   ARegion *region = CTX_wm_region(&C);
   View3D *view3d = CTX_wm_view3d(&C);
   Scene *scene = CTX_data_scene(&C);
   Object *object = CTX_data_active_object(&C);
+  Object *eval_object = DEG_get_evaluated_object(depsgraph, object);
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
 
   Paint *paint = &scene->toolsettings->gp_paint->paint;
@@ -444,7 +446,8 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   BKE_curvemapping_init(brush->gpencil_settings->curve_rand_value);
 
   /* Initialize helper class for projecting screen space coordinates. */
-  placement_ = ed::greasepencil::DrawingPlacement(*scene, *region, *view3d, *object);
+  placement_ = ed::greasepencil::DrawingPlacement(
+      *scene, *region, *view3d, *eval_object, *grease_pencil->get_active_layer());
   if (placement_.use_project_to_surface()) {
     placement_.cache_viewport_depths(CTX_data_depsgraph_pointer(&C), region, view3d);
   }

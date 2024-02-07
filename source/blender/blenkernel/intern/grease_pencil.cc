@@ -8,6 +8,7 @@
 
 #include <iostream>
 
+#include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
@@ -25,8 +26,10 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_map.hh"
+#include "BLI_math_euler_types.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
 #include "BLI_memory_utils.hh"
@@ -239,14 +242,6 @@ IDTypeInfo IDType_ID_GP = {
 };
 
 namespace blender::bke::greasepencil {
-
-DrawingTransforms::DrawingTransforms(const Object &grease_pencil_ob)
-{
-  /* TODO: For now layer space = object space. This needs to change once the layers have a
-   * transform. */
-  this->layer_space_to_world_space = float4x4_view(grease_pencil_ob.object_to_world);
-  this->world_space_to_layer_space = math::invert(this->layer_space_to_world_space);
-}
 
 static const std::string ATTR_RADIUS = "radius";
 static const std::string ATTR_OPACITY = "opacity";
@@ -664,6 +659,13 @@ Layer::Layer()
 
   this->opacity = 1.0f;
 
+  this->parent = nullptr;
+  this->parsubstr = nullptr;
+
+  zero_v3(this->translation);
+  zero_v3(this->rotation);
+  copy_v3_fl(this->scale, 1.0f);
+
   BLI_listbase_clear(&this->masks);
 
   this->runtime = MEM_new<LayerRuntime>(__func__);
@@ -680,10 +682,17 @@ Layer::Layer(const Layer &other) : Layer()
 
   /* TODO: duplicate masks. */
 
-  /* Note: We do not duplicate the frame storage since it is only needed for writing. */
+  /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
 
   this->blend_mode = other.blend_mode;
   this->opacity = other.opacity;
+
+  this->parent = other.parent;
+  this->set_parent_bone_name(other.parsubstr);
+
+  copy_v3_v3(this->translation, other.translation);
+  copy_v3_v3(this->rotation, other.rotation);
+  copy_v3_v3(this->scale, other.scale);
 
   this->runtime->frames_ = other.runtime->frames_;
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
@@ -701,6 +710,8 @@ Layer::~Layer()
     MEM_SAFE_FREE(mask->layer_name);
     MEM_freeN(mask);
   }
+
+  MEM_SAFE_FREE(this->parsubstr);
 
   MEM_delete(this->runtime);
   this->runtime = nullptr;
@@ -944,6 +955,57 @@ void Layer::update_from_dna_read()
   for (int i = 0; i < frames_storage.num; i++) {
     frames.add_new(frames_storage.keys[i], frames_storage.values[i]);
   }
+}
+
+float4x4 Layer::to_world_space(const Object &object) const
+{
+  if (this->parent == nullptr) {
+    return float4x4(object.object_to_world) * this->local_transform();
+  }
+  const Object &parent = *this->parent;
+  return this->parent_to_world(parent) * this->local_transform();
+}
+
+float4x4 Layer::to_object_space(const Object &object) const
+{
+  if (this->parent == nullptr) {
+    return this->local_transform();
+  }
+  const Object &parent = *this->parent;
+  return float4x4(object.world_to_object) * this->parent_to_world(parent) *
+         this->local_transform();
+}
+
+StringRefNull Layer::parent_bone_name() const
+{
+  return (this->parsubstr != nullptr) ? StringRefNull(this->parsubstr) : StringRefNull();
+}
+
+void Layer::set_parent_bone_name(const char *new_name)
+{
+  if (this->parsubstr != nullptr) {
+    MEM_freeN(this->parsubstr);
+  }
+  this->parsubstr = BLI_strdup_null(new_name);
+}
+
+float4x4 Layer::parent_to_world(const Object &parent) const
+{
+  const float4x4 parent_object_to_world(parent.object_to_world);
+  if (parent.type == OB_ARMATURE && !this->parent_bone_name().is_empty()) {
+    if (bPoseChannel *channel = BKE_pose_channel_find_name(parent.pose,
+                                                           this->parent_bone_name().c_str()))
+    {
+      return parent_object_to_world * float4x4_view(channel->pose_mat);
+    }
+  }
+  return parent_object_to_world;
+}
+
+float4x4 Layer::local_transform() const
+{
+  return math::from_loc_rot_scale<float4x4, math::EulerXYZ>(
+      float3(this->translation), float3(this->rotation), float3(this->scale));
 }
 
 LayerGroup::LayerGroup()

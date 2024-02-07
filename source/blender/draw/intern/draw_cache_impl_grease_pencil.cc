@@ -199,6 +199,16 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
   return packed;
 }
 
+static void copy_transformed_positions(const Span<float3> src_positions,
+                                       const IndexRange range,
+                                       const float4x4 &transform,
+                                       MutableSpan<float3> dst_positions)
+{
+  for (const int point_i : range) {
+    dst_positions[point_i] = math::transform_point(transform, src_positions[point_i]);
+  }
+}
+
 static void grease_pencil_edit_batch_ensure(Object &object,
                                             const GreasePencil &grease_pencil,
                                             const Scene &scene)
@@ -259,7 +269,8 @@ static void grease_pencil_edit_batch_ensure(Object &object,
   int total_line_ids_num = 0;
   int drawing_start_offset = 0;
   for (const ed::greasepencil::DrawingInfo &info : drawings) {
-    const Layer *layer = layers[info.layer_index];
+    const Layer &layer = *layers[info.layer_index];
+    const float4x4 layer_space_to_object_space = layer.to_object_space(object);
     const bke::CurvesGeometry &curves = info.drawing.strokes();
     const bke::AttributeAccessor attributes = curves.attributes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
@@ -272,11 +283,15 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
         ".selection", bke::AttrDomain::Point, true);
 
-    edit_points.slice(drawing_start_offset, curves.points_num()).copy_from(curves.positions());
-    MutableSpan<float> selection_slice = edit_points_selection.slice(drawing_start_offset,
-                                                                     curves.points_num());
+    const IndexRange points(drawing_start_offset, curves.points_num());
+    const Span<float3> positions = curves.positions();
+    MutableSpan<float3> positions_slice = edit_points.slice(points);
+    threading::parallel_for(curves.points_range(), 1024, [&](const IndexRange range) {
+      copy_transformed_positions(positions, range, layer_space_to_object_space, positions_slice);
+    });
+    MutableSpan<float> selection_slice = edit_points_selection.slice(points);
     /* Do not show selection for locked layers. */
-    if (layer->is_locked()) {
+    if (layer.is_locked()) {
       selection_slice.fill(0.0f);
     }
     else {
@@ -296,7 +311,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
     total_line_ids_num += array_utils::count_booleans(curves.cyclic(), editable_strokes);
 
     /* Do not show points for locked layers. */
-    if (layer->is_locked()) {
+    if (layer.is_locked()) {
       continue;
     }
 
@@ -493,6 +508,8 @@ static void grease_pencil_geom_batch_ensure(Object &object,
   /* Fill buffers with data. */
   for (const int drawing_i : drawings.index_range()) {
     const ed::greasepencil::DrawingInfo &info = drawings[drawing_i];
+    const Layer &layer = *grease_pencil.layers()[info.layer_index];
+    const float4x4 layer_space_to_object_space = layer.to_object_space(object);
     const bke::CurvesGeometry &curves = info.drawing.strokes();
     const bke::AttributeAccessor attributes = curves.attributes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
@@ -538,7 +555,8 @@ static void grease_pencil_geom_batch_ensure(Object &object,
                               float length,
                               GreasePencilStrokeVert &s_vert,
                               GreasePencilColorVert &c_vert) {
-      copy_v3_v3(s_vert.pos, positions[point_i]);
+      copy_v3_v3(s_vert.pos,
+                 math::transform_point(layer_space_to_object_space, positions[point_i]));
       s_vert.radius = radii[point_i] * ((end_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
       s_vert.opacity = opacities[point_i] *
                        ((start_cap == GP_STROKE_CAP_TYPE_ROUND) ? 1.0f : -1.0f);
