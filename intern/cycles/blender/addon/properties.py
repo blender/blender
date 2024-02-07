@@ -355,7 +355,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     denoising_use_gpu: BoolProperty(
         name="Denoise on GPU",
         description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
-        default=True,
+        default=False,
     )
 
     use_preview_denoising: BoolProperty(
