@@ -872,4 +872,10 @@
     .thickness = 0.02, \
   }
 
+#define _DNA_DEFAULT_GreasePencilLatticeModifierData \
+  { \
+    .object = NULL, \
+    .strength = 1.0f, \
+  }
+
 /* clang-format off */
