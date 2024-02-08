@@ -2,6 +2,18 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Compilers
+#
+# Version used for precompiled library builds used for official releases.
+# For anyone making their own library build, matching these exactly is not
+# needed but it can be a useful reference.
+
+set(RELEASE_GCC_VERSION 11.2.*)
+set(RELEASE_CUDA_VERSION 12.3.*)
+set(RELEASE_HIP_VERSION 5.7.*)
+
+# Libraries
+#
 # CPE's are used to identify dependencies, for more information on what they
 # are please see https://nvd.nist.gov/products/cpe
 #

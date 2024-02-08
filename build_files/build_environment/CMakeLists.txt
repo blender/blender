@@ -32,6 +32,9 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW) # CMake 3.24+ Set the date/time for extracted files to time of extraction
 endif()
 include(ExternalProject)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake/Modules")
+
 include(cmake/check_software.cmake)
 include(cmake/options.cmake)
 # `versions.cmake` needs to be included after `options.cmake`
@@ -40,6 +43,7 @@ include(cmake/versions.cmake)
 include(cmake/boost_build_options.cmake)
 include(cmake/download.cmake)
 include(cmake/macros.cmake)
+include(cmake/check_compilers.cmake)
 
 if(ENABLE_MSYS2)
   include(cmake/setup_msys2.cmake)
