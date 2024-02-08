@@ -76,9 +76,12 @@ int Interface1D_Init(PyObject *module)
   Py_INCREF(&Stroke_Type);
   PyModule_AddObject(module, "Stroke", (PyObject *)&Stroke_Type);
 
-  PyDict_SetItemString(Stroke_Type.tp_dict, "DRY_MEDIUM", BPy_MediumType_DRY_MEDIUM);
-  PyDict_SetItemString(Stroke_Type.tp_dict, "HUMID_MEDIUM", BPy_MediumType_HUMID_MEDIUM);
-  PyDict_SetItemString(Stroke_Type.tp_dict, "OPAQUE_MEDIUM", BPy_MediumType_OPAQUE_MEDIUM);
+#define ADD_TYPE_CONST(id) \
+  PyLong_subtype_add_to_dict(Stroke_Type.tp_dict, &MediumType_Type, STRINGIFY(id), Stroke::id)
+  ADD_TYPE_CONST(DRY_MEDIUM);
+  ADD_TYPE_CONST(HUMID_MEDIUM);
+  ADD_TYPE_CONST(OPAQUE_MEDIUM);
+#undef ADD_TYPE_CONST
 
   if (PyType_Ready(&ViewEdge_Type) < 0) {
     return -1;

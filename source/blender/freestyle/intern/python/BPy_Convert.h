@@ -74,6 +74,9 @@ extern "C" {
 // C++ => Python
 //==============================
 
+PyObject *PyLong_subtype_new(PyTypeObject *ty, long value);
+void PyLong_subtype_add_to_dict(PyObject *dict, PyTypeObject *ty, const char *attr, long value);
+
 PyObject *PyBool_from_bool(bool b);
 PyObject *Vector_from_Vec2f(Freestyle::Geometry::Vec2f &v);
 PyObject *Vector_from_Vec3f(Freestyle::Geometry::Vec3f &v);
