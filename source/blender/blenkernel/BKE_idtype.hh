@@ -271,6 +271,7 @@ extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 void BKE_idtype_init(void);
 
 /* General helpers. */
+const IDTypeInfo *BKE_idtype_get_info_from_idtype_index(const int idtype_index);
 const IDTypeInfo *BKE_idtype_get_info_from_idcode(short id_code);
 const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id);
 

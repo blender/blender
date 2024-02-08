@@ -158,7 +158,8 @@ void main()
     bool intersect_tile = intersect(tile, sphere);
 
     switch (light.type) {
-      case LIGHT_SPOT:
+      case LIGHT_SPOT_SPHERE:
+      case LIGHT_SPOT_DISK:
         /* Only for < ~170 degree Cone due to plane extraction precision. */
         if (light.spot_tan < 10.0) {
           Pyramid pyramid = shape_pyramid_non_oblique(

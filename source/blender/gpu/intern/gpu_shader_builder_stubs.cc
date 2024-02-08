@@ -155,13 +155,6 @@ int CustomData_get_offset(const struct CustomData * /*data*/, eCustomDataType /*
   return 0;
 }
 
-int CustomData_get_named_layer_index(const struct CustomData * /*data*/,
-                                     eCustomDataType /*type*/,
-                                     const char * /*name*/)
-{
-  return -1;
-}
-
 int CustomData_get_active_layer_index(const struct CustomData * /*data*/, eCustomDataType /*type*/)
 {
   return -1;

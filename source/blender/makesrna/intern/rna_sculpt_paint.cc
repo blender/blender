@@ -834,6 +834,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
   prop = RNA_def_property(srna, "detail_size", PROP_FLOAT, PROP_PIXEL);
+  RNA_def_property_range(prop, 0.5, 40.0);
   RNA_def_property_ui_range(prop, 0.5, 40.0, 0.1, 2);
   RNA_def_property_ui_scale_type(prop, PROP_SCALE_CUBIC);
   RNA_def_property_ui_text(
@@ -841,6 +842,7 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "detail_percent", PROP_FLOAT, PROP_PERCENTAGE);
+  RNA_def_property_range(prop, 0.5, 100.0);
   RNA_def_property_ui_range(prop, 0.5, 100.0, 10, 2);
   RNA_def_property_ui_text(
       prop,

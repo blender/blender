@@ -52,7 +52,7 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData * /*sldata*/, EEVEE_Data *vedata)
 
   effects->motion_blur_max = max_ii(0, scene->eevee.motion_blur_max);
 
-  if ((effects->motion_blur_max > 0) && (scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED)) {
+  if ((effects->motion_blur_max > 0) && (scene->r.mode & R_MBLUR)) {
     if (DRW_state_is_scene_render()) {
       int mb_step = effects->motion_blur_step;
       DRW_view_viewmat_get(nullptr, effects->motion_blur.camera[mb_step].viewmat, false);

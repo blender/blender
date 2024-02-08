@@ -249,8 +249,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
           continue;
         }
         const bke::CurvesGeometry &src_curves = drawing->strokes();
-        const bke::GreasePencilLayerFieldContext field_context(
-            grease_pencil, AttrDomain::Curve, layer_index);
+        const bke::GreasePencilLayerFieldContext field_context(grease_pencil, domain, layer_index);
         std::optional<bke::CurvesGeometry> dst_curves = separate_curves_selection(
             src_curves, field_context, selection, domain, propagation_info);
         if (!dst_curves) {

@@ -67,6 +67,9 @@ class OIDNDenoiserGPU : public DenoiserGPU {
                        size_t pixel_stride_in_bytes,
                        size_t row_stride_in_bytes);
 
+  /* Delete all allocated OIDN objects. */
+  void release_all_resources();
+
   OIDNDevice oidn_device_ = nullptr;
   OIDNFilter oidn_filter_ = nullptr;
   OIDNFilter albedo_filter_ = nullptr;

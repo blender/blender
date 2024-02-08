@@ -119,6 +119,9 @@ def bake_action_objects(
     :return: A sequence of Action or None types (aligned with `object_action_pairs`)
     :rtype: sequence of :class:`bpy.types.Action`
     """
+    if not (bake_options.do_pose or bake_options.do_object):
+        return []
+
     iter = bake_action_objects_iter(object_action_pairs, bake_options=bake_options)
     iter.send(None)
     for frame in frames:

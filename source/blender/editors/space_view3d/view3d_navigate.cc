@@ -452,16 +452,8 @@ struct ViewOpsData_Utility : ViewOpsData {
         if (kmi_merge->oskey == 1 || ELEM(kmi_merge->type, EVT_OSKEY)) {
           kmi_cpy->oskey = 1;
         }
-        if (!ELEM(kmi_merge->type,
-                  EVT_LEFTCTRLKEY,
-                  EVT_LEFTALTKEY,
-                  EVT_RIGHTALTKEY,
-                  EVT_RIGHTCTRLKEY,
-                  EVT_RIGHTSHIFTKEY,
-                  EVT_LEFTSHIFTKEY,
-                  EVT_OSKEY))
-        {
-          kmi_cpy->keymodifier |= kmi_merge->type;
+        if (!ISKEYMODIFIER(kmi_merge->type)) {
+          kmi_cpy->keymodifier = kmi_merge->type;
         }
       }
     }

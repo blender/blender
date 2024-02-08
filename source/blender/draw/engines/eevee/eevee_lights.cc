@@ -191,6 +191,14 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   if ((la->type == LA_AREA) && ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
     evli->light_type = LAMPTYPE_AREA_ELLIPSE;
   }
+  else if (la->mode & LA_USE_SOFT_FALLOFF) {
+    if (la->type == LA_LOCAL) {
+      evli->light_type = LAMPTYPE_OMNI_DISK;
+    }
+    else if (la->type == LA_SPOT) {
+      evli->light_type = LAMPTYPE_SPOT_DISK;
+    }
+  }
 
   float shape_power = light_shape_radiance_get(la, evli);
   mul_v3_fl(evli->color, shape_power * la->energy);

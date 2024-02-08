@@ -48,6 +48,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
       BL::PointLight b_point_light(b_light);
       light->set_size(b_point_light.shadow_soft_size());
       light->set_light_type(LIGHT_POINT);
+      light->set_is_sphere(!b_point_light.use_soft_falloff());
       break;
     }
     case BL::Light::type_SPOT: {
@@ -56,6 +57,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
       light->set_light_type(LIGHT_SPOT);
       light->set_spot_angle(b_spot_light.spot_size());
       light->set_spot_smooth(b_spot_light.spot_blend());
+      light->set_is_sphere(!b_spot_light.use_soft_falloff());
       break;
     }
     /* Hemi were removed from 2.8 */

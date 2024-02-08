@@ -183,6 +183,13 @@ void ED_time_scrub_draw(const ARegion *region,
   GPU_matrix_pop_projection();
 }
 
+rcti ED_time_scrub_clamp_scroller_mask(const rcti &scroller_mask)
+{
+  rcti clamped_mask = scroller_mask;
+  clamped_mask.ymax -= UI_TIME_SCRUB_MARGIN_Y;
+  return clamped_mask;
+}
+
 bool ED_time_scrub_event_in_region(const ARegion *region, const wmEvent *event)
 {
   rcti rect = region->winrct;

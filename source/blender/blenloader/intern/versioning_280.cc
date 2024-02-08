@@ -3467,7 +3467,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.bloom_clamp = 0.0f;
 
         scene->eevee.motion_blur_samples = 8;
-        scene->eevee.motion_blur_shutter = 0.5f;
+        scene->eevee.motion_blur_shutter_deprecated = 0.5f;
 
         scene->eevee.shadow_method = SHADOW_ESM;
         scene->eevee.shadow_cube_size = 512;
@@ -3538,7 +3538,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
         EEVEE_GET_BOOL(props, dof_enable, SCE_EEVEE_DOF_ENABLED);
         EEVEE_GET_BOOL(props, bloom_enable, SCE_EEVEE_BLOOM_ENABLED);
-        EEVEE_GET_BOOL(props, motion_blur_enable, SCE_EEVEE_MOTION_BLUR_ENABLED);
+        EEVEE_GET_BOOL(props, motion_blur_enable, SCE_EEVEE_MOTION_BLUR_ENABLED_DEPRECATED);
         EEVEE_GET_BOOL(props, shadow_high_bitdepth, SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
         EEVEE_GET_BOOL(props, taa_reprojection, SCE_EEVEE_TAA_REPROJECTION);
         // EEVEE_GET_BOOL(props, sss_enable, SCE_EEVEE_SSS_ENABLED);
@@ -3587,7 +3587,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         EEVEE_GET_FLOAT(props, bloom_clamp);
 
         EEVEE_GET_INT(props, motion_blur_samples);
-        EEVEE_GET_FLOAT(props, motion_blur_shutter);
+        EEVEE_GET_FLOAT(props, motion_blur_shutter_deprecated);
 
         EEVEE_GET_INT(props, shadow_method);
         EEVEE_GET_INT(props, shadow_cube_size);
