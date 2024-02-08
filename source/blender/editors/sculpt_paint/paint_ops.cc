@@ -1049,7 +1049,7 @@ static AssetWeakReference *brush_asset_create_weakref_hack(const bUserAssetLibra
   return asset_weak_ref;
 }
 
-static const bUserAssetLibrary *brush_asset_get_editable_library()
+static const bUserAssetLibrary *brush_asset_get_default_library()
 {
   if (BLI_listbase_is_empty(&U.asset_libraries)) {
     return nullptr;
@@ -1062,9 +1062,9 @@ static const bUserAssetLibrary *brush_asset_get_editable_library()
   return static_cast<const bUserAssetLibrary *>(U.asset_libraries.first);
 }
 
-static void brush_asset_refresh_editable_library(const bContext *C)
+static void refresh_asset_library(const bContext *C)
 {
-  const bUserAssetLibrary *user_library = brush_asset_get_editable_library();
+  const bUserAssetLibrary *user_library = brush_asset_get_default_library();
 
   /* TODO: Should the all library reference be automatically cleared? */
   AssetLibraryReference all_lib_ref = asset_system::all_library_reference();
@@ -1085,7 +1085,7 @@ static void brush_asset_refresh_editable_library(const bContext *C)
 
 static std::string brush_asset_root_path_for_save()
 {
-  const bUserAssetLibrary *user_library = brush_asset_get_editable_library();
+  const bUserAssetLibrary *user_library = brush_asset_get_default_library();
   if (user_library == nullptr || user_library->dirpath[0] == '\0') {
     return "";
   }
@@ -1203,7 +1203,7 @@ static bool brush_asset_save_as_poll(bContext *C)
     return false;
   }
 
-  const bUserAssetLibrary *user_library = brush_asset_get_editable_library();
+  const bUserAssetLibrary *user_library = brush_asset_get_default_library();
   if (user_library == nullptr || user_library->dirpath[0] == '\0') {
     CTX_wm_operator_poll_msg_set(C, "No default asset library available to save to");
     return false;
@@ -1253,7 +1253,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   /* Create weak reference to new datablock. */
-  const bUserAssetLibrary *asset_lib = brush_asset_get_editable_library();
+  const bUserAssetLibrary *asset_lib = brush_asset_get_default_library();
   AssetWeakReference *new_brush_weak_ref = brush_asset_create_weakref_hack(
       asset_lib, final_full_asset_filepath);
 
@@ -1268,7 +1268,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Unable to activate just-saved brush asset");
   }
 
-  brush_asset_refresh_editable_library(C);
+  refresh_asset_library(C);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_ADDED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 
@@ -1302,7 +1302,7 @@ static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, MAX_NAME, "Name", "Name used to save the brush asset");
 }
 
-static bool brush_asset_is_editable(const AssetWeakReference &brush_weak_ref)
+static bool asset_is_editable(const AssetWeakReference &brush_weak_ref)
 {
   /* Fairly simple checks, based on filepath only:
    *   - The blendlib filepath ends up with the `.asset.blend` extension.
@@ -1338,7 +1338,7 @@ static bool brush_asset_delete_poll(bContext *C)
 
   /* Asset brush, check if belongs to an editable blend file. */
   if (paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush)) {
-    if (!brush_asset_is_editable(*paint->brush_asset_reference)) {
+    if (!asset_is_editable(*paint->brush_asset_reference)) {
       CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
       return false;
     }
@@ -1375,7 +1375,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
     BKE_id_delete(bmain, original_brush);
   }
 
-  brush_asset_refresh_editable_library(C);
+  refresh_asset_library(C);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
 
@@ -1407,7 +1407,7 @@ static bool brush_asset_update_poll(bContext *C)
     return false;
   }
 
-  if (!brush_asset_is_editable(*paint->brush_asset_reference)) {
+  if (!asset_is_editable(*paint->brush_asset_reference)) {
     CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
     return false;
   }
