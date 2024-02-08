@@ -168,6 +168,12 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
   }
 };
 
+static void tag_component_reference_index_changed(void *owner)
+{
+  Instances &instances = *static_cast<Instances *>(owner);
+  instances.tag_reference_handles_changed();
+}
+
 static ComponentAttributeProviders create_attribute_providers_for_instances()
 {
   static InstancePositionAttributeProvider position;
@@ -200,10 +206,20 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
                                            instance_custom_data_access,
                                            nullptr);
 
+  /** Indices into `Instances::references_`. Determines what data is instanced. */
+  static BuiltinCustomDataLayerProvider reference_index(".reference_index",
+                                                        AttrDomain::Instance,
+                                                        CD_PROP_INT32,
+                                                        CD_PROP_INT32,
+                                                        BuiltinAttributeProvider::Creatable,
+                                                        BuiltinAttributeProvider::NonDeletable,
+                                                        instance_custom_data_access,
+                                                        tag_component_reference_index_changed);
+
   static CustomDataAttributeProvider instance_custom_data(AttrDomain::Instance,
                                                           instance_custom_data_access);
 
-  return ComponentAttributeProviders({&position, &id}, {&instance_custom_data});
+  return ComponentAttributeProviders({&position, &id, &reference_index}, {&instance_custom_data});
 }
 
 static AttributeAccessorFunctions get_instances_accessor_functions()

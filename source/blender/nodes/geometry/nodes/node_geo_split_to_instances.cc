@@ -264,8 +264,6 @@ static void split_instance_groups(const InstancesComponent &component,
       }
 
       array_utils::gather(src_instances.transforms(), mask, group_instances->transforms());
-      array_utils::gather(
-          src_instances.reference_handles(), mask, group_instances->reference_handles());
       bke::gather_attributes(src_instances.attributes(),
                              AttrDomain::Instance,
                              propagation_info,
@@ -343,7 +341,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   dst_instances->transforms().fill(float4x4::identity());
-  array_utils::fill_index_range(dst_instances->reference_handles());
+  array_utils::fill_index_range(dst_instances->reference_handles_for_write());
 
   for (auto item : geometry_by_group_id.items()) {
     std::unique_ptr<GeometrySet> &group_geometry = item.value;

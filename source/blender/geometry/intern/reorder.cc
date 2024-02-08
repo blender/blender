@@ -210,10 +210,6 @@ static void reorder_instaces_exec(const bke::Instances &src_instances,
                          old_by_new_map,
                          dst_instances.attributes_for_write());
 
-  const Span<int> old_reference_handles = src_instances.reference_handles();
-  MutableSpan<int> new_reference_handles = dst_instances.reference_handles();
-  array_utils::gather(old_reference_handles, old_by_new_map, new_reference_handles);
-
   const Span<float4x4> old_transforms = src_instances.transforms();
   MutableSpan<float4x4> new_transforms = dst_instances.transforms();
   array_utils::gather(old_transforms, old_by_new_map, new_transforms);

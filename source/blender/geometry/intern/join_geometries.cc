@@ -110,7 +110,7 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
   dst_instances->resize(offsets.total_size());
 
   MutableSpan<float4x4> all_transforms = dst_instances->transforms();
-  MutableSpan<int> all_handles = dst_instances->reference_handles();
+  MutableSpan<int> all_handles = dst_instances->reference_handles_for_write();
 
   for (const int i : src_components.index_range()) {
     const auto &src_component = static_cast<const bke::InstancesComponent &>(*src_components[i]);
@@ -131,7 +131,7 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
 
   result.replace_instances(dst_instances.release());
   auto &dst_component = result.get_component_for_write<bke::InstancesComponent>();
-  join_attributes(src_components, dst_component, {"position"});
+  join_attributes(src_components, dst_component, {"position", ".reference_index"});
 }
 
 static void join_volumes(const Span<const GeometryComponent *> /*src_components*/,
