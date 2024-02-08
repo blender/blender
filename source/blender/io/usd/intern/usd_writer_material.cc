@@ -211,9 +211,25 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       /* Create the UsdUVTexture node output attribute that should be connected to this input. */
       pxr::TfToken source_name;
       if (input_spec.input_type == pxr::SdfValueTypeNames->Float) {
-        /* If the input is a float, we connect it to either the texture alpha or red channels. */
-        source_name = STREQ(input_link->fromsock->identifier, "Alpha") ? usdtokens::a :
-                                                                         usdtokens::r;
+        /* If the input is a float, we check if there is also a Separate Color node in between, if
+         * there is use the output channel from that, otherwise connect either the texture alpha or
+         * red channels. */
+        bNodeLink *input_link_sep_color = traverse_channel(sock, SH_NODE_SEPARATE_COLOR);
+        if (input_link_sep_color) {
+          if (STREQ(input_link_sep_color->fromsock->identifier, "Red")) {
+            source_name = usdtokens::r;
+          }
+          if (STREQ(input_link_sep_color->fromsock->identifier, "Green")) {
+            source_name = usdtokens::g;
+          }
+          if (STREQ(input_link_sep_color->fromsock->identifier, "Blue")) {
+            source_name = usdtokens::b;
+          }
+        }
+        else {
+          source_name = STREQ(input_link->fromsock->identifier, "Alpha") ? usdtokens::a :
+                                                                           usdtokens::r;
+        }
         usd_shader.CreateOutput(source_name, pxr::SdfValueTypeNames->Float);
       }
       else {

@@ -778,6 +778,37 @@ static IntermediateNode add_scale_bias_adjust(bNodeTree *ntree,
   return adjust;
 }
 
+static IntermediateNode add_separate_color(const pxr::TfToken &usd_source_name,
+                                           bNodeTree *ntree,
+                                           int column,
+                                           NodePlacementContext *r_ctx)
+{
+  IntermediateNode separate_color{};
+
+  if (usd_source_name == usdtokens::r || usd_source_name == usdtokens::g ||
+      usd_source_name == usdtokens::b)
+  {
+    float locx = 0.0f;
+    float locy = 0.0f;
+    compute_node_loc(column, &locx, &locy, r_ctx);
+
+    separate_color.node = add_node(nullptr, ntree, SH_NODE_SEPARATE_COLOR, locx, locy);
+    separate_color.sock_input_name = "Color";
+
+    if (usd_source_name == usdtokens::r) {
+      separate_color.sock_output_name = "Red";
+    }
+    if (usd_source_name == usdtokens::g) {
+      separate_color.sock_output_name = "Green";
+    }
+    if (usd_source_name == usdtokens::b) {
+      separate_color.sock_output_name = "Blue";
+    }
+  }
+
+  return separate_color;
+}
+
 bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
                                           bNode *dest_node,
                                           const char *dest_socket_name,
@@ -826,6 +857,12 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
       shift++;
     }
 
+    /* Create a Separate Color node if necessary. */
+    IntermediateNode separate_color = add_separate_color(source_name, ntree, column + shift, r_ctx);
+    if (separate_color.node) {
+      shift++;
+    }
+
     /* Create a Scale-Bias adjustment node if necessary. */
     IntermediateNode scale_bias = add_scale_bias(
         source_shader, ntree, column + shift, is_normal_map, r_ctx);
@@ -862,10 +899,21 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
       link_nodes(ntree, normal_map.node, normal_map.sock_output_name, dest_node, dest_socket_name);
     }
     else if (scale_bias.node) {
-      link_nodes(ntree, scale_bias.node, scale_bias.sock_output_name, dest_node, dest_socket_name);
+      if (separate_color.node) {
+        link_nodes(ntree, separate_color.node, separate_color.sock_output_name, dest_node, dest_socket_name);
+        link_nodes(ntree, scale_bias.node, scale_bias.sock_output_name, separate_color.node, separate_color.sock_input_name);
+      }
+      else {
+        link_nodes(ntree, scale_bias.node, scale_bias.sock_output_name, dest_node, dest_socket_name);
+      }
       target_node = scale_bias.node;
       target_sock_name = scale_bias.sock_input_name;
       shift++;
+    }
+    else if (separate_color.node) {
+      link_nodes(ntree, separate_color.node, separate_color.sock_output_name, dest_node, dest_socket_name);
+      target_node = separate_color.node;
+      target_sock_name = separate_color.sock_input_name;
     }
 
     convert_usd_uv_texture(source_shader,
