@@ -1925,5 +1925,6 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region)
 
   const ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
   SEQ_timeline_boundbox(scene, seqbase, &v2d->tot);
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+  UI_view2d_scrollers_draw(v2d, &scroller_mask);
 }
