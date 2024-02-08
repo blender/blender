@@ -275,7 +275,8 @@ int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
 /** \name #bUserAssetShelfSettings
  * \{ */
 
-bUserAssetShelfSettings *asset_shelf_settings_new(UserDef *userdef, const char *shelf_idname)
+static bUserAssetShelfSettings *asset_shelf_settings_new(UserDef *userdef,
+                                                         const char *shelf_idname)
 {
   bUserAssetShelfSettings *settings = DNA_struct_default_alloc(bUserAssetShelfSettings);
   BLI_addtail(&userdef->asset_shelves_settings, settings);
@@ -284,15 +285,14 @@ bUserAssetShelfSettings *asset_shelf_settings_new(UserDef *userdef, const char *
   return settings;
 }
 
-bUserAssetShelfSettings *BKE_preferences_asset_shelf_settings_ensure(UserDef *userdef,
-                                                                     const char *shelf_idname)
+static bUserAssetShelfSettings *asset_shelf_settings_ensure(UserDef *userdef,
+                                                            const char *shelf_idname)
 {
   if (bUserAssetShelfSettings *settings = BKE_preferences_asset_shelf_settings_get(userdef,
                                                                                    shelf_idname))
   {
     return settings;
   }
-
   return asset_shelf_settings_new(userdef, shelf_idname);
 }
 
@@ -305,8 +305,8 @@ bUserAssetShelfSettings *BKE_preferences_asset_shelf_settings_get(const UserDef 
                      offsetof(bUserAssetShelfSettings, shelf_idname)));
 }
 
-bool asset_shelf_settings_is_catalog_path_enabled(const bUserAssetShelfSettings *settings,
-                                                  const char *catalog_path)
+static bool asset_shelf_settings_is_catalog_path_enabled(const bUserAssetShelfSettings *settings,
+                                                         const char *catalog_path)
 {
   return BLI_findstring_ptr(
              &settings->enabled_catalog_paths, catalog_path, offsetof(LinkData, data)) != nullptr;
@@ -334,8 +334,7 @@ bool BKE_preferences_asset_shelf_settings_ensure_catalog_path_enabled(UserDef *u
     return false;
   }
 
-  bUserAssetShelfSettings *settings = BKE_preferences_asset_shelf_settings_ensure(userdef,
-                                                                                  shelf_idname);
+  bUserAssetShelfSettings *settings = asset_shelf_settings_ensure(userdef, shelf_idname);
 
   char *path_copy = BLI_strdup(catalog_path);
   BLI_addtail(&settings->enabled_catalog_paths, BLI_genericNodeN(path_copy));
