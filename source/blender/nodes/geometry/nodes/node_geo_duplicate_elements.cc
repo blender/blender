@@ -956,13 +956,13 @@ static void duplicate_instances(GeometrySet &geometry_set,
     const int new_handle = dst_instances->add_reference(reference);
     const float4x4 transform = src_instances.transforms()[i_selection];
     dst_instances->transforms().slice(range).fill(transform);
-    dst_instances->reference_handles().slice(range).fill(new_handle);
+    dst_instances->reference_handles_for_write().slice(range).fill(new_handle);
   }
 
   bke::gather_attributes_to_groups(src_instances.attributes(),
                                    AttrDomain::Instance,
                                    propagation_info,
-                                   {"id"},
+                                   {"id", ".reference_index"},
                                    duplicates,
                                    selection,
                                    dst_instances->attributes_for_write());

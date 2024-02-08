@@ -67,7 +67,7 @@ void irradiance_capture_world(vec3 L, inout SphericalHarmonicL1 sh)
   float visibility = 0.0;
 
   if (capture_info_buf.capture_world_direct) {
-    ReflectionProbeCoordinate atlas_coord = capture_info_buf.world_atlas_coord;
+    SphereProbeUvArea atlas_coord = capture_info_buf.world_atlas_coord;
     radiance = reflection_probes_sample(L, 0.0, atlas_coord).rgb;
 
     /* Clamped brightness. */

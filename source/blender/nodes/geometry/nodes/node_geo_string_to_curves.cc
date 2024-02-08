@@ -319,7 +319,7 @@ static void add_instances_from_handles(bke::Instances &instances,
                                        const TextLayout &layout)
 {
   instances.resize(layout.positions.size());
-  MutableSpan<int> handles = instances.reference_handles();
+  MutableSpan<int> handles = instances.reference_handles_for_write();
   MutableSpan<float4x4> transforms = instances.transforms();
 
   threading::parallel_for(IndexRange(layout.positions.size()), 256, [&](IndexRange range) {

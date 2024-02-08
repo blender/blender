@@ -186,7 +186,6 @@ class SyncModule {
                    const ObjectRef &ob_ref,
                    ModifierData *modifier_data = nullptr,
                    ParticleSystem *particle_sys = nullptr);
-  void sync_light_probe(Object *ob, ObjectHandle &ob_handle);
 };
 
 using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;

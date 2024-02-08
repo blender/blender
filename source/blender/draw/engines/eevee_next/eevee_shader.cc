@@ -214,11 +214,11 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_lightprobe_irradiance_ray";
     case LIGHTPROBE_IRRADIANCE_LOAD:
       return "eevee_lightprobe_irradiance_load";
-    case REFLECTION_PROBE_REMAP:
+    case SPHERE_PROBE_REMAP:
       return "eevee_reflection_probe_remap";
-    case REFLECTION_PROBE_UPDATE_IRRADIANCE:
+    case SPHERE_PROBE_UPDATE_IRRADIANCE:
       return "eevee_reflection_probe_update_irradiance";
-    case REFLECTION_PROBE_SELECT:
+    case SPHERE_PROBE_SELECT:
       return "eevee_reflection_probe_select";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";

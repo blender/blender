@@ -647,13 +647,14 @@ static void drw_call_calc_orco(const Object *ob, float (*r_orcofacs)[4])
         const Volume &volume = *reinterpret_cast<const Volume *>(ob_data);
         const std::optional<blender::Bounds<blender::float3>> bounds = BKE_volume_min_max(&volume);
         if (bounds) {
-          mid_v3_v3v3(static_buf.texspace_location, bounds->max, bounds->min);
-          sub_v3_v3v3(static_buf.texspace_size, bounds->max, bounds->min);
+          texspace_location = static_buf.texspace_location;
+          texspace_size = static_buf.texspace_size;
+          mid_v3_v3v3(texspace_location, bounds->max, bounds->min);
+          sub_v3_v3v3(texspace_size, bounds->max, bounds->min);
+          texspace_size[0] = std::max(texspace_size[0], 0.001f);
+          texspace_size[1] = std::max(texspace_size[1], 0.001f);
+          texspace_size[2] = std::max(texspace_size[2], 0.001f);
         }
-        static_buf.texspace_size[0] = std::max(static_buf.texspace_size[0], 0.001f);
-        static_buf.texspace_size[1] = std::max(static_buf.texspace_size[1], 0.001f);
-        static_buf.texspace_size[2] = std::max(static_buf.texspace_size[2], 0.001f);
-        texspace_location = static_buf.texspace_location;
         break;
       }
       case ID_ME:

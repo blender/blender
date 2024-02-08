@@ -831,9 +831,9 @@ void ShadowModule::begin_sync()
     pass.init();
 
     if (inst_.is_baking()) {
-      SurfelBuf &surfels_buf = inst_.irradiance_cache.bake.surfels_buf_;
-      CaptureInfoBuf &capture_info_buf = inst_.irradiance_cache.bake.capture_info_buf_;
-      float surfel_coverage_area = inst_.irradiance_cache.bake.surfel_density_;
+      SurfelBuf &surfels_buf = inst_.volume_probes.bake.surfels_buf_;
+      CaptureInfoBuf &capture_info_buf = inst_.volume_probes.bake.capture_info_buf_;
+      float surfel_coverage_area = inst_.volume_probes.bake.surfel_density_;
 
       /* Directional shadows. */
       float texel_size = ShadowDirectional::tile_size_get(0) / float(SHADOW_PAGE_RES);
@@ -850,7 +850,7 @@ void ShadowModule::begin_sync()
       sub.push_constant("directional_level", directional_level);
       sub.push_constant("tilemap_projection_ratio", projection_ratio);
       sub.bind_resources(inst_.lights);
-      sub.dispatch(&inst_.irradiance_cache.bake.dispatch_per_surfel_);
+      sub.dispatch(&inst_.volume_probes.bake.dispatch_per_surfel_);
 
       /* Skip opaque and transparent tagging for light baking. */
       return;

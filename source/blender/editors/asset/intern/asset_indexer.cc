@@ -144,7 +144,7 @@ struct AssetEntryReader {
    */
   DictionaryValue::Lookup lookup;
 
-  StringRefNull get_name_with_idcode() const
+  StringRef get_name_with_idcode() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_NAME)->as_string_value()->value();
   }
@@ -154,13 +154,13 @@ struct AssetEntryReader {
 
   ID_Type get_idcode() const
   {
-    const StringRefNull name_with_idcode = get_name_with_idcode();
-    return GS(name_with_idcode.c_str());
+    const StringRef name_with_idcode = get_name_with_idcode();
+    return GS(name_with_idcode.data());
   }
 
   StringRef get_name() const
   {
-    const StringRefNull name_with_idcode = get_name_with_idcode();
+    const StringRef name_with_idcode = get_name_with_idcode();
     return name_with_idcode.substr(2);
   }
 
@@ -169,7 +169,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_DESCRIPTION);
   }
 
-  StringRefNull get_description() const
+  StringRef get_description() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_DESCRIPTION)->as_string_value()->value();
   }
@@ -179,7 +179,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_AUTHOR);
   }
 
-  StringRefNull get_author() const
+  StringRef get_author() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_AUTHOR)->as_string_value()->value();
   }
@@ -189,7 +189,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_COPYRIGHT);
   }
 
-  StringRefNull get_copyright() const
+  StringRef get_copyright() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_COPYRIGHT)->as_string_value()->value();
   }
@@ -199,19 +199,19 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_LICENSE);
   }
 
-  StringRefNull get_license() const
+  StringRef get_license() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_LICENSE)->as_string_value()->value();
   }
 
-  StringRefNull get_catalog_name() const
+  StringRef get_catalog_name() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_CATALOG_NAME)->as_string_value()->value();
   }
 
   CatalogID get_catalog_id() const
   {
-    const std::string &catalog_id =
+    const StringRefNull catalog_id =
         lookup.lookup(ATTRIBUTE_ENTRIES_CATALOG_ID)->as_string_value()->value();
     CatalogID catalog_uuid(catalog_id);
     return catalog_uuid;
@@ -400,36 +400,24 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   indexer_entry.datablock_info.free_asset_data = true;
 
   if (entry.has_description()) {
-    const StringRefNull description = entry.get_description();
-    const size_t c_str_size = description.size() + 1;
-    char *description_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
-    memcpy(description_c_str, description.c_str(), c_str_size);
-    asset_data->description = description_c_str;
+    const StringRef description = entry.get_description();
+    asset_data->description = BLI_strdupn(description.data(), description.size());
   }
   if (entry.has_author()) {
-    const StringRefNull author = entry.get_author();
-    const size_t c_str_size = author.size() + 1;
-    char *author_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
-    memcpy(author_c_str, author.c_str(), c_str_size);
-    asset_data->author = author_c_str;
+    const StringRef author = entry.get_author();
+    asset_data->author = BLI_strdupn(author.data(), author.size());
   }
   if (entry.has_copyright()) {
-    const StringRefNull copyright = entry.get_copyright();
-    const size_t c_str_size = copyright.size() + 1;
-    char *copyright_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
-    memcpy(copyright_c_str, copyright.c_str(), c_str_size);
-    asset_data->copyright = copyright_c_str;
+    const StringRef copyright = entry.get_copyright();
+    asset_data->copyright = BLI_strdupn(copyright.data(), copyright.size());
   }
   if (entry.has_license()) {
-    const StringRefNull license = entry.get_license();
-    const size_t c_str_size = license.size() + 1;
-    char *license_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
-    memcpy(license_c_str, license.c_str(), c_str_size);
-    asset_data->license = license_c_str;
+    const StringRef license = entry.get_license();
+    asset_data->license = BLI_strdupn(license.data(), license.size());
   }
 
-  const StringRefNull catalog_name = entry.get_catalog_name();
-  STRNCPY(asset_data->catalog_simple_name, catalog_name.c_str());
+  const StringRef catalog_name = entry.get_catalog_name();
+  catalog_name.copy(asset_data->catalog_simple_name);
 
   asset_data->catalog_id = entry.get_catalog_id();
 

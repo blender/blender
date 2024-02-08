@@ -58,7 +58,7 @@ void main()
     return;
   }
 
-  ProbePlanarData planar = probe_planar_buf[planar_id];
+  PlanarProbeData planar = probe_planar_buf[planar_id];
 
   /* Tag the ray data so that screen trace will not try to evaluate it and override the result. */
   imageStore(ray_data_img, texel, vec4(ray_data.xyz, -ray_data.w));

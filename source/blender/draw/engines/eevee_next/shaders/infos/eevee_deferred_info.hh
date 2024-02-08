@@ -144,7 +144,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_planar_eval)
     .early_fragment_test(true)
     /* Inputs. */
     .fragment_out(0, Type::VEC4, "out_radiance")
-    .define("REFLECTION_PROBE")
+    .define("SPHERE_PROBE")
     .define("SHADOW_SUBSURFACE")
     .define("LIGHT_CLOSURE_EVAL_COUNT", "2")
     .additional_info("eevee_shared",

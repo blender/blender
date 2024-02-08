@@ -60,6 +60,8 @@ bool BLI_uuid_parse_string(bUUID *uuid, const char *buffer) ATTR_NONNULL();
 #  include <iosfwd>
 #  include <string>
 
+#  include "BLI_string_ref.hh"
+
 /** Output the UUID as formatted ASCII string, see #BLI_uuid_format(). */
 std::ostream &operator<<(std::ostream &stream, bUUID uuid);
 
@@ -79,7 +81,7 @@ class bUUID : public ::bUUID {
   bUUID(std::initializer_list<uint32_t> field_values);
 
   /** Initialize by parsing the string; undefined behavior when the string is invalid. */
-  explicit bUUID(const std::string &string_formatted_uuid);
+  explicit bUUID(const StringRefNull string_formatted_uuid);
 
   uint64_t hash() const;
 };  // namespace blender

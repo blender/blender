@@ -30,16 +30,24 @@
 #define CULLING_TILE_GROUP_SIZE 256
 
 /* Reflection Probes. */
-#define REFLECTION_PROBES_MAX 128
-#define REFLECTION_PROBE_GROUP_SIZE 16
-#define REFLECTION_PROBE_SELECT_GROUP_SIZE 64
+#define SPHERE_PROBE_GROUP_SIZE 16
+#define SPHERE_PROBE_SELECT_GROUP_SIZE 64
 /* Number of additional pixels on the border of an octahedral map to reserve for fixing seams.
  * Border size requires depends on the max number of mipmap levels. */
-#define REFLECTION_PROBE_MIPMAP_LEVELS 5
-#define REFLECTION_PROBE_SH_GROUP_SIZE 512
-#define REFLECTION_PROBE_SH_SAMPLES_PER_GROUP 64
+#define SPHERE_PROBE_MIPMAP_LEVELS 5
+#define SPHERE_PROBE_SH_GROUP_SIZE 512
+#define SPHERE_PROBE_SH_SAMPLES_PER_GROUP 64
+/**
+ * Limited by the UBO size limit (16384 bytes / sizeof(SphereProbeData)).
+ */
+#define SPHERE_PROBE_MAX 128
 
-#define PLANAR_PROBES_MAX 16
+/**
+ * Limited by the performance impact it can cause.
+ * Limited by the max layer count supported by a hardware (256).
+ * Limited by the UBO size limit (16384 bytes / sizeof(PlanarProbeData)).
+ */
+#define PLANAR_PROBE_MAX 16
 
 /**
  * IMPORTANT: Some data packing are tweaked for these values.
@@ -170,8 +178,8 @@
 /* Only during surface shading (forward and deferred eval). */
 #define SHADOW_TILEMAPS_TEX_SLOT 4
 #define SHADOW_ATLAS_TEX_SLOT 5
-#define IRRADIANCE_ATLAS_TEX_SLOT 6
-#define REFLECTION_PROBE_TEX_SLOT 7
+#define VOLUME_PROBE_TEX_SLOT 6
+#define SPHERE_PROBE_TEX_SLOT 7
 #define VOLUME_SCATTERING_TEX_SLOT 8
 #define VOLUME_TRANSMITTANCE_TEX_SLOT 9
 /* Currently only used by ray-tracing, but might become used by forward too. */
@@ -202,7 +210,7 @@
 #define UNIFORM_BUF_SLOT 1
 /* Only during surface shading (forward and deferred eval). */
 #define IRRADIANCE_GRID_BUF_SLOT 2
-#define REFLECTION_PROBE_BUF_SLOT 3
+#define SPHERE_PROBE_BUF_SLOT 3
 #define PLANAR_PROBE_BUF_SLOT 4
 /* Only during pre-pass. */
 #define VELOCITY_CAMERA_PREV_BUF 2
