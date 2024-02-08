@@ -19,13 +19,13 @@
  * which is then stored per instance. Many instances can use the same #InstanceReference.
  */
 
-#include <mutex>
 #include <optional>
 
 #include "BLI_array.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_shared_cache.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_customdata_types.h"
@@ -99,19 +99,16 @@ class Instances {
    */
   Vector<InstanceReference> references_;
 
-  /** Indices into `references_`. Determines what data is instanced. */
-  Vector<int> reference_handles_;
   /** Transformation of the instances. */
   Vector<float4x4> transforms_;
+
+  CustomData attributes_;
 
   /* These almost unique ids are generated based on the `id` attribute, which might not contain
    * unique ids at all. They are *almost* unique, because under certain very unlikely
    * circumstances, they are not unique. Code using these ids should not crash when they are not
    * unique but can generally expect them to be unique. */
-  mutable std::mutex almost_unique_ids_mutex_;
-  mutable Array<int> almost_unique_ids_;
-
-  CustomData attributes_;
+  mutable SharedCache<Array<int>> almost_unique_ids_cache_;
 
  public:
   Instances();
@@ -161,7 +158,7 @@ class Instances {
   GeometrySet &geometry_set_from_reference(int reference_index);
 
   Span<int> reference_handles() const;
-  MutableSpan<int> reference_handles();
+  MutableSpan<int> reference_handles_for_write();
   MutableSpan<float4x4> transforms();
   Span<float4x4> transforms() const;
 
@@ -189,6 +186,11 @@ class Instances {
 
   bool owns_direct_data() const;
   void ensure_owns_direct_data();
+
+  void tag_reference_handles_changed()
+  {
+    almost_unique_ids_cache_.tag_dirty();
+  }
 };
 
 /* -------------------------------------------------------------------- */
