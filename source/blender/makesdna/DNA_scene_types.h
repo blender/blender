@@ -44,6 +44,16 @@ struct World;
 struct bGPdata;
 struct bNodeTree;
 
+/** Workaround to forward-declare C++ type in C header. */
+#ifdef __cplusplus
+namespace blender::bke {
+class SceneRuntime;
+}
+using SceneRuntimeHandle = blender::bke::SceneRuntime;
+#else   // __cplusplus
+typedef struct SceneRuntimeHandle SceneRuntimeHandle;
+#endif  // __cplusplus
+
 /* -------------------------------------------------------------------- */
 /** \name FFMPEG
  * \{ */
@@ -2081,6 +2091,9 @@ typedef struct Scene {
   struct SceneEEVEE eevee;
   struct SceneGpencil grease_pencil_settings;
   struct SceneHydra hydra;
+
+  SceneRuntimeHandle *runtime;
+  void *_pad9;
 } Scene;
 
 /** \} */
