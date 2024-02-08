@@ -1315,7 +1315,6 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
   RNA_string_set(op->ptr, "name", brush->id.name + 2);
 
   /* TODO: add information about the asset library this will be saved to? */
-  /* TODO: autofocus name? */
   return WM_operator_props_dialog_popup(C, op, 400);
 }
 
@@ -1331,7 +1330,8 @@ static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
   ot->invoke = brush_asset_save_as_invoke;
   ot->poll = brush_asset_save_as_poll;
 
-  RNA_def_string(ot->srna, "name", nullptr, MAX_NAME, "Name", "Name used to save the brush asset");
+  ot->prop = RNA_def_string(
+      ot->srna, "name", nullptr, MAX_NAME, "Name", "Name for the new brush asset");
 }
 
 static bool brush_asset_delete_poll(bContext *C)
