@@ -874,7 +874,7 @@ void wm_event_handler_ui_cancel_ex(bContext *C,
       wmEvent event;
       wm_event_init_from_window(win, &event);
       event.type = EVT_BUT_CANCEL;
-      event.val = reactivate_button ? 0 : 1;
+      event.val = reactivate_button ? KM_NOTHING : KM_PRESS;
       event.flag = (eWM_EventFlag)0;
       handler->handle_fn(C, &event, handler->user_data);
     }
@@ -4888,7 +4888,7 @@ void WM_event_add_mousemove(wmWindow *win)
 /**
  * \return The WM enum for key or #EVENT_NONE (which should be ignored).
  */
-static int convert_key(GHOST_TKey key)
+static int wm_event_type_from_ghost_key(GHOST_TKey key)
 {
   if (key >= GHOST_kKeyA && key <= GHOST_kKeyZ) {
     return (EVT_AKEY + (int(key) - GHOST_kKeyA));
@@ -5683,7 +5683,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
     case GHOST_kEventKeyDown:
     case GHOST_kEventKeyUp: {
       const GHOST_TEventKeyData *kd = static_cast<const GHOST_TEventKeyData *>(customdata);
-      event.type = convert_key(kd->key);
+      event.type = wm_event_type_from_ghost_key(kd->key);
       if (UNLIKELY(event.type == EVENT_NONE)) {
         break;
       }
