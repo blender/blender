@@ -878,4 +878,22 @@
     .strength = 1.0f, \
   }
 
+#define _DNA_DEFAULT_GreasePencilDashModifierData \
+  { \
+    .dash_offset = 0, \
+    .segments_array = NULL, \
+    .segments_num = 0, \
+    .segment_active_index = 0, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilDashModifierSegment \
+  { \
+    .name = "", \
+    .dash = 2, \
+    .gap = 1, \
+    .radius = 1.0f, \
+    .opacity = 1.0f, \
+    .mat_nr = -1, \
+  }
+
 /* clang-format off */

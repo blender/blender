@@ -326,6 +326,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_LATTICE,
      "Lattice",
      "Deform strokes using a lattice object"},
+    {eModifierType_GreasePencilDash,
+     "GREASE_PENCIL_DASH",
+     ICON_MOD_DASH,
+     "Dot Dash",
+     "Generate dot-dash styled strokes"},
 
     RNA_ENUM_ITEM_HEADING(N_("Physics"), nullptr),
     {eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
@@ -736,6 +741,7 @@ const EnumPropertyItem rna_enum_subdivision_boundary_smooth_items[] = {
 #  include "BKE_particle.h"
 
 #  include "BLI_sort_utils.h"
+#  include "BLI_string_utils.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -1863,6 +1869,7 @@ RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilSmooth);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilNoise);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilThick);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilLattice);
+RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilDash);
 
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOffset);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOpacity);
@@ -1891,6 +1898,80 @@ static void rna_GreasePencilOpacityModifier_opacity_factor_max_set(PointerRNA *p
   omd->color_factor = (omd->flag & MOD_GREASE_PENCIL_OPACITY_USE_UNIFORM_OPACITY) ?
                           std::min(value, 1.0f) :
                           value;
+}
+
+static const GreasePencilDashModifierData *find_grease_pencil_dash_modifier_of_segment(
+    const Object &ob, const GreasePencilDashModifierSegment &dash_segment)
+{
+  LISTBASE_FOREACH (const ModifierData *, md, &ob.modifiers) {
+    if (md->type == eModifierType_GreasePencilDash) {
+      const auto *dmd = reinterpret_cast<const GreasePencilDashModifierData *>(md);
+      if (dmd->segments().contains_ptr(&dash_segment)) {
+        return dmd;
+      }
+    }
+  }
+  return nullptr;
+}
+
+static std::optional<std::string> rna_GreasePencilDashModifierSegment_path(const PointerRNA *ptr)
+
+{
+  const Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+  const auto *dash_segment = static_cast<GreasePencilDashModifierSegment *>(ptr->data);
+  const GreasePencilDashModifierData *dmd = find_grease_pencil_dash_modifier_of_segment(
+      *ob, *dash_segment);
+  BLI_assert(dmd != nullptr);
+
+  char name_esc[sizeof(dmd->modifier.name) * 2];
+  BLI_str_escape(name_esc, dmd->modifier.name, sizeof(name_esc));
+
+  char ds_name_esc[sizeof(dash_segment->name) * 2];
+  BLI_str_escape(ds_name_esc, dash_segment->name, sizeof(ds_name_esc));
+
+  return fmt::format("modifiers[\"{}\"].segments[\"{}\"]", name_esc, ds_name_esc);
+}
+
+static void rna_GreasePencilDashModifierSegment_name_set(PointerRNA *ptr, const char *value)
+{
+  const Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
+  auto *dash_segment = static_cast<GreasePencilDashModifierSegment *>(ptr->data);
+  const GreasePencilDashModifierData *dmd = find_grease_pencil_dash_modifier_of_segment(
+      *ob, *dash_segment);
+  BLI_assert(dmd != nullptr);
+
+  const std::string oldname = dash_segment->name;
+  STRNCPY_UTF8(dash_segment->name, value);
+  BLI_uniquename_cb(
+      [dmd, dash_segment](const blender::StringRef name) {
+        for (const GreasePencilDashModifierSegment &ds : dmd->segments()) {
+          if (&ds != dash_segment && ds.name == name) {
+            return true;
+          }
+        }
+        return false;
+      },
+      '.',
+      dash_segment->name);
+
+  /* Fix all the animation data which may link to this. */
+  char name_esc[sizeof(dmd->modifier.name) * 2];
+  BLI_str_escape(name_esc, dmd->modifier.name, sizeof(name_esc));
+  char rna_path_prefix[36 + sizeof(name_esc) + 1];
+  SNPRINTF(rna_path_prefix, "modifiers[\"%s\"].segments", name_esc);
+  BKE_animdata_fix_paths_rename_all(nullptr, rna_path_prefix, oldname.c_str(), dash_segment->name);
+}
+
+static void rna_GreasePencilDashModifier_segments_begin(CollectionPropertyIterator *iter,
+                                                        PointerRNA *ptr)
+{
+  auto *dmd = static_cast<GreasePencilDashModifierData *>(ptr->data);
+  rna_iterator_array_begin(iter,
+                           dmd->segments_array,
+                           sizeof(GreasePencilDashModifierSegment),
+                           dmd->segments_num,
+                           false,
+                           nullptr);
 }
 
 #else
@@ -8449,6 +8530,111 @@ static void rna_def_modifier_grease_pencil_lattice(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_dash_segment(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilDashModifierSegment", nullptr);
+  RNA_def_struct_ui_text(srna, "Dash Modifier Segment", "Configuration for a single dash segment");
+  RNA_def_struct_sdna(srna, "GreasePencilDashModifierSegment");
+  RNA_def_struct_path_func(srna, "rna_GreasePencilDashModifierSegment_path");
+
+  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Name", "Name of the dash segment");
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, "rna_GreasePencilDashModifierSegment_name_set");
+  RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER | NA_RENAME, nullptr);
+  RNA_def_struct_name_property(srna, prop);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "dash", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 1, INT16_MAX);
+  RNA_def_property_ui_text(
+      prop,
+      "Dash",
+      "The number of consecutive points from the original stroke to include in this segment");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "gap", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, INT16_MAX);
+  RNA_def_property_ui_text(prop, "Gap", "The number of points skipped after this segment");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_FACTOR | PROP_UNSIGNED);
+  RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
+  RNA_def_property_ui_text(
+      prop, "Radius", "The factor to apply to the original point's radius for the new points");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
+  RNA_def_property_ui_text(
+      prop, "Opacity", "The factor to apply to the original point's opacity for the new points");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "mat_nr");
+  RNA_def_property_range(prop, -1, INT16_MAX);
+  RNA_def_property_ui_text(
+      prop,
+      "Material Index",
+      "Use this index on generated segment. -1 means using the existing material");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_DASH_USE_CYCLIC);
+  RNA_def_property_ui_text(prop, "Cyclic", "Enable cyclic on individual stroke dashes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
+static void rna_def_modifier_grease_pencil_dash(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilDashModifierData", "Modifier");
+  RNA_def_struct_ui_text(
+      srna, "Grease Pencil Dash Modifier", "Create dot-dash effect for strokes");
+  RNA_def_struct_sdna(srna, "GreasePencilDashModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_DASH);
+
+  rna_def_modifier_grease_pencil_layer_filter(srna);
+  rna_def_modifier_grease_pencil_material_filter(
+      srna, "rna_GreasePencilDashModifier_material_filter_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "segments", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "GreasePencilDashModifierSegment");
+  RNA_def_property_collection_sdna(prop, nullptr, "segments_array", nullptr);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_GreasePencilDashModifier_segments_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(prop, "Segments", "");
+
+  prop = RNA_def_property(srna, "segment_active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Active Dash Segment Index", "Active index in the segment list");
+
+  prop = RNA_def_property(srna, "dash_offset", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Offset",
+      "Offset into each stroke before the beginning of the dashed segment generation");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8626,6 +8812,8 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_mirror(brna);
   rna_def_modifier_grease_pencil_thickness(brna);
   rna_def_modifier_grease_pencil_lattice(brna);
+  rna_def_modifier_grease_pencil_dash_segment(brna);
+  rna_def_modifier_grease_pencil_dash(brna);
 }
 
 #endif

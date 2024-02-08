@@ -280,5 +280,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
   INIT_TYPE(GreasePencilMirror);
   INIT_TYPE(GreasePencilThickness);
   INIT_TYPE(GreasePencilLattice);
+  INIT_TYPE(GreasePencilDash);
 #undef INIT_TYPE
 }
