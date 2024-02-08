@@ -167,10 +167,7 @@ class Instance {
         lookdev(*this),
         light_probes(*this),
         irradiance_cache(*this),
-        volume(*this, uniform_data.data.volumes)
-  {
-    BLI_assert_unreachable();
-  };
+        volume(*this, uniform_data.data.volumes){};
   ~Instance(){};
 
   /* Render & Viewport. */
