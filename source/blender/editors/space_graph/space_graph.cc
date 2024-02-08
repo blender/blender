@@ -333,8 +333,9 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   }
 
   /* scrollers */
+  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
   /* FIXME: args for scrollers depend on the type of data being shown. */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  UI_view2d_scrollers_draw(v2d, &scroller_mask);
 
   /* scale numbers */
   {
