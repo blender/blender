@@ -492,7 +492,12 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
 
   if (denoiser_) {
     const DenoiseParams old_denoiser_params = denoiser_->get_params();
-    if (old_denoiser_params.type == params.type) {
+    const bool is_same_denoising_device_type = old_denoiser_params.use_gpu == params.use_gpu;
+    /* Optix Denoiser is not supporting CPU devices, so use_gpu option is not
+     * shown in the UI and changes in the option value should not be checked. */
+    if (old_denoiser_params.type == params.type &&
+        (is_same_denoising_device_type || params.type == DENOISER_OPTIX))
+    {
       denoiser_->set_params(params);
       return;
     }
