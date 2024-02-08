@@ -39,6 +39,9 @@ yum -y install scl-utils-build
 # Currently this is defined by the VFX platform (CY2023), see: https://vfxplatform.com
 yum -y install gcc-toolset-11
 
+# Repository for CUDA (`nvcc`).
+dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/repos/rhel8/$(uname -i)/cuda-rhel8.repo
+
 # Install packages needed for Blender's dependencies.
 PACKAGES_FOR_LIBS=(
     # Used to checkout Blender's code.
@@ -60,6 +63,9 @@ PACKAGES_FOR_LIBS=(
     autoconf
     automake
     libtool
+
+    # Required by: `external_libsndfile` configure scripts.
+    autogen
 
     # Used to set rpath on shared libraries
     patchelf
@@ -83,6 +89,10 @@ PACKAGES_FOR_LIBS=(
     # and there isn't a flag to disable GNU "info".
     # Required by: [`flex` as a build-time dependency for `makeinfo`].
     texinfo
+
+    # NOTE(@ideasman42): `nvcc` will *not* be added to the `PATH`, must be done manually.
+    # Required by `external_openimagedenoise` (`nvcc` command)
+    cuda-toolkit
 
     # Required by: `external_ispc`.
     zlib-devel
