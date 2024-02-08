@@ -27,11 +27,13 @@ enum MetalGPUVendor {
 };
 
 enum AppleGPUArchitecture {
-  APPLE_UNKNOWN,
   APPLE_M1,
   APPLE_M2,
   APPLE_M2_BIG,
   APPLE_M3,
+  /* Keep APPLE_UNKNOWN at the end of this enum to ensure that unknown future architectures get
+     the most recent defaults when using comparison operators. */
+  APPLE_UNKNOWN,
 };
 
 /* Contains static Metal helper functions. */
