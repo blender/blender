@@ -5265,7 +5265,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
   {
     if (CustomData_has_layer(data, type)) {
       /* NOTE: doesn't account for multiple layers. */
-      const StringRef name = CustomData_layertype_name(type);
+      const char *name = CustomData_layertype_name(type);
       const int size = CustomData_sizeof(type);
       const void *pt = CustomData_get_layer(data, type);
       const int pt_size = pt ? int(MEM_allocN_len(pt) / size) : 0;
