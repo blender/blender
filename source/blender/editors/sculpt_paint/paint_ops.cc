@@ -1315,7 +1315,7 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
   RNA_string_set(op->ptr, "name", brush->id.name + 2);
 
   /* TODO: add information about the asset library this will be saved to? */
-  return WM_operator_props_dialog_popup(C, op, 400);
+  return WM_operator_props_dialog_popup(C, op, 400, std::nullopt, IFACE_("Save"));
 }
 
 static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
