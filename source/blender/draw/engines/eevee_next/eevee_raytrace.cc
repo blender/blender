@@ -106,8 +106,8 @@ void RayTraceModule::sync()
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.planar_probes);
-    pass.bind_resources(inst_.irradiance_cache);
-    pass.bind_resources(inst_.reflection_probes);
+    pass.bind_resources(inst_.volume_probes);
+    pass.bind_resources(inst_.sphere_probes);
     pass.bind_resources(inst_.gbuffer);
     /* TODO(@fclem): Use another dispatch with only tiles that touches planar captures. */
     pass.dispatch(raytrace_tracing_dispatch_buf_);
@@ -134,8 +134,8 @@ void RayTraceModule::sync()
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
     pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.sampling);
-    pass.bind_resources(inst_.irradiance_cache);
-    pass.bind_resources(inst_.reflection_probes);
+    pass.bind_resources(inst_.volume_probes);
+    pass.bind_resources(inst_.sphere_probes);
     pass.bind_resources(inst_.gbuffer);
     pass.dispatch(raytrace_tracing_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -150,8 +150,8 @@ void RayTraceModule::sync()
     pass.bind_image("ray_radiance_img", &ray_radiance_tx_);
     pass.bind_texture("depth_tx", &depth_tx);
     pass.bind_resources(inst_.uniform_data);
-    pass.bind_resources(inst_.irradiance_cache);
-    pass.bind_resources(inst_.reflection_probes);
+    pass.bind_resources(inst_.volume_probes);
+    pass.bind_resources(inst_.sphere_probes);
     pass.bind_resources(inst_.sampling);
     pass.dispatch(raytrace_tracing_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
@@ -269,8 +269,8 @@ void RayTraceModule::sync()
     pass.bind_resources(inst_.uniform_data);
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.gbuffer);
-    pass.bind_resources(inst_.irradiance_cache);
-    pass.bind_resources(inst_.reflection_probes);
+    pass.bind_resources(inst_.volume_probes);
+    pass.bind_resources(inst_.sphere_probes);
     pass.dispatch(horizon_denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }

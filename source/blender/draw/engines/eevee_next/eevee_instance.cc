@@ -90,10 +90,11 @@ void Instance::init(const int2 &output_res,
   shadows.init();
   motion_blur.init();
   main_view.init();
+  light_probes.init();
   planar_probes.init();
   /* Irradiance Cache needs reflection probes to be initialized. */
-  reflection_probes.init();
-  irradiance_cache.init();
+  sphere_probes.init();
+  volume_probes.init();
   volume.init();
   lookdev.init(visible_rect);
 }
@@ -124,10 +125,11 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   depth_of_field.init();
   shadows.init();
   main_view.init();
+  light_probes.init();
   planar_probes.init();
   /* Irradiance Cache needs reflection probes to be initialized. */
-  reflection_probes.init();
-  irradiance_cache.init();
+  sphere_probes.init();
+  volume_probes.init();
   volume.init();
   lookdev.init(&empty_rect);
 }
@@ -173,8 +175,7 @@ void Instance::begin_sync()
   volume.begin_sync();
   pipelines.begin_sync();
   cryptomatte.begin_sync();
-  reflection_probes.begin_sync();
-  planar_probes.begin_sync();
+  sphere_probes.begin_sync();
   light_probes.begin_sync();
 
   gpencil_engine_enabled = false;
@@ -188,7 +189,7 @@ void Instance::begin_sync()
   film.sync();
   render_buffers.sync();
   ambient_occlusion.sync();
-  irradiance_cache.sync();
+  volume_probes.sync();
   lookdev.sync();
 
   use_surfaces = (view_layer->layflag & SCE_LAY_SOLID) != 0;
@@ -267,7 +268,7 @@ void Instance::object_sync(Object *ob)
         sync.sync_gpencil(ob, ob_handle, res_handle);
         break;
       case OB_LIGHTPROBE:
-        sync.sync_light_probe(ob, ob_handle);
+        light_probes.sync_probe(ob, ob_handle);
         break;
       default:
         break;
@@ -303,7 +304,7 @@ void Instance::end_sync()
   cryptomatte.end_sync();
   pipelines.end_sync();
   light_probes.end_sync();
-  reflection_probes.end_sync();
+  sphere_probes.end_sync();
   planar_probes.end_sync();
 
   uniform_data.push_update();
@@ -344,7 +345,7 @@ void Instance::render_sync()
 
 bool Instance::do_reflection_probe_sync() const
 {
-  if (!reflection_probes.update_probes_this_sample_) {
+  if (!sphere_probes.update_probes_this_sample_) {
     return false;
   }
   if (materials.queued_shaders_count > 0) {
@@ -478,12 +479,6 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
 void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 {
-  /* TODO(jbakker): should we check on the subtype as well? Now it also populates even when there
-   * are other light probes in the scene. */
-  if (DEG_id_type_any_exists(this->depsgraph, ID_LP)) {
-    reflection_probes.update_probes_next_sample_ = true;
-    planar_probes.update_probes_ = true;
-  }
 
   while (!sampling.finished()) {
     this->render_sample();
@@ -635,7 +630,7 @@ void Instance::light_bake_irradiance(
     context_disable();
   };
 
-  irradiance_cache.bake.init(probe);
+  volume_probes.bake.init(probe);
 
   custom_pipeline_wrapper([&]() {
     manager->begin_sync();
@@ -646,19 +641,19 @@ void Instance::light_bake_irradiance(
 
     capture_view.render_world();
 
-    irradiance_cache.bake.surfels_create(probe);
+    volume_probes.bake.surfels_create(probe);
 
-    if (irradiance_cache.bake.should_break()) {
+    if (volume_probes.bake.should_break()) {
       return;
     }
 
-    irradiance_cache.bake.surfels_lights_eval();
+    volume_probes.bake.surfels_lights_eval();
 
-    irradiance_cache.bake.clusters_build();
-    irradiance_cache.bake.irradiance_offset();
+    volume_probes.bake.clusters_build();
+    volume_probes.bake.irradiance_offset();
   });
 
-  if (irradiance_cache.bake.should_break()) {
+  if (volume_probes.bake.should_break()) {
     return;
   }
 
@@ -673,9 +668,9 @@ void Instance::light_bake_irradiance(
       for (int i = 0; i < 16 && !sampling.finished(); i++) {
         sampling.step();
 
-        irradiance_cache.bake.raylists_build();
-        irradiance_cache.bake.propagate_light();
-        irradiance_cache.bake.irradiance_capture();
+        volume_probes.bake.raylists_build();
+        volume_probes.bake.propagate_light();
+        volume_probes.bake.irradiance_capture();
       }
 
       if (sampling.finished()) {
@@ -685,11 +680,11 @@ void Instance::light_bake_irradiance(
 
       LightProbeGridCacheFrame *cache_frame;
       if (sampling.finished()) {
-        cache_frame = irradiance_cache.bake.read_result_packed();
+        cache_frame = volume_probes.bake.read_result_packed();
       }
       else {
         /* TODO(fclem): Only do this read-back if needed. But it might be tricky to know when. */
-        cache_frame = irradiance_cache.bake.read_result_unpacked();
+        cache_frame = volume_probes.bake.read_result_unpacked();
       }
 
       float progress = sampling.sample_index() / float(sampling.sample_count());

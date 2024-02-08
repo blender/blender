@@ -295,8 +295,8 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_resources(inst_.volume.result);
       opaque_ps_.bind_resources(inst_.sampling);
       opaque_ps_.bind_resources(inst_.hiz_buffer.front);
-      opaque_ps_.bind_resources(inst_.irradiance_cache);
-      opaque_ps_.bind_resources(inst_.reflection_probes);
+      opaque_ps_.bind_resources(inst_.volume_probes);
+      opaque_ps_.bind_resources(inst_.sphere_probes);
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");
@@ -323,8 +323,8 @@ void ForwardPipeline::sync()
     sub.bind_resources(inst_.volume.result);
     sub.bind_resources(inst_.sampling);
     sub.bind_resources(inst_.hiz_buffer.front);
-    sub.bind_resources(inst_.irradiance_cache);
-    sub.bind_resources(inst_.reflection_probes);
+    sub.bind_resources(inst_.volume_probes);
+    sub.bind_resources(inst_.sphere_probes);
   }
 }
 
@@ -410,7 +410,7 @@ void ForwardPipeline::render(View &view, Framebuffer &prepass_fb, Framebuffer &c
   inst_.hiz_buffer.set_dirty();
 
   inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
-  inst_.irradiance_cache.set_view(view);
+  inst_.volume_probes.set_view(view);
 
   if (has_opaque_) {
     combined_fb.bind();
@@ -463,8 +463,8 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
    * Non-NPR shaders will override these resource bindings. */
   gbuffer_ps_.bind_resources(inst.lights);
   gbuffer_ps_.bind_resources(inst.shadows);
-  gbuffer_ps_.bind_resources(inst.reflection_probes);
-  gbuffer_ps_.bind_resources(inst.irradiance_cache);
+  gbuffer_ps_.bind_resources(inst.sphere_probes);
+  gbuffer_ps_.bind_resources(inst.volume_probes);
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
 
@@ -591,8 +591,8 @@ void DeferredLayer::end_sync()
           sub.bind_resources(inst_.shadows);
           sub.bind_resources(inst_.sampling);
           sub.bind_resources(inst_.hiz_buffer.front);
-          sub.bind_resources(inst_.reflection_probes);
-          sub.bind_resources(inst_.irradiance_cache);
+          sub.bind_resources(inst_.sphere_probes);
+          sub.bind_resources(inst_.volume_probes);
           sub.state_stencil(0xFFu, i + 1, 0xFFu);
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
         }
@@ -719,7 +719,7 @@ void DeferredLayer::render(View &main_view,
   /* Update for lighting pass or AO node. */
   inst_.hiz_buffer.update();
 
-  inst_.irradiance_cache.set_view(render_view);
+  inst_.volume_probes.set_view(render_view);
   inst_.shadows.set_view(render_view, inst_.render_buffers.depth_tx);
 
   if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
@@ -1206,7 +1206,7 @@ void DeferredProbeLayer::end_sync()
     pass.bind_resources(inst_.shadows);
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.hiz_buffer.front);
-    pass.bind_resources(inst_.irradiance_cache);
+    pass.bind_resources(inst_.volume_probes);
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
@@ -1254,7 +1254,7 @@ void DeferredProbeLayer::render(View &view,
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view, inst_.render_buffers.depth_tx);
-  inst_.irradiance_cache.set_view(view);
+  inst_.volume_probes.set_view(view);
 
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
@@ -1347,8 +1347,8 @@ void PlanarProbePipeline::begin_sync()
     pass.bind_resources(inst_.shadows);
     pass.bind_resources(inst_.sampling);
     pass.bind_resources(inst_.hiz_buffer.front);
-    pass.bind_resources(inst_.reflection_probes);
-    pass.bind_resources(inst_.irradiance_cache);
+    pass.bind_resources(inst_.sphere_probes);
+    pass.bind_resources(inst_.volume_probes);
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
@@ -1408,7 +1408,7 @@ void PlanarProbePipeline::render(View &view,
   inst_.hiz_buffer.set_source(&depth_layer_tx, 0);
   inst_.lights.set_view(view, extent);
   inst_.shadows.set_view(view, depth_layer_tx);
-  inst_.irradiance_cache.set_view(view);
+  inst_.volume_probes.set_view(view);
 
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
@@ -1448,10 +1448,10 @@ void CapturePipeline::sync()
   /* Surfel output is done using a SSBO, so no need for a fragment shader output color or depth. */
   /* WORKAROUND: Avoid rasterizer discard, but the shaders actually use no fragment output. */
   surface_ps_.state_set(DRW_STATE_WRITE_STENCIL);
-  surface_ps_.framebuffer_set(&inst_.irradiance_cache.bake.empty_raster_fb_);
+  surface_ps_.framebuffer_set(&inst_.volume_probes.bake.empty_raster_fb_);
 
-  surface_ps_.bind_ssbo(SURFEL_BUF_SLOT, &inst_.irradiance_cache.bake.surfels_buf_);
-  surface_ps_.bind_ssbo(CAPTURE_BUF_SLOT, &inst_.irradiance_cache.bake.capture_info_buf_);
+  surface_ps_.bind_ssbo(SURFEL_BUF_SLOT, &inst_.volume_probes.bake.surfels_buf_);
+  surface_ps_.bind_ssbo(CAPTURE_BUF_SLOT, &inst_.volume_probes.bake.capture_info_buf_);
 
   surface_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
   /* TODO(fclem): Remove. Bind to get the camera data,
