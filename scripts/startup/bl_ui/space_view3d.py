@@ -5830,27 +5830,21 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("grease_pencil.separate", "mode", text="Separate")
-
-        layout.separator()
-
         layout.menu("GREASE_PENCIL_MT_layer_active", text="Active Layer")
 
         layout.separator()
 
-        layout.operator("grease_pencil.duplicate_move")
+        layout.operator("grease_pencil.duplicate_move", text="Duplicate")
 
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_greasepencil_showhide")
+        layout.operator_menu_enum("grease_pencil.separate", "mode", text="Separate")
+        layout.operator("grease_pencil.clean_loose")
 
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_greasepencil_delete")
-
-        layout.separator()
-
-        layout.operator("grease_pencil.clean_loose")
 
 
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
@@ -5867,19 +5861,18 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.menu("GREASE_PENCIL_MT_move_to_layer")
         layout.menu("VIEW3D_MT_grease_pencil_assign_material")
         layout.operator("grease_pencil.set_active_material")
+        layout.operator_menu_enum("grease_pencil.reorder", text="Arrange", property="direction")
 
         layout.separator()
 
         layout.operator("grease_pencil.cyclical_set", text="Toggle Cyclic").type = 'TOGGLE'
-        layout.operator("grease_pencil.stroke_switch_direction")
         layout.operator_menu_enum("grease_pencil.caps_set", text="Set Caps", property="type")
+        layout.operator("grease_pencil.stroke_switch_direction")
 
         layout.separator()
 
         layout.operator("grease_pencil.set_uniform_thickness")
         layout.operator("grease_pencil.set_uniform_opacity")
-
-        layout.operator_menu_enum("grease_pencil.reorder", text="Reorder", property="direction")
 
 
 class VIEW3D_MT_edit_greasepencil_point(Menu):
@@ -5887,7 +5880,7 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("grease_pencil.stroke_smooth", text="Smooth Points")
+        layout.operator("grease_pencil.stroke_smooth", text="Smooth")
 
 
 class VIEW3D_MT_edit_curves(Menu):
@@ -8232,7 +8225,11 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
 
             col.separator()
 
-            col.menu("VIEW3D_MT_mirror", text="Mirror Points")
+            col.menu("VIEW3D_MT_mirror", text="Mirror")
+
+            col.separator()
+
+            col.operator("grease_pencil.duplicate_move", text="Duplicate")
 
             col.separator()
 
@@ -8255,17 +8252,23 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             # Deform Operators
-            col.operator("grease_pencil.stroke_smooth", text="Smooth Points")
+            col.operator("grease_pencil.stroke_smooth", text="Smooth")
             col.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
 
             col.separator()
 
+            col.menu("GREASE_PENCIL_MT_move_to_layer")
             col.menu("VIEW3D_MT_grease_pencil_assign_material")
             col.operator("grease_pencil.set_active_material", text="Set as Active Material")
+            col.operator_menu_enum("grease_pencil.reorder", text="Arrange", property="direction")
 
             col.separator()
 
             col.menu("VIEW3D_MT_mirror")
+
+            col.separator()
+
+            col.operator("grease_pencil.duplicate_move", text="Duplicate")
 
             col.separator()
 
