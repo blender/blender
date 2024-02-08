@@ -368,7 +368,8 @@ def bake_action_iter(
     lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in action.fcurves}
     if bake_options.do_pose:
         for f, armature_custom_properties in armature_info:
-            bake_custom_properties(obj, custom_props=armature_custom_properties, frame=f)
+            bake_custom_properties(obj, custom_props=armature_custom_properties,
+                                   frame=f, group_name="Armature Custom Properties")
 
         for name, pbone in obj.pose.bones.items():
             if bake_options.only_selected and not pbone.bone.select:
