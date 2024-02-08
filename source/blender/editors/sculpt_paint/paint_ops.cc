@@ -1062,10 +1062,8 @@ static const bUserAssetLibrary *brush_asset_get_default_library()
   return static_cast<const bUserAssetLibrary *>(U.asset_libraries.first);
 }
 
-static void refresh_asset_library(const bContext *C)
+static void refresh_asset_library(const bContext *C, const bUserAssetLibrary &user_library)
 {
-  const bUserAssetLibrary *user_library = brush_asset_get_default_library();
-
   /* TODO: Should the all library reference be automatically cleared? */
   AssetLibraryReference all_lib_ref = asset_system::all_library_reference();
   asset::list::clear(&all_lib_ref, C);
@@ -1075,7 +1073,7 @@ static void refresh_asset_library(const bContext *C)
     if (lib_ref.type == ASSET_LIBRARY_CUSTOM) {
       const bUserAssetLibrary *ref_user_library = BKE_preferences_asset_library_find_index(
           &U, lib_ref.custom_library_index);
-      if (ref_user_library == user_library) {
+      if (ref_user_library == &user_library) {
         asset::list::clear(&lib_ref, C);
         return;
       }
@@ -1083,15 +1081,14 @@ static void refresh_asset_library(const bContext *C)
   }
 }
 
-static std::string brush_asset_root_path_for_save()
+static std::string brush_asset_root_path_for_save(const bUserAssetLibrary &user_library)
 {
-  const bUserAssetLibrary *user_library = brush_asset_get_default_library();
-  if (user_library == nullptr || user_library->dirpath[0] == '\0') {
+  if (user_library.dirpath[0] == '\0') {
     return "";
   }
 
   char libpath[FILE_MAX];
-  BLI_strncpy(libpath, user_library->dirpath, sizeof(libpath));
+  BLI_strncpy(libpath, user_library.dirpath, sizeof(libpath));
   BLI_path_slash_native(libpath);
   BLI_path_normalize(libpath);
 
@@ -1099,9 +1096,10 @@ static std::string brush_asset_root_path_for_save()
 }
 
 static std::string brush_asset_blendfile_path_for_save(ReportList *reports,
+                                                       const bUserAssetLibrary &user_library,
                                                        const StringRefNull base_name)
 {
-  std::string root_path = brush_asset_root_path_for_save();
+  std::string root_path = brush_asset_root_path_for_save(user_library);
   BLI_assert(!root_path.empty());
 
   if (!BLI_dir_create_recursive(root_path.c_str())) {
@@ -1230,7 +1228,11 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     STRNCPY(name, brush->id.name + 2);
   }
 
-  const std::string filepath = brush_asset_blendfile_path_for_save(op->reports, name);
+  const bUserAssetLibrary *library = brush_asset_get_default_library();
+  if (!library) {
+    return OPERATOR_CANCELLED;
+  }
+  const std::string filepath = brush_asset_blendfile_path_for_save(op->reports, *library, name);
   if (filepath.empty()) {
     return OPERATOR_CANCELLED;
   }
@@ -1252,10 +1254,9 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* Create weak reference to new datablock. */
-  const bUserAssetLibrary *asset_lib = brush_asset_get_default_library();
+  const bUserAssetLibrary *library = brush_asset_get_default_library();
   AssetWeakReference *new_brush_weak_ref = brush_asset_create_weakref_hack(
-      asset_lib, final_full_asset_filepath);
+      library, final_full_asset_filepath);
 
   /* TODO: maybe not needed, even less so if there is more visual confirmation of change. */
   BKE_reportf(op->reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
@@ -1268,7 +1269,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Unable to activate just-saved brush asset");
   }
 
-  refresh_asset_library(C);
+  refresh_asset_library(C, *library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_ADDED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 
@@ -1319,7 +1320,13 @@ static bool asset_is_editable(const AssetWeakReference &asset_weak_ref)
     return false;
   }
 
-  std::string root_path_for_save = brush_asset_root_path_for_save();
+  const bUserAssetLibrary *library = BKE_preferences_asset_library_find_by_name(
+      &U, asset_weak_ref.asset_library_identifier);
+  if (!library) {
+    return false;
+  }
+
+  std::string root_path_for_save = brush_asset_root_path_for_save(*library);
   if (root_path_for_save.empty() || !StringRef(dir).startswith(root_path_for_save)) {
     return false;
   }
@@ -1353,6 +1360,12 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
 
+  bUserAssetLibrary *library = BKE_preferences_asset_library_find_by_name(
+      &U, paint->brush_asset_reference->asset_library_identifier);
+  if (!library) {
+    return OPERATOR_CANCELLED;
+  }
+
   if (paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush)) {
     /* Delete from asset library on disk. */
     char path_buffer[FILE_MAX_LIBEXTRA];
@@ -1375,7 +1388,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
     BKE_id_delete(bmain, original_brush);
   }
 
-  refresh_asset_library(C);
+  refresh_asset_library(C, *library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_REMOVED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
 
