@@ -1900,13 +1900,17 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       if (ime_data && ime_data->composite_len) {
         /* insert composite string into cursor pos */
-        BLI_snprintf((char *)drawstr,
-                     UI_MAX_DRAW_STR,
+        char tmp_drawstr[UI_MAX_DRAW_STR];
+        STRNCPY(tmp_drawstr, drawstr);
+        BLI_snprintf(tmp_drawstr,
+                     sizeof(tmp_drawstr),
                      "%.*s%s%s",
                      but->pos,
                      but->editstr,
                      ime_data->str_composite,
                      but->editstr + but->pos);
+        but->drawstr = tmp_drawstr;
+        drawstr = but->drawstr.c_str();
       }
       else
 #endif
