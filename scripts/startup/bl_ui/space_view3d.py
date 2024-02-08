@@ -8807,6 +8807,13 @@ class BrushAssetShelf:
         paint_settings = UnifiedPaintPanel.paint_settings(bpy.context)
         return paint_settings.brush_asset_reference if paint_settings else None
 
+    @classmethod
+    def draw_context_menu(self, context, asset, layout):
+        # Currently this menu adds operators that deal with the affected brush and don't take the
+        # asset into account. Luckily that is okay for now, since right clicking in the grid view
+        # also activates the item.
+        layout.menu_contents("VIEW3D_MT_brush_context_menu")
+
 
 class VIEW3D_AST_brush_sculpt(BrushAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT'
