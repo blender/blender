@@ -212,7 +212,6 @@ static void rna_def_workspace_owner(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "wmOwnerID", nullptr);
   RNA_def_struct_sdna(srna, "wmOwnerID");
-  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Work Space UI Tag", "");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -262,7 +261,6 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "WorkSpaceTool", nullptr);
   RNA_def_struct_sdna(srna, "bToolRef");
-  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Work Space Tool", "");
 
   prop = RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);

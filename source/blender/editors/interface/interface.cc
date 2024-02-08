@@ -1104,21 +1104,17 @@ void UI_but_execute(const bContext *C, ARegion *region, uiBut *but)
  * returns false if undo needs to be disabled. */
 static bool ui_but_is_rna_undo(const uiBut *but)
 {
-  if (but->rnapoin.owner_id) {
-    /* avoid undo push for buttons who's ID are screen or wm level
-     * we could disable undo for buttons with no ID too but may have
-     * unforeseen consequences, so best check for ID's we _know_ are not
-     * handled by undo - campbell */
-    ID *id = but->rnapoin.owner_id;
-    if (ID_CHECK_UNDO(id) == false) {
-      return false;
-    }
+  if (but->rnaprop == nullptr) {
+    return true;
   }
-  if (but->rnapoin.type && !RNA_struct_undo_check(but->rnapoin.type)) {
+
+  /* No owner or type known. Assume we do not undo push as it may be a property from
+   * the preferences stored outside datablocks. */
+  if (but->rnapoin.owner_id == nullptr || but->rnapoin.type == nullptr) {
     return false;
   }
 
-  return true;
+  return ID_CHECK_UNDO(but->rnapoin.owner_id) && RNA_struct_undo_check(but->rnapoin.type);
 }
 
 /* assigns automatic keybindings to menu items for fast access

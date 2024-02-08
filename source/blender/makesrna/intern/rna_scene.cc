@@ -6025,7 +6025,6 @@ static void rna_def_image_format_stereo3d_format(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "Stereo3dFormat", nullptr);
   RNA_def_struct_sdna(srna, "Stereo3dFormat");
-  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Stereo Output", "Settings for stereo output");
 
   prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
