@@ -358,6 +358,18 @@ static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *valu
   BKE_preferences_asset_library_path_set(library, value);
 }
 
+static void rna_UserAssetLibrary_is_default_set(PointerRNA *ptr, bool value)
+{
+  bUserAssetLibrary *library = static_cast<bUserAssetLibrary *>(ptr->data);
+  if (!value) {
+    return;
+  }
+  LISTBASE_FOREACH (bUserAssetLibrary *, library_iter, &U.asset_libraries) {
+    library_iter->flag &= ~ASSET_LIBRARY_DEFAULT;
+  }
+  library->flag |= ASSET_LIBRARY_DEFAULT;
+}
+
 static void rna_userdef_extension_repo_name_set(PointerRNA *ptr, const char *value)
 {
   bUserExtensionRepo *repo = (bUserExtensionRepo *)ptr->data;
@@ -6576,6 +6588,11 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_RELATIVE_PATH);
   RNA_def_property_ui_text(
       prop, "Relative Path", "Use relative path when linking assets from this asset library");
+
+  prop = RNA_def_property(srna, "is_default", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", ASSET_LIBRARY_DEFAULT);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_UserAssetLibrary_is_default_set");
+  RNA_def_property_ui_text(prop, "Default", "Use this library for saving new assets");
 }
 
 static void rna_def_userdef_filepaths_extension_repo(BlenderRNA *brna)

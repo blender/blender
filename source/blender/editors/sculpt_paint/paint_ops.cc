@@ -1051,11 +1051,15 @@ static AssetWeakReference *brush_asset_create_weakref_hack(const bUserAssetLibra
 
 static const bUserAssetLibrary *brush_asset_get_editable_library()
 {
-  /* TODO: take into account which one is marked as default. */
-  LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library, &U.asset_libraries) {
-    return asset_library;
+  if (BLI_listbase_is_empty(&U.asset_libraries)) {
+    return nullptr;
   }
-  return nullptr;
+  LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library, &U.asset_libraries) {
+    if (asset_library->flag & ASSET_LIBRARY_DEFAULT) {
+      return asset_library;
+    }
+  }
+  return static_cast<const bUserAssetLibrary *>(U.asset_libraries.first);
 }
 
 static void brush_asset_refresh_editable_library(const bContext *C)
