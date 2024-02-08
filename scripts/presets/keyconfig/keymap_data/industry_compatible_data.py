@@ -557,8 +557,6 @@ def km_outliner(params):
         # Copy/paste.
         ("outliner.id_copy", {"type": 'C', "value": 'PRESS', "ctrl": True}, None),
         ("outliner.id_paste", {"type": 'V', "value": 'PRESS', "ctrl": True}, None),
-
-        ("object.duplicate", {"type": 'D', "value": 'PRESS', "ctrl": True}, None),
     ])
 
     return keymap

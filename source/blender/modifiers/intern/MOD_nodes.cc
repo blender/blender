@@ -407,6 +407,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
       new_bake.id = id;
       new_bake.frame_start = 1;
       new_bake.frame_end = 100;
+      new_bake.bake_mode = NODES_MODIFIER_BAKE_MODE_STILL;
     }
   }
 
