@@ -2102,7 +2102,7 @@ static CustomDataLayer *customData_add_layer__internal(
     void *layer_data_to_assign,
     const ImplicitSharingInfo *sharing_info_to_assign,
     int totelem,
-    const char *name);
+    const StringRef name);
 
 void CustomData_update_typemap(CustomData *data)
 {
@@ -2580,11 +2580,11 @@ int CustomData_get_layer_index_n(const CustomData *data, const eCustomDataType t
 
 int CustomData_get_named_layer_index(const CustomData *data,
                                      const eCustomDataType type,
-                                     const char *name)
+                                     const StringRef name)
 {
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      if (STREQ(data->layers[i].name, name)) {
+      if (data->layers[i].name == name) {
         return i;
       }
     }
@@ -2593,10 +2593,10 @@ int CustomData_get_named_layer_index(const CustomData *data,
   return -1;
 }
 
-int CustomData_get_named_layer_index_notype(const CustomData *data, const char *name)
+int CustomData_get_named_layer_index_notype(const CustomData *data, const StringRef name)
 {
   for (int i = 0; i < data->totlayer; i++) {
-    if (STREQ(data->layers[i].name, name)) {
+    if (data->layers[i].name == name) {
       return i;
     }
   }
@@ -2637,7 +2637,7 @@ int CustomData_get_stencil_layer_index(const CustomData *data, const eCustomData
 
 int CustomData_get_named_layer(const CustomData *data,
                                const eCustomDataType type,
-                               const char *name)
+                               const StringRef name)
 {
   const int named_index = CustomData_get_named_layer_index(data, type, name);
   const int layer_index = data->typemap[type];
@@ -2845,7 +2845,7 @@ static CustomDataLayer *customData_add_layer__internal(
     void *layer_data_to_assign,
     const ImplicitSharingInfo *sharing_info_to_assign,
     const int totelem,
-    const char *name)
+    StringRef name)
 {
   const LayerTypeInfo &type_info = *layerType_getInfo(type);
   int flag = 0;
@@ -2926,12 +2926,12 @@ static CustomDataLayer *customData_add_layer__internal(
   /* Set default name if none exists. Note we only call DATA_()  once
    * we know there is a default name, to avoid overhead of locale lookups
    * in the depsgraph. */
-  if (!name && type_info.defaultname) {
+  if (name.is_empty() && type_info.defaultname) {
     name = DATA_(type_info.defaultname);
   }
 
-  if (name) {
-    STRNCPY(new_layer.name, name);
+  if (!name.is_empty()) {
+    name.copy(new_layer.name);
     CustomData_set_layer_unique_name(data, index);
   }
   else {
@@ -2997,7 +2997,7 @@ void *CustomData_add_layer_named(CustomData *data,
                                  const eCustomDataType type,
                                  const eCDAllocType alloctype,
                                  const int totelem,
-                                 const char *name)
+                                 const StringRef name)
 {
   CustomDataLayer *layer = customData_add_layer__internal(
       data, type, alloctype, nullptr, nullptr, totelem, name);
@@ -3013,7 +3013,7 @@ const void *CustomData_add_layer_named_with_data(CustomData *data,
                                                  eCustomDataType type,
                                                  void *layer_data,
                                                  int totelem,
-                                                 const char *name,
+                                                 const StringRef name,
                                                  const ImplicitSharingInfo *sharing_info)
 {
   CustomDataLayer *layer = customData_add_layer__internal(
@@ -3032,7 +3032,7 @@ void *CustomData_add_layer_anonymous(CustomData *data,
                                      const int totelem,
                                      const AnonymousAttributeIDHandle *anonymous_id)
 {
-  const char *name = anonymous_id->name().c_str();
+  const StringRef name = anonymous_id->name().c_str();
   CustomDataLayer *layer = customData_add_layer__internal(
       data, type, alloctype, nullptr, nullptr, totelem, name);
   CustomData_update_typemap(data);
@@ -3054,7 +3054,7 @@ const void *CustomData_add_layer_anonymous_with_data(
     void *layer_data,
     const ImplicitSharingInfo *sharing_info)
 {
-  const char *name = anonymous_id->name().c_str();
+  const StringRef name = anonymous_id->name().c_str();
   CustomDataLayer *layer = customData_add_layer__internal(
       data, type, std::nullopt, layer_data, sharing_info, totelem, name);
   CustomData_update_typemap(data);
@@ -3122,7 +3122,7 @@ bool CustomData_free_layer(CustomData *data,
   return true;
 }
 
-bool CustomData_free_layer_named(CustomData *data, const char *name, const int totelem)
+bool CustomData_free_layer_named(CustomData *data, const StringRef name, const int totelem)
 {
   for (const int i : IndexRange(data->totlayer)) {
     const CustomDataLayer &layer = data->layers[i];
@@ -3153,7 +3153,7 @@ void CustomData_free_layers(CustomData *data, const eCustomDataType type, const 
 
 bool CustomData_has_layer_named(const CustomData *data,
                                 const eCustomDataType type,
-                                const char *name)
+                                const StringRef name)
 {
   return CustomData_get_named_layer_index(data, type, name) != -1;
 }
@@ -3531,7 +3531,7 @@ void *CustomData_get_layer_n_for_write(CustomData *data,
 
 const void *CustomData_get_layer_named(const CustomData *data,
                                        const eCustomDataType type,
-                                       const char *name)
+                                       const StringRef name)
 {
   int layer_index = CustomData_get_named_layer_index(data, type, name);
   if (layer_index == -1) {
@@ -3542,7 +3542,7 @@ const void *CustomData_get_layer_named(const CustomData *data,
 
 void *CustomData_get_layer_named_for_write(CustomData *data,
                                            const eCustomDataType type,
-                                           const char *name,
+                                           const StringRef name,
                                            const int totelem)
 {
   const int layer_index = CustomData_get_named_layer_index(data, type, name);
@@ -3575,7 +3575,7 @@ int CustomData_get_n_offset(const CustomData *data, const eCustomDataType type, 
 
 int CustomData_get_offset_named(const CustomData *data,
                                 const eCustomDataType type,
-                                const char *name)
+                                const StringRef name)
 {
   int layer_index = CustomData_get_named_layer_index(data, type, name);
   if (layer_index == -1) {
@@ -3588,15 +3588,14 @@ int CustomData_get_offset_named(const CustomData *data,
 bool CustomData_set_layer_name(CustomData *data,
                                const eCustomDataType type,
                                const int n,
-                               const char *name)
+                               const StringRef name)
 {
   const int layer_index = CustomData_get_layer_index_n(data, type, n);
-
-  if ((layer_index == -1) || !name) {
+  if (layer_index == -1) {
     return false;
   }
 
-  STRNCPY(data->layers[layer_index].name, name);
+  name.copy(data->layers[layer_index].name);
 
   return true;
 }
@@ -4281,7 +4280,7 @@ int CustomData_layertype_layers_max(const eCustomDataType type)
 }
 
 static bool cd_layer_find_dupe(CustomData *data,
-                               const char *name,
+                               const StringRef name,
                                const eCustomDataType type,
                                const int index)
 {
@@ -4291,12 +4290,12 @@ static bool cd_layer_find_dupe(CustomData *data,
       CustomDataLayer *layer = &data->layers[i];
 
       if (CD_TYPE_AS_MASK(type) & CD_MASK_PROP_ALL) {
-        if ((CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) && STREQ(layer->name, name)) {
+        if ((CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) && layer->name == name) {
           return true;
         }
       }
       else {
-        if (i != index && layer->type == type && STREQ(layer->name, name)) {
+        if (i != index && layer->type == type && layer->name == name) {
           return true;
         }
       }
@@ -4358,7 +4357,7 @@ void CustomData_set_layer_unique_name(CustomData *data, const int index)
 
 void CustomData_validate_layer_name(const CustomData *data,
                                     const eCustomDataType type,
-                                    const char *name,
+                                    const StringRef name,
                                     char *outname)
 {
   int index = -1;
@@ -4376,7 +4375,9 @@ void CustomData_validate_layer_name(const CustomData *data,
     BLI_strncpy_utf8(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
   }
   else {
-    BLI_strncpy_utf8(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+    char name_c_str[MAX_CUSTOMDATA_LAYER_NAME];
+    name.copy(name_c_str);
+    BLI_strncpy_utf8(outname, name_c_str, MAX_CUSTOMDATA_LAYER_NAME);
   }
 }
 
@@ -5264,7 +5265,7 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
   {
     if (CustomData_has_layer(data, type)) {
       /* NOTE: doesn't account for multiple layers. */
-      const char *name = CustomData_layertype_name(type);
+      const StringRef name = CustomData_layertype_name(type);
       const int size = CustomData_sizeof(type);
       const void *pt = CustomData_get_layer(data, type);
       const int pt_size = pt ? int(MEM_allocN_len(pt) / size) : 0;

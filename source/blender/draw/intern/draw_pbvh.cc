@@ -914,11 +914,10 @@ struct PBVHBatches {
     }
     else {
       const GenericRequest &request = std::get<GenericRequest>(vbo.request);
-      const StringRefNull name = request.name;
       const bke::AttrDomain domain = request.domain;
       const eCustomDataType data_type = request.type;
       const CustomData &custom_data = *get_cdata(domain, args);
-      const int cd_offset = CustomData_get_offset_named(&custom_data, data_type, name.c_str());
+      const int cd_offset = CustomData_get_offset_named(&custom_data, data_type, request.name);
       bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
         switch (domain) {

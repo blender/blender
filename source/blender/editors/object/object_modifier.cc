@@ -742,8 +742,8 @@ static void add_shapekey_layers(Mesh &mesh_dest, const Mesh &mesh_src)
       memcpy(array, kb->data, sizeof(float[3]) * size_t(mesh_src.verts_num));
     }
 
-    CustomData_add_layer_named_with_data(
-        &mesh_dest.vert_data, CD_SHAPEKEY, array, mesh_dest.verts_num, kb->name, nullptr);
+    CustomData_add_layer_with_data(
+        &mesh_dest.vert_data, CD_SHAPEKEY, array, mesh_dest.verts_num, nullptr);
     const int ci = CustomData_get_layer_index_n(&mesh_dest.vert_data, CD_SHAPEKEY, i);
 
     mesh_dest.vert_data.layers[ci].uid = kb->uid;

@@ -265,7 +265,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *mesh, const BMeshFromMeshParams *
 
   BLI_SCOPED_DEFER([&]() {
     for (const std::string &name : temporary_layers_to_delete) {
-      CustomData_free_layer_named(&mesh_ldata, name.c_str(), mesh->corners_num);
+      CustomData_free_layer_named(&mesh_ldata, name, mesh->corners_num);
     }
 
     MEM_SAFE_FREE(mesh_vdata.layers);
