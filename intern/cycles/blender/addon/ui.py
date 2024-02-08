@@ -653,7 +653,7 @@ class CYCLES_RENDER_PT_motion_blur(CyclesButtonsPanel, Panel):
         layout.active = rd.use_motion_blur
 
         col = layout.column()
-        col.prop(cscene, "motion_blur_position", text="Position")
+        col.prop(rd, "motion_blur_position", text="Position")
         col.prop(rd, "motion_blur_shutter")
         col.separator()
         col.prop(cscene, "rolling_shutter_type", text="Rolling Shutter")
