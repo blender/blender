@@ -2395,8 +2395,8 @@ static void wm_event_modalkeymap_begin(const bContext *C,
       /* Avoid double-click events even in the case of #EVT_MODAL_MAP,
        * since it's possible users configure double-click key-map items
        * which would break when modal functions expect press/release. */
-      if (event->prev_type == KM_DBL_CLICK) {
-        event->prev_type = KM_PRESS;
+      if (event->prev_val == KM_DBL_CLICK) {
+        event->prev_val = KM_PRESS;
         event_backup->dbl_click_disabled = true;
       }
     }
