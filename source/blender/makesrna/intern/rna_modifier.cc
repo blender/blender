@@ -943,6 +943,8 @@ RNA_MOD_OBJECT_SET(NormalEdit, target, OB_EMPTY);
 RNA_MOD_OBJECT_SET(Shrinkwrap, target, OB_MESH);
 RNA_MOD_OBJECT_SET(Shrinkwrap, auxTarget, OB_MESH);
 RNA_MOD_OBJECT_SET(SurfaceDeform, target, OB_MESH);
+RNA_MOD_OBJECT_SET(GreasePencilMirror, object, OB_EMPTY);
+RNA_MOD_OBJECT_SET(GreasePencilTint, object, OB_EMPTY);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
@@ -1881,28 +1883,6 @@ static void rna_GreasePencilOpacityModifier_opacity_factor_max_set(PointerRNA *p
   omd->color_factor = (omd->flag & MOD_GREASE_PENCIL_OPACITY_USE_UNIFORM_OPACITY) ?
                           std::min(value, 1.0f) :
                           value;
-}
-
-static void rna_GreasePencilTintModifier_object_set(PointerRNA *ptr,
-                                                    PointerRNA value,
-                                                    ReportList * /*reports*/)
-{
-  GreasePencilTintModifierData *tmd = static_cast<GreasePencilTintModifierData *>(ptr->data);
-  Object *ob = static_cast<Object *>(value.data);
-
-  tmd->object = ob;
-  id_lib_extern(&ob->id);
-}
-
-static void rna_GreasePencilMirrorModifier_object_set(PointerRNA *ptr,
-                                                      PointerRNA value,
-                                                      ReportList * /*reports*/)
-{
-  GreasePencilMirrorModifierData *mmd = static_cast<GreasePencilMirrorModifierData *>(ptr->data);
-  Object *ob = static_cast<Object *>(value.data);
-
-  mmd->object = ob;
-  id_lib_extern(&ob->id);
 }
 
 #else
