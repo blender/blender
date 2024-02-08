@@ -1286,7 +1286,6 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const bUserAssetLibrary *library = brush_asset_get_default_library();
   AssetWeakReference *new_brush_weak_ref = brush_asset_create_weakref_hack(
       library, final_full_asset_filepath);
 
