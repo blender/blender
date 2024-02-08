@@ -858,7 +858,8 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
     }
 
     /* Create a Separate Color node if necessary. */
-    IntermediateNode separate_color = add_separate_color(source_name, ntree, column + shift, r_ctx);
+    IntermediateNode separate_color = add_separate_color(
+        source_name, ntree, column + shift, r_ctx);
     if (separate_color.node) {
       shift++;
     }
@@ -900,18 +901,31 @@ bool USDMaterialReader::follow_connection(const pxr::UsdShadeInput &usd_input,
     }
     else if (scale_bias.node) {
       if (separate_color.node) {
-        link_nodes(ntree, separate_color.node, separate_color.sock_output_name, dest_node, dest_socket_name);
-        link_nodes(ntree, scale_bias.node, scale_bias.sock_output_name, separate_color.node, separate_color.sock_input_name);
+        link_nodes(ntree,
+                   separate_color.node,
+                   separate_color.sock_output_name,
+                   dest_node,
+                   dest_socket_name);
+        link_nodes(ntree,
+                   scale_bias.node,
+                   scale_bias.sock_output_name,
+                   separate_color.node,
+                   separate_color.sock_input_name);
       }
       else {
-        link_nodes(ntree, scale_bias.node, scale_bias.sock_output_name, dest_node, dest_socket_name);
+        link_nodes(
+            ntree, scale_bias.node, scale_bias.sock_output_name, dest_node, dest_socket_name);
       }
       target_node = scale_bias.node;
       target_sock_name = scale_bias.sock_input_name;
       shift++;
     }
     else if (separate_color.node) {
-      link_nodes(ntree, separate_color.node, separate_color.sock_output_name, dest_node, dest_socket_name);
+      link_nodes(ntree,
+                 separate_color.node,
+                 separate_color.sock_output_name,
+                 dest_node,
+                 dest_socket_name);
       target_node = separate_color.node;
       target_sock_name = separate_color.sock_input_name;
     }
