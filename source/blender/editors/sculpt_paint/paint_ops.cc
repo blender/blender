@@ -1302,7 +1302,7 @@ static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, MAX_NAME, "Name", "Name used to save the brush asset");
 }
 
-static bool asset_is_editable(const AssetWeakReference &brush_weak_ref)
+static bool asset_is_editable(const AssetWeakReference &asset_weak_ref)
 {
   /* Fairly simple checks, based on filepath only:
    *   - The blendlib filepath ends up with the `.asset.blend` extension.
@@ -1313,7 +1313,7 @@ static bool asset_is_editable(const AssetWeakReference &brush_weak_ref)
 
   char path_buffer[FILE_MAX_LIBEXTRA];
   char *dir, *group, *name;
-  AS_asset_full_path_explode_from_weak_ref(&brush_weak_ref, path_buffer, &dir, &group, &name);
+  AS_asset_full_path_explode_from_weak_ref(&asset_weak_ref, path_buffer, &dir, &group, &name);
 
   if (!StringRef(dir).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
     return false;
@@ -1419,13 +1419,13 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = nullptr;
-  const AssetWeakReference *brush_weak_ref =
+  const AssetWeakReference *asset_weak_ref =
       BKE_paint_brush_asset_get(paint, &brush).value_or(nullptr);
 
   char path_buffer[FILE_MAX_LIBEXTRA];
   char *filepath;
   AS_asset_full_path_explode_from_weak_ref(
-      brush_weak_ref, path_buffer, &filepath, nullptr, nullptr);
+      asset_weak_ref, path_buffer, &filepath, nullptr, nullptr);
 
   BLI_assert(BKE_paint_brush_is_valid_asset(brush));
 
