@@ -1320,7 +1320,7 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
 {
-  ot->name = "Save As Brush Asset";
+  ot->name = "Save as Brush Asset";
   ot->description =
       "Save a copy of the active brush asset into the default asset library, and make it the "
       "active brush";
