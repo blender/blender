@@ -986,12 +986,12 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
+namespace blender::ed::sculpt_paint {
+
 /**************************** Brush Assets **********************************/
 
 static int brush_asset_select_exec(bContext *C, wmOperator *op)
 {
-  using namespace blender;
-  using namespace blender::ed;
   /* This operator currently covers both cases: the file/asset browser file list and the asset list
    * used for the asset-view template. Once the asset list design is used by the Asset Browser,
    * this can be simplified to just that case. */
@@ -1021,7 +1021,6 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
 
 static void BRUSH_OT_asset_select(wmOperatorType *ot)
 {
-  using namespace blender::ed;
   ot->name = "Select Brush Asset";
   ot->description = "Select a brush asset as current sculpt and paint tool";
   ot->idname = "BRUSH_OT_asset_select";
@@ -1039,7 +1038,7 @@ static AssetWeakReference *brush_asset_create_weakref_hack(const bUserAssetLibra
 {
   AssetWeakReference *asset_weak_ref = MEM_new<AssetWeakReference>(__func__);
 
-  blender::StringRefNull asset_root_path = user_asset_lib->dirpath;
+  StringRef asset_root_path = user_asset_lib->dirpath;
   BLI_assert(file_path.find(asset_root_path) == 0);
   std::string relative_asset_path = file_path.substr(size_t(asset_root_path.size()) + 1);
 
@@ -1064,18 +1063,16 @@ static void brush_asset_refresh_editable_library(const bContext *C)
   const bUserAssetLibrary *user_library = brush_asset_get_editable_library();
 
   /* TODO: Should the all library reference be automatically cleared? */
-  AssetLibraryReference all_lib_ref = blender::asset_system::all_library_reference();
-  blender::ed::asset::list::clear(&all_lib_ref, C);
+  AssetLibraryReference all_lib_ref = asset_system::all_library_reference();
+  asset::list::clear(&all_lib_ref, C);
 
   /* TODO: this is convoluted, can we create a reference from pointer? */
-  for (const AssetLibraryReference &lib_ref :
-       blender::asset_system::all_valid_asset_library_refs())
-  {
+  for (const AssetLibraryReference &lib_ref : asset_system::all_valid_asset_library_refs()) {
     if (lib_ref.type == ASSET_LIBRARY_CUSTOM) {
       const bUserAssetLibrary *ref_user_library = BKE_preferences_asset_library_find_index(
           &U, lib_ref.custom_library_index);
       if (ref_user_library == user_library) {
-        blender::ed::asset::list::clear(&lib_ref, C);
+        asset::list::clear(&lib_ref, C);
         return;
       }
     }
@@ -1098,7 +1095,7 @@ static std::string brush_asset_root_path_for_save()
 }
 
 static std::string brush_asset_blendfile_path_for_save(ReportList *reports,
-                                                       const blender::StringRefNull &base_name)
+                                                       const StringRefNull base_name)
 {
   std::string root_path = brush_asset_root_path_for_save();
   BLI_assert(!root_path.empty());
@@ -1127,7 +1124,7 @@ static std::string brush_asset_blendfile_path_for_save(ReportList *reports,
 static bool brush_asset_write_in_library(Main *bmain,
                                          Brush *brush,
                                          const char *name,
-                                         const blender::StringRefNull &filepath,
+                                         const StringRefNull filepath,
                                          std::string &final_full_file_path,
                                          ReportList *reports)
 {
@@ -1236,8 +1233,8 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 
   /* Turn brush into asset if it isn't yet. */
   if (!BKE_paint_brush_is_valid_asset(brush)) {
-    blender::ed::asset::mark_id(&brush->id);
-    blender::ed::asset::generate_preview(C, &brush->id);
+    asset::mark_id(&brush->id);
+    asset::generate_preview(C, &brush->id);
   }
   BLI_assert(BKE_paint_brush_is_valid_asset(brush));
 
@@ -1314,12 +1311,12 @@ static bool brush_asset_is_editable(const AssetWeakReference &brush_weak_ref)
   char *dir, *group, *name;
   AS_asset_full_path_explode_from_weak_ref(&brush_weak_ref, path_buffer, &dir, &group, &name);
 
-  if (!blender::StringRef(dir).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
+  if (!StringRef(dir).endswith(BLENDER_ASSET_FILE_SUFFIX)) {
     return false;
   }
 
   std::string root_path_for_save = brush_asset_root_path_for_save();
-  if (root_path_for_save.empty() || !blender::StringRef(dir).startswith(root_path_for_save)) {
+  if (root_path_for_save.empty() || !StringRef(dir).startswith(root_path_for_save)) {
     return false;
   }
 
@@ -1486,6 +1483,8 @@ static void BRUSH_OT_asset_revert(wmOperatorType *ot)
   ot->exec = brush_asset_revert_exec;
   ot->poll = brush_asset_revert_poll;
 }
+
+}  // namespace blender::ed::sculpt_paint
 
 /***** Stencil Control *****/
 
