@@ -1002,6 +1002,9 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
   if (denoise_params.use) {
     progress_set_status(layer_view_name, "Denoising");
 
+    /* If GPU should be used is not based on file metadata. */
+    denoise_params.use_gpu = render_scheduler_.is_denoiser_gpu_used();
+
     /* Re-use the denoiser as much as possible, avoiding possible device re-initialization.
      *
      * It will not conflict with the regular rendering as:
