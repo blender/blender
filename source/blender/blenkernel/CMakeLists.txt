@@ -358,7 +358,7 @@ set(SRC
   BKE_ccg.h
   BKE_cdderivedmesh.h
   BKE_cloth.hh
-  BKE_collection.h
+  BKE_collection.hh
   BKE_collision.h
   BKE_colorband.hh
   BKE_colortools.hh

@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_curves.hh"
 #include "BKE_main.hh"
 

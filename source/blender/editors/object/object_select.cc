@@ -34,7 +34,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_layer.hh"

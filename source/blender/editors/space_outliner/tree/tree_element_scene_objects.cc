@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 
 #include "BLI_utildefines.h"
 

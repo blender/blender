@@ -22,7 +22,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_freestyle.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"

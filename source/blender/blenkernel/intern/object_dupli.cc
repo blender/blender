@@ -39,7 +39,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_volume_types.h"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"

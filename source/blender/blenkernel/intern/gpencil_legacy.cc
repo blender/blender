@@ -35,7 +35,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"

@@ -18,7 +18,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_object.hh"
 #include "MEM_guardedalloc.h"
 

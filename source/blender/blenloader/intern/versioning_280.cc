@@ -65,7 +65,7 @@
 #include "BKE_blender.hh"
 #include "BKE_brush.hh"
 #include "BKE_cloth.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_constraint.h"
 #include "BKE_curveprofile.h"

@@ -18,7 +18,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_armature.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_curve.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"

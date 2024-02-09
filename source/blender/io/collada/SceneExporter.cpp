@@ -6,7 +6,7 @@
  * \ingroup collada
  */
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BLI_listbase.h"

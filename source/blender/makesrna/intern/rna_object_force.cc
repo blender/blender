@@ -109,7 +109,7 @@ static const EnumPropertyItem empty_vortex_shape_items[] = {
 #  include "DNA_modifier_types.h"
 #  include "DNA_texture_types.h"
 
-#  include "BKE_collection.h"
+#  include "BKE_collection.hh"
 #  include "BKE_context.hh"
 #  include "BKE_modifier.hh"
 #  include "BKE_pointcache.h"

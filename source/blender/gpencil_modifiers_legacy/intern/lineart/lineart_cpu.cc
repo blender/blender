@@ -24,7 +24,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_duplilist.h"

@@ -60,7 +60,7 @@
 #include "BKE_armature.hh"
 #include "BKE_bpath.hh"
 #include "BKE_cachefile.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_duplilist.h"

@@ -12,7 +12,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_instances.hh"
 
 #include "node_geometry_util.hh"

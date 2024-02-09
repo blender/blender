@@ -9,7 +9,7 @@
 #include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_main.hh"
 
 #include "DNA_collection_types.h"

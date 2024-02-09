@@ -26,7 +26,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cloth.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_effect.h"
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"

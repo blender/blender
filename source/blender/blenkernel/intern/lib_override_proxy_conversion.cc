@@ -22,7 +22,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
