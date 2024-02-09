@@ -908,7 +908,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   if (t->options & CTX_EDGE_DATA) {
     return &TransConvertType_MeshEdge;
   }
-  if ((t->options & CTX_GPENCIL_STROKES) && (t->spacetype == SPACE_VIEW3D)) {
+  if (t->options & CTX_GPENCIL_STROKES) {
     if (t->obedit_type == OB_GREASE_PENCIL) {
       return &TransConvertType_GreasePencil;
     }
