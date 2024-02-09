@@ -177,7 +177,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                 km_items_data["items"].append(
                     ("PASSTHROUGH_NAVIGATE", {"type": 'LEFT_ALT', "value": 'ANY', "any": True}, None))
 
-    if keyconfig_version <= (4, 1, 14):
+    if keyconfig_version <= (4, 1, 21):
         rename_keymap({"NLA Channels": "NLA Tracks"})
 
     return keyconfig_data

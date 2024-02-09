@@ -915,7 +915,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->keying_flag |= AUTOKEY_FLAG_INSERTNEEDED;
   }
 
-  if (!USER_VERSION_ATLEAST(401, 14)) {
+  if (!USER_VERSION_ATLEAST(401, 21)) {
     LISTBASE_FOREACH (wmKeyMap *, km, &userdef->user_keymaps) {
       if (STREQ(km->idname, "NLA Channels")) {
         STRNCPY(km->idname, "NLA Tracks");
