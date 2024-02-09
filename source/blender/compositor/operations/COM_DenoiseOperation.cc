@@ -19,7 +19,7 @@ bool COM_is_denoise_supported()
 #  ifdef __APPLE__
   return true;
 #  else
-  return BLI_cpu_support_sse41();
+  return BLI_cpu_support_sse42();
 #  endif
 
 #else
