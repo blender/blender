@@ -16,10 +16,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct ID;
 struct Main;
 struct ReportList;
@@ -27,7 +23,7 @@ struct ReportList;
 /** \name Core `foreach_path` API.
  * \{ */
 
-typedef enum eBPathForeachFlag {
+enum eBPathForeachFlag {
   /* Flags controlling the behavior of the generic BPath API. */
   /**
    * Ensures the `absolute_base_path` member of #BPathForeachPathData is initialized properly with
@@ -62,7 +58,7 @@ typedef enum eBPathForeachFlag {
    * \note Only used by Image #IDType currently.
    */
   BKE_BPATH_FOREACH_PATH_RELOAD_EDITED = (1 << 9),
-} eBPathForeachFlag;
+};
 ENUM_OPERATORS(eBPathForeachFlag, BKE_BPATH_FOREACH_PATH_RELOAD_EDITED)
 
 struct BPathForeachPathData;
@@ -79,14 +75,14 @@ struct BPathForeachPathData;
  * \return `true` if the path has been changed, and in that case,
  * result must be written to `path_dst`.
  */
-typedef bool (*BPathForeachPathFunctionCallback)(struct BPathForeachPathData *bpath_data,
+typedef bool (*BPathForeachPathFunctionCallback)(BPathForeachPathData *bpath_data,
                                                  char *path_dst,
                                                  size_t path_dst_maxncpy,
                                                  const char *path_src);
 
 /** Storage for common data needed across the BPath 'foreach_path' code. */
-typedef struct BPathForeachPathData {
-  struct Main *bmain;
+struct BPathForeachPathData {
+  Main *bmain;
 
   BPathForeachPathFunctionCallback callback_function;
   eBPathForeachFlag flag;
@@ -100,16 +96,16 @@ typedef struct BPathForeachPathData {
   const char *absolute_base_path;
 
   /** ID owning the path being processed. */
-  struct ID *owner_id;
+  ID *owner_id;
 
   /**
    * IDTypeInfo callbacks are responsible to set this boolean if they modified one or more paths.
    */
   bool is_path_modified;
-} BPathForeachPathData;
+};
 
 /** Run `bpath_data.callback_function` on all paths contained in `id`. */
-void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, struct ID *id);
+void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id);
 
 /** Run `bpath_data.callback_function` on all paths of all IDs in `bmain`. */
 void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
@@ -129,7 +125,7 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
  *
  * \return true is \a path was modified, false otherwise.
  */
-bool BKE_bpath_foreach_path_fixed_process(struct BPathForeachPathData *bpath_data,
+bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data,
                                           char *path,
                                           size_t path_maxncpy);
 
@@ -142,7 +138,7 @@ bool BKE_bpath_foreach_path_fixed_process(struct BPathForeachPathData *bpath_dat
  *
  * \return true is \a path_dir and/or \a path_file were modified, false otherwise.
  */
-bool BKE_bpath_foreach_path_dirfile_fixed_process(struct BPathForeachPathData *bpath_data,
+bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_data,
                                                   char *path_dir,
                                                   size_t path_dir_maxncpy,
                                                   char *path_file,
@@ -157,8 +153,7 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(struct BPathForeachPathData *b
  *
  * \return true is \a path was modified and re-allocated, false otherwise.
  */
-bool BKE_bpath_foreach_path_allocated_process(struct BPathForeachPathData *bpath_data,
-                                              char **path);
+bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, char **path);
 
 /** \} */
 
@@ -166,7 +161,7 @@ bool BKE_bpath_foreach_path_allocated_process(struct BPathForeachPathData *bpath
  * \{ */
 
 /** Check for missing files. */
-void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
+void BKE_bpath_missing_files_check(Main *bmain, ReportList *reports);
 
 /**
  * Recursively search into given search directory, for all file paths of all IDs in given
@@ -181,33 +176,29 @@ void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *report
  * \param find_all: If `true`, also search for files which current path is still valid, if `false`
  *                  skip those still valid paths.
  */
-void BKE_bpath_missing_files_find(struct Main *bmain,
+void BKE_bpath_missing_files_find(Main *bmain,
                                   const char *searchpath,
-                                  struct ReportList *reports,
+                                  ReportList *reports,
                                   bool find_all);
 
 /** Rebase all relative file paths in given \a bmain from \a basedir_src to \a basedir_dst. */
-void BKE_bpath_relative_rebase(struct Main *bmain,
+void BKE_bpath_relative_rebase(Main *bmain,
                                const char *basedir_src,
                                const char *basedir_dst,
-                               struct ReportList *reports);
+                               ReportList *reports);
 
 /** Make all absolute file paths in given \a bmain relative to given \a basedir. */
-void BKE_bpath_relative_convert(struct Main *bmain,
-                                const char *basedir,
-                                struct ReportList *reports);
+void BKE_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports);
 
 /** Make all relative file paths in given \a bmain absolute, using given \a basedir as root. */
-void BKE_bpath_absolute_convert(struct Main *bmain,
-                                const char *basedir,
-                                struct ReportList *reports);
+void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *reports);
 
 /**
  * Temp backup of paths from all IDs in given \a bmain.
  *
  * \return An opaque handle to pass to #BKE_bpath_list_restore and #BKE_bpath_list_free.
  */
-void *BKE_bpath_list_backup(struct Main *bmain, eBPathForeachFlag flag);
+void *BKE_bpath_list_backup(Main *bmain, eBPathForeachFlag flag);
 
 /**
  * Restore the temp backup of paths from \a path_list_handle into all IDs in given \a bmain.
@@ -216,7 +207,7 @@ void *BKE_bpath_list_backup(struct Main *bmain, eBPathForeachFlag flag);
  * addition/deletion/re-ordering of IDs, or their file paths) since the call to
  * #BKE_bpath_list_backup that generated the given \a path_list_handle.
  */
-void BKE_bpath_list_restore(struct Main *bmain, eBPathForeachFlag flag, void *path_list_handle);
+void BKE_bpath_list_restore(Main *bmain, eBPathForeachFlag flag, void *path_list_handle);
 
 /**
  * Free the temp backup of paths in \a path_list_handle.
@@ -227,7 +218,3 @@ void BKE_bpath_list_restore(struct Main *bmain, eBPathForeachFlag flag, void *pa
 void BKE_bpath_list_free(void *path_list_handle);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

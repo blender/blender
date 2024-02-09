@@ -40,7 +40,7 @@
 #  include <AUD_Special.h>
 #endif
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"

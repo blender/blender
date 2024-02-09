@@ -37,7 +37,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim_path.h"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_curve.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"

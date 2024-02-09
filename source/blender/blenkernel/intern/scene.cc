@@ -58,7 +58,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_cachefile.h"
 #include "BKE_collection.h"
 #include "BKE_colortools.hh"

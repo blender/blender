@@ -20,7 +20,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"

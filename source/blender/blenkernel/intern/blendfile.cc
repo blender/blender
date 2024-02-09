@@ -34,7 +34,7 @@
 #include "BKE_blender.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"

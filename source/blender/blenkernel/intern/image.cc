@@ -62,7 +62,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"

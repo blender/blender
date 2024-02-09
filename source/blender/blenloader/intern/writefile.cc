@@ -100,7 +100,7 @@
 #include "MEM_guardedalloc.h" /* MEM_freeN */
 
 #include "BKE_blender_version.h"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_global.h" /* For #Global `G`. */
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"

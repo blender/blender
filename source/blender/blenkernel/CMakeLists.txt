@@ -349,7 +349,7 @@ set(SRC
   BKE_blendfile.hh
   BKE_blendfile_link_append.hh
   BKE_boids.h
-  BKE_bpath.h
+  BKE_bpath.hh
   BKE_brush.hh
   BKE_bvhutils.hh
   BKE_cachefile.h
