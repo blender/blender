@@ -706,9 +706,7 @@ PyDoc_STRVAR(
     Quaternion_identity_doc,
     ".. function:: identity()\n"
     "\n"
-    "   Set the quaternion to an identity quaternion.\n"
-    "\n"
-    "   :rtype: :class:`Quaternion`\n");
+    "   Set the quaternion to an identity quaternion.\n");
 static PyObject *Quaternion_identity(QuaternionObject *self)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
@@ -732,9 +730,7 @@ PyDoc_STRVAR(
     Quaternion_negate_doc,
     ".. function:: negate()\n"
     "\n"
-    "   Set the quaternion to its negative.\n"
-    "\n"
-    "   :rtype: :class:`Quaternion`\n");
+    "   Set the quaternion to its negative.\n");
 static PyObject *Quaternion_negate(QuaternionObject *self)
 {
   if (BaseMath_ReadCallback_ForWrite(self) == -1) {
