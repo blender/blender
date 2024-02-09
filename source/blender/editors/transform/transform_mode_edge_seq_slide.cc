@@ -28,7 +28,7 @@
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

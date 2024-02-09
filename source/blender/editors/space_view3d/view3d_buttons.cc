@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_array_utils.h"
 #include "BLI_bitmap.h"

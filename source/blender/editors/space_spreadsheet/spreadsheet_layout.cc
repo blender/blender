@@ -27,7 +27,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 namespace blender::ed::spreadsheet {
 

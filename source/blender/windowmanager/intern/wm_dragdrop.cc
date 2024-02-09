@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"

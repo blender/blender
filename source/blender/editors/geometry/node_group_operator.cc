@@ -56,7 +56,7 @@
 #include "ED_mesh.hh"
 #include "ED_sculpt.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "FN_lazy_function_execute.hh"
 

@@ -24,7 +24,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_interface.hh" /* For things like UI_PRECISION_FLOAT_MAX... */
 

@@ -23,7 +23,7 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_appdir.hh"
 

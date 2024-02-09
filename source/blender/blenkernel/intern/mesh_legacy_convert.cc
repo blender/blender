@@ -44,7 +44,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 using blender::MutableSpan;
 using blender::Span;

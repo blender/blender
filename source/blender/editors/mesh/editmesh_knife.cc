@@ -32,7 +32,7 @@
 #include "BLI_stack.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"

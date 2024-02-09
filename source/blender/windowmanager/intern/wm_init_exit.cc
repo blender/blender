@@ -103,7 +103,7 @@
 #include "ED_view3d.hh"
 
 #include "BLF_api.hh"
-#include "BLT_lang.h"
+#include "BLT_lang.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

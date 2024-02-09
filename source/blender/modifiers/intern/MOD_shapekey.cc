@@ -9,7 +9,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"

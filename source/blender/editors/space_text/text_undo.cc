@@ -17,7 +17,7 @@
 #include "BLI_array_utils.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"

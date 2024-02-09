@@ -16,7 +16,7 @@
 
 #include "UI_resources.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "tree_display.hh"
 #include "tree_element_anim_data.hh"

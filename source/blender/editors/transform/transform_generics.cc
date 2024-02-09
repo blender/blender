@@ -18,7 +18,7 @@
 #include "BLI_rand.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 

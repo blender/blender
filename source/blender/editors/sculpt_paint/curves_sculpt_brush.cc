@@ -24,7 +24,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GEO_curve_constraints.hh"
 

@@ -8,7 +8,7 @@
 #include "COM_ReadBufferOperation.h"
 #include "COM_WorkScheduler.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

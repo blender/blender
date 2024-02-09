@@ -33,7 +33,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_world.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DRW_engine.hh"
 

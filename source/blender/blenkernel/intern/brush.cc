@@ -19,7 +19,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_bpath.h"
 #include "BKE_brush.hh"

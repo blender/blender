@@ -31,7 +31,7 @@
 
 #include "ED_view3d.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"

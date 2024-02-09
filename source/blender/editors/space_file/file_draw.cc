@@ -34,7 +34,7 @@
 
 #include "BLO_readfile.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLF_api.hh"
 

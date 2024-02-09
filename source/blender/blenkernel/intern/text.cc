@@ -22,7 +22,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_constraint_types.h"
 #include "DNA_material_types.h"

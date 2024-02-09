@@ -15,7 +15,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_space_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "../outliner_intern.hh"
 #include "common.hh"

@@ -16,7 +16,7 @@
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_keyconfig.h"
 #include "BKE_screen.hh"

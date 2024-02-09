@@ -21,7 +21,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_report.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

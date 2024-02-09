@@ -42,7 +42,7 @@
 
 #include "MOD_nodes.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GEO_mix_geometries.hh"
 

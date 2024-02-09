@@ -17,7 +17,7 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"

@@ -38,7 +38,7 @@
 #include "BLI_memarena.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.hh"

@@ -14,7 +14,7 @@
 #include "BLI_span.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"

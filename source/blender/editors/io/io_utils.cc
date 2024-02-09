@@ -6,7 +6,7 @@
 
 #include "BLI_path_util.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 

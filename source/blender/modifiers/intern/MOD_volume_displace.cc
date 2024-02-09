@@ -16,7 +16,7 @@
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"

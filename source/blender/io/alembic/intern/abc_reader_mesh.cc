@@ -25,7 +25,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_ordered_edge.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"

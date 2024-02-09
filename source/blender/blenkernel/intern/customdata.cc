@@ -40,7 +40,7 @@
 #  include "BLI_dynstr.h"
 #endif
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_customdata.hh"

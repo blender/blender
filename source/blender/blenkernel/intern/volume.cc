@@ -50,7 +50,7 @@
 #include "BKE_volume_grid_file_cache.hh"
 #include "BKE_volume_openvdb.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph_query.hh"
 

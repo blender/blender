@@ -39,7 +39,7 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"

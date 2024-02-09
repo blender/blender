@@ -19,7 +19,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"

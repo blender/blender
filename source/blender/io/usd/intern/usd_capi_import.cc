@@ -34,7 +34,7 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

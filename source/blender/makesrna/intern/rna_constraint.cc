@@ -12,7 +12,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"

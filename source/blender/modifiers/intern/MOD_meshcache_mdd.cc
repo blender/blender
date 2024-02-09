@@ -22,7 +22,7 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_modifier_types.h"
 

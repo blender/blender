@@ -18,7 +18,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_threads.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_collection.h"

@@ -14,7 +14,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_uvproject.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_defaults.h"

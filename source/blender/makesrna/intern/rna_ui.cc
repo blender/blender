@@ -11,7 +11,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_file_handler.hh"
 #include "BKE_idprop.h"

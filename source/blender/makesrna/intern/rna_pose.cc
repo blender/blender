@@ -24,7 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_resources.hh"
 

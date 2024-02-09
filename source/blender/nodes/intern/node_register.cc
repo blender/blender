@@ -12,7 +12,7 @@
 
 #include "ED_node.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 

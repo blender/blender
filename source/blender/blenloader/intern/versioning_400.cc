@@ -71,7 +71,7 @@
 
 #include "ED_armature.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"

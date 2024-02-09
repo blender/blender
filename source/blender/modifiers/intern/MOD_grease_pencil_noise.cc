@@ -9,7 +9,7 @@
 #include "BLI_hash.h"
 #include "BLI_math_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 

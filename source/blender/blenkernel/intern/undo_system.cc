@@ -18,7 +18,7 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"

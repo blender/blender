@@ -15,7 +15,7 @@
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"

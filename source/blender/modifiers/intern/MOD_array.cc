@@ -16,7 +16,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_curve_types.h"
 #include "DNA_defaults.h"

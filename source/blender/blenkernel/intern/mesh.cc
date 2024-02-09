@@ -40,7 +40,7 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_attribute.hh"

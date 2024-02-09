@@ -18,7 +18,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_blender_undo.hh"
 #include "BKE_callbacks.h"

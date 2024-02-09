@@ -31,7 +31,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

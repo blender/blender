@@ -64,7 +64,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #  include "UI_view2d.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

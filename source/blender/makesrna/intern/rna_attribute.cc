@@ -25,7 +25,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "WM_types.hh"
 
@@ -168,7 +168,7 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 
 #  include "DEG_depsgraph.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "WM_api.hh"
 

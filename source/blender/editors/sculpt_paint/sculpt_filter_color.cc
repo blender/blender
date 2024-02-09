@@ -13,7 +13,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_userdef_types.h"
 

@@ -12,7 +12,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"

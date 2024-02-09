@@ -23,8 +23,8 @@
 #include "BLI_math_color.h"
 
 #include "BLF_api.hh"
-#include "BLT_lang.h"
-#include "BLT_translation.h"
+#include "BLT_lang.hh"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_global.h"

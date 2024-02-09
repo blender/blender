@@ -21,8 +21,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_lang.h"
-#include "BLT_translation.h"
+#include "BLT_lang.hh"
+#include "BLT_translation.hh"
 
 #include "RNA_types.hh"
 
@@ -416,7 +416,7 @@ static BLT_i18n_contexts_descriptor _contexts[] = BLT_I18NCONTEXTS_DESC;
 
 /* These fields are just empty placeholders, actual values get set in app_translations_struct().
  * This allows us to avoid many handwriting, and above all,
- * to keep all context definition stuff in BLT_translation.h! */
+ * to keep all context definition stuff in BLT_translation.hh! */
 static PyStructSequence_Field app_translations_contexts_fields[ARRAY_SIZE(_contexts)] = {
     {nullptr}};
 

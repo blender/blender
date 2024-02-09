@@ -21,7 +21,7 @@
 #include "BKE_pbvh.hh"
 #include "BKE_scene.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"

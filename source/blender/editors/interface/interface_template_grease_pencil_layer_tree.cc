@@ -9,7 +9,7 @@
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 

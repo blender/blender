@@ -72,7 +72,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_readfile.hh"
 

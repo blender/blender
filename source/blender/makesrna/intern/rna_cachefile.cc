@@ -9,7 +9,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

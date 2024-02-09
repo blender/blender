@@ -30,7 +30,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLF_api.hh"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_collection.h"

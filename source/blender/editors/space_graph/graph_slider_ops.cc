@@ -27,7 +27,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 

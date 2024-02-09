@@ -23,7 +23,7 @@
 #include "BLI_ordered_edge.hh"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"

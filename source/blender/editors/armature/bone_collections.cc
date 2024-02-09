@@ -22,7 +22,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_report.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 

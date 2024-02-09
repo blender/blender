@@ -23,7 +23,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_asset.hh"
 #include "ED_render.hh"

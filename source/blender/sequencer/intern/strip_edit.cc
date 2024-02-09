@@ -16,7 +16,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"

@@ -10,7 +10,7 @@
 
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_defaults.h"

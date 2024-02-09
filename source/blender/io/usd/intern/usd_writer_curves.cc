@@ -22,7 +22,7 @@
 #include "BKE_report.h"
 
 #include "BLI_math_geom.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

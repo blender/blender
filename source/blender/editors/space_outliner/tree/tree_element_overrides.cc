@@ -14,7 +14,7 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_space_types.h"
 

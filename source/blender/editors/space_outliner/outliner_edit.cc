@@ -25,7 +25,7 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLF_api.hh"
 

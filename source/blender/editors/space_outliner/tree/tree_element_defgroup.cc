@@ -13,7 +13,7 @@
 
 #include "BKE_deform.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "../outliner_intern.hh"
 

@@ -37,7 +37,7 @@ using namespace Freestyle;
 #include "BKE_scene.h"
 #include "BKE_text.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color_blend.h"

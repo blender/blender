@@ -33,7 +33,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"

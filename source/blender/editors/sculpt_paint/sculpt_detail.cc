@@ -14,7 +14,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"

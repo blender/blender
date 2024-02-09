@@ -22,7 +22,7 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"

@@ -94,7 +94,7 @@
 #  include "ED_node.hh"
 #  include "ED_screen.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

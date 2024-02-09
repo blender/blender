@@ -22,7 +22,7 @@
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"

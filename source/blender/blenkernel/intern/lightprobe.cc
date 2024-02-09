@@ -24,7 +24,7 @@
 #include "BKE_lightprobe.h"
 #include "BKE_main.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 

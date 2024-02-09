@@ -24,7 +24,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_preferences.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_userdef_types.h"

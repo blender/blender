@@ -6,7 +6,7 @@
 
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "COM_Debug.h"
 #include "COM_ViewerOperation.h"

@@ -49,7 +49,7 @@
 #include "GPU_state.h"
 
 #include "BLF_api.hh"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"

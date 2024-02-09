@@ -37,7 +37,7 @@
 
 #include "UI_resources.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "mesh_intern.hh" /* own include */
 

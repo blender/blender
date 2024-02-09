@@ -38,7 +38,7 @@
 #include "GEO_add_curves_on_mesh.hh"
 #include "GEO_reverse_uv_sampler.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 namespace blender::ed::sculpt_paint {
 

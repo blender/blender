@@ -24,7 +24,7 @@
 
 #include "UI_resources.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "node_common.h"
 

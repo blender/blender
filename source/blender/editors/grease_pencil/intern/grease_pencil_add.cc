@@ -15,7 +15,7 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"

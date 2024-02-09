@@ -15,7 +15,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
