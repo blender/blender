@@ -1203,7 +1203,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     /* check for suffix (enum label) */
     if (!field->text_suffix.empty()) {
       x_pos = info.width;
-      w = max_ii(w, x_pos + BLF_width(font_id, field->text_suffix.c_str(), field->text.size()));
+      w = max_ii(
+          w, x_pos + BLF_width(font_id, field->text_suffix.c_str(), field->text_suffix.size()));
     }
 
     fonth += h * info.lines;

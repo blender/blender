@@ -14,6 +14,7 @@ set(TIFF_EXTRA_ARGS
   -Dzstd=OFF
   -Dwebp=OFF
   -Dtiff-tests=OFF
+  -Dsphinx=OFF
 )
 
 ExternalProject_Add(external_tiff
