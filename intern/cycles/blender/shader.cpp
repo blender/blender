@@ -1592,7 +1592,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
   Integrator *integrator = scene->integrator;
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
-  BL::World b_world = b_scene.world();
+  BL::World b_world = view_layer.world_override ? view_layer.world_override : b_scene.world();
 
   BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
 

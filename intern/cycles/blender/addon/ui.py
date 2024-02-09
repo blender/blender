@@ -927,6 +927,7 @@ class CYCLES_RENDER_PT_override(CyclesButtonsPanel, Panel):
         view_layer = context.view_layer
 
         layout.prop(view_layer, "material_override")
+        layout.prop(view_layer, "world_override")
         layout.prop(view_layer, "samples")
 
 

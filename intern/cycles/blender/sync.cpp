@@ -555,6 +555,8 @@ void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
 
   /* Material override. */
   view_layer.material_override = b_view_layer.material_override();
+  /* World override. */
+  view_layer.world_override = b_view_layer.world_override();
 
   /* Sample override. */
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");

@@ -330,6 +330,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
     view_layer->pass_alpha_threshold = srl->pass_alpha_threshold;
     view_layer->samples = srl->samples;
     view_layer->mat_override = srl->mat_override;
+    view_layer->world_override = srl->world_override;
 
     BKE_freestyle_config_free(&view_layer->freestyle_config, true);
     view_layer->freestyle_config = srl->freestyleConfig;
