@@ -434,7 +434,10 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
 
   /* read vertices and polygons */
   vector<float3> P;
+  vector<float3> VN; /* Vertex normals */
   vector<float> UV;
+  vector<float> T;  /* UV tangents */
+  vector<float> TS; /* UV tangent signs */
   vector<int> verts, nverts;
 
   xml_read_float3_array(P, node, "P");
@@ -481,12 +484,26 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset += nverts[i];
     }
 
-    if (xml_read_float_array(UV, node, "UV")) {
-      ustring name = ustring("UVMap");
-      Attribute *attr = mesh->attributes.add(ATTR_STD_UV, name);
+    /* Vertex normals */
+    if (xml_read_float3_array(VN, node, Attribute::standard_name(ATTR_STD_VERTEX_NORMAL))) {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
+      float3 *fdata = attr->data_float3();
+
+      /* Loop over the normals */
+      for (auto n : VN) {
+        fdata[0] = n;
+        fdata++;
+      }
+    }
+
+    /* UV map */
+    if (xml_read_float_array(UV, node, "UV") ||
+        xml_read_float_array(UV, node, Attribute::standard_name(ATTR_STD_UV)))
+    {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_UV);
       float2 *fdata = attr->data_float2();
 
-      /* loop over the triangles */
+      /* Loop over the triangles */
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
@@ -504,6 +521,58 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
           fdata += 3;
         }
 
+        index_offset += nverts[i];
+      }
+    }
+
+    /* Tangents */
+    if (xml_read_float_array(T, node, Attribute::standard_name(ATTR_STD_UV_TANGENT))) {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_UV_TANGENT);
+      float3 *fdata = attr->data_float3();
+
+      /* Loop over the triangles */
+      index_offset = 0;
+      for (size_t i = 0; i < nverts.size(); i++) {
+        for (int j = 0; j < nverts[i] - 2; j++) {
+          int v0 = index_offset;
+          int v1 = index_offset + j + 1;
+          int v2 = index_offset + j + 2;
+
+          assert(v0 * 3 + 2 < (int)T.size());
+          assert(v1 * 3 + 2 < (int)T.size());
+          assert(v2 * 3 + 2 < (int)T.size());
+
+          fdata[0] = make_float3(T[v0 * 3], T[v0 * 3 + 1], T[v0 * 3 + 2]);
+          fdata[1] = make_float3(T[v1 * 3], T[v1 * 3 + 1], T[v1 * 3 + 2]);
+          fdata[2] = make_float3(T[v2 * 3], T[v2 * 3 + 1], T[v2 * 3 + 2]);
+          fdata += 3;
+        }
+        index_offset += nverts[i];
+      }
+    }
+
+    /* Tangent signs */
+    if (xml_read_float_array(TS, node, Attribute::standard_name(ATTR_STD_UV_TANGENT_SIGN))) {
+      Attribute *attr = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN);
+      float *fdata = attr->data_float();
+
+      /* Loop over the triangles */
+      index_offset = 0;
+      for (size_t i = 0; i < nverts.size(); i++) {
+        for (int j = 0; j < nverts[i] - 2; j++) {
+          int v0 = index_offset;
+          int v1 = index_offset + j + 1;
+          int v2 = index_offset + j + 2;
+
+          assert(v0 < (int)TS.size());
+          assert(v1 < (int)TS.size());
+          assert(v2 < (int)TS.size());
+
+          fdata[0] = TS[v0];
+          fdata[1] = TS[v1];
+          fdata[2] = TS[v2];
+          fdata += 3;
+        }
         index_offset += nverts[i];
       }
     }
@@ -528,10 +597,11 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset += nverts[i];
     }
 
-    /* uv map */
-    if (xml_read_float_array(UV, node, "UV")) {
-      ustring name = ustring("UVMap");
-      Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV, name);
+    /* UV map */
+    if (xml_read_float_array(UV, node, "UV") ||
+        xml_read_float_array(UV, node, Attribute::standard_name(ATTR_STD_UV)))
+    {
+      Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
       float3 *fdata = attr->data_float3();
 
 #if 0
