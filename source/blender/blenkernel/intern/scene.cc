@@ -40,7 +40,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
@@ -59,7 +59,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_bpath.hh"
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_collection.h"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"

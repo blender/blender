@@ -27,7 +27,7 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 #  include "BLI_string.h"
 
-#  include "BKE_cachefile.h"
+#  include "BKE_cachefile.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

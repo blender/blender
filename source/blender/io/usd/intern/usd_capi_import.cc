@@ -12,7 +12,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"

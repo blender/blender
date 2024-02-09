@@ -30,7 +30,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_global.h"

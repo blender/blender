@@ -16,7 +16,7 @@
 #include "DNA_text_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"

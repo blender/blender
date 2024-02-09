@@ -9,7 +9,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -25,7 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"

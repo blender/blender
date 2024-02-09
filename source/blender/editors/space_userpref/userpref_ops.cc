@@ -19,7 +19,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"

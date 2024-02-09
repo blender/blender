@@ -352,8 +352,8 @@ set(SRC
   BKE_bpath.hh
   BKE_brush.hh
   BKE_bvhutils.hh
-  BKE_cachefile.h
-  BKE_callbacks.h
+  BKE_cachefile.hh
+  BKE_callbacks.hh
   BKE_camera.h
   BKE_ccg.h
   BKE_cdderivedmesh.h

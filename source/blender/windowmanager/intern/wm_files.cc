@@ -67,7 +67,7 @@
 #include "BKE_blender.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
