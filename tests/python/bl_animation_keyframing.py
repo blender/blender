@@ -204,11 +204,14 @@ class VisualKeyingTest(AbstractKeyframingTest, unittest.TestCase):
 class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
     """ Check if cycle aware keying remaps the keyframes correctly and adds fcurve modifiers. """
 
-    def test_insert_location_cycle_aware(self):
+    def setUp(self):
+        super().setUp()
+        bpy.context.scene.tool_settings.use_keyframe_cycle_aware = True
+
+    def test_insert_by_name(self):
         # In order to make cycle aware keying work, the action needs to be created and have the
         # frame_range set plus the use_frame_range flag set to True.
         keyed_object = _create_animation_object()
-        bpy.context.scene.tool_settings.use_keyframe_cycle_aware = True
 
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.ops.anim.keyframe_insert_by_name(type="Location")
@@ -216,18 +219,16 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         action = keyed_object.animation_data.action
         action.use_cyclic = True
         action.use_frame_range = True
-        cyclic_range_end = 20
-        action.frame_range = [1, cyclic_range_end]
+        action.frame_range = [1, 20]
 
         with bpy.context.temp_override(**_get_view3d_context()):
             bpy.context.scene.frame_set(5)
             bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
             # Will be mapped to frame 3.
-            # This will insert the key based on the user preference settings.
             bpy.context.preferences.edit.key_insert_channels = {"LOCATION"}
             bpy.context.scene.frame_set(22)
-            bpy.ops.anim.keyframe_insert()
+            bpy.ops.anim.keyframe_insert_by_name(type="Location")
 
             # Will be mapped to frame 9.
             bpy.context.scene.frame_set(-10)
@@ -237,6 +238,39 @@ class CycleAwareKeyingTest(AbstractKeyframingTest, unittest.TestCase):
         _fcurve_paths_match(action.fcurves, ["location"])
 
         expected_keys = [1, 3, 5, 9, 20]
+
+        for fcurve in action.fcurves:
+            self.assertEqual(len(fcurve.keyframe_points), len(expected_keys))
+            key_index = 0
+            for key in fcurve.keyframe_points:
+                self.assertEqual(key.co.x, expected_keys[key_index])
+                key_index += 1
+
+            # All fcurves should have a cycles modifier.
+            self.assertTrue(fcurve.modifiers[0].type == "CYCLES")
+
+    def test_insert_key(self):
+        keyed_object = _create_animation_object()
+
+        bpy.context.preferences.edit.key_insert_channels = {'LOCATION'}
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert()
+
+        action = keyed_object.animation_data.action
+        action.use_cyclic = True
+        action.use_frame_range = True
+        action.frame_range = [1, 20]
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(5)
+            bpy.ops.anim.keyframe_insert()
+
+            # Will be mapped to frame 3.
+            bpy.context.scene.frame_set(22)
+            bpy.ops.anim.keyframe_insert()
+
+        expected_keys = [1, 3, 5, 20]
 
         for fcurve in action.fcurves:
             self.assertEqual(len(fcurve.keyframe_points), len(expected_keys))
