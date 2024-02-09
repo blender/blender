@@ -33,7 +33,7 @@
 
 /* Mostly initialization functions. */
 #include "BKE_appdir.hh"
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_brush.hh"
 #include "BKE_cachefile.h"
 #include "BKE_callbacks.h"

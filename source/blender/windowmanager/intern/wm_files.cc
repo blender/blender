@@ -64,7 +64,7 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
 #include "BKE_autoexec.hh"
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
 #include "BKE_callbacks.h"

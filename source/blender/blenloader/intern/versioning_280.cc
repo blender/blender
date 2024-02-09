@@ -62,7 +62,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_animsys.h"
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_brush.hh"
 #include "BKE_cloth.hh"
 #include "BKE_collection.h"

@@ -6,7 +6,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_global.h"
