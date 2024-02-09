@@ -855,7 +855,6 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.mesh.rip
   ops.mesh.rip_edge
   ops.mesh.spin
-  ops.mesh.spin.duplicate
   ops.mesh.vertices_smooth
   ops.node.links_cut
   ops.paint.eyedropper_add
