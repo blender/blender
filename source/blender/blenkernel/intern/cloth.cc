@@ -593,7 +593,8 @@ int cloth_uses_vgroup(ClothModifierData *clmd)
            (clmd->coll_parms->vgroup_objcol > 0)) ||
           (clmd->sim_parms->vgroup_pressure > 0) || (clmd->sim_parms->vgroup_struct > 0) ||
           (clmd->sim_parms->vgroup_bend > 0) || (clmd->sim_parms->vgroup_shrink > 0) ||
-          (clmd->sim_parms->vgroup_intern > 0) || (clmd->sim_parms->vgroup_mass > 0));
+          (clmd->sim_parms->vgroup_intern > 0) || (clmd->sim_parms->vgroup_mass > 0) ||
+          (clmd->sim_parms->vgroup_shear > 0));
 }
 
 /**
