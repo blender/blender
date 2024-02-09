@@ -258,7 +258,7 @@ struct PaintOperationExecutor {
                                       curves.points_range().take_back(1));
     bke::fill_attribute_range_default(attributes,
                                       bke::AttrDomain::Curve,
-                                      {"curve_type", "material_index", "cyclic"},
+                                      {"curve_type", "material_index", "cyclic", "hardness"},
                                       curves.curves_range().take_back(1));
 
     drawing_->tag_topology_changed();
