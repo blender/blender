@@ -22,7 +22,7 @@
 #include "IMB_moviecache.hh"
 
 #include "BKE_addon.h"
-#include "BKE_blender.hh"            /* own include */
+#include "BKE_blender.hh"           /* own include */
 #include "BKE_blender_user_menu.hh" /* own include */
 #include "BKE_blender_version.h"    /* own include */
 #include "BKE_blendfile.hh"
