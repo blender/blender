@@ -2401,91 +2401,30 @@ static void placeholders_ensure_valid(Main *bmain)
   }
 }
 
-static const char *dataname(short id_code)
+static const char *idtype_alloc_name_get(short id_code)
 {
-  switch ((ID_Type)id_code) {
-    case ID_OB:
-      return "Data from OB";
-    case ID_ME:
-      return "Data from ME";
-    case ID_IP:
-      return "Data from IP";
-    case ID_SCE:
-      return "Data from SCE";
-    case ID_MA:
-      return "Data from MA";
-    case ID_TE:
-      return "Data from TE";
-    case ID_CU_LEGACY:
-      return "Data from CU";
-    case ID_GR:
-      return "Data from GR";
-    case ID_AR:
-      return "Data from AR";
-    case ID_AC:
-      return "Data from AC";
-    case ID_LI:
-      return "Data from LI";
-    case ID_MB:
-      return "Data from MB";
-    case ID_IM:
-      return "Data from IM";
-    case ID_LT:
-      return "Data from LT";
-    case ID_LA:
-      return "Data from LA";
-    case ID_CA:
-      return "Data from CA";
-    case ID_KE:
-      return "Data from KE";
-    case ID_WO:
-      return "Data from WO";
-    case ID_SCR:
-      return "Data from SCR";
-    case ID_VF:
-      return "Data from VF";
-    case ID_TXT:
-      return "Data from TXT";
-    case ID_SPK:
-      return "Data from SPK";
-    case ID_LP:
-      return "Data from LP";
-    case ID_SO:
-      return "Data from SO";
-    case ID_NT:
-      return "Data from NT";
-    case ID_BR:
-      return "Data from BR";
-    case ID_PA:
-      return "Data from PA";
-    case ID_PAL:
-      return "Data from PAL";
-    case ID_PC:
-      return "Data from PCRV";
-    case ID_GD_LEGACY:
-      return "Data from GD";
-    case ID_WM:
-      return "Data from WM";
-    case ID_MC:
-      return "Data from MC";
-    case ID_MSK:
-      return "Data from MSK";
-    case ID_LS:
-      return "Data from LS";
-    case ID_CF:
-      return "Data from CF";
-    case ID_WS:
-      return "Data from WS";
-    case ID_CV:
-      return "Data from HA";
-    case ID_PT:
-      return "Data from PT";
-    case ID_VO:
-      return "Data from VO";
-    case ID_GP:
-      return "Data from GP";
+  static const std::array<std::string, INDEX_ID_MAX> id_alloc_names = [] {
+    auto n = decltype(id_alloc_names)();
+    for (int idtype_index = 0; idtype_index < INDEX_ID_MAX; idtype_index++) {
+      const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_idtype_index(idtype_index);
+      BLI_assert(idtype_info);
+      if (idtype_index == INDEX_ID_NULL) {
+        /* #INDEX_ID_NULL returns the #IDType_ID_LINK_PLACEHOLDER type info, here we will rather
+         * use it for unknown/invalid ID types. */
+        n[size_t(idtype_index)] = "Data from UNKNWOWN ID Type";
+      }
+      else {
+        n[size_t(idtype_index)] = std::string("Data from '") + idtype_info->name + "'";
+      }
+    }
+    return n;
+  }();
+
+  const int idtype_index = BKE_idtype_idcode_to_index(id_code);
+  if (LIKELY(idtype_index >= 0 && idtype_index < INDEX_ID_MAX)) {
+    return id_alloc_names[size_t(idtype_index)].c_str();
   }
-  return "Data from Lib Block";
+  return id_alloc_names[INDEX_ID_NULL].c_str();
 }
 
 static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *id_old)
@@ -3031,7 +2970,7 @@ static BHead *read_libblock(FileData *fd,
 
   /* Read datablock contents.
    * Use convenient malloc name for debugging and better memory link prints. */
-  const char *allocname = dataname(idcode);
+  const char *allocname = idtype_alloc_name_get(idcode);
   bhead = read_data_into_datamap(fd, bhead, allocname);
   const bool success = direct_link_id(fd, main, id_tag, id, id_old);
   oldnewmap_clear(fd->datamap);
