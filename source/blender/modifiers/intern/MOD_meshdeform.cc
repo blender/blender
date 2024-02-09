@@ -13,7 +13,7 @@
 #include "BLI_simd.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"

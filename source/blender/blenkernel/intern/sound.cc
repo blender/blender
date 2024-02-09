@@ -17,7 +17,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -40,7 +40,7 @@
 #  include <AUD_Special.h>
 #endif
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"

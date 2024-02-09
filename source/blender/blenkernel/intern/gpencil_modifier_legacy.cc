@@ -18,7 +18,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"

@@ -12,7 +12,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_cloth_types.h"
 #include "DNA_defaults.h"

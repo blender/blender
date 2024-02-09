@@ -31,7 +31,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
@@ -729,7 +729,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_animsys.h"
 #  include "BKE_bake_geometry_nodes_modifier.hh"
 #  include "BKE_brush.hh"
-#  include "BKE_collection.h"
+#  include "BKE_collection.hh"
 #  include "BKE_context.hh"
 #  include "BKE_freestyle.h"
 #  include "BKE_global.h"
@@ -1870,7 +1870,7 @@ static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
                  sizeof(rv->name));
 }
 
-void rna_ViewLayer_material_override_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+void rna_ViewLayer_override_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   rna_Scene_render_update(bmain, scene, ptr);
@@ -4734,8 +4734,15 @@ void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, const bool sce
     RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
     RNA_def_property_ui_text(
         prop, "Material Override", "Material to override all other materials in this view layer");
-    RNA_def_property_update(
-        prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_material_override_update");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_override_update");
+
+    prop = RNA_def_property(srna, "world_override", PROP_POINTER, PROP_NONE);
+    RNA_def_property_pointer_sdna(prop, nullptr, "world_override");
+    RNA_def_property_struct_type(prop, "World");
+    RNA_def_property_flag(prop, PROP_EDITABLE);
+    RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+    RNA_def_property_ui_text(prop, "World Override", "Override world in this view layer");
+    RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_override_update");
 
     prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
     RNA_def_property_ui_text(prop,

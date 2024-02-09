@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 namespace blender::compositor {
 

@@ -13,7 +13,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"

@@ -38,7 +38,7 @@
 
 #include "BKE_anim_path.h" /* needed for where_on_path */
 #include "BKE_bvhutils.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_collision.h"
 #include "BKE_curve.hh"
 #include "BKE_displist.h"

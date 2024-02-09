@@ -22,11 +22,11 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_bpath.h"
-#include "BKE_cachefile.h"
+#include "BKE_bpath.hh"
+#include "BKE_cachefile.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

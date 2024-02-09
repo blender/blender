@@ -19,7 +19,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 
 struct IDRemapper;
 struct Main;

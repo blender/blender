@@ -278,3 +278,6 @@ StatementMacros:
 
 MacroBlockBegin: "^OSL_CLOSURE_STRUCT_BEGIN$"
 MacroBlockEnd: "^OSL_CLOSURE_STRUCT_END$"
+
+# Ensure lew line at the end of source files.
+InsertNewlineAtEOF: True

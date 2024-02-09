@@ -13,7 +13,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "NOD_node_declaration.hh"
 

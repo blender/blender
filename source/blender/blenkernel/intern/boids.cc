@@ -28,7 +28,7 @@
 #include "BKE_particle.h"
 #include "BLI_kdopbvh.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_modifier.hh"
 

@@ -19,7 +19,7 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "../outliner_intern.hh"
 #include "common.hh"

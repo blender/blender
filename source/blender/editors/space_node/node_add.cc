@@ -19,7 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.h"

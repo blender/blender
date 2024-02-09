@@ -19,7 +19,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_curves_types.h"
 #include "DNA_material_types.h"

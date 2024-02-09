@@ -37,7 +37,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_writefile.hh"
 
 #include "IMB_colormanagement.hh"

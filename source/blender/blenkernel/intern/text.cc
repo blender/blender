@@ -22,7 +22,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_constraint_types.h"
 #include "DNA_material_types.h"
@@ -34,7 +34,7 @@
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

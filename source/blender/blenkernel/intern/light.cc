@@ -34,7 +34,7 @@
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -58,7 +58,7 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_cloth.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_lattice.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"

@@ -14,7 +14,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rand.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_color_types.h" /* CurveMapping. */
 #include "DNA_defaults.h"

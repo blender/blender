@@ -30,7 +30,7 @@
 #include "BKE_tracking.h"
 
 #include "BLF_api.hh"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BIF_glutil.hh"
 

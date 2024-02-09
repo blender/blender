@@ -13,6 +13,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
@@ -692,20 +693,73 @@ void BKE_library_ID_test_usages(Main *bmain,
 
 /* ***** IDs usages.checking/tagging. ***** */
 
+/* Internal data for the common processing of the 'unused IDs' query functions.
+ *
+ * While #LibQueryUnusedIDsData is a subset of this internal struct, they need to be kept separate,
+ * since this struct is used with partially 'enforced' values for some parameters by the
+ * #BKE_lib_query_unused_ids_amounts code. This allows the computation of predictive amounts for
+ * user feedback ('what would be the amounts of IDs detected as unused if this option was
+ * enabled').
+ */
+struct UnusedIdsData {
+  Main *bmain;
+
+  const int id_tag;
+
+  bool do_local_ids;
+  bool do_linked_ids;
+  bool do_recursive;
+
+  std::array<int, INDEX_ID_MAX> *num_total;
+  std::array<int, INDEX_ID_MAX> *num_local;
+  std::array<int, INDEX_ID_MAX> *num_linked;
+
+  blender::Set<ID *> unused_ids{};
+
+  void reset(const bool do_local_ids,
+             const bool do_linked_ids,
+             const bool do_recursive,
+             std::array<int, INDEX_ID_MAX> &num_total,
+             std::array<int, INDEX_ID_MAX> &num_local,
+             std::array<int, INDEX_ID_MAX> &num_linked)
+  {
+    unused_ids.clear();
+    this->do_local_ids = do_local_ids;
+    this->do_linked_ids = do_linked_ids;
+    this->do_recursive = do_recursive;
+    this->num_total = &num_total;
+    this->num_local = &num_local;
+    this->num_linked = &num_linked;
+  }
+};
+
+static void lib_query_unused_ids_tag_id(ID *id, UnusedIdsData &data)
+{
+  id->tag |= data.id_tag;
+  data.unused_ids.add(id);
+
+  const int id_code = BKE_idtype_idcode_to_index(GS(id->name));
+  (*data.num_total)[INDEX_ID_NULL]++;
+  (*data.num_total)[id_code]++;
+  if (ID_IS_LINKED(id)) {
+    (*data.num_linked)[INDEX_ID_NULL]++;
+    (*data.num_linked)[id_code]++;
+  }
+  else {
+    (*data.num_local)[INDEX_ID_NULL]++;
+    (*data.num_local)[id_code]++;
+  }
+}
+
 /* Returns `true` if given ID is detected as part of at least one dependency loop, false otherwise.
  */
-static bool lib_query_unused_ids_tag_recurse(Main *bmain,
-                                             const int tag,
-                                             const bool do_local_ids,
-                                             const bool do_linked_ids,
-                                             ID *id,
-                                             int *r_num_tagged)
+static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIdsData &data)
 {
   /* We should never deal with embedded, not-in-main IDs here. */
   BLI_assert((id->flag & LIB_EMBEDDED_DATA) == 0);
 
   MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+      BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, id));
 
   if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0) {
     return false;
@@ -716,12 +770,12 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
     return true;
   }
 
-  if ((!do_linked_ids && ID_IS_LINKED(id)) || (!do_local_ids && !ID_IS_LINKED(id))) {
+  if ((!data.do_linked_ids && ID_IS_LINKED(id)) || (!data.do_local_ids && !ID_IS_LINKED(id))) {
     id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
     return false;
   }
 
-  if ((id->tag & tag) != 0) {
+  if (data.unused_ids.contains(id)) {
     id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
     return false;
   }
@@ -779,26 +833,20 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
       BLI_assert(id_from != nullptr);
     }
 
-    if (lib_query_unused_ids_tag_recurse(
-            bmain, tag, do_local_ids, do_linked_ids, id_from, r_num_tagged))
-    {
+    if (lib_query_unused_ids_tag_recurse(id_from, data)) {
       /* Dependency loop case, ignore the `id_from` tag value here (as it should not be considered
        * as valid yet), and presume that this is a 'valid user' case for now. */
       is_part_of_dependency_loop = true;
       continue;
     }
-    if ((id_from->tag & tag) == 0) {
+    if (!data.unused_ids.contains(id_from)) {
       has_valid_from_users = true;
       break;
     }
   }
   if (!has_valid_from_users && !is_part_of_dependency_loop) {
     /* Tag the ID as unused, only in case it is not part of a dependency loop. */
-    id->tag |= tag;
-    if (r_num_tagged != nullptr) {
-      r_num_tagged[INDEX_ID_NULL]++;
-      r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
-    }
+    lib_query_unused_ids_tag_id(id, data);
   }
 
   /* This ID is not being processed anymore.
@@ -817,42 +865,33 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
   return is_part_of_dependency_loop;
 }
 
-void BKE_lib_query_unused_ids_tag(Main *bmain,
-                                  const int tag,
-                                  const bool do_local_ids,
-                                  const bool do_linked_ids,
-                                  const bool do_tag_recursive,
-                                  int *r_num_tagged)
+static void lib_query_unused_ids_tag(UnusedIdsData &data)
 {
+  BKE_main_relations_tag_set(data.bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+
   /* First loop, to only check for immediately unused IDs (those with 0 user count).
    * NOTE: It also takes care of clearing given tag for used IDs. */
   ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if ((!do_linked_ids && ID_IS_LINKED(id)) || (!do_local_ids && !ID_IS_LINKED(id))) {
-      id->tag &= ~tag;
+  FOREACH_MAIN_ID_BEGIN (data.bmain, id) {
+    if ((!data.do_linked_ids && ID_IS_LINKED(id)) || (!data.do_local_ids && !ID_IS_LINKED(id))) {
+      id->tag &= ~data.id_tag;
     }
     else if (id->us == 0) {
-      id->tag |= tag;
-      if (r_num_tagged != nullptr) {
-        r_num_tagged[INDEX_ID_NULL]++;
-        r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
-      }
+      lib_query_unused_ids_tag_id(id, data);
     }
     else {
-      id->tag &= ~tag;
+      id->tag &= ~data.id_tag;
     }
   }
   FOREACH_MAIN_ID_END;
 
-  if (!do_tag_recursive) {
+  if (!data.do_recursive) {
     return;
   }
+  BLI_assert(data.bmain->relations != nullptr);
 
-  BKE_main_relations_create(bmain, 0);
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    if (lib_query_unused_ids_tag_recurse(
-            bmain, tag, do_local_ids, do_linked_ids, id, r_num_tagged))
-    {
+  FOREACH_MAIN_ID_BEGIN (data.bmain, id) {
+    if (lib_query_unused_ids_tag_recurse(id, data)) {
       /* This root processed ID is part of one or more dependency loops.
        *
        * If it was not tagged, and its matching relations entry is not marked as processed, it
@@ -861,16 +900,12 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
        * relations to the current Blender file (like being part of a scene, etc.).
        *
        * So the entry can be tagged as processed, and the ID tagged as unused. */
-      if ((id->tag & tag) == 0) {
+      if (!data.unused_ids.contains(id)) {
         MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-            BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
+            BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, id));
         if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0) {
           id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
-          id->tag |= tag;
-          if (r_num_tagged != nullptr) {
-            r_num_tagged[INDEX_ID_NULL]++;
-            r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
-          }
+          lib_query_unused_ids_tag_id(id, data);
         }
       }
     }
@@ -878,15 +913,97 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
 #ifndef NDEBUG
     /* Relation entry for the root processed ID should always be marked as processed now. */
     MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
-        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
-    if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0) {
-      BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0);
-    }
+        BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, id));
+    BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0);
     BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) == 0);
 #endif
   }
   FOREACH_MAIN_ID_END;
-  BKE_main_relations_free(bmain);
+}
+
+void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parameters)
+{
+  std::array<int, INDEX_ID_MAX> num_dummy{0};
+  if (parameters.do_recursive) {
+    BKE_main_relations_create(bmain, 0);
+  }
+
+  parameters.num_total.fill(0);
+  parameters.num_local.fill(0);
+  parameters.num_linked.fill(0);
+
+  /* The complex fiddling with the two calls, which data they each get, based on the `do_local_ids`
+   * and `do_linked_ids`, is here to reduce as much as possible the extra processing:
+   *
+   * If both local and linked options are enabled, a single call with all given parameters gives
+   * all required data about unused IDs.
+   *
+   * If both local and linked options are disabled, total amount is left at zero, and each local
+   * and linked amounts are computed separately.
+   *
+   * If local is disabled and linked is enabled, the first call will compute the amount of local
+   * IDs that would be unused if the local option was enabled. Therefore, only the local amount can
+   * be kept from this call. The second call will compute valid values for both linked, and total
+   * data.
+   *
+   * If local is enabled and linked is disabled, the first call will compute valid values for both
+   * local, and total data. The second call will compute the amount of linked IDs that would be
+   * unused if the linked option was enabled. Therefore, only the linked amount can be kept from
+   * this call.
+   */
+
+  UnusedIdsData data{
+      bmain,
+      0,
+      true,
+      parameters.do_linked_ids,
+      parameters.do_recursive,
+      parameters.do_local_ids ? &parameters.num_total : &num_dummy,
+      &parameters.num_local,
+      (parameters.do_local_ids && parameters.do_linked_ids) ? &parameters.num_linked : &num_dummy};
+  lib_query_unused_ids_tag(data);
+
+  if (!(parameters.do_local_ids && parameters.do_linked_ids)) {
+    /* In case a second run is required, clear runtime data and update settings for linked data. */
+    data.reset(parameters.do_local_ids,
+               true,
+               parameters.do_recursive,
+               (!parameters.do_local_ids && parameters.do_linked_ids) ? parameters.num_total :
+                                                                        num_dummy,
+               num_dummy,
+               parameters.num_linked);
+    lib_query_unused_ids_tag(data);
+  }
+
+  if (parameters.do_recursive) {
+    BKE_main_relations_free(bmain);
+  }
+}
+
+void BKE_lib_query_unused_ids_tag(Main *bmain, const int tag, LibQueryUnusedIDsData &parameters)
+{
+  BLI_assert(tag != 0);
+
+  parameters.num_total.fill(0);
+  parameters.num_local.fill(0);
+  parameters.num_linked.fill(0);
+
+  UnusedIdsData data{bmain,
+                     tag,
+                     parameters.do_local_ids,
+                     parameters.do_linked_ids,
+                     parameters.do_recursive,
+                     &parameters.num_total,
+                     &parameters.num_local,
+                     &parameters.num_linked};
+
+  if (parameters.do_recursive) {
+    BKE_main_relations_create(bmain, 0);
+  }
+  lib_query_unused_ids_tag(data);
+  if (parameters.do_recursive) {
+    BKE_main_relations_free(bmain);
+  }
 }
 
 static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackData *cb_data)

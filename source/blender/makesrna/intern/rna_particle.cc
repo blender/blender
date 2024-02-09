@@ -32,7 +32,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "rna_internal.hh"
 

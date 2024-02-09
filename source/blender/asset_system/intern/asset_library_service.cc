@@ -6,7 +6,7 @@
  * \ingroup asset_system
  */
 
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_preferences.h"
 
 #include "BLI_path_util.h"

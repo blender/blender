@@ -17,7 +17,7 @@
 #include "BKE_object.hh"
 #include "BKE_volume.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

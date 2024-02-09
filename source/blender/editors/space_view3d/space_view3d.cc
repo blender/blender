@@ -31,7 +31,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_asset.hh"
 #include "BKE_context.hh"

@@ -33,7 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
 

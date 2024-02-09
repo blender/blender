@@ -7,6 +7,10 @@
  */
 
 #include <cstring>
+#include <iostream>
+#include <ostream>
+
+#include <fmt/format.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -21,7 +25,9 @@
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
+
+#include "BLF_api.hh"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -2124,51 +2130,92 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
   return true;
 }
 
-static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static void unused_message_gen(std::string &message,
+                               const std::array<int, INDEX_ID_MAX> &num_tagged)
 {
-  Main *bmain = CTX_data_main(C);
-  int num_tagged[INDEX_ID_MAX] = {0};
-
-  const bool do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
-  const bool do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
-  const bool do_recursive_cleanup = RNA_boolean_get(op->ptr, "do_recursive");
-
-  /* Tag all IDs to delete. */
-  BKE_lib_query_unused_ids_tag(
-      bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
-
-  RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
-
+  bool is_first = true;
   if (num_tagged[INDEX_ID_NULL] == 0) {
-    BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
-    return OPERATOR_CANCELLED;
+    message += IFACE_("None");
+    return;
   }
 
-  DynStr *dyn_str = BLI_dynstr_new();
-  BLI_dynstr_appendf(dyn_str, RPT_("Purging %d unused data-blocks ("), num_tagged[INDEX_ID_NULL]);
-  bool is_first = true;
-  for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
+  /* NOTE: Index is looped in reversed order, since typically 'higher level' IDs (like Collections
+   * or Objects) have a higher index than 'lower level' ones like object data, materials, etc.
+   *
+   * It makes more sense to present to the user the deleted numbers of Collections or Objects
+   * before the ones for object data or Materials. */
+  for (int i = INDEX_ID_MAX - 2; i >= 0; i--) {
     if (num_tagged[i] != 0) {
-      if (!is_first) {
-        BLI_dynstr_append(dyn_str, ", ");
-      }
-      else {
-        is_first = false;
-      }
-      BLI_dynstr_appendf(dyn_str,
-                         "%d %s",
-                         num_tagged[i],
-                         RPT_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))));
+      message += fmt::format(
+          "{}{} {}",
+          (is_first) ? "" : ", ",
+          num_tagged[i],
+          (num_tagged[i] > 1) ?
+              IFACE_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))) :
+              IFACE_(BKE_idtype_idcode_to_name(BKE_idtype_idcode_from_index(i))));
+      is_first = false;
     }
   }
-  BLI_dynstr_append(dyn_str, RPT_("). Click here to proceed..."));
+}
 
-  char *message = BLI_dynstr_get_cstring(dyn_str);
-  int ret = WM_operator_confirm_message(C, op, message);
+static int unused_message_popup_width_compute(bContext *C)
+{
+  /* Computation of unused data amounts, with all options ON.
+   * Used to estimate the maximum required witdh for the dialog. */
+  Main *bmain = CTX_data_main(C);
+  LibQueryUnusedIDsData data = {true, true, true, {}, {}, {}};
+  BKE_lib_query_unused_ids_amounts(bmain, data);
 
-  MEM_freeN(message);
-  BLI_dynstr_free(dyn_str);
-  return ret;
+  std::string unused_message = "";
+  const uiStyle *style = UI_style_get_dpi();
+  unused_message_gen(unused_message, data.num_local);
+  float max_messages_width = BLF_width(
+      style->widget.uifont_id, unused_message.c_str(), BLF_DRAW_STR_DUMMY_MAX);
+
+  unused_message = "";
+  unused_message_gen(unused_message, data.num_linked);
+  max_messages_width = std::max(
+      max_messages_width,
+      BLF_width(style->widget.uifont_id, unused_message.c_str(), BLF_DRAW_STR_DUMMY_MAX));
+
+  return int(std::max(max_messages_width, 300.0f));
+}
+
+static void outliner_orphans_purge_cleanup(wmOperator *op)
+{
+  if (op->customdata) {
+    MEM_delete(static_cast<LibQueryUnusedIDsData *>(op->customdata));
+    op->customdata = nullptr;
+  }
+}
+
+static bool outliner_orphans_purge_check(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  LibQueryUnusedIDsData &data = *static_cast<LibQueryUnusedIDsData *>(op->customdata);
+
+  data.do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
+  data.do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
+  data.do_recursive = RNA_boolean_get(op->ptr, "do_recursive");
+
+  BKE_lib_query_unused_ids_amounts(bmain, data);
+
+  /* Always assume count changed, and request a redraw. */
+  return true;
+}
+
+static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  op->customdata = MEM_new<LibQueryUnusedIDsData>(__func__);
+
+  /* Compute expected amounts of deleted IDs and store them in 'cached' operator properties. */
+  outliner_orphans_purge_check(C, op);
+
+  return WM_operator_props_dialog_popup(C,
+                                        op,
+                                        unused_message_popup_width_compute(C),
+                                        IFACE_("Purge Unused Data From This File"),
+                                        IFACE_("Delete"));
 }
 
 static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
@@ -2176,26 +2223,27 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ScrArea *area = CTX_wm_area(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  int num_tagged[INDEX_ID_MAX] = {0};
 
-  if ((num_tagged[INDEX_ID_NULL] = RNA_int_get(op->ptr, "num_deleted")) == 0) {
-    const bool do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
-    const bool do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
-    const bool do_recursive_cleanup = RNA_boolean_get(op->ptr, "do_recursive");
+  if (!op->customdata) {
+    op->customdata = MEM_new<LibQueryUnusedIDsData>(__func__);
+  }
+  LibQueryUnusedIDsData &data = *static_cast<LibQueryUnusedIDsData *>(op->customdata);
 
-    /* Tag all IDs to delete. */
-    BKE_lib_query_unused_ids_tag(
-        bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
+  data.do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
+  data.do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
+  data.do_recursive = RNA_boolean_get(op->ptr, "do_recursive");
 
-    if (num_tagged[INDEX_ID_NULL] == 0) {
-      BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
-      return OPERATOR_CANCELLED;
-    }
+  /* Tag all IDs to delete. */
+  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, data);
+
+  if (data.num_total[INDEX_ID_NULL] == 0) {
+    BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
+    return OPERATOR_CANCELLED;
   }
 
   BKE_id_multi_tagged_delete(bmain);
 
-  BKE_reportf(op->reports, RPT_INFO, "Deleted %d data-block(s)", num_tagged[INDEX_ID_NULL]);
+  BKE_reportf(op->reports, RPT_INFO, "Deleted %d data-block(s)", data.num_total[INDEX_ID_NULL]);
 
   /* XXX: tree management normally happens from draw_outliner(), but when
    *      you're clicking to fast on Delete object from context menu in
@@ -2211,7 +2259,51 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   /* Force full redraw of the UI. */
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
+  outliner_orphans_purge_cleanup(op);
+
   return OPERATOR_FINISHED;
+}
+
+static void outliner_orphans_purge_cancel(bContext * /*C*/, wmOperator *op)
+{
+  outliner_orphans_purge_cleanup(op);
+}
+
+static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  PointerRNA *ptr = op->ptr;
+  if (!op->customdata) {
+    /* This should only happen on 'adjust last operation' case, since `invoke` will not have  been
+     * called then before showing the UI (the 'redo panel' UI uses WM-stored operator properties
+     * and a newly-created operator).
+     *
+     * Since that operator is not 'registered' for adjusting from undo stack, this should never
+     * happen currently. */
+    BLI_assert_unreachable();
+    op->customdata = MEM_new<LibQueryUnusedIDsData>(__func__);
+  }
+  LibQueryUnusedIDsData &data = *static_cast<LibQueryUnusedIDsData *>(op->customdata);
+
+  uiItemS_ex(layout, 0.5f);
+
+  std::string unused_message = "";
+  unused_message_gen(unused_message, data.num_local);
+  uiLayout *column = uiLayoutColumn(layout, true);
+  uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiLayout *row = uiLayoutRow(column, true);
+  uiItemS_ex(row, 2.67f);
+  uiItemL(row, unused_message.c_str(), ICON_NONE);
+
+  unused_message = "";
+  unused_message_gen(unused_message, data.num_linked);
+  column = uiLayoutColumn(layout, true);
+  uiItemR(column, ptr, "do_linked_ids", UI_ITEM_NONE, nullptr, ICON_NONE);
+  row = uiLayoutRow(column, true);
+  uiItemS_ex(row, 2.67f);
+  uiItemL(row, unused_message.c_str(), ICON_NONE);
+
+  uiItemR(layout, ptr, "do_recursive", UI_ITEM_NONE, nullptr, ICON_NONE);
 }
 
 void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
@@ -2224,15 +2316,17 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = outliner_orphans_purge_invoke;
   ot->exec = outliner_orphans_purge_exec;
+  ot->cancel = outliner_orphans_purge_cancel;
+
   ot->poll = ed_operator_outliner_id_orphans_active;
+  ot->check = outliner_orphans_purge_check;
+  ot->ui = outliner_orphans_purge_ui;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* NOTE: No #OPTYPE_REGISTER, since this operator should not be 'adjustable'. */
+  ot->flag = OPTYPE_UNDO;
 
-  /* properties */
-  PropertyRNA *prop = RNA_def_int(ot->srna, "num_deleted", 0, 0, INT_MAX, "", "", 0, INT_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
-
+  /* Actual user-visibla settings. */
   RNA_def_boolean(ot->srna,
                   "do_local_ids",
                   true,

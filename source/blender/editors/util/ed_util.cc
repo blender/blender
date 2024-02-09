@@ -16,9 +16,9 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"

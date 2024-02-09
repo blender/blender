@@ -213,9 +213,9 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BLI_listbase.h"
 #  include "BLI_math_base.h"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
-#  include "BLO_readfile.h"
+#  include "BLO_readfile.hh"
 
 #  include "BKE_anim_data.h"
 #  include "BKE_global.h" /* XXX, remove me */

@@ -176,7 +176,7 @@ void *InpaintSimpleOperation::initialize_tile_data(rcti *rect)
   lock_mutex();
   if (!cached_buffer_ready_) {
     MemoryBuffer *input = (MemoryBuffer *)input_image_program_->initialize_tile_data(rect);
-    cached_buffer_ = new MemoryBuffer(DataType::Color, *rect);
+    cached_buffer_ = new MemoryBuffer(DataType::Color, input->get_rect());
     inpaint(input, cached_buffer_);
     cached_buffer_ready_ = true;
   }

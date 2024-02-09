@@ -15,7 +15,7 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 

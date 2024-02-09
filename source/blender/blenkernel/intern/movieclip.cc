@@ -42,10 +42,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"

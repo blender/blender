@@ -27,7 +27,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.hh"
@@ -3440,29 +3440,46 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
   }
 }
 
-void uiItemS_ex(uiLayout *layout, float factor)
+void uiItemS_ex(uiLayout *layout, float factor, const LayoutSeparatorType type)
 {
   uiBlock *block = layout->root->block;
   const bool is_menu = ui_block_is_menu(block);
   if (is_menu && !UI_block_can_add_separator(block)) {
     return;
   }
-  int space = (is_menu) ? int(0.35f * UI_UNIT_X) : int(0.3f * UI_UNIT_X);
-  space *= factor;
+
+  bool is_vertical = (layout->w > 0);
+  int width = is_vertical ? int(UI_UNIT_X) : int(0.3f * UI_UNIT_X * factor);
+  int height = is_vertical ? int(0.35f * UI_UNIT_X * factor) : int(UI_UNIT_Y);
+
+  eButType but_type;
+
+  switch (type) {
+    case LayoutSeparatorType::Line:
+      but_type = UI_BTYPE_SEPR_LINE;
+      break;
+    case LayoutSeparatorType::Auto:
+      but_type = is_menu ? UI_BTYPE_SEPR_LINE : UI_BTYPE_SEPR;
+      break;
+    default:
+      but_type = UI_BTYPE_SEPR;
+  }
+
+  bool is_vertical_bar = !is_vertical && but_type == UI_BTYPE_SEPR_LINE;
 
   UI_block_layout_set_current(block, layout);
   uiDefBut(block,
-           (is_menu) ? UI_BTYPE_SEPR_LINE : UI_BTYPE_SEPR,
+           but_type,
            0,
            "",
            0,
            0,
-           space,
-           space,
+           width,
+           height,
            nullptr,
            0.0,
            0.0,
-           0,
+           is_vertical_bar ? 1.0f : 0.0f,
            0,
            "");
 }

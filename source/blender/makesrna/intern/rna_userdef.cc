@@ -26,11 +26,11 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_sound.h"
 #include "BKE_studiolight.h"
 
@@ -47,7 +47,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLT_lang.h"
+#include "BLT_lang.hh"
 
 const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
@@ -173,7 +173,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"
 
-#  include "BKE_blender.h"
+#  include "BKE_blender.hh"
 #  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"

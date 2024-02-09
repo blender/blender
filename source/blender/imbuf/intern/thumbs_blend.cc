@@ -11,11 +11,11 @@
 #include <cstring>
 
 #include "BLI_linklist.h"
-#include "BLI_listbase.h" /* Needed due to import of BLO_readfile.h */
+#include "BLI_listbase.h" /* Needed due to import of BLO_readfile.hh */
 #include "BLI_utildefines.h"
 
 #include "BLO_blend_defs.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"

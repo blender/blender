@@ -40,7 +40,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_armature.hh"
 

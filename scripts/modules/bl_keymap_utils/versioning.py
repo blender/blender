@@ -28,7 +28,7 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
         nonlocal has_copy
 
         changed_items = []
-        for kmi_index, (km_name, _km_parms, km_items_data) in enumerate(keyconfig_data):
+        for km_index, (km_name, _km_parms, km_items_data) in enumerate(keyconfig_data):
             for kmi_item_index, (item_op, item_event, item_prop) in enumerate(km_items_data["items"]):
                 if item_prop and item_op in op_prop_map:
                     properties = item_prop.get("properties", [])
@@ -41,17 +41,30 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
                         filtered_properties = None
 
                     if filtered_properties is None or len(filtered_properties) < len(properties):
-                        changed_items.append((kmi_index, kmi_item_index, filtered_properties))
+                        changed_items.append((km_index, kmi_item_index, filtered_properties))
 
         if changed_items:
             if not has_copy:
                 keyconfig_data = copy.deepcopy(keyconfig_data)
                 has_copy = True
 
-            for kmi_index, kmi_item_index, filtered_properties in changed_items:
-                item_op, item_event, item_prop = keyconfig_data[kmi_index][2]["items"][kmi_item_index]
+            for km_index, kmi_item_index, filtered_properties in changed_items:
+                item_op, item_event, item_prop = keyconfig_data[km_index][2]["items"][kmi_item_index]
                 item_prop["properties"] = filtered_properties
-                keyconfig_data[kmi_index][2]["items"][kmi_item_index] = (item_op, item_event, item_prop)
+                keyconfig_data[km_index][2]["items"][kmi_item_index] = (item_op, item_event, item_prop)
+
+    def rename_keymap(km_name_map):
+        nonlocal keyconfig_data
+        nonlocal has_copy
+
+        for km_index, (km_name, km_parms, km_items_data) in enumerate(keyconfig_data):
+            km_name_dst = km_name_map.get(km_name)
+            if km_name_dst is None:
+                continue
+            if not has_copy:
+                keyconfig_data = copy.deepcopy(keyconfig_data)
+                has_copy = True
+            keyconfig_data[km_index] = (km_name_dst, km_parms, km_items_data)
 
     # Default repeat to false.
     if keyconfig_version <= (2, 92, 0):
@@ -163,5 +176,8 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
                 km_items_data["items"].append(
                     ("PASSTHROUGH_NAVIGATE", {"type": 'LEFT_ALT', "value": 'ANY', "any": True}, None))
+
+    if keyconfig_version <= (4, 1, 21):
+        rename_keymap({"NLA Channels": "NLA Tracks"})
 
     return keyconfig_data

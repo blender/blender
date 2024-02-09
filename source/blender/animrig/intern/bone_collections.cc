@@ -15,7 +15,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 
@@ -133,6 +133,8 @@ static void bonecoll_ensure_name_unique(bArmature *armature, BoneCollection *bco
     BoneCollection *bcoll;
   };
 
+  /* Cannot capture armature & bcoll by reference in the lambda, as that would change its signature
+   * and no longer be compatible with BLI_uniquename_cb(). */
   auto bonecoll_name_is_duplicate = [](void *arg, const char *name) -> bool {
     DupNameCheckData *data = static_cast<DupNameCheckData *>(arg);
     for (BoneCollection *bcoll : data->arm->collections_span()) {

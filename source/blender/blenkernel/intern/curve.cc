@@ -25,7 +25,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW

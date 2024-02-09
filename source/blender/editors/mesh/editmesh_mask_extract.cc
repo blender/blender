@@ -10,7 +10,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"

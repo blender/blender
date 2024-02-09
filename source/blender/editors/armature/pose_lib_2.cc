@@ -15,7 +15,7 @@
 
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 

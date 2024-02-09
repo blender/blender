@@ -45,7 +45,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_interface.hh"
 

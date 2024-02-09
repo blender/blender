@@ -27,7 +27,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_object.hh"
 #include "ED_render.hh"

@@ -15,7 +15,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_hash.h"
 #include "BLI_rand.h"

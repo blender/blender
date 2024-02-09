@@ -34,9 +34,10 @@
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
+#include "BLO_userdef_default.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GPU_platform.h"
 
@@ -52,7 +53,7 @@
  * If this is important we can set the translations as part of versioning preferences,
  * however that should only be done if there are important use-cases. */
 #if 0
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 #else
 #  define N_(msgid) msgid
 #endif
@@ -913,6 +914,14 @@ void blo_do_versions_userdef(UserDef *userdef)
       userdef->keying_flag |= MANUALKEY_FLAG_INSERTNEEDED;
     }
     userdef->keying_flag |= AUTOKEY_FLAG_INSERTNEEDED;
+  }
+
+  if (!USER_VERSION_ATLEAST(401, 21)) {
+    LISTBASE_FOREACH (wmKeyMap *, km, &userdef->user_keymaps) {
+      if (STREQ(km->idname, "NLA Channels")) {
+        STRNCPY(km->idname, "NLA Tracks");
+      }
+    }
   }
 
   /**

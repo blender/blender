@@ -49,7 +49,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

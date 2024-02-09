@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"

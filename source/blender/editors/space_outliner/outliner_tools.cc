@@ -40,7 +40,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
@@ -77,7 +77,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "../../blender/blenloader/BLO_readfile.h"
+#include "../../blender/blenloader/BLO_readfile.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

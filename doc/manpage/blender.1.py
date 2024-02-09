@@ -27,6 +27,8 @@ from typing import (
 def man_format(data: str) -> str:
     data = data.replace("-", "\\-")
     data = data.replace("\t", "  ")
+    # Single quotes prevent text rendering when found at the beginning of lines.
+    data = data.replace("'", "\\(aq")
     return data
 
 

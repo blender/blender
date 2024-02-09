@@ -22,7 +22,7 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"

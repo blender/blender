@@ -18,7 +18,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"

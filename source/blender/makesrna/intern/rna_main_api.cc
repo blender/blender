@@ -29,7 +29,7 @@
 #  include "BKE_armature.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
-#  include "BKE_collection.h"
+#  include "BKE_collection.hh"
 #  include "BKE_curve.hh"
 #  include "BKE_curves.h"
 #  include "BKE_displist.h"
@@ -94,7 +94,7 @@
 #  include "ED_node.hh"
 #  include "ED_screen.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

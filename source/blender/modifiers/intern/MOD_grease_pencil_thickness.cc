@@ -8,7 +8,7 @@
 
 #include "BLI_index_mask.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 

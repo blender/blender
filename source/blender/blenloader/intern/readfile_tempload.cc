@@ -5,7 +5,7 @@
 /** \file
  * \ingroup blenloader
  */
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "MEM_guardedalloc.h"
 

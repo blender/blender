@@ -43,11 +43,11 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_appdir.hh"
 #include "BKE_cloth.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_dynamicpaint.h"
 #include "BKE_fluid.h"
 #include "BKE_global.h"

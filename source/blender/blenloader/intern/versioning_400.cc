@@ -49,7 +49,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
@@ -71,10 +71,10 @@
 
 #include "ED_armature.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 

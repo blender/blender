@@ -15,7 +15,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
 

@@ -36,7 +36,7 @@
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

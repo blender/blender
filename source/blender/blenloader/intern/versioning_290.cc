@@ -51,7 +51,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.hh"
@@ -76,7 +76,7 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
 

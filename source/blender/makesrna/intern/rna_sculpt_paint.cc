@@ -109,7 +109,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #ifdef RNA_RUNTIME
 #  include "MEM_guardedalloc.h"
 
-#  include "BKE_collection.h"
+#  include "BKE_collection.hh"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_object.hh"

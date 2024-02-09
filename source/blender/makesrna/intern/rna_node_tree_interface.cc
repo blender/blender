@@ -39,7 +39,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #  include "BLI_set.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "DNA_material_types.h"
 #  include "ED_node.hh"

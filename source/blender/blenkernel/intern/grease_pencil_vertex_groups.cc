@@ -18,7 +18,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 namespace blender::bke::greasepencil {
 

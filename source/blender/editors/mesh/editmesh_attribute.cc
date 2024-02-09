@@ -32,7 +32,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_object_types.h"
 

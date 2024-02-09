@@ -13,7 +13,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_ID.h"
 #include "DNA_action_types.h"

@@ -539,6 +539,22 @@ enum {
  */
 typedef struct bNodeInstanceKey {
   unsigned int value;
+
+#ifdef __cplusplus
+  inline bool operator==(const bNodeInstanceKey &other) const
+  {
+    return value == other.value;
+  }
+  inline bool operator!=(const bNodeInstanceKey &other) const
+  {
+    return !(*this == other);
+  }
+
+  inline uint64_t hash() const
+  {
+    return value;
+  }
+#endif
 } bNodeInstanceKey;
 
 /**

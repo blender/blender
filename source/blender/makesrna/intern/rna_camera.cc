@@ -12,7 +12,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

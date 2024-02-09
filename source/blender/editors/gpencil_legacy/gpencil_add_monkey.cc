@@ -22,7 +22,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 

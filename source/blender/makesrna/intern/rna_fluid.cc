@@ -23,7 +23,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_fluid_types.h"
 #include "DNA_modifier_types.h"

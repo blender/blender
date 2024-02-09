@@ -19,7 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
@@ -37,7 +37,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"

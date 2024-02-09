@@ -27,8 +27,8 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_armature.hh"
-#include "BKE_blender.h"
-#include "BKE_collection.h"
+#include "BKE_blender.hh"
+#include "BKE_collection.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idtype.hh"
@@ -44,7 +44,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"

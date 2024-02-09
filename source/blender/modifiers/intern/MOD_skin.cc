@@ -50,7 +50,7 @@
 #include "BLI_stack.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"

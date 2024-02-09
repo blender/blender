@@ -21,7 +21,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_global.h" /* XXX, G_MAIN only */
 
 #include "RNA_access.hh"

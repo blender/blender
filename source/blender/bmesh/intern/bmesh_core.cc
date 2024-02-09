@@ -16,7 +16,7 @@
 #include "BLI_utildefines_stack.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"

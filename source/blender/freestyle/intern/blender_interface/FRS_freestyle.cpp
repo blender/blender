@@ -28,7 +28,7 @@ using namespace Freestyle;
 #include "DNA_material_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
@@ -37,7 +37,7 @@ using namespace Freestyle;
 #include "BKE_scene.h"
 #include "BKE_text.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color_blend.h"

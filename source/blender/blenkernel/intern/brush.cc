@@ -22,13 +22,13 @@
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_asset.hh"
 #include "BKE_blendfile_link_append.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"

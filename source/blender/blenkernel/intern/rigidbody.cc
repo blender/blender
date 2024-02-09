@@ -36,7 +36,7 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_layer.hh"

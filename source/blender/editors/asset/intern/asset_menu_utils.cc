@@ -16,7 +16,7 @@
 #include "BKE_asset.hh"
 #include "BKE_report.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "WM_api.hh"
 

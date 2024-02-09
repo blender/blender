@@ -16,7 +16,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"

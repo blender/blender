@@ -341,7 +341,7 @@ set(SRC
   BKE_bake_items_paths.hh
   BKE_bake_items_serialize.hh
   BKE_bake_items_socket.hh
-  BKE_blender.h
+  BKE_blender.hh
   BKE_blender_copybuffer.hh
   BKE_blender_undo.hh
   BKE_blender_user_menu.hh
@@ -349,16 +349,16 @@ set(SRC
   BKE_blendfile.hh
   BKE_blendfile_link_append.hh
   BKE_boids.h
-  BKE_bpath.h
+  BKE_bpath.hh
   BKE_brush.hh
   BKE_bvhutils.hh
-  BKE_cachefile.h
-  BKE_callbacks.h
+  BKE_cachefile.hh
+  BKE_callbacks.hh
   BKE_camera.h
   BKE_ccg.h
   BKE_cdderivedmesh.h
   BKE_cloth.hh
-  BKE_collection.h
+  BKE_collection.hh
   BKE_collision.h
   BKE_colorband.hh
   BKE_colortools.hh

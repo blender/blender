@@ -17,7 +17,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "FN_field.hh"
 

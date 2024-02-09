@@ -26,7 +26,7 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_undofile.hh"
 
 #include "BKE_lib_id.hh"

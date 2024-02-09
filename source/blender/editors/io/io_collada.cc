@@ -8,7 +8,7 @@
 #ifdef WITH_COLLADA
 #  include "DNA_space_types.h"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "BLI_blenlib.h"
 #  include "BLI_string.h"

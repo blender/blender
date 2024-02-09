@@ -15,7 +15,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_curves.hh"
 #include "ED_node.hh"

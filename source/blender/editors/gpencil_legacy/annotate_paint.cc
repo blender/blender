@@ -18,9 +18,9 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"

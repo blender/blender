@@ -22,13 +22,13 @@
 #include "IMB_moviecache.hh"
 
 #include "BKE_addon.h"
-#include "BKE_blender.h"            /* own include */
+#include "BKE_blender.hh"           /* own include */
 #include "BKE_blender_user_menu.hh" /* own include */
 #include "BKE_blender_version.h"    /* own include */
 #include "BKE_blendfile.hh"
 #include "BKE_brush.hh"
-#include "BKE_cachefile.h"
-#include "BKE_callbacks.h"
+#include "BKE_cachefile.hh"
+#include "BKE_callbacks.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"

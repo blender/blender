@@ -25,7 +25,7 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

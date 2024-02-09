@@ -1035,7 +1035,7 @@ typedef enum eFileSelectType {
 /**
  * #FileSelectParams.flag / `sfile->params->flag`.
  * \note short flag, also used as 16 lower bits of flags in link/append code
- * (WM and BLO code area, see #eBLOLibLinkFlags in BLO_readfile.h).
+ * (WM and BLO code area, see #eBLOLibLinkFlags in BLO_readfile.hh).
  */
 typedef enum eFileSel_Params_Flag {
   FILE_PARAMS_FLAG_UNUSED_1 = (1 << 0),

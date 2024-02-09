@@ -11,17 +11,18 @@
  * \brief external readfile function prototypes.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+struct AssetMetaData;
 struct BHead;
+struct BlendHandle;
 struct BlendThumbnail;
 struct FileData;
+struct ID;
+struct Library;
 struct LinkNode;
 struct ListBase;
 struct Main;
 struct MemFile;
+struct PreviewImage;
 struct ReportList;
 struct Scene;
 struct UserDef;
@@ -31,13 +32,11 @@ struct WorkSpace;
 struct bScreen;
 struct wmWindowManager;
 
-typedef struct BlendHandle BlendHandle;
+struct WorkspaceConfigFileData {
+  Main *main; /* has to be freed when done reading file data */
 
-typedef struct WorkspaceConfigFileData {
-  struct Main *main; /* has to be freed when done reading file data */
-
-  struct ListBase workspaces;
-} WorkspaceConfigFileData;
+  ListBase workspaces;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name BLO Read File API
@@ -45,15 +44,15 @@ typedef struct WorkspaceConfigFileData {
  * \see #BLO_write_file for file writing.
  * \{ */
 
-typedef enum eBlenFileType {
+enum eBlenFileType {
   BLENFILETYPE_BLEND = 1,
   // BLENFILETYPE_PUB = 2,     /* UNUSED */
   // BLENFILETYPE_RUNTIME = 3, /* UNUSED */
-} eBlenFileType;
+};
 
-typedef struct BlendFileData {
-  struct Main *main;
-  struct UserDef *user;
+struct BlendFileData {
+  Main *main;
+  UserDef *user;
 
   int fileflags;
   int globalf;
@@ -65,27 +64,27 @@ typedef struct BlendFileData {
   char filepath[1024]; /* 1024 = FILE_MAX */
 
   /** TODO: think this isn't needed anymore? */
-  struct bScreen *curscreen;
-  struct Scene *curscene;
+  bScreen *curscreen;
+  Scene *curscene;
   /** Layer to activate in workspaces when reading without UI. */
-  struct ViewLayer *cur_view_layer;
+  ViewLayer *cur_view_layer;
 
   eBlenFileType type;
-} BlendFileData;
+};
 
 /**
  * Data used by WM readfile code and BKE's setup_app_data to handle the complex preservation logic
  * of WindowManager and other UI data-blocks across blend-file reading process.
  */
-typedef struct BlendFileReadWMSetupData {
+struct BlendFileReadWMSetupData {
   /** The existing WM when filereading process is started. */
-  struct wmWindowManager *old_wm;
+  wmWindowManager *old_wm;
 
   /** The startup file is being read. */
   bool is_read_homefile;
   /** The factory startup file is being read. */
   bool is_factory_startup;
-} BlendFileReadWMSetupData;
+};
 
 struct BlendFileReadParams {
   uint skip_flags : 3; /* #eBLOReadSkip */
@@ -95,9 +94,9 @@ struct BlendFileReadParams {
   int undo_direction; /* #eUndoStepDir */
 };
 
-typedef struct BlendFileReadReport {
+struct BlendFileReadReport {
   /** General reports handling. */
-  struct ReportList *reports;
+  ReportList *reports;
 
   /** Timing information. */
   struct {
@@ -137,11 +136,11 @@ typedef struct BlendFileReadReport {
    */
   int resynced_lib_overrides_libraries_count;
   bool do_resynced_lib_overrides_libraries_list;
-  struct LinkNode *resynced_lib_overrides_libraries;
-} BlendFileReadReport;
+  LinkNode *resynced_lib_overrides_libraries;
+};
 
 /** Skip reading some data-block types (may want to skip screen data too). */
-typedef enum eBLOReadSkip {
+enum eBLOReadSkip {
   BLO_READ_SKIP_NONE = 0,
   /** Skip #BLO_CODE_USER blocks. */
   BLO_READ_SKIP_USERDEF = (1 << 0),
@@ -149,7 +148,7 @@ typedef enum eBLOReadSkip {
   BLO_READ_SKIP_DATA = (1 << 1),
   /** Do not attempt to re-use IDs from old bmain for unchanged ones in case of undo. */
   BLO_READ_SKIP_UNDO_OLD_MAIN = (1 << 2),
-} eBLOReadSkip;
+};
 ENUM_OPERATORS(eBLOReadSkip, BLO_READ_SKIP_UNDO_OLD_MAIN)
 #define BLO_READ_SKIP_ALL (BLO_READ_SKIP_USERDEF | BLO_READ_SKIP_DATA)
 
@@ -163,7 +162,7 @@ ENUM_OPERATORS(eBLOReadSkip, BLO_READ_SKIP_UNDO_OLD_MAIN)
  */
 BlendFileData *BLO_read_from_file(const char *filepath,
                                   eBLOReadSkip skip_flags,
-                                  struct BlendFileReadReport *reports);
+                                  BlendFileReadReport *reports);
 /**
  * Open a blender file from memory. The function returns NULL
  * and sets a report in the list if it cannot open the file.
@@ -176,7 +175,7 @@ BlendFileData *BLO_read_from_file(const char *filepath,
 BlendFileData *BLO_read_from_memory(const void *mem,
                                     int memsize,
                                     eBLOReadSkip skip_flags,
-                                    struct ReportList *reports);
+                                    ReportList *reports);
 /**
  * Used for undo/redo, skips part of libraries reading
  * (assuming their data are already loaded & valid).
@@ -186,11 +185,11 @@ BlendFileData *BLO_read_from_memory(const void *mem,
  * \param filepath: current file, only for retrieving library data.
  * Typically `BKE_main_blendfile_path(oldmain)`.
  */
-BlendFileData *BLO_read_from_memfile(struct Main *oldmain,
+BlendFileData *BLO_read_from_memfile(Main *oldmain,
                                      const char *filepath,
-                                     struct MemFile *memfile,
-                                     const struct BlendFileReadParams *params,
-                                     struct ReportList *reports);
+                                     MemFile *memfile,
+                                     const BlendFileReadParams *params,
+                                     ReportList *reports);
 
 /**
  * Frees a BlendFileData structure and *all* the data associated with it
@@ -210,7 +209,7 @@ void BLO_blendfiledata_free(BlendFileData *bfd);
  *
  * \param new_bmain: the newly read Main data-base.
  */
-void BLO_read_do_version_after_setup(struct Main *new_bmain, struct BlendFileReadReport *reports);
+void BLO_read_do_version_after_setup(Main *new_bmain, BlendFileReadReport *reports);
 
 /** \} */
 
@@ -218,9 +217,9 @@ void BLO_read_do_version_after_setup(struct Main *new_bmain, struct BlendFileRea
 /** \name BLO Blend File Handle API
  * \{ */
 
-typedef struct BLODataBlockInfo {
+struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
-  struct AssetMetaData *asset_data;
+  AssetMetaData *asset_data;
   /** Ownership over #asset_data above can be "stolen out" of this struct, for more permanent
    * storage. In that case, set this to false to avoid double freeing of the stolen data. */
   bool free_asset_data;
@@ -231,7 +230,7 @@ typedef struct BLODataBlockInfo {
    * either no preview was found, or that it wasn't looked for in the first place.
    */
   bool no_preview_found;
-} BLODataBlockInfo;
+};
 
 /**
  * Frees contained data, not \a datablock_info itself.
@@ -240,7 +239,7 @@ void BLO_datablock_info_free(BLODataBlockInfo *datablock_info);
 /**
  * Can be used to free the list returned by #BLO_blendhandle_get_datablock_info().
  */
-void BLO_datablock_info_linklist_free(struct LinkNode * /*BLODataBlockInfo*/ datablock_infos);
+void BLO_datablock_info_linklist_free(LinkNode * /*BLODataBlockInfo*/ datablock_infos);
 
 /**
  * Open a blendhandle from a file path.
@@ -249,7 +248,7 @@ void BLO_datablock_info_linklist_free(struct LinkNode * /*BLODataBlockInfo*/ dat
  * \param reports: Report errors in opening the file (can be NULL).
  * \return A handle on success, or NULL on failure.
  */
-BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct BlendFileReadReport *reports);
+BlendHandle *BLO_blendhandle_from_file(const char *filepath, BlendFileReadReport *reports);
 /**
  * Open a blendhandle from memory.
  *
@@ -259,7 +258,7 @@ BlendHandle *BLO_blendhandle_from_file(const char *filepath, struct BlendFileRea
  */
 BlendHandle *BLO_blendhandle_from_memory(const void *mem,
                                          int memsize,
-                                         struct BlendFileReadReport *reports);
+                                         BlendFileReadReport *reports);
 
 /**
  * Gets the names of all the data-blocks in a file of a certain type
@@ -271,11 +270,11 @@ BlendHandle *BLO_blendhandle_from_memory(const void *mem,
  * \param r_tot_names: The length of the returned list.
  * \return A BLI_linklist of strings. The string links should be freed with #MEM_freeN().
  */
-struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
-                                                     int ofblocktype,
+LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
+                                              int ofblocktype,
 
-                                                     bool use_assets_only,
-                                                     int *r_tot_names);
+                                              bool use_assets_only,
+                                              int *r_tot_names);
 /**
  * Gets the names and asset-data (if ID is an asset) of data-blocks in a file of a certain type.
  * The data-blocks can be limited to assets.
@@ -290,10 +289,10 @@ struct LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh,
  * \note The links should be freed using #BLO_datablock_info_free() or the entire list using
  *       #BLO_datablock_info_linklist_free().
  */
-struct LinkNode * /*BLODataBlockInfo*/ BLO_blendhandle_get_datablock_info(BlendHandle *bh,
-                                                                          int ofblocktype,
-                                                                          bool use_assets_only,
-                                                                          int *r_tot_info_items);
+LinkNode * /*BLODataBlockInfo*/ BLO_blendhandle_get_datablock_info(BlendHandle *bh,
+                                                                   int ofblocktype,
+                                                                   bool use_assets_only,
+                                                                   int *r_tot_info_items);
 /**
  * Gets the previews of all the data-blocks in a file of a certain type
  * (e.g. all the scene previews in a file).
@@ -303,7 +302,7 @@ struct LinkNode * /*BLODataBlockInfo*/ BLO_blendhandle_get_datablock_info(BlendH
  * \param r_tot_prev: The length of the returned list.
  * \return A BLI_linklist of #PreviewImage. The #PreviewImage links should be freed with malloc.
  */
-struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
+LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *r_tot_prev);
 /**
  * Get the PreviewImage of a single data block in a file.
  * (e.g. all the scene previews in a file).
@@ -313,9 +312,9 @@ struct LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, 
  * \param name: Name of the block without the ID_ prefix, to read the preview image from.
  * \return PreviewImage or NULL when no preview Images have been found. Caller owns the returned
  */
-struct PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
-                                                        int ofblocktype,
-                                                        const char *name);
+PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
+                                                 int ofblocktype,
+                                                 const char *name);
 /**
  * Gets the names of all the linkable data-block types available in a file.
  * (e.g. "Scene", "Mesh", "Light", etc.).
@@ -323,7 +322,7 @@ struct PreviewImage *BLO_blendhandle_get_preview_for_id(BlendHandle *bh,
  * \param bh: The blendhandle to access.
  * \return A BLI_linklist of strings. The string links should be freed with #MEM_freeN().
  */
-struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
+LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
 /**
  * Close and free a blendhandle. The handle becomes invalid after this call.
@@ -336,7 +335,7 @@ void BLO_blendhandle_close(BlendHandle *bh);
  * Mark the given Main (and the 'root' local one in case of lib-split Mains) as invalid, and
  * generate an error report containing given `message`.
  */
-void BLO_read_invalidate_message(BlendHandle *bh, struct Main *bmain, const char *message);
+void BLO_read_invalidate_message(BlendHandle *bh, Main *bmain, const char *message);
 
 /**
  * BLI_assert-like macro to check a condition, and if `false`, fail the whole .blend reading
@@ -396,9 +395,9 @@ typedef enum eBLOLibLinkFlags {
  * #BLO_library_link_begin, #BLO_library_link_named_part & #BLO_library_link_end.
  * Wrap these in parameters since it's important both functions receive matching values.
  */
-typedef struct LibraryLink_Params {
+struct LibraryLink_Params {
   /** The current main database, e.g. #G_MAIN or `CTX_data_main(C)`. */
-  struct Main *bmain;
+  Main *bmain;
   /** Options for linking, used for instantiating. */
   int flag;
   /** Additional tag for #ID.tag. */
@@ -406,25 +405,25 @@ typedef struct LibraryLink_Params {
   /** Context for instancing objects (optional, no instantiation will be performed when NULL). */
   struct {
     /** The scene in which to instantiate objects/collections. */
-    struct Scene *scene;
+    Scene *scene;
     /** The scene layer in which to instantiate objects/collections. */
-    struct ViewLayer *view_layer;
+    ViewLayer *view_layer;
     /** The active 3D viewport (only used to define local-view). */
-    const struct View3D *v3d;
+    const View3D *v3d;
   } context;
-} LibraryLink_Params;
+};
 
-void BLO_library_link_params_init(struct LibraryLink_Params *params,
-                                  struct Main *bmain,
+void BLO_library_link_params_init(LibraryLink_Params *params,
+                                  Main *bmain,
                                   int flag,
                                   int id_tag_extra);
-void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params,
-                                               struct Main *bmain,
+void BLO_library_link_params_init_with_context(LibraryLink_Params *params,
+                                               Main *bmain,
                                                int flag,
                                                int id_tag_extra,
-                                               struct Scene *scene,
-                                               struct ViewLayer *view_layer,
-                                               const struct View3D *v3d);
+                                               Scene *scene,
+                                               ViewLayer *view_layer,
+                                               const View3D *v3d);
 
 /**
  * Initialize the #BlendHandle for linking library data.
@@ -435,9 +434,9 @@ void BLO_library_link_params_init_with_context(struct LibraryLink_Params *params
  * \param params: Settings for linking that don't change from beginning to end of linking.
  * \return the library #Main, to be passed to #BLO_library_link_named_part as \a mainl.
  */
-struct Main *BLO_library_link_begin(BlendHandle **bh,
-                                    const char *filepath,
-                                    const struct LibraryLink_Params *params);
+Main *BLO_library_link_begin(BlendHandle **bh,
+                             const char *filepath,
+                             const LibraryLink_Params *params);
 /**
  * Link a named data-block from an external blend file.
  *
@@ -447,11 +446,11 @@ struct Main *BLO_library_link_begin(BlendHandle **bh,
  * \param name: The name of the data-block (without the 2 char ID prefix).
  * \return the linked ID when found.
  */
-struct ID *BLO_library_link_named_part(struct Main *mainl,
-                                       BlendHandle **bh,
-                                       short idcode,
-                                       const char *name,
-                                       const struct LibraryLink_Params *params);
+ID *BLO_library_link_named_part(Main *mainl,
+                                BlendHandle **bh,
+                                short idcode,
+                                const char *name,
+                                const LibraryLink_Params *params);
 /**
  * Finalize linking from a given .blend file (library).
  * Optionally instance the indirect object/collection in the scene when the flags are set.
@@ -461,39 +460,37 @@ struct ID *BLO_library_link_named_part(struct Main *mainl,
  * \param bh: The blender file handle (WARNING! may be freed by this function!).
  * \param params: Settings for linking that don't change from beginning to end of linking.
  */
-void BLO_library_link_end(struct Main *mainl,
-                          BlendHandle **bh,
-                          const struct LibraryLink_Params *params);
+void BLO_library_link_end(Main *mainl, BlendHandle **bh, const LibraryLink_Params *params);
 
 /**
  * Struct for temporarily loading datablocks from a blend file.
  */
-typedef struct TempLibraryContext {
+struct TempLibraryContext {
   /** Temporary main used for library data. */
-  struct Main *bmain_lib;
+  Main *bmain_lib;
   /** Temporary main used to load data into (currently initialized from `real_main`). */
-  struct Main *bmain_base;
-  struct BlendHandle *blendhandle;
-  struct BlendFileReadReport bf_reports;
-  struct LibraryLink_Params liblink_params;
-  struct Library *lib;
+  Main *bmain_base;
+  BlendHandle *blendhandle;
+  BlendFileReadReport bf_reports;
+  LibraryLink_Params liblink_params;
+  Library *lib;
 
   /** The ID datablock that was loaded. Is NULL if loading failed. */
-  struct ID *temp_id;
-} TempLibraryContext;
+  ID *temp_id;
+};
 
-TempLibraryContext *BLO_library_temp_load_id(struct Main *real_main,
+TempLibraryContext *BLO_library_temp_load_id(Main *real_main,
                                              const char *blend_file_path,
                                              short idcode,
                                              const char *idname,
-                                             struct ReportList *reports);
+                                             ReportList *reports);
 void BLO_library_temp_free(TempLibraryContext *temp_lib_ctx);
 
 /** \} */
 
-void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
+void *BLO_library_read_struct(FileData *fd, BHead *bh, const char *blockname);
 
-typedef void (*BLOExpandDoitCallback)(void *fdhandle, struct Main *mainvar, void *idv);
+using BLOExpandDoitCallback = void (*)(void *fdhandle, Main *mainvar, void *idv);
 
 /**
  * Set the callback func used over all ID data found by \a BLO_expand_main func.
@@ -508,7 +505,7 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
  * \param fdhandle: usually file-data, or own handle. May be nullptr.
  * \param mainvar: the Main database to expand.
  */
-void BLO_expand_main(void *fdhandle, struct Main *mainvar);
+void BLO_expand_main(void *fdhandle, Main *mainvar);
 
 /**
  * Update defaults in startup.blend, without having to save and embed it.
@@ -523,11 +520,11 @@ void BLO_expand_main(void *fdhandle, struct Main *mainvar);
  * Versioning the screen data can be safely skipped without "Load UI" since the screen data
  * will have been versioned when it was first loaded.
  */
-void BLO_update_defaults_startup_blend(struct Main *bmain, const char *app_template);
-void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_template);
+void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template);
+void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_template);
 
 /** Disable unwanted experimental feature settings on startup. */
-void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
+void BLO_sanitize_experimental_features_userpref_blend(UserDef *userdef);
 
 /**
  * Does a very light reading of given .blend file to extract its stored thumbnail.
@@ -537,7 +534,7 @@ void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
  * (MEM-allocated, as stored in file, use #BKE_main_thumbnail_to_imbuf()
  * to convert it to ImBuf image).
  */
-struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
+BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 
 /**
  * Does a very light reading of given .blend file to extract its version.
@@ -546,12 +543,3 @@ struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
  * \return The file version
  */
 short BLO_version_from_file(const char *filepath);
-
-/** Default theme, see: `release/datafiles/userdef/userdef_default_theme.c`. */
-extern const struct bTheme U_theme_default;
-/** Default preferences, defined by: `release/datafiles/userdef/userdef_default.c`. */
-extern const struct UserDef U_default;
-
-#ifdef __cplusplus
-}
-#endif

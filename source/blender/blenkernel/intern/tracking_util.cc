@@ -24,7 +24,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"

@@ -40,7 +40,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_pointcloud.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph_query.hh"
 

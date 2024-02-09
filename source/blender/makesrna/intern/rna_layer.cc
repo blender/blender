@@ -10,7 +10,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_object.hh"
 #include "ED_render.hh"

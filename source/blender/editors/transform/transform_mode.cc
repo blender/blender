@@ -28,7 +28,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_sequencer.hh"
 

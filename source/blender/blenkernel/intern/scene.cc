@@ -40,7 +40,7 @@
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
@@ -50,17 +50,17 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_bpath.h"
-#include "BKE_cachefile.h"
-#include "BKE_collection.h"
+#include "BKE_bpath.hh"
+#include "BKE_cachefile.hh"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
 #include "BKE_duplilist.h"
@@ -901,6 +901,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->mat_override, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->world_override, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data,
         IDP_foreach_property(view_layer->id_properties,

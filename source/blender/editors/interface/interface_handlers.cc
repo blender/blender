@@ -70,8 +70,8 @@
 #include "wm_event_system.hh"
 
 #ifdef WITH_INPUT_IME
-#  include "BLT_lang.h"
-#  include "BLT_translation.h"
+#  include "BLT_lang.hh"
+#  include "BLT_translation.hh"
 #  include "wm_window.hh"
 #endif
 

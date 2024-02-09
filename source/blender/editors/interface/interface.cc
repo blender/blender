@@ -32,7 +32,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
@@ -49,7 +49,7 @@
 #include "GPU_state.h"
 
 #include "BLF_api.hh"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"

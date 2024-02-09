@@ -11,7 +11,7 @@
 #include "BKE_context.hh"
 
 #include "BLI_string.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_space_types.h"

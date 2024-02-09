@@ -12,7 +12,7 @@
 
 #include "BLI_rand.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_object.hh"
 

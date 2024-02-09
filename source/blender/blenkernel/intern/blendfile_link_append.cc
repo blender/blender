@@ -34,7 +34,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
@@ -53,7 +53,7 @@
 
 #include "BKE_blendfile_link_append.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_writefile.hh"
 
 static CLG_LogRef LOG = {"bke.blendfile_link_append"};

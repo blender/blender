@@ -15,7 +15,7 @@
 
 #include "BLI_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"

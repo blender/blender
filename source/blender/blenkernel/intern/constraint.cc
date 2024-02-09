@@ -26,7 +26,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -49,7 +49,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"

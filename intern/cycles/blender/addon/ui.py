@@ -927,6 +927,7 @@ class CYCLES_RENDER_PT_override(CyclesButtonsPanel, Panel):
         view_layer = context.view_layer
 
         layout.prop(view_layer, "material_override")
+        layout.prop(view_layer, "world_override")
         layout.prop(view_layer, "samples")
 
 
@@ -2234,7 +2235,7 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
 
         row = col.row(align=True)
         row.prop(cscene, "debug_use_cpu_sse2", toggle=True)
-        row.prop(cscene, "debug_use_cpu_sse41", toggle=True)
+        row.prop(cscene, "debug_use_cpu_sse42", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
         col.prop(cscene, "debug_bvh_layout", text="BVH")
 

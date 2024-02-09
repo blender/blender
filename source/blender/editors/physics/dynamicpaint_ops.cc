@@ -17,7 +17,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"

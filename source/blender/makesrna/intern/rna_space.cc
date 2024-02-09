@@ -11,7 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"

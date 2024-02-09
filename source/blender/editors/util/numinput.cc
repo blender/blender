@@ -15,7 +15,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_report.h"

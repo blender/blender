@@ -16,7 +16,7 @@
 #include "DNA_text_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -29,13 +29,14 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_scene_runtime.hh"
 #include "BKE_workspace.h"
 
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -74,6 +75,8 @@
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
+#include "COM_profile.hh"
+
 namespace blender::ed::space_node {
 
 #define USE_ESC_COMPO
@@ -104,6 +107,8 @@ struct CompoJob {
   bool *do_update;
   float *progress;
   bool cancelled;
+
+  blender::compositor::ProfilerData profiler_data;
 };
 
 float node_socket_calculate_height(const bNodeSocket &socket)
@@ -223,7 +228,8 @@ static void compo_freejob(void *cjv)
   if (cj->compositor_depsgraph != nullptr) {
     DEG_graph_free(cj->compositor_depsgraph);
   }
-  MEM_freeN(cj);
+
+  MEM_delete(cj);
 }
 
 /* Only now we copy the nodetree, so adding many jobs while
@@ -296,15 +302,23 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, "", nullptr);
+    ntreeCompositExecTree(
+        cj->re, cj->scene, ntree, &cj->scene->r, false, true, "", nullptr, cj->profiler_data);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(
-          cj->re, cj->scene, ntree, &cj->scene->r, false, true, srv->name, nullptr);
+      ntreeCompositExecTree(cj->re,
+                            cj->scene,
+                            ntree,
+                            &cj->scene->r,
+                            false,
+                            true,
+                            srv->name,
+                            nullptr,
+                            cj->profiler_data);
     }
   }
 
@@ -320,6 +334,8 @@ static void compo_canceljob(void *cjv)
   Scene *scene = cj->scene;
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
   cj->cancelled = true;
+
+  scene->runtime->compositor.per_node_execution_time = cj->profiler_data.per_node_execution_time;
 }
 
 static void compo_completejob(void *cjv)
@@ -328,6 +344,8 @@ static void compo_completejob(void *cjv)
   Main *bmain = cj->bmain;
   Scene *scene = cj->scene;
   BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
+
+  scene->runtime->compositor.per_node_execution_time = cj->profiler_data.per_node_execution_time;
 }
 
 /** \} */
@@ -395,7 +413,7 @@ void ED_node_composite_job(const bContext *C, bNodeTree *nodetree, Scene *scene_
                               "Compositing",
                               WM_JOB_EXCL_RENDER | WM_JOB_PROGRESS,
                               WM_JOB_TYPE_COMPOSITE);
-  CompoJob *cj = MEM_cnew<CompoJob>("compo job");
+  CompoJob *cj = MEM_new<CompoJob>("compo job");
 
   /* Custom data for preview thread. */
   cj->bmain = bmain;

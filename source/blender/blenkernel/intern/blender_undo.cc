@@ -38,7 +38,7 @@
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_undofile.hh"
 #include "BLO_writefile.hh"
 

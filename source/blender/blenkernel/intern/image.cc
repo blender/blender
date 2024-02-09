@@ -60,9 +60,9 @@
 #include "BLI_timecode.h" /* For stamp time-code format. */
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_colortools.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"

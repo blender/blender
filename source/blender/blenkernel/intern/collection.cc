@@ -18,10 +18,10 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_threads.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"

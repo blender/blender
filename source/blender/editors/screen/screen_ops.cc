@@ -17,7 +17,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -32,7 +32,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_fcurve.h"

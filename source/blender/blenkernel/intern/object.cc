@@ -62,7 +62,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
@@ -72,9 +72,9 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_crazyspace.hh"
 #include "BKE_curve.hh"
@@ -138,7 +138,7 @@
 #include "DRW_engine.hh"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "SEQ_sequencer.hh"
 

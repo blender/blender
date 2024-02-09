@@ -8,10 +8,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct Depsgraph;
 struct ID;
 struct Main;
@@ -117,24 +113,18 @@ typedef enum {
   BKE_CB_EVT_TOT,
 } eCbEvent;
 
-typedef struct bCallbackFuncStore {
-  struct bCallbackFuncStore *next, *prev;
-  void (*func)(struct Main *, struct PointerRNA **, int num_pointers, void *arg);
+struct bCallbackFuncStore {
+  bCallbackFuncStore *next, *prev;
+  void (*func)(Main *, PointerRNA **, int num_pointers, void *arg);
   void *arg;
   short alloc;
-} bCallbackFuncStore;
+};
 
-void BKE_callback_exec(struct Main *bmain,
-                       struct PointerRNA **pointers,
-                       int num_pointers,
-                       eCbEvent evt);
-void BKE_callback_exec_null(struct Main *bmain, eCbEvent evt);
-void BKE_callback_exec_id(struct Main *bmain, struct ID *id, eCbEvent evt);
-void BKE_callback_exec_id_depsgraph(struct Main *bmain,
-                                    struct ID *id,
-                                    struct Depsgraph *depsgraph,
-                                    eCbEvent evt);
-void BKE_callback_exec_string(struct Main *bmain, eCbEvent evt, const char *str);
+void BKE_callback_exec(Main *bmain, PointerRNA **pointers, int num_pointers, eCbEvent evt);
+void BKE_callback_exec_null(Main *bmain, eCbEvent evt);
+void BKE_callback_exec_id(Main *bmain, ID *id, eCbEvent evt);
+void BKE_callback_exec_id_depsgraph(Main *bmain, ID *id, Depsgraph *depsgraph, eCbEvent evt);
+void BKE_callback_exec_string(Main *bmain, eCbEvent evt, const char *str);
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt);
 
@@ -143,7 +133,3 @@ void BKE_callback_global_init(void);
  * Call on application exit.
  */
 void BKE_callback_global_finalize(void);
-
-#ifdef __cplusplus
-}
-#endif

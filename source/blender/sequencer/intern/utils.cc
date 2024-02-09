@@ -21,7 +21,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_image.h"

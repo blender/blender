@@ -32,7 +32,7 @@
 #include "BKE_report.h"
 
 #include "BLO_blend_validate.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 

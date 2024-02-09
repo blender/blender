@@ -31,10 +31,10 @@
 
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
@@ -57,7 +57,8 @@
 #include "BKE_undo_system.hh"
 #include "BKE_workspace.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
+#include "BLO_userdef_default.h"
 #include "BLO_writefile.hh"
 
 #include "RNA_access.hh"

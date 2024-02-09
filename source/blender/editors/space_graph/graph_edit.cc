@@ -32,7 +32,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"

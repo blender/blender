@@ -16,7 +16,7 @@
 
 #include "BLI_string_ref.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"

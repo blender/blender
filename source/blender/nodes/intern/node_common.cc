@@ -21,7 +21,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"

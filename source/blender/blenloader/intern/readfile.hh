@@ -20,7 +20,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 struct BlendFileData;
 struct BlendFileReadParams;

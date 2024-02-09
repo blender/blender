@@ -15,7 +15,7 @@
 #include "BLI_noise.hh"
 #include "BLI_task.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set_instances.hh"

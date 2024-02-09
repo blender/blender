@@ -33,9 +33,9 @@
 #include "BLO_undofile.hh"
 #include "BLO_writefile.hh"
 
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_blendfile.hh"
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -103,7 +103,7 @@
 #include "ED_view3d.hh"
 
 #include "BLF_api.hh"
-#include "BLT_lang.h"
+#include "BLT_lang.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

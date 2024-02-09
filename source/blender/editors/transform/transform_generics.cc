@@ -18,7 +18,7 @@
 #include "BLI_rand.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 
@@ -230,7 +230,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   /* Grease Pencil editing context */
-  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT) {
+  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT &&
+      (area->spacetype == SPACE_VIEW3D))
+  {
     t->options |= CTX_GPENCIL_STROKES;
   }
 

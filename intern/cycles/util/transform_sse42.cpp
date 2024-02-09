@@ -6,7 +6,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void transform_inverse_cpu_sse41(const Transform &tfm, Transform &itfm)
+void transform_inverse_cpu_sse42(const Transform &tfm, Transform &itfm)
 {
   itfm = transform_inverse_impl(tfm);
 }

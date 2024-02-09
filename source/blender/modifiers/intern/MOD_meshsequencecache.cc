@@ -13,7 +13,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_defaults.h"
@@ -25,7 +25,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"

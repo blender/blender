@@ -42,13 +42,13 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"

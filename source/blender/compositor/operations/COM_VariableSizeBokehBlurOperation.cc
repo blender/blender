@@ -2,8 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "COM_VariableSizeBokehBlurOperation.h"
+#include "BLI_math_base.hh"
+#include "BLI_math_vector.hh"
+
 #include "COM_OpenCLDevice.h"
+#include "COM_VariableSizeBokehBlurOperation.h"
 
 namespace blender::compositor {
 
@@ -12,6 +15,7 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
   this->add_input_socket(DataType::Color);
   this->add_input_socket(DataType::Color, ResizeMode::Align); /* Do not resize the bokeh image. */
   this->add_input_socket(DataType::Value);                    /* Radius. */
+  this->add_input_socket(DataType::Value);                    /* Bounding Box. */
 #ifdef COM_DEFOCUS_SEARCH
   /* Inverse search radius optimization structure. */
   this->add_input_socket(DataType::Color, ResizeMode::None);
@@ -24,6 +28,7 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation()
   input_program_ = nullptr;
   input_bokeh_program_ = nullptr;
   input_size_program_ = nullptr;
+  input_mask_program_ = nullptr;
   max_blur_ = 32.0f;
   threshold_ = 1.0f;
   do_size_scale_ = false;
@@ -37,8 +42,9 @@ void VariableSizeBokehBlurOperation::init_execution()
   input_program_ = get_input_socket_reader(0);
   input_bokeh_program_ = get_input_socket_reader(1);
   input_size_program_ = get_input_socket_reader(2);
+  input_mask_program_ = get_input_socket_reader(3);
 #ifdef COM_DEFOCUS_SEARCH
-  input_search_program_ = get_input_socket_reader(3);
+  input_search_program_ = get_input_socket_reader(4);
 #endif
   QualityStepHelper::init_execution(COM_QH_INCREASE);
 }
@@ -46,6 +52,7 @@ struct VariableSizeBokehBlurTileData {
   MemoryBuffer *color;
   MemoryBuffer *bokeh;
   MemoryBuffer *size;
+  MemoryBuffer *mask;
   int max_blur_scalar;
 };
 
@@ -55,6 +62,7 @@ void *VariableSizeBokehBlurOperation::initialize_tile_data(rcti *rect)
   data->color = (MemoryBuffer *)input_program_->initialize_tile_data(rect);
   data->bokeh = (MemoryBuffer *)input_bokeh_program_->initialize_tile_data(rect);
   data->size = (MemoryBuffer *)input_size_program_->initialize_tile_data(rect);
+  data->mask = (MemoryBuffer *)input_mask_program_->initialize_tile_data(rect);
 
   rcti rect2 = COM_AREA_NONE;
   this->determine_depending_area_of_interest(
@@ -64,7 +72,7 @@ void *VariableSizeBokehBlurOperation::initialize_tile_data(rcti *rect)
   const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
 
   data->max_blur_scalar = int(data->size->get_max_value(rect2) * scalar);
-  CLAMP(data->max_blur_scalar, 1.0f, max_blur_);
+  CLAMP(data->max_blur_scalar, 0, max_blur_);
   return data;
 }
 
@@ -77,94 +85,56 @@ void VariableSizeBokehBlurOperation::deinitialize_tile_data(rcti * /*rect*/, voi
 void VariableSizeBokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
   VariableSizeBokehBlurTileData *tile_data = (VariableSizeBokehBlurTileData *)data;
-  MemoryBuffer *input_program_buffer = tile_data->color;
-  MemoryBuffer *input_bokeh_buffer = tile_data->bokeh;
-  MemoryBuffer *input_size_buffer = tile_data->size;
-  float *input_size_float_buffer = input_size_buffer->get_buffer();
-  float *input_program_float_buffer = input_program_buffer->get_buffer();
-  float read_color[4];
-  float bokeh[4];
-  float temp_size[4];
-  float multiplier_accum[4];
-  float color_accum[4];
+  MemoryBuffer *input_buffer = tile_data->color;
+  MemoryBuffer *bokeh_buffer = tile_data->bokeh;
+  MemoryBuffer *size_buffer = tile_data->size;
+  MemoryBuffer *mask_buffer = tile_data->mask;
+
+  if (*mask_buffer->get_elem(x, y) <= 0.0f) {
+    copy_v4_v4(output, input_buffer->get_elem(x, y));
+    return;
+  }
 
   const float max_dim = std::max(get_width(), get_height());
-  const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
-  int max_blur_scalar = tile_data->max_blur_scalar;
+  const float base_size = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
+  const int search_radius = tile_data->max_blur_scalar;
+  const int2 bokeh_size = int2(bokeh_buffer->get_width(), bokeh_buffer->get_height());
+  const float center_size = math::max(0.0f, *size_buffer->get_elem(x, y) * base_size);
 
-  BLI_assert(input_bokeh_buffer->get_width() == COM_BLUR_BOKEH_PIXELS);
-  BLI_assert(input_bokeh_buffer->get_height() == COM_BLUR_BOKEH_PIXELS);
-
-#ifdef COM_DEFOCUS_SEARCH
-  float search[4];
-  input_search_program_->read(search,
-                              x / InverseSearchRadiusOperation::DIVIDER,
-                              y / InverseSearchRadiusOperation::DIVIDER,
-                              nullptr);
-  int minx = search[0];
-  int miny = search[1];
-  int maxx = search[2];
-  int maxy = search[3];
-#else
-  int minx = std::max(x - max_blur_scalar, 0);
-  int miny = std::max(y - max_blur_scalar, 0);
-  int maxx = std::min(x + max_blur_scalar, int(get_width()));
-  int maxy = std::min(y + max_blur_scalar, int(get_height()));
-#endif
-  {
-    input_size_buffer->read_no_check(temp_size, x, y);
-    input_program_buffer->read_no_check(read_color, x, y);
-
-    copy_v4_v4(color_accum, read_color);
-    copy_v4_fl(multiplier_accum, 1.0f);
-    float size_center = temp_size[0] * scalar;
-
-    const int add_xstep_value = QualityStepHelper::get_step();
-    const int add_ystep_value = add_xstep_value;
-    const int add_xstep_color = add_xstep_value * COM_DATA_TYPE_COLOR_CHANNELS;
-
-    if (size_center > threshold_) {
-      for (int ny = miny; ny < maxy; ny += add_ystep_value) {
-        float dy = ny - y;
-        int offset_value_ny = ny * input_size_buffer->get_width();
-        int offset_value_nx_ny = offset_value_ny + (minx);
-        int offset_color_nx_ny = offset_value_nx_ny * COM_DATA_TYPE_COLOR_CHANNELS;
-        for (int nx = minx; nx < maxx; nx += add_xstep_value) {
-          if (nx != x || ny != y) {
-            float size = std::min(input_size_float_buffer[offset_value_nx_ny] * scalar,
-                                  size_center);
-            if (size > threshold_) {
-              float dx = nx - x;
-              if (size > fabsf(dx) && size > fabsf(dy)) {
-                float uv[2] = {
-                    float(COM_BLUR_BOKEH_PIXELS / 2) +
-                        (dx / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1),
-                    float(COM_BLUR_BOKEH_PIXELS / 2) +
-                        (dy / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1),
-                };
-                input_bokeh_buffer->read(bokeh, uv[0], uv[1]);
-                madd_v4_v4v4(color_accum, bokeh, &input_program_float_buffer[offset_color_nx_ny]);
-                add_v4_v4(multiplier_accum, bokeh);
-              }
-            }
-          }
-          offset_color_nx_ny += add_xstep_color;
-          offset_value_nx_ny += add_xstep_value;
+  float4 accumulated_color = float4(input_buffer->get_elem(x, y));
+  float4 accumulated_weight = float4(1.0f);
+  const int step = get_step();
+  if (center_size >= threshold_) {
+    for (int yi = -search_radius; yi <= search_radius; yi += step) {
+      for (int xi = -search_radius; xi <= search_radius; xi += step) {
+        if (xi == 0 && yi == 0) {
+          continue;
         }
+        const float candidate_size = math::max(
+            0.0f, *size_buffer->get_elem_clamped(x + xi, y + yi) * base_size);
+        const float size = math::min(center_size, candidate_size);
+        if (size < threshold_ || math::max(math::abs(xi), math::abs(yi)) > size) {
+          continue;
+        }
+
+        const float2 normalized_texel = (float2(xi, yi) + size + 0.5f) / (size * 2.0f + 1.0f);
+        const float2 weight_texel = (1.0f - normalized_texel) * float2(bokeh_size - 1);
+        const float4 weight = bokeh_buffer->get_elem(int(weight_texel.x), int(weight_texel.y));
+        const float4 color = input_buffer->get_elem_clamped(x + xi, y + yi);
+        accumulated_color += color * weight;
+        accumulated_weight += weight;
       }
     }
+  }
 
-    output[0] = color_accum[0] / multiplier_accum[0];
-    output[1] = color_accum[1] / multiplier_accum[1];
-    output[2] = color_accum[2] / multiplier_accum[2];
-    output[3] = color_accum[3] / multiplier_accum[3];
+  const float4 final_color = math::safe_divide(accumulated_color, accumulated_weight);
+  copy_v4_v4(output, final_color);
 
-    /* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
-    if ((size_center > threshold_) && (size_center < threshold_ * 2.0f)) {
-      /* factor from 0-1 */
-      float fac = (size_center - threshold_) / threshold_;
-      interp_v4_v4v4(output, read_color, output, fac);
-    }
+  /* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
+  if ((center_size > threshold_) && (center_size < threshold_ * 2.0f)) {
+    /* factor from 0-1 */
+    float fac = (center_size - threshold_) / threshold_;
+    interp_v4_v4v4(output, input_buffer->get_elem(x, y), output, fac);
   }
 }
 
@@ -214,6 +184,7 @@ void VariableSizeBokehBlurOperation::deinit_execution()
   input_program_ = nullptr;
   input_bokeh_program_ = nullptr;
   input_size_program_ = nullptr;
+  input_mask_program_ = nullptr;
 #ifdef COM_DEFOCUS_SEARCH
   input_search_program_ = nullptr;
 #endif
@@ -222,28 +193,29 @@ void VariableSizeBokehBlurOperation::deinit_execution()
 bool VariableSizeBokehBlurOperation::determine_depending_area_of_interest(
     rcti *input, ReadBufferOperation *read_operation, rcti *output)
 {
-  rcti new_input;
-  rcti bokeh_input;
+  if (read_operation == (ReadBufferOperation *)get_input_operation(BOKEH_INPUT_INDEX)) {
+    rcti bokeh_input;
+    bokeh_input.xmax = COM_BLUR_BOKEH_PIXELS;
+    bokeh_input.xmin = 0;
+    bokeh_input.ymax = COM_BLUR_BOKEH_PIXELS;
+    bokeh_input.ymin = 0;
+
+    NodeOperation *operation = get_input_operation(BOKEH_INPUT_INDEX);
+    return operation->determine_depending_area_of_interest(&bokeh_input, read_operation, output);
+  }
 
   const float max_dim = std::max(get_width(), get_height());
   const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
   int max_blur_scalar = max_blur_ * scalar;
 
+  rcti new_input;
   new_input.xmax = input->xmax + max_blur_scalar + 2;
   new_input.xmin = input->xmin - max_blur_scalar + 2;
   new_input.ymax = input->ymax + max_blur_scalar - 2;
   new_input.ymin = input->ymin - max_blur_scalar - 2;
-  bokeh_input.xmax = COM_BLUR_BOKEH_PIXELS;
-  bokeh_input.xmin = 0;
-  bokeh_input.ymax = COM_BLUR_BOKEH_PIXELS;
-  bokeh_input.ymin = 0;
 
-  NodeOperation *operation = get_input_operation(2);
+  NodeOperation *operation = get_input_operation(SIZE_INPUT_INDEX);
   if (operation->determine_depending_area_of_interest(&new_input, read_operation, output)) {
-    return true;
-  }
-  operation = get_input_operation(1);
-  if (operation->determine_depending_area_of_interest(&bokeh_input, read_operation, output)) {
     return true;
   }
 #ifdef COM_DEFOCUS_SEARCH
@@ -252,15 +224,21 @@ bool VariableSizeBokehBlurOperation::determine_depending_area_of_interest(
   search_input.xmin = (input->xmin / InverseSearchRadiusOperation::DIVIDER) - 1;
   search_input.ymax = (input->ymax / InverseSearchRadiusOperation::DIVIDER) + 1;
   search_input.ymin = (input->ymin / InverseSearchRadiusOperation::DIVIDER) - 1;
-  operation = get_input_operation(3);
+  operation = get_input_operation(DEFOCUS_INPUT_INDEX);
   if (operation->determine_depending_area_of_interest(&search_input, read_operation, output)) {
     return true;
   }
 #endif
-  operation = get_input_operation(0);
+  operation = get_input_operation(IMAGE_INPUT_INDEX);
   if (operation->determine_depending_area_of_interest(&new_input, read_operation, output)) {
     return true;
   }
+
+  operation = get_input_operation(BOUNDING_BOX_INPUT_INDEX);
+  if (operation->determine_depending_area_of_interest(&new_input, read_operation, output)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -270,6 +248,7 @@ void VariableSizeBokehBlurOperation::get_area_of_interest(const int input_idx,
 {
   switch (input_idx) {
     case IMAGE_INPUT_INDEX:
+    case BOUNDING_BOX_INPUT_INDEX:
     case SIZE_INPUT_INDEX: {
       const float max_dim = std::max(get_width(), get_height());
       const float scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
@@ -298,130 +277,64 @@ void VariableSizeBokehBlurOperation::get_area_of_interest(const int input_idx,
   }
 }
 
-struct PixelData {
-  float multiplier_accum[4];
-  float color_accum[4];
-  float threshold;
-  float scalar;
-  float size_center;
-  int max_blur_scalar;
-  int step;
-  MemoryBuffer *bokeh_input;
-  MemoryBuffer *size_input;
-  MemoryBuffer *image_input;
-  int image_width;
-  int image_height;
-};
-
-static void blur_pixel(int x, int y, PixelData &p)
-{
-  BLI_assert(p.bokeh_input->get_width() == COM_BLUR_BOKEH_PIXELS);
-  BLI_assert(p.bokeh_input->get_height() == COM_BLUR_BOKEH_PIXELS);
-
-#ifdef COM_DEFOCUS_SEARCH
-  float search[4];
-  inputs[DEFOCUS_INPUT_INDEX]->read_elem_checked(x / InverseSearchRadiusOperation::DIVIDER,
-                                                 y / InverseSearchRadiusOperation::DIVIDER,
-                                                 search);
-  const int minx = search[0];
-  const int miny = search[1];
-  const int maxx = search[2];
-  const int maxy = search[3];
-#else
-  const int minx = std::max(x - p.max_blur_scalar, 0);
-  const int miny = std::max(y - p.max_blur_scalar, 0);
-  const int maxx = std::min(x + p.max_blur_scalar, p.image_width);
-  const int maxy = std::min(y + p.max_blur_scalar, p.image_height);
-#endif
-
-  const int color_row_stride = p.image_input->row_stride * p.step;
-  const int color_elem_stride = p.image_input->elem_stride * p.step;
-  const int size_row_stride = p.size_input->row_stride * p.step;
-  const int size_elem_stride = p.size_input->elem_stride * p.step;
-  const float *row_color = p.image_input->get_elem(minx, miny);
-  const float *row_size = p.size_input->get_elem(minx, miny);
-  for (int ny = miny; ny < maxy;
-       ny += p.step, row_size += size_row_stride, row_color += color_row_stride)
-  {
-    const float dy = ny - y;
-    const float *size_elem = row_size;
-    const float *color = row_color;
-    for (int nx = minx; nx < maxx;
-         nx += p.step, size_elem += size_elem_stride, color += color_elem_stride)
-    {
-      if (nx == x && ny == y) {
-        continue;
-      }
-      const float size = std::min(size_elem[0] * p.scalar, p.size_center);
-      if (size <= p.threshold) {
-        continue;
-      }
-      const float dx = nx - x;
-      if (size <= fabsf(dx) || size <= fabsf(dy)) {
-        continue;
-      }
-
-      /* XXX: There is no way to ensure bokeh input is an actual bokeh with #COM_BLUR_BOKEH_PIXELS
-       * size, anything may be connected. Use the real input size and remove asserts? */
-      const float u = float(COM_BLUR_BOKEH_PIXELS / 2) +
-                      (dx / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1);
-      const float v = float(COM_BLUR_BOKEH_PIXELS / 2) +
-                      (dy / size) * float((COM_BLUR_BOKEH_PIXELS / 2) - 1);
-      float bokeh[4];
-      p.bokeh_input->read_elem_checked(u, v, bokeh);
-      madd_v4_v4v4(p.color_accum, bokeh, color);
-      add_v4_v4(p.multiplier_accum, bokeh);
-    }
-  }
-}
-
 void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                                   const rcti &area,
                                                                   Span<MemoryBuffer *> inputs)
 {
-  PixelData p;
-  p.bokeh_input = inputs[BOKEH_INPUT_INDEX];
-  p.size_input = inputs[SIZE_INPUT_INDEX];
-  p.image_input = inputs[IMAGE_INPUT_INDEX];
-  p.step = QualityStepHelper::get_step();
-  p.threshold = threshold_;
-  p.image_width = this->get_width();
-  p.image_height = this->get_height();
+  MemoryBuffer *input_buffer = inputs[0];
+  MemoryBuffer *bokeh_buffer = inputs[1];
+  MemoryBuffer *size_buffer = inputs[2];
+  MemoryBuffer *mask_buffer = inputs[3];
 
-  rcti scalar_area = COM_AREA_NONE;
-  this->get_area_of_interest(SIZE_INPUT_INDEX, area, scalar_area);
-  BLI_rcti_isect(&scalar_area, &p.size_input->get_rect(), &scalar_area);
-  const float max_size = p.size_input->get_max_value(scalar_area);
+  const float max_dim = std::max(get_width(), get_height());
+  const float base_size = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
+  const float maximum_size = size_buffer->get_max_value();
+  const int search_radius = math::clamp(int(maximum_size * base_size), 0, max_blur_);
+  const int2 bokeh_size = int2(bokeh_buffer->get_width(), bokeh_buffer->get_height());
 
-  const float max_dim = std::max(this->get_width(), this->get_height());
-  p.scalar = do_size_scale_ ? (max_dim / 100.0f) : 1.0f;
-  p.max_blur_scalar = int(max_size * p.scalar);
-  CLAMP(p.max_blur_scalar, 1, max_blur_);
-
-  for (BuffersIterator<float> it = output->iterate_with({p.image_input, p.size_input}, area);
-       !it.is_end();
-       ++it)
-  {
-    const float *color = it.in(0);
-    const float size = *it.in(1);
-    copy_v4_v4(p.color_accum, color);
-    copy_v4_fl(p.multiplier_accum, 1.0f);
-    p.size_center = size * p.scalar;
-
-    if (p.size_center > p.threshold) {
-      blur_pixel(it.x, it.y, p);
+  BuffersIterator<float> it = output->iterate_with({}, area);
+  for (; !it.is_end(); ++it) {
+    if (*mask_buffer->get_elem(it.x, it.y) <= 0.0f) {
+      copy_v4_v4(it.out, input_buffer->get_elem(it.x, it.y));
+      continue;
     }
 
-    it.out[0] = p.color_accum[0] / p.multiplier_accum[0];
-    it.out[1] = p.color_accum[1] / p.multiplier_accum[1];
-    it.out[2] = p.color_accum[2] / p.multiplier_accum[2];
-    it.out[3] = p.color_accum[3] / p.multiplier_accum[3];
+    const float center_size = math::max(0.0f, *size_buffer->get_elem(it.x, it.y) * base_size);
 
-    /* Blend in out values over the threshold, otherwise we get sharp, ugly transitions. */
-    if ((p.size_center > p.threshold) && (p.size_center < p.threshold * 2.0f)) {
-      /* Factor from 0-1. */
-      const float fac = (p.size_center - p.threshold) / p.threshold;
-      interp_v4_v4v4(it.out, color, it.out, fac);
+    float4 accumulated_color = float4(input_buffer->get_elem(it.x, it.y));
+    float4 accumulated_weight = float4(1.0f);
+    const int step = get_step();
+    if (center_size >= threshold_) {
+      for (int yi = -search_radius; yi <= search_radius; yi += step) {
+        for (int xi = -search_radius; xi <= search_radius; xi += step) {
+          if (xi == 0 && yi == 0) {
+            continue;
+          }
+          const float candidate_size = math::max(
+              0.0f, *size_buffer->get_elem_clamped(it.x + xi, it.y + yi) * base_size);
+          const float size = math::min(center_size, candidate_size);
+          if (size < threshold_ || math::max(math::abs(xi), math::abs(yi)) > size) {
+            continue;
+          }
+
+          const float2 normalized_texel = (float2(xi, yi) + size + 0.5f) / (size * 2.0f + 1.0f);
+          const float2 weight_texel = (1.0f - normalized_texel) * float2(bokeh_size - 1);
+          const float4 weight = bokeh_buffer->get_elem(int(weight_texel.x), int(weight_texel.y));
+          const float4 color = input_buffer->get_elem_clamped(it.x + xi, it.y + yi);
+          accumulated_color += color * weight;
+          accumulated_weight += weight;
+        }
+      }
+    }
+
+    const float4 final_color = math::safe_divide(accumulated_color, accumulated_weight);
+    copy_v4_v4(it.out, final_color);
+
+    /* blend in out values over the threshold, otherwise we get sharp, ugly transitions */
+    if ((center_size > threshold_) && (center_size < threshold_ * 2.0f)) {
+      /* factor from 0-1 */
+      float fac = (center_size - threshold_) / threshold_;
+      interp_v4_v4v4(it.out, input_buffer->get_elem(it.x, it.y), it.out, fac);
     }
   }
 }

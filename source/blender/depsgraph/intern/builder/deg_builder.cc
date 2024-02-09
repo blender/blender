@@ -21,7 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_lib_id.hh"
 
 #include "RNA_prototypes.h"
