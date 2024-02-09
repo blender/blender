@@ -20,7 +20,7 @@
 #ifdef UNIT_TEST
 #  define RNA_MAX_ARRAY_LENGTH 64
 #else
-#  define RNA_MAX_ARRAY_LENGTH 32
+#  define RNA_MAX_ARRAY_LENGTH 64
 #endif
 
 #define RNA_MAX_ARRAY_DIMENSION 3
