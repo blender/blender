@@ -72,6 +72,9 @@ float sum_luminance_squared_difference(Context &context,
  * coefficients to compute the luminance. */
 float maximum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients);
 
+/* Computes the maximum float value of all pixels in the given texture. */
+float maximum_float(Context &context, GPUTexture *texture);
+
 /* Computes the maximum float of all pixels in the given float texture, limited to the given range.
  * Values outside of the given range are ignored. If non of the pixel values are in the range, the
  * lower bound of the range is returned. For instance, if the given range is [-10, 10] and the
@@ -90,6 +93,9 @@ float maximum_float_in_range(Context &context,
 /* Computes the minimum luminance of all pixels in the given texture, using the given luminance
  * coefficients to compute the luminance. */
 float minimum_luminance(Context &context, GPUTexture *texture, float3 luminance_coefficients);
+
+/* Computes the minimum float value of all pixels in the given texture. */
+float minimum_float(Context &context, GPUTexture *texture);
 
 /* Computes the minimum float of all pixels in the given float texture, limited to the given range.
  * Values outside of the given range are ignored. If non of the pixel values are in the range, the

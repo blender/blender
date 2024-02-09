@@ -16,8 +16,9 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
   static constexpr int IMAGE_INPUT_INDEX = 0;
   static constexpr int BOKEH_INPUT_INDEX = 1;
   static constexpr int SIZE_INPUT_INDEX = 2;
+  static constexpr int BOUNDING_BOX_INPUT_INDEX = 3;
 #ifdef COM_DEFOCUS_SEARCH
-  static constexpr int DEFOCUS_INPUT_INDEX = 3;
+  static constexpr int DEFOCUS_INPUT_INDEX = 4;
 #endif
 
   int max_blur_;
@@ -26,6 +27,7 @@ class VariableSizeBokehBlurOperation : public MultiThreadedOperation, public Qua
   SocketReader *input_program_;
   SocketReader *input_bokeh_program_;
   SocketReader *input_size_program_;
+  SocketReader *input_mask_program_;
 #ifdef COM_DEFOCUS_SEARCH
   SocketReader *input_search_program_;
 #endif
