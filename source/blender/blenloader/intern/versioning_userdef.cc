@@ -915,6 +915,14 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->keying_flag |= AUTOKEY_FLAG_INSERTNEEDED;
   }
 
+  if (!USER_VERSION_ATLEAST(401, 14)) {
+    LISTBASE_FOREACH (wmKeyMap *, km, &userdef->user_keymaps) {
+      if (STREQ(km->idname, "NLA Channels")) {
+        STRNCPY(km->idname, "NLA Tracks");
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
