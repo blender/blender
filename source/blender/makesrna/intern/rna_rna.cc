@@ -153,33 +153,44 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+/* Descriptions for rna_enum_property_flag_items and rna_enum_property_flag_enum_items. */
+static constexpr auto PROP_HIDDEN_DESCR = "Hidden in the user interface. Inherits 'SKIP_PRESET'";
+static constexpr auto PROP_SKIP_SAVE_DESCR = "Do not use ghost values. Inherits 'SKIP_PRESET'";
+static constexpr auto PROP_SKIP_PRESET_DESCR = "Do not write in presets";
+static constexpr auto PROP_ANIMATABLE_DESCR = "";
+static constexpr auto PROP_LIB_EXCEPTION_DESCR = "";
+static constexpr auto PROP_PROPORTIONAL_DESCR = "";
+static constexpr auto PROP_TEXTEDIT_UPDATE_DESCR = "";
+static constexpr auto PROP_PATH_OUTPUT_DESCR = "";
+static constexpr auto PROP_ENUM_FLAG_DESCR = "";
+
 const EnumPropertyItem rna_enum_property_flag_items[] = {
-    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", "Hidden in the user interface. Inherits 'SKIP_PRESET'"},
-    {PROP_SKIP_SAVE,
-     "SKIP_SAVE",
+    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", PROP_HIDDEN_DESCR},
+    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", PROP_SKIP_SAVE_DESCR},
+    {PROP_SKIP_PRESET, "SKIP_PRESET", 0, "Skip Preset", PROP_SKIP_PRESET_DESCR},
+    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", PROP_ANIMATABLE_DESCR},
+    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", PROP_LIB_EXCEPTION_DESCR},
+    {PROP_PROPORTIONAL,
+     "PROPORTIONAL",
      0,
-     "Skip Save",
-     "Do not use ghost values. Inherits 'SKIP_PRESET'"},
-    {PROP_SKIP_PRESET, "SKIP_PRESET", 0, "Skip Preset", "Do not write in presets"},
-    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
-    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to each other", ""},
+     "Adjust values proportionally to each other",
+     PROP_PROPORTIONAL_DESCR},
     {int(PROP_TEXTEDIT_UPDATE),
      "TEXTEDIT_UPDATE",
      0,
      "Update on every keystroke in textedit 'mode'",
-     ""},
-    {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", ""},
+     PROP_TEXTEDIT_UPDATE_DESCR},
+    {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", PROP_PATH_OUTPUT_DESCR},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 /** Only for enum type properties. */
 const EnumPropertyItem rna_enum_property_flag_enum_items[] = {
-    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
-    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
-    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
+    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", PROP_HIDDEN_DESCR},
+    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", PROP_SKIP_SAVE_DESCR},
+    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", PROP_ANIMATABLE_DESCR},
+    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", PROP_LIB_EXCEPTION_DESCR},
+    {PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", PROP_ENUM_FLAG_DESCR},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
