@@ -2127,28 +2127,28 @@ static bool ed_operator_outliner_id_orphans_active(bContext *C)
 static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Main *bmain = CTX_data_main(C);
-  int num_tagged[INDEX_ID_MAX] = {0};
 
-  const bool do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
-  const bool do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
-  const bool do_recursive_cleanup = RNA_boolean_get(op->ptr, "do_recursive");
+  LibQueryUnusedIDsData unused_ids_data;
+  unused_ids_data.do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
+  unused_ids_data.do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
+  unused_ids_data.do_recursive = RNA_boolean_get(op->ptr, "do_recursive");
 
   /* Tag all IDs to delete. */
-  BKE_lib_query_unused_ids_tag(
-      bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
+  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, unused_ids_data);
 
-  RNA_int_set(op->ptr, "num_deleted", num_tagged[INDEX_ID_NULL]);
+  RNA_int_set(op->ptr, "num_deleted", unused_ids_data.num_total[INDEX_ID_NULL]);
 
-  if (num_tagged[INDEX_ID_NULL] == 0) {
+  if (unused_ids_data.num_total[INDEX_ID_NULL] == 0) {
     BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
     return OPERATOR_CANCELLED;
   }
 
   DynStr *dyn_str = BLI_dynstr_new();
-  BLI_dynstr_appendf(dyn_str, RPT_("Purging %d unused data-blocks ("), num_tagged[INDEX_ID_NULL]);
+  BLI_dynstr_appendf(
+      dyn_str, RPT_("Purging %d unused data-blocks ("), unused_ids_data.num_total[INDEX_ID_NULL]);
   bool is_first = true;
-  for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
-    if (num_tagged[i] != 0) {
+  for (size_t i = 0; i < INDEX_ID_MAX - 2; i++) {
+    if (unused_ids_data.num_total[i] != 0) {
       if (!is_first) {
         BLI_dynstr_append(dyn_str, ", ");
       }
@@ -2157,7 +2157,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
       }
       BLI_dynstr_appendf(dyn_str,
                          "%d %s",
-                         num_tagged[i],
+                         unused_ids_data.num_total[i],
                          RPT_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))));
     }
   }
@@ -2176,18 +2176,19 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   ScrArea *area = CTX_wm_area(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  int num_tagged[INDEX_ID_MAX] = {0};
+  int num_deleted;
 
-  if ((num_tagged[INDEX_ID_NULL] = RNA_int_get(op->ptr, "num_deleted")) == 0) {
-    const bool do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
-    const bool do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
-    const bool do_recursive_cleanup = RNA_boolean_get(op->ptr, "do_recursive");
+  if ((num_deleted = RNA_int_get(op->ptr, "num_deleted")) == 0) {
+    LibQueryUnusedIDsData unused_ids_data;
+    unused_ids_data.do_local_ids = RNA_boolean_get(op->ptr, "do_local_ids");
+    unused_ids_data.do_linked_ids = RNA_boolean_get(op->ptr, "do_linked_ids");
+    unused_ids_data.do_recursive = RNA_boolean_get(op->ptr, "do_recursive");
 
     /* Tag all IDs to delete. */
-    BKE_lib_query_unused_ids_tag(
-        bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
+    BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, unused_ids_data);
 
-    if (num_tagged[INDEX_ID_NULL] == 0) {
+    num_deleted = unused_ids_data.num_total[INDEX_ID_NULL];
+    if (num_deleted == 0) {
       BKE_report(op->reports, RPT_INFO, "No orphaned data-blocks to purge");
       return OPERATOR_CANCELLED;
     }
@@ -2195,7 +2196,7 @@ static int outliner_orphans_purge_exec(bContext *C, wmOperator *op)
 
   BKE_id_multi_tagged_delete(bmain);
 
-  BKE_reportf(op->reports, RPT_INFO, "Deleted %d data-block(s)", num_tagged[INDEX_ID_NULL]);
+  BKE_reportf(op->reports, RPT_INFO, "Deleted %d data-block(s)", num_deleted);
 
   /* XXX: tree management normally happens from draw_outliner(), but when
    *      you're clicking to fast on Delete object from context menu in
