@@ -45,7 +45,7 @@
 #include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLT_translation.h"
 
 #include "BLF_api.hh"

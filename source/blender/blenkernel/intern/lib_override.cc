@@ -44,7 +44,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"

@@ -17,7 +17,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"

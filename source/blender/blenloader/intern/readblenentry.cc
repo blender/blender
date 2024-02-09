@@ -31,7 +31,7 @@
 #include "BKE_preview_image.hh"
 
 #include "BLO_blend_defs.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_undofile.hh"
 
 #include "readfile.hh"

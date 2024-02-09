@@ -34,7 +34,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_blendfile.hh"

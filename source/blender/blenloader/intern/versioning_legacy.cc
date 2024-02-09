@@ -72,7 +72,7 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 

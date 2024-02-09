@@ -76,7 +76,7 @@
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
 

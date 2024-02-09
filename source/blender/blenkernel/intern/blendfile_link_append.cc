@@ -53,7 +53,7 @@
 
 #include "BKE_blendfile_link_append.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_writefile.hh"
 
 static CLG_LogRef LOG = {"bke.blendfile_link_append"};

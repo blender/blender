@@ -25,7 +25,7 @@
 #include "BLI_path_util.h"
 #include "BLI_threads.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

@@ -18,7 +18,7 @@
 
 #include "BLI_utility_mixins.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "MEM_guardedalloc.h"
 

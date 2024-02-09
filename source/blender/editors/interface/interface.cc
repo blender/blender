@@ -32,7 +32,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"

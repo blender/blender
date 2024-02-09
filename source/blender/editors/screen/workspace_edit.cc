@@ -22,7 +22,7 @@
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"

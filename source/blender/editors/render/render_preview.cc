@@ -27,7 +27,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"

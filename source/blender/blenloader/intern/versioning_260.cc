@@ -83,7 +83,7 @@
 #include "NOD_composite.hh"
 #include "NOD_texture.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 

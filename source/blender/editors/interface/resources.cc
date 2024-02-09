@@ -25,7 +25,7 @@
 #include "BKE_main.hh"
 #include "BKE_mesh_runtime.hh"
 
-#include "BLO_readfile.h" /* for UserDef version patching. */
+#include "BLO_userdef_default.h"
 
 #include "BLF_api.hh"
 

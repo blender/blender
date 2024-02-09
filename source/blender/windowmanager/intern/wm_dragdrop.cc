@@ -37,7 +37,7 @@
 
 #include "GHOST_C-api.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"

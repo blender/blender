@@ -18,7 +18,7 @@
 
 #include "GPU_platform.h"
 
-#include "BLO_readfile.h" /* own include */
+#include "BLO_userdef_default.h" /* own include */
 
 const UserDef U_default = {
     .versionfile = BLENDER_FILE_VERSION,

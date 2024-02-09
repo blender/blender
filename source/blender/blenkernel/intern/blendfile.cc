@@ -57,7 +57,8 @@
 #include "BKE_undo_system.hh"
 #include "BKE_workspace.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
+#include "BLO_userdef_default.h"
 #include "BLO_writefile.hh"
 
 #include "RNA_access.hh"

@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "MEM_guardedalloc.h"
 
 #include "ED_keyframing.hh"

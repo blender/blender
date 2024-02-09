@@ -73,7 +73,7 @@
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

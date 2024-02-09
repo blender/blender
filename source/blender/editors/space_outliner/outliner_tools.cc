@@ -77,7 +77,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "../../blender/blenloader/BLO_readfile.h"
+#include "../../blender/blenloader/BLO_readfile.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

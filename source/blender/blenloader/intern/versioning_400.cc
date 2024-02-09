@@ -74,7 +74,7 @@
 #include "BLT_translation.h"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 

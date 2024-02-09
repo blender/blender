@@ -74,7 +74,7 @@
 
 #include "BLT_translation.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "NOD_common.h"
 #include "NOD_composite.hh"

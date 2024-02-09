@@ -50,7 +50,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BLT_translation.h"
 
