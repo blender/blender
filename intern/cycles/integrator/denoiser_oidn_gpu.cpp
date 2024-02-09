@@ -173,7 +173,7 @@ bool OIDNDenoiserGPU::commit_and_execute_filter(OIDNFilter filter, ExecMode mode
       break;
     }
     max_mem_ = max_mem_ / 2;
-    oidnSetFilterInt(oidn_filter_, "maxMemoryMB", max_mem_);
+    oidnSetFilterInt(filter, "maxMemoryMB", max_mem_);
   }
 
   if (err != OIDN_ERROR_NONE) {
