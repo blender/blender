@@ -70,11 +70,18 @@ void BKE_object_defgroup_remap_update_users(Object *ob, const int *map)
     else if (md->type == eModifierType_Cloth) {
       ClothModifierData *clmd = (ClothModifierData *)md;
       ClothSimSettings *clsim = clmd->sim_parms;
+      ClothCollSettings *clcoll = clmd->coll_parms;
 
       if (clsim) {
         clsim->vgroup_mass = map[clsim->vgroup_mass];
-        clsim->vgroup_bend = map[clsim->vgroup_bend];
+        clsim->vgroup_shrink = map[clsim->vgroup_shrink];
         clsim->vgroup_struct = map[clsim->vgroup_struct];
+        clsim->vgroup_shear = map[clsim->vgroup_shear];
+        clsim->vgroup_bend = map[clsim->vgroup_bend];
+        clsim->vgroup_intern = map[clsim->vgroup_intern];
+        clsim->vgroup_pressure = map[clsim->vgroup_pressure];
+        clcoll->vgroup_selfcol = map[clcoll->vgroup_selfcol];
+        clcoll->vgroup_objcol = map[clcoll->vgroup_objcol];
       }
     }
   }
