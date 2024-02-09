@@ -55,7 +55,8 @@ void COM_execute(Render *render,
                  bNodeTree *node_tree,
                  bool rendering,
                  const char *view_name,
-                 blender::realtime_compositor::RenderContext *render_context)
+                 blender::realtime_compositor::RenderContext *render_context,
+                 blender::compositor::ProfilerData &profiler_data)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
@@ -95,8 +96,14 @@ void COM_execute(Render *render,
     /* Execute. */
     const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
     if (twopass) {
-      blender::compositor::ExecutionSystem fast_pass(
-          render_data, scene, node_tree, rendering, true, view_name, render_context);
+      blender::compositor::ExecutionSystem fast_pass(render_data,
+                                                     scene,
+                                                     node_tree,
+                                                     rendering,
+                                                     true,
+                                                     view_name,
+                                                     render_context,
+                                                     profiler_data);
       fast_pass.execute();
 
       if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
@@ -106,7 +113,7 @@ void COM_execute(Render *render,
     }
 
     blender::compositor::ExecutionSystem system(
-        render_data, scene, node_tree, rendering, false, view_name, render_context);
+        render_data, scene, node_tree, rendering, false, view_name, render_context, profiler_data);
     system.execute();
   }
 

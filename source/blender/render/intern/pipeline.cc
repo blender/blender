@@ -67,6 +67,7 @@
 
 #include "NOD_composite.hh"
 
+#include "COM_profile.hh"
 #include "COM_render_context.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1301,6 +1302,7 @@ static void do_render_compositor(Render *re)
         }
 
         blender::realtime_compositor::RenderContext compositor_render_context;
+        blender::compositor::ProfilerData profiler_data;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
           ntreeCompositExecTree(re,
                                 re->pipeline_scene_eval,
@@ -1309,7 +1311,8 @@ static void do_render_compositor(Render *re)
                                 true,
                                 G.background == 0,
                                 rv->name,
-                                &compositor_render_context);
+                                &compositor_render_context,
+                                profiler_data);
         }
         compositor_render_context.save_file_outputs(re->pipeline_scene_eval);
 
