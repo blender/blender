@@ -62,7 +62,7 @@ ccl_device_inline float4 madd4(const float4 a, const float4 b, const float4 c)
 ccl_device_inline int fast_rint(float x)
 {
   /* used by sin/cos/tan range reduction. */
-#ifdef __KERNEL_SSE41__
+#ifdef __KERNEL_SSE42__
   /* Single `roundps` instruction on SSE4.1+ for gcc/clang but not MSVC 19.35:
    * float_to_int(rintf(x)); so we use the equivalent intrinsics. */
   __m128 vec = _mm_set_ss(x);

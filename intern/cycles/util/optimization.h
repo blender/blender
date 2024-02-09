@@ -21,15 +21,15 @@
 
 /* x86-64
  *
- * Compile a regular (includes SSE2), SSE3, SSE 4.1, AVX and AVX2 kernel. */
+ * Compile a regular (includes SSE2), SSE 4.2 and AVX2 kernel. */
 
 #  elif defined(__x86_64__) || defined(_M_X64)
 
 /* SSE2 is always available on x86-64 CPUs, so auto enable */
 #    define __KERNEL_SSE2__
 /* no SSE2 kernel on x86-64, part of regular kernel */
-#    ifdef WITH_KERNEL_SSE41
-#      define WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
+#    ifdef WITH_KERNEL_SSE42
+#      define WITH_CYCLES_OPTIMIZED_KERNEL_SSE42
 #    endif
 #    ifdef WITH_KERNEL_AVX2
 #      define WITH_CYCLES_OPTIMIZED_KERNEL_AVX2
@@ -47,7 +47,7 @@
 #    define __KERNEL_SSE__
 #    define __KERNEL_SSE2__
 #    define __KERNEL_SSE3__
-#    define __KERNEL_SSE41__
+#    define __KERNEL_SSE42__
 
 #  endif
 

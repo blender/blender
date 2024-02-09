@@ -8,7 +8,7 @@
 
 #include "util/optimization.h"
 
-#ifndef WITH_CYCLES_OPTIMIZED_KERNEL_SSE41
+#ifndef WITH_CYCLES_OPTIMIZED_KERNEL_SSE42
 #  define KERNEL_STUB
 #else
 /* SSE optimization disabled for now on 32 bit, see bug #36316. */
@@ -16,10 +16,10 @@
 #    define __KERNEL_SSE2__
 #    define __KERNEL_SSE3__
 #    define __KERNEL_SSSE3__
-#    define __KERNEL_SSE41__
+#    define __KERNEL_SSE42__
 #  endif
-#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE41 */
+#endif /* WITH_CYCLES_OPTIMIZED_KERNEL_SSE42 */
 
 #include "kernel/device/cpu/kernel.h"
-#define KERNEL_ARCH cpu_sse41
+#define KERNEL_ARCH cpu_sse42
 #include "kernel/device/cpu/kernel_arch_impl.h"
