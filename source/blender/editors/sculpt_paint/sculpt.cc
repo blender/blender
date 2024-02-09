@@ -1866,6 +1866,8 @@ static void calc_area_normal_and_center_task(Object *ob,
       float3 no;
       int flip_index;
 
+      r_any_vertex_sampled = true;
+
       normal_tri_v3(no, UNPACK3(co_tri));
 
       flip_index = (math::dot(ss->cache->view_normal, no) <= 0.0f);
