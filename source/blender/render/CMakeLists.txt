@@ -65,7 +65,6 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  bf_compositor
   bf_realtime_compositor
   PRIVATE bf::intern::atomic
 )
