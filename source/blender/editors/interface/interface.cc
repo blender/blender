@@ -1425,7 +1425,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
         C, ptr, prop, prop_index);
 
     /* Always iterate once, even if data-path isn't set. */
-    data_path_variations.append(data_path.has_value() ? data_path.value() : "");
+    data_path_variations.append(data_path.value_or(""));
 
     if (data_path.has_value()) {
       StringRef data_path_ref = StringRef(data_path.value());
