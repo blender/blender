@@ -23,7 +23,7 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

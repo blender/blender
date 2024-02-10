@@ -27,7 +27,7 @@
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_node.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"

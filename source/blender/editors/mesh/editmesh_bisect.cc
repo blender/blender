@@ -16,7 +16,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

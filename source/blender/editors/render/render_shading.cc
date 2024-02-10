@@ -52,7 +52,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_vfont.hh"

@@ -77,7 +77,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_packedFile.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"

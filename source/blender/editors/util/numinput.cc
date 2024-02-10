@@ -18,7 +18,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_unit.hh"
 

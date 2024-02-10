@@ -21,7 +21,7 @@
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLO_writefile.hh"
 

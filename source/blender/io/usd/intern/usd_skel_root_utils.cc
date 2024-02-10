@@ -9,7 +9,7 @@
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/root.h>
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "WM_types.hh"
 

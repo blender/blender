@@ -15,7 +15,7 @@
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "BLI_blenlib.h"
 #  include "BLI_path_util.h"

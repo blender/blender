@@ -41,7 +41,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 
 #include "BLT_translation.hh"

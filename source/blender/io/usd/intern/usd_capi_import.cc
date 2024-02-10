@@ -22,7 +22,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_world.h"
 

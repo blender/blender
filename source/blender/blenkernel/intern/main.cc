@@ -33,7 +33,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

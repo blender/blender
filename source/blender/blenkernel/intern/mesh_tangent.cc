@@ -23,7 +23,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_strict_flags.h"
 

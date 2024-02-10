@@ -22,7 +22,7 @@
 #include "BKE_main.hh"
 #include "BKE_nla.h"
 #include "BKE_node.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"

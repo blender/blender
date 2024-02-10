@@ -24,7 +24,7 @@
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLT_translation.hh"
 

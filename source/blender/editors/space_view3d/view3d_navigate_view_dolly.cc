@@ -7,7 +7,7 @@
  */
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_math_vector.h"
 

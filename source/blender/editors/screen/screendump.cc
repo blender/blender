@@ -27,7 +27,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "BLT_translation.hh"

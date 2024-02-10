@@ -28,7 +28,7 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 
 #include "RNA_access.hh"

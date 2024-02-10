@@ -29,7 +29,7 @@
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"

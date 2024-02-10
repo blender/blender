@@ -14,7 +14,7 @@
 
 #include "AS_asset_representation.hh"
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_utility_mixins.hh"
 

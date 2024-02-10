@@ -42,7 +42,7 @@
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"

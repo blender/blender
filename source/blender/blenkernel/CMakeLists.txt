@@ -484,7 +484,7 @@ set(SRC
   BKE_pose_backup.h
   BKE_preferences.h
   BKE_preview_image.hh
-  BKE_report.h
+  BKE_report.hh
   BKE_rigidbody.h
   BKE_scene.h
   BKE_scene_runtime.hh

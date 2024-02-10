@@ -14,10 +14,6 @@
 #include "BLI_utildefines.h"
 #include "DNA_windowmanager_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Reporting Information and Errors.
  *
@@ -91,7 +87,3 @@ const char *BKE_report_type_str(eReportType type);
 
 bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header);
 bool BKE_report_write_file(const char *filepath, ReportList *reports, const char *header);
-
-#ifdef __cplusplus
-}
-#endif

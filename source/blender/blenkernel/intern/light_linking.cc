@@ -19,7 +19,7 @@
 #include "BKE_collection.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLT_translation.hh"
 

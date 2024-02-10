@@ -61,7 +61,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_preview_image.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh" /* BKE_ST_MAXNAME */
 #include "BKE_unit.hh"

@@ -37,7 +37,7 @@
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 
 #include "BLT_translation.hh"

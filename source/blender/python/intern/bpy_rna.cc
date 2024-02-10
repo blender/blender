@@ -55,7 +55,7 @@
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 /* Only for types. */
 #include "BKE_node.h"

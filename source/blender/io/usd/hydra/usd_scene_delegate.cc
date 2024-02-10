@@ -9,7 +9,7 @@
 #include "BLI_string.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 

@@ -39,7 +39,7 @@
 #include "BKE_image_save.h"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"
 

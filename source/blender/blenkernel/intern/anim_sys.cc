@@ -47,7 +47,7 @@
 #include "BKE_material.h"
 #include "BKE_nla.h"
 #include "BKE_node.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.hh"

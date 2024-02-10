@@ -13,7 +13,7 @@
 #include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 

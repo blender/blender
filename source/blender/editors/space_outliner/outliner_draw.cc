@@ -43,7 +43,7 @@
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ANIM_bone_collections.hh"
 

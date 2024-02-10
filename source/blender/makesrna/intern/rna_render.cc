@@ -88,7 +88,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "BKE_appdir.hh"
 #  include "BKE_context.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "GPU_capabilities.h"
 #  include "GPU_shader.h"

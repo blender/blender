@@ -19,7 +19,7 @@
 #include "BKE_curves.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
 #include "BLT_translation.hh"

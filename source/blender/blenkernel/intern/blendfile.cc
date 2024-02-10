@@ -50,7 +50,7 @@
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_preferences.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"

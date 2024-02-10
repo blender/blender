@@ -49,7 +49,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"

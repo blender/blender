@@ -23,7 +23,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_global.hh" /* G.background only */
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 const char *BKE_report_type_str(eReportType type)
 {
