@@ -84,7 +84,7 @@ const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid
 #define BLT_I18NCONTEXT_PLURAL "Plural"
 
 /* ID-types contexts. */
-/* WARNING! Keep it in sync with idtypes in blenkernel/intern/idcode.c */
+/* WARNING! Keep it in sync with ID-types in `blenkernel/intern/idtype.cc`. */
 #define BLT_I18NCONTEXT_ID_ACTION "Action"
 #define BLT_I18NCONTEXT_ID_ARMATURE "Armature"
 #define BLT_I18NCONTEXT_ID_BRUSH "Brush"

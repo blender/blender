@@ -36,7 +36,7 @@ void PlanarProbe::set_view(const draw::View &view, int layer_id)
 
 void PlanarProbeModule::init()
 {
-  /* This triggers the compilation of clipped shader only if we can detect lightprobe planes. */
+  /* This triggers the compilation of clipped shader only if we can detect light-probe planes. */
   if (inst_.is_viewport()) {
     /* This check needs to happen upfront before sync, so we use the previous sync result. */
     update_probes_ = !inst_.light_probes.planar_map_.is_empty();

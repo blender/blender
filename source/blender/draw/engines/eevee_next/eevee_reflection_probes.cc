@@ -74,7 +74,7 @@ void SphereProbeModule::begin_sync()
 
 bool SphereProbeModule::ensure_atlas()
 {
-  /* Make sure the atlas is always initialized even if there is nothing to render to it to fullfil
+  /* Make sure the atlas is always initialized even if there is nothing to render to it to fulfill
    * the resource bindings. */
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ;
 
@@ -110,7 +110,7 @@ void SphereProbeModule::end_sync()
     if (probe.do_render) {
       /* Tag the next redraw to warm up the probe pipeline.
        * Keep doing this until there is no update.
-       * This avoids stuttering when moving a lightprobe. */
+       * This avoids stuttering when moving a light-probe. */
       update_probes_next_sample_ = true;
     }
   }
@@ -127,7 +127,7 @@ void SphereProbeModule::ensure_cubemap_render_target(int resolution)
   {
     GPU_texture_mipmap_mode(cubemap_tx_, false, true);
   }
-  /* TODO(fclem): dealocate it. */
+  /* TODO(fclem): deallocate it. */
 }
 
 SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(const SphereProbe &probe)

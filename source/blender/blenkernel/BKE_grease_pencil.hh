@@ -476,7 +476,7 @@ class Layer : public ::GreasePencilLayer {
   float4x4 local_transform() const;
 
   /**
-   * Get the parent to world marix for this layer.
+   * Get the parent to world matrix for this layer.
    */
   float4x4 parent_to_world(const Object &parent) const;
 };
