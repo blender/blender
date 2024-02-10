@@ -56,7 +56,7 @@ set(SRC
   intern/buffer.c
   intern/cache_mutex.cc
   intern/compute_context.cc
-  intern/convexhull_2d.c
+  intern/convexhull_2d.cc
   intern/cpp_type.cc
   intern/cpp_types.cc
   intern/delaunay_2d.cc
