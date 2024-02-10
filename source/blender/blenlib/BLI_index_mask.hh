@@ -187,6 +187,23 @@ class IndexMask : private IndexMaskData {
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);
   /**
+   * Constructs a mask by repeating the indices inthe given mask with a stride.
+   * For example, with an input mask containing `{3, 5}` and a stride of 10 the resulting mask
+   * would contain `{3, 5, 13, 15, 23, 25, ...}`.
+   */
+  static IndexMask from_repeating(const IndexMask &mask_to_repeat,
+                                  int64_t repetitions,
+                                  int64_t stride,
+                                  int64_t initial_offset,
+                                  IndexMaskMemory &memory);
+  /**
+   * Constructs a mask that contains every nth index the given number of times.
+   */
+  static IndexMask from_every_nth(int64_t n,
+                                  int64_t indices_num,
+                                  const int64_t initial_offset,
+                                  IndexMaskMemory &memory);
+  /**
    * Construct a mask from the given segments. The provided segments are expected to be
    * sorted and owned by #memory already.
    */
@@ -220,6 +237,11 @@ class IndexMask : private IndexMaskData {
   IndexRange index_range() const;
   int64_t first() const;
   int64_t last() const;
+
+  /**
+   * Returns the smallest range that contains all indices stored in this mask.
+   */
+  IndexRange bounds() const;
 
   /**
    * \return Minimum number of elements an array has to have so that it can be indexed by every
@@ -566,6 +588,17 @@ inline bool IndexMask::is_empty() const
 inline IndexRange IndexMask::index_range() const
 {
   return IndexRange(indices_num_);
+}
+
+inline IndexRange IndexMask::bounds() const
+{
+  if (this->is_empty()) {
+    return IndexRange();
+  }
+  const int64_t first = this->first();
+  const int64_t last = this->last();
+  const int64_t range = last - first + 1;
+  return IndexRange(first, range);
 }
 
 inline int64_t IndexMask::first() const

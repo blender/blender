@@ -23,6 +23,7 @@ TEST(index_mask, IndicesToMask)
   EXPECT_EQ(mask.first(), 5);
   EXPECT_EQ(mask.last(), 101000);
   EXPECT_EQ(mask.min_array_size(), 101001);
+  EXPECT_EQ(mask.bounds(), IndexRange(5, 101001 - 5));
 }
 
 TEST(index_mask, FromBits)
@@ -51,6 +52,7 @@ TEST(index_mask, FromSize)
     EXPECT_EQ(mask.first(), 0);
     EXPECT_EQ(mask.last(), 4);
     EXPECT_EQ(mask.min_array_size(), 5);
+    EXPECT_EQ(mask.bounds(), IndexRange(5));
   }
   {
     const IndexMask mask(max_segment_size);
@@ -61,6 +63,7 @@ TEST(index_mask, FromSize)
     EXPECT_EQ(mask.first(), 0);
     EXPECT_EQ(mask.last(), max_segment_size - 1);
     EXPECT_EQ(mask.min_array_size(), max_segment_size);
+    EXPECT_EQ(mask.bounds(), IndexRange(max_segment_size));
   }
 }
 
@@ -105,6 +108,7 @@ TEST(index_mask, DefaultConstructor)
   IndexMask mask;
   EXPECT_EQ(mask.size(), 0);
   EXPECT_EQ(mask.min_array_size(), 0);
+  EXPECT_EQ(mask.bounds(), IndexRange());
 }
 
 TEST(index_mask, ForeachRange)
@@ -665,6 +669,132 @@ TEST(index_mask, ZippedForeachEqual)
         return true;
       });
   EXPECT_EQ(index, 4);
+}
+
+TEST(index_mask, FromRepeatingEmpty)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(IndexMask(), 100, 0, 10, memory);
+  EXPECT_TRUE(mask.is_empty());
+}
+
+TEST(index_mask, FromRepeatingSingle)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(IndexMask(1), 5, 10, 2, memory);
+  EXPECT_EQ(mask, IndexMask::from_initializers({2, 12, 22, 32, 42}, memory));
+}
+
+TEST(index_mask, FromRepeatingSame)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_indices<int>({4, 6, 7}, memory);
+  const IndexMask repeated_mask = IndexMask::from_repeating(mask, 1, 100, 0, memory);
+  EXPECT_EQ(mask, repeated_mask);
+}
+
+TEST(index_mask, FromRepeatingMultiple)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(
+      IndexMask::from_indices<int>({5, 6, 7, 50}, memory), 3, 100, 1000, memory);
+  EXPECT_EQ(mask[0], 1005);
+  EXPECT_EQ(mask[1], 1006);
+  EXPECT_EQ(mask[2], 1007);
+  EXPECT_EQ(mask[3], 1050);
+  EXPECT_EQ(mask[4], 1105);
+  EXPECT_EQ(mask[5], 1106);
+  EXPECT_EQ(mask[6], 1107);
+  EXPECT_EQ(mask[7], 1150);
+  EXPECT_EQ(mask[8], 1205);
+  EXPECT_EQ(mask[9], 1206);
+  EXPECT_EQ(mask[10], 1207);
+  EXPECT_EQ(mask[11], 1250);
+}
+
+TEST(index_mask, FromRepeatingRangeFromSingle)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(IndexMask(IndexRange(1)), 50'000, 1, 0, memory);
+  EXPECT_EQ(*mask.to_range(), IndexRange(50'000));
+}
+
+TEST(index_mask, FromRepeatingRangeFromRange)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(
+      IndexMask(IndexRange(100)), 50'000, 100, 100, memory);
+  EXPECT_EQ(*mask.to_range(), IndexRange(100, 5'000'000));
+}
+
+TEST(index_mask, FromRepeatingEverySecond)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(IndexMask(1), 500'000, 2, 0, memory);
+  EXPECT_EQ(mask[0], 0);
+  EXPECT_EQ(mask[1], 2);
+  EXPECT_EQ(mask[2], 4);
+  EXPECT_EQ(mask[3], 6);
+  EXPECT_EQ(mask[20'000], 40'000);
+}
+
+TEST(index_mask, FromRepeatingMultipleRanges)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(
+      IndexMask::from_initializers({IndexRange(0, 100), IndexRange(10'000, 100)}, memory),
+      5,
+      100'000,
+      0,
+      memory);
+  EXPECT_EQ(mask[0], 0);
+  EXPECT_EQ(mask[1], 1);
+  EXPECT_EQ(mask[2], 2);
+  EXPECT_EQ(mask[100], 10'000);
+  EXPECT_EQ(mask[101], 10'001);
+  EXPECT_EQ(mask[102], 10'002);
+  EXPECT_EQ(mask[200], 100'000);
+  EXPECT_EQ(mask[201], 100'001);
+  EXPECT_EQ(mask[202], 100'002);
+  EXPECT_EQ(mask[300], 110'000);
+  EXPECT_EQ(mask[301], 110'001);
+  EXPECT_EQ(mask[302], 110'002);
+}
+
+TEST(index_mask, FromRepeatingNoRepetitions)
+{
+  IndexMaskMemory memory;
+  const IndexMask mask = IndexMask::from_repeating(IndexMask(IndexRange(5)), 0, 100, 0, memory);
+  EXPECT_TRUE(mask.is_empty());
+}
+
+TEST(index_mask, FromEveryNth)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask = IndexMask::from_every_nth(2, 5, 0, memory);
+    EXPECT_EQ(mask, IndexMask::from_initializers({0, 2, 4, 6, 8}, memory));
+  }
+  {
+    const IndexMask mask = IndexMask::from_every_nth(3, 5, 100, memory);
+    EXPECT_EQ(mask, IndexMask::from_initializers({100, 103, 106, 109, 112}, memory));
+  }
+  {
+    const IndexMask mask = IndexMask::from_every_nth(4, 5, 0, memory);
+    EXPECT_EQ(mask, IndexMask::from_initializers({0, 4, 8, 12, 16}, memory));
+  }
+  {
+    const IndexMask mask = IndexMask::from_every_nth(10, 5, 100, memory);
+    EXPECT_EQ(mask, IndexMask::from_initializers({100, 110, 120, 130, 140}, memory));
+  }
+  {
+    const IndexMask mask = IndexMask::from_every_nth(1, 5, 100, memory);
+    EXPECT_EQ(mask, IndexMask::from_initializers({100, 101, 102, 103, 104}, memory));
+  }
+  {
+    const IndexMask mask = IndexMask::from_every_nth(100'000, 5, 0, memory);
+    EXPECT_EQ(mask, IndexMask::from_initializers({0, 100'000, 200'000, 300'000, 400'000}, memory));
+  }
 }
 
 }  // namespace blender::index_mask::tests
