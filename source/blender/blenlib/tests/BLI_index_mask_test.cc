@@ -453,4 +453,218 @@ TEST(index_mask, SliceContent)
   }
 }
 
+TEST(index_mask, EqualsRangeSelf)
+{
+  IndexMask mask = IndexRange(16384);
+  EXPECT_EQ(mask, mask);
+}
+
+TEST(index_mask, EqualsRange)
+{
+  IndexMask mask_a = IndexRange(16384);
+  IndexMask mask_b = IndexRange(16384);
+  EXPECT_EQ(mask_a, mask_b);
+}
+
+TEST(index_mask, EqualsRangeLarge)
+{
+  IndexMask mask_a = IndexRange(96384);
+  IndexMask mask_b = IndexRange(96384);
+  EXPECT_EQ(mask_a, mask_b);
+}
+
+TEST(index_mask, EqualsRangeBegin)
+{
+  IndexMask mask_a = IndexRange(102, 16384 - 102);
+  IndexMask mask_b = IndexRange(102, 16384 - 102);
+  EXPECT_EQ(mask_a, mask_b);
+}
+
+TEST(index_mask, EqualsRangeEnd)
+{
+  IndexMask mask_a = IndexRange(16384 + 1);
+  IndexMask mask_b = IndexRange(16384 + 1);
+  EXPECT_EQ(mask_a, mask_b);
+}
+
+TEST(index_mask, NonEqualsRange)
+{
+  IndexMask mask_a = IndexRange(16384);
+  IndexMask mask_b = IndexRange(1, 16384);
+  EXPECT_NE(mask_a, mask_b);
+}
+
+TEST(index_mask, EqualsSelf)
+{
+  IndexMaskMemory memory;
+  IndexMask mask = IndexMask::from_union(IndexRange(16384), IndexRange(16384 * 3, 533), memory);
+  EXPECT_EQ(mask, mask);
+}
+
+TEST(index_mask, Equals)
+{
+  IndexMaskMemory memory;
+  IndexMask mask_a = IndexMask::from_union(IndexRange(16384), IndexRange(16384 * 3, 533), memory);
+  IndexMask mask_b = IndexMask::from_union(IndexRange(16384), IndexRange(16384 * 3, 533), memory);
+  EXPECT_EQ(mask_a, mask_b);
+}
+
+TEST(index_mask, NonEquals)
+{
+  IndexMaskMemory memory;
+  IndexMask mask_a = IndexMask::from_union(IndexRange(16384), IndexRange(16384 * 3, 533), memory);
+  IndexMask mask_b = IndexMask::from_union(
+      IndexRange(55, 16384), IndexRange(16384 * 5, 533), memory);
+  EXPECT_NE(mask_a, mask_b);
+}
+
+TEST(index_mask, NotEqualsRangeAndIndices)
+{
+  IndexMaskMemory memory;
+  IndexMask mask_a = IndexMask::from_union(
+      IndexRange(2040), IndexMask::from_indices<int>({2072, 2073, 2075}, memory), memory);
+  IndexMask mask_b = IndexMask::from_union(
+      IndexRange(2040), IndexMask::from_indices<int>({2072, 2073 + 1, 2075}, memory), memory);
+
+  EXPECT_NE(mask_a, mask_b);
+}
+
+static bool mask_segments_equals(const IndexMaskSegment &a, const IndexMaskSegment &b)
+{
+  if (a.size() != b.size()) {
+    return false;
+  }
+  for (const int64_t i : a.index_range()) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+TEST(index_mask, ZippedForeachSelf)
+{
+  IndexMaskMemory memory;
+  IndexMask mask = IndexMask::from_initializers({IndexRange(500), 555, 699, 222, 900, 100},
+                                                memory);
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped({mask}, [&](Span<IndexMaskSegment> segments) {
+      EXPECT_FALSE(segments.is_empty());
+      calls_num++;
+      return true;
+    });
+    EXPECT_EQ(calls_num, 2);
+  }
+
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped({mask, mask}, [&](Span<IndexMaskSegment> segments) {
+      EXPECT_FALSE(segments.is_empty());
+      EXPECT_TRUE(mask_segments_equals(segments[0], segments[1]));
+      calls_num++;
+      return true;
+    });
+    EXPECT_EQ(calls_num, 2);
+  }
+
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped({mask, mask, mask}, [&](Span<IndexMaskSegment> segments) {
+      EXPECT_FALSE(segments.is_empty());
+      EXPECT_TRUE(mask_segments_equals(segments[0], segments[1]));
+      EXPECT_TRUE(mask_segments_equals(segments[0], segments[2]));
+      calls_num++;
+      return true;
+    });
+    EXPECT_EQ(calls_num, 2);
+  }
+
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped(
+        {mask, mask, mask, mask}, [&](Span<IndexMaskSegment> segments) {
+          EXPECT_FALSE(segments.is_empty());
+          EXPECT_TRUE(mask_segments_equals(segments[0], segments[1]));
+          EXPECT_TRUE(mask_segments_equals(segments[0], segments[2]));
+          EXPECT_TRUE(mask_segments_equals(segments[0], segments[3]));
+          calls_num++;
+          return true;
+        });
+    EXPECT_EQ(calls_num, 2);
+  }
+}
+
+TEST(index_mask, ZippedForeachSameSegments)
+{
+  IndexMaskMemory memory;
+  IndexMask mask_a = IndexMask::from_initializers({0, 1, 2}, memory);
+  IndexMask mask_b = IndexMask::from_initializers({3, 4, 5}, memory);
+  IndexMask mask_c = IndexMask::from_initializers({6, 7, 8}, memory);
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped({mask_a}, [&](Span<IndexMaskSegment> segments) {
+      EXPECT_FALSE(segments.is_empty());
+      calls_num++;
+      return true;
+    });
+    EXPECT_EQ(calls_num, 1);
+  }
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped({mask_a, mask_b}, [&](Span<IndexMaskSegment> segments) {
+      EXPECT_FALSE(segments.is_empty());
+      EXPECT_EQ(segments[0].size(), segments[1].size());
+      EXPECT_FALSE(mask_segments_equals(segments[0], segments[1]));
+      calls_num++;
+      return true;
+    });
+    EXPECT_EQ(calls_num, 1);
+  }
+  {
+    int calls_num = 0;
+    IndexMask::foreach_segment_zipped(
+        {mask_a, mask_b, mask_c}, [&](Span<IndexMaskSegment> segments) {
+          EXPECT_FALSE(segments.is_empty());
+          EXPECT_EQ(segments[0].size(), segments[1].size());
+          EXPECT_EQ(segments[0].size(), segments[2].size());
+          EXPECT_FALSE(mask_segments_equals(segments[0], segments[1]));
+          EXPECT_FALSE(mask_segments_equals(segments[0], segments[2]));
+          EXPECT_FALSE(mask_segments_equals(segments[1], segments[2]));
+          calls_num++;
+          return true;
+        });
+    EXPECT_EQ(calls_num, 1);
+  }
+}
+
+TEST(index_mask, ZippedForeachEqual)
+{
+  Span<int16_t> indices(get_static_indices_array());
+
+  IndexMaskMemory memory;
+  IndexMask mask_a = IndexMask::from_segments(
+      {{0, indices.take_front(5)}, {5, indices.take_front(5)}}, memory);
+  IndexMask mask_b = IndexMask::from_segments(
+      {{0, indices.take_front(3)}, {3, indices.take_front(4)}, {7, indices.take_front(3)}},
+      memory);
+  IndexMask mask_c = IndexMask::from_segments({{0, indices.take_front(10)}}, memory);
+
+  int index = 0;
+  Array<IndexMaskSegment> reference_segments{{0, indices.take_front(3)},
+                                             {3, indices.take_front(2)},
+                                             {5, indices.take_front(2)},
+                                             {7, indices.take_front(3)}};
+
+  IndexMask::foreach_segment_zipped(
+      {mask_a, mask_b, mask_c}, [&](Span<IndexMaskSegment> segments) {
+        EXPECT_TRUE(mask_segments_equals(reference_segments[index], segments[0]));
+        EXPECT_TRUE(mask_segments_equals(reference_segments[index], segments[1]));
+        EXPECT_TRUE(mask_segments_equals(reference_segments[index], segments[2]));
+        index++;
+        return true;
+      });
+  EXPECT_EQ(index, 4);
+}
+
 }  // namespace blender::index_mask::tests

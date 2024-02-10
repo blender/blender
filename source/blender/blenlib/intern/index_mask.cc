@@ -868,4 +868,111 @@ template IndexMask IndexMask::from_indices(Span<int64_t>, IndexMaskMemory &);
 template void IndexMask::to_indices(MutableSpan<int32_t>) const;
 template void IndexMask::to_indices(MutableSpan<int64_t>) const;
 
+void IndexMask::foreach_segment_zipped(const Span<IndexMask> masks,
+                                       const FunctionRef<bool(Span<IndexMaskSegment> segments)> fn)
+{
+  BLI_assert(!masks.is_empty());
+  BLI_assert(std::all_of(masks.begin() + 1, masks.end(), [&](const IndexMask &maks) {
+    return masks[0].size() == maks.size();
+  }));
+
+  Array<int64_t, 8> segment_iter(masks.size(), 0);
+  Array<int16_t, 8> start_iter(masks.size(), 0);
+
+  Array<IndexMaskSegment, 8> segments(masks.size());
+  Array<IndexMaskSegment, 8> sequences(masks.size());
+
+  /* This function only take positions of indices in to account.
+   * Masks with the same size is fragmented in positions space.
+   * So, all last segments (index in mask does not matter) of all masks will be ended in the same
+   * position. All segment iterators will be out of range at the same time. */
+  while (segment_iter[0] != masks[0].segments_num()) {
+    for (const int64_t mask_i : masks.index_range()) {
+      if (start_iter[mask_i] == 0) {
+        segments[mask_i] = masks[mask_i].segment(segment_iter[mask_i]);
+      }
+    }
+
+    int16_t next_common_sequence_size = std::numeric_limits<int16_t>::max();
+    for (const int64_t mask_i : masks.index_range()) {
+      next_common_sequence_size = math::min(next_common_sequence_size,
+                                            int16_t(segments[mask_i].size() - start_iter[mask_i]));
+    }
+
+    for (const int64_t mask_i : masks.index_range()) {
+      sequences[mask_i] = segments[mask_i].slice(start_iter[mask_i], next_common_sequence_size);
+    }
+
+    if (!fn(sequences)) {
+      break;
+    }
+
+    for (const int64_t mask_i : masks.index_range()) {
+      if (segments[mask_i].size() - start_iter[mask_i] == next_common_sequence_size) {
+        segment_iter[mask_i]++;
+        start_iter[mask_i] = 0;
+      }
+      else {
+        start_iter[mask_i] += next_common_sequence_size;
+      }
+    }
+  }
+}
+
+static bool segments_is_equal(const IndexMaskSegment &a, const IndexMaskSegment &b)
+{
+  if (a.size() != b.size()) {
+    return false;
+  }
+  if (a.is_empty()) {
+    /* Both segments are empty. */
+    return true;
+  }
+  if (a[0] != b[0]) {
+    return false;
+  }
+
+  const bool a_is_range = unique_sorted_indices::non_empty_is_range(a.base_span());
+  const bool b_is_range = unique_sorted_indices::non_empty_is_range(b.base_span());
+  if (a_is_range || b_is_range) {
+    return a_is_range && b_is_range;
+  }
+
+  const Span<int16_t> a_indices = a.base_span();
+  [[maybe_unused]] const Span<int16_t> b_indices = b.base_span();
+
+  const int64_t offset_difference = int16_t(b.offset() - a.offset());
+
+  BLI_assert(a_indices[0] >= 0 && b_indices[0] >= 0);
+  BLI_assert(b_indices[0] == a_indices[0] - offset_difference);
+
+  return std::equal(a_indices.begin(),
+                    a_indices.end(),
+                    b.base_span().begin(),
+                    [offset_difference](const int16_t a_index, const int16_t b_index) -> bool {
+                      return a_index - offset_difference == b_index;
+                    });
+}
+
+bool operator==(const IndexMask &a, const IndexMask &b)
+{
+  if (a.size() != b.size()) {
+    return false;
+  }
+
+  const std::optional<IndexRange> a_as_range = a.to_range();
+  const std::optional<IndexRange> b_as_range = b.to_range();
+  if (a_as_range.has_value() || b_as_range.has_value()) {
+    return a_as_range == b_as_range;
+  }
+
+  bool equals = true;
+  IndexMask::foreach_segment_zipped({a, b}, [&](const Span<IndexMaskSegment> segments) {
+    equals &= segments_is_equal(segments[0], segments[1]);
+    return equals;
+  });
+
+  return equals;
+}
+
 }  // namespace blender::index_mask
