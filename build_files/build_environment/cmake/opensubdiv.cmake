@@ -31,22 +31,37 @@ ExternalProject_Add(external_opensubdiv
   URL_HASH ${OPENSUBDIV_HASH_TYPE}=${OPENSUBDIV_HASH}
   PREFIX ${BUILD_DIR}/opensubdiv
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opensubdiv -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${OPENSUBDIV_EXTRA_ARGS}
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opensubdiv
+    -Wno-dev ${DEFAULT_CMAKE_FLAGS}
+    ${OPENSUBDIV_EXTRA_ARGS}
+
   INSTALL_DIR ${LIBDIR}/opensubdiv
 )
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_opensubdiv after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opensubdiv/lib ${HARVEST_TARGET}/opensubdiv/lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opensubdiv/include ${HARVEST_TARGET}/opensubdiv/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/opensubdiv/lib
+        ${HARVEST_TARGET}/opensubdiv/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/opensubdiv/include
+        ${HARVEST_TARGET}/opensubdiv/include
+
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_opensubdiv after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opensubdiv/lib/osdCPU.lib ${HARVEST_TARGET}/opensubdiv/lib/osdCPU_d.lib
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opensubdiv/lib/osdGPU.lib ${HARVEST_TARGET}/opensubdiv/lib/osdGPU_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/opensubdiv/lib/osdCPU.lib
+        ${HARVEST_TARGET}/opensubdiv/lib/osdCPU_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy $
+        {LIBDIR}/opensubdiv/lib/osdGPU.lib
+        ${HARVEST_TARGET}/opensubdiv/lib/osdGPU_d.lib
+
       DEPENDEES install
     )
   endif()
