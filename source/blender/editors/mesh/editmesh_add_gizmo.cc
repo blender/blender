@@ -15,7 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

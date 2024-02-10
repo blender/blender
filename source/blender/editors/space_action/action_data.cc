@@ -34,7 +34,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "UI_view2d.hh"
 

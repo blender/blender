@@ -59,7 +59,7 @@
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
 #include "SEQ_iterator.hh"

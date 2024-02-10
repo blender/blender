@@ -72,7 +72,7 @@
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.hh"

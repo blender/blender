@@ -26,7 +26,7 @@
 #include "BKE_animsys.h"
 #include "BKE_image.h"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"

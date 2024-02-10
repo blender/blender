@@ -35,7 +35,7 @@
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"

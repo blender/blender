@@ -14,7 +14,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

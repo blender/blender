@@ -52,7 +52,7 @@
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BKE_idtype.hh"
 

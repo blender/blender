@@ -66,7 +66,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_shrinkwrap.hh"
 #include "BKE_tracking.h"
 

@@ -51,7 +51,7 @@
 #include "BKE_main_namemap.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
 #include "BKE_undo_system.hh"

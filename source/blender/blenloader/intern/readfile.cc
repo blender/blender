@@ -83,7 +83,7 @@
 #include "BKE_object.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_undo_system.hh"
 #include "BKE_workspace.h"

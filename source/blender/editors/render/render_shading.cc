@@ -53,7 +53,7 @@
 #include "BKE_node.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 #include "BKE_vfont.hh"
 #include "BKE_workspace.h"

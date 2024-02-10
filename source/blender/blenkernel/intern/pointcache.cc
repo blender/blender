@@ -57,7 +57,7 @@
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_softbody.h"
 
 #include "BLO_read_write.hh"

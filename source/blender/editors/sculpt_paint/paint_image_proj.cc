@@ -72,7 +72,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"

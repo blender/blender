@@ -32,7 +32,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"

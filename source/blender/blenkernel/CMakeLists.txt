@@ -486,7 +486,7 @@ set(SRC
   BKE_preview_image.hh
   BKE_report.hh
   BKE_rigidbody.h
-  BKE_scene.h
+  BKE_scene.hh
   BKE_scene_runtime.hh
   BKE_screen.hh
   BKE_sequencer_offscreen.h

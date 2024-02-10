@@ -46,7 +46,7 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
 #include "BKE_type_conversions.hh"
 

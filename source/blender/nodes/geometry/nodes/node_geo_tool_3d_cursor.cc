@@ -6,7 +6,7 @@
 
 #include "BLI_math_matrix.hh"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "node_geometry_util.hh"
 

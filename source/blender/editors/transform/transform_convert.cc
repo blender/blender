@@ -30,7 +30,7 @@
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_nla.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"

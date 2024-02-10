@@ -77,7 +77,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ED_keyframing.hh"
 #ifdef WITH_BUILDINFO

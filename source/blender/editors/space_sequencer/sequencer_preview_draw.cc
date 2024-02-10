@@ -23,7 +23,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"

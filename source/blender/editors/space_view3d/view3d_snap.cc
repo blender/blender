@@ -29,7 +29,7 @@
 #include "BKE_mball.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"

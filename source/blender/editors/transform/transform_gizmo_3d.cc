@@ -32,7 +32,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"

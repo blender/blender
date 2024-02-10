@@ -33,7 +33,7 @@
 #  include "BKE_editmesh.hh"
 #  include "BKE_global.hh"
 #  include "BKE_image.h"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 #  include "BKE_writeavi.h"
 
 #  include "DEG_depsgraph_query.hh"

@@ -52,7 +52,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"

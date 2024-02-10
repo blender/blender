@@ -44,7 +44,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 

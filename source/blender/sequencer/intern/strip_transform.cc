@@ -18,7 +18,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_sound.h"
 
 #include "SEQ_animation.hh"

@@ -342,7 +342,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_modifier.hh"
 #  include "BKE_object.hh"
 #  include "BKE_particle.h"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

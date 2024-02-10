@@ -10,7 +10,7 @@
 #include <exception>
 #include <memory>
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"

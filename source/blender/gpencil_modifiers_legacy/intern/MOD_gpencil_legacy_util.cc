@@ -22,7 +22,7 @@
 #include "BKE_deform.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_material.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_util.h"

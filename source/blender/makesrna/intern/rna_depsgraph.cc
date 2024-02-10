@@ -37,7 +37,7 @@
 
 #  include "BKE_duplilist.h"
 #  include "BKE_object.hh"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_debug.hh"

@@ -39,7 +39,7 @@
 #include "BKE_lattice.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "bmesh.hh"
 

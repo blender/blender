@@ -44,7 +44,7 @@
 #include "BKE_object_types.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_grid_file_cache.hh"

@@ -16,7 +16,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

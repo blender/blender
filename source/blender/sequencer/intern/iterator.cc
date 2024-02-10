@@ -19,7 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"

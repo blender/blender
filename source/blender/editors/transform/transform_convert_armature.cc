@@ -24,7 +24,7 @@
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BIK_api.h"
 

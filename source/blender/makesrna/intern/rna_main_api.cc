@@ -52,7 +52,7 @@
 #  include "BKE_paint.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcloud.hh"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 #  include "BKE_sound.h"
 #  include "BKE_speaker.h"
 #  include "BKE_text.h"

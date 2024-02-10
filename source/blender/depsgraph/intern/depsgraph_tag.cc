@@ -33,7 +33,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 

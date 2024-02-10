@@ -35,7 +35,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 

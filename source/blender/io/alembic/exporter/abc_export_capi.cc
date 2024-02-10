@@ -20,7 +20,7 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

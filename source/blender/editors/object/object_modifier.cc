@@ -72,7 +72,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_softbody.h"
 #include "BKE_volume.hh"
 

@@ -561,7 +561,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BKE_nla.h"
 #  include "BKE_paint.hh"
 #  include "BKE_preferences.h"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 #  include "BKE_screen.hh"
 #  include "BKE_workspace.h"
 

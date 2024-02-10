@@ -19,7 +19,7 @@
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"

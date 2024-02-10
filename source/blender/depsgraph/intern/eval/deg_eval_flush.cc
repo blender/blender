@@ -19,7 +19,7 @@
 
 #include "BKE_key.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"

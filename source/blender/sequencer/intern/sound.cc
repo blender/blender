@@ -26,7 +26,7 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_sound.h"
 
 #ifdef WITH_CONVOLUTION

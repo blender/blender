@@ -22,7 +22,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BKE_image.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

@@ -61,7 +61,7 @@
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_sound.h"
 #include "BKE_writeavi.h" /* <------ should be replaced once with generic movie module */
 

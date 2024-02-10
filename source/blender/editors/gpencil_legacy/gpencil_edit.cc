@@ -50,7 +50,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_workspace.h"
 
 #include "UI_interface.hh"

@@ -40,7 +40,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 

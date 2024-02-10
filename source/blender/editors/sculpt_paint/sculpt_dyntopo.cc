@@ -25,7 +25,7 @@
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_index_range.hh"
 

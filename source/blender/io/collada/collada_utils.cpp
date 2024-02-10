@@ -47,7 +47,7 @@
 #include "BKE_mesh_runtime.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ANIM_bone_collections.hh"
 

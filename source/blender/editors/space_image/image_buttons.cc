@@ -23,7 +23,7 @@
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "RE_pipeline.h"

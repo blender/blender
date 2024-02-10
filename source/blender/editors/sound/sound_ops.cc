@@ -29,7 +29,7 @@
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_sound.h"
 
 #include "RNA_access.hh"

@@ -77,7 +77,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_workspace.h"
 
 #include "BLF_api.hh"
