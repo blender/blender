@@ -43,7 +43,7 @@
 
 #  include "UI_interface.hh"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_idprop.h"
 #  include "BKE_workspace.h"
 

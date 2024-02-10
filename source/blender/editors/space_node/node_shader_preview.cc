@@ -34,7 +34,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

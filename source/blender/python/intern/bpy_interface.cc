@@ -47,7 +47,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h" /* Only for script checking. */
+#include "BKE_global.hh" /* Only for script checking. */
 #include "BKE_main.hh"
 #include "BKE_text.h"
 

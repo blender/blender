@@ -72,7 +72,7 @@
 #include "BKE_blender_version.h"
 #include "BKE_customdata.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"

@@ -47,7 +47,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_ipo.h"
 #include "BKE_key.hh"

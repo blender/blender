@@ -19,7 +19,7 @@
 
 #include "BLI_math_vector.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 namespace blender::gpu {
 

@@ -17,7 +17,7 @@
 #include "bmesh.hh"
 #include "intern/bmesh_operators_private.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {

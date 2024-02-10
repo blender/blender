@@ -10,7 +10,7 @@
  * representation of the OpenXR runtime connection within the application.
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
 #include "BKE_report.h"

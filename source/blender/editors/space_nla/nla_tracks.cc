@@ -20,7 +20,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_nla.h"
 #include "BKE_report.h"

@@ -27,7 +27,7 @@
 
 #  include "BLI_listbase.h"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"

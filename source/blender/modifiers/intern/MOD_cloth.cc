@@ -29,7 +29,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

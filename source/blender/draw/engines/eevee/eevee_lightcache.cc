@@ -10,7 +10,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_endian_switch.h"
 #include "BLI_threads.h"

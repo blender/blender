@@ -29,7 +29,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"

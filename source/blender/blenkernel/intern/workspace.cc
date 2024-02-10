@@ -18,7 +18,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_asset.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"

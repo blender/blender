@@ -17,7 +17,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"

@@ -36,7 +36,7 @@
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"

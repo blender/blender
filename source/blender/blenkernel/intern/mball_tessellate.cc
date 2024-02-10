@@ -30,7 +30,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_displist.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mball_tessellate.hh" /* own include */
 #include "BKE_mesh.hh"

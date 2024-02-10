@@ -32,7 +32,7 @@
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

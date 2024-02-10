@@ -11,7 +11,7 @@
 
 #include "lineart_intern.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"

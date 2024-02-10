@@ -37,7 +37,7 @@
 #include "BKE_bpath.hh"
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_ipo.h"
 #include "BKE_keyconfig.h"

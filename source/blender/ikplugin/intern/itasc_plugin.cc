@@ -36,7 +36,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"

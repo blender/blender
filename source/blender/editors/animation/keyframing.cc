@@ -31,7 +31,7 @@
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"

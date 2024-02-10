@@ -50,7 +50,7 @@
 #include "BKE_collection.hh"
 #include "BKE_dynamicpaint.h"
 #include "BKE_fluid.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"

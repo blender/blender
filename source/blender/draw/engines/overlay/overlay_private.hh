@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"

@@ -13,7 +13,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_node.hh"
 #include "BKE_scene.h"

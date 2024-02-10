@@ -18,7 +18,7 @@
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"

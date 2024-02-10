@@ -49,7 +49,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_key.hh"

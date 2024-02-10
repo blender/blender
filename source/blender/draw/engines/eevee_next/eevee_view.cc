@@ -15,7 +15,7 @@
  * its type. Passes are shared between views.
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "DRW_render.hh"
 
 #include "eevee_instance.hh"

@@ -18,7 +18,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"

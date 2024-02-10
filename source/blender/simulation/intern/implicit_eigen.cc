@@ -59,7 +59,7 @@ extern "C" {
 #  include "BKE_cloth.hh"
 #  include "BKE_collision.h"
 #  include "BKE_effect.h"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 
 #  include "SIM_mass_spring.h"
 }

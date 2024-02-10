@@ -10,7 +10,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 
 #include "BKE_object.hh"

@@ -10,7 +10,7 @@
 
 #include <sstream>
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_object.hh"
 #include "BLI_rect.h"
 #include "DEG_depsgraph_query.hh"

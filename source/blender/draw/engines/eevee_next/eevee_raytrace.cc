@@ -11,7 +11,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "eevee_instance.hh"
 

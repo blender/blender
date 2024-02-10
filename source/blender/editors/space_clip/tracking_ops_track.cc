@@ -15,7 +15,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"

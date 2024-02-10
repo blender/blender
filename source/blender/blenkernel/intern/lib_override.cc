@@ -30,7 +30,7 @@
 #include "BKE_blender.hh"
 #include "BKE_collection.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"

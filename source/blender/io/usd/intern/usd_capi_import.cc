@@ -15,7 +15,7 @@
 #include "BKE_cachefile.hh"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"

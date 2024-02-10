@@ -48,7 +48,7 @@
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"

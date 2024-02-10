@@ -11,7 +11,7 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "GPU_capabilities.h"
 #include "GPU_state.h"

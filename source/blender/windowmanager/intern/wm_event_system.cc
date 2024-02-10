@@ -36,7 +36,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"

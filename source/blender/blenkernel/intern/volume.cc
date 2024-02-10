@@ -33,7 +33,7 @@
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_bpath.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

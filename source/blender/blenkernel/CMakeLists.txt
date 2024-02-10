@@ -397,7 +397,7 @@ set(SRC
   BKE_geometry_fields.hh
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
-  BKE_global.h
+  BKE_global.hh
   BKE_gpencil_curve_legacy.h
   BKE_gpencil_geom_legacy.h
   BKE_gpencil_legacy.h

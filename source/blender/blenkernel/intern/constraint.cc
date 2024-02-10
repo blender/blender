@@ -57,7 +57,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"

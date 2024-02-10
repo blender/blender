@@ -17,7 +17,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_array.hh"
 #include "BLI_convexhull_2d.h"

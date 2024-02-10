@@ -19,7 +19,7 @@
 #include "BLI_hash.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_scene.h"
 

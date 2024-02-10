@@ -29,7 +29,7 @@
 
 #include "../winged_edge/WEdge.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

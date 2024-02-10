@@ -65,7 +65,7 @@
 #include "BKE_asset.hh"
 #include "BKE_blender_version.h"
 #include "BKE_collection.hh"
-#include "BKE_global.h" /* for G */
+#include "BKE_global.hh" /* for G */
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"

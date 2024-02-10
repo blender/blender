@@ -20,7 +20,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 
 #include "RNA_access.hh"

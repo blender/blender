@@ -40,7 +40,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"

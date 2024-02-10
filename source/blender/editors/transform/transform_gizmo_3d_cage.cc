@@ -14,7 +14,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_scene.h"
 
 #include "ED_gizmo_library.hh"

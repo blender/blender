@@ -17,7 +17,7 @@
 #include "BLI_math_color.h"
 
 #include "BKE_colorband.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_object.hh"
 
 #include "draw_common.h"

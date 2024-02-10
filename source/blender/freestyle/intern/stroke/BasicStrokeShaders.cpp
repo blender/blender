@@ -23,7 +23,7 @@
 #include "../view_map/Functions0D.h"
 #include "../view_map/Functions1D.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_sys_types.h"
 

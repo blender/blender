@@ -29,7 +29,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_effect.h"
 #include "BKE_fluid.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"

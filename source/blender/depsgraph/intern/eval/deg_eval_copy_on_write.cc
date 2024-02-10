@@ -26,7 +26,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_curve.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_idprop.h"

@@ -29,7 +29,7 @@
 #include "BKE_brush.hh"
 #include "BKE_cachefile.hh"
 #include "BKE_callbacks.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_layer.hh"

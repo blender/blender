@@ -34,7 +34,7 @@
 #include "BKE_blender_undo.hh" /* own include */
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 

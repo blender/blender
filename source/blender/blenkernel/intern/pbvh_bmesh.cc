@@ -35,7 +35,7 @@ static CLG_LogRef LOG = {"pbvh.bmesh"};
 /* Avoid skinny faces */
 #define USE_EDGEQUEUE_EVEN_SUBDIV
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #endif
 
 namespace blender::bke::pbvh {

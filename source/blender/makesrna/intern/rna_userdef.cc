@@ -174,7 +174,7 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "DNA_screen_types.h"
 
 #  include "BKE_blender.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_idprop.h"
 #  include "BKE_image.h"
 #  include "BKE_main.hh"

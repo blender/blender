@@ -16,7 +16,7 @@
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"

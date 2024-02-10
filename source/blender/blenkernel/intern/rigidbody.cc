@@ -38,7 +38,7 @@
 
 #include "BKE_collection.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"

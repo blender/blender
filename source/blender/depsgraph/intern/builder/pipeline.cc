@@ -6,7 +6,7 @@
 
 #include "BLI_time.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DNA_scene_types.h"
 

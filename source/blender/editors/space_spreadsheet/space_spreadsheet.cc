@@ -7,7 +7,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
 

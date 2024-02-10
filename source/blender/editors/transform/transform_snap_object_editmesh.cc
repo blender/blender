@@ -11,7 +11,7 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 

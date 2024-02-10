@@ -36,7 +36,7 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"

@@ -595,7 +595,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_idprop.h"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 
 #  include "ED_node.hh"
 #  include "ED_render.hh"

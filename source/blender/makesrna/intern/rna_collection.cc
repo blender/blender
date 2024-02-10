@@ -49,7 +49,7 @@ BLI_STATIC_ASSERT(ARRAY_SIZE(rna_enum_collection_color_items) - 2 == COLLECTION_
 #  include "DEG_depsgraph_query.hh"
 
 #  include "BKE_collection.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_layer.hh"
 
 #  include "WM_api.hh"

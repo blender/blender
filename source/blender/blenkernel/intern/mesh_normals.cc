@@ -31,7 +31,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh_cache.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 

@@ -20,7 +20,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 using namespace blender::gpu::shader;
 

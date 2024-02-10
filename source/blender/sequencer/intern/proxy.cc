@@ -27,7 +27,7 @@
 #  include <unistd.h>
 #endif
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_main.hh"
 #include "BKE_scene.h"

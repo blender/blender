@@ -31,7 +31,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_collection.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh" /* free_libblock */

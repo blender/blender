@@ -50,7 +50,7 @@
 #include "MOD_ui_common.hh"
 
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_lib_id.hh"
 #endif
 

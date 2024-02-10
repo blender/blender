@@ -218,7 +218,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 #  include "BLO_readfile.hh"
 
 #  include "BKE_anim_data.h"
-#  include "BKE_global.h" /* XXX, remove me */
+#  include "BKE_global.hh" /* XXX, remove me */
 #  include "BKE_idprop.h"
 #  include "BKE_idtype.hh"
 #  include "BKE_lib_override.hh"

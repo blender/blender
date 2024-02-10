@@ -43,7 +43,7 @@
 
 #  include "BKE_appdir.hh" /* BKE_tempdir_base */
 #  include "BKE_blender_version.h"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.h"
 

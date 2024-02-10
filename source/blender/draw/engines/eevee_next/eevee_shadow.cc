@@ -8,7 +8,7 @@
  * The shadow module manages shadow update tagging & shadow rendering.
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_rect.h"
 
