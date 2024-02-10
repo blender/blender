@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "CLG_log.h"
 
 /** Options for organizing Metal GPU debug captures. */
