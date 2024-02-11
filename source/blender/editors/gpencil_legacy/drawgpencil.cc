@@ -35,7 +35,7 @@
 #include "GPU_matrix.h"
 #include "GPU_shader_shared.h"
 #include "GPU_state.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 #include "ED_gpencil_legacy.hh"
 
