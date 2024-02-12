@@ -205,7 +205,7 @@ struct AssetEntryReader {
     return lookup.lookup(ATTRIBUTE_ENTRIES_LICENSE)->as_string_value()->value();
   }
 
-  StringRef get_catalog_name() const
+  StringRefNull get_catalog_name() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_CATALOG_NAME)->as_string_value()->value();
   }
