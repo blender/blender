@@ -125,7 +125,6 @@ struct DerivedMesh {
   CCGElem **(*getGridData)(DerivedMesh *dm);
   int *(*getGridOffset)(DerivedMesh *dm);
   void (*getGridKey)(DerivedMesh *dm, CCGKey *key);
-  unsigned int **(*getGridHidden)(DerivedMesh *dm);
 
   /* Direct Access Operations
    * - Can be undefined

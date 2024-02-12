@@ -1297,14 +1297,6 @@ static void ccgDM_getGridKey(DerivedMesh *dm, CCGKey *key)
   CCG_key_top_level(key, ccgdm->ss);
 }
 
-static BLI_bitmap **ccgDM_getGridHidden(DerivedMesh *dm)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-
-  ccgdm_create_grids(dm);
-  return ccgdm->gridHidden;
-}
-
 static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 {
   ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
@@ -1326,7 +1318,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getGridData = ccgDM_getGridData;
   ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
   ccgdm->dm.getGridKey = ccgDM_getGridKey;
-  ccgdm->dm.getGridHidden = ccgDM_getGridHidden;
 
   ccgdm->dm.release = ccgDM_release;
 }
