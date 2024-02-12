@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-09-26 10:37+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -290,10 +290,6 @@ msgstr "Гръб"
 
 msgid "Poly"
 msgstr "Поли"
-
-
-msgid "Bezier"
-msgstr "Беазие"
 
 
 msgid "Split"
@@ -1016,19 +1012,6 @@ msgstr "Смали/Удебели"
 
 msgid "Push/Pull"
 msgstr "Натиск/Дърпане"
-
-
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Добави Кръг на Безие"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Конструира Кръг на Безие"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Конструира Крива на Безие"
 
 
 msgctxt "Operator"
@@ -1782,10 +1765,6 @@ msgstr "Върти около 3D курсора"
 
 msgid "Chroma Vectorscope"
 msgstr "Цветен Векторскоп"
-
-
-msgid "Bezier U"
-msgstr "Беазие U"
 
 
 msgid "Stencil"

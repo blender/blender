@@ -31,10 +31,10 @@ using namespace Freestyle;
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_freestyle.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_linestyle.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_text.h"
 
 #include "BLT_translation.hh"

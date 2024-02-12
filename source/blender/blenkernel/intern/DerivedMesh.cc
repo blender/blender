@@ -109,13 +109,13 @@ static float *dm_getVertArray(DerivedMesh *dm)
   return (float *)positions;
 }
 
-static vec2i *dm_getEdgeArray(DerivedMesh *dm)
+static blender::int2 *dm_getEdgeArray(DerivedMesh *dm)
 {
-  vec2i *edge = (vec2i *)CustomData_get_layer_named_for_write(
+  blender::int2 *edge = (blender::int2 *)CustomData_get_layer_named_for_write(
       &dm->edgeData, CD_PROP_INT32_2D, ".edge_verts", dm->getNumEdges(dm));
 
   if (!edge) {
-    edge = (vec2i *)CustomData_add_layer_named(
+    edge = (blender::int2 *)CustomData_add_layer_named(
         &dm->edgeData, CD_PROP_INT32_2D, CD_SET_DEFAULT, dm->getNumEdges(dm), ".edge_verts");
     CustomData_set_layer_flag(&dm->edgeData, CD_PROP_INT32_2D, CD_FLAG_TEMPORARY);
     dm->copyEdgeArray(dm, edge);

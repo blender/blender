@@ -49,7 +49,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_key.hh"
@@ -71,8 +71,8 @@
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_softbody.h"
 #include "BKE_volume.hh"
 
@@ -3755,7 +3755,7 @@ static int dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
   GreasePencilDashModifierSegment *new_segments = static_cast<GreasePencilDashModifierSegment *>(
       MEM_malloc_arrayN(dmd->segments_num + 1, sizeof(GreasePencilDashModifierSegment), __func__));
 
-  const int new_active_index = dmd->segment_active_index + 1;
+  const int new_active_index = std::clamp(dmd->segment_active_index + 1, 0, dmd->segments_num);
   if (dmd->segments_num != 0) {
     /* Copy the segments before the new segment. */
     memcpy(new_segments,

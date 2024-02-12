@@ -57,7 +57,7 @@
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "DNA_material_types.h"

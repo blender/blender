@@ -12,7 +12,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lightprobe.h"
 
 #include "DNA_lightprobe_types.h"

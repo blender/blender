@@ -75,6 +75,12 @@ namespace blender::bke {
 
 using NodeIDVectorSet = VectorSet<bNode *, DefaultProbingStrategy, NodeIDHash, NodeIDEquality>;
 
+/**
+ * Runtime data for #bNodeTree from the perspective of execution instructions (rather than runtime
+ * data from evaluation of the node tree). Evaluation data is not the responsibility of the node
+ * tree and should be stored elsewhere. Evaluating a node tree should be possible without changing
+ * it.
+ */
 class bNodeTreeRuntime : NonCopyable, NonMovable {
  public:
   /**
@@ -109,24 +115,20 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   NodeIDVectorSet nodes_by_id;
 
   /**
-   * Execution data.
+   * Legacy execution data.
    *
-   * XXX It would be preferable to completely move this data out of the underlying node tree,
-   * so node tree execution could finally run independent of the tree itself.
-   * This would allow node trees to be merely linked by other data (materials, textures, etc.),
-   * as ID data is supposed to.
-   * Execution data is generated from the tree once at execution start and can then be used
-   * as long as necessary, even while the tree is being modified.
+   * \todo Move this out of the node tree to improve semantic/physical separation between the node
+   * tree execution instructions and its evaluation.
    */
   bNodeTreeExec *execdata = nullptr;
-
-  /* Callbacks. */
   void (*progress)(void *, float progress) = nullptr;
   /** \warning may be called by different threads */
   void (*stats_draw)(void *, const char *str) = nullptr;
   bool (*test_break)(void *) = nullptr;
   void (*update_draw)(void *) = nullptr;
   void *tbh = nullptr, *prh = nullptr, *sdh = nullptr, *udh = nullptr;
+
+  /* End legacy execution data. */
 
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2024-01-18 08:08+0000\n"
 "Last-Translator: Emre İnan <emre4321a@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -1449,10 +1449,6 @@ msgid "ID Name"
 msgstr "Kimlik Adı"
 
 
-msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the menu (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
-msgstr "Bu ayarlıysa varlık özel bir kimlik alır, aksi takdirde menüyü tanımlamak için kullanılan sınıfın adını alır (örneğin, sınıf adı \"OBJECT_AST_hello\" ise ve bl_idname betik tarafından ayarlanmadıysa bl_idname = \"OBJECT_AST_hello\")"
-
-
 msgid "Options"
 msgstr "Seçenekler"
 
@@ -2173,14 +2169,6 @@ msgid "Horizontal dimension of the baking map"
 msgstr "Pişirme haritasının yatay boyutu"
 
 
-msgid "Bezier Curve Point"
-msgstr "Bezier Eğrisi Noktası"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "İki tutaçlı Bezier eğrisi noktası"
-
-
 msgid "Control Point"
 msgstr "Denetim Noktası"
 
@@ -2367,14 +2355,6 @@ msgstr "Gres Kalemi"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Gres Kalemi veri blokları"
-
-
-msgid "Grease Pencil v3"
-msgstr "Gres Kalemi 3.0"
-
-
-msgid "Grease Pencil v3 data-blocks"
-msgstr "Gres Kalemi 3.0 veri blokları"
 
 
 msgid "Hair Curves"
@@ -3474,17 +3454,9 @@ msgid "Ease In"
 msgstr "Yavaşça Gir"
 
 
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "İlk Bezier tutacının uzunluğu (yalnızca esnek kemikler için)"
-
-
 msgctxt "Armature"
 msgid "Ease Out"
 msgstr "Yavaşça Çık"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "İkinci Bezier tutacının uzunluğu (yalnızca esnek kemikler için)"
 
 
 msgid "B-Bone End Handle Type"
@@ -6867,6 +6839,10 @@ msgid "Font"
 msgstr "Yazıtipi"
 
 
+msgid "Grease Pencil v3"
+msgstr "Gres Kalemi 3.0"
+
+
 msgid "Key"
 msgstr "Anahtar"
 
@@ -7977,10 +7953,6 @@ msgstr "Ekle"
 
 msgid "Keying"
 msgstr "Anahtarlama"
-
-
-msgid "Tracking"
-msgstr "Takip"
 
 
 msgid "Layout"
@@ -10445,11 +10417,6 @@ msgid "2D Cursor"
 msgstr "2B İmleç"
 
 
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Sahne Ayarları"
-
-
 msgid "Aperture"
 msgstr "Açıklık"
 
@@ -11601,6 +11568,10 @@ msgstr "İstatistikler"
 msgctxt "Operator"
 msgid "Refresh I18n Data..."
 msgstr "I18n Verisini Yenile..."
+
+
+msgid "Tracking"
+msgstr "Takip"
 
 
 msgctxt "Operator"

@@ -4,7 +4,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 namespace blender::nodes::node_shader_output_material_cc {
 

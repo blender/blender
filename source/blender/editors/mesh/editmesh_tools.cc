@@ -45,7 +45,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.hh"

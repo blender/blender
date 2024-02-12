@@ -38,8 +38,8 @@
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
@@ -1425,7 +1425,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
         C, ptr, prop, prop_index);
 
     /* Always iterate once, even if data-path isn't set. */
-    data_path_variations.append(data_path.has_value() ? data_path.value() : "");
+    data_path_variations.append(data_path.value_or(""));
 
     if (data_path.has_value()) {
       StringRef data_path_ref = StringRef(data_path.value());
@@ -4712,7 +4712,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block,
     but = ui_def_but(
         block, type, retval, propname, x, y, width, height, nullptr, min, max, -1.0f, -1.0f, tip);
 
-    UI_but_disable(but, "Unknown Property.");
+    UI_but_disable(but, N_("Unknown Property"));
   }
 
   return but;

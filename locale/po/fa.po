@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-11-30 20:00+0000\n"
 "Last-Translator: \"M. Amin Taheri\" <amintaheri2001@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -3095,10 +3095,6 @@ msgid "Math"
 msgstr "ﯽﺿﺎﯾﺭ"
 
 
-msgid "Tracking"
-msgstr "ﯽﺑﺎﯾﺩﺭ"
-
-
 msgid "Layout"
 msgstr "ﺡﺮﻃ"
 
@@ -3997,6 +3993,10 @@ msgid "Flat"
 msgstr "ﺖﺨﺗ"
 
 
+msgid "By Material"
+msgstr "ﺩﺍﻮﻣ ﺎﺑ"
+
+
 msgid "X End"
 msgstr "X ﻥﺎﯾﺎﭘ"
 
@@ -4043,10 +4043,6 @@ msgstr "ﯽﻓﺩﺎﺼﺗ ﺕﺭﻮﺻ ﻪﺑ ﺱﺃﺭ ﺏﺎﺨﺘﻧﺍ"
 
 msgid "Select similar vertices, edges or faces by property types"
 msgstr "ﺖﯿﮑﻟﺎﻣ ﻉﻮﻧ ﺎﺑ ﻪﺑﺎﺸﻣ ﯼﺎﻫ‌ﺢﻄﺳ ﺎﯾ ﻭ ﺎﻫ‌ﻪﺒﻟ ٬ﺱﻮﺋﺭ ﺏﺎﺨﺘﻧﺍ"
-
-
-msgid "By Material"
-msgstr "ﺩﺍﻮﻣ ﺎﺑ"
 
 
 msgctxt "Operator"
@@ -4866,6 +4862,10 @@ msgstr "ﺶﺧﺮﭼ"
 
 msgid "Render Settings:"
 msgstr ":ﺭﺪﻧﺭ ﺕﺎﻤﯿﻈﻨﺗ"
+
+
+msgid "Tracking"
+msgstr "ﯽﺑﺎﯾﺩﺭ"
 
 
 msgctxt "Operator"

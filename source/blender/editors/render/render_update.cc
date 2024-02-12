@@ -33,7 +33,7 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "NOD_composite.hh"
 

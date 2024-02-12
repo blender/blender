@@ -15,7 +15,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
@@ -33,10 +33,7 @@
 
 #include "UI_resources.hh"
 
-extern "C" {
 Global G;
-}
-
 UserDef U;
 
 /* -------------------------------------------------------------------- */

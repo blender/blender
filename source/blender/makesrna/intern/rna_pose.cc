@@ -74,7 +74,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_idprop.h"
 
 #  include "DEG_depsgraph.hh"

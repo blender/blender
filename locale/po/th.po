@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -861,6 +861,7 @@ msgid "Camera"
 msgstr "กล้อง"
 
 
+msgctxt "MovieClip"
 msgid "Track"
 msgstr "แทร็ค"
 
@@ -879,10 +880,6 @@ msgstr "ตำแหน่ง"
 
 msgid "Standard"
 msgstr "มาตรฐาน"
-
-
-msgid "Bezier"
-msgstr "เบซิเยร์"
 
 
 msgid "Depth"
@@ -2055,6 +2052,10 @@ msgid "Pivot Point"
 msgstr "จุดหมุน"
 
 
+msgid "Track"
+msgstr "แทร็ค"
+
+
 msgid "Snap"
 msgstr "ยึดติด"
 
@@ -2572,22 +2573,8 @@ msgid "Duplicate"
 msgstr "ทำซ้ำ"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "เพิ่มวงกลมเบซิเยร์"
-
-
 msgid "Enter Edit Mode"
 msgstr "เข้าสู่โหมดแก้ไข"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "เพิ่มเบซิเยร์"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "สร้างเส้นโค้งเบซิเยร์"
 
 
 msgctxt "Operator"
@@ -3397,11 +3384,6 @@ msgid "Mask Display"
 msgstr "การแสดงหน้ากาก"
 
 
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "การติดตั้งฉาก"
-
-
 msgid "Transparent"
 msgstr "โปร่งใส"
 
@@ -3743,11 +3725,6 @@ msgstr "จุดกำเนิดของวัตถุนั้น ๆ"
 
 msgid "Mask Color"
 msgstr "สีหน้ากาก"
-
-
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "แทร็ค"
 
 
 msgid "Pivot center for rotation/scaling"
@@ -4778,11 +4755,6 @@ msgstr "ลิง"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "เบซิเยร์"
-
-
-msgctxt "Operator"
 msgid "Path"
 msgstr "เส้นทาง"
 
@@ -5031,16 +5003,6 @@ msgstr "ตัวแปร"
 
 msgid "Key %d"
 msgstr "คีย์ %d"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "เส้นโค้งเบซิเยร์"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "วงกลมเบซิเยร์"
 
 
 msgctxt "Curve"

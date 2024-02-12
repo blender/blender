@@ -12,7 +12,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

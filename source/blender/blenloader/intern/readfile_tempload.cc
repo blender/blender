@@ -12,7 +12,7 @@
 #include "BLI_string.h"
 
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_ID.h"
 

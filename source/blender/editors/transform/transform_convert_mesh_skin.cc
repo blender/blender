@@ -18,7 +18,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_modifier.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ED_mesh.hh"
 

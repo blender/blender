@@ -25,7 +25,7 @@
 
 #include "../system/TimeUtils.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_sys_types.h"
 

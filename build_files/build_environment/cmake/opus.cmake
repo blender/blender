@@ -16,13 +16,24 @@ if(NOT WIN32)
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${OPUS_HASH_TYPE}=${OPUS_HASH}
     PREFIX ${BUILD_DIR}/opus
-    CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/opus/src/external_opus/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/opus
-      --disable-shared
-      --enable-static
-      --with-pic
-      --disable-maintainer-mode
-    BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/opus/src/external_opus/ && make -j${MAKE_THREADS}
-    INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/opus/src/external_opus/ && make install
+
+    CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/opus/src/external_opus/ &&
+      ${CONFIGURE_COMMAND}
+        --prefix=${LIBDIR}/opus
+        --disable-shared
+        --enable-static
+        --with-pic
+        --disable-maintainer-mode
+
+    BUILD_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/opus/src/external_opus/ &&
+      make -j${MAKE_THREADS}
+
+    INSTALL_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/opus/src/external_opus/ &&
+      make install
+
     INSTALL_DIR ${LIBDIR}/opus
   )
 else()
@@ -31,8 +42,16 @@ else()
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${OPUS_HASH_TYPE}=${OPUS_HASH}
     PREFIX ${BUILD_DIR}/opus
-    PATCH_COMMAND COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/opus/src/external_opus < ${PATCH_DIR}/opus_windows.diff
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opus ${OPUS_CMAKE_ARGS}
+
+    PATCH_COMMAND COMMAND
+      ${PATCH_CMD} -p 1 -d
+        ${BUILD_DIR}/opus/src/external_opus <
+        ${PATCH_DIR}/opus_windows.diff
+
+    CMAKE_ARGS
+      -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opus
+      ${OPUS_CMAKE_ARGS}
+
     INSTALL_DIR ${LIBDIR}/opus
   )
 endif()

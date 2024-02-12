@@ -22,7 +22,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

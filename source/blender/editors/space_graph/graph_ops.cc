@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "UI_view2d.hh"
 

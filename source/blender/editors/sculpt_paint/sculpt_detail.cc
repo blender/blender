@@ -20,6 +20,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_screen.hh"
@@ -269,6 +270,12 @@ static int sample_detail(bContext *C, const int event_xy[2], int mode)
 
   SculptSession *ss = ob->sculpt;
   if (!ss->pbvh) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
     return OPERATOR_CANCELLED;
   }
 

@@ -32,7 +32,7 @@
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "DNA_meshdata_types.h"
 
 #include "WM_api.hh"

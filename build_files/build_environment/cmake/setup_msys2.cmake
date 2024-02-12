@@ -25,7 +25,10 @@ message("msys2_LIBDIR = ${msys2_LIBDIR}")
 message("Checking for msys2 base")
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2-base-x86_64-20221028.tar.xz")
   message("Downloading msys2-base")
-  file(DOWNLOAD "https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20221028.tar.xz" "${DOWNLOAD_DIR}/msys2-base-x86_64-20221028.tar.xz")
+  file(DOWNLOAD
+    "https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20221028.tar.xz"
+    "${DOWNLOAD_DIR}/msys2-base-x86_64-20221028.tar.xz"
+  )
 endif()
 
 # Make msys2 root directory
@@ -37,7 +40,8 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/msys2")
 endif()
 
 # Extract msys2
-if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd") AND (EXISTS "${DOWNLOAD_DIR}/msys2-base-x86_64-20221028.tar.xz"))
+if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd") AND
+   (EXISTS "${DOWNLOAD_DIR}/msys2-base-x86_64-20221028.tar.xz"))
   message("Extracting msys2 base")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar jxf ${DOWNLOAD_DIR}/msys2-base-x86_64-20221028.tar.xz
@@ -94,7 +98,10 @@ endif()
 message("Checking for nasm")
 if(NOT EXISTS "${DOWNLOAD_DIR}/nasm-2.13.02-win64.zip")
   message("Downloading nasm")
-  file(DOWNLOAD "http://www.nasm.us/pub/nasm/releasebuilds/2.13.02/win64/nasm-2.13.02-win64.zip" "${DOWNLOAD_DIR}/nasm-2.13.02-win64.zip")
+  file(DOWNLOAD
+    "http://www.nasm.us/pub/nasm/releasebuilds/2.13.02/win64/nasm-2.13.02-win64.zip"
+    "${DOWNLOAD_DIR}/nasm-2.13.02-win64.zip"
+  )
 endif()
 
 # extract nasm
@@ -105,7 +112,9 @@ if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe") AND (EXISTS "${D
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/
   )
   execute_process(
-    COMMAND ${CMAKE_COMMAND} -E copy "${DOWNLOAD_DIR}/nasm-2.13.02/nasm.exe" "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe"
+    COMMAND ${CMAKE_COMMAND} -E copy
+      "${DOWNLOAD_DIR}/nasm-2.13.02/nasm.exe"
+      "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/nasm.exe"
   )
 endif()
 
@@ -113,7 +122,10 @@ message("Checking for perl")
 # download perl for libvpx
 if(NOT EXISTS "${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip")
   message("Downloading perl")
-  file(DOWNLOAD "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip" "${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip")
+  file(DOWNLOAD
+    "https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip"
+    "${DOWNLOAD_DIR}/strawberry-perl-5.38.0.1-64bit-portable.zip"
+  )
 endif()
 
 # make perl root directory
@@ -138,19 +150,27 @@ endif()
 message("Checking for gas-preprocessor.pl")
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/gas-preprocessor.pl")
   message("Downloading gas-preprocessor.pl")
-  file(DOWNLOAD "https://raw.githubusercontent.com/FFmpeg/gas-preprocessor/9309c67acb535ca6248f092e96131d8eb07eefc1/gas-preprocessor.pl" "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/gas-preprocessor.pl")
+  file(DOWNLOAD
+    "https://raw.githubusercontent.com/FFmpeg/gas-preprocessor/9309c67acb535ca6248f092e96131d8eb07eefc1/gas-preprocessor.pl"
+    "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/gas-preprocessor.pl"
+  )
 endif()
 
 # Get ar-lib
 message("Checking for ar-lib")
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/ar-lib")
   message("Downloading ar-lib")
-  file(DOWNLOAD "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-12.2.0/ar-lib" "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/ar-lib")
+  file(DOWNLOAD
+    "https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-12.2.0/ar-lib"
+    "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/ar-lib"
+  )
 endif()
 
 if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/ming64sh.cmd")
   message("Installing ming64sh.cmd")
   execute_process(
-    COMMAND ${CMAKE_COMMAND} -E copy ${PATCH_DIR}/ming64sh.cmd  ${DOWNLOAD_DIR}/msys2/msys64/ming64sh.cmd
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${PATCH_DIR}/ming64sh.cmd
+      ${DOWNLOAD_DIR}/msys2/msys64/ming64sh.cmd
   )
 endif()

@@ -13,7 +13,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

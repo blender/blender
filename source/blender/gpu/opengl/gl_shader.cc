@@ -8,7 +8,7 @@
 
 #include <iomanip>
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_string.h"
 #include "BLI_vector.hh"

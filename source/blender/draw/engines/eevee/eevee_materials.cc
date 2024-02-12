@@ -16,7 +16,7 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 

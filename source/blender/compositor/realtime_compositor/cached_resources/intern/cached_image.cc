@@ -229,6 +229,7 @@ CachedImage::CachedImage(Context &context,
   ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
   const bool is_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
   texture_ = IMB_create_gpu_texture("Image Texture", image_buffer, true, is_premultiplied);
+  GPU_texture_update_mipmap_chain(texture_);
 
   const eGPUTextureFormat original_format = GPU_texture_format(texture_);
   const eGPUTextureFormat target_format = get_compatible_texture_format(original_format);

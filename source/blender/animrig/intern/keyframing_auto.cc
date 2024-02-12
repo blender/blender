@@ -11,7 +11,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"

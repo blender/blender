@@ -20,9 +20,9 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"

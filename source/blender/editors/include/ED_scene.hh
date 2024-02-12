@@ -10,7 +10,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 struct ReportList;
 struct bContext;

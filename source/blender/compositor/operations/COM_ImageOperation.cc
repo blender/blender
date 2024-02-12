@@ -4,7 +4,7 @@
 
 #include "COM_ImageOperation.h"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_interp.hh"

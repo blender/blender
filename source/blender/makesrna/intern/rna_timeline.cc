@@ -19,7 +19,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_idprop.h"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 #  include "BKE_screen.hh"
 #  include "WM_api.hh"
 

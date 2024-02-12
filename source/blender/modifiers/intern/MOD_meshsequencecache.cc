@@ -30,7 +30,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "UI_interface.hh"
@@ -50,7 +50,7 @@
 #include "MOD_ui_common.hh"
 
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_lib_id.hh"
 #endif
 

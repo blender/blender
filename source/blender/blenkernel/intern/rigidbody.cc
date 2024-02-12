@@ -38,7 +38,7 @@
 
 #include "BKE_collection.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
@@ -46,9 +46,9 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #ifdef WITH_BULLET
 #  include "BKE_lib_id.hh"
 #  include "BKE_lib_query.hh"

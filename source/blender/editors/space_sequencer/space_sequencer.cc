@@ -20,7 +20,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_base.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"

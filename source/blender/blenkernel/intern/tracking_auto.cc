@@ -21,7 +21,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

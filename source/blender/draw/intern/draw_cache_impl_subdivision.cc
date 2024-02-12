@@ -14,7 +14,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"

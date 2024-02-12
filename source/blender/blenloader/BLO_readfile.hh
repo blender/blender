@@ -77,7 +77,7 @@ struct BlendFileData {
  * of WindowManager and other UI data-blocks across blend-file reading process.
  */
 struct BlendFileReadWMSetupData {
-  /** The existing WM when filereading process is started. */
+  /** The existing WM when file-reading process is started. */
   wmWindowManager *old_wm;
 
   /** The startup file is being read. */

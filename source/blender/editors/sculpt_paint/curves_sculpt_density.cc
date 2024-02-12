@@ -14,7 +14,7 @@
 #include "BKE_mesh_sample.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"

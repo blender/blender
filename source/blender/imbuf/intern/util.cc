@@ -29,7 +29,7 @@
 #ifdef WITH_FFMPEG
 #  include "BLI_string.h" /* BLI_vsnprintf */
 
-#  include "BKE_global.h" /* G.debug */
+#  include "BKE_global.hh" /* G.debug */
 
 extern "C" {
 #  include <libavcodec/avcodec.h>

@@ -43,7 +43,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.hh"
@@ -2161,7 +2161,7 @@ static void unused_message_gen(std::string &message,
 static int unused_message_popup_width_compute(bContext *C)
 {
   /* Computation of unused data amounts, with all options ON.
-   * Used to estimate the maximum required witdh for the dialog. */
+   * Used to estimate the maximum required width for the dialog. */
   Main *bmain = CTX_data_main(C);
   LibQueryUnusedIDsData data = {true, true, true, {}, {}, {}};
   BKE_lib_query_unused_ids_amounts(bmain, data);
@@ -2326,7 +2326,7 @@ void OUTLINER_OT_orphans_purge(wmOperatorType *ot)
   /* NOTE: No #OPTYPE_REGISTER, since this operator should not be 'adjustable'. */
   ot->flag = OPTYPE_UNDO;
 
-  /* Actual user-visibla settings. */
+  /* Actual user-visible settings. */
   RNA_def_boolean(ot->srna,
                   "do_local_ids",
                   true,

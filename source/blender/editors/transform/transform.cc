@@ -23,7 +23,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "GPU_state.h"
 

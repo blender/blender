@@ -863,6 +863,245 @@ bool IndexMask::contains(const int64_t query_index) const
   return this->find(query_index).has_value();
 }
 
+static Array<int16_t> build_every_nth_index_array(const int64_t n)
+{
+  Array<int16_t> data(max_segment_size / n);
+  for (const int64_t i : data.index_range()) {
+    const int64_t index = i * n;
+    BLI_assert(index < max_segment_size);
+    data[i] = int16_t(index);
+  }
+  return data;
+}
+
+/**
+ * Returns a span containting every nth index. This is optimized for a few special values of n
+ * which are cached. The returned indices have either static life-time, or they are freed when the
+ * given memory is feed.
+ */
+static Span<int16_t> get_every_nth_index(const int64_t n,
+                                         const int64_t repetitions,
+                                         IndexMaskMemory &memory)
+{
+  BLI_assert(n >= 2);
+  BLI_assert(n * repetitions <= max_segment_size);
+
+  switch (n) {
+    case 2: {
+      static auto data = build_every_nth_index_array(2);
+      return data.as_span().take_front(repetitions);
+    }
+    case 3: {
+      static auto data = build_every_nth_index_array(3);
+      return data.as_span().take_front(repetitions);
+    }
+    case 4: {
+      static auto data = build_every_nth_index_array(4);
+      return data.as_span().take_front(repetitions);
+    }
+    default: {
+      MutableSpan<int16_t> data = memory.allocate_array<int16_t>(repetitions);
+      for (const int64_t i : IndexRange(repetitions)) {
+        const int64_t index = i * n;
+        BLI_assert(index < max_segment_size);
+        data[i] = int16_t(index);
+      }
+      return data;
+    }
+  }
+}
+
+IndexMask IndexMask::from_repeating(const IndexMask &mask_to_repeat,
+                                    const int64_t repetitions,
+                                    const int64_t stride,
+                                    const int64_t initial_offset,
+                                    IndexMaskMemory &memory)
+{
+  if (mask_to_repeat.is_empty()) {
+    return {};
+  }
+  BLI_assert(mask_to_repeat.last() < stride);
+  if (repetitions == 0) {
+    return {};
+  }
+  if (repetitions == 1 && initial_offset == 0) {
+    /* The output is the same as the input mask. */
+    return mask_to_repeat;
+  }
+  const std::optional<IndexRange> range_to_repeat = mask_to_repeat.to_range();
+  if (range_to_repeat && range_to_repeat->first() == 0 && range_to_repeat->size() == stride) {
+    /* The output is a range. */
+    return IndexRange(initial_offset, repetitions * stride);
+  }
+  const int64_t segments_num = mask_to_repeat.segments_num();
+  const IndexRange bounds = mask_to_repeat.bounds();
+
+  /* Avoid having many very small segments by creating a single segment that contains the input
+   * multiple times already. This way, a lower total number of segments is necessary. */
+  if (segments_num == 1 && stride <= max_segment_size / 2 && mask_to_repeat.size() <= 256) {
+    const IndexMaskSegment src_segment = mask_to_repeat.segment(0);
+    /* Number of repetitions that fit into a single segment. */
+    const int64_t inline_repetitions_num = std::min(repetitions, max_segment_size / stride);
+    Span<int16_t> repeated_indices;
+    if (src_segment.size() == 1) {
+      /* Optimize the case when a single index is repeated. */
+      repeated_indices = get_every_nth_index(stride, inline_repetitions_num, memory);
+    }
+    else {
+      /* More general case that repeats multiple indices. */
+      MutableSpan<int16_t> repeated_indices_mut = memory.allocate_array<int16_t>(
+          inline_repetitions_num * src_segment.size());
+      for (const int64_t repetition : IndexRange(inline_repetitions_num)) {
+        for (const int64_t i : src_segment.index_range()) {
+          const int64_t index = src_segment[i] - src_segment[0] + repetition * stride;
+          BLI_assert(index < max_segment_size);
+          repeated_indices_mut[repetition * src_segment.size() + i] = int16_t(index);
+        }
+      }
+      repeated_indices = repeated_indices_mut;
+    }
+    BLI_assert(repeated_indices[0] == 0);
+
+    Vector<IndexMaskSegment, 16> repeated_segments;
+    const int64_t result_segments_num = ceil_division(repetitions, inline_repetitions_num);
+    for (const int64_t i : IndexRange(result_segments_num)) {
+      const int64_t used_repetitions = std::min(inline_repetitions_num,
+                                                repetitions - i * inline_repetitions_num);
+      repeated_segments.append(
+          IndexMaskSegment(initial_offset + bounds.first() + i * stride * inline_repetitions_num,
+                           repeated_indices.take_front(used_repetitions * src_segment.size())));
+    }
+    return IndexMask::from_segments(repeated_segments, memory);
+  }
+
+  /* Simply repeat and offset the existing segments in the input mask. */
+  Vector<IndexMaskSegment, 16> repeated_segments;
+  for (const int64_t repetition : IndexRange(repetitions)) {
+    for (const int64_t segment_i : IndexRange(segments_num)) {
+      const IndexMaskSegment segment = mask_to_repeat.segment(segment_i);
+      repeated_segments.append(IndexMaskSegment(
+          segment.offset() + repetition * stride + initial_offset, segment.base_span()));
+    }
+  }
+  return IndexMask::from_segments(repeated_segments, memory);
+}
+
+IndexMask IndexMask::from_every_nth(const int64_t n,
+                                    const int64_t indices_num,
+                                    const int64_t initial_offset,
+                                    IndexMaskMemory &memory)
+{
+  BLI_assert(n >= 1);
+  return IndexMask::from_repeating(IndexRange(1), indices_num, n, initial_offset, memory);
+}
+
+void IndexMask::foreach_segment_zipped(const Span<IndexMask> masks,
+                                       const FunctionRef<bool(Span<IndexMaskSegment> segments)> fn)
+{
+  BLI_assert(!masks.is_empty());
+  BLI_assert(std::all_of(masks.begin() + 1, masks.end(), [&](const IndexMask &maks) {
+    return masks[0].size() == maks.size();
+  }));
+
+  Array<int64_t, 8> segment_iter(masks.size(), 0);
+  Array<int16_t, 8> start_iter(masks.size(), 0);
+
+  Array<IndexMaskSegment, 8> segments(masks.size());
+  Array<IndexMaskSegment, 8> sequences(masks.size());
+
+  /* This function only take positions of indices in to account.
+   * Masks with the same size is fragmented in positions space.
+   * So, all last segments (index in mask does not matter) of all masks will be ended in the same
+   * position. All segment iterators will be out of range at the same time. */
+  while (segment_iter[0] != masks[0].segments_num()) {
+    for (const int64_t mask_i : masks.index_range()) {
+      if (start_iter[mask_i] == 0) {
+        segments[mask_i] = masks[mask_i].segment(segment_iter[mask_i]);
+      }
+    }
+
+    int16_t next_common_sequence_size = std::numeric_limits<int16_t>::max();
+    for (const int64_t mask_i : masks.index_range()) {
+      next_common_sequence_size = math::min(next_common_sequence_size,
+                                            int16_t(segments[mask_i].size() - start_iter[mask_i]));
+    }
+
+    for (const int64_t mask_i : masks.index_range()) {
+      sequences[mask_i] = segments[mask_i].slice(start_iter[mask_i], next_common_sequence_size);
+    }
+
+    if (!fn(sequences)) {
+      break;
+    }
+
+    for (const int64_t mask_i : masks.index_range()) {
+      if (segments[mask_i].size() - start_iter[mask_i] == next_common_sequence_size) {
+        segment_iter[mask_i]++;
+        start_iter[mask_i] = 0;
+      }
+      else {
+        start_iter[mask_i] += next_common_sequence_size;
+      }
+    }
+  }
+}
+
+static bool segments_is_equal(const IndexMaskSegment &a, const IndexMaskSegment &b)
+{
+  if (a.size() != b.size()) {
+    return false;
+  }
+  if (a.is_empty()) {
+    /* Both segments are empty. */
+    return true;
+  }
+  if (a[0] != b[0]) {
+    return false;
+  }
+
+  const bool a_is_range = unique_sorted_indices::non_empty_is_range(a.base_span());
+  const bool b_is_range = unique_sorted_indices::non_empty_is_range(b.base_span());
+  if (a_is_range || b_is_range) {
+    return a_is_range && b_is_range;
+  }
+
+  const Span<int16_t> a_indices = a.base_span();
+  [[maybe_unused]] const Span<int16_t> b_indices = b.base_span();
+
+  const int64_t offset_difference = int16_t(b.offset() - a.offset());
+
+  BLI_assert(a_indices[0] >= 0 && b_indices[0] >= 0);
+  BLI_assert(b_indices[0] == a_indices[0] - offset_difference);
+
+  return std::equal(a_indices.begin(),
+                    a_indices.end(),
+                    b.base_span().begin(),
+                    [offset_difference](const int16_t a_index, const int16_t b_index) -> bool {
+                      return a_index - offset_difference == b_index;
+                    });
+}
+
+bool operator==(const IndexMask &a, const IndexMask &b)
+{
+  if (a.size() != b.size()) {
+    return false;
+  }
+
+  const std::optional<IndexRange> a_as_range = a.to_range();
+  const std::optional<IndexRange> b_as_range = b.to_range();
+  if (a_as_range.has_value() || b_as_range.has_value()) {
+    return a_as_range == b_as_range;
+  }
+
+  bool equals = true;
+  IndexMask::foreach_segment_zipped({a, b}, [&](const Span<IndexMaskSegment> segments) {
+    equals &= segments_is_equal(segments[0], segments[1]);
+    return equals;
+  });
+
+  return equals;
+}
+
 template IndexMask IndexMask::from_indices(Span<int32_t>, IndexMaskMemory &);
 template IndexMask IndexMask::from_indices(Span<int64_t>, IndexMaskMemory &);
 template void IndexMask::to_indices(MutableSpan<int32_t>) const;

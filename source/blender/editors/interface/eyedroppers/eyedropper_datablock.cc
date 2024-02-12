@@ -24,7 +24,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"

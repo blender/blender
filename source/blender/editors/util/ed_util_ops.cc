@@ -21,7 +21,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 #include "BKE_preview_image.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLT_translation.hh"
 

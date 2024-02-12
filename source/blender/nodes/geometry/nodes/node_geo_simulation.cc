@@ -18,7 +18,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 

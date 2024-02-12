@@ -48,7 +48,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_volume.hh"
 
 #include "MEM_guardedalloc.h"

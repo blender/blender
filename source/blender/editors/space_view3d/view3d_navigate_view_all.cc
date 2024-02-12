@@ -15,7 +15,7 @@
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_bounds.hh"
 #include "BLI_bounds_types.hh"

@@ -64,7 +64,7 @@
 #include "draw_manager.h"
 #include "draw_texture_pool.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"

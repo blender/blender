@@ -47,7 +47,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object_deform.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "UI_interface.hh"
 

@@ -38,7 +38,7 @@ struct CDDerivedMesh {
   /* these point to data in the DerivedMesh custom data layers,
    * they are only here for efficiency and convenience */
   float (*vert_positions)[3];
-  vec2i *medge;
+  blender::int2 *medge;
   MFace *mface;
   int *corner_verts;
   int *corner_edges;
@@ -79,7 +79,7 @@ static void cdDM_copyVertArray(DerivedMesh *dm, float (*r_positions)[3])
   memcpy(r_positions, cddm->vert_positions, sizeof(float[3]) * dm->numVertData);
 }
 
-static void cdDM_copyEdgeArray(DerivedMesh *dm, vec2i *r_edge)
+static void cdDM_copyEdgeArray(DerivedMesh *dm, blender::int2 *r_edge)
 {
   CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
   memcpy(r_edge, cddm->medge, sizeof(*r_edge) * dm->numEdgeData);
@@ -175,7 +175,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh, const CustomData_MeshMasks *ma
 
   cddm->vert_positions = static_cast<float(*)[3]>(CustomData_get_layer_named_for_write(
       &dm->vertData, CD_PROP_FLOAT3, "position", mesh->verts_num));
-  cddm->medge = static_cast<vec2i *>(CustomData_get_layer_named_for_write(
+  cddm->medge = static_cast<blender::int2 *>(CustomData_get_layer_named_for_write(
       &dm->edgeData, CD_PROP_INT32_2D, ".edge_verts", mesh->edges_num));
   cddm->corner_verts = static_cast<int *>(CustomData_get_layer_named_for_write(
       &dm->loopData, CD_PROP_INT32, ".corner_vert", mesh->corners_num));

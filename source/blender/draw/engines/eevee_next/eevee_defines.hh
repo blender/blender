@@ -38,14 +38,14 @@
 #define SPHERE_PROBE_SH_GROUP_SIZE 512
 #define SPHERE_PROBE_SH_SAMPLES_PER_GROUP 64
 /**
- * Limited by the UBO size limit (16384 bytes / sizeof(SphereProbeData)).
+ * Limited by the UBO size limit `(16384 bytes / sizeof(SphereProbeData))`.
  */
 #define SPHERE_PROBE_MAX 128
 
 /**
  * Limited by the performance impact it can cause.
  * Limited by the max layer count supported by a hardware (256).
- * Limited by the UBO size limit (16384 bytes / sizeof(PlanarProbeData)).
+ * Limited by the UBO size limit `(16384 bytes / sizeof(PlanarProbeData))`.
  */
 #define PLANAR_PROBE_MAX 16
 

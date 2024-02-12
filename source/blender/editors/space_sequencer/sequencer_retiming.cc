@@ -17,8 +17,8 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "ED_select_utils.hh"
 #include "ED_sequencer.hh"

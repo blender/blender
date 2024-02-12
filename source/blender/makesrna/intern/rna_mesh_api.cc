@@ -31,7 +31,7 @@
 #  include "BKE_mesh_mapping.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_mesh_tangent.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "ED_mesh.hh"
 

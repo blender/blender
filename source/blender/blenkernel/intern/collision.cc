@@ -30,7 +30,7 @@
 #include "BKE_effect.h"
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BKE_collision.h"
 #include "BLI_kdopbvh.h"

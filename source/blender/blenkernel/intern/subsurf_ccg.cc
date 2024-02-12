@@ -41,7 +41,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_subsurf.hh"
 
 #include "CCGSubSurf.h"
@@ -820,13 +820,13 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])
 }
 
 /* utility function */
-BLI_INLINE void ccgDM_to_MEdge(vec2i *edge, const int v1, const int v2)
+BLI_INLINE void ccgDM_to_MEdge(blender::int2 *edge, const int v1, const int v2)
 {
   edge->x = v1;
   edge->y = v2;
 }
 
-static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, vec2i *edges)
+static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, blender::int2 *edges)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
@@ -1297,14 +1297,6 @@ static void ccgDM_getGridKey(DerivedMesh *dm, CCGKey *key)
   CCG_key_top_level(key, ccgdm->ss);
 }
 
-static BLI_bitmap **ccgDM_getGridHidden(DerivedMesh *dm)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-
-  ccgdm_create_grids(dm);
-  return ccgdm->gridHidden;
-}
-
 static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
 {
   ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
@@ -1326,7 +1318,6 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getGridData = ccgDM_getGridData;
   ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
   ccgdm->dm.getGridKey = ccgDM_getGridKey;
-  ccgdm->dm.getGridHidden = ccgDM_getGridHidden;
 
   ccgdm->dm.release = ccgDM_release;
 }

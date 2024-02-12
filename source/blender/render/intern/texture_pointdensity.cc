@@ -37,7 +37,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

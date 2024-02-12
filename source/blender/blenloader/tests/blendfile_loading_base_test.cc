@@ -9,7 +9,7 @@
 #include "BKE_blender.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
@@ -17,7 +17,7 @@
 #include "BKE_mball_tessellate.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_vfont.hh"
 
 #include "BLF_api.hh"

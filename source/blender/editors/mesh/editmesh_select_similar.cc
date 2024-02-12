@@ -23,7 +23,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_material.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"

@@ -24,7 +24,7 @@
 
 #include "py_capi_utils.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "../generic/py_capi_utils.h"
 

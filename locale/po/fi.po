@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3138,10 +3138,6 @@ msgid "Depth Object"
 msgstr "Syvyysobjekti"
 
 
-msgid "Track"
-msgstr "Raide"
-
-
 msgid "3D Position"
 msgstr "3D-sijainti"
 
@@ -4665,10 +4661,6 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
-
-
 msgid "Key"
 msgstr "Avain"
 
@@ -4731,6 +4723,10 @@ msgstr "Muunnin"
 
 msgid "Mirror Object"
 msgstr "Peilaa objekti"
+
+
+msgid "Track"
+msgstr "Raide"
 
 
 msgid "Show/Hide"
@@ -6101,10 +6097,6 @@ msgid "Curve of Point"
 msgstr "Pisteen käyrä"
 
 
-msgid "Bezier Segment"
-msgstr "Bezier-segmentti"
-
-
 msgid "Curve Circle"
 msgstr "Käyräympyrä"
 
@@ -6771,10 +6763,6 @@ msgid "Animation settings"
 msgstr "Animaatioasetukset"
 
 
-msgid "Material Groups"
-msgstr "Materiaaliryhmät"
-
-
 msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Poista valitut tiedostot"
@@ -7062,6 +7050,10 @@ msgstr "Mukautettu"
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "Aktiivinen taso"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
 
 
 msgctxt "Operator"
@@ -8498,11 +8490,6 @@ msgstr "Apina"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
-msgctxt "Operator"
 msgid "Path"
 msgstr "Polku"
 
@@ -8769,10 +8756,6 @@ msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
 
-msgid "✕ (Ax + B)"
-msgstr "✕ (Ax + B)"
-
-
 msgid "Add Control Point"
 msgstr "Lisää ohjauspiste"
 
@@ -8787,16 +8770,6 @@ msgstr "Erotetut luut"
 
 msgid "No pose to copy"
 msgstr "Ei kopioitavaa asentoa"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier-käyrä"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier-ympyrä"
 
 
 msgctxt "Curve"
@@ -9223,6 +9196,10 @@ msgstr "Vienti asetukset"
 
 msgid "Grouping"
 msgstr "Ryhmittäminen"
+
+
+msgid "Material Groups"
+msgstr "Materiaaliryhmät"
 
 
 msgid "Data Types"

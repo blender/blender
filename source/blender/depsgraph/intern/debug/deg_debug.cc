@@ -14,7 +14,7 @@
 #include "BLI_time_utildefines.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "intern/depsgraph.hh"
 

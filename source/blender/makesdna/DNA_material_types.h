@@ -74,7 +74,7 @@ typedef struct MaterialGPencilStyle {
   /** Radius for radial gradients. */
   float gradient_radius DNA_DEPRECATED;
   char _pad2[4];
-  /** Uv coordinates scale. */
+  /** UV coordinates scale. */
   float gradient_scale[2] DNA_DEPRECATED;
   /** Factor to shift filling in 2d space. */
   float gradient_shift[2] DNA_DEPRECATED;

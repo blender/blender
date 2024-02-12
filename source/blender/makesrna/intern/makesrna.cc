@@ -4862,7 +4862,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#include \"BKE_context.hh\"\n");
   fprintf(f, "#include \"BKE_lib_id.hh\"\n");
   fprintf(f, "#include \"BKE_main.hh\"\n");
-  fprintf(f, "#include \"BKE_report.h\"\n");
+  fprintf(f, "#include \"BKE_report.hh\"\n");
 
   fprintf(f, "#include \"RNA_define.hh\"\n");
   fprintf(f, "#include \"RNA_types.hh\"\n");

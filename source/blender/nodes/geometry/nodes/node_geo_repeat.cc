@@ -6,7 +6,7 @@
 #include "BLI_string_utf8.h"
 
 #include "BKE_compute_contexts.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 

@@ -33,7 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_vfont.hh"
 
 #include "BLI_string_utf8.h"

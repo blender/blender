@@ -26,7 +26,7 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
@@ -37,7 +37,7 @@
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -706,7 +706,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   PTCacheEditKey *ekey;
   BVHTreeFromMesh bvhtree = {nullptr};
   const MFace *mface = nullptr, *mf;
-  const vec2i *edges = nullptr, *edge;
+  const blender::int2 *edges = nullptr, *edge;
   Mesh *mesh, *target_mesh;
   int numverts;
   int k;
@@ -763,7 +763,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
   }
   else if (mesh->edges_num != 0) {
-    edges = static_cast<const vec2i *>(
+    edges = static_cast<const blender::int2 *>(
         CustomData_get_layer_named(&mesh->edge_data, CD_PROP_INT32_2D, ".edge_verts"));
     BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
   }

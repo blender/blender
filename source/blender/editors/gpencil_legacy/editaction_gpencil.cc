@@ -22,7 +22,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_gpencil_legacy.hh"

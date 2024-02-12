@@ -40,7 +40,7 @@
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
 #include "BKE_preferences.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_asset_handle.hh"
 #include "ED_asset_list.hh"

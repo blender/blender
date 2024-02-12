@@ -18,7 +18,7 @@
 #include "BLI_task.h"
 #include "BLI_time.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image_wrappers.hh"
 
 #include "pbvh_intern.hh"

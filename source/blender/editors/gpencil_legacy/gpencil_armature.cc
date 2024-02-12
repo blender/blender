@@ -35,7 +35,7 @@
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

@@ -16,7 +16,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "SEQ_relations.hh"
 #include "SEQ_retiming.hh"

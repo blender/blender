@@ -58,7 +58,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_idprop.hh"
 #include "BKE_idtype.hh"
