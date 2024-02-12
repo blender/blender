@@ -3755,7 +3755,7 @@ static int dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
   GreasePencilDashModifierSegment *new_segments = static_cast<GreasePencilDashModifierSegment *>(
       MEM_malloc_arrayN(dmd->segments_num + 1, sizeof(GreasePencilDashModifierSegment), __func__));
 
-  const int new_active_index = dmd->segment_active_index + 1;
+  const int new_active_index = std::clamp(dmd->segment_active_index + 1, 0, dmd->segments_num);
   if (dmd->segments_num != 0) {
     /* Copy the segments before the new segment. */
     memcpy(new_segments,

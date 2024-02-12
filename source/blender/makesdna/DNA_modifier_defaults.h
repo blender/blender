@@ -888,7 +888,7 @@
 
 #define _DNA_DEFAULT_GreasePencilDashModifierSegment \
   { \
-    .name = "", \
+    .name = "Segment", \
     .dash = 2, \
     .gap = 1, \
     .radius = 1.0f, \
