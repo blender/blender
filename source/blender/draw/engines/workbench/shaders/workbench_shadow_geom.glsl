@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#ifdef GPU_ARB_gpu_shader5
-#  define USE_INVOC_EXT
-#endif
-
 #define DEGENERATE_TRIS_WORKAROUND
 #define DEGENERATE_TRIS_AREA_THRESHOLD 4e-17
 
@@ -74,23 +70,13 @@ void main()
     return;
   }
 
-#ifdef USE_INVOC_EXT
   if (gl_InvocationID == 0) {
     extrude_edge(backface.x);
   }
   else if (is_manifold) {
-#  ifdef DOUBLE_MANIFOLD
+#ifdef DOUBLE_MANIFOLD
     /* Increment/Decrement twice for manifold edges. */
     extrude_edge(backface.x);
-#  endif
-  }
-#else
-  extrude_edge(backface.x);
-  if (is_manifold) {
-#  ifdef DOUBLE_MANIFOLD
-    /* Increment/Decrement twice for manifold edges. */
-    extrude_edge(backface.x);
-#  endif
-  }
 #endif
+  }
 }
