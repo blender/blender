@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1551,14 +1551,6 @@ msgid "Above Surface"
 msgstr "Di Atas Permukaan"
 
 
-msgid "Bezier Curve Point"
-msgstr "Titik Kurva Bezier"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Titik kurva bezier dengan dua pegangan"
-
-
 msgid "Control Point"
 msgstr "Titik Kontrol"
 
@@ -2745,14 +2737,6 @@ msgstr "Pegangan Awal B-Tulang"
 
 msgid "Bone that serves as the start handle for the B-Bone curve"
 msgstr "Tulang yang berfungsi sebagai pegangan awal untuk kurva B-Tulang"
-
-
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Panjang Pegangan Bezier pertama (untuk B-Tulang saja)"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Panjang Pegangan Bezier kedua (untuk B-Tulang saja)"
 
 
 msgid "B-Bone End Handle Type"
@@ -5324,10 +5308,6 @@ msgstr "Sunting Objek"
 
 msgid "Object used to define depth in camera space by projecting onto surface of this object"
 msgstr "Objek digunakan untuk mendefinisikan kedalaman di spasi kamera dengan proyeksi ke permukaan objek ini"
-
-
-msgid "Track"
-msgstr "Lacak"
 
 
 msgid "3D Position"
@@ -11640,6 +11620,10 @@ msgid "Clip"
 msgstr "Klip"
 
 
+msgid "Track"
+msgstr "Lacak"
+
+
 msgid "Console"
 msgstr "Konsol"
 
@@ -11711,10 +11695,6 @@ msgstr "Utilitas"
 
 msgid "Math"
 msgstr "Matematika"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
 
 
 msgid "Layout"
@@ -15354,11 +15334,6 @@ msgstr "Menghapus dari seleksi"
 
 
 msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Tambah Gambar"
-
-
-msgctxt "Operator"
 msgid "Add Path"
 msgstr "Tambah Gambar"
 
@@ -15875,6 +15850,10 @@ msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
 
 msgid "Flat"
 msgstr "Datar"
+
+
+msgid "By Material"
+msgstr "Oleh Material"
 
 
 msgctxt "Operator"
@@ -16596,10 +16575,6 @@ msgstr "Material"
 
 msgid "Wire edges"
 msgstr "Tepi Kabel"
-
-
-msgid "By Material"
-msgstr "Oleh Material"
 
 
 msgid "Face Stepping"
@@ -22230,6 +22205,10 @@ msgid "Add-ons:"
 msgstr "Tambahan:"
 
 
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
 msgid "Note:"
 msgstr "Catatan:"
 
@@ -24491,11 +24470,6 @@ msgstr "Tambah Gambar"
 msgctxt "Operator"
 msgid "Cone"
 msgstr "Tulang"
-
-
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Tambah Gambar"
 
 
 msgctxt "Operator"

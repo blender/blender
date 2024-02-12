@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -1475,10 +1475,6 @@ msgid "ID Name"
 msgstr "Tên ID"
 
 
-msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the menu (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
-msgstr "Nếu chức năng này được bật thì tài sản sẽ nhận được ID tùy chỉnh, nếu không, tài sản sẽ lấy tên của lớp (class) vốn sử dụng để xác định trình đơn (ví dụ: nếu tên lớp (class) là \"OBJECT_AST_hello\" và bl_idname không được tập lệnh đặt thì bl_idname sẽ là “OBJECT_AST_hello”)"
-
-
 msgid "Options"
 msgstr "Các Tùy Chọn"
 
@@ -2203,14 +2199,6 @@ msgid "Horizontal dimension of the baking map"
 msgstr "Kích thước chiều ngang của ánh xạ nướng"
 
 
-msgid "Bezier Curve Point"
-msgstr "Điểm của Đường Cong Bezier"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Điểm của đường cong Bezier với 2 tay cầm"
-
-
 msgid "Control Point"
 msgstr "Điểm Điều Khiển"
 
@@ -2397,14 +2385,6 @@ msgstr "Bút Chì Dầu"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Khối dữ liệu của Bút Chì Dầu"
-
-
-msgid "Grease Pencil v3"
-msgstr "Bút Chì Dầu v3"
-
-
-msgid "Grease Pencil v3 data-blocks"
-msgstr "Khối dữ liệu Bút Chì Dầu v3"
 
 
 msgid "Hair Curves"
@@ -3504,17 +3484,9 @@ msgid "Ease In"
 msgstr "Chậm Rãi Vào"
 
 
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Độ dài của Tay Cầm Bezier thứ nhất (chỉ dành cho Xương-Dẻo)"
-
-
 msgctxt "Armature"
 msgid "Ease Out"
 msgstr "Chậm Rãi Ra"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Độ dài của Tay Cầm Bezier thứ nhì (chỉ dành cho Xương-Dẻo thôi)"
 
 
 msgid "B-Bone End Handle Type"
@@ -7185,10 +7157,6 @@ msgid "Floor"
 msgstr "Nền Sàn/Làm Tròn Xuống"
 
 
-msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner can not cross"
-msgstr "Dùng vị trí (và xoay chiều nữa nếu muốn) của mục tiêu để xác định một 'bức tường' hoặc 'tấm sàn' mà chủ nhân không thể đi xuyên qua được"
-
-
 msgid "Follow Path"
 msgstr "Đi theo Đường Dẫn"
 
@@ -8017,6 +7985,7 @@ msgid "Movie tracking object to follow (if empty, camera object is used)"
 msgstr "Đối tượng giám sát phim để giám sát (nếu bỏ trống thì sẽ dùng máy quay phim)"
 
 
+msgctxt "MovieClip"
 msgid "Track"
 msgstr "Giám Sát/Rãnh"
 
@@ -9249,10 +9218,6 @@ msgid "Handle Type"
 msgstr "Kiểu tay cầm"
 
 
-msgid "Curve interpolation at this point: Bezier or vector"
-msgstr "Nội suy đường cong tại điểm này: Bezier hay vectơ"
-
-
 msgid "Auto Handle"
 msgstr "Tay Cầm Tự Động"
 
@@ -9371,10 +9336,6 @@ msgstr "Loại đường cong sử dụng cho những nét vẽ mới"
 
 msgid "Poly"
 msgstr "Đa Giác"
-
-
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgid "Depth"
@@ -19287,34 +19248,6 @@ msgid "Grid scale"
 msgstr "Tỷ lệ khung lưới đồ thị"
 
 
-msgid "Collection of related drawings"
-msgstr "Bộ sưu tập các bản vẽ liên quan"
-
-
-msgid "Set layer visibility"
-msgstr "Đặt mức độ hiển thị của tầng lớp"
-
-
-msgid "Grease Pencil Layer Group"
-msgstr "Nhóm Tầng Lớp Bút Chì Dầu"
-
-
-msgid "Group of Grease Pencil layers"
-msgstr "Nhóm các Tầng Lớp Bút Chì Dầu"
-
-
-msgid "Set layer group visibility"
-msgstr "Đặt mức độ hiển thị của nhóm tầng lớp"
-
-
-msgid "Protect group from further editing and/or frame changes"
-msgstr "Bảo vệ nhóm khỏi quá trình chỉnh sửa thêm và/hoặc các thay đổi khung hình"
-
-
-msgid "Group name"
-msgstr "Tên nhóm"
-
-
 msgid "Grease Pencil Layers"
 msgstr "Các Tầng Lớp Bút Chì Dầu"
 
@@ -19357,14 +19290,6 @@ msgstr "Chỉ Số của Tầng Chắn Lọc đang Hoạt Động"
 
 msgid "Active index in layer mask array"
 msgstr "Chỉ số đang hoạt động trong mảng về tầng chắn lọc"
-
-
-msgid "Collection of Grease Pencil layers"
-msgstr "Bộ sưu tập các tầng lớp Bút Chì Dầu"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Tầng Bút Chì Dầu đang hoạt động"
 
 
 msgid "Editor header containing UI elements"
@@ -19441,6 +19366,10 @@ msgstr "Đầu Bút"
 
 msgid "Font"
 msgstr "Phông"
+
+
+msgid "Grease Pencil v3"
+msgstr "Bút Chì Dầu v3"
 
 
 msgid "Key"
@@ -21283,10 +21212,6 @@ msgid "Draw a line with dabs separated according to spacing"
 msgstr "Vẽ một nét dùng các chấm sơn cách nhau bằng phân khoảng đã định"
 
 
-msgid "Define the stroke curve with a bezier curve (dabs are separated according to spacing)"
-msgstr "Định nghĩa đường cong nét vẽ dùng đường cong bezier (các chấm được phân cách theo phân khoảng đã định)"
-
-
 msgid "Per Vertex Displacement"
 msgstr "Mức Dời Hình của Mỗi Điểm Đỉnh"
 
@@ -21501,10 +21426,6 @@ msgstr "Vượt Quyền Vẽ Lồng"
 
 msgid "Don't show overlay during a stroke"
 msgstr "Không hiển thị lớp lồng trong khi đang vẽ nét"
-
-
-msgid "Define the stroke curve with a bezier curve. Dabs are separated according to spacing"
-msgstr "Định nghĩa đường cong nét vẽ bằng một đường cong Bezier. Các chấm được phân cách bằng phân khoảng đã định"
 
 
 msgid "Custom Icon"
@@ -24178,22 +24099,6 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "Lượng dịch chuyển khi vẽ trong chế độ bề mặt"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Khối dữ liệu Bút Chì Dầu"
-
-
-msgid "Layer Groups"
-msgstr "Nhóm Tầng Lớp"
-
-
-msgid "Grease Pencil layer groups"
-msgstr "Các nhóm tầng lớp bút chì dầu"
-
-
-msgid "Grease Pencil layers"
-msgstr "Các tầng lớp Bút Chì Dầu"
-
-
 msgid "Image data-block referencing an external or packed image"
 msgstr "Khối dữ liệu hình ảnh tham chiếu một hình ảnh bên ngoài hay hình ảnh đóng gói"
 
@@ -26316,6 +26221,10 @@ msgstr "Nhãn hiệu của cây nút"
 
 msgid "Grease Pencil Data"
 msgstr "Dữ Liệu Bút Chì Dầu"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Khối dữ liệu Bút Chì Dầu"
 
 
 msgid "Interface"
@@ -30627,14 +30536,6 @@ msgid "Maintained by community developers"
 msgstr "Được bảo hành bởi các lập trình viên của cộng đồng"
 
 
-msgid "Testing"
-msgstr "Thử Nghiệm"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Các tập lệnh mới đóng góp (không được bao gồm trong các bản xây dựng phát hành)"
-
-
 msgid "Asset Blend Path"
 msgstr "Đường Dẫn Tài Sản Blend"
 
@@ -33197,10 +33098,6 @@ msgid "Collection of keymaps"
 msgstr "Bộ sưu tập các ấn định phím"
 
 
-msgid "Bezier curve point with two handles defining a Keyframe on an F-Curve"
-msgstr "Điểm trên đường cong Bezier có hai tay cầm xác định một khung khóa trên Đường Cong-F"
-
-
 msgid "Amount to boost elastic bounces for 'elastic' easing"
 msgstr "Lượng tăng độ kéo giãn đàn hồi cho quá trình làm chậm rãi 'đàn hồi' lại"
 
@@ -33327,11 +33224,6 @@ msgstr "Tuyến Tính"
 
 msgid "Straight-line interpolation between A and B (i.e. no ease in/out)"
 msgstr "Nội suy theo đường thẳng giữa A đến B (tức là không chậm rãi vào/ra)"
-
-
-msgctxt "Action"
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgid "Smooth interpolation between A and B, with some control over curve shape"
@@ -34227,10 +34119,6 @@ msgid "Backbone Stretcher"
 msgstr "Kéo Giãn Xương Lưng"
 
 
-msgid "Bezier Curve"
-msgstr "Đường Cong Bezier"
-
-
 msgid "Blueprint"
 msgstr "Bản In Lam"
 
@@ -34353,14 +34241,6 @@ msgstr "Độ Dài Xương Lưng"
 
 msgid "Amount of backbone stretching"
 msgstr "Độ dài để kéo các nét khung cốt ra"
-
-
-msgid "Replace stroke backbone geometry by a Bezier curve approximation of the original backbone geometry"
-msgstr "Thay thế hình dạng các nét khung cốt bằng một đường cong Bezier với hình dạng ước chừng hình thể của khung cốt gốc"
-
-
-msgid "Maximum distance allowed between the new Bezier curve and the original backbone geometry"
-msgstr "Khoảng cách tối đa cho phép giữa đường cong Bezier mới và hình dạng khung cốt gốc"
 
 
 msgid "Produce a blueprint using circular, elliptic, and square contour strokes"
@@ -35331,6 +35211,10 @@ msgid "Rotation Track Specials"
 msgstr "Những Đặc Biệt của Giám Sát Xoay Chiều"
 
 
+msgid "Track"
+msgstr "Giám Sát/Rãnh"
+
+
 msgid "Clean Up"
 msgstr "Dọn Dẹp"
 
@@ -35500,10 +35384,6 @@ msgstr "Điều Chỉnh"
 
 msgid "Keying"
 msgstr "Khóa Hóa"
-
-
-msgid "Tracking"
-msgstr "Giám Sát"
 
 
 msgid "Layout"
@@ -38478,10 +38358,6 @@ msgstr "Trung tâm của móc, sử dụng để tính sự suy giảm dần và
 
 msgid "Vertex Indices"
 msgstr "Chỉ Số Điểm Đỉnh"
-
-
-msgid "Indices of vertices bound to the modifier. For bezier curves, handles count as additional vertices"
-msgstr "Chỉ số của các điểm đỉnh đã được kết buộc vào bộ điều chỉnh. Đối với các đường cong bezier, các tay cầm được tính như các điểm đỉnh bổ xung"
 
 
 msgid "Laplacian Deform Modifier"
@@ -45007,10 +44883,6 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "Tốc độ tối thiểu để làm cho điểm ảnh bị nhòe đi (dùng để tách biệt nền ra khỏi cảnh trước)"
 
 
-msgid "Interpolate between frames in a Bezier curve, rather than linearly"
-msgstr "Nội suy các khung hình nằm giữa dùng đường cong Bezier, thay vì theo đường tiếp tuyến"
-
-
 msgid "Tile Order"
 msgstr "Thứ Tự Ô"
 
@@ -45617,10 +45489,6 @@ msgid "Retrieve the curve a control point is part of"
 msgstr "Trích xuất đường cong mà điểm điều khiển là một phần của nó"
 
 
-msgid "Bezier Segment"
-msgstr "Phân Đoạn Bezier"
-
-
 msgid "Generate a 2D Bézier spline from the given control points and handles"
 msgstr "Tạo một chốt trục Bézier 2D từ các điểm điều khiển cung cấp và các tay cầm"
 
@@ -45709,10 +45577,6 @@ msgid "Create a quadrilateral from four points"
 msgstr "Kiến Tạo một hình tứ giác từ bốn điểm"
 
 
-msgid "Quadratic Bezier"
-msgstr "Bezier Bậc Hai"
-
-
 msgid "Generate a poly spline in a parabola shape with control points positions"
 msgstr "Tạo một đường đa giác theo hình parabol với các vị trí điểm điều khiển"
 
@@ -45787,10 +45651,6 @@ msgstr "Phương pháp tạo các điểm từ đường cong cung cấp ở đ�
 
 msgid "Evaluated"
 msgstr "Đã Tính Toán"
-
-
-msgid "Create points from the curve's evaluated points, based on the resolution attribute for NURBS and Bezier splines"
-msgstr "Kiến Tạo điểm từ các điểm được tính toán của đường cong, dựa trên thuộc tính về độ phân giải cho NURBS và chốt trục Bezier"
 
 
 msgid "Sample each spline by evenly distributing the specified number of points"
@@ -46011,14 +45871,6 @@ msgstr "Làm tròn các góc bằng cách tạo các cung tròn trên mỗi đi�
 
 msgid "How to choose number of vertices on fillet"
 msgstr "Phương pháp chọn số điểm đỉnh trên góc vê tròn"
-
-
-msgid "Align Bezier handles to create circular arcs at each control point"
-msgstr "Căn chỉnh các tay cầm của Bezier để kiến tạo các vòng cung tròn tại mỗi điểm điều khiển"
-
-
-msgid "Add control points along a circular arc (handle type is vector if Bezier Spline)"
-msgstr "Cho thêm các điểm điều khiển dọc theo vòng cung tròn (kiểu tay cầm là véctơ nếu là Chốt Trục Bezier)"
 
 
 msgid "Flip Faces"
@@ -46692,10 +46544,6 @@ msgstr "Tạo chốt trục đa giác cho mỗi chốt trục cung cấp ở đ�
 
 msgid "How to specify the amount of samples"
 msgstr "Phương pháp để xác định lượng mẫu thí nghiệm"
-
-
-msgid "Output the input spline's evaluated points, based on the resolution attribute for NURBS and Bezier splines. Poly splines are unchanged"
-msgstr "Xuất các điểm đánh giá của chốt trục cung cấp ở đầu vào, dựa trên thuộc tính về độ phân giải cho các chốt trục NURBS và Bezier. Chốt trục đa giác Poly sẽ không thay đổi"
 
 
 msgid "Sample the specified number of points along each spline"
@@ -50992,10 +50840,6 @@ msgid "Choose the interpolation type with which new keys will be added"
 msgstr "Chọn kiểu nội suy mà các khóa mới sẽ được thêm vào"
 
 
-msgid "New keys will be beziers"
-msgstr "Các khóa mới sẽ là beziers"
-
-
 msgid "New keys will be linear"
 msgstr "Các khóa mới sẽ là tuyến tính"
 
@@ -55086,15 +54930,6 @@ msgid "Toggle between Vector and Auto handles"
 msgstr "Đổi các tay cầm thành Véctơ hoặc Tự động"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Thêm Vòng Tròn Bézier"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Kiến Tạo Vòng Tròn Bézier"
-
-
 msgid "The alignment of the new object"
 msgstr "Sự căn chỉnh của đối tượng mới"
 
@@ -55129,15 +54964,6 @@ msgstr "Góc xoay chiều cho đối tượng mới được thêm"
 
 msgid "Scale for the newly added object"
 msgstr "Tỷ lệ dành cho đối tượng mới được thêm vào"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Thêm Bézier"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Tạo một đường cong Bézier"
 
 
 msgctxt "Operator"
@@ -55371,10 +55197,6 @@ msgstr "Đặt thể loại của chốt trục"
 
 msgid "Handles"
 msgstr "Tay Cầm"
-
-
-msgid "Use handles when converting bezier curves into polygons"
-msgstr "Sử dụng các tay cầm khi chuyển đổi các đường cong Bezier thành đa giác"
 
 
 msgctxt "Operator"
@@ -55746,8 +55568,20 @@ msgstr "Chuyển đổi mọi sự xoay chiều thành Euler ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Xuất Khẩu PLY"
+msgid "Export STL (legacy)"
+msgstr "Xuất Khẩu STL (lỗi thời)"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "Lưu dữ liệu khung lưới tam giác STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Lưu tập tin trong định dạng ASCII (American Standard Code for Information Interchange - Chuẩn Mã Trao Đổi Thông Tin Hoa Kỳ)"
 
 
 msgid "X Forward"
@@ -55794,39 +55628,6 @@ msgid "-Z Up"
 msgstr "-Z Lên Trên"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Apply Modifiers"
-msgstr "Áp Dụng Bộ Điều Chỉnh"
-
-
-msgid "Selection Only"
-msgstr "Duy Lựa Chọn"
-
-
-msgid "Export selected objects only"
-msgstr "Chỉ Xuất Khẩu các đối tượng đã chọn mà thôi"
-
-
-msgctxt "Operator"
-msgid "Export STL (legacy)"
-msgstr "Xuất Khẩu STL (lỗi thời)"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Lưu dữ liệu khung lưới tam giác STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Lưu tập tin trong định dạng ASCII (American Standard Code for Information Interchange - Chuẩn Mã Trao Đổi Thông Tin Hoa Kỳ)"
-
-
 msgid "Batch Mode"
 msgstr "Chế Độ Thi Hành Hàng Loạt"
 
@@ -55847,6 +55648,10 @@ msgid "Export in this reference space"
 msgstr "Xuất khẩu trong không gian tham chiếu này"
 
 
+msgid "Apply Modifiers"
+msgstr "Áp Dụng Bộ Điều Chỉnh"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Áp dụng các bộ điều chỉnh trước khi lưu"
 
@@ -55857,6 +55662,14 @@ msgstr "Đơn Vị của Cảnh"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Áp dụng đơn vị của cảnh (những được xác định trong thang đo) vào dữ liệu xuất khẩu"
+
+
+msgid "Selection Only"
+msgstr "Duy Lựa Chọn"
+
+
+msgid "Export selected objects only"
+msgstr "Chỉ Xuất Khẩu các đối tượng đã chọn mà thôi"
 
 
 msgctxt "Operator"
@@ -57043,18 +56856,6 @@ msgstr "Ghi Nhớ các Sắp Đặt về Xuất Khẩu"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Lưu các sắp đặt xuất khẩu glTF trong đề án Blender"
-
-
-msgid "Material Groups"
-msgstr "Các Nhóm Nguyên Vật Liệu"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Sinh tạo một nhóm OBJ cho mỗi phần của hình học dùng một nguyên vật liệu khác"
-
-
-msgid "Smooth Groups"
-msgstr "Các Nhóm Mịn"
 
 
 msgctxt "Operator"
@@ -58646,16 +58447,8 @@ msgid "Animation path"
 msgstr "Đường chuyển động của hoạt họa"
 
 
-msgid "Smooth Bezier curve"
-msgstr "Đường Cong Bézier mịn màng"
-
-
 msgid "Polygon Curve"
 msgstr "Đường Cong Đa Giác"
-
-
-msgid "Bezier curve with straight-line segments (vector handles)"
-msgstr "Đường cong Bézier với các phân đoạn đường thẳng (các tay cầm vectơ)"
 
 
 msgid "Link Strokes"
@@ -59223,6 +59016,10 @@ msgstr "Đàn Hồi"
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "Tầng Lớp đang Hoạt Động"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Tầng Bút Chì Dầu đang hoạt động"
 
 
 msgctxt "Operator"
@@ -60974,14 +60771,6 @@ msgid "Handle Length"
 msgstr "Chiều Dài Tay Cầm"
 
 
-msgid "Length to make selected keyframes' bezier handles"
-msgstr "Chiều dài tay cầm bezier của khung khóa đã chọn"
-
-
-msgid "Side of the keyframes' bezier handles to affect"
-msgstr "Bên tay cầm của bezier sẽ tác động của khung khóa"
-
-
 msgid "Equalize selected keyframes' left handles"
 msgstr "Cân bằng tay cầm bên trái của các khung khóa đã chọn"
 
@@ -61715,6 +61504,10 @@ msgstr "Số điểm lựa chọn từ đầu"
 
 msgid "Selects random points from the current strokes selection"
 msgstr "Chọn các điểm ngẫu nhiên từ lựa chọn nét hiện tại"
+
+
+msgid "By Material"
+msgstr "Theo Nguyên Vật Liệu"
 
 
 msgctxt "Operator"
@@ -62630,11 +62423,6 @@ msgstr "Dùng kênh alpha cho độ trong suốt"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Nhập Khẩu PLY"
-
-
-msgctxt "Operator"
 msgid "Import STL (legacy)"
 msgstr "Nhập Khẩu STL (lỗi thời)"
 
@@ -62886,10 +62674,6 @@ msgstr "Mức Ghi Nhật Ký"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Định dạng glTF đòi hỏi các pháp tuyến phải gián đoạn nhau. Các UV và các thuộc tính điểm đỉnh khác cũng phải được lưu như các điểm đỉnh riêng biệt, như điều kiện đòi hỏi đối với phần cứng về đồ họa tiêu biểu vậy. Tùy chọn này cố gắng kết hợp các điểm đỉnh nằm cùng một vị trí lại làm một, nếu có thể. Hiện tại, phép toán này không thể kết hợp các điểm đỉnh có pháp tuyến khác biệt"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Nhập khẩu các nhóm OBJ như các nhóm điểm đỉnh"
 
 
 msgctxt "Operator"
@@ -66116,10 +65900,6 @@ msgid "Separate selected geometry into a new mesh"
 msgstr "Tách các hình học đã chọn thành một khung lưới mới"
 
 
-msgid "By Material"
-msgstr "Theo Nguyên Vật Liệu"
-
-
 msgid "By Loose Parts"
 msgstr "Theo Bộ Phận Rời Rạc"
 
@@ -68352,24 +68132,12 @@ msgid "Curve from Mesh or Text objects"
 msgstr "Đường Cong từ các đối tượng Khung Lưới hoặc Văn Bản"
 
 
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "Khung lưới từ các đối tượng Đường Cong, Bề Mặt, Siêu Cầu, Văn Bản hoặc Đám Mây Điểm"
-
-
 msgid "Grease Pencil from Curve or Mesh objects"
 msgstr "Bút Chì Dầu từ các đối tượng Đường Cong hoặc Khung Lưới"
 
 
-msgid "Point Cloud from Mesh objects"
-msgstr "Đám Mây Điểm từ các vật thể Khung Lưới"
-
-
 msgid "Curves from evaluated curve data"
 msgstr "Đường cong từ dữ liệu đường cong đã tính toán"
-
-
-msgid "Grease Pencil v3 from Grease Pencil"
-msgstr "Bút Chì Dầu v3 từ Bút Chì Dầu"
 
 
 msgctxt "Operator"
@@ -74078,8 +73846,20 @@ msgid "Add a directory to be used as a local extension repository"
 msgstr "Thêm một thư mục sẽ được sử dụng làm kho lưu trữ tiện ích mở rộng cục bộ"
 
 
+msgid "The local directory containing extensions"
+msgstr "Thư mục cục bộ chứa các tiện ích mở rộng"
+
+
+msgid "Unique repository name"
+msgstr "Tên kho lưu trữ độc nhất"
+
+
 msgid "URL"
 msgstr "URL"
+
+
+msgid "Remote URL or path for extension repository"
+msgstr "URL từ xa hoặc đường dẫn cho kho lưu trữ tiện ích mở rộng"
 
 
 msgctxt "Operator"
@@ -74452,10 +74232,6 @@ msgstr "Dùng ngữ cảnh góc nhìn 3D hiện tại cho quá trình kết xu�
 
 msgid "Write Image"
 msgstr "Ghi Hình Ảnh"
-
-
-msgid "Save rendered the image to the output path (used only when animation is disabled)"
-msgstr "Lưu hình ảnh đã kết xuất ra đường dẫn đầu ra (chỉ sử dụng khi hoạt họa bị tắt đi)"
 
 
 msgctxt "Operator"
@@ -77489,10 +77265,6 @@ msgstr "Đặt Tốc Độ"
 
 msgid "Set speed of retimed segment"
 msgstr "Đặt tốc độ của phân đoạn được tính lại thời gian"
-
-
-msgid "Preserve Current retiming"
-msgstr "Bảo tồn giá trị tính lại thời gian hiện tại"
 
 
 msgid "Keep speed of other segments unchanged, change strip length instead"
@@ -83300,6 +83072,10 @@ msgid "Export Material Groups"
 msgstr "Xuất Khẩu các Nhóm Nguyên Vật Liệu"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Sinh tạo một nhóm OBJ cho mỗi phần của hình học dùng một nguyên vật liệu khác"
+
+
 msgid "Export Materials"
 msgstr "Xuất Khẩu các Nguyên Vật Liệu"
 
@@ -83433,6 +83209,10 @@ msgid "Character used to separate objects name into hierarchical structure"
 msgstr "Ký tự dùng để phân tách tên đối tượng thành cấu trúc cấp bậc"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "Nhập khẩu các nhóm OBJ như các nhóm điểm đỉnh"
+
+
 msgid "Split By Group"
 msgstr "Tách Phân theo Nhóm"
 
@@ -83538,6 +83318,11 @@ msgid "Open a path in a file browser"
 msgstr "Mở đường dẫn trong trình duyệt tập tin"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Xuất Khẩu PLY"
+
+
 msgid "Save the scene to a PLY file"
 msgstr "Lưu cảnh ra một tập tin PLY"
 
@@ -83580,6 +83365,11 @@ msgstr "Xuất Khẩu các Pháp Tuyến Điểm Đỉnh"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "Xuất khẩu các pháp tuyến điểm đỉnh cụ thể nếu có, xuất khẩu các pháp tuyến đã được tính toán nếu không"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Nhập Khẩu PLY"
 
 
 msgid "Import an PLY file as an object"
@@ -85854,11 +85644,6 @@ msgid "Transforms"
 msgstr "Biến Hóa"
 
 
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Thiết Lập Cảnh"
-
-
 msgid "Predefined track color"
 msgstr "Màu giám sát định trước"
 
@@ -87219,11 +87004,6 @@ msgstr "Dao"
 msgctxt "Operator"
 msgid "Poly Build"
 msgstr "Dựng Đa Giác"
-
-
-msgctxt "Operator"
-msgid "Spin Duplicates"
-msgstr "Xoáy Nhân Đôi"
 
 
 msgctxt "Operator"
@@ -91570,12 +91350,12 @@ msgid "Property has been dynamically created at runtime"
 msgstr "Tính chất đã được tạo ra một cách năng động trong thời gian chạy"
 
 
-msgid "Skip Save"
-msgstr "Bỏ Qua Lưu"
-
-
 msgid "True when the property is not saved in presets"
 msgstr "Đúng khi tính chất không được lưu trong các cài đặt trước"
+
+
+msgid "Skip Save"
+msgstr "Bỏ Qua Lưu"
 
 
 msgid "Base"
@@ -98375,14 +98155,6 @@ msgid "Vertex weight group, to blend with basis shape"
 msgstr "Nhóm trọng lượng điểm đỉnh, để pha trộn với hình mẫu cơ bản"
 
 
-msgid "Shape Key Bezier Point"
-msgstr "Điểm Hình Mẫu cho Bezier"
-
-
-msgid "Point in a shape key for Bezier curves"
-msgstr "Điểm trong hình mẫu cho các đường cong Bezier"
-
-
 msgid "Handle 1 Location"
 msgstr "Vị Trí Tay Cầm 1"
 
@@ -98746,11 +98518,6 @@ msgstr "Chú thích từ đâu đến"
 
 msgid "Show annotation data-block which belongs to movie clip"
 msgstr "Hiển thị khối dữ liệu chú thích trực thuộc đoạn phim"
-
-
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "Giám Sát/Rãnh"
 
 
 msgid "Show annotation data-block which belongs to active track"
@@ -99216,10 +98983,6 @@ msgid "Show Handles and Interpolation"
 msgstr "Hiển Thị Tay Cầm và Nội Suy"
 
 
-msgid "Display keyframe handle types and non-bezier interpolation modes"
-msgstr "Hiển thị các kiểu tay cầm của khung khóa và các chế độ nội suy phi-bezier (không phải là bezier)"
-
-
 msgid "Show Markers"
 msgstr "Hiển Thị Dấu Mốc"
 
@@ -99414,10 +99177,6 @@ msgstr "Hiển Thị Ngoại Suy"
 
 msgid "Show Handles"
 msgstr "Hiển Thị Tay Cầm"
-
-
-msgid "Show handles of Bezier control points"
-msgstr "Hiển thị tay cầm của các điểm điều khiển Bezier"
 
 
 msgid "Auto Normalization"
@@ -101363,18 +101122,6 @@ msgid "Opacity of UV overlays"
 msgstr "Độ đục của lớp vẽ UV phủ chồng lên"
 
 
-msgid "Element of a curve, either NURBS, Bezier or Polyline or a character with text objects"
-msgstr "Phần tử của một đường cong, hoặc là NURBS (Non-uniform rational basis spline), Bézier, Polyline (nhiều đường/nét), hoặc là ký tự trong đối tượng văn bản"
-
-
-msgid "Bezier Points"
-msgstr "Các Điểm của Bézier"
-
-
-msgid "Collection of points for Bezier curves only"
-msgstr "Bộ sưu tập điểm cho duy các đường cong Bézier mà thôi"
-
-
 msgid "Character Index"
 msgstr "Chỉ Số Ký Tự"
 
@@ -101431,10 +101178,6 @@ msgid "Radius Interpolation"
 msgstr "Nội Suy Bán Kính"
 
 
-msgid "The type of radius interpolation for Bezier curves"
-msgstr "Kiểu nội suy bán kính cho đường cong Bezier"
-
-
 msgid "Curve or Surface subdivisions per segment"
 msgstr "Lượng phân hóa của Đường Cong hay Bề Mặt cho mỗi phân đoạn"
 
@@ -101447,28 +101190,8 @@ msgid "Tilt Interpolation"
 msgstr "Nội Suy Xoay Nghiêng"
 
 
-msgid "The type of tilt interpolation for 3D, Bezier curves"
-msgstr "Kiểu nội suy xoay nghiêng cho đường cong 3D, Bézier"
-
-
 msgid "The interpolation type for this curve element"
 msgstr "Kiểu nội suy cho yếu tố này của đường cong"
-
-
-msgid "Bezier U"
-msgstr "Bézier U"
-
-
-msgid "Make this nurbs curve or surface act like a Bezier spline in the U direction"
-msgstr "Bắt đường cong nurbs và bề mặt này hành động giống như một đường cong Bezier trong hướng U"
-
-
-msgid "Bezier V"
-msgstr "Bézier V"
-
-
-msgid "Make this nurbs surface act like a Bezier spline in the V direction"
-msgstr "Bắt Bề Mặt Nurbs này hành động giống như một chốt trục Bezier trong hướng V"
 
 
 msgid "Make this curve or surface a closed loop in the U direction"
@@ -101497,14 +101220,6 @@ msgstr "Bắt các bề mặt nurb này khớp với các điểm kết trong h�
 
 msgid "Smooth the normals of the surface or beveled curve"
 msgstr "Làm mịn pháp tuyến của bề mặt hoặc đường cong được bo tròn"
-
-
-msgid "Spline Bezier Points"
-msgstr "Điểm của Chốt Trục Bézier"
-
-
-msgid "Collection of spline Bezier points"
-msgstr "Bộ sưu tập các của điểm chốt trục Bézier"
 
 
 msgid "Spline point without handles"
@@ -101637,10 +101352,6 @@ msgstr "Có Điểm Nhấn Lóng Lánh"
 
 msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "Tập tin hình ảnh của bố trí ánh sáng studio có các lượt \"khuếch xạ\" và \"lóng lánh\" riêng biệt"
-
-
-msgid "Lights user to display objects in solid draw mode"
-msgstr "Nguồn ánh sáng dùng để hiển thị các đối tượng trong chế độ vẽ khối lập thể"
 
 
 msgctxt "Light"
@@ -102388,10 +102099,6 @@ msgstr "Kênh Thứ của Bảng Hành Động"
 
 msgid "Interpolation Line"
 msgstr "Đường Nội Suy"
-
-
-msgid "Color of lines showing non-bezier interpolation modes"
-msgstr "Màu sắc của các đường biểu hiện chế độ nội suy phi-bezier (non-bezier)"
 
 
 msgid "Color of Keyframe"
@@ -104362,14 +104069,6 @@ msgid "When creating new strokes, the weight data is added according to the curr
 msgstr "Khi tạo các nét vẽ mới, dữ liệu trọng lượng sẽ được thêm vào tùy theo nhóm điểm đỉnh hiện tại và trọng lượng, nếu không có nhóm điểm đỉnh nào đã được chọn thì trọng số sẽ không được thêm vào"
 
 
-msgid "Multi-frame Editing"
-msgstr "Biên Soạn Đa Khung Hình"
-
-
-msgid "Enable multi-frame editing"
-msgstr "Bật chỉnh sửa đa khung hình"
-
-
 msgid "Cycle-Aware Keying"
 msgstr "Khóa Hóa Cảnh Giác về sự Tuần Hoàn"
 
@@ -105125,29 +104824,12 @@ msgid "Settings to define an extension repository"
 msgstr "Các cài đặt để xác định một kho lưu trữ tiện ích mở rộng"
 
 
-msgid "The local directory containing extensions"
-msgstr "Thư mục cục bộ chứa các tiện ích mở rộng"
-
-
 msgid "Enable the repository"
 msgstr "Bật kho lưu trữ"
 
 
 msgid "Unique module identifier"
 msgstr "Mã định danh mô-đun độc nhất"
-
-
-msgid "Unique repository name"
-msgstr "Tên kho lưu trữ độc nhất"
-
-
-msgctxt "File browser"
-msgid "Remote Path"
-msgstr "Đường Dẫn Từ Xa"
-
-
-msgid "Remote URL or path for extension repository"
-msgstr "URL từ xa hoặc đường dẫn cho kho lưu trữ tiện ích mở rộng"
 
 
 msgid "Local Cache"
@@ -108052,16 +107734,6 @@ msgstr "Công Cụ Góc Nhìn 3D: Biên Soạn Khung Lưới, Xoáy (dự bị)"
 
 
 msgctxt "WindowManager"
-msgid "3D View Tool: Edit Mesh, Spin Duplicates"
-msgstr "Công Cụ Góc Nhìn 3D: Biên Soạn Khung Lưới, Xoáy Nhân Đôi"
-
-
-msgctxt "WindowManager"
-msgid "3D View Tool: Edit Mesh, Spin Duplicates (fallback)"
-msgstr "Công Cụ Góc Nhìn 3D: Biên Soạn Khung Lưới, Xoáy Nhân Đôi (dự bị)"
-
-
-msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Smooth"
 msgstr "Công Cụ Góc Nhìn 3D: Biên Soạn Khung Lưới, Làm Mịn Màng"
 
@@ -110807,10 +110479,6 @@ msgid "Add a new Variant Slot"
 msgstr "Thêm một Khe Biến Thể mới"
 
 
-msgid "Curves as NURBS"
-msgstr "Đường Cong thành NURBS"
-
-
 msgid "untitled"
 msgstr "vô danh"
 
@@ -111078,6 +110746,10 @@ msgid "Selected asset %s is not an Action"
 msgstr "Tài sản đã chọn %s không phải là một Hành Động"
 
 
+msgid "Action %r is not a legacy pose library"
+msgstr "Hành động %r không phải là một thư viện tư thế lỗi thời"
+
+
 msgid "Unable to convert to pose assets"
 msgstr "Không thể chuyển đổi thành các tài sản tư thế được"
 
@@ -111088,10 +110760,6 @@ msgstr "Đã chọn các xương từ %s"
 
 msgid "Deselected bones from %s"
 msgstr "Đã hủy chọn các xương từ %s"
-
-
-msgid "Action %r is not a legacy pose library"
-msgstr "Hành động %r không phải là một thư viện tư thế lỗi thời"
 
 
 msgctxt "Operator"
@@ -111299,6 +110967,10 @@ msgstr "Nhập Khẩu PO..."
 msgctxt "Operator"
 msgid "Invert Selection"
 msgstr "Đảo Nghịch Lựa Chọn"
+
+
+msgid "Tracking"
+msgstr "Giám Sát"
 
 
 msgid "Positional"
@@ -111924,10 +111596,6 @@ msgid "Data path not set"
 msgstr "Đường dẫn dữ liệu chưa được lắp đặt"
 
 
-msgid "Properties from override data can not be edited"
-msgstr "Không thể biên soạn các tính chất từ dữ liệu vượt quyền được"
-
-
 msgid "Cannot add properties to override data"
 msgstr "Không thể thêm tính chất vào dữ liệu vượt quyền"
 
@@ -112222,10 +111890,6 @@ msgstr "Tải các Cài Đặt Blender %d.%d"
 
 msgid "Windowing Environment: %s"
 msgstr "Môi Trường Cửa Sổ: %s"
-
-
-msgid "Type \"%s\" can not be found"
-msgstr "Không thể tìm thấy kiểu dữ liệu \"%s\""
 
 
 msgid "Material(s)"
@@ -117430,11 +117094,6 @@ msgstr "Đầu Khỉ"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Đường Cong Nurbs"
 
@@ -119544,10 +119203,6 @@ msgid "armatures"
 msgstr "khung rối"
 
 
-msgid "Attribute name can not be empty"
-msgstr "Thuộc tính không thể trống rỗng được"
-
-
 msgid "Attribute is not part of this geometry"
 msgstr "Thuộc tính không phải là phần của hình học này"
 
@@ -119566,10 +119221,6 @@ msgstr "Đòi hỏi phải có thuộc tính. Không thể xóa bỏ được"
 
 msgid "Layer '%s' could not be created"
 msgstr "Không thể tạo tầng lớp '%s' được"
-
-
-msgid "This attribute can not be accessed in a procedural context"
-msgstr "Thuộc tính này không thể truy cập trong bối cảnh thủ tục được"
 
 
 msgid "Library file, loading empty scene"
@@ -119714,14 +119365,6 @@ msgstr "Yêu cầu phải có ít nhất hai điểm"
 
 msgid "Must have more control points than Order"
 msgstr "Phải có nhiều điểm điều khiển hơn số Bậc (Order)"
-
-
-msgid "%d more %s row(s) needed for Bezier"
-msgstr "Cần %d thêm %s hàng cho đường cong Bezier"
-
-
-msgid "%d more point(s) needed for Bezier"
-msgstr "Cần thêm %d điểm cho đường cong Bezier"
 
 
 msgid "UVMap"
@@ -120459,10 +120102,6 @@ msgid "No valid formats found"
 msgstr "Không tìm thấy định dạng hợp lệ nào cả"
 
 
-msgid "Can't allocate FFMPEG format context"
-msgstr "Không thể phân bổ bối cảnh định dạng FFMPEG được"
-
-
 msgid "Render width has to be 720 pixels for DV!"
 msgstr "Đối với DV, chiều rộng kết xuất phải bằng 720 điểm ảnh!"
 
@@ -120473,10 +120112,6 @@ msgstr "Đối với DV-NTSC, chiều cao kết xuất phải bằng 480 điểm
 
 msgid "Render height has to be 576 pixels for DV-PAL!"
 msgstr "Đối với DV-PAL, chiều cao kết xuất phải bằng 576 điểm ảnh!"
-
-
-msgid "FFMPEG only supports 48khz / stereo audio for DV!"
-msgstr "FFMPEG chỉ hỗ trợ âm thanh 48khz / âm thanh nổi cho DV mà thôi!"
 
 
 msgid "Error initializing video stream"
@@ -121021,10 +120656,6 @@ msgstr "<Bộ Điều Chỉnh Chưa Biết>"
 
 msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
-
-
-msgid "✕ (Ax + B)"
-msgstr "✕ (Ax + B)"
 
 
 msgid "Add Control Point"
@@ -121627,10 +121258,6 @@ msgid "Cannot duplicate current selection"
 msgstr "Không thể sao chép lựa chọn hiện tại"
 
 
-msgid "Only bezier curves are supported"
-msgstr "Chỉ hỗ trợ đường cong bézier mà thôi"
-
-
 msgid "Active object is not a selected curve"
 msgstr "Đối tượng đang hoạt động không phải là một đường cong được chọn"
 
@@ -121641,16 +121268,6 @@ msgstr "%d đường cong không thể tách rời ra được"
 
 msgid "%d curves could not make segments"
 msgstr "%d đường cong không thể tạo phân đoạn được"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Đường Cong Bezier"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Đường Tròn Bezier"
 
 
 msgctxt "Curve"
@@ -121996,10 +121613,6 @@ msgid "No strokes to paste, select and copy some points before trying again"
 msgstr "Không có nét nào để dán. Hãy chọn và sao chép một số điểm trước đã, trước khi thử lại lần nữa"
 
 
-msgid "Can not paste strokes when active layer is hidden or locked"
-msgstr "Không thể dán các nét vẽ khi tầng đang hoạt động bị ẩn giấu hoặc bị khóa"
-
-
 msgid "No grease pencil data"
 msgstr "Không thấy có dữ liệu Bút Chì Dầu"
 
@@ -122229,10 +121842,6 @@ msgstr "Không có hình ảnh, trong dạng đối tượng trống rỗng, nà
 
 msgid "No valid image format selected"
 msgstr "Không có định dạng hình ảnh hợp lệ nào được chọn cả"
-
-
-msgid "Confirm: Enter/LClick, Cancel: (Esc/RClick) %s"
-msgstr "Chấp thuận: Enter/NCT (LMB), Hủy: (Esc/NCP (RMB)) %s"
 
 
 msgid "Palette created"
@@ -123392,6 +123001,10 @@ msgid "Triangulated Mesh"
 msgstr "Khung Lưới Tam Giác Hóa"
 
 
+msgid "Curves as NURBS"
+msgstr "Đường Cong thành NURBS"
+
+
 msgid "PBR Extensions"
 msgstr "Các Định Dạng PBR"
 
@@ -123404,8 +123017,20 @@ msgid "Object Groups"
 msgstr "Nhóm Đối Tượng"
 
 
+msgid "Material Groups"
+msgstr "Các Nhóm Nguyên Vật Liệu"
+
+
+msgid "Smooth Groups"
+msgstr "Các Nhóm Mịn"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "Cờ Bit của Nhóm Mịn"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "Batch"
@@ -123481,16 +123106,16 @@ msgid "Icosphere"
 msgstr "Nhị Thập Diện Cầu Tam Giác Đều"
 
 
+msgid "%s: Confirm, %s: Cancel, %s: Width Type (%s), %s: Width (%s), %s: Segments (%d), %s: Profile (%.3f), %s: Clamp Overlap (%s), %s: Affect (%s), %s: Outer Miter (%s), %s: Inner Miter (%s), %s: Harden Normals (%s), %s: Mark Seam (%s), %s: Mark Sharp (%s), %s: Profile Type (%s), %s: Intersection (%s)"
+msgstr "%s: Xác nhận, %s: Hủy, %s: Loại Chiều Rộng (%s), %s: Chiều Rộng (%s), %s: Số Phân Đoạn (%d), %s: Mặt Cắt (%.3f), %s: Hạn định Chồng Gối (%s), %s: Ảnh Hưởng (%s), %s: Cắt Góc Ngoại (%s), %s: Cắt Góc Nội (%s), %s,: Cương Pháp Tuyến (%s), %s: Đánh Dấu Đường Khâu (%s), %s: Đánh Dấu Sắc Nét (%s), %s: Loại Mặt Cắt (%s ), %s: Giao Cắt Nhau (%s)"
+
+
 msgid "Miter Shape"
 msgstr "Hình Dạng của Góc Cắt"
 
 
 msgid "Intersection Type"
 msgstr "Kiểu Giao Cắt"
-
-
-msgid "%s: Confirm, %s: Cancel, %s: Width Type (%s), %s: Width (%s), %s: Segments (%d), %s: Profile (%.3f), %s: Clamp Overlap (%s), %s: Affect (%s), %s: Outer Miter (%s), %s: Inner Miter (%s), %s: Harden Normals (%s), %s: Mark Seam (%s), %s: Mark Sharp (%s), %s: Profile Type (%s), %s: Intersection (%s)"
-msgstr "%s: Xác nhận, %s: Hủy, %s: Loại Chiều Rộng (%s), %s: Chiều Rộng (%s), %s: Số Phân Đoạn (%d), %s: Mặt Cắt (%.3f), %s: Hạn định Chồng Gối (%s), %s: Ảnh Hưởng (%s), %s: Cắt Góc Ngoại (%s), %s: Cắt Góc Nội (%s), %s,: Cương Pháp Tuyến (%s), %s: Đánh Dấu Đường Khâu (%s), %s: Đánh Dấu Sắc Nét (%s), %s: Loại Mặt Cắt (%s ), %s: Giao Cắt Nhau (%s)"
 
 
 msgid "LMB: Click and drag to draw cut line"
@@ -123515,10 +123140,6 @@ msgstr "Trục không hợp lệ/chưa đặt"
 
 msgid "You have to select a string of connected vertices too"
 msgstr "Bạn cần phải lựa chọn một trình tự các điểm đỉnh kết nối nữa"
-
-
-msgid "Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): (%s)"
-msgstr "Phê Chuẩn: Enter/Bấm trái, Hủy: (Esc/Bấm phải), Độ dày: %s, Độ Sâu (Ctrl để hiệu chỉnh): %s (%s), Cắt Ngoài (O): (%s), Ranh giới (B): (%s), Cá nhân (I) (%s)"
 
 
 msgid "Compiled without GMP, using fast solver"
@@ -123551,10 +123172,6 @@ msgstr "Số Phân Đoạn: %s, Độ Mịn: %s (Alt)"
 
 msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Mạch lưới cắt không hoạt động bình thường khi hiển thị khung lưới biên soạn bị biến dạng"
-
-
-msgid "The geometry can not be extracted with dyntopo activated"
-msgstr "Không thể trích xuất hình học trong khi cấu trúc động đã được kích hoạt"
 
 
 msgid "Path selection requires two matching elements to be selected"
@@ -124165,10 +123782,6 @@ msgstr "Có vấn đề xảy ra trong khi nướng đối tượng \"%s\""
 
 msgid "Modifier containing the node is disabled"
 msgstr "Bộ điều chỉnh có chứa nút đã bị giải hoạt rồi"
-
-
-msgid "Can not determine bake location on disk"
-msgstr "Không thể xác định địa điểm nướng ở trên đĩa được"
 
 
 msgid "Bake directory of object %s, modifier %s is empty, setting default path"
@@ -126605,10 +126218,6 @@ msgid "Deleted %u drivers"
 msgstr "Đã xóa %u trình điều vận"
 
 
-msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
-msgstr "Tiêu hao Đường Cong-F bằng cách chỉ định lượng thiên lệch mà chúng có thể di chuyển khỏi đường cong ban đầu là bao nhiêu"
-
-
 msgid "Decimate Keyframes"
 msgstr "Tiêu Hao Khung Khóa"
 
@@ -126621,12 +126230,12 @@ msgid "Scale from Neighbor Keys"
 msgstr "Đổi tỷ lệ từ các Khóa Hàng Xóm"
 
 
+msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
+msgstr "Tiêu hao Đường Cong-F bằng cách chỉ định lượng thiên lệch mà chúng có thể di chuyển khỏi đường cong ban đầu là bao nhiêu"
+
+
 msgid "Cannot find keys to operate on"
 msgstr "Không tìm thấy khung khóa để thao tác cả"
-
-
-msgid "Decimate: Skipping non linear/bezier keyframes!"
-msgstr "Tiêu Hao: Bỏ qua các khung khóa phi tuyến tính/bezier!"
 
 
 msgid "You need at least 2 keys to the right side of the selection"
@@ -127057,18 +126666,6 @@ msgid "Could not add material"
 msgstr "Không thể thêm nguyên vật liệu"
 
 
-msgid ""
-"Can not add node group '%s' to '%s':\n"
-"  %s"
-msgstr ""
-"Không thể thêm nhóm nút '%s' vào '%s':\n"
-"  %s"
-
-
-msgid "Can not add node group '%s' to '%s'"
-msgstr "Không thể thêm nhóm nút '%s' vào '%s'"
-
-
 msgid "Node tree type %s undefined"
 msgstr "Thể loại cây nút %s là thể loại chưa xác định"
 
@@ -127243,30 +126840,6 @@ msgstr "Không nằm bên trong nhóm nút"
 
 msgid "Cannot separate nodes"
 msgstr "Không thể phân rẽ các nút được"
-
-
-msgid ""
-"Can not add node '%s' in a group:\n"
-"  %s"
-msgstr ""
-"Không thể thêm nút '%s' trong một nhóm:\n"
-"  %s"
-
-
-msgid "Can not add node '%s' in a group"
-msgstr "Không thể thêm nút '%s' trong một nhóm"
-
-
-msgid "Can not add zone input node '%s' to a group without its paired output '%s'"
-msgstr "Không thể cho thêm nút đầu vào của vùng '%s' vào một nhóm mà không có đầu ra ghép đôi của nó '%s'"
-
-
-msgid "Can not add zone output node '%s' to a group without its paired input '%s'"
-msgstr "Không thể cho thêm nút đầu ra của vùng '%s' vào một nhóm mà không có đầu vào ghép đôi của nó '%s'"
-
-
-msgid "Can not insert group '%s' in '%s'"
-msgstr "Không thể chèn thêm nhóm '%s' vào '%s' được"
 
 
 msgid "Disconnect"
@@ -127949,32 +127522,12 @@ msgid "Select movie or image strips"
 msgstr "Chọn các dải phim hoặc hình ảnh"
 
 
-msgid "Can not create key inside of speed transition"
-msgstr "Không thể tạo khóa bên trong quá trình chuyển đổi tốc độ"
-
-
-msgid "Can not create freeze frame"
-msgstr "Không thể tạo khung hình đóng băng được"
-
-
-msgid "Can not create transition from first or last key"
-msgstr "Không thể tạo chuyển tiếp từ khóa đầu tiên hoặc khóa cuối cùng được"
-
-
-msgid "Can not create transition"
-msgstr "Không thể tạo chuyển tiếp được"
-
-
 msgid "Retiming key must be selected"
 msgstr "Khóa tính lại thời gian nhất định phải được chọn đã"
 
 
 msgid "No keys or strips selected"
 msgstr "Không có phím hoặc dải nào được chọn cả"
-
-
-msgid "This strip type can not be retimed"
-msgstr "Thể loại dải này không thể tính lại thời gian được"
 
 
 msgid "No active sequence!"
@@ -128497,10 +128050,6 @@ msgid "No object selected"
 msgstr "Không có đối tượng nào đã được chọn cả"
 
 
-msgid "Auto Keying On"
-msgstr "Bật Khung Khóa Tự Động"
-
-
 msgid "along X"
 msgstr "theo trục X"
 
@@ -128539,6 +128088,10 @@ msgstr "khóa trục Z %s"
 
 msgid "along local Z"
 msgstr "theo trục Z địa phương"
+
+
+msgid "Auto Keying On"
+msgstr "Bật Khung Khóa Tự Động"
 
 
 msgid " along Y axis"
@@ -128679,14 +128232,6 @@ msgstr "Tỷ Lệ B: %s : %s : %s%s %s"
 
 msgid "ScaleB X: %s  Y: %s  Z: %s%s %s"
 msgstr "Tỷ Lệ B X: %s  Y: %s  Z: %s%s %s"
-
-
-msgid "Bend Angle: %s Radius: %s Alt, Clamp %s"
-msgstr "Góc Uốn Cong: %s Bán Kính: %s Alt, Hạn Định %s"
-
-
-msgid "Bend Angle: %.3f Radius: %.4f, Alt, Clamp %s"
-msgstr "Góc Uốn Cong: %.3f Bán Kính: %.4f Alt, Hạn Định %s"
 
 
 msgid "Envelope: %s"
@@ -129047,16 +128592,16 @@ msgid "Could not initialize stitching on any selected object"
 msgstr "Không thể khởi thủy khâu đính trên bất kỳ đối tượng đã được chọn nào cả"
 
 
-msgid "Lock Method"
-msgstr "Phương Pháp Khóa"
-
-
 msgid "Minimize Stretch. Blend %.2f"
 msgstr "Hạn Chế Kéo Dãn. Biến Đổi %.2f"
 
 
 msgid "Press + and -, or scroll wheel to set blending"
 msgstr "Bấm nút + và -, hoặc lăn bánh xe để đặt mức biến đổi"
+
+
+msgid "Lock Method"
+msgstr "Phương Pháp Khóa"
 
 
 msgid "Object has non-uniform scale, unwrap will operate on a non-scaled version of the mesh"
@@ -130011,14 +129556,6 @@ msgid "Dynamic Effects"
 msgstr "Các Hiệu Ứng Năng Động"
 
 
-msgid "Bezier spline cannot have points added"
-msgstr "Không thể thêm điểm vào chốt trục Bézier"
-
-
-msgid "Only Bezier splines can be added"
-msgstr "Chỉ có thể thêm chốt trục Bézier mà thôi"
-
-
 msgid "Curve '%s' does not contain spline given"
 msgstr "Đường cong '%s' không có chứa chốt trục đã cho"
 
@@ -130364,16 +129901,8 @@ msgid "unable to load movie clip"
 msgstr "không nạp được đoạn phim"
 
 
-msgid "Can not create object in main database with an evaluated data data-block"
-msgstr "Không thể kiến tạo đối tượng trong cơ sở dữ liệu với khối dữ liệu của dữ liệu dự tính"
-
-
 msgid "Object does not have geometry data"
 msgstr "Đối tượng không có dữ liệu hình học"
-
-
-msgid "%s '%s' is outside of main database and can not be removed from it"
-msgstr "%s '%s' nằm ngoài cơ sở dữ liệu chính và không thể xóa bỏ khỏi nó được"
 
 
 msgid "%s '%s' must have zero users to be removed, found %d (try with do_unlink=True parameter)"
@@ -130865,10 +130394,6 @@ msgid "Modifier was not found in the stack"
 msgstr "Không tìm thấy bộ điều chỉnh nào trong ngăn xếp cả"
 
 
-msgid "Recursion detected, can not use this strip"
-msgstr "Phát hiện thấy có sự hồi quy, không thể sử dụng dải này được"
-
-
 msgid "Sequences.new_sound: unable to open sound file"
 msgstr "Sequences.new_image: không mở được tập tin âm thanh"
 
@@ -130991,10 +130516,6 @@ msgstr "Không có cửa sổ đang hoạt động nào trong ngữ cảnh cả!
 
 msgid "Not a non-modal keymap"
 msgstr "Không phải là ấn định phím phi mô thái (non-modal)"
-
-
-msgid "Can not mix modal/non-modal items"
-msgstr "Không thể trộn lẫn các đối tượng mô-thái/phi mô-thái với nhau được"
 
 
 msgid "Not a modal keymap"
@@ -131412,10 +130933,6 @@ msgstr "Tắt (giải hoạt), không được xây dựng với OpenSubdiv"
 
 msgid "Output Attributes"
 msgstr "Thuộc Tính Xuất ở Đầu Ra"
-
-
-msgid "Can not load the baked data"
-msgstr "Không thể nạp dữ liệu đã nướng được"
 
 
 msgid "No named attributes used"
@@ -132011,10 +131528,6 @@ msgid "An index used to group values together for multiple separate accumulation
 msgstr "Một chỉ số sử dụng để nhóm các giá trị lại với nhau cho nhiều lần tích lũy riêng biệt"
 
 
-msgid "The attribute output can not be used without the geometry output"
-msgstr "Không thể sử dụng đầu ra thuộc tính nếu không có đầu ra hình học"
-
-
 msgid "Edge Count"
 msgstr "Số Cạnh"
 
@@ -132370,10 +131883,6 @@ msgstr "Một trường thuộc tính với lựa chọn các điểm bên ngoà
 
 msgid "Curve Index"
 msgstr "Chỉ Số Đường Cong"
-
-
-msgid "Input curves do not have Bezier type"
-msgstr "Các đường cong đầu vào không có kiểu Bezier"
 
 
 msgid "For points, the portion of the spline's total length at the control point. For Splines, the factor of that spline within the entire curve"
@@ -133343,12 +132852,16 @@ msgid "Determines the order of points in each curve"
 msgstr "Xác định thứ tự của các điểm trên mỗi đường cong"
 
 
-msgid "Source Position"
-msgstr "Vị trí Nguồn"
+msgid "Sample Position"
+msgstr "Vị Trí Lấy Mẫu"
 
 
 msgid "The target mesh must have faces"
 msgstr "Khung lưới mục tiêu phải có một số các mặt"
+
+
+msgid "Source Position"
+msgstr "Vị trí Nguồn"
 
 
 msgid "Is Hit"
@@ -133383,16 +132896,8 @@ msgid "The source geometry must contain a mesh or a point cloud"
 msgstr "Hình học nguồn phải chứa một khung lưới hoặc một đám mây điểm"
 
 
-msgid "Sample Position"
-msgstr "Vị Trí Lấy Mẫu"
-
-
 msgid "The source mesh must have faces"
 msgstr "Khung lưới nguồn phải có các mặt"
-
-
-msgid "Source UV Map"
-msgstr "Ánh Xạ UV Nguồn"
 
 
 msgid "Sample UV"
@@ -133437,18 +132942,6 @@ msgstr "Các phần của hình học không nằm trong lựa chọn"
 
 msgid "Mesh has no faces for material assignment"
 msgstr "Khung lưới không có các mặt nào để ấn định chất liệu cả"
-
-
-msgid "Volumes only support a single material; selection input can not be a field"
-msgstr "Thể tích chỉ hỗ trợ một nguyên vật liệu duy nhất; đầu vào lựa chọn không thể là một trường được"
-
-
-msgid "Point clouds only support a single material; selection input can not be a field"
-msgstr "Các đám mây điểm chỉ hỗ trợ một nguyên vật liệu duy nhất; đầu vào lựa chọn không thể là một trường được"
-
-
-msgid "Curves only support a single material; selection input can not be a field"
-msgstr "Các đường cong chỉ hỗ trợ một nguyên vật liệu duy nhất; đầu vào lựa chọn không thể là một trường được"
 
 
 msgid "Shade Smooth"
@@ -134199,10 +133692,6 @@ msgid "Could not resolve path (%s)"
 msgstr "Không tìm được đường dẫn (%s)"
 
 
-msgid "Can not initialize the GPU"
-msgstr "Không thể khởi thủy GPU được"
-
-
 msgid "Failed allocate render result, out of memory"
 msgstr "Không thể phân phối bộ nhớ cho kết quả kết xuất, bộ nhớ bị cạn kiệt"
 
@@ -134338,24 +133827,12 @@ msgid "Strips must have the same number of inputs"
 msgstr "Các đoạn phim cần phải có số lượng đầu vào giống nhau"
 
 
-msgid "Can not move strip to non-meta strip"
-msgstr "Không thể di chuyển dải đến đoạn không phải là siêu dải"
-
-
-msgid "Strip can not be moved into itself"
-msgstr "Dải không thể di chuyển vào bản thân nó được"
-
-
 msgid "Moved strip is already inside provided meta strip"
 msgstr "Dải di chuyển đã nằm bên trong siêu dải cung cấp"
 
 
 msgid "Moved strip is parent of provided meta strip"
 msgstr "Dải di chuyển là phụ huynh của siêu dải cung cấp"
-
-
-msgid "Can not move strip to different scene"
-msgstr "Không thể di chuyển dải đến cảnh khác được"
 
 
 msgid "Recursion detected in video sequencer. Strip %s at frame %d will not be rendered"
@@ -134431,12 +133908,12 @@ msgid "Region could not be drawn!"
 msgstr "Không thể vẽ vùng được!"
 
 
-msgid "Blender File View"
-msgstr "Duyệt Tập Tin"
-
-
 msgid "Input pending "
 msgstr "Đầu vào đang chờ "
+
+
+msgid "Blender File View"
+msgstr "Duyệt Tập Tin"
 
 
 msgid "Missing 'window' in context"

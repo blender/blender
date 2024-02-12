@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -548,10 +548,6 @@ msgstr "Клип"
 
 msgid "Poly"
 msgstr "Полисызык"
-
-
-msgid "Bezier"
-msgstr "Безье"
 
 
 msgid "Depth"
@@ -1381,10 +1377,6 @@ msgid "Text Input"
 msgstr "Текстти киргизүү"
 
 
-msgid "Bezier Curve"
-msgstr "Безье ийриси"
-
-
 msgid "Circles"
 msgstr "Тегеректер"
 
@@ -1429,10 +1421,6 @@ msgstr "Түздөө"
 msgctxt "Operator"
 msgid "Add"
 msgstr "Кошуу"
-
-
-msgid "Tracking"
-msgstr "Трекинг"
 
 
 msgid "Node"
@@ -1827,11 +1815,6 @@ msgstr "Өлчөмүн өзгөртүү"
 
 msgid "Trackball"
 msgstr "Трекбол"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Безьени кошуу"
 
 
 msgctxt "Operator"
@@ -3168,6 +3151,10 @@ msgid "Statistics"
 msgstr "Статистика"
 
 
+msgid "Tracking"
+msgstr "Трекинг"
+
+
 msgctxt "Operator"
 msgid "New"
 msgstr "Жаңы"
@@ -3440,11 +3427,6 @@ msgstr "Тор сызык"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Маймыл"
-
-
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Безье"
 
 
 msgctxt "Operator"

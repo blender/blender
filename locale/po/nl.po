@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -3884,11 +3884,6 @@ msgstr "Selectie Aan/Uit"
 
 
 msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Voeg Bezier Toe"
-
-
-msgctxt "Operator"
 msgid "Add Path"
 msgstr "Voeg Pad Toe"
 
@@ -3946,11 +3941,6 @@ msgstr "Exporteer Camera & Markeringen"
 msgctxt "Operator"
 msgid "Export BVH"
 msgstr "Exporteer BVH"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporteer PLY"
 
 
 msgid "Apply Modifiers"
@@ -4489,11 +4479,6 @@ msgstr "Importeer SVG"
 msgctxt "Operator"
 msgid "Import Images as Planes"
 msgstr "Importeer Afbeeldingen als Vlakken"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importeer PLY"
 
 
 msgctxt "Operator"
@@ -6321,6 +6306,16 @@ msgid "Open a Blender file"
 msgstr "Open een Blender Bestand"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Exporteer PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importeer PLY"
+
+
 msgid "All Types"
 msgstr "Alle Types"
 
@@ -6538,11 +6533,6 @@ msgstr "Palet Kleur"
 
 msgid "Custom Shape"
 msgstr "Aangepaste Vorm"
-
-
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Scene Opstelling"
 
 
 msgid "Restrictions"
@@ -8845,16 +8835,6 @@ msgstr "Coëfficiënt"
 
 msgid "Too many points selected: %d"
 msgstr "Teveel punten geselecteerd: %d"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier Kromme"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier Cirkel"
 
 
 msgctxt "Curve"

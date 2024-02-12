@@ -1,0 +1,1953 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
+"PO-Revision-Date: 2023-11-06 03:54+0000\n"
+"Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
+"Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1"
+
+
+msgid "Name"
+msgstr "Navn"
+
+
+msgid "Type"
+msgstr "Type"
+
+
+msgid "Color"
+msgstr "Farve"
+
+
+msgid "Value"
+msgstr "Værdi"
+
+
+msgid "Action F-Curves"
+msgstr "Handlings F-kurver"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Samling af handlings F-kurver"
+
+
+msgid "Action Group"
+msgstr "Handlings gruppe"
+
+
+msgid "Groups of F-Curves"
+msgstr "Gruppe af F-kurver"
+
+
+msgid "Channels"
+msgstr "Kanaler"
+
+
+msgid "F-Curves in this group"
+msgstr "F-kurver i denne gruppe"
+
+
+msgid "Color Set"
+msgstr "Farvesæt"
+
+
+msgid "Custom color set to use"
+msgstr "Brugerdefinerede farvesæt til brug"
+
+
+msgid "Default Colors"
+msgstr "Standardfarver"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Tema Farvesæt"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Tema Farvesæt"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Tema Farvesæt"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Tema Farvesæt"
+
+
+msgid "05 - Theme Color Set"
+msgstr "05 - Tema Farvesæt"
+
+
+msgid "06 - Theme Color Set"
+msgstr "06 - Tema Farvesæt"
+
+
+msgid "07 - Theme Color Set"
+msgstr "07 - Tema Farvesæt"
+
+
+msgid "08 - Theme Color Set"
+msgstr "08 - Tema Farvesæt"
+
+
+msgid "09 - Theme Color Set"
+msgstr "09 - Tema Farvesæt"
+
+
+msgid "10 - Theme Color Set"
+msgstr "10 - Tema Farvesæt"
+
+
+msgid "11 - Theme Color Set"
+msgstr "11 - Tema Farvesæt"
+
+
+msgid "12 - Theme Color Set"
+msgstr "12 - Tema Farvesæt"
+
+
+msgid "13 - Theme Color Set"
+msgstr "13 - Tema Farvesæt"
+
+
+msgid "14 - Theme Color Set"
+msgstr "14 - Tema Farvesæt"
+
+
+msgid "15 - Theme Color Set"
+msgstr "15 - Tema Farvesæt"
+
+
+msgid "16 - Theme Color Set"
+msgstr "16 - Tema Farvesæt"
+
+
+msgid "17 - Theme Color Set"
+msgstr "17 - Tema Farvesæt"
+
+
+msgid "18 - Theme Color Set"
+msgstr "18 - Tema Farvesæt"
+
+
+msgid "19 - Theme Color Set"
+msgstr "19 - Tema Farvesæt"
+
+
+msgid "20 - Theme Color Set"
+msgstr "20 - Tema Farvesæt"
+
+
+msgid "Custom Color Set"
+msgstr "Brugerdefinerede Farvesæt"
+
+
+msgid "Colors"
+msgstr "Farver"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Kopi af farver forbundet med gruppens farvesæt"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Farvesæt er brugerdefineret i stedet for et fast tema farvesæt"
+
+
+msgid "Lock"
+msgstr "Lås"
+
+
+msgid "Action group is locked"
+msgstr "Handlingsgruppe er låst"
+
+
+msgid "Select"
+msgstr "Vælg"
+
+
+msgid "Action group is selected"
+msgstr "Handlingsgruppe er valgt"
+
+
+msgid "Expanded"
+msgstr "Udviddet"
+
+
+msgid "Action Groups"
+msgstr "Handlingsgrupper"
+
+
+msgid "Collection of action groups"
+msgstr "Samling af handlingsgrupper"
+
+
+msgid "Action Pose Markers"
+msgstr "Handling poserings markøre"
+
+
+msgid "Collection of timeline markers"
+msgstr "Samling af tidslinje makører"
+
+
+msgid "Active Pose Marker"
+msgstr "Aktiv poséringsmarkør"
+
+
+msgid "Active pose marker for this action"
+msgstr "Aktiv poséringsmarkør for denne handling"
+
+
+msgid "Active Pose Marker Index"
+msgstr "Aktiv poséringsmarkør indeks"
+
+
+msgid "Index of active pose marker"
+msgstr "Indeks for aktive poséringsmarkører"
+
+
+msgid "Add-on"
+msgstr "Tilføjelse"
+
+
+msgid "Python add-ons to be loaded automatically"
+msgstr "python tilføjelser der tilføjes automatisk"
+
+
+msgid "Module"
+msgstr "Modul"
+
+
+msgid "Module name"
+msgstr "modul navn"
+
+
+msgid "Add-on Preferences"
+msgstr "tilføjelses præference"
+
+
+msgid "Password"
+msgstr "Kodeord"
+
+
+msgid "E-mail address"
+msgstr "E-mail adresse"
+
+
+msgid "Error Message"
+msgstr "Fejl besked"
+
+
+msgid "Message"
+msgstr "Besked"
+
+
+msgid "Compute Device Type"
+msgstr "computer type"
+
+
+msgid "Device to use for computation (rendering with Cycles)"
+msgstr "Enhed, der skal bruges til beregning (gengivelse med cycles)"
+
+
+msgid "Fribidi Library"
+msgstr "Fribidi bibliotek"
+
+
+msgid "The bf-translation repository"
+msgstr "bf-oversættelses arkiv"
+
+
+msgid "Import Paths"
+msgstr "import stie"
+
+
+msgid "Additional paths to add to sys.path (';' separated)"
+msgstr "Yderligere stier at tilføje til sys.path (';' adskilt)"
+
+
+msgid "The Blender source root path"
+msgstr "Blender-kildens rodsti"
+
+
+msgid "Spell Cache"
+msgstr "Stave cache"
+
+
+msgid "A cache storing validated msgids, to avoid re-spellchecking them"
+msgstr "En cache, der gemmer validerede msgids, for at undgå stavekontrol af dem igen"
+
+
+msgid "Warn Msgid Not Capitalized"
+msgstr "Advar meddelelsen ikke med store bogstaver"
+
+
+msgid "Warn about messages not starting by a capitalized letter (with a few allowed exceptions!)"
+msgstr "Advar om beskeder, der ikke starter med stort bogstav (med få tilladte undtagelser!)"
+
+
+msgid "Persistent Data Path"
+msgstr "Vedvarende data sti"
+
+
+msgid "The name of a json file storing those settings (unfortunately, Blender's system does not work here)"
+msgstr "Navnet på en json-fil, der gemmer disse indstillinger (desværre virker Blenders system ikke her)"
+
+
+msgid "User Add-ons"
+msgstr "bruger tilføjelser"
+
+
+msgid "Collection of add-ons"
+msgstr "Samling af tilføjelser"
+
+
+msgid "Animation Data"
+msgstr "Animations data"
+
+
+msgid "Animation data for data-block"
+msgstr "animations data til data-blok"
+
+
+msgid "Action"
+msgstr "Handling"
+
+
+msgid "Active Action for this data-block"
+msgstr "Aktiv handling for denne datablok"
+
+
+msgid "Method used for combining Active Action's result with result of NLA stack"
+msgstr "Metode brugt til at kombinere Active Actions resultat med resultat af NLA stak"
+
+
+msgid "Replace"
+msgstr "Udskift"
+
+
+msgid "Add"
+msgstr "Tilføj"
+
+
+msgid "Weighted result of strip is added to the accumulated results"
+msgstr "Det vægtede resultat af strimlen føjes til de akkumulerede resultater"
+
+
+msgid "Subtract"
+msgstr "Fratrække"
+
+
+msgid "Weighted result of strip is removed from the accumulated results"
+msgstr "Det vægtede resultat af strimlen fjernes fra de akkumulerede resultater"
+
+
+msgid "Multiply"
+msgstr "Gange"
+
+
+msgid "Weighted result of strip is multiplied with the accumulated results"
+msgstr "De vægtede resultater af strimlen ganges med de akkumulerede resultater"
+
+
+msgid "Action Extrapolation"
+msgstr "Handling ekstrapolering"
+
+
+msgid "Action to take for gaps past the Active Action's range (when evaluating with NLA)"
+msgstr "Handling, der skal tages for huller forbi Active Actions rækkevidde (ved evaluering med NLA)"
+
+
+msgid "Nothing"
+msgstr "Ingenting"
+
+
+msgid "Strip has no influence past its extents"
+msgstr "Strip har ingen indflydelse ud over dets omfang"
+
+
+msgid "Hold"
+msgstr "hold"
+
+
+msgid "Hold the first frame if no previous strips in track, and always hold last frame"
+msgstr "Hold den første frame, hvis ingen tidligere strimler i sporet, og hold altid den sidste frame"
+
+
+msgid "Hold Forward"
+msgstr "hold fremad"
+
+
+msgid "Only hold last frame"
+msgstr "Hold kun sidste billede"
+
+
+msgid "Action Influence"
+msgstr "Handlings påvirkning"
+
+
+msgid "Amount the Active Action contributes to the result of the NLA stack"
+msgstr "mængde, som den aktive handling bidrager til resultatet af NLA-stakken"
+
+
+msgid "Drivers"
+msgstr "Drivere"
+
+
+msgid "The Drivers/Expressions for this data-block"
+msgstr "Driverne/udtrykkene for denne datablok"
+
+
+msgid "NLA Tracks"
+msgstr "NLA spor"
+
+
+msgid "NLA Tracks (i.e. Animation Layers)"
+msgstr "NLA-spor (dvs. animationslag)"
+
+
+msgid "NLA Evaluation Enabled"
+msgstr "NLA-spor (dvs. animations lag)"
+
+
+msgid "NLA stack is evaluated when evaluating this block"
+msgstr "NLA-stak evalueres ved evaluering af denne blok"
+
+
+msgid "Use NLA Tweak Mode"
+msgstr "Brug NLA Tweak Mode"
+
+
+msgid "Whether to enable or disable tweak mode in NLA"
+msgstr "Om du vil aktivere eller deaktivere tweak-tilstand i NLA"
+
+
+msgid "Collection of Driver F-Curves"
+msgstr "Samling af driver F-kurver"
+
+
+msgid "Animation Visualization"
+msgstr "Animations visualisering"
+
+
+msgid "Settings for the visualization of motion"
+msgstr "Indstillinger for visualisering af bevægelse"
+
+
+msgid "Motion Paths"
+msgstr "Bevægelsesstier"
+
+
+msgid "Motion Path settings for visualization"
+msgstr "Indstillinger for bevægelsessti til visualisering"
+
+
+msgid "Motion Path Settings"
+msgstr "Indstillinger for bevægelsessti"
+
+
+msgid "Motion Path settings for animation visualization"
+msgstr "Motion Path-indstillinger til animationsvisualisering"
+
+
+msgid "When calculating Bone Paths, use Head or Tips"
+msgstr "Når du beregner knogle baner, skal du bruge hoved eller ederne"
+
+
+msgid "Calculate bone paths from heads"
+msgstr "Beregn knogle baner fra hoveder"
+
+
+msgid "Tails"
+msgstr "spor"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Beregn knogle baner fra ender"
+
+
+msgid "After Current"
+msgstr "Efter nuværende"
+
+
+msgid "Before Current"
+msgstr "Før Aktuel"
+
+
+msgid "End Frame"
+msgstr "Slut billede"
+
+
+msgid "End frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
+msgstr "Slutramme for række af stier, der skal vises/beregnes (ikke for 'Around Current Frame' Løgskinningsmetode)"
+
+
+msgid "Start Frame"
+msgstr "Start billede"
+
+
+msgid "Starting frame of range of paths to display/calculate (not for 'Around Current Frame' Onion-skinning method)"
+msgstr "Starr ramme for række af stier, der skal vises/beregnes (ikke for 'Around Current Frame' Løg-afskalningsmetode)"
+
+
+msgid "Frame Step"
+msgstr "Billede trin"
+
+
+msgid "Number of frames between paths shown (not for 'On Keyframes' Onion-skinning method)"
+msgstr "Antal billeder mellem viste stier (ikke for 'On Keyframes' Løg-skindmetode)"
+
+
+msgid "Show Frame Numbers"
+msgstr "Vis billede numre"
+
+
+msgid "Show frame numbers on Motion Paths"
+msgstr "Vis frame numre på Motion Paths"
+
+
+msgid "All Action Keyframes"
+msgstr "Alle Action Keyframes"
+
+
+msgid "For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)"
+msgstr "For knogle bevægelsesbaner skal du søge i hele handlingen efter keyframes i stedet for i gruppe med kun matchende navn (er langsommere)"
+
+
+msgid "Highlight Keyframes"
+msgstr "fremhæv keyframes"
+
+
+msgid "Emphasize position of keyframes on Motion Paths"
+msgstr "Fremhæv placeringen af keyframes på Motion Paths"
+
+
+msgid "Show Keyframe Numbers"
+msgstr "Vis keyframe numre"
+
+
+msgid "Show frame numbers of Keyframes on Motion Paths"
+msgstr "Vis billed numre på Keyframes på bevægelsesstier"
+
+
+msgid "Paths Type"
+msgstr "Type af stier"
+
+
+msgid "Type of range to show for Motion Paths"
+msgstr "Type område, der skal vises for bevægelsesstier"
+
+
+msgid "Around Frame"
+msgstr "Omkring frame"
+
+
+msgid "Display Paths of poses within a fixed number of frames around the current frame"
+msgstr "Vis stier af positurer inden for et fast antal frames omkring det aktuelle billede"
+
+
+msgid "In Range"
+msgstr "I rækkevidde"
+
+
+msgid "Display Paths of poses within specified range"
+msgstr "Vis stier til stillinger inden for det specificerede område"
+
+
+msgid "Any Type"
+msgstr "Enhver type"
+
+
+msgid "RNA type used for pointers to any possible data"
+msgstr "RNA-type bruges til at pege på eventuelle data"
+
+
+msgid "Area in a subdivided screen, containing an editor"
+msgstr "Område i en delt skærm, der indeholder en editor"
+
+
+msgid "Height"
+msgstr "Højde"
+
+
+msgid "Area height"
+msgstr "Areal højde"
+
+
+msgid "Regions"
+msgstr "Regioner"
+
+
+msgid "Regions this area is subdivided in"
+msgstr "Regioner dette område er opdelt i"
+
+
+msgid "Show Menus"
+msgstr "Hvis menuer"
+
+
+msgid "Show menus in the header"
+msgstr "Vis menuer i hovedet"
+
+
+msgid "Spaces"
+msgstr "Spaces"
+
+
+msgid "Spaces contained in this area, the first being the active space (NOTE: Useful for example to restore a previously used 3D view space in a certain area to get the old view orientation)"
+msgstr "Spaces indeholdt i dette område, hvor det første er det aktive space (BEMÆRK: Nyttigt for eksempel til at gendanne et tidligere brugt 3D-visnings space i et bestemt område for at få den gamle visnings orientering)"
+
+
+msgid "Editor Type"
+msgstr "Editor Type"
+
+
+msgid "Current editor type for this area"
+msgstr "Aktuel editor type for dette område"
+
+
+msgid "Empty"
+msgstr "Tom"
+
+
+msgid "UV/Image Editor"
+msgstr "UV/"
+
+
+msgid "View and edit images and UV Maps"
+msgstr "Se og rediger billeder og UV-kort"
+
+
+msgid "Editor for node-based shading and compositing tools"
+msgstr "Editor til nodebaserede fave- og sammensætningsværktøje"
+
+
+msgid "Video editing tools"
+msgstr "Videoredigeringsværktøjer"
+
+
+msgid "Movie Clip Editor"
+msgstr "Editor til filmklip"
+
+
+msgid "Motion tracking tools"
+msgstr "Værktøjer til bevægelsessporing"
+
+
+msgid "Adjust timing of keyframes"
+msgstr "Juster timing af keyframes"
+
+
+msgid "Graph Editor"
+msgstr "Graph Editor"
+
+
+msgid "Edit drivers and keyframe interpolation"
+msgstr "Redigér drivere og nøglebillede interpolation"
+
+
+msgid "Combine and layer Actions"
+msgstr "Kombiner og kombiner handlinger"
+
+
+msgid "Text Editor"
+msgstr "Teksteditor"
+
+
+msgid "Edit scripts and in-file documentation"
+msgstr "Rediger scripts og in-fil dokumentation"
+
+
+msgid "Python Console"
+msgstr "Python konsol"
+
+
+msgid "Interactive programmatic console for advanced editing and script development"
+msgstr "Interaktiv programmatisk konsol til avanceret redigering og scriptudvikling"
+
+
+msgid "Info"
+msgstr "Infomation"
+
+
+msgid "Overview of scene graph and all available data-blocks"
+msgstr "Oversigt over scene graf og alle tilgængelige datablokke"
+
+
+msgid "Properties"
+msgstr "Egenskaber"
+
+
+msgid "Edit properties of active object and related data-blocks"
+msgstr "Rediger egenskaber for aktivt objekt og relaterede datablokke"
+
+
+msgid "File Browser"
+msgstr "Gennemse filer"
+
+
+msgid "Browse for files and assets"
+msgstr "Gennemse for filer og aktiver"
+
+
+msgid "Edit persistent configuration settings"
+msgstr "Rediger vedvarende konfigurationsindstillinger"
+
+
+msgid "Width"
+msgstr "Bredde"
+
+
+msgid "Area width"
+msgstr "Areal bredde"
+
+
+msgid "X Position"
+msgstr "X position"
+
+
+msgid "The window relative vertical location of the area"
+msgstr "lodrette placering af området"
+
+
+msgid "Y Position"
+msgstr "Y position"
+
+
+msgid "The window relative horizontal location of the area"
+msgstr "Vinduet relativ vandret placering af området"
+
+
+msgid "Collection of spaces"
+msgstr "Samling af rum"
+
+
+msgid "Active Space"
+msgstr "Aktivt rum"
+
+
+msgid "Space currently being displayed in this area"
+msgstr "Pladsen vises i øjeblikket i dette område"
+
+
+msgid "Armature Bones"
+msgstr "Armatur knogler"
+
+
+msgid "Collection of armature bones"
+msgstr "Samling af armaturknogler"
+
+
+msgid "Active Bone"
+msgstr "Aktiv knogle"
+
+
+msgid "Armature's active bone"
+msgstr "Armaturets aktive knogle"
+
+
+msgid "Collection of armature edit bones"
+msgstr "Samling af armaturer edit knogler"
+
+
+msgid "Active EditBone"
+msgstr "Aktiv Edit Bone"
+
+
+msgid "Armatures active edit bone"
+msgstr "Armaturer aktive redigere knogle"
+
+
+msgid "Layer"
+msgstr "Lag"
+
+
+msgid "Bake data for a Scene data-block"
+msgstr "Bag data til en Scene-datablok"
+
+
+msgid "Cage Extrusion"
+msgstr "Bur ekstrudering"
+
+
+msgid "Cage Object"
+msgstr "Bur Objekt"
+
+
+msgid "Object to use as cage instead of calculating the cage from the active object with cage extrusion"
+msgstr "Objekt til brug som bur i stedet for at beregne buret ud fra det aktive objekt med bur ekstrudering"
+
+
+msgid "File Path"
+msgstr "Fil sti"
+
+
+msgid "Image filepath to use when saving externally"
+msgstr "Billed fil sti til brug ved ekstern lagring"
+
+
+msgid "Vertical dimension of the baking map"
+msgstr "Lodret dimension af bagekortet"
+
+
+msgid "Image Format"
+msgstr "Billedformat"
+
+
+msgid "Extends the baked result as a post process filter"
+msgstr "Forlænger det bagte resultat som et efterbehandlings filter"
+
+
+msgid "Normal Space"
+msgstr "Normal Rum"
+
+
+msgid "Axis to bake in blue channel"
+msgstr "Akse til at bage i blå kanal"
+
+
+msgid "+X"
+msgstr "+X"
+
+
+msgid "+Y"
+msgstr "+Y"
+
+
+msgid "+Z"
+msgstr "+Z"
+
+
+msgid "-X"
+msgstr "-X"
+
+
+msgid "-Y"
+msgstr "-Y"
+
+
+msgid "-Z"
+msgstr "-Z"
+
+
+msgid "Axis to bake in green channel"
+msgstr "Akse til at bage i grøn kanal"
+
+
+msgid "Axis to bake in red channel"
+msgstr "Akse til at bage i rød kanal"
+
+
+msgid "Choose normal space for baking"
+msgstr "Vælg normal plads til bagning"
+
+
+msgid "Object"
+msgstr "Objekt"
+
+
+msgid "Bake the normals in object space"
+msgstr "Bag normalerne i objekt rummet"
+
+
+msgid "Tangent"
+msgstr "Tangent"
+
+
+msgid "Bake the normals in tangent space"
+msgstr "Bag normalerne i tangentrum"
+
+
+msgid "Pass Filter"
+msgstr "Pass filter"
+
+
+msgid "Passes to include in the active baking pass"
+msgstr "Passer til at inkludere i det aktive bagepas"
+
+
+msgid "None"
+msgstr "Ingen"
+
+
+msgid "Emit"
+msgstr "Udsende"
+
+
+msgid "Direct"
+msgstr "Direkte"
+
+
+msgid "Indirect"
+msgstr "Indirekte"
+
+
+msgid "Diffuse"
+msgstr "Difus spredning"
+
+
+msgid "Glossy"
+msgstr "Blank"
+
+
+msgid "Save Mode"
+msgstr "Sikker tilstand"
+
+
+msgid "Internal"
+msgstr "Intern"
+
+
+msgid "Save the baking map in an internal image data-block"
+msgstr "Gem bage kortet i en intern billeddata blok"
+
+
+msgid "External"
+msgstr "Ekstern"
+
+
+msgid "Save the baking map in an external file"
+msgstr "Gem bage kortet i en ekstern fil"
+
+
+msgid "Target"
+msgstr "Mål"
+
+
+msgid "Automatic Name"
+msgstr "Automatisk navn"
+
+
+msgid "Automatically name the output file with the pass type (external only)"
+msgstr "Navngiv automatisk outputfilen med pass-typen (kun eksternt)"
+
+
+msgid "Cage"
+msgstr "Bur"
+
+
+msgid "Clear Images before baking (internal only)"
+msgstr "Ryd billeder før bagning (kun internt)"
+
+
+msgid "Color the pass"
+msgstr "Farvelæg passet"
+
+
+msgid "Add diffuse contribution"
+msgstr "Tilføj diffust bidrag"
+
+
+msgid "Add direct lighting contribution"
+msgstr "Tilføj direkte belysnings bidrag"
+
+
+msgid "Add emission contribution"
+msgstr "Tilføj emissionsbidrag"
+
+
+msgid "Add glossy contribution"
+msgstr "Tilføj blankt bidrag"
+
+
+msgid "Add indirect lighting contribution"
+msgstr "Tilføj indirekte belysnings bidrag"
+
+
+msgid "Selected to Active"
+msgstr "Valgt til Aktiv"
+
+
+msgid "Bake shading on the surface of selected objects to the active object"
+msgstr "Bag skygge på overfladen af valgte objekter til det aktive objekt"
+
+
+msgid "Split Materials"
+msgstr "Del materialer"
+
+
+msgid "Split external images per material (external only)"
+msgstr "Opdel eksterne billeder pr. materiale (kun eksternt)"
+
+
+msgid "Horizontal dimension of the baking map"
+msgstr "Vandret dimension af bagekortet"
+
+
+msgid "Control Point"
+msgstr "Kontrolpunkt"
+
+
+msgid "Coordinates of the control point"
+msgstr "Koordinater for kontrolpunkt"
+
+
+msgid "Handle 1"
+msgstr "Håndtag 1"
+
+
+msgid "Coordinates of the first handle"
+msgstr "Koordinater for første håndtag"
+
+
+msgid "Weight"
+msgstr "Vægt"
+
+
+msgid "Level"
+msgstr "Niveau"
+
+
+msgid "Distance"
+msgstr "Afstand"
+
+
+msgid "Range"
+msgstr "Rækkevidde"
+
+
+msgid "Random"
+msgstr "Tilfældig"
+
+
+msgid "Children"
+msgstr "Børn"
+
+
+msgid "Parent"
+msgstr "Forældre"
+
+
+msgid "Connected"
+msgstr "Forbundet"
+
+
+msgid "Deform"
+msgstr "Deformér"
+
+
+msgid "Local Location"
+msgstr "Lokal lokation"
+
+
+msgid "Visible"
+msgstr "Synlig"
+
+
+msgid "Has Smooth Stroke"
+msgstr "har bløde strøg"
+
+
+msgid "Has Spacing"
+msgstr "Har mellemrum"
+
+
+msgid "Mode"
+msgstr "Tilstand"
+
+
+msgid "Active"
+msgstr "Aktiv"
+
+
+msgid "Material"
+msgstr "Materiale"
+
+
+msgid "Direction"
+msgstr "Retning"
+
+
+msgid "Threshold"
+msgstr "Tærskel"
+
+
+msgid "Blur"
+msgstr "Sløring"
+
+
+msgid "Object Path"
+msgstr "Objekt sti"
+
+
+msgid "Path of an object inside of an Alembic archive"
+msgstr "Stien til et objekt inde i et Alembic-arkiv"
+
+
+msgid "Object path"
+msgstr "Objekt sti"
+
+
+msgid "Object Paths"
+msgstr "Objekt stier"
+
+
+msgid "Collection of object paths"
+msgstr "Samling af objekt stier"
+
+
+msgid "Background Image"
+msgstr "Baggrundsbillede"
+
+
+msgid "Image and settings for display in the 3D View background"
+msgstr "Billede og indstillinger til visning i 3D View-baggrunden"
+
+
+msgid "Opacity"
+msgstr "Gennemsigtighed"
+
+
+msgid "Image opacity to blend the image against the background color"
+msgstr "Billed opacitet for at blande billedet mod baggrundsfarven"
+
+
+msgid "MovieClip"
+msgstr "Filmklip"
+
+
+msgid "Movie clip displayed and edited in this space"
+msgstr "Filmklip vist og redigerede i dette rum"
+
+
+msgid "Clip User"
+msgstr "Klip bruger"
+
+
+msgid "Parameters defining which frame of the movie clip is displayed"
+msgstr "Parametre, der definerer, hvilket billede af filmklippet, der vises"
+
+
+msgid "Frame Method"
+msgstr "Ramme metode"
+
+
+msgid "How the image fits in the camera frame"
+msgstr "Hvordan billedet passer ind i kamera rammen"
+
+
+msgid "Stretch"
+msgstr "Stræk"
+
+
+msgid "Fit"
+msgstr "Tilpas"
+
+
+msgid "Crop"
+msgstr "Beskær"
+
+
+msgid "Image"
+msgstr "Billede"
+
+
+msgid "Image displayed and edited in this space"
+msgstr "Billedet vises og redigeres i dette rum"
+
+
+msgid "Image User"
+msgstr "Billed bruger"
+
+
+msgid "Parameters defining which layer, pass and frame of the image is displayed"
+msgstr "Parametre, der definerer, hvilket lag, pass og frame af billedet, der vises"
+
+
+msgid "Rotation"
+msgstr "Rotation"
+
+
+msgid "Rotation for the background image (ortho view only)"
+msgstr "Rotation for baggrundsbilledet (kun ortovisning)"
+
+
+msgid "Show Background Image"
+msgstr "Vis baggrundsbillede"
+
+
+msgid "Show this image as background"
+msgstr "Vis dette billede som baggrund"
+
+
+msgid "Show Expanded"
+msgstr "Vis udvidet"
+
+
+msgid "Show On Foreground"
+msgstr "Vis på forgrunden"
+
+
+msgid "Show this image in front of objects in viewport"
+msgstr "Vis dette billede foran objekter i viewport"
+
+
+msgid "Background Source"
+msgstr "Baggrunds kilde"
+
+
+msgid "Data source used for background"
+msgstr "Datakilde brugt til baggrund"
+
+
+msgid "Movie Clip"
+msgstr "Film klip"
+
+
+msgid "Camera Clip"
+msgstr "Kamera klip"
+
+
+msgid "Use movie clip from active scene camera"
+msgstr "Brug filmklip fra kamera med aktiv scene"
+
+
+msgid "Flip Horizontally"
+msgstr "Vend vandret"
+
+
+msgid "Flip the background image horizontally"
+msgstr "Vend baggrundsbilledet vandret"
+
+
+msgid "Flip Vertically"
+msgstr "Vend lodret"
+
+
+msgid "Flip the background image vertically"
+msgstr "Vend baggrundsbilledet lodret"
+
+
+msgid "Background Images"
+msgstr "baggrundsbilleder"
+
+
+msgid "Collection of background images"
+msgstr "Samling af baggrundsbilleder"
+
+
+msgid "Stereo"
+msgstr "Stereo"
+
+
+msgid "Set the distance between the eyes - the stereo plane distance / 30 should be fine"
+msgstr "Sæt afstanden mellem øjne - stereo afstand / 30 bør være fint"
+
+
+msgid "Pivot"
+msgstr "Omdrejningspunkt"
+
+
+msgid "Left"
+msgstr "Venstre"
+
+
+msgid "Right"
+msgstr "Højre"
+
+
+msgid "Center"
+msgstr "Centrum"
+
+
+msgid "Look"
+msgstr "udseende"
+
+
+msgid "Influence"
+msgstr "Indflydelse"
+
+
+msgid "Disable"
+msgstr "Deaktivere"
+
+
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgid "Target object"
+msgstr "mål objekt"
+
+
+msgid "X"
+msgstr "X"
+
+
+msgid "Y"
+msgstr "Y"
+
+
+msgid "Z"
+msgstr "Z"
+
+
+msgid "Up Axis"
+msgstr "Op akse"
+
+
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgid "Bone"
+msgstr "Knogle"
+
+
+msgid "Front"
+msgstr "Front"
+
+
+msgid "Back"
+msgstr "Tilbage"
+
+
+msgid "Location"
+msgstr "Lokation"
+
+
+msgid "Depth"
+msgstr "Dybte"
+
+
+msgid "Scene"
+msgstr "Scene"
+
+
+msgid "Invert"
+msgstr "Modvende"
+
+
+msgid "Velocity"
+msgstr "Hastighed"
+
+
+msgid "Force"
+msgstr "Kraft"
+
+
+msgctxt "Sound"
+msgid "Volume"
+msgstr "Lydstyrke"
+
+
+msgid "Maximum Distance"
+msgstr "maksimum afstand"
+
+
+msgid "Axis"
+msgstr "Akse"
+
+
+msgid "Size"
+msgstr "Størrelse"
+
+
+msgid "Time"
+msgstr "Tid"
+
+
+msgid "Compression"
+msgstr "Kompression"
+
+
+msgid "Bottom"
+msgstr "Bund"
+
+
+msgid "Top"
+msgstr "Top"
+
+
+msgid "Visibility"
+msgstr "Synlighed"
+
+
+msgid "Keyframe"
+msgstr "Nøglebillede"
+
+
+msgid "Blend Mode"
+msgstr "Blandings måde"
+
+
+msgid "Camera Object"
+msgstr "Kamera objekt"
+
+
+msgid "Target Object"
+msgstr "Mål objekt"
+
+
+msgid "Ping Pong"
+msgstr "Ping pong"
+
+
+msgid "Key"
+msgstr "Nøgle"
+
+
+msgid "Mesh"
+msgstr "Maske"
+
+
+msgid "Sound"
+msgstr "Lyd"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Local"
+msgstr "Lokal"
+
+
+msgid "Occlusion"
+msgstr "Okklusion"
+
+
+msgid "Mirror Ball"
+msgstr "Splejlkugle"
+
+
+msgid "Path"
+msgstr "Sti"
+
+
+msgid "Min"
+msgstr "Minimum"
+
+
+msgid "Max"
+msgstr "Maximum"
+
+
+msgid "Angular Velocity"
+msgstr "Vinkelhastighed"
+
+
+msgid "Distribution"
+msgstr "Fordeling"
+
+
+msgid "Mass"
+msgstr "Masse"
+
+
+msgid "Reference Distance"
+msgstr "Reference afstand"
+
+
+msgid "Blend"
+msgstr "Bland"
+
+
+msgid "Operation"
+msgstr "Operation"
+
+
+msgid "Color Depth"
+msgstr "Farve dybde"
+
+
+msgid "Bit depth per channel"
+msgstr "Bit dybde pr kanal"
+
+
+msgid "Pxr24 (lossy)"
+msgstr "Pxr24 (ej tabsfri)"
+
+
+msgid "ZIP (lossless)"
+msgstr "ZIP (tabsfri)"
+
+
+msgid "PIZ (lossless)"
+msgstr "PIZ (tabsfri)"
+
+
+msgid "RLE (lossless)"
+msgstr "RLE (tabsfri)"
+
+
+msgid "ZIPS (lossless)"
+msgstr "ZIPS (tabsfri)"
+
+
+msgid "B44 (lossy)"
+msgstr "B44 (ej tabsfri)"
+
+
+msgid "B44A (lossy)"
+msgstr "B44A (ej tabsfri)"
+
+
+msgid "DWAA (lossy)"
+msgstr "DWAA (ej tabsfri)"
+
+
+msgid "DWAB (lossy)"
+msgstr "DWAD (ej tabsfri)"
+
+
+msgid "File format to save the rendered images as"
+msgstr "Filformat det fremkaldte billede skal gemmes i"
+
+
+msgid "Keyboard"
+msgstr "Tastatur"
+
+
+msgid "Mouse"
+msgstr "Mus"
+
+
+msgid "Max Angle"
+msgstr "Maksimal vinkel"
+
+
+msgid "Min Angle"
+msgstr "Minimum vinkel"
+
+
+msgid "File"
+msgstr "Fil"
+
+
+msgid "Play Mode"
+msgstr "Afspilningstilstand"
+
+
+msgid "Copy"
+msgstr "kopier"
+
+
+msgid "Keyframe A"
+msgstr "Nøglebillede A"
+
+
+msgid "Keyframe B"
+msgstr "Nøglebillede B"
+
+
+msgid "To"
+msgstr "Til"
+
+
+msgid "Motion Blur"
+msgstr "Bevægelsessløring"
+
+
+msgid "X Axis"
+msgstr "X akse"
+
+
+msgid "Y Axis"
+msgstr "Y akse"
+
+
+msgid "Layer Weight"
+msgstr "Lag vægtning"
+
+
+msgid "X axis"
+msgstr "X akse"
+
+
+msgid "Y axis"
+msgstr "Y akse"
+
+
+msgid "Z axis"
+msgstr "Z akse"
+
+
+msgid "Color Source"
+msgstr "Farvekilde"
+
+
+msgid "Particle Speed"
+msgstr "Partikel fart"
+
+
+msgid "Particle Velocity"
+msgstr "Partikel hastighed"
+
+
+msgid "Sky Texture"
+msgstr "Himmel struktur"
+
+
+msgid "Sky Type"
+msgstr "Himmel type"
+
+
+msgid "Sun Direction"
+msgstr "Sol retning"
+
+
+msgid "Wave Texture"
+msgstr "Bølge struktur"
+
+
+msgid "Wave Profile"
+msgstr "Bølge profil"
+
+
+msgid "Use a standard sine profile"
+msgstr "Brug en standard profil"
+
+
+msgid "Use a sawtooth profile"
+msgstr "Brug en savtakket pofil"
+
+
+msgid "Use standard wave texture in bands"
+msgstr "Brug standard bølgestruktur i bånd"
+
+
+msgid "Use wave texture in rings"
+msgstr "Brug bølgestruktur i ringe"
+
+
+msgid "Use Tips"
+msgstr "Brug tip"
+
+
+msgid "Vector Math"
+msgstr "Vektor matematik"
+
+
+msgid "Z Axis"
+msgstr "Z akse"
+
+
+msgid "Vector Transform"
+msgstr "Vektor transformering"
+
+
+msgid "Convert From"
+msgstr "Konveter fra"
+
+
+msgid "Space to convert from"
+msgstr "Mellemrum til at konvetere fra"
+
+
+msgid "Convert To"
+msgstr "Konveter til"
+
+
+msgid "Toggle"
+msgstr "Omskift"
+
+
+msgid "Enable"
+msgstr "Aktivere"
+
+
+msgid "Constraint"
+msgstr "Begrænsning"
+
+
+msgid "Play"
+msgstr "Afspil"
+
+
+msgid "Limit"
+msgstr "Grænse"
+
+
+msgid "Child"
+msgstr "Barn"
+
+
+msgid "Reset"
+msgstr "Nulstil"
+
+
+msgid "Sharpen"
+msgstr "Skarpere"
+
+
+msgid "Property"
+msgstr "Egenskab"
+
+
+msgid "Pinned"
+msgstr "Sat fast"
+
+
+msgid "State"
+msgstr "Tilstand"
+
+
+msgid "Property Name"
+msgstr "Egenskabens navn"
+
+
+msgid "Sensitivity"
+msgstr "Følsomhed"
+
+
+msgid "Dynamics"
+msgstr "dynamik"
+
+
+msgid "Timeline"
+msgstr "Tidslinje"
+
+
+msgid "Development"
+msgstr "Udvikling"
+
+
+msgid "Pie Menu"
+msgstr "Lagkage menu"
+
+
+msgid "Screenshot"
+msgstr "Skærmbillede"
+
+
+msgid "Continue"
+msgstr "Fortsæt"
+
+
+msgid "2D Texture"
+msgstr "2D struktur"
+
+
+msgid "Legacy Compute Device Type"
+msgstr "Forældere beregningstyrper"
+
+
+msgid "Temperature"
+msgstr "Temperatur"
+
+
+msgid "Gray Scale"
+msgstr "Gråskala"
+
+
+msgid "Timeline and playback controls"
+msgstr "Tidslinje og afspilnings kontroller"
+
+
+msgid "3D"
+msgstr "3d"
+
+
+msgid "Left Eye"
+msgstr "Ventre øje"
+
+
+msgid "Right Eye"
+msgstr "Højre øje"
+
+
+msgid "Metadata Text"
+msgstr "Metadata tekst"
+
+
+msgid "Keyframe Border"
+msgstr "Nøglebillede kant"
+
+
+msgid "Keyframe Border Selected"
+msgstr "Nøglebillede kant valgt"
+
+
+msgid "Face Dot Selected"
+msgstr "Overflade punkt valgt"
+
+
+msgid "Face Dot Size"
+msgstr "Overfalde punkt størrelse"
+
+
+msgid "3D View"
+msgstr "3D visning"
+
+
+msgid "Assign"
+msgstr "Tildel"
+
+
+msgid "Python API Reference"
+msgstr "Python API reference"
+
+
+msgid "Keyframe Numbers"
+msgstr "Nøglebillede nummer"
+
+
+msgid "Detail"
+msgstr "Detaljer"
+
+
+msgid "Priority"
+msgstr "Prioritet"
+
+
+msgid "Keyframe not in F-Curve"
+msgstr "Nøglebillede er ikke i F-kurve"
+
+
+msgid "Motion"
+msgstr "Bevægelse"
+
+
+msgid "Fac"
+msgstr "Fak"
+
+
+msgid "Key Color"
+msgstr "Nøglefarve"
+
+
+msgid "ID value"
+msgstr "ID værdi"
+
+
+msgid "View Distance"
+msgstr "Syns distance"
+
+
+msgid "True Normal"
+msgstr "Sand normal"
+
+
+msgid "Incoming"
+msgstr "Indkomne"
+
+
+msgid "Is Camera Ray"
+msgstr "Er kamera stråle"
+
+
+msgid "Is Shadow Ray"
+msgstr "Er skygge stråle"
+
+
+msgid "Is Diffuse Ray"
+msgstr "Er sprednings stråle"
+
+
+msgid "Is Glossy Ray"
+msgstr "Er blank stråle"
+
+
+msgid "Is Singular Ray"
+msgstr "Er entals stråle"
+
+
+msgid "Is Reflection Ray"
+msgstr "Er reflektions stråle"
+
+
+msgid "Ray Depth"
+msgstr "Stråle dybte"
+
+
+msgid "Color1"
+msgstr "Farve 1"
+
+
+msgid "Color2"
+msgstr "Farve 2"
+
+
+msgid "Color Fac"
+msgstr "Farve faktor"
+
+
+msgid "Detail Scale"
+msgstr "Detaljegrad"
+
+
+msgid "Patterns"
+msgstr "Mønster"
+
+
+msgid "Coordinate 1"
+msgstr "Koordinat 1"
+
+
+msgid "Coordinate 2"
+msgstr "Koordinat 2"
+
+
+msgid "W1"
+msgstr "W1"
+
+
+msgid "W2"
+msgstr "W2"
+
+
+msgid "W3"
+msgstr "W3"
+
+
+msgid "W4"
+msgstr "W4"
+
+
+msgid "ON"
+msgstr "Til"
+
+
+msgid "OFF"
+msgstr "Fra"
+
+
+msgid "unsupported format"
+msgstr "ikke understøttet format"
+
+
+msgid "Property cannot be both boolean and float"
+msgstr "Egenskab kan ikke både være boolsk og flydende"
+
+
+msgid "Cannot read %s '%s': %s"
+msgstr "Kan ikke læse %s '%s': %s"
+
+
+msgid "%s '%s' not found"
+msgstr "%s '%s' ikke fundet"
+
+
+msgid "Add Curve"
+msgstr "Tilføj kurve"
+
+
+msgid "Add Mesh"
+msgstr "Tilføj maske"
+
+
+msgid "Import-Export"
+msgstr "Importér-Expotér"
+
+
+msgid "Complete"
+msgstr "Færdig"
+
+
+msgid "In Progress"
+msgstr "I gang"
+
+
+msgid "Starting"
+msgstr "Begynde"
+

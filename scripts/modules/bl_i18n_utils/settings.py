@@ -552,6 +552,9 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Invalid surface UVs on %d curves.",
     "The pose library moved.",
     "in the asset shelf.",
+    "Remove, local files not found.",
+    "Remove all files in \"{}\".",
+    "Remove, keeping local files.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

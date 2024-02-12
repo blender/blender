@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1337,14 +1337,6 @@ msgstr "Grease Pencil"
 
 msgid "Grease Pencil data-blocks"
 msgstr "Grease Pencil datablock"
-
-
-msgid "Grease Pencil v3"
-msgstr "Grease Pencil v3"
-
-
-msgid "Grease Pencil v3 data-blocks"
-msgstr "Grease Pencil v3 datablock"
 
 
 msgid "Hair Curves"
@@ -2705,10 +2697,6 @@ msgid "Black Level"
 msgstr "Svartnivå"
 
 
-msgid "Bezier"
-msgstr "Bezierkurva"
-
-
 msgid "Depth"
 msgstr "Djup"
 
@@ -3598,6 +3586,10 @@ msgstr "Pensel"
 
 msgid "Font"
 msgstr "Typsnitt"
+
+
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
 
 
 msgid "Library"
@@ -5081,10 +5073,6 @@ msgstr "Gemenskap"
 
 msgid "Maintained by community developers"
 msgstr "Underhålls av utvecklare i gemenskapen"
-
-
-msgid "Testing"
-msgstr "Testning"
 
 
 msgid "Preset Name"
@@ -8912,6 +8900,10 @@ msgid "Select end points of strokes"
 msgstr "Markera ändpunkter av penseldrag"
 
 
+msgid "By Material"
+msgstr "Efter material"
+
+
 msgctxt "Operator"
 msgid "Set Active Material"
 msgstr "Ange aktivt material"
@@ -10174,10 +10166,6 @@ msgstr "Markera ytregioner som liknar den aktuella markeringen"
 
 msgid "Separate selected geometry into a new mesh"
 msgstr "Separera markerad geometri till en ny mesh"
-
-
-msgid "By Material"
-msgstr "Efter material"
 
 
 msgid "By Loose Parts"
@@ -16151,11 +16139,6 @@ msgstr "Apa"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs-kurva"
 
@@ -16631,10 +16614,6 @@ msgstr "Dokument"
 
 msgid "armatures"
 msgstr "armaturer"
-
-
-msgid "Attribute name can not be empty"
-msgstr "Namn på attribut kan inte vara tomt"
 
 
 msgid "The attribute name must not be empty"
@@ -17170,18 +17149,6 @@ msgstr "Kunde inte lägga till masknod"
 
 msgid "Could not add material"
 msgstr "Kunde inte lägga till material"
-
-
-msgid ""
-"Can not add node group '%s' to '%s':\n"
-"  %s"
-msgstr ""
-"Kunde inte lägga till nodgrupp '%s' till '%s':\n"
-"  %s"
-
-
-msgid "Can not add node group '%s' to '%s'"
-msgstr "Kunde inte lägga till nodgrupp '%s' till '%s'"
 
 
 msgid "Node tree type %s undefined"

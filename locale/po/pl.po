@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -870,14 +870,6 @@ msgid "Horizontal dimension of the baking map"
 msgstr "Poziomy rozmiar wyliczanej mapy"
 
 
-msgid "Bezier Curve Point"
-msgstr "Punkt krzywej Beziera"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Punkt krzywej Beziera z dwoma uchwytami"
-
-
 msgid "Control Point"
 msgstr "Punkt kontrolny"
 
@@ -1592,14 +1584,6 @@ msgstr "Wszystkie reguły są uśrednione"
 
 msgid "Volume"
 msgstr "Objętość"
-
-
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Długość pierwszego uchwytu Beziera (wyłącznie dla B-kości)"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Długość drugiego uchwytu Beziera dla B-kości"
 
 
 msgid "B-Bone Segments"
@@ -3079,10 +3063,6 @@ msgid "Floor"
 msgstr "Podłoga"
 
 
-msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner can not cross"
-msgstr "Użyj położenia (i opcjonalnie rotacji) obiektu docelowego aby zdefiniować 'ścianę' lub 'podłogę', której posiadacz nie będzie przecinał"
-
-
 msgid "Follow Path"
 msgstr "Podążaj za ścieżką"
 
@@ -3613,10 +3593,6 @@ msgstr "W jaki sposób materiał filmowy dopasowany jest do rozmiarów kadru"
 
 msgid "Movie tracking object to follow (if empty, camera object is used)"
 msgstr "Obiekt śledzący do podążania za nim (gdy brak, używana jest kamera)"
-
-
-msgid "Track"
-msgstr "Ścieżka"
 
 
 msgid "Movie tracking track to follow"
@@ -4489,10 +4465,6 @@ msgstr "Punkty krzywej używane do mapowania krzywej"
 
 msgid "Handle Type"
 msgstr "Rodzaj uchwytu"
-
-
-msgid "Curve interpolation at this point: Bezier or vector"
-msgstr "Rodzaj interpolacji krzywej w tym punkcie - Bezier lub wektor"
 
 
 msgid "Auto Handle"
@@ -6237,6 +6209,10 @@ msgid "ID Type"
 msgstr "Typ ID"
 
 
+msgid "Track"
+msgstr "Ścieżka"
+
+
 msgid "Distort"
 msgstr "Zniekształć"
 
@@ -7344,16 +7320,6 @@ msgstr "Aktywny obiekt nie jest zaznaczoną krzywą"
 
 
 msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "BezierKrzywa"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "BezierOkrąg"
-
-
-msgctxt "Curve"
 msgid "CurvePath"
 msgstr "KrzywaŚcieżka"
 
@@ -7453,10 +7419,6 @@ msgstr "Brak danych szkicownika"
 
 msgid "No strokes to paste, select and copy some points before trying again"
 msgstr "Brak kresek do wklejenia, zaznacz i skopiuj jakiekolwiek punkty i spróbuj ponownie"
-
-
-msgid "Can not paste strokes when active layer is hidden or locked"
-msgstr "Nie mogę wkleić kresek gdy aktywna warstwa jest ukryta lub zablokowana"
 
 
 msgid "No grease pencil data"
@@ -7962,10 +7924,6 @@ msgstr "Brak prawidłowego zaznaczenia do wytłoczenia"
 
 msgid "You have to select a string of connected vertices too"
 msgstr "Musisz również zaznaczyć sznur połączonych wierzchołków"
-
-
-msgid "Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): (%s)"
-msgstr "Potwierdź: Enter/LPM, Rezygnuj: (Esc/PPM), Grubość: %s, Głębokość (Ctrl): %s (%s), Outset (O): (%s), Granica (B): (%s), Indywidualny (I): (%s)"
 
 
 msgid "No intersections found"
@@ -9822,10 +9780,6 @@ msgid "No active camera"
 msgstr "Brak aktywnej kamery"
 
 
-msgid "Auto Keying On"
-msgstr "Automatyczne kluczowanie WŁ"
-
-
 msgid "along X"
 msgstr "wzdłuż X"
 
@@ -9864,6 +9818,10 @@ msgstr "blokada Z - %s"
 
 msgid "along local Z"
 msgstr "wzdłuż lokalnej Z"
+
+
+msgid "Auto Keying On"
+msgstr "Automatyczne kluczowanie WŁ"
 
 
 msgid " along Y axis"
@@ -9996,10 +9954,6 @@ msgstr "SkalaB: %s : %s : %s%s %s"
 
 msgid "ScaleB X: %s  Y: %s  Z: %s%s %s"
 msgstr "SkalaB X: %s  Y: %s  Z: %s%s %s"
-
-
-msgid "Bend Angle: %.3f Radius: %.4f, Alt, Clamp %s"
-msgstr "Kąt wygięcia: %.3f Promień: %.4f, Alt, Ogranicz %s"
 
 
 msgid "Envelope: %s"
@@ -10306,14 +10260,6 @@ msgstr "Niemożliwe dodanie elementu colorband (limit %d)"
 
 msgid "Relationship"
 msgstr "Zależność"
-
-
-msgid "Bezier spline cannot have points added"
-msgstr "Splajn Bezier nie pozwala na dodanie punktów"
-
-
-msgid "Only Bezier splines can be added"
-msgstr "Tylko splajny Bezier mogą być dodane"
 
 
 msgid "Curve '%s' does not contain spline given"
