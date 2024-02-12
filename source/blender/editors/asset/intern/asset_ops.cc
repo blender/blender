@@ -17,7 +17,6 @@
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
 
-#include "BLI_fileops.h" /* MSVC needs this for `PATH_MAX` */
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
@@ -793,7 +792,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   }
 
   /* Check file path, copied from #wm_file_write(). */
-  char filepath[PATH_MAX];
+  char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
   const size_t len = strlen(filepath);
 
@@ -925,7 +924,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
     return false;
   }
 
-  char file_path[PATH_MAX];
+  char file_path[FILE_MAX];
   BLI_path_join(file_path, sizeof(file_path), lib->dirpath, blend_filename);
   RNA_string_set(op->ptr, "filepath", file_path);
 
