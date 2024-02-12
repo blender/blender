@@ -214,7 +214,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
 /** \name Utility Convex-Hull Functions
  * \{ */
 
-static float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_num)
+float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_num)
 {
   float area_best = FLT_MAX;
   float dvec_best[2]; /* best angle, delay atan2 */
