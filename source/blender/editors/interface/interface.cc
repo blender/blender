@@ -4754,7 +4754,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block,
     but = ui_def_but(
         block, type, retval, propname, x, y, width, height, nullptr, min, max, -1.0f, -1.0f, tip);
 
-    UI_but_disable(but, "Unknown Property.");
+    UI_but_disable(but, N_("Unknown Property"));
   }
 
   return but;
