@@ -38,9 +38,6 @@
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_idtype.hh"
-#include "BKE_ipo.h"
-#include "BKE_keyconfig.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
@@ -60,8 +57,6 @@
 #include "BLO_readfile.hh"
 #include "BLO_userdef_default.h"
 #include "BLO_writefile.hh"
-
-#include "RNA_access.hh"
 
 #include "RE_pipeline.h"
 

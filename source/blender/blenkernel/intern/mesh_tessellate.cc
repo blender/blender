@@ -12,7 +12,6 @@
  */
 
 #include "BLI_array_utils.hh"
-#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

@@ -13,7 +13,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"

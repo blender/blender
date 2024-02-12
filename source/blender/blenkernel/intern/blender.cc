@@ -25,27 +25,20 @@
 #include "BKE_blender.hh"           /* own include */
 #include "BKE_blender_user_menu.hh" /* own include */
 #include "BKE_blender_version.h"    /* own include */
-#include "BKE_blendfile.hh"
 #include "BKE_brush.hh"
 #include "BKE_cachefile.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.h"
-#include "BKE_image.h"
-#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_node.h"
 #include "BKE_report.hh"
-#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
 
 #include "DEG_depsgraph.hh"
 
-#include "RE_pipeline.h"
 #include "RE_texture.h"
-
-#include "SEQ_sequencer.hh"
 
 #include "BLF_api.hh"
 

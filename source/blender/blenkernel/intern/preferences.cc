@@ -10,8 +10,6 @@
 
 #include <cstring>
 
-#include "DNA_asset_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"

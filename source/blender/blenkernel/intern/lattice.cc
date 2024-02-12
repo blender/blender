@@ -30,9 +30,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BKE_anim_data.h"
 #include "BKE_curve.hh"
 #include "BKE_deform.hh"
 #include "BKE_displist.h"
@@ -40,12 +38,9 @@
 #include "BKE_lattice.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "BLO_read_write.hh"
 

@@ -31,7 +31,6 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "IMB_moviecache.hh"
 
 #include "tracking_private.h"
 

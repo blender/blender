@@ -19,7 +19,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -29,9 +28,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_displist.h"
 #include "BKE_global.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mball_tessellate.hh" /* own include */
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"

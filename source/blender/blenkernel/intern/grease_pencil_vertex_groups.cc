@@ -11,14 +11,11 @@
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
-
-#include "BLT_translation.hh"
 
 namespace blender::bke::greasepencil {
 

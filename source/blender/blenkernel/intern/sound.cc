@@ -14,7 +14,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_iterator.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
 #include "BLT_translation.hh"
@@ -47,7 +46,6 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
-#include "BKE_scene.hh"
 #include "BKE_sound.h"
 
 #include "DEG_depsgraph.hh"
@@ -55,7 +53,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "SEQ_sequencer.hh"
 #include "SEQ_sound.hh"
 #include "SEQ_time.hh"
 

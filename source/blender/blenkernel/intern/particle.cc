@@ -47,7 +47,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
 #include "BKE_anim_path.h"
 #include "BKE_boids.h"
 #include "BKE_cloth.hh"
@@ -63,11 +62,9 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"

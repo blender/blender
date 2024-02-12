@@ -15,10 +15,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_boid_types.h"
 #include "DNA_cloth_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -41,7 +39,6 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
-#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
@@ -53,13 +50,9 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_particle.h"
 
-#include "BKE_bvhutils.hh"
 #include "BKE_cloth.hh"
-#include "BKE_collection.hh"
-#include "BKE_lattice.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -68,10 +61,7 @@
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "RE_texture.h"
 
 /* FLUID sim particle import */
 #ifdef WITH_FLUID

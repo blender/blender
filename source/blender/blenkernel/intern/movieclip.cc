@@ -25,7 +25,6 @@
 
 #include "DNA_defaults.h"
 
-#include "DNA_constraint_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
@@ -44,17 +43,14 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
 #include "BKE_bpath.hh"
 #include "BKE_colortools.hh"
-#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.h" /* openanim */
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
-#include "BKE_node.h"
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
@@ -71,8 +67,6 @@
 #include "GPU_texture.h"
 
 #include "BLO_read_write.hh"
-
-#include "tracking_private.h"
 
 static void free_buffers(MovieClip *clip);
 

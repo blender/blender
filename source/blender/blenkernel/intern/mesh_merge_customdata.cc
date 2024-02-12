@@ -14,8 +14,6 @@
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BLI_memarena.h"
 
 #include "BLI_strict_flags.h"
 

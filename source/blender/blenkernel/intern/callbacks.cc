@@ -15,7 +15,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 static ListBase callback_slots[BKE_CB_EVT_TOT] = {{nullptr}};
 

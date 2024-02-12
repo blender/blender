@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include "atomic_ops.h"
 #include <cstdlib>
 
 #include "MEM_guardedalloc.h"
@@ -18,10 +17,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
-#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

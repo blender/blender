@@ -12,8 +12,6 @@
 #include "BLI_bit_span_ops.hh"
 #include "BLI_set.hh"
 #include "BLI_struct_equality_utils.hh"
-#include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 namespace blender::bke {
 

@@ -8,8 +8,6 @@
 
 #include "subdiv_converter.hh"
 
-#include "BLI_utildefines.h"
-
 #include "opensubdiv_converter_capi.hh"
 
 void BKE_subdiv_converter_free(OpenSubdiv_Converter *converter)

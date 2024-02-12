@@ -12,7 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"
 
 #include "BLI_listbase.h"
@@ -27,7 +26,6 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "libmv-capi.h"

@@ -10,7 +10,6 @@
 #include "BLI_function_ref.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 #include "NOD_geometry_nodes_lazy_function.hh"
 

@@ -8,9 +8,7 @@
 
 #include <cstring>
 
-#include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -24,13 +22,11 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
 #include "BKE_bpath.hh"
 #include "BKE_cachefile.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_modifier.hh"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"

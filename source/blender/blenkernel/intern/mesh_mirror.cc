@@ -17,7 +17,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
 #include "BKE_modifier.hh"
@@ -26,8 +25,6 @@
 #include "bmesh_tools.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "MOD_modifiertypes.hh"
 
 Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
                                                           const Mesh *mesh,

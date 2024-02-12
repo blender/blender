@@ -17,7 +17,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
@@ -28,15 +27,11 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
-#include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_lib_remap.hh"
-#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"

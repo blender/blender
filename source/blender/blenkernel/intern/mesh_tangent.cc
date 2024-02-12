@@ -21,13 +21,11 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
 #include "BKE_report.hh"
 
 #include "BLI_strict_flags.h"
 
-#include "atomic_ops.h"
 #include "mikktspace.hh"
 
 using blender::float2;
