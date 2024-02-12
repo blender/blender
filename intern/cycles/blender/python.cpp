@@ -615,14 +615,12 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
     if (!found_existing) {
       /* Create new socket. */
-      BL::NodeSocket b_sock = (param->isoutput) ? b_node.outputs.create(b_data,
-                                                                        socket_type.c_str(),
-                                                                        param_label.c_str(),
-                                                                        param->name.c_str()) :
-                                                  b_node.inputs.create(b_data,
-                                                                       socket_type.c_str(),
-                                                                       param_label.c_str(),
-                                                                       param->name.c_str());
+      BL::NodeSocket b_sock =
+          (param->isoutput) ?
+              b_node.outputs.create(
+                  b_data, socket_type.c_str(), param_label.c_str(), param->name.c_str(), false) :
+              b_node.inputs.create(
+                  b_data, socket_type.c_str(), param_label.c_str(), param->name.c_str(), false);
 
       /* set default value */
       if (data_type == BL::NodeSocket::type_VALUE) {
