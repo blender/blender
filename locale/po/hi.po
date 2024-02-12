@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -942,10 +942,6 @@ msgstr "प्रतिबिंबक"
 
 msgid "Depth Object"
 msgstr "गहनता वस्तु"
-
-
-msgid "Track"
-msgstr "ट्रैक"
 
 
 msgid "Chain Length"
@@ -2796,6 +2792,10 @@ msgid "Reconstruction"
 msgstr "पुनर्निर्माण"
 
 
+msgid "Track"
+msgstr "ट्रैक"
+
+
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
@@ -3673,6 +3673,10 @@ msgid "Only Selected"
 msgstr "केवल चयनित"
 
 
+msgid "Ascii"
+msgstr "ऐस्की"
+
+
 msgid "X Up"
 msgstr "X ऊर्ध्व"
 
@@ -3691,10 +3695,6 @@ msgstr "-Y ऊर्ध्व"
 
 msgid "-Z Up"
 msgstr "-Z ऊर्ध्व"
-
-
-msgid "Ascii"
-msgstr "ऐस्की"
 
 
 msgid "Null"

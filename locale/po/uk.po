@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -1646,14 +1646,6 @@ msgid "Horizontal dimension of the baking map"
 msgstr "Горизонтальний розмір карти запікання"
 
 
-msgid "Bezier Curve Point"
-msgstr "Точка кривої Безьє"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Точка з двома ручками кривої Безьє"
-
-
 msgid "Control Point"
 msgstr "Керувальна точка"
 
@@ -2884,14 +2876,6 @@ msgstr "Держак початку Б-Кістки"
 
 msgid "Bone that serves as the start handle for the B-Bone curve"
 msgstr "Кість, що слугує в якості держака початку кривої Б-кістки"
-
-
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Довжина першої ручки Безьє (лише для B-кісток)"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Довжина другої ручки Безьє (лише для B-кісток)"
 
 
 msgid "B-Bone End Handle Type"
@@ -5787,10 +5771,6 @@ msgid "Floor"
 msgstr "Підлога"
 
 
-msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner can not cross"
-msgstr "Використати розташування (і, можливо, поворот) цілі, щоб визначити 'стіну' або 'підлогу', яких не перетинатиме власник"
-
-
 msgid "Follow Path"
 msgstr "Слідувати шляхом"
 
@@ -6539,8 +6519,9 @@ msgid "Movie tracking object to follow (if empty, camera object is used)"
 msgstr "Об'єкт відео, за яким здійснюється переміщення (якщо пусто, використовується камера)"
 
 
+msgctxt "MovieClip"
 msgid "Track"
-msgstr "Стеження"
+msgstr "Стежка"
 
 
 msgid "Movie tracking track to follow"
@@ -7763,10 +7744,6 @@ msgid "Handle Type"
 msgstr "Тип ручки"
 
 
-msgid "Curve interpolation at this point: Bezier or vector"
-msgstr "Інтерполяція кривої у цій точці: Безьє або вектор"
-
-
 msgid "Auto Handle"
 msgstr "Автоважіль"
 
@@ -7885,10 +7862,6 @@ msgstr "Тип кривої, що буде використовуватися д
 
 msgid "Poly"
 msgstr "Полі"
-
-
-msgid "Bezier"
-msgstr "Безьє"
 
 
 msgid "Depth"
@@ -16178,10 +16151,6 @@ msgid "Active index in layer mask array"
 msgstr "Активний індекс у масиві шарів маски"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Активний шар Нарисного Олівця"
-
-
 msgid "Statistical view of the levels of color in an image"
 msgstr "Показує статистику рівнів кольору в зображенні"
 
@@ -17527,10 +17496,6 @@ msgid "Draw a line with dabs separated according to spacing"
 msgstr "Малювати лінії зі штрихами, відокремленими заданим інтервалом"
 
 
-msgid "Define the stroke curve with a bezier curve (dabs are separated according to spacing)"
-msgstr "Визначити криві штрихів через криві Безьє (штрихи відокремлюються відповідно до інтервалу)"
-
-
 msgid "Per Vertex Displacement"
 msgstr "По Зміщеннях Вершин"
 
@@ -17697,10 +17662,6 @@ msgstr "Заміщення Накладання"
 
 msgid "Don't show overlay during a stroke"
 msgstr "Не показувати накладання під час проведення штриха"
-
-
-msgid "Define the stroke curve with a bezier curve. Dabs are separated according to spacing"
-msgstr "Визначити штрих кривою Безьє. Окремі мазки відокремлюються відповідно до інтервалу"
 
 
 msgid "Custom Icon"
@@ -19999,10 +19960,6 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "Величина зсуву при рисуванні у режимі поверхні"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Блоки даних нарисного олівця"
-
-
 msgid "Image data-block referencing an external or packed image"
 msgstr "Блок даних зображення, що посилається на зовнішнє або упаковане зображення"
 
@@ -21611,6 +21568,10 @@ msgstr "Позначка дерева вузла"
 
 msgid "Grease Pencil Data"
 msgstr "Дані Нарисного Олівця"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Блоки даних нарисного олівця"
 
 
 msgid "Interface"
@@ -27337,10 +27298,6 @@ msgid "Collection of keymaps"
 msgstr "Колекція розкладок клавіш"
 
 
-msgid "Bezier curve point with two handles defining a Keyframe on an F-Curve"
-msgstr "Точка кривої Безьє з двома ручками, що визначає ключовий кадр на Ф-Кривій"
-
-
 msgid "Amount to boost elastic bounces for 'elastic' easing"
 msgstr "Рівень підсилення пружних відскоків для «пружного» ослаблення"
 
@@ -28249,10 +28206,6 @@ msgid "Backbone Stretcher"
 msgstr "Розтяг основи"
 
 
-msgid "Bezier Curve"
-msgstr "Крива Безьє"
-
-
 msgid "Blueprint"
 msgstr "Креслення"
 
@@ -28375,14 +28328,6 @@ msgstr "Довжина основи"
 
 msgid "Amount of backbone stretching"
 msgstr "Величина розтягу основи"
-
-
-msgid "Replace stroke backbone geometry by a Bezier curve approximation of the original backbone geometry"
-msgstr "Замінити геометрію основи штриха шляхом апроксимації початкової геометрії до кривої Безьє"
-
-
-msgid "Maximum distance allowed between the new Bezier curve and the original backbone geometry"
-msgstr "Найбільша допустима відстань між кривою Безьє та початковою геометрією основи штриха"
 
 
 msgid "Produce a blueprint using circular, elliptic, and square contour strokes"
@@ -29251,6 +29196,10 @@ msgid "Rotation Track Specials"
 msgstr "Спеціальне для стежок обертання"
 
 
+msgid "Track"
+msgstr "Стеження"
+
+
 msgid "Clean Up"
 msgstr "Вичищення"
 
@@ -29382,10 +29331,6 @@ msgstr "Примітиви"
 
 msgid "Keying"
 msgstr "Ключування"
-
-
-msgid "Tracking"
-msgstr "Стеження"
 
 
 msgid "Layout"
@@ -32039,10 +31984,6 @@ msgstr "Центра гачка, вживається для спаду та п�
 
 msgid "Vertex Indices"
 msgstr "Індекси Вершин"
-
-
-msgid "Indices of vertices bound to the modifier. For bezier curves, handles count as additional vertices"
-msgstr "Індекси вершин, прив'язаних до модифікатора. Для кривих без'є, рахунок держаків як додаткових вершин"
 
 
 msgid "Laplacian Deform Modifier"
@@ -37762,10 +37703,6 @@ msgstr "Найменша швидкість"
 
 msgid "Minimum speed for a pixel to be blurred (used to separate background from foreground)"
 msgstr "Мінімальна швидкість для розмивання пікселя (використовується, щоб відокремити фон від переднього плану)"
-
-
-msgid "Interpolate between frames in a Bezier curve, rather than linearly"
-msgstr "Інтерполяція між кадрами в кривих Безьє, а не лінійно"
 
 
 msgid "Tile Order"
@@ -43796,15 +43733,6 @@ msgid "Toggle the selection"
 msgstr "Перемкнути вибір"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Додати коло Безьє"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Побудувати коло Безьє"
-
-
 msgid "The alignment of the new object"
 msgstr "Вирівняння нового об'єкта"
 
@@ -43839,15 +43767,6 @@ msgstr "Оберт для щойно доданого об'єкта"
 
 msgid "Scale for the newly added object"
 msgstr "Масштаб для ново доданого об'єкта"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Додати Безьє"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Побудувати криву Безьє"
 
 
 msgctxt "Operator"
@@ -44081,10 +44000,6 @@ msgstr "Встановити тип активного сплайна"
 
 msgid "Handles"
 msgstr "Ручки"
-
-
-msgid "Use handles when converting bezier curves into polygons"
-msgstr "Використовувати ручки при конвертуванні кривих Безьє у багатокутники"
 
 
 msgctxt "Operator"
@@ -44428,9 +44343,16 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Конвертувати оберти в Ейлерові - ZYX"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Експорт PLY"
+msgid "Save STL triangle mesh data"
+msgstr "Зберегти трикутникові дані сіті STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Записати файл формату ASCII"
 
 
 msgid "X Forward"
@@ -44477,34 +44399,6 @@ msgid "-Z Up"
 msgstr "-Z Уверх"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Apply Modifiers"
-msgstr "Застосувати модифікатори"
-
-
-msgid "Selection Only"
-msgstr "Лише вибране"
-
-
-msgid "Export selected objects only"
-msgstr "Експортувати лише вибрані об'єкти"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Зберегти трикутникові дані сіті STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Записати файл формату ASCII"
-
-
 msgid "Batch Mode"
 msgstr "Пакетний Режим"
 
@@ -44517,6 +44411,10 @@ msgid "Each object as a file"
 msgstr "Кожен об'єкт як файл"
 
 
+msgid "Apply Modifiers"
+msgstr "Застосувати модифікатори"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "Перед збереженням застосувати модифікатори"
 
@@ -44527,6 +44425,14 @@ msgstr "Одиниці сцени"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Застосувати до експортованих даних поточні одиниці сцени (як вказує масштаб одиниць)"
+
+
+msgid "Selection Only"
+msgstr "Лише вибране"
+
+
+msgid "Export selected objects only"
+msgstr "Експортувати лише вибрані об'єкти"
 
 
 msgctxt "Operator"
@@ -45153,18 +45059,6 @@ msgstr "Пам'ятати Устави Експорту"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Зберігати устави експорту glTF у прокті Blender'а"
-
-
-msgid "Material Groups"
-msgstr "Групи матеріалів"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "Генерувати групу OBJ для кожної частини геометрії, використовуючи інший матеріал"
-
-
-msgid "Smooth Groups"
-msgstr "Групи згладжування"
 
 
 msgctxt "Operator"
@@ -46403,16 +46297,8 @@ msgid "Animation path"
 msgstr "Шлях анімації"
 
 
-msgid "Smooth Bezier curve"
-msgstr "Крива Безьє згладження"
-
-
 msgid "Polygon Curve"
 msgstr "Багатокутна крива"
-
-
-msgid "Bezier curve with straight-line segments (vector handles)"
-msgstr "Крива Безьє з прямолінійними сегментами (векторні ручки)"
 
 
 msgid "Link Strokes"
@@ -46873,6 +46759,10 @@ msgstr "Нетипова інтерполяція, визначена розкл
 msgctxt "Operator"
 msgid "Active Layer"
 msgstr "Активний Шар"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Активний шар Нарисного Олівця"
 
 
 msgctxt "Operator"
@@ -48395,6 +48285,10 @@ msgid "Flat"
 msgstr "Плоско"
 
 
+msgid "By Material"
+msgstr "За матеріалом"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Режим Вибору"
@@ -49184,11 +49078,6 @@ msgid "Use alpha channel for transparency"
 msgstr "Вжити канал альфа для прозорості"
 
 
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Імпорт PLY"
-
-
 msgid "Load STL triangle mesh data"
 msgstr "Завантажити дані трикутникової сіті STL"
 
@@ -49401,10 +49290,6 @@ msgstr "Рівень Протоколу"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF вимагає дискретних атрибутів нормалей, UVт, та інших елементів вершин, щоб зберігатися як окремі вершини, як вимагається для рендерингу на типовому графічному апаратному забезпеченні. Ця опція пробує комбінувати спів-розміщені вершини, де це можливо. Поточно не може комбінувати вершини з різними нормалями"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "Імпортувати OBJ-групи як групи вершин"
 
 
 msgctxt "Operator"
@@ -52349,10 +52234,6 @@ msgstr "Вибрати ділянки граней, подібні до вибр
 
 msgid "Separate selected geometry into a new mesh"
 msgstr "Відділити вибране у нову сіть"
-
-
-msgid "By Material"
-msgstr "За матеріалом"
 
 
 msgid "By Loose Parts"
@@ -59126,10 +59007,6 @@ msgstr "Вживати поточний 3D огляд для рендеринг�
 
 msgid "Write Image"
 msgstr "Запис зображення"
-
-
-msgid "Save rendered the image to the output path (used only when animation is disabled)"
-msgstr "Зберегти рендерене зображення у теці виводу (вживається тільки тоді, коли анімація відключена)"
 
 
 msgctxt "Operator"
@@ -66358,6 +66235,14 @@ msgid "Object Properties"
 msgstr "Властивості Об'єкта"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "Генерувати групу OBJ для кожної частини геометрії, використовуючи інший матеріал"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Імпортувати OBJ-групи як групи вершин"
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Відкриття"
@@ -66433,6 +66318,16 @@ msgstr "Значник Інтерфейсу Користувача"
 
 msgid "Open a path in a file browser"
 msgstr "Відкрити шлях в оглядачі файлів"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Експорт PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Імпорт PLY"
 
 
 msgctxt "Operator"
@@ -67867,11 +67762,6 @@ msgid "Transforms"
 msgstr "Трансформи"
 
 
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Уклад Сцени"
-
-
 msgid "Predefined track color"
 msgstr "Напередзаданий колір стежки"
 
@@ -68995,11 +68885,6 @@ msgstr "Ніж"
 msgctxt "Operator"
 msgid "Poly Build"
 msgstr "Побудова Полі"
-
-
-msgctxt "Operator"
-msgid "Spin Duplicates"
-msgstr "Обкрут дублікатів"
 
 
 msgctxt "Operator"
@@ -77752,14 +77637,6 @@ msgid "Vertex weight group, to blend with basis shape"
 msgstr "Група вагомостей вершин для змішування з основною формою"
 
 
-msgid "Shape Key Bezier Point"
-msgstr "Точка Безьє ключа форми"
-
-
-msgid "Point in a shape key for Bezier curves"
-msgstr "Точка в ключі форми для кривих Безьє"
-
-
 msgid "Handle 1 Location"
 msgstr "Позиція ручки 1"
 
@@ -78111,11 +77988,6 @@ msgstr "Звідки походить анотація"
 
 msgid "Show annotation data-block which belongs to movie clip"
 msgstr "Показувати блок даних анотації, який відноситься до відеокліпу"
-
-
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "Стежка"
 
 
 msgid "Show annotation data-block which belongs to active track"
@@ -78561,10 +78433,6 @@ msgid "Show Handles and Interpolation"
 msgstr "Показ Держаків та Інтерполяції"
 
 
-msgid "Display keyframe handle types and non-bezier interpolation modes"
-msgstr "Показувати типи держаків ключкадрів та не-безьє режими інтерполяції"
-
-
 msgid "Show Markers"
 msgstr "Показ Міток"
 
@@ -78755,10 +78623,6 @@ msgstr "Показати 2D-курсор"
 
 msgid "Show Handles"
 msgstr "Показати ручки"
-
-
-msgid "Show handles of Bezier control points"
-msgstr "Показати ручки контрольних точок Безьє"
 
 
 msgid "Auto Normalization"
@@ -80130,18 +79994,6 @@ msgid "Opacity of UV overlays"
 msgstr "Безпрозорість накладок UV"
 
 
-msgid "Element of a curve, either NURBS, Bezier or Polyline or a character with text objects"
-msgstr "Елемент кривої NURBS, кривої Безьє, полілінії або символу текстового об'єкта"
-
-
-msgid "Bezier Points"
-msgstr "Точки Безьє"
-
-
-msgid "Collection of points for Bezier curves only"
-msgstr "Колекція точок лише для кривих Безьє"
-
-
 msgid "Character Index"
 msgstr "Індекс символу"
 
@@ -80186,10 +80038,6 @@ msgid "Radius Interpolation"
 msgstr "Інтерполяція радіусу"
 
 
-msgid "The type of radius interpolation for Bezier curves"
-msgstr "Тип інтерполяції радіуса для кривих Безьє"
-
-
 msgid "Curve or Surface subdivisions per segment"
 msgstr "Поділів кривої або поверхні на сегмент"
 
@@ -80202,20 +80050,8 @@ msgid "Tilt Interpolation"
 msgstr "Інтерполяція нахилу"
 
 
-msgid "The type of tilt interpolation for 3D, Bezier curves"
-msgstr "Тип інтерполяції нахилу для кривих 3D та Безьє"
-
-
 msgid "The interpolation type for this curve element"
 msgstr "Тип інтерполяції для цього елемента кривої"
-
-
-msgid "Bezier U"
-msgstr "Безьє U"
-
-
-msgid "Bezier V"
-msgstr "Безьє V"
 
 
 msgid "Make this curve or surface a closed loop in the U direction"
@@ -80236,14 +80072,6 @@ msgstr "Кінцева точка V"
 
 msgid "Smooth the normals of the surface or beveled curve"
 msgstr "Згладити нормалі поверхні або обведеної кривої"
-
-
-msgid "Spline Bezier Points"
-msgstr "Точки сплайнів Безьє"
-
-
-msgid "Collection of spline Bezier points"
-msgstr "Колекція точок сплайнів Безьє"
 
 
 msgid "Spline point without handles"
@@ -80312,10 +80140,6 @@ msgstr "Має Блікове Підсвічення"
 
 msgid "Studio light image file has separate \"diffuse\" and \"specular\" passes"
 msgstr "Зображення студійного освітлювача має окремі проходи «розсіяння» та «блікування»"
-
-
-msgid "Lights user to display objects in solid draw mode"
-msgstr "Світло, що використовується для показу об'єктів в режимі суцільного малювання"
 
 
 msgid "Collection of studio lights"
@@ -81012,10 +80836,6 @@ msgstr "Підканал Аркуша експозицій"
 
 msgid "Interpolation Line"
 msgstr "Лінія Інтерполяції"
-
-
-msgid "Color of lines showing non-bezier interpolation modes"
-msgstr "Колір ліній, що показує не-безьє режими інтерполяції"
 
 
 msgid "Color of Keyframe"
@@ -85810,6 +85630,10 @@ msgid "Invert Selection"
 msgstr "Інвертувати Вибрання"
 
 
+msgid "Tracking"
+msgstr "Стеження"
+
+
 msgid "Extensions"
 msgstr "Розширення"
 
@@ -86349,10 +86173,6 @@ msgstr "Гілка: %s"
 
 msgid "Invalid regular expression (find): "
 msgstr "Недійсний регулярний вираз (знаходження):"
-
-
-msgid "Type \"%s\" can not be found"
-msgstr "Тип \"%s\" неможливо знайти"
 
 
 msgid "Invalid regular expression (replace): "
@@ -90522,11 +90342,6 @@ msgstr "Мавпочка"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Безьє"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Крива Норбс"
 
@@ -92860,10 +92675,6 @@ msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
 
-msgid "✕ (Ax + B)"
-msgstr "✕ (Ax + B)"
-
-
 msgid "Add Control Point"
 msgstr "Додати Керувальну Точку"
 
@@ -93180,22 +92991,8 @@ msgid "Cannot duplicate current selection"
 msgstr "Неможливо дублювати вибране"
 
 
-msgid "Only bezier curves are supported"
-msgstr "Підтримуються тільки криві Безьє"
-
-
 msgid "Active object is not a selected curve"
 msgstr "Активний об'єкт не є вибраною кривою"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "КриваБезьє"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "КолоБезьє"
 
 
 msgctxt "Curve"
@@ -93428,10 +93225,6 @@ msgid "No strokes to paste, select and copy some points before trying again"
 msgstr "Немає штрихів, щоб вставити; виберіть і скопіюйте декілька точок і спробуйте ще раз"
 
 
-msgid "Can not paste strokes when active layer is hidden or locked"
-msgstr "Неможливо вставити штрихи, коли активний шар приховано або заблоковано"
-
-
 msgid "No grease pencil data"
 msgstr "Немає даних нарисного олівця"
 
@@ -93586,10 +93379,6 @@ msgstr "Нема вибраної порожні зображення"
 
 msgid "No valid image format selected"
 msgstr "Нема вибраного зображення дійсного формату"
-
-
-msgid "Confirm: Enter/LClick, Cancel: (Esc/RClick) %s"
-msgstr "Підтвердження: Enter/LClick, Скасування: (Esc/RClick) %s"
 
 
 msgid "Palette created"
@@ -94401,6 +94190,18 @@ msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Виявлення помилок у Документів (дивіться Blender Console)"
 
 
+msgid "Material Groups"
+msgstr "Групи матеріалів"
+
+
+msgid "Smooth Groups"
+msgstr "Групи згладжування"
+
+
+msgid "ASCII"
+msgstr "ASCII"
+
+
 msgid "Rigging"
 msgstr "Оснащення (rigging)"
 
@@ -94482,10 +94283,6 @@ msgid "You have to select a string of connected vertices too"
 msgstr "Слід ще вибрати рядок з'єднаних вершин"
 
 
-msgid "Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): (%s)"
-msgstr "Підтвердити: Enter/Лів.кноп., Касувати: (Esc/Прав.кноп.), Товщина: %s, Глибина (Ctrl - підправити): %s (%s), Назовні (O): (%s), Рубіж (B): (%s), Окремо (I): (%s)"
-
-
 msgid "Compiled without GMP, using fast solver"
 msgstr "Скомпільовано без GMP, використовується швидкий рішач"
 
@@ -94512,10 +94309,6 @@ msgstr "Кількість розрізів: %s, Згладжування: %s (A
 
 msgid "Loop cut does not work well on deformed edit mesh display"
 msgstr "Замкнутий розріз може працювати погано при показі деформованої сіті"
-
-
-msgid "The geometry can not be extracted with dyntopo activated"
-msgstr "Геометрія не може бути витягнута з активованим динтопо"
 
 
 msgid "Path selection requires two matching elements to be selected"
@@ -97772,10 +97565,6 @@ msgid "No object selected"
 msgstr "Жоден об'єкт не виділено"
 
 
-msgid "Auto Keying On"
-msgstr "Увім Автоключування"
-
-
 msgid "along X"
 msgstr "уздовж X"
 
@@ -97814,6 +97603,10 @@ msgstr "блокування %s Z"
 
 msgid "along local Z"
 msgstr "уздовж локальної Z"
+
+
+msgid "Auto Keying On"
+msgstr "Увім Автоключування"
 
 
 msgid " along Y axis"
@@ -97954,14 +97747,6 @@ msgstr "Масштаб кістки: %s : %s : %s%s %s"
 
 msgid "ScaleB X: %s  Y: %s  Z: %s%s %s"
 msgstr "Масштаб кістки X: %s  Y: %s  Z: %s%s %s"
-
-
-msgid "Bend Angle: %s Radius: %s Alt, Clamp %s"
-msgstr "Кут згину: %s Радіус: %s Alt, Обмеження %s"
-
-
-msgid "Bend Angle: %.3f Radius: %.4f, Alt, Clamp %s"
-msgstr "Кут згину: %.3f Радіус: %.4f, Alt, Обмеження %s"
 
 
 msgid "Envelope: %s"
@@ -98434,14 +98219,6 @@ msgid "Target is not in the constraint target list"
 msgstr "Ціль не є у списку цілей цього примусу"
 
 
-msgid "Bezier spline cannot have points added"
-msgstr "Безьє-сплайн не може мати доданих точок"
-
-
-msgid "Only Bezier splines can be added"
-msgstr "Можна додати лише Безьє-сплайни"
-
-
 msgid "Curve '%s' does not contain spline given"
 msgstr "Крива '%s' не містить даного сплайну"
 
@@ -98595,16 +98372,8 @@ msgid "unable to load movie clip"
 msgstr "неможливо завантажити відеокліп"
 
 
-msgid "Can not create object in main database with an evaluated data data-block"
-msgstr "Не можливо створити об'єкт в головній базі даних з обчисленими даними блоку даних"
-
-
 msgid "Object does not have geometry data"
 msgstr "Об'єкт не має геометричних даних"
-
-
-msgid "%s '%s' is outside of main database and can not be removed from it"
-msgstr "%s '%s' є поза головною базою даних і не може бути вилучено з неї"
 
 
 msgid "%s '%s' must have zero users to be removed, found %d (try with do_unlink=True parameter)"
@@ -98911,10 +98680,6 @@ msgid "Modifier was not found in the stack"
 msgstr "Модифікатор не знайдено у стосі"
 
 
-msgid "Recursion detected, can not use this strip"
-msgstr "Виявлена рекурсія, неможливо використовувати цю смужку"
-
-
 msgid "Sequences.new_sound: unable to open sound file"
 msgstr "Sequences.new_sound: неможливо відкрити звуковий файл "
 
@@ -98981,10 +98746,6 @@ msgstr "Шрифт не упаковано"
 
 msgid "Not a non-modal keymap"
 msgstr "Розкладка не є немодальною"
-
-
-msgid "Can not mix modal/non-modal items"
-msgstr "Не можна мішати модальні і немодальні елементи"
 
 
 msgid "Not a modal keymap"

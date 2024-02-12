@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -665,14 +665,6 @@ msgstr "Izabran na aktivan"
 
 msgid "Split Materials"
 msgstr "Razdvoj materijale"
-
-
-msgid "Bezier Curve Point"
-msgstr "Tačke bazierove krive"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Bazierova kriva sa dve ručke"
 
 
 msgid "Control Point"
@@ -2488,6 +2480,7 @@ msgid "Depth Object"
 msgstr "Objekat dubine"
 
 
+msgctxt "MovieClip"
 msgid "Track"
 msgstr "Staza"
 
@@ -2864,10 +2857,6 @@ msgid "Handle Type"
 msgstr "Vrsta ručke"
 
 
-msgid "Curve interpolation at this point: Bezier or vector"
-msgstr "Podeli krivu na ovoj tački: Bazier ili vektor"
-
-
 msgid "Auto Handle"
 msgstr "Automatska ručka"
 
@@ -2930,10 +2919,6 @@ msgstr "Boja na RGB krivoj na koju se mapira bela boja"
 
 msgid "Poly"
 msgstr "Poligon"
-
-
-msgid "Bezier"
-msgstr "Bazierova kriva"
 
 
 msgid "Depth"
@@ -8816,10 +8801,6 @@ msgid "Backbone Stretcher"
 msgstr "Nosač kičme"
 
 
-msgid "Bezier Curve"
-msgstr "Bazier kriva"
-
-
 msgid "Blueprint"
 msgstr "Šematski plan"
 
@@ -9082,6 +9063,10 @@ msgid "Select Grouped"
 msgstr "Izabrana grupa"
 
 
+msgid "Track"
+msgstr "Staza"
+
+
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
 
@@ -9145,10 +9130,6 @@ msgstr "Matematika"
 
 msgid "Keying"
 msgstr "Zbirka tastera"
-
-
-msgid "Tracking"
-msgstr "Praćenje"
 
 
 msgid "Converter"
@@ -13693,15 +13674,6 @@ msgid "Toggle the selection"
 msgstr "Bira ili poništava izbor"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Dodaj bazierov krug"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Formira bazierov krug"
-
-
 msgid "Align the new object to the view"
 msgstr "Poravnaj novi objekat sa pogledom"
 
@@ -13716,15 +13688,6 @@ msgstr "Lokacija novoformiranih objekata"
 
 msgid "Rotation for the newly added object"
 msgstr "Rotacija novoformiranih objekata"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Dodaj bazierovu krivu"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Bazierova kriva"
 
 
 msgctxt "Operator"
@@ -13994,9 +13957,8 @@ msgid "Euler (ZYX)"
 msgstr "Ojler (ZYX)"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Izvoz PLY"
+msgid "Ascii"
+msgstr "Ascii"
 
 
 msgid "Y Up"
@@ -14017,10 +13979,6 @@ msgstr "Gore po -Z"
 
 msgid "Selection Only"
 msgstr "Samo izabrano"
-
-
-msgid "Ascii"
-msgstr "Ascii"
 
 
 msgctxt "Operator"
@@ -14118,14 +14076,6 @@ msgstr "Trouglaste stranice"
 
 msgid "Convert all faces to triangles"
 msgstr "Pretvroi sve stranice u trouglove"
-
-
-msgid "Material Groups"
-msgstr "Grupa materijala"
-
-
-msgid "Smooth Groups"
-msgstr "Grupe umekšanja"
 
 
 msgid "Compress"
@@ -14884,6 +14834,10 @@ msgid "Flat"
 msgstr "Ravno"
 
 
+msgid "By Material"
+msgstr "Po materijalu"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Mod izabora"
@@ -15075,11 +15029,6 @@ msgstr "Relativne putanje"
 
 msgid "Shadeless"
 msgstr "Senčenja"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Uvoz PLY"
 
 
 msgctxt "Operator"
@@ -16083,10 +16032,6 @@ msgstr "Nasumično izaberi temena"
 
 msgid "Separate selected geometry into a new mesh"
 msgstr "Izdvoj izabranu geometriju u novi meš"
-
-
-msgid "By Material"
-msgstr "Po materijalu"
 
 
 msgid "Tag Freestyle Edge Mark"
@@ -20210,6 +20155,16 @@ msgstr "Otvori putanju u pregledaču datoteka"
 
 
 msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Izvoz PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Uvoz PLY"
+
+
+msgctxt "Operator"
 msgid "Add Property"
 msgstr "Dodaj osobinu"
 
@@ -20555,11 +20510,6 @@ msgstr "2D stabilizacija"
 
 msgid "Transforms"
 msgstr "Transformacija"
-
-
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Postavke scene"
 
 
 msgid "Tracking Settings"
@@ -22749,11 +22699,6 @@ msgid "Mass Vertex Group"
 msgstr "Masa grupe temena"
 
 
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "Staza"
-
-
 msgid "2D Cursor Location"
 msgstr "Lokacija 2D kursora"
 
@@ -23187,14 +23132,6 @@ msgid "Live Unwrap"
 msgstr "Rastvori UV"
 
 
-msgid "Bezier Points"
-msgstr "Bezier kriva"
-
-
-msgid "Collection of points for Bezier curves only"
-msgstr "Zbirka tačaka samo za Bazierove krive"
-
-
 msgid "Hide this curve in Edit mode"
 msgstr "Sakrij ovu krivu u režimu izmene"
 
@@ -23213,18 +23150,6 @@ msgstr "Tačaka U"
 
 msgid "Points V"
 msgstr "Tačaka V"
-
-
-msgid "The type of radius interpolation for Bezier curves"
-msgstr "Osnovni katalog sa Python skriptovima"
-
-
-msgid "Bezier U"
-msgstr "Bezier kriva U"
-
-
-msgid "Bezier V"
-msgstr "Bezier kriva V"
 
 
 msgid "NURBS weight"
@@ -24545,6 +24470,10 @@ msgid "Invert Selection"
 msgstr "Obrni izbor"
 
 
+msgid "Tracking"
+msgstr "Praćenje"
+
+
 msgctxt "Operator"
 msgid "New"
 msgstr "Novo"
@@ -25487,11 +25416,6 @@ msgstr "Majmun"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bazierova kriva"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs kriva"
 
@@ -25995,16 +25919,6 @@ msgstr "Formiraj segment"
 
 
 msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "BazierKriva"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "BazierKrug"
-
-
-msgctxt "Curve"
 msgid "NurbsCurve"
 msgstr "Nurbs kriva"
 
@@ -26375,6 +26289,14 @@ msgstr "Novo"
 
 msgid "%d items"
 msgstr "%d stavki"
+
+
+msgid "Material Groups"
+msgstr "Grupa materijala"
+
+
+msgid "Smooth Groups"
+msgstr "Grupe umekšanja"
 
 
 msgctxt "Mesh"

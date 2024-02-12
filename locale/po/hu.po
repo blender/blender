@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -920,14 +920,6 @@ msgid "Grease Pencil data-blocks"
 msgstr "Zsírkréta adatblokkok"
 
 
-msgid "Grease Pencil v3"
-msgstr "Zsírkréta v3"
-
-
-msgid "Grease Pencil v3 data-blocks"
-msgstr "Zsírkréta v3 adatblokkok"
-
-
 msgid "Hair Curves"
 msgstr "Haj görbék"
 
@@ -1702,10 +1694,6 @@ msgid "Floor"
 msgstr "Padló"
 
 
-msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner can not cross"
-msgstr "A célobjektum pozíciójának használata egy \"fal\", vagy \"padló\" definiálásához, amit nem tud keresztezni a tulajdonos"
-
-
 msgid "Follow Path"
 msgstr "Útvonalkövetés"
 
@@ -2224,10 +2212,6 @@ msgstr "Illeszkedés felvételezésének típusa a kamera keretén belül"
 
 msgid "Movie tracking object to follow (if empty, camera object is used)"
 msgstr "Videokövetési objektum követése (ha üres, akkor a kameraobjektum használata)"
-
-
-msgid "Track"
-msgstr "Nyom"
 
 
 msgid "Movie tracking track to follow"
@@ -2960,10 +2944,6 @@ msgstr "RGB görbékhez, az a szín, ami fehérnek lesz leképezve"
 
 msgid "Poly"
 msgstr "Vonallánc"
-
-
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgid "Depth"
@@ -4513,14 +4493,6 @@ msgid "Lowest"
 msgstr "Legalacsonyabb"
 
 
-msgid "Grease Pencil Layer Group"
-msgstr "Zsírkréta rétegcsoport"
-
-
-msgid "Group of Grease Pencil layers"
-msgstr "Zsírkréta rétegek csoportja"
-
-
 msgid "Grease Pencil Layers"
 msgstr "Zsírkréta rétegek"
 
@@ -4545,14 +4517,6 @@ msgid "Collection of grease pencil masking layers"
 msgstr "Zsírkréta maszkoló rétegek gyűjteménye"
 
 
-msgid "Collection of Grease Pencil layers"
-msgstr "Zsírkréta rétegek gyűjteménye"
-
-
-msgid "Active Grease Pencil layer"
-msgstr "Aktív zsírkréta réteg"
-
-
 msgid "Red"
 msgstr "Vörös"
 
@@ -4571,6 +4535,10 @@ msgstr "Ecset"
 
 msgid "Font"
 msgstr "Betűkészlet"
+
+
+msgid "Grease Pencil v3"
+msgstr "Zsírkréta v3"
 
 
 msgid "Key"
@@ -5251,18 +5219,6 @@ msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Zsírkréta vonások szerkesztése a nézetablak adatok helyett"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Zsírkréta adatblokk"
-
-
-msgid "Grease Pencil layer groups"
-msgstr "Zsírkréta réteg csoportok"
-
-
-msgid "Grease Pencil layers"
-msgstr "Zsírkréta rétegek"
-
-
 msgid "Alpha Mode"
 msgstr "Alfa mód"
 
@@ -5538,6 +5494,10 @@ msgstr "Videófájl"
 
 msgid "Grease Pencil Data"
 msgstr "Zsírkrétaadat"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Zsírkréta adatblokk"
 
 
 msgid "Interface"
@@ -6505,11 +6465,6 @@ msgid "Straight-line interpolation between A and B (i.e. no ease in/out)"
 msgstr "egyenes vonalú interpláció A és B között (azaz nincs lekerekítés)"
 
 
-msgctxt "Action"
-msgid "Bezier"
-msgstr "Bezier"
-
-
 msgid "Smooth interpolation between A and B, with some control over curve shape"
 msgstr "Simított interpoláció A és B között, némi kontrollal a görbe alak fölött"
 
@@ -6786,10 +6741,6 @@ msgid "Backbone Stretcher"
 msgstr "Vonalgerinc nyújtó"
 
 
-msgid "Bezier Curve"
-msgstr "Bezier görbe"
-
-
 msgid "Blueprint"
 msgstr "Tervrajz"
 
@@ -6908,14 +6859,6 @@ msgstr "Vonalgerinc hossza"
 
 msgid "Amount of backbone stretching"
 msgstr "A vonalgerinc nyújtásának mértéke"
-
-
-msgid "Replace stroke backbone geometry by a Bezier curve approximation of the original backbone geometry"
-msgstr "A vonalgerinc geometriájának felülírása egy az eredeti vonalgerinc geometria Bezier görbe approximációja által"
-
-
-msgid "Maximum distance allowed between the new Bezier curve and the original backbone geometry"
-msgstr "A maximum távolság, ami engedélyezett az új Bezier görbe és az eredeti vonalgerinc geometria között"
 
 
 msgid "Produce a blueprint using circular, elliptic, and square contour strokes"
@@ -7220,6 +7163,10 @@ msgid "Clip"
 msgstr "Klip"
 
 
+msgid "Track"
+msgstr "Nyom"
+
+
 msgid "Clean Up"
 msgstr "Tisztítás"
 
@@ -7247,10 +7194,6 @@ msgstr "Sáv"
 
 msgid "Keying"
 msgstr "Kulcsozás"
-
-
-msgid "Tracking"
-msgstr "Követés"
 
 
 msgid "Converter"
@@ -10222,16 +10165,8 @@ msgid "Grease Pencil Opacity"
 msgstr "Zsírkréta átlátszatlanság"
 
 
-msgid "Construct a Bezier Circle"
-msgstr "Bezier kör létrehozása"
-
-
 msgid "Enter Edit Mode"
 msgstr "Belépés Szerkesztő módba"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Bezier görbe létrehozása"
 
 
 msgid "Construct a Nurbs Circle"
@@ -10373,9 +10308,12 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Forgatás konvertálása euler ZYX-é"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY exportálása"
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Fájl mentése ASCII fájlformátumba"
 
 
 msgid "X Forward"
@@ -10422,8 +10360,16 @@ msgid "-Z Up"
 msgstr "-Z fel"
 
 
+msgid "Batch Mode"
+msgstr "Köteg mód"
+
+
 msgid "Apply Modifiers"
 msgstr "Módosítók elfogadása"
+
+
+msgid "Apply the modifiers before saving"
+msgstr "Módosítók elfogadása mentés előtt"
 
 
 msgid "Selection Only"
@@ -10432,22 +10378,6 @@ msgstr "Csak a kijelölés"
 
 msgid "Export selected objects only"
 msgstr "Csak a kijelölt objektumok exportálása"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Fájl mentése ASCII fájlformátumba"
-
-
-msgid "Batch Mode"
-msgstr "Köteg mód"
-
-
-msgid "Apply the modifiers before saving"
-msgstr "Módosítók elfogadása mentés előtt"
 
 
 msgctxt "Operator"
@@ -10565,14 +10495,6 @@ msgstr "Minden oldallam háromszöggé konvertálása"
 
 msgid "General"
 msgstr "Általános"
-
-
-msgid "Material Groups"
-msgstr "Anyag csoportok"
-
-
-msgid "Smooth Groups"
-msgstr "Simított csoportok"
 
 
 msgid "Compress"
@@ -10771,6 +10693,10 @@ msgstr "Zsírkréta rajz"
 
 msgid "Erase Grease Pencil strokes"
 msgstr "Böngészés a linkelhető Zsírkréta adatok között"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "Aktív zsírkréta réteg"
 
 
 msgctxt "Operator"
@@ -11026,11 +10952,6 @@ msgstr "Relatív fájlútvonalak"
 
 msgid "Camera Relative"
 msgstr "Relatív kamera"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLY importálása"
 
 
 msgid "Load STL triangle mesh data"
@@ -13286,6 +13207,16 @@ msgid "Set the active operator to its default values"
 msgstr "Az aktív operátor alapértelmezett értékének beállítása"
 
 
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLY exportálása"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLY importálása"
+
+
 msgid "Jump to a different tab inside the properties editor"
 msgstr "Egy másik fülre ugrás a Tulajdonságok szerkesztőn belül"
 
@@ -14989,14 +14920,6 @@ msgid "Vertex weight group, to blend with basis shape"
 msgstr "Csúcspont súly csoport, az alap formával való keveréshez"
 
 
-msgid "Shape Key Bezier Point"
-msgstr "Formakulcs bezier pont"
-
-
-msgid "Point in a shape key for Bezier curves"
-msgstr "Pont egy formakulcsban, Bezier-görbékhez"
-
-
 msgid "Handle 1 Location"
 msgstr "1-es fogantyú helyzete"
 
@@ -16070,6 +15993,10 @@ msgid "Import PO..."
 msgstr "Importálás PO..."
 
 
+msgid "Tracking"
+msgstr "Követés"
+
+
 msgctxt "Operator"
 msgid "New"
 msgstr "Új"
@@ -16906,11 +16833,6 @@ msgstr "Majom"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "Nurbs Görbe"
 
@@ -17158,16 +17080,6 @@ msgstr "A művelet aktív csontot igényel"
 
 msgid "Cannot spin"
 msgstr "Nem lehet forgatni"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier görbe"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier kör"
 
 
 msgctxt "Curve"
@@ -17547,6 +17459,14 @@ msgstr "Adat opciók importálása"
 
 msgid "Export Options"
 msgstr "Opciók exportálása"
+
+
+msgid "Material Groups"
+msgstr "Anyag csoportok"
+
+
+msgid "Smooth Groups"
+msgstr "Simított csoportok"
 
 
 msgctxt "Mesh"

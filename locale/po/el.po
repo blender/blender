@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2008-03-23 12:20+0200\n"
 "Last-Translator: Kostas Karvouniaris <neogen556@yahoo.gr>\n"
 "Language-Team: \n"
@@ -233,10 +233,6 @@ msgid "Camera"
 msgstr "Κάμερα"
 
 
-msgid "Track"
-msgstr "Ανίχνευση"
-
-
 msgid "Bone"
 msgstr "Οστό"
 
@@ -255,10 +251,6 @@ msgstr "Μπροστά"
 
 msgid "Back"
 msgstr "Πίσω"
-
-
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgid "Surface"
@@ -579,6 +571,10 @@ msgstr "Κωδικοποιητής"
 
 msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
+
+
+msgid "Track"
+msgstr "Ανίχνευση"
 
 
 msgid "Snap"
@@ -1021,10 +1017,6 @@ msgstr "Μετάβαση Γάμμα"
 
 msgid "Lens"
 msgstr "Φακός"
-
-
-msgid "Bezier U"
-msgstr "Bezier U"
 
 
 msgid "Stencil"

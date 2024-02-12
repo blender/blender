@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'3d7e84f57d8a')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-05 09:44+0000\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1719,14 +1719,6 @@ msgid "Horizontal dimension of the baking map"
 msgstr "Horizontale Dimension der Backkarte"
 
 
-msgid "Bezier Curve Point"
-msgstr "Bezierkurven-Punkt"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Bezierkurven-Punkt mit zwei Griffen"
-
-
 msgid "Control Point"
 msgstr "Kontrollpunkt"
 
@@ -2985,14 +2977,6 @@ msgstr "B-Bone Griffanfang"
 
 msgid "Bone that serves as the start handle for the B-Bone curve"
 msgstr "Knochen, der als Griffanfang für die B-Knochen-Kurve dient"
-
-
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Länge vom ersten Bezier-Griff(nur für B-Knochen)"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Länge vom zweiten Bezier-Griff (nur für B-Knochen)"
 
 
 msgid "B-Bone End Handle Type"
@@ -6492,6 +6476,7 @@ msgid "Depth Object"
 msgstr "Objekttiefe"
 
 
+msgctxt "MovieClip"
 msgid "Track"
 msgstr "Spur"
 
@@ -7386,10 +7371,6 @@ msgstr "Eckwinkel"
 
 msgid "Poly"
 msgstr "Poly"
-
-
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgid "Depth"
@@ -12415,10 +12396,6 @@ msgid "Active index in layer mask array"
 msgstr "Aktiver Index im Ebenen-Maskenarray"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktive Wachsstift-Ebene"
-
-
 msgid "Luma"
 msgstr "Luma"
 
@@ -14472,10 +14449,6 @@ msgid "Surface Offset"
 msgstr "Oberflächenversatz"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Wachsstift-Datenblock"
-
-
 msgid "Alpha Mode"
 msgstr "Alphamodus"
 
@@ -15449,6 +15422,10 @@ msgstr "Knotenbaum beinhaltet verknüpfte Knoten, die für Shading, Texturen und
 
 msgid "Grease Pencil Data"
 msgstr "Wachsstift-Daten"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Wachsstift-Datenblock"
 
 
 msgid "Interface"
@@ -19501,11 +19478,6 @@ msgid "Linear"
 msgstr "Linear"
 
 
-msgctxt "Action"
-msgid "Bezier"
-msgstr "Bézier"
-
-
 msgid "Smooth interpolation between A and B, with some control over curve shape"
 msgstr "Interpolation zwischen zwei Farbstoppern festlegen"
 
@@ -20320,6 +20292,10 @@ msgid "Rotation Track Specials"
 msgstr "Rotation Track Specials"
 
 
+msgid "Track"
+msgstr "Spur"
+
+
 msgid "Clean Up"
 msgstr "Aufräumen"
 
@@ -20419,10 +20395,6 @@ msgstr "Grundkörper"
 
 msgid "Keying"
 msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Layout"
@@ -29392,15 +29364,6 @@ msgid "Toggle Vector"
 msgstr "Vektor umschalten"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Bezier-Kreis hinzufügen"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Einen Bezier-Kreis erzeugen"
-
-
 msgid "Align the new object to the world"
 msgstr "Neues Objekt an der Welt ausrichten"
 
@@ -29427,15 +29390,6 @@ msgstr "Rotation des neu hinzufügten Objekts"
 
 msgid "Scale for the newly added object"
 msgstr "Skalierung des neu hinzufügten Objekts"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Bezier hinzufügen"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Bezier-Kurve erzeugen"
 
 
 msgctxt "Operator"
@@ -29817,9 +29771,16 @@ msgid "Convert rotations to euler ZYX"
 msgstr "Rotationen zu Euler-ZYX konvertieren"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY exportieren"
+msgid "Save STL triangle mesh data"
+msgstr "Speichern von STL-Dreiecksmaschendaten"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Speichern der Datei im ASCII-Dateiformat"
 
 
 msgid "X Forward"
@@ -29866,30 +29827,6 @@ msgid "-Z Up"
 msgstr "-Z Oben"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Selection Only"
-msgstr "Nur Auswahl"
-
-
-msgid "Export selected objects only"
-msgstr "Nur ausgewählte Objekte exportieren"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "Speichern von STL-Dreiecksmaschendaten"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Speichern der Datei im ASCII-Dateiformat"
-
-
 msgid "Batch Mode"
 msgstr "Batch-Modus"
 
@@ -29916,6 +29853,14 @@ msgstr "Szeneneinheit"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Anwenden der Aktuellen Szeneneinheit (wie durch Einheitenmaßstab definiert) auf exportierte Daten"
+
+
+msgid "Selection Only"
+msgstr "Nur Auswahl"
+
+
+msgid "Export selected objects only"
+msgstr "Nur ausgewählte Objekte exportieren"
 
 
 msgctxt "Operator"
@@ -30106,10 +30051,6 @@ msgstr "Renderfähige Objekte"
 
 msgid "Remember Export Settings"
 msgstr "Exporteinstellungen merken"
-
-
-msgid "Material Groups"
-msgstr "Materialgruppe"
 
 
 msgctxt "Operator"
@@ -31123,6 +31064,10 @@ msgid "Active Layer"
 msgstr "Aktive Ebene"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktive Wachsstift-Ebene"
+
+
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Neue Ebene hinzufügen"
@@ -31923,6 +31868,10 @@ msgid "Flat"
 msgstr "Flach"
 
 
+msgid "By Material"
+msgstr "Nach Material"
+
+
 msgctxt "Operator"
 msgid "Select Mode"
 msgstr "Modus auswählen"
@@ -32382,11 +32331,6 @@ msgstr "Alphakanal für Transparenz verwenden"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLY importieren"
-
-
-msgctxt "Operator"
 msgid "Import FBX"
 msgstr "FBX importieren"
 
@@ -32438,10 +32382,6 @@ msgstr "Normale Daten verwenden"
 
 msgid "Flat Shading"
 msgstr "Flaches Shading"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "OBJ-Gruppen als Punktgruppen importieren"
 
 
 msgctxt "Operator"
@@ -33948,10 +33888,6 @@ msgstr "Vorheriges Element auswählen"
 msgctxt "Operator"
 msgid "Select Similar Regions"
 msgstr "Ähnliche Regionen auswählen"
-
-
-msgid "By Material"
-msgstr "Nach Material"
 
 
 msgid "Keep Sharp Edges"
@@ -41311,6 +41247,10 @@ msgid "Negative Z axis"
 msgstr "Negative Z Achse"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "OBJ-Gruppen als Punktgruppen importieren"
+
+
 msgctxt "Operator"
 msgid "Open"
 msgstr "Öffnen"
@@ -41373,6 +41313,16 @@ msgstr "UI Schild"
 
 msgid "Open a path in a file browser"
 msgstr "Einen Pfad in einem Dateibrowser öffnen"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "PLY exportieren"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLY importieren"
 
 
 msgctxt "Operator"
@@ -42210,11 +42160,6 @@ msgstr "Maskenwerkzeug"
 
 msgid "Transforms"
 msgstr "Transformieren"
-
-
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Szene einrichten"
 
 
 msgid "Color Presets"
@@ -43097,11 +43042,6 @@ msgstr "Versatz vom Schnitt der Knotenschleife"
 msgctxt "Operator"
 msgid "Knife"
 msgstr "Messer"
-
-
-msgctxt "Operator"
-msgid "Spin Duplicates"
-msgstr "Duplikate drehen"
 
 
 msgctxt "Operator"
@@ -48347,10 +48287,6 @@ msgid "Value of shape key at the current frame"
 msgstr "Wert des Formschlüssels beim aktuellen Bild"
 
 
-msgid "Shape Key Bezier Point"
-msgstr "Formschlüssel-Bezierpunkt"
-
-
 msgid "Handle 1 Location"
 msgstr "Position von Griff 1"
 
@@ -48469,11 +48405,6 @@ msgstr "Woher die Bemerkung kommt"
 
 msgid "Show annotation data-block which belongs to movie clip"
 msgstr "Bemerkung Datenblock anzeigen, der dem Filmklipp gehört"
-
-
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "Spur"
 
 
 msgid "Show annotation data-block which belongs to active track"
@@ -48864,10 +48795,6 @@ msgstr "Extrapolation anzeigen"
 
 msgid "Show Handles"
 msgstr "Griffe anzeigen"
-
-
-msgid "Show handles of Bezier control points"
-msgstr "Griffe von Bezier-Kontrollpunkten anzeigen"
 
 
 msgid "Auto Normalization"
@@ -49641,10 +49568,6 @@ msgstr "Oberflächenunterteilungen pro Segment"
 
 msgid "Tilt Interpolation"
 msgstr "Neigung interpolieren"
-
-
-msgid "Bezier U"
-msgstr "Bezier U"
 
 
 msgid "NURBS weight"
@@ -53169,6 +53092,10 @@ msgid "Invert Selection"
 msgstr "Auswahl umkehren"
 
 
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Positional"
 msgstr "Positionelle"
 
@@ -53649,10 +53576,6 @@ msgstr "Prüfsumme: %s"
 
 msgid "Branch: %s"
 msgstr "Abzweig: %s"
-
-
-msgid "Type \"%s\" can not be found"
-msgstr "Typ \"%s\" konnte nicht gefunden werden"
 
 
 msgctxt "Operator"
@@ -57219,11 +57142,6 @@ msgstr "Affe"
 
 
 msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
-
-
-msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "NURBS-Kurve"
 
@@ -58924,10 +58842,6 @@ msgid "Out"
 msgstr "Ausschneiden"
 
 
-msgid "✕ (Ax + B)"
-msgstr "✕ (Ax + B)"
-
-
 msgid "Add Control Point"
 msgstr "Kontrollpunkt hinzufügen"
 
@@ -59068,22 +58982,8 @@ msgid "Cannot duplicate current selection"
 msgstr "Aktuelle Auswahl kann nicht dupliziert werden"
 
 
-msgid "Only bezier curves are supported"
-msgstr "Nur Bezier Kurven werden unterstützt"
-
-
 msgid "Active object is not a selected curve"
 msgstr "Aktives Objekt ist keine ausgewählte Kurve"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier-Kurve"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier-Kreis"
 
 
 msgctxt "Curve"
@@ -59963,6 +59863,14 @@ msgstr "Gruppierung"
 
 msgid "Object Groups"
 msgstr "Objektgruppen"
+
+
+msgid "Material Groups"
+msgstr "Materialgruppe"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "Rigging"
@@ -61815,10 +61723,6 @@ msgid "No object selected"
 msgstr "Kein Objekt ausgewählt"
 
 
-msgid "Auto Keying On"
-msgstr "Automatische Schlüsselbilder"
-
-
 msgid "along X"
 msgstr "entlang X"
 
@@ -61857,6 +61761,10 @@ msgstr "sperre %s Z"
 
 msgid "along local Z"
 msgstr "entlang lokaler Z"
+
+
+msgid "Auto Keying On"
+msgstr "Automatische Schlüsselbilder"
 
 
 msgid " along Y axis"
@@ -62195,14 +62103,6 @@ msgstr "Kurvenpunkt kann nicht entfernt werden"
 
 msgid "Relationship"
 msgstr "Beziehung"
-
-
-msgid "Bezier spline cannot have points added"
-msgstr "Bezier-Splines können keine hinzugefügten Punkte haben"
-
-
-msgid "Only Bezier splines can be added"
-msgstr "Nur Bezier-Splines können hinzugefügt werden"
 
 
 msgid "Unable to remove path point"
@@ -63250,12 +63150,12 @@ msgid "Wave Effect"
 msgstr "Welleneffekt"
 
 
-msgid "Blender File View"
-msgstr "Blender-Dateibetrachter"
-
-
 msgid "Input pending "
 msgstr "Eingabe ausstehend "
+
+
+msgid "Blender File View"
+msgstr "Blender-Dateibetrachter"
 
 
 msgid "Missing 'window' in context"
