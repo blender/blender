@@ -844,7 +844,7 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, random)
   /* Selected coloring parametrization. */
   NODE_SOCKET_API(NodePrincipledHairParametrization, parametrization)
-  /* Selected scattering model (near-/far-field). */
+  /* Selected scattering model (chiang/huang). */
   NODE_SOCKET_API(NodePrincipledHairModel, model)
 
   virtual int get_feature()
