@@ -2899,6 +2899,7 @@ static void get_default_fac_fade(const Scene *scene,
 {
   *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
   *fac /= SEQ_time_strip_length_get(scene, seq);
+  *fac = blender::math::clamp(*fac, 0.0f, 1.0f);
 }
 
 static ImBuf *init_execution(const SeqRenderData *context,
