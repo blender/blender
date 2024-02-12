@@ -1825,7 +1825,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     /* 45: CD_PROP_INT8 */
     {sizeof(int8_t), "MInt8Property", 1, N_("Int8"), nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 46: CD_PROP_INT32_2D */
-    {sizeof(vec2i), "vec2i", 1, N_("Int 2D"), nullptr, nullptr, nullptr, nullptr, nullptr},
+    {sizeof(blender::int2), "vec2i", 1, N_("Int 2D"), nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 47: CD_PROP_COLOR */
     {sizeof(MPropCol),
      "MPropCol",

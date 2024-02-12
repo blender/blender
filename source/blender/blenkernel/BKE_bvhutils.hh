@@ -22,7 +22,6 @@ struct BVHTree;
 struct MFace;
 struct Mesh;
 struct PointCloud;
-struct vec2i;
 
 /**
  * Struct that stores basic information about a BVHTree built from a edit-mesh.

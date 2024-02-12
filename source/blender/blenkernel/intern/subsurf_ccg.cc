@@ -820,13 +820,13 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, float (*r_positions)[3])
 }
 
 /* utility function */
-BLI_INLINE void ccgDM_to_MEdge(vec2i *edge, const int v1, const int v2)
+BLI_INLINE void ccgDM_to_MEdge(blender::int2 *edge, const int v1, const int v2)
 {
   edge->x = v1;
   edge->y = v2;
 }
 
-static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, vec2i *edges)
+static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, blender::int2 *edges)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   CCGSubSurf *ss = ccgdm->ss;
