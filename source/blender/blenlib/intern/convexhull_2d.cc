@@ -42,18 +42,21 @@ static float is_left(const float p0[2], const float p1[2], const float p2[2])
   return (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
 }
 
-static int BLI_convexhull_2d_sorted(const float (*points)[2], const int points_num, int r_points[])
+static int convexhull_2d_sorted(const float (*points)[2], const int points_num, int r_points[])
 {
   BLI_assert(points_num >= 2); /* Doesn't handle trivial cases. */
-  /* the output array r_points[] will be used as the stack */
+  /* The output array `r_points[]` will be used as the stack. */
   int bot = 0;
-  int top = -1; /* indices for bottom and top of the stack */
-  int i;        /* array scan index */
+  /* Indices for bottom and top of the stack. */
+  int top = -1;
+  /* Array scan index. */
+  int i;
+
   int minmin, minmax;
   int maxmin, maxmax;
   float xmax;
 
-  /* Get the indices of points with min x-coord and min|max y-coord */
+  /* Get the indices of points with min X-coord and min|max Y-coord. */
   float xmin = points[0][0];
   for (i = 1; i < points_num; i++) {
     if (points[i][0] != xmin) {
@@ -63,18 +66,18 @@ static int BLI_convexhull_2d_sorted(const float (*points)[2], const int points_n
 
   minmin = 0;
   minmax = i - 1;
-  if (minmax == points_num - 1) { /* degenerate case: all x-coords == xmin */
+  if (minmax == points_num - 1) { /* Degenerate case: all x-coords == X-min. */
     r_points[++top] = minmin;
     if (points[minmax][1] != points[minmin][1]) {
-      /* a nontrivial segment */
+      /* A nontrivial segment. */
       r_points[++top] = minmax;
     }
-    r_points[++top] = minmin; /* add polygon endpoint */
+    r_points[++top] = minmin; /* Add polygon endpoint. */
     BLI_assert(top + 1 <= points_num);
     return top + 1;
   }
 
-  /* Get the indices of points with max x-coord and min|max y-coord */
+  /* Get the indices of points with max X-coord and min|max Y-coord. */
 
   maxmax = points_num - 1;
   xmax = points[points_num - 1][0];
@@ -85,57 +88,57 @@ static int BLI_convexhull_2d_sorted(const float (*points)[2], const int points_n
   }
   maxmin = i + 1;
 
-  /* Compute the lower hull on the stack r_points */
-  r_points[++top] = minmin; /* push minmin point onto stack */
+  /* Compute the lower hull on the stack `r_points`. */
+  r_points[++top] = minmin; /* Push `minmin` point onto stack. */
   i = minmax;
   while (++i <= maxmin) {
-    /* the lower line joins points[minmin] with points[maxmin] */
+    /* The lower line joins `points[minmin]` with `points[maxmin]`. */
     if (is_left(points[minmin], points[maxmin], points[i]) >= 0 && i < maxmin) {
-      continue; /* ignore points[i] above or on the lower line */
+      continue; /* Ignore `points[i]` above or on the lower line. */
     }
 
-    while (top > 0) { /* there are at least 2 points on the stack */
-      /* test if points[i] is left of the line at the stack top */
+    while (top > 0) { /* There are at least 2 points on the stack. */
+      /* Test if `points[i]` is left of the line at the stack top. */
       if (is_left(points[r_points[top - 1]], points[r_points[top]], points[i]) > 0.0f) {
-        break; /* points[i] is a new hull vertex */
+        break; /* `points[i]` is a new hull vertex. */
       }
-      top--; /* pop top point off stack */
+      top--; /* Pop top point off stack. */
     }
 
-    r_points[++top] = i; /* push points[i] onto stack */
+    r_points[++top] = i; /* Push `points[i]` onto stack. */
   }
 
-  /* Next, compute the upper hull on the stack r_points above the bottom hull */
-  if (maxmax != maxmin) {     /* if distinct xmax points */
-    r_points[++top] = maxmax; /* push maxmax point onto stack */
+  /* Next, compute the upper hull on the stack `r_points` above the bottom hull. */
+  if (maxmax != maxmin) {     /* If distinct `xmax` points. */
+    r_points[++top] = maxmax; /* Push `maxmax` point onto stack. */
   }
 
   bot = top; /* the bottom point of the upper hull stack */
   i = maxmin;
   while (--i >= minmax) {
-    /* the upper line joins points[maxmax] with points[minmax] */
+    /* The upper line joins `points[maxmax]` with `points[minmax]`. */
     if (is_left(points[maxmax], points[minmax], points[i]) >= 0 && i > minmax) {
-      continue; /* ignore points[i] below or on the upper line */
+      continue; /* Ignore points[i] below or on the upper line. */
     }
 
-    while (top > bot) { /* at least 2 points on the upper stack */
-      /* test if points[i] is left of the line at the stack top */
+    while (top > bot) { /* At least 2 points on the upper stack. */
+      /* Test if `points[i]` is left of the line at the stack top. */
       if (is_left(points[r_points[top - 1]], points[r_points[top]], points[i]) > 0.0f) {
-        break; /* points[i] is a new hull vertex */
+        break; /* points[i] is a new hull vertex. */
       }
-      top--; /* pop top point off stack */
+      top--; /* Pop top point off stack. */
     }
 
     if (points[i][0] == points[r_points[0]][0] && points[i][1] == points[r_points[0]][1]) {
       BLI_assert(top + 1 <= points_num);
-      return top + 1; /* special case (mgomes) */
+      return top + 1; /* Special case (mgomes). */
     }
 
-    r_points[++top] = i; /* push points[i] onto stack */
+    r_points[++top] = i; /* Push points[i] onto stack. */
   }
 
   if (minmax != minmin && r_points[0] != minmin) {
-    r_points[++top] = minmin; /* push joining endpoint onto stack */
+    r_points[++top] = minmin; /* Push joining endpoint onto stack. */
   }
 
   BLI_assert(top + 1 <= points_num);
@@ -143,7 +146,8 @@ static int BLI_convexhull_2d_sorted(const float (*points)[2], const int points_n
 }
 
 struct PointRef {
-  const float *pt; /* 2d vector */
+  /** 2D vector. */
+  const float *pt;
 };
 
 static int pointref_cmp_yx(const void *a_, const void *b_)
@@ -192,7 +196,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
     memcpy(points_sort[i], points_ref[i].pt, sizeof(float[2]));
   }
 
-  int points_hull_num = BLI_convexhull_2d_sorted(points_sort, points_num, r_points);
+  int points_hull_num = convexhull_2d_sorted(points_sort, points_num, r_points);
 
   /* Map back to the unsorted index values. */
   for (int i = 0; i < points_hull_num; i++) {
@@ -214,12 +218,12 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
 /** \name Utility Convex-Hull Functions
  * \{ */
 
-float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_num)
+float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_hull_num)
 {
   float area_best = FLT_MAX;
   float dvec_best[2]; /* best angle, delay atan2 */
 
-  for (int i = 0, i_prev = points_num - 1; i < points_num; i_prev = i++) {
+  for (int i = 0, i_prev = points_hull_num - 1; i < points_hull_num; i_prev = i++) {
     const float *ev_a = points_hull[i];
     const float *ev_b = points_hull[i_prev];
     float dvec[2]; /* 2d rotation matrix */
@@ -232,7 +236,7 @@ float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_
     float min[2] = {FLT_MAX, FLT_MAX}, max[2] = {-FLT_MAX, -FLT_MAX};
     float area_test;
 
-    for (int j = 0; j < points_num; j++) {
+    for (int j = 0; j < points_hull_num; j++) {
       float tvec[2];
       mul_v2_v2_cw(tvec, dvec, points_hull[j]);
 
