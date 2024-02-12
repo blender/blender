@@ -24,6 +24,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_uuid.h"
 
 #include "AS_asset_catalog.hh"
@@ -429,7 +430,7 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   }
 
   const StringRefNull catalog_name = entry.get_catalog_name();
-  STRNCPY(asset_data->catalog_simple_name, catalog_name.c_str());
+  STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name.c_str());
 
   asset_data->catalog_id = entry.get_catalog_id();
 
