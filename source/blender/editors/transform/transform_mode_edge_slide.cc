@@ -15,7 +15,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
 
-#include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_unit.hh"

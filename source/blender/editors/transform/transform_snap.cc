@@ -10,7 +10,6 @@
 
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_time.h"
@@ -20,7 +19,6 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
-#include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_node_runtime.hh"
@@ -32,8 +30,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_gizmo_library.hh"
-#include "ED_markers.hh"
 #include "ED_node.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_uvedit.hh"
@@ -42,9 +38,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 
 #include "MEM_guardedalloc.h"
 

@@ -16,14 +16,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_easing.h"
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
 #include "BLI_rect.h"
-#include "BLI_string.h"
-#include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -43,7 +40,6 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
-#include "interface_intern.hh"
 #include "view2d_intern.hh"
 
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize);

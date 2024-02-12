@@ -31,20 +31,15 @@
 #include "BKE_lib_id.hh"
 #include "BKE_report.hh"
 
-#include "BLT_translation.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "GPU_immediate.h"
-
-#include "DEG_depsgraph.hh"
 
 #include "view3d_intern.h" /* own include */
 #include "view3d_navigate.hh"

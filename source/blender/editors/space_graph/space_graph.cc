@@ -31,7 +31,6 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 
-#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 

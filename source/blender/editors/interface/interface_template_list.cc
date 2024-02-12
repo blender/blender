@@ -22,7 +22,6 @@
 
 #include "BLT_translation.hh"
 
-#include "ED_asset.hh"
 #include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"

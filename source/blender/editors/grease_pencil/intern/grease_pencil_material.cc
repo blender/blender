@@ -15,7 +15,6 @@
 #include "BKE_material.h"
 
 #include "BLI_vector.hh"
-#include "BLI_vector_set.hh"
 
 #include "DEG_depsgraph.hh"
 

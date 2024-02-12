@@ -8,7 +8,6 @@
 
 #include <fmt/format.h>
 
-#include "DNA_modifier_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -19,25 +18,20 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string.h"
 #include "BLI_task.h"
 
 #include "BLT_translation.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_modifier.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
-#include "ED_util.hh"
 #include "ED_view3d.hh"
 
 #include "paint_intern.hh"

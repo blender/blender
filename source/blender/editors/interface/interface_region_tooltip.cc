@@ -26,7 +26,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_brush_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_listbase.h"

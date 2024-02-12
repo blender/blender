@@ -16,10 +16,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_main.hh"
-#include "BKE_material.h"
 
 #include "BLT_translation.hh"
 

@@ -29,10 +29,8 @@
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -53,8 +51,6 @@
 #include "ED_object.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
-
-#include "UI_resources.hh"
 
 #include "particle_edit_utildefines.h"
 

@@ -31,7 +31,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 #include "BLI_sort_utils.h"
-#include "BLI_string.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
@@ -41,12 +40,10 @@
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
-#include "BKE_texture.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -69,8 +66,6 @@
 #include "ED_transform.hh"
 #include "ED_uvedit.hh"
 #include "ED_view3d.hh"
-
-#include "RE_texture.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

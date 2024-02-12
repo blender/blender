@@ -22,18 +22,13 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
 #include "BKE_global.hh"
-#include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_nla.h"
 #include "BKE_scene.hh"
 
-#include "ED_keyframes_edit.hh"
-#include "ED_keyframing.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
@@ -48,7 +43,6 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "transform.hh"
-#include "transform_snap.hh"
 
 /* Own include. */
 #include "transform_convert.hh"

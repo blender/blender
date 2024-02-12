@@ -35,7 +35,6 @@
 
 #include "file_intern.hh"
 #include "filelist.hh"
-#include "fsmenu.h"
 
 #include <cstring>
 

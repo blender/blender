@@ -19,9 +19,6 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -39,7 +36,6 @@
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_build.hh"
 
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
@@ -51,7 +47,6 @@
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
-#include "ANIM_visualkey.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -18,8 +18,6 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_mesh.hh"
-#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -29,8 +27,6 @@
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
-#include "ED_scene.hh"
-#include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 

@@ -9,7 +9,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -38,7 +37,6 @@
 
 #include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

@@ -9,7 +9,6 @@
 #include "BKE_context.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 
 #include "WM_api.hh"
 

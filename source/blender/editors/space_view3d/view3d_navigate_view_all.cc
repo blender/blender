@@ -10,21 +10,18 @@
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_crazyspace.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 
-#include "BLI_bounds.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"
 
-#include "ED_curves.hh"
 #include "ED_mesh.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"

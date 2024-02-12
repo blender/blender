@@ -8,8 +8,6 @@
 
 #include "UI_interface.hh"
 
-#include "BLI_string.h"
-
 namespace blender::ui {
 
 DragInfo::DragInfo(const wmDrag &drag, const wmEvent &event, const DropLocation drop_location)

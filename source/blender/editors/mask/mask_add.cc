@@ -27,7 +27,6 @@
 #include "WM_types.hh"
 
 #include "ED_mask.hh" /* own include */
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
 #include "RNA_access.hh"

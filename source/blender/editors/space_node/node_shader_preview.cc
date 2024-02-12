@@ -42,7 +42,6 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -50,7 +49,6 @@
 
 #include "WM_api.hh"
 
-#include "ED_datafiles.h"
 #include "ED_node_preview.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"

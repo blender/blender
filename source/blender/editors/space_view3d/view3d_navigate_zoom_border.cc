@@ -16,8 +16,6 @@
 #include "BKE_context.hh"
 #include "BKE_report.hh"
 
-#include "DEG_depsgraph_query.hh"
-
 #include "WM_api.hh"
 
 #include "RNA_access.hh"

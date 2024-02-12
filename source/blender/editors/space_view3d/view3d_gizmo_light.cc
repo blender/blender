@@ -13,7 +13,6 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -21,7 +20,6 @@
 #include "DNA_object_types.h"
 
 #include "ED_gizmo_library.hh"
-#include "ED_screen.hh"
 
 #include "UI_resources.hh"
 

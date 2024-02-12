@@ -10,9 +10,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -24,9 +22,7 @@
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
-#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"

@@ -11,11 +11,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -25,11 +23,7 @@
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_layer.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_object.hh"
-#include "BKE_report.hh"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"

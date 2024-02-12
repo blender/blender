@@ -22,7 +22,6 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
@@ -30,8 +29,6 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "IMB_imbuf_types.hh"
 

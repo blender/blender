@@ -26,7 +26,6 @@
 #include "BKE_armature.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.hh"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -46,7 +45,6 @@
 #include "ED_armature.hh"
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
-#include "ED_util.hh"
 
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"

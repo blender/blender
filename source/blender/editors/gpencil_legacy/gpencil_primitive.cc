@@ -38,10 +38,8 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
@@ -54,12 +52,9 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "ED_gpencil_legacy.hh"
-#include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.hh"
 #include "ED_view3d.hh"
 
 #include "ANIM_keyframing.hh"

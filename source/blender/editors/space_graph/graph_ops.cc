@@ -11,7 +11,6 @@
 
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
@@ -22,7 +21,6 @@
 
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"
-#include "ED_transform.hh"
 
 #include "graph_intern.h"
 

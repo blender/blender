@@ -10,9 +10,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
@@ -28,14 +26,11 @@
 #include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 
 #include "ED_armature.hh"
 #include "ED_mesh.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "eigen_capi.h"
 

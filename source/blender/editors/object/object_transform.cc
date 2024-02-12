@@ -50,7 +50,6 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_pointcloud.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
@@ -67,7 +66,6 @@
 #include "ANIM_keyframing.hh"
 
 #include "ED_armature.hh"
-#include "ED_gpencil_legacy.hh"
 #include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"

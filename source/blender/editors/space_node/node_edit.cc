@@ -10,7 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_text_types.h"
@@ -20,7 +19,6 @@
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"
-#include "BKE_image_format.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
@@ -30,9 +28,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
-#include "BKE_workspace.h"
 
-#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
@@ -50,12 +46,10 @@
 #include "ED_node.hh" /* own include */
 #include "ED_render.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.hh"
 #include "ED_viewer_path.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"

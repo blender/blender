@@ -9,7 +9,6 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BKE_asset.hh"
 #include "BKE_bpath.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -23,7 +22,6 @@
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
-#include "ED_util.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.hh"
 
@@ -31,7 +29,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"

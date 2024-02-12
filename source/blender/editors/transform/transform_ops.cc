@@ -18,7 +18,6 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"

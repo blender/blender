@@ -15,14 +15,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_crazyspace.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_modifier.hh"
-#include "BKE_scene.hh"
-
-#include "ED_mesh.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "transform.hh"
 #include "transform_orientations.hh"

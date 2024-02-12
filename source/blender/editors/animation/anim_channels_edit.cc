@@ -39,7 +39,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
-#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 

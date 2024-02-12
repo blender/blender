@@ -11,17 +11,10 @@
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_gpencil_modifier_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_shader_fx_types.h"
 
 #include "BKE_deform.hh"
-
-#include "BLT_translation.hh"
 
 #include "../outliner_intern.hh"
 

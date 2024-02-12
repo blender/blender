@@ -14,10 +14,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
-
-#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
@@ -31,9 +28,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "ED_mesh.hh"
-#include "ED_undo.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -8,7 +8,6 @@
 
 #include <cstdlib>
 
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -22,11 +21,6 @@
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
-#include "BKE_nla.h"
-
-#include "RNA_access.hh"
-
-#include "UI_interface.hh"
 
 #include "BLT_translation.hh"
 

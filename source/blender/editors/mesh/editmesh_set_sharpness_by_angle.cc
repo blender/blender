@@ -23,7 +23,6 @@
 
 #include "WM_api.hh"
 
-#include "ED_mesh.hh"
 #include "ED_screen.hh"
 
 #include "mesh_intern.hh"

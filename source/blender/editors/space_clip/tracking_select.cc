@@ -25,8 +25,6 @@
 #include "WM_types.hh"
 
 #include "ED_clip.hh"
-#include "ED_mask.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
 #include "RNA_access.hh"

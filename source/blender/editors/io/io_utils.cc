@@ -12,8 +12,6 @@
 
 #include "DNA_space_types.h"
 
-#include "ED_fileselect.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 

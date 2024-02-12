@@ -14,10 +14,8 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
-#  include "BKE_main.hh"
 #  include "BKE_report.hh"
 
-#  include "BLI_blenlib.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
@@ -31,8 +29,6 @@
 
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
-
-#  include "RNA_enum_types.hh"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"

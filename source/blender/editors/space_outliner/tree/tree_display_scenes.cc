@@ -8,7 +8,6 @@
 
 #include "DNA_space_types.h"
 
-#include "BLI_listbase.h"
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_mempool.h"
 
@@ -17,7 +16,6 @@
 #include "../outliner_intern.hh"
 #include "common.hh"
 #include "tree_display.hh"
-#include "tree_element.hh"
 
 namespace blender::ed::outliner {
 

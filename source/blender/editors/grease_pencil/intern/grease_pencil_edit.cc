@@ -12,8 +12,6 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_stack.hh"
-#include "BLI_string.h"
 #include "BLT_translation.hh"
 
 #include "DNA_material_types.h"
@@ -36,7 +34,6 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_object.hh"
-#include "ED_screen.hh"
 
 #include "GEO_join_geometries.hh"
 #include "GEO_reorder.hh"

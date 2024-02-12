@@ -6,13 +6,10 @@
  * \ingroup edtransform
  */
 
-#include "BLI_math_matrix.h"
-
 #include "BKE_context.hh"
 
 #include "DEG_depsgraph_query.hh"
 
-#include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 
 #include "transform.hh"

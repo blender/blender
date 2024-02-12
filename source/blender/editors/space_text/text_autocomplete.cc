@@ -28,8 +28,6 @@
 #include "ED_text.hh"
 #include "ED_undo.hh"
 
-#include "UI_interface.hh"
-
 #include "text_format.hh"
 #include "text_intern.hh" /* own include */
 

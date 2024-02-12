@@ -17,11 +17,9 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "DNA_light_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_gizmo_library.hh"
-#include "ED_screen.hh"
 
 #include "UI_resources.hh"
 
@@ -29,7 +27,6 @@
 
 #include "RNA_access.hh"
 
-#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */

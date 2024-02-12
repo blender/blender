@@ -25,11 +25,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLT_translation.hh"
-
 #include "UI_interface.hh"
-
-#include "ED_datafiles.h"
 
 #include "interface_intern.hh"
 

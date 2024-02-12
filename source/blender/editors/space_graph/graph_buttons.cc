@@ -31,7 +31,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
-#include "BKE_main.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
@@ -46,7 +45,6 @@
 #include "RNA_prototypes.h"
 
 #include "ED_anim_api.hh"
-#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 

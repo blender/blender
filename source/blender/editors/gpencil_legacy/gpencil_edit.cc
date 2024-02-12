@@ -15,7 +15,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_matrix.h"
@@ -26,7 +25,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -42,16 +40,12 @@
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_workspace.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -63,17 +57,13 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "UI_view2d.hh"
 
-#include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.hh"
-#include "ED_space_api.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 

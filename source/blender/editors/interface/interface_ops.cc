@@ -17,7 +17,6 @@
 #include "DNA_modifier_types.h" /* for handling geometry nodes properties */
 #include "DNA_object_types.h"   /* for OB_DATA_SUPPORT_ID */
 #include "DNA_screen_types.h"
-#include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
@@ -27,8 +26,6 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -38,7 +35,6 @@
 #include "BKE_node.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
-#include "BKE_text.h"
 
 #include "IMB_colormanagement.hh"
 
@@ -46,10 +42,8 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "UI_interface.hh"
 
@@ -66,10 +60,8 @@
 #include "ED_keyframing.hh"
 
 /* only for UI_OT_editsource */
-#include "BKE_main.hh"
 #include "BLI_ghash.h"
 #include "ED_screen.hh"
-#include "ED_text.hh"
 
 using namespace blender::ui;
 

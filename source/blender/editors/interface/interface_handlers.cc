@@ -56,7 +56,6 @@
 
 #include "UI_interface.hh"
 #include "UI_string_search.hh"
-#include "UI_view2d.hh"
 
 #include "BLF_api.hh"
 
@@ -70,8 +69,6 @@
 #include "wm_event_system.hh"
 
 #ifdef WITH_INPUT_IME
-#  include "BLT_lang.hh"
-#  include "BLT_translation.hh"
 #  include "wm_window.hh"
 #endif
 

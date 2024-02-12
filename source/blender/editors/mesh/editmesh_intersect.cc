@@ -34,8 +34,6 @@
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 
-#include "intern/bmesh_private.hh"
-
 #include "mesh_intern.hh" /* own include */
 
 #include "tools/bmesh_boolean.hh"

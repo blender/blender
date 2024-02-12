@@ -15,7 +15,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
-#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
@@ -26,45 +25,34 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
-#include "BKE_customdata.hh"
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
 #include "BKE_mesh_remesh_voxel.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.hh"
 #include "BKE_shrinkwrap.hh"
 #include "BKE_unit.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_build.hh"
 
-#include "ED_mesh.hh"
-#include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
 #include "ED_space_api.hh"
-#include "ED_undo.hh"
 #include "ED_view3d.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "WM_api.hh"
-#include "WM_message.hh"
-#include "WM_toolsystem.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"

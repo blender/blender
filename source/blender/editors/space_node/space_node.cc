@@ -12,9 +12,7 @@
 #include "BLI_string.h"
 
 #include "DNA_ID.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
-#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -22,7 +20,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -34,7 +31,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_screen.hh"
@@ -42,7 +38,6 @@
 #include "ED_image.hh"
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
-#include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 

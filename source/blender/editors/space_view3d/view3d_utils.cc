@@ -23,7 +23,6 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_bitmap_draw_2d.h"
-#include "BLI_blenlib.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -38,8 +37,6 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "BIF_glutil.hh"
 
 #include "GPU_matrix.h"
 

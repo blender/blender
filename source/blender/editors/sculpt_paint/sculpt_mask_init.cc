@@ -12,9 +12,6 @@
 #include "BLI_task.h"
 #include "BLI_time.h"
 
-#include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_ccg.h"
@@ -22,8 +19,6 @@
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

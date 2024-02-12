@@ -19,7 +19,6 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

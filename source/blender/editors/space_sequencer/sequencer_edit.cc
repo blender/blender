@@ -22,7 +22,6 @@
 #include "DNA_sound_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_report.hh"

@@ -18,7 +18,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
 
 #include "BKE_camera.h"
 #include "BKE_screen.hh"

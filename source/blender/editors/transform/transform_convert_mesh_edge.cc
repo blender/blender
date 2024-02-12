@@ -6,8 +6,6 @@
  * \ingroup edtransform
  */
 
-#include "DNA_mesh_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
@@ -16,7 +14,6 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_mesh.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

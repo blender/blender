@@ -23,10 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_global.hh"
-#include "BKE_scene.hh"
 #include "BKE_sound.h"
-
-#include "IMB_imbuf.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_viewport.h"
@@ -34,17 +31,14 @@
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
 #include "ED_mask.hh"
-#include "ED_screen.hh"
 #include "ED_sequencer.hh"
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
-#include "ED_util.hh"
 
 #include "RNA_prototypes.h"
 
 #include "SEQ_channels.hh"
 #include "SEQ_effects.hh"
-#include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -54,7 +48,6 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
-#include "UI_interface.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 

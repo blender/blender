@@ -22,9 +22,6 @@
 
 #include "RNA_access.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
@@ -43,7 +40,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "SEQ_sequencer.hh"
@@ -51,7 +47,6 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 #include "transform_gizmo.hh"
-#include "transform_mode.hh"
 #include "transform_orientations.hh"
 #include "transform_snap.hh"
 

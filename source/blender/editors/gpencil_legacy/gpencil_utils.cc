@@ -22,14 +22,10 @@
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
-#include "BLI_rand.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "DNA_brush_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -69,7 +65,6 @@
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"

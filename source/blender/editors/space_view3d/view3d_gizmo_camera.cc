@@ -6,7 +6,6 @@
  * \ingroup spview3d
  */
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -19,7 +18,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 
-#include "ED_armature.hh"
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
 
@@ -29,7 +27,6 @@
 
 #include "RNA_access.hh"
 
-#include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 

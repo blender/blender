@@ -18,24 +18,17 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
-#include "BKE_main.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.hh"
 
 #include "BIK_api.h"
 
 #include "ED_armature.hh"
-#include "ED_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "RNA_access.hh"
-#include "RNA_prototypes.h"
 
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"

@@ -16,7 +16,6 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -35,24 +34,18 @@
 
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
-#include "BKE_curve.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_icons.h"
 #include "BKE_idprop.h"
-#include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_mball.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_viewer_path.hh"
-#include "BKE_workspace.h"
 
 #include "ED_asset_shelf.hh"
 #include "ED_geometry.hh"
@@ -63,7 +56,6 @@
 #include "ED_space_api.hh"
 #include "ED_transform.hh"
 #include "ED_undo.hh"
-#include "ED_viewer_path.hh"
 
 #include "GPU_matrix.h"
 
@@ -73,9 +65,6 @@
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
-
-#include "RE_engine.h"
-#include "RE_pipeline.h"
 
 #include "RNA_access.hh"
 

@@ -17,8 +17,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "IMB_interp.hh"
 
 #include "DNA_brush_types.h"

@@ -9,8 +9,6 @@
 
 #include <cstring>
 
-#include "BLI_string.h"
-
 #include "ANIM_bone_collections.hh"
 
 #include "DNA_ID.h"
@@ -18,7 +16,6 @@
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_layer.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_report.hh"
 
@@ -28,7 +25,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -36,7 +32,6 @@
 #include "ED_armature.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
-#include "ED_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

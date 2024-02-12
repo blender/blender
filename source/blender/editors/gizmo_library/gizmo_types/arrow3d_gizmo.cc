@@ -44,8 +44,6 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "UI_interface.hh"
-
 /* own includes */
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"

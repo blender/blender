@@ -7,7 +7,6 @@
  */
 
 #include "DNA_constraint_types.h"
-#include "DNA_object_types.h"
 #include "DNA_outliner_types.h"
 
 #include "BLT_translation.hh"

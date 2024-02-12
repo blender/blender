@@ -24,7 +24,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
@@ -33,7 +32,6 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.hh"
-#include "BKE_main.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.hh"
 

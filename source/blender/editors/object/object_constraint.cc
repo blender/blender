@@ -56,7 +56,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 

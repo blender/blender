@@ -21,7 +21,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -32,18 +31,13 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.hh"
-
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
-#include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
-
-#include "ED_asset.hh"
 
 #include "GPU_matrix.h"
 #include "GPU_state.h"
@@ -73,8 +67,6 @@
 #include "ED_screen.hh"
 
 #include "IMB_colormanagement.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "interface_intern.hh"
 

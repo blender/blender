@@ -33,7 +33,6 @@
 #include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
@@ -45,12 +44,9 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_texture.h"
 
-#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_interp.hh"
 

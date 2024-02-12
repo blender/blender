@@ -22,11 +22,8 @@
 
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_layer.hh"
-#include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
@@ -53,8 +50,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "gpencil_intern.h"
 

@@ -13,7 +13,6 @@
 #include "BLO_readfile.hh"
 #include "MEM_guardedalloc.h"
 
-#include "ED_keyframing.hh"
 #include "ED_outliner.hh"
 #include "ED_sequencer.hh"
 
@@ -38,8 +37,6 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-
-#include "RNA_access.hh"
 
 #include "SEQ_animation.hh"
 #include "SEQ_select.hh"

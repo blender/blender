@@ -25,24 +25,17 @@
 #include "BKE_context.hh"
 
 #include "GPU_batch.h"
-#include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
 #include "BLF_api.hh"
-
-#include "RNA_access.hh"
-#include "RNA_define.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "ED_screen.hh"
 
 #include "view3d_intern.h"
 

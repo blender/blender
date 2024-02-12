@@ -14,32 +14,20 @@
 #include "DNA_text_types.h"
 
 #include "BLI_array_store.h"
-#include "BLI_array_utils.h"
-#include "BLI_time.h"
-
-#include "BLT_translation.hh"
+#include "BLI_array_utils.h" /* For `BLI_array_is_zeroed`. */
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
 #include "BKE_text.h"
 #include "BKE_undo_system.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_curve.hh"
 #include "ED_screen.hh"
 #include "ED_text.hh"
 #include "ED_undo.hh"
 
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
-#include "RNA_access.hh"
-#include "RNA_define.hh"
-
-#include "text_format.hh"
 #include "text_intern.hh"
 
 /* -------------------------------------------------------------------- */

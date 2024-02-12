@@ -6,18 +6,13 @@
  * \ingroup spfile
  */
 
-#include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BKE_blendfile.hh"
-#include "BKE_context.hh"
 
 #include "ED_fileselect.hh"
-#include "ED_screen.hh"
-
-#include "WM_types.hh"
 
 #include "file_intern.hh"
 
