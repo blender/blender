@@ -7,6 +7,7 @@
  * \ingroup bli
  */
 
+#include <algorithm>
 #include <stdlib.h>
 #include <string.h>
 
@@ -145,32 +146,6 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
   return top + 1;
 }
 
-struct PointRef {
-  /** 2D vector. */
-  const float *pt;
-};
-
-static int pointref_cmp_yx(const void *a_, const void *b_)
-{
-  const PointRef *a = static_cast<const PointRef *>(a_);
-  const PointRef *b = static_cast<const PointRef *>(b_);
-
-  if (a->pt[1] > b->pt[1]) {
-    return 1;
-  }
-  if (a->pt[1] < b->pt[1]) {
-    return -1;
-  }
-
-  if (a->pt[0] > b->pt[0]) {
-    return 1;
-  }
-  if (a->pt[0] < b->pt[0]) {
-    return -1;
-  }
-  return 0;
-}
-
 int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_points[])
 {
   BLI_assert(points_num >= 0);
@@ -180,30 +155,46 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
     }
     return points_num;
   }
-  PointRef *points_ref = static_cast<PointRef *>(
-      MEM_mallocN(sizeof(*points_ref) * size_t(points_num), __func__));
+  int *points_map = static_cast<int *>(MEM_mallocN(sizeof(int) * size_t(points_num), __func__));
   float(*points_sort)[2] = static_cast<float(*)[2]>(
       MEM_mallocN(sizeof(*points_sort) * size_t(points_num), __func__));
 
   for (int i = 0; i < points_num; i++) {
-    points_ref[i].pt = points[i];
+    points_map[i] = i;
   }
 
   /* Sort the points by X, then by Y. */
-  qsort(points_ref, size_t(points_num), sizeof(PointRef), pointref_cmp_yx);
+  std::sort(points_map, points_map + points_num, [points](const int &a_index, const int &b_index) {
+    const float *a = points[a_index];
+    const float *b = points[b_index];
+    if (a[1] > b[1]) {
+      return false;
+    }
+    if (a[1] < b[1]) {
+      return true;
+    }
+
+    if (a[0] > b[0]) {
+      return false;
+    }
+    if (a[0] < b[0]) {
+      return true;
+    }
+    return false;
+  });
 
   for (int i = 0; i < points_num; i++) {
-    memcpy(points_sort[i], points_ref[i].pt, sizeof(float[2]));
+    copy_v2_v2(points_sort[i], points[points_map[i]]);
   }
 
   int points_hull_num = convexhull_2d_sorted(points_sort, points_num, r_points);
 
   /* Map back to the unsorted index values. */
   for (int i = 0; i < points_hull_num; i++) {
-    r_points[i] = int((const float(*)[2])points_ref[r_points[i]].pt - points);
+    r_points[i] = points_map[r_points[i]];
   }
 
-  MEM_freeN(points_ref);
+  MEM_freeN(points_map);
   MEM_freeN(points_sort);
 
   BLI_assert(points_hull_num <= points_num);
