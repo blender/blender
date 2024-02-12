@@ -141,9 +141,13 @@ def keyconfig_update(keyconfig_data, keyconfig_version):
 
     if keyconfig_version <= (4, 1, 5):
         remove_properties({
-            "transform.translate": ["alt_navigation"],
-            "transform.rotate": ["alt_navigation"],
+            "transform.edge_slide": ["alt_navigation"],
             "transform.resize": ["alt_navigation"],
+            "transform.rotate": ["alt_navigation"],
+            "transform.shrink_fatten": ["alt_navigation"],
+            "transform.transform": ["alt_navigation"],
+            "transform.translate": ["alt_navigation"],
+            "transform.vert_slide": ["alt_navigation"],
             "view3d.edit_mesh_extrude_move_normal": ["alt_navigation"],
             "armature.extrude_move": ["TRANSFORM_OT_translate"],
             "curve.extrude_move": ["TRANSFORM_OT_translate"],

@@ -32,6 +32,7 @@
 #include "BKE_brush.hh"
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
@@ -2075,6 +2076,12 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   SCULPT_vertex_random_access_ensure(ss);
@@ -2119,6 +2126,12 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
 {
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
 
   SculptCursorGeometryInfo sgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
