@@ -1816,7 +1816,7 @@ def wash_source_with_edit(
             build_args_for_edit = build_args
             if extra_build_args:
                 # Add directly after the compile command.
-                build_args_for_edit = build_args[:1] + extra_build_args + build_args[1:]
+                build_args_for_edit = tuple(list(build_args[:1]) + list(extra_build_args) + list(build_args[1:]))
 
             data_test = apply_edit(source_relative, data, text, start, end, verbose=verbose_edit_actions)
             if test_edit(
