@@ -283,9 +283,9 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
   write_mesh_objects(exportable_as_mesh, *frame_writer, mtl_writer.get(), export_params);
   if (mtl_writer) {
     mtl_writer->write_header(export_params.blen_filepath);
-    char dest_dir[PATH_MAX];
+    char dest_dir[FILE_MAX];
     if (export_params.file_base_for_tests[0] == '\0') {
-      BLI_path_split_dir_part(export_params.filepath, dest_dir, PATH_MAX);
+      BLI_path_split_dir_part(export_params.filepath, dest_dir, sizeof(dest_dir));
     }
     else {
       STRNCPY(dest_dir, export_params.file_base_for_tests);
