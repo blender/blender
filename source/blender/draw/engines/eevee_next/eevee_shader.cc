@@ -526,7 +526,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   std::stringstream attr_load;
   attr_load << "void attrib_load()\n";
   attr_load << "{\n";
-  attr_load << ((codegen.attr_load) ? codegen.attr_load : "");
+  attr_load << ((!codegen.attr_load.empty()) ? codegen.attr_load : "");
   attr_load << "}\n\n";
 
   std::stringstream vert_gen, frag_gen, comp_gen;
@@ -544,7 +544,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (!is_compute) {
-    const bool use_vertex_displacement = (codegen.displacement != nullptr) &&
+    const bool use_vertex_displacement = (!codegen.displacement.empty()) &&
                                          (displacement_type != MAT_DISPLACEMENT_BUMP) &&
                                          (!ELEM(geometry_type,
                                                 MAT_GEOM_WORLD,
@@ -561,9 +561,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   }
 
   if (!is_compute && pipeline_type != MAT_PIPE_VOLUME_OCCUPANCY) {
-    frag_gen << ((codegen.material_functions) ? codegen.material_functions : "\n");
+    frag_gen << ((!codegen.material_functions.empty()) ? codegen.material_functions : "\n");
 
-    if (codegen.displacement) {
+    if (!codegen.displacement.empty()) {
       /* Bump displacement. Needed to recompute normals after displacement. */
       info.define("MAT_DISPLACEMENT_BUMP");
 
@@ -576,25 +576,25 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     frag_gen << "Closure nodetree_surface()\n";
     frag_gen << "{\n";
     frag_gen << "  closure_weights_reset();\n";
-    frag_gen << ((codegen.surface) ? codegen.surface : "return Closure(0);\n");
+    frag_gen << ((!codegen.surface.empty()) ? codegen.surface : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
     frag_gen << "float nodetree_thickness()\n";
     frag_gen << "{\n";
     /* TODO(fclem): Better default. */
-    frag_gen << ((codegen.thickness) ? codegen.thickness : "return 0.1;\n");
+    frag_gen << ((!codegen.thickness.empty()) ? codegen.thickness : "return 0.1;\n");
     frag_gen << "}\n\n";
 
     info.fragment_source_generated = frag_gen.str();
   }
 
   if (is_compute) {
-    comp_gen << ((codegen.material_functions) ? codegen.material_functions : "\n");
+    comp_gen << ((!codegen.material_functions.empty()) ? codegen.material_functions : "\n");
 
     comp_gen << "Closure nodetree_volume()\n";
     comp_gen << "{\n";
     comp_gen << "  closure_weights_reset();\n";
-    comp_gen << ((codegen.volume) ? codegen.volume : "return Closure(0);\n");
+    comp_gen << ((!codegen.volume.empty()) ? codegen.volume : "return Closure(0);\n");
     comp_gen << "}\n\n";
 
     info.compute_source_generated = comp_gen.str();
