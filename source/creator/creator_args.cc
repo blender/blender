@@ -24,13 +24,15 @@
 #  include "BLI_dynstr.h"
 #  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
-#  include "BLI_mempool.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 #  include "BLI_system.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
+#  ifndef NDEBUG
+#    include "BLI_mempool.h"
+#  endif
 
 #  include "BKE_appdir.hh"
 #  include "BKE_blender_version.h"
@@ -47,10 +49,6 @@
 
 #  include "GPU_context.h"
 
-#  ifdef WITH_FFMPEG
-#    include "IMB_imbuf.hh"
-#  endif
-
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h"
 #    include "BPY_extern_run.h"
@@ -58,8 +56,6 @@
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"
-
-#  include "ED_datafiles.h"
 
 #  include "WM_api.hh"
 
@@ -72,8 +68,6 @@
 #  endif
 
 #  include "DEG_depsgraph.hh"
-#  include "DEG_depsgraph_build.hh"
-#  include "DEG_depsgraph_debug.hh"
 
 #  include "WM_types.hh"
 
