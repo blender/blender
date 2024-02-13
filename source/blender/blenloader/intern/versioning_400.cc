@@ -11,8 +11,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "CLG_log.h"
-
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
@@ -49,7 +47,6 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_collection.hh"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
@@ -57,19 +54,14 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
 #include "SEQ_iterator.hh"
-#include "SEQ_retiming.hh"
-#include "SEQ_sequencer.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
-
-#include "ED_armature.hh"
 
 #include "BLT_translation.hh"
 

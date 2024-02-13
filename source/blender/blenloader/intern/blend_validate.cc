@@ -15,7 +15,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
 #include "MEM_guardedalloc.h"
