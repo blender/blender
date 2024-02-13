@@ -495,13 +495,17 @@ class Instance {
     }
   }
 
-  void draw_viewport_image_render(Manager &manager,
-                                  GPUTexture *depth_tx,
-                                  GPUTexture *depth_in_front_tx,
-                                  GPUTexture *color_tx)
+  void draw_image_render(Manager &manager,
+                         GPUTexture *depth_tx,
+                         GPUTexture *depth_in_front_tx,
+                         GPUTexture *color_tx,
+                         RenderEngine *engine = nullptr)
   {
     BLI_assert(scene_state.sample == 0);
     for (auto i : IndexRange(scene_state.samples_len)) {
+      if (engine && RE_engine_test_break(engine)) {
+        break;
+      }
       if (i != 0) {
         scene_state.sample = i;
         /* Re-sync anything dependent on scene_state.sample. */
@@ -510,6 +514,12 @@ class Instance {
         anti_aliasing_ps.sync(scene_state, resources);
       }
       this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
+      /* Perform render step between samples to allow
+       * flushing of freed GPUBackend resources. */
+      if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+        GPU_flush();
+      }
+      GPU_render_step();
     }
   }
 };
@@ -571,8 +581,7 @@ static void workbench_draw_scene(void *vedata)
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   draw::Manager *manager = DRW_manager_get();
   if (DRW_state_is_viewport_image_render()) {
-    ved->instance->draw_viewport_image_render(
-        *manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
+    ved->instance->draw_image_render(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
   }
   else {
     ved->instance->draw_viewport(*manager, dtxl->depth, dtxl->depth_in_front, dtxl->color);
@@ -640,13 +649,6 @@ static bool workbench_render_framebuffers_init()
          GPU_framebuffer_check_valid(dfbl->color_only_fb, nullptr) &&
          GPU_framebuffer_check_valid(dfbl->depth_only_fb, nullptr);
 }
-
-#ifdef _DEBUG
-/* This is just to ease GPU debugging when the frame delimiter is set to Finish */
-#  define GPU_FINISH_DELIMITER() GPU_finish()
-#else
-#  define GPU_FINISH_DELIMITER()
-#endif
 
 static void write_render_color_output(RenderLayer *layer,
                                       const char *viewname,
@@ -728,10 +730,7 @@ static void workbench_render_to_image(void *vedata,
     return;
   }
 
-  GPU_FINISH_DELIMITER();
-
   /* Setup */
-
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Depsgraph *depsgraph = draw_ctx->depsgraph;
@@ -751,46 +750,35 @@ static void workbench_render_to_image(void *vedata,
   viewmat = math::invert(viewinv);
 
   /* Render */
-  do {
-    if (RE_engine_test_break(engine)) {
-      break;
-    }
+  /* TODO: Remove old draw manager calls. */
+  DRW_cache_restart();
+  DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
+  DRW_view_default_set(view);
+  DRW_view_set_active(view);
 
-    /* TODO: Remove old draw manager calls. */
-    DRW_cache_restart();
-    DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
-    DRW_view_default_set(view);
-    DRW_view_set_active(view);
+  ved->instance->init(camera_ob);
 
-    ved->instance->init(camera_ob);
+  draw::Manager &manager = *DRW_manager_get();
+  manager.begin_sync();
 
-    DRW_manager_get()->begin_sync();
+  workbench_cache_init(vedata);
+  auto workbench_render_cache =
+      [](void *vedata, Object *ob, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
+        workbench_cache_populate(vedata, ob);
+      };
+  DRW_render_object_iter(vedata, engine, depsgraph, workbench_render_cache);
+  workbench_cache_finish(vedata);
 
-    workbench_cache_init(vedata);
-    auto workbench_render_cache =
-        [](void *vedata, Object *ob, RenderEngine * /*engine*/, Depsgraph * /*depsgraph*/) {
-          workbench_cache_populate(vedata, ob);
-        };
-    DRW_render_object_iter(vedata, engine, depsgraph, workbench_render_cache);
-    workbench_cache_finish(vedata);
+  manager.end_sync();
 
-    DRW_manager_get()->end_sync();
+  /* TODO: Remove old draw manager calls. */
+  DRW_render_instance_buffer_finish();
+  DRW_curves_update();
 
-    /* TODO: Remove old draw manager calls. */
-    DRW_render_instance_buffer_finish();
-    DRW_curves_update();
+  DefaultTextureList &dtxl = *DRW_viewport_texture_list_get();
+  ved->instance->draw_image_render(manager, dtxl.depth, dtxl.depth_in_front, dtxl.color, engine);
 
-    workbench_draw_scene(vedata);
-
-    /* Perform render step between samples to allow
-     * flushing of freed GPUBackend resources. */
-    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-      GPU_flush();
-    }
-    GPU_render_step();
-    GPU_FINISH_DELIMITER();
-  } while (ved->instance->scene_state.sample + 1 < ved->instance->scene_state.samples_len);
-
+  /* Write image */
   const char *viewname = RE_GetActiveRenderView(engine->re);
   write_render_color_output(layer, viewname, dfbl->default_fb, rect);
   write_render_z_output(layer, viewname, dfbl->default_fb, rect, winmat);
