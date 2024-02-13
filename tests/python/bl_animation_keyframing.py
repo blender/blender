@@ -36,6 +36,19 @@ def _get_view3d_context():
     return ctx
 
 
+def _get_nla_context():
+    ctx = bpy.context.copy()
+
+    for area in bpy.context.window.screen.areas:
+        if area.type != 'NLA_EDITOR':
+            continue
+        ctx['area'] = area
+        ctx['space'] = area.spaces.active
+        break
+
+    return ctx
+
+
 def _create_animation_object():
     anim_object = bpy.data.objects.new("anim_object", None)
     # Ensure that the rotation mode is correct so we can check against rotation_euler
@@ -485,6 +498,125 @@ class InsertNeededTest(AbstractKeyframingTest, unittest.TestCase):
             if fcurve.data_path not in expected_keys:
                 raise AssertionError(f"Did not expect a key on {fcurve.data_path}")
             self.assertEqual(expected_keys[fcurve.data_path][fcurve.array_index], len(fcurve.keyframe_points))
+
+
+def _create_nla_anim_object():
+    """
+    Creates an object with 3 NLA tracks each with a strip that has its own action.
+    The middle layer is additive.
+    Creates a key on frame 0 and frame 10 for each of them.
+    The values are:
+        top: 0, 0
+        add: 0, 1
+        base: 0, 1
+    """
+    anim_object = bpy.data.objects.new("anim_object", None)
+    bpy.context.scene.collection.objects.link(anim_object)
+    bpy.context.view_layer.objects.active = anim_object
+    anim_object.select_set(True)
+    anim_object.animation_data_create()
+
+    track = anim_object.animation_data.nla_tracks.new()
+    track.name = "base"
+    action_base = bpy.data.actions.new(name="action_base")
+    fcu = action_base.fcurves.new(data_path="location", index=0)
+    fcu.keyframe_points.insert(0, value=0).interpolation = 'LINEAR'
+    fcu.keyframe_points.insert(10, value=1).interpolation = 'LINEAR'
+    track.strips.new("base_strip", 0, action_base)
+
+    track = anim_object.animation_data.nla_tracks.new()
+    track.name = "add"
+    action_add = bpy.data.actions.new(name="action_add")
+    fcu = action_add.fcurves.new(data_path="location", index=0)
+    fcu.keyframe_points.insert(0, value=0).interpolation = 'LINEAR'
+    fcu.keyframe_points.insert(10, value=1).interpolation = 'LINEAR'
+    strip = track.strips.new("add_strip", 0, action_add)
+    strip.blend_type = "ADD"
+
+    track = anim_object.animation_data.nla_tracks.new()
+    track.name = "top"
+    action_top = bpy.data.actions.new(name="action_top")
+    fcu = action_top.fcurves.new(data_path="location", index=0)
+    fcu.keyframe_points.insert(0, value=0).interpolation = 'LINEAR'
+    fcu.keyframe_points.insert(10, value=0).interpolation = 'LINEAR'
+    track.strips.new("top_strip", 0, action_top)
+
+    return anim_object
+
+
+class NlaInsertTest(AbstractKeyframingTest, unittest.TestCase):
+    """
+    Testing inserting keys into an NLA stack.
+    The system is expected to remap the inserted values based on the strips blend_type.
+    """
+
+    def setUp(self):
+        super().setUp()
+        bpy.context.preferences.edit.key_insert_channels = {'LOCATION'}
+        # Change one area to the NLA so we can call operators in it.
+        # Assumes there is at least one editor in the blender default startup file that is not the 3D viewport.
+        for area in bpy.context.window.screen.areas:
+            if area.type == 'VIEW_3D':
+                continue
+            area.type = "NLA_EDITOR"
+            break
+
+    def test_insert_failure(self):
+        # If the topmost track is set to "REPLACE" the system will fail
+        # when trying to insert keys into a layer beneath.
+        nla_anim_object = _create_nla_anim_object()
+        tracks = nla_anim_object.animation_data.nla_tracks
+
+        with bpy.context.temp_override(**_get_nla_context()):
+            bpy.ops.nla.select_all(action="DESELECT")
+            tracks.active = tracks["base"]
+            tracks["base"].strips[0].select = True
+            bpy.ops.nla.tweakmode_enter(use_upper_stack_evaluation=True)
+
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.context.scene.frame_set(5)
+            bpy.ops.anim.keyframe_insert()
+
+        base_action = bpy.data.actions["action_base"]
+        # Location X should not have been able to insert a keyframe because the top strip is overriding the result completely,
+        # making it impossible to calculate which value should be inserted.
+        self.assertEqual(len(base_action.fcurves.find("location", index=0).keyframe_points), 2)
+        # Location Y and Z will go through since they have not been defined in the action of the top strip.
+        self.assertEqual(len(base_action.fcurves.find("location", index=1).keyframe_points), 1)
+        self.assertEqual(len(base_action.fcurves.find("location", index=2).keyframe_points), 1)
+
+    def test_insert_additive(self):
+        nla_anim_object = _create_nla_anim_object()
+        tracks = nla_anim_object.animation_data.nla_tracks
+
+        # This leaves the additive track as the topmost track with influence
+        tracks["top"].mute = True
+
+        with bpy.context.temp_override(**_get_nla_context()):
+            bpy.ops.nla.select_all(action="DESELECT")
+            tracks.active = tracks["base"]
+            tracks["base"].strips[0].select = True
+            bpy.ops.nla.tweakmode_enter(use_upper_stack_evaluation=True)
+
+        # Inserting over the existing keyframe.
+        bpy.context.scene.frame_set(10)
+        with bpy.context.temp_override(**_get_view3d_context()):
+            bpy.ops.anim.keyframe_insert()
+
+        base_action = bpy.data.actions["action_base"]
+        # This should have added keys to Y and Z but not X.
+        # X already had two keys from the file setup.
+        self.assertEqual(len(base_action.fcurves.find("location", index=0).keyframe_points), 2)
+        self.assertEqual(len(base_action.fcurves.find("location", index=1).keyframe_points), 1)
+        self.assertEqual(len(base_action.fcurves.find("location", index=2).keyframe_points), 1)
+
+        # The keyframe value should not be changed even though the position of the
+        # object is modified by the additive layer.
+        self.assertAlmostEqual(nla_anim_object.location.x, 2.0, 8)
+        fcurve_loc_x = base_action.fcurves.find("location", index=0)
+        self.assertAlmostEqual(fcurve_loc_x.keyframe_points[-1].co[1], 1.0, 8)
+
+
 
 
 def main():

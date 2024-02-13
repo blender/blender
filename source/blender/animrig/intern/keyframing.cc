@@ -863,7 +863,8 @@ int insert_key_action(Main *bmain,
                       const float frame,
                       const Span<float> values,
                       eInsertKeyFlags insert_key_flag,
-                      eBezTriple_KeyframeType key_type)
+                      eBezTriple_KeyframeType key_type,
+                      const BLI_bitmap *keying_mask)
 {
   BLI_assert(bmain != nullptr);
   BLI_assert(action != nullptr);
@@ -880,6 +881,10 @@ int insert_key_action(Main *bmain,
   int property_array_index = 0;
   int inserted_keys = 0;
   for (float value : values) {
+    if (!BLI_BITMAP_TEST_BOOL(keying_mask, property_array_index)) {
+      property_array_index++;
+      continue;
+    }
     const bool inserted_key = insert_keyframe_fcurve_value(bmain,
                                                            nullptr,
                                                            ptr,
@@ -925,7 +930,8 @@ void insert_key_rna(PointerRNA *rna_pointer,
                     const eInsertKeyFlags insert_key_flags,
                     const eBezTriple_KeyframeType key_type,
                     Main *bmain,
-                    ReportList *reports)
+                    ReportList *reports,
+                    const AnimationEvalContext &anim_eval_context)
 {
   ID *id = rna_pointer->owner_id;
   bAction *action = id_action_ensure(bmain, id);
@@ -939,6 +945,15 @@ void insert_key_rna(PointerRNA *rna_pointer,
   }
 
   AnimData *adt = BKE_animdata_from_id(id);
+
+  /* Keyframing functions can deal with the nla_context being a nullptr. */
+  ListBase nla_cache = {nullptr, nullptr};
+  NlaKeyframingContext *nla_context = nullptr;
+  if (adt && adt->action == action) {
+    nla_context = BKE_animsys_get_nla_keyframing_context(
+        &nla_cache, rna_pointer, adt, &anim_eval_context);
+  }
+
   const float nla_frame = BKE_nla_tweakedit_remap(adt, scene_frame, NLATIME_CONVERT_UNMAP);
   const bool visual_keyframing = insert_key_flags & INSERTKEY_MATRIX;
 
@@ -961,6 +976,16 @@ void insert_key_rna(PointerRNA *rna_pointer,
                                                                                         prop);
     Vector<float> rna_values = get_keyframe_values(&ptr, prop, visual_keyframing);
 
+    BLI_bitmap *successful_remaps = BLI_BITMAP_NEW(rna_values.size(), __func__);
+    BKE_animsys_nla_remap_keyframe_values(nla_context,
+                                          rna_pointer,
+                                          prop,
+                                          rna_values.as_mutable_span(),
+                                          -1,
+                                          &anim_eval_context,
+                                          nullptr,
+                                          successful_remaps);
+
     insert_key_count += insert_key_action(bmain,
                                           action,
                                           rna_pointer,
@@ -969,7 +994,9 @@ void insert_key_rna(PointerRNA *rna_pointer,
                                           nla_frame,
                                           rna_values.as_span(),
                                           insert_key_flags,
-                                          key_type);
+                                          key_type,
+                                          successful_remaps);
+    MEM_freeN(successful_remaps);
   }
 
   if (insert_key_count == 0) {
