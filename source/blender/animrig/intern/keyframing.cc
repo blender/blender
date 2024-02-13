@@ -41,7 +41,6 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.hh"
 #include "WM_types.hh"
 
 namespace blender::animrig {

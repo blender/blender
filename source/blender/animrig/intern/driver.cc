@@ -7,7 +7,6 @@
  */
 
 #include "ANIM_driver.hh"
-#include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
 #include "DNA_anim_types.h"
 #include "RNA_access.hh"
