@@ -414,6 +414,62 @@ const char *temp_textures_dir()
   return temp_dir;
 }
 
+bool write_to_path(const void *data, size_t size, const char *path, ReportList *reports)
+{
+  BLI_assert(data);
+  BLI_assert(path);
+  if (size == 0) {
+    return false;
+  }
+
+  pxr::ArResolver &ar = pxr::ArGetResolver();
+  pxr::ArResolvedPath resolved_path = ar.ResolveForNewAsset(path);
+
+  if (resolved_path.IsEmpty()) {
+    BKE_reportf(reports, RPT_ERROR, "Can't resolve path %s for writing", path);
+    return false;
+  }
+
+  std::string why_not;
+  if (!ar.CanWriteAssetToPath(resolved_path, &why_not)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Can't write to asset %s:  %s",
+                resolved_path.GetPathString().c_str(),
+                why_not.c_str());
+    return false;
+  }
+
+  std::shared_ptr<pxr::ArWritableAsset> dst_asset = ar.OpenAssetForWrite(
+      resolved_path, pxr::ArResolver::WriteMode::Replace);
+  if (!dst_asset) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Can't open destination asset %s for writing",
+                resolved_path.GetPathString().c_str());
+    return false;
+  }
+
+  size_t bytes_written = dst_asset->Write(data, size, 0);
+
+  if (bytes_written == 0) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Error writing to destination asset %s",
+                resolved_path.GetPathString().c_str());
+  }
+
+  if (!dst_asset->Close()) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Couldn't close destination asset %s",
+                resolved_path.GetPathString().c_str());
+    return false;
+  }
+
+  return bytes_written > 0;
+}
+
 }  // namespace blender::io::usd
 
 void USD_path_abs(char *path, const char *basepath, bool for_import)

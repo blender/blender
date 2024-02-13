@@ -35,6 +35,10 @@
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
+#include "DNA_packedFile_types.h"
+
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -581,12 +585,17 @@ static void create_uv_input(const USDExporterContext &usd_export_context,
 
 static bool is_in_memory_texture(Image *ima)
 {
-  return BKE_image_is_dirty(ima) || ima->source == IMA_SRC_GENERATED ||
-         BKE_image_has_packedfile(ima);
+  return BKE_image_is_dirty(ima) || ima->source == IMA_SRC_GENERATED;
 }
 
-/* Generate a file name for an in-memory image that doesn't have a
- * filepath already defined. */
+static bool is_packed_texture(Image *ima)
+{
+  return BKE_image_has_packedfile(ima);
+}
+
+/* Generate a file name for an in-memory or packed image that might not have a
+ * filepath already defined, ensuring that the file extension matches the
+ * image format. */
 static std::string get_in_memory_texture_filename(Image *ima)
 {
   /* Determine the correct file extension from the image format. */
@@ -611,6 +620,70 @@ static std::string get_in_memory_texture_filename(Image *ima)
   BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
   return file_name;
+}
+
+static void export_packed_texture(Image *ima,
+                                  const std::string &export_dir,
+                                  const bool allow_overwrite,
+                                  ReportList *reports)
+{
+  LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
+    if (!imapf || !imapf->packedfile || !imapf->packedfile->data || !imapf->packedfile->size) {
+      continue;
+    }
+
+    const PackedFile *pf = imapf->packedfile;
+
+    char image_abs_path[FILE_MAX];
+    char file_name[FILE_MAX];
+
+    if (imapf->filepath[0] != '\0') {
+      /* Get the file name from the original path. */
+      /* Make absolute source path. */
+      BLI_strncpy(image_abs_path, imapf->filepath, FILE_MAX);
+      USD_path_abs(
+          image_abs_path, ID_BLEND_PATH_FROM_GLOBAL(&ima->id), false /* Not for import */);
+      BLI_path_split_file_part(image_abs_path, file_name, FILE_MAX);
+    }
+    else {
+      /* The following logic is taken from unpack_generate_paths() in packedFile.cc. */
+
+      /* NOTE: we generally do not have any real way to re-create extension out of data. */
+      const size_t len = STRNCPY_RLEN(file_name, ima->id.name + 2);
+
+      /* For images ensure that the temporary filename contains tile number information as well as
+       * a file extension based on the file magic. */
+
+      enum eImbFileType ftype = eImbFileType(
+          IMB_ispic_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
+      if (ima->source == IMA_SRC_TILED) {
+        char tile_number[6];
+        SNPRINTF(tile_number, ".%d", imapf->tile_number);
+        BLI_strncpy(file_name + len, tile_number, sizeof(file_name) - len);
+      }
+      if (ftype != IMB_FTYPE_NONE) {
+        const int imtype = BKE_ftype_to_imtype(ftype, nullptr);
+        BKE_image_path_ext_from_imtype_ensure(file_name, sizeof(file_name), imtype);
+      }
+    }
+
+    char export_path[FILE_MAX];
+    BLI_path_join(export_path, FILE_MAX, export_dir.c_str(), file_name);
+    BLI_string_replace_char(export_path, '\\', '/');
+
+    if (!allow_overwrite && asset_exists(export_path)) {
+      return;
+    }
+
+    if (paths_equal(export_path, image_abs_path) && asset_exists(image_abs_path)) {
+      /* As a precaution, don't overwrite the original path. */
+      return;
+    }
+
+    CLOG_INFO(&LOG, 2, "Exporting packed texture to '%s'", export_path);
+
+    write_to_path(pf->data, pf->size, export_path, reports);
+  }
 }
 
 static void export_in_memory_texture(Image *ima,
@@ -2401,7 +2474,7 @@ std::string get_tex_image_asset_filepath(bNode *node,
 
   std::string path;
 
-  if (is_in_memory_texture(ima)) {
+  if (is_in_memory_texture(ima) || is_packed_texture(ima)) {
     path = get_in_memory_texture_filename(ima);
   }
   else if (strlen(ima->filepath) > 0) {
@@ -2634,6 +2707,9 @@ void export_texture(bNode *node,
     return;
   }
 
+  if (is_packed_texture(ima)) {
+    export_packed_texture(ima, dest_dir, allow_overwrite, reports);
+  }
   if (is_in_memory_texture(ima)) {
     export_in_memory_texture(
         ima, dest_dir, allow_overwrite, reports);

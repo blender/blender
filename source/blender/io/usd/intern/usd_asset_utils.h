@@ -122,4 +122,18 @@ bool paths_equal(const char *p1, const char *p2);
  */
 const char *temp_textures_dir();
 
+/**
+ * Invokes the USD asset resolver to write data to the given path.
+ *
+ * \param data: pointer to data to write
+ * \param size: number of bytes to write
+ * \param path: path of asset to be written
+ * \param reports: the storage for potential warning or error reports (generated using BKE_report
+ *                 API).
+ * \return true if the data was written, returns
+ *         false otherwise.
+ *
+ */
+bool write_to_path(const void *data, size_t size, const char *path, ReportList *reports);
+
 }  // namespace blender::io::usd
