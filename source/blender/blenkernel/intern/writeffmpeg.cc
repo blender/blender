@@ -24,6 +24,7 @@
 #    include <AUD_Special.h>
 #  endif
 
+#  include "BLI_endian_defines.h"
 #  include "BLI_math_base.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
