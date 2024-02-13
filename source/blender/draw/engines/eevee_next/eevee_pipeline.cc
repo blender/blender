@@ -10,12 +10,8 @@
  * This file is only for shading passes. Other passes are declared in their own module.
  */
 
-#include "GPU_capabilities.h"
-
-#include "eevee_instance.hh"
-
 #include "eevee_pipeline.hh"
-
+#include "eevee_instance.hh"
 #include "eevee_shadow.hh"
 
 #include "draw_common.hh"
@@ -722,37 +718,7 @@ void DeferredLayer::render(View &main_view,
   inst_.volume_probes.set_view(render_view);
   inst_.shadows.set_view(render_view, inst_.render_buffers.depth_tx);
 
-  if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
-      GPU_backend_get_type() == GPU_BACKEND_VULKAN ||
-      /* FIXME(fclem): Metal has bug in backend. */
-      GPU_backend_get_type() == GPU_BACKEND_METAL)
-  {
-    inst_.gbuffer.header_tx.clear(uint4(0));
-  }
-
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    /* TODO(fclem): Load/store action is broken on Metal. */
-    GPU_framebuffer_bind(gbuffer_fb);
-  }
-  else {
-    if (!GPU_stencil_export_support()) {
-      /* Clearing custom load-store frame-buffers is invalid,
-       * clear the stencil as a regular frame-buffer first. */
-      GPU_framebuffer_bind(gbuffer_fb);
-      GPU_framebuffer_clear_stencil(gbuffer_fb, 0x0u);
-    }
-    GPU_framebuffer_bind_ex(
-        gbuffer_fb,
-        {
-            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth */
-            {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined */
-            {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
-            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Normal*/
-            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure */
-            {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure 2*/
-        });
-  }
-
+  inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, render_view);
 
   for (int i = 0; i < ARRAY_SIZE(direct_radiance_txs_); i++) {
@@ -1259,7 +1225,7 @@ void DeferredProbeLayer::render(View &view,
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
 
-  GPU_framebuffer_bind(gbuffer_fb);
+  inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);
@@ -1413,17 +1379,7 @@ void PlanarProbePipeline::render(View &view,
   /* Update for lighting pass. */
   inst_.hiz_buffer.update();
 
-  GPU_framebuffer_bind_ex(
-      gbuffer_fb,
-      {
-          {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},          /* Depth */
-          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f}}, /* Combined */
-          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}},    /* GBuf Header */
-          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Normal*/
-          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Closure */
-          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},     /* GBuf Closure 2*/
-      });
-
+  inst_.gbuffer.bind(gbuffer_fb);
   inst_.manager->submit(gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);
