@@ -33,6 +33,9 @@ using namespace blender;
 
 #define DEFAULT_TEST_RANDOM_SEED 123
 
+/** The epsilon to use when comparing floating point rotations (as radians). */
+#define ROTATION_EPS 1e-6
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities
  * \{ */
@@ -163,16 +166,16 @@ TEST(convexhull_2d, NOP)
 {
   { /* Single point. */
     blender::Array<float2> points = {{0.0f, 0.0f}};
-    EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points), 0.0f);
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
   }
 
   { /* Single point, 2x duplicates. */
     blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 0.0f}};
-    EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points), 0.0f);
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
   }
   { /* Single point, 3x duplicates. */
     blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}};
-    EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points), 0.0f);
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
   }
 }
 
@@ -181,15 +184,17 @@ TEST(convexhull_2d, Lines_AxisAligned)
   { /* Horizontal line (2 points). */
     for (int sign_x = -1; sign_x <= 2; sign_x += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {1.0f * sign_x, 0.0}};
-      EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-                blender::math::AngleRadian::from_degree(-90.0f));
+      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                  float(math::AngleRadian::from_degree(-90.0f)),
+                  ROTATION_EPS);
     }
   }
   { /* Horizontal line (3 points). */
     for (int sign_x = -1; sign_x <= 2; sign_x += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {1.0f * sign_x, 0.0}, {2.0f * sign_x, 0.0}};
-      EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-                blender::math::AngleRadian::from_degree(-90.0f));
+      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                  float(math::AngleRadian::from_degree(-90.0f)),
+                  ROTATION_EPS);
     }
   }
 
@@ -198,15 +203,17 @@ TEST(convexhull_2d, Lines_AxisAligned)
   if (false) { /* Vertical line (2 points). */
     for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 1.0f * sign_y}};
-      EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-                blender::math::AngleRadian::from_degree(0.0f));
+      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                  float(math::AngleRadian::from_degree(0.0f)),
+                  ROTATION_EPS);
     }
   }
   { /* Vertical line (3 points). */
     for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 1.0f * sign_y}, {0.0f, 2.0f * sign_y}};
-      EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-                blender::math::AngleRadian::from_degree(0.0f));
+      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                  float(math::AngleRadian::from_degree(0.0f)),
+                  ROTATION_EPS);
     }
   }
 
@@ -221,7 +228,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
       }
 
       blender::Array<float2> points_hull = convexhull_2d_as_array(points);
-      EXPECT_EQ(std::fmod(convexhull_aabb_fit_hull_2d(points_hull), M_PI), 0.0f);
+      EXPECT_NEAR(std::fmod(convexhull_aabb_fit_hull_2d(points_hull), M_PI), 0.0f, ROTATION_EPS);
     }
   }
 
@@ -236,7 +243,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
       }
 
       blender::Array<float2> points_hull = convexhull_2d_as_array(points);
-      EXPECT_EQ(std::fmod(convexhull_aabb_fit_hull_2d(points_hull), M_PI), 0.0f);
+      EXPECT_NEAR(std::fmod(convexhull_aabb_fit_hull_2d(points_hull), M_PI), 0.0f, ROTATION_EPS);
     }
   }
 }
@@ -249,8 +256,9 @@ TEST(convexhull_2d, Lines_Diagonal)
     for (int sign_x = -1; sign_x <= 2; sign_x += 2) {
       for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
         blender::Array<float2> points = {{0.0f, 0.0f}, {1.0f * sign_x, 1.0f * sign_y}};
-        EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-                  blender::math::AngleRadian::from_degree(expected[index]));
+        EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                    float(math::AngleRadian::from_degree(expected[index])),
+                    ROTATION_EPS);
         index++;
       }
     }
@@ -266,8 +274,9 @@ TEST(convexhull_2d, Lines_Diagonal)
             {1.0f * sign_x, 1.0f * sign_y},
             {2.0f * sign_x, 2.0f * sign_y},
         };
-        EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-                  blender::math::AngleRadian::from_degree(expected[index]));
+        EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                    float(math::AngleRadian::from_degree(expected[index])),
+                    ROTATION_EPS);
         index++;
       }
     }
@@ -283,8 +292,9 @@ TEST(convexhull_2d, Simple)
         {0.0f, 1.0f},
         {1.0f, 0.0f},
     };
-    EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-              blender::math::AngleRadian::from_degree(135.0f));
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                float(math::AngleRadian::from_degree(135.0f)),
+                ROTATION_EPS);
   }
 
   { /* Axis aligned square. */
@@ -294,8 +304,9 @@ TEST(convexhull_2d, Simple)
         {1.0f, 1.0f},
         {1.0f, -1.0f},
     };
-    EXPECT_EQ(convexhull_2d_aabb_fit_points_2d(points),
-              blender::math::AngleRadian::from_degree(180.0f));
+    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+                float(math::AngleRadian::from_degree(180.0f)),
+                ROTATION_EPS);
   }
 }
 
@@ -309,8 +320,9 @@ TEST(convexhull_2d, AABB_Fit)
     }
     blender::Array<float2> points_hull = convexhull_2d_as_array(points);
 
-    EXPECT_EQ(convexhull_aabb_fit_hull_2d(points_hull),
-              convexhull_aabb_fit_hull_2d_for_comparison(points_hull));
+    EXPECT_NEAR(convexhull_aabb_fit_hull_2d(points_hull),
+                convexhull_aabb_fit_hull_2d_for_comparison(points_hull),
+                ROTATION_EPS);
   }
 }
 
@@ -327,8 +339,9 @@ TEST(convexhull_2d, AABB_Fit_Circular)
     }
     blender::Array<float2> points_hull = convexhull_2d_as_array(points);
 
-    EXPECT_EQ(convexhull_aabb_fit_hull_2d(points_hull),
-              convexhull_aabb_fit_hull_2d_for_comparison(points_hull));
+    EXPECT_NEAR(convexhull_aabb_fit_hull_2d(points_hull),
+                convexhull_aabb_fit_hull_2d_for_comparison(points_hull),
+                ROTATION_EPS);
   }
 }
 
@@ -347,8 +360,9 @@ TEST(convexhull_2d, AABB_Fit_LopSided)
 
     blender::Array<float2> points_hull = convexhull_2d_as_array(points);
 
-    EXPECT_EQ(convexhull_aabb_fit_hull_2d(points_hull),
-              convexhull_aabb_fit_hull_2d_for_comparison(points_hull));
+    EXPECT_NEAR(convexhull_aabb_fit_hull_2d(points_hull),
+                convexhull_aabb_fit_hull_2d_for_comparison(points_hull),
+                ROTATION_EPS);
   }
 }
 
