@@ -49,6 +49,10 @@ typedef struct vec4i {
 typedef struct vec4f {
   float x, y, z, w;
 } vec4f;
+
+typedef struct mat4x4f {
+  float value[4][4];
+} mat4x4f;
 /*
 typedef struct vec4d {
   double x, y, z, w;

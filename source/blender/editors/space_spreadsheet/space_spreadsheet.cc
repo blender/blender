@@ -341,6 +341,7 @@ static float get_default_column_width(const ColumnValues &values)
   static const float float_width = 3;
   switch (values.type()) {
     case SPREADSHEET_VALUE_TYPE_BOOL:
+    case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
       return 2.0f;
     case SPREADSHEET_VALUE_TYPE_INT8:
     case SPREADSHEET_VALUE_TYPE_INT32:

@@ -87,8 +87,15 @@ class GeoNodeExecParams {
   }
 
   template<typename T>
-  static inline constexpr bool is_field_base_type_v =
-      is_same_any_v<T, float, int, bool, ColorGeometry4f, float3, std::string, math::Quaternion>;
+  static inline constexpr bool is_field_base_type_v = is_same_any_v<T,
+                                                                    float,
+                                                                    int,
+                                                                    bool,
+                                                                    ColorGeometry4f,
+                                                                    float3,
+                                                                    std::string,
+                                                                    math::Quaternion,
+                                                                    float4x4>;
 
   template<typename T>
   static inline constexpr bool stored_as_SocketValueVariant_v =

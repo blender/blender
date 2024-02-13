@@ -157,6 +157,7 @@ static eCustomDataType data_type_in_attribute_input_node(const eCustomDataType t
     case CD_PROP_COLOR:
     case CD_PROP_BOOL:
     case CD_PROP_QUATERNION:
+    case CD_PROP_FLOAT4X4:
       return type;
     case CD_PROP_BYTE_COLOR:
       return CD_PROP_COLOR;

@@ -50,6 +50,9 @@ const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
 
 bool generic_attribute_type_supported(const EnumPropertyItem &item)
 {
+  if (item.value == SOCK_MATRIX) {
+    return U.experimental.use_new_matrix_socket;
+  }
   return ELEM(item.value,
               CD_PROP_FLOAT,
               CD_PROP_FLOAT2,
@@ -58,7 +61,8 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
               CD_PROP_BOOL,
               CD_PROP_INT32,
               CD_PROP_BYTE_COLOR,
-              CD_PROP_QUATERNION);
+              CD_PROP_QUATERNION,
+              CD_PROP_FLOAT4X4);
 }
 
 const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,

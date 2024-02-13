@@ -158,6 +158,22 @@ class RotationBuilder : public SocketDeclarationBuilder<Rotation> {
   RotationBuilder &default_value(const math::EulerXYZ &value);
 };
 
+class MatrixBuilder;
+
+class Matrix : public SocketDeclaration {
+ public:
+  friend MatrixBuilder;
+
+  using Builder = MatrixBuilder;
+
+  bNodeSocket &build(bNodeTree &ntree, bNode &node) const override;
+  bool matches(const bNodeSocket &socket) const override;
+  bNodeSocket &update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const override;
+  bool can_connect(const bNodeSocket &socket) const override;
+};
+
+class MatrixBuilder : public SocketDeclarationBuilder<Matrix> {};
+
 class StringBuilder;
 
 class String : public SocketDeclaration {

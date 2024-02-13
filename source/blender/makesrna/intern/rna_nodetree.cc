@@ -77,6 +77,7 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
     {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
     {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {SOCK_MATRIX, "MATRIX", 0, "Matrix", ""},
     {SOCK_STRING, "STRING", 0, "String", ""},
     {SOCK_MENU, "MENU", 0, "Menu", ""},
     {SOCK_RGBA, "RGBA", 0, "Color", ""},
@@ -1894,7 +1895,8 @@ static bool generic_attribute_type_supported(const EnumPropertyItem *item)
               CD_PROP_BOOL,
               CD_PROP_INT32,
               CD_PROP_BYTE_COLOR,
-              CD_PROP_QUATERNION);
+              CD_PROP_QUATERNION,
+              CD_PROP_FLOAT4X4);
 }
 
 static bool generic_attribute_type_supported_with_socket(const EnumPropertyItem *item)

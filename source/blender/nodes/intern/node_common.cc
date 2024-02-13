@@ -245,6 +245,11 @@ static SocketDeclarationPtr declaration_for_interface_socket(
       dst = std::move(decl);
       break;
     }
+    case SOCK_MATRIX: {
+      std::unique_ptr<decl::Matrix> decl = std::make_unique<decl::Matrix>();
+      dst = std::move(decl);
+      break;
+    }
     case SOCK_INT: {
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueInt>(io_socket);
       std::unique_ptr<decl::Int> decl = std::make_unique<decl::Int>();
