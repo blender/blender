@@ -6,18 +6,13 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_time.h"
 #include "BLI_timer.h"
-#include "BLI_utildefines.h"
 
 #include <Python.h>
 
-#include "BPY_extern.h"
 #include "bpy_app_timers.h"
 
-#include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
 
 static double handle_returned_value(PyObject *function, PyObject *ret)
 {

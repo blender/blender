@@ -28,7 +28,7 @@
 #include "RNA_types.hh"
 
 #include "bpy_capi_utils.h"
-#include "bpy_library.h"
+#include "bpy_library.h" /* Declaration for #BPY_library_load_method_def */
 #include "bpy_rna.h"
 
 #include "../generic/py_capi_utils.h"

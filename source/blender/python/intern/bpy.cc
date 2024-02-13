@@ -27,7 +27,6 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "GPU_state.h"
 
@@ -35,7 +34,6 @@
 
 #include "bpy.h"
 #include "bpy_app.h"
-#include "bpy_capi_utils.h"
 #include "bpy_driver.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
@@ -43,7 +41,6 @@
 #include "bpy_rna.h"
 #include "bpy_rna_data.h"
 #include "bpy_rna_gizmo.h"
-#include "bpy_rna_id_collection.h"
 #include "bpy_rna_types_capi.h"
 #include "bpy_utils_previews.h"
 #include "bpy_utils_units.h"
