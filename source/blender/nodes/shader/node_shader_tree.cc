@@ -1202,7 +1202,9 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
     node->runtime->tmp_flag = -1;
   }
-  iter_shader_to_rgba_depth_count(output, max_depth);
+  if (output != nullptr) {
+    iter_shader_to_rgba_depth_count(output, max_depth);
+  }
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
       iter_shader_to_rgba_depth_count(node, max_depth);
