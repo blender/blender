@@ -39,7 +39,7 @@ def setup():
             eevee.motion_blur_steps = 10
 
         # Ray-tracing
-        eevee.use_raytracing = False
+        eevee.use_raytracing = True
         eevee.ray_tracing_method = 'SCREEN'
         ray_tracing = eevee.ray_tracing_options
         ray_tracing.resolution_scale = "1"
