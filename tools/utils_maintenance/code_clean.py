@@ -1455,8 +1455,10 @@ class edit_generators:
         """
         Clean headers, ensuring that the headers removed are not used directly or indirectly.
 
-        Note that the `CFLAGS` should be set so missing prototypes error instead of warn:
-        With GCC: `-Werror=missing-prototypes`
+        Note that the `CFLAGS` should be set so missing prototypes error instead of warn.
+        With GCC:
+           CMAKE_C_FLAGS=-Werror=missing-prototypes -Werror=undef
+           CMAKE_CXX_FLAGS=-Werror=missing-declarations -Werror=undef
         """
 
         # Non-default because changes to headers may cause breakage on other platforms.
@@ -1645,6 +1647,9 @@ def test_edit(
     """
     if os.path.exists(output):
         os.remove(output)
+
+    # Useful when inspecting failure to compile files, so it's possible to run the command manually.
+    # `print("COMMAND: {:s}\nCMD: {:s}\nOUTPUT: {:s}\n".format(" ".join(build_args), str(build_cwd), output))`
 
     with open(source, 'w', encoding='utf-8') as fh:
         fh.write(data_test)
