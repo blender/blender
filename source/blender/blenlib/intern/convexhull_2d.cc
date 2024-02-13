@@ -73,7 +73,6 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
       /* A nontrivial segment. */
       r_points[++top] = minmax;
     }
-    r_points[++top] = minmin; /* Add polygon endpoint. */
     BLI_assert(top + 1 <= points_num);
     return top + 1;
   }
