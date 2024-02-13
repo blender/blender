@@ -155,7 +155,7 @@ set(SRC
   intern/timecode.c
   intern/timeit.cc
   intern/uuid.cc
-  intern/uvproject.c
+  intern/uvproject.cc
   intern/vector.cc
   intern/virtual_array.cc
   intern/voxel.c
