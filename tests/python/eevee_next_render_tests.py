@@ -27,6 +27,9 @@ def setup():
         # Ambient Occlusion Pass
         eevee.gtao_distance = 1
 
+        # Hair
+        scene.render.hair_type = 'STRIP'
+
         # Volumetric
         eevee.volumetric_tile_size = '2'
         eevee.volumetric_start = 1.0
