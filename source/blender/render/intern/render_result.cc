@@ -13,9 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_hash_md5.hh"
-#include "BLI_implicit_sharing.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
@@ -25,7 +23,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_camera.h"
 #include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -40,8 +37,6 @@
 #include "IMB_openexr.hh"
 
 #include "GPU_texture.h"
-
-#include "RE_engine.h"
 
 #include "render_result.h"
 #include "render_types.h"

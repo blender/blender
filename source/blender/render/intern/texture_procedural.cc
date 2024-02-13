@@ -16,12 +16,9 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_image_types.h"
-#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
 #include "IMB_colormanagement.hh"
@@ -29,10 +26,6 @@
 
 #include "BKE_colorband.hh"
 #include "BKE_image.h"
-#include "BKE_material.h"
-#include "BKE_node.h"
-#include "BKE_scene.hh"
-#include "BKE_texture.h"
 
 #include "NOD_texture.h"
 

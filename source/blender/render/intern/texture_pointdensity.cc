@@ -21,19 +21,15 @@
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_lattice.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -41,8 +37,6 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "texture_common.h"
 
 #include "RE_texture.h"
 
