@@ -52,7 +52,7 @@ def setup():
         bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 0.0))
         grid = bpy.context.selected_objects[0]
         grid.scale = (1.735, 1.735, 1.735)
-        grid.data.bake_samples = 256
+        grid.data.grid_bake_samples = 256
         bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
     except:
         pass
