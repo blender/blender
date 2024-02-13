@@ -154,11 +154,18 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 };
 
 /* Descriptions for rna_enum_property_flag_items and rna_enum_property_flag_enum_items. */
-static constexpr auto PROP_HIDDEN_DESCR = "Hidden in the user interface. Inherits 'SKIP_PRESET'";
-static constexpr auto PROP_SKIP_SAVE_DESCR = "Do not use ghost values. Inherits 'SKIP_PRESET'";
+static constexpr auto PROP_HIDDEN_DESCR =
+    "For operators: hide from places in the user interface where Blender would add the property "
+    "automatically, like Adjust Last Operation. Also this property is not written to presets";
+static constexpr auto PROP_SKIP_SAVE_DESCR =
+    "For operators: the value of this property will not be remembered between invocations of the "
+    "operator; instead, each invocation will start by using the default value. Also this "
+    "property is not written to presets";
 static constexpr auto PROP_SKIP_PRESET_DESCR = "Do not write in presets";
 static constexpr auto PROP_ANIMATABLE_DESCR = "";
-static constexpr auto PROP_LIB_EXCEPTION_DESCR = "";
+static constexpr auto PROP_LIB_EXCEPTION_DESCR =
+    "This property can be edited, even when it is used on linked data (which normally is "
+    "read-only). Note that edits to the property will not be saved to the blend file";
 static constexpr auto PROP_PROPORTIONAL_DESCR = "";
 static constexpr auto PROP_TEXTEDIT_UPDATE_DESCR = "";
 static constexpr auto PROP_PATH_OUTPUT_DESCR = "";
