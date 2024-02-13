@@ -226,7 +226,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
       }
 
       blender::Array<float2> points_hull = convexhull_2d_as_array(points);
-      EXPECT_NEAR(std::fmod(convexhull_aabb_fit_hull_2d(points_hull), M_PI), 0.0f, ROTATION_EPS);
+      EXPECT_NEAR(convexhull_aabb_fit_hull_2d(points_hull), M_PI, ROTATION_EPS);
     }
   }
 
@@ -241,7 +241,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
       }
 
       blender::Array<float2> points_hull = convexhull_2d_as_array(points);
-      EXPECT_NEAR(std::fmod(convexhull_aabb_fit_hull_2d(points_hull), M_PI), 0.0f, ROTATION_EPS);
+      EXPECT_NEAR(convexhull_aabb_fit_hull_2d(points_hull), M_PI, ROTATION_EPS);
     }
   }
 }
