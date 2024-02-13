@@ -797,4 +797,58 @@ TEST(index_mask, FromEveryNth)
   }
 }
 
+TEST(index_mask, Shift)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask;
+    const IndexMask shifted_mask = mask.shift(10, memory);
+    EXPECT_TRUE(shifted_mask.is_empty());
+    EXPECT_EQ(mask, shifted_mask);
+  }
+  {
+    const IndexMask mask{IndexRange(100, 10)};
+    const IndexMask shifted_mask = mask.shift(1000, memory);
+    EXPECT_EQ(shifted_mask.size(), 10);
+    EXPECT_EQ(shifted_mask[0], 1100);
+    EXPECT_EQ(shifted_mask[9], 1109);
+  }
+  {
+    const IndexMask mask = IndexMask::from_initializers({4, 6, 7, IndexRange(100, 100)}, memory);
+    const IndexMask shifted_mask = mask.shift(1000, memory).shift(-1000, memory);
+    EXPECT_EQ(mask, shifted_mask);
+  }
+  {
+    const IndexMask mask{IndexRange(100, 10)};
+    const IndexMask shifted_mask = mask.shift(0, memory);
+    EXPECT_EQ(mask, shifted_mask);
+  }
+}
+
+TEST(index_mask, SliceAndShift)
+{
+  IndexMaskMemory memory;
+  {
+    const IndexMask mask{IndexRange(100, 10)};
+    const IndexMask new_mask = mask.slice_and_shift(5, 5, 1000, memory);
+    EXPECT_EQ(new_mask.size(), 5);
+    EXPECT_EQ(new_mask[0], 1105);
+    EXPECT_EQ(new_mask[1], 1106);
+  }
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({10, 100, 1'000, 10'000, 100'000}, memory);
+    const IndexMask new_mask = mask.slice_and_shift(IndexRange(1, 4), -100, memory);
+    EXPECT_EQ(new_mask.size(), 4);
+    EXPECT_EQ(new_mask[0], 0);
+    EXPECT_EQ(new_mask[1], 900);
+    EXPECT_EQ(new_mask[2], 9'900);
+    EXPECT_EQ(new_mask[3], 99'900);
+  }
+  {
+    const IndexMask mask = IndexMask::from_indices<int>({10, 100}, memory);
+    const IndexMask new_mask = mask.slice_and_shift(1, 0, 100, memory);
+    EXPECT_TRUE(new_mask.is_empty());
+  }
+}
+
 }  // namespace blender::index_mask::tests

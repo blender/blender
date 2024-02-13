@@ -190,20 +190,28 @@ IndexMask IndexMask::slice_and_shift(const int64_t start,
   if (std::optional<IndexRange> range = this->to_range()) {
     return range->slice(start, size).shift(offset);
   }
-  IndexMask sliced_mask = this->slice(start, size);
-  if (offset == 0) {
-    return sliced_mask;
+  return this->slice(start, size).shift(offset, memory);
+}
+
+IndexMask IndexMask::shift(const int64_t offset, IndexMaskMemory &memory) const
+{
+  if (indices_num_ == 0) {
+    return {};
   }
-  if (std::optional<IndexRange> range = sliced_mask.to_range()) {
+  BLI_assert(this->first() + offset >= 0);
+  if (offset == 0) {
+    return *this;
+  }
+  if (std::optional<IndexRange> range = this->to_range()) {
     return range->shift(offset);
   }
-  MutableSpan<int64_t> new_segment_offsets = memory.allocate_array<int64_t>(
-      sliced_mask.segments_num_);
-  for (const int64_t i : new_segment_offsets.index_range()) {
-    new_segment_offsets[i] = sliced_mask.segment_offsets_[i] + offset;
+  IndexMask shifted_mask = *this;
+  MutableSpan<int64_t> new_segment_offsets = memory.allocate_array<int64_t>(segments_num_);
+  for (const int64_t i : IndexRange(segments_num_)) {
+    new_segment_offsets[i] = segment_offsets_[i] + offset;
   }
-  sliced_mask.segment_offsets_ = new_segment_offsets.data();
-  return sliced_mask;
+  shifted_mask.segment_offsets_ = new_segment_offsets.data();
+  return shifted_mask;
 }
 
 /**

@@ -300,6 +300,11 @@ class IndexMask : private IndexMaskData {
                             IndexMaskMemory &memory) const;
 
   /**
+   * Adds an offset to every index in the mask.
+   */
+  IndexMask shift(const int64_t offset, IndexMaskMemory &memory) const;
+
+  /**
    * \return A new index mask that contains all the indices from the universe that are not in the
    * current mask.
    */
