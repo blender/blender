@@ -112,6 +112,11 @@ void TranslateOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       Span<MemoryBuffer *> inputs)
 {
   MemoryBuffer *input = inputs[0];
+  if (input->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), input->get_elem(0, 0));
+    return;
+  }
+
   const int delta_x = this->get_delta_x();
   const int delta_y = this->get_delta_y();
   for (int y = area.ymin; y < area.ymax; y++) {
