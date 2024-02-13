@@ -5,15 +5,6 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BKE_compute_contexts.hh"
-#include "BKE_scene.hh"
-
-#include "DEG_depsgraph_query.hh"
-
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
-#include "NOD_geometry.hh"
 #include "NOD_socket.hh"
 #include "NOD_zone_socket_items.hh"
 

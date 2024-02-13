@@ -2,23 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.hh"
 #include "BLI_task.hh"
-
-#include "DNA_mesh_types.h"
-#include "DNA_pointcloud_types.h"
-#include "DNA_volume_types.h"
-
-#include "BKE_curves.hh"
-#include "BKE_grease_pencil.hh"
-#include "BKE_instances.hh"
-#include "BKE_mesh.hh"
-#include "BKE_pointcloud.hh"
-#include "BKE_volume.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "GEO_transform.hh"
 

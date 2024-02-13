@@ -4,8 +4,6 @@
 
 #include "node_geometry_util.hh"
 
-#include "NOD_socket_search_link.hh"
-
 #include <fmt/format.h>
 
 namespace blender::nodes::node_geo_remove_attribute_cc {

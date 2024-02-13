@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "node_function_util.hh"

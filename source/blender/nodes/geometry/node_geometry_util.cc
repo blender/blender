@@ -7,11 +7,7 @@
 
 #include "DNA_space_types.h"
 
-#include "BKE_context.hh"
-#include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_node.hh"
-#include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"

@@ -10,11 +10,7 @@
 
 #include "BKE_node.hh"
 
-#include "ED_node.hh"
-
 #include "BLT_translation.hh"
-
-#include "RNA_access.hh"
 
 #include "UI_resources.hh"
 

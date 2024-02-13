@@ -6,8 +6,6 @@
  * \ingroup cmpnodes
  */
 
-#include "RNA_access.hh"
-
 #include "BLI_string.h"
 
 #include "UI_interface.hh"

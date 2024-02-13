@@ -8,7 +8,6 @@
 
 #include "COM_cached_texture.hh"
 #include "COM_node_operation.hh"
-#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
