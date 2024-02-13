@@ -2071,8 +2071,15 @@ static bool lib_override_library_resync(Main *bmain,
 
   ID *id_root_reference = id_root->override_library->reference;
   ID *id;
-  BKE_view_layer_synced_ensure(scene, view_layer);
-  const Object *old_active_object = BKE_view_layer_active_object_get(view_layer);
+
+  const Object *old_active_object = nullptr;
+  if (view_layer) {
+    BKE_view_layer_synced_ensure(scene, view_layer);
+    old_active_object = BKE_view_layer_active_object_get(view_layer);
+  }
+  else {
+    BKE_scene_view_layers_synced_ensure(scene);
+  }
 
   if (id_root_reference->tag & LIB_TAG_MISSING) {
     BKE_reportf(reports != nullptr ? reports->reports : nullptr,
