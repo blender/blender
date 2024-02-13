@@ -17,52 +17,60 @@ def setup():
     for scene in bpy.data.scenes:
         scene.render.engine = 'BLENDER_EEVEE_NEXT'
 
-    # Enable Eevee features
-    scene = bpy.context.scene
-    eevee = scene.eevee
-    ray_tracing = eevee.ray_tracing_options
+        # Enable Eevee features
+        eevee = scene.eevee
 
-    eevee.gtao_distance = 1
-    eevee.use_volumetric_shadows = True
-    eevee.volumetric_tile_size = '2'
-    scene.render.use_motion_blur = True
-    # Overscan of 50 will doesn't offset the final image, and adds more information for screen based ray tracing.
-    eevee.use_overscan = True
-    eevee.overscan_size = 50.0
-    eevee.use_raytracing = True
-    eevee.ray_tracing_method = 'SCREEN'
-    ray_tracing.resolution_scale = "1"
-    ray_tracing.screen_trace_quality = 1.0
-    ray_tracing.screen_trace_thickness = 1.0
-    # Due to an issue in HiZ-buffer set the probe resolution to 256. When the
-    # probe resolution is to high it will be corrupted as the HiZ buffer isn't
-    # large enough
-    eevee.gi_cubemap_resolution = '256'
+        # Overscan of 50 will doesn't offset the final image, and adds more information for screen based ray tracing.
+        eevee.use_overscan = True
+        eevee.overscan_size = 50.0
 
-    # Does not work in edit mode
-    try:
-        # Simple probe setup
-        bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.0, 0.0, 0.0))
-        cubemap = bpy.context.selected_objects[0]
-        cubemap.scale = (1.0, 1.0, 1.0)
-        cubemap.data.falloff = 0.0
-        cubemap.data.clip_start = 0.8
-        cubemap.data.influence_distance = 1.2
+        # Ambient Occlusion Pass
+        eevee.gtao_distance = 1
 
-        bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 0.0))
-        grid = bpy.context.selected_objects[0]
-        grid.scale = (1.735, 1.735, 1.735)
-        grid.data.grid_bake_samples = 256
-        bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
-    except:
-        pass
+        # Volumetric
+        eevee.volumetric_tile_size = '2'
+        eevee.volumetric_start = 1.0
+        eevee.volumetric_end = 50.0
+        eevee.volumetric_samples = 128
+        eevee.use_volumetric_shadows = True
 
-    # Only include the plane in probes
-    for ob in scene.objects:
-        if ob.name != 'Plane' and ob.type != 'LIGHT':
-            ob.hide_probe_volume = True
-            ob.hide_probe_sphere = True
-            ob.hide_probe_plane = True
+        # Motion Blur
+        if scene.render.use_motion_blur:
+            eevee.motion_blur_steps = 10
+
+        # Ray-tracing
+        eevee.use_raytracing = False
+        eevee.ray_tracing_method = 'SCREEN'
+        ray_tracing = eevee.ray_tracing_options
+        ray_tracing.resolution_scale = "1"
+        ray_tracing.screen_trace_quality = 1.0
+        ray_tracing.screen_trace_thickness = 1.0
+
+        # Light-probes
+        eevee.gi_cubemap_resolution = '256'
+
+        # Does not work in edit mode
+        if bpy.context.mode == 'OBJECT':
+            # Simple probe setup
+            bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.0, 0.0, 0.0))
+            cubemap = bpy.context.selected_objects[0]
+            cubemap.scale = (1.0, 1.0, 1.0)
+            cubemap.data.falloff = 0.0
+            cubemap.data.clip_start = 0.8
+            cubemap.data.influence_distance = 1.2
+
+            bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 0.0))
+            grid = bpy.context.selected_objects[0]
+            grid.scale = (1.735, 1.735, 1.735)
+            grid.data.grid_bake_samples = 256
+            bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
+
+        # Only include the plane in probes
+        for ob in scene.objects:
+            if ob.name != 'Plane' and ob.type != 'LIGHT':
+                ob.hide_probe_volume = True
+                ob.hide_probe_sphere = True
+                ob.hide_probe_plane = True
 
 
 # When run from inside Blender, render and exit.
