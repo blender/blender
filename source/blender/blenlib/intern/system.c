@@ -13,9 +13,6 @@
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
-#include "BLI_utildefines.h"
-
-#include "MEM_guardedalloc.h"
 
 /* for backtrace and gethostname/GetComputerName */
 #if defined(WIN32)

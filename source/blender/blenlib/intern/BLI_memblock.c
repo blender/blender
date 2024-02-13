@@ -11,8 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "atomic_ops.h"
-
 #include "BLI_utildefines.h"
 
 #include "BLI_memblock.h" /* own include */

@@ -11,7 +11,6 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 
-#include "BLI_math_base_safe.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

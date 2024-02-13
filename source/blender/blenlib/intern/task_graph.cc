@@ -8,8 +8,6 @@
  * Task graph.
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_task.h"
 
 #include <memory>

@@ -12,8 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-
 #include "BLI_lazy_threading.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"

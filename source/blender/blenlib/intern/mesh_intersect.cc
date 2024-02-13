@@ -21,7 +21,6 @@
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
-#  include "BLI_math_boolean.hh"
 #  include "BLI_math_geom.h"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_mpq.hh"
@@ -35,7 +34,6 @@
 #  include "BLI_task.h"
 #  include "BLI_task.hh"
 #  include "BLI_threads.h"
-#  include "BLI_time.h"
 #  include "BLI_vector.hh"
 #  include "BLI_vector_set.hh"
 

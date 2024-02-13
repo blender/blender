@@ -15,7 +15,6 @@
 #include "BLI_strict_flags.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
-#include "BLI_timeit.hh"
 #include "BLI_virtual_array.hh"
 
 namespace blender::index_mask {
