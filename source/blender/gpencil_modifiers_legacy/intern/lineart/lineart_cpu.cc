@@ -11,7 +11,6 @@
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_lineart.h"
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -27,8 +26,6 @@
 #include "BKE_collection.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_duplilist.h"
-#include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -36,10 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_pointcache.h"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -50,7 +44,6 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"

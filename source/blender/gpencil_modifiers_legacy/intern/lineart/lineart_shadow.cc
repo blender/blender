@@ -13,24 +13,14 @@
 
 #include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.hh"
-#include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_task.h"
 #include "BLI_time.h"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
-#include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
