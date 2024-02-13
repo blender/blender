@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
 #include <iostream>
 #include <mutex>
 
@@ -93,23 +94,18 @@ std::ostream &operator<<(std::ostream &stream, const IndexMask &mask)
   mask.to_indices<int64_t>(indices);
   Vector<std::variant<IndexRange, Span<int64_t>>> segments;
   unique_sorted_indices::split_to_ranges_and_spans<int64_t>(indices, 8, segments);
-  std::cout << "(Size: " << mask.size() << " | ";
+  Vector<std::string> parts;
   for (const std::variant<IndexRange, Span<int64_t>> &segment : segments) {
     if (std::holds_alternative<IndexRange>(segment)) {
       const IndexRange range = std::get<IndexRange>(segment);
-      std::cout << range;
+      parts.append(fmt::format("{}-{}", range.first(), range.last()));
     }
     else {
       const Span<int64_t> segment_indices = std::get<Span<int64_t>>(segment);
-      std::cout << "[";
-      for (const int64_t index : segment_indices) {
-        std::cout << index << ",";
-      }
-      std::cout << "]";
+      parts.append(fmt::format("{}", fmt::join(segment_indices, ", ")));
     }
-    std::cout << ", ";
   }
-  std::cout << ")";
+  stream << fmt::format("(Size: {} | {})", mask.size(), fmt::join(parts, ", "));
   return stream;
 }
 
