@@ -8,15 +8,11 @@
  * Duplicate geometry from one mesh from another.
  */
 
-#include "DNA_object_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_math_vector.h"
 
 #include "bmesh.hh"
-#include "intern/bmesh_private.hh" /* for element checking */
 
 static BMVert *bm_vert_copy(BMesh *bm_dst,
                             const std::optional<BMCustomDataCopyMap> &cd_vert_map,
