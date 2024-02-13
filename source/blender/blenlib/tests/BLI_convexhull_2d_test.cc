@@ -198,13 +198,11 @@ TEST(convexhull_2d, Lines_AxisAligned)
     }
   }
 
-  /* FIXME(@ideasman42): This exposes a flaw in convex hull calculation
-   * writing past the buffer bounds. This needs further investigation. */
-  if (false) { /* Vertical line (2 points). */
+  { /* Vertical line (2 points). */
     for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 1.0f * sign_y}};
       EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
-                  float(math::AngleRadian::from_degree(0.0f)),
+                  float(math::AngleRadian::from_degree(180.0f)),
                   ROTATION_EPS);
     }
   }
@@ -212,7 +210,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
     for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 1.0f * sign_y}, {0.0f, 2.0f * sign_y}};
       EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
-                  float(math::AngleRadian::from_degree(0.0f)),
+                  float(math::AngleRadian::from_degree(180.0f)),
                   ROTATION_EPS);
     }
   }
