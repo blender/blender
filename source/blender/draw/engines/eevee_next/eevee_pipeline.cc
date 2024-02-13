@@ -1211,8 +1211,6 @@ void DeferredProbeLayer::render(View &view,
                                 Framebuffer &gbuffer_fb,
                                 int2 extent)
 {
-  inst_.pipelines.data.is_probe_reflection = true;
-  inst_.uniform_data.push_update();
 
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(prepass_ps_, view);
@@ -1231,8 +1229,6 @@ void DeferredProbeLayer::render(View &view,
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, view);
 
-  inst_.pipelines.data.is_probe_reflection = false;
-  inst_.uniform_data.push_update();
 }
 
 /** \} */
