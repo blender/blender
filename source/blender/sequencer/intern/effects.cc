@@ -15,7 +15,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -26,7 +25,6 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -45,7 +43,6 @@
 
 #include "BLI_math_color_blend.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "RE_pipeline.h"
@@ -62,8 +59,6 @@
 
 #include "effects.hh"
 #include "render.hh"
-#include "strip_time.hh"
-#include "utils.hh"
 
 using namespace blender;
 

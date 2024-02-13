@@ -18,13 +18,9 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_main.hh"
-#include "BKE_movieclip.h"
-#include "BKE_scene.hh"
 #include "BKE_sound.h"
 
 #include "strip_time.hh"
-#include "utils.hh"
 
 #include "SEQ_add.hh"
 #include "SEQ_animation.hh"
