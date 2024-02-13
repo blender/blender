@@ -380,7 +380,7 @@ SphericalHarmonicL1 spherical_harmonics_triple_product(SphericalHarmonicL1 a,
   sh.L1.M0 += ta * b.L1.M0 + tb * a.L1.M0;
   sh.L0.M0 += 0.282094795 * (a.L1.M0 * b.L1.M0);
 
-  sh.L1.Mp1 += ta * b.L1.Mp1 + tb * a.L1.Mp1;
+  sh.L1.Mp1 = ta * b.L1.Mp1 + tb * a.L1.Mp1;
   sh.L0.M0 += 0.282094791 * (a.L1.Mp1 * b.L1.Mp1);
   return sh;
 }
