@@ -1991,9 +1991,10 @@ static void space_view3d_refresh(const bContext *C, ScrArea *area)
   MEM_SAFE_FREE(v3d->runtime.local_stats);
 }
 
-static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const IDRemapper *mappings)
+static void view3d_id_remap_v3d_ob_centers(View3D *v3d,
+                                           const blender::bke::id::IDRemapper &mappings)
 {
-  if (BKE_id_remapper_apply(mappings, (ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
+  if (mappings.apply((ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* Otherwise, bone-name may remain valid...
@@ -2002,10 +2003,13 @@ static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const IDRemapper *mappin
   }
 }
 
-static void view3d_id_remap_v3d(
-    ScrArea *area, SpaceLink *slink, View3D *v3d, const IDRemapper *mappings, const bool is_local)
+static void view3d_id_remap_v3d(ScrArea *area,
+                                SpaceLink *slink,
+                                View3D *v3d,
+                                const blender::bke::id::IDRemapper &mappings,
+                                const bool is_local)
 {
-  if (BKE_id_remapper_apply(mappings, (ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
+  if (mappings.apply((ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
@@ -2023,11 +2027,13 @@ static void view3d_id_remap_v3d(
   }
 }
 
-static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const IDRemapper *mappings)
+static void view3d_id_remap(ScrArea *area,
+                            SpaceLink *slink,
+                            const blender::bke::id::IDRemapper &mappings)
 {
 
-  if (!BKE_id_remapper_has_mapping_for(mappings,
-                                       FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_MC))
+  if (!mappings.contains_mappings_for_any(FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM |
+                                          FILTER_ID_MC))
   {
     return;
   }

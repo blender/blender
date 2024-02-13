@@ -152,7 +152,9 @@ static void spreadsheet_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Spreadsheet Generic", SPACE_SPREADSHEET, RGN_TYPE_WINDOW);
 }
 
-static void spreadsheet_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void spreadsheet_id_remap(ScrArea * /*area*/,
+                                 SpaceLink *slink,
+                                 const blender::bke::id::IDRemapper &mappings)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
   BKE_viewer_path_id_remap(&sspreadsheet->viewer_path, mappings);

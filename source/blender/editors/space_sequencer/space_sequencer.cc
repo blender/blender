@@ -906,10 +906,12 @@ static void sequencer_buttons_region_listener(const wmRegionListenerParams *para
   }
 }
 
-static void sequencer_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void sequencer_id_remap(ScrArea * /*area*/,
+                               SpaceLink *slink,
+                               const blender::bke::id::IDRemapper &mappings)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
-  BKE_id_remapper_apply(mappings, (ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
 }
 
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

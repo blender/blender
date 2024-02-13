@@ -66,7 +66,8 @@
 
 static int gather_strip_data_ids_to_null(LibraryIDLinkCallbackData *cb_data)
 {
-  IDRemapper *id_remapper = static_cast<IDRemapper *>(cb_data->user_data);
+  blender::bke::id::IDRemapper &id_remapper = *static_cast<blender::bke::id::IDRemapper *>(
+      cb_data->user_data);
   ID *id = *cb_data->id_pointer;
 
   /* We don't care about embedded, loop-back, or internal IDs. */
@@ -82,7 +83,7 @@ static int gather_strip_data_ids_to_null(LibraryIDLinkCallbackData *cb_data)
     /* Nullify everything that is not:
      * #bSound, #MovieClip, #Image, #Text, #VFont, #bAction, or #Collection IDs. */
     if (!ELEM(id_type, ID_SO, ID_MC, ID_IM, ID_TXT, ID_VF, ID_AC)) {
-      BKE_id_remapper_add(id_remapper, id, nullptr);
+      id_remapper.add(id, nullptr);
       return IDWALK_RET_STOP_RECURSION;
     }
   }
@@ -183,12 +184,11 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
    * to copy whole scenes. We have to come up with a proper idea of how to copy and
    * paste scene strips.
    */
-  IDRemapper *id_remapper = BKE_id_remapper_create();
+  blender::bke::id::IDRemapper id_remapper;
   BKE_library_foreach_ID_link(
-      bmain_src, &scene_dst->id, gather_strip_data_ids_to_null, id_remapper, IDWALK_RECURSE);
+      bmain_src, &scene_dst->id, gather_strip_data_ids_to_null, &id_remapper, IDWALK_RECURSE);
 
   BKE_libblock_remap_multiple(bmain_src, id_remapper, 0);
-  BKE_id_remapper_free(id_remapper);
 
   /* Ensure that there are no old copy tags around */
   BKE_blendfile_write_partial_begin(bmain_src);

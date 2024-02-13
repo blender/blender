@@ -412,7 +412,7 @@ static void wm_main_remap_msgbus_notify(ID *old_id, ID *new_id, void *user_data)
   }
 }
 
-void WM_main_remap_editor_id_reference(const IDRemapper *mappings)
+void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings)
 {
   Main *bmain = G_MAIN;
 
@@ -424,11 +424,11 @@ void WM_main_remap_editor_id_reference(const IDRemapper *mappings)
     }
   }
 
-  BKE_id_remapper_iter(mappings, wm_main_remap_assetlist, nullptr);
+  mappings.iter(wm_main_remap_assetlist, nullptr);
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm && wm->message_bus) {
-    BKE_id_remapper_iter(mappings, wm_main_remap_msgbus_notify, wm->message_bus);
+    mappings.iter(wm_main_remap_msgbus_notify, wm->message_bus);
   }
 
   AS_asset_library_remap_ids(mappings);

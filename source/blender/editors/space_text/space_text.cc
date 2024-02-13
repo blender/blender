@@ -376,10 +376,12 @@ static void text_properties_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-static void text_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void text_id_remap(ScrArea * /*area*/,
+                          SpaceLink *slink,
+                          const blender::bke::id::IDRemapper &mappings)
 {
   SpaceText *stext = (SpaceText *)slink;
-  BKE_id_remapper_apply(mappings, (ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply((ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

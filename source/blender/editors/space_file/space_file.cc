@@ -827,7 +827,9 @@ static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
 }
 
-static void file_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper * /*mappings*/)
+static void file_id_remap(ScrArea *area,
+                          SpaceLink *sl,
+                          const blender::bke::id::IDRemapper & /*mappings*/)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
