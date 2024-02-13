@@ -1009,8 +1009,9 @@ if(NOT OPENIMAGEIO_TOOL)
   message(STATUS "Disabling sequencer render tests because OIIO oiiotool does not exist")
 else()
   set(render_tests
-    transform
+    effects
     filter
+    transform
   )
 
   foreach(render_test ${render_tests})
