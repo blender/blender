@@ -21,15 +21,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
 #include "BKE_image.h"
-#include "BKE_main.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 

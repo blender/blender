@@ -15,8 +15,6 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -24,13 +22,14 @@
 
 #include "GHOST_C-api.h"
 
-#include "GPU_platform.h"
+#ifdef WIN32
+#  include "GPU_platform.h"
+#endif
 
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
 
-#include "wm_surface.hh"
 #include "wm_xr_intern.hh"
 
 struct wmXrErrorHandlerData {

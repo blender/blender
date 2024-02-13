@@ -16,8 +16,6 @@
 
 #include "BKE_context.hh"
 
-#include "ED_screen.hh"
-
 #include "UI_interface.hh"
 
 #include "WM_api.hh"
