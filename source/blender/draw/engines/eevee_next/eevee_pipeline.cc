@@ -1126,38 +1126,39 @@ bool VolumePipeline::use_hit_list() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Deferred Probe Layer
+/** \name Deferred Probe Pipeline
+ *
+ * Closure data are written to intermediate buffer allowing screen space processing.
  * \{ */
 
-void DeferredProbeLayer::begin_sync()
+void DeferredProbePipeline::begin_sync()
 {
+  draw::PassMain &pass = opaque_layer_.prepass_ps_;
+  pass.init();
   {
-    prepass_ps_.init();
-    {
-      /* Common resources. */
+    /* Common resources. */
 
-      /* Textures. */
-      prepass_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    /* Textures. */
+    pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
 
-      prepass_ps_.bind_resources(inst_.uniform_data);
-      prepass_ps_.bind_resources(inst_.velocity);
-      prepass_ps_.bind_resources(inst_.sampling);
-    }
-
-    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-    /* Only setting up static pass because we don't use motion vectors for light-probes. */
-    prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided");
-    prepass_double_sided_static_ps_->state_set(state_depth_only);
-    prepass_single_sided_static_ps_ = &prepass_ps_.sub("SingleSided");
-    prepass_single_sided_static_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
+    pass.bind_resources(inst_.uniform_data);
+    pass.bind_resources(inst_.velocity);
+    pass.bind_resources(inst_.sampling);
   }
 
-  this->gbuffer_pass_sync(inst_);
+  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+  /* Only setting up static pass because we don't use motion vectors for light-probes. */
+  opaque_layer_.prepass_double_sided_static_ps_ = &pass.sub("DoubleSided");
+  opaque_layer_.prepass_double_sided_static_ps_->state_set(state_depth_only);
+  opaque_layer_.prepass_single_sided_static_ps_ = &pass.sub("SingleSided");
+  opaque_layer_.prepass_single_sided_static_ps_->state_set(state_depth_only | DRW_STATE_CULL_BACK);
+
+  opaque_layer_.gbuffer_pass_sync(inst_);
 }
 
-void DeferredProbeLayer::end_sync()
+void DeferredProbePipeline::end_sync()
 {
-  if (closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_REFLECTION)) {
+  if (opaque_layer_.closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_REFLECTION)) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
     /* Use depth test to reject background pixels. */
@@ -1178,42 +1179,43 @@ void DeferredProbeLayer::end_sync()
   }
 }
 
-PassMain::Sub *DeferredProbeLayer::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
+PassMain::Sub *DeferredProbePipeline::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
-                            prepass_single_sided_static_ps_ :
-                            prepass_double_sided_static_ps_;
+                            opaque_layer_.prepass_single_sided_static_ps_ :
+                            opaque_layer_.prepass_double_sided_static_ps_;
 
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
-PassMain::Sub *DeferredProbeLayer::material_add(::Material *blender_mat, GPUMaterial *gpumat)
+PassMain::Sub *DeferredProbePipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
   eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
-  closure_bits_ |= closure_bits;
-  closure_count_ = max_ii(closure_count_, count_bits_i(closure_bits));
+  opaque_layer_.closure_bits_ |= closure_bits;
+  opaque_layer_.closure_count_ = max_ii(opaque_layer_.closure_count_, count_bits_i(closure_bits));
 
   bool has_shader_to_rgba = (closure_bits & CLOSURE_SHADER_TO_RGBA) != 0;
   bool backface_culling = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) != 0;
 
   PassMain::Sub *pass = (has_shader_to_rgba) ?
-                            ((backface_culling) ? gbuffer_single_sided_hybrid_ps_ :
-                                                  gbuffer_double_sided_hybrid_ps_) :
-                            ((backface_culling) ? gbuffer_single_sided_ps_ :
-                                                  gbuffer_double_sided_ps_);
+                            ((backface_culling) ? opaque_layer_.gbuffer_single_sided_hybrid_ps_ :
+                                                  opaque_layer_.gbuffer_double_sided_hybrid_ps_) :
+                            ((backface_culling) ? opaque_layer_.gbuffer_single_sided_ps_ :
+                                                  opaque_layer_.gbuffer_double_sided_ps_);
 
   return &pass->sub(GPU_material_get_name(gpumat));
 }
 
-void DeferredProbeLayer::render(View &view,
-                                Framebuffer &prepass_fb,
-                                Framebuffer &combined_fb,
-                                Framebuffer &gbuffer_fb,
-                                int2 extent)
+void DeferredProbePipeline::render(View &view,
+                                   Framebuffer &prepass_fb,
+                                   Framebuffer &combined_fb,
+                                   Framebuffer &gbuffer_fb,
+                                   int2 extent)
 {
+  GPU_debug_group_begin("Probe.Render");
 
   GPU_framebuffer_bind(prepass_fb);
-  inst_.manager->submit(prepass_ps_, view);
+  inst_.manager->submit(opaque_layer_.prepass_ps_, view);
 
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.lights.set_view(view, extent);
@@ -1224,49 +1226,11 @@ void DeferredProbeLayer::render(View &view,
   inst_.hiz_buffer.update();
 
   inst_.gbuffer.bind(gbuffer_fb);
-  inst_.manager->submit(gbuffer_ps_, view);
+  inst_.manager->submit(opaque_layer_.gbuffer_ps_, view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(eval_light_ps_, view);
 
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Deferred Probe Pipeline
- *
- * Closure data are written to intermediate buffer allowing screen space processing.
- * \{ */
-
-void DeferredProbePipeline::begin_sync()
-{
-  opaque_layer_.begin_sync();
-}
-
-void DeferredProbePipeline::end_sync()
-{
-  opaque_layer_.end_sync();
-}
-
-PassMain::Sub *DeferredProbePipeline::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
-{
-  return opaque_layer_.prepass_add(blender_mat, gpumat);
-}
-
-PassMain::Sub *DeferredProbePipeline::material_add(::Material *blender_mat, GPUMaterial *gpumat)
-{
-  return opaque_layer_.material_add(blender_mat, gpumat);
-}
-
-void DeferredProbePipeline::render(View &view,
-                                   Framebuffer &prepass_fb,
-                                   Framebuffer &combined_fb,
-                                   Framebuffer &gbuffer_fb,
-                                   int2 extent)
-{
-  GPU_debug_group_begin("Probe.Render");
-  opaque_layer_.render(view, prepass_fb, combined_fb, gbuffer_fb, extent);
   GPU_debug_group_end();
 }
 
