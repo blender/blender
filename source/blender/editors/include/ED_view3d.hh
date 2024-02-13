@@ -827,10 +827,6 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
                                float radius);
 
 /**
- * Back-buffer select and draw support.
- */
-void ED_view3d_backbuf_depth_validate(ViewContext *vc);
-/**
  * allow for small values [0.5 - 2.5],
  * and large values, FLT_MAX by clamping by the area size
  */
