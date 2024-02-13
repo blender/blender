@@ -277,7 +277,9 @@ static void constraint_snap_plane_to_edge(const TransInfo *t, const float plane[
   const float *edge_snap_point = t->tsnap.snap_target;
   const float *edge_dir = t->tsnap.snapNormal;
   bool is_aligned = fabsf(dot_v3v3(edge_dir, plane)) < CONSTRAIN_EPSILON;
-  if (!is_aligned && isect_ray_plane_v3(edge_snap_point, edge_dir, plane, &lambda, false)) {
+  if (!is_aligned &&
+      isect_ray_plane_v3_factor(edge_snap_point, edge_dir, t->tsnap.snap_source, plane, &lambda))
+  {
     madd_v3_v3v3fl(r_out, edge_snap_point, edge_dir, lambda);
     sub_v3_v3(r_out, t->tsnap.snap_source);
   }

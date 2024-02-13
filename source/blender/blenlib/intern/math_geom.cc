@@ -1698,22 +1698,33 @@ bool isect_ray_tri_v3(const float ray_origin[3],
   return true;
 }
 
+bool isect_ray_plane_v3_factor(const float ray_origin[3],
+                               const float ray_direction[3],
+                               const float plane_co[3],
+                               const float plane_no[3],
+                               float *r_lambda)
+{
+  float h[3];
+  float dot = dot_v3v3(plane_no, ray_direction);
+  if (dot == 0.0f) {
+    return false;
+  }
+  sub_v3_v3v3(h, ray_origin, plane_co);
+  *r_lambda = -dot_v3v3(plane_no, h) / dot;
+  return true;
+}
+
 bool isect_ray_plane_v3(const float ray_origin[3],
                         const float ray_direction[3],
                         const float plane[4],
                         float *r_lambda,
                         const bool clip)
 {
-  float h[3], plane_co[3];
-  float dot;
-
-  dot = dot_v3v3(plane, ray_direction);
-  if (dot == 0.0f) {
+  float plane_co[3], plane_no[3];
+  plane_to_point_vector_v3(plane, plane_co, plane_no);
+  if (!isect_ray_plane_v3_factor(ray_origin, ray_direction, plane_co, plane_no, r_lambda)) {
     return false;
   }
-  mul_v3_v3fl(plane_co, plane, (-plane[3] / len_squared_v3(plane)));
-  sub_v3_v3v3(h, ray_origin, plane_co);
-  *r_lambda = -dot_v3v3(plane, h) / dot;
   if (clip && (*r_lambda < 0.0f)) {
     return false;
   }
