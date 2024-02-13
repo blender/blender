@@ -593,6 +593,11 @@ static void workbench_instance_free(void *instance)
   delete reinterpret_cast<workbench::Instance *>(instance);
 }
 
+static void workbench_engine_free()
+{
+  workbench::ShaderCache::release();
+}
+
 static void workbench_view_update(void *vedata)
 {
   WORKBENCH_Data *ved = reinterpret_cast<WORKBENCH_Data *>(vedata);
@@ -806,7 +811,7 @@ DrawEngineType draw_engine_workbench = {
     /*idname*/ N_("Workbench"),
     /*vedata_size*/ &workbench_data_size,
     /*engine_init*/ &workbench_engine_init,
-    /*engine_free*/ nullptr,
+    /*engine_free*/ &workbench_engine_free,
     /*instance_free*/ &workbench_instance_free,
     /*cache_init*/ &workbench_cache_init,
     /*cache_populate*/ &workbench_cache_populate,
