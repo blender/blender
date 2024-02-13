@@ -13,13 +13,10 @@
 
 #include "BKE_context.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_screen.hh"
 
-#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "ED_object.hh"
@@ -35,7 +32,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh" /* Self include */
 
 /**

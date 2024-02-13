@@ -27,13 +27,11 @@
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_scene.hh"
-#include "BKE_screen.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_deform.hh"
 #include "BKE_subdiv_mesh.hh"
 #include "BKE_subdiv_modifier.hh"
-#include "BKE_subsurf.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -48,8 +46,6 @@
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
-
-#include "BLO_read_write.hh"
 
 #include "intern/CCGSubSurf.h"
 

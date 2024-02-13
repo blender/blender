@@ -19,16 +19,13 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_collection.hh"
-#include "BKE_context.hh"
 #include "BKE_global.hh" /* only to check G.debug */
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -45,17 +42,12 @@
 #include "RNA_prototypes.h"
 
 #include "MOD_ui_common.hh"
-#include "MOD_util.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "GEO_randomize.hh"
 
 #include "bmesh.hh"
-#include "bmesh_tools.hh"
-#include "tools/bmesh_boolean.hh"
 #include "tools/bmesh_intersect.hh"
 
 // #define DEBUG_TIME

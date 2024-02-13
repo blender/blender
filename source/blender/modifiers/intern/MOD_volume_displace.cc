@@ -8,9 +8,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_texture.h"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
@@ -21,7 +19,6 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_volume_types.h"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
@@ -29,16 +26,12 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLO_read_write.hh"
-
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "RE_texture.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_math_vector.h"

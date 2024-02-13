@@ -21,25 +21,15 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_editmesh.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
-
-#include "BLO_read_write.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
