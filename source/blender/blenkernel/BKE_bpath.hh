@@ -75,10 +75,10 @@ struct BPathForeachPathData;
  * \return `true` if the path has been changed, and in that case,
  * result must be written to `path_dst`.
  */
-typedef bool (*BPathForeachPathFunctionCallback)(BPathForeachPathData *bpath_data,
-                                                 char *path_dst,
-                                                 size_t path_dst_maxncpy,
-                                                 const char *path_src);
+using BPathForeachPathFunctionCallback = bool (*)(BPathForeachPathData *bpath_data,
+                                                  char *path_dst,
+                                                  size_t path_dst_maxncpy,
+                                                  const char *path_src);
 
 /** Storage for common data needed across the BPath 'foreach_path' code. */
 struct BPathForeachPathData {

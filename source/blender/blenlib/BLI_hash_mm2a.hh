@@ -10,12 +10,12 @@
 
 #include "BLI_sys_types.h"
 
-typedef struct BLI_HashMurmur2A {
+struct BLI_HashMurmur2A {
   uint32_t hash;
   uint32_t tail;
   uint32_t count;
   uint32_t size;
-} BLI_HashMurmur2A;
+};
 
 void BLI_hash_mm2a_init(BLI_HashMurmur2A *mm2, uint32_t seed);
 

@@ -249,7 +249,7 @@ void interpolate_cubic_mitchell_fl(
 #define EWA_MAXIDX 255
 extern const float EWA_WTS[EWA_MAXIDX + 1];
 
-typedef void (*ewa_filter_read_pixel_cb)(void *userdata, int x, int y, float result[4]);
+using ewa_filter_read_pixel_cb = void (*)(void *userdata, int x, int y, float result[4]);
 
 void BLI_ewa_imp2radangle(
     float A, float B, float C, float F, float *a, float *b, float *th, float *ecc);

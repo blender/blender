@@ -141,7 +141,7 @@ struct LibraryIDLinkCallbackData {
  *
  * \return a set of flags to control further iteration (0 to keep going).
  */
-typedef int (*LibraryIDLinkCallback)(LibraryIDLinkCallbackData *cb_data);
+using LibraryIDLinkCallback = int (*)(LibraryIDLinkCallbackData *cb_data);
 
 /* Flags for the foreach function itself. */
 enum {
