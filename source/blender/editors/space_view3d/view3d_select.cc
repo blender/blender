@@ -1194,7 +1194,7 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
       vc->scene->toolsettings);
 
   bool changed = false;
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
   for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
     const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
@@ -3200,7 +3200,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
   /* Get selection domain from tool settings. */
@@ -4224,7 +4224,7 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
       scene->toolsettings);
 
   bool changed = false;
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
   for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
     const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
@@ -5089,7 +5089,7 @@ static bool grease_pencil_circle_select(ViewContext *vc,
       vc->scene->toolsettings);
 
   bool changed = false;
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
   for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
     const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];

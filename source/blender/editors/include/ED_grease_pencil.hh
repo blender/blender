@@ -171,13 +171,16 @@ struct MutableDrawingInfo {
   bke::greasepencil::Drawing &drawing;
   const int layer_index;
   const int frame_number;
+  const float multi_frame_falloff;
 };
-Array<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
-                                                     GreasePencil &grease_pencil);
-Array<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
+Vector<MutableDrawingInfo> retrieve_editable_drawings(const Scene &scene,
+                                                      GreasePencil &grease_pencil);
+Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &scene,
+                                                                   GreasePencil &grease_pencil);
+Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer(
     const Scene &scene, GreasePencil &grease_pencil, const bke::greasepencil::Layer &layer);
-Array<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
-                                             const GreasePencil &grease_pencil);
+Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
+                                              const GreasePencil &grease_pencil);
 
 IndexMask retrieve_editable_strokes(Object &grease_pencil_object,
                                     const bke::greasepencil::Drawing &drawing,

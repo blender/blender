@@ -815,7 +815,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
           mat_local = float4x4(obedit->world_to_object) * float4x4(ob_iter->object_to_world);
         }
 
-        const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+        const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
             ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
         threading::parallel_for_each(
             drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
