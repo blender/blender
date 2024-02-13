@@ -6299,7 +6299,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 
-    if (!wm->is_interface_locked) {
+    if (!wm->runtime->is_interface_locked) {
       uiDefIconTextBut(block,
                        UI_BTYPE_BUT,
                        handle_event,

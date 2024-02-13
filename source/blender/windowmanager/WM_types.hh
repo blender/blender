@@ -112,10 +112,14 @@ struct wmWindowManager;
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
+
+#include "BKE_wm_runtime.hh"
+
 #include "RNA_types.hh"
 
 /* exported types for WM */

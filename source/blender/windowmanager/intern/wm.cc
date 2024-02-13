@@ -113,6 +113,8 @@ static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *
 {
   wmWindowManager *wm = (wmWindowManager *)id;
 
+  wm->runtime = nullptr;
+
   BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
   BKE_id_blend_write(writer, &wm->id);
   write_wm_xr_data(writer, &wm->xr);
@@ -227,7 +229,9 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   wm->winactive = nullptr;
   wm->init_flag = 0;
   wm->op_undo_depth = 0;
-  wm->is_interface_locked = 0;
+
+  BLI_assert(wm->runtime == nullptr);
+  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
 }
 
 static void window_manager_blend_read_after_liblink(BlendLibReader *reader, ID *id)
@@ -536,6 +540,7 @@ void wm_add_default(Main *bmain, bContext *C)
 
   wm->winactive = win;
   wm->file_saved = 1;
+  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
   wm_window_make_drawable(wm, win);
 }
 
@@ -596,6 +601,8 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   if (C && CTX_wm_manager(C) == wm) {
     CTX_wm_manager_set(C, nullptr);
   }
+
+  MEM_delete(wm->runtime);
 }
 
 void WM_main(bContext *C)

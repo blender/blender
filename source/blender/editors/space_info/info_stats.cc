@@ -484,7 +484,7 @@ static bool format_stats(
   if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
     wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-    if (wm->is_interface_locked) {
+    if (wm->runtime->is_interface_locked) {
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);

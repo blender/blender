@@ -1032,6 +1032,7 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
 
   parm = RNA_def_property(srna, "is_interface_locked", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(parm, nullptr, "runtime->is_interface_locked", 0);
   RNA_def_property_ui_text(
       parm,
       "Is Interface Locked",

@@ -105,7 +105,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
   /* Don't draw paint cursors with locked interface. Painting is not possible
    * then, and cursor drawing can use scene data that another thread may be
    * modifying. */
-  if (wm->is_interface_locked) {
+  if (wm->runtime->is_interface_locked) {
     return;
   }
 
