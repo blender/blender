@@ -617,8 +617,6 @@ class NlaInsertTest(AbstractKeyframingTest, unittest.TestCase):
         self.assertAlmostEqual(fcurve_loc_x.keyframe_points[-1].co[1], 1.0, 8)
 
 
-
-
 def main():
     global args
     import argparse
