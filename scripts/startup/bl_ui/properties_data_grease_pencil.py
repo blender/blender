@@ -51,6 +51,10 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
 
         layout.operator("grease_pencil.layer_group_add", text="Add Group")
 
+        layout.separator()
+        layout.operator("grease_pencil.layer_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
+        layout.operator("grease_pencil.layer_hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
+
 
 class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
     bl_label = "Layers"
