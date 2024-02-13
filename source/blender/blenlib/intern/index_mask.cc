@@ -874,7 +874,7 @@ static Array<int16_t> build_every_nth_index_array(const int64_t n)
 }
 
 /**
- * Returns a span containting every nth index. This is optimized for a few special values of n
+ * Returns a span containing every nth index. This is optimized for a few special values of n
  * which are cached. The returned indices have either static life-time, or they are freed when the
  * given memory is feed.
  */

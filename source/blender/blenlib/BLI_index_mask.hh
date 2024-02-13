@@ -187,7 +187,7 @@ class IndexMask : private IndexMaskData {
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);
   /**
-   * Constructs a mask by repeating the indices inthe given mask with a stride.
+   * Constructs a mask by repeating the indices in the given mask with a stride.
    * For example, with an input mask containing `{3, 5}` and a stride of 10 the resulting mask
    * would contain `{3, 5, 13, 15, 23, 25, ...}`.
    */

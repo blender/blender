@@ -205,7 +205,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
       float3 vert_coordinate;
       copy_v3_v3(vert_coordinate, mpv->co);
       if (cam_eval) {
-        /* Projecting the point into world space from the cameras pov. */
+        /* Projecting the point into world space from the cameras POV. */
         vert_coordinate = math::transform_point(float4x4(cam_eval->object_to_world),
                                                 vert_coordinate);
       }
