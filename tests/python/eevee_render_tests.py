@@ -103,7 +103,6 @@ if inside_blender:
 def get_gpu_device_type(blender):
     command = [
         blender,
-        "-noaudio",
         "--background",
         "--factory-startup",
         "--python",
@@ -123,7 +122,6 @@ def get_gpu_device_type(blender):
 def get_arguments(filepath, output_filepath):
     return [
         "--background",
-        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",

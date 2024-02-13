@@ -535,7 +535,7 @@ check_spelling_shaders: .FORCE
 	    "$(BLENDER_DIR)/source/"
 
 check_descriptions: .FORCE
-	@$(BLENDER_BIN) --background -noaudio --factory-startup --python \
+	@$(BLENDER_BIN) --background --factory-startup --python \
 	    "$(BLENDER_DIR)/tools/check_source/check_descriptions.py"
 
 check_deprecated: .FORCE
@@ -598,7 +598,7 @@ format: .FORCE
 doc_py: .FORCE
 	@ASAN_OPTIONS=halt_on_error=0:${ASAN_OPTIONS} \
 	$(BLENDER_BIN) \
-	    --background -noaudio --factory-startup \
+	    --background --factory-startup \
 	    --python doc/python_api/sphinx_doc_gen.py
 	@sphinx-build -b html -j $(NPROCS) doc/python_api/sphinx-in doc/python_api/sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/index.html'"
@@ -609,7 +609,7 @@ doc_doxy: .FORCE
 
 doc_dna: .FORCE
 	@$(BLENDER_BIN) \
-	    --background -noaudio --factory-startup \
+	    --background --factory-startup \
 	    --python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 

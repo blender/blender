@@ -23,7 +23,6 @@ ENABLE_REALTIME_COMPOSITOR_SCRIPT = "import bpy; " \
 def get_arguments(filepath, output_filepath):
     return [
         "--background",
-        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",

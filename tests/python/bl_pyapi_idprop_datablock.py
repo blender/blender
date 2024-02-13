@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_idprop_datablock.py -- --verbose
+# ./blender.bin --background --python tests/python/bl_pyapi_idprop_datablock.py -- --verbose
 
 import contextlib
 import inspect
