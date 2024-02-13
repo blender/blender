@@ -172,17 +172,17 @@ IndexMask IndexMask::slice_content(const int64_t start, const int64_t size) cons
   return this->slice(*first_it, *last_it, sliced_mask_size);
 }
 
-IndexMask IndexMask::slice_and_offset(const IndexRange range,
-                                      const int64_t offset,
-                                      IndexMaskMemory &memory) const
+IndexMask IndexMask::slice_and_shift(const IndexRange range,
+                                     const int64_t offset,
+                                     IndexMaskMemory &memory) const
 {
-  return this->slice_and_offset(range.start(), range.size(), offset, memory);
+  return this->slice_and_shift(range.start(), range.size(), offset, memory);
 }
 
-IndexMask IndexMask::slice_and_offset(const int64_t start,
-                                      const int64_t size,
-                                      const int64_t offset,
-                                      IndexMaskMemory &memory) const
+IndexMask IndexMask::slice_and_shift(const int64_t start,
+                                     const int64_t size,
+                                     const int64_t offset,
+                                     IndexMaskMemory &memory) const
 {
   if (size == 0) {
     return {};

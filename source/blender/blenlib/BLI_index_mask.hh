@@ -290,14 +290,14 @@ class IndexMask : private IndexMaskData {
   IndexMask slice_content(IndexRange range) const;
   IndexMask slice_content(int64_t start, int64_t size) const;
   /**
-   * Same as above but can also add an offset to every index in the mask.
+   * Same #slice but can also add an offset to every index in the mask.
    * Takes O(log n + range.size()) time but with a very small constant factor.
    */
-  IndexMask slice_and_offset(IndexRange range, int64_t offset, IndexMaskMemory &memory) const;
-  IndexMask slice_and_offset(int64_t start,
-                             int64_t size,
-                             int64_t offset,
-                             IndexMaskMemory &memory) const;
+  IndexMask slice_and_shift(IndexRange range, int64_t offset, IndexMaskMemory &memory) const;
+  IndexMask slice_and_shift(int64_t start,
+                            int64_t size,
+                            int64_t offset,
+                            IndexMaskMemory &memory) const;
 
   /**
    * \return A new index mask that contains all the indices from the universe that are not in the
