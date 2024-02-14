@@ -2236,7 +2236,8 @@ void RE_RenderAnim(Render *re,
 
               if (BLI_exists(filepath_view)) {
                 is_skip = true;
-                printf("skipping existing frame \"%s\" for view \"%s\"\n", filepath_view, srv->name);
+                printf(
+                    "skipping existing frame \"%s\" for view \"%s\"\n", filepath_view, srv->name);
               }
             }
 

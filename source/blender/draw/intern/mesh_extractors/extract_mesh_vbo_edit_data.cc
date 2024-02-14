@@ -321,7 +321,7 @@ static void extract_edit_data_loose_geom_subdiv(const DRWSubdivCache *subdiv_cac
     memset(data, 0, sizeof(EditLoopData));
     const int edge_index = loose_edge.coarse_edge_index;
     BMEdge *eed = mr->e_origindex ? bm_original_edge_get(mr, edge_index) :
-                                   BM_edge_at_index(mr->bm, edge_index);
+                                    BM_edge_at_index(mr->bm, edge_index);
     if (eed) {
       mesh_render_data_edge_flag(mr, eed, &data[0]);
       data[1] = data[0];
