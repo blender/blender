@@ -13,6 +13,7 @@
 #include "util/log.h"
 
 #ifdef WITH_OSL
+#  include <OSL/oslconfig.h>
 #  include <OSL/oslversion.h>
 #endif
 
@@ -72,7 +73,8 @@ void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo
 
     info.type = DEVICE_OPTIX;
     info.id += "_OptiX";
-#  if defined(WITH_OSL) && (OSL_VERSION_MINOR >= 13 || OSL_VERSION_MAJOR > 1)
+#  if defined(WITH_OSL) && defined(OSL_USE_OPTIX) && \
+      (OSL_VERSION_MINOR >= 13 || OSL_VERSION_MAJOR > 1)
     info.has_osl = true;
 #  endif
     info.denoisers |= DENOISER_OPTIX;
