@@ -32,6 +32,8 @@
 
 #include "MEM_guardedalloc.h"
 
+using namespace blender::bke::id;
+
 namespace blender::bke::tests {
 
 class TestData {
@@ -298,7 +300,7 @@ TEST(lib_remap, never_null_usage_flag_not_requested_on_delete)
   EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, 0);
 }
 
-TEST(lib_remap, never_null_usage_flag_requested_on_delete)
+TEST(lib_remap, never_null_usage_storage_requested_on_delete)
 {
   Context<MeshObjectTestData> context;
 
@@ -306,14 +308,19 @@ TEST(lib_remap, never_null_usage_flag_requested_on_delete)
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
   EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, 0);
 
-  /* Never null usage is requested so the flag should be set. */
-  BKE_libblock_remap(context.test_data.bmain,
-                     context.test_data.mesh,
-                     nullptr,
-                     ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_FLAG_NEVER_NULL_USAGE);
+  /* Never null usage is requested so the owner ID (the Object) should be added to the set. */
+  IDRemapper remapper;
+  remapper.add(&context.test_data.mesh->id, nullptr);
+  BKE_libblock_remap_multiple_locked(
+      context.test_data.bmain,
+      remapper,
+      (ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_STORE_NEVER_NULL_USAGE));
+
+  /* Never null usages unassignement is not enforced (no #ID_REMAP_FORCE_NEVER_NULL_USAGE), so the
+   * obdta should still use the original mesh. */
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
   EXPECT_NE(context.test_data.object->data, nullptr);
-  EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, LIB_TAG_DOIT);
+  EXPECT_TRUE(remapper.never_null_users().contains(&context.test_data.object->id));
 }
 
 TEST(lib_remap, never_null_usage_flag_not_requested_on_remap)
@@ -332,7 +339,7 @@ TEST(lib_remap, never_null_usage_flag_not_requested_on_remap)
   EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, 0);
 }
 
-TEST(lib_remap, never_null_usage_flag_requested_on_remap)
+TEST(lib_remap, never_null_usage_storage_requested_on_remap)
 {
   Context<MeshObjectTestData> context;
   Mesh *other_mesh = BKE_mesh_add(context.test_data.bmain, nullptr);
@@ -341,13 +348,16 @@ TEST(lib_remap, never_null_usage_flag_requested_on_remap)
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
   EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, 0);
 
-  /* Never null usage is requested so the flag should be set. */
-  BKE_libblock_remap(context.test_data.bmain,
-                     context.test_data.mesh,
-                     other_mesh,
-                     ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_FLAG_NEVER_NULL_USAGE);
+  /* Never null usage is requested, but the obdata is remapped to another Mesh, not to `nullptr`,
+   * so the `never_null_users` set should remain empty. */
+  IDRemapper remapper;
+  remapper.add(&context.test_data.mesh->id, &other_mesh->id);
+  BKE_libblock_remap_multiple_locked(
+      context.test_data.bmain,
+      remapper,
+      (ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_STORE_NEVER_NULL_USAGE));
   EXPECT_EQ(context.test_data.object->data, other_mesh);
-  EXPECT_EQ(context.test_data.object->id.tag & LIB_TAG_DOIT, LIB_TAG_DOIT);
+  EXPECT_TRUE(remapper.never_null_users().is_empty());
 }
 
 /** \} */

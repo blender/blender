@@ -20,6 +20,7 @@
 
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
@@ -214,7 +215,7 @@ void BKE_id_free_us(Main *bmain, void *idv) /* test users */
   }
 
   if (id->us == 0) {
-    BKE_libblock_unlink(bmain, id, false, false);
+    BKE_libblock_unlink(bmain, id, false);
 
     BKE_id_free(bmain, id);
   }
@@ -234,7 +235,7 @@ static size_t id_delete(Main *bmain,
   const int free_flag = LIB_ID_FREE_NO_UI_USER |
                         (do_tagged_deletion ? LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_USER_REFCOUNT :
                                               0);
-  const int remapping_flags = (ID_REMAP_FLAG_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE |
+  const int remapping_flags = (ID_REMAP_STORE_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE |
                                ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS | extra_remapping_flags);
   ListBase tagged_deleted_ids = {nullptr};
 
@@ -293,13 +294,17 @@ static size_t id_delete(Main *bmain,
         }
       }
 
-      /* Will tag 'never nullptr' users of this ID too.
+      /* Will store in remapper all 'never nullptr' users of this ID too.
        *
        * NOTE: #BKE_libblock_unlink() cannot be used here, since it would ignore indirect
        * links, this can lead to nasty crashing here in second, actual deleting loop.
        * Also, this will also flag users of deleted data that cannot be unlinked
        * (object using deleted obdata, etc.), so that they also get deleted. */
       BKE_libblock_remap_multiple_locked(bmain, id_remapper, remapping_flags);
+      /* Tag cleared 'never-null' user IDs for deletion too. */
+      for (ID *never_null_user_id : id_remapper.never_null_users()) {
+        never_null_user_id->tag |= tag;
+      }
       id_remapper.clear();
     }
 

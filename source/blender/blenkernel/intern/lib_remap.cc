@@ -256,8 +256,11 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
       skip_reference);
 #endif
 
-  if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) && (cb_flag & IDWALK_CB_NEVER_NULL)) {
-    id_owner->tag |= LIB_TAG_DOIT;
+  if ((id_remap_data->flag & ID_REMAP_STORE_NEVER_NULL_USAGE) &&
+      (cb_flag & IDWALK_CB_NEVER_NULL) &&
+      (expected_mapping_result == ID_REMAP_RESULT_SOURCE_UNASSIGNED))
+  {
+    id_remapper.never_null_users_add(id_owner);
   }
 
   /* Special hack in case it's Object->data and we are in edit mode, and new_id is not nullptr
@@ -715,13 +718,9 @@ void BKE_libblock_remap_multiple(Main *bmain, IDRemapper &mappings, const int re
   BKE_main_unlock(bmain);
 }
 
-void BKE_libblock_unlink(Main *bmain,
-                         void *idv,
-                         const bool do_flag_never_null,
-                         const bool do_skip_indirect)
+void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_skip_indirect)
 {
-  const int remap_flags = (do_skip_indirect ? ID_REMAP_SKIP_INDIRECT_USAGE : 0) |
-                          (do_flag_never_null ? ID_REMAP_FLAG_NEVER_NULL_USAGE : 0);
+  const int remap_flags = (do_skip_indirect ? ID_REMAP_SKIP_INDIRECT_USAGE : 0);
 
   BKE_main_lock(bmain);
 
