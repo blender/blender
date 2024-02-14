@@ -74,8 +74,6 @@ class SphereProbeModule {
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Index of the probe being updated. */
   int probe_index_ = 0;
-  /** Mip level being sampled for remapping. */
-  int probe_mip_level_ = 0;
   /** Updated Probe coordinates in the atlas. */
   SphereProbeUvArea probe_sampling_coord_;
   SphereProbePixelArea probe_write_coord_;

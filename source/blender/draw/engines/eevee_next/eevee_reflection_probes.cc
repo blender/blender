@@ -46,7 +46,6 @@ void SphereProbeModule::begin_sync()
     pass.push_constant("probe_coord_packed", reinterpret_cast<int4 *>(&probe_sampling_coord_));
     pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
     pass.push_constant("world_coord_packed", reinterpret_cast<int4 *>(&world_data.atlas_coord));
-    pass.push_constant("mip_level", &probe_mip_level_);
     pass.push_constant("probe_brightness_clamp", probe_brightness_clamp);
     pass.dispatch(&dispatch_probe_pack_);
   }
@@ -134,11 +133,8 @@ void SphereProbeModule::end_sync()
 
 void SphereProbeModule::ensure_cubemap_render_target(int resolution)
 {
-  if (cubemap_tx_.ensure_cube(
-          GPU_RGBA16F, resolution, GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ))
-  {
-    GPU_texture_mipmap_mode(cubemap_tx_, false, true);
-  }
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+  cubemap_tx_.ensure_cube(GPU_RGBA16F, resolution, usage);
   /* TODO(fclem): deallocate it. */
 }
 
@@ -197,7 +193,6 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
   /* Update shader parameters that change per dispatch. */
   probe_sampling_coord_ = atlas_coord.as_sampling_coord(max_resolution_);
   probe_write_coord_ = atlas_coord.as_write_coord(max_resolution_, 0);
-  probe_mip_level_ = atlas_coord.subdivision_lvl;
   dispatch_probe_pack_ = int3(int2(ceil_division(resolution, SPHERE_PROBE_GROUP_SIZE)), 1);
   instance_.manager->submit(remap_ps_);
 
