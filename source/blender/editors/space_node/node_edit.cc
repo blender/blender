@@ -357,7 +357,7 @@ static bool is_compositing_possible(const bContext *C)
   Scene *scene = CTX_data_scene(C);
   /* CPU compositor can always run. */
   if (!U.experimental.use_full_frame_compositor ||
-      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_REALTIME)
+      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_GPU)
   {
     return true;
   }
@@ -633,7 +633,6 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   sce->nodetree = blender::bke::ntreeAddTreeEmbedded(
       nullptr, &sce->id, "Compositing Nodetree", ntreeType_Composite->idname);
 
-  sce->nodetree->chunksize = 256;
   sce->nodetree->edit_quality = NTREE_QUALITY_HIGH;
   sce->nodetree->render_quality = NTREE_QUALITY_HIGH;
 

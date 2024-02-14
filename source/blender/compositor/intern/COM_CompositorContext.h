@@ -236,7 +236,7 @@ class CompositorContext {
 
   int get_chunksize() const
   {
-    return this->get_bnodetree()->chunksize;
+    return 256;
   }
 
   void set_fast_calculation(bool fast_calculation)
@@ -249,7 +249,7 @@ class CompositorContext {
   }
   bool is_groupnode_buffer_enabled() const
   {
-    return (this->get_bnodetree()->flag & NTREE_COM_GROUPNODE_BUFFER) != 0;
+    return false;
   }
 
   /**

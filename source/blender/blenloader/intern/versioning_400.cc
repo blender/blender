@@ -2918,6 +2918,26 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 3)) {
+    constexpr int NTREE_EXECUTION_MODE_FULL_FRAME = 1;
+
+    constexpr int NTREE_COM_GROUPNODE_BUFFER = 1 << 3;
+    constexpr int NTREE_COM_OPENCL = 1 << 1;
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+
+      ntree->flag &= ~(NTREE_COM_GROUPNODE_BUFFER | NTREE_COM_OPENCL);
+
+      if (ntree->execution_mode == NTREE_EXECUTION_MODE_FULL_FRAME) {
+        ntree->execution_mode = NTREE_EXECUTION_MODE_CPU;
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

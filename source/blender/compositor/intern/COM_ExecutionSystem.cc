@@ -44,8 +44,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
     context_.set_quality((eCompositorQuality)editingtree->edit_quality);
   }
   context_.set_rendering(rendering);
-  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
-                                     (editingtree->flag & NTREE_COM_OPENCL));
+  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() && false);
 
   context_.set_render_data(rd);
 
