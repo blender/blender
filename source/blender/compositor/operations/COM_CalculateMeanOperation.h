@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "COM_MultiThreadedOperation.h"
+#include "COM_ConstantOperation.h"
 #include "DNA_node_types.h"
 #include <functional>
 
@@ -14,7 +14,7 @@ namespace blender::compositor {
  * \brief base class of CalculateMean, implementing the simple CalculateMean
  * \ingroup operation
  */
-class CalculateMeanOperation : public MultiThreadedOperation {
+class CalculateMeanOperation : public ConstantOperation {
  public:
   struct PixelsSum {
     float sum;
@@ -27,8 +27,8 @@ class CalculateMeanOperation : public MultiThreadedOperation {
    */
   SocketReader *image_reader_;
 
-  bool iscalculated_;
-  float result_;
+  bool is_calculated_;
+  float constant_value_;
   int setting_;
   std::function<float(const float *elem)> setting_func_;
 
@@ -58,21 +58,24 @@ class CalculateMeanOperation : public MultiThreadedOperation {
   void set_setting(int setting);
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void determine_canvas(const rcti &preferred_area, rcti &r_area) override;
 
-  virtual void update_memory_buffer_started(MemoryBuffer *output,
-                                            const rcti &area,
-                                            Span<MemoryBuffer *> inputs) override;
-
-  virtual void update_memory_buffer_partial(MemoryBuffer *output,
-                                            const rcti &area,
-                                            Span<MemoryBuffer *> inputs) override;
+  const float *get_constant_elem() override;
+  void update_memory_buffer(MemoryBuffer *output,
+                            const rcti &area,
+                            Span<MemoryBuffer *> inputs) override;
 
  protected:
-  void calculate_mean(MemoryBuffer *tile);
-  float calc_mean(const MemoryBuffer *input);
+  /* Calculate value which will be written to the single-element output in the
+   * update_memory_buffer().
+   * The caller takes care of checking the value is only calculated once. */
+  virtual float calculate_value(const MemoryBuffer *input) const;
+
+  float calculate_mean_tile(MemoryBuffer *tile) const;
+  float calculate_mean(const MemoryBuffer *input) const;
 
  private:
-  PixelsSum calc_area_sum(const MemoryBuffer *input, const rcti &area);
+  PixelsSum calc_area_sum(const MemoryBuffer *input, const rcti &area) const;
 };
 
 }  // namespace blender::compositor
