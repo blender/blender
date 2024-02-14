@@ -64,8 +64,13 @@ def setup():
 
             bpy.ops.object.lightprobe_add(type='VOLUME', location=(0.0, 0.0, 0.0))
             grid = bpy.context.selected_objects[0]
-            grid.scale = (1.735, 1.735, 1.735)
-            grid.data.grid_bake_samples = 256
+            grid.scale = (8.0, 4.0, 1.4)
+            grid.data.grid_resolution_x = 32
+            grid.data.grid_resolution_y = 16
+            grid.data.grid_resolution_z = 8
+            grid.data.grid_bake_samples = 128
+            # Make lighting smoother for most of the case.
+            grid.data.grid_dilation_threshold = 1.0
             bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
 
         # Only include the plane in probes
