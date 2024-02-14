@@ -1466,6 +1466,14 @@ class edit_generators:
         is_default = False
 
         @staticmethod
+        def _header_exclude(f_basename: str) -> str:
+            # This header only exists to add additional warnings, removing it doesn't impact generated output.
+            # Skip this file.
+            if f_basename == "BLI_strict_flags.h":
+                return True
+            return False
+
+        @staticmethod
         def _header_guard_from_filename(f: str) -> str:
             return '__%s__' % os.path.basename(f).replace('.', '_').upper()
 
@@ -1481,6 +1489,10 @@ class edit_generators:
                     os.path.join(SOURCE_DIR, 'source'),
                     ('.h', '.hh', '.inl', '.hpp', '.hxx'),
             ):
+                f_basename = os.path.basename(f)
+                if cls._header_exclude(f_basename):
+                    continue
+
                 with open(f, 'r', encoding='utf-8') as fh:
                     data = fh.read()
 
@@ -1521,7 +1533,12 @@ class edit_generators:
             # Remove include.
             for match in re.finditer(r"^(([ \t]*#\s*include\s+\")([^\"]+)(\"[^\n]*\n))", data, flags=re.MULTILINE):
                 header_name = match.group(3)
-                header_guard = cls._header_guard_from_filename(header_name)
+                # Use in case the include has a leading path.
+                header_basename = os.path.basename(header_name)
+                if cls._header_exclude(header_basename):
+                    continue
+
+                header_guard = cls._header_guard_from_filename(header_basename)
                 edits.append(Edit(
                     span=match.span(),
                     content='',  # Remove the header.
