@@ -157,6 +157,7 @@ void CalculateMeanOperation::get_area_of_interest(int input_idx,
 
 void CalculateMeanOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
+  ConstantOperation::determine_canvas(preferred_area, r_area);
   r_area = preferred_area;
 }
 
