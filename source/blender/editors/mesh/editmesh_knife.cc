@@ -3593,7 +3593,6 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
   float curr_ray[3], curr_ray_normal[3];
   float curr_co[3], curr_cage[3]; /* Unused. */
 
-  float plane[4];
   float ray_hit[3];
   float lambda;
 

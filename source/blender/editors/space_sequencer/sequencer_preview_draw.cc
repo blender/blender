@@ -556,8 +556,7 @@ static void draw_histogram(ARegion *region,
 
     /* Label. */
     char buf[10];
-    SNPRINTF(buf, "%.2f", val);
-    size_t buf_len = strlen(buf);
+    const size_t buf_len = SNPRINTF_RLEN(buf, "%.2f", val);
 
     float text_width, text_height;
     BLF_width_and_height(BLF_default(), buf, buf_len, &text_width, &text_height);
