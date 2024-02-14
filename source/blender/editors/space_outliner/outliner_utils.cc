@@ -16,11 +16,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_outliner_treehash.hh"
 
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
@@ -30,7 +28,6 @@
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
-#include "tree/tree_iterator.hh"
 
 namespace blender::ed::outliner {
 

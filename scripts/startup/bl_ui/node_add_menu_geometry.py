@@ -533,7 +533,7 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
     bl_idname = "NODE_MT_category_GEO_UTILITIES"
     bl_label = "Utilities"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         layout.menu("NODE_MT_geometry_node_GEO_COLOR")
         layout.menu("NODE_MT_category_GEO_TEXT")
@@ -541,6 +541,8 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.separator()
         layout.menu("NODE_MT_category_GEO_UTILITIES_FIELD")
         layout.menu("NODE_MT_category_GEO_UTILITIES_MATH")
+        if context.preferences.experimental.use_new_matrix_socket:
+            layout.menu("NODE_MT_category_utilities_matrix")
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.menu("NODE_MT_category_GEO_UTILITIES_DEPRECATED")
         layout.separator()
@@ -590,6 +592,22 @@ class NODE_MT_category_GEO_UTILITIES_ROTATION(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeRotationToQuaternion")
         node_add_menu.add_node_type(layout, "FunctionNodeQuaternionToRotation")
         node_add_menu.draw_assets_for_catalog(layout, "Utilities/Rotation")
+
+
+class NODE_MT_category_utilities_matrix(Menu):
+    bl_idname = "NODE_MT_category_utilities_matrix"
+    bl_label = "Matrix"
+
+    def draw(self, _context):
+        layout = self.layout
+        node_add_menu.add_node_type(layout, "FunctionNodeCombineTransform")
+        node_add_menu.add_node_type(layout, "FunctionNodeInvertMatrix")
+        node_add_menu.add_node_type(layout, "FunctionNodeMatrixMultiply")
+        node_add_menu.add_node_type(layout, "FunctionNodeSeparateTransform")
+        node_add_menu.add_node_type(layout, "FunctionNodeTransformDirection")
+        node_add_menu.add_node_type(layout, "FunctionNodeTransformPoint")
+        node_add_menu.add_node_type(layout, "FunctionNodeTransposeMatrix")
+        node_add_menu.draw_assets_for_catalog(layout, "Utilities/Matrix")
 
 
 class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
@@ -779,6 +797,7 @@ classes = (
     NODE_MT_category_GEO_UTILITIES_FIELD,
     NODE_MT_category_GEO_UTILITIES_MATH,
     NODE_MT_category_GEO_UTILITIES_ROTATION,
+    NODE_MT_category_utilities_matrix,
     NODE_MT_category_GEO_UTILITIES_DEPRECATED,
     NODE_MT_category_GEO_GROUP,
 )

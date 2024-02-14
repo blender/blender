@@ -38,8 +38,9 @@
 #include "blf_internal_types.hh"
 
 #include "BLI_math_vector.h"
-#include "BLI_strict_flags.h"
 #include "BLI_string_utf8.h"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /**
  * Convert glyph coverage amounts to lightness values. Uses a LUT that perceptually improves

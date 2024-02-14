@@ -37,7 +37,7 @@ extern "C" {
 #  include <libavformat/avformat.h>
 #  include <libavutil/log.h>
 
-#  include "ffmpeg_compat.h"
+#  include "ffmpeg_compat.h" /* Keep for compatibility. */
 }
 
 #endif
@@ -86,6 +86,7 @@ const char *imb_ext_audio[] = {
     ".aiff",
     ".m4a",
     ".mka",
+    ".opus",
     nullptr,
 };
 

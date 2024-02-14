@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
 #include <iostream>
 #include <mutex>
 
@@ -12,11 +13,11 @@
 #include "BLI_math_base.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
-#include "BLI_strict_flags.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
-#include "BLI_timeit.hh"
 #include "BLI_virtual_array.hh"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 namespace blender::index_mask {
 
@@ -94,23 +95,18 @@ std::ostream &operator<<(std::ostream &stream, const IndexMask &mask)
   mask.to_indices<int64_t>(indices);
   Vector<std::variant<IndexRange, Span<int64_t>>> segments;
   unique_sorted_indices::split_to_ranges_and_spans<int64_t>(indices, 8, segments);
-  std::cout << "(Size: " << mask.size() << " | ";
+  Vector<std::string> parts;
   for (const std::variant<IndexRange, Span<int64_t>> &segment : segments) {
     if (std::holds_alternative<IndexRange>(segment)) {
       const IndexRange range = std::get<IndexRange>(segment);
-      std::cout << range;
+      parts.append(fmt::format("{}-{}", range.first(), range.last()));
     }
     else {
       const Span<int64_t> segment_indices = std::get<Span<int64_t>>(segment);
-      std::cout << "[";
-      for (const int64_t index : segment_indices) {
-        std::cout << index << ",";
-      }
-      std::cout << "]";
+      parts.append(fmt::format("{}", fmt::join(segment_indices, ", ")));
     }
-    std::cout << ", ";
   }
-  std::cout << ")";
+  stream << fmt::format("(Size: {} | {})", mask.size(), fmt::join(parts, ", "));
   return stream;
 }
 
@@ -173,17 +169,17 @@ IndexMask IndexMask::slice_content(const int64_t start, const int64_t size) cons
   return this->slice(*first_it, *last_it, sliced_mask_size);
 }
 
-IndexMask IndexMask::slice_and_offset(const IndexRange range,
-                                      const int64_t offset,
-                                      IndexMaskMemory &memory) const
+IndexMask IndexMask::slice_and_shift(const IndexRange range,
+                                     const int64_t offset,
+                                     IndexMaskMemory &memory) const
 {
-  return this->slice_and_offset(range.start(), range.size(), offset, memory);
+  return this->slice_and_shift(range.start(), range.size(), offset, memory);
 }
 
-IndexMask IndexMask::slice_and_offset(const int64_t start,
-                                      const int64_t size,
-                                      const int64_t offset,
-                                      IndexMaskMemory &memory) const
+IndexMask IndexMask::slice_and_shift(const int64_t start,
+                                     const int64_t size,
+                                     const int64_t offset,
+                                     IndexMaskMemory &memory) const
 {
   if (size == 0) {
     return {};
@@ -191,20 +187,28 @@ IndexMask IndexMask::slice_and_offset(const int64_t start,
   if (std::optional<IndexRange> range = this->to_range()) {
     return range->slice(start, size).shift(offset);
   }
-  IndexMask sliced_mask = this->slice(start, size);
-  if (offset == 0) {
-    return sliced_mask;
+  return this->slice(start, size).shift(offset, memory);
+}
+
+IndexMask IndexMask::shift(const int64_t offset, IndexMaskMemory &memory) const
+{
+  if (indices_num_ == 0) {
+    return {};
   }
-  if (std::optional<IndexRange> range = sliced_mask.to_range()) {
+  BLI_assert(this->first() + offset >= 0);
+  if (offset == 0) {
+    return *this;
+  }
+  if (std::optional<IndexRange> range = this->to_range()) {
     return range->shift(offset);
   }
-  MutableSpan<int64_t> new_segment_offsets = memory.allocate_array<int64_t>(
-      sliced_mask.segments_num_);
-  for (const int64_t i : new_segment_offsets.index_range()) {
-    new_segment_offsets[i] = sliced_mask.segment_offsets_[i] + offset;
+  IndexMask shifted_mask = *this;
+  MutableSpan<int64_t> new_segment_offsets = memory.allocate_array<int64_t>(segments_num_);
+  for (const int64_t i : IndexRange(segments_num_)) {
+    new_segment_offsets[i] = segment_offsets_[i] + offset;
   }
-  sliced_mask.segment_offsets_ = new_segment_offsets.data();
-  return sliced_mask;
+  shifted_mask.segment_offsets_ = new_segment_offsets.data();
+  return shifted_mask;
 }
 
 /**
@@ -875,7 +879,7 @@ static Array<int16_t> build_every_nth_index_array(const int64_t n)
 }
 
 /**
- * Returns a span containting every nth index. This is optimized for a few special values of n
+ * Returns a span containing every nth index. This is optimized for a few special values of n
  * which are cached. The returned indices have either static life-time, or they are freed when the
  * given memory is feed.
  */

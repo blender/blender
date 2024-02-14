@@ -14,7 +14,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -37,24 +36,19 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"
-#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
-#include "BKE_tracking.h"
 
 #include "UI_view2d.hh"
 
-#include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
-#include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
@@ -943,7 +937,7 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   /* Apply layer thickness change. */
   gps_duplicate->thickness += gpl->line_change;
   /* Apply object scale to thickness. */
-  gps_duplicate->thickness *= mat4_to_scale(p->ob->object_to_world);
+  gps_duplicate->thickness *= mat4_to_scale(p->ob->object_to_world().ptr());
   CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
   /* Stroke. */

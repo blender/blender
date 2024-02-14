@@ -194,6 +194,8 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
 void SphereProbeModule::update_world_irradiance()
 {
   instance_.manager->submit(update_irradiance_ps_);
+  /* All volume probe that needs to composite the world probe need to be updated. */
+  instance_.volume_probes.do_update_world_ = true;
 }
 
 void SphereProbeModule::update_probes_texture_mipmaps()
@@ -254,27 +256,36 @@ void SphereProbeModule::set_view(View & /*view*/)
   }
   data_buf_.push_update();
 
-  do_display_draw_ = DRW_state_draw_support() && probe_active.size() > 0;
-  if (do_display_draw_) {
-    int display_index = 0;
-    for (int i : probe_active.index_range()) {
-      if (probe_active[i]->viewport_display) {
-        display_data_buf_.get_or_resize(display_index++) = {
-            i, probe_active[i]->viewport_display_size};
-      }
-    }
-    do_display_draw_ = display_index > 0;
-    if (do_display_draw_) {
-      display_data_buf_.resize(display_index);
-      display_data_buf_.push_update();
-    }
-  }
-
-  /* Add one for world probe. */
-  reflection_probe_count_ = probe_active.size() + 1;
+  reflection_probe_count_ = probe_id;
   dispatch_probe_select_.x = divide_ceil_u(reflection_probe_count_,
                                            SPHERE_PROBE_SELECT_GROUP_SIZE);
   instance_.manager->submit(select_ps_);
+
+  sync_display(probe_active);
+}
+
+void SphereProbeModule::sync_display(Vector<SphereProbe *> &probe_active)
+{
+  do_display_draw_ = false;
+  if (!DRW_state_draw_support()) {
+    return;
+  }
+
+  int display_index = 0;
+  for (int i : probe_active.index_range()) {
+    if (probe_active[i]->viewport_display) {
+      SphereProbeDisplayData &sph_data = display_data_buf_.get_or_resize(display_index++);
+      sph_data.probe_index = i;
+      sph_data.display_size = probe_active[i]->viewport_display_size;
+    }
+  }
+
+  if (display_index == 0) {
+    return;
+  }
+  do_display_draw_ = true;
+  display_data_buf_.resize(display_index);
+  display_data_buf_.push_update();
 }
 
 void SphereProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)

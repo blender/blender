@@ -35,7 +35,6 @@
 
 #include "BKE_blender.hh"
 #include "BKE_blendfile.hh"
-#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_icons.h"
@@ -44,9 +43,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_mball_tessellate.hh"
-#include "BKE_node.hh"
 #include "BKE_preview_image.hh"
-#include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
@@ -63,10 +60,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h" /* RE_ free stuff */
 
-#include "IMB_thumbs.hh"
-
 #ifdef WITH_PYTHON
-#  include "BPY_extern.h"
 #  include "BPY_extern_python.h"
 #  include "BPY_extern_run.h"
 #endif
@@ -89,7 +83,6 @@
 #include "wm_window.hh"
 
 #include "ED_anim_api.hh"
-#include "ED_armature.hh"
 #include "ED_asset.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_keyframes_edit.hh"
@@ -100,7 +93,6 @@
 #include "ED_space_api.hh"
 #include "ED_undo.hh"
 #include "ED_util.hh"
-#include "ED_view3d.hh"
 
 #include "BLF_api.hh"
 #include "BLT_lang.hh"

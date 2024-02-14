@@ -15,7 +15,6 @@
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_sys_types.h"
 
 #include "BLT_translation.hh"
 
@@ -23,8 +22,6 @@
 #include "BKE_global.hh"
 
 #include "GPU_platform.h"
-
-#include "GHOST_C-api.h"
 
 #define WM_PLATFORM_SUPPORT_TEXT_SIZE 1024
 

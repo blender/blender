@@ -11,8 +11,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_mask_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_math_matrix.h"
@@ -23,14 +21,12 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
-#include "BKE_scene.hh"
 
 #include "GPU_state.h"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_image.hh"
-#include "ED_keyframing.hh"
 #include "ED_node.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"

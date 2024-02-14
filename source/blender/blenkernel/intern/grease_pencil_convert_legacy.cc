@@ -291,7 +291,7 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
 
     /* Convert the layer masks. */
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
-      LayerMask *new_mask = new LayerMask(mask->name);
+      LayerMask *new_mask = MEM_new<LayerMask>(mask->name);
       new_mask->flag = mask->flag;
       BLI_addtail(&new_layer.masks, new_mask);
     }

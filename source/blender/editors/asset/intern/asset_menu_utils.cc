@@ -18,8 +18,6 @@
 
 #include "BLT_translation.hh"
 
-#include "WM_api.hh"
-
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

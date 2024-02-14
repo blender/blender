@@ -12,7 +12,6 @@
 #include "GPU_texture.h"
 
 #include "COM_context.hh"
-#include "COM_utilities.hh"
 
 #include "COM_algorithm_parallel_reduction.hh"
 

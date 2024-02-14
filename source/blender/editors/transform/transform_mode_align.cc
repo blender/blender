@@ -8,8 +8,6 @@
 
 #include <cstdlib>
 
-#include "BKE_context.hh"
-
 #include "ED_screen.hh"
 
 #include "BLI_math_matrix.h"

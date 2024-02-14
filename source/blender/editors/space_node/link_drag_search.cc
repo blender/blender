@@ -23,8 +23,6 @@
 
 #include "BLT_translation.hh"
 
-#include "RNA_access.hh"
-
 #include "WM_api.hh"
 
 #include "DEG_depsgraph_build.hh"

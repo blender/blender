@@ -73,7 +73,7 @@ extern const CustomData_MeshMasks CD_MASK_EVERYTHING;
  * CD_NUMTYPES elements, that indicate if a layer can be copied. */
 
 /** Add/copy/merge allocation types. */
-typedef enum eCDAllocType {
+enum eCDAllocType {
   /** Allocate and set to default, which is usually just zeroed memory. */
   CD_SET_DEFAULT = 2,
   /**
@@ -81,18 +81,18 @@ typedef enum eCDAllocType {
    * if all layer values will be set by the caller after creating the layer.
    */
   CD_CONSTRUCT = 5,
-} eCDAllocType;
+};
 
 #define CD_TYPE_AS_MASK(_type) (eCustomDataMask)((eCustomDataMask)1 << (eCustomDataMask)(_type))
 
 void customData_mask_layers__print(const CustomData_MeshMasks *mask);
 
-typedef void (*cd_interp)(
+using cd_interp = void (*)(
     const void **sources, const float *weights, const float *sub_weights, int count, void *dest);
-typedef void (*cd_copy)(const void *source, void *dest, int count);
-typedef void (*cd_set_default_value)(void *data, int count);
-typedef void (*cd_free)(void *data, int count);
-typedef bool (*cd_validate)(void *item, uint totitems, bool do_fixes);
+using cd_copy = void (*)(const void *source, void *dest, int count);
+using cd_set_default_value = void (*)(void *data, int count);
+using cd_free = void (*)(void *data, int count);
+using cd_validate = bool (*)(void *item, uint totitems, bool do_fixes);
 
 /**
  * Update mask_dst with layers defined in mask_src (equivalent to a bit-wise OR).

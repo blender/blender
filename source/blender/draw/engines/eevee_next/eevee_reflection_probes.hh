@@ -169,6 +169,8 @@ class SphereProbeModule {
   void remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord);
   void update_probes_texture_mipmaps();
   void update_world_irradiance();
+
+  void sync_display(Vector<SphereProbe *> &probe_active);
 };
 
 /** \} */

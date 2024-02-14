@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "IO_abstract_hierarchy_iterator.h"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 extern "C" {
 #include <climits> /* For INT_MAX. */

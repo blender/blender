@@ -8,9 +8,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_texture.h"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
@@ -21,7 +19,6 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_volume_types.h"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
@@ -29,16 +26,12 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLO_read_write.hh"
-
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "RE_texture.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_math_vector.h"
@@ -126,12 +119,12 @@ static void panel_register(ARegionType *region_type)
 
 #ifdef WITH_OPENVDB
 
-static openvdb::Mat4s matrix_to_openvdb(const float m[4][4])
+static openvdb::Mat4s matrix_to_openvdb(const blender::float4x4 &m)
 {
   /* OpenVDB matrices are transposed Blender matrices, i.e. the translation is in the last row
    * instead of in the last column. However, the layout in memory is the same, because OpenVDB
    * matrices are row major (compared to Blender's column major matrices). */
-  openvdb::Mat4s new_matrix{reinterpret_cast<const float *>(m)};
+  openvdb::Mat4s new_matrix{m.base_ptr()};
   return new_matrix;
 }
 
@@ -257,16 +250,16 @@ struct DisplaceGridOp {
         return index_to_object;
       }
       case MOD_VOLUME_DISPLACE_MAP_GLOBAL: {
-        const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->object_to_world);
+        const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->object_to_world());
         return index_to_object * object_to_world;
       }
       case MOD_VOLUME_DISPLACE_MAP_OBJECT: {
         if (vdmd.texture_map_object == nullptr) {
           return index_to_object;
         }
-        const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->object_to_world);
+        const openvdb::Mat4s object_to_world = matrix_to_openvdb(ctx.object->object_to_world());
         const openvdb::Mat4s world_to_texture = matrix_to_openvdb(
-            vdmd.texture_map_object->world_to_object);
+            vdmd.texture_map_object->world_to_object());
         return index_to_object * object_to_world * world_to_texture;
       }
     }

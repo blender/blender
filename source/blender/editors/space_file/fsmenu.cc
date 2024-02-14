@@ -15,7 +15,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -25,7 +24,6 @@
 
 #include "ED_fileselect.hh"
 
-#include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 #include "WM_api.hh"
 #include "WM_types.hh"

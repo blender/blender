@@ -1,24 +1,12 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #pragma once
 
 /** \file
  * \ingroup bke
  */
-
-#ifdef __cplusplus
-namespace blender::bke {
-struct GeometrySet;
-}
-using GeometrySetHandle = blender::bke::GeometrySet;
-#else
-typedef struct GeometrySetHandle GeometrySetHandle;
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct Depsgraph;
 struct ID;
@@ -28,6 +16,9 @@ struct ParticleSystem;
 struct Scene;
 struct ViewLayer;
 struct ViewerPath;
+namespace blender::bke {
+struct GeometrySet;
+}
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
@@ -35,31 +26,29 @@ struct ViewerPath;
 /**
  * \return a #ListBase of #DupliObject.
  */
-struct ListBase *object_duplilist(struct Depsgraph *depsgraph,
-                                  struct Scene *sce,
-                                  struct Object *ob);
+ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob);
 /**
  * \return a #ListBase of #DupliObject for the preview geometry referenced by the #ViewerPath.
  */
-struct ListBase *object_duplilist_preview(struct Depsgraph *depsgraph,
-                                          struct Scene *scene,
-                                          struct Object *ob,
-                                          const struct ViewerPath *viewer_path);
-void free_object_duplilist(struct ListBase *lb);
+ListBase *object_duplilist_preview(Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   Object *ob,
+                                   const ViewerPath *viewer_path);
+void free_object_duplilist(ListBase *lb);
 
-typedef struct DupliObject {
-  struct DupliObject *next, *prev;
+struct DupliObject {
+  DupliObject *next, *prev;
   /* Object whose geometry is instanced. */
-  struct Object *ob;
+  Object *ob;
   /* Data owned by the object above that is instanced. This might not be the same as `ob->data`. */
-  struct ID *ob_data;
+  ID *ob_data;
   float mat[4][4];
   float orco[3], uv[2];
 
   short type; /* from Object.transflag */
   char no_draw;
   /* If this dupli object is belongs to a preview, this is non-null. */
-  const GeometrySetHandle *preview_base_geometry;
+  const blender::bke::GeometrySet *preview_base_geometry;
   /* Index of the top-level instance this dupli is part of or -1 when unused. */
   int preview_instance_index;
 
@@ -68,7 +57,7 @@ typedef struct DupliObject {
   int persistent_id[8]; /* MAX_DUPLI_RECUR */
 
   /* Particle this dupli was generated from. */
-  struct ParticleSystem *particle_system;
+  ParticleSystem *particle_system;
 
   /* Geometry set stack for instance attributes; for each level lists the
    * geometry set and instance index within it.
@@ -79,19 +68,19 @@ typedef struct DupliObject {
    * size between 1 and MAX_DUPLI_RECUR can be used without issues.
    */
   int instance_idx[4];
-  const GeometrySetHandle *instance_data[4];
+  const blender::bke::GeometrySet *instance_data[4];
 
   /* Random ID for shading */
   unsigned int random_id;
-} DupliObject;
+};
 
 /**
  * Look up the RGBA value of a uniform shader attribute.
  * \return true if the attribute was found; if not, r_value is also set to zero.
  */
-bool BKE_object_dupli_find_rgba_attribute(const struct Object *ob,
-                                          const struct DupliObject *dupli,
-                                          const struct Object *dupli_parent,
+bool BKE_object_dupli_find_rgba_attribute(const Object *ob,
+                                          const DupliObject *dupli,
+                                          const Object *dupli_parent,
                                           const char *name,
                                           float r_value[4]);
 
@@ -99,11 +88,7 @@ bool BKE_object_dupli_find_rgba_attribute(const struct Object *ob,
  * Look up the RGBA value of a view layer/scene/world shader attribute.
  * \return true if the attribute was found; if not, r_value is also set to zero.
  */
-bool BKE_view_layer_find_rgba_attribute(const struct Scene *scene,
-                                        const struct ViewLayer *layer,
+bool BKE_view_layer_find_rgba_attribute(const Scene *scene,
+                                        const ViewLayer *layer,
                                         const char *name,
                                         float r_value[4]);
-
-#ifdef __cplusplus
-}
-#endif

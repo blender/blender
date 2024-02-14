@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 #include "DNA_object_types.h" /* For MAX_DUPLI_RECUR */
 

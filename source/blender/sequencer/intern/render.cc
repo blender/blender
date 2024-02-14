@@ -12,7 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
@@ -48,7 +47,6 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "RE_engine.h"
@@ -72,7 +70,6 @@
 #include "prefetch.hh"
 #include "proxy.hh"
 #include "render.hh"
-#include "strip_time.hh"
 #include "utils.hh"
 
 #include <algorithm>

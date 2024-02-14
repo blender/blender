@@ -17,6 +17,10 @@
 
 #include "BKE_context.hh"
 
+namespace blender::bke::id {
+class IDRemapper;
+}
+
 namespace blender::asset_system {
 class AssetRepresentation;
 }
@@ -28,7 +32,6 @@ struct BlendLibReader;
 struct BlendWriter;
 struct Header;
 struct ID;
-struct IDRemapper;
 struct LayoutPanelState;
 struct LibraryForeachIDData;
 struct ListBase;
@@ -109,7 +112,7 @@ struct SpaceType {
   bContextDataCallback context;
 
   /* Used when we want to replace an ID by another (or NULL). */
-  void (*id_remap)(ScrArea *area, SpaceLink *sl, const IDRemapper *mappings);
+  void (*id_remap)(ScrArea *area, SpaceLink *sl, const blender::bke::id::IDRemapper &mappings);
 
   /**
    * foreach_id callback to process all ID pointers of the editor. Used indirectly by lib_query's

@@ -26,9 +26,7 @@
 #include "UI_resources.hh"
 
 #include "node_common.h"
-#include "node_util.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "NOD_composite.hh"

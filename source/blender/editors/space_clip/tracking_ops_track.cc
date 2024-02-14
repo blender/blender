@@ -8,7 +8,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -24,7 +23,6 @@
 #include "WM_types.hh"
 
 #include "ED_clip.hh"
-#include "ED_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

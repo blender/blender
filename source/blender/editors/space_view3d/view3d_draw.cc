@@ -8,11 +8,9 @@
 
 #include <cmath>
 
-#include "BLI_jitter_2d.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -31,7 +29,6 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
-#include "BKE_studiolight.h"
 #include "BKE_unit.hh"
 
 #include "BLF_api.hh"
@@ -39,10 +36,8 @@
 #include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
@@ -55,8 +50,6 @@
 #include "ED_keyframing.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
-#include "ED_screen_types.hh"
-#include "ED_transform.hh"
 #include "ED_view3d_offscreen.hh"
 #include "ED_viewer_path.hh"
 
@@ -65,8 +58,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "GPU_batch.h"
-#include "GPU_batch_presets.h"
-#include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -84,8 +75,6 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "RNA_access.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -2115,7 +2104,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
 
   rv3d.persp = RV3D_CAMOB;
 
-  copy_m4_m4(rv3d.viewinv, v3d.camera->object_to_world);
+  copy_m4_m4(rv3d.viewinv, v3d.camera->object_to_world().ptr());
   normalize_m4(rv3d.viewinv);
   invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
 

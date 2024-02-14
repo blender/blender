@@ -16,9 +16,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_blendfile.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
 #include "BKE_screen.hh"
 #include "BKE_undo_system.hh"
 

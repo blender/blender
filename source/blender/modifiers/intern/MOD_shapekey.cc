@@ -12,13 +12,10 @@
 #include "BLT_translation.hh"
 
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_key.hh"
-#include "BKE_particle.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_modifiertypes.hh"

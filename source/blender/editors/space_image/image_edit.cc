@@ -26,8 +26,6 @@
 
 #include "IMB_imbuf_types.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "ED_image.hh" /* own include */
 #include "ED_mesh.hh"
 #include "ED_screen.hh"

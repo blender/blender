@@ -1320,7 +1320,7 @@ void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float st
     mul_v3_v3fl(stroke, ups->average_stroke_accum, fac);
   }
   else {
-    copy_v3_v3(stroke, ob->object_to_world[3]);
+    copy_v3_v3(stroke, ob->object_to_world().location());
   }
 }
 

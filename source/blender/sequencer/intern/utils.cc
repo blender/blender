@@ -14,7 +14,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -28,7 +27,6 @@
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
-#include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_edit.hh"
 #include "SEQ_iterator.hh"

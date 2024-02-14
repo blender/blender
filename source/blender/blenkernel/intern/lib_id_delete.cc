@@ -42,6 +42,8 @@
 #  include "BPY_extern.h"
 #endif
 
+using namespace blender::bke::id;
+
 static CLG_LogRef LOG = {"bke.lib_id_delete"};
 
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
@@ -146,10 +148,9 @@ static int id_free(Main *bmain, void *idv, int flag, const bool use_flag_from_id
     }
 
     if (remap_editor_id_reference_cb) {
-      IDRemapper *remapper = BKE_id_remapper_create();
-      BKE_id_remapper_add(remapper, id, nullptr);
+      IDRemapper remapper;
+      remapper.add(id, nullptr);
       remap_editor_id_reference_cb(remapper);
-      BKE_id_remapper_free(remapper);
     }
   }
 
@@ -241,7 +242,7 @@ static size_t id_delete(Main *bmain,
 
   BKE_main_lock(bmain);
   if (do_tagged_deletion) {
-    IDRemapper *id_remapper = BKE_id_remapper_create();
+    IDRemapper id_remapper;
     BKE_layer_collection_resync_forbid();
 
     /* Main idea of batch deletion is to remove all IDs to be deleted from Main database.
@@ -269,7 +270,7 @@ static size_t id_delete(Main *bmain,
             BLI_remlink(lb, id);
             BKE_main_namemap_remove_name(bmain, id, id->name + 2);
             BLI_addtail(&tagged_deleted_ids, id);
-            BKE_id_remapper_add(id_remapper, id, nullptr);
+            id_remapper.add(id, nullptr);
             /* Do not tag as no_main now, we want to unlink it first (lower-level ID management
              * code has some specific handling of 'no main' IDs that would be a problem in that
              * case). */
@@ -283,7 +284,7 @@ static size_t id_delete(Main *bmain,
               BLI_remlink(&bmain->shapekeys, &shape_key->id);
               BKE_main_namemap_remove_name(bmain, &shape_key->id, shape_key->id.name + 2);
               BLI_addtail(&tagged_deleted_ids, &shape_key->id);
-              BKE_id_remapper_add(id_remapper, &shape_key->id, nullptr);
+              id_remapper.add(&shape_key->id, nullptr);
               shape_key->id.tag |= tag;
             }
 
@@ -299,7 +300,7 @@ static size_t id_delete(Main *bmain,
        * Also, this will also flag users of deleted data that cannot be unlinked
        * (object using deleted obdata, etc.), so that they also get deleted. */
       BKE_libblock_remap_multiple_locked(bmain, id_remapper, remapping_flags);
-      BKE_id_remapper_clear(id_remapper);
+      id_remapper.clear();
     }
 
     /* Since we removed IDs from Main, their own other IDs usages need to be removed 'manually'. */
@@ -316,7 +317,6 @@ static size_t id_delete(Main *bmain,
                                  ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS |
                                      ID_REMAP_SKIP_USER_CLEAR);
     cleanup_ids.clear();
-    BKE_id_remapper_free(id_remapper);
 
     BKE_layer_collection_resync_allow();
     BKE_main_collection_sync_remap(bmain);
@@ -340,22 +340,22 @@ static size_t id_delete(Main *bmain,
      * Note that we go forward here, since we want to check dependencies before users
      * (e.g. meshes before objects).
      * Avoids to have to loop twice. */
-    IDRemapper *remapper = BKE_id_remapper_create();
+    IDRemapper remapper;
     for (i = 0; i < base_count; i++) {
       ListBase *lb = lbarray[i];
       ID *id, *id_next;
-      BKE_id_remapper_clear(remapper);
+      remapper.clear();
 
       for (id = static_cast<ID *>(lb->first); id; id = id_next) {
         id_next = static_cast<ID *>(id->next);
         /* NOTE: in case we delete a library, we also delete all its datablocks! */
         if ((id->tag & tag) || (ID_IS_LINKED(id) && (id->lib->id.tag & tag))) {
           id->tag |= tag;
-          BKE_id_remapper_add(remapper, id, nullptr);
+          remapper.add(id, nullptr);
         }
       }
 
-      if (BKE_id_remapper_is_empty(remapper)) {
+      if (remapper.is_empty()) {
         continue;
       }
 
@@ -367,7 +367,6 @@ static size_t id_delete(Main *bmain,
        * (object using deleted obdata, etc.), so that they also get deleted. */
       BKE_libblock_remap_multiple_locked(bmain, remapper, remapping_flags);
     }
-    BKE_id_remapper_free(remapper);
   }
 
   BKE_main_unlock(bmain);

@@ -38,6 +38,7 @@
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
+#include "BKE_wm_runtime.hh"
 #include "BKE_workspace.h"
 
 #include "RE_engine.h"
@@ -706,7 +707,7 @@ wmWindowManager *CTX_wm_manager(const bContext *C)
 
 bool CTX_wm_interface_locked(const bContext *C)
 {
-  return bool(C->wm.manager->is_interface_locked);
+  return C->wm.manager->runtime->is_interface_locked;
 }
 
 wmWindow *CTX_wm_window(const bContext *C)

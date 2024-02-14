@@ -16,10 +16,7 @@
 #include "BKE_context.hh"
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
-#include "BKE_curves_utils.hh"
-#include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 #include "DNA_brush_enums.h"
@@ -813,7 +810,7 @@ struct EraseOperationExecutor {
     }
     else {
       /* Erase on all editable drawings. */
-      const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+      const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
           ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
       threading::parallel_for_each(
           drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {

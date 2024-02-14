@@ -23,8 +23,6 @@
 
 #include "IMB_colormanagement.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 

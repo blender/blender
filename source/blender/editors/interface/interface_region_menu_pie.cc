@@ -34,8 +34,6 @@
 
 #include "BLT_translation.hh"
 
-#include "ED_screen.hh"
-
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 

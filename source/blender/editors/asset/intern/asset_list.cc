@@ -26,8 +26,6 @@
 
 #include "DNA_space_types.h"
 
-#include "BKE_preferences.h"
-
 #include "WM_api.hh"
 
 /* XXX uses private header of file-space. */

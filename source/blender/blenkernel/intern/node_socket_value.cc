@@ -54,6 +54,9 @@ template<typename T> static std::optional<eNodeSocketDatatype> static_type_to_so
   if constexpr (is_single_or_field_or_grid_v<T, math::Quaternion>) {
     return SOCK_ROTATION;
   }
+  if constexpr (is_same_any_v<T, float4x4, fn::Field<float4x4>>) {
+    return SOCK_MATRIX;
+  }
   if constexpr (is_same_any_v<T, std::string>) {
     return SOCK_STRING;
   }
@@ -195,6 +198,10 @@ void SocketValueVariant::store_single(const eNodeSocketDatatype socket_type, con
       value_.emplace<math::Quaternion>(*static_cast<const math::Quaternion *>(value));
       break;
     }
+    case SOCK_MATRIX: {
+      value_.emplace<float4x4>(*static_cast<const float4x4 *>(value));
+      break;
+    }
     case SOCK_RGBA: {
       value_.emplace<ColorGeometry4f>(*static_cast<const ColorGeometry4f *>(value));
       break;
@@ -281,6 +288,8 @@ void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
       return value_.allocate<bool>();
     case SOCK_ROTATION:
       return value_.allocate<math::Quaternion>();
+    case SOCK_MATRIX:
+      return value_.allocate<float4x4>();
     case SOCK_RGBA:
       return value_.allocate<ColorGeometry4f>();
     case SOCK_STRING:
@@ -343,6 +352,9 @@ INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(blender::math::Quaternion)
 
 INSTANTIATE(std::string)
 INSTANTIATE(fn::GField)
+
+INSTANTIATE(float4x4)
+INSTANTIATE(fn::Field<float4x4>)
 
 #ifdef WITH_OPENVDB
 INSTANTIATE(GVolumeGrid)

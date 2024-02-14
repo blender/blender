@@ -29,8 +29,6 @@
 #  include <cstdlib>
 #  include <cstring>
 
-#  include "BLI_sys_types.h"
-
 #  ifdef WIN32
 #    include "BLI_winstuff.h"
 #  endif

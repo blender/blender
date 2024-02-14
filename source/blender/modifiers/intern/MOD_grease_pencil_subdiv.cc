@@ -26,7 +26,6 @@
 #include "UI_resources.hh"
 
 #include "MOD_grease_pencil_util.hh"
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "RNA_prototypes.h"

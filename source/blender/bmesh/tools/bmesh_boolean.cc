@@ -14,7 +14,6 @@
 #include "BLI_math_mpq.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
-#include "BLI_time.h"
 
 #include "bmesh.hh"
 #include "bmesh_boolean.hh"

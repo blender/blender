@@ -17,7 +17,6 @@
 
 #include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"

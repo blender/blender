@@ -22,14 +22,10 @@
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.hh"
-#include "BLI_rand.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
-
 #include "DNA_brush_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -69,7 +65,6 @@
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
@@ -911,7 +906,7 @@ void ED_gpencil_drawing_reference_get(const Scene *scene,
       }
       else {
         /* use object location */
-        copy_v3_v3(r_vec, ob->object_to_world[3]);
+        copy_v3_v3(r_vec, ob->object_to_world().location());
         /* Apply layer offset. */
         bGPdata *gpd = static_cast<bGPdata *>(ob->data);
         bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -995,7 +990,7 @@ void ED_gpencil_project_stroke_to_plane(const Scene *scene,
     /* if object, apply object rotation */
     if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       float mat[4][4];
-      copy_m4_m4(mat, ob->object_to_world);
+      copy_m4_m4(mat, ob->object_to_world().ptr());
 
       /* move origin to cursor */
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
@@ -1218,7 +1213,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
     /* if object, apply object rotation */
     if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       float mat[4][4];
-      copy_m4_m4(mat, ob->object_to_world);
+      copy_m4_m4(mat, ob->object_to_world().ptr());
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
         if (gpl != nullptr) {
           add_v3_v3(mat[3], gpl->location);
@@ -1245,7 +1240,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
 
     /* move origin to object */
     if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
-      copy_v3_v3(mat[3], ob->object_to_world[3]);
+      copy_v3_v3(mat[3], ob->object_to_world().location());
     }
 
     mul_mat3_m4_v3(mat, plane_normal);
@@ -1379,16 +1374,16 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
     if (gpl->parent != nullptr) {
       /* calculate new matrix */
       if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        invert_m4_m4(cur_mat, gpl->parent->object_to_world);
-        copy_v3_v3(gpl_loc, obact->object_to_world[3]);
+        invert_m4_m4(cur_mat, gpl->parent->object_to_world().ptr());
+        copy_v3_v3(gpl_loc, obact->object_to_world().location());
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(gpl->parent->pose, gpl->parsubstr);
         if (pchan) {
           float tmp_mat[4][4];
-          mul_m4_m4m4(tmp_mat, gpl->parent->object_to_world, pchan->pose_mat);
+          mul_m4_m4m4(tmp_mat, gpl->parent->object_to_world().ptr(), pchan->pose_mat);
           invert_m4_m4(cur_mat, tmp_mat);
-          copy_v3_v3(gpl_loc, obact->object_to_world[3]);
+          copy_v3_v3(gpl_loc, obact->object_to_world().location());
         }
       }
 

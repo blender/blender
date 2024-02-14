@@ -10,27 +10,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
-#include "BLI_timecode.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_main.hh"
-#include "BKE_report.hh"
 
-#include "SEQ_iterator.hh"
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-
-#include "RNA_define.hh"
 
 static void proxy_freejob(void *pjv)
 {

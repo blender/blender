@@ -9,13 +9,9 @@
 #ifdef WITH_IO_GPENCIL
 
 #  include "BLI_path_util.h"
-#  include "BLI_string.h"
 
-#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_space_types.h"
 
-#  include "BKE_gpencil_legacy.h"
-#  include "BKE_main.hh"
 #  include "BKE_report.hh"
 #  include "BKE_screen.hh"
 
@@ -31,9 +27,6 @@
 
 #  include "WM_api.hh"
 #  include "WM_types.hh"
-
-#  include "DEG_depsgraph.hh"
-#  include "DEG_depsgraph_query.hh"
 
 #  include "io_gpencil.hh"
 

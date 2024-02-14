@@ -14,7 +14,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_color.h"
@@ -28,7 +27,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_curve_legacy.h"
@@ -36,9 +34,6 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_material.h"
 #include "BKE_report.hh"
-
-#include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -2057,7 +2052,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_eval = depsgraph != nullptr ? DEG_get_evaluated_object(depsgraph, ob) : ob;
   float select_mat[4][4];
-  copy_m4_m4(select_mat, ob_eval->object_to_world);
+  copy_m4_m4(select_mat, ob_eval->object_to_world().ptr());
 
   /* deselect all strokes first? */
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {

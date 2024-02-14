@@ -14,7 +14,7 @@
 #include "BLI_jitter_2d.h"
 #include "BLI_rand.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float radius1)
 {

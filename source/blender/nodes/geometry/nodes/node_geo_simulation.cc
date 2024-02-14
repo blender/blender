@@ -427,9 +427,9 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   Span<NodeSimulationItem> simulation_items_;
   int skip_input_index_;
   /**
-   * Start index of the simulation state inputs that are used when the simulation is skipped. Those
-   * inputs are linked directly to the simulation input node. Those inputs only exist internally,
-   * but not in the UI.
+   * Start index of the simulation state inputs that are used when the simulation is skipped.
+   * Those inputs are linked directly to the simulation input node. Those inputs only exist
+   * internally, but not in the UI.
    */
   int skip_inputs_offset_;
   /**
@@ -648,8 +648,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     }
     const bool skip = skip_variant->get<bool>();
 
-    /* Instead of outputting the values directly, convert them to a bake state and then back. This
-     * ensures that some geometry processing happens on the data consistently (e.g. removing
+    /* Instead of outputting the values directly, convert them to a bake state and then back.
+     * This ensures that some geometry processing happens on the data consistently (e.g. removing
      * anonymous attributes). */
     std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(
         params, data_block_map, skip);
@@ -945,7 +945,8 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
     case SOCK_INT:
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
-    case SOCK_RGBA: {
+    case SOCK_RGBA:
+    case SOCK_MATRIX: {
       const CPPType &type = node_geo_simulation_cc::get_simulation_item_cpp_type(socket_type);
       SocketValueVariant prev_value_variant = *static_cast<const SocketValueVariant *>(prev);
       SocketValueVariant next_value_variant = *static_cast<const SocketValueVariant *>(next);

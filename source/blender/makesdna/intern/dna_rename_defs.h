@@ -149,8 +149,6 @@ DNA_STRUCT_RENAME_ELEM(NodesModifierData, simulation_bake_directory, bake_direct
 DNA_STRUCT_RENAME_ELEM(Object, col, color)
 DNA_STRUCT_RENAME_ELEM(Object, dup_group, instance_collection)
 DNA_STRUCT_RENAME_ELEM(Object, dupfacesca, instance_faces_scale)
-DNA_STRUCT_RENAME_ELEM(Object, imat, world_to_object)
-DNA_STRUCT_RENAME_ELEM(Object, obmat, object_to_world)
 DNA_STRUCT_RENAME_ELEM(Object, restrictflag, visibility_flag)
 DNA_STRUCT_RENAME_ELEM(Object, size, scale)
 DNA_STRUCT_RENAME_ELEM(OpacityGpencilModifierData, hardeness, hardness)

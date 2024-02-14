@@ -10,7 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
@@ -18,7 +17,6 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
-#include "BLI_session_uid.h"
 #include "BLI_string.h"
 
 #ifdef WIN32
@@ -32,15 +30,12 @@
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "WM_types.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
-#include "SEQ_iterator.hh"
 #include "SEQ_proxy.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
@@ -51,7 +46,6 @@
 #include "proxy.hh"
 #include "render.hh"
 #include "sequencer.hh"
-#include "strip_time.hh"
 #include "utils.hh"
 
 struct SeqIndexBuildContext {

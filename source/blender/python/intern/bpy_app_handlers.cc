@@ -16,8 +16,6 @@
 #include "BKE_callbacks.hh"
 
 #include "RNA_access.hh"
-#include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "bpy_app_handlers.h"
 #include "bpy_rna.h"

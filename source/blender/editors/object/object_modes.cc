@@ -9,28 +9,20 @@
  * actual mode switching logic is per-object type.
  */
 
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_workspace_types.h"
 
-#include "BLI_kdopbvh.h"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.hh"
-#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.hh"
-#include "BKE_screen.hh"
 
 #include "BLI_math_vector.h"
 
@@ -46,8 +38,6 @@
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_outliner.hh"
-#include "ED_screen.hh"
-#include "ED_transform_snap_object_context.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 

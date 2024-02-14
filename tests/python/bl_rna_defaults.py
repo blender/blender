@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ./blender.bin --background -noaudio --factory-startup --python tests/python/bl_rna_defaults.py
+# ./blender.bin --background --factory-startup --python tests/python/bl_rna_defaults.py
 
 import bpy
 

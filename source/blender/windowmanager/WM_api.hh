@@ -28,7 +28,6 @@ struct GHashIterator;
 struct GPUViewport;
 struct ID;
 struct IDProperty;
-struct IDRemapper;
 struct ImBuf;
 struct ImageFormatData;
 struct Main;
@@ -70,6 +69,10 @@ struct wmNDOFMotionData;
 struct wmXrRuntimeData;
 struct wmXrSessionState;
 #endif
+
+namespace blender::bke::id {
+class IDRemapper;
+}
 
 namespace blender::asset_system {
 class AssetRepresentation;
@@ -585,7 +588,7 @@ void WM_main_add_notifier(unsigned int type, void *reference);
  * Clear notifiers by reference, Used so listeners don't act on freed data.
  */
 void WM_main_remove_notifier_reference(const void *reference);
-void WM_main_remap_editor_id_reference(const IDRemapper *mappings);
+void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings);
 
 /* reports */
 /**

@@ -19,7 +19,6 @@
 #include "DNA_material_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"

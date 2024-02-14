@@ -9,8 +9,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
 #include "BLI_array_store.h"
 #include "BLI_array_store_utils.h" /* own include */
 

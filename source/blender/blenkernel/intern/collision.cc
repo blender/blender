@@ -11,14 +11,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cloth_types.h"
-#include "DNA_collection_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
@@ -27,10 +23,7 @@
 
 #include "BKE_cloth.hh"
 #include "BKE_collection.hh"
-#include "BKE_effect.h"
-#include "BKE_layer.hh"
 #include "BKE_modifier.hh"
-#include "BKE_scene.hh"
 
 #include "BKE_collision.h"
 #include "BLI_kdopbvh.h"

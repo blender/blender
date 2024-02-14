@@ -15,7 +15,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_heap.h"
 #include "BLI_linklist.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"

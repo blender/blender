@@ -13,8 +13,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
-#include "BKE_context.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
@@ -166,7 +166,7 @@ static void calcVertSlideMouseActiveEdges(TransInfo *t, const float2 &mval_fl)
         float dir_dot;
 
         sub_v3_v3v3(tdir, sv->co_orig_3d, sv->co_link_orig_3d[j]);
-        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world, tdir);
+        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr(), tdir);
         project_plane_v3_v3v3(tdir, tdir, t->viewinv[2]);
 
         normalize_v3(tdir);
@@ -369,7 +369,7 @@ static void drawVertSlide(TransInfo *t)
       GPU_blend(GPU_BLEND_ALPHA);
 
       GPU_matrix_push();
-      GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
+      GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr());
 
       GPU_line_width(line_size);
 
@@ -423,16 +423,17 @@ static void drawVertSlide(TransInfo *t)
         float2 xy_delta = t->mval - t->mouse.imval;
 
         mul_v3_m4v3(co_orig_3d,
-                    TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world,
+                    TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr(),
                     curr_sv->co_orig_3d);
         zfac = ED_view3d_calc_zfac(static_cast<const RegionView3D *>(t->region->regiondata),
                                    co_orig_3d);
 
         ED_view3d_win_to_delta(t->region, xy_delta, zfac, co_dest_3d);
 
-        invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object,
-                     TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
-        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object, co_dest_3d);
+        invert_m4_m4(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->runtime->world_to_object.ptr(),
+                     TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr());
+        mul_mat3_m4_v3(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->world_to_object().ptr(),
+                       co_dest_3d);
 
         add_v3_v3(co_dest_3d, curr_sv->co_orig_3d);
 

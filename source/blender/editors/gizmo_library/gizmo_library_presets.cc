@@ -14,18 +14,11 @@
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
-
-#include "BKE_context.hh"
 
 #include "GPU_matrix.h"
 #include "GPU_select.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "WM_types.hh"
-
-#include "ED_view3d.hh"
 
 /* own includes */
 #include "ED_gizmo_library.hh"    /* own include */

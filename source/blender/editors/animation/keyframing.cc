@@ -19,9 +19,6 @@
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -39,7 +36,6 @@
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_build.hh"
 
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
@@ -51,7 +47,6 @@
 #include "ANIM_fcurve.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
-#include "ANIM_visualkey.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -350,6 +345,9 @@ static int insert_key(bContext *C, wmOperator *op)
   const eInsertKeyFlags insert_key_flags = ANIM_get_keyframing_flags(scene);
   const eBezTriple_KeyframeType key_type = eBezTriple_KeyframeType(
       scene->toolsettings->keyframe_type);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+      depsgraph, BKE_scene_frame_get(scene));
 
   LISTBASE_FOREACH (CollectionPointerLink *, collection_ptr_link, &selection) {
     ID *selected_id = collection_ptr_link->ptr.owner_id;
@@ -360,8 +358,14 @@ static int insert_key(bContext *C, wmOperator *op)
     PointerRNA id_ptr = collection_ptr_link->ptr;
     Vector<std::string> rna_paths = construct_rna_paths(&collection_ptr_link->ptr);
 
-    animrig::insert_key_rna(
-        &id_ptr, rna_paths.as_span(), scene_frame, insert_key_flags, key_type, bmain, op->reports);
+    animrig::insert_key_rna(&id_ptr,
+                            rna_paths.as_span(),
+                            scene_frame,
+                            insert_key_flags,
+                            key_type,
+                            bmain,
+                            op->reports,
+                            anim_eval_context);
   }
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);

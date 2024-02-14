@@ -7,10 +7,8 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
-#include "BKE_grease_pencil.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
-#include "BKE_scene.hh"
 
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_color.h"

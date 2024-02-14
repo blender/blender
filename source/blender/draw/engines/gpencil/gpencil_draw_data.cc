@@ -378,27 +378,27 @@ void gpencil_light_pool_populate(GPENCIL_LightPool *lightpool, Object *ob)
   float(*mat)[4] = reinterpret_cast<float(*)[4]>(&gp_light->right);
 
   if (la->type == LA_SPOT) {
-    copy_m4_m4(mat, ob->world_to_object);
+    copy_m4_m4(mat, ob->world_to_object().ptr());
     gp_light->type = GP_LIGHT_TYPE_SPOT;
     gp_light->spot_size = cosf(la->spotsize * 0.5f);
     gp_light->spot_blend = (1.0f - gp_light->spot_size) * la->spotblend;
   }
   else if (la->type == LA_AREA) {
     /* Simulate area lights using a spot light. */
-    normalize_m4_m4(mat, ob->object_to_world);
+    normalize_m4_m4(mat, ob->object_to_world().ptr());
     invert_m4(mat);
     gp_light->type = GP_LIGHT_TYPE_SPOT;
     gp_light->spot_size = cosf(M_PI_2);
     gp_light->spot_blend = (1.0f - gp_light->spot_size) * 1.0f;
   }
   else if (la->type == LA_SUN) {
-    normalize_v3_v3(gp_light->forward, ob->object_to_world[2]);
+    normalize_v3_v3(gp_light->forward, ob->object_to_world().ptr()[2]);
     gp_light->type = GP_LIGHT_TYPE_SUN;
   }
   else {
     gp_light->type = GP_LIGHT_TYPE_POINT;
   }
-  copy_v4_v4(gp_light->position, ob->object_to_world[3]);
+  copy_v4_v4(gp_light->position, ob->object_to_world().location());
   copy_v3_v3(gp_light->color, &la->r);
   mul_v3_fl(gp_light->color, la->energy * light_power_get(la));
 

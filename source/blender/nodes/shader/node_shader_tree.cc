@@ -14,7 +14,6 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_array.hh"
@@ -38,16 +37,10 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
-
-#include "GPU_material.hh"
-
-#include "RE_texture.h"
 
 #include "UI_resources.hh"
 
-#include "NOD_common.h"
 #include "NOD_shader.h"
 
 #include "node_common.h"
@@ -1209,7 +1202,9 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
     node->runtime->tmp_flag = -1;
   }
-  iter_shader_to_rgba_depth_count(output, max_depth);
+  if (output != nullptr) {
+    iter_shader_to_rgba_depth_count(output, max_depth);
+  }
   LISTBASE_FOREACH (bNode *, node, &localtree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
       iter_shader_to_rgba_depth_count(node, max_depth);

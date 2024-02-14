@@ -19,7 +19,6 @@
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "DNA_camera_types.h"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"

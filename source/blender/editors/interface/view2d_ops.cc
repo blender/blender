@@ -13,7 +13,6 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_time.h" /* USER_ZOOM_CONTINUE */

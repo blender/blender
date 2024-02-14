@@ -18,8 +18,6 @@
 
 #include "ED_view3d.hh"
 
-#include "RNA_types.hh"
-
 #include "view3d_intern.h"
 
 /* -------------------------------------------------------------------- */

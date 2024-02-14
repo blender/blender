@@ -627,7 +627,7 @@ void IMB_processor_apply_threaded(
     void(init_handle)(void *handle, int start_line, int tot_line, void *customdata),
     void *(do_thread)(void *));
 
-typedef void (*ScanlineThreadFunc)(void *custom_data, int scanline);
+using ScanlineThreadFunc = void (*)(void *custom_data, int scanline);
 void IMB_processor_apply_threaded_scanlines(int total_scanlines,
                                             ScanlineThreadFunc do_thread,
                                             void *custom_data);

@@ -16,7 +16,6 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
@@ -35,24 +34,18 @@
 
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
-#include "BKE_curve.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_icons.h"
 #include "BKE_idprop.h"
-#include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_mball.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_viewer_path.hh"
-#include "BKE_workspace.h"
 
 #include "ED_asset_shelf.hh"
 #include "ED_geometry.hh"
@@ -63,7 +56,6 @@
 #include "ED_space_api.hh"
 #include "ED_transform.hh"
 #include "ED_undo.hh"
-#include "ED_viewer_path.hh"
 
 #include "GPU_matrix.h"
 
@@ -73,9 +65,6 @@
 #include "WM_message.hh"
 #include "WM_toolsystem.hh"
 #include "WM_types.hh"
-
-#include "RE_engine.h"
-#include "RE_pipeline.h"
 
 #include "RNA_access.hh"
 
@@ -137,11 +126,11 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
 void ED_view3d_init_mats_rv3d(const Object *ob, RegionView3D *rv3d)
 {
   /* local viewmat and persmat, to calculate projections */
-  mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->object_to_world);
-  mul_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->object_to_world);
+  mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->object_to_world().ptr());
+  mul_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->object_to_world().ptr());
 
   /* initializes object space clipping, speeds up clip tests */
-  ED_view3d_clipping_local(rv3d, ob->object_to_world);
+  ED_view3d_clipping_local(rv3d, ob->object_to_world().ptr());
 }
 
 void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
@@ -151,7 +140,7 @@ void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
   /* We have to multiply instead of loading `viewmatob` to make
    * it work with duplis using display-lists, otherwise it will
    * override the dupli-matrix. */
-  GPU_matrix_mul(ob->object_to_world);
+  GPU_matrix_mul(ob->object_to_world().ptr());
 }
 
 #ifndef NDEBUG
@@ -748,7 +737,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   copy_v3_v3(obmat_final[3], snap_data->loc);
 
   float scale[3];
-  mat4_to_size(scale, ob->object_to_world);
+  mat4_to_size(scale, ob->object_to_world().ptr());
   rescale_m4(obmat_final, scale);
 
   if (const std::optional<Bounds<float3>> bb = BKE_object_boundbox_get(ob)) {
@@ -2002,9 +1991,10 @@ static void space_view3d_refresh(const bContext *C, ScrArea *area)
   MEM_SAFE_FREE(v3d->runtime.local_stats);
 }
 
-static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const IDRemapper *mappings)
+static void view3d_id_remap_v3d_ob_centers(View3D *v3d,
+                                           const blender::bke::id::IDRemapper &mappings)
 {
-  if (BKE_id_remapper_apply(mappings, (ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
+  if (mappings.apply((ID **)&v3d->ob_center, ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* Otherwise, bone-name may remain valid...
@@ -2013,10 +2003,13 @@ static void view3d_id_remap_v3d_ob_centers(View3D *v3d, const IDRemapper *mappin
   }
 }
 
-static void view3d_id_remap_v3d(
-    ScrArea *area, SpaceLink *slink, View3D *v3d, const IDRemapper *mappings, const bool is_local)
+static void view3d_id_remap_v3d(ScrArea *area,
+                                SpaceLink *slink,
+                                View3D *v3d,
+                                const blender::bke::id::IDRemapper &mappings,
+                                const bool is_local)
 {
-  if (BKE_id_remapper_apply(mappings, (ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
+  if (mappings.apply((ID **)&v3d->camera, ID_REMAP_APPLY_DEFAULT) ==
       ID_REMAP_RESULT_SOURCE_UNASSIGNED)
   {
     /* 3D view might be inactive, in that case needs to use slink->regionbase */
@@ -2034,11 +2027,13 @@ static void view3d_id_remap_v3d(
   }
 }
 
-static void view3d_id_remap(ScrArea *area, SpaceLink *slink, const IDRemapper *mappings)
+static void view3d_id_remap(ScrArea *area,
+                            SpaceLink *slink,
+                            const blender::bke::id::IDRemapper &mappings)
 {
 
-  if (!BKE_id_remapper_has_mapping_for(mappings,
-                                       FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_MC))
+  if (!mappings.contains_mappings_for_any(FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_IM |
+                                          FILTER_ID_MC))
   {
     return;
   }

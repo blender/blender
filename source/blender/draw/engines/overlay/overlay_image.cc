@@ -386,7 +386,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     float image_aspect[2];
     overlay_image_calc_aspect(ima, size, image_aspect);
 
-    copy_m4_m4(mat, ob->object_to_world);
+    copy_m4_m4(mat, ob->object_to_world().ptr());
     mul_v3_fl(mat[0], image_aspect[0] * 0.5f * ob->empty_drawsize);
     mul_v3_fl(mat[1], image_aspect[1] * 0.5f * ob->empty_drawsize);
     madd_v3_v3fl(mat[3], mat[0], ob->ima_ofs[0] * 2.0f + 1.0f);

@@ -464,7 +464,9 @@ void unpack_menu(bContext *C,
   UI_popup_menu_end(C, pup);
 }
 
-void ED_spacedata_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper *mappings)
+void ED_spacedata_id_remap(ScrArea *area,
+                           SpaceLink *sl,
+                           const blender::bke::id::IDRemapper &mappings)
 {
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
   if (st && st->id_remap) {
@@ -477,9 +479,8 @@ void ED_spacedata_id_remap_single(ScrArea *area, SpaceLink *sl, ID *old_id, ID *
   SpaceType *st = BKE_spacetype_from_id(sl->spacetype);
 
   if (st && st->id_remap) {
-    IDRemapper *mappings = BKE_id_remapper_create();
-    BKE_id_remapper_add(mappings, old_id, new_id);
+    blender::bke::id::IDRemapper mappings;
+    mappings.add(old_id, new_id);
     st->id_remap(area, sl, mappings);
-    BKE_id_remapper_free(mappings);
   }
 }

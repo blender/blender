@@ -12,23 +12,16 @@
 #include <cmath>
 #include <cstring>
 
-#include "atomic_ops.h"
-
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_object.hh"
-#include "BKE_paint.hh"
 #include "BKE_pbvh.hh"
 
 #include "DNA_curve_types.h" /* for Curve */
 #include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 

@@ -414,6 +414,8 @@ std::unique_ptr<SocketDeclaration> make_declaration_for_socket_type(
       return std::make_unique<decl::Bool>();
     case SOCK_ROTATION:
       return std::make_unique<decl::Rotation>();
+    case SOCK_MATRIX:
+      return std::make_unique<decl::Matrix>();
     case SOCK_INT:
       return std::make_unique<decl::Int>();
     case SOCK_STRING:
@@ -449,6 +451,8 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_input(
       return this->add_input<decl::Bool>(name, identifier);
     case SOCK_ROTATION:
       return this->add_input<decl::Rotation>(name, identifier);
+    case SOCK_MATRIX:
+      return this->add_input<decl::Matrix>(name, identifier);
     case SOCK_INT:
       return this->add_input<decl::Int>(name, identifier);
     case SOCK_STRING:
@@ -492,6 +496,8 @@ BaseSocketDeclarationBuilder &NodeDeclarationBuilder::add_output(
       return this->add_output<decl::Bool>(name, identifier);
     case SOCK_ROTATION:
       return this->add_output<decl::Rotation>(name, identifier);
+    case SOCK_MATRIX:
+      return this->add_output<decl::Matrix>(name, identifier);
     case SOCK_INT:
       return this->add_output<decl::Int>(name, identifier);
     case SOCK_STRING:

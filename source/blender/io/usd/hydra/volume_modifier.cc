@@ -120,7 +120,7 @@ void VolumeModifierData::write_transform()
                pxr::GfMatrix4d(1.0f).SetTranslate(pxr::GfVec3d(texspace_loc));
 
   /* applying object transform */
-  transform *= gf_matrix_from_transform(object->object_to_world);
+  transform *= gf_matrix_from_transform(object->object_to_world().ptr());
 }
 
 std::string VolumeModifierData::get_cached_file_path(std::string directory, int frame)

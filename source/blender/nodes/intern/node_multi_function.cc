@@ -4,7 +4,6 @@
 
 #include "NOD_multi_function.hh"
 
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 namespace blender::nodes {

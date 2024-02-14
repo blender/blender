@@ -579,6 +579,12 @@ bool isect_ray_ray_v3(const float ray_origin_a[3],
  *
  * \note #line_plane_factor_v3() shares logic.
  */
+bool isect_ray_plane_v3_factor(const float ray_origin[3],
+                               const float ray_direction[3],
+                               const float plane_co[3],
+                               const float plane_no[3],
+                               float *r_lambda);
+
 bool isect_ray_plane_v3(const float ray_origin[3],
                         const float ray_direction[3],
                         const float plane[4],

@@ -16,25 +16,21 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "BKE_action.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.h"
 #include "BKE_report.hh"
-#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
 #include "ED_markers.hh"
 #include "ED_screen.hh"
-#include "ED_transform.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -46,7 +42,6 @@
 
 #include "DEG_depsgraph_build.hh"
 
-#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "nla_intern.hh"

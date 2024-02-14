@@ -79,7 +79,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
                       d,
                       steps,
                       -angle,
-                      obedit->object_to_world,
+                      obedit->object_to_world().ptr(),
                       use_normal_flip,
                       dupli,
                       use_auto_merge))

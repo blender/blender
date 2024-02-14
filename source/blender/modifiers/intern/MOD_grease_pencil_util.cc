@@ -23,12 +23,6 @@
 
 #include "BLO_read_write.hh"
 
-#include "DNA_defaults.h"
-
-#include "DEG_depsgraph_query.hh"
-
-#include "MOD_ui_common.hh"
-
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 

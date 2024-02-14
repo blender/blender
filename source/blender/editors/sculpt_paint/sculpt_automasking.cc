@@ -9,7 +9,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_base_safe.h"
@@ -19,31 +18,12 @@
 
 #include "DNA_brush_types.h"
 
-#include "BKE_brush.hh"
 #include "BKE_colortools.hh"
-#include "BKE_context.hh"
-#include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.hh"
 
-#include "DEG_depsgraph.hh"
-
-#include "WM_api.hh"
-#include "WM_message.hh"
-#include "WM_toolsystem.hh"
-#include "WM_types.hh"
-
-#include "ED_object.hh"
-#include "ED_screen.hh"
-#include "ED_sculpt.hh"
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
-
-#include "RNA_access.hh"
-#include "RNA_define.hh"
 
 #include "bmesh.hh"
 

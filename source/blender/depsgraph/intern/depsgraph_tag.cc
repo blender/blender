@@ -840,7 +840,7 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
   deg::id_tag_update(bmain, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
-void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, unsigned int flags)
+void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, uint flags)
 {
   BLI_assert(depsgraph != nullptr);
   BLI_assert(id != nullptr);

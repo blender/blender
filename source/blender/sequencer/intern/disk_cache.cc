@@ -14,7 +14,6 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_space_types.h" /* for FILE_MAX. */
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -25,25 +24,17 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_fileops_types.h"
-#include "BLI_ghash.h"
 #include "BLI_listbase.h"
-#include "BLI_mempool.h"
 #include "BLI_path_util.h"
 #include "BLI_threads.h"
 
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
 
-#include "SEQ_prefetch.hh"
-#include "SEQ_relations.hh"
 #include "SEQ_render.hh"
-#include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
 #include "disk_cache.hh"
 #include "image_cache.hh"
-#include "prefetch.hh"
-#include "strip_time.hh"
 
 /**
  * Disk Cache Design Notes

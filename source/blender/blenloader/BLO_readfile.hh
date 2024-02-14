@@ -367,7 +367,7 @@ void BLO_read_invalidate_message(BlendHandle *bh, Main *bmain, const char *messa
  * \note merged with 'user-level' options from operators etc. in 16 lower bits
  * (see #eFileSel_Params_Flag in DNA_space_types.h).
  */
-typedef enum eBLOLibLinkFlags {
+enum eBLOLibLinkFlags {
   /** Generate a placeholder (empty ID) if not found in current lib file. */
   BLO_LIBLINK_USE_PLACEHOLDERS = 1 << 16,
   /** Force loaded ID to be tagged as #LIB_TAG_INDIRECT (used in reload context only). */
@@ -388,7 +388,7 @@ typedef enum eBLOLibLinkFlags {
   BLO_LIBLINK_OBDATA_INSTANCE = 1 << 24,
   /** Instantiate collections as empties, instead of linking them into current view layer. */
   BLO_LIBLINK_COLLECTION_INSTANCE = 1 << 25,
-} eBLOLibLinkFlags;
+};
 
 /**
  * Struct for passing arguments to

@@ -18,7 +18,6 @@
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_ghash.h"
 #include "BLI_hash.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"

@@ -11,39 +11,29 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_volume.hh"
 
 #include "BLT_translation.hh"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_volume_types.h"
-
-#include "DEG_depsgraph.hh"
 
 #include "GEO_mesh_to_volume.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLO_read_write.hh"
-
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 static void init_data(ModifierData *md)
@@ -132,8 +122,8 @@ static Volume *mesh_to_volume(ModifierData *md,
     return input_volume;
   }
 
-  const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->world_to_object) *
-                                                      float4x4(object_to_convert->object_to_world);
+  const float4x4 mesh_to_own_object_space_transform = ctx->object->world_to_object() *
+                                                      object_to_convert->object_to_world();
   geometry::MeshToVolumeResolution resolution;
   resolution.mode = (MeshToVolumeModifierResolutionMode)mvmd->resolution_mode;
   if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {

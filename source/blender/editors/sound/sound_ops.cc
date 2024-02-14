@@ -38,7 +38,6 @@
 #include "RNA_prototypes.h"
 
 #include "SEQ_iterator.hh"
-#include "SEQ_utils.hh"
 
 #include "UI_interface.hh"
 

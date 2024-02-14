@@ -40,23 +40,17 @@
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
 
-#include "BKE_anim_data.h"
 #include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
-#include "BKE_displist.h"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_main.hh"
-#include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "CLG_log.h"
 
 #include "BLO_read_write.hh"
 

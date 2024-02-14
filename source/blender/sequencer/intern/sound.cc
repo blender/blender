@@ -22,11 +22,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_read_write.hh"
-
 #include "BKE_colortools.hh"
-#include "BKE_main.hh"
-#include "BKE_scene.hh"
 #include "BKE_sound.h"
 
 #ifdef WITH_CONVOLUTION

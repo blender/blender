@@ -13,20 +13,16 @@
 #include "DNA_object_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_buffer.h"
 #include "BLI_kdtree.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
-#include "BKE_global.hh"
 #include "BKE_layer.hh"
-#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_report.hh"
@@ -1862,7 +1858,7 @@ bool BMBVH_EdgeVisible(
 
   ED_view3d_win_to_segment_clipped(depsgraph, region, v3d, mval_f, origin, end, false);
 
-  invert_m4_m4(invmat, obedit->object_to_world);
+  invert_m4_m4(invmat, obedit->object_to_world().ptr());
   mul_m4_v3(invmat, origin);
 
   copy_v3_v3(co1, e->v1->co);
@@ -1957,7 +1953,7 @@ void EDBM_project_snap_verts(
                                                     co_proj,
                                                     nullptr))
         {
-          mul_v3_m4v3(eve->co, obedit->world_to_object, co_proj);
+          mul_v3_m4v3(eve->co, obedit->world_to_object().ptr(), co_proj);
         }
       }
     }

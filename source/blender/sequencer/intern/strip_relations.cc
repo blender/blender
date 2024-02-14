@@ -18,10 +18,8 @@
 
 #include "BKE_main.hh"
 #include "BKE_report.hh"
-#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "IMB_imbuf.hh"
 
@@ -30,7 +28,6 @@
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
-#include "SEQ_transform.hh"
 
 #include "effects.hh"
 #include "image_cache.hh"

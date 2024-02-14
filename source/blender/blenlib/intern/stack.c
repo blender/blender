@@ -14,7 +14,7 @@
 
 #include "BLI_stack.h" /* own include */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #define USE_TOTELEM
 

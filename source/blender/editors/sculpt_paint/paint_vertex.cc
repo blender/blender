@@ -47,6 +47,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 
@@ -487,10 +488,10 @@ void update_cache_invariants(
   /* cache projection matrix */
   cache->projection_mat = ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob);
 
-  invert_m4_m4(ob->world_to_object, ob->object_to_world);
+  invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
   copy_m3_m4(mat, cache->vc->rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
-  copy_m3_m4(mat, ob->world_to_object);
+  copy_m3_m4(mat, ob->world_to_object().ptr());
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(cache->true_view_normal, view_dir);
 
@@ -1922,7 +1923,7 @@ static void vpaint_stroke_update_step(bContext *C,
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
   swap_m4m4(vc->rv3d->persmat, mat);
 
@@ -1939,7 +1940,7 @@ static void vpaint_stroke_update_step(bContext *C,
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss->cache->true_location);
   vwpaint::last_stroke_update(scene, loc_world);
 
   ED_region_tag_redraw(vc->region);

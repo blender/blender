@@ -8,8 +8,6 @@
 
 #include <cstring>
 
-#include "BLI_array.h"
-
 #include "BKE_collection.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
@@ -19,7 +17,6 @@
 #include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 

@@ -34,8 +34,6 @@
 #include "UI_interface.hh"
 #include "UI_view2d.hh"
 
-#include "interface_intern.hh"
-
 /* Compute display grid resolution
  ********************************************************/
 

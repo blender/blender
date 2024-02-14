@@ -29,9 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
-#include "BLI_implicit_sharing.hh"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -56,9 +54,7 @@
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.hh"
 #include "BKE_pointcache.h"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
@@ -667,10 +663,10 @@ void RE_FreeUnusedGPUResources()
         break;
       }
 
-      /* Detect if scene is using realtime compositing, and if either a node editor is
+      /* Detect if scene is using GPU compositing, and if either a node editor is
        * showing the nodes, or an image editor is showing the render result or viewer. */
       if (!(scene->use_nodes && scene->nodetree &&
-            scene->nodetree->execution_mode == NTREE_EXECUTION_MODE_REALTIME))
+            scene->nodetree->execution_mode == NTREE_EXECUTION_MODE_GPU))
       {
         continue;
       }
@@ -1679,7 +1675,7 @@ static bool is_compositing_possible_on_gpu(Scene *scene, ReportList *reports)
 {
   /* CPU compositor can always run. */
   if (!U.experimental.use_full_frame_compositor ||
-      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_REALTIME)
+      scene->nodetree->execution_mode != NTREE_EXECUTION_MODE_GPU)
   {
     return true;
   }

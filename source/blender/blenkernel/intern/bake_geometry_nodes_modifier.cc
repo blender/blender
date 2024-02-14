@@ -6,19 +6,15 @@
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_collection.hh"
-#include "BKE_curves.hh"
 #include "BKE_main.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
-#include "DNA_pointcloud_types.h"
 
 #include "BLI_binary_search.hh"
 #include "BLI_fileops.hh"
-#include "BLI_hash_md5.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 
 #include "MOD_nodes.hh"
 

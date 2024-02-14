@@ -8,7 +8,6 @@
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_index_range.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 

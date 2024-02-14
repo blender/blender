@@ -733,11 +733,6 @@ void BasicTreeViewItem::build_row(uiLayout &row)
 void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override)
 {
   const StringRefNull label = label_override.is_empty() ? StringRefNull(label_) : label_override;
-
-  /* Some padding for labels without collapse chevron and no icon. Looks weird without. */
-  if (icon == ICON_NONE && !is_collapsible()) {
-    uiItemS_ex(&layout, 0.8f);
-  }
   uiItemL(&layout, IFACE_(label.c_str()), icon);
 }
 

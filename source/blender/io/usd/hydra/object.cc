@@ -121,7 +121,7 @@ void ObjectData::available_materials(Set<pxr::SdfPath> & /*paths*/) const {}
 
 void ObjectData::write_transform()
 {
-  transform = gf_matrix_from_transform(((const Object *)id)->object_to_world);
+  transform = gf_matrix_from_transform(((const Object *)id)->object_to_world().ptr());
 }
 
 void ObjectData::write_materials() {}

@@ -13,9 +13,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_armature.hh"
-#include "BKE_context.hh"
-
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"

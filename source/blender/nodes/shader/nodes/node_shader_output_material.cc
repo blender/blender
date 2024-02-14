@@ -4,8 +4,6 @@
 
 #include "node_shader_util.hh"
 
-#include "BKE_scene.hh"
-
 namespace blender::nodes::node_shader_output_material_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)

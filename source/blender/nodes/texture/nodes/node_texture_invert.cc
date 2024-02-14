@@ -7,7 +7,6 @@
  */
 
 #include "BLI_math_vector.h"
-#include "NOD_texture.h"
 #include "node_texture_util.hh"
 
 /* **************** INVERT ******************** */

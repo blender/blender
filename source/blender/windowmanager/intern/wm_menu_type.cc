@@ -13,7 +13,6 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
 
 #include "MEM_guardedalloc.h"
 

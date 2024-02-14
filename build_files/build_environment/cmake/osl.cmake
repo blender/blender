@@ -43,6 +43,10 @@ set(OSL_EXTRA_ARGS
   -DPython_EXECUTABLE=${PYTHON_BINARY}
 )
 
+if(NOT APPLE)
+  list(APPEND OSL_EXTRA_ARGS -DOSL_USE_OPTIX=ON)
+endif()
+
 ExternalProject_Add(external_osl
   URL file://${PACKAGE_DIR}/${OSL_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

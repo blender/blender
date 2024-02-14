@@ -13,8 +13,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "py_capi_utils.h"
-
 #include "bl_math_py_api.h"
 
 /* -------------------------------------------------------------------- */

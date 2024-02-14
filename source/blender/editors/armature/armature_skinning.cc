@@ -10,9 +10,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -24,9 +22,7 @@
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
-#include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
@@ -380,8 +376,8 @@ static void add_verts_to_dgroups(ReportList *reports,
       copy_v3_v3(tip[j], bone->arm_tail);
     }
 
-    mul_m4_v3(par->object_to_world, root[j]);
-    mul_m4_v3(par->object_to_world, tip[j]);
+    mul_m4_v3(par->object_to_world().ptr(), root[j]);
+    mul_m4_v3(par->object_to_world().ptr(), tip[j]);
 
     /* set selected */
     if (wpmode) {
@@ -430,7 +426,7 @@ static void add_verts_to_dgroups(ReportList *reports,
     if (!vertsfilled) {
       copy_v3_v3(verts[i], positions[i]);
     }
-    mul_m4_v3(ob->object_to_world, verts[i]);
+    mul_m4_v3(ob->object_to_world().ptr(), verts[i]);
   }
 
   /* compute the weights based on gathered vertices and bones */
@@ -454,7 +450,7 @@ static void add_verts_to_dgroups(ReportList *reports,
                             root,
                             tip,
                             selected,
-                            mat4_to_scale(par->object_to_world));
+                            mat4_to_scale(par->object_to_world().ptr()));
   }
 
   /* only generated in some cases but can call anyway */

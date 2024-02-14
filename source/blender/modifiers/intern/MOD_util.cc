@@ -16,10 +16,8 @@
 
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_attribute.hh"
@@ -27,10 +25,6 @@
 #include "BKE_editmesh.hh"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
-#include "BKE_lib_id.hh"
-#include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.hh"
-#include "BKE_object.hh"
 
 #include "BKE_modifier.hh"
 
@@ -77,15 +71,15 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
         bPoseChannel *pchan = BKE_pose_channel_find_name(map_object->pose, dmd->map_bone);
         if (pchan) {
           float mat_bone_world[4][4];
-          mul_m4_m4m4(mat_bone_world, map_object->object_to_world, pchan->pose_mat);
+          mul_m4_m4m4(mat_bone_world, map_object->object_to_world().ptr(), pchan->pose_mat);
           invert_m4_m4(mapref_imat, mat_bone_world);
         }
         else {
-          invert_m4_m4(mapref_imat, map_object->object_to_world);
+          invert_m4_m4(mapref_imat, map_object->object_to_world().ptr());
         }
       }
       else {
-        invert_m4_m4(mapref_imat, map_object->object_to_world);
+        invert_m4_m4(mapref_imat, map_object->object_to_world().ptr());
       }
     }
     else { /* if there is no map object, default to local */
@@ -135,10 +129,10 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
         copy_v3_v3(*r_texco, cos != nullptr ? *cos : positions[i]);
         break;
       case MOD_DISP_MAP_GLOBAL:
-        mul_v3_m4v3(*r_texco, ob->object_to_world, cos != nullptr ? *cos : positions[i]);
+        mul_v3_m4v3(*r_texco, ob->object_to_world().ptr(), cos != nullptr ? *cos : positions[i]);
         break;
       case MOD_DISP_MAP_OBJECT:
-        mul_v3_m4v3(*r_texco, ob->object_to_world, cos != nullptr ? *cos : positions[i]);
+        mul_v3_m4v3(*r_texco, ob->object_to_world().ptr(), cos != nullptr ? *cos : positions[i]);
         mul_m4_v3(mapref_imat, *r_texco);
         break;
     }

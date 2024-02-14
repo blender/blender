@@ -29,10 +29,8 @@
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
@@ -53,8 +51,6 @@
 #include "ED_object.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
-
-#include "UI_resources.hh"
 
 #include "particle_edit_utildefines.h"
 
@@ -725,8 +721,8 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
 
   edit_point = target_edit ? target_edit->points : nullptr;
 
-  invert_m4_m4(from_ob_imat, ob->object_to_world);
-  invert_m4_m4(to_ob_imat, target_ob->object_to_world);
+  invert_m4_m4(from_ob_imat, ob->object_to_world().ptr());
+  invert_m4_m4(to_ob_imat, target_ob->object_to_world().ptr());
   invert_m4_m4(from_imat, from_mat);
   invert_m4_m4(to_imat, to_mat);
 
@@ -844,7 +840,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
       float offset[3];
 
       if (to_global) {
-        copy_m4_m4(imat, target_ob->object_to_world);
+        copy_m4_m4(imat, target_ob->object_to_world().ptr());
       }
       else {
         /* NOTE: using target_dm here, which is in target_ob object space and has full modifiers.
@@ -925,8 +921,8 @@ static bool connect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, Particl
                           ob,
                           psys,
                           psys->edit,
-                          ob->object_to_world,
-                          ob->object_to_world,
+                          ob->object_to_world().ptr(),
+                          ob->object_to_world().ptr(),
                           psys->flag & PSYS_GLOBAL_HAIR,
                           false);
   if (ok) {
@@ -1175,7 +1171,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
   for (psys = psys_start, psys_from = PSYS_FROM_FIRST, i = 0; psys;
        psys = psys->next, psys_from = PSYS_FROM_NEXT(psys_from), i++)
   {
-    float(*from_mat)[4], (*to_mat)[4];
+    const float(*from_mat)[4], (*to_mat)[4];
 
     switch (space) {
       case PAR_COPY_SPACE_OBJECT:
@@ -1183,8 +1179,8 @@ static bool copy_particle_systems_to_object(const bContext *C,
         to_mat = I;
         break;
       case PAR_COPY_SPACE_WORLD:
-        from_mat = ob_from->object_to_world;
-        to_mat = ob_to->object_to_world;
+        from_mat = ob_from->object_to_world().ptr();
+        to_mat = ob_to->object_to_world().ptr();
         break;
       default:
         /* should not happen */

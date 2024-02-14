@@ -14,20 +14,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_main.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
-#include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
-
-#include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

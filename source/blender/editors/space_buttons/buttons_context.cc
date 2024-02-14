@@ -18,7 +18,6 @@
 #include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
-#include "DNA_brush_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -28,7 +27,6 @@
 #include "DNA_world_types.h"
 
 #include "BKE_action.h"
-#include "BKE_armature.hh"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_linestyle.h"

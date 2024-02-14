@@ -28,7 +28,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -39,22 +38,16 @@
 
 #include "BKE_main.hh"
 
-#include "BKE_anim_data.h"
-#include "BKE_curve.hh"
-#include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_material.h"
 #include "BKE_mball.hh"
 #include "BKE_mball_tessellate.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 

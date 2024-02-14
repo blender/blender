@@ -33,8 +33,7 @@
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"
 
-/* keep last */
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* **************** support for memory-write, for undo buffers *************** */
 

@@ -305,8 +305,8 @@ void BKE_collection_blend_read_data(BlendDataReader *reader, Collection *collect
 
 /* Iteration callbacks. */
 
-typedef void (*BKE_scene_objects_Cb)(Object *ob, void *data);
-typedef void (*BKE_scene_collections_Cb)(Collection *ob, void *data);
+using BKE_scene_objects_Cb = void (*)(Object *ob, void *data);
+using BKE_scene_collections_Cb = void (*)(Collection *ob, void *data);
 
 /* Iteration over objects in collection. */
 

@@ -8,16 +8,13 @@
 
 #include "DNA_defaults.h"
 #include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
 
-#include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_lattice.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 
 #include "BLO_read_write.hh"
 
@@ -28,12 +25,9 @@
 
 #include "WM_types.hh"
 
-#include "RNA_access.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_grease_pencil_util.hh"
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 namespace blender {

@@ -11,7 +11,6 @@
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_lineart.h"
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -27,8 +26,6 @@
 #include "BKE_collection.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_duplilist.h"
-#include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -36,10 +33,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_pointcache.h"
 #include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -50,7 +44,6 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -2461,7 +2454,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
                                                 Scene *scene,
                                                 Object *ob,
                                                 Object *ref_ob,
-                                                float use_mat[4][4],
+                                                const float use_mat[4][4],
                                                 bool is_render,
                                                 LineartObjectLoadTaskInfo *olti,
                                                 int thread_count,
@@ -2623,7 +2616,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                           scene,
                                           eval_ob,
                                           eval_ob,
-                                          eval_ob->object_to_world,
+                                          eval_ob->object_to_world().ptr(),
                                           is_render,
                                           olti,
                                           thread_count,
@@ -3599,11 +3592,11 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world[3]);
+  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world().location());
   if (active_camera) {
-    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world[3]);
+    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world().location());
   }
-  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world);
+  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world().ptr());
   /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and
    * lights. */
   normalize_v3(ld->conf.cam_obmat[0]);
@@ -3635,8 +3628,8 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   if (lmd->light_contour_object) {
     Object *light_obj = lmd->light_contour_object;
-    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world[3]);
-    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world);
+    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world().location());
+    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world().ptr());
     /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and
      * lights. */
     normalize_v3(ld->conf.cam_obmat_secondary[0]);
@@ -5465,7 +5458,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
   }
 
   float gp_obmat_inverse[4][4];
-  invert_m4_m4(gp_obmat_inverse, ob->object_to_world);
+  invert_m4_m4(gp_obmat_inverse, ob->object_to_world().ptr());
   lineart_gpencil_generate(cache,
                            depsgraph,
                            ob,

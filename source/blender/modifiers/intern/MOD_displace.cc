@@ -20,18 +20,12 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_editmesh.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
-#include "BKE_screen.hh"
 #include "BKE_texture.h"
 
 #include "UI_interface.hh"
@@ -323,7 +317,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
            use_global_direction)
   {
-    copy_m4_m4(local_mat, ob->object_to_world);
+    copy_m4_m4(local_mat, ob->object_to_world().ptr());
   }
 
   DisplaceUserdata data = {nullptr};

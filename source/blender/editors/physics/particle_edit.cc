@@ -3940,7 +3940,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
 
       /* Use `kco` as the object space version of world-space `co`,
        * `ob->world_to_object` is set before calling. */
-      mul_v3_m4v3(kco, data->ob->world_to_object, co);
+      mul_v3_m4v3(kco, data->ob->world_to_object().ptr(), co);
 
       point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, nullptr);
       if (point_index == -1) {
@@ -3949,7 +3949,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
 
       copy_v3_v3(co_root, co);
       copy_v3_v3(no_root, &edit->emitter_cosnos[point_index * 6 + 3]);
-      mul_mat3_m4_v3(data->ob->object_to_world, no_root); /* normal into global-space */
+      mul_mat3_m4_v3(data->ob->object_to_world().ptr(), no_root); /* normal into global-space */
       normalize_v3(no_root);
 
       if (puff_volume) {
@@ -4030,12 +4030,13 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
 
             /* Use `kco` as the object space version of world-space `co`,
              * `ob->world_to_object` is set before calling. */
-            mul_v3_m4v3(kco, data->ob->world_to_object, oco);
+            mul_v3_m4v3(kco, data->ob->world_to_object().ptr(), oco);
 
             point_index = BLI_kdtree_3d_find_nearest(edit->emitter_field, kco, nullptr);
             if (point_index != -1) {
               copy_v3_v3(onor, &edit->emitter_cosnos[point_index * 6 + 3]);
-              mul_mat3_m4_v3(data->ob->object_to_world, onor); /* Normal into world-space. */
+              mul_mat3_m4_v3(data->ob->object_to_world().ptr(),
+                             onor);       /* Normal into world-space. */
               mul_mat3_m4_v3(imat, onor); /* World-space into particle-space. */
               normalize_v3(onor);
             }
@@ -4431,7 +4432,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
   short size = pset->brush[PE_BRUSH_ADD].size;
   RNG *rng;
 
-  invert_m4_m4(imat, ob->object_to_world);
+  invert_m4_m4(imat, ob->object_to_world().ptr());
 
   if (psys->flag & PSYS_GLOBAL_HAIR) {
     return 0;
@@ -4820,7 +4821,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
             data.combfac = 1.0f - data.combfac;
           }
 
-          invert_m4_m4(ob->world_to_object, ob->object_to_world);
+          invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
 
           ED_view3d_win_to_delta(region, xy_delta, bedit->zfac, vec);
           data.dvec = vec;
@@ -4888,7 +4889,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
             }
 
             data.invert = (brush->invert ^ flip);
-            invert_m4_m4(ob->world_to_object, ob->object_to_world);
+            invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
 
             foreach_mouse_hit_point(&data, brush_puff, selected);
           }
@@ -4918,7 +4919,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
           data.smoothfac = brush->strength;
 
-          invert_m4_m4(ob->world_to_object, ob->object_to_world);
+          invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
 
           foreach_mouse_hit_key(&data, brush_smooth_get, selected);
 
@@ -5135,7 +5136,7 @@ static bool shape_cut_test_point(PEData *data, ParticleEditSettings *pset, Parti
   userdata.num_hits = 0;
 
   float co_shape[3];
-  mul_v3_m4v3(co_shape, pset->shape_object->world_to_object, key->co);
+  mul_v3_m4v3(co_shape, pset->shape_object->world_to_object().ptr(), key->co);
 
   BLI_bvhtree_ray_cast_all(
       shape_bvh->tree, co_shape, dir, 0.0f, BVH_RAYCAST_DIST_MAX, point_inside_bvh_cb, &userdata);
@@ -5176,8 +5177,8 @@ static void shape_cut(PEData *data, int pa_index)
       float dir_shape[3];
       float len_shape;
 
-      mul_v3_m4v3(co_curr_shape, pset->shape_object->world_to_object, key->co);
-      mul_v3_m4v3(co_next_shape, pset->shape_object->world_to_object, (key + 1)->co);
+      mul_v3_m4v3(co_curr_shape, pset->shape_object->world_to_object().ptr(), key->co);
+      mul_v3_m4v3(co_next_shape, pset->shape_object->world_to_object().ptr(), (key + 1)->co);
 
       sub_v3_v3v3(dir_shape, co_next_shape, co_curr_shape);
       len_shape = normalize_v3(dir_shape);

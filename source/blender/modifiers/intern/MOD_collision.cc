@@ -22,27 +22,16 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_collision.h"
-#include "BKE_context.hh"
 #include "BKE_global.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
-#include "BKE_pointcache.h"
-#include "BKE_scene.hh"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
-#include "MOD_util.hh"
-
-#include "BLO_read_write.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -142,7 +131,7 @@ static void deform_verts(ModifierData *md,
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
-        mul_m4_v3(ob->object_to_world, collmd->x[i]);
+        mul_m4_v3(ob->object_to_world().ptr(), collmd->x[i]);
       }
 
       collmd->xnew = static_cast<float(*)[3]>(MEM_dupallocN(collmd->x)); /* Frame end position. */
@@ -187,7 +176,7 @@ static void deform_verts(ModifierData *md,
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
-        mul_m4_v3(ob->object_to_world, collmd->xnew[i]);
+        mul_m4_v3(ob->object_to_world().ptr(), collmd->xnew[i]);
 
         /* detect motion */
         is_static = is_static && equals_v3v3(collmd->x[i], collmd->xnew[i]);

@@ -13,8 +13,6 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "DEG_depsgraph_query.hh"
-
 #include "WM_api.hh"
 
 #include "RNA_access.hh"

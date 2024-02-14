@@ -23,25 +23,19 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_lattice.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
 #include "BKE_particle.h"
 #include "BKE_scene.hh"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
-
-#include "BLO_read_write.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
@@ -50,7 +44,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 static void init_data(ModifierData *md)
@@ -980,7 +973,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       &explode->fdata_legacy, CD_MTFACE, emd->uvname, explode->totface_legacy));
 
   /* getting back to object space */
-  invert_m4_m4(imat, ctx->object->object_to_world);
+  invert_m4_m4(imat, ctx->object->object_to_world().ptr());
 
   psys_sim_data_init(&sim);
 
@@ -1008,7 +1001,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       psys_get_particle_state(&sim, ed_v2, &state, true);
 
       vertco = explode_positions[v];
-      mul_m4_v3(ctx->object->object_to_world, vertco);
+      mul_m4_v3(ctx->object->object_to_world().ptr(), vertco);
 
       sub_v3_v3(vertco, birth.co);
 

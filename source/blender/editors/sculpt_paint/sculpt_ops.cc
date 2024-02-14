@@ -20,7 +20,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -33,7 +32,6 @@
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
-#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
@@ -321,7 +319,7 @@ void ensure_valid_pivot(const Object *ob, Scene *scene)
   if (ups->average_stroke_counter == 0 || !ups->last_stroke_valid) {
     const Bounds<float3> bounds = BKE_pbvh_bounding_box(ob->sculpt->pbvh);
     const float3 center = math::midpoint(bounds.min, bounds.max);
-    const float3 location = math::transform_point(float4x4(ob->object_to_world), center);
+    const float3 location = math::transform_point(ob->object_to_world(), center);
 
     copy_v3_v3(ups->average_stroke_accum, location);
     ups->average_stroke_counter = 1;
@@ -354,7 +352,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
     BKE_report(
         reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
   }
-  else if (is_negative_m4(ob->object_to_world)) {
+  else if (is_negative_m4(ob->object_to_world().ptr())) {
     BKE_report(reports, RPT_WARNING, "Object has negative scale, sculpting may be unpredictable");
   }
 

@@ -9,7 +9,6 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BKE_asset.hh"
 #include "BKE_bpath.hh"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -17,14 +16,12 @@
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
 
-#include "BLI_fileops.h" /* MSVC needs this for `PATH_MAX` */
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
-#include "ED_util.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.hh"
 
@@ -32,7 +29,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"
@@ -793,7 +789,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   }
 
   /* Check file path, copied from #wm_file_write(). */
-  char filepath[PATH_MAX];
+  char filepath[FILE_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
   const size_t len = strlen(filepath);
 
@@ -925,7 +921,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
     return false;
   }
 
-  char file_path[PATH_MAX];
+  char file_path[FILE_MAX];
   BLI_path_join(file_path, sizeof(file_path), lib->dirpath, blend_filename);
   RNA_string_set(op->ptr, "filepath", file_path);
 

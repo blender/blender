@@ -23,12 +23,10 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_main.hh"
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_world.h"

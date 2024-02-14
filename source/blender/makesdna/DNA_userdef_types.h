@@ -716,12 +716,13 @@ typedef struct UserDef_Experimental {
   char use_extended_asset_browser;
   char use_sculpt_texture_paint;
   char use_grease_pencil_version3;
+  char use_new_matrix_socket;
   char enable_overlay_next;
   char use_new_volume_nodes;
   char use_shader_node_previews;
   char use_extension_repos;
 
-  char _pad[4];
+  char _pad[3];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -1067,7 +1068,7 @@ typedef struct UserDef {
   UserDef_Runtime runtime;
 } UserDef;
 
-/** From blenkernel `blender.cc`. */
+/** From `source/blender/blenkernel/intern/blender.cc`. */
 extern UserDef U;
 
 /* ***************** USERDEF ****************** */

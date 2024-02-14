@@ -24,7 +24,6 @@
 
 #include "DNA_text_types.h"
 
-#include "BPY_extern.h"
 #include "BPY_extern_run.h"
 
 #include "bpy_capi_utils.h"

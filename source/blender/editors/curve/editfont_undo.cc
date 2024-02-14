@@ -13,12 +13,11 @@
 
 #include "CLG_log.h"
 
-#include "BLI_array_utils.h"
+#include "BLI_array_utils.h" /* For `BLI_array_is_zeroed`.  */
 #include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
@@ -29,7 +28,6 @@
 #include "DEG_depsgraph.hh"
 
 #include "ED_curve.hh"
-#include "ED_object.hh"
 #include "ED_undo.hh"
 
 #include "WM_api.hh"

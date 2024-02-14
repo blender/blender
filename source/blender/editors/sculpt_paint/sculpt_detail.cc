@@ -109,8 +109,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   const float size = math::reduce_max(dim);
 
   /* Update topology size. */
-  float object_space_constant_detail = 1.0f /
-                                       (sd->constant_detail * mat4_to_scale(ob->object_to_world));
+  float object_space_constant_detail = 1.0f / (sd->constant_detail *
+                                               mat4_to_scale(ob->object_to_world().ptr()));
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail);
 
   undo::push_begin(ob, op);
@@ -240,7 +240,7 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
 
   if (srd.hit && srd.edge_length > 0.0f) {
     /* Convert edge length to world space detail resolution. */
-    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->object_to_world));
+    sd->constant_detail = 1 / (srd.edge_length * mat4_to_scale(ob->object_to_world().ptr()));
   }
 }
 
@@ -495,8 +495,9 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
                                                     bool flip,
                                                     const float angle)
 {
-  float object_space_constant_detail = 1.0f / (cd->detail_size *
-                                               mat4_to_scale(cd->active_object->object_to_world));
+  float object_space_constant_detail = 1.0f /
+                                       (cd->detail_size *
+                                        mat4_to_scale(cd->active_object->object_to_world().ptr()));
 
   /* The constant detail represents the maximum edge length allowed before subdividing it. If the
    * triangle grid preview is created with this value it will represent an ideal mesh density where
@@ -613,8 +614,8 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
   if (num_neighbors > 0) {
     const float avg_edge_len = len_accum / num_neighbors;
     /* Use 0.7 as the average of min and max dyntopo edge length. */
-    const float detail_size = 0.7f /
-                              (avg_edge_len * mat4_to_scale(cd->active_object->object_to_world));
+    const float detail_size = 0.7f / (avg_edge_len *
+                                      mat4_to_scale(cd->active_object->object_to_world().ptr()));
     cd->detail_size = clamp_f(detail_size, 1.0f, 500.0f);
   }
 }
@@ -740,7 +741,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, active_object->object_to_world);
+  copy_m4_m4(cursor_trans, active_object->object_to_world().ptr());
   translate_m4(
       cursor_trans, ss->cursor_location[0], ss->cursor_location[1], ss->cursor_location[2]);
 

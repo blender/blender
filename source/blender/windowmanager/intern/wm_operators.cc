@@ -1543,6 +1543,11 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   /* Title. */
   if (!data->title.empty()) {
     uiItemL_ex(layout, data->title.c_str(), ICON_NONE, true, false);
+
+    /* Line under the title if there are properties but no message body. */
+    if (data->include_properties && message_lines.size() == 0) {
+      uiItemS_ex(layout, 0.2f, LayoutSeparatorType::Line);
+    };
   }
 
   /* Message lines. */
@@ -1551,6 +1556,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   }
 
   if (data->include_properties) {
+    uiItemS_ex(layout, 0.5f);
     uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 

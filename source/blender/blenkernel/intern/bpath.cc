@@ -72,7 +72,7 @@
 #include "SEQ_iterator.hh"
 
 #ifndef _MSC_VER
-#  include "BLI_strict_flags.h"
+#  include "BLI_strict_flags.h" /* Keep last. */
 #endif
 
 static CLG_LogRef LOG = {"bke.bpath"};

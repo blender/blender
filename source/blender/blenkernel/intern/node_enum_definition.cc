@@ -8,9 +8,7 @@
 #include "DNA_array_utils.hh"
 #include "DNA_node_types.h"
 
-#include "BKE_node.h"
 #include "BKE_node_enum.hh"
-#include "BKE_node_runtime.hh"
 
 using blender::bke::NodeSocketValueMenuRuntimeFlag;
 

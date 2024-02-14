@@ -12,11 +12,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "CLG_log.h"
-
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 
@@ -29,14 +26,11 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_collection.hh"
-#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_object.hh"
 
 extern "C" {
 #include "curve_fit_nd.h"

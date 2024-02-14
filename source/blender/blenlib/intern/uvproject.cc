@@ -6,7 +6,7 @@
  * \ingroup bli
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "MEM_guardedalloc.h"
 
@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_uvproject.h"
 
-typedef struct ProjCameraInfo {
+struct ProjCameraInfo {
   float camangle;
   float camsize;
   float xasp, yasp;
@@ -26,7 +26,7 @@ typedef struct ProjCameraInfo {
   float rotmat[4][4];
   float caminv[4][4];
   bool do_persp, do_pano, do_rotmat;
-} ProjCameraInfo;
+};
 
 void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo *uci)
 {
@@ -44,7 +44,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
   mul_m4_v4(uci->caminv, pv4);
 
   if (uci->do_pano) {
-    float angle = atan2f(pv4[0], -pv4[2]) / ((float)M_PI * 2.0f); /* angle around the camera */
+    float angle = atan2f(pv4[0], -pv4[2]) / (float(M_PI) * 2.0f); /* angle around the camera */
     if (uci->do_persp == false) {
       target[0] = angle; /* no correct method here, just map to  0-1 */
       target[1] = pv4[1] / uci->camsize;
@@ -53,7 +53,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
       float vec2d[2]; /* 2D position from the camera */
       vec2d[0] = pv4[0];
       vec2d[1] = pv4[2];
-      target[0] = angle * ((float)M_PI / uci->camangle);
+      target[0] = angle * (float(M_PI) / uci->camangle);
       target[1] = pv4[1] / (len_v2(vec2d) * (uci->camsize * 2.0f));
     }
   }
@@ -121,10 +121,13 @@ void BLI_uvproject_from_view(float target[2],
   target[1] = (y + target[1]) / winy;
 }
 
-ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float winx, float winy)
+ProjCameraInfo *BLI_uvproject_camera_info(Object *ob,
+                                          const float rotmat[4][4],
+                                          float winx,
+                                          float winy)
 {
   ProjCameraInfo uci;
-  Camera *camera = ob->data;
+  Camera *camera = static_cast<Camera *>(ob->data);
 
   uci.do_pano = (camera->type == CAM_PANO);
   uci.do_persp = (camera->type == CAM_PERSP);
@@ -133,7 +136,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float 
   uci.camsize = uci.do_persp ? tanf(uci.camangle) : camera->ortho_scale;
 
   /* account for scaled cameras */
-  copy_m4_m4(uci.caminv, ob->object_to_world);
+  copy_m4_m4(uci.caminv, ob->object_to_world().ptr());
   normalize_m4(uci.caminv);
 
   if (invert_m4(uci.caminv)) {
@@ -162,12 +165,12 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float 
     uci.shiftx = 0.5f - (camera->shiftx * uci.xasp);
     uci.shifty = 0.5f - (camera->shifty * uci.yasp);
 
-    uci_pt = MEM_mallocN(sizeof(ProjCameraInfo), "ProjCameraInfo");
+    uci_pt = static_cast<ProjCameraInfo *>(MEM_mallocN(sizeof(ProjCameraInfo), __func__));
     *uci_pt = uci;
     return uci_pt;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void BLI_uvproject_from_view_ortho(float target[2], float source[3], const float rotmat[4][4])

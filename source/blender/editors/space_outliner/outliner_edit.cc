@@ -2285,8 +2285,6 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   }
   LibQueryUnusedIDsData &data = *static_cast<LibQueryUnusedIDsData *>(op->customdata);
 
-  uiItemS_ex(layout, 0.5f);
-
   std::string unused_message = "";
   unused_message_gen(unused_message, data.num_local);
   uiLayout *column = uiLayoutColumn(layout, true);

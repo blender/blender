@@ -21,7 +21,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
@@ -44,7 +43,6 @@
 
 #include "DEG_depsgraph_build.hh"
 
-#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "ANIM_animdata.hh"

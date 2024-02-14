@@ -27,16 +27,11 @@ class CalculateStandardDeviationOperation : public CalculateMeanOperation {
 
   void *initialize_tile_data(rcti *rect) override;
 
-  void update_memory_buffer_started(MemoryBuffer *output,
-                                    const rcti &area,
-                                    Span<MemoryBuffer *> inputs) override;
-
-  void update_memory_buffer_partial(MemoryBuffer *output,
-                                    const rcti &area,
-                                    Span<MemoryBuffer *> inputs) override;
+ protected:
+  float calculate_value(const MemoryBuffer *input) const override;
 
  private:
-  PixelsSum calc_area_sum(const MemoryBuffer *input, const rcti &area, float mean);
+  PixelsSum calc_area_sum(const MemoryBuffer *input, const rcti &area, float mean) const;
 };
 
 }  // namespace blender::compositor

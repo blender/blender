@@ -1,7 +1,7 @@
 ..
    This document is appended to the auto generated BMesh API doc to avoid clogging up the C files with details.
    to test this run:
-   ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py -- \
+   ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- \
                  --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
 
 

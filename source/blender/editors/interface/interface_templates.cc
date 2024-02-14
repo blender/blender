@@ -23,15 +23,12 @@
 #include "DNA_curveprofile_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_shader_fx_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_alloca.h"
 #include "BLI_fileops.h"
-#include "BLI_fnmatch.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
@@ -46,10 +43,8 @@
 #include "BLF_api.hh"
 #include "BLT_translation.hh"
 
-#include "BKE_action.h"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
-#include "BKE_cachefile.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_constraint.h"
@@ -65,9 +60,7 @@
 #include "BKE_linestyle.h"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_packedFile.h"
-#include "BKE_particle.h"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
@@ -102,7 +95,6 @@
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 #include "UI_string_search.hh"
-#include "UI_view2d.hh"
 #include "interface_intern.hh"
 
 /* we may want to make this optional, disable for now. */
@@ -6307,7 +6299,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
       UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 
-    if (!wm->is_interface_locked) {
+    if (!wm->runtime->is_interface_locked) {
       uiDefIconTextBut(block,
                        UI_BTYPE_BUT,
                        handle_event,

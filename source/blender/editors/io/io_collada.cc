@@ -16,8 +16,6 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
-#  include "BKE_main.hh"
-#  include "BKE_object.hh"
 #  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"

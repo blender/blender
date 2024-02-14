@@ -212,7 +212,7 @@ ID *BKE_libblock_find_name_and_library(Main *bmain,
  * Duplicate (a.k.a. deep copy) common processing options.
  * See also eDupli_ID_Flags for options controlling what kind of IDs to duplicate.
  */
-typedef enum eLibIDDuplicateFlags {
+enum eLibIDDuplicateFlags {
   /** This call to a duplicate function is part of another call for some parent ID.
    * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself.
    * NOTE: In some cases (like Object one), the duplicate function may be called on the root ID
@@ -222,7 +222,7 @@ typedef enum eLibIDDuplicateFlags {
   /** This call is performed on a 'root' ID, and should therefore perform some decisions regarding
    * sub-IDs (dependencies), check for linked vs. locale data, etc. */
   LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
-} eLibIDDuplicateFlags;
+};
 
 ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
 

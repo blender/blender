@@ -77,6 +77,7 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
     {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
     {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {SOCK_MATRIX, "MATRIX", 0, "Matrix", ""},
     {SOCK_STRING, "STRING", 0, "String", ""},
     {SOCK_MENU, "MENU", 0, "Menu", ""},
     {SOCK_RGBA, "RGBA", 0, "Color", ""},
@@ -96,58 +97,11 @@ static const EnumPropertyItem node_quality_items[] = {
     {NTREE_QUALITY_LOW, "LOW", 0, "Low", "Low quality"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-
-static const EnumPropertyItem node_chunksize_items[] = {
-    {NTREE_CHUNKSIZE_32,
-     "32",
-     0,
-     "32" BLI_STR_UTF8_MULTIPLICATION_SIGN "32",
-     "Chunksize of 32" BLI_STR_UTF8_MULTIPLICATION_SIGN "32"},
-    {NTREE_CHUNKSIZE_64,
-     "64",
-     0,
-     "64" BLI_STR_UTF8_MULTIPLICATION_SIGN "64",
-     "Chunksize of 64" BLI_STR_UTF8_MULTIPLICATION_SIGN "64"},
-    {NTREE_CHUNKSIZE_128,
-     "128",
-     0,
-     "128" BLI_STR_UTF8_MULTIPLICATION_SIGN "128",
-     "Chunksize of 128" BLI_STR_UTF8_MULTIPLICATION_SIGN "128"},
-    {NTREE_CHUNKSIZE_256,
-     "256",
-     0,
-     "256" BLI_STR_UTF8_MULTIPLICATION_SIGN "256",
-     "Chunksize of 256" BLI_STR_UTF8_MULTIPLICATION_SIGN "256"},
-    {NTREE_CHUNKSIZE_512,
-     "512",
-     0,
-     "512" BLI_STR_UTF8_MULTIPLICATION_SIGN "512",
-     "Chunksize of 512" BLI_STR_UTF8_MULTIPLICATION_SIGN "512"},
-    {NTREE_CHUNKSIZE_1024,
-     "1024",
-     0,
-     "1024" BLI_STR_UTF8_MULTIPLICATION_SIGN "1024",
-     "Chunksize of 1024" BLI_STR_UTF8_MULTIPLICATION_SIGN "1024"},
-    {0, nullptr, 0, nullptr, nullptr},
-};
 #endif
 
 static const EnumPropertyItem rna_enum_execution_mode_items[] = {
-    {NTREE_EXECUTION_MODE_TILED,
-     "TILED",
-     0,
-     "Tiled",
-     "Compositing is tiled, having as priority to display first tiles as fast as possible"},
-    {NTREE_EXECUTION_MODE_FULL_FRAME,
-     "FULL_FRAME",
-     0,
-     "Full Frame",
-     "Composites full image result as fast as possible"},
-    {NTREE_EXECUTION_MODE_REALTIME,
-     "REALTIME",
-     0,
-     "GPU",
-     "Use GPU accelerated compositing with more limited functionality"},
+    {NTREE_EXECUTION_MODE_CPU, "CPU", 0, "CPU", ""},
+    {NTREE_EXECUTION_MODE_GPU, "GPU", 0, "GPU", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1894,7 +1848,8 @@ static bool generic_attribute_type_supported(const EnumPropertyItem *item)
               CD_PROP_BOOL,
               CD_PROP_INT32,
               CD_PROP_BYTE_COLOR,
-              CD_PROP_QUATERNION);
+              CD_PROP_QUATERNION,
+              CD_PROP_FLOAT4X4);
 }
 
 static bool generic_attribute_type_supported_with_socket(const EnumPropertyItem *item)
@@ -10621,22 +10576,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, nullptr, "edit_quality");
   RNA_def_property_enum_items(prop, node_quality_items);
   RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
-
-  prop = RNA_def_property(srna, "chunk_size", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "chunksize");
-  RNA_def_property_enum_items(prop, node_chunksize_items);
-  RNA_def_property_ui_text(prop,
-                           "Chunksize",
-                           "Max size of a tile (smaller values gives better distribution "
-                           "of multiple threads, but more overhead)");
-
-  prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_COM_OPENCL);
-  RNA_def_property_ui_text(prop, "OpenCL", "Enable GPU calculations");
-
-  prop = RNA_def_property(srna, "use_groupnode_buffer", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_COM_GROUPNODE_BUFFER);
-  RNA_def_property_ui_text(prop, "Buffer Groups", "Enable buffering of group nodes");
 
   prop = RNA_def_property(srna, "use_two_pass", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", NTREE_TWO_PASS);

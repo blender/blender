@@ -234,9 +234,9 @@ void HairData::write_curves()
 
   Object *object = (Object *)id;
   float scale = particle_system_->part->rad_scale *
-                (std::abs(object->object_to_world[0][0]) +
-                 std::abs(object->object_to_world[1][1]) +
-                 std::abs(object->object_to_world[2][2])) /
+                (std::abs(object->object_to_world().ptr()[0][0]) +
+                 std::abs(object->object_to_world().ptr()[1][1]) +
+                 std::abs(object->object_to_world().ptr()[2][2])) /
                 3;
   float root = scale * particle_system_->part->rad_root;
   float tip = scale * particle_system_->part->rad_tip;

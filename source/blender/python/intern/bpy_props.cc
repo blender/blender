@@ -27,8 +27,6 @@
 #include "bpy_props.h"
 #include "bpy_rna.h"
 
-#include "BKE_idprop.h"
-
 #include "RNA_access.hh"
 #include "RNA_define.hh" /* for defining our own rna */
 #include "RNA_enum_types.hh"

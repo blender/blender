@@ -32,10 +32,7 @@ void MeshPass::init_pass(SceneResources &resources, DRWState state, int clip_pla
   }
 }
 
-void MeshPass::init_subpasses(ePipelineType pipeline,
-                              eLightingType lighting,
-                              bool clip,
-                              ShaderCache &shaders)
+void MeshPass::init_subpasses(ePipelineType pipeline, eLightingType lighting, bool clip)
 {
   texture_subpass_map_.clear();
 
@@ -49,9 +46,9 @@ void MeshPass::init_subpasses(ePipelineType pipeline,
         pass_names[geom][shader] = std::string(get_name(geom_type)) +
                                    std::string(get_name(shader_type));
       }
-      GPUShader *sh = shaders.prepass_shader_get(pipeline, geom_type, shader_type, lighting, clip);
       PassMain::Sub *pass = &sub(pass_names[geom][shader].c_str());
-      pass->shader_set(sh);
+      pass->shader_set(
+          ShaderCache::get().prepass_get(geom_type, pipeline, lighting, shader_type, clip));
       passes_[geom][shader] = pass;
     }
   }
@@ -115,23 +112,20 @@ void OpaquePass::sync(const SceneState &scene_state, SceneResources &resources)
   DRWState in_front_state = state | DRW_STATE_STENCIL_ALWAYS;
   gbuffer_in_front_ps_.init_pass(resources, in_front_state, scene_state.clip_planes.size());
   gbuffer_in_front_ps_.state_stencil(uint8_t(StencilBits::OBJECT_IN_FRONT), 0xFF, 0x00);
-  gbuffer_in_front_ps_.init_subpasses(
-      ePipelineType::OPAQUE, scene_state.lighting_type, clip, resources.shader_cache);
+  gbuffer_in_front_ps_.init_subpasses(ePipelineType::OPAQUE, scene_state.lighting_type, clip);
 
   state |= DRW_STATE_STENCIL_NEQUAL;
   gbuffer_ps_.init_pass(resources, state, scene_state.clip_planes.size());
   gbuffer_ps_.state_stencil(
       uint8_t(StencilBits::OBJECT), 0xFF, uint8_t(StencilBits::OBJECT_IN_FRONT));
-  gbuffer_ps_.init_subpasses(
-      ePipelineType::OPAQUE, scene_state.lighting_type, clip, resources.shader_cache);
+  gbuffer_ps_.init_subpasses(ePipelineType::OPAQUE, scene_state.lighting_type, clip);
 
   deferred_ps_.init();
   deferred_ps_.state_set(DRW_STATE_WRITE_COLOR);
-  deferred_ps_.shader_set(resources.shader_cache.resolve_shader_get(ePipelineType::OPAQUE,
-                                                                    scene_state.lighting_type,
-                                                                    scene_state.draw_cavity,
-                                                                    scene_state.draw_curvature,
-                                                                    scene_state.draw_shadows));
+  deferred_ps_.shader_set(ShaderCache::get().resolve_get(scene_state.lighting_type,
+                                                         scene_state.draw_cavity,
+                                                         scene_state.draw_curvature,
+                                                         scene_state.draw_shadows));
   deferred_ps_.push_constant("forceShadowing", false);
   deferred_ps_.bind_ubo(WB_WORLD_SLOT, resources.world_buf);
   deferred_ps_.bind_texture(WB_MATCAP_SLOT, resources.matcap_tx);
@@ -229,11 +223,6 @@ bool OpaquePass::is_empty() const
 /** \name TransparentPass
  * \{ */
 
-TransparentPass::~TransparentPass()
-{
-  DRW_SHADER_FREE_SAFE(resolve_sh_);
-}
-
 void TransparentPass::sync(const SceneState &scene_state, SceneResources &resources)
 {
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND_OIT |
@@ -246,20 +235,16 @@ void TransparentPass::sync(const SceneState &scene_state, SceneResources &resour
   accumulation_ps_.state_stencil(
       uint8_t(StencilBits::OBJECT), 0xFF, uint8_t(StencilBits::OBJECT_IN_FRONT));
   accumulation_ps_.clear_color(float4(0.0f, 0.0f, 0.0f, 1.0f));
-  accumulation_ps_.init_subpasses(
-      ePipelineType::TRANSPARENT, scene_state.lighting_type, clip, resources.shader_cache);
+  accumulation_ps_.init_subpasses(ePipelineType::TRANSPARENT, scene_state.lighting_type, clip);
 
   accumulation_in_front_ps_.init_pass(resources, state, scene_state.clip_planes.size());
   accumulation_in_front_ps_.clear_color(float4(0.0f, 0.0f, 0.0f, 1.0f));
   accumulation_in_front_ps_.init_subpasses(
-      ePipelineType::TRANSPARENT, scene_state.lighting_type, clip, resources.shader_cache);
+      ePipelineType::TRANSPARENT, scene_state.lighting_type, clip);
 
-  if (resolve_sh_ == nullptr) {
-    resolve_sh_ = GPU_shader_create_from_info_name("workbench_transparent_resolve");
-  }
   resolve_ps_.init();
   resolve_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
-  resolve_ps_.shader_set(resolve_sh_);
+  resolve_ps_.shader_set(ShaderCache::get().transparent_resolve.get());
   resolve_ps_.bind_texture("transparentAccum", &accumulation_tx);
   resolve_ps_.bind_texture("transparentRevealage", &reveal_tx);
   resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -314,11 +299,6 @@ bool TransparentPass::is_empty() const
 /** \name TransparentDepthPass
  * \{ */
 
-TransparentDepthPass::~TransparentDepthPass()
-{
-  DRW_SHADER_FREE_SAFE(merge_sh_);
-}
-
 void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &resources)
 {
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
@@ -329,14 +309,10 @@ void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &r
   DRWState in_front_state = state | DRW_STATE_STENCIL_ALWAYS;
   in_front_ps_.init_pass(resources, in_front_state, scene_state.clip_planes.size());
   in_front_ps_.state_stencil(uint8_t(StencilBits::OBJECT_IN_FRONT), 0xFF, 0x00);
-  in_front_ps_.init_subpasses(
-      ePipelineType::OPAQUE, eLightingType::FLAT, clip, resources.shader_cache);
+  in_front_ps_.init_subpasses(ePipelineType::OPAQUE, eLightingType::FLAT, clip);
 
-  if (merge_sh_ == nullptr) {
-    merge_sh_ = GPU_shader_create_from_info_name("workbench_merge_depth");
-  }
   merge_ps_.init();
-  merge_ps_.shader_set(merge_sh_);
+  merge_ps_.shader_set(ShaderCache::get().merge_depth.get());
   merge_ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL |
                       DRW_STATE_STENCIL_EQUAL);
   merge_ps_.state_stencil(
@@ -348,8 +324,7 @@ void TransparentDepthPass::sync(const SceneState &scene_state, SceneResources &r
   main_ps_.init_pass(resources, state, scene_state.clip_planes.size());
   main_ps_.state_stencil(
       uint8_t(StencilBits::OBJECT), 0xFF, uint8_t(StencilBits::OBJECT_IN_FRONT));
-  main_ps_.init_subpasses(
-      ePipelineType::OPAQUE, eLightingType::FLAT, clip, resources.shader_cache);
+  main_ps_.init_subpasses(ePipelineType::OPAQUE, eLightingType::FLAT, clip);
 }
 
 void TransparentDepthPass::draw(Manager &manager, View &view, SceneResources &resources)

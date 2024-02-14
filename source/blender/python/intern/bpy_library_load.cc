@@ -16,7 +16,6 @@
 #include <Python.h>
 #include <cstddef>
 
-#include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"

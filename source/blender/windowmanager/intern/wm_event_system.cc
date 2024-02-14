@@ -412,7 +412,7 @@ static void wm_main_remap_msgbus_notify(ID *old_id, ID *new_id, void *user_data)
   }
 }
 
-void WM_main_remap_editor_id_reference(const IDRemapper *mappings)
+void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings)
 {
   Main *bmain = G_MAIN;
 
@@ -424,11 +424,11 @@ void WM_main_remap_editor_id_reference(const IDRemapper *mappings)
     }
   }
 
-  BKE_id_remapper_iter(mappings, wm_main_remap_assetlist, nullptr);
+  mappings.iter(wm_main_remap_assetlist, nullptr);
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   if (wm && wm->message_bus) {
-    BKE_id_remapper_iter(mappings, wm_main_remap_msgbus_notify, wm->message_bus);
+    mappings.iter(wm_main_remap_msgbus_notify, wm->message_bus);
   }
 
   AS_asset_library_remap_ids(mappings);
@@ -451,7 +451,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
   wmWindowManager *wm = CTX_wm_manager(C);
   /* The whole idea of locked interface is to prevent viewport and whatever thread from
    * modifying the same data. Because of this, we can not perform dependency graph update. */
-  if (wm->is_interface_locked) {
+  if (wm->runtime->is_interface_locked) {
     return;
   }
   /* Combine data-masks so one window doesn't disable UVs in another #26448. */
@@ -3321,13 +3321,13 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
       else if (handler_base->type == WM_HANDLER_TYPE_UI) {
         wmEventHandler_UI *handler = (wmEventHandler_UI *)handler_base;
         BLI_assert(handler->handle_fn != nullptr);
-        if (!wm->is_interface_locked) {
+        if (!wm->runtime->is_interface_locked) {
           action |= wm_handler_ui_call(C, handler, event, always_pass);
         }
       }
       else if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
         wmEventHandler_Dropbox *handler = (wmEventHandler_Dropbox *)handler_base;
-        if (!wm->is_interface_locked && event->type == EVT_DROP) {
+        if (!wm->runtime->is_interface_locked && event->type == EVT_DROP) {
           LISTBASE_FOREACH (wmDropBox *, drop, handler->dropboxes) {
             /* Other drop custom types allowed. */
             if (event->custom == EVT_DATA_DRAGDROP) {
@@ -3385,7 +3385,7 @@ static eHandlerActionFlag wm_handlers_do_intern(bContext *C,
       else if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
         if (handler->is_fileselect) {
-          if (!wm->is_interface_locked) {
+          if (!wm->runtime->is_interface_locked) {
             /* Screen context changes here. */
             action |= wm_handler_fileselect_call(C, handlers, handler, event);
           }
@@ -5978,7 +5978,7 @@ static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  if (wm->is_interface_locked) {
+  if (wm->runtime->is_interface_locked) {
     if ((ot->flag & OPTYPE_LOCK_BYPASS) == 0) {
       return false;
     }
@@ -5996,7 +5996,7 @@ void WM_set_locked_interface(wmWindowManager *wm, bool lock)
    * wouldn't be useful anywhere outside of window manager, so let's not
    * pollute global context with such an information for now).
    */
-  wm->is_interface_locked = lock ? 1 : 0;
+  wm->runtime->is_interface_locked = lock;
 
   /* This will prevent drawing regions which uses non-thread-safe data.
    * Currently it'll be just a 3D viewport.

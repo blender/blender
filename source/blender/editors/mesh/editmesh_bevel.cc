@@ -24,9 +24,6 @@
 #include "BKE_layer.hh"
 #include "BKE_unit.hh"
 
-#include "DNA_curveprofile_types.h"
-#include "DNA_mesh_types.h"
-
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
@@ -239,7 +236,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
     const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, v3d);
     for (Object *obedit : objects) {
-      float scale = mat4_to_scale(obedit->object_to_world);
+      float scale = mat4_to_scale(obedit->object_to_world().ptr());
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {

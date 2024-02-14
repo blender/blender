@@ -13,7 +13,6 @@
 #include <fmt/format.h>
 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_array.hh"
@@ -24,7 +23,6 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_context.hh"
 #include "BKE_global.hh"
 
 #include "WM_api.hh"
