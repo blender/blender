@@ -436,7 +436,7 @@ void ANIM_armature_bonecoll_active_name_set(bArmature *armature, const char *nam
   ANIM_armature_bonecoll_active_set(armature, bcoll);
 }
 
-void ANIM_armature_bonecoll_active_runtime_refresh(struct bArmature *armature)
+void ANIM_armature_bonecoll_active_runtime_refresh(bArmature *armature)
 {
   const std::string_view active_name = armature->active_collection_name;
   if (active_name.empty()) {
@@ -1058,8 +1058,8 @@ static bool bcoll_list_contains(const ListBase /*BoneCollectionRef*/ *collection
   return false;
 }
 
-bool ANIM_armature_bonecoll_contains_active_bone(const struct bArmature *armature,
-                                                 const struct BoneCollection *bcoll)
+bool ANIM_armature_bonecoll_contains_active_bone(const bArmature *armature,
+                                                 const BoneCollection *bcoll)
 {
   if (armature->edbo) {
     if (!armature->act_edbone) {

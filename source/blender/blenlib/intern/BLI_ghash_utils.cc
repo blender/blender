@@ -9,7 +9,7 @@
  * (not its implementation).
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -34,13 +34,13 @@ uint BLI_ghashutil_ptrhash(const void *key)
 {
   /* Based Python3.7's pointer hashing function. */
 
-  size_t y = (size_t)key;
+  size_t y = size_t(key);
   /* bottom 3 or 4 bits are likely to be 0; rotate y by 4 to avoid
    * excessive hash collisions for dictionaries and sets */
 
   /* NOTE: Unlike Python `sizeof(uint)` is used instead of `sizeof(void *)`,
    * Otherwise casting to 'uint' ignores the upper bits on 64bit platforms. */
-  return (uint)(y >> 4) | ((uint)y << (sizeof(uint[8]) - 4));
+  return uint(y >> 4) | (uint(y) << (sizeof(uint[8]) - 4));
 }
 #endif
 bool BLI_ghashutil_ptrcmp(const void *a, const void *b)
@@ -85,7 +85,7 @@ uint BLI_ghashutil_uinthash(uint key)
 
 uint BLI_ghashutil_inthash_p(const void *ptr)
 {
-  uintptr_t key = (uintptr_t)ptr;
+  uintptr_t key = uintptr_t(ptr);
 
   key += ~(key << 16);
   key ^= (key >> 5);
@@ -94,12 +94,12 @@ uint BLI_ghashutil_inthash_p(const void *ptr)
   key += ~(key << 9);
   key ^= (key >> 17);
 
-  return (uint)(key & 0xffffffff);
+  return uint(key & 0xffffffff);
 }
 
 uint BLI_ghashutil_inthash_p_murmur(const void *ptr)
 {
-  uintptr_t key = (uintptr_t)ptr;
+  uintptr_t key = uintptr_t(ptr);
 
   return BLI_hash_mm2((const uchar *)&key, sizeof(key), 0);
 }
@@ -125,7 +125,7 @@ uint BLI_ghashutil_strhash_n(const char *key, size_t n)
   uint h = 5381;
 
   for (p = (const signed char *)key; n-- && *p != '\0'; p++) {
-    h = (uint)((h << 5) + h) + (uint)*p;
+    h = uint((h << 5) + h) + uint(*p);
   }
 
   return h;
@@ -136,7 +136,7 @@ uint BLI_ghashutil_strhash_p(const void *ptr)
   uint h = 5381;
 
   for (p = static_cast<const signed char *>(ptr); *p != '\0'; p++) {
-    h = (uint)((h << 5) + h) + (uint)*p;
+    h = uint((h << 5) + h) + uint(*p);
   }
 
   return h;

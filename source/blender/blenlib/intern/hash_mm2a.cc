@@ -45,7 +45,7 @@
 static void mm2a_mix_tail(BLI_HashMurmur2A *mm2, const uchar **data, size_t *len)
 {
   while (*len && ((*len < 4) || mm2->count)) {
-    mm2->tail |= (uint32_t)(**data) << (mm2->count * 8);
+    mm2->tail |= uint32_t(**data) << (mm2->count * 8);
 
     mm2->count++;
     (*len)--;
@@ -69,7 +69,7 @@ void BLI_hash_mm2a_init(BLI_HashMurmur2A *mm2, uint32_t seed)
 
 void BLI_hash_mm2a_add(BLI_HashMurmur2A *mm2, const uchar *data, size_t len)
 {
-  mm2->size += (uint32_t)len;
+  mm2->size += uint32_t(len);
 
   mm2a_mix_tail(mm2, &data, &len);
 
