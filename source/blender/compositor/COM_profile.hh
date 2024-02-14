@@ -56,4 +56,3 @@ class Profiler {
 };
 
 }  // namespace blender::compositor
-
