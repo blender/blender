@@ -3702,12 +3702,11 @@ void RNA_property_string_search(const bContext *C,
                                 PointerRNA *ptr,
                                 PropertyRNA *prop,
                                 const char *edit_text,
-                                StringPropertySearchVisitFunc visit_fn,
-                                void *visit_user_data)
+                                blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   BLI_assert(RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED);
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
-  sprop->search(C, ptr, prop, edit_text, visit_fn, visit_user_data);
+  sprop->search(C, ptr, prop, edit_text, visit_fn);
 }
 
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)

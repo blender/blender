@@ -68,20 +68,20 @@ void WM_paneltype_clear()
   BLI_ghash_free(g_paneltypes_hash, nullptr, nullptr);
 }
 
-void WM_paneltype_idname_visit_for_search(const bContext * /*C*/,
-                                          PointerRNA * /*ptr*/,
-                                          PropertyRNA * /*prop*/,
-                                          const char * /*edit_text*/,
-                                          StringPropertySearchVisitFunc visit_fn,
-                                          void *visit_user_data)
+void WM_paneltype_idname_visit_for_search(
+    const bContext * /*C*/,
+    PointerRNA * /*ptr*/,
+    PropertyRNA * /*prop*/,
+    const char * /*edit_text*/,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, g_paneltypes_hash) {
     PanelType *pt = static_cast<PanelType *>(BLI_ghashIterator_getValue(&gh_iter));
 
-    StringPropertySearchVisitParams visit_params = {nullptr};
+    StringPropertySearchVisitParams visit_params{};
     visit_params.text = pt->idname;
     visit_params.info = pt->label;
-    visit_fn(visit_user_data, &visit_params);
+    visit_fn(visit_params);
   }
 }

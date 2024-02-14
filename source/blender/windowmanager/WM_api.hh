@@ -17,9 +17,12 @@
 #include <optional>
 #include <string>
 
-#include "BLI_compiler_attrs.h"
-#include "BLI_sys_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
+#include "BLI_sys_types.h"
+
 #include "WM_keymap.hh"
 #include "WM_types.hh"
 
@@ -1122,12 +1125,12 @@ bool WM_operatortype_remove(const char *idname);
  */
 void WM_operatortype_last_properties_clear_all();
 
-void WM_operatortype_idname_visit_for_search(const bContext *C,
-                                             PointerRNA *ptr,
-                                             PropertyRNA *prop,
-                                             const char *edit_text,
-                                             StringPropertySearchVisitFunc visit_fn,
-                                             void *visit_user_data);
+void WM_operatortype_idname_visit_for_search(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *edit_text,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * Tag all operator-properties of \a ot defined after calling this, until
@@ -1229,12 +1232,12 @@ void WM_menutype_freelink(MenuType *mt);
 void WM_menutype_free();
 bool WM_menutype_poll(bContext *C, MenuType *mt);
 
-void WM_menutype_idname_visit_for_search(const bContext *C,
-                                         PointerRNA *ptr,
-                                         PropertyRNA *prop,
-                                         const char *edit_text,
-                                         StringPropertySearchVisitFunc visit_fn,
-                                         void *visit_user_data);
+void WM_menutype_idname_visit_for_search(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *edit_text,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /* `wm_panel_type.cc` */
 
@@ -1247,12 +1250,12 @@ PanelType *WM_paneltype_find(const char *idname, bool quiet);
 bool WM_paneltype_add(PanelType *pt);
 void WM_paneltype_remove(PanelType *pt);
 
-void WM_paneltype_idname_visit_for_search(const bContext *C,
-                                          PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          const char *edit_text,
-                                          StringPropertySearchVisitFunc visit_fn,
-                                          void *visit_user_data);
+void WM_paneltype_idname_visit_for_search(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *edit_text,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /* `wm_gesture_ops.cc` */
 
