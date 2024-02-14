@@ -9,6 +9,8 @@
 
 #include "DNA_node_types.h"
 
+#include "BKE_node.hh"
+
 struct bNodeTree;
 
 namespace blender::compositor {
@@ -54,3 +56,4 @@ class Profiler {
 };
 
 }  // namespace blender::compositor
+
