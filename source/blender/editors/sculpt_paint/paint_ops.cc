@@ -1275,11 +1275,12 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     STRNCPY(name, brush->id.name + 2);
   }
 
-  const bUserAssetLibrary *library = get_asset_library_from_prop(*op->ptr);
-  if (!library) {
+  const bUserAssetLibrary *user_library = get_asset_library_from_prop(*op->ptr);
+  if (!user_library) {
     return OPERATOR_CANCELLED;
   }
-  const std::string filepath = brush_asset_blendfile_path_for_save(op->reports, *library, name);
+  const std::string filepath = brush_asset_blendfile_path_for_save(
+      op->reports, *user_library, name);
   if (filepath.empty()) {
     return OPERATOR_CANCELLED;
   }
@@ -1302,7 +1303,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
 
   AssetWeakReference *new_brush_weak_ref = brush_asset_create_weakref_hack(
-      library, final_full_asset_filepath);
+      user_library, final_full_asset_filepath);
 
   /* TODO: maybe not needed, even less so if there is more visual confirmation of change. */
   BKE_reportf(op->reports, RPT_INFO, "Saved \"%s\"", filepath.c_str());
@@ -1315,7 +1316,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_WARNING, "Unable to activate just-saved brush asset");
   }
 
-  refresh_asset_library(C, *library);
+  refresh_asset_library(C, *user_library);
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST | NA_ADDED, nullptr);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, brush);
 
