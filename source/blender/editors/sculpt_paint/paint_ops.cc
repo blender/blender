@@ -41,6 +41,7 @@
 #include "BKE_report.hh"
 
 #include "ED_asset_handle.hh"
+#include "ED_asset_library.hh"
 #include "ED_asset_list.hh"
 #include "ED_asset_mark_clear.hh"
 #include "ED_asset_menu_utils.hh"
@@ -1201,9 +1202,8 @@ static bool brush_asset_save_as_poll(bContext *C)
     return false;
   }
 
-  const bUserAssetLibrary *user_library = brush_asset_get_default_library();
-  if (user_library == nullptr || user_library->dirpath[0] == '\0') {
-    CTX_wm_operator_poll_msg_set(C, "No default asset library available to save to");
+  if (BLI_listbase_is_empty(&U.asset_libraries)) {
+    CTX_wm_operator_poll_msg_set(C, "No asset library available to save to");
     return false;
   }
 
@@ -1242,6 +1242,13 @@ static bool asset_is_editable(const AssetWeakReference &asset_weak_ref)
   return true;
 }
 
+static const bUserAssetLibrary *get_asset_library_from_prop(PointerRNA &ptr)
+{
+  const int enum_value = RNA_enum_get(&ptr, "asset_library_reference");
+  const AssetLibraryReference lib_ref = asset::library_reference_from_enum_value(enum_value);
+  return BKE_preferences_asset_library_find_index(&U, lib_ref.custom_library_index);
+}
+
 static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -1260,7 +1267,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     STRNCPY(name, brush->id.name + 2);
   }
 
-  const bUserAssetLibrary *library = brush_asset_get_default_library();
+  const bUserAssetLibrary *library = get_asset_library_from_prop(*op->ptr);
   if (!library) {
     return OPERATOR_CANCELLED;
   }
@@ -1314,8 +1321,30 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
 
   RNA_string_set(op->ptr, "name", brush->id.name + 2);
 
-  /* TODO: add information about the asset library this will be saved to? */
+  if (const bUserAssetLibrary *library = brush_asset_get_default_library()) {
+    AssetLibraryReference library_ref{};
+    library_ref.custom_library_index = BLI_findindex(&U.asset_libraries, library);
+    library_ref.type = ASSET_LIBRARY_CUSTOM;
+    RNA_enum_set(
+        op->ptr, "asset_library_reference", asset::library_reference_to_enum_value(&library_ref));
+  }
+
   return WM_operator_props_dialog_popup(C, op, 400, std::nullopt, IFACE_("Save"));
+}
+
+static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
+                                                                 PointerRNA * /*ptr*/,
+                                                                 PropertyRNA * /*prop*/,
+                                                                 bool *r_free)
+{
+  const EnumPropertyItem *items = asset::library_reference_to_rna_enum_itemf(false);
+  if (!items) {
+    *r_free = false;
+    return nullptr;
+  }
+
+  *r_free = true;
+  return items;
 }
 
 static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
@@ -1332,6 +1361,10 @@ static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
 
   ot->prop = RNA_def_string(
       ot->srna, "name", nullptr, MAX_NAME, "Name", "Name for the new brush asset");
+
+  PropertyRNA *prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
+  RNA_def_enum_funcs(prop, rna_asset_library_reference_itemf);
+  RNA_def_property_ui_text(prop, "Library", "Asset library used to store the new brush");
 }
 
 static bool brush_asset_delete_poll(bContext *C)
@@ -1340,14 +1373,6 @@ static bool brush_asset_delete_poll(bContext *C)
   Brush *brush = (paint) ? BKE_paint_brush(paint) : nullptr;
   if (paint == nullptr || brush == nullptr) {
     return false;
-  }
-
-  /* Asset brush, check if belongs to an editable blend file. */
-  if (paint->brush_asset_reference && BKE_paint_brush_is_valid_asset(brush)) {
-    if (!asset_is_editable(*paint->brush_asset_reference)) {
-      CTX_wm_operator_poll_msg_set(C, "Asset blend file is not editable");
-      return false;
-    }
   }
 
   return true;
