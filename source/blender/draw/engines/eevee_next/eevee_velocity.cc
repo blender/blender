@@ -38,7 +38,8 @@ namespace blender::eevee {
 
 void VelocityModule::init()
 {
-  if (!inst_.is_viewport() && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) &&
+  if (!inst_.is_viewport() && !inst_.is_baking() &&
+      (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) &&
       !inst_.motion_blur.postfx_enabled())
   {
     /* No motion blur and the vector pass was requested. Do the steps sync here. */
@@ -53,7 +54,7 @@ void VelocityModule::init()
 
   /* For viewport, only previous motion is supported.
    * Still bind previous step to avoid undefined behavior. */
-  next_step_ = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
+  next_step_ = (inst_.is_viewport() || inst_.is_baking()) ? STEP_PREVIOUS : STEP_NEXT;
 }
 
 /* Similar to Instance::object_sync, but only syncs velocity. */
