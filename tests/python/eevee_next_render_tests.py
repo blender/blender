@@ -76,6 +76,7 @@ def setup():
             grid.data.grid_resolution_y = 16
             grid.data.grid_resolution_z = 8
             grid.data.grid_bake_samples = 128
+            grid.data.grid_capture_world = True
             # Make lighting smoother for most of the case.
             grid.data.grid_dilation_threshold = 1.0
             bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
