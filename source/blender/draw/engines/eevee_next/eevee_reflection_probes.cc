@@ -51,6 +51,17 @@ void SphereProbeModule::begin_sync()
     pass.dispatch(&dispatch_probe_pack_);
   }
   {
+    PassSimple &pass = convolve_ps_;
+    pass.init();
+    pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_CONVOLVE));
+    pass.bind_image("in_atlas_mip_img", &convolve_input_);
+    pass.bind_image("out_atlas_mip_img", &convolve_output_);
+    pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    pass.dispatch(&dispatch_probe_convolve_);
+    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+  }
+  {
     PassSimple &pass = update_irradiance_ps_;
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_UPDATE_IRRADIANCE));
@@ -85,6 +96,7 @@ bool SphereProbeModule::ensure_atlas()
                                  nullptr,
                                  SPHERE_PROBE_MIPMAP_LEVELS))
   {
+    probes_tx_.ensure_mip_views();
     /* TODO(fclem): Clearing means that we need to render all probes again.
      * If existing data exists, copy it using `CopyImageSubData`. */
     probes_tx_.clear(float4(0.0f));
@@ -187,8 +199,19 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
   probe_write_coord_ = atlas_coord.as_write_coord(max_resolution_, 0);
   probe_mip_level_ = atlas_coord.subdivision_lvl;
   dispatch_probe_pack_ = int3(int2(ceil_division(resolution, SPHERE_PROBE_GROUP_SIZE)), 1);
-
   instance_.manager->submit(remap_ps_);
+
+  /* Populate the mip levels */
+  for (auto i : IndexRange(SPHERE_PROBE_MIPMAP_LEVELS - 1)) {
+    convolve_input_ = probes_tx_.mip_view(i);
+    convolve_output_ = probes_tx_.mip_view(i + 1);
+    probe_write_coord_ = atlas_coord.as_write_coord(max_resolution_, i + 1);
+    int out_mip_res = resolution >> (i + 1);
+    dispatch_probe_convolve_ = int3(int2(ceil_division(out_mip_res, SPHERE_PROBE_GROUP_SIZE)), 1);
+    instance_.manager->submit(convolve_ps_);
+  }
+  /* Sync with atlas usage for shading. */
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_FETCH);
 }
 
 void SphereProbeModule::update_world_irradiance()
@@ -196,11 +219,6 @@ void SphereProbeModule::update_world_irradiance()
   instance_.manager->submit(update_irradiance_ps_);
   /* All volume probe that needs to composite the world probe need to be updated. */
   instance_.volume_probes.do_update_world_ = true;
-}
-
-void SphereProbeModule::update_probes_texture_mipmaps()
-{
-  GPU_texture_update_mipmap_chain(probes_tx_);
 }
 
 void SphereProbeModule::set_view(View & /*view*/)

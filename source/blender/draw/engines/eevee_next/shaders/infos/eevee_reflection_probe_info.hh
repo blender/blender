@@ -54,6 +54,15 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_select)
     .compute_source("eevee_reflection_probe_select_comp.glsl")
     .do_static_compilation(true);
 
+GPU_SHADER_CREATE_INFO(eevee_reflection_probe_convolve)
+    .local_group_size(SPHERE_PROBE_GROUP_SIZE, SPHERE_PROBE_GROUP_SIZE)
+    .additional_info("eevee_shared")
+    .push_constant(Type::IVEC4, "write_coord_packed")
+    .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D_ARRAY, "in_atlas_mip_img")
+    .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "out_atlas_mip_img")
+    .compute_source("eevee_reflection_probe_convolve_comp.glsl")
+    .do_static_compilation(true);
+
 GPU_SHADER_INTERFACE_INFO(eevee_display_probe_reflection_iface, "")
     .smooth(Type::VEC2, "lP")
     .flat(Type::INT, "probe_index");
