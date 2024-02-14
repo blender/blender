@@ -55,6 +55,8 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "BLT_translation.hh"
+
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 

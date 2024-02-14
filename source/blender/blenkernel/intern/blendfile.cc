@@ -309,10 +309,10 @@ static Library *reuse_bmain_data_dependencies_new_library_get(ReuseOldBMainData 
     return nullptr;
   }
 
-  IDRemapper *remapper = reuse_data->remapper;
+  id::IDRemapper *remapper = reuse_data->remapper;
   Library *new_lib = old_lib;
-  IDRemapperApplyResult result = BKE_id_remapper_apply(
-      remapper, reinterpret_cast<ID **>(&new_lib), ID_REMAP_APPLY_DEFAULT);
+  IDRemapperApplyResult result = remapper->apply(reinterpret_cast<ID **>(&new_lib),
+                                                 ID_REMAP_APPLY_DEFAULT);
   if (result == ID_REMAP_RESULT_SOURCE_UNAVAILABLE) {
     /* No matching new library found. Avoid nullptr case when original data was linked, which would
      * match against all local IDs. */
@@ -336,7 +336,7 @@ static int reuse_bmain_data_dependencies_process_cb(LibraryIDLinkCallbackData *c
   Main *old_bmain = reuse_data->old_bmain;
 
   /* First check if it has already been remapped. */
-  IDRemapper *remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
   if (reuse_bmain_data_remapper_is_id_remapped(remapper, id)) {
     return IDWALK_RET_STOP_RECURSION;
   }
@@ -375,7 +375,7 @@ static int reuse_bmain_data_dependencies_process_cb(LibraryIDLinkCallbackData *c
        *
        * Such cases are checked and 'fixed' later by the call to
        * #reuse_bmain_data_invalid_local_usages_fix. */
-      BKE_id_remapper_add(remapper, id, id_iter);
+      remapper.add(id, id_iter);
       return IDWALK_RET_STOP_RECURSION;
     }
   }
@@ -387,7 +387,7 @@ static int reuse_bmain_data_dependencies_process_cb(LibraryIDLinkCallbackData *c
   BLI_addtail(new_lb, id);
   BKE_id_new_name_validate(new_bmain, new_lb, id, nullptr, true);
   /* Remap to itself, to avoid re-processing this ID again. */
-  BKE_id_remapper_add(remapper, id, id);
+  remapper.add(id, id);
 
   return IDWALK_RET_NOP;
 }
@@ -413,7 +413,7 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
   ListBase *new_lb = which_libbase(new_bmain, id_code);
   ListBase *old_lb = which_libbase(old_bmain, id_code);
 
-  IDRemapper *remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
 
   /* Bring back local existing IDs from old_lb into new_lb, if there are no name/library
    * conflicts. */
@@ -452,7 +452,7 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
        *
        * This is only valid if the old ID was linked though. */
       if (ID_IS_LINKED(old_id_iter)) {
-        BKE_id_remapper_add(remapper, old_id_iter, new_id_iter);
+        remapper.add(old_id_iter, new_id_iter);
       }
       can_use_old_id = false;
       break;
@@ -468,7 +468,7 @@ static void reuse_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, co
       BKE_lib_libblock_session_uid_renew(old_id_iter);
 
       /* Remap to itself, to avoid re-processing this ID again. */
-      BKE_id_remapper_add(remapper, old_id_iter, old_id_iter);
+      remapper.add(old_id_iter, old_id_iter);
 
       /* Port over dependencies of re-used ID, unless matching already existing ones in
        * new_bmain can be found.
