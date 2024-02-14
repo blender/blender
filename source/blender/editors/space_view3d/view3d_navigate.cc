@@ -808,7 +808,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     }
     mul_v2_fl(lastofs, 1.0f / 4.0f);
 
-    mul_m4_v3(ob_act_eval->object_to_world, lastofs);
+    mul_m4_v3(ob_act_eval->object_to_world().ptr(), lastofs);
 
     is_set = true;
   }
@@ -826,11 +826,11 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
         if (ob_eval->runtime->bounds_eval) {
           blender::float3 cent = blender::math::midpoint(ob_eval->runtime->bounds_eval->min,
                                                          ob_eval->runtime->bounds_eval->max);
-          mul_m4_v3(ob_eval->object_to_world, cent);
+          mul_m4_v3(ob_eval->object_to_world().ptr(), cent);
           add_v3_v3(select_center, cent);
         }
         else {
-          add_v3_v3(select_center, ob_eval->object_to_world[3]);
+          add_v3_v3(select_center, ob_eval->object_to_world().location());
         }
         tot++;
       }

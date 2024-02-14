@@ -937,7 +937,7 @@ static bGPDstroke *gpencil_stroke_to_outline(tGPsdata *p, bGPDstroke *gps)
   /* Apply layer thickness change. */
   gps_duplicate->thickness += gpl->line_change;
   /* Apply object scale to thickness. */
-  gps_duplicate->thickness *= mat4_to_scale(p->ob->object_to_world);
+  gps_duplicate->thickness *= mat4_to_scale(p->ob->object_to_world().ptr());
   CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
   /* Stroke. */

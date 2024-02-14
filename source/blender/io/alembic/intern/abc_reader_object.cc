@@ -19,6 +19,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
@@ -174,7 +175,7 @@ void AbcObjectReader::setupObjectTransform(const chrono_t time)
 
   /* Apply the matrix to the object. */
   BKE_object_apply_mat4(m_object, transform_from_alembic, true, false);
-  BKE_object_to_mat4(m_object, m_object->object_to_world);
+  BKE_object_to_mat4(m_object, m_object->runtime->object_to_world.ptr());
 
   if (!is_constant || m_settings->always_add_cache_reader) {
     bConstraint *con = BKE_constraint_add_for_object(

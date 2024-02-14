@@ -278,16 +278,18 @@ float BKE_camera_object_dof_distance(const Object *ob)
   }
   if (cam->dof.focus_object) {
     float view_dir[3], dof_dir[3];
-    normalize_v3_v3(view_dir, ob->object_to_world[2]);
+    normalize_v3_v3(view_dir, ob->object_to_world().ptr()[2]);
     bPoseChannel *pchan = BKE_pose_channel_find_name(cam->dof.focus_object->pose,
                                                      cam->dof.focus_subtarget);
     if (pchan) {
       float posemat[4][4];
-      mul_m4_m4m4(posemat, cam->dof.focus_object->object_to_world, pchan->pose_mat);
-      sub_v3_v3v3(dof_dir, ob->object_to_world[3], posemat[3]);
+      mul_m4_m4m4(posemat, cam->dof.focus_object->object_to_world().ptr(), pchan->pose_mat);
+      sub_v3_v3v3(dof_dir, ob->object_to_world().location(), posemat[3]);
     }
     else {
-      sub_v3_v3v3(dof_dir, ob->object_to_world[3], cam->dof.focus_object->object_to_world[3]);
+      sub_v3_v3v3(dof_dir,
+                  ob->object_to_world().location(),
+                  cam->dof.focus_object->object_to_world().location());
     }
     return fabsf(dot_v3v3(view_dir, dof_dir));
   }
@@ -682,7 +684,7 @@ static void camera_frame_fit_data_init(const Scene *scene,
   BKE_camera_params_compute_matrix(params);
 
   /* initialize callback data */
-  copy_m3_m4(data->camera_rotmat, (float(*)[4])ob->object_to_world);
+  copy_m3_m4(data->camera_rotmat, (float(*)[4])ob->object_to_world().ptr());
   normalize_m3(data->camera_rotmat);
   /* To transform a plane which is in its homogeneous representation (4d vector),
    * we need the inverse of the transpose of the transform matrix... */
@@ -884,7 +886,7 @@ bool BKE_camera_view_frame_fit_to_coords(const Depsgraph *depsgraph,
 
 static void camera_model_matrix(const Object *camera, float r_modelmat[4][4])
 {
-  copy_m4_m4(r_modelmat, camera->object_to_world);
+  copy_m4_m4(r_modelmat, camera->object_to_world().ptr());
 }
 
 static void camera_stereo3d_model_matrix(const Object *camera,
@@ -910,7 +912,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
   }
 
   float size[3];
-  mat4_to_size(size, camera->object_to_world);
+  mat4_to_size(size, camera->object_to_world().ptr());
   size_to_mat4(sizemat, size);
 
   if (pivot == CAM_S3D_PIVOT_CENTER) {
@@ -950,7 +952,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
       toeinmat[3][0] = interocular_distance * fac_signed;
 
       /* transform */
-      normalize_m4_m4(r_modelmat, camera->object_to_world);
+      normalize_m4_m4(r_modelmat, camera->object_to_world().ptr());
       mul_m4_m4m4(r_modelmat, r_modelmat, toeinmat);
 
       /* scale back to the original size */
@@ -958,7 +960,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
     }
     else { /* CAM_S3D_PIVOT_LEFT, CAM_S3D_PIVOT_RIGHT */
       /* rotate perpendicular to the interocular line */
-      normalize_m4_m4(r_modelmat, camera->object_to_world);
+      normalize_m4_m4(r_modelmat, camera->object_to_world().ptr());
       mul_m4_m4m4(r_modelmat, r_modelmat, rotmat);
 
       /* translate along the interocular line */
@@ -974,7 +976,7 @@ static void camera_stereo3d_model_matrix(const Object *camera,
     }
   }
   else {
-    normalize_m4_m4(r_modelmat, camera->object_to_world);
+    normalize_m4_m4(r_modelmat, camera->object_to_world().ptr());
 
     /* translate - no rotation in CAM_S3D_OFFAXIS, CAM_S3D_PARALLEL */
     translate_m4(r_modelmat, -interocular_distance * fac_signed, 0.0f, 0.0f);

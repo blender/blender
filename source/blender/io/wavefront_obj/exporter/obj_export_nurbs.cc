@@ -35,10 +35,11 @@ void OBJCurve::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the Blender's default axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->object_to_world);
+  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->object_to_world().ptr());
   /* #mul_m4_m3m4 does not transform last row of #Object.object_to_world, i.e. location data. */
-  mul_v3_m3v3(world_axes_transform_[3], axes_transform, export_object_eval_->object_to_world[3]);
-  world_axes_transform_[3][3] = export_object_eval_->object_to_world[3][3];
+  mul_v3_m3v3(
+      world_axes_transform_[3], axes_transform, export_object_eval_->object_to_world().location());
+  world_axes_transform_[3][3] = export_object_eval_->object_to_world().location()[3];
 }
 
 const char *OBJCurve::get_curve_name() const

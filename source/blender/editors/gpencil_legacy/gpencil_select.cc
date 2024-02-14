@@ -2052,7 +2052,7 @@ static bool gpencil_generic_stroke_select(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_eval = depsgraph != nullptr ? DEG_get_evaluated_object(depsgraph, ob) : ob;
   float select_mat[4][4];
-  copy_m4_m4(select_mat, ob_eval->object_to_world);
+  copy_m4_m4(select_mat, ob_eval->object_to_world().ptr());
 
   /* deselect all strokes first? */
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {

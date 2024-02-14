@@ -1795,11 +1795,11 @@ void ED_mesh_deform_bind_callback(Object *object,
   mmd_orig->bindcagecos = (float *)mdb.cagecos;
   mmd_orig->verts_num = mdb.verts_num;
   mmd_orig->cage_verts_num = mdb.cage_verts_num;
-  copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->object_to_world);
+  copy_m4_m4(mmd_orig->bindmat, mmd_orig->object->object_to_world().ptr());
 
   /* transform bindcagecos to world space */
   for (a = 0; a < mdb.cage_verts_num; a++) {
-    mul_m4_v3(mmd_orig->object->object_to_world, mmd_orig->bindcagecos + a * 3);
+    mul_m4_v3(mmd_orig->object->object_to_world().ptr(), mmd_orig->bindcagecos + a * 3);
   }
 
   /* free */

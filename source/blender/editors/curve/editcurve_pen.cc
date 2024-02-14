@@ -151,10 +151,10 @@ static void update_location_for_2d_curve(const ViewContext *vc, float location[3
     ED_view3d_global_to_vector(vc->rv3d, location, view_dir);
 
     /* Get the plane. */
-    const float *plane_co = vc->obedit->object_to_world[3];
+    const float *plane_co = vc->obedit->object_to_world().location();
     float plane_no[3];
     /* Only normalize to avoid precision errors. */
-    normalize_v3_v3(plane_no, vc->obedit->object_to_world[2]);
+    normalize_v3_v3(plane_no, vc->obedit->object_to_world()[2]);
 
     if (fabsf(dot_v3v3(view_dir, plane_no)) < eps) {
       /* Can't project on an aligned plane. */
@@ -175,7 +175,7 @@ static void update_location_for_2d_curve(const ViewContext *vc, float location[3
   }
 
   float imat[4][4];
-  invert_m4_m4(imat, vc->obedit->object_to_world);
+  invert_m4_m4(imat, vc->obedit->object_to_world().ptr());
   mul_m4_v3(imat, location);
 
   if (CU_IS_2D(cu)) {
@@ -188,7 +188,7 @@ static void screenspace_to_worldspace(const ViewContext *vc,
                                       const float depth[3],
                                       float r_pos_3d[3])
 {
-  mul_v3_m4v3(r_pos_3d, vc->obedit->object_to_world, depth);
+  mul_v3_m4v3(r_pos_3d, vc->obedit->object_to_world().ptr(), depth);
   ED_view3d_win_to_3d(vc->v3d, vc->region, r_pos_3d, pos_2d, r_pos_3d);
   update_location_for_2d_curve(vc, r_pos_3d);
 }
@@ -1102,7 +1102,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
 
   float location[3];
   if (sel_exists) {
-    mul_v3_m4v3(location, vc->obedit->object_to_world, center);
+    mul_v3_m4v3(location, vc->obedit->object_to_world().ptr(), center);
   }
   else {
     copy_v3_v3(location, vc->scene->cursor.location);

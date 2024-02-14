@@ -1462,8 +1462,8 @@ static void surfacedeformModifier_do(ModifierData *md,
         ob, md);
     float tmp_mat[4][4];
 
-    invert_m4_m4(tmp_mat, ob->object_to_world);
-    mul_m4_m4m4(smd_orig->mat, tmp_mat, ob_target->object_to_world);
+    invert_m4_m4(tmp_mat, ob->object_to_world().ptr());
+    mul_m4_m4m4(smd_orig->mat, tmp_mat, ob_target->object_to_world().ptr());
 
     /* Avoid converting edit-mesh data, binding is an exception. */
     BKE_mesh_wrapper_ensure_mdata(target);

@@ -65,7 +65,7 @@ ViewSettings::ViewSettings(bContext *context)
       for (int i = 0; i < 4; i++) {
         float world_location[] = {
             camera_points[i][0], camera_points[i][1], camera_points[i][2], 1.0f};
-        mul_m4_v4(camera_obj->object_to_world, world_location);
+        mul_m4_v4(camera_obj->object_to_world().ptr(), world_location);
         mul_m4_v4(region_data->persmat, world_location);
 
         if (world_location[3] > 0.0) {

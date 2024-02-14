@@ -296,7 +296,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
                                angle,
                                thickness,
                                offset,
-                               ob_eval->object_to_world,
+                               ob_eval->object_to_world().ptr(),
                                frame_offset,
                                use_seams,
                                use_faces,

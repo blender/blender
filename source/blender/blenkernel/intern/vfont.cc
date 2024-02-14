@@ -1423,14 +1423,14 @@ static bool vfont_to_curve(Object *ob,
       float timeofs, sizefac;
 
       if (ob != nullptr) {
-        invert_m4_m4(imat, ob->object_to_world);
+        invert_m4_m4(imat, ob->object_to_world().ptr());
       }
       else {
         unit_m4(imat);
       }
       copy_m3_m4(imat3, imat);
 
-      copy_m3_m4(cmat, cu->textoncurve->object_to_world);
+      copy_m3_m4(cmat, cu->textoncurve->object_to_world().ptr());
       mul_m3_m3m3(cmat, cmat, imat3);
       sizefac = normalize_v3(cmat[0]) / font_size;
 

@@ -118,7 +118,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
 
     curve_populate_trans_data_structs(tc,
                                       curves,
-                                      float4x4(object->object_to_world),
+                                      object->object_to_world(),
                                       value_attribute,
                                       selection_per_object[i],
                                       use_proportional_edit,

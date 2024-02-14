@@ -340,7 +340,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected armatures in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world);
+  invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world().ptr());
 
   /* Index bone collections by name.  This is also used later to keep track
    * of collections added from other armatures. */
@@ -391,7 +391,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       // BASACT->flag &= ~OB_MODE_POSE;
 
       /* Find the difference matrix */
-      mul_m4_m4m4(mat, oimat, ob_iter->object_to_world);
+      mul_m4_m4m4(mat, oimat, ob_iter->object_to_world().ptr());
 
       /* Copy bones and posechannels from the object to the edit armature */
       for (pchan = static_cast<bPoseChannel *>(opose->chanbase.first); pchan; pchan = pchann) {

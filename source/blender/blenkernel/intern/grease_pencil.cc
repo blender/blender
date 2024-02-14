@@ -959,7 +959,7 @@ void Layer::update_from_dna_read()
 float4x4 Layer::to_world_space(const Object &object) const
 {
   if (this->parent == nullptr) {
-    return float4x4(object.object_to_world) * this->local_transform();
+    return object.object_to_world() * this->local_transform();
   }
   const Object &parent = *this->parent;
   return this->parent_to_world(parent) * this->local_transform();
@@ -971,8 +971,7 @@ float4x4 Layer::to_object_space(const Object &object) const
     return this->local_transform();
   }
   const Object &parent = *this->parent;
-  return float4x4(object.world_to_object) * this->parent_to_world(parent) *
-         this->local_transform();
+  return object.world_to_object() * this->parent_to_world(parent) * this->local_transform();
 }
 
 StringRefNull Layer::parent_bone_name() const
@@ -990,7 +989,7 @@ void Layer::set_parent_bone_name(const char *new_name)
 
 float4x4 Layer::parent_to_world(const Object &parent) const
 {
-  const float4x4 parent_object_to_world(parent.object_to_world);
+  const float4x4 &parent_object_to_world = parent.object_to_world();
   if (parent.type == OB_ARMATURE && !this->parent_bone_name().is_empty()) {
     if (bPoseChannel *channel = BKE_pose_channel_find_name(parent.pose,
                                                            this->parent_bone_name().c_str()))

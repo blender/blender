@@ -1064,7 +1064,7 @@ void ElementResize(const TransInfo *t,
     if (t->options & CTX_POSE_BONE) {
       /* Without this, the resulting location of scaled bones aren't correct,
        * especially noticeable scaling root or disconnected bones around the cursor, see #92515. */
-      mul_mat3_m4_v3(tc->poseobj->object_to_world, vec);
+      mul_mat3_m4_v3(tc->poseobj->object_to_world().ptr(), vec);
     }
     mul_m3_v3(td->smtx, vec);
   }

@@ -535,7 +535,7 @@ static int add_hook_object(const bContext *C,
     ob = add_hook_object_new(bmain, scene, view_layer, v3d, obedit);
 
     /* transform cent to global coords for loc */
-    mul_v3_m4v3(ob->loc, obedit->object_to_world, cent);
+    mul_v3_m4v3(ob->loc, obedit->object_to_world().ptr(), cent);
   }
 
   md = static_cast<ModifierData *>(obedit->modifiers.first);
@@ -558,13 +558,13 @@ static int add_hook_object(const bContext *C,
 
   unit_m4(pose_mat);
 
-  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
+  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
   if (mode == OBJECT_ADDHOOK_NEWOB) {
     /* pass */
   }
   else {
     /* may overwrite with pose-bone location, below */
-    mul_v3_m4v3(cent, obedit->world_to_object, ob->object_to_world[3]);
+    mul_v3_m4v3(cent, obedit->world_to_object().ptr(), ob->object_to_world().location());
   }
 
   if (mode == OBJECT_ADDHOOK_SELOB_BONE) {
@@ -578,8 +578,8 @@ static int add_hook_object(const bContext *C,
       pchan_act = BKE_pose_channel_active_if_bonecoll_visible(ob);
       if (LIKELY(pchan_act)) {
         invert_m4_m4(pose_mat, pchan_act->pose_mat);
-        mul_v3_m4v3(cent, ob->object_to_world, pchan_act->pose_mat[3]);
-        mul_v3_m4v3(cent, obedit->world_to_object, cent);
+        mul_v3_m4v3(cent, ob->object_to_world().ptr(), pchan_act->pose_mat[3]);
+        mul_v3_m4v3(cent, obedit->world_to_object().ptr(), cent);
       }
     }
     else {
@@ -590,16 +590,20 @@ static int add_hook_object(const bContext *C,
   copy_v3_v3(hmd->cent, cent);
 
   /* matrix calculus */
-  /* vert x (obmat x hook->world_to_object) x hook->object_to_world x ob->world_to_object */
+  /* vert x (obmat x hook->world_to_object) x hook->object_to_world().ptr() x ob->world_to_object
+   */
   /*        (parentinv) */
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   BKE_object_transform_copy(object_eval, ob);
   BKE_object_where_is_calc(depsgraph, scene_eval, object_eval);
 
-  invert_m4_m4(object_eval->world_to_object, object_eval->object_to_world);
+  invert_m4_m4(object_eval->runtime->world_to_object.ptr(), object_eval->object_to_world().ptr());
   /* apparently this call goes from right to left... */
-  mul_m4_series(hmd->parentinv, pose_mat, object_eval->world_to_object, obedit->object_to_world);
+  mul_m4_series(hmd->parentinv,
+                pose_mat,
+                object_eval->world_to_object().ptr(),
+                obedit->object_to_world().ptr());
 
   DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
@@ -842,10 +846,10 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
   }
 
   /* recenter functionality */
-  copy_m3_m4(bmat, ob->object_to_world);
+  copy_m3_m4(bmat, ob->object_to_world().ptr());
   invert_m3_m3(imat, bmat);
 
-  sub_v3_v3v3(hmd->cent, scene->cursor.location, ob->object_to_world[3]);
+  sub_v3_v3v3(hmd->cent, scene->cursor.location, ob->object_to_world().location());
   mul_m3_v3(imat, hmd->cent);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);

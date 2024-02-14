@@ -79,8 +79,8 @@ static void update_mirror_object(Object *ob,
 
   float tmp[4][4];
   float itmp[4][4];
-  invert_m4_m4(tmp, mmd->object->object_to_world);
-  mul_m4_m4m4(tmp, tmp, ob->object_to_world);
+  invert_m4_m4(tmp, mmd->object->object_to_world().ptr());
+  mul_m4_m4m4(tmp, tmp, ob->object_to_world().ptr());
   invert_m4_m4(itmp, tmp);
   mul_m4_series(mtx, itmp, mtx, tmp);
 

@@ -184,7 +184,8 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     bspline_group->handles[i].index = i;
 
     float mat[4][4];
-    mul_m4_m4m4(mat, ob->object_to_world, (i == 0) ? pchan->disp_mat : pchan->disp_tail_mat);
+    mul_m4_m4m4(
+        mat, ob->object_to_world().ptr(), (i == 0) ? pchan->disp_mat : pchan->disp_tail_mat);
     copy_m4_m4(gz->matrix_space, mat);
 
     /* need to set property here for undo. TODO: would prefer to do this in _init. */

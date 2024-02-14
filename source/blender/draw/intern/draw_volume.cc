@@ -129,7 +129,7 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
 
   grp = DRW_shgroup_create_sub(grp);
 
-  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world);
+  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
@@ -305,7 +305,7 @@ PassType *volume_object_grids_init(PassType &ps,
   Volume *volume = (Volume *)ob->data;
   BKE_volume_load(volume, G.main);
 
-  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world);
+  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;

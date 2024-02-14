@@ -129,7 +129,7 @@ void Instances::ensure_geometry_instances()
         Collection &collection = reference.collection();
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
           const int handle = instances->add_reference(*object);
-          instances->add_instance(handle, float4x4(object->object_to_world));
+          instances->add_instance(handle, object->object_to_world());
           float4x4 &transform = instances->transforms().last();
           transform.location() -= collection.instance_offset;
         }

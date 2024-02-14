@@ -180,7 +180,7 @@ static void wm_xr_session_base_pose_calc(const Scene *scene,
     float tmp_quat[4];
     float tmp_eul[3];
 
-    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world);
+    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world().ptr());
 
     /* Only use rotation around Z-axis to align view with floor. */
     quat_to_eul(tmp_eul, tmp_quat);

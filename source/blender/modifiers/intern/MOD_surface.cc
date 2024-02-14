@@ -138,7 +138,7 @@ static void deform_verts(ModifierData *md,
         surmd->runtime.mesh->vert_positions_for_write();
     for (i = 0; i < mesh_verts_num; i++) {
       float *vec = positions[i];
-      mul_m4_v3(ctx->object->object_to_world, vec);
+      mul_m4_v3(ctx->object->object_to_world().ptr(), vec);
 
       if (init) {
         zero_v3(surmd->runtime.vert_velocities[i]);

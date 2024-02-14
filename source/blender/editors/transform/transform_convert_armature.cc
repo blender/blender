@@ -436,7 +436,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   td->ext->rotOrder = pchan->rotmode;
 
   /* proper way to get parent transform + own transform + constraints transform */
-  copy_m3_m4(omat, ob->object_to_world);
+  copy_m3_m4(omat, ob->object_to_world().ptr());
 
   /* New code, using "generic" BKE_bone_parent_transform_calc_from_pchan(). */
   {
@@ -800,7 +800,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
     BoneInitData *bid = static_cast<BoneInitData *>(tc->custom.type.data);
 
-    copy_m3_m4(mtx, tc->obedit->object_to_world);
+    copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     td = tc->data = static_cast<TransData *>(

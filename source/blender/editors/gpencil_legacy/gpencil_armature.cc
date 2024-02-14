@@ -338,8 +338,8 @@ static void gpencil_add_verts_to_dgroups(
       copy_v3_v3(tip[j], bone->arm_tail);
     }
 
-    mul_m4_v3(ob_arm->object_to_world, root[j]);
-    mul_m4_v3(ob_arm->object_to_world, tip[j]);
+    mul_m4_v3(ob_arm->object_to_world().ptr(), root[j]);
+    mul_m4_v3(ob_arm->object_to_world().ptr(), tip[j]);
 
     selected[j] = 1;
 
@@ -374,7 +374,7 @@ static void gpencil_add_verts_to_dgroups(
           /* transform stroke points to global space */
           for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
             copy_v3_v3(verts[i], &pt->x);
-            mul_m4_v3(ob->object_to_world, verts[i]);
+            mul_m4_v3(ob->object_to_world().ptr(), verts[i]);
           }
 
           /* loop groups and assign weight */

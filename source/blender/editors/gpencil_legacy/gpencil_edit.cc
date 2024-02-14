@@ -4184,7 +4184,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
       Scene *scene = CTX_data_scene(C);
       Object *cam_ob = scene->camera;
       if (cam_ob != nullptr) {
-        invert_m4_m4(viewmat, cam_ob->object_to_world);
+        invert_m4_m4(viewmat, cam_ob->object_to_world().ptr());
       }
       break;
     }
@@ -4252,7 +4252,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           /* Apply layer thickness change. */
           gps_duplicate->thickness += gpl->line_change;
           /* Apply object scale to thickness. */
-          gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
+          gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world().ptr());
           CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
           /* Stroke. */

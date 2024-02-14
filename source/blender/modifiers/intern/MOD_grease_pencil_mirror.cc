@@ -89,8 +89,7 @@ static float4x4 get_mirror_matrix(const Object &ob,
 
   if (mmd.object) {
     /* Transforms from parent object space to target object space. */
-    const float4x4 to_target = math::invert(float4x4(mmd.object->object_to_world)) *
-                               float4x4(ob.object_to_world);
+    const float4x4 to_target = math::invert(mmd.object->object_to_world()) * ob.object_to_world();
     /* Mirror points in the target object space. */
     matrix = math::invert(to_target) * matrix * to_target;
   }

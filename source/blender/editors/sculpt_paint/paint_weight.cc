@@ -1849,7 +1849,7 @@ static void wpaint_stroke_update_step(bContext *C,
   ED_view3d_init_mats_rv3d(ob, vc->rv3d);
 
   /* load projection matrix */
-  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world);
+  mul_m4_m4m4(mat, vc->rv3d->persmat, ob->object_to_world().ptr());
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
 
@@ -1887,7 +1887,7 @@ static void wpaint_stroke_update_step(bContext *C,
   /* Calculate pivot for rotation around selection if needed.
    * also needed for "Frame Selected" on last stroke. */
   float loc_world[3];
-  mul_v3_m4v3(loc_world, ob->object_to_world, ss->cache->true_location);
+  mul_v3_m4v3(loc_world, ob->object_to_world().ptr(), ss->cache->true_location);
   vwpaint::last_stroke_update(scene, loc_world);
 
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);

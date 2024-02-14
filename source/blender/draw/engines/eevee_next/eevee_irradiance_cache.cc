@@ -814,7 +814,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   const ::LightProbe *lightprobe = static_cast<::LightProbe *>(probe_object.data);
 
   int3 grid_resolution = int3(&lightprobe->grid_resolution_x);
-  float4x4 grid_local_to_world = invert(float4x4(probe_object.world_to_object));
+  float4x4 grid_local_to_world = invert(probe_object.world_to_object());
 
   /* TODO(fclem): Options. */
   capture_info_buf_.capture_world_direct = capture_world_;
@@ -831,7 +831,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   dispatch_per_grid_sample_ = math::divide_ceil(grid_resolution, int3(IRRADIANCE_GRID_GROUP_SIZE));
   capture_info_buf_.irradiance_grid_size = grid_resolution;
   capture_info_buf_.irradiance_grid_local_to_world = grid_local_to_world;
-  capture_info_buf_.irradiance_grid_world_to_local = float4x4(probe_object.world_to_object);
+  capture_info_buf_.irradiance_grid_world_to_local = probe_object.world_to_object();
   capture_info_buf_.irradiance_grid_world_to_local_rotation = float4x4(
       invert(normalize(float3x3(grid_local_to_world))));
 
@@ -927,7 +927,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   float epsilon = 1.0f / surfel_density_;
   scene_min -= epsilon;
   scene_max += epsilon;
-  surfel_raster_views_sync(scene_min, scene_max, float4x4(probe_object.object_to_world));
+  surfel_raster_views_sync(scene_min, scene_max, probe_object.object_to_world());
 
   DRW_stats_group_end();
 

@@ -320,9 +320,9 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
     copy_v3_v3(plane_co_local, plane_co);
     copy_v3_v3(plane_no_local, plane_no);
 
-    invert_m4_m4(imat, obedit->object_to_world);
+    invert_m4_m4(imat, obedit->object_to_world().ptr());
     mul_m4_v3(imat, plane_co_local);
-    mul_transposed_mat3_m4_v3(obedit->object_to_world, plane_no_local);
+    mul_transposed_mat3_m4_v3(obedit->object_to_world().ptr(), plane_no_local);
 
     BMOperator bmop;
     EDBM_op_init(

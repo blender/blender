@@ -217,7 +217,7 @@ static void select_cache_populate(void *vedata, Object *ob)
     /* This object is not in the array. It is here to participate in the depth buffer. */
     if (ob->dt >= OB_SOLID) {
       GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(static_cast<Mesh *>(ob->data));
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world().ptr());
     }
   }
   else if (!sel_data->in_pass) {

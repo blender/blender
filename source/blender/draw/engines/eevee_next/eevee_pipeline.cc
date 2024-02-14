@@ -368,7 +368,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
     state |= DRW_STATE_CULL_BACK;
   }
   has_transparent_ = true;
-  float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
+  float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat);
@@ -384,7 +384,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
     state |= DRW_STATE_CULL_BACK;
   }
   has_transparent_ = true;
-  float sorting_value = math::dot(float3(ob->object_to_world[3]), camera_forward_);
+  float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
   pass->material_set(*inst_.manager, gpumat);
@@ -1040,7 +1040,7 @@ GridAABB VolumePipeline::grid_aabb_from_object(Object *ob)
   BoundBox bb;
   BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
   for (float3 l_corner : bb.vec) {
-    float3 w_corner = math::transform_point(float4x4(ob->object_to_world), l_corner);
+    float3 w_corner = math::transform_point(ob->object_to_world(), l_corner);
     /* Note that this returns the nearest cell corner coordinate.
      * So sub-froxel AABB will effectively return the same coordinate
      * for each corner (making it empty and skipped) unless it

@@ -725,7 +725,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
     return ok;
   }
 
-  copy_m3_m4(bmat, ob->object_to_world);
+  copy_m3_m4(bmat, ob->object_to_world().ptr());
 
   const Span<float3> positions = mesh->vert_positions();
   const OffsetIndices faces = mesh->faces();
@@ -743,7 +743,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 
     for (const int vert : corner_verts.slice(faces[i])) {
       mul_v3_m3v3(vec, bmat, positions[vert]);
-      add_v3_v3v3(vec, vec, ob->object_to_world[3]);
+      add_v3_v3v3(vec, vec, ob->object_to_world().location());
       minmax_v3v3_v3(r_min, r_max, vec);
     }
 

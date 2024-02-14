@@ -157,8 +157,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const openvdb::GridBase &local_grid = volume_grid->grid(tree_token);
 
   openvdb::math::Transform::Ptr transform = local_grid.transform().copy();
-  transform->postMult(openvdb::Mat4d((float *)vmmd->object->object_to_world));
-  openvdb::Mat4d imat = openvdb::Mat4d((float *)ctx->object->world_to_object);
+  transform->postMult(openvdb::Mat4d(vmmd->object->object_to_world().base_ptr()));
+  openvdb::Mat4d imat = openvdb::Mat4d(ctx->object->world_to_object().base_ptr());
   /* `imat` had floating point issues and wasn't affine. */
   imat.setCol(3, openvdb::Vec4d(0, 0, 0, 1));
   transform->postMult(imat);

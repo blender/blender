@@ -34,8 +34,8 @@
 
 inline void ObjectMatrices::sync(const Object &object)
 {
-  model.view() = blender::float4x4_view(object.object_to_world);
-  model_inverse.view() = blender::float4x4_view(object.world_to_object);
+  model = object.object_to_world();
+  model_inverse = object.world_to_object();
 }
 
 inline void ObjectMatrices::sync(const float4x4 &model_matrix)

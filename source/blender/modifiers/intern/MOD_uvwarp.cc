@@ -72,10 +72,10 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
   if (pchan) {
-    mul_m4_m4m4(mat, ob->object_to_world, pchan->pose_mat);
+    mul_m4_m4m4(mat, ob->object_to_world().ptr(), pchan->pose_mat);
   }
   else {
-    copy_m4_m4(mat, ob->object_to_world);
+    copy_m4_m4(mat, ob->object_to_world().ptr());
   }
 }
 

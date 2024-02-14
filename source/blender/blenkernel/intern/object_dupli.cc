@@ -507,8 +507,8 @@ static void make_duplis_collection(const DupliContext *ctx)
   /* Combine collection offset and `obmat`. */
   unit_m4(collection_mat);
   sub_v3_v3(collection_mat[3], collection->instance_offset);
-  mul_m4_m4m4(collection_mat, ob->object_to_world, collection_mat);
-  /* Don't access 'ob->object_to_world' from now on. */
+  mul_m4_m4m4(collection_mat, ob->object_to_world().ptr(), collection_mat);
+  /* Don't access 'ob->object_to_world().ptr()' from now on. */
 
   eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (collection, cob, mode) {
@@ -516,7 +516,7 @@ static void make_duplis_collection(const DupliContext *ctx)
       float mat[4][4];
 
       /* Collection dupli-offset, should apply after everything else. */
-      mul_m4_m4m4(mat, collection_mat, cob->object_to_world);
+      mul_m4_m4m4(mat, collection_mat, cob->object_to_world().ptr());
 
       make_dupli(ctx, cob, mat, _base_id);
 
@@ -622,11 +622,11 @@ static DupliObject *vertex_dupli(const DupliContext *ctx,
   /* Make offset relative to inst_ob using relative child transform. */
   mul_mat3_m4_v3(child_imat, obmat[3]);
   /* Apply `obmat` _after_ the local vertex transform. */
-  mul_m4_m4m4(obmat, inst_ob->object_to_world, obmat);
+  mul_m4_m4m4(obmat, inst_ob->object_to_world().ptr(), obmat);
 
   /* Space matrix is constructed by removing `obmat` transform,
    * this yields the world-space transform for recursive duplis. */
-  mul_m4_m4m4(space_mat, obmat, inst_ob->world_to_object);
+  mul_m4_m4m4(space_mat, obmat, inst_ob->world_to_object().ptr());
 
   DupliObject *dob = make_dupli(ctx, inst_ob, obmat, index);
 
@@ -645,10 +645,10 @@ static void make_child_duplis_verts_from_mesh(const DupliContext *ctx,
 
   const int totvert = vdd->totvert;
 
-  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->runtime->world_to_object.ptr(), inst_ob->object_to_world().ptr());
   /* Relative transform from parent to child space. */
   float child_imat[4][4];
-  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object().ptr(), ctx->object->object_to_world().ptr());
 
   for (int i = 0; i < totvert; i++) {
     DupliObject *dob = vertex_dupli(vdd->params.ctx,
@@ -672,10 +672,10 @@ static void make_child_duplis_verts_from_editmesh(const DupliContext *ctx,
   BMEditMesh *em = vdd->em;
   const bool use_rotation = vdd->params.use_rotation;
 
-  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->runtime->world_to_object.ptr(), inst_ob->object_to_world().ptr());
   /* Relative transform from parent to child space. */
   float child_imat[4][4];
-  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object().ptr(), ctx->object->object_to_world().ptr());
 
   BMVert *v;
   BMIter iter;
@@ -799,7 +799,7 @@ static void make_duplis_font(const DupliContext *ctx)
     return;
   }
 
-  copy_m4_m4(pmat, par->object_to_world);
+  copy_m4_m4(pmat, par->object_to_world().ptr());
 
   /* In `par` the family name is stored, use this to find the other objects. */
 
@@ -844,7 +844,7 @@ static void make_duplis_font(const DupliContext *ctx)
 
       mul_m4_v3(pmat, vec);
 
-      copy_m4_m4(obmat, par->object_to_world);
+      copy_m4_m4(obmat, par->object_to_world().ptr());
 
       if (UNLIKELY(ct->rot != 0.0f)) {
         float rmat[4][4];
@@ -966,7 +966,8 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
         make_dupli(ctx_for_instance, &object, matrix, id, &geometry_set, i);
 
         float space_matrix[4][4];
-        mul_m4_m4m4(space_matrix, instance_offset_matrices[i].ptr(), object.world_to_object);
+        mul_m4_m4m4(
+            space_matrix, instance_offset_matrices[i].ptr(), object.world_to_object().ptr());
         mul_m4_m4_pre(space_matrix, parent_transform);
         make_recursive_duplis(ctx_for_instance, &object, space_matrix, id, &geometry_set, i);
         break;
@@ -999,7 +1000,7 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
           }
 
           float instance_matrix[4][4];
-          mul_m4_m4m4(instance_matrix, collection_matrix, object->object_to_world);
+          mul_m4_m4m4(instance_matrix, collection_matrix, object->object_to_world().ptr());
 
           make_dupli(&sub_ctx, object, instance_matrix, object_id++);
           make_recursive_duplis(&sub_ctx, object, collection_matrix, object_id++);
@@ -1035,7 +1036,8 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
 static void make_duplis_geometry_set(const DupliContext *ctx)
 {
   const GeometrySet *geometry_set = ctx->object->runtime->geometry_set_eval;
-  make_duplis_geometry_set_impl(ctx, *geometry_set, ctx->object->object_to_world, false, false);
+  make_duplis_geometry_set_impl(
+      ctx, *geometry_set, ctx->object->object_to_world().ptr(), false, false);
 }
 
 static const DupliGenerator gen_dupli_geometry_set = {
@@ -1141,11 +1143,11 @@ static DupliObject *face_dupli(const DupliContext *ctx,
   }
 
   /* Apply `obmat` _after_ the local face transform. */
-  mul_m4_m4m4(obmat, inst_ob->object_to_world, obmat);
+  mul_m4_m4m4(obmat, inst_ob->object_to_world().ptr(), obmat);
 
   /* Space matrix is constructed by removing `obmat` transform,
    * this yields the world-space transform for recursive duplis. */
-  mul_m4_m4m4(space_mat, obmat, inst_ob->world_to_object);
+  mul_m4_m4m4(space_mat, obmat, inst_ob->world_to_object().ptr());
 
   DupliObject *dob = make_dupli(ctx, inst_ob, obmat, index);
 
@@ -1218,9 +1220,9 @@ static void make_child_duplis_faces_from_mesh(const DupliContext *ctx,
 
   float child_imat[4][4];
 
-  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->runtime->world_to_object.ptr(), inst_ob->object_to_world().ptr());
   /* Relative transform from parent to child space. */
-  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object().ptr(), ctx->object->object_to_world().ptr());
   const float scale_fac = ctx->object->instance_faces_scale;
 
   for (const int a : blender::IndexRange(totface)) {
@@ -1265,9 +1267,9 @@ static void make_child_duplis_faces_from_editmesh(const DupliContext *ctx,
 
   BLI_assert((vert_positions_deform == nullptr) || (em->bm->elem_index_dirty & BM_VERT) == 0);
 
-  invert_m4_m4(inst_ob->world_to_object, inst_ob->object_to_world);
+  invert_m4_m4(inst_ob->runtime->world_to_object.ptr(), inst_ob->object_to_world().ptr());
   /* Relative transform from parent to child space. */
-  mul_m4_m4m4(child_imat, inst_ob->world_to_object, ctx->object->object_to_world);
+  mul_m4_m4m4(child_imat, inst_ob->world_to_object().ptr(), ctx->object->object_to_world().ptr());
   const float scale_fac = ctx->object->instance_faces_scale;
 
   BM_ITER_MESH_INDEX (f, &iter, em->bm, BM_FACES_OF_MESH, a) {
@@ -1400,7 +1402,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
     sim.psmd = psys_get_modifier(par, psys);
     /* Make sure emitter `world_to_object` is in global coordinates instead of render view
      * coordinates. */
-    invert_m4_m4(par->world_to_object, par->object_to_world);
+    invert_m4_m4(par->runtime->world_to_object.ptr(), par->object_to_world().ptr());
 
     /* First check for loops (particle system object used as dupli-object). */
     if (part->ren_as == PART_DRAW_OB) {
@@ -1590,7 +1592,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
         b = 0;
         FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (part->instance_collection, object, mode)
         {
-          copy_m4_m4(tmat, oblist[b]->object_to_world);
+          copy_m4_m4(tmat, oblist[b]->object_to_world().ptr());
 
           /* Apply collection instance offset. */
           sub_v3_v3(tmat[3], part->instance_collection->instance_offset);
@@ -1613,7 +1615,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
       }
       else {
         float obmat[4][4];
-        copy_m4_m4(obmat, ob->object_to_world);
+        copy_m4_m4(obmat, ob->object_to_world().ptr());
 
         float vec[3];
         copy_v3_v3(vec, obmat[3]);
@@ -1804,8 +1806,11 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
             geo_log::GeoModifierLog::find_viewer_node_log_for_path(*viewer_path))
     {
       ctx.preview_base_geometry = &viewer_log->geometry;
-      make_duplis_geometry_set_impl(
-          &ctx, viewer_log->geometry, ob_eval->object_to_world, true, ob_eval->type == OB_CURVES);
+      make_duplis_geometry_set_impl(&ctx,
+                                    viewer_log->geometry,
+                                    ob_eval->object_to_world().ptr(),
+                                    true,
+                                    ob_eval->type == OB_CURVES);
     }
   }
   return duplilist;

@@ -139,7 +139,7 @@ static void deform_stroke(GpencilModifierData *md,
   float coba_res[4];
   float matrix[4][4];
   if (is_gradient) {
-    mul_m4_m4m4(matrix, mmd->object->world_to_object, ob->object_to_world);
+    mul_m4_m4m4(matrix, mmd->object->world_to_object().ptr(), ob->object_to_world().ptr());
   }
 
   /* loop points and apply color. */

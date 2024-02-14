@@ -83,7 +83,7 @@ void ED_view3d_project_float_v3_m4(const ARegion *region,
 eV3DProjStatus ED_view3d_project_base(const ARegion *region, Base *base, float r_co[2])
 {
   eV3DProjStatus ret = ED_view3d_project_float_global(
-      region, base->object->object_to_world[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
+      region, base->object->object_to_world().location(), r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
 
   /* Prevent uninitialized values when projection fails,
    * although the callers should check the return value. */
@@ -701,7 +701,7 @@ blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const O
   float vmat[4][4];
   blender::float4x4 r_pmat;
 
-  mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world);
+  mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world().ptr());
   mul_m4_m4m4(r_pmat.ptr(), rv3d->winmat, vmat);
   return r_pmat;
 }

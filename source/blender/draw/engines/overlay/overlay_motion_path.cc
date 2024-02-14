@@ -150,7 +150,7 @@ static void motion_path_cache(OVERLAY_Data *vedata,
   Object *motion_path_camera = get_camera_for_motion_path(
       draw_ctx, eMotionPath_BakeFlag(avs->path_bakeflag));
   if (motion_path_camera) {
-    copy_m4_m4(camera_matrix, motion_path_camera->object_to_world);
+    copy_m4_m4(camera_matrix, motion_path_camera->object_to_world().ptr());
   }
   else {
     unit_m4(camera_matrix);
@@ -205,9 +205,8 @@ static void motion_path_cache(OVERLAY_Data *vedata,
       float3 vert_coordinate;
       copy_v3_v3(vert_coordinate, mpv->co);
       if (cam_eval) {
-        /* Projecting the point into world space from the cameras POV. */
-        vert_coordinate = math::transform_point(float4x4(cam_eval->object_to_world),
-                                                vert_coordinate);
+        /* Projecting the point into world space from the camera's POV. */
+        vert_coordinate = math::transform_point(cam_eval->object_to_world(), vert_coordinate);
       }
 
       if ((show_keyframes && show_keyframes_no && is_keyframe) || (show_frame_no && (i == 0))) {

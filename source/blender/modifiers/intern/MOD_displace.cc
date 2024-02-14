@@ -317,7 +317,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
            use_global_direction)
   {
-    copy_m4_m4(local_mat, ob->object_to_world);
+    copy_m4_m4(local_mat, ob->object_to_world().ptr());
   }
 
   DisplaceUserdata data = {nullptr};

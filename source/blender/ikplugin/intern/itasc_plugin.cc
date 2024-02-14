@@ -589,10 +589,10 @@ static bool target_callback(const iTaSC::Timestamp &timestamp,
       float chanmat[4][4];
       copy_m4_m4(chanmat, pchan->pose_mat);
       copy_v3_v3(chanmat[3], pchan->pose_tail);
-      mul_m4_series(restmat, target->owner->object_to_world, chanmat, target->eeRest);
+      mul_m4_series(restmat, target->owner->object_to_world().ptr(), chanmat, target->eeRest);
     }
     else {
-      mul_m4_m4m4(restmat, target->owner->object_to_world, target->eeRest);
+      mul_m4_m4m4(restmat, target->owner->object_to_world().ptr(), target->eeRest);
     }
     /* blend the target */
     blend_m4_m4m4(tarmat, restmat, tarmat, constraint->enforce);
@@ -623,10 +623,10 @@ static bool base_callback(const iTaSC::Timestamp &timestamp,
     ikscene->baseFrame.setValue(&chanmat[0][0]);
     /* iTaSC armature is scaled to object scale, scale the base frame too */
     ikscene->baseFrame.p *= ikscene->blScale;
-    mul_m4_m4m4(rootmat, ikscene->blArmature->object_to_world, chanmat);
+    mul_m4_m4m4(rootmat, ikscene->blArmature->object_to_world().ptr(), chanmat);
   }
   else {
-    copy_m4_m4(rootmat, ikscene->blArmature->object_to_world);
+    copy_m4_m4(rootmat, ikscene->blArmature->object_to_world().ptr());
     ikscene->baseFrame = iTaSC::F_identity;
   }
   next.setValue(&rootmat[0][0]);
@@ -1068,7 +1068,7 @@ static void convert_pose(IK_Scene *ikscene)
   int a, joint;
 
   /* assume uniform scaling and take Y scale as general scale for the armature */
-  scale = len_v3(ikscene->blArmature->object_to_world[1]);
+  scale = len_v3(ikscene->blArmature->object_to_world().ptr()[1]);
   rot = ikscene->jointArray(0);
   for (joint = a = 0, ikchan = ikscene->channels;
        a < ikscene->numchan && joint < ikscene->numjoint;
@@ -1109,7 +1109,7 @@ static void BKE_pose_rest(IK_Scene *ikscene)
   int a, joint;
 
   /* assume uniform scaling and take Y scale as general scale for the armature */
-  scale = len_v3(ikscene->blArmature->object_to_world[1]);
+  scale = len_v3(ikscene->blArmature->object_to_world().ptr()[1]);
   /* rest pose is 0 */
   SetToZero(ikscene->jointArray);
   /* except for transY joints */
@@ -1188,7 +1188,7 @@ static IK_Scene *convert_tree(
   }
   ikscene->blArmature = ob;
   /* assume uniform scaling and take Y scale as general scale for the armature */
-  ikscene->blScale = len_v3(ob->object_to_world[1]);
+  ikscene->blScale = len_v3(ob->object_to_world().ptr()[1]);
   ikscene->blInvScale = (ikscene->blScale < KDL::epsilon) ? 0.0f : 1.0f / ikscene->blScale;
 
   std::string joint;
@@ -1676,7 +1676,7 @@ static void create_scene(Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 static int init_scene(Object *ob)
 {
   /* check also if scaling has changed */
-  float scale = len_v3(ob->object_to_world[1]);
+  float scale = len_v3(ob->object_to_world().ptr()[1]);
   IK_Scene *scene;
 
   if (ob->pose->ikdata) {

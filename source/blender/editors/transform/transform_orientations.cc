@@ -134,7 +134,7 @@ static TransformOrientation *createObjectSpace(bContext *C,
 
   ob = base->object;
 
-  copy_m3_m4(mat, ob->object_to_world);
+  copy_m3_m4(mat, ob->object_to_world().ptr());
   normalize_m3(mat);
 
   /* use object name if no name is given */
@@ -299,12 +299,12 @@ bool gimbal_axis_pose(Object *ob, const bPoseChannel *pchan, float gmat[3][3])
     mul_m3_m3m3(mat, parent_mat, tmat);
 
     /* needed if object transformation isn't identity */
-    copy_m3_m4(obmat, ob->object_to_world);
+    copy_m3_m4(obmat, ob->object_to_world().ptr());
     mul_m3_m3m3(gmat, obmat, mat);
   }
   else {
     /* needed if object transformation isn't identity */
-    copy_m3_m4(obmat, ob->object_to_world);
+    copy_m3_m4(obmat, ob->object_to_world().ptr());
     mul_m3_m3m3(gmat, obmat, tmat);
   }
 
@@ -326,7 +326,7 @@ bool gimbal_axis_object(Object *ob, float gmat[3][3])
 
   if (ob->parent) {
     float parent_mat[3][3];
-    copy_m3_m4(parent_mat, ob->parent->object_to_world);
+    copy_m3_m4(parent_mat, ob->parent->object_to_world().ptr());
     normalize_m3(parent_mat);
     mul_m3_m3m3(gmat, parent_mat, gmat);
   }
@@ -597,20 +597,21 @@ static void handle_armature_parent_orientation(Object *ob, float r_mat[3][3])
     /* For child, show parent local regardless if "local location" is set for parent bone. */
     transform_orientations_create_from_axis(r_mat, UNPACK3(active_pchan->parent->pose_mat));
     float ob_orientations_mat[3][3];
-    transform_orientations_create_from_axis(ob_orientations_mat, UNPACK3(ob->object_to_world));
+    transform_orientations_create_from_axis(ob_orientations_mat,
+                                            UNPACK3(ob->object_to_world().ptr()));
     mul_m3_m3_pre(r_mat, ob_orientations_mat);
     return;
   }
 
   /* For root, use local transform of armature object. */
-  transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
+  transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world().ptr()));
 }
 
 static void handle_object_parent_orientation(Object *ob, float r_mat[3][3])
 {
   /* If object has parent, then orient to parent. */
   if (ob->parent) {
-    transform_orientations_create_from_axis(r_mat, UNPACK3(ob->parent->object_to_world));
+    transform_orientations_create_from_axis(r_mat, UNPACK3(ob->parent->object_to_world().ptr()));
   }
   else {
     /* If object doesn't have parent, then orient to world. */
@@ -677,7 +678,7 @@ short ED_transform_calc_orientation_from_type_ex(const Scene *scene,
           ED_getTransformOrientationMatrix(scene, view_layer, v3d, ob, obedit, pivot_point, r_mat);
         }
         else {
-          transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world));
+          transform_orientations_create_from_axis(r_mat, UNPACK3(ob->object_to_world().ptr()));
         }
         break;
       }
@@ -910,7 +911,7 @@ int getTransformOrientation_ex(const Scene *scene,
     float imat[3][3], mat[3][3];
 
     /* we need the transpose of the inverse for a normal... */
-    copy_m3_m4(imat, ob->object_to_world);
+    copy_m3_m4(imat, ob->object_to_world().ptr());
 
     invert_m3_m3(mat, imat);
     transpose_m3(mat);
@@ -1340,8 +1341,8 @@ int getTransformOrientation_ex(const Scene *scene,
     if (result == ORIENTATION_EDGE) {
       float tvec[3];
 
-      mul_mat3_m4_v3(ob->object_to_world, normal);
-      mul_mat3_m4_v3(ob->object_to_world, plane);
+      mul_mat3_m4_v3(ob->object_to_world().ptr(), normal);
+      mul_mat3_m4_v3(ob->object_to_world().ptr(), plane);
 
       /* align normal to edge direction (so normal is perpendicular to the plane).
        * 'ORIENTATION_EDGE' will do the other way around.
@@ -1383,7 +1384,7 @@ int getTransformOrientation_ex(const Scene *scene,
     /* use for both active & all */
     if (ok) {
       /* we need the transpose of the inverse for a normal... */
-      copy_m3_m4(imat, ob->object_to_world);
+      copy_m3_m4(imat, ob->object_to_world().ptr());
 
       invert_m3_m3(mat, imat);
       transpose_m3(mat);
@@ -1415,8 +1416,8 @@ int getTransformOrientation_ex(const Scene *scene,
       }
 
       if (ok) {
-        copy_v3_v3(normal, ob->object_to_world[2]);
-        copy_v3_v3(plane, ob->object_to_world[1]);
+        copy_v3_v3(normal, ob->object_to_world().ptr()[2]);
+        copy_v3_v3(plane, ob->object_to_world().ptr()[1]);
       }
     }
     result = ORIENTATION_NORMAL;

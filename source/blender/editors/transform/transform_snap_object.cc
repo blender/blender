@@ -513,12 +513,9 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
 
     bool use_hide = false;
     ID *ob_data = data_for_snap(obj_eval, sctx->runtime.params.edit_mode_type, &use_hide);
-    if ((tmp = sob_callback(sctx,
-                            obj_eval,
-                            ob_data,
-                            float4x4(obj_eval->object_to_world),
-                            is_object_active,
-                            use_hide)) != SCE_SNAP_TO_NONE)
+    if ((tmp = sob_callback(
+             sctx, obj_eval, ob_data, obj_eval->object_to_world(), is_object_active, use_hide)) !=
+        SCE_SNAP_TO_NONE)
     {
       ret = tmp;
     }

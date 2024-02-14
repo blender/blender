@@ -2972,8 +2972,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         float offset_global[3];
         float offset_local[3];
 
-        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world[3]);
-        copy_m3_m4(bmat, ob_active->object_to_world);
+        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world().location());
+        copy_m3_m4(bmat, ob_active->object_to_world().ptr());
 
         /* Inverse transform for all selected curves in this object,
          * See #object_join_exec for detailed comment on why the safe version is used. */

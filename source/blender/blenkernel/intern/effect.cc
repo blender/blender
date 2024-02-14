@@ -155,8 +155,8 @@ static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
       if (eff->ob->runtime->curve_cache->anim_path_accum_length) {
         BKE_where_on_path(
             eff->ob, 0.0, eff->guide_loc, eff->guide_dir, nullptr, &eff->guide_radius, nullptr);
-        mul_m4_v3(eff->ob->object_to_world, eff->guide_loc);
-        mul_mat3_m4_v3(eff->ob->object_to_world, eff->guide_dir);
+        mul_m4_v3(eff->ob->object_to_world().ptr(), eff->guide_loc);
+        mul_mat3_m4_v3(eff->ob->object_to_world().ptr(), eff->guide_dir);
       }
     }
   }
@@ -713,8 +713,8 @@ bool get_effector_data(EffectorCache *eff,
       copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
 
-      mul_m4_v3(eff->ob->object_to_world, efd->loc);
-      mul_mat3_m4_v3(eff->ob->object_to_world, efd->nor);
+      mul_m4_v3(eff->ob->object_to_world().ptr(), efd->loc);
+      mul_mat3_m4_v3(eff->ob->object_to_world().ptr(), efd->nor);
 
       normalize_v3(efd->nor);
 
@@ -766,23 +766,23 @@ bool get_effector_data(EffectorCache *eff,
     const Object *ob = eff->ob;
 
     /* Use z-axis as normal. */
-    normalize_v3_v3(efd->nor, ob->object_to_world[2]);
+    normalize_v3_v3(efd->nor, ob->object_to_world().ptr()[2]);
 
     if (eff->pd && ELEM(eff->pd->shape, PFIELD_SHAPE_PLANE, PFIELD_SHAPE_LINE)) {
       float temp[3], translate[3];
-      sub_v3_v3v3(temp, point->loc, ob->object_to_world[3]);
+      sub_v3_v3v3(temp, point->loc, ob->object_to_world().location());
       project_v3_v3v3(translate, temp, efd->nor);
 
       /* for vortex the shape chooses between old / new force */
       if (eff->pd->forcefield == PFIELD_VORTEX || eff->pd->shape == PFIELD_SHAPE_LINE) {
-        add_v3_v3v3(efd->loc, ob->object_to_world[3], translate);
+        add_v3_v3v3(efd->loc, ob->object_to_world().location(), translate);
       }
       else { /* Normally `efd->loc` is closest point on effector XY-plane. */
         sub_v3_v3v3(efd->loc, point->loc, translate);
       }
     }
     else {
-      copy_v3_v3(efd->loc, ob->object_to_world[3]);
+      copy_v3_v3(efd->loc, ob->object_to_world().location());
     }
 
     zero_v3(efd->vel);
@@ -807,8 +807,8 @@ bool get_effector_data(EffectorCache *eff,
     }
     else {
       /* for some effectors we need the object center every time */
-      sub_v3_v3v3(efd->vec_to_point2, point->loc, eff->ob->object_to_world[3]);
-      normalize_v3_v3(efd->nor2, eff->ob->object_to_world[2]);
+      sub_v3_v3v3(efd->vec_to_point2, point->loc, eff->ob->object_to_world().location());
+      normalize_v3_v3(efd->nor2, eff->ob->object_to_world().ptr()[2]);
     }
   }
 
@@ -881,7 +881,7 @@ static void do_texture_effector(EffectorCache *eff,
   copy_v3_v3(tex_co, point->loc);
 
   if (eff->pd->flag & PFIELD_TEX_OBJECT) {
-    mul_m4_v3(eff->ob->world_to_object, tex_co);
+    mul_m4_v3(eff->ob->world_to_object().ptr(), tex_co);
 
     if (eff->pd->flag & PFIELD_TEX_2D) {
       tex_co[2] = 0.0f;

@@ -211,11 +211,11 @@ Vector<float> visualkey_get_values(PointerRNA *ptr, PropertyRNA *prop)
     Object *ob = static_cast<Object *>(ptr->data);
     /* Loc code is specific... */
     if (strstr(identifier, "location")) {
-      values.extend({ob->object_to_world[3], 3});
+      values.extend({ob->object_to_world().location(), 3});
       return values;
     }
 
-    copy_m4_m4(tmat, ob->object_to_world);
+    copy_m4_m4(tmat, ob->object_to_world().ptr());
     rotmode = ob->rotmode;
   }
   else if (ptr->type == &RNA_PoseBone) {

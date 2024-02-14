@@ -424,7 +424,7 @@ static bool eevee_lightprobes_culling_test(Object *ob)
       const float max[3] = {1.0f, 1.0f, 1.0f};
       BKE_boundbox_init_from_minmax(&bbox, min, max);
 
-      copy_m4_m4(tmp, ob->object_to_world);
+      copy_m4_m4(tmp, ob->object_to_world().ptr());
       normalize_v3(tmp[2]);
       mul_v3_fl(tmp[2], probe->distinf);
 
@@ -467,7 +467,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
     /* Debug Display */
     DRWCallBuffer *grp = vedata->stl->g_data->planar_display_shgrp;
     if (grp && (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA)) {
-      DRW_buffer_add_entry(grp, &pinfo->num_planar, ob->object_to_world);
+      DRW_buffer_add_entry(grp, &pinfo->num_planar, ob->object_to_world().ptr());
     }
 
     pinfo->num_planar++;
@@ -510,30 +510,30 @@ void EEVEE_lightprobes_grid_data_from_object(Object *ob, EEVEE_LightGrid *egrid,
   mul_v3_v3fl(half_cell_dim, cell_dim, 0.5f);
 
   /* Matrix converting world space to cell ranges. */
-  invert_m4_m4(egrid->mat, ob->object_to_world);
+  invert_m4_m4(egrid->mat, ob->object_to_world().ptr());
 
   /* First cell. */
   copy_v3_fl(egrid->corner, -1.0f);
   add_v3_v3(egrid->corner, half_cell_dim);
-  mul_m4_v3(ob->object_to_world, egrid->corner);
+  mul_m4_v3(ob->object_to_world().ptr(), egrid->corner);
 
   /* Opposite neighbor cell. */
   copy_v3_fl3(egrid->increment_x, cell_dim[0], 0.0f, 0.0f);
   add_v3_v3(egrid->increment_x, half_cell_dim);
   add_v3_fl(egrid->increment_x, -1.0f);
-  mul_m4_v3(ob->object_to_world, egrid->increment_x);
+  mul_m4_v3(ob->object_to_world().ptr(), egrid->increment_x);
   sub_v3_v3(egrid->increment_x, egrid->corner);
 
   copy_v3_fl3(egrid->increment_y, 0.0f, cell_dim[1], 0.0f);
   add_v3_v3(egrid->increment_y, half_cell_dim);
   add_v3_fl(egrid->increment_y, -1.0f);
-  mul_m4_v3(ob->object_to_world, egrid->increment_y);
+  mul_m4_v3(ob->object_to_world().ptr(), egrid->increment_y);
   sub_v3_v3(egrid->increment_y, egrid->corner);
 
   copy_v3_fl3(egrid->increment_z, 0.0f, 0.0f, cell_dim[2]);
   add_v3_v3(egrid->increment_z, half_cell_dim);
   add_v3_fl(egrid->increment_z, -1.0f);
-  mul_m4_v3(ob->object_to_world, egrid->increment_z);
+  mul_m4_v3(ob->object_to_world().ptr(), egrid->increment_z);
   sub_v3_v3(egrid->increment_z, egrid->corner);
 
   /* Visibility bias */
@@ -549,7 +549,7 @@ void EEVEE_lightprobes_cube_data_from_object(Object *ob, EEVEE_LightProbe *eprob
   LightProbe *probe = (LightProbe *)ob->data;
 
   /* Update transforms */
-  copy_v3_v3(eprobe->position, ob->object_to_world[3]);
+  copy_v3_v3(eprobe->position, ob->object_to_world().location());
 
   /* Attenuation */
   eprobe->attenuation_type = probe->attenuation_type;
@@ -557,7 +557,7 @@ void EEVEE_lightprobes_cube_data_from_object(Object *ob, EEVEE_LightProbe *eprob
 
   unit_m4(eprobe->attenuationmat);
   scale_m4_fl(eprobe->attenuationmat, probe->distinf);
-  mul_m4_m4m4(eprobe->attenuationmat, ob->object_to_world, eprobe->attenuationmat);
+  mul_m4_m4m4(eprobe->attenuationmat, ob->object_to_world().ptr(), eprobe->attenuationmat);
   invert_m4(eprobe->attenuationmat);
 
   /* Parallax */
@@ -572,7 +572,7 @@ void EEVEE_lightprobes_cube_data_from_object(Object *ob, EEVEE_LightProbe *eprob
     scale_m4_fl(eprobe->parallaxmat, probe->distinf);
   }
 
-  mul_m4_m4m4(eprobe->parallaxmat, ob->object_to_world, eprobe->parallaxmat);
+  mul_m4_m4m4(eprobe->parallaxmat, ob->object_to_world().ptr(), eprobe->parallaxmat);
   invert_m4(eprobe->parallaxmat);
 }
 
@@ -588,8 +588,8 @@ void EEVEE_lightprobes_planar_data_from_object(Object *ob,
   vis_test->cached = false;
 
   /* Computing mtx : matrix that mirror position around object's XY plane. */
-  normalize_m4_m4(normat, ob->object_to_world); /* object > world */
-  invert_m4_m4(imat, normat);                   /* world > object */
+  normalize_m4_m4(normat, ob->object_to_world().ptr()); /* object > world */
+  invert_m4_m4(imat, normat);                           /* world > object */
   /* XY reflection plane */
   imat[0][2] = -imat[0][2];
   imat[1][2] = -imat[1][2];
@@ -598,38 +598,39 @@ void EEVEE_lightprobes_planar_data_from_object(Object *ob,
   mul_m4_m4m4(eplanar->mtx, normat, imat); /* world > object > mirrored obj > world */
 
   /* Compute clip plane equation / normal. */
-  copy_v3_v3(eplanar->plane_equation, ob->object_to_world[2]);
+  copy_v3_v3(eplanar->plane_equation, ob->object_to_world().ptr()[2]);
   normalize_v3(eplanar->plane_equation); /* plane normal */
-  eplanar->plane_equation[3] = -dot_v3v3(eplanar->plane_equation, ob->object_to_world[3]);
+  eplanar->plane_equation[3] = -dot_v3v3(eplanar->plane_equation,
+                                         ob->object_to_world().location());
   eplanar->clipsta = probe->clipsta;
 
   /* Compute XY clip planes. */
-  normalize_v3_v3(eplanar->clip_vec_x, ob->object_to_world[0]);
-  normalize_v3_v3(eplanar->clip_vec_y, ob->object_to_world[1]);
+  normalize_v3_v3(eplanar->clip_vec_x, ob->object_to_world().ptr()[0]);
+  normalize_v3_v3(eplanar->clip_vec_y, ob->object_to_world().ptr()[1]);
 
   float vec[3] = {0.0f, 0.0f, 0.0f};
   vec[0] = 1.0f;
   vec[1] = 0.0f;
   vec[2] = 0.0f;
-  mul_m4_v3(ob->object_to_world, vec); /* Point on the edge */
+  mul_m4_v3(ob->object_to_world().ptr(), vec); /* Point on the edge */
   eplanar->clip_edge_x_pos = dot_v3v3(eplanar->clip_vec_x, vec);
 
   vec[0] = 0.0f;
   vec[1] = 1.0f;
   vec[2] = 0.0f;
-  mul_m4_v3(ob->object_to_world, vec); /* Point on the edge */
+  mul_m4_v3(ob->object_to_world().ptr(), vec); /* Point on the edge */
   eplanar->clip_edge_y_pos = dot_v3v3(eplanar->clip_vec_y, vec);
 
   vec[0] = -1.0f;
   vec[1] = 0.0f;
   vec[2] = 0.0f;
-  mul_m4_v3(ob->object_to_world, vec); /* Point on the edge */
+  mul_m4_v3(ob->object_to_world().ptr(), vec); /* Point on the edge */
   eplanar->clip_edge_x_neg = dot_v3v3(eplanar->clip_vec_x, vec);
 
   vec[0] = 0.0f;
   vec[1] = -1.0f;
   vec[2] = 0.0f;
-  mul_m4_v3(ob->object_to_world, vec); /* Point on the edge */
+  mul_m4_v3(ob->object_to_world().ptr(), vec); /* Point on the edge */
   eplanar->clip_edge_y_neg = dot_v3v3(eplanar->clip_vec_y, vec);
 
   /* Facing factors */

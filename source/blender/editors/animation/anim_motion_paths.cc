@@ -168,18 +168,17 @@ static void motionpaths_calc_bake_targets(ListBase *targets,
       }
 
       /* Result must be in world-space. */
-      mul_m4_v3(ob_eval->object_to_world, mpv->co);
+      mul_m4_v3(ob_eval->object_to_world().ptr(), mpv->co);
     }
     else {
       /* World-space object location. */
-      copy_v3_v3(mpv->co, ob_eval->object_to_world[3]);
+      copy_v3_v3(mpv->co, ob_eval->object_to_world().location());
     }
 
     if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
       Object *cam_eval = DEG_get_evaluated_object(depsgraph, camera);
       /* Convert point to camera space. */
-      float3 co_camera_space = math::transform_point(float4x4(cam_eval->world_to_object),
-                                                     float3(mpv->co));
+      float3 co_camera_space = math::transform_point(cam_eval->world_to_object(), float3(mpv->co));
       copy_v3_v3(mpv->co, co_camera_space);
     }
 

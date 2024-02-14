@@ -1178,9 +1178,10 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   const eEvaluationMode deg_eval_mode = DEG_get_mode(depsgraph);
   const short parenting_dupli_transflag = (OB_DUPLIFACES | OB_DUPLIVERTS);
 
-  copy_m4_m4(obmat,
-             ob->object_to_world); /* to cope with duplicators from BKE_scene_base_iter_next */
-  invert_m4_m4(obinv, ob->object_to_world);
+  copy_m4_m4(
+      obmat,
+      ob->object_to_world().ptr()); /* to cope with duplicators from BKE_scene_base_iter_next */
+  invert_m4_m4(obinv, ob->object_to_world().ptr());
 
   BLI_string_split_name_number(ob->id.name + 2, '.', obname, &obnr);
 
@@ -1229,13 +1230,13 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
 
       /* when metaball object has zero scale, then MetaElem to this MetaBall
        * will not be put to mainb array */
-      if (has_zero_axis_m4(bob->object_to_world)) {
+      if (has_zero_axis_m4(bob->object_to_world().ptr())) {
         zero_size = 1;
       }
       else if (bob->parent) {
         Object *pob = bob->parent;
         while (pob) {
-          if (has_zero_axis_m4(pob->object_to_world)) {
+          if (has_zero_axis_m4(pob->object_to_world().ptr())) {
             zero_size = 1;
             break;
           }
@@ -1299,7 +1300,7 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
              *   rotation ->
              *   ml local space
              */
-            mul_m4_series((float(*)[4])new_ml->mat, obinv, bob->object_to_world, pos, rot);
+            mul_m4_series((float(*)[4])new_ml->mat, obinv, bob->object_to_world().ptr(), pos, rot);
             /* ml local space -> basis object space */
             invert_m4_m4((float(*)[4])new_ml->imat, (float(*)[4])new_ml->mat);
 

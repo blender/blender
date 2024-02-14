@@ -157,7 +157,7 @@ class Instance {
       if (object_state.sculpt_pbvh) {
         /* Disable frustum culling for sculpt meshes. */
         /* TODO(@pragma37): Implement a cleaner way to disable frustum culling. */
-        ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+        ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
         handle = ResourceHandle(handle.resource_index(), ob_ref.object->transflag & OB_NEG_SCALE);
         sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
@@ -385,7 +385,7 @@ class Instance {
                  ModifierData *md)
   {
     /* Skip frustum culling. */
-    ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+    ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
 
     Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat - 1);
     ::Image *image = nullptr;
@@ -410,7 +410,7 @@ class Instance {
   void curves_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
   {
     /* Skip frustum culling. */
-    ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+    ResourceHandle handle = manager.resource_handle(ob_ref.object->object_to_world());
 
     Material mat = get_material(ob_ref, object_state.color_type);
     resources.material_buf.append(mat);

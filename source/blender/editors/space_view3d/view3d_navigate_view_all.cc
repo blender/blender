@@ -74,7 +74,7 @@ static void view3d_object_calc_minmax(Depsgraph *depsgraph,
   if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
     /* Use if duplis aren't found. */
     if (only_center) {
-      minmax_v3v3_v3(min, max, ob_eval->object_to_world[3]);
+      minmax_v3v3_v3(min, max, ob_eval->object_to_world().location());
     }
     else {
       BKE_object_minmax(ob_eval, min, max);
@@ -379,8 +379,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
 
     if ((ob_eval) && (ok)) {
-      mul_m4_v3(ob_eval->object_to_world, min);
-      mul_m4_v3(ob_eval->object_to_world, max);
+      mul_m4_v3(ob_eval->object_to_world().ptr(), min);
+      mul_m4_v3(ob_eval->object_to_world().ptr(), max);
     }
   }
   else if (is_face_map) {

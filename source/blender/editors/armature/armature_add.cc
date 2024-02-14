@@ -32,6 +32,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_object_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -196,13 +197,13 @@ static int armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
 
     const View3DCursor *curs = &scene->cursor;
     copy_v3_v3(newbone->tail, curs->location);
-    sub_v3_v3v3(newbone->tail, newbone->tail, obedit->object_to_world[3]);
+    sub_v3_v3v3(newbone->tail, newbone->tail, obedit->object_to_world().location());
 
     if (a == 1) {
       newbone->tail[0] = -newbone->tail[0];
     }
 
-    copy_m3_m4(mat, obedit->object_to_world);
+    copy_m3_m4(mat, obedit->object_to_world().ptr());
     invert_m3_m3(imat, mat);
     mul_m3_v3(imat, newbone->tail);
 
@@ -1638,8 +1639,8 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
   copy_v3_v3(curs, CTX_data_scene(C)->cursor.location);
 
   /* Get inverse point for head and orientation for tail */
-  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
-  mul_m4_v3(obedit->world_to_object, curs);
+  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
+  mul_m4_v3(obedit->world_to_object().ptr(), curs);
 
   if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
     copy_m3_m4(obmat, rv3d->viewmat);
@@ -1648,7 +1649,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
     unit_m3(obmat);
   }
 
-  copy_m3_m4(viewmat, obedit->object_to_world);
+  copy_m3_m4(viewmat, obedit->object_to_world().ptr());
   mul_m3_m3m3(totmat, obmat, viewmat);
   invert_m3_m3(imat, totmat);
 

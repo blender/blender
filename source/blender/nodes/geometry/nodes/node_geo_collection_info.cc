@@ -96,7 +96,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (!reset_children) {
         transform.location() += float3(child_collection->instance_offset);
         if (use_relative_transform) {
-          transform = float4x4(self_object->world_to_object) * transform;
+          transform = self_object->world_to_object() * transform;
         }
         else {
           transform.location() -= float3(collection->instance_offset);
@@ -110,12 +110,12 @@ static void node_geo_exec(GeoNodeExecParams params)
       float4x4 transform = float4x4::identity();
       if (!reset_children) {
         if (use_relative_transform) {
-          transform = float4x4(self_object->world_to_object);
+          transform = self_object->world_to_object();
         }
         else {
           transform.location() -= float3(collection->instance_offset);
         }
-        transform *= float4x4(child_object->object_to_world);
+        transform *= child_object->object_to_world();
       }
       entries.append({handle, &(child_object->id.name[2]), transform});
     }
@@ -133,7 +133,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     float4x4 transform = float4x4::identity();
     if (use_relative_transform) {
       transform.location() = collection->instance_offset;
-      transform = float4x4_view(self_object->world_to_object) * transform;
+      transform = self_object->world_to_object() * transform;
     }
 
     const int handle = instances->add_reference(*collection);

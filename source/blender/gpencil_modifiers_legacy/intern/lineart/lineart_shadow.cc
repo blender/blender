@@ -1175,7 +1175,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   copy_v3_v3_db(ld->conf.camera_pos_secondary, ld->conf.camera_pos);
   copy_m4_m4(ld->conf.cam_obmat_secondary, ld->conf.cam_obmat);
 
-  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world);
+  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world().ptr());
   copy_v3db_v3fl(ld->conf.camera_pos, ld->conf.cam_obmat[3]);
   ld->conf.cam_is_persp_secondary = ld->conf.cam_is_persp;
   ld->conf.cam_is_persp = is_persp;

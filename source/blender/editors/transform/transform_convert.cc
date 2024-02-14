@@ -860,7 +860,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
 
       if (tc->use_local_mat) {
         BLI_assert((t->flag & T_2D_EDIT) == 0);
-        copy_m4_m4(tc->mat, objects[i]->object_to_world);
+        copy_m4_m4(tc->mat, objects[i]->object_to_world().ptr());
         copy_m3_m4(tc->mat3, tc->mat);
         /* for non-invertible scale matrices, invert_m4_m4_fallback()
          * can still provide a valid pivot */
@@ -1113,8 +1113,8 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
       if (mmd->mirror_ob) {
         float obinv[4][4];
 
-        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
-        mul_m4_m4m4(mtx, obinv, ob->object_to_world);
+        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world().ptr());
+        mul_m4_m4m4(mtx, obinv, ob->object_to_world().ptr());
         invert_m4_m4(imtx, mtx);
       }
 

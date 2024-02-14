@@ -181,7 +181,7 @@ bool ShadowPass::ShadowView::debug_object_culling(Object *ob)
     float4 plane = extruded_frustum_.planes[p];
     bool separating_axis = true;
     for (float3 corner : bb.vec) {
-      corner = math::transform_point(float4x4(ob->object_to_world), corner);
+      corner = math::transform_point(ob->object_to_world(), corner);
       float signed_distance = math::dot(corner, float3(plane)) - plane.w;
       if (signed_distance <= 0) {
         separating_axis = false;

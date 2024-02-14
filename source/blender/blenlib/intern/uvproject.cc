@@ -121,7 +121,10 @@ void BLI_uvproject_from_view(float target[2],
   target[1] = (y + target[1]) / winy;
 }
 
-ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float winx, float winy)
+ProjCameraInfo *BLI_uvproject_camera_info(Object *ob,
+                                          const float rotmat[4][4],
+                                          float winx,
+                                          float winy)
 {
   ProjCameraInfo uci;
   Camera *camera = static_cast<Camera *>(ob->data);
@@ -133,7 +136,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float rotmat[4][4], float 
   uci.camsize = uci.do_persp ? tanf(uci.camangle) : camera->ortho_scale;
 
   /* account for scaled cameras */
-  copy_m4_m4(uci.caminv, ob->object_to_world);
+  copy_m4_m4(uci.caminv, ob->object_to_world().ptr());
   normalize_m4(uci.caminv);
 
   if (invert_m4(uci.caminv)) {

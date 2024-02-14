@@ -432,7 +432,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   copy_v3_v3(fds->global_size, size);
   copy_v3_v3(fds->dp0, min);
 
-  invert_m4_m4(fds->imat, ob->object_to_world);
+  invert_m4_m4(fds->imat, ob->object_to_world().ptr());
 
   /* Prevent crash when initializing a plane as domain. */
   if (!init_resolution || (size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) ||
@@ -498,8 +498,8 @@ static bool fluid_modifier_init(
     zero_v3(fds->shift_f);
     add_v3_fl(fds->shift_f, 0.5f);
     zero_v3(fds->prev_loc);
-    mul_m4_v3(ob->object_to_world, fds->prev_loc);
-    copy_m4_m4(fds->obmat, ob->object_to_world);
+    mul_m4_v3(ob->object_to_world().ptr(), fds->prev_loc);
+    copy_m4_m4(fds->obmat, ob->object_to_world().ptr());
 
     /* Set resolutions. */
     if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS &&
@@ -567,11 +567,11 @@ static int get_light(Scene *scene, ViewLayer *view_layer, float *light)
       Light *la = static_cast<Light *>(base_tmp->object->data);
 
       if (la->type == LA_LOCAL) {
-        copy_v3_v3(light, base_tmp->object->object_to_world[3]);
+        copy_v3_v3(light, base_tmp->object->object_to_world().location());
         return 1;
       }
       if (!found_light) {
-        copy_v3_v3(light, base_tmp->object->object_to_world[3]);
+        copy_v3_v3(light, base_tmp->object->object_to_world().location());
         found_light = 1;
       }
     }
@@ -1049,7 +1049,7 @@ static void obstacles_from_mesh(Object *coll_ob,
       float co[3];
 
       /* Vertex position. */
-      mul_m4_v3(coll_ob->object_to_world, positions[i]);
+      mul_m4_v3(coll_ob->object_to_world().ptr(), positions[i]);
       manta_pos_to_cell(fds, positions[i]);
 
       /* Vertex velocity. */
@@ -2111,7 +2111,7 @@ static void emit_from_mesh(
      * This is valid because the mesh is copied above. */
     for (i = 0; i < numverts; i++) {
       /* Vertex position. */
-      mul_m4_v3(flow_ob->object_to_world, positions[i]);
+      mul_m4_v3(flow_ob->object_to_world().ptr(), positions[i]);
       manta_pos_to_cell(fds, positions[i]);
 
       /* Vertex velocity. */
@@ -2129,7 +2129,7 @@ static void emit_from_mesh(
       bb_boundInsert(bb, positions[i]);
     }
     mesh->tag_positions_changed();
-    mul_m4_v3(flow_ob->object_to_world, flow_center);
+    mul_m4_v3(flow_ob->object_to_world().ptr(), flow_center);
     manta_pos_to_cell(fds, flow_center);
 
     /* Set emission map.
@@ -2198,7 +2198,7 @@ static void adaptive_domain_adjust(
   float frame_shift_f[3];
   float ob_loc[3] = {0};
 
-  mul_m4_v3(ob->object_to_world, ob_loc);
+  mul_m4_v3(ob->object_to_world().ptr(), ob_loc);
 
   sub_v3_v3v3(frame_shift_f, ob_loc, fds->prev_loc);
   copy_v3_v3(fds->prev_loc, ob_loc);
@@ -3488,12 +3488,12 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
 
     /* Calculate required shift to match domain's global position
      * it was originally simulated at (if object moves without manta step). */
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    mul_m4_v3(ob->object_to_world, ob_loc);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    mul_m4_v3(ob->object_to_world().ptr(), ob_loc);
     mul_m4_v3(fds->obmat, ob_cache_loc);
     sub_v3_v3v3(fds->obj_shift_f, ob_cache_loc, ob_loc);
     /* Convert shift to local space and apply to vertices. */
-    mul_mat3_m4_v3(ob->world_to_object, fds->obj_shift_f);
+    mul_mat3_m4_v3(ob->world_to_object().ptr(), fds->obj_shift_f);
     /* Apply shift to vertices. */
     for (int i = 0; i < num_verts; i++) {
       add_v3_v3(positions[i], fds->obj_shift_f);
@@ -3518,8 +3518,8 @@ static int manta_step(
   bool mode_replay = (mode == FLUID_DOMAIN_CACHE_REPLAY);
 
   /* Update object state. */
-  invert_m4_m4(fds->imat, ob->object_to_world);
-  copy_m4_m4(fds->obmat, ob->object_to_world);
+  invert_m4_m4(fds->imat, ob->object_to_world().ptr());
+  copy_m4_m4(fds->obmat, ob->object_to_world().ptr());
 
   /* Gas domain might use adaptive domain. */
   if (fds->type == FLUID_DOMAIN_TYPE_GAS) {

@@ -24,6 +24,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -131,8 +132,8 @@ void cache_init(bContext *C,
   }
 
   /* Setup orientation matrices. */
-  copy_m4_m4(ss->filter_cache->obmat.ptr(), ob->object_to_world);
-  invert_m4_m4(ss->filter_cache->obmat_inv.ptr(), ob->object_to_world);
+  copy_m4_m4(ss->filter_cache->obmat.ptr(), ob->object_to_world().ptr());
+  invert_m4_m4(ss->filter_cache->obmat_inv.ptr(), ob->object_to_world().ptr());
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -184,7 +185,7 @@ void cache_init(bContext *C,
 
     /* Update last stroke location */
 
-    mul_m4_v3(ob->object_to_world, co);
+    mul_m4_v3(ob->object_to_world().ptr(), co);
 
     add_v3_v3(ups->average_stroke_accum, co);
     ups->average_stroke_counter++;
@@ -199,10 +200,10 @@ void cache_init(bContext *C,
   float mat[3][3];
   float viewDir[3] = {0.0f, 0.0f, 1.0f};
   if (vc.rv3d) {
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
     copy_m3_m4(mat, vc.rv3d->viewinv);
     mul_m3_v3(mat, viewDir);
-    copy_m3_m4(mat, ob->world_to_object);
+    copy_m3_m4(mat, ob->world_to_object().ptr());
     mul_m3_v3(mat, viewDir);
     normalize_v3_v3(ss->filter_cache->view_normal, viewDir);
   }

@@ -126,11 +126,11 @@ bool ED_view3d_area_user_region(const ScrArea *area, const View3D *v3d, ARegion 
 void ED_view3d_init_mats_rv3d(const Object *ob, RegionView3D *rv3d)
 {
   /* local viewmat and persmat, to calculate projections */
-  mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->object_to_world);
-  mul_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->object_to_world);
+  mul_m4_m4m4(rv3d->viewmatob, rv3d->viewmat, ob->object_to_world().ptr());
+  mul_m4_m4m4(rv3d->persmatob, rv3d->persmat, ob->object_to_world().ptr());
 
   /* initializes object space clipping, speeds up clip tests */
-  ED_view3d_clipping_local(rv3d, ob->object_to_world);
+  ED_view3d_clipping_local(rv3d, ob->object_to_world().ptr());
 }
 
 void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
@@ -140,7 +140,7 @@ void ED_view3d_init_mats_rv3d_gl(const Object *ob, RegionView3D *rv3d)
   /* We have to multiply instead of loading `viewmatob` to make
    * it work with duplis using display-lists, otherwise it will
    * override the dupli-matrix. */
-  GPU_matrix_mul(ob->object_to_world);
+  GPU_matrix_mul(ob->object_to_world().ptr());
 }
 
 #ifndef NDEBUG
@@ -737,7 +737,7 @@ static void view3d_ob_drop_matrix_from_snap(V3DSnapCursorState *snap_state,
   copy_v3_v3(obmat_final[3], snap_data->loc);
 
   float scale[3];
-  mat4_to_size(scale, ob->object_to_world);
+  mat4_to_size(scale, ob->object_to_world().ptr());
   rescale_m4(obmat_final, scale);
 
   if (const std::optional<Bounds<float3>> bb = BKE_object_boundbox_get(ob)) {

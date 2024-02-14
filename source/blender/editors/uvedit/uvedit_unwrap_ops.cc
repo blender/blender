@@ -41,6 +41,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object_types.hh"
 #include "BKE_report.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"
@@ -1931,8 +1932,8 @@ static void uv_map_transform_center(const Scene *scene,
     }
     case V3D_AROUND_CURSOR: /* cursor center */
     {
-      invert_m4_m4(ob->world_to_object, ob->object_to_world);
-      mul_v3_m4v3(r_center, ob->world_to_object, scene->cursor.location);
+      invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+      mul_v3_m4v3(r_center, ob->world_to_object().ptr(), scene->cursor.location);
       break;
     }
     case V3D_AROUND_ACTIVE: {
@@ -1982,7 +1983,7 @@ static void uv_map_rotation_matrix_ex(float result[4][4],
   zero_v3(viewmatrix[3]);
 
   /* get rotation of the current object matrix */
-  copy_m4_m4(rotobj, ob->object_to_world);
+  copy_m4_m4(rotobj, ob->object_to_world().ptr());
   zero_v3(rotobj[3]);
 
   /* but shifting */
@@ -2473,7 +2474,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    mat4_to_size(obsize, obedit->object_to_world);
+    mat4_to_size(obsize, obedit->object_to_world().ptr());
     if (!(fabsf(obsize[0] - obsize[1]) < 1e-4f && fabsf(obsize[1] - obsize[2]) < 1e-4f)) {
       if ((reported_errors & UNWRAP_ERROR_NONUNIFORM) == 0) {
         BKE_report(op->reports,
@@ -2483,7 +2484,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
         reported_errors |= UNWRAP_ERROR_NONUNIFORM;
       }
     }
-    else if (is_negative_m4(obedit->object_to_world)) {
+    else if (is_negative_m4(obedit->object_to_world().ptr())) {
       if ((reported_errors & UNWRAP_ERROR_NEGATIVE) == 0) {
         BKE_report(
             op->reports,
@@ -3050,7 +3051,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
     float objects_pos_avg[4] = {0};
 
     for (Object *object : objects) {
-      add_v4_v4(objects_pos_avg, object->object_to_world[3]);
+      add_v4_v4(objects_pos_avg, object->object_to_world().location());
     }
 
     mul_v4_fl(objects_pos_avg, 1.0f / objects.size());
@@ -3089,7 +3090,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
       const bool camera_bounds = RNA_boolean_get(op->ptr, "camera_bounds");
       ProjCameraInfo *uci = BLI_uvproject_camera_info(
           v3d->camera,
-          obedit->object_to_world,
+          obedit->object_to_world().ptr(),
           camera_bounds ? (scene->r.xsch * scene->r.xasp) : 1.0f,
           camera_bounds ? (scene->r.ysch * scene->r.yasp) : 1.0f);
 
@@ -3110,7 +3111,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
       }
     }
     else {
-      copy_m4_m4(rotmat, obedit->object_to_world);
+      copy_m4_m4(rotmat, obedit->object_to_world().ptr());
 
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {

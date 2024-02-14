@@ -973,7 +973,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       &explode->fdata_legacy, CD_MTFACE, emd->uvname, explode->totface_legacy));
 
   /* getting back to object space */
-  invert_m4_m4(imat, ctx->object->object_to_world);
+  invert_m4_m4(imat, ctx->object->object_to_world().ptr());
 
   psys_sim_data_init(&sim);
 
@@ -1001,7 +1001,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       psys_get_particle_state(&sim, ed_v2, &state, true);
 
       vertco = explode_positions[v];
-      mul_m4_v3(ctx->object->object_to_world, vertco);
+      mul_m4_v3(ctx->object->object_to_world().ptr(), vertco);
 
       sub_v3_v3(vertco, birth.co);
 

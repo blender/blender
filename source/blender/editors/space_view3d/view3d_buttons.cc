@@ -42,6 +42,7 @@
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
+#include "BKE_object_types.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
@@ -489,7 +490,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
   /* Location, X/Y/Z */
   mul_v3_fl(median_basis.generic.location, 1.0f / float(tot));
   if (v3d->flag & V3D_GLOBAL_STATS) {
-    mul_m4_v3(ob->object_to_world, median_basis.generic.location);
+    mul_m4_v3(ob->object_to_world().ptr(), median_basis.generic.location);
   }
 
   if (has_meshdata) {
@@ -928,9 +929,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     memcpy(&ve_median_basis, &tfp->ve_median, sizeof(tfp->ve_median));
 
     if (v3d->flag & V3D_GLOBAL_STATS) {
-      invert_m4_m4(ob->world_to_object, ob->object_to_world);
-      mul_m4_v3(ob->world_to_object, median_basis.generic.location);
-      mul_m4_v3(ob->world_to_object, ve_median_basis.generic.location);
+      invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+      mul_m4_v3(ob->world_to_object().ptr(), median_basis.generic.location);
+      mul_m4_v3(ob->world_to_object().ptr(), ve_median_basis.generic.location);
     }
     sub_vn_vnvn((float *)&median_basis,
                 (float *)&ve_median_basis,
@@ -1201,7 +1202,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     BKE_object_dimensions_eval_cached_get(ob, tfp->ob_dims);
     copy_v3_v3(tfp->ob_dims_orig, tfp->ob_dims);
     copy_v3_v3(tfp->ob_scale_orig, ob->scale);
-    copy_m4_m4(tfp->ob_obmat_orig, ob->object_to_world);
+    copy_m4_m4(tfp->ob_obmat_orig, ob->object_to_world().ptr());
 
     uiDefBut(block,
              UI_BTYPE_LABEL,

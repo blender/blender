@@ -859,7 +859,7 @@ void paint_init_pivot(Object *ob, Scene *scene)
       return;
   }
 
-  mul_m4_v3(ob->object_to_world, location);
+  mul_m4_v3(ob->object_to_world().ptr(), location);
 
   ups->last_stroke_valid = true;
   ups->average_stroke_counter = 1;

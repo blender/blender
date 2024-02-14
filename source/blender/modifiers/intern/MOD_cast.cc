@@ -20,6 +20,7 @@
 #include "BKE_deform.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
+#include "BKE_object_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -114,13 +115,13 @@ static void sphere_do(CastModifierData *cmd,
    * we use its location, transformed to ob's local space. */
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-      invert_m4_m4(imat, ctrl_ob->object_to_world);
-      mul_m4_m4m4(mat, imat, ob->object_to_world);
+      invert_m4_m4(imat, ctrl_ob->object_to_world().ptr());
+      mul_m4_m4m4(mat, imat, ob->object_to_world().ptr());
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    mul_v3_m4v3(center, ob->world_to_object().ptr(), ctrl_ob->object_to_world().location());
   }
 
   /* now we check which options the user wants */
@@ -262,13 +263,13 @@ static void cuboid_do(CastModifierData *cmd,
 
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-      invert_m4_m4(imat, ctrl_ob->object_to_world);
-      mul_m4_m4m4(mat, imat, ob->object_to_world);
+      invert_m4_m4(imat, ctrl_ob->object_to_world().ptr());
+      mul_m4_m4m4(mat, imat, ob->object_to_world().ptr());
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    mul_v3_m4v3(center, ob->world_to_object().ptr(), ctrl_ob->object_to_world().location());
   }
 
   if ((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {

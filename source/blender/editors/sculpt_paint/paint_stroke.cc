@@ -550,7 +550,7 @@ static void paint_brush_stroke_add_step(
             C, world_space_position, stroke->last_mouse_position, stroke->original))
     {
       copy_v3_v3(stroke->last_world_space_position, world_space_position);
-      mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
+      mul_m4_v3(stroke->vc.obact->object_to_world().ptr(), stroke->last_world_space_position);
     }
     else {
       add_v3_v3(stroke->last_world_space_position, stroke->last_scene_spacing_delta);
@@ -668,7 +668,7 @@ static float paint_space_stroke_spacing(bContext *C,
     if (!BKE_brush_use_locked_size(scene, brush)) {
       float last_object_space_position[3];
       mul_v3_m4v3(last_object_space_position,
-                  stroke->vc.obact->world_to_object,
+                  stroke->vc.obact->world_to_object().ptr(),
                   stroke->last_world_space_position);
       size_clamp = paint_calc_object_space_radius(&stroke->vc, last_object_space_position, size);
     }
@@ -818,7 +818,7 @@ static int paint_space_stroke(bContext *C,
   if (use_scene_spacing) {
     float world_space_position[3];
     bool hit = SCULPT_stroke_get_location(C, world_space_position, final_mouse, stroke->original);
-    mul_m4_v3(stroke->vc.obact->object_to_world, world_space_position);
+    mul_m4_v3(stroke->vc.obact->object_to_world().ptr(), world_space_position);
     if (hit && stroke->stroke_over_mesh) {
       sub_v3_v3v3(d_world_space_position, world_space_position, stroke->last_world_space_position);
       length = len_v3(d_world_space_position);
@@ -1224,8 +1224,8 @@ static void paint_line_strokes_spacing(bContext *C,
         C, world_space_position_old, old_pos, stroke->original);
     bool hit_new = SCULPT_stroke_get_location(
         C, world_space_position_new, new_pos, stroke->original);
-    mul_m4_v3(stroke->vc.obact->object_to_world, world_space_position_old);
-    mul_m4_v3(stroke->vc.obact->object_to_world, world_space_position_new);
+    mul_m4_v3(stroke->vc.obact->object_to_world().ptr(), world_space_position_old);
+    mul_m4_v3(stroke->vc.obact->object_to_world().ptr(), world_space_position_new);
     if (hit_old && hit_new && stroke->stroke_over_mesh) {
       sub_v3_v3v3(d_world_space_position, world_space_position_new, world_space_position_old);
       length = len_v3(d_world_space_position);
@@ -1369,7 +1369,8 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
           if (paint_stroke_use_scene_spacing(br, BKE_paintmode_get_active_from_context(C))) {
             stroke->stroke_over_mesh = SCULPT_stroke_get_location(
                 C, stroke->last_world_space_position, data + 2 * j, stroke->original);
-            mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
+            mul_m4_v3(stroke->vc.obact->object_to_world().ptr(),
+                      stroke->last_world_space_position);
           }
 
           stroke->stroke_started = stroke->test_start(C, op, stroke->last_mouse_position);
@@ -1503,7 +1504,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     if (paint_stroke_use_scene_spacing(br, mode)) {
       stroke->stroke_over_mesh = SCULPT_stroke_get_location(
           C, stroke->last_world_space_position, sample_average.mouse, stroke->original);
-      mul_m4_v3(stroke->vc.obact->object_to_world, stroke->last_world_space_position);
+      mul_m4_v3(stroke->vc.obact->object_to_world().ptr(), stroke->last_world_space_position);
     }
     stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
 

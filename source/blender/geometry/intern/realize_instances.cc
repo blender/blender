@@ -470,8 +470,7 @@ static void foreach_geometry_in_reference(
       int index = 0;
       FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
         const bke::GeometrySet object_geometry = bke::object_get_evaluated_geometry_set(*object);
-        const float4x4 matrix = base_transform * offset_matrix *
-                                float4x4_view(object->object_to_world);
+        const float4x4 matrix = base_transform * offset_matrix * object->object_to_world();
         const int sub_id = noise::hash(id, index);
         fn(object_geometry, matrix, sub_id);
         index++;
