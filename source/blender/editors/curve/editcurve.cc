@@ -5672,17 +5672,17 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       ED_view3d_global_to_vector(vc.rv3d, location, view_dir);
 
       /* get the plane */
-      float plane[4];
+      const float *plane_co = vc.obedit->object_to_world[3];
+      float plane_no[3];
       /* only normalize to avoid precision errors */
-      normalize_v3_v3(plane, vc.obedit->object_to_world[2]);
-      plane[3] = -dot_v3v3(plane, vc.obedit->object_to_world[3]);
+      normalize_v3_v3(plane_no, vc.obedit->object_to_world[2]);
 
-      if (fabsf(dot_v3v3(view_dir, plane)) < eps) {
+      if (fabsf(dot_v3v3(view_dir, plane_no)) < eps) {
         /* can't project on an aligned plane. */
       }
       else {
         float lambda;
-        if (isect_ray_plane_v3(location, view_dir, plane, &lambda, false)) {
+        if (isect_ray_plane_v3_factor(location, view_dir, plane_co, plane_no, &lambda)) {
           /* check if we're behind the viewport */
           float location_test[3];
           madd_v3_v3v3fl(location_test, location, view_dir, lambda);

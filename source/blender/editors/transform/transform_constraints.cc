@@ -318,12 +318,12 @@ void transform_constraint_snap_axis_to_face(const TransInfo *t,
                                             float r_out[3])
 {
   float lambda;
-  float face_plane[4];
   const float *face_snap_point = t->tsnap.snap_target;
   const float *face_normal = t->tsnap.snapNormal;
-  plane_from_point_normal_v3(face_plane, face_snap_point, face_normal);
-  bool is_aligned = fabsf(dot_v3v3(axis, face_plane)) < CONSTRAIN_EPSILON;
-  if (!is_aligned && isect_ray_plane_v3(t->tsnap.snap_source, axis, face_plane, &lambda, false)) {
+  bool is_aligned = fabsf(dot_v3v3(axis, face_normal)) < CONSTRAIN_EPSILON;
+  if (!is_aligned &&
+      isect_ray_plane_v3_factor(t->tsnap.snap_source, axis, face_snap_point, face_normal, &lambda))
+  {
     mul_v3_v3fl(r_out, axis, lambda);
   }
 }
