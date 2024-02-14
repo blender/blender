@@ -32,6 +32,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_screen.h"
@@ -378,6 +379,15 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    Mesh *mesh)
 {
   if (mesh->totvert == 0) {
+    /* Output just the start cap even if the mesh is empty. */
+    Object *start_cap_ob = amd->start_cap;
+    if (start_cap_ob && start_cap_ob != ctx->object) {
+      Mesh *start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
+      if (start_cap_mesh) {
+        BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
+        return BKE_mesh_copy_for_eval(start_cap_mesh);
+      }
+    }
     return mesh;
   }
 
