@@ -58,7 +58,7 @@
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"

@@ -11,7 +11,7 @@
  * It is the module that tracks the objects between frames updates.
  */
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_object.hh"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"

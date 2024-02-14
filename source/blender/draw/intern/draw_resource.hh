@@ -14,7 +14,7 @@
 #include "BLI_math_matrix.hh"
 
 #include "BKE_curve.hh"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_mesh.h"
 #include "BKE_object.hh"
 #include "BKE_volume.hh"

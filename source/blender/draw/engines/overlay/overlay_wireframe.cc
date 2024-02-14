@@ -14,7 +14,7 @@
 
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_object.hh"

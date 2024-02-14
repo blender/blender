@@ -81,7 +81,7 @@
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
 #include "BKE_displist.h"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_effect.h"

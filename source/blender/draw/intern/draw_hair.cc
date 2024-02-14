@@ -18,7 +18,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"

@@ -15,7 +15,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_object.hh"
 #include "BKE_screen.hh"
 

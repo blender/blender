@@ -23,7 +23,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.h"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"

@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"

@@ -381,7 +381,7 @@ set(SRC
   BKE_data_transfer.h
   BKE_deform.hh
   BKE_displist.h
-  BKE_duplilist.h
+  BKE_duplilist.hh
   BKE_dynamicpaint.h
   BKE_editlattice.h
   BKE_editmesh.hh

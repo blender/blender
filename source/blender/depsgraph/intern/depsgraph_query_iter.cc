@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"

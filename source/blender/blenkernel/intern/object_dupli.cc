@@ -35,7 +35,7 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_collection.hh"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_geometry_set.hh"

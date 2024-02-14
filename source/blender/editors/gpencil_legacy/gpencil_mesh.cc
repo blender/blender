@@ -19,7 +19,7 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_material.h"

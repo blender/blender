@@ -23,7 +23,7 @@
 #include "util/string.h"
 #include "util/task.h"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 CCL_NAMESPACE_BEGIN
 
