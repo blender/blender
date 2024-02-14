@@ -1065,6 +1065,18 @@ LayerGroup::~LayerGroup()
   this->runtime = nullptr;
 }
 
+LayerGroup &LayerGroup::operator=(const LayerGroup &other)
+{
+  if (this == &other) {
+    return *this;
+  }
+
+  this->~LayerGroup();
+  new (this) LayerGroup(other);
+
+  return *this;
+}
+
 Layer &LayerGroup::add_layer(StringRefNull name)
 {
   Layer *new_layer = MEM_new<Layer>(__func__, name);

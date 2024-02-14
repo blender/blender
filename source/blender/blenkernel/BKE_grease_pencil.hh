@@ -513,6 +513,8 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   LayerGroup(const LayerGroup &other);
   ~LayerGroup();
 
+  LayerGroup &operator=(const LayerGroup &other);
+
  public:
   /* Define the common functions for #TreeNode. */
   TREENODE_COMMON_METHODS;
