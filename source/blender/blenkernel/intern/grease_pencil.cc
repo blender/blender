@@ -1727,6 +1727,32 @@ blender::MutableSpan<GreasePencilDrawingBase *> GreasePencil::drawings()
                                                          this->drawing_array_num};
 }
 
+void GreasePencil::resize_drawings(const int new_num)
+{
+  using namespace blender;
+  BLI_assert(new_num > 0);
+
+  const int prev_num = int(this->drawings().size());
+  if (new_num == prev_num) {
+    return;
+  }
+  if (new_num > prev_num) {
+    const int add_num = new_num - prev_num;
+    grow_array<GreasePencilDrawingBase *>(&this->drawing_array, &this->drawing_array_num, add_num);
+  }
+  else { /* if (new_num < prev_num) */
+    const int shrink_num = prev_num - new_num;
+    MutableSpan<GreasePencilDrawingBase *> old_drawings = this->drawings().drop_front(new_num);
+    for (const int64_t i : old_drawings.index_range()) {
+      if (old_drawings[i]) {
+        MEM_delete(old_drawings[i]);
+      }
+    }
+    shrink_array<GreasePencilDrawingBase *>(
+        &this->drawing_array, &this->drawing_array_num, shrink_num);
+  }
+}
+
 void GreasePencil::add_empty_drawings(const int add_num)
 {
   using namespace blender;

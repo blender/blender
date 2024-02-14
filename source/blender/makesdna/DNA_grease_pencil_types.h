@@ -529,6 +529,13 @@ typedef struct GreasePencil {
   void remove_layer(blender::bke::greasepencil::Layer &layer);
 
   /* Drawing API functions. */
+
+  /**
+   * Low-level resizing of drawings array. Only allocates new entries in the array, no drawings are
+   * created in case of size increase. In case of size decrease, the removed drawings are deleted.
+   */
+  void resize_drawings(const int new_num);
+  /** Add `add_num` new empty geometry drawings. */
   void add_empty_drawings(int add_num);
   void add_duplicate_drawings(int duplicate_num,
                               const blender::bke::greasepencil::Drawing &drawing);
