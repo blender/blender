@@ -13,10 +13,11 @@
 #include "BLI_math_base.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
-#include "BLI_strict_flags.h"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_virtual_array.hh"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 namespace blender::index_mask {
 

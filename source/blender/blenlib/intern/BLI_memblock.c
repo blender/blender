@@ -17,7 +17,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* keep last */
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #define CHUNK_LIST_SIZE 16
 

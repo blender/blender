@@ -22,7 +22,7 @@
 
 #include "BKE_mesh.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 namespace blender::bke::mesh {
 

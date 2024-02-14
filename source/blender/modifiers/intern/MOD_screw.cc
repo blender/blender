@@ -44,9 +44,9 @@
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "BLI_strict_flags.h"
-
 #include "GEO_mesh_merge_by_distance.hh"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 using namespace blender;
 

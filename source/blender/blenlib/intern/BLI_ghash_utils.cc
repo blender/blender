@@ -17,8 +17,7 @@
 #include "BLI_hash_mm2a.hh"
 #include "BLI_utildefines.h"
 
-/* keep last */
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Key Hash & Comparison Functions

@@ -37,7 +37,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* experimental (faster) normal calculation (see #103021) */
 #define USE_ACCUM_NORMAL

@@ -16,7 +16,7 @@
 
 #include "BKE_icons.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 struct UserRasterInfo {
   int pt[3][2];

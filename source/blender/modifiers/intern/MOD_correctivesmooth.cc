@@ -45,10 +45,9 @@
 #include "BLI_time.h"
 #ifdef DEBUG_TIME
 #  include "BLI_time_utildefines.h"
-
 #endif
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 static void init_data(ModifierData *md)
 {

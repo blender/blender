@@ -24,9 +24,9 @@
 #include "BKE_mesh_tangent.hh"
 #include "BKE_report.hh"
 
-#include "BLI_strict_flags.h"
-
 #include "mikktspace.hh"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 using blender::float2;
 

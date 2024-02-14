@@ -27,7 +27,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BLI_memarena.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Connectivity Mapping

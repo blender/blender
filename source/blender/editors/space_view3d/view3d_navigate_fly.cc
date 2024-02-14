@@ -44,7 +44,7 @@
 #include "view3d_intern.h" /* own include */
 #include "view3d_navigate.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map

@@ -32,7 +32,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* IDPropertyTemplate is a union in DNA_ID.h */
 

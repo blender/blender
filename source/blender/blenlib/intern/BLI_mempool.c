@@ -31,11 +31,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* keep last */
-
 #ifdef WITH_MEM_VALGRIND
 #  include "valgrind/memcheck.h"
 #endif
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #ifdef WITH_ASAN
 #  define POISON_REDZONE_SIZE 32

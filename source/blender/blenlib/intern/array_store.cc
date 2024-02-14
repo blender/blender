@@ -96,12 +96,10 @@
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
 
-#include "BLI_strict_flags.h"
-
 #include "BLI_array_store.h" /* Own include. */
+#include "BLI_ghash.h"       /* Only for #BLI_array_store_is_valid. */
 
-/* Only for #BLI_array_store_is_valid. */
-#include "BLI_ghash.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 struct BChunkList;
 
