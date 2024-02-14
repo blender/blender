@@ -86,6 +86,7 @@ const char *imb_ext_audio[] = {
     ".aiff",
     ".m4a",
     ".mka",
+    ".opus",
     nullptr,
 };
 
