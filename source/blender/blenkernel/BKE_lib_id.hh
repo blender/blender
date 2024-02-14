@@ -33,6 +33,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+#include "BLI_set.hh"
+
 #include "DNA_userdef_enums.h"
 
 struct BlendWriter;
@@ -319,11 +321,23 @@ void BKE_id_delete_ex(Main *bmain, void *idv, const int extra_remapping_flags) A
  * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs
  * (several times faster when deleting most of the IDs at once).
  *
- * \warning Considered experimental for now, seems to be working OK but this is
- * risky code in a complicated area.
  * \return Number of deleted data-blocks.
  */
 size_t BKE_id_multi_tagged_delete(Main *bmain) ATTR_NONNULL();
+/**
+ * Properly delete all IDs from \a ids_to_delete, from given \a bmain database.
+ *
+ * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs
+ * (several times faster when deleting most of the IDs at once).
+ *
+ * \note The ID pointers are not removed from the Set (which may contain more pointers than
+ * originally given, when extra users or dependencies also had to be deleted with the original set
+ * of IDs). They are all freed though, so these pointers are all invalid after calling this
+ * function.
+ *
+ * \return Number of deleted data-blocks.
+ */
+size_t BKE_id_multi_delete(Main *bmain, blender::Set<ID *> &ids_to_delete);
 
 /**
  * Add a 'NO_MAIN' data-block to given main (also sets user-counts of its IDs if needed).
