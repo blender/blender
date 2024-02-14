@@ -33,6 +33,10 @@
 #include "RE_compositor.hh"
 #include "RE_pipeline.h"
 
+#include "WM_api.hh"
+
+#include "GPU_context.h"
+
 #include "render_types.h"
 
 namespace blender::render {
@@ -504,7 +508,23 @@ class RealtimeCompositor {
      * to avoid them blocking each other. */
     BLI_assert(!BLI_thread_is_main() || G.background);
 
+    /* The realtime compositor uses GPU module and does not rely on the draw manager, or its global
+     * state. This means that activation of GPU context does not require lock of the main thread.
+     *
+     * However, while this has been tested on Linux and works well, on macOS it causes to
+     * spontaneous invalid colors in the composite output. The Windows has not been extensively
+     * tested yet. */
+#if defined(__linux__)
+    void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
+    void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
+
+    GPU_render_begin();
+    WM_system_gpu_context_activate(re_system_gpu_context);
+    GPU_context_active_set(static_cast<GPUContext *>(re_blender_gpu_context));
+#else
     DRW_render_context_enable(&render_);
+#endif
+
     context_->update_input_data(input_data);
 
     /* Always recreate the evaluator, as this only runs on compositing node changes and
@@ -517,7 +537,15 @@ class RealtimeCompositor {
     context_->output_to_render_result();
     context_->viewer_output_to_viewer_image();
     texture_pool_->free_unused_and_reset();
+
+#if defined(__linux__)
+    GPU_flush();
+    GPU_render_end();
+    GPU_context_active_set(nullptr);
+    WM_system_gpu_context_release(re_system_gpu_context);
+#else
     DRW_render_context_disable(&render_);
+#endif
   }
 };
 
