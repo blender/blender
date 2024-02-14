@@ -52,6 +52,13 @@ def setup():
         # Light-probes
         eevee.gi_cubemap_resolution = '256'
 
+        # Only include the plane in probes
+        for ob in scene.objects:
+            if ob.name != 'Plane' and ob.type != 'LIGHT':
+                ob.hide_probe_volume = True
+                ob.hide_probe_sphere = True
+                ob.hide_probe_plane = True
+
         # Does not work in edit mode
         if bpy.context.mode == 'OBJECT':
             # Simple probe setup
@@ -72,13 +79,6 @@ def setup():
             # Make lighting smoother for most of the case.
             grid.data.grid_dilation_threshold = 1.0
             bpy.ops.object.lightprobe_cache_bake(subset='ACTIVE')
-
-        # Only include the plane in probes
-        for ob in scene.objects:
-            if ob.name != 'Plane' and ob.type != 'LIGHT':
-                ob.hide_probe_volume = True
-                ob.hide_probe_sphere = True
-                ob.hide_probe_plane = True
 
 
 # When run from inside Blender, render and exit.
