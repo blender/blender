@@ -25,6 +25,7 @@ struct KeyframeEditData;
 struct wmKeyConfig;
 struct ToolSettings;
 struct Scene;
+struct UndoType;
 struct ViewDepths;
 struct View3D;
 namespace blender {
@@ -51,6 +52,8 @@ void ED_operatortypes_grease_pencil_edit();
 void ED_operatortypes_grease_pencil_material();
 void ED_operatormacros_grease_pencil();
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf);
+
+void ED_undosys_type_grease_pencil(UndoType *undo_type);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
  */
