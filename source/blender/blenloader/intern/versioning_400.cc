@@ -26,6 +26,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
 #include "DNA_defaults.h"
@@ -47,6 +48,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
+#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
@@ -1939,6 +1941,55 @@ static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static void update_paint_modes_for_brush_assets(Main &bmain)
+{
+  /* Replace paint brushes with a reference to the default brush asset for that mode. */
+  LISTBASE_FOREACH (Scene *, scene, &bmain.scenes) {
+    auto set_paint_asset_ref = [&](Paint &paint, const blender::StringRef asset) {
+      AssetWeakReference *weak_ref = MEM_new<AssetWeakReference>(__func__);
+      weak_ref->asset_library_type = eAssetLibraryType::ASSET_LIBRARY_ESSENTIALS;
+      const std::string path = "brushes/essentials_brushes.blend/Brush/" + asset;
+      weak_ref->relative_asset_identifier = BLI_strdupn(path.data(), path.size());
+      paint.brush_asset_reference = weak_ref;
+      paint.brush = nullptr;
+    };
+
+    ToolSettings *ts = scene->toolsettings;
+    if (ts->sculpt) {
+      set_paint_asset_ref(ts->sculpt->paint, "Draw");
+    }
+    if (ts->curves_sculpt) {
+      set_paint_asset_ref(ts->curves_sculpt->paint, "Comb Curves");
+    }
+    if (ts->wpaint) {
+      set_paint_asset_ref(ts->wpaint->paint, "Paint Weight");
+    }
+    if (ts->vpaint) {
+      set_paint_asset_ref(ts->vpaint->paint, "Paint Vertex");
+    }
+    set_paint_asset_ref(ts->imapaint.paint, "Paint Texture");
+  }
+
+  /* Replace persistent tool references with the new single builtin brush tool. */
+  LISTBASE_FOREACH (WorkSpace *, workspace, &bmain.workspaces) {
+    LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+      if (tref->space_type != SPACE_VIEW3D) {
+        continue;
+      }
+      if (!ELEM(tref->mode,
+                CTX_MODE_SCULPT,
+                CTX_MODE_SCULPT_CURVES,
+                CTX_MODE_PAINT_TEXTURE,
+                CTX_MODE_PAINT_VERTEX,
+                CTX_MODE_PAINT_WEIGHT))
+      {
+        continue;
+      }
+      STRNCPY(tref->idname, "builtin.brush");
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -2936,6 +2987,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 4)) {
+    update_paint_modes_for_brush_assets(*bmain);
   }
 
   /**
