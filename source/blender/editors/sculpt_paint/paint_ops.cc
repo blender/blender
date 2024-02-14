@@ -1249,6 +1249,14 @@ static const bUserAssetLibrary *get_asset_library_from_prop(PointerRNA &ptr)
   return BKE_preferences_asset_library_find_index(&U, lib_ref.custom_library_index);
 }
 
+static AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_library)
+{
+  AssetLibraryReference library_ref{};
+  library_ref.custom_library_index = BLI_findindex(&U.asset_libraries, &user_library);
+  library_ref.type = ASSET_LIBRARY_CUSTOM;
+  return library_ref;
+}
+
 static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -1322,11 +1330,9 @@ static int brush_asset_save_as_invoke(bContext *C, wmOperator *op, const wmEvent
   RNA_string_set(op->ptr, "name", brush->id.name + 2);
 
   if (const bUserAssetLibrary *library = brush_asset_get_default_library()) {
-    AssetLibraryReference library_ref{};
-    library_ref.custom_library_index = BLI_findindex(&U.asset_libraries, library);
-    library_ref.type = ASSET_LIBRARY_CUSTOM;
-    RNA_enum_set(
-        op->ptr, "asset_library_reference", asset::library_reference_to_enum_value(&library_ref));
+    const AssetLibraryReference library_ref = user_library_to_library_ref(*library);
+    const int enum_value = asset::library_reference_to_enum_value(&library_ref);
+    RNA_enum_set(op->ptr, "asset_library_reference", enum_value);
   }
 
   return WM_operator_props_dialog_popup(C, op, 400, std::nullopt, IFACE_("Save"));
