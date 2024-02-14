@@ -107,12 +107,12 @@ class NodeOperationBuilder {
     return active_viewer_;
   }
 
-  const Vector<NodeOperation *> &get_operations() const
+  Span<NodeOperation *> get_operations() const
   {
     return operations_;
   }
 
-  const Vector<Link> &get_links() const
+  Span<Link> get_links() const
   {
     return links_;
   }

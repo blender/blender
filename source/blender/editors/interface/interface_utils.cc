@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fmt/format.h>
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -365,51 +366,46 @@ void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_f
 /* *** RNA collection search menu *** */
 
 struct CollItemSearch {
-  CollItemSearch *next, *prev;
   void *data;
-  char *name;
+  std::string name;
   int index;
   int iconid;
-  bool is_id;
   int name_prefix_offset;
-  uint has_sep_char : 1;
+  bool is_id;
+  bool has_sep_char;
 };
 
-static bool add_collection_search_item(CollItemSearch *cis,
+static bool add_collection_search_item(CollItemSearch &cis,
                                        const bool requires_exact_data_name,
                                        const bool has_id_icon,
                                        uiSearchItems *items)
 {
-  char name_buf[UI_MAX_DRAW_STR];
 
   /* If no item has an own icon to display, libraries can use the library icons rather than the
    * name prefix for showing the library status. */
-  int name_prefix_offset = cis->name_prefix_offset;
-  if (!has_id_icon && cis->is_id && !requires_exact_data_name) {
-    cis->iconid = UI_icon_from_library(static_cast<const ID *>(cis->data));
-    /* No need to re-allocate, string should be shorter than before (lib status prefix is
-     * removed). */
+  int name_prefix_offset = cis.name_prefix_offset;
+  if (!has_id_icon && cis.is_id && !requires_exact_data_name) {
+    cis.iconid = UI_icon_from_library(static_cast<const ID *>(cis.data));
+    char name_buf[UI_MAX_DRAW_STR];
     BKE_id_full_name_ui_prefix_get(
-        name_buf, static_cast<const ID *>(cis->data), false, UI_SEP_CHAR, &name_prefix_offset);
-    const int name_buf_len = strlen(name_buf);
-    BLI_assert(name_buf_len <= strlen(cis->name));
-    memcpy(cis->name, name_buf, name_buf_len + 1);
+        name_buf, static_cast<const ID *>(cis.data), false, UI_SEP_CHAR, &name_prefix_offset);
+    cis.name = name_buf;
   }
 
   return UI_search_item_add(items,
-                            cis->name,
-                            cis->data,
-                            cis->iconid,
-                            cis->has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,
+                            cis.name.c_str(),
+                            cis.data,
+                            cis.iconid,
+                            cis.has_sep_char ? int(UI_BUT_HAS_SEP_CHAR) : 0,
                             name_prefix_offset);
 }
 
 void ui_rna_collection_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
+  using namespace blender;
   uiRNACollectionSearch *data = static_cast<uiRNACollectionSearch *>(arg);
   const int flag = RNA_property_flag(data->target_prop);
-  ListBase *items_list = MEM_cnew<ListBase>("items_list");
   const bool is_ptr_target = (RNA_property_type(data->target_prop) == PROP_POINTER);
   /* For non-pointer properties, UI code acts entirely based on the item's name. So the name has to
    * match the RNA name exactly. So only for pointer properties, the name can be modified to add
@@ -417,16 +413,14 @@ void ui_rna_collection_search_update_fn(
   const bool requires_exact_data_name = !is_ptr_target;
   const bool skip_filter = is_first;
   char name_buf[UI_MAX_DRAW_STR];
-  char *name;
   bool has_id_icon = false;
 
-  blender::ui::string_search::StringSearch<CollItemSearch> search;
+  /* The string search API requires pointer stability. */
+  Vector<std::unique_ptr<CollItemSearch>> items_list;
 
   if (data->search_prop != nullptr) {
     /* build a temporary list of relevant items first */
-    int item_index = 0;
     RNA_PROP_BEGIN (&data->search_ptr, itemptr, data->search_prop) {
-
       if (flag & PROP_ID_SELF_CHECK) {
         if (itemptr.data == data->target_ptr.owner_id) {
           continue;
@@ -445,6 +439,7 @@ void ui_rna_collection_search_update_fn(
       bool has_sep_char = false;
       const bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
 
+      char *name;
       if (is_id) {
         iconid = ui_id_icon_get(C, static_cast<ID *>(itemptr.data), false);
         if (!ELEM(iconid, 0, ICON_BLANK1)) {
@@ -468,24 +463,19 @@ void ui_rna_collection_search_update_fn(
       }
 
       if (name) {
-        CollItemSearch *cis = MEM_cnew<CollItemSearch>(__func__);
+        auto cis = std::make_unique<CollItemSearch>();
         cis->data = itemptr.data;
-        cis->name = BLI_strdup(name);
-        cis->index = item_index;
+        cis->name = name;
+        cis->index = items_list.size();
         cis->iconid = iconid;
         cis->is_id = is_id;
         cis->name_prefix_offset = name_prefix_offset;
         cis->has_sep_char = has_sep_char;
-        if (!skip_filter) {
-          search.add(name, cis);
-        }
-        BLI_addtail(items_list, cis);
+        items_list.append(std::move(cis));
         if (name != name_buf) {
           MEM_freeN(name);
         }
       }
-
-      item_index++;
     }
     RNA_PROP_END;
   }
@@ -495,85 +485,66 @@ void ui_rna_collection_search_update_fn(
         data->target_prop);
     BLI_assert(search_flag & PROP_STRING_SEARCH_SUPPORTED);
 
-    struct SearchVisitUserData {
-      blender::string_search::StringSearch<CollItemSearch> *search;
-      bool skip_filter;
-      int item_index;
-      ListBase *items_list;
-      const char *func_id;
-    } user_data = {nullptr};
+    const bool show_extra_info = (G.debug_value == 102);
 
-    user_data.search = &search;
-    user_data.skip_filter = skip_filter;
-    user_data.items_list = items_list;
-    user_data.func_id = __func__;
+    RNA_property_string_search(C,
+                               &data->target_ptr,
+                               data->target_prop,
+                               str,
+                               [&](StringPropertySearchVisitParams visit_params) {
+                                 auto cis = std::make_unique<CollItemSearch>();
 
-    RNA_property_string_search(
-        C,
-        &data->target_ptr,
-        data->target_prop,
-        str,
-        [](void *user_data, const StringPropertySearchVisitParams *visit_params) {
-          const bool show_extra_info = (G.debug_value == 102);
+                                 cis->data = nullptr;
+                                 if (visit_params.info && show_extra_info) {
+                                   cis->name = fmt::format("{}" UI_SEP_CHAR_S "{}",
+                                                           visit_params.text,
+                                                           *visit_params.info);
+                                 }
+                                 else {
+                                   cis->name = std::move(visit_params.text);
+                                 }
 
-          SearchVisitUserData *search_data = (SearchVisitUserData *)user_data;
-          CollItemSearch *cis = MEM_cnew<CollItemSearch>(search_data->func_id);
-          cis->data = nullptr;
-          if (visit_params->info && show_extra_info) {
-            cis->name = BLI_sprintfN(
-                "%s" UI_SEP_CHAR_S "%s", visit_params->text, visit_params->info);
-          }
-          else {
-            cis->name = BLI_strdup(visit_params->text);
-          }
-          cis->index = search_data->item_index;
-          cis->iconid = ICON_NONE;
-          cis->is_id = false;
-          cis->name_prefix_offset = 0;
-          cis->has_sep_char = visit_params->info != nullptr;
-          if (!search_data->skip_filter) {
-            search_data->search->add(visit_params->text, cis);
-          }
-          BLI_addtail(search_data->items_list, cis);
-          search_data->item_index++;
-        },
-        (void *)&user_data);
+                                 cis->index = items_list.size();
+                                 cis->iconid = ICON_NONE;
+                                 cis->is_id = false;
+                                 cis->name_prefix_offset = 0;
+                                 cis->has_sep_char = visit_params.info.has_value();
+                                 items_list.append(std::move(cis));
+                               });
 
     if (search_flag & PROP_STRING_SEARCH_SORT) {
-      BLI_listbase_sort(items_list, [](const void *a_, const void *b_) -> int {
-        const CollItemSearch *cis_a = (const CollItemSearch *)a_;
-        const CollItemSearch *cis_b = (const CollItemSearch *)b_;
-        return BLI_strcasecmp_natural(cis_a->name, cis_b->name);
-      });
-      int i = 0;
-      LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
-        cis->index = i;
-        i++;
+      std::sort(
+          items_list.begin(),
+          items_list.end(),
+          [](const std::unique_ptr<CollItemSearch> &a, const std::unique_ptr<CollItemSearch> &b) {
+            return BLI_strcasecmp_natural(a->name.c_str(), b->name.c_str()) <= 0;
+          });
+      for (const int i : items_list.index_range()) {
+        items_list[i]->index = i;
       }
     }
   }
 
   if (skip_filter) {
-    LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
-      if (!add_collection_search_item(cis, requires_exact_data_name, has_id_icon, items)) {
+    for (std::unique_ptr<CollItemSearch> &cis : items_list) {
+      if (!add_collection_search_item(*cis, requires_exact_data_name, has_id_icon, items)) {
         break;
       }
     }
   }
   else {
-    const blender::Vector<CollItemSearch *> filtered_items = search.query(str);
+    ui::string_search::StringSearch<CollItemSearch> search;
+    for (std::unique_ptr<CollItemSearch> &cis : items_list) {
+      search.add(cis->name, cis.get());
+    }
+
+    const Vector<CollItemSearch *> filtered_items = search.query(str);
     for (CollItemSearch *cis : filtered_items) {
-      if (!add_collection_search_item(cis, requires_exact_data_name, has_id_icon, items)) {
+      if (!add_collection_search_item(*cis, requires_exact_data_name, has_id_icon, items)) {
         break;
       }
     }
   }
-
-  LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
-    MEM_freeN(cis->name);
-  }
-  BLI_freelistN(items_list);
-  MEM_freeN(items_list);
 }
 
 int UI_icon_from_id(const ID *id)

@@ -744,10 +744,10 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *tra
   return ANIM_builtin_keyingset_get_named(transformKSName);
 }
 
-static void anim_keyingset_visit_for_search_impl(const bContext *C,
-                                                 StringPropertySearchVisitFunc visit_fn,
-                                                 void *visit_user_data,
-                                                 const bool use_poll)
+static void anim_keyingset_visit_for_search_impl(
+    const bContext *C,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn,
+    const bool use_poll)
 {
   /* Poll requires context. */
   if (use_poll && (C == nullptr)) {
@@ -758,10 +758,10 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
 
   /* Active Keying Set. */
   if (!use_poll || (scene && scene->active_keyingset)) {
-    StringPropertySearchVisitParams visit_params = {nullptr};
+    StringPropertySearchVisitParams visit_params{};
     visit_params.text = "__ACTIVE__";
     visit_params.info = "Active Keying Set";
-    visit_fn(visit_user_data, &visit_params);
+    visit_fn(visit_params);
   }
 
   /* User-defined Keying Sets. */
@@ -770,10 +770,10 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
       if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, keyingset)) {
         continue;
       }
-      StringPropertySearchVisitParams visit_params = {nullptr};
+      StringPropertySearchVisitParams visit_params{};
       visit_params.text = keyingset->idname;
       visit_params.info = keyingset->name;
-      visit_fn(visit_user_data, &visit_params);
+      visit_fn(visit_params);
     }
   }
 
@@ -782,31 +782,31 @@ static void anim_keyingset_visit_for_search_impl(const bContext *C,
     if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, keyingset)) {
       continue;
     }
-    StringPropertySearchVisitParams visit_params = {nullptr};
+    StringPropertySearchVisitParams visit_params{};
     visit_params.text = keyingset->idname;
     visit_params.info = keyingset->name;
-    visit_fn(visit_user_data, &visit_params);
+    visit_fn(visit_params);
   }
 }
 
-void ANIM_keyingset_visit_for_search(const bContext *C,
-                                     PointerRNA * /*ptr*/,
-                                     PropertyRNA * /*prop*/,
-                                     const char * /*edit_text*/,
-                                     StringPropertySearchVisitFunc visit_fn,
-                                     void *visit_user_data)
+void ANIM_keyingset_visit_for_search(
+    const bContext *C,
+    PointerRNA * /*ptr*/,
+    PropertyRNA * /*prop*/,
+    const char * /*edit_text*/,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  anim_keyingset_visit_for_search_impl(C, visit_fn, visit_user_data, false);
+  anim_keyingset_visit_for_search_impl(C, visit_fn, false);
 }
 
-void ANIM_keyingset_visit_for_search_no_poll(const bContext *C,
-                                             PointerRNA * /*ptr*/,
-                                             PropertyRNA * /*prop*/,
-                                             const char * /*edit_text*/,
-                                             StringPropertySearchVisitFunc visit_fn,
-                                             void *visit_user_data)
+void ANIM_keyingset_visit_for_search_no_poll(
+    const bContext *C,
+    PointerRNA * /*ptr*/,
+    PropertyRNA * /*prop*/,
+    const char * /*edit_text*/,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
-  anim_keyingset_visit_for_search_impl(C, visit_fn, visit_user_data, true);
+  anim_keyingset_visit_for_search_impl(C, visit_fn, true);
 }
 
 /* Menu of All Keying Sets ----------------------------- */

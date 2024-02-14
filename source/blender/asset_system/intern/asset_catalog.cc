@@ -317,7 +317,7 @@ static std::string asset_definition_default_file_path_from_dir(StringRef asset_l
 
 void AssetCatalogService::load_from_disk()
 {
-  load_from_disk(asset_library_root_);
+  this->load_from_disk(asset_library_root_);
 }
 
 void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_directory_path)
@@ -330,10 +330,10 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
   }
 
   if (S_ISREG(status.st_mode)) {
-    load_single_file(file_or_directory_path);
+    this->load_single_file(file_or_directory_path);
   }
   else if (S_ISDIR(status.st_mode)) {
-    load_directory_recursive(file_or_directory_path);
+    this->load_directory_recursive(file_or_directory_path);
   }
   else {
     /* TODO(@sybren): throw an appropriate exception. */
@@ -341,7 +341,7 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
 
   /* TODO: Should there be a sanitize step? E.g. to remove catalogs with identical paths? */
 
-  rebuild_tree();
+  this->rebuild_tree();
 }
 
 void AssetCatalogService::add_from_existing(const AssetCatalogService &other_service)
@@ -423,7 +423,7 @@ void AssetCatalogService::reload_catalogs()
     const CatalogID catalog_id = catalog->catalog_id;
     cats_in_file.add(catalog_id);
 
-    const bool should_skip = is_catalog_known_with_unsaved_changes(catalog_id);
+    const bool should_skip = this->is_catalog_known_with_unsaved_changes(catalog_id);
     if (should_skip) {
       /* Do not overwrite unsaved local changes. */
       return false;
@@ -447,7 +447,7 @@ void AssetCatalogService::purge_catalogs_not_listed(const Set<CatalogID> &catalo
     if (catalogs_to_keep.contains(cat_id)) {
       continue;
     }
-    if (is_catalog_known_with_unsaved_changes(cat_id)) {
+    if (this->is_catalog_known_with_unsaved_changes(cat_id)) {
       continue;
     }
     /* This catalog is not on disk, but also not modified, so get rid of it. */
@@ -455,7 +455,7 @@ void AssetCatalogService::purge_catalogs_not_listed(const Set<CatalogID> &catalo
   }
 
   for (CatalogID cat_id : cats_to_remove) {
-    delete_catalog_by_id_hard(cat_id);
+    this->delete_catalog_by_id_hard(cat_id);
   }
 }
 
@@ -481,12 +481,12 @@ bool AssetCatalogService::write_to_disk(const CatalogFilePath &blend_file_path)
 {
   BLI_assert(!is_read_only_);
 
-  if (!write_to_disk_ex(blend_file_path)) {
+  if (!this->write_to_disk_ex(blend_file_path)) {
     return false;
   }
 
-  untag_has_unsaved_changes();
-  rebuild_tree();
+  this->untag_has_unsaved_changes();
+  this->rebuild_tree();
   return true;
 }
 
@@ -496,7 +496,7 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
 
   /* - Already loaded a CDF from disk? -> Always write to that file. */
   if (catalog_collection_->catalog_definition_file_) {
-    reload_catalogs();
+    this->reload_catalogs();
     return catalog_collection_->catalog_definition_file_->write_to_disk();
   }
 
@@ -507,9 +507,10 @@ bool AssetCatalogService::write_to_disk_ex(const CatalogFilePath &blend_file_pat
     return true; /* Writing nothing when there is nothing to write is still a success. */
   }
 
-  const CatalogFilePath cdf_path_to_write = find_suitable_cdf_path_for_writing(blend_file_path);
-  catalog_collection_->catalog_definition_file_ = construct_cdf_in_memory(cdf_path_to_write);
-  reload_catalogs();
+  const CatalogFilePath cdf_path_to_write = this->find_suitable_cdf_path_for_writing(
+      blend_file_path);
+  catalog_collection_->catalog_definition_file_ = this->construct_cdf_in_memory(cdf_path_to_write);
+  this->reload_catalogs();
   return catalog_collection_->catalog_definition_file_->write_to_disk();
 }
 
@@ -528,7 +529,7 @@ void AssetCatalogService::prepare_to_merge_on_write()
 
   /* Mark all in-memory catalogs as "dirty", to force them to be kept around on
    * the next "load-merge-write" cycle. */
-  tag_all_catalogs_as_unsaved_changes();
+  this->tag_all_catalogs_as_unsaved_changes();
 }
 
 CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
@@ -590,8 +591,8 @@ std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree()
 
 void AssetCatalogService::rebuild_tree()
 {
-  create_missing_catalogs();
-  this->catalog_tree_ = read_into_tree();
+  this->create_missing_catalogs();
+  this->catalog_tree_ = this->read_into_tree();
 }
 
 void AssetCatalogService::create_missing_catalogs()
@@ -661,7 +662,7 @@ void AssetCatalogService::redo()
 
   undo_snapshots_.append(std::move(catalog_collection_));
   catalog_collection_ = redo_snapshots_.pop_last();
-  rebuild_tree();
+  this->rebuild_tree();
   AssetLibraryService::get()->rebuild_all_library();
 }
 

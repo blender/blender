@@ -22,7 +22,6 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_remap)
     .push_constant(Type::IVEC4, "probe_coord_packed")
     .push_constant(Type::IVEC4, "write_coord_packed")
     .push_constant(Type::IVEC4, "world_coord_packed")
-    .push_constant(Type::INT, "mip_level")
     .push_constant(Type::FLOAT, "probe_brightness_clamp")
     .sampler(0, ImageType::FLOAT_CUBE, "cubemap_tx")
     .sampler(1, ImageType::FLOAT_2D_ARRAY, "atlas_tx")
@@ -52,6 +51,15 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_select)
     .push_constant(Type::INT, "reflection_probe_count")
     .additional_info("eevee_shared", "eevee_sampling_data", "eevee_volume_probe_data")
     .compute_source("eevee_reflection_probe_select_comp.glsl")
+    .do_static_compilation(true);
+
+GPU_SHADER_CREATE_INFO(eevee_reflection_probe_convolve)
+    .local_group_size(SPHERE_PROBE_GROUP_SIZE, SPHERE_PROBE_GROUP_SIZE)
+    .additional_info("eevee_shared")
+    .push_constant(Type::IVEC4, "write_coord_packed")
+    .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D_ARRAY, "in_atlas_mip_img")
+    .image(1, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D_ARRAY, "out_atlas_mip_img")
+    .compute_source("eevee_reflection_probe_convolve_comp.glsl")
     .do_static_compilation(true);
 
 GPU_SHADER_INTERFACE_INFO(eevee_display_probe_reflection_iface, "")

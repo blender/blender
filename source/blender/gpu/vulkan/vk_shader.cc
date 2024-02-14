@@ -869,7 +869,7 @@ static VkDescriptorSetLayoutBinding create_descriptor_set_layout_binding(
 
 static void add_descriptor_set_layout_bindings(
     const VKShaderInterface &interface,
-    const Vector<shader::ShaderCreateInfo::Resource> &resources,
+    const Span<shader::ShaderCreateInfo::Resource> resources,
     Vector<VkDescriptorSetLayoutBinding> &r_bindings,
     VkShaderStageFlags vk_shader_stages)
 {
@@ -888,7 +888,7 @@ static void add_descriptor_set_layout_bindings(
 
 static VkDescriptorSetLayoutCreateInfo create_descriptor_set_layout(
     const VKShaderInterface &interface,
-    const Vector<shader::ShaderCreateInfo::Resource> &resources,
+    const Span<shader::ShaderCreateInfo::Resource> resources,
     Vector<VkDescriptorSetLayoutBinding> &r_bindings,
     VkShaderStageFlags vk_shader_stages)
 {
@@ -1123,9 +1123,9 @@ std::string VKShader::fragment_interface_declare(const shader::ShaderCreateInfo 
   const VKWorkarounds &workarounds = VKBackend::get().device_get().workarounds_get();
 
   ss << "\n/* Interfaces. */\n";
-  const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
-                                                          info.vertex_out_interfaces_ :
-                                                          info.geometry_out_interfaces_;
+  const Span<StageInterfaceInfo *> in_interfaces = info.geometry_source_.is_empty() ?
+                                                       info.vertex_out_interfaces_ :
+                                                       info.geometry_out_interfaces_;
   int location = 0;
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface, location);
@@ -1227,10 +1227,10 @@ std::string VKShader::geometry_interface_declare(const shader::ShaderCreateInfo 
   return ss.str();
 }
 
-static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInfo *> &ifaces,
-                                                  const StringRefNull &name)
+static StageInterfaceInfo *find_interface_by_name(const Span<StageInterfaceInfo *> ifaces,
+                                                  const StringRefNull name)
 {
-  for (auto *iface : ifaces) {
+  for (StageInterfaceInfo *iface : ifaces) {
     if (iface->instance_name == name) {
       return iface;
     }

@@ -94,29 +94,6 @@ std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain
   return AS_asset_library_find_suitable_root_path_from_path(bmain->filepath);
 }
 
-AssetCatalogService *AS_asset_library_get_catalog_service(const AssetLibrary *library)
-{
-  if (library == nullptr) {
-    return nullptr;
-  }
-  return library->catalog_service.get();
-}
-
-AssetCatalogTree *AS_asset_library_get_catalog_tree(const AssetLibrary *library)
-{
-  AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(library);
-  if (catalog_service == nullptr) {
-    return nullptr;
-  }
-
-  return catalog_service->get_catalog_tree();
-}
-
-void AS_asset_library_refresh_catalog_simplename(AssetLibrary *asset_library,
-                                                 AssetMetaData *asset_data)
-{
-  asset_library->refresh_catalog_simplename(asset_data);
-}
 
 void AS_asset_library_remap_ids(const bke::id::IDRemapper &mappings)
 {

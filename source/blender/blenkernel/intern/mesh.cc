@@ -702,6 +702,26 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
   return mesh;
 }
 
+namespace blender::bke {
+
+Mesh *mesh_new_no_attributes(const int verts_num,
+                             const int edges_num,
+                             const int faces_num,
+                             const int corners_num)
+{
+  Mesh *mesh = BKE_mesh_new_nomain(0, 0, faces_num, 0);
+  mesh->verts_num = verts_num;
+  mesh->edges_num = edges_num;
+  mesh->corners_num = corners_num;
+  CustomData_free_layer_named(&mesh->vert_data, "position", 0);
+  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge", 0);
+  return mesh;
+}
+
+}  // namespace blender::bke
+
 static void copy_attribute_names(const Mesh &mesh_src, Mesh &mesh_dst)
 {
   if (mesh_src.active_color_attribute) {

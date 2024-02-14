@@ -167,7 +167,7 @@ static float *find_or_add_attribute(const StringRef name,
 }
 
 static void load_custom_attributes(const Mesh *mesh,
-                                   const Vector<int> &ply_to_vertex,
+                                   const Span<int> ply_to_vertex,
                                    uint32_t vertex_offset,
                                    Vector<PlyCustomAttribute> &r_attributes)
 {

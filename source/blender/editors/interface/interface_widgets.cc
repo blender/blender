@@ -4846,6 +4846,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
       case UI_BTYPE_SEPR:
         break;
       case UI_BTYPE_SEPR_LINE:
+        /* Add horizontal padding between the line and menu sides. */
+        BLI_rcti_pad(rect, int(-7.0f * UI_SCALE_FAC), 0);
         ui_draw_separator(&tui->wcol_menu_item, but, rect);
         break;
       default: {

@@ -1247,7 +1247,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Vector<std::string> &bone_names)
+                         const Span<std::string> bone_names)
 {
   BLI_assert(mesh);
   BLI_assert(skel_api);

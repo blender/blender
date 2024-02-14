@@ -97,7 +97,7 @@ struct SphereProbeAtlasCoord {
   {
     SphereProbePixelArea coord;
     coord.extent = atlas_extent >> (subdivision_lvl + mip_lvl);
-    coord.offset = (area_location() * coord.extent) >> mip_lvl;
+    coord.offset = area_location() * coord.extent;
     coord.layer = atlas_layer;
     return coord;
   }

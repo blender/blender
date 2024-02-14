@@ -263,7 +263,6 @@ void CaptureView::render_world()
     }
 
     inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
-    inst_.sphere_probes.update_probes_texture_mipmaps();
   }
 
   if (update_info->do_world_irradiance_update) {
@@ -277,10 +276,8 @@ void CaptureView::render_probes()
 {
   Framebuffer prepass_fb;
   View view = {"Capture.View"};
-  bool do_update_mipmap_chain = false;
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
-    do_update_mipmap_chain = true;
 
     if (inst_.pipelines.data.is_probe_reflection != true) {
       inst_.pipelines.data.is_probe_reflection = true;
@@ -333,11 +330,6 @@ void CaptureView::render_probes()
   if (inst_.pipelines.data.is_probe_reflection != false) {
     inst_.pipelines.data.is_probe_reflection = false;
     inst_.uniform_data.push_update();
-  }
-
-  if (do_update_mipmap_chain) {
-    /* TODO: only update the regions that have been updated. */
-    inst_.sphere_probes.update_probes_texture_mipmaps();
   }
 }
 

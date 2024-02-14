@@ -10,6 +10,10 @@
 #ifndef __RNA_TYPES_H__
 #define __RNA_TYPES_H__
 
+#include <optional>
+#include <string>
+
+#include "../blenlib/BLI_function_ref.hh"
 #include "../blenlib/BLI_sys_types.h"
 #include "../blenlib/BLI_utildefines.h"
 
@@ -538,10 +542,10 @@ using StringPropertyLengthFunc = int (*)(PointerRNA *ptr, PropertyRNA *prop);
 using StringPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, const char *value);
 
 struct StringPropertySearchVisitParams {
-  /** Text being searched for (never NULL). */
-  const char *text;
-  /** Additional information to display (optional, may be NULL). */
-  const char *info;
+  /** Text being searched for. */
+  std::string text;
+  /** Additional information to display. */
+  std::optional<std::string> info;
 };
 
 enum eStringPropertySearchFlag {
@@ -563,12 +567,6 @@ enum eStringPropertySearchFlag {
 ENUM_OPERATORS(eStringPropertySearchFlag, PROP_STRING_SEARCH_SUGGESTION)
 
 /**
- * Visit string search candidates, `text` may be freed once this callback has finished,
- * so references to it should not be held.
- */
-using StringPropertySearchVisitFunc = void (*)(void *visit_user_data,
-                                               const StringPropertySearchVisitParams *params);
-/**
  * \param C: context, may be NULL (in this case all available items should be shown).
  * \param ptr: RNA pointer.
  * \param prop: RNA property. This must have its #StringPropertyRNA.search callback set,
@@ -577,14 +575,13 @@ using StringPropertySearchVisitFunc = void (*)(void *visit_user_data,
  * for the search results (auto-complete Python attributes for e.g.).
  * \param visit_fn: This function is called with every search candidate and is typically
  * responsible for storing the search results.
- * \param visit_user_data: Caller defined data, passed to `visit_fn`.
  */
-using StringPropertySearchFunc = void (*)(const bContext *C,
-                                          PointerRNA *ptr,
-                                          PropertyRNA *prop,
-                                          const char *edit_text,
-                                          StringPropertySearchVisitFunc visit_fn,
-                                          void *visit_user_data);
+using StringPropertySearchFunc =
+    void (*)(const bContext *C,
+             PointerRNA *ptr,
+             PropertyRNA *prop,
+             const char *edit_text,
+             blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 using EnumPropertyGetFunc = int (*)(PointerRNA *ptr, PropertyRNA *prop);
 using EnumPropertySetFunc = void (*)(PointerRNA *ptr, PropertyRNA *prop, int value);

@@ -61,7 +61,7 @@ void main()
   vec2 wrapped_uv = mirror_repeat_uv(sampling_uv);
   /* Direction in world space. */
   vec3 direction = octahedral_uv_to_direction(wrapped_uv);
-  vec4 radiance_and_transmittance = textureLod(cubemap_tx, direction, float(mip_level));
+  vec4 radiance_and_transmittance = texture(cubemap_tx, direction);
   vec3 radiance = radiance_and_transmittance.xyz;
 
   float opacity = 1.0 - radiance_and_transmittance.a;

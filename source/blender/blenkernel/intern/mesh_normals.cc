@@ -1384,8 +1384,7 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
            * We know those two corners do not point to the same edge,
            * since we do not allow reversed winding in a same smooth fan. */
           const IndexRange face = faces[corner_to_face[lidx]];
-          const int corner_prev = (lidx == face.start()) ? face.start() + face.size() - 1 :
-                                                           lidx - 1;
+          const int corner_prev = face_corner_prev(face, lidx);
           const int edge = corner_edges[lidx];
           const int edge_prev = corner_edges[corner_prev];
           const int prev_edge = corner_edges[prev_corner];
@@ -1408,8 +1407,7 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
 
         if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
           const IndexRange face = faces[corner_to_face[lidx]];
-          const int corner_prev = (lidx == face.start()) ? face.start() + face.size() - 1 :
-                                                           lidx - 1;
+          const int corner_prev = face_corner_prev(face, lidx);
           const int edge = corner_edges[lidx];
           const int edge_prev = corner_edges[corner_prev];
           const int prev_edge = corner_edges[prev_corner];

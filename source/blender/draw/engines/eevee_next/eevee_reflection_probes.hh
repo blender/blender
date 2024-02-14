@@ -53,9 +53,17 @@ class SphereProbeModule {
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
   /** Extract irradiance information from the world. */
   PassSimple update_irradiance_ps_ = {"Probe.UpdateIrradiance"};
+  /** Copy volume probe irradiance for the center of sphere probes. */
   PassSimple select_ps_ = {"Probe.Select"};
+  /** Convolve the octahedral map to fill the Mip-map levels. */
+  PassSimple convolve_ps_ = {"Probe.Convolve"};
+  /** Input mip level for the convolution. */
+  GPUTexture *convolve_input_ = nullptr;
+  /** Output mip level for the convolution. */
+  GPUTexture *convolve_output_ = nullptr;
 
   int3 dispatch_probe_pack_ = int3(1);
+  int3 dispatch_probe_convolve_ = int3(1);
   int3 dispatch_probe_select_ = int3(1);
 
   /**
@@ -66,8 +74,6 @@ class SphereProbeModule {
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Index of the probe being updated. */
   int probe_index_ = 0;
-  /** Mip level being sampled for remapping. */
-  int probe_mip_level_ = 0;
   /** Updated Probe coordinates in the atlas. */
   SphereProbeUvArea probe_sampling_coord_;
   SphereProbePixelArea probe_write_coord_;
@@ -167,7 +173,6 @@ class SphereProbeModule {
    * Internal processing passes.
    */
   void remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord);
-  void update_probes_texture_mipmaps();
   void update_world_irradiance();
 
   void sync_display(Vector<SphereProbe *> &probe_active);

@@ -1169,11 +1169,10 @@ static char *rna_def_property_search_func(
           "PointerRNA *ptr, "
           "PropertyRNA *prop, "
           "const char *edit_text, "
-          "StringPropertySearchVisitFunc visit_fn, "
-          "void *visit_user_data)\n",
+          "blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)\n",
           func);
   fprintf(f, "{\n");
-  fprintf(f, "\n    %s(C, ptr, prop, edit_text, visit_fn, visit_user_data);\n", manualfunc);
+  fprintf(f, "\n    %s(C, ptr, prop, edit_text, visit_fn);\n", manualfunc);
   fprintf(f, "}\n\n");
   return func;
 }
