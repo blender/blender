@@ -194,6 +194,8 @@ void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoo
 void SphereProbeModule::update_world_irradiance()
 {
   instance_.manager->submit(update_irradiance_ps_);
+  /* All volume probe that needs to composite the world probe need to be updated. */
+  instance_.volume_probes.do_update_world_ = true;
 }
 
 void SphereProbeModule::update_probes_texture_mipmaps()
