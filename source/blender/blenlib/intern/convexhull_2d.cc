@@ -20,7 +20,33 @@
 
 #include "BLI_strict_flags.h" /* Keep last. */
 
+/**
+ * Assert the optimized bounds match a brute force check,
+ * disable by default is this is slow for dense hulls, using `O(n^2)` complexity.
+ */
+// #define USE_BRUTE_FORCE_ASSERT
+
 using namespace blender;
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Math Functions
+ * \{ */
+
+static float mul_v2_v2_cw_x(const float2 &mat, const float2 &vec)
+{
+  return (mat[0] * vec[0]) + (mat[1] * vec[1]);
+}
+
+static float mul_v2_v2_cw_y(const float2 &mat, const float2 &vec)
+{
+  return (mat[1] * vec[0]) - (mat[0] * vec[1]);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Convex-Hull Calculation
+ * \{ */
 
 /* Copyright 2001, softSurfer (http://www.softsurfer.com)
  * This code may be freely used and modified for any purpose
@@ -28,12 +54,7 @@ using namespace blender;
  * SoftSurfer makes no warranty for this code, and cannot be held
  * liable for any real or imagined damage resulting from its use.
  * Users of this code must verify correctness for their application.
- * http://softsurfer.com/Archive/algorithm_0203/algorithm_0203.htm
- */
-
-/* -------------------------------------------------------------------- */
-/** \name Main Convex-Hull Calculation
- * \{ */
+ * http://softsurfer.com/Archive/algorithm_0203/algorithm_0203.htm */
 
 /**
  * tests if a point is Left|On|Right of an infinite line.
@@ -206,21 +227,59 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
 
 /** \} */
 
-/* Helper functions */
-
 /* -------------------------------------------------------------------- */
-/** \name Utility Convex-Hull Functions
+/** \name Comupte AABB Fitting Angle (For Assertion)
  * \{ */
 
-static float mul_v2_v2_cw_x(const float2 &mat, const float2 &vec)
+static float convexhull_aabb_fit_hull_2d_brute_force(const float (*points_hull)[2],
+                                                     int points_hull_num)
 {
-  return (mat[0] * vec[0]) + (mat[1] * vec[1]);
+  float area_best = FLT_MAX;
+  float2 dvec_best = {0.0f, 1.0f}; /* Track the best angle as a unit vector, delaying `atan2`. */
+
+  for (int i = 0, i_prev = points_hull_num - 1; i < points_hull_num; i_prev = i++) {
+    /* 2D rotation matrix. */
+    float dvec_length = 0.0f;
+    const float2 dvec = math::normalize_and_get_length(
+        float2(points_hull[i]) - float2(points_hull[i_prev]), dvec_length);
+    if (UNLIKELY(dvec_length == 0.0f)) {
+      continue;
+    }
+
+    blender::Bounds<float> bounds[2] = {{FLT_MAX, -FLT_MAX}, {FLT_MAX, -FLT_MAX}};
+    float area_test;
+
+    for (int j = 0; j < points_hull_num; j++) {
+      const float2 tvec = {
+          mul_v2_v2_cw_x(dvec, points_hull[j]),
+          mul_v2_v2_cw_y(dvec, points_hull[j]),
+      };
+
+      bounds[0].min = math::min(bounds[0].min, tvec[0]);
+      bounds[0].max = math::max(bounds[0].max, tvec[0]);
+      bounds[1].min = math::min(bounds[1].min, tvec[1]);
+      bounds[1].max = math::max(bounds[1].max, tvec[1]);
+
+      area_test = (bounds[0].max - bounds[0].min) * (bounds[1].max - bounds[1].min);
+      if (area_test > area_best) {
+        break;
+      }
+    }
+
+    if (area_test < area_best) {
+      area_best = area_test;
+      dvec_best = dvec;
+    }
+  }
+
+  return (area_best != FLT_MAX) ? float(atan2(dvec_best[0], dvec_best[1])) : 0.0f;
 }
 
-static float mul_v2_v2_cw_y(const float2 &mat, const float2 &vec)
-{
-  return (mat[1] * vec[0]) - (mat[0] * vec[1]);
-}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Comupte AABB Fitting Angle (Optimized)
+ * \{ */
 
 /**
  * When using the rotating calipers, step one half of the caliper to a new index.
@@ -236,10 +295,10 @@ static float convexhull_2d_compute_extent_on_axis(const float (*points_hull)[2],
   /* NOTE(@ideasman42): This could be optimized to use a search strategy
    * that computes the upper bounds and narrows down the result instead of
    * simply checking every point until the new maximum is reached.
-   * From looking into I couldn't find cases where doing significant benefits,
+   * From looking into I couldn't find cases where doing this has significant benefits,
    * especially when compared with the complexity of using more involved logic for
    * the common case, where only a few steps are needed.
-   * Typically the number of vertices to scan is small (around [0..8]).
+   * Typically the number of points to scan is small (around [0..8]).
    * And while a high-detail hull with single outliner points will cause stepping over
    * many more points, in practice there are rarely more than a few of these in a convex-hull.
    * Nevertheless, a high-poly hull that has subtle curves containing many points as well as
@@ -266,7 +325,7 @@ static float convexhull_2d_compute_extent_on_axis(const float (*points_hull)[2],
   return value_best;
 }
 
-float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_hull_num)
+static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_hull_num)
 {
   float area_best = FLT_MAX;
   float2 dvec_best; /* Track the best angle as a unit vector, delaying `atan2`. */
@@ -339,7 +398,16 @@ float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_
     }
   }
 
-  return (area_best != FLT_MAX) ? float(atan2(dvec_best[0], dvec_best[1])) : 0.0f;
+  const float angle = (area_best != FLT_MAX) ? float(atan2(dvec_best[0], dvec_best[1])) : 0.0f;
+
+#ifdef USE_BRUTE_FORCE_ASSERT
+  /* Ensure the optimized result matches the brute-force version. */
+  BLI_assert(angle == convexhull_aabb_fit_hull_2d_brute_force(points_hull, points_hull_num));
+#else
+  (void)convexhull_aabb_fit_hull_2d_brute_force;
+#endif
+
+  return angle;
 }
 
 float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int points_num)
@@ -359,7 +427,7 @@ float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int points_num
       copy_v2_v2(points_hull[j], points[index_map[j]]);
     }
 
-    angle = BLI_convexhull_aabb_fit_hull_2d(points_hull, points_hull_num);
+    angle = convexhull_aabb_fit_hull_2d(points_hull, points_hull_num);
     MEM_freeN(points_hull);
   }
 

@@ -29,13 +29,6 @@ int BLI_convexhull_2d(const float (*points)[2], int points_num, int r_points[/*p
 /**
  * \return The best angle for fitting the points to an axis aligned bounding box.
  *
- * \param points_null: The hull, typically the result of #BLI_convexhull_2d.
- */
-float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int points_hull_num);
-
-/**
- * \return The best angle for fitting the points to an axis aligned bounding box.
- *
  * \note We could return the index of the best edge too if its needed.
  *
  * \param points: Arbitrary 2D points.
