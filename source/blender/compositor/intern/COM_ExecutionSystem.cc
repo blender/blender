@@ -87,8 +87,8 @@ ExecutionSystem::~ExecutionSystem()
   groups_.clear();
 }
 
-void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
-                                     const Vector<ExecutionGroup *> &groups)
+void ExecutionSystem::set_operations(const Span<NodeOperation *> operations,
+                                     const Span<ExecutionGroup *> groups)
 {
   operations_ = operations;
   groups_ = groups;

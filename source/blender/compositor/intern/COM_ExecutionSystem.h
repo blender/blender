@@ -178,8 +178,7 @@ class ExecutionSystem {
    */
   ~ExecutionSystem();
 
-  void set_operations(const Vector<NodeOperation *> &operations,
-                      const Vector<ExecutionGroup *> &groups);
+  void set_operations(Span<NodeOperation *> operations, Span<ExecutionGroup *> groups);
 
   /**
    * \brief execute this system

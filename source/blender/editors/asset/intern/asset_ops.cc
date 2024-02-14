@@ -89,7 +89,7 @@ struct IDVecStats {
  * Helper to report stats about the IDs in context. Operator polls use this, also to report a
  * helpful disabled hint to the user.
  */
-static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Vector<PointerRNA> &id_pointers)
+static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Span<PointerRNA> id_pointers)
 {
   IDVecStats stats;
 
@@ -125,7 +125,7 @@ static const char *asset_operation_unsupported_type_msg(const bool is_single)
 
 class AssetMarkHelper {
  public:
-  void operator()(const bContext &C, const Vector<PointerRNA> &ids);
+  void operator()(const bContext &C, Span<PointerRNA> ids);
 
   void reportResults(ReportList &reports) const;
   bool wasSuccessful() const;
@@ -140,7 +140,7 @@ class AssetMarkHelper {
   Stats stats;
 };
 
-void AssetMarkHelper::operator()(const bContext &C, const Vector<PointerRNA> &ids)
+void AssetMarkHelper::operator()(const bContext &C, const Span<PointerRNA> ids)
 {
   for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
@@ -190,7 +190,7 @@ void AssetMarkHelper::reportResults(ReportList &reports) const
   }
 }
 
-static int asset_mark_exec(const bContext *C, const wmOperator *op, const Vector<PointerRNA> &ids)
+static int asset_mark_exec(const bContext *C, const wmOperator *op, const Span<PointerRNA> ids)
 {
   AssetMarkHelper mark_helper;
   mark_helper(*C, ids);
@@ -206,7 +206,7 @@ static int asset_mark_exec(const bContext *C, const wmOperator *op, const Vector
   return OPERATOR_FINISHED;
 }
 
-static bool asset_mark_poll(bContext *C, const Vector<PointerRNA> &ids)
+static bool asset_mark_poll(bContext *C, const Span<PointerRNA> ids)
 {
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
@@ -265,7 +265,7 @@ class AssetClearHelper {
  public:
   AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user) {}
 
-  void operator()(const Vector<PointerRNA> &ids);
+  void operator()(Span<PointerRNA> ids);
 
   void reportResults(const bContext *C, ReportList &reports) const;
   bool wasSuccessful() const;
@@ -279,7 +279,7 @@ class AssetClearHelper {
   Stats stats;
 };
 
-void AssetClearHelper::operator()(const Vector<PointerRNA> &ids)
+void AssetClearHelper::operator()(const Span<PointerRNA> ids)
 {
   for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
@@ -332,7 +332,7 @@ bool AssetClearHelper::wasSuccessful() const
   return stats.tot_cleared > 0;
 }
 
-static int asset_clear_exec(const bContext *C, const wmOperator *op, const Vector<PointerRNA> &ids)
+static int asset_clear_exec(const bContext *C, const wmOperator *op, const Span<PointerRNA> ids)
 {
   const bool set_fake_user = RNA_boolean_get(op->ptr, "set_fake_user");
   AssetClearHelper clear_helper(set_fake_user);
@@ -349,7 +349,7 @@ static int asset_clear_exec(const bContext *C, const wmOperator *op, const Vecto
   return OPERATOR_FINISHED;
 }
 
-static bool asset_clear_poll(bContext *C, const Vector<PointerRNA> &ids)
+static bool asset_clear_poll(bContext *C, const Span<PointerRNA> ids)
 {
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 

@@ -252,7 +252,7 @@ static void test_idprop(const IDProperty *id_property,
 
 static void test_idprop(const IDProperty *id_property,
                         StringRef expected_name,
-                        const Vector<int32_t> &values)
+                        const Span<int32_t> values)
 {
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_ARRAY);
@@ -267,7 +267,7 @@ static void test_idprop(const IDProperty *id_property,
 
 static void test_idprop(const IDProperty *id_property,
                         StringRef expected_name,
-                        const Vector<float> &values)
+                        const Span<float> values)
 {
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_ARRAY);
@@ -282,7 +282,7 @@ static void test_idprop(const IDProperty *id_property,
 
 static void test_idprop(const IDProperty *id_property,
                         StringRef expected_name,
-                        const Vector<double> &values)
+                        const Span<double> values)
 {
   ASSERT_NE(id_property, nullptr);
   EXPECT_EQ(id_property->type, IDP_ARRAY);

@@ -98,7 +98,7 @@ class Node {
   /**
    * \brief get access to the vector of input sockets
    */
-  const Vector<NodeInput *> &get_input_sockets() const
+  Span<NodeInput *> get_input_sockets() const
   {
     return inputs_;
   }
@@ -106,7 +106,7 @@ class Node {
   /**
    * \brief get access to the vector of input sockets
    */
-  const Vector<NodeOutput *> &get_output_sockets() const
+  Span<NodeOutput *> get_output_sockets() const
   {
     return outputs_;
   }
