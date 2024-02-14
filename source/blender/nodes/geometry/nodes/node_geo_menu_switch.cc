@@ -149,8 +149,8 @@ static void node_copy_storage(bNodeTree * /*dst_tree*/, bNode *dst_node, const b
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 {
+  const eNodeSocketDatatype data_type = eNodeSocketDatatype(params.other_socket().type);
   if (params.in_out() == SOCK_IN) {
-    const eNodeSocketDatatype data_type = eNodeSocketDatatype(params.other_socket().type);
     if (data_type == SOCK_MENU) {
       params.add_item(IFACE_("Menu"), [](LinkSearchOpParams &params) {
         bNode &node = params.add_node("GeometryNodeMenuSwitch");
@@ -159,11 +159,13 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     }
   }
   else {
-    params.add_item(IFACE_("Output"), [](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeMenuSwitch");
-      node_storage(node).data_type = params.socket.type;
-      params.update_and_connect_available_socket(node, "Output");
-    });
+    if (data_type != SOCK_MENU) {
+      params.add_item(IFACE_("Output"), [](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("GeometryNodeMenuSwitch");
+        node_storage(node).data_type = params.socket.type;
+        params.update_and_connect_available_socket(node, "Output");
+      });
+    }
   }
 }
 
