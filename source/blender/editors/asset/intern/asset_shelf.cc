@@ -496,16 +496,17 @@ void region_on_poll_success(const bContext *C, ARegion *region)
     return;
   }
 
-  update_active_shelf(*C, *area->type, *shelf_regiondata, [&](AssetShelf &new_shelf) {
-    /* Update region visibility (`'DEFAULT_VISIBLE'` option). */
-    const int old_flag = region->flag;
-    SET_FLAG_FROM_TEST(region->flag,
-                       (new_shelf.type->flag & ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE) == 0,
-                       RGN_FLAG_HIDDEN);
-    if (old_flag != region->flag) {
-      ED_region_visibility_change_update(const_cast<bContext *>(C), area, region);
-    }
-  });
+  update_active_shelf(
+      *C, *area->type, *shelf_regiondata, /*on_create=*/[&](AssetShelf &new_shelf) {
+        /* Update region visibility (`'DEFAULT_VISIBLE'` option). */
+        const int old_flag = region->flag;
+        SET_FLAG_FROM_TEST(region->flag,
+                           (new_shelf.type->flag & ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE) == 0,
+                           RGN_FLAG_HIDDEN);
+        if (old_flag != region->flag) {
+          ED_region_visibility_change_update(const_cast<bContext *>(C), area, region);
+        }
+      });
 }
 
 void header_region_listen(const wmRegionListenerParams *params)
