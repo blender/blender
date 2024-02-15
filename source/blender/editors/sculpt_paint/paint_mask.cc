@@ -2024,6 +2024,17 @@ static int paint_mask_gesture_line_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int face_set_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_gesture_box_invoke(C, op, event);
+}
+
 static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = sculpt_gesture_init_from_box(C, op);
@@ -2034,6 +2045,17 @@ static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
   sculpt_gesture_apply(C, sgcontext, op);
   sculpt_gesture_context_free(sgcontext);
   return OPERATOR_FINISHED;
+}
+
+static int face_set_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_gesture_lasso_invoke(C, op, event);
 }
 
 static int face_set_gesture_lasso_exec(bContext *C, wmOperator *op)
@@ -2228,7 +2250,7 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_set_lasso_gesture";
   ot->description = "Add face set within the lasso as you move the brush";
 
-  ot->invoke = WM_gesture_lasso_invoke;
+  ot->invoke = face_set_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = face_set_gesture_lasso_exec;
 
@@ -2247,7 +2269,7 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_face_set_box_gesture";
   ot->description = "Add face set within the box as you move the brush";
 
-  ot->invoke = WM_gesture_box_invoke;
+  ot->invoke = face_set_gesture_box_invoke;
   ot->modal = WM_gesture_box_modal;
   ot->exec = face_set_gesture_box_exec;
 
