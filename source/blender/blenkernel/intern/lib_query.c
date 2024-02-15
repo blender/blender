@@ -415,9 +415,9 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_TE:
       return FILTER_ID_IM | FILTER_ID_OB;
     case ID_LT:
-      return 0;
+      return FILTER_ID_KE;
     case ID_LA:
-      return FILTER_ID_TE | FILTER_ID_KE;
+      return FILTER_ID_TE;
     case ID_CA:
       return FILTER_ID_OB | FILTER_ID_IM;
     case ID_KE:
