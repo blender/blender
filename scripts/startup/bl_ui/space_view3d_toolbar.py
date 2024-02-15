@@ -61,8 +61,9 @@ class VIEW3D_MT_brush_context_menu(Menu):
             layout.operator("brush.asset_update", text="Update Asset")
             layout.operator("brush.asset_revert", text="Revert to Asset")
 
-            if context.sculpt_object:
-                layout.operator("brush.reset", text="Reset to Defaults")
+            # TODO: does not behave in a useful way now, eventually improve or remove entirely.
+            # if context.sculpt_object:
+            #    layout.operator("brush.reset", text="Reset to Defaults")
         else:
             layout.operator("brush.asset_save_as", text="Save As Asset...", icon='FILE_TICK')
             layout.operator("brush.asset_delete", text="Delete")
