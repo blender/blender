@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <array>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
@@ -45,14 +46,17 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
          (key_a->identifier != key_b->identifier);
 }
 
-static IDTypeInfo *id_types[INDEX_ID_MAX] = {nullptr};
+static std::array<IDTypeInfo *, INDEX_ID_MAX> id_types;
 
 static void id_type_init()
 {
+  int init_types_num = 0;
+
 #define INIT_TYPE(_id_code) \
   { \
     BLI_assert(IDType_##_id_code.main_listbase_index == INDEX_##_id_code); \
     id_types[INDEX_##_id_code] = &IDType_##_id_code; \
+    init_types_num++; \
   } \
   (void)0
 
@@ -97,9 +101,12 @@ static void id_type_init()
   INIT_TYPE(ID_VO);
   INIT_TYPE(ID_GP);
 
-  /* Special naughty boy... */
+  /* Special case. */
   BLI_assert(IDType_ID_LINK_PLACEHOLDER.main_listbase_index == INDEX_ID_NULL);
   id_types[INDEX_ID_NULL] = &IDType_ID_LINK_PLACEHOLDER;
+  init_types_num++;
+
+  BLI_assert_msg(init_types_num == INDEX_ID_MAX, "Some IDTypeInfo initialization is missing");
 
 #undef INIT_TYPE
 }
@@ -112,10 +119,11 @@ void BKE_idtype_init()
 
 const IDTypeInfo *BKE_idtype_get_info_from_idtype_index(const int idtype_index)
 {
-  if (idtype_index >= 0 && idtype_index < ARRAY_SIZE(id_types) &&
-      id_types[idtype_index] != nullptr && id_types[idtype_index]->name[0] != '\0')
-  {
-    return id_types[idtype_index];
+  if (idtype_index >= 0 && idtype_index < int(id_types.size())) {
+    const IDTypeInfo *id_type = id_types[size_t(idtype_index)];
+    if (id_type && id_type->name[0] != '\0') {
+      return id_type;
+    }
   }
 
   return nullptr;
@@ -133,9 +141,9 @@ const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id)
 
 static const IDTypeInfo *idtype_get_info_from_name(const char *idtype_name)
 {
-  for (int i = ARRAY_SIZE(id_types); i--;) {
-    if (id_types[i] != nullptr && STREQ(idtype_name, id_types[i]->name)) {
-      return id_types[i];
+  for (const IDTypeInfo *id_type : id_types) {
+    if (id_type && STREQ(idtype_name, id_type->name)) {
+      return id_type;
     }
   }
 
@@ -438,7 +446,7 @@ short BKE_idtype_idcode_from_index(const int index)
 
 short BKE_idtype_idcode_iter_step(int *index)
 {
-  return (*index < ARRAY_SIZE(id_types)) ? BKE_idtype_idcode_from_index((*index)++) : 0;
+  return (*index < int(id_types.size())) ? BKE_idtype_idcode_from_index((*index)++) : 0;
 }
 
 void BKE_idtype_id_foreach_cache(ID *id,
