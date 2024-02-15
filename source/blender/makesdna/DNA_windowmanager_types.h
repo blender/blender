@@ -184,9 +184,6 @@ typedef struct wmWindowManager {
   struct GSet *notifier_queue_set;
   void *_pad1;
 
-  /** Information and error reports. */
-  struct ReportList reports;
-
   /** Threaded jobs manager. */
   ListBase jobs;
 

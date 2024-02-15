@@ -44,7 +44,7 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
   wmWindowManager *wm = handler_data->wm;
   wmWindow *root_win = wm->xr.runtime ? wm->xr.runtime->session_root_win : nullptr;
 
-  BKE_reports_clear(&wm->reports);
+  BKE_reports_clear(&wm->runtime->reports);
   WM_report(RPT_ERROR, error->user_message);
   /* Rely on the fallback when `root_win` is nullptr. */
   WM_report_banner_show(wm, root_win);

@@ -905,7 +905,7 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
     }
   }
 
-  ReportList *wm_reports = &wm->reports;
+  ReportList *wm_reports = &wm->runtime->reports;
 
   /* After adding reports to the global list, reset the report timer. */
   WM_event_timer_remove(wm, nullptr, wm_reports->reporttimer);
@@ -920,8 +920,8 @@ void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
 void WM_report_banners_cancel(Main *bmain)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  BKE_reports_clear(&wm->reports);
-  WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
+  BKE_reports_clear(&wm->runtime->reports);
+  WM_event_timer_remove(wm, nullptr, wm->runtime->reports.reporttimer);
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -943,7 +943,7 @@ void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports)
   }
 
   /* Add reports to the global list, otherwise they are not seen. */
-  BKE_reports_move_to_reports(&wm->reports, reports);
+  BKE_reports_move_to_reports(&wm->runtime->reports, reports);
 
   WM_report_banner_show(wm, nullptr);
 }
@@ -2695,7 +2695,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
         ED_fileselect_set_params_from_userdef(sfile);
       }
       else {
-        BKE_report(&wm->reports, RPT_ERROR, "Failed to open window!");
+        BKE_report(&wm->runtime->reports, RPT_ERROR, "Failed to open window!");
         return WM_HANDLER_BREAK;
       }
 

@@ -2023,7 +2023,7 @@ void wm_test_opengl_deprecation_warning(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
 
-  BKE_report(&wm->reports,
+  BKE_report(&wm->runtime->reports,
              RPT_ERROR,
              "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
              "Please contact the developer of the add-on to migrate to use 'gpu' module");
@@ -2177,8 +2177,8 @@ void WM_event_timer_remove(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *tim
   timer->flags |= WM_TIMER_TAGGED_FOR_REMOVAL;
 
   /* Clear existing references to the timer. */
-  if (wm->reports.reporttimer == timer) {
-    wm->reports.reporttimer = nullptr;
+  if (wm->runtime->reports.reporttimer == timer) {
+    wm->runtime->reports.reporttimer = nullptr;
   }
   /* There might be events in queue with this timer as customdata. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
