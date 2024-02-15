@@ -71,8 +71,18 @@ bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd);
 void *BKE_ffmpeg_context_create(void);
 void BKE_ffmpeg_context_free(void *context_v);
 
+void BKE_ffmpeg_exit();
+
+/**
+ * Gets a libswscale context for given size and format parameters.
+ * After you're done using the context, call #BKE_ffmpeg_sws_release_context
+ * to release it. Internally the contexts are coming from the context
+ * pool/cache.
+ */
 SwsContext *BKE_ffmpeg_sws_get_context(
     int width, int height, int av_src_format, int av_dst_format, int sws_flags);
+void BKE_ffmpeg_sws_release_context(SwsContext *ctx);
+
 void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src);
 
 #endif

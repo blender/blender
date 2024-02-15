@@ -35,6 +35,7 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
+#include "BKE_writeffmpeg.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -74,6 +75,9 @@ void BKE_blender_free()
   BKE_callback_global_finalize();
 
   IMB_moviecache_destruct();
+#ifdef WITH_FFMPEG
+  BKE_ffmpeg_exit();
+#endif
 
   BKE_node_system_exit();
 }
