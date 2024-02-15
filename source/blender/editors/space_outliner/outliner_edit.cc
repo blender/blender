@@ -2151,8 +2151,8 @@ static void unused_message_gen(std::string &message,
           (is_first) ? "" : ", ",
           num_tagged[i],
           (num_tagged[i] > 1) ?
-              IFACE_(BKE_idtype_idcode_to_name_plural(BKE_idtype_idcode_from_index(i))) :
-              IFACE_(BKE_idtype_idcode_to_name(BKE_idtype_idcode_from_index(i))));
+              IFACE_(BKE_idtype_idcode_to_name_plural(BKE_idtype_index_to_idcode(i))) :
+              IFACE_(BKE_idtype_idcode_to_name(BKE_idtype_index_to_idcode(i))));
       is_first = false;
     }
   }

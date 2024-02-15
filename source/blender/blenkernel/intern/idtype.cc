@@ -216,116 +216,6 @@ bool BKE_idtype_idcode_append_is_reusable(const short idcode)
   return false;
 }
 
-uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
-{
-#define CASE_IDFILTER(_id) \
-  case ID_##_id: \
-    return FILTER_ID_##_id
-
-  switch ((ID_Type)idcode) {
-    CASE_IDFILTER(AC);
-    CASE_IDFILTER(AR);
-    CASE_IDFILTER(BR);
-    CASE_IDFILTER(CA);
-    CASE_IDFILTER(CF);
-    CASE_IDFILTER(CU_LEGACY);
-    CASE_IDFILTER(GD_LEGACY);
-    CASE_IDFILTER(GP);
-    CASE_IDFILTER(GR);
-    CASE_IDFILTER(CV);
-    CASE_IDFILTER(IM);
-    CASE_IDFILTER(IP);
-    CASE_IDFILTER(KE);
-    CASE_IDFILTER(LA);
-    CASE_IDFILTER(LI);
-    CASE_IDFILTER(LP);
-    CASE_IDFILTER(LS);
-    CASE_IDFILTER(LT);
-    CASE_IDFILTER(MA);
-    CASE_IDFILTER(MB);
-    CASE_IDFILTER(MC);
-    CASE_IDFILTER(ME);
-    CASE_IDFILTER(MSK);
-    CASE_IDFILTER(NT);
-    CASE_IDFILTER(OB);
-    CASE_IDFILTER(PA);
-    CASE_IDFILTER(PAL);
-    CASE_IDFILTER(PC);
-    CASE_IDFILTER(PT);
-    CASE_IDFILTER(SCE);
-    CASE_IDFILTER(SCR);
-    CASE_IDFILTER(SO);
-    CASE_IDFILTER(SPK);
-    CASE_IDFILTER(TE);
-    CASE_IDFILTER(TXT);
-    CASE_IDFILTER(VF);
-    CASE_IDFILTER(VO);
-    CASE_IDFILTER(WM);
-    CASE_IDFILTER(WO);
-    CASE_IDFILTER(WS);
-  }
-
-  BLI_assert_unreachable();
-  return 0;
-
-#undef CASE_IDFILTER
-}
-
-short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
-{
-#define CASE_IDFILTER(_id) \
-  case FILTER_ID_##_id: \
-    return ID_##_id
-
-  switch (idfilter) {
-    CASE_IDFILTER(AC);
-    CASE_IDFILTER(AR);
-    CASE_IDFILTER(BR);
-    CASE_IDFILTER(CA);
-    CASE_IDFILTER(CF);
-    CASE_IDFILTER(CU_LEGACY);
-    CASE_IDFILTER(GD_LEGACY);
-    CASE_IDFILTER(GP);
-    CASE_IDFILTER(GR);
-    CASE_IDFILTER(CV);
-    CASE_IDFILTER(IM);
-    CASE_IDFILTER(IP);
-    CASE_IDFILTER(KE);
-    CASE_IDFILTER(LA);
-    CASE_IDFILTER(LI);
-    CASE_IDFILTER(LP);
-    CASE_IDFILTER(LS);
-    CASE_IDFILTER(LT);
-    CASE_IDFILTER(MA);
-    CASE_IDFILTER(MB);
-    CASE_IDFILTER(MC);
-    CASE_IDFILTER(ME);
-    CASE_IDFILTER(MSK);
-    CASE_IDFILTER(NT);
-    CASE_IDFILTER(OB);
-    CASE_IDFILTER(PA);
-    CASE_IDFILTER(PAL);
-    CASE_IDFILTER(PC);
-    CASE_IDFILTER(PT);
-    CASE_IDFILTER(SCE);
-    CASE_IDFILTER(SCR);
-    CASE_IDFILTER(SO);
-    CASE_IDFILTER(SPK);
-    CASE_IDFILTER(TE);
-    CASE_IDFILTER(TXT);
-    CASE_IDFILTER(VF);
-    CASE_IDFILTER(VO);
-    CASE_IDFILTER(WM);
-    CASE_IDFILTER(WO);
-    CASE_IDFILTER(WS);
-  }
-
-  BLI_assert_unreachable();
-  return 0;
-
-#undef CASE_IDFILTER
-}
-
 int BKE_idtype_idcode_to_index(const short idcode)
 {
 #define CASE_IDINDEX(_id) \
@@ -385,68 +275,98 @@ int BKE_idtype_idcode_to_index(const short idcode)
 #undef CASE_IDINDEX
 }
 
-short BKE_idtype_idcode_from_index(const int index)
+int BKE_idtype_idfilter_to_index(const uint64_t id_filter)
 {
-#define CASE_IDCODE(_id) \
-  case INDEX_ID_##_id: \
-    return ID_##_id
+#define CASE_IDINDEX(_id) \
+  case FILTER_ID_##_id: \
+    return INDEX_ID_##_id
 
-  switch (index) {
-    CASE_IDCODE(AC);
-    CASE_IDCODE(AR);
-    CASE_IDCODE(BR);
-    CASE_IDCODE(CA);
-    CASE_IDCODE(CF);
-    CASE_IDCODE(CU_LEGACY);
-    CASE_IDCODE(GD_LEGACY);
-    CASE_IDCODE(GP);
-    CASE_IDCODE(GR);
-    CASE_IDCODE(CV);
-    CASE_IDCODE(IM);
-    CASE_IDCODE(IP);
-    CASE_IDCODE(KE);
-    CASE_IDCODE(LA);
-    CASE_IDCODE(LI);
-    CASE_IDCODE(LS);
-    CASE_IDCODE(LT);
-    CASE_IDCODE(MA);
-    CASE_IDCODE(MB);
-    CASE_IDCODE(MC);
-    CASE_IDCODE(ME);
-    CASE_IDCODE(MSK);
-    CASE_IDCODE(NT);
-    CASE_IDCODE(OB);
-    CASE_IDCODE(PA);
-    CASE_IDCODE(PAL);
-    CASE_IDCODE(PC);
-    CASE_IDCODE(PT);
-    CASE_IDCODE(LP);
-    CASE_IDCODE(SCE);
-    CASE_IDCODE(SCR);
-    CASE_IDCODE(SPK);
-    CASE_IDCODE(SO);
-    CASE_IDCODE(TE);
-    CASE_IDCODE(TXT);
-    CASE_IDCODE(VF);
-    CASE_IDCODE(VO);
-    CASE_IDCODE(WM);
-    CASE_IDCODE(WO);
-    CASE_IDCODE(WS);
+  switch (id_filter) {
+    CASE_IDINDEX(AC);
+    CASE_IDINDEX(AR);
+    CASE_IDINDEX(BR);
+    CASE_IDINDEX(CA);
+    CASE_IDINDEX(CF);
+    CASE_IDINDEX(CU_LEGACY);
+    CASE_IDINDEX(GD_LEGACY);
+    CASE_IDINDEX(GP);
+    CASE_IDINDEX(GR);
+    CASE_IDINDEX(CV);
+    CASE_IDINDEX(IM);
+    CASE_IDINDEX(IP);
+    CASE_IDINDEX(KE);
+    CASE_IDINDEX(LA);
+    CASE_IDINDEX(LI);
+    CASE_IDINDEX(LS);
+    CASE_IDINDEX(LT);
+    CASE_IDINDEX(MA);
+    CASE_IDINDEX(MB);
+    CASE_IDINDEX(MC);
+    CASE_IDINDEX(ME);
+    CASE_IDINDEX(MSK);
+    CASE_IDINDEX(NT);
+    CASE_IDINDEX(OB);
+    CASE_IDINDEX(PA);
+    CASE_IDINDEX(PAL);
+    CASE_IDINDEX(PC);
+    CASE_IDINDEX(PT);
+    CASE_IDINDEX(LP);
+    CASE_IDINDEX(SCE);
+    CASE_IDINDEX(SCR);
+    CASE_IDINDEX(SPK);
+    CASE_IDINDEX(SO);
+    CASE_IDINDEX(TE);
+    CASE_IDINDEX(TXT);
+    CASE_IDINDEX(VF);
+    CASE_IDINDEX(VO);
+    CASE_IDINDEX(WM);
+    CASE_IDINDEX(WO);
+    CASE_IDINDEX(WS);
   }
 
-  /* Special naughty boy... */
-  if (index == INDEX_ID_NULL) {
-    return ID_LINK_PLACEHOLDER;
-  }
+  /* No handling of #ID_LINK_PLACEHOLDER or #INDEX_ID_NULL here. */
 
   return -1;
 
-#undef CASE_IDCODE
+#undef CASE_IDINDEX
 }
 
-short BKE_idtype_idcode_iter_step(int *index)
+short BKE_idtype_index_to_idcode(const int idtype_index)
 {
-  return (*index < int(id_types.size())) ? BKE_idtype_idcode_from_index((*index)++) : 0;
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idtype_index(idtype_index);
+  if (id_type) {
+    return id_type->id_code;
+  }
+
+  BLI_assert_unreachable();
+  return -1;
+}
+
+uint64_t BKE_idtype_index_to_idfilter(const int idtype_index)
+{
+  const IDTypeInfo *id_type = BKE_idtype_get_info_from_idtype_index(idtype_index);
+  if (id_type) {
+    return id_type->id_filter;
+  }
+
+  BLI_assert_unreachable();
+  return 0;
+}
+
+uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
+{
+  return BKE_idtype_index_to_idfilter(BKE_idtype_idcode_to_index(idcode));
+}
+
+short BKE_idtype_idfilter_to_idcode(const uint64_t idfilter)
+{
+  return BKE_idtype_index_to_idcode(BKE_idtype_idfilter_to_index(idfilter));
+}
+
+short BKE_idtype_idcode_iter_step(int *idtype_index)
+{
+  return (*idtype_index < int(id_types.size())) ? BKE_idtype_index_to_idcode((*idtype_index)++) :
+                                                  0;
 }
 
 void BKE_idtype_id_foreach_cache(ID *id,

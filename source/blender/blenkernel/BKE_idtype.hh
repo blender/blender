@@ -346,22 +346,31 @@ bool BKE_idtype_idcode_append_is_reusable(short idcode);
 short BKE_idtype_idcode_from_name(const char *idtype_name);
 
 /**
+ * Convert an \a idcode into an \a idtype_index (e.g. #ID_OB -> #INDEX_ID_OB).
+ */
+int BKE_idtype_idcode_to_index(short idcode);
+/**
+ * Convert an \a idfilter into an \a idtype_index (e.g. #FILTER_ID_OB -> #INDEX_ID_OB).
+ */
+int BKE_idtype_idfilter_to_index(uint64_t idfilter);
+
+/**
+ * Convert an \a idtype_index into an \a idcode (e.g. #INDEX_ID_OB -> #ID_OB).
+ */
+short BKE_idtype_index_to_idcode(int idtype_index);
+/**
+ * Convert an \a idtype_index into an \a idfilter (e.g. #INDEX_ID_OB -> #FILTER_ID_OB).
+ */
+uint64_t BKE_idtype_index_to_idfilter(int idtype_index);
+
+/**
  * Convert an \a idcode into an \a idfilter (e.g. #ID_OB -> #FILTER_ID_OB).
  */
 uint64_t BKE_idtype_idcode_to_idfilter(short idcode);
 /**
  * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
  */
-short BKE_idtype_idcode_from_idfilter(uint64_t idfilter);
-
-/**
- * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
- */
-int BKE_idtype_idcode_to_index(short idcode);
-/**
- * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
- */
-short BKE_idtype_idcode_from_index(int index);
+short BKE_idtype_idfilter_to_idcode(uint64_t idfilter);
 
 /**
  * Return an ID code and steps the index forward 1.
@@ -369,7 +378,7 @@ short BKE_idtype_idcode_from_index(int index);
  * \param index: start as 0.
  * \return the code, 0 when all codes have been returned.
  */
-short BKE_idtype_idcode_iter_step(int *index);
+short BKE_idtype_idcode_iter_step(int *idtype_index);
 
 /* Some helpers/wrappers around callbacks defined in #IDTypeInfo, dealing e.g. with embedded IDs.
  * XXX Ideally those would rather belong to #BKE_lib_id, but using callback function pointers makes
