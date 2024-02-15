@@ -904,12 +904,17 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
+  View3D *v3d = CTX_wm_view3d(C);
 
   {
-    View3D *v3d = CTX_wm_view3d(C);
     if (v3d && v3d->shading.type == OB_SOLID) {
       v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
     }
+  }
+
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
   }
 
   /* Color data is not available in multi-resolution or dynamic topology. */
@@ -1068,6 +1073,12 @@ static int sculpt_bake_cavity_exec(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   const Brush *brush = BKE_paint_brush(&sd->paint);
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(CTX_data_scene(C), ob);
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), ob, mmd);
