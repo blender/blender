@@ -1098,7 +1098,7 @@ static void wm_operator_reports(bContext *C,
 
   if (retval & OPERATOR_FINISHED) {
     std::string pystring = WM_operator_pystring(C, op, false, true);
-    CLOG_STR_INFO_N(WM_LOG_OPERATORS, 1, pystring.c_str());
+    CLOG_STR_INFO(WM_LOG_OPERATORS, 1, pystring.c_str());
 
     if (caller_owns_reports == false) {
       BKE_reports_print(op->reports, RPT_DEBUG); /* Print out reports to console. */
