@@ -369,6 +369,7 @@ void *avi_converter_from_mjpeg(AviMovie *movie, int stream, uchar *buffer, const
                                               movie->header->Width,
                                               3,
                                               sizeof(uchar),
+                                              true,
                                               "avi.avi_converter_from_mjpeg 1"));
   if (!buf) {
     return nullptr;
@@ -383,6 +384,7 @@ void *avi_converter_from_mjpeg(AviMovie *movie, int stream, uchar *buffer, const
                                                    movie->header->Width,
                                                    3,
                                                    sizeof(uchar),
+                                                   true,
                                                    "avi.avi_converter_from_mjpeg 2"));
     if (buffer) {
       interlace(buffer, buf, movie->header->Width, movie->header->Height);
@@ -407,6 +409,7 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, uchar *buffer, size_t 
                                               movie->header->Width,
                                               3,
                                               sizeof(uchar),
+                                              true,
                                               "avi.avi_converter_to_mjpeg 1"));
   if (!buf) {
     return nullptr;
@@ -430,6 +433,7 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, uchar *buffer, size_t 
                                                 movie->header->Width,
                                                 3,
                                                 sizeof(uchar),
+                                                true,
                                                 "avi.avi_converter_to_mjpeg 1"));
 
     if (buf) {

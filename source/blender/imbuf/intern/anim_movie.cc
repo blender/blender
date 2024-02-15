@@ -413,7 +413,7 @@ static ImBuf *avi_fetchibuf(ImBufAnim *anim, int position)
   else
 #  endif
   {
-    ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect);
+    ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect | IB_uninitialized_pixels);
 
     tmp = static_cast<int *>(AVI_read_frame(
         anim->avi, AVI_FORMAT_RGB32, position, AVI_get_stream(anim->avi, AVIST_VIDEO, 0)));
