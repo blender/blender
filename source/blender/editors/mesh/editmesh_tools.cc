@@ -3985,6 +3985,9 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
     /* select the newly generated faces */
     BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
 
+    /* No need to flush the selection, any selection history is no longer valid. */
+    BM_select_history_clear(bm);
+
     if (!EDBM_op_finish(em, &bmop, op, true)) {
       continue;
     }
