@@ -2303,6 +2303,12 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
        "No Asset Dragging",
        "Disable the default asset dragging on drag events. Useful for implementing custom "
        "dragging via custom key-map items"},
+      {ASSET_SHELF_TYPE_FLAG_DEFAULT_VISIBLE,
+       "DEFAULT_VISIBLE",
+       0,
+       "Visible by Default",
+       "Unhide the asset shelf when it's available for the first time, otherwise it will be "
+       "hidden"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
