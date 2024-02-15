@@ -16,6 +16,7 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_kelvinlet.h"
+#include "BKE_layer.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -386,6 +387,12 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   int mode = RNA_enum_get(op->ptr, "mode");
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
 

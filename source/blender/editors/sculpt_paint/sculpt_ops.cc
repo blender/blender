@@ -640,6 +640,12 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
     return OPERATOR_CANCELLED;
   }
 
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
   BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, false);
 
   /* No color attribute? Set color to white. */
