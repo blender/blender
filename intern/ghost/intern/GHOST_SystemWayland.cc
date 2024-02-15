@@ -3286,10 +3286,10 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
     GHOST_SystemWayland *const system = seat->system;
 
     if (mime_receive == ghost_wl_mime_text_uri) {
-      static constexpr const char *file_proto = "file://";
+      const char file_proto[] = "file://";
       /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
        * So support both, once `\n` is found, strip the preceding `\r` if found. */
-      static constexpr const char *lf = "\n";
+      const char lf = '\n';
 
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_window);
       std::vector<std::string> uris;
