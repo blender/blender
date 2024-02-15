@@ -562,7 +562,7 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
   }
 
   if (t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) {
-    double current = BLI_check_seconds_timer();
+    double current = BLI_time_now_seconds();
 
     /* Time base quirky code to go around find-nearest slowness. */
     /* TODO: add exception for object mode, no need to slow it down then. */

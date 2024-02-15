@@ -3520,7 +3520,7 @@ static int text_line_number_invoke(bContext *C, wmOperator * /*op*/, const wmEve
     return OPERATOR_PASS_THROUGH;
   }
 
-  time = BLI_check_seconds_timer();
+  time = BLI_time_now_seconds();
   if (last_jump < time - 1) {
     jump_to = 0;
   }

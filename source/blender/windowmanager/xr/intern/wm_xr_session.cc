@@ -1114,7 +1114,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
     return;
   }
 
-  const int64_t time_now = int64_t(BLI_check_seconds_timer() * 1000);
+  const int64_t time_now = int64_t(BLI_time_now_seconds() * 1000);
 
   ListBase *active_modal_actions = &action_set->active_modal_actions;
   ListBase *active_haptic_actions = &action_set->active_haptic_actions;

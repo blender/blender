@@ -938,7 +938,7 @@ void GPU_pass_release(GPUPass *pass)
 void GPU_pass_cache_garbage_collect()
 {
   const int shadercollectrate = 60; /* hardcoded for now. */
-  int ctime = int(BLI_check_seconds_timer());
+  int ctime = int(BLI_time_now_seconds());
 
   BLI_spin_lock(&pass_cache_spin);
   GPUPass *next, **prev_pass = &pass_cache;

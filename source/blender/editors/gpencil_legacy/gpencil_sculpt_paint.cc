@@ -1165,7 +1165,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->settings = gpencil_sculpt_get_settings(scene);
 
   /* Random generator, only init once. */
-  uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
   rng_seed ^= POINTER_AS_UINT(gso);
   gso->rng = BLI_rng_new(rng_seed);
 

@@ -4397,7 +4397,7 @@ static void ui_block_open_end(bContext *C, uiBut *but, uiHandleButtonData *data)
     but->editval = nullptr;
     but->editvec = nullptr;
 
-    but->block->auto_open_last = BLI_check_seconds_timer();
+    but->block->auto_open_last = BLI_time_now_seconds();
   }
 
   if (data->menu) {
@@ -8649,7 +8649,7 @@ static void button_activate_init(bContext *C,
    * want to allow auto opening adjacent menus even if no button is activated
    * in between going over to the other button, but only for a short while */
   if (type == BUTTON_ACTIVATE_OVER && but->block->auto_open == true) {
-    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_check_seconds_timer()) {
+    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_time_now_seconds()) {
       but->block->auto_open = false;
     }
   }
@@ -8695,7 +8695,7 @@ static void button_activate_init(bContext *C,
   if (UI_but_has_tooltip_label(but)) {
     /* Show a label for this button. */
     bScreen *screen = WM_window_get_active_screen(data->window);
-    if ((BLI_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
+    if ((BLI_time_now_seconds() - WM_tooltip_time_closed()) < 0.1) {
       WM_tooltip_immediate_init(C, CTX_wm_window(C), data->area, region, ui_but_tooltip_init);
       if (screen->tool_tip) {
         screen->tool_tip->pass = 1;
@@ -9976,7 +9976,7 @@ static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu,
       menu->towardstime = DBL_MAX; /* unlimited time */
     }
     else {
-      menu->towardstime = BLI_check_seconds_timer();
+      menu->towardstime = BLI_time_now_seconds();
     }
   }
 }
@@ -10056,7 +10056,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
   }
 
   /* 1 second timer */
-  if (BLI_check_seconds_timer() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
+  if (BLI_time_now_seconds() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
     menu->dotowards = false;
   }
 

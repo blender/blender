@@ -7763,7 +7763,7 @@ void BM_mesh_bevel(BMesh *bm,
   }
 
 #ifdef BEVEL_DEBUG_TIME
-  double start_time = BLI_check_seconds_timer();
+  double start_time = BLI_time_now_seconds();
 #endif
 
   /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful anyway. */
@@ -7931,7 +7931,7 @@ void BM_mesh_bevel(BMesh *bm,
   BLI_memarena_free(bp.mem_arena);
 
 #ifdef BEVEL_DEBUG_TIME
-  double end_time = BLI_check_seconds_timer();
+  double end_time = BLI_time_now_seconds();
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
 #endif
 }

@@ -79,7 +79,7 @@ PartDeflect *BKE_partdeflect_new(int type)
   pd->pdef_sbift = 0.2f;
   pd->pdef_sboft = 0.02f;
   pd->pdef_cfrict = 5.0f;
-  pd->seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
+  pd->seed = (uint(ceil(BLI_time_now_seconds())) + 1) % 128;
   pd->f_strength = 1.0f;
   pd->f_damp = 1.0f;
 

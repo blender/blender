@@ -100,7 +100,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     SCULPT_topology_islands_ensure(ob);
   }
 
-  const int mask_init_seed = BLI_check_seconds_timer();
+  const int mask_init_seed = BLI_time_now_seconds();
 
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

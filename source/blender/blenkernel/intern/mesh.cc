@@ -96,7 +96,7 @@ static void mesh_init_data(ID *id)
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
-  mesh->face_sets_color_seed = BLI_hash_int(BLI_check_seconds_timer_i() & UINT_MAX);
+  mesh->face_sets_color_seed = BLI_hash_int(BLI_time_now_seconds_i() & UINT_MAX);
 }
 
 static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
