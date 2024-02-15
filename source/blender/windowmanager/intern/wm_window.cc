@@ -2092,8 +2092,13 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
   timer->sleep = do_sleep;
 }
 
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step)
+wmTimer *WM_event_timer_add(wmWindowManager *wm,
+                            wmWindow *win,
+                            const int event_type,
+                            const double time_step)
 {
+  BLI_assert(ISTIMER(event_type));
+
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
   BLI_assert(time_step >= 0.0f);
 
@@ -2111,8 +2116,8 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, 
 
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
-                                     uint type,
-                                     double time_step)
+                                     const uint type,
+                                     const double time_step)
 {
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
   BLI_assert(time_step >= 0.0f);

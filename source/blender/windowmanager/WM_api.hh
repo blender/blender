@@ -628,12 +628,14 @@ wmEvent *wm_event_add(wmWindow *win, const wmEvent *event_to_add) ATTR_NONNULL(1
 
 void wm_event_init_from_window(wmWindow *win, wmEvent *event);
 
-/* at maximum, every timestep seconds it triggers event_type events */
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double timestep);
+/**
+ * At maximum, every time_step seconds it triggers `event_type` events.
+ */
+wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step);
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
                                      unsigned int type,
-                                     double timestep);
+                                     double time_step);
 
 void WM_event_timer_free_data(wmTimer *timer);
 /**
@@ -1112,9 +1114,11 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet);
  * \note Caller must free.
  */
 void WM_operatortype_iter(GHashIterator *ghi);
-void WM_operatortype_append(void (*opfunc)(wmOperatorType *));
-void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata);
-void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata);
+void WM_operatortype_append(void (*opfunc)(wmOperatorType *ot));
+void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
+                                void *userdata);
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
+                                      void *userdata);
 /**
  * Called on initialize WM_exit().
  */
@@ -1383,15 +1387,15 @@ wmDrag *WM_drag_data_create(
  * Invoke dragging using the given \a drag data.
  */
 void WM_event_start_prepared_drag(bContext *C, wmDrag *drag);
-void WM_event_drag_image(wmDrag *, const ImBuf *, float scale);
+void WM_event_drag_image(wmDrag *drag, const ImBuf *imb, float scale);
 void WM_drag_free(wmDrag *drag);
 void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
 void WM_drag_free_list(ListBase *lb);
 wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
-                          bool (*poll)(bContext *, wmDrag *, const wmEvent *event),
-                          void (*copy)(bContext *, wmDrag *, wmDropBox *),
-                          void (*cancel)(Main *, wmDrag *, wmDropBox *),
+                          bool (*poll)(bContext *C, wmDrag *drag, const wmEvent *event),
+                          void (*copy)(bContext *C, wmDrag *drag, wmDropBox *drop),
+                          void (*cancel)(Main *bmain, wmDrag *drag, wmDropBox *drop),
                           WMDropboxTooltipFunc tooltip);
 /**
  * Ensure operator pointers & properties are valid after operators have been added/removed.
@@ -1585,13 +1589,13 @@ void *WM_jobs_customdata_from_type(wmWindowManager *wm, const void *owner, int j
 
 bool WM_jobs_is_running(const wmJob *wm_job);
 bool WM_jobs_is_stopped(const wmWindowManager *wm, const void *owner);
-void *WM_jobs_customdata_get(wmJob *);
-void WM_jobs_customdata_set(wmJob *, void *customdata, void (*free)(void *));
-void WM_jobs_timer(wmJob *, double timestep, unsigned int note, unsigned int endnote);
-void WM_jobs_delay_start(wmJob *, double delay_time);
+void *WM_jobs_customdata_get(wmJob *wm_job);
+void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *));
+void WM_jobs_timer(wmJob *wm_job, double time_step, unsigned int note, unsigned int endnote);
+void WM_jobs_delay_start(wmJob *wm_job, double delay_time);
 
 using wm_jobs_start_callback = void (*)(void *custom_data, wmJobWorkerStatus *worker_status);
-void WM_jobs_callbacks(wmJob *,
+void WM_jobs_callbacks(wmJob *wm_job,
                        wm_jobs_start_callback startjob,
                        void (*initjob)(void *),
                        void (*update)(void *),
@@ -1609,7 +1613,7 @@ void WM_jobs_callbacks_ex(wmJob *wm_job,
  * If job running, the same owner gave it a new job.
  * if different owner starts existing #wmJob::startjob, it suspends itself.
  */
-void WM_jobs_start(wmWindowManager *wm, wmJob *);
+void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job);
 /**
  * Signal job(s) from this owner or callback to stop, timer is required to get handled.
  */
@@ -1631,8 +1635,8 @@ void WM_jobs_kill_type(wmWindowManager *wm, const void *owner, int job_type);
 bool WM_jobs_has_running(const wmWindowManager *wm);
 bool WM_jobs_has_running_type(const wmWindowManager *wm, int job_type);
 
-void WM_job_main_thread_lock_acquire(wmJob *job);
-void WM_job_main_thread_lock_release(wmJob *job);
+void WM_job_main_thread_lock_acquire(wmJob *wm_job);
+void WM_job_main_thread_lock_release(wmJob *wm_job);
 
 /* Clipboard. */
 
@@ -1674,7 +1678,9 @@ void WM_progress_clear(wmWindow *win);
 
 /* Draw (for screenshot) */
 
-void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata);
+void *WM_draw_cb_activate(wmWindow *win,
+                          void (*draw)(const wmWindow *win, void *customdata),
+                          void *customdata);
 void WM_draw_cb_exit(wmWindow *win, void *handle);
 /**
  * High level function to redraw windows.

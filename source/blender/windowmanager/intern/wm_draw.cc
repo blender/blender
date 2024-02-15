@@ -600,11 +600,13 @@ static const char *wm_area_name(ScrArea *area)
 struct WindowDrawCB {
   WindowDrawCB *next, *prev;
 
-  void (*draw)(const wmWindow *, void *);
+  void (*draw)(const wmWindow *win, void *customdata);
   void *customdata;
 };
 
-void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata)
+void *WM_draw_cb_activate(wmWindow *win,
+                          void (*draw)(const wmWindow *win, void *customdata),
+                          void *customdata)
 {
   WindowDrawCB *wdc = static_cast<WindowDrawCB *>(MEM_callocN(sizeof(*wdc), "WindowDrawCB"));
 

@@ -13,18 +13,14 @@
 extern "C" {
 #endif
 
-extern
-    /** Return an indication of time, expressed as
-     * seconds since some fixed point. Successive calls
-     * are guaranteed to generate values greater than or
-     * equal to the last call. */
-    double
-    BLI_time_now_seconds(void);
+/**
+ * Return an indication of time, expressed as seconds since some fixed point.
+ * Successive calls are guaranteed to generate values greater than or equal to the last call.
+ */
+extern double BLI_time_now_seconds(void);
 
-extern
-    /** `int` version of #BLI_time_now_seconds. */
-    long int
-    BLI_time_now_seconds_i(void);
+/** `int` version of #BLI_time_now_seconds. */
+extern long int BLI_time_now_seconds_i(void);
 
 /**
  * Platform-independent sleep function.

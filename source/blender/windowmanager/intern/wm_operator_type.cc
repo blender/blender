@@ -509,7 +509,8 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   return ot;
 }
 
-void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
+                                      void *userdata)
 {
   wmOperatorType *ot;
 

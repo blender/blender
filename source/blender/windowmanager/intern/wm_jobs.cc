@@ -331,7 +331,7 @@ void *WM_jobs_customdata_get(wmJob *wm_job)
   return wm_job->customdata;
 }
 
-void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *))
+void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *customdata))
 {
   /* pending job? just free */
   if (wm_job->customdata) {

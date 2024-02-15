@@ -107,9 +107,9 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 
 wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
-                          bool (*poll)(bContext *, wmDrag *, const wmEvent *),
-                          void (*copy)(bContext *, wmDrag *, wmDropBox *),
-                          void (*cancel)(Main *, wmDrag *, wmDropBox *),
+                          bool (*poll)(bContext *C, wmDrag *drag, const wmEvent *event),
+                          void (*copy)(bContext *C, wmDrag *drag, wmDropBox *drop),
+                          void (*cancel)(Main *bmain, wmDrag *drag, wmDropBox *drop),
                           WMDropboxTooltipFunc tooltip)
 {
   wmOperatorType *ot = WM_operatortype_find(idname, true);
