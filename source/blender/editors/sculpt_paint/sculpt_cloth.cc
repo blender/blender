@@ -25,6 +25,7 @@
 #include "BKE_collision.h"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
@@ -1528,6 +1529,12 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
+
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
 
   const eSculptClothFilterType filter_type = eSculptClothFilterType(RNA_enum_get(op->ptr, "type"));
 
