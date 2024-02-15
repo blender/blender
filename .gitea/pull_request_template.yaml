@@ -20,3 +20,9 @@ body:
     attributes:
       label: "Description"
       hide_label: true
+
+  - type: input
+    attributes:
+      label: "Release Notes Pull Request"
+      description: "Link to a pull request adding this change to the [release notes](https://developer.blender.org/docs/release_notes/). This is highly encouraged for any noteworthy change."
+      placeholder: "URL"
