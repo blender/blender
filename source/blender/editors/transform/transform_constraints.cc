@@ -905,15 +905,6 @@ void drawPropCircle(TransInfo *t)
     else if (t->spacetype == SPACE_IMAGE) {
       GPU_matrix_scale_2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
     }
-    else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION)) {
-      /* only scale y */
-      float xscale, yscale;
-      UI_view2d_scale_get(&t->region->v2d, &xscale, &yscale);
-
-      const float fac_scale = xscale / yscale;
-      GPU_matrix_scale_2f(1.0f, fac_scale);
-      GPU_matrix_translate_2f(0.0f, (t->center_global[1] / fac_scale) - t->center_global[1]);
-    }
 
     eGPUDepthTest depth_test_enabled = GPU_depth_test_get();
     if (depth_test_enabled) {
@@ -946,6 +937,40 @@ void drawPropCircle(TransInfo *t)
 
     GPU_matrix_pop();
   }
+}
+
+void drawPropRange(TransInfo *t)
+{
+  if ((t->flag & T_PROP_EDIT) == 0) {
+    return;
+  }
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+  float viewport[4];
+  GPU_viewport_size_get_f(viewport);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  immUniform2fv("viewportSize", &viewport[2]);
+
+  View2D *v2d = &t->region->v2d;
+  const float x1 = t->center_global[0] - t->prop_size;
+  const float y1 = v2d->cur.ymin;
+  const float x2 = t->center_global[0] + t->prop_size;
+  const float y2 = v2d->cur.ymax;
+
+  immUniform1f("lineWidth", 3.0f * U.pixelsize);
+  immUniformThemeColorShadeAlpha(TH_GRID, -20, 255);
+  imm_draw_box_wire_3d(pos, x1, y1, x2, y2);
+
+  immUniform1f("lineWidth", 1.0f * U.pixelsize);
+  immUniformThemeColorShadeAlpha(TH_GRID, 20, 255);
+  imm_draw_box_wire_3d(pos, x1, y1, x2, y2);
+
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void drawObjectConstraint(TransInfo *t)
