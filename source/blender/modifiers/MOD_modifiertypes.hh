@@ -84,6 +84,7 @@ extern ModifierTypeInfo modifierType_GreasePencilMirror;
 extern ModifierTypeInfo modifierType_GreasePencilThickness;
 extern ModifierTypeInfo modifierType_GreasePencilLattice;
 extern ModifierTypeInfo modifierType_GreasePencilDash;
+extern ModifierTypeInfo modifierType_GreasePencilMultiply;
 
 /* MOD_util.cc */
 
