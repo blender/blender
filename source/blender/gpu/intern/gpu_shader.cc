@@ -447,6 +447,12 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
   return sh;
 }
 
+void GPU_shader_compile_static()
+{
+  printf("Compiling all static GPU shaders. This process takes a while.\n");
+  gpu_shader_create_info_compile("");
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
