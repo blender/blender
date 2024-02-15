@@ -140,6 +140,7 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_MB = {
     /*id_code*/ ID_MB,
     /*id_filter*/ FILTER_ID_MB,
+    /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_MB,
     /*struct_size*/ sizeof(MetaBall),
     /*name*/ "Metaball",

@@ -146,6 +146,7 @@ static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_PT = {
     /*id_code*/ ID_PT,
     /*id_filter*/ FILTER_ID_PT,
+    /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_PT,
     /*struct_size*/ sizeof(PointCloud),
     /*name*/ "PointCloud",

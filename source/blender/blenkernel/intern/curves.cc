@@ -133,6 +133,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CV = {
     /*id_code*/ ID_CV,
     /*id_filter*/ FILTER_ID_CV,
+    /*dependencies_id_types*/ FILTER_ID_MA | FILTER_ID_OB,
     /*main_listbase_index*/ INDEX_ID_CV,
     /*struct_size*/ sizeof(Curves),
     /*name*/ "Curves",

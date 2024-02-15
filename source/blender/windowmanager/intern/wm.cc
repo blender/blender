@@ -247,6 +247,7 @@ static void window_manager_blend_read_after_liblink(BlendLibReader *reader, ID *
 IDTypeInfo IDType_ID_WM = {
     /*id_code*/ ID_WM,
     /*id_filter*/ FILTER_ID_WM,
+    /*dependencies_id_types*/ FILTER_ID_SCE | FILTER_ID_WS,
     /*main_listbase_index*/ INDEX_ID_WM,
     /*struct_size*/ sizeof(wmWindowManager),
     /*name*/ "WindowManager",

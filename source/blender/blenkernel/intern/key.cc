@@ -191,6 +191,8 @@ static void shapekey_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *i
 IDTypeInfo IDType_ID_KE = {
     /*id_code*/ ID_KE,
     /*id_filter*/ FILTER_ID_KE,
+    /* Warning! key->from, could be more types in future? */
+    /*dependencies_id_types*/ FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT,
     /*main_listbase_index*/ INDEX_ID_KE,
     /*struct_size*/ sizeof(Key),
     /*name*/ "Key",

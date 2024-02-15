@@ -379,6 +379,7 @@ static void particle_settings_blend_read_after_liblink(BlendLibReader * /*reader
 IDTypeInfo IDType_ID_PA = {
     /*id_code*/ ID_PA,
     /*id_filter*/ FILTER_ID_PA,
+    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE,
     /*main_listbase_index*/ INDEX_ID_PA,
     /*struct_size*/ sizeof(ParticleSettings),
     /*name*/ "ParticleSettings",

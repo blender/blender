@@ -426,6 +426,8 @@ static AssetTypeInfo AssetType_BR = {
 IDTypeInfo IDType_ID_BR = {
     /*id_code*/ ID_BR,
     /*id_filter*/ FILTER_ID_BR,
+    /*dependencies_id_types*/
+    (FILTER_ID_BR | FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA),
     /*main_listbase_index*/ INDEX_ID_BR,
     /*struct_size*/ sizeof(Brush),
     /*name*/ "Brush",

@@ -475,6 +475,8 @@ static void armature_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *
 IDTypeInfo IDType_ID_AR = {
     /*id_code*/ ID_AR,
     /*id_filter*/ FILTER_ID_AR,
+    /* IDProps of armature bones can use any type of ID. */
+    /*dependencies_id_types*/ FILTER_ID_ALL,
     /*main_listbase_index*/ INDEX_ID_AR,
     /*struct_size*/ sizeof(bArmature),
     /*name*/ "Armature",

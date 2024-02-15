@@ -147,6 +147,7 @@ static void palette_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *i
 IDTypeInfo IDType_ID_PAL = {
     /*id_code*/ ID_PAL,
     /*id_filter*/ FILTER_ID_PAL,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_PAL,
     /*struct_size*/ sizeof(Palette),
     /*name*/ "Palette",
@@ -214,6 +215,7 @@ static void paint_curve_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_PC = {
     /*id_code*/ ID_PC,
     /*id_filter*/ FILTER_ID_PC,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_PC,
     /*struct_size*/ sizeof(PaintCurve),
     /*name*/ "PaintCurve",

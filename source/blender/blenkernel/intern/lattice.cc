@@ -158,6 +158,7 @@ static void lattice_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_LT = {
     /*id_code*/ ID_LT,
     /*id_filter*/ FILTER_ID_LT,
+    /*dependencies_id_types*/ FILTER_ID_KE,
     /*main_listbase_index*/ INDEX_ID_LT,
     /*struct_size*/ sizeof(Lattice),
     /*name*/ "Lattice",

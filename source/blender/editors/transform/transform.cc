@@ -1492,7 +1492,20 @@ static void drawTransformView(const bContext * /*C*/, ARegion *region, void *arg
   GPU_line_width(1.0f);
 
   drawConstraint(t);
-  drawPropCircle(t);
+
+  switch (t->spacetype) {
+    case SPACE_GRAPH:
+    case SPACE_ACTION:
+      /* Different visualization because the proportional editing in these editors only looks at
+       * the x-axis. */
+      drawPropRange(t);
+      break;
+
+    default:
+      drawPropCircle(t);
+      break;
+  }
+
   drawSnapping(t);
 
   if (region == t->region && t->mode_info && t->mode_info->draw_fn) {

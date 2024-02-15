@@ -273,6 +273,7 @@ static void volume_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 IDTypeInfo IDType_ID_VO = {
     /*id_code*/ ID_VO,
     /*id_filter*/ FILTER_ID_VO,
+    /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_VO,
     /*struct_size*/ sizeof(Volume),
     /*name*/ "Volume",

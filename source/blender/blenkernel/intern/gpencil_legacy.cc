@@ -264,6 +264,7 @@ static void greasepencil_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_GD_LEGACY = {
     /*id_code*/ ID_GD_LEGACY,
     /*id_filter*/ FILTER_ID_GD_LEGACY,
+    /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_GD_LEGACY,
     /*struct_size*/ sizeof(bGPdata),
     /*name*/ "GPencil",

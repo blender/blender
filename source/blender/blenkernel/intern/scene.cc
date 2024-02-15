@@ -1604,6 +1604,10 @@ constexpr IDTypeInfo get_type_info()
   IDTypeInfo info{};
   info.id_code = ID_SCE;
   info.id_filter = FILTER_ID_SCE;
+  info.dependencies_id_types = (FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC |
+                                FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS |
+                                FILTER_ID_MSK | FILTER_ID_SO | FILTER_ID_GD_LEGACY | FILTER_ID_BR |
+                                FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT);
   info.main_listbase_index = INDEX_ID_SCE;
   info.struct_size = sizeof(Scene);
   info.name = "Scene";

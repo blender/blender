@@ -229,6 +229,7 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CA = {
     /*id_code*/ ID_CA,
     /*id_filter*/ FILTER_ID_CA,
+    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_CA,
     /*struct_size*/ sizeof(Camera),
     /*name*/ "Camera",

@@ -53,6 +53,7 @@ static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_a
 IDTypeInfo IDType_ID_LP = {
     /*id_code*/ ID_LP,
     /*id_filter*/ FILTER_ID_LP,
+    /*dependencies_id_types*/ FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_LP,
     /*struct_size*/ sizeof(LightProbe),
     /*name*/ "LightProbe",
