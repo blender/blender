@@ -107,6 +107,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilLattice = 70,
   eModifierType_GreasePencilDash = 71,
   eModifierType_GreasePencilMultiply = 72,
+  eModifierType_GreasePencilLength = 73,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -2664,6 +2665,7 @@ typedef enum GreasePencilTintModifierFlag {
   MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR = (1 << 0),
 } GreasePencilTintModifierFlag;
 
+/* Enum definitions for length modifier stays in the old DNA for the moment. */
 typedef struct GreasePencilSmoothModifierData {
   ModifierData modifier;
   GreasePencilModifierInfluenceData influence;
@@ -2843,3 +2845,25 @@ typedef enum GreasePencilMultiplyModifierFlag {
   /* GP_MULTIPLY_ENABLE_ANGLE_SPLITTING = (1 << 1),  Deprecated. */
   MOD_GREASE_PENCIL_MULTIPLY_ENABLE_FADING = (1 << 2),
 } GreasePencilMultiplyModifierFlag;
+
+typedef struct GreasePencilLengthModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  int flag;
+  float start_fac, end_fac;
+  float rand_start_fac, rand_end_fac, rand_offset;
+  float overshoot_fac;
+  /** (first element is the index) random values. */
+  int seed;
+  /** How many frames before recalculate randoms. */
+  int step;
+  /** #eLengthGpencil_Type. */
+  int mode;
+  char _pad[4];
+  /* Curvature parameters. */
+  float point_density;
+  float segment_influence;
+  float max_angle;
+
+  void *_pad1;
+} GreasePencilLengthModifierData;

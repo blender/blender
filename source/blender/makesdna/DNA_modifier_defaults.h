@@ -812,7 +812,7 @@
   { \
     .level = 1, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilColorModifierData \
   { \
     .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
@@ -859,7 +859,7 @@
     .step = 4, \
     .seed = 1, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilMirrorModifierData \
   { \
     .flag = MOD_GREASE_PENCIL_MIRROR_AXIS_X, \
@@ -895,7 +895,7 @@
     .opacity = 1.0f, \
     .mat_nr = -1, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilMultiModifierData \
   { \
     .flag = 0, \
@@ -905,6 +905,22 @@
     .fading_center = 0.5f, \
     .fading_thickness = 0.5f, \
     .fading_opacity = 0.5f, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilLengthModifierData \
+  { \
+    .start_fac = 0.1f,\
+    .end_fac = 0.1f,\
+    .overshoot_fac = 0.1f,\
+    .flag = GP_LENGTH_USE_CURVATURE,\
+    .point_density = 30.0f,\
+    .segment_influence = 0.0f,\
+    .max_angle = DEG2RAD(170.0f),\
+    .rand_start_fac = 0.0f,\
+    .rand_end_fac = 0.0f,\
+    .rand_offset = 0.0f,\
+    .seed = 0,\
+    .step = 4,\
   }
 
 /* clang-format off */
