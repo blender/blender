@@ -826,6 +826,7 @@ void BKE_ffmpeg_sws_release_context(SwsContext *ctx)
     }
   }
   BLI_assert_msg(found, "Releasing ffmpeg swscale context that is not in cache");
+  UNUSED_VARS_NDEBUG(found);
   maintain_swscale_cache_size();
 
   BLI_mutex_unlock(&swscale_cache_lock);
