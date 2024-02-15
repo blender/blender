@@ -332,6 +332,13 @@ typedef enum {
  */
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
 
+/**
+ * Compile all staticly defined shaders and print a report to the console.
+ *
+ * This is used for platform support, where bug reports can list all failing shaders.
+ */
+void GPU_shader_compile_static();
+
 /** DEPRECATED: Use hardcoded buffer location instead. */
 typedef enum {
   GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */

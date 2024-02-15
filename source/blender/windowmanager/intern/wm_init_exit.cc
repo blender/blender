@@ -167,6 +167,10 @@ void WM_init_gpu()
 
   GPU_pass_cache_init();
 
+  if (G.debug & G_DEBUG_GPU_COMPILE_SHADERS) {
+    GPU_shader_compile_static();
+  }
+
   gpu_is_init = true;
 }
 

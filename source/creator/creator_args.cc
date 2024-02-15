@@ -664,6 +664,7 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-wintab");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-compile-shaders");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
@@ -1206,6 +1207,17 @@ static int arg_handle_debug_gpu_set(int /*argc*/, const char ** /*argv*/, void *
   const char *gpu_filter = "gpu.*";
   CLG_type_filter_include(gpu_filter, strlen(gpu_filter));
   G.debug |= G_DEBUG_GPU;
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_compile_shaders_set_doc[] =
+    "\n"
+    "\tCompile all staticly defined shaders to test platform compatibility.";
+static int arg_handle_debug_gpu_compile_shaders_set(int /*argc*/,
+                                                    const char ** /*argv*/,
+                                                    void * /*data*/)
+{
+  G.debug |= G_DEBUG_GPU_COMPILE_SHADERS;
   return 0;
 }
 
@@ -2418,6 +2430,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
                (void *)G_DEBUG_JOBS);
   BLI_args_add(ba, nullptr, "--debug-gpu", CB(arg_handle_debug_gpu_set), nullptr);
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-compile-shaders",
+               CB(arg_handle_debug_gpu_compile_shaders_set),
+               nullptr);
   if (defs.with_renderdoc) {
     BLI_args_add(
         ba, nullptr, "--debug-gpu-renderdoc", CB(arg_handle_debug_gpu_renderdoc_set), nullptr);
