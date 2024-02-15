@@ -165,26 +165,28 @@ static void store_opaque_black_pixel(float *dst)
 static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
                                     ImBuf *ibuf1,
                                     ImBuf *ibuf2,
-                                    ImBuf *ibuf3)
+                                    ImBuf *ibuf3,
+                                    bool uninitialized_pixels = true)
 {
   ImBuf *out;
   Scene *scene = context->scene;
   int x = context->rectx;
   int y = context->recty;
+  int base_flags = uninitialized_pixels ? IB_uninitialized_pixels : 0;
 
   if (!ibuf1 && !ibuf2 && !ibuf3) {
     /* hmmm, global float option ? */
-    out = IMB_allocImBuf(x, y, 32, IB_rect);
+    out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
   }
   else if ((ibuf1 && ibuf1->float_buffer.data) || (ibuf2 && ibuf2->float_buffer.data) ||
            (ibuf3 && ibuf3->float_buffer.data))
   {
     /* if any inputs are rectfloat, output is float too */
 
-    out = IMB_allocImBuf(x, y, 32, IB_rectfloat);
+    out = IMB_allocImBuf(x, y, 32, IB_rectfloat | base_flags);
   }
   else {
-    out = IMB_allocImBuf(x, y, 32, IB_rect);
+    out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
   }
 
   if (out->float_buffer.data) {
@@ -2708,7 +2710,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
 {
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
+  /* Note: text rasterization only fills in part of output image,
+   * need to clear it. */
+  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3, false);
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   int width = out->x;
   int height = out->y;

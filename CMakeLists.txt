@@ -703,12 +703,7 @@ mark_as_advanced(WITH_DRAW_DEBUG)
 
 # LLVM
 option(WITH_LLVM "Use LLVM" OFF)
-if(APPLE)
-  # We prefer static llvm build on Apple, dyn build possible though.
-  option(LLVM_STATIC "Link with LLVM static libraries" ON)
-else()
-  option(LLVM_STATIC "Link with LLVM static libraries" OFF)
-endif()
+option(LLVM_STATIC "Link with LLVM static libraries" OFF)
 mark_as_advanced(LLVM_STATIC)
 option(WITH_CLANG "Use Clang" OFF)
 
@@ -1156,14 +1151,7 @@ set_and_warn_dependency(WITH_IMAGE_OPENEXR WITH_CYCLES_OSL OFF)
 # Hydra requires USD.
 set_and_warn_dependency(WITH_USD WITH_HYDRA OFF)
 
-# auto enable openimageio for cycles
-if(WITH_CYCLES)
-  # auto enable llvm for cycles_osl
-  if(WITH_CYCLES_OSL)
-    set(WITH_LLVM ON CACHE BOOL "" FORCE)
-    set(WITH_CLANG ON CACHE BOOL "" FORCE)
-  endif()
-else()
+if(NOT WITH_CYCLES)
   set(WITH_CYCLES_OSL OFF)
 endif()
 
@@ -1380,18 +1368,6 @@ endif()
 
 if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
   message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
-endif()
-
-if(WITH_CYCLES)
-  if(WITH_CYCLES_OSL)
-    if(NOT WITH_LLVM)
-      message(
-        FATAL_ERROR
-        "Cycles OSL requires WITH_LLVM, the library may not have been found. "
-        "Configure LLVM or disable WITH_CYCLES_OSL"
-      )
-    endif()
-  endif()
 endif()
 
 if(WITH_INTERNATIONAL)

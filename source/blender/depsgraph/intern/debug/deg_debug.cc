@@ -33,7 +33,7 @@ void DepsgraphDebug::begin_graph_evaluation()
     return;
   }
 
-  const double current_time = BLI_check_seconds_timer();
+  const double current_time = BLI_time_now_seconds();
 
   graph_evaluation_start_time_ = current_time;
 }
@@ -44,7 +44,7 @@ void DepsgraphDebug::end_graph_evaluation()
     return;
   }
 
-  const double graph_eval_end_time = BLI_check_seconds_timer();
+  const double graph_eval_end_time = BLI_time_now_seconds();
   const double graph_eval_time = graph_eval_end_time - graph_evaluation_start_time_;
 
   if (name.empty()) {

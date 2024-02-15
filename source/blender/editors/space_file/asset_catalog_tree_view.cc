@@ -181,11 +181,14 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 AssetCatalogTreeView::AssetCatalogTreeView(asset_system::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
-    : asset_library_(library),
-      catalog_tree_(library->catalog_service->get_catalog_tree()),
-      params_(params),
-      space_file_(space_file)
+    : asset_library_(library), params_(params), space_file_(space_file)
 {
+  if (library && library->catalog_service) {
+    catalog_tree_ = library->catalog_service->get_catalog_tree();
+  }
+  else {
+    catalog_tree_ = nullptr;
+  }
 }
 
 void AssetCatalogTreeView::build_tree()

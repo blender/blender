@@ -327,7 +327,7 @@ static void dpaint_bake_endjob(void *customdata)
   if (job->success) {
     /* Show bake info */
     WM_reportf(
-        RPT_INFO, "DynamicPaint: Bake complete! (%.2f)", BLI_check_seconds_timer() - job->start);
+        RPT_INFO, "DynamicPaint: Bake complete! (%.2f)", BLI_time_now_seconds() - job->start);
   }
   else {
     if (strlen(canvas->error)) { /* If an error occurred */
@@ -438,7 +438,7 @@ static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_sta
   job->stop = &worker_status->stop;
   job->do_update = &worker_status->do_update;
   job->progress = &worker_status->progress;
-  job->start = BLI_check_seconds_timer();
+  job->start = BLI_time_now_seconds();
   job->success = 1;
 
   G.is_break = false;

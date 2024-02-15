@@ -2539,7 +2539,7 @@ void nodeUniqueName(bNodeTree *ntree, bNode *node)
 void nodeUniqueID(bNodeTree *ntree, bNode *node)
 {
   /* Use a pointer cast to avoid overflow warnings. */
-  const double time = BLI_check_seconds_timer() * 1000000.0;
+  const double time = BLI_time_now_seconds() * 1000000.0;
   blender::RandomNumberGenerator id_rng{*reinterpret_cast<const uint32_t *>(&time)};
 
   /* In the unlikely case that the random ID doesn't match, choose a new one until it does. */

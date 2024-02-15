@@ -188,7 +188,11 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   BKE_library_foreach_ID_link(
       bmain_src, &scene_dst->id, gather_strip_data_ids_to_null, &id_remapper, IDWALK_RECURSE);
 
-  BKE_libblock_remap_multiple(bmain_src, id_remapper, 0);
+  BKE_libblock_relink_multiple(bmain_src,
+                               {&scene_dst->id},
+                               ID_REMAP_TYPE_REMAP,
+                               id_remapper,
+                               (ID_REMAP_SKIP_USER_CLEAR | ID_REMAP_SKIP_USER_REFCOUNT));
 
   /* Ensure that there are no old copy tags around */
   BKE_blendfile_write_partial_begin(bmain_src);

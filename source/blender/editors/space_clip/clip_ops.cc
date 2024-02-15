@@ -556,7 +556,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vpd->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vpd->timer_lastdraw = BLI_check_seconds_timer();
+    vpd->timer_lastdraw = BLI_time_now_seconds();
   }
 
   vpd->x = event->xy[0];
@@ -648,7 +648,7 @@ static void view_zoom_apply(
 
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     SpaceClip *sclip = CTX_wm_space_clip(C);
-    double time = BLI_check_seconds_timer();
+    double time = BLI_time_now_seconds();
     float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
 

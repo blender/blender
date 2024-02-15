@@ -3357,7 +3357,7 @@ static void softbody_step(
   float forcetime;
   double sct, sst;
 
-  sst = BLI_check_seconds_timer();
+  sst = BLI_time_now_seconds();
   /* Integration back in time is possible in theory, but pretty useless here.
    * So we refuse to do so. Since we do not know anything about 'outside' changes
    * especially colliders we refuse to go more than 10 frames.
@@ -3453,7 +3453,7 @@ static void softbody_step(
       }
       loops++;
       if (sb->solverflags & SBSO_MONITOR) {
-        sct = BLI_check_seconds_timer();
+        sct = BLI_time_now_seconds();
         if (sct - sst > 0.5) {
           printf("%3.0f%% \r", 100.0f * timedone / dtime);
         }
@@ -3494,7 +3494,7 @@ static void softbody_step(
   }
 
   if (sb->solverflags & SBSO_MONITOR) {
-    sct = BLI_check_seconds_timer();
+    sct = BLI_time_now_seconds();
     if ((sct - sst > 0.5) || (G.debug & G_DEBUG)) {
       printf(" solver time %f sec %s\n", sct - sst, ob->id.name);
     }

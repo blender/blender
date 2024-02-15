@@ -94,7 +94,6 @@ std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain
   return AS_asset_library_find_suitable_root_path_from_path(bmain->filepath);
 }
 
-
 void AS_asset_library_remap_ids(const bke::id::IDRemapper &mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();

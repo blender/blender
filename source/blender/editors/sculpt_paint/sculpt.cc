@@ -69,6 +69,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_gpencil_legacy.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
@@ -3958,7 +3959,7 @@ bool SCULPT_mode_poll(bContext *C)
 
 bool SCULPT_mode_poll_view3d(bContext *C)
 {
-  return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C));
+  return (SCULPT_mode_poll(C) && CTX_wm_region_view3d(C) && !ED_gpencil_session_active());
 }
 
 bool SCULPT_poll(bContext *C)

@@ -139,7 +139,7 @@ void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_flo
       /* We perform conversion to a float buffer so we don't worry about
        * precision loss.
        */
-      imb_addrectfloatImBuf(ibuf, 4);
+      imb_addrectfloatImBuf(ibuf, 4, false);
       IMB_colormanagement_transform_from_byte_threaded(ibuf->float_buffer.data,
                                                        ibuf->byte_buffer.data,
                                                        ibuf->x,
@@ -1342,7 +1342,8 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     const float *fp_src;
     float *fp_dst;
 
-    ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rectfloat);
+    ibuf = IMB_allocImBuf(
+        context->rectx, context->recty, 32, IB_rectfloat | IB_uninitialized_pixels);
 
     fp_src = maskbuf;
     fp_dst = ibuf->float_buffer.data;
@@ -1360,7 +1361,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     const float *fp_src;
     uchar *ub_dst;
 
-    ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
+    ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect | IB_uninitialized_pixels);
 
     fp_src = maskbuf;
     ub_dst = ibuf->byte_buffer.data;

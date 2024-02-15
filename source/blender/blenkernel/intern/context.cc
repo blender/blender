@@ -767,7 +767,7 @@ wmMsgBus *CTX_wm_message_bus(const bContext *C)
 ReportList *CTX_wm_reports(const bContext *C)
 {
   if (C->wm.manager) {
-    return &(C->wm.manager->reports);
+    return &(C->wm.manager->runtime->reports);
   }
 
   return nullptr;

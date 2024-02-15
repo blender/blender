@@ -3698,11 +3698,12 @@ eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop)
   return sprop->search_flag;
 }
 
-void RNA_property_string_search(const bContext *C,
-                                PointerRNA *ptr,
-                                PropertyRNA *prop,
-                                const char *edit_text,
-                                blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void RNA_property_string_search(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *edit_text,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   BLI_assert(RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED);
   StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);

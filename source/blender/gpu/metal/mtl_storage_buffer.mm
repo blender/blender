@@ -430,7 +430,7 @@ void MTLStorageBuf::read(void *data)
     if (gpu_write_fence_ != nil) {
       /* Ensure the GPU updates are visible to the host before reading. */
       while (gpu_write_fence_.signaledValue < host_read_signal_value_) {
-        BLI_sleep_ms(1);
+        BLI_time_sleep_ms(1);
       }
     }
 

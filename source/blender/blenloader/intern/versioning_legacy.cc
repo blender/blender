@@ -2592,7 +2592,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->pd) {
-        ob->pd->seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
+        ob->pd->seed = (uint(ceil(BLI_time_now_seconds())) + 1) % 128;
       }
     }
   }

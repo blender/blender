@@ -3212,7 +3212,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     BlendFileReadReport *reports)
 {
   const bool do_reports_recursive_resync_timing = (library_indirect_level != 0);
-  const double init_time = do_reports_recursive_resync_timing ? BLI_check_seconds_timer() : 0.0;
+  const double init_time = do_reports_recursive_resync_timing ? BLI_time_now_seconds() : 0.0;
 
   BKE_main_relations_create(bmain, 0);
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
@@ -3518,7 +3518,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
   BKE_lib_override_library_main_hierarchy_root_ensure(bmain);
 
   if (do_reports_recursive_resync_timing) {
-    reports->duration.lib_overrides_recursive_resync += BLI_check_seconds_timer() - init_time;
+    reports->duration.lib_overrides_recursive_resync += BLI_time_now_seconds() - init_time;
   }
 
   return process_lib_level_again;

@@ -55,6 +55,10 @@ class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
         layout.operator("grease_pencil.layer_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
         layout.operator("grease_pencil.layer_hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
 
+        layout.separator()
+        layout.operator("grease_pencil.layer_lock_all", icon='LOCKED', text="Lock All")
+        layout.operator("grease_pencil.layer_lock_all", icon='UNLOCKED', text="Unlock All").lock = False
+
 
 class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
     bl_label = "Layers"

@@ -794,7 +794,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
   ms->iterations = RNA_int_get(op->ptr, "iterations");
   ms->i = 0;
   ms->handle = construct_param_handle_multi(scene, objects, &options);
-  ms->lasttime = BLI_check_seconds_timer();
+  ms->lasttime = BLI_time_now_seconds();
 
   blender::geometry::uv_parametrizer_stretch_begin(ms->handle);
   if (ms->blend != 0.0f) {
@@ -820,7 +820,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
   ms->i++;
   RNA_int_set(op->ptr, "iterations", ms->i);
 
-  if (interactive && (BLI_check_seconds_timer() - ms->lasttime > 0.5)) {
+  if (interactive && (BLI_time_now_seconds() - ms->lasttime > 0.5)) {
     char str[UI_MAX_DRAW_STR];
 
     blender::geometry::uv_parametrizer_flush(ms->handle);
@@ -831,7 +831,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
       ED_workspace_status_text(C, IFACE_("Press + and -, or scroll wheel to set blending"));
     }
 
-    ms->lasttime = BLI_check_seconds_timer();
+    ms->lasttime = BLI_time_now_seconds();
 
     for (Object *obedit : ms->objects_edit) {
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -956,11 +956,11 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, const wmEvent *ev
       break;
     case TIMER:
       if (ms->timer == event->customdata) {
-        double start = BLI_check_seconds_timer();
+        double start = BLI_time_now_seconds();
 
         do {
           minimize_stretch_iteration(C, op, true);
-        } while (BLI_check_seconds_timer() - start < 0.01);
+        } while (BLI_time_now_seconds() - start < 0.01);
       }
       break;
   }

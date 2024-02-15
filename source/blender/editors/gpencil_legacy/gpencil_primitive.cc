@@ -363,7 +363,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   gpencil_primitive_allocate_memory(tgpi);
 
   /* Random generator, only init once. */
-  uint rng_seed = uint(BLI_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
   tgpi->rng = BLI_rng_new(rng_seed);
 
   DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);

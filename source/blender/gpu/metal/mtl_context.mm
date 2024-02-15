@@ -2678,7 +2678,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   }
 
   while (MTLContext::max_drawables_in_flight > min_ii(perf_max_drawables, MTL_MAX_DRAWABLES)) {
-    BLI_sleep_ms(1);
+    BLI_time_sleep_ms(1);
   }
 
   /* Present is submitted in its own CMD Buffer to ensure drawable reference released as early as

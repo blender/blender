@@ -210,7 +210,7 @@ class Context : public realtime_compositor::Context {
   int2 get_render_size() const override
   {
     int width, height;
-    BKE_render_resolution(input_data_.render_data, false, &width, &height);
+    BKE_render_resolution(input_data_.render_data, true, &width, &height);
     return int2(width, height);
   }
 

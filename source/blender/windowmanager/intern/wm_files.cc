@@ -615,7 +615,7 @@ void WM_file_autoexec_init(const char *filepath)
 void wm_file_read_report(Main *bmain, wmWindow *win)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-  ReportList *reports = &wm->reports;
+  ReportList *reports = &wm->runtime->reports;
   bool found = false;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->r.engine[0] &&
@@ -1027,7 +1027,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
-    bf_reports.duration.whole = BLI_check_seconds_timer();
+    bf_reports.duration.whole = BLI_time_now_seconds();
     BlendFileData *bfd = BKE_blendfile_read(filepath, &params, &bf_reports);
     if (bfd != nullptr) {
       wm_file_read_pre(use_data, use_userdef);
@@ -1074,7 +1074,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
       read_file_post_params.is_alloc = false;
       wm_file_read_post(C, filepath, &read_file_post_params);
 
-      bf_reports.duration.whole = BLI_check_seconds_timer() - bf_reports.duration.whole;
+      bf_reports.duration.whole = BLI_time_now_seconds() - bf_reports.duration.whole;
       file_read_reports_finalize(&bf_reports);
 
       success = true;

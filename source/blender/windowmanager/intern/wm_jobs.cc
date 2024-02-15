@@ -331,7 +331,7 @@ void *WM_jobs_customdata_get(wmJob *wm_job)
   return wm_job->customdata;
 }
 
-void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *))
+void WM_jobs_customdata_set(wmJob *wm_job, void *customdata, void (*free)(void *customdata))
 {
   /* pending job? just free */
   if (wm_job->customdata) {
@@ -496,7 +496,7 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
         wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, time_step);
       }
 
-      wm_job->start_time = BLI_check_seconds_timer();
+      wm_job->start_time = BLI_time_now_seconds();
     }
     else {
       printf("job fails, not initialized\n");
@@ -678,7 +678,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
         if (G.debug & G_DEBUG_JOBS) {
           printf("Job '%s' finished in %f seconds\n",
                  wm_job->name,
-                 BLI_check_seconds_timer() - wm_job->start_time);
+                 BLI_time_now_seconds() - wm_job->start_time);
         }
 
         wm_job->running = false;

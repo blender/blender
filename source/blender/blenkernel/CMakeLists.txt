@@ -315,6 +315,7 @@ set(SRC
   intern/volume_grid_file_cache.cc
   intern/volume_render.cc
   intern/volume_to_mesh.cc
+  intern/wm_runtime.cc
   intern/workspace.cc
   intern/world.cc
   intern/writeavi.cc

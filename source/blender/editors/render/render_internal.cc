@@ -459,7 +459,7 @@ static void make_renderinfo_string(const RenderStats *rs,
     info_time = info_buffers.time_elapsed;
     BLI_timecode_string_from_time_simple(info_buffers.time_elapsed,
                                          sizeof(info_buffers.time_elapsed),
-                                         BLI_check_seconds_timer() - rs->starttime);
+                                         BLI_time_now_seconds() - rs->starttime);
   }
 
   ret_array[i++] = RPT_("Time:");
