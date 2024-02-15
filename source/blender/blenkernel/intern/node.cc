@@ -1272,6 +1272,8 @@ static AssetTypeInfo AssetType_NT = {
 IDTypeInfo IDType_ID_NT = {
     /*id_code*/ ID_NT,
     /*id_filter*/ FILTER_ID_NT,
+    /* IDProps of nodes, and #bNode.id, can use any type of ID. */
+    /*dependencies_id_types*/ FILTER_ID_ALL,
     /*main_listbase_index*/ INDEX_ID_NT,
     /*struct_size*/ sizeof(bNodeTree),
     /*name*/ "NodeTree",

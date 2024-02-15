@@ -163,6 +163,7 @@ static void vfont_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_VF = {
     /*id_code*/ ID_VF,
     /*id_filter*/ FILTER_ID_VF,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_VF,
     /*struct_size*/ sizeof(VFont),
     /*name*/ "Font",

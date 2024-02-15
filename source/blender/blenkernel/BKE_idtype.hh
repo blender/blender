@@ -110,6 +110,14 @@ struct IDTypeInfo {
   uint64_t id_filter;
 
   /**
+   * Known types of ID dependencies.
+   *
+   * Used by #BKE_library_id_can_use_filter_id, together with additional runtime heuristics, to
+   * generate a filter value containing only ID types that given ID could be using.
+   */
+  uint64_t dependencies_id_types;
+
+  /**
    * Define the position of this data-block type in the virtual list of all data in a Main that is
    * returned by `set_listbasepointers()`.
    * Very important, this has to be unique and below INDEX_ID_MAX, see DNA_ID.h.

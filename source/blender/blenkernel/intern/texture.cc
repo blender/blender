@@ -188,6 +188,7 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_TE = {
     /*id_code*/ ID_TE,
     /*id_filter*/ FILTER_ID_TE,
+    /*dependencies_id_types*/ FILTER_ID_IM | FILTER_ID_OB,
     /*main_listbase_index*/ INDEX_ID_TE,
     /*struct_size*/ sizeof(Tex),
     /*name*/ "Texture",

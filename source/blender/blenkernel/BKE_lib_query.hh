@@ -25,6 +25,7 @@
 
 #include <array>
 
+struct IDTypeInfo;
 struct LibraryForeachIDData;
 struct Main;
 
@@ -299,7 +300,9 @@ bool BKE_library_id_can_use_idtype(ID *owner_id, short id_type_used);
 /**
  * Given the owner_id return the type of id_types it can use as a filter_id.
  */
-uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include_ui);
+uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
+                                          const bool include_ui,
+                                          const IDTypeInfo *owner_id_type = nullptr);
 
 /**
  * Check whether given ID is used locally (i.e. by another non-linked ID).

@@ -51,6 +51,7 @@ static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 IDTypeInfo IDType_ID_SPK = {
     /*id_code*/ ID_SPK,
     /*id_filter*/ FILTER_ID_SPK,
+    /*dependencies_id_types*/ FILTER_ID_SO,
     /*main_listbase_index*/ INDEX_ID_SPK,
     /*struct_size*/ sizeof(Speaker),
     /*name*/ "Speaker",

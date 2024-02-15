@@ -396,28 +396,24 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   }
 }
 
-uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include_ui)
+uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
+                                          const bool include_ui,
+                                          const IDTypeInfo *owner_id_type)
 {
   /* any type of ID can be used in custom props. */
   if (owner_id->properties) {
     return FILTER_ID_ALL;
   }
-  const short id_type_owner = GS(owner_id->name);
-
-  /* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
-  if (ELEM(id_type_owner, ID_NT, ID_AR)) {
-    return FILTER_ID_ALL;
-  }
-
-  /* Screen UI IDs can also link to virtually any ID (through e.g. the Outliner). */
-  if (include_ui && id_type_owner == ID_SCR) {
+  /* When including UI data (i.e. editors), Screen UI IDs can also link to virtually any ID
+   * (through e.g. the Outliner). */
+  if (include_ui && GS(owner_id->name) == ID_SCR) {
     return FILTER_ID_ALL;
   }
 
   /* Casting to non const.
    * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
    * interested in the result. */
-  if (ntreeFromID((ID *)owner_id)) {
+  if (ntreeFromID(const_cast<ID *>(owner_id))) {
     return FILTER_ID_ALL;
   }
 
@@ -431,118 +427,21 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include
     return FILTER_ID_ALL;
   }
 
-  switch ((ID_Type)id_type_owner) {
-    case ID_LI:
-      return FILTER_ID_LI;
-    case ID_SCE:
-      return FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC | FILTER_ID_MA |
-             FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS | FILTER_ID_MSK | FILTER_ID_SO |
-             FILTER_ID_GD_LEGACY | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
-    case ID_OB:
-      /* Could be more specific, but simpler to just always say 'yes' here. */
-      return FILTER_ID_ALL;
-    case ID_ME:
-      return FILTER_ID_ME | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_KE;
-    case ID_CU_LEGACY:
-      return FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_VF | FILTER_ID_KE;
-    case ID_MB:
-      return FILTER_ID_MA;
-    case ID_MA:
-      return FILTER_ID_TE | FILTER_ID_GR;
-    case ID_TE:
-      return FILTER_ID_IM | FILTER_ID_OB;
-    case ID_LT:
-      return FILTER_ID_KE;
-    case ID_LA:
-      return FILTER_ID_TE;
-    case ID_CA:
-      return FILTER_ID_OB | FILTER_ID_IM;
-    case ID_KE:
-      /* Warning! key->from, could be more types in future? */
-      return FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT;
-    case ID_SCR:
-      return FILTER_ID_SCE;
-    case ID_WO:
-      return FILTER_ID_TE;
-    case ID_SPK:
-      return FILTER_ID_SO;
-    case ID_GR:
-      return FILTER_ID_OB | FILTER_ID_GR;
-    case ID_NT:
-      /* Could be more specific, but node.id has no type restriction... */
-      return FILTER_ID_ALL;
-    case ID_BR:
-      return FILTER_ID_BR | FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA;
-    case ID_PA:
-      return FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE;
-    case ID_MC:
-      return FILTER_ID_GD_LEGACY | FILTER_ID_IM;
-    case ID_MSK:
-      /* WARNING! mask->parent.id, not typed. */
-      return FILTER_ID_MC;
-    case ID_LS:
-      return FILTER_ID_TE | FILTER_ID_OB;
-    case ID_LP:
-      return FILTER_ID_IM;
-    case ID_GD_LEGACY:
-      return FILTER_ID_MA;
-    case ID_GP:
-      return FILTER_ID_GP | FILTER_ID_MA;
-    case ID_WS:
-      return FILTER_ID_SCE;
-    case ID_CV:
-      return FILTER_ID_MA | FILTER_ID_OB;
-    case ID_PT:
-      return FILTER_ID_MA;
-    case ID_VO:
-      return FILTER_ID_MA;
-    case ID_WM:
-      return FILTER_ID_SCE | FILTER_ID_WS;
-    case ID_IM:
-    case ID_VF:
-    case ID_TXT:
-    case ID_SO:
-    case ID_AR:
-    case ID_AC:
-    case ID_PAL:
-    case ID_PC:
-    case ID_CF:
-      /* Those types never use/reference other IDs... */
-      return 0;
-    case ID_IP:
-      /* Deprecated... */
-      return 0;
+  if (!owner_id_type) {
+    owner_id_type = BKE_idtype_get_info_from_id(owner_id);
   }
-
+  if (owner_id_type) {
+    return owner_id_type->dependencies_id_types;
+  }
   BLI_assert_unreachable();
   return 0;
 }
 
 bool BKE_library_id_can_use_idtype(ID *owner_id, const short id_type_used)
 {
-  /* any type of ID can be used in custom props. */
-  if (owner_id->properties) {
-    return true;
-  }
-
-  const short id_type_owner = GS(owner_id->name);
-  /* Exception for ID_LI as they don't exist as a filter. */
-  if (id_type_used == ID_LI) {
-    return id_type_owner == ID_LI;
-  }
-
-  /* Exception: ID_KE aren't available as filter_id. */
-  if (id_type_used == ID_KE) {
-    return ELEM(id_type_owner, ID_ME, ID_CU_LEGACY, ID_LT);
-  }
-
-  /* Exception: ID_SCR aren't available as filter_id. */
-  if (id_type_used == ID_SCR) {
-    return ELEM(id_type_owner, ID_WS);
-  }
-
+  const IDTypeInfo *owner_id_type = BKE_idtype_get_info_from_id(owner_id);
   const uint64_t filter_id_type_used = BKE_idtype_idcode_to_idfilter(id_type_used);
-  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(owner_id, false);
+  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(owner_id, false, owner_id_type);
   return (can_be_used & filter_id_type_used) != 0;
 }
 

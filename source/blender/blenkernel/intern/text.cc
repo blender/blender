@@ -222,6 +222,7 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_TXT = {
     /*id_code*/ ID_TXT,
     /*id_filter*/ FILTER_ID_TXT,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_TXT,
     /*struct_size*/ sizeof(Text),
     /*name*/ "Text",

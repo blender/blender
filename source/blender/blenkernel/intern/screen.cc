@@ -159,6 +159,9 @@ static void screen_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 IDTypeInfo IDType_ID_SCR = {
     /*id_code*/ ID_SCR,
     /*id_filter*/ FILTER_ID_SCR,
+    /* NOTE: Can actually link to any ID type through UI (e.g. Outliner Editor). This is handled
+       separately though. */
+    /*dependencies_id_types*/ FILTER_ID_SCE,
     /*main_listbase_index*/ INDEX_ID_SCR,
     /*struct_size*/ sizeof(bScreen),
     /*name*/ "Screen",

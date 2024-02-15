@@ -84,6 +84,7 @@ static CLG_LogRef LOG = {"bke.lib_id"};
 IDTypeInfo IDType_ID_LINK_PLACEHOLDER = {
     /*id_code*/ ID_LINK_PLACEHOLDER,
     /*id_filter*/ 0,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_NULL,
     /*struct_size*/ sizeof(ID),
     /*name*/ "LinkPlaceholder",

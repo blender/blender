@@ -184,6 +184,7 @@ static void mask_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_MSK = {
     /*id_code*/ ID_MSK,
     /*id_filter*/ FILTER_ID_MSK,
+    /*dependencies_id_types*/ FILTER_ID_MC, /* WARNING! mask->parent.id, not typed. */
     /*main_listbase_index*/ INDEX_ID_MSK,
     /*struct_size*/ sizeof(Mask),
     /*name*/ "Mask",
