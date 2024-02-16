@@ -57,6 +57,10 @@ static std::string ui_view_drop_tooltip(bContext *C,
   const ARegion *region = CTX_wm_region(C);
   std::unique_ptr<DropTargetInterface> drop_target = region_views_find_drop_target_at(region, xy);
 
+  if (drop_target == nullptr) {
+    return {};
+  }
+
   return drop_target_tooltip(*region, *drop_target, *drag, *win->eventstate);
 }
 
