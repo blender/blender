@@ -206,9 +206,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
         dst_rotations[point_i] = pt.uv_rot;
         dst_vertex_colors[point_i] = ColorGeometry4f(pt.vert_color);
         dst_selection[point_i] = (pt.flag & GP_SPOINT_SELECT) != 0;
-        if (use_dverts && gps->dvert) {
-          copy_dvert(gps->dvert[point_i], dst_dverts[point_i]);
-        }
       }
     });
 
@@ -221,6 +218,12 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
             dst_deltatimes[point_i] = pt.time - pt_prev.time;
           }
         });
+
+    if (use_dverts && gps->dvert) {
+      for (const int point_i : src_points.index_range()) {
+        copy_dvert(gps->dvert[point_i], dst_dverts[point_i]);
+      }
+    }
   }
 
   delta_times.finish();
