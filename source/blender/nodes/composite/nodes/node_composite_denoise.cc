@@ -81,7 +81,7 @@ using namespace blender::realtime_compositor;
  * stop, so invert the condition. This callback can also be used to track progress using the given
  * n argument, but we currently don't make use of it. See OIDNProgressMonitorFunction in the API
  * for more information. */
-static bool oidn_progress_monitor_function(void *user_ptr, double /*n*/)
+[[maybe_unused]] static bool oidn_progress_monitor_function(void *user_ptr, double /*n*/)
 {
   const Context *context = static_cast<const Context *>(user_ptr);
   return !context->is_canceled();
