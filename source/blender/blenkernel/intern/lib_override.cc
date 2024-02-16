@@ -1724,7 +1724,7 @@ static bool lib_override_library_resync(Main *bmain,
 
   ID *id_root_reference = id_root->override_library->reference;
   ID *id;
-  const Object *old_active_object = OBACT(view_layer);
+  const Object *old_active_object = view_layer ? OBACT(view_layer) : nullptr;
 
   if (id_root_reference->tag & LIB_TAG_MISSING) {
     BKE_reportf(reports != nullptr ? reports->reports : nullptr,
