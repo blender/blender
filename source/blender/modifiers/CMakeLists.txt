@@ -58,6 +58,7 @@ set(SRC
   intern/MOD_grease_pencil_thickness.cc
   intern/MOD_grease_pencil_tint.cc
   intern/MOD_grease_pencil_util.cc
+  intern/MOD_grease_pencil_weight_angle.cc
   intern/MOD_hook.cc
   intern/MOD_laplaciandeform.cc
   intern/MOD_laplaciansmooth.cc

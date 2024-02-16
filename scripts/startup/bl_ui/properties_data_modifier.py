@@ -71,7 +71,7 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
         if geometry_nodes_supported:
             self.operator_modifier_add(layout, 'NODES')
             layout.separator()
-        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE'}:
+        if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE', 'GREASEPENCIL'}:
             layout.menu("OBJECT_MT_modifier_add_edit")
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'VOLUME', 'GREASEPENCIL'}:
             layout.menu("OBJECT_MT_modifier_add_generate")
@@ -107,6 +107,8 @@ class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_EDIT')
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_MIX')
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_PROXIMITY')
+        if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_VERTEX_WEIGHT_ANGLE')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
 

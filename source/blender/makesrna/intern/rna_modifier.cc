@@ -116,6 +116,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_OPACITY,
      "Opacity",
      "Change the opacity of the strokes"},
+    {eModifierType_GreasePencilWeightAngle,
+     "GREASE_PENCIL_VERTEX_WEIGHT_ANGLE",
+     ICON_MOD_VERTEX_WEIGHT,
+     "Vertex Weight Angle",
+     "Generate vertex weights base on stroke angle"},
 
     RNA_ENUM_ITEM_HEADING(N_("Generate"), nullptr),
     {eModifierType_Array,
@@ -888,6 +893,7 @@ RNA_MOD_VGROUP_NAME_SET(WeightVGProximity, mask_defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(WeightedNormal, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Weld, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Wireframe, defgrp_name);
+RNA_MOD_VGROUP_NAME_SET(GreasePencilWeightAngle, target_vgname);
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
 {
@@ -1882,6 +1888,7 @@ RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilLattice);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilDash);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilMulti);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilLength);
+RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilWeightAngle);
 
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOffset);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOpacity);
@@ -1892,6 +1899,7 @@ RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilNoise);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilThick);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilLattice);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilLength);
+RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilWeightAngle);
 
 static void rna_GreasePencilOpacityModifier_opacity_factor_range(
     PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
@@ -8794,6 +8802,85 @@ static void rna_def_modifier_grease_pencil_dash(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_weight_angle(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem axis_items[] = {
+      {0, "X", 0, "X", ""},
+      {1, "Y", 0, "Y", ""},
+      {2, "Z", 0, "Z", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem space_items[] = {
+      {MOD_GREASE_PENCIL_WEIGHT_ANGLE_SPACE_LOCAL, "LOCAL", 0, "Local Space", ""},
+      {MOD_GREASE_PENCIL_WEIGHT_ANGLE_SPACE_WORLD, "WORLD", 0, "World Space", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  srna = RNA_def_struct(brna, "GreasePencilWeightAngleModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Weight Modifier Angle", "Calculate Vertex Weight dynamically");
+  RNA_def_struct_sdna(srna, "GreasePencilWeightAngleModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_VERTEX_WEIGHT);
+
+  rna_def_modifier_grease_pencil_layer_filter(srna);
+  rna_def_modifier_grease_pencil_material_filter(
+      srna, "rna_GreasePencilWeightAngleModifier_material_filter_set");
+  rna_def_modifier_grease_pencil_vertex_group(
+      srna, "rna_GreasePencilWeightAngleModifier_vertex_group_name_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "target_vertex_group", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "target_vgname");
+  RNA_def_property_ui_text(prop, "Vertex Group", "Output Vertex group");
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, "rna_GreasePencilWeightAngleModifier_target_vgname_set");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_multiply", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_WEIGHT_MULTIPLY_DATA);
+  RNA_def_property_ui_text(
+      prop,
+      "Multiply Weights",
+      "Multiply the calculated weights with the existing values in the vertex group");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_invert_output", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GP_WEIGHT_INVERT_OUTPUT);
+  RNA_def_property_ui_text(prop, "Invert", "Invert output weight values");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "angle");
+  RNA_def_property_ui_text(prop, "Angle", "Angle");
+  RNA_def_property_range(prop, 0.0f, DEG2RAD(180.0f));
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "axis");
+  RNA_def_property_enum_items(prop, axis_items);
+  RNA_def_property_ui_text(prop, "Axis", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "space");
+  RNA_def_property_enum_items(prop, space_items);
+  RNA_def_property_ui_text(prop, "Space", "Coordinates space");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "minimum_weight", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "min_weight");
+  RNA_def_property_ui_text(prop, "Minimum", "Minimum value for vertex weight");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 static void rna_def_modifier_grease_pencil_multiply(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -9035,6 +9122,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_dash(brna);
   rna_def_modifier_grease_pencil_multiply(brna);
   rna_def_modifier_grease_pencil_length(brna);
+  rna_def_modifier_grease_pencil_weight_angle(brna);
 }
 
 #endif

@@ -108,6 +108,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilDash = 71,
   eModifierType_GreasePencilMultiply = 72,
   eModifierType_GreasePencilLength = 73,
+  eModifierType_GreasePencilWeightAngle = 74,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -2867,3 +2868,31 @@ typedef struct GreasePencilLengthModifierData {
 
   void *_pad1;
 } GreasePencilLengthModifierData;
+
+typedef struct GreasePencilWeightAngleModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /** #GreasePencilWeightAngleModifierFlag */
+  int flag;
+  float min_weight;
+  /** Axis. */
+  int16_t axis;
+  /** #GreasePencilWeightAngleModifierSpace */
+  int16_t space;
+  /** Angle */
+  float angle;
+  /** Weights output to this vertex group, can be the same as source group. */
+  char target_vgname[64];
+
+  void *_pad;
+} GreasePencilWeightAngleModifierData;
+
+typedef enum GreasePencilWeightAngleModifierFlag {
+  MOD_GREASE_PENCIL_WEIGHT_ANGLE_MULTIPLY_DATA = (1 << 5),
+  MOD_GREASE_PENCIL_WEIGHT_ANGLE_INVERT_OUTPUT = (1 << 6),
+} GreasePencilWeightAngleModifierFlag;
+
+typedef enum GreasePencilWeightAngleModifierSpace {
+  MOD_GREASE_PENCIL_WEIGHT_ANGLE_SPACE_LOCAL = 0,
+  MOD_GREASE_PENCIL_WEIGHT_ANGLE_SPACE_WORLD = 1,
+} GreasePencilWeightAngleModifierSpace;
