@@ -69,17 +69,19 @@ class StepDrawingGeometryBase {
   /* Index of this drawing in the original combined array of all drawings in GreasePencil ID. */
   int index_;
 
-  /* Data from #GreasePencilDrawingBase that needs to be saved in udo steps. */
+  /* Data from #GreasePencilDrawingBase that needs to be saved in undo steps. */
   uint32_t flag_;
 
  protected:
-  /* Ensures that the drawing from the given array at the current index exists, and has the propoer
-   * type.
+  /**
+   * Ensures that the drawing from the given array at the current index exists,
+   * and has the proposer type.
    *
-   * Non-existing drawings can happen after extenting the drawings array.
+   * Non-existing drawings can happen after extending the drawings array.
    *
    * Mismatch in drawing types can happen when some drawings have been deleted between the undo
-   * step storage, and the current state of the GreasePencil data. */
+   * step storage, and the current state of the GreasePencil data.
+   */
   void decode_valid_drawingtype_at_index_ensure(MutableSpan<GreasePencilDrawingBase *> &drawings,
                                                 const GreasePencilDrawingType drawing_type) const
   {

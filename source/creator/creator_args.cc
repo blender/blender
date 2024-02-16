@@ -1227,7 +1227,7 @@ static int arg_handle_debug_gpu_set(int /*argc*/, const char ** /*argv*/, void *
 
 static const char arg_handle_debug_gpu_compile_shaders_set_doc[] =
     "\n"
-    "\tCompile all staticly defined shaders to test platform compatibility.";
+    "\tCompile all statically defined shaders to test platform compatibility.";
 static int arg_handle_debug_gpu_compile_shaders_set(int /*argc*/,
                                                     const char ** /*argv*/,
                                                     void * /*data*/)

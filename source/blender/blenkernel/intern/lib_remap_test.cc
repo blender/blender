@@ -316,8 +316,8 @@ TEST(lib_remap, never_null_usage_storage_requested_on_delete)
       remapper,
       (ID_REMAP_SKIP_NEVER_NULL_USAGE | ID_REMAP_STORE_NEVER_NULL_USAGE));
 
-  /* Never null usages unassignement is not enforced (no #ID_REMAP_FORCE_NEVER_NULL_USAGE), so the
-   * obdta should still use the original mesh. */
+  /* Never null usages un-assignment is not enforced (no #ID_REMAP_FORCE_NEVER_NULL_USAGE),
+   * so the object-data should still use the original mesh. */
   EXPECT_EQ(context.test_data.object->data, context.test_data.mesh);
   EXPECT_NE(context.test_data.object->data, nullptr);
   EXPECT_TRUE(remapper.never_null_users().contains(&context.test_data.object->id));

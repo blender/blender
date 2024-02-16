@@ -74,7 +74,7 @@ void BKE_ffmpeg_context_free(void *context_v);
 void BKE_ffmpeg_exit();
 
 /**
- * Gets a libswscale context for given size and format parameters.
+ * Gets a `libswscale` context for given size and format parameters.
  * After you're done using the context, call #BKE_ffmpeg_sws_release_context
  * to release it. Internally the contexts are coming from the context
  * pool/cache.

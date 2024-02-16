@@ -196,9 +196,9 @@ static void deform_drawing(const ModifierData &md,
   /* Always do the stretching first since it might depend on points which could be deleted by the
    * shrink. */
   if (mmd.start_fac < 0.0f || mmd.end_fac < 0.0f || needs_additional_shrinking) {
-    /* `trim_curves()` accepts the `end` valueas if it's sampling from the beginning of the
-     * curve, so we need to get the lengths of the curves and substract it from the back when the
-     * modifier is in Absolute mode. For convenience, we always call `trim_curves()` in LENGTH
+    /* #trim_curves() accepts the `end` values if it's sampling from the beginning of the
+     * curve, so we need to get the lengths of the curves and subtract it from the back when the
+     * modifier is in Absolute mode. For convenience, we always call #trim_curves() in LENGTH
      * mode since the function itself will need length to be sampled anyway. */
     Array<float> starts(curves.curves_num());
     Array<float> ends(curves.curves_num());
