@@ -256,7 +256,7 @@ static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNod
     }
   }
 
-  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_only_span<float>(
+  bke::SpanAttributeWriter<float> mask = attributes.lookup_or_add_for_write_span<float>(
       ".sculpt_mask", bke::AttrDomain::Point);
 
   threading::EnumerableThreadSpecific<Vector<int>> all_index_data;
