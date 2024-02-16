@@ -922,6 +922,24 @@ int WM_drag_get_path_file_type(const wmDrag *drag)
   return path_data->file_types[0];
 }
 
+const std::string &WM_drag_get_string(const wmDrag *drag)
+{
+  BLI_assert(drag->type == WM_DRAG_STRING);
+  const std::string *str = static_cast<const std::string *>(drag->poin);
+  return *str;
+}
+
+std::string WM_drag_get_string_firstline(const wmDrag *drag)
+{
+  BLI_assert(drag->type == WM_DRAG_STRING);
+  const std::string *str = static_cast<const std::string *>(drag->poin);
+  const size_t str_eol = str->find('\n');
+  if (str_eol != std::string::npos) {
+    return str->substr(0, str_eol);
+  }
+  return *str;
+}
+
 /* ************** draw ***************** */
 
 static void wm_drop_operator_draw(const blender::StringRef name, int x, int y)

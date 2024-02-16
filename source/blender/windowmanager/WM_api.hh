@@ -1496,6 +1496,9 @@ bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type);
  */
 int /* #eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
 
+const std::string &WM_drag_get_string(const wmDrag *drag);
+std::string WM_drag_get_string_firstline(const wmDrag *drag);
+
 /* Set OpenGL viewport and scissor */
 void wmViewport(const rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);

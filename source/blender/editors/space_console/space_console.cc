@@ -183,13 +183,11 @@ static bool console_drop_string_poll(bContext * /*C*/, wmDrag *drag, const wmEve
 
 static void console_drop_string_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
-  const std::string *str = static_cast<const std::string *>(drag->poin);
   /* NOTE(@ideasman42): Only a single line is supported, multiple lines could be supported
    * but this implies executing all lines except for the last. While we could consider that,
    * there are some security implications for this, so just drop one line for now. */
-  const size_t eol = str->find('\n');
-  RNA_string_set(
-      drop->ptr, "text", (eol == std::string::npos) ? str->c_str() : str->substr(0, eol).c_str());
+  std::string str = WM_drag_get_string_firstline(drag);
+  RNA_string_set(drop->ptr, "text", str.c_str());
 }
 
 /* this region dropbox definition */

@@ -339,8 +339,8 @@ static bool text_drop_string_poll(bContext * /*C*/, wmDrag *drag, const wmEvent 
 
 static void text_drop_string_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
-  const std::string *str = static_cast<const std::string *>(drag->poin);
-  RNA_string_set(drop->ptr, "text", str->c_str());
+  const std::string &str = WM_drag_get_string(drag);
+  RNA_string_set(drop->ptr, "text", str.c_str());
 }
 
 /* this region dropbox definition */
