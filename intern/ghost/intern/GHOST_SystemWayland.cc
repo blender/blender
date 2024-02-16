@@ -3269,9 +3269,10 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
     const uint64_t event_ms = seat->system->getMilliSeconds();
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
+    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri);
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
-        data_offer, mime_receive, nullptr, false, &data_buf_len);
+        data_offer, mime_receive, nullptr, nil_terminate, &data_buf_len);
 
     CLOG_INFO(LOG, 2, "read_drop_data mime_receive=%s, data_len=%zu", mime_receive, data_buf_len);
 
@@ -3344,9 +3345,9 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
         ghost_dnd_data = flist;
       }
       else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
-        /* TODO: enable use of internal functions 'txt_insert_buf' and
-         * 'text_update_edited' to behave like dropped text was pasted. */
-        CLOG_INFO(LOG, 2, "read_drop_data, unhandled!");
+        ghost_dnd_type = GHOST_kDragnDropTypeString;
+        ghost_dnd_data = (void *)data_buf; /* Move ownership to the event. */
+        data_buf = nullptr;
       }
 
       if (ghost_dnd_type != GHOST_kDragnDropTypeUnknown) {
