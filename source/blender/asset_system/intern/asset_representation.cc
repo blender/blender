@@ -46,18 +46,6 @@ AssetRepresentation::AssetRepresentation(AssetIdentifier &&identifier,
   }
 }
 
-AssetRepresentation::AssetRepresentation(AssetRepresentation &&other)
-    : identifier_(std::move(other.identifier_)), is_local_id_(other.is_local_id_)
-{
-  if (is_local_id_) {
-    local_asset_id_ = other.local_asset_id_;
-    other.local_asset_id_ = nullptr;
-  }
-  else {
-    external_asset_ = std::move(other.external_asset_);
-  }
-}
-
 AssetRepresentation::~AssetRepresentation()
 {
   if (!is_local_id_) {
