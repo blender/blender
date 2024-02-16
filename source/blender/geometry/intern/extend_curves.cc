@@ -37,7 +37,7 @@ static void extend_curves_straight(const float used_percent_length,
   float overshoot_point_param = used_percent_length * (new_size - 1);
   if (start_points[curve]) {
     /** Here we use the vector between two adjacent points around #overshoot_point_param as
-     * our reference forthe direction of extention, however to have better tolerance for jitter,
+     * our reference for the direction of extension, however to have better tolerance for jitter,
      * using the vector (a_few_points_back - end_point) might be a better solution in the future.
      */
     int index1 = math::floor(overshoot_point_param);
@@ -271,7 +271,7 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
     OffsetIndices dst_indices = offset_indices::accumulate_counts_to_offsets(dst_points_by_curve);
     int target_point_count = dst_points_by_curve.last();
 
-    /* Make dest to source map for points. */
+    /* Make destination to source map for points. */
     Array<int> dst_to_src_point(target_point_count);
     for (const int curve : src_curves.curves_range()) {
       const int point_count = points_by_curve[curve].size();

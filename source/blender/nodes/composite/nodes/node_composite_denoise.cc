@@ -76,6 +76,17 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
 
 using namespace blender::realtime_compositor;
 
+/* A callback to cancel the filter operations by evaluating the context's is_canceled method. The
+ * API specifies that true indicates the filter should continue, while false indicates it should
+ * stop, so invert the condition. This callback can also be used to track progress using the given
+ * n argument, but we currently don't make use of it. See OIDNProgressMonitorFunction in the API
+ * for more information. */
+[[maybe_unused]] static bool oidn_progress_monitor_function(void *user_ptr, double /*n*/)
+{
+  const Context *context = static_cast<const Context *>(user_ptr);
+  return !context->is_canceled();
+}
+
 class DenoiseOperation : public NodeOperation {
  public:
   using NodeOperation::NodeOperation;
@@ -108,6 +119,7 @@ class DenoiseOperation : public NodeOperation {
     filter.setImage("output", color, oidn::Format::Float3, width, height, 0, pixel_stride);
     filter.set("hdr", use_hdr());
     filter.set("cleanAux", auxiliary_passes_are_clean());
+    filter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
 
     /* If the albedo input is not a single value input, download the albedo texture, denoise it
      * in-place if denoising auxiliary passes is needed, and set it to the main filter. */
@@ -122,6 +134,7 @@ class DenoiseOperation : public NodeOperation {
             "albedo", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
         albedoFilter.setImage(
             "output", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
+        albedoFilter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
         albedoFilter.commit();
         albedoFilter.execute();
       }
@@ -144,6 +157,7 @@ class DenoiseOperation : public NodeOperation {
             "normal", normal, oidn::Format::Float3, width, height, 0, pixel_stride);
         normalFilter.setImage(
             "output", normal, oidn::Format::Float3, width, height, 0, pixel_stride);
+        normalFilter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
         normalFilter.commit();
         normalFilter.execute();
       }

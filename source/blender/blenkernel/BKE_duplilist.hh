@@ -45,7 +45,7 @@ struct DupliObject {
   float mat[4][4];
   float orco[3], uv[2];
 
-  short type; /* from Object.transflag */
+  short type; /* From #Object::transflag. */
   char no_draw;
   /* If this dupli object is belongs to a preview, this is non-null. */
   const blender::bke::GeometrySet *preview_base_geometry;

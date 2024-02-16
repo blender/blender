@@ -301,7 +301,7 @@ static void text_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
 /* ************* dropboxes ************* */
 
-static bool text_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool text_drop_path_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
     const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
@@ -312,18 +312,18 @@ static bool text_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*eve
   return false;
 }
 
-static void text_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void text_drop_path_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
   RNA_string_set(drop->ptr, "filepath", WM_drag_get_single_path(drag));
 }
 
-static bool text_drop_paste_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool text_drop_id_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return (drag->type == WM_DRAG_ID);
 }
 
-static void text_drop_paste(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void text_drop_id_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, 0);
 
@@ -332,13 +332,26 @@ static void text_drop_paste(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
   RNA_string_set(drop->ptr, "text", text.c_str());
 }
 
+static bool text_drop_string_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  return (drag->type == WM_DRAG_STRING);
+}
+
+static void text_drop_string_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  const std::string &str = WM_drag_get_string(drag);
+  RNA_string_set(drop->ptr, "text", str.c_str());
+}
+
 /* this region dropbox definition */
 static void text_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "TEXT_OT_open", text_drop_poll, text_drop_copy, nullptr, nullptr);
-  WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_paste_poll, text_drop_paste, nullptr, nullptr);
+  WM_dropbox_add(lb, "TEXT_OT_open", text_drop_path_poll, text_drop_path_copy, nullptr, nullptr);
+  WM_dropbox_add(lb, "TEXT_OT_insert", text_drop_id_poll, text_drop_id_copy, nullptr, nullptr);
+  WM_dropbox_add(
+      lb, "TEXT_OT_insert", text_drop_string_poll, text_drop_string_copy, nullptr, nullptr);
 }
 
 /* ************* end drop *********** */

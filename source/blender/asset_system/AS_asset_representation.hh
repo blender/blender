@@ -39,7 +39,7 @@ class AssetRepresentation {
    */
   const bool is_local_id_ = false;
   /** Asset library that owns this asset representation. */
-  const AssetLibrary *owner_asset_library_;
+  const AssetLibrary &owner_asset_library_;
 
   struct ExternalAsset {
     std::string name;
@@ -67,16 +67,12 @@ class AssetRepresentation {
   AssetRepresentation(AssetIdentifier &&identifier,
                       ID &id,
                       const AssetLibrary &owner_asset_library);
-  AssetRepresentation(AssetRepresentation &&other);
-  /* Non-copyable type. */
-  AssetRepresentation(const AssetRepresentation &other) = delete;
   ~AssetRepresentation();
 
-  /* Non-move-assignable type. Move construction is fine, but treat the "identity" (e.g. local vs
-   * external asset) of an asset representation as immutable. */
-  AssetRepresentation &operator=(AssetRepresentation &&other) = delete;
-  /* Non-copyable type. */
-  AssetRepresentation &operator=(const AssetRepresentation &other) = delete;
+  AssetRepresentation(const AssetRepresentation &) = delete;
+  AssetRepresentation(AssetRepresentation &&) = delete;
+  AssetRepresentation &operator=(AssetRepresentation &&) = delete;
+  AssetRepresentation &operator=(const AssetRepresentation &) = delete;
 
   const AssetIdentifier &get_identifier() const;
 

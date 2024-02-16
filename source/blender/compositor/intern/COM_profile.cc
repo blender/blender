@@ -31,10 +31,7 @@ void Profiler::add_operation_execution_time(const NodeOperation &operation,
 void Profiler::add_execution_time(const bNodeInstanceKey key,
                                   const timeit::Nanoseconds &execution_time)
 {
-  data_.per_node_execution_time.add_or_modify(
-      key,
-      [&](timeit::Nanoseconds *total_execution_time) { *total_execution_time = execution_time; },
-      [&](timeit::Nanoseconds *total_execution_time) { *total_execution_time += execution_time; });
+  data_.per_node_execution_time.lookup_or_add(key, timeit::Nanoseconds(0)) += execution_time;
 }
 
 void Profiler::finalize(const bNodeTree &node_tree)

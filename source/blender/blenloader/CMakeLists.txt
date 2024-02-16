@@ -59,7 +59,6 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
-  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
@@ -118,6 +117,7 @@ if(WITH_GTESTS)
   )
   set(TEST_UTIL_LIB
     ${LIB}
+    PRIVATE bf::blenfont
     bf_blenloader
   )
   blender_add_lib(bf_blenloader_test_util "${TEST_UTIL_SRC}" "${TEST_UTIL_INC}" "${TEST_UTIL_INC_SYS}" "${TEST_UTIL_LIB}")
