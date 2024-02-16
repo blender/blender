@@ -3943,30 +3943,42 @@ void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *rep
   if (id->override_library == nullptr) {
     return;
   }
+
+  /* NOTE: In code deleting liboverride data below, #BKE_lib_override_library_make_local is used
+   * instead of directly calling #BKE_lib_override_library_free, because the former also handles
+   * properly 'liboverride embedded' IDs, like root nodetrees, or shapekeys. */
+
   if (id->override_library->reference == nullptr) {
-    /* This is a template ID, could be linked or local, not an override. */
+    /* This (probably) used to be a template ID, could be linked or local, not an override. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Library override templates have been removed: removing all override data from "
+                "the data-block '%s'",
+                id->name);
+    BKE_lib_override_library_make_local(nullptr, id);
     return;
   }
   if (id->override_library->reference == id) {
-    /* Very serious data corruption, cannot do much about it besides removing the reference
-     * (therefore making the id a local override template one only). */
+    /* Very serious data corruption, cannot do much about it besides removing the liboverride data.
+     */
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Data corruption: data-block '%s' is using itself as library override reference",
+                "Data corruption: data-block '%s' is using itself as library override reference, "
+                "removing all override data",
                 id->name);
-    id->override_library->reference = nullptr;
+    BKE_lib_override_library_make_local(nullptr, id);
     return;
   }
   if (!ID_IS_LINKED(id->override_library->reference)) {
-    /* Very serious data corruption, cannot do much about it besides removing the reference
-     * (therefore making the id a local override template one only). */
+    /* Very serious data corruption, cannot do much about it besides removing the liboverride data.
+     */
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Data corruption: data-block '%s' is using another local data-block ('%s') as "
-                "library override reference",
+                "library override reference, removing all override data",
                 id->name,
                 id->override_library->reference->name);
-    id->override_library->reference = nullptr;
+    BKE_lib_override_library_make_local(nullptr, id);
     return;
   }
 }
