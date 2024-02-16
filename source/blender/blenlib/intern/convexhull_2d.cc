@@ -78,21 +78,23 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
   /* Array scan index. */
   int i;
 
-  int minmin, minmax;
-  int maxmin, maxmax;
+  const int minmin = 0;
+  const int maxmax = points_num - 1;
+  int minmax;
+  int maxmin;
+
   float xmax;
 
   /* Get the indices of points with min X-coord and min|max Y-coord. */
   float xmin = points[0][0];
-  for (i = 1; i < points_num; i++) {
+  for (i = 1; i <= maxmax; i++) {
     if (points[i][0] != xmin) {
       break;
     }
   }
 
-  minmin = 0;
   minmax = i - 1;
-  if (minmax == points_num - 1) { /* Degenerate case: all x-coords == X-min. */
+  if (minmax == maxmax) { /* Degenerate case: all x-coords == X-min. */
     r_points[++top] = minmin;
     if (points[minmax][1] != points[minmin][1]) {
       /* A nontrivial segment. */
@@ -104,9 +106,8 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
 
   /* Get the indices of points with max X-coord and min|max Y-coord. */
 
-  maxmax = points_num - 1;
-  xmax = points[points_num - 1][0];
-  for (i = points_num - 2; i >= 0; i--) {
+  xmax = points[maxmax][0];
+  for (i = maxmax - 1; i >= 0; i--) {
     if (points[i][0] != xmax) {
       break;
     }
