@@ -372,7 +372,7 @@ static void GREASE_PENCIL_OT_layer_reveal(wmOperatorType *ot)
 
 static int grease_pencil_layer_isolate_exec(bContext *C, wmOperator *op)
 {
-  using namespace ::blender::bke::greasepencil;
+  using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const int affect_visibility = RNA_boolean_get(op->ptr, "affect_visibility");
