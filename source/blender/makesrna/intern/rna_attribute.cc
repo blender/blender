@@ -403,6 +403,10 @@ static PointerRNA rna_AttributeGroup_new(
   CustomDataLayer *layer = BKE_id_attribute_new(
       id, name, eCustomDataType(type), AttrDomain(domain), reports);
 
+  if (!layer) {
+    return PointerRNA_NULL;
+  }
+
   if ((GS(id->name) == ID_ME) && ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
     Mesh *mesh = (Mesh *)id;
     if (!mesh->active_color_attribute) {
