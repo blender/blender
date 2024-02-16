@@ -160,7 +160,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {
     /* TODO: check if `gps->editcurve` is not nullptr and parse bezier curve instead. */
 
-    /* Write curve attributes. */
     stroke_cyclic.span[stroke_i] = (gps->flag & GP_STROKE_CYCLIC) != 0;
     /* TODO: This should be a `double` attribute. */
     stroke_init_times.span[stroke_i] = float(gps->inittime);
@@ -175,60 +174,53 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     stroke_fill_colors.span[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
     stroke_materials.span[stroke_i] = gps->mat_nr;
 
-    /* Write point attributes. */
-    IndexRange stroke_points_range = points_by_curve[stroke_i];
-    if (stroke_points_range.is_empty()) {
+    IndexRange points = points_by_curve[stroke_i];
+    if (points.is_empty()) {
       continue;
     }
 
-    Span<bGPDspoint> stroke_points{gps->points, gps->totpoints};
-    MutableSpan<float3> stroke_positions = positions.slice(stroke_points_range);
-    MutableSpan<float> stroke_radii = radii.slice(stroke_points_range);
-    MutableSpan<float> stroke_opacities = opacities.slice(stroke_points_range);
-    MutableSpan<float> stroke_deltatimes = delta_times.span.slice(stroke_points_range);
-    MutableSpan<float> stroke_rotations = rotations.span.slice(stroke_points_range);
-    MutableSpan<ColorGeometry4f> stroke_vertex_colors = vertex_colors.span.slice(
-        stroke_points_range);
-    MutableSpan<bool> stroke_selections = selection.span.slice(stroke_points_range);
-    MutableSpan<MDeformVert> stroke_dverts = use_dverts ? dverts.slice(stroke_points_range) :
-                                                          MutableSpan<MDeformVert>();
+    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px`
+     * was the brush size which would be stored in the stroke thickness and then scaled by the
+     * point pressure factor. Finally, the render engine would divide this thickness value by
+     * 2000 (we're going from a thickness to a radius, hence the factor of two) to convert back
+     * into blender units. Store the radius now directly in blender units. This makes it
+     * consistent with how hair curves handle the radius. */
+    const float stroke_thickness = float(gps->thickness) / 2000.0f;
+    Span<bGPDspoint> src_points{gps->points, gps->totpoints};
+    MutableSpan<float3> dst_positions = positions.slice(points);
+    MutableSpan<float> dst_radii = radii.slice(points);
+    MutableSpan<float> dst_opacities = opacities.slice(points);
+    MutableSpan<float> dst_deltatimes = delta_times.span.slice(points);
+    MutableSpan<float> dst_rotations = rotations.span.slice(points);
+    MutableSpan<ColorGeometry4f> dst_vertex_colors = vertex_colors.span.slice(points);
+    MutableSpan<bool> dst_selection = selection.span.slice(points);
+    MutableSpan<MDeformVert> dst_dverts = use_dverts ? dverts.slice(points) :
+                                                       MutableSpan<MDeformVert>();
 
-    /* Do first point. */
-    const bGPDspoint &first_pt = stroke_points.first();
-    stroke_positions.first() = float3(first_pt.x, first_pt.y, first_pt.z);
-    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px` was
-     * the brush size which would be stored in the stroke thickness and then scaled by the point
-     * pressure factor. Finally, the render engine would divide this thickness value by 2000 (we're
-     * going from a thickness to a radius, hence the factor of two) to convert back into blender
-     * units.
-     * Store the radius now directly in blender units. This makes it consistent with how hair
-     * curves handle the radius. */
-    stroke_radii.first() = gps->thickness * first_pt.pressure / 2000.0f;
-    stroke_opacities.first() = first_pt.strength;
-    stroke_deltatimes.first() = 0;
-    stroke_rotations.first() = first_pt.uv_rot;
-    stroke_vertex_colors.first() = ColorGeometry4f(first_pt.vert_color);
-    stroke_selections.first() = (first_pt.flag & GP_SPOINT_SELECT) != 0;
-    if (use_dverts && gps->dvert) {
-      copy_dvert(gps->dvert[0], stroke_dverts.first());
-    }
-
-    /* Do the rest of the points. */
-    for (const int i : stroke_points.index_range().drop_back(1)) {
-      const int point_i = i + 1;
-      const bGPDspoint &pt_prev = stroke_points[point_i - 1];
-      const bGPDspoint &pt = stroke_points[point_i];
-      stroke_positions[point_i] = float3(pt.x, pt.y, pt.z);
-      stroke_radii[point_i] = gps->thickness * pt.pressure / 2000.0f;
-      stroke_opacities[point_i] = pt.strength;
-      stroke_deltatimes[point_i] = pt.time - pt_prev.time;
-      stroke_rotations[point_i] = pt.uv_rot;
-      stroke_vertex_colors[point_i] = ColorGeometry4f(pt.vert_color);
-      stroke_selections[point_i] = (pt.flag & GP_SPOINT_SELECT) != 0;
-      if (use_dverts && gps->dvert) {
-        copy_dvert(gps->dvert[point_i], stroke_dverts[point_i]);
+    threading::parallel_for(src_points.index_range(), 4096, [&](const IndexRange range) {
+      for (const int point_i : range) {
+        const bGPDspoint &pt = src_points[point_i];
+        dst_positions[point_i] = float3(pt.x, pt.y, pt.z);
+        dst_radii[point_i] = stroke_thickness * pt.pressure;
+        dst_opacities[point_i] = pt.strength;
+        dst_rotations[point_i] = pt.uv_rot;
+        dst_vertex_colors[point_i] = ColorGeometry4f(pt.vert_color);
+        dst_selection[point_i] = (pt.flag & GP_SPOINT_SELECT) != 0;
+        if (use_dverts && gps->dvert) {
+          copy_dvert(gps->dvert[point_i], dst_dverts[point_i]);
+        }
       }
-    }
+    });
+
+    dst_deltatimes.first() = 0;
+    threading::parallel_for(
+        src_points.index_range().drop_front(1), 4096, [&](const IndexRange range) {
+          for (const int point_i : range) {
+            const bGPDspoint &pt = src_points[point_i];
+            const bGPDspoint &pt_prev = src_points[point_i - 1];
+            dst_deltatimes[point_i] = pt.time - pt_prev.time;
+          }
+        });
   }
 
   delta_times.finish();
