@@ -414,8 +414,6 @@ struct uiHandleButtonData {
   /* coords are Window/uiBlock relative (depends on the button) */
   int draglastx, draglasty;
   int dragstartx, dragstarty;
-  int draglastvalue;
-  int dragstartvalue;
   bool dragchange, draglock;
   int dragsel;
   float dragf, dragfstart;
@@ -435,7 +433,6 @@ struct uiHandleButtonData {
 
   /* Menu open, see: #UI_screen_free_active_but_highlight. */
   uiPopupBlockHandle *menu;
-  int menuretval;
 
   /* Search box see: #UI_screen_free_active_but_highlight. */
   ARegion *searchbox;
