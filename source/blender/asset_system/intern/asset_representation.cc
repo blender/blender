@@ -10,7 +10,6 @@
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
-#include "DNA_userdef_types.h"
 
 #include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
