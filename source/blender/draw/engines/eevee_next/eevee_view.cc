@@ -279,7 +279,7 @@ void CaptureView::render_probes()
   while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
 
-    if (inst_.pipelines.data.is_probe_reflection != true) {
+    if (!inst_.pipelines.data.is_probe_reflection) {
       inst_.pipelines.data.is_probe_reflection = true;
       inst_.uniform_data.push_update();
     }
@@ -327,7 +327,7 @@ void CaptureView::render_probes()
     inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
   }
 
-  if (inst_.pipelines.data.is_probe_reflection != false) {
+  if (inst_.pipelines.data.is_probe_reflection) {
     inst_.pipelines.data.is_probe_reflection = false;
     inst_.uniform_data.push_update();
   }
