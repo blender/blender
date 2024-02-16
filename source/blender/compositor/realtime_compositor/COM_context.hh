@@ -112,6 +112,10 @@ class Context {
    * render pipeline. */
   virtual RenderContext *render_context() const;
 
+  /* Returns true if the compositor evaluation is canceled and that the evaluator should stop
+   * executing as soon as possible. */
+  virtual bool is_canceled() const;
+
   /* Get the size of the compositing region. See get_compositing_region(). The output size is
    * sanitized such that it is at least 1 in both dimensions. However, the developer is expected to
    * gracefully handled zero sizes regions by checking the is_valid_compositing_region method. */
