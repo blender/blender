@@ -280,7 +280,15 @@ static void try_convert_single_object(Object &curves_ob,
     *r_could_not_convert_some_curves = true;
   }
 
-  const int hair_num = curves.curves_num();
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  IndexMaskMemory memory;
+  const IndexMask multi_point_curves = IndexMask::from_predicate(
+      curves.curves_range(), GrainSize(4096), memory, [&](const int curve_i) {
+        return points_by_curve[curve_i].size() > 1;
+      });
+
+  const int hair_num = multi_point_curves.size();
+
   if (hair_num == 0) {
     return;
   }
@@ -327,11 +335,9 @@ static void try_convert_single_object(Object &curves_ob,
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
   const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata_legacy, CD_MFACE);
-  const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = surface_me.vert_positions();
 
-  for (const int new_hair_i : IndexRange(hair_num)) {
-    const int curve_i = new_hair_i;
+  multi_point_curves.foreach_index([&](const int curve_i, const int new_hair_i) {
     const IndexRange points = points_by_curve[curve_i];
 
     const float3 &root_pos_cu = positions_cu[points.first()];
@@ -382,7 +388,7 @@ static void try_convert_single_object(Object &curves_ob,
       key.time = 100.0f * key_fac;
       key.weight = 1.0f - key_fac;
     }
-  }
+  });
 
   particle_system->particles = particles.data();
   particle_system->totpart = particles.size();
