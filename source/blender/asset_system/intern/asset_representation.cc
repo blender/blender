@@ -57,7 +57,7 @@ const AssetIdentifier &AssetRepresentation::get_identifier() const
   return identifier_;
 }
 
-AssetWeakReference *AssetRepresentation::make_weak_reference() const
+AssetWeakReference AssetRepresentation::make_weak_reference() const
 {
   return AssetWeakReference::make_reference(owner_asset_library_, identifier_);
 }

@@ -182,10 +182,9 @@ typedef struct AssetWeakReference {
   ~AssetWeakReference();
 
   /**
-   * See AssetRepresentation::make_weak_reference(). Must be freed using
-   * #BKE_asset_weak_reference_free().
+   * See AssetRepresentation::make_weak_reference().
    */
-  static AssetWeakReference *make_reference(
+  static AssetWeakReference make_reference(
       const blender::asset_system::AssetLibrary &library,
       const blender::asset_system::AssetIdentifier &asset_identifier);
 #endif

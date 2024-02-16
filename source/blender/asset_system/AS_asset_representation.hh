@@ -80,10 +80,8 @@ class AssetRepresentation {
    * Create a weak reference for this asset that can be written to files, but can break under a
    * number of conditions.
    * A weak reference can only be created if an asset representation is owned by an asset library.
-   *
-   * Must be freed using #BKE_asset_weak_reference_free().
    */
-  AssetWeakReference *make_weak_reference() const;
+  AssetWeakReference make_weak_reference() const;
 
   StringRefNull get_name() const;
   ID_Type get_id_type() const;

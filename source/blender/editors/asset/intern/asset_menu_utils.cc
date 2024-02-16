@@ -51,11 +51,10 @@ void operator_asset_reference_props_register(StructRNA &srna)
 void operator_asset_reference_props_set(const asset_system::AssetRepresentation &asset,
                                         PointerRNA &ptr)
 {
-  AssetWeakReference *weak_ref = asset.make_weak_reference();
-  RNA_enum_set(&ptr, "asset_library_type", weak_ref->asset_library_type);
-  RNA_string_set(&ptr, "asset_library_identifier", weak_ref->asset_library_identifier);
-  RNA_string_set(&ptr, "relative_asset_identifier", weak_ref->relative_asset_identifier);
-  BKE_asset_weak_reference_free(&weak_ref);
+  const AssetWeakReference weak_ref = asset.make_weak_reference();
+  RNA_enum_set(&ptr, "asset_library_type", weak_ref.asset_library_type);
+  RNA_string_set(&ptr, "asset_library_identifier", weak_ref.asset_library_identifier);
+  RNA_string_set(&ptr, "relative_asset_identifier", weak_ref.relative_asset_identifier);
 }
 
 /**
