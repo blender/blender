@@ -3232,9 +3232,14 @@ static int object_convert_exec(bContext *C, wmOperator *op)
       }
 
       GreasePencil *new_grease_pencil = static_cast<GreasePencil *>(
-          BKE_id_new(bmain, ID_GP, newob->id.name + 2));
+          BKE_id_new(bmain, ID_GP, gpd->id.name + 2));
       newob->data = new_grease_pencil;
       newob->type = OB_GREASE_PENCIL;
+
+      /* NOTE: Could also use #BKE_id_free_us, to also free the legacy GP if not used anymore? */
+      id_us_min(&gpd->id);
+      /* No need to increase usercount of `new_grease_pencil`, since ID creation already set it
+       * to 1. */
 
       bke::greasepencil::convert::legacy_gpencil_to_grease_pencil(
           *bmain, *new_grease_pencil, *gpd);
