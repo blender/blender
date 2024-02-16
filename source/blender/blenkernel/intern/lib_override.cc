@@ -4175,6 +4175,11 @@ void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *rep
   if (id->override_library == nullptr) {
     return;
   }
+
+  /* NOTE: In code deleting liboverride data below, #BKE_lib_override_library_make_local is used
+   * instead of directly calling #BKE_lib_override_library_free, because the former also handles
+   * properly 'liboverride embedded' IDs, like root nodetrees, or shapekeys. */
+
   if (id->override_library->reference == nullptr) {
     /* This (probably) used to be a template ID, could be linked or local, not an override. */
     BKE_reportf(reports,
@@ -4182,7 +4187,7 @@ void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *rep
                 "Library override templates have been removed: removing all override data from "
                 "the data-block '%s'",
                 id->name);
-    BKE_lib_override_library_free(&id->override_library, true);
+    BKE_lib_override_library_make_local(nullptr, id);
     return;
   }
   if (id->override_library->reference == id) {
@@ -4193,7 +4198,7 @@ void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *rep
                 "Data corruption: data-block '%s' is using itself as library override reference, "
                 "removing all override data",
                 id->name);
-    BKE_lib_override_library_free(&id->override_library, true);
+    BKE_lib_override_library_make_local(nullptr, id);
     return;
   }
   if (!ID_IS_LINKED(id->override_library->reference)) {
@@ -4205,7 +4210,7 @@ void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *rep
                 "library override reference, removing all override data",
                 id->name,
                 id->override_library->reference->name);
-    BKE_lib_override_library_free(&id->override_library, true);
+    BKE_lib_override_library_make_local(nullptr, id);
     return;
   }
 }
