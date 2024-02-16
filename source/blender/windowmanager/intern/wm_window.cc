@@ -1667,6 +1667,11 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
           /* Void pointer should point to string, it makes a copy. */
         }
       }
+      else if (ddd->dataType == GHOST_kDragnDropTypeString) {
+        /* Drop an arbitrary string. */
+        std::string *str = MEM_new<std::string>(__func__, static_cast<const char *>(ddd->data));
+        WM_event_start_drag(C, ICON_NONE, WM_DRAG_STRING, str, WM_DRAG_FREE_DATA);
+      }
 
       break;
     }

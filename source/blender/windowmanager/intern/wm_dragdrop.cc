@@ -379,6 +379,11 @@ void WM_drag_data_free(eWM_DragDataType dragtype, void *poin)
       wm_drag_free_path_data(&path_data);
       break;
     }
+    case WM_DRAG_STRING: {
+      std::string *str = static_cast<std::string *>(poin);
+      MEM_delete(str);
+      break;
+    }
     default:
       MEM_freeN(poin);
       break;

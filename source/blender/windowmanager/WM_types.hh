@@ -1143,6 +1143,14 @@ enum eWM_DragDataType {
   WM_DRAG_RNA,
   WM_DRAG_PATH,
   WM_DRAG_NAME,
+  /**
+   * Arbitrary text such as dragging from a text editor,
+   * this is also used when dragging a URL from a browser.
+   *
+   * An #std::string expected to be UTF8 encoded.
+   * Callers that require valid UTF8 sequences must validate the text.
+   */
+  WM_DRAG_STRING,
   WM_DRAG_COLOR,
   WM_DRAG_DATASTACK,
   WM_DRAG_ASSET_CATALOG,
