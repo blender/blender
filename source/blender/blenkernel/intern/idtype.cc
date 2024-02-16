@@ -107,6 +107,7 @@ static void id_type_init()
   init_types_num++;
 
   BLI_assert_msg(init_types_num == INDEX_ID_MAX, "Some IDTypeInfo initialization is missing");
+  UNUSED_VARS_NDEBUG(init_types_num);
 
 #undef INIT_TYPE
 }
