@@ -147,6 +147,19 @@ static void add_meta_data_for_input(realtime_compositor::FileOutput &file_output
 
 void FileOutputOperation::deinit_execution()
 {
+  /* It is possible that none of the inputs would have an image connected, which will materialize
+   * as a size of zero, so check this here and return early doing nothing. Just make sure to free
+   * the allocated buffers. */
+  const int2 size = int2(get_width(), get_height());
+  if (size == int2(0)) {
+    for (const FileOutputInput &input : file_output_inputs_) {
+      if (input.output_buffer) {
+        MEM_freeN(input.output_buffer);
+      }
+    }
+    return;
+  }
+
   if (is_multi_layer()) {
     execute_multi_layer();
   }
