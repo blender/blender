@@ -174,7 +174,7 @@ AssetCatalogFilter AssetCatalogService::create_catalog_filter(
   Set<CatalogID> known_catalog_ids;
   matching_catalog_ids.add(active_catalog_id);
 
-  const AssetCatalog *active_catalog = find_catalog(active_catalog_id);
+  const AssetCatalog *active_catalog = this->find_catalog(active_catalog_id);
 
   /* This cannot just iterate over tree items to get all the required data, because tree items only
    * represent single UUIDs. It could be used to get the main UUIDs of the children, though, and
@@ -626,7 +626,7 @@ void AssetCatalogService::create_missing_catalogs()
     }
 
     /* The parent doesn't exist, so create it and queue it up for checking its parent. */
-    AssetCatalog *parent_catalog = create_catalog(parent_path);
+    AssetCatalog *parent_catalog = this->create_catalog(parent_path);
     parent_catalog->flags.has_unsaved_changes = true;
 
     paths_to_check.insert(parent_path);
@@ -651,7 +651,7 @@ void AssetCatalogService::undo()
 
   redo_snapshots_.append(std::move(catalog_collection_));
   catalog_collection_ = undo_snapshots_.pop_last();
-  rebuild_tree();
+  this->rebuild_tree();
   AssetLibraryService::get()->rebuild_all_library();
 }
 
@@ -681,8 +681,8 @@ std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() cons
   auto copy = std::make_unique<AssetCatalogCollection>();
 
   copy->has_unsaved_changes_ = this->has_unsaved_changes_;
-  copy->catalogs_ = copy_catalog_map(this->catalogs_);
-  copy->deleted_catalogs_ = copy_catalog_map(this->deleted_catalogs_);
+  copy->catalogs_ = this->copy_catalog_map(this->catalogs_);
+  copy->deleted_catalogs_ = this->copy_catalog_map(this->deleted_catalogs_);
 
   if (catalog_definition_file_) {
     copy->catalog_definition_file_ = catalog_definition_file_->copy_and_remap(
