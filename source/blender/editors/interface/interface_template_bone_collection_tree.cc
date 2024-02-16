@@ -99,6 +99,10 @@ class BoneCollectionDropTarget : public TreeViewItemDropTarget {
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override
   {
+    if (drag.type != WM_DRAG_BONE_COLLECTION) {
+      return false;
+    }
+
     const ArmatureBoneCollection *drag_arm_bcoll = static_cast<const ArmatureBoneCollection *>(
         drag.poin);
 
