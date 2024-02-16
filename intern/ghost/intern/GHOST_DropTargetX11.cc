@@ -102,7 +102,8 @@ GHOST_DropTargetX11::~GHOST_DropTargetX11()
 char *GHOST_DropTargetX11::FileUrlDecode(const char *fileUrl)
 {
   if (strncmp(fileUrl, "file://", 7) == 0) {
-    return GHOST_URL_decode_alloc(fileUrl + 7);
+    const char *file = fileUrl + 7;
+    return GHOST_URL_decode_alloc(file, strlen(file));
   }
 
   return nullptr;
