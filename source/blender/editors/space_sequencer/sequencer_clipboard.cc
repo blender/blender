@@ -401,4 +401,3 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
-

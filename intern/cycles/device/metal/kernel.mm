@@ -465,19 +465,18 @@ void MetalKernelPipeline::compile()
                                     device_kernel_as_string(device_kernel);
 
   NSError *error = NULL;
-  if (@available(macOS 11.0, *)) {
-    MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
-    func_desc.name = [@(function_name.c_str()) copy];
 
-    if (pso_type != PSO_GENERIC) {
-      func_desc.constantValues = GetConstantValues(&kernel_data_);
-    }
-    else {
-      func_desc.constantValues = GetConstantValues();
-    }
+  MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
+  func_desc.name = [@(function_name.c_str()) copy];
 
-    function = [mtlLibrary newFunctionWithDescriptor:func_desc error:&error];
+  if (pso_type != PSO_GENERIC) {
+    func_desc.constantValues = GetConstantValues(&kernel_data_);
   }
+  else {
+    func_desc.constantValues = GetConstantValues();
+  }
+
+  function = [mtlLibrary newFunctionWithDescriptor:func_desc error:&error];
 
   if (function == nil) {
     NSString *err = [error localizedDescription];
@@ -489,52 +488,50 @@ void MetalKernelPipeline::compile()
   function.label = [@(function_name.c_str()) copy];
 
   if (use_metalrt) {
-    if (@available(macOS 11.0, *)) {
-      /* create the id<MTLFunction> for each intersection function */
-      const char *function_names[] = {
-          "__anyhit__cycles_metalrt_visibility_test_tri",
-          "__anyhit__cycles_metalrt_visibility_test_box",
-          "__anyhit__cycles_metalrt_shadow_all_hit_tri",
-          "__anyhit__cycles_metalrt_shadow_all_hit_box",
-          "__anyhit__cycles_metalrt_volume_test_tri",
-          "__anyhit__cycles_metalrt_volume_test_box",
-          "__anyhit__cycles_metalrt_local_hit_tri",
-          "__anyhit__cycles_metalrt_local_hit_box",
-          "__anyhit__cycles_metalrt_local_hit_tri_prim",
-          "__anyhit__cycles_metalrt_local_hit_box_prim",
-          "__intersection__curve",
-          "__intersection__curve_shadow",
-          "__intersection__point",
-          "__intersection__point_shadow",
-      };
-      assert(sizeof(function_names) / sizeof(function_names[0]) == METALRT_FUNC_NUM);
+    /* create the id<MTLFunction> for each intersection function */
+    const char *function_names[] = {
+        "__anyhit__cycles_metalrt_visibility_test_tri",
+        "__anyhit__cycles_metalrt_visibility_test_box",
+        "__anyhit__cycles_metalrt_shadow_all_hit_tri",
+        "__anyhit__cycles_metalrt_shadow_all_hit_box",
+        "__anyhit__cycles_metalrt_volume_test_tri",
+        "__anyhit__cycles_metalrt_volume_test_box",
+        "__anyhit__cycles_metalrt_local_hit_tri",
+        "__anyhit__cycles_metalrt_local_hit_box",
+        "__anyhit__cycles_metalrt_local_hit_tri_prim",
+        "__anyhit__cycles_metalrt_local_hit_box_prim",
+        "__intersection__curve",
+        "__intersection__curve_shadow",
+        "__intersection__point",
+        "__intersection__point_shadow",
+    };
+    assert(sizeof(function_names) / sizeof(function_names[0]) == METALRT_FUNC_NUM);
 
-      MTLFunctionDescriptor *desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
-      for (int i = 0; i < METALRT_FUNC_NUM; i++) {
-        const char *function_name = function_names[i];
-        desc.name = [@(function_name) copy];
+    MTLFunctionDescriptor *desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
+    for (int i = 0; i < METALRT_FUNC_NUM; i++) {
+      const char *function_name = function_names[i];
+      desc.name = [@(function_name) copy];
 
-        if (pso_type != PSO_GENERIC) {
-          desc.constantValues = GetConstantValues(&kernel_data_);
-        }
-        else {
-          desc.constantValues = GetConstantValues();
-        }
-
-        NSError *error = NULL;
-        rt_intersection_function[i] = [mtlLibrary newFunctionWithDescriptor:desc error:&error];
-
-        if (rt_intersection_function[i] == nil) {
-          NSString *err = [error localizedDescription];
-          string errors = [err UTF8String];
-
-          error_str = string_printf(
-              "Error getting intersection function \"%s\": %s", function_name, errors.c_str());
-          break;
-        }
-
-        rt_intersection_function[i].label = [@(function_name) copy];
+      if (pso_type != PSO_GENERIC) {
+        desc.constantValues = GetConstantValues(&kernel_data_);
       }
+      else {
+        desc.constantValues = GetConstantValues();
+      }
+
+      NSError *error = NULL;
+      rt_intersection_function[i] = [mtlLibrary newFunctionWithDescriptor:desc error:&error];
+
+      if (rt_intersection_function[i] == nil) {
+        NSString *err = [error localizedDescription];
+        string errors = [err UTF8String];
+
+        error_str = string_printf(
+            "Error getting intersection function \"%s\": %s", function_name, errors.c_str());
+        break;
+      }
+
+      rt_intersection_function[i].label = [@(function_name) copy];
     }
   }
 
@@ -611,23 +608,19 @@ void MetalKernelPipeline::compile()
   computePipelineStateDescriptor.buffers[1].mutability = MTLMutabilityImmutable;
   computePipelineStateDescriptor.buffers[2].mutability = MTLMutabilityImmutable;
 
-  if (@available(macos 10.14, *)) {
-    computePipelineStateDescriptor.maxTotalThreadsPerThreadgroup = threads_per_threadgroup;
-  }
+  computePipelineStateDescriptor.maxTotalThreadsPerThreadgroup = threads_per_threadgroup;
   computePipelineStateDescriptor.threadGroupSizeIsMultipleOfThreadExecutionWidth = true;
 
   computePipelineStateDescriptor.computeFunction = function;
 
-  if (@available(macOS 11.0, *)) {
-    /* Attach the additional functions to an MTLLinkedFunctions object */
-    if (linked_functions) {
-      computePipelineStateDescriptor.linkedFunctions = [[MTLLinkedFunctions alloc] init];
-      computePipelineStateDescriptor.linkedFunctions.functions = linked_functions;
-    }
-    computePipelineStateDescriptor.maxCallStackDepth = 1;
-    if (use_metalrt) {
-      computePipelineStateDescriptor.maxCallStackDepth = 8;
-    }
+  /* Attach the additional functions to an MTLLinkedFunctions object */
+  if (linked_functions) {
+    computePipelineStateDescriptor.linkedFunctions = [[MTLLinkedFunctions alloc] init];
+    computePipelineStateDescriptor.linkedFunctions.functions = linked_functions;
+  }
+  computePipelineStateDescriptor.maxCallStackDepth = 1;
+  if (use_metalrt) {
+    computePipelineStateDescriptor.maxCallStackDepth = 8;
   }
 
   MTLPipelineOption pipelineOptions = MTLPipelineOptionNone;
@@ -669,23 +662,21 @@ void MetalKernelPipeline::compile()
     loading_existing_archive = path_cache_kernel_exists_and_mark_used(metalbin_path);
     creating_new_archive = !loading_existing_archive;
 
-    if (@available(macOS 11.0, *)) {
-      MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
-      if (loading_existing_archive) {
-        archiveDesc.url = [NSURL fileURLWithPath:@(metalbin_path.c_str())];
-      }
-      NSError *error = nil;
-      archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:&error];
-      if (!archive) {
-        const char *err = error ? [[error localizedDescription] UTF8String] : nullptr;
-        metal_printf("newBinaryArchiveWithDescriptor failed: %s\n", err ? err : "nil");
-      }
-      [archiveDesc release];
+    MTLBinaryArchiveDescriptor *archiveDesc = [[MTLBinaryArchiveDescriptor alloc] init];
+    if (loading_existing_archive) {
+      archiveDesc.url = [NSURL fileURLWithPath:@(metalbin_path.c_str())];
+    }
+    NSError *error = nil;
+    archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:&error];
+    if (!archive) {
+      const char *err = error ? [[error localizedDescription] UTF8String] : nullptr;
+      metal_printf("newBinaryArchiveWithDescriptor failed: %s\n", err ? err : "nil");
+    }
+    [archiveDesc release];
 
-      if (loading_existing_archive) {
-        pipelineOptions = MTLPipelineOptionFailOnBinaryArchiveMiss;
-        computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
-      }
+    if (loading_existing_archive) {
+      pipelineOptions = MTLPipelineOptionFailOnBinaryArchiveMiss;
+      computePipelineStateDescriptor.binaryArchives = [NSArray arrayWithObjects:archive, nil];
     }
   }
 
@@ -792,19 +783,16 @@ void MetalKernelPipeline::compile()
     num_threads_per_block = std::max(num_threads_per_block, (int)pipeline.threadExecutionWidth);
   }
 
-  if (@available(macOS 11.0, *)) {
-    if (ShaderCache::running) {
-      if (creating_new_archive || recreate_archive) {
-        if (![archive serializeToURL:[NSURL fileURLWithPath:@(metalbin_path.c_str())]
-                               error:&error])
-        {
-          metal_printf("Failed to save binary archive to %s, error:\n%s\n",
-                       metalbin_path.c_str(),
-                       [[error localizedDescription] UTF8String]);
-        }
-        else {
-          path_cache_kernel_mark_added_and_clear_old(metalbin_path);
-        }
+  if (ShaderCache::running) {
+    if (creating_new_archive || recreate_archive) {
+      if (![archive serializeToURL:[NSURL fileURLWithPath:@(metalbin_path.c_str())] error:&error])
+      {
+        metal_printf("Failed to save binary archive to %s, error:\n%s\n",
+                     metalbin_path.c_str(),
+                     [[error localizedDescription] UTF8String]);
+      }
+      else {
+        path_cache_kernel_mark_added_and_clear_old(metalbin_path);
       }
     }
   }
@@ -815,20 +803,18 @@ void MetalKernelPipeline::compile()
 
   if (use_metalrt && linked_functions) {
     for (int table = 0; table < METALRT_TABLE_NUM; table++) {
-      if (@available(macOS 11.0, *)) {
-        MTLIntersectionFunctionTableDescriptor *ift_desc =
-            [[MTLIntersectionFunctionTableDescriptor alloc] init];
-        ift_desc.functionCount = table_functions[table].count;
-        intersection_func_table[table] = [this->pipeline
-            newIntersectionFunctionTableWithDescriptor:ift_desc];
+      MTLIntersectionFunctionTableDescriptor *ift_desc =
+          [[MTLIntersectionFunctionTableDescriptor alloc] init];
+      ift_desc.functionCount = table_functions[table].count;
+      intersection_func_table[table] = [this->pipeline
+          newIntersectionFunctionTableWithDescriptor:ift_desc];
 
-        /* Finally write the function handles into this pipeline's table */
-        int size = (int)[table_functions[table] count];
-        for (int i = 0; i < size; i++) {
-          id<MTLFunctionHandle> handle = [pipeline
-              functionHandleWithFunction:table_functions[table][i]];
-          [intersection_func_table[table] setFunction:handle atIndex:i];
-        }
+      /* Finally write the function handles into this pipeline's table */
+      int size = (int)[table_functions[table] count];
+      for (int i = 0; i < size; i++) {
+        id<MTLFunctionHandle> handle = [pipeline
+            functionHandleWithFunction:table_functions[table][i]];
+        [intersection_func_table[table] setFunction:handle atIndex:i];
       }
     }
   }
