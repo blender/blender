@@ -1143,7 +1143,6 @@ enum eWM_DragDataType {
   WM_DRAG_RNA,
   WM_DRAG_PATH,
   WM_DRAG_NAME,
-  WM_DRAG_VALUE,
   WM_DRAG_COLOR,
   WM_DRAG_DATASTACK,
   WM_DRAG_ASSET_CATALOG,
@@ -1255,7 +1254,6 @@ struct wmDrag {
   int icon;
   eWM_DragDataType type;
   void *poin;
-  double value;
 
   /** If no icon but imbuf should be drawn around cursor. */
   const ImBuf *imb;

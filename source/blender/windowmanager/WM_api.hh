@@ -1373,7 +1373,7 @@ int WM_operator_flag_only_pass_through_on_press(int retval, const wmEvent *event
  * Note that \a poin should be valid allocated and not on stack.
  */
 void WM_event_start_drag(
-    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, unsigned int flags);
+    bContext *C, int icon, eWM_DragDataType type, void *poin, unsigned int flags);
 /**
  * Create and fill the dragging data, but don't start dragging just yet (unlike
  * #WM_event_start_drag()). Must be followed up by #WM_event_start_prepared_drag(), otherwise the
@@ -1382,7 +1382,7 @@ void WM_event_start_drag(
  * Note that \a poin should be valid allocated and not on stack.
  */
 wmDrag *WM_drag_data_create(
-    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, unsigned int flags);
+    bContext *C, int icon, eWM_DragDataType type, void *poin, unsigned int flags);
 /**
  * Invoke dragging using the given \a drag data.
  */

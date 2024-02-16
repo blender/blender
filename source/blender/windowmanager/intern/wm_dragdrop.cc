@@ -258,8 +258,7 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
   }
 }
 
-wmDrag *WM_drag_data_create(
-    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, uint flags)
+wmDrag *WM_drag_data_create(bContext *C, int icon, eWM_DragDataType type, void *poin, uint flags)
 {
   wmDrag *drag = MEM_new<wmDrag>(__func__);
 
@@ -302,7 +301,6 @@ wmDrag *WM_drag_data_create(
       drag->poin = poin;
       break;
   }
-  drag->value = value;
 
   return drag;
 }
@@ -315,10 +313,9 @@ void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
   wm_dropbox_invoke(C, drag);
 }
 
-void WM_event_start_drag(
-    bContext *C, int icon, eWM_DragDataType type, void *poin, double value, uint flags)
+void WM_event_start_drag(bContext *C, int icon, eWM_DragDataType type, void *poin, uint flags)
 {
-  wmDrag *drag = WM_drag_data_create(C, icon, type, poin, value, flags);
+  wmDrag *drag = WM_drag_data_create(C, icon, type, poin, flags);
   WM_event_start_prepared_drag(C, drag);
 }
 
