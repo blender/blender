@@ -39,7 +39,7 @@ class AssetRepresentation {
    */
   const bool is_local_id_ = false;
   /** Asset library that owns this asset representation. */
-  const AssetLibrary *owner_asset_library_;
+  const AssetLibrary &owner_asset_library_;
 
   struct ExternalAsset {
     std::string name;
