@@ -4029,6 +4029,12 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
     return false;
   }
 
+  /* Only FCuves can have their keys selected. */
+  if (ale->datatype != ALE_FCURVE) {
+    ANIM_animdata_freelist(&anim_data);
+    return false;
+  }
+
   fcu = (FCurve *)ale->key_data;
   success = (fcu != nullptr);
 
