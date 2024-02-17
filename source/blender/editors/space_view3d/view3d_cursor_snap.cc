@@ -815,7 +815,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       v3d_cursor_snap_calc_incremental(scene, v3d, region, state->prevpoint, co);
     }
   }
-  else if (snap_elem == SCE_SNAP_TO_VERTEX) {
+  else if (snap_elem & SCE_SNAP_TO_VERTEX) {
     snap_elem_index[0] = index;
   }
   else if (snap_elem &
