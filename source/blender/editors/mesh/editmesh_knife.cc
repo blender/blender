@@ -1433,43 +1433,12 @@ static BMFace *knife_bvh_raycast_filter(KnifeTool_OpData *kcd,
   kcd->bvh.filter_cb = filter_cb;
   kcd->bvh.filter_data = filter_userdata;
 
-  BMFace *face;
-  BVHTreeRayHit hit;
-  const float dist = r_dist ? *r_dist : FLT_MAX;
-  hit.dist = dist;
-  hit.index = -1;
-
-  BLI_bvhtree_ray_cast(kcd->bvh.tree, co, dir, radius, &hit, knife_bvh_raycast_cb, kcd);
+  BMFace *face = knife_bvh_raycast(kcd, co, dir, radius, r_dist, r_hitout, r_cagehit, r_ob_index);
 
   kcd->bvh.filter_cb = nullptr;
   kcd->bvh.filter_data = nullptr;
 
-  /* Handle Hit */
-  if (hit.index != -1 && hit.dist != dist) {
-    face = kcd->bvh.looptris[hit.index][0]->f;
-
-    /* Hits returned in world space. */
-    if (r_hitout) {
-      float tri_cos[3][3];
-      knife_bm_tri_cagecos_get_worldspace(kcd, kcd->bvh.ob_index, hit.index, tri_cos);
-      interp_v3_v3v3v3_uv(r_hitout, UNPACK3(tri_cos), kcd->bvh.uv);
-
-      if (r_cagehit) {
-        copy_v3_v3(r_cagehit, hit.co);
-      }
-    }
-
-    if (r_dist) {
-      *r_dist = hit.dist;
-    }
-
-    if (r_ob_index) {
-      *r_ob_index = kcd->bvh.ob_index;
-    }
-
-    return face;
-  }
-  return nullptr;
+  return face;
 }
 
 /** \} */
