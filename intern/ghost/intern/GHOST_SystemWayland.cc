@@ -5451,6 +5451,111 @@ static zwp_text_input_v3_listener text_input_listener = {
 static CLG_LogRef LOG_WL_SEAT = {"ghost.wl.handle.seat"};
 #define LOG (&LOG_WL_SEAT)
 
+static bool gwl_seat_capability_pointer_multitouch_check(const GWL_Seat *seat, const bool fallback)
+{
+  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  if (pointer_gestures == nullptr) {
+    return fallback;
+  }
+
+  bool found = false;
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
+  if (seat->wp.pointer_gesture_hold) {
+    return true;
+  }
+  found = true;
+#endif
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
+  if (seat->wp.pointer_gesture_pinch) {
+    return true;
+  }
+  found = true;
+#endif
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
+  if (seat->wp.pointer_gesture_swipe) {
+    return true;
+  }
+  found = true;
+#endif
+  if (found == false) {
+    return fallback;
+  }
+  return false;
+}
+
+static void gwl_seat_capability_pointer_multitouch_enable(GWL_Seat *seat)
+{
+  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  if (pointer_gestures == nullptr) {
+    return;
+  }
+
+  const uint pointer_gestures_version = zwp_pointer_gestures_v1_get_version(pointer_gestures);
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
+  if (pointer_gestures_version >= ZWP_POINTER_GESTURES_V1_GET_HOLD_GESTURE_SINCE_VERSION)
+  { /* Hold gesture. */
+    zwp_pointer_gesture_hold_v1 *gesture = zwp_pointer_gestures_v1_get_hold_gesture(
+        pointer_gestures, seat->wl.pointer);
+    zwp_pointer_gesture_hold_v1_set_user_data(gesture, seat);
+    zwp_pointer_gesture_hold_v1_add_listener(gesture, &gesture_hold_listener, seat);
+    seat->wp.pointer_gesture_hold = gesture;
+  }
+#endif
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
+  { /* Pinch gesture. */
+    zwp_pointer_gesture_pinch_v1 *gesture = zwp_pointer_gestures_v1_get_pinch_gesture(
+        pointer_gestures, seat->wl.pointer);
+    zwp_pointer_gesture_pinch_v1_set_user_data(gesture, seat);
+    zwp_pointer_gesture_pinch_v1_add_listener(gesture, &gesture_pinch_listener, seat);
+    seat->wp.pointer_gesture_pinch = gesture;
+  }
+#endif
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
+  { /* Swipe gesture. */
+    zwp_pointer_gesture_swipe_v1 *gesture = zwp_pointer_gestures_v1_get_swipe_gesture(
+        pointer_gestures, seat->wl.pointer);
+    zwp_pointer_gesture_swipe_v1_set_user_data(gesture, seat);
+    zwp_pointer_gesture_swipe_v1_add_listener(gesture, &gesture_swipe_listener, seat);
+    seat->wp.pointer_gesture_swipe = gesture;
+  }
+#endif
+}
+
+static void gwl_seat_capability_pointer_multitouch_disable(GWL_Seat *seat)
+{
+  const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  if (pointer_gestures == nullptr) {
+    return;
+  }
+#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
+  { /* Hold gesture. */
+    zwp_pointer_gesture_hold_v1 **gesture_p = &seat->wp.pointer_gesture_hold;
+    if (*gesture_p) {
+      zwp_pointer_gesture_hold_v1_destroy(*gesture_p);
+      *gesture_p = nullptr;
+    }
+  }
+#endif
+#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
+  { /* Pinch gesture. */
+    zwp_pointer_gesture_pinch_v1 **gesture_p = &seat->wp.pointer_gesture_pinch;
+    if (*gesture_p) {
+      zwp_pointer_gesture_pinch_v1_destroy(*gesture_p);
+      *gesture_p = nullptr;
+    }
+  }
+#endif
+#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
+  { /* Swipe gesture. */
+    zwp_pointer_gesture_swipe_v1 **gesture_p = &seat->wp.pointer_gesture_swipe;
+    if (*gesture_p) {
+      zwp_pointer_gesture_swipe_v1_destroy(*gesture_p);
+      *gesture_p = nullptr;
+    }
+  }
+#endif
+}
+
 static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
 {
   if (seat->wl.pointer) {
@@ -5487,38 +5592,7 @@ static void gwl_seat_capability_pointer_enable(GWL_Seat *seat)
   wl_surface_add_listener(seat->cursor.wl.surface_cursor, &cursor_surface_listener, seat);
   ghost_wl_surface_tag_cursor_pointer(seat->cursor.wl.surface_cursor);
 
-  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
-  if (pointer_gestures) {
-    const uint pointer_gestures_version = zwp_pointer_gestures_v1_get_version(pointer_gestures);
-#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
-    if (pointer_gestures_version >= ZWP_POINTER_GESTURES_V1_GET_HOLD_GESTURE_SINCE_VERSION)
-    { /* Hold gesture. */
-      zwp_pointer_gesture_hold_v1 *gesture = zwp_pointer_gestures_v1_get_hold_gesture(
-          pointer_gestures, seat->wl.pointer);
-      zwp_pointer_gesture_hold_v1_set_user_data(gesture, seat);
-      zwp_pointer_gesture_hold_v1_add_listener(gesture, &gesture_hold_listener, seat);
-      seat->wp.pointer_gesture_hold = gesture;
-    }
-#endif
-#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
-    { /* Pinch gesture. */
-      zwp_pointer_gesture_pinch_v1 *gesture = zwp_pointer_gestures_v1_get_pinch_gesture(
-          pointer_gestures, seat->wl.pointer);
-      zwp_pointer_gesture_pinch_v1_set_user_data(gesture, seat);
-      zwp_pointer_gesture_pinch_v1_add_listener(gesture, &gesture_pinch_listener, seat);
-      seat->wp.pointer_gesture_pinch = gesture;
-    }
-#endif
-#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
-    { /* Swipe gesture. */
-      zwp_pointer_gesture_swipe_v1 *gesture = zwp_pointer_gestures_v1_get_swipe_gesture(
-          pointer_gestures, seat->wl.pointer);
-      zwp_pointer_gesture_swipe_v1_set_user_data(gesture, seat);
-      zwp_pointer_gesture_swipe_v1_add_listener(gesture, &gesture_swipe_listener, seat);
-      seat->wp.pointer_gesture_swipe = gesture;
-    }
-#endif
-  }
+  gwl_seat_capability_pointer_multitouch_enable(seat);
 }
 
 static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
@@ -5527,36 +5601,7 @@ static void gwl_seat_capability_pointer_disable(GWL_Seat *seat)
     return;
   }
 
-  const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
-  if (pointer_gestures) {
-#ifdef ZWP_POINTER_GESTURE_HOLD_V1_INTERFACE
-    { /* Hold gesture. */
-      zwp_pointer_gesture_hold_v1 **gesture_p = &seat->wp.pointer_gesture_hold;
-      if (*gesture_p) {
-        zwp_pointer_gesture_hold_v1_destroy(*gesture_p);
-        *gesture_p = nullptr;
-      }
-    }
-#endif
-#ifdef ZWP_POINTER_GESTURE_PINCH_V1_INTERFACE
-    { /* Pinch gesture. */
-      zwp_pointer_gesture_pinch_v1 **gesture_p = &seat->wp.pointer_gesture_pinch;
-      if (*gesture_p) {
-        zwp_pointer_gesture_pinch_v1_destroy(*gesture_p);
-        *gesture_p = nullptr;
-      }
-    }
-#endif
-#ifdef ZWP_POINTER_GESTURE_SWIPE_V1_INTERFACE
-    { /* Swipe gesture. */
-      zwp_pointer_gesture_swipe_v1 **gesture_p = &seat->wp.pointer_gesture_swipe;
-      if (*gesture_p) {
-        zwp_pointer_gesture_swipe_v1_destroy(*gesture_p);
-        *gesture_p = nullptr;
-      }
-    }
-#endif
-  }
+  gwl_seat_capability_pointer_multitouch_disable(seat);
 
   if (seat->cursor.wl.surface_cursor) {
     wl_surface_destroy(seat->cursor.wl.surface_cursor);
@@ -7969,6 +8014,28 @@ static GWL_SeatStateGrab seat_grab_state_from_mode(const GHOST_TGrabCursorMode m
   grab_state.use_lock = ELEM(mode, GHOST_kGrabWrap, GHOST_kGrabHide) || use_software_confine;
   grab_state.use_confine = (mode == GHOST_kGrabNormal) && (use_software_confine == false);
   return grab_state;
+}
+
+void GHOST_SystemWayland::setMultitouchGestures(const bool use)
+{
+  if (m_multitouchGestures == use) {
+    return;
+  }
+  m_multitouchGestures = use;
+
+  /* Ensure this listeners aren't removed while events are generated. */
+  std::lock_guard lock_server_guard{*server_mutex};
+  for (GWL_Seat *seat : display_->seats) {
+    if (use == gwl_seat_capability_pointer_multitouch_check(seat, use)) {
+      continue;
+    }
+    if (use) {
+      gwl_seat_capability_pointer_multitouch_enable(seat);
+    }
+    else {
+      gwl_seat_capability_pointer_multitouch_disable(seat);
+    }
+  }
 }
 
 /** \} */
