@@ -7156,13 +7156,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
   prop = RNA_def_property(srna, "use_extension_repos", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_ui_text(
-      prop,
-      "Extension Repositories",
-      "Enables extension repositories, "
-      "accessible from the \"Extension Repositories\" panel in the "
-      "\"File Paths\" section of the preferences. "
-      "These paths are exposed as add-ons, package management is not yet integrated");
+  RNA_def_property_ui_text(prop,
+                           "Extensions",
+                           "Enables support for extensions, accessible from the \"Extensions\" "
+                           "section of the preferences.");
   RNA_def_property_boolean_funcs(
       prop, nullptr, "rna_PreferencesExperimental_use_extension_repos_set");
 }
