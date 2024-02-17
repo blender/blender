@@ -1737,7 +1737,15 @@ class USERPREF_PT_input_touchpad(InputPanel, CenterAlignMixIn, Panel):
     @classmethod
     def poll(cls, context):
         import sys
-        return sys.platform[:3] == "win" or sys.platform == "darwin"
+        if sys.platform[:3] == "win" or sys.platform == "darwin":
+            return True
+
+        # WAYLAND supports multi-touch, X11 and SDL don't.
+        from _bpy import _ghost_backend
+        if _ghost_backend() == 'WAYLAND':
+            return True
+
+        return False
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
