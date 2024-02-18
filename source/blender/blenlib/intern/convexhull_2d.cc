@@ -402,11 +402,15 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   const float angle = (area_best != FLT_MAX) ? float(atan2(sincos_best[0], sincos_best[1])) : 0.0f;
 
 #ifdef USE_BRUTE_FORCE_ASSERT
-  /* Ensure the optimized result matches the brute-force version. */
-  BLI_assert(angle == convexhull_aabb_fit_hull_2d_brute_force(points_hull, points_hull_num));
+  if (true)
 #else
-  (void)convexhull_aabb_fit_hull_2d_brute_force;
+  if (false)
 #endif
+  {
+    /* Ensure the optimized result matches the brute-force version. */
+    const float angle_test = convexhull_aabb_fit_hull_2d_brute_force(points_hull, points_hull_num);
+    BLI_assert(angle == angle_test);
+  }
 
   return angle;
 }
