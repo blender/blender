@@ -40,6 +40,22 @@ static void rna_grease_pencil_update(Main * /*bmain*/, Scene * /*scene*/, Pointe
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, rna_grease_pencil(ptr));
 }
 
+static void rna_grease_pencil_autolock(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  if (grease_pencil->flag & GREASE_PENCIL_AUTOLOCK_LAYERS) {
+    grease_pencil->autolock_inactive_layers();
+  }
+  else {
+    for (Layer *layer : grease_pencil->layers_for_write()) {
+      layer->set_locked(false);
+    }
+  }
+
+  rna_grease_pencil_update(nullptr, nullptr, ptr);
+}
+
 static void rna_grease_pencil_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   DEG_id_tag_update(&rna_grease_pencil(ptr)->id, ID_RECALC_GEOMETRY);
@@ -393,6 +409,14 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
                                     nullptr, /* TODO */
                                     nullptr);
   RNA_def_property_ui_text(prop, "Layer Groups", "Grease Pencil layer groups");
+
+  prop = RNA_def_property(srna, "use_autolock_layers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GREASE_PENCIL_AUTOLOCK_LAYERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Auto-Lock Layers",
+      "Automatically lock all layers except the active one to avoid accidental changes");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_autolock");
 }
 
 void RNA_def_grease_pencil(BlenderRNA *brna)
