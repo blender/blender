@@ -22,7 +22,7 @@
 #  include "BLI_fileops.h"
 #  include "BLI_utildefines.h"
 
-#  include "blf_internal.h"
+#  include "blf_internal.hh"
 
 /* internal freetype defines */
 #  define STREAM_FILE(stream) static_cast<FILE *>(stream->descriptor.pointer)

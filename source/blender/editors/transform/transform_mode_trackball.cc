@@ -14,14 +14,13 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 
-#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -145,7 +144,7 @@ static void applyTrackball(TransInfo *t)
 
     ofs += BLI_snprintf_rlen(str + ofs,
                              sizeof(str) - ofs,
-                             TIP_("Trackball: %s %s %s"),
+                             IFACE_("Trackball: %s %s %s"),
                              &c[0],
                              &c[NUM_STR_REP_LEN],
                              t->proptext);
@@ -153,7 +152,7 @@ static void applyTrackball(TransInfo *t)
   else {
     ofs += BLI_snprintf_rlen(str + ofs,
                              sizeof(str) - ofs,
-                             TIP_("Trackball: %.2f %.2f %s"),
+                             IFACE_("Trackball: %.2f %.2f %s"),
                              RAD2DEGF(phi[0]),
                              RAD2DEGF(phi[1]),
                              t->proptext);
@@ -161,7 +160,7 @@ static void applyTrackball(TransInfo *t)
 
   if (t->flag & T_PROP_EDIT_ALL) {
     ofs += BLI_snprintf_rlen(
-        str + ofs, sizeof(str) - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
+        str + ofs, sizeof(str) - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
   }
 
   float axis_final[3], angle_final;

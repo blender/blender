@@ -19,48 +19,41 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_mempool.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
-#include "BKE_node.h"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
-#include "BKE_viewer_path.hh"
-#include "BKE_workspace.h"
 
 #include "BLO_read_write.hh"
 
 /* TODO(@JulianEisel): For asset shelf region reading/writing. Region read/write should be done via
  * a #ARegionType callback. */
-#include "../editors/asset/ED_asset_shelf.h"
+#include "../editors/asset/ED_asset_shelf.hh"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
+
+using blender::Span;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name ID Type Implementation
@@ -166,6 +159,9 @@ static void screen_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 IDTypeInfo IDType_ID_SCR = {
     /*id_code*/ ID_SCR,
     /*id_filter*/ FILTER_ID_SCR,
+    /* NOTE: Can actually link to any ID type through UI (e.g. Outliner Editor). This is handled
+       separately though. */
+    /*dependencies_id_types*/ FILTER_ID_SCE,
     /*main_listbase_index*/ INDEX_ID_SCR,
     /*struct_size*/ sizeof(bScreen),
     /*name*/ "Screen",
@@ -201,12 +197,16 @@ IDTypeInfo IDType_ID_SCR = {
  * \{ */
 
 /** Keep global; this has to be accessible outside of window-manager. */
-static ListBase spacetypes = {nullptr, nullptr};
+static Vector<std::unique_ptr<SpaceType>> &get_space_types()
+{
+  static Vector<std::unique_ptr<SpaceType>> space_types;
+  return space_types;
+}
 
 /* not SpaceType itself */
-static void spacetype_free(SpaceType *st)
+SpaceType::~SpaceType()
 {
-  LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {
+  LISTBASE_FOREACH (ARegionType *, art, &this->regiontypes) {
 #ifdef WITH_PYTHON
     BPY_callback_screen_free(art);
 #endif
@@ -230,24 +230,19 @@ static void spacetype_free(SpaceType *st)
     BLI_freelistN(&art->headertypes);
   }
 
-  BLI_freelistN(&st->regiontypes);
-  BLI_freelistN(&st->asset_shelf_types);
+  BLI_freelistN(&this->regiontypes);
 }
 
 void BKE_spacetypes_free()
 {
-  LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
-    spacetype_free(st);
-  }
-
-  BLI_freelistN(&spacetypes);
+  get_space_types().clear_and_shrink();
 }
 
 SpaceType *BKE_spacetype_from_id(int spaceid)
 {
-  LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
+  for (std::unique_ptr<SpaceType> &st : get_space_types()) {
     if (st->spaceid == spaceid) {
-      return st;
+      return st.get();
     }
   }
   return nullptr;
@@ -263,22 +258,21 @@ ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid)
   return nullptr;
 }
 
-const ListBase *BKE_spacetypes_list()
+Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list()
 {
-  return &spacetypes;
+  return get_space_types();
 }
 
-void BKE_spacetype_register(SpaceType *st)
+void BKE_spacetype_register(std::unique_ptr<SpaceType> st)
 {
   /* sanity check */
   SpaceType *stype = BKE_spacetype_from_id(st->spaceid);
   if (stype) {
     printf("error: redefinition of spacetype %s\n", stype->name);
-    spacetype_free(stype);
-    MEM_freeN(stype);
+    return;
   }
 
-  BLI_addtail(&spacetypes, st);
+  get_space_types().append(std::move(st));
 }
 
 bool BKE_spacetype_exists(int spaceid)
@@ -323,6 +317,14 @@ static void panel_list_copy(ListBase *newlb, const ListBase *lb)
     new_panel->runtime = new_runtime;
     new_panel->activedata = nullptr;
     new_panel->drawname = nullptr;
+
+    BLI_listbase_clear(&new_panel->layout_panel_states);
+    LISTBASE_FOREACH (LayoutPanelState *, src_state, &old_panel->layout_panel_states) {
+      LayoutPanelState *new_state = MEM_new<LayoutPanelState>(__func__, *src_state);
+      new_state->idname = BLI_strdup(src_state->idname);
+      BLI_addtail(&new_panel->layout_panel_states, new_state);
+    }
+
     BLI_addtail(newlb, new_panel);
     panel_list_copy(&new_panel->children, &old_panel->children);
   }
@@ -400,7 +402,7 @@ void BKE_spacedata_copylist(ListBase *lb_dst, ListBase *lb_src)
 
 void BKE_spacedata_draw_locks(bool set)
 {
-  LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
+  for (std::unique_ptr<SpaceType> &st : get_space_types()) {
     LISTBASE_FOREACH (ARegionType *, art, &st->regiontypes) {
       if (set) {
         art->do_lock = art->lock;
@@ -487,6 +489,22 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
   region_free_gizmomap_callback = callback;
 }
 
+LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
+                                                      const char *idname,
+                                                      const bool default_closed)
+{
+  LISTBASE_FOREACH (LayoutPanelState *, state, &panel->layout_panel_states) {
+    if (STREQ(state->idname, idname)) {
+      return state;
+    }
+  }
+  LayoutPanelState *state = MEM_cnew<LayoutPanelState>(__func__);
+  state->idname = BLI_strdup(idname);
+  SET_FLAG_FROM_TEST(state->flag, !default_closed, LAYOUT_PANEL_STATE_FLAG_OPEN);
+  BLI_addtail(&panel->layout_panel_states, state);
+  return state;
+}
+
 Panel *BKE_panel_new(PanelType *panel_type)
 {
   Panel *panel = MEM_cnew<Panel>(__func__);
@@ -502,6 +520,12 @@ void BKE_panel_free(Panel *panel)
 {
   MEM_SAFE_FREE(panel->activedata);
   MEM_SAFE_FREE(panel->drawname);
+
+  LISTBASE_FOREACH (LayoutPanelState *, state, &panel->layout_panel_states) {
+    MEM_freeN(state->idname);
+  }
+  BLI_freelistN(&panel->layout_panel_states);
+
   MEM_delete(panel->runtime);
   MEM_freeN(panel);
 }
@@ -1014,7 +1038,7 @@ static void write_region(BlendWriter *writer, ARegion *region, int spacetype)
     }
 
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-      ED_asset_shelf_region_blend_write(writer, region);
+      blender::ed::asset::shelf::region_blend_write(writer, region);
       return;
     }
 
@@ -1054,6 +1078,10 @@ static void write_panel_list(BlendWriter *writer, ListBase *lb)
 {
   LISTBASE_FOREACH (Panel *, panel, lb) {
     BLO_write_struct(writer, Panel, panel);
+    BLO_write_struct_list(writer, LayoutPanelState, &panel->layout_panel_states);
+    LISTBASE_FOREACH (LayoutPanelState *, state, &panel->layout_panel_states) {
+      BLO_write_string(writer, state->idname);
+    }
     write_panel_list(writer, &panel->children);
   }
 }
@@ -1116,6 +1144,10 @@ static void direct_link_panel_list(BlendDataReader *reader, ListBase *lb)
     panel->activedata = nullptr;
     panel->type = nullptr;
     panel->drawname = nullptr;
+    BLO_read_list(reader, &panel->layout_panel_states);
+    LISTBASE_FOREACH (LayoutPanelState *, state, &panel->layout_panel_states) {
+      BLO_read_data_address(reader, &state->idname);
+    }
     direct_link_panel_list(reader, &panel->children);
   }
 }
@@ -1170,7 +1202,7 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
       }
     }
     if (region->regiontype == RGN_TYPE_ASSET_SHELF) {
-      ED_asset_shelf_region_blend_read_data(reader, region);
+      blender::ed::asset::shelf::region_blend_read_data(reader, region);
     }
   }
 

@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_DilateErodeNode.h"
-#include "COM_AntiAliasOperation.h"
 #include "COM_DilateErodeOperation.h"
 #include "COM_GaussianAlphaXBlurOperation.h"
 #include "COM_GaussianAlphaYBlurOperation.h"
+#include "COM_SMAAOperation.h"
 
 namespace blender::compositor {
 
@@ -38,11 +38,26 @@ void DilateErodeNode::convert_to_operations(NodeConverter &converter,
     converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
 
     if (editor_node->custom3 < 2.0f) {
-      AntiAliasOperation *anti_alias = new AntiAliasOperation();
-      converter.add_operation(anti_alias);
+      SMAAEdgeDetectionOperation *smaa_edge_detection = new SMAAEdgeDetectionOperation();
+      converter.add_operation(smaa_edge_detection);
 
-      converter.add_link(operation->get_output_socket(), anti_alias->get_input_socket(0));
-      converter.map_output_socket(get_output_socket(0), anti_alias->get_output_socket(0));
+      converter.add_link(operation->get_output_socket(), smaa_edge_detection->get_input_socket(0));
+
+      SMAABlendingWeightCalculationOperation *smaa_blending_weights =
+          new SMAABlendingWeightCalculationOperation();
+      converter.add_operation(smaa_blending_weights);
+
+      converter.add_link(smaa_edge_detection->get_output_socket(),
+                         smaa_blending_weights->get_input_socket(0));
+
+      SMAANeighborhoodBlendingOperation *smaa_neighborhood =
+          new SMAANeighborhoodBlendingOperation();
+      converter.add_operation(smaa_neighborhood);
+
+      converter.add_link(operation->get_output_socket(), smaa_neighborhood->get_input_socket(0));
+      converter.add_link(smaa_blending_weights->get_output_socket(),
+                         smaa_neighborhood->get_input_socket(1));
+      converter.map_output_socket(get_output_socket(0), smaa_neighborhood->get_output_socket());
     }
     else {
       converter.map_output_socket(get_output_socket(0), operation->get_output_socket(0));

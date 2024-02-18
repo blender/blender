@@ -6,6 +6,7 @@
  * \ingroup blenloader
  */
 
+#include <algorithm>
 #include <climits>
 
 #ifndef WIN32
@@ -26,7 +27,6 @@
 #include "DNA_effect_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -49,13 +49,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve.h"
 #include "BKE_lattice.hh"
 #include "BKE_main.hh" /* for Main */
@@ -70,11 +71,9 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
-
-#include "PIL_time.h"
 
 #include <cerrno>
 
@@ -618,8 +617,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 153) {
     Scene *sce = static_cast<Scene *>(bmain->scenes.first);
     while (sce) {
-      if (sce->r.blurfac == 0.0f) {
-        sce->r.blurfac = 1.0f;
+      if (sce->r.motion_blur_shutter == 0.0f) {
+        sce->r.motion_blur_shutter = 1.0f;
       }
       sce = static_cast<Scene *>(sce->id.next);
     }
@@ -1324,8 +1323,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
           SubsurfModifierData *smd = (SubsurfModifierData *)BKE_modifier_new(
               eModifierType_Subsurf);
 
-          smd->levels = MAX2(1, mesh->subdiv);
-          smd->renderLevels = MAX2(1, mesh->subdivr);
+          smd->levels = std::max<short>(1, mesh->subdiv);
+          smd->renderLevels = std::max<short>(1, mesh->subdivr);
           smd->subdivType = mesh->subsurftype;
 
           smd->modifier.mode = 0;
@@ -2593,7 +2592,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->pd) {
-        ob->pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+        ob->pd->seed = (uint(ceil(BLI_time_now_seconds())) + 1) % 128;
       }
     }
   }

@@ -25,14 +25,15 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
+#include "BKE_object_types.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -606,17 +607,14 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
 #define FOREACH_EDIT_OBJECT_BEGIN(ob_iter, use_mat_local) \
   { \
-    invert_m4_m4(obedit->world_to_object, obedit->object_to_world); \
-    uint objects_len = 0; \
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode( \
-        scene, view_layer, CTX_wm_view3d(C), &objects_len); \
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) { \
-      Object *ob_iter = objects[ob_index]; \
+    invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr()); \
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode( \
+        scene, view_layer, CTX_wm_view3d(C)); \
+    for (Object * ob_iter : objects) { \
       const bool use_mat_local = (ob_iter != obedit);
 
 #define FOREACH_EDIT_OBJECT_END() \
   } \
-  MEM_freeN(objects); \
   } \
   ((void)0)
 
@@ -635,7 +633,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
+          mul_m4_m4m4(
+              mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
 
         BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -655,7 +654,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
+          mul_m4_m4m4(
+              mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
         LISTBASE_FOREACH (EditBone *, ebo, arm->edbo) {
           if (EBONE_VISIBLE(arm, ebo)) {
@@ -694,7 +694,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
+          mul_m4_m4m4(
+              mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
 
         Nurb *nu = static_cast<Nurb *>(nurbs->first);
@@ -754,7 +755,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
+          mul_m4_m4m4(
+              mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
 
         LISTBASE_FOREACH (MetaElem *, ml, mb->editelems) {
@@ -774,7 +776,8 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float mat_local[4][4];
         if (use_mat_local) {
-          mul_m4_m4m4(mat_local, obedit->world_to_object, ob_iter->object_to_world);
+          mul_m4_m4m4(
+              mat_local, obedit->world_to_object().ptr(), ob_iter->object_to_world().ptr());
         }
 
         while (a--) {
@@ -796,7 +799,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float4x4 mat_local;
         if (use_mat_local) {
-          mat_local = float4x4(obedit->world_to_object) * float4x4(ob_iter->object_to_world);
+          mat_local = obedit->world_to_object() * ob_iter->object_to_world();
         }
 
         IndexMaskMemory memory;
@@ -815,10 +818,10 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
         float4x4 mat_local;
         if (use_mat_local) {
-          mat_local = float4x4(obedit->world_to_object) * float4x4(ob_iter->object_to_world);
+          mat_local = obedit->world_to_object() * ob_iter->object_to_world();
         }
 
-        const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+        const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
             ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
         threading::parallel_for_each(
             drawings, [&](const ed::greasepencil::MutableDrawingInfo &info) {
@@ -845,13 +848,11 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 #undef FOREACH_EDIT_OBJECT_END
   }
   else if (ob && (ob->mode & OB_MODE_POSE)) {
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
 
-    uint objects_len = 0;
-    Object **objects = BKE_object_pose_array_get(scene, view_layer, v3d, &objects_len);
+    Vector<Object *> objects = BKE_object_pose_array_get(scene, view_layer, v3d);
 
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob_iter = objects[ob_index];
+    for (Object *ob_iter : objects) {
       const bool use_mat_local = (ob_iter != ob);
       /* mislead counting bones... bah. We don't know the gizmo mode, could be mixed */
       const int mode = TFM_ROTATION;
@@ -860,7 +861,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
 
       float mat_local[4][4];
       if (use_mat_local) {
-        mul_m4_m4m4(mat_local, ob->world_to_object, ob_iter->object_to_world);
+        mul_m4_m4m4(mat_local, ob->world_to_object().ptr(), ob_iter->object_to_world().ptr());
       }
 
       /* Use channels to get stats. */
@@ -880,12 +881,11 @@ static int gizmo_3d_foreach_selected(const bContext *C,
         }
       }
     }
-    MEM_freeN(objects);
   }
   else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
     if (ob->mode & OB_MODE_SCULPT) {
       totsel = 1;
-      run_coord_with_matrix(ob->sculpt->pivot_pos, false, ob->object_to_world);
+      run_coord_with_matrix(ob->sculpt->pivot_pos, false, ob->object_to_world().ptr());
     }
   }
   else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
@@ -940,12 +940,12 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       }
 
       if (use_only_center || !bb) {
-        user_fn(base->object->object_to_world[3]);
+        user_fn(base->object->object_to_world().location());
       }
       else {
         for (uint j = 0; j < 8; j++) {
           float co[3];
-          mul_v3_m4v3(co, base->object->object_to_world, bb->vec[j]);
+          mul_v3_m4v3(co, base->object->object_to_world().ptr(), bb->vec[j]);
           user_fn(co);
         }
       }
@@ -965,7 +965,7 @@ static int gizmo_3d_foreach_selected(const bContext *C,
   }
 
   if (r_mat && ob) {
-    *r_mat = ob->object_to_world;
+    *r_mat = ob->object_to_world().ptr();
   }
 
   return totsel;
@@ -1012,14 +1012,14 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
 
   if (params->use_local_axis && (ob && ob->mode & (OB_MODE_EDIT | OB_MODE_POSE))) {
     float diff_mat[3][3];
-    copy_m3_m4(diff_mat, ob->object_to_world);
+    copy_m3_m4(diff_mat, ob->object_to_world().ptr());
     normalize_m3(diff_mat);
     invert_m3(diff_mat);
     mul_m3_m3_pre(tbounds->axis, diff_mat);
     normalize_m3(tbounds->axis);
 
     tbounds->use_matrix_space = true;
-    copy_m4_m4(tbounds->matrix_space, ob->object_to_world);
+    copy_m4_m4(tbounds->matrix_space, ob->object_to_world().ptr());
   }
 
   const auto gizmo_3d_tbounds_calc_fn = [&](const float3 &co) { calc_tw_center(tbounds, co); };
@@ -1039,11 +1039,11 @@ int ED_transform_calc_gizmo_stats(const bContext *C,
     const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
     if (!is_gp_edit && (obedit || (ob && (ob->mode & (OB_MODE_POSE | OB_MODE_SCULPT))))) {
       if (ob->mode & OB_MODE_POSE) {
-        invert_m4_m4(ob->world_to_object, ob->object_to_world);
+        invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
       }
-      mul_m4_v3(ob->object_to_world, tbounds->center);
-      mul_m4_v3(ob->object_to_world, tbounds->min);
-      mul_m4_v3(ob->object_to_world, tbounds->max);
+      mul_m4_v3(ob->object_to_world().ptr(), tbounds->center);
+      mul_m4_v3(ob->object_to_world().ptr(), tbounds->min);
+      mul_m4_v3(ob->object_to_world().ptr(), tbounds->max);
     }
   }
 

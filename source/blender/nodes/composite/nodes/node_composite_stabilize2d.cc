@@ -19,7 +19,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

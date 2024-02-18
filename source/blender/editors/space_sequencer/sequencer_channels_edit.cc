@@ -12,21 +12,13 @@
 
 #include "BKE_context.hh"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "ED_screen.hh"
 
 #include "UI_view2d.hh"
 
-#include "SEQ_channels.hh"
-#include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
-
 #include "WM_api.hh"
-
-#include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"

@@ -6,6 +6,8 @@
  * \ingroup bgpencil
  */
 
+#include <algorithm>
+
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -200,7 +202,7 @@ void GpencilExporterSVG::export_gpencil_layers()
         /* Apply layer thickness change. */
         gps_duplicate->thickness += gpl->line_change;
         /* Apply object scale to thickness. */
-        const float scalef = mat4_to_scale(ob->object_to_world);
+        const float scalef = mat4_to_scale(ob->object_to_world().ptr());
         gps_duplicate->thickness = ceilf(float(gps_duplicate->thickness) * scalef);
         CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
@@ -313,7 +315,7 @@ void GpencilExporterSVG::export_stroke_to_polyline(bGPDlayer *gpl,
   if (is_stroke && !do_fill) {
     const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
     const float estimated_width = (radius * 2.0f) + gpl->line_change;
-    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+    const float final_width = (avg_pressure == 1.0f) ? std::max(defined_width, estimated_width) :
                                                        estimated_width;
     node_gps.append_attribute("stroke-width").set_value(std::max(final_width, 1.0f));
   }

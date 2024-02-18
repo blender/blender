@@ -2,6 +2,18 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+# Compilers
+#
+# Version used for precompiled library builds used for official releases.
+# For anyone making their own library build, matching these exactly is not
+# needed but it can be a useful reference.
+
+set(RELEASE_GCC_VERSION 11.2.*)
+set(RELEASE_CUDA_VERSION 12.3.*)
+set(RELEASE_HIP_VERSION 5.7.*)
+
+# Libraries
+#
 # CPE's are used to identify dependencies, for more information on what they
 # are please see https://nvd.nist.gov/products/cpe
 #
@@ -56,7 +68,7 @@ set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.tar.gz)
 set(BLOSC_HASH 134b55813b1dca57019d2a2dc1f7a923)
 set(BLOSC_HASH_TYPE MD5)
 set(BLOSC_FILE blosc-${BLOSC_VERSION}.tar.gz)
-set(BLOSC_CPE "cpe:2.3:a:c-blosc2_project:c-blosc2:${BLOSC_VERSION}:*:*:*:*:*:*:*")
+set(BLOSC_CPE "cpe:2.3:a:c-blosc_project:c-blosc:${BLOSC_VERSION}:*:*:*:*:*:*:*")
 
 set(PTHREADS_VERSION 3.0.0)
 set(PTHREADS_URI http://prdownloads.sourceforge.net/pthreads4w/pthreads4w-code-v${PTHREADS_VERSION}.zip)
@@ -141,9 +153,9 @@ set(OPENCOLLADA_HASH ee7dae874019fea7be11613d07567493)
 set(OPENCOLLADA_HASH_TYPE MD5)
 set(OPENCOLLADA_FILE opencollada-${OPENCOLLADA_VERSION}.tar.gz)
 
-set(OPENCOLORIO_VERSION 2.3.0)
+set(OPENCOLORIO_VERSION 2.3.2)
 set(OPENCOLORIO_URI https://github.com/AcademySoftwareFoundation/OpenColorIO/archive/v${OPENCOLORIO_VERSION}.tar.gz)
-set(OPENCOLORIO_HASH c05f24a516fe82d381c4b0d471e12ad5)
+set(OPENCOLORIO_HASH 8af74fcb8c4820ab21204463a06ba490)
 set(OPENCOLORIO_HASH_TYPE MD5)
 set(OPENCOLORIO_FILE OpenColorIO-${OPENCOLORIO_VERSION}.tar.gz)
 
@@ -218,11 +230,11 @@ set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 # BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance
 # reasons there can be no exceptions to this.
 
-set(PYTHON_VERSION 3.11.6)
+set(PYTHON_VERSION 3.11.7)
 set(PYTHON_SHORT_VERSION 3.11)
 set(PYTHON_SHORT_VERSION_NO_DOTS 311)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
-set(PYTHON_HASH d0c5a1a31efe879723e51addf56dd206)
+set(PYTHON_HASH d96c7e134c35a8c46236f8a0e566b69c)
 set(PYTHON_HASH_TYPE MD5)
 set(PYTHON_FILE Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_CPE "cpe:2.3:a:python:python:${PYTHON_VERSION}:-:*:*:*:*:*:*")
@@ -318,9 +330,9 @@ set(FLAC_FILE flac-${FLAC_VERSION}.tar.xz)
 set(FLAC_CPE "cpe:2.3:a:flac_project:flac:${FLAC_VERSION}:*:*:*:*:*:*:*")
 set(FLAC_HOMEPAGE https://xiph.org/flac/)
 
-set(VPX_VERSION 1.11.0)
+set(VPX_VERSION 1.14.0)
 set(VPX_URI https://github.com/webmproject/libvpx/archive/v${VPX_VERSION}/libvpx-v${VPX_VERSION}.tar.gz)
-set(VPX_HASH 965e51c91ad9851e2337aebcc0f517440c637c506f3a03948062e3d5ea129a83)
+set(VPX_HASH 5f21d2db27071c8a46f1725928a10227ae45c5cd1cad3727e4aafbe476e321fa)
 set(VPX_HASH_TYPE SHA256)
 set(VPX_FILE libvpx-v${VPX_VERSION}.tar.gz)
 set(VPX_CPE "cpe:2.3:a:webmproject:libvpx:${VPX_VERSION}:*:*:*:*:*:*:*")
@@ -347,9 +359,9 @@ set(OPENJPEG_HASH_TYPE SHA256)
 set(OPENJPEG_FILE openjpeg-v${OPENJPEG_VERSION}.tar.gz)
 set(OPENJPEG_CPE "cpe:2.3:a:uclouvain:openjpeg:${OPENJPEG_VERSION}:*:*:*:*:*:*:*")
 
-set(FFMPEG_VERSION 6.0)
+set(FFMPEG_VERSION 6.1.1)
 set(FFMPEG_URI http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2)
-set(FFMPEG_HASH 47d062731c9f66a78380e35a19aac77cebceccd1c7cc309b9c82343ffc430c3d)
+set(FFMPEG_HASH 5e3133939a61ef64ac9b47ffd29a5ea6e337a4023ef0ad972094b4da844e3a20)
 set(FFMPEG_HASH_TYPE SHA256)
 set(FFMPEG_FILE ffmpeg-${FFMPEG_VERSION}.tar.bz2)
 set(FFMPEG_CPE "cpe:2.3:a:ffmpeg:ffmpeg:${FFMPEG_VERSION}:*:*:*:*:*:*:*")
@@ -479,9 +491,9 @@ set(LZMA_FILE xz-${LZMA_VERSION}.tar.bz2)
 set(LZMA_HOMEPAGE https://tukaani.org/lzma/)
 
 # NOTE: Python's build has been modified to use our ssl version.
-set(SSL_VERSION 3.1.2)
+set(SSL_VERSION 3.1.5)
 set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
-set(SSL_HASH a0ce69b8b97ea6a35b96875235aa453b966ba3cba8af2de23657d8b6767d6539)
+set(SSL_HASH 6ae015467dabf0469b139ada93319327be24b98251ffaeceda0221848dc09262)
 set(SSL_HASH_TYPE SHA256)
 set(SSL_FILE openssl-${SSL_VERSION}.tar.gz)
 set(SSL_CPE "cpe:2.3:a:openssl:openssl:${SSL_VERSION}:*:*:*:*:*:*:*")
@@ -490,10 +502,10 @@ set(SSL_HOMEPAGE https://www.openssl.org)
 # Note: This will *HAVE* to match the version python ships on windows which
 # is hardcoded in pythons PCbuild/get_externals.bat for compliance reasons there
 # can be no exceptions to this.
-set(SQLITE_VERSION 3.42.0)
-set(SQLLITE_LONG_VERSION 3420000)
-set(SQLITE_URI https://www.sqlite.org/2023/sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
-set(SQLITE_HASH 036575929b174c1b829769255491ba2b32bda9ee)
+set(SQLITE_VERSION 3.45.1)
+set(SQLLITE_LONG_VERSION 3450100)
+set(SQLITE_URI https://www.sqlite.org/2024/sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
+set(SQLITE_HASH 650305e234add12fc1e6bef0b365d86a087b3d38)
 set(SQLITE_HASH_TYPE SHA1)
 set(SQLITE_FILE sqlite-autoconf-${SQLLITE_LONG_VERSION}.tar.gz)
 set(SQLITE_CPE "cpe:2.3:a:sqlite:sqlite:${SQLITE_VERSION}:*:*:*:*:*:*:*")
@@ -517,9 +529,9 @@ set(MATERIALX_HASH fad8f4e19305fb2ee920cbff638f3560)
 set(MATERIALX_HASH_TYPE MD5)
 set(MATERIALX_FILE materialx-v${MATERIALX_VERSION}.tar.gz)
 
-set(OIDN_VERSION 2.1.0)
+set(OIDN_VERSION 2.2.0-rc2)
 set(OIDN_URI https://github.com/OpenImageDenoise/oidn/releases/download/v${OIDN_VERSION}/oidn-${OIDN_VERSION}.src.tar.gz)
-set(OIDN_HASH 997251847c49ce0f3ab21c7fc712bfb4)
+set(OIDN_HASH 14b261af3a719c49ab10e71583f1a61a)
 set(OIDN_HASH_TYPE MD5)
 set(OIDN_FILE oidn-${OIDN_VERSION}.src.tar.gz)
 
@@ -614,9 +626,9 @@ set(ZSTD_HASH_TYPE SHA256)
 set(ZSTD_FILE zstd-${ZSTD_VERSION}.tar.gz)
 set(ZSTD_CPE "cpe:2.3:a:facebook:zstandard:${ZSTD_VERSION}:*:*:*:*:*:*:*")
 
-set(SSE2NEON_VERSION 4614a1a8b8be9ad8ac30f4d1e5e2348cc5212ef7)
+set(SSE2NEON_VERSION cfaa59fc04fecb117c0a0f3fe9c82dece6f359ad)
 set(SSE2NEON_URI https://github.com/DLTcollab/sse2neon/archive/${SSE2NEON_VERSION}.tar.gz)
-set(SSE2NEON_HASH dd55460db7b7db51e575071fd4200d54a2b53551844ac2e571b4d46631c5af45)
+set(SSE2NEON_HASH 5491c5038a301a6b0ba0531e516568bb50d165d206360f03d8d56558a2490669)
 set(SSE2NEON_HASH_TYPE SHA256)
 set(SSE2NEON_FILE sse2neon-${SSE2NEON_VERSION}.tar.gz)
 
@@ -634,9 +646,9 @@ set(OPENPGL_HASH 1ec806d434d45e43e098f82ee9be0cb74928343898c57490b34ff80584e9805
 set(OPENPGL_HASH_TYPE SHA256)
 set(OPENPGL_FILE openpgl-${OPENPGL_VERSION}.tar.gz)
 
-set(LEVEL_ZERO_VERSION v1.8.8)
-set(LEVEL_ZERO_URI https://github.com/oneapi-src/level-zero/archive/refs/tags/${LEVEL_ZERO_VERSION}.tar.gz)
-set(LEVEL_ZERO_HASH 3553ae8fa0d2d69c4210a8f3428bd6612bd8bb8a627faf52c3658a01851e66d2)
+set(LEVEL_ZERO_VERSION 1.15.8)
+set(LEVEL_ZERO_URI https://codeload.github.com/oneapi-src/level-zero/tar.gz/refs/tags/v${LEVEL_ZERO_VERSION})
+set(LEVEL_ZERO_HASH 80663dbd4d01d9519185c6e568f2e836bfea7484363f4da8cf5cf77c3bf58602)
 set(LEVEL_ZERO_HASH_TYPE SHA256)
 set(LEVEL_ZERO_FILE level-zero-${LEVEL_ZERO_VERSION}.tar.gz)
 

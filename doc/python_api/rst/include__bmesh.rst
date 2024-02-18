@@ -1,7 +1,7 @@
 ..
    This document is appended to the auto generated BMesh API doc to avoid clogging up the C files with details.
    to test this run:
-   ./blender.bin -b -noaudio -P doc/python_api/sphinx_doc_gen.py -- \
+   ./blender.bin -b -P doc/python_api/sphinx_doc_gen.py -- \
                  --partial bmesh* ; cd doc/python_api ; sphinx-build sphinx-in sphinx-out ; cd ../../
 
 
@@ -14,7 +14,7 @@ The features exposed closely follow the C API,
 giving Python access to the functions used by Blender's own mesh editing tools.
 
 For an overview of BMesh data types and how they reference each other see:
-`BMesh Design Document <https://wiki.blender.org/index.php/Dev:Source/Modeling/BMesh/Design>`__.
+`BMesh Design Document <https://developer.blender.org/docs/features/objects/mesh/bmesh/>`__.
 
 
 .. note::

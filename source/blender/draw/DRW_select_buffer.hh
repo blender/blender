@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_ID.h"
+
 #include "BLI_array.hh"
 #include "BLI_sys_types.h" /* for bool and uint */
 
@@ -15,6 +17,7 @@ struct ARegion;
 struct Base;
 struct Depsgraph;
 struct Object;
+struct RegionView3D;
 struct View3D;
 struct rcti;
 
@@ -124,6 +127,5 @@ uint DRW_select_buffer_find_nearest_to_point(Depsgraph *depsgraph,
                                              uint id_max,
                                              uint *dist);
 void DRW_select_buffer_context_create(Depsgraph *depsgraph,
-                                      Base **bases,
-                                      uint bases_len,
+                                      blender::Span<Base *> bases,
                                       short select_mode);

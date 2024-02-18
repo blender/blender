@@ -13,7 +13,6 @@
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
 
 #include "gpu_py_vertex_format.h" /* own include */
 
@@ -59,6 +58,7 @@ static PyObject *pygpu_vertformat__tp_new(PyTypeObject * /*type*/, PyObject *arg
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     pygpu_vertformat_attr_add_doc,
     ".. method:: attr_add(id, comp_type, len, fetch_mode)\n"
     "\n"
@@ -145,10 +145,12 @@ static void pygpu_vertformat__tp_dealloc(BPyGPUVertFormat *self)
   Py_TYPE(self)->tp_free(self);
 }
 
-PyDoc_STRVAR(pygpu_vertformat__tp_doc,
-             ".. class:: GPUVertFormat()\n"
-             "\n"
-             "   This object contains information about the structure of a vertex buffer.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_vertformat__tp_doc,
+    ".. class:: GPUVertFormat()\n"
+    "\n"
+    "   This object contains information about the structure of a vertex buffer.\n");
 PyTypeObject BPyGPUVertFormat_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GPUVertFormat",

@@ -26,16 +26,16 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
@@ -50,7 +50,7 @@
 #  include "wm_xr.hh"
 #endif
 
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 #include "ED_screen.hh"
 
 #ifdef WITH_PYTHON
@@ -112,6 +112,8 @@ static void write_wm_xr_data(BlendWriter *writer, wmXrData *xr_data)
 static void window_manager_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   wmWindowManager *wm = (wmWindowManager *)id;
+
+  wm->runtime = nullptr;
 
   BLO_write_id_struct(writer, wmWindowManager, id_address, &wm->id);
   BKE_id_blend_write(writer, &wm->id);
@@ -208,7 +210,6 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   BLI_listbase_clear(&wm->paintcursors);
   BLI_listbase_clear(&wm->notifier_queue);
   wm->notifier_queue_set = nullptr;
-  BKE_reports_init(&wm->reports, RPT_STORE);
 
   BLI_listbase_clear(&wm->keyconfigs);
   wm->defaultconf = nullptr;
@@ -227,7 +228,9 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
   wm->winactive = nullptr;
   wm->init_flag = 0;
   wm->op_undo_depth = 0;
-  wm->is_interface_locked = 0;
+
+  BLI_assert(wm->runtime == nullptr);
+  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
 }
 
 static void window_manager_blend_read_after_liblink(BlendLibReader *reader, ID *id)
@@ -244,6 +247,7 @@ static void window_manager_blend_read_after_liblink(BlendLibReader *reader, ID *
 IDTypeInfo IDType_ID_WM = {
     /*id_code*/ ID_WM,
     /*id_filter*/ FILTER_ID_WM,
+    /*dependencies_id_types*/ FILTER_ID_SCE | FILTER_ID_WS,
     /*main_listbase_index*/ INDEX_ID_WM,
     /*struct_size*/ sizeof(wmWindowManager),
     /*name*/ "WindowManager",
@@ -344,8 +348,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 
 static void wm_reports_free(wmWindowManager *wm)
 {
-  BKE_reports_free(&wm->reports);
-  WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm->runtime->reports.reporttimer);
 }
 
 void wm_operator_register(bContext *C, wmOperator *op)
@@ -524,7 +527,7 @@ void wm_add_default(Main *bmain, bContext *C)
   WorkSpace *workspace;
   WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
 
-  BKE_reports_init(&wm->reports, RPT_STORE);
+  BKE_reports_init(&wm->runtime->reports, RPT_STORE);
 
   CTX_wm_manager_set(C, wm);
   win = wm_window_new(bmain, wm, nullptr, false);
@@ -536,6 +539,7 @@ void wm_add_default(Main *bmain, bContext *C)
 
   wm->winactive = win;
   wm->file_saved = 1;
+  wm->runtime = MEM_new<blender::bke::WindowManagerRuntime>(__func__);
   wm_window_make_drawable(wm, win);
 }
 
@@ -596,6 +600,8 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   if (C && CTX_wm_manager(C) == wm) {
     CTX_wm_manager_set(C, nullptr);
   }
+
+  MEM_delete(wm->runtime);
 }
 
 void WM_main(bContext *C)

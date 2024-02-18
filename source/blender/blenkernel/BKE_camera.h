@@ -171,7 +171,7 @@ struct CameraBGImage *BKE_camera_background_image_new(struct Camera *cam);
  * Duplicate a background image, in a ID management compatible way.
  *
  * \param copy_flag: The usual ID copying flags, see `LIB_ID_CREATE_`/`LIB_ID_COPY_` enums in
- * `BKE_lib_id.h`.
+ * `BKE_lib_id.hh`.
  */
 struct CameraBGImage *BKE_camera_background_image_copy(struct CameraBGImage *bgpic_src,
                                                        const int copy_flag);

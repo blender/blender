@@ -2,13 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DEG_depsgraph_query.hh"
-
 #include "BLI_task.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 

@@ -6,6 +6,7 @@
  * \ingroup edgpencil
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -20,14 +21,11 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
-#include "BLI_rand.h"
+#include "BLI_math_vector.hh"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.h"
-
-#include "PIL_time.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,10 +37,10 @@
 
 #include "BKE_action.h"
 #include "BKE_brush.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
@@ -67,7 +65,6 @@
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
@@ -909,7 +906,7 @@ void ED_gpencil_drawing_reference_get(const Scene *scene,
       }
       else {
         /* use object location */
-        copy_v3_v3(r_vec, ob->object_to_world[3]);
+        copy_v3_v3(r_vec, ob->object_to_world().location());
         /* Apply layer offset. */
         bGPdata *gpd = static_cast<bGPdata *>(ob->data);
         bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
@@ -993,7 +990,7 @@ void ED_gpencil_project_stroke_to_plane(const Scene *scene,
     /* if object, apply object rotation */
     if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       float mat[4][4];
-      copy_m4_m4(mat, ob->object_to_world);
+      copy_m4_m4(mat, ob->object_to_world().ptr());
 
       /* move origin to cursor */
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
@@ -1216,7 +1213,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
     /* if object, apply object rotation */
     if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
       float mat[4][4];
-      copy_m4_m4(mat, ob->object_to_world);
+      copy_m4_m4(mat, ob->object_to_world().ptr());
       if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
         if (gpl != nullptr) {
           add_v3_v3(mat[3], gpl->location);
@@ -1243,7 +1240,7 @@ void ED_gpencil_project_point_to_plane(const Scene *scene,
 
     /* move origin to object */
     if ((ts->gpencil_v3d_align & GP_PROJECT_CURSOR) == 0) {
-      copy_v3_v3(mat[3], ob->object_to_world[3]);
+      copy_v3_v3(mat[3], ob->object_to_world().location());
     }
 
     mul_mat3_m4_v3(mat, plane_normal);
@@ -1377,16 +1374,16 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
     if (gpl->parent != nullptr) {
       /* calculate new matrix */
       if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        invert_m4_m4(cur_mat, gpl->parent->object_to_world);
-        copy_v3_v3(gpl_loc, obact->object_to_world[3]);
+        invert_m4_m4(cur_mat, gpl->parent->object_to_world().ptr());
+        copy_v3_v3(gpl_loc, obact->object_to_world().location());
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(gpl->parent->pose, gpl->parsubstr);
         if (pchan) {
           float tmp_mat[4][4];
-          mul_m4_m4m4(tmp_mat, gpl->parent->object_to_world, pchan->pose_mat);
+          mul_m4_m4m4(tmp_mat, gpl->parent->object_to_world().ptr(), pchan->pose_mat);
           invert_m4_m4(cur_mat, tmp_mat);
-          copy_v3_v3(gpl_loc, obact->object_to_world[3]);
+          copy_v3_v3(gpl_loc, obact->object_to_world().location());
         }
       }
 
@@ -1770,7 +1767,7 @@ float ED_gpencil_cursor_radius(bContext *C, int x, int y)
     point2D.m_xy[0] = float(x + 64);
     gpencil_stroke_convertcoords_tpoint(scene, region, ob, &point2D, nullptr, p2);
     /* Clip extreme zoom level (and avoid division by zero). */
-    distance = MAX2(len_v3v3(p1, p2), 0.001f);
+    distance = std::max(len_v3v3(p1, p2), 0.001f);
 
     /* Handle layer thickness change. */
     float brush_size = float(brush->size);
@@ -2841,7 +2838,7 @@ void ED_gpencil_init_random_settings(Brush *brush,
                                      const int mval[2],
                                      GpRandomSettings *random_settings)
 {
-  int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+  int seed = (uint(ceil(BLI_time_now_seconds())) + 1) % 128;
   /* Use mouse position to get randomness. */
   int ix = mval[0] * seed;
   int iy = mval[1] * seed;
@@ -2887,12 +2884,12 @@ static void gpencil_sbuffer_vertex_color_random(
 {
   BrushGpencilSettings *brush_settings = brush->gpencil_settings;
   if (brush_settings->flag & GP_BRUSH_GROUP_RANDOM) {
-    int seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
+    int seed = (uint(ceil(BLI_time_now_seconds())) + 1) % 128;
 
     int ix = int(tpt->m_xy[0] * seed);
     int iy = int(tpt->m_xy[1] * seed);
     int iz = ix + iy * seed;
-    float hsv[3];
+    blender::float3 hsv;
     float factor_value[3];
     zero_v3(factor_value);
 
@@ -2959,7 +2956,7 @@ static void gpencil_sbuffer_vertex_color_random(
       hsv[0] -= 1.0f;
     }
 
-    CLAMP3(hsv, 0.0f, 1.0f);
+    hsv = blender::math::clamp(hsv, 0.0f, 1.0f);
     hsv_to_rgb_v(hsv, tpt->vert_color);
   }
 }
@@ -3049,10 +3046,10 @@ void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
 
   /* Ensure the bounding box is oriented to axis. */
   if (r_max[0] < r_min[0]) {
-    SWAP(float, r_min[0], r_max[0]);
+    std::swap(r_min[0], r_max[0]);
   }
   if (r_max[1] < r_min[1]) {
-    SWAP(float, r_min[1], r_max[1]);
+    std::swap(r_min[1], r_max[1]);
   }
 }
 

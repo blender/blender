@@ -670,6 +670,7 @@ static PyBufferProcs pygpu_buffer__tp_as_buffer = {
 #endif
 
 PyDoc_STRVAR(
+    /* Wrap. */
     pygpu_buffer__tp_doc,
     ".. class:: Buffer(format, dimensions, data)\n"
     "\n"

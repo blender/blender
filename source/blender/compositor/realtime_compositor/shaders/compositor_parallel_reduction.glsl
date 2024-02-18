@@ -54,25 +54,33 @@ shared TYPE reduction_data[reduction_size];
 
 void main()
 {
-  /* Load the data from the texture, while returning IDENTITY for out of bound coordinates. The
-   * developer is expected to define the IDENTITY macro to be a vec4 that does not affect the
-   * output of the reduction. For instance, sum reductions have an identity of vec4(0.0), while
-   * max value reductions have an identity of vec4(FLT_MIN). */
-  vec4 value = texture_load(input_tx, ivec2(gl_GlobalInvocationID.xy), IDENTITY);
+  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
 
-  /* Initialize the shared array given the previously loaded value. This step can be different
-   * depending on whether this is the initial reduction pass or a latter one. Indeed, the input
-   * texture for the initial reduction is the source texture itself, while the input texture to a
-   * latter reduction pass is an intermediate texture after one or more reductions have happened.
-   * This is significant because the data being reduced might be computed from the original data
-   * and different from it, for instance, when summing the luminance of an image, the original data
-   * is a vec4 color, while the reduced data is a float luminance value. So for the initial
-   * reduction pass, the luminance will be computed from the color, reduced, then stored into an
-   * intermediate float texture. On the other hand, for latter reduction passes, the luminance will
-   * be loaded directly and reduced without extra processing. So the developer is expected to
-   * define the INITIALIZE and LOAD macros to be expressions that derive the needed value from the
-   * loaded value for the initial reduction pass and latter ones respectively. */
-  reduction_data[gl_LocalInvocationIndex] = is_initial_reduction ? INITIALIZE(value) : LOAD(value);
+  /* Initialize the shared array for out of bound invocations using the IDENTITY value. The
+   * developer is expected to define the IDENTITY macro to be a value of type TYPE that does not
+   * affect the output of the reduction. For instance, sum reductions have an identity of 0.0,
+   * while max value reductions have an identity of FLT_MIN */
+  if (any(lessThan(texel, ivec2(0))) || any(greaterThanEqual(texel, texture_size(input_tx)))) {
+    reduction_data[gl_LocalInvocationIndex] = IDENTITY;
+  }
+  else {
+    vec4 value = texture_load_unbound(input_tx, texel);
+
+    /* Initialize the shared array given the previously loaded value. This step can be different
+     * depending on whether this is the initial reduction pass or a latter one. Indeed, the input
+     * texture for the initial reduction is the source texture itself, while the input texture to a
+     * latter reduction pass is an intermediate texture after one or more reductions have happened.
+     * This is significant because the data being reduced might be computed from the original data
+     * and different from it, for instance, when summing the luminance of an image, the original
+     * data is a vec4 color, while the reduced data is a float luminance value. So for the initial
+     * reduction pass, the luminance will be computed from the color, reduced, then stored into an
+     * intermediate float texture. On the other hand, for latter reduction passes, the luminance
+     * will be loaded directly and reduced without extra processing. So the developer is expected
+     * to define the INITIALIZE and LOAD macros to be expressions that derive the needed value from
+     * the loaded value for the initial reduction pass and latter ones respectively. */
+    reduction_data[gl_LocalInvocationIndex] = is_initial_reduction ? INITIALIZE(value) :
+                                                                     LOAD(value);
+  }
 
   /* Reduce the reduction data by half on every iteration until only one element remains. See the
    * above figure for an intuitive understanding of the stride value. */

@@ -24,32 +24,30 @@
 #  include "BLI_dynstr.h"
 #  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
-#  include "BLI_mempool.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 #  include "BLI_system.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
+#  ifndef NDEBUG
+#    include "BLI_mempool.h"
+#  endif
 
-#  include "BKE_appdir.h"
+#  include "BKE_appdir.hh"
 #  include "BKE_blender_version.h"
 #  include "BKE_blendfile.hh"
 #  include "BKE_context.hh"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_image_format.h"
-#  include "BKE_lib_id.h"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
-#  include "BKE_scene.h"
+#  include "BKE_report.hh"
+#  include "BKE_scene.hh"
 #  include "BKE_sound.h"
 
 #  include "GPU_context.h"
-
-#  ifdef WITH_FFMPEG
-#    include "IMB_imbuf.h"
-#  endif
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h"
@@ -58,8 +56,6 @@
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"
-
-#  include "ED_datafiles.h"
 
 #  include "WM_api.hh"
 
@@ -72,8 +68,6 @@
 #  endif
 
 #  include "DEG_depsgraph.hh"
-#  include "DEG_depsgraph_build.hh"
-#  include "DEG_depsgraph_debug.hh"
 
 #  include "WM_types.hh"
 
@@ -659,11 +653,12 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-no-threads");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-time");
   BLI_args_print_arg_doc(ba, "--debug-depsgraph-pretty");
-  BLI_args_print_arg_doc(ba, "--debug-depsgraph-uuid");
+  BLI_args_print_arg_doc(ba, "--debug-depsgraph-uid");
   BLI_args_print_arg_doc(ba, "--debug-ghost");
   BLI_args_print_arg_doc(ba, "--debug-wintab");
   BLI_args_print_arg_doc(ba, "--debug-gpu");
   BLI_args_print_arg_doc(ba, "--debug-gpu-force-workarounds");
+  BLI_args_print_arg_doc(ba, "--debug-gpu-compile-shaders");
   if (defs.with_renderdoc) {
     BLI_args_print_arg_doc(ba, "--debug-gpu-renderdoc");
   }
@@ -895,12 +890,33 @@ static int arg_handle_debug_exit_on_error(int /*argc*/, const char ** /*argv*/, 
 }
 
 static const char arg_handle_background_mode_set_doc[] =
-    "\n\t"
-    "Run in background (often used for UI-less rendering).";
+    "\n"
+    "\tRun in background (often used for UI-less rendering).\n"
+    "\n"
+    "\tThe audio device is disabled in background-mode by default\n"
+    "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
 static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   print_version_short();
   G.background = true;
+
+  /* Background Mode Defaults:
+   *
+   * In general background mode should strive to match the behavior of running
+   * Blender inside a graphical session, any exception to this should have a well
+   * justified reason and be noted in the doc-string. */
+
+  /* NOTE(@ideasman42): While there is no requirement for sound to be disabled in background-mode,
+   * the use case for playing audio in background mode is enough of a special-case
+   * that users who wish to do this can explicitly enable audio in background mode.
+   * While the down sides for connecting to an audio device aren't terrible they include:
+   * - Listing Blender as an active application which may output audio.
+   * - Unnecessary overhead running an operation in background mode or ...
+   * - Having to remember to include `-noaudio` with batch operations.
+   * - A quiet but audible click when Blender starts & configures its audio device.
+   */
+  BKE_sound_force_device("None");
+
   return 0;
 }
 
@@ -1107,7 +1123,7 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_no_threads[] =
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_pretty[] =
     "\n\t"
     "Enable colors for dependency graph debug messages.";
-static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uuid[] =
+static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uid[] =
     "\n\t"
     "Verify validness of session-wide identifiers assigned to ID datablocks.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
@@ -1206,6 +1222,17 @@ static int arg_handle_debug_gpu_set(int /*argc*/, const char ** /*argv*/, void *
   const char *gpu_filter = "gpu.*";
   CLG_type_filter_include(gpu_filter, strlen(gpu_filter));
   G.debug |= G_DEBUG_GPU;
+  return 0;
+}
+
+static const char arg_handle_debug_gpu_compile_shaders_set_doc[] =
+    "\n"
+    "\tCompile all statically defined shaders to test platform compatibility.";
+static int arg_handle_debug_gpu_compile_shaders_set(int /*argc*/,
+                                                    const char ** /*argv*/,
+                                                    void * /*data*/)
+{
+  G.debug |= G_DEBUG_GPU_COMPILE_SHADERS;
   return 0;
 }
 
@@ -1544,17 +1571,22 @@ static int arg_handle_audio_disable(int /*argc*/, const char ** /*argv*/, void *
 
 static const char arg_handle_audio_set_doc[] =
     "\n\t"
-    "Force sound system to a specific device."
-    "\n\t"
-    "'None' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
+    "Force sound system to a specific device.\n"
+    "\t'None' 'Default' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
 static int arg_handle_audio_set(int argc, const char **argv, void * /*data*/)
 {
   if (argc < 1) {
-    fprintf(stderr, "-setaudio require one argument\n");
+    fprintf(stderr, "-setaudio requires one argument\n");
     exit(1);
   }
 
-  BKE_sound_force_device(argv[1]);
+  const char *device = argv[1];
+  if (STREQ(device, "Default")) {
+    /* Unset any forced device. */
+    device = nullptr;
+  }
+
+  BKE_sound_force_device(device);
   return 1;
 }
 
@@ -2418,6 +2450,11 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                CB_EX(arg_handle_debug_mode_generic_set, jobs),
                (void *)G_DEBUG_JOBS);
   BLI_args_add(ba, nullptr, "--debug-gpu", CB(arg_handle_debug_gpu_set), nullptr);
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-compile-shaders",
+               CB(arg_handle_debug_gpu_compile_shaders_set),
+               nullptr);
   if (defs.with_renderdoc) {
     BLI_args_add(
         ba, nullptr, "--debug-gpu-renderdoc", CB(arg_handle_debug_gpu_renderdoc_set), nullptr);
@@ -2461,9 +2498,9 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                (void *)G_DEBUG_DEPSGRAPH_PRETTY);
   BLI_args_add(ba,
                nullptr,
-               "--debug-depsgraph-uuid",
-               CB_EX(arg_handle_debug_mode_generic_set, depsgraph_uuid),
-               (void *)G_DEBUG_DEPSGRAPH_UUID);
+               "--debug-depsgraph-uid",
+               CB_EX(arg_handle_debug_mode_generic_set, depsgraph_uid),
+               (void *)G_DEBUG_DEPSGRAPH_UID);
   BLI_args_add(ba,
                nullptr,
                "--debug-gpu-force-workarounds",

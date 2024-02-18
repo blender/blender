@@ -10,10 +10,11 @@
 
 #include "BLI_kdtree_impl.h"
 #include "BLI_math_base.h"
-#include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
 
 #include <string.h>
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #define _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2) MACRO_ARG1##MACRO_ARG2
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)

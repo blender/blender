@@ -23,15 +23,14 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
-#include "BKE_main.hh"
+#include "BKE_global.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
@@ -46,7 +45,6 @@
 #include "RNA_prototypes.h"
 
 #include "ED_anim_api.hh"
-#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
@@ -431,8 +429,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      0,
-                      0,
                       nullptr);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
 
@@ -448,8 +444,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       &bezt_ptr,
                       "co_ui",
                       1,
-                      0,
-                      0,
                       0,
                       0,
                       nullptr);
@@ -475,8 +469,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
                       "Type of left handle");
       UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
@@ -491,8 +483,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_left",
-                      0,
-                      0,
                       0,
                       0,
                       0,
@@ -511,8 +501,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       &bezt_ptr,
                       "handle_left",
                       1,
-                      0,
-                      0,
                       0,
                       0,
                       nullptr);
@@ -539,8 +527,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
                       "Type of right handle");
       UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
@@ -555,8 +541,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_right",
-                      0,
-                      0,
                       0,
                       0,
                       0,
@@ -577,8 +561,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       1,
                       0,
                       0,
-                      0,
-                      0,
                       nullptr);
       UI_but_func_set(but, graphedit_activekey_right_handle_coord_cb, fcu, bezt);
       UI_but_unit_type_set(but, unit);
@@ -587,17 +569,17 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   else {
     if ((fcu->bezt == nullptr) && (fcu->modifiers.first)) {
       /* modifiers only - so no keyframes to be active */
-      uiItemL(layout, TIP_("F-Curve only has F-Modifiers"), ICON_NONE);
-      uiItemL(layout, TIP_("See Modifiers panel below"), ICON_INFO);
+      uiItemL(layout, RPT_("F-Curve only has F-Modifiers"), ICON_NONE);
+      uiItemL(layout, RPT_("See Modifiers panel below"), ICON_INFO);
     }
     else if (fcu->fpt) {
       /* samples only */
       uiItemL(layout,
-              TIP_("F-Curve doesn't have any keyframes as it only contains sampled points"),
+              RPT_("F-Curve doesn't have any keyframes as it only contains sampled points"),
               ICON_NONE);
     }
     else {
-      uiItemL(layout, TIP_("No active keyframe on F-Curve"), ICON_NONE);
+      uiItemL(layout, RPT_("No active keyframe on F-Curve"), ICON_NONE);
     }
   }
 
@@ -686,30 +668,30 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * 
   DriverVar *dvar = (DriverVar *)dvar_v;
 
   if (dvar->flag & DVAR_FLAG_INVALID_EMPTY) {
-    uiItemL(layout, TIP_("It cannot be left blank"), ICON_ERROR);
+    uiItemL(layout, RPT_("It cannot be left blank"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_NUM) {
-    uiItemL(layout, TIP_("It cannot start with a number"), ICON_ERROR);
+    uiItemL(layout, RPT_("It cannot start with a number"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_CHAR) {
     uiItemL(layout,
-            TIP_("It cannot start with a special character,"
+            RPT_("It cannot start with a special character,"
                  " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '"),
             ICON_NONE);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPACE) {
-    uiItemL(layout, TIP_("It cannot contain spaces (e.g. 'a space')"), ICON_ERROR);
+    uiItemL(layout, RPT_("It cannot contain spaces (e.g. 'a space')"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_DOT) {
-    uiItemL(layout, TIP_("It cannot contain dots (e.g. 'a.dot')"), ICON_ERROR);
+    uiItemL(layout, RPT_("It cannot contain dots (e.g. 'a.dot')"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPECIAL) {
     uiItemL(layout,
-            TIP_("It cannot contain special (non-alphabetical/numeric) characters"),
+            RPT_("It cannot contain special (non-alphabetical/numeric) characters"),
             ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_PY_KEYWORD) {
-    uiItemL(layout, TIP_("It cannot be a reserved keyword in Python"), ICON_INFO);
+    uiItemL(layout, RPT_("It cannot be a reserved keyword in Python"), ICON_INFO);
   }
 
   UI_popup_menu_end(C, pup);
@@ -958,8 +940,6 @@ static void graph_draw_driven_property_enabled_btn(uiLayout *layout,
             0,
             0,
             0,
-            0,
-            0,
             TIP_("Let the driver determine this property's value"));
 }
 
@@ -1054,28 +1034,28 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
-      uiItemL(col, TIP_("ERROR: Invalid Python expression"), ICON_CANCEL);
+      uiItemL(col, RPT_("ERROR: Invalid Python expression"), ICON_CANCEL);
     }
     else if (!BKE_driver_has_simple_expression(driver)) {
       if ((G.f & G_FLAG_SCRIPT_AUTOEXEC) == 0) {
         /* TODO: Add button to enable? */
-        uiItemL(col, TIP_("Python restricted for security"), ICON_ERROR);
+        uiItemL(col, RPT_("Python restricted for security"), ICON_ERROR);
       }
       else {
-        uiItemL(col, TIP_("Slow Python expression"), ICON_INFO);
+        uiItemL(col, RPT_("Slow Python expression"), ICON_INFO);
       }
     }
 
     /* Explicit bpy-references are evil. Warn about these to prevent errors */
     /* TODO: put these in a box? */
     if (bpy_data_expr_error || bpy_ctx_expr_error) {
-      uiItemL(col, TIP_("WARNING: Driver expression may not work correctly"), ICON_HELP);
+      uiItemL(col, RPT_("WARNING: Driver expression may not work correctly"), ICON_HELP);
 
       if (bpy_data_expr_error) {
-        uiItemL(col, TIP_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
+        uiItemL(col, RPT_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
       }
       if (bpy_ctx_expr_error) {
-        uiItemL(col, TIP_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
+        uiItemL(col, RPT_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
       }
     }
   }
@@ -1085,7 +1065,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
-      uiItemL(col, TIP_("ERROR: Invalid target channel(s)"), ICON_ERROR);
+      uiItemL(col, RPT_("ERROR: Invalid target channel(s)"), ICON_ERROR);
     }
 
     /* Warnings about a lack of variables
@@ -1095,11 +1075,11 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
      *       property animation
      */
     if (BLI_listbase_is_empty(&driver->variables)) {
-      uiItemL(col, TIP_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
+      uiItemL(col, RPT_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
 
       if (!BLI_listbase_is_empty(&fcu->modifiers)) {
-        uiItemL(col, TIP_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
-        uiItemL(col, TIP_("F-Modifiers can generate curves for those too"), ICON_INFO);
+        uiItemL(col, RPT_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
+        uiItemL(col, RPT_("F-Modifiers can generate curves for those too"), ICON_INFO);
       }
     }
   }

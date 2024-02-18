@@ -13,14 +13,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_armature.hh"
-#include "BKE_context.hh"
-
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -177,7 +174,7 @@ static void applyMirror(TransInfo *t)
       special_axis = bitscan_forward_i(special_axis_bitmap);
     }
 
-    SNPRINTF(str, TIP_("Mirror%s"), t->con.text);
+    SNPRINTF(str, IFACE_("Mirror%s"), t->con.text);
 
     FOREACH_TRANS_DATA_CONTAINER (t, tc) {
       TransData *td = tc->data;
@@ -209,10 +206,10 @@ static void applyMirror(TransInfo *t)
     recalc_data(t);
 
     if (t->flag & T_2D_EDIT) {
-      ED_area_status_text(t->area, TIP_("Select a mirror axis (X, Y)"));
+      ED_area_status_text(t->area, IFACE_("Select a mirror axis (X, Y)"));
     }
     else {
-      ED_area_status_text(t->area, TIP_("Select a mirror axis (X, Y, Z)"));
+      ED_area_status_text(t->area, IFACE_("Select a mirror axis (X, Y, Z)"));
     }
   }
 }

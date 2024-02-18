@@ -10,10 +10,11 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_endian_switch.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
@@ -22,8 +23,6 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_lightprobe_types.h"
-
-#include "PIL_time.h"
 
 #include "eevee_lightcache.h"
 #include "eevee_private.h"
@@ -225,31 +224,31 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
   if (lcache != nullptr) {
     if (!eevee_lightcache_version_check(lcache)) {
       BLI_strncpy(eevee->light_cache_info,
-                  TIP_("Incompatible Light cache version, please bake again"),
+                  N_("Incompatible Light cache version, please bake again"),
                   sizeof(eevee->light_cache_info));
       return;
     }
 
     if (lcache->cube_tx.tex_size[2] > GPU_max_texture_layers()) {
       STRNCPY(eevee->light_cache_info,
-              TIP_("Error: Light cache is too big for the GPU to be loaded"));
+              N_("Error: Light cache is too big for the GPU to be loaded"));
       return;
     }
 
     if (lcache->flag & LIGHTCACHE_INVALID) {
       STRNCPY(eevee->light_cache_info,
-              TIP_("Error: Light cache dimensions not supported by the GPU"));
+              N_("Error: Light cache dimensions not supported by the GPU"));
       return;
     }
 
     if (lcache->flag & LIGHTCACHE_BAKING) {
-      STRNCPY(eevee->light_cache_info, TIP_("Baking light cache"));
+      STRNCPY(eevee->light_cache_info, N_("Baking light cache"));
       return;
     }
 
     if (!eevee_lightcache_can_be_saved(lcache)) {
       STRNCPY(eevee->light_cache_info,
-              TIP_("Error: LightCache is too large and will not be saved to disk"));
+              N_("Error: LightCache is too large and will not be saved to disk"));
       return;
     }
 
@@ -258,14 +257,16 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
 
     int irr_samples = eevee_lightcache_irradiance_sample_count(lcache);
 
+    /* This message needs to be translated here instead of the UI code, otherwise it would already
+     * be formatted and translation would not work. */
     SNPRINTF(eevee->light_cache_info,
-             TIP_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
+             RPT_("%d Ref. Cubemaps, %d Irr. Samples (%s in memory)"),
              lcache->cube_len - 1,
              irr_samples,
              formatted_mem);
   }
   else {
-    STRNCPY(eevee->light_cache_info, TIP_("No light cache in this scene"));
+    STRNCPY(eevee->light_cache_info, N_("No light cache in this scene"));
   }
 }
 
@@ -1065,7 +1066,7 @@ static void eevee_lightbake_render_world_sample(void *ved, void *user_data)
     GPU_framebuffer_clear_color(lbake->store_fb, blender::float4{1.0f, 1.0f, 1.0f, 1.0f});
     DRW_draw_pass(vedata->psl->probe_grid_fill);
 
-    SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
+    std::swap(lbake->grid_prev, lcache->grid_tx.tex);
 
     /* Make a copy for later. */
     eevee_lightbake_copy_irradiance(lbake, lcache);
@@ -1097,8 +1098,8 @@ static void compute_cell_id(EEVEE_LightGrid *egrid,
                          probe->grid_resolution_z;
 
   /* Add one for level 0 */
-  int max_lvl = int(floorf(log2f(
-      float(MAX3(probe->grid_resolution_x, probe->grid_resolution_y, probe->grid_resolution_z)))));
+  int max_lvl = int(floorf(log2f(float(
+      std::max({probe->grid_resolution_x, probe->grid_resolution_y, probe->grid_resolution_z})))));
 
   int visited_cells = 0;
   *r_stride = 0;
@@ -1157,7 +1158,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
   egrid->level_bias = 1.0f;
 
   /* Use the previous bounce for rendering this bounce. */
-  SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
+  std::swap(lbake->grid_prev, lcache->grid_tx.tex);
 
   /* TODO: do this once for the whole bake when we have independent DRWManagers.
    * WARNING: Some of the things above require this. */
@@ -1184,7 +1185,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
   EEVEE_lightbake_render_scene(sldata, vedata, lbake->rt_fb, pos, prb->clipsta, prb->clipend);
 
   /* Restore before filtering. */
-  SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
+  std::swap(lbake->grid_prev, lcache->grid_tx.tex);
 
   EEVEE_lightbake_filter_diffuse(
       sldata, vedata, lbake->rt_color, lbake->store_fb, sample_offset, prb->intensity);
@@ -1300,8 +1301,8 @@ static bool eevee_lightbake_cube_comp(EEVEE_LightProbe *prb_a, EEVEE_LightProbe 
       sorted = true; \
       for (int i = 0; i < (elems_len)-1; i++) { \
         if ((comp_fn)((elems) + i, (elems) + i + 1)) { \
-          SWAP(elems_type, (elems)[i], (elems)[i + 1]); \
-          SWAP(LightProbe *, (prbs)[i], (prbs)[i + 1]); \
+          std::swap((elems)[i], (elems)[i + 1]); \
+          std::swap((prbs)[i], (prbs)[i + 1]); \
           sorted = false; \
         } \
       } \
@@ -1452,7 +1453,7 @@ void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
    * because this step is locking at this moment. */
   /* TODO: remove this. */
   if (lbake->delay) {
-    PIL_sleep_ms(lbake->delay);
+    BLI_time_sleep_ms(lbake->delay);
   }
 
   /* Render world irradiance and reflection first */

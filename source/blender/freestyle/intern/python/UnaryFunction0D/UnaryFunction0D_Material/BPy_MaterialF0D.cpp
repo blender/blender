@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char MaterialF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    MaterialF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DMaterial` > :class:`MaterialF0D`\n"
     "\n"
@@ -46,7 +48,7 @@ static char MaterialF0D___doc__[] =
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The material of the object evaluated at the pointed\n"
     "      Interface0D.\n"
-    "   :rtype: :class:`freestyle.types.Material`\n";
+    "   :rtype: :class:`freestyle.types.Material`\n");
 
 static int MaterialF0D___init__(BPy_MaterialF0D *self, PyObject *args, PyObject *kwds)
 {

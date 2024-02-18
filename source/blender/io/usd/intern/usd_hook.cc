@@ -2,70 +2,72 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd.h"
+#include "usd.hh"
 
-#include "usd_hook.h"
+#include "usd_hook.hh"
 
 #include <boost/python/call_method.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/import.hpp>
-#include <boost/python/object.hpp>
 #include <boost/python/return_value_policy.hpp>
 #include <boost/python/to_python_converter.hpp>
 
-#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"
 #include "bpy_rna.h"
 
-#include "WM_api.hh"
-#include "WM_types.hh"
-
 #include <list>
+#include <memory>
 
 using namespace boost;
 
-using USDHookList = std::list<USDHook *>;
+namespace blender::io::usd {
+
+using USDHookList = std::list<std::unique_ptr<USDHook>>;
 
 /* USD hook type declarations */
-static USDHookList g_usd_hooks;
-
-void USD_register_hook(USDHook *hook)
+static USDHookList &hook_list()
 {
-  if (std::find(g_usd_hooks.begin(), g_usd_hooks.end(), hook) != g_usd_hooks.end()) {
+  static USDHookList hooks{};
+  return hooks;
+}
+
+void USD_register_hook(std::unique_ptr<USDHook> hook)
+{
+  if (USD_find_hook_name(hook->idname)) {
     /* The hook is already in the list. */
     return;
   }
 
   /* Add hook type to the list. */
-  g_usd_hooks.push_back(hook);
+  hook_list().push_back(std::move(hook));
 }
 
 void USD_unregister_hook(USDHook *hook)
 {
-  g_usd_hooks.remove(hook);
+  hook_list().remove_if(
+      [hook](const std::unique_ptr<USDHook> &item) { return item.get() == hook; });
 }
 
-USDHook *USD_find_hook_name(const char name[])
+USDHook *USD_find_hook_name(const char idname[])
 {
   /* sanity checks */
-  if (g_usd_hooks.empty() || (name == nullptr) || (name[0] == 0)) {
+  if (hook_list().empty() || (idname == nullptr) || (idname[0] == 0)) {
     return nullptr;
   }
 
   USDHookList::iterator hook_iter = std::find_if(
-      g_usd_hooks.begin(), g_usd_hooks.end(), [name](USDHook *hook) {
-        return STREQ(hook->idname, name);
+      hook_list().begin(), hook_list().end(), [idname](const std::unique_ptr<USDHook> &item) {
+        return STREQ(item->idname, idname);
       });
 
-  return (hook_iter == g_usd_hooks.end()) ? nullptr : *hook_iter;
+  return (hook_iter == hook_list().end()) ? nullptr : hook_iter->get();
 }
-
-namespace blender::io::usd {
 
 /* Convert PointerRNA to a PyObject*. */
 struct PointerRNAToPython {
@@ -102,6 +104,21 @@ struct USDSceneExportContext {
   PointerRNA depsgraph_ptr;
 };
 
+/* Encapsulate arguments for scene import. */
+struct USDSceneImportContext {
+
+  USDSceneImportContext() {}
+
+  USDSceneImportContext(pxr::UsdStageRefPtr in_stage) : stage(in_stage) {}
+
+  pxr::UsdStageRefPtr get_stage()
+  {
+    return stage;
+  }
+
+  pxr::UsdStageRefPtr stage;
+};
+
 /* Encapsulate arguments for material export. */
 struct USDMaterialExportContext {
   USDMaterialExportContext() {}
@@ -116,12 +133,12 @@ struct USDMaterialExportContext {
   pxr::UsdStageRefPtr stage;
 };
 
-void register_export_hook_converters()
+void register_hook_converters()
 {
   static bool registered = false;
 
   /* No need to register if there are no hooks. */
-  if (g_usd_hooks.empty()) {
+  if (hook_list().empty()) {
     return;
   }
 
@@ -149,6 +166,9 @@ void register_export_hook_converters()
 
   python::class_<USDMaterialExportContext>("USDMaterialExportContext")
       .def("get_stage", &USDMaterialExportContext::get_stage);
+
+  python::class_<USDSceneImportContext>("USDSceneImportContext")
+      .def("get_stage", &USDSceneImportContext::get_stage);
 
   PyGILState_Release(gilstate);
 }
@@ -178,22 +198,22 @@ class USDHookInvoker {
   /* Attempt to call the function, if defined by the registered hooks. */
   void call() const
   {
-    if (g_usd_hooks.empty()) {
+    if (hook_list().empty()) {
       return;
     }
 
     PyGILState_STATE gilstate = PyGILState_Ensure();
 
     /* Iterate over the hooks and invoke the hook function, if it's defined. */
-    USDHookList::const_iterator hook_iter = g_usd_hooks.begin();
-    while (hook_iter != g_usd_hooks.end()) {
+    USDHookList::const_iterator hook_iter = hook_list().begin();
+    while (hook_iter != hook_list().end()) {
 
       /* XXX: Not sure if this is necessary:
        * Advance the iterator before invoking the callback, to guard
        * against the unlikely error where the hook is de-registered in
        * the callback. This would prevent a crash due to the iterator
        * getting invalidated. */
-      USDHook *hook = *hook_iter;
+      USDHook *hook = hook_iter->get();
       ++hook_iter;
 
       if (!hook->rna_ext.data) {
@@ -287,9 +307,31 @@ class OnMaterialExportInvoker : public USDHookInvoker {
   }
 };
 
+class OnImportInvoker : public USDHookInvoker {
+ private:
+  USDSceneImportContext hook_context_;
+
+ public:
+  OnImportInvoker(pxr::UsdStageRefPtr stage, ReportList *reports) : hook_context_(stage)
+  {
+    reports_ = reports;
+  }
+
+ protected:
+  const char *function_name() const override
+  {
+    return "on_import";
+  }
+
+  void call_hook(PyObject *hook_obj) const override
+  {
+    python::call_method<bool>(hook_obj, function_name(), hook_context_);
+  }
+};
+
 void call_export_hooks(pxr::UsdStageRefPtr stage, Depsgraph *depsgraph, ReportList *reports)
 {
-  if (g_usd_hooks.empty()) {
+  if (hook_list().empty()) {
     return;
   }
 
@@ -302,12 +344,22 @@ void call_material_export_hooks(pxr::UsdStageRefPtr stage,
                                 pxr::UsdShadeMaterial &usd_material,
                                 ReportList *reports)
 {
-  if (g_usd_hooks.empty()) {
+  if (hook_list().empty()) {
     return;
   }
 
   OnMaterialExportInvoker on_material_export(stage, material, usd_material, reports);
   on_material_export.call();
+}
+
+void call_import_hooks(pxr::UsdStageRefPtr stage, ReportList *reports)
+{
+  if (hook_list().empty()) {
+    return;
+  }
+
+  OnImportInvoker on_import(stage, reports);
+  on_import.call();
 }
 
 }  // namespace blender::io::usd

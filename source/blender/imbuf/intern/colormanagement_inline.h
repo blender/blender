@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2015 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
-#include "IMB_colormanagement_intern.h"
+#include "IMB_colormanagement_intern.hh"
 
 void IMB_colormanagement_get_luminance_coefficients(float r_rgb[3])
 {

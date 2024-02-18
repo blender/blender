@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 
@@ -23,7 +23,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_types.hh"
 
@@ -182,6 +182,8 @@ static const EnumPropertyItem rna_enum_driver_target_context_property_items[] = 
 };
 
 #ifdef RNA_RUNTIME
+
+#  include <algorithm>
 
 #  include "WM_api.hh"
 
@@ -1026,7 +1028,7 @@ static void rna_FModifierStepped_frame_start_set(PointerRNA *ptr, float value)
   float prop_clamp_min = -FLT_MAX, prop_clamp_max = FLT_MAX, prop_soft_min, prop_soft_max;
   rna_FModifierStepped_start_frame_range(
       ptr, &prop_clamp_min, &prop_clamp_max, &prop_soft_min, &prop_soft_max);
-  value = CLAMPIS(value, prop_clamp_min, prop_clamp_max);
+  value = std::clamp(value, prop_clamp_min, prop_clamp_max);
 
   /* Need to set both step-data's start/end and the start/end on the base-data,
    * or else Restrict-Range doesn't work due to RNA-property shadowing (#52009)
@@ -1043,7 +1045,7 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
   float prop_clamp_min = -FLT_MAX, prop_clamp_max = FLT_MAX, prop_soft_min, prop_soft_max;
   rna_FModifierStepped_end_frame_range(
       ptr, &prop_clamp_min, &prop_clamp_max, &prop_soft_min, &prop_soft_max);
-  value = CLAMPIS(value, prop_clamp_min, prop_clamp_max);
+  value = std::clamp(value, prop_clamp_min, prop_clamp_max);
 
   /* Need to set both step-data's start/end and the start/end on the base-data,
    * or else Restrict-Range doesn't work due to RNA-property shadowing (#52009)
@@ -1770,7 +1772,7 @@ static void rna_def_fmodifier(BlenderRNA *brna)
   // RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_FModifier_show_expanded_set");
   RNA_def_property_ui_text(prop, "Expanded", "F-Curve Modifier's panel is expanded in UI");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", FMODIFIER_FLAG_MUTED);
@@ -2207,7 +2209,7 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "Keyframe", nullptr);
   RNA_def_struct_sdna(srna, "BezTriple");
   RNA_def_struct_ui_text(
-      srna, "Keyframe", "Bezier curve point with two handles defining a Keyframe on an F-Curve");
+      srna, "Keyframe", "Bézier curve point with two handles defining a Keyframe on an F-Curve");
 
   /* Boolean values */
   prop = RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);

@@ -17,16 +17,16 @@
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -370,7 +370,7 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 
   rv3d->view = RV3D_VIEW_USER; /* don't show the grid */
 
-  normalize_m4_m4(bmat, ob->object_to_world);
+  normalize_m4_m4(bmat, ob->object_to_world().ptr());
   invert_m4_m4(rv3d->viewmat, bmat);
 
   /* view quat calculation, needed for add object */
@@ -409,12 +409,12 @@ void view3d_viewmatrix_set(Depsgraph *depsgraph,
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, v3d->ob_center);
       float vec[3];
 
-      copy_v3_v3(vec, ob_eval->object_to_world[3]);
+      copy_v3_v3(vec, ob_eval->object_to_world().location());
       if (ob_eval->type == OB_ARMATURE && v3d->ob_center_bone[0]) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob_eval->pose, v3d->ob_center_bone);
         if (pchan) {
           copy_v3_v3(vec, pchan->pose_mat[3]);
-          mul_m4_v3(ob_eval->object_to_world, vec);
+          mul_m4_v3(ob_eval->object_to_world().ptr(), vec);
         }
       }
       translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
@@ -803,7 +803,7 @@ static uint free_localview_bit(Main *bmain)
         if (sl->spacetype == SPACE_VIEW3D) {
           View3D *v3d = reinterpret_cast<View3D *>(sl);
           if (v3d->localvd) {
-            local_view_bits |= v3d->local_view_uuid;
+            local_view_bits |= v3d->local_view_uid;
           }
         }
       }
@@ -889,7 +889,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
 
   v3d->localvd = static_cast<View3D *>(MEM_mallocN(sizeof(View3D), "localview"));
   *v3d->localvd = blender::dna::shallow_copy(*v3d);
-  v3d->local_view_uuid = local_view_bit;
+  v3d->local_view_uid = local_view_bit;
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
     if (region->regiontype == RGN_TYPE_WINDOW) {
@@ -964,15 +964,15 @@ static void view3d_localview_exit(const Depsgraph *depsgraph,
   }
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
-    if (base->local_view_bits & v3d->local_view_uuid) {
-      base->local_view_bits &= ~v3d->local_view_uuid;
+    if (base->local_view_bits & v3d->local_view_uid) {
+      base->local_view_bits &= ~v3d->local_view_uid;
     }
   }
 
   Object *camera_old = v3d->camera;
   Object *camera_new = v3d->localvd->camera;
 
-  v3d->local_view_uuid = 0;
+  v3d->local_view_uid = 0;
   v3d->camera = v3d->localvd->camera;
 
   MEM_freeN(v3d->localvd);
@@ -1096,7 +1096,7 @@ static int localview_remove_from_exec(bContext *C, wmOperator *op)
   BKE_view_layer_synced_ensure(scene, view_layer);
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     if (BASE_SELECTED(v3d, base)) {
-      base->local_view_bits &= ~v3d->local_view_uuid;
+      base->local_view_bits &= ~v3d->local_view_uid;
       ED_object_base_select(base, BA_DESELECT);
 
       if (base == view_layer->basact) {
@@ -1147,7 +1147,7 @@ void VIEW3D_OT_localview_remove_from(wmOperatorType *ot)
 /** \name Local Collections
  * \{ */
 
-static uint free_localcollection_bit(Main *bmain, ushort local_collections_uuid, bool *r_reset)
+static uint free_localcollection_bit(Main *bmain, ushort local_collections_uid, bool *r_reset)
 {
   ushort local_view_bits = 0;
 
@@ -1158,7 +1158,7 @@ static uint free_localcollection_bit(Main *bmain, ushort local_collections_uuid,
         if (sl->spacetype == SPACE_VIEW3D) {
           View3D *v3d = reinterpret_cast<View3D *>(sl);
           if (v3d->flag & V3D_LOCAL_COLLECTIONS) {
-            local_view_bits |= v3d->local_collections_uuid;
+            local_view_bits |= v3d->local_collections_uid;
           }
         }
       }
@@ -1166,8 +1166,8 @@ static uint free_localcollection_bit(Main *bmain, ushort local_collections_uuid,
   }
 
   /* First try to keep the old uuid. */
-  if (local_collections_uuid && ((local_collections_uuid & local_view_bits) == 0)) {
-    return local_collections_uuid;
+  if (local_collections_uid && ((local_collections_uid & local_view_bits) == 0)) {
+    return local_collections_uid;
   }
 
   /* Otherwise get the first free available. */
@@ -1215,13 +1215,13 @@ bool ED_view3d_local_collections_set(Main *bmain, View3D *v3d)
 
   bool reset = false;
   v3d->flag &= ~V3D_LOCAL_COLLECTIONS;
-  uint local_view_bit = free_localcollection_bit(bmain, v3d->local_collections_uuid, &reset);
+  uint local_view_bit = free_localcollection_bit(bmain, v3d->local_collections_uid, &reset);
 
   if (local_view_bit == 0) {
     return false;
   }
 
-  v3d->local_collections_uuid = local_view_bit;
+  v3d->local_collections_uid = local_view_bit;
   v3d->flag |= V3D_LOCAL_COLLECTIONS;
 
   if (reset) {
@@ -1243,9 +1243,9 @@ void ED_view3d_local_collections_reset(bContext *C, const bool reset_all)
       LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
         if (sl->spacetype == SPACE_VIEW3D) {
           View3D *v3d = reinterpret_cast<View3D *>(sl);
-          if (v3d->local_collections_uuid) {
+          if (v3d->local_collections_uid) {
             if (v3d->flag & V3D_LOCAL_COLLECTIONS) {
-              local_view_bit &= ~v3d->local_collections_uuid;
+              local_view_bit &= ~v3d->local_collections_uid;
             }
             else {
               do_reset = true;
@@ -1262,7 +1262,7 @@ void ED_view3d_local_collections_reset(bContext *C, const bool reset_all)
   else if (reset_all && (do_reset || (local_view_bit != ~(0)))) {
     view3d_local_collections_reset(bmain, ~(0));
     View3D v3d = {};
-    v3d.local_collections_uuid = ~(0);
+    v3d.local_collections_uid = ~(0);
     BKE_layer_collection_local_sync(CTX_data_scene(C), CTX_data_view_layer(C), &v3d);
     DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS);
   }

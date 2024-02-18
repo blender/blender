@@ -17,9 +17,8 @@
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_instances.hh"
-#include "BKE_mesh.hh"
 
 #include "BLI_array.hh"
 
@@ -253,7 +252,7 @@ void debug_randomize_instance_order(bke::Instances *instances)
     new_transforms[new_i] = old_transforms[old_i];
   }
 
-  instances->reference_handles().copy_from(new_reference_handles);
+  instances->reference_handles_for_write().copy_from(new_reference_handles);
   instances->transforms().copy_from(new_transforms);
 }
 

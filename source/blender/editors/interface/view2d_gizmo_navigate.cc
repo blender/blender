@@ -13,7 +13,6 @@
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
 
-#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "MEM_guardedalloc.h"

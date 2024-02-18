@@ -15,22 +15,18 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_query.h"
-#include "BKE_main.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -39,7 +35,6 @@
 
 #include "RNA_access.hh"
 
-#include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 
@@ -168,8 +163,8 @@ static void applyLength(GpencilModifierData *md,
   }
 
   if (first_fac < 0) {
-    SWAP(float, first_fac, second_fac);
-    SWAP(int, first_mode, second_mode);
+    std::swap(first_fac, second_fac);
+    std::swap(first_mode, second_mode);
   }
   const int first_extra_point_count = ceil(first_fac * lmd->point_density);
   const int second_extra_point_count = ceil(second_fac * lmd->point_density);

@@ -1455,13 +1455,23 @@ class edit_generators:
         """
         Clean headers, ensuring that the headers removed are not used directly or indirectly.
 
-        Note that the `CFLAGS` should be set so missing prototypes error instead of warn:
-        With GCC: `-Werror=missing-prototypes`
+        Note that the `CFLAGS` should be set so missing prototypes error instead of warn.
+        With GCC:
+           CMAKE_C_FLAGS=-Werror=missing-prototypes -Werror=undef
+           CMAKE_CXX_FLAGS=-Werror=missing-declarations -Werror=undef
         """
 
         # Non-default because changes to headers may cause breakage on other platforms.
         # Before committing these changes all supported platforms should be tested to compile without problems.
         is_default = False
+
+        @staticmethod
+        def _header_exclude(f_basename: str) -> str:
+            # This header only exists to add additional warnings, removing it doesn't impact generated output.
+            # Skip this file.
+            if f_basename == "BLI_strict_flags.h":
+                return True
+            return False
 
         @staticmethod
         def _header_guard_from_filename(f: str) -> str:
@@ -1479,6 +1489,10 @@ class edit_generators:
                     os.path.join(SOURCE_DIR, 'source'),
                     ('.h', '.hh', '.inl', '.hpp', '.hxx'),
             ):
+                f_basename = os.path.basename(f)
+                if cls._header_exclude(f_basename):
+                    continue
+
                 with open(f, 'r', encoding='utf-8') as fh:
                     data = fh.read()
 
@@ -1519,7 +1533,12 @@ class edit_generators:
             # Remove include.
             for match in re.finditer(r"^(([ \t]*#\s*include\s+\")([^\"]+)(\"[^\n]*\n))", data, flags=re.MULTILINE):
                 header_name = match.group(3)
-                header_guard = cls._header_guard_from_filename(header_name)
+                # Use in case the include has a leading path.
+                header_basename = os.path.basename(header_name)
+                if cls._header_exclude(header_basename):
+                    continue
+
+                header_guard = cls._header_guard_from_filename(header_basename)
                 edits.append(Edit(
                     span=match.span(),
                     content='',  # Remove the header.
@@ -1645,6 +1664,9 @@ def test_edit(
     """
     if os.path.exists(output):
         os.remove(output)
+
+    # Useful when inspecting failure to compile files, so it's possible to run the command manually.
+    # `print("COMMAND: {:s}\nCMD: {:s}\nOUTPUT: {:s}\n".format(" ".join(build_args), str(build_cwd), output))`
 
     with open(source, 'w', encoding='utf-8') as fh:
         fh.write(data_test)
@@ -1816,7 +1838,7 @@ def wash_source_with_edit(
             build_args_for_edit = build_args
             if extra_build_args:
                 # Add directly after the compile command.
-                build_args_for_edit = build_args[:1] + extra_build_args + build_args[1:]
+                build_args_for_edit = tuple(list(build_args[:1]) + list(extra_build_args) + list(build_args[1:]))
 
             data_test = apply_edit(source_relative, data, text, start, end, verbose=verbose_edit_actions)
             if test_edit(

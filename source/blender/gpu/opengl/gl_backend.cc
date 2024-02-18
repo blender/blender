@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif
@@ -317,16 +317,7 @@ static void detect_workarounds()
 #if 0
     /* Do not alter OpenGL 4.3 features.
      * These code paths should be removed. */
-    GCaps.shader_image_load_store_support = false;
-    GLContext::base_instance_support = false;
-    GLContext::copy_image_support = false;
     GLContext::debug_layer_support = false;
-    GLContext::fixed_restart_index_support = false;
-    GLContext::geometry_shader_invocations = false;
-    GLContext::texture_cube_map_array_support = false;
-    GLContext::texture_gather_support = false;
-    GLContext::texture_storage_support = false;
-    GLContext::vertex_attrib_binding_support = false;
 #endif
 
     return;
@@ -338,16 +329,6 @@ static void detect_workarounds()
     GCaps.use_main_context_workaround = true;
   }
 
-  /* Limit support for GL_ARB_base_instance to OpenGL 4.0 and higher. NVIDIA Quadro FX 4800
-   * (TeraScale) report that they support GL_ARB_base_instance, but the driver does not support
-   * GLEW_ARB_draw_indirect as it has an OpenGL3 context what also matches the minimum needed
-   * requirements.
-   *
-   * We use it as a target for glMapBuffer(Range) what is part of the OpenGL 4 API. So better
-   * disable it when we don't have an OpenGL4 context (See #77657) */
-  if (!(epoxy_gl_version() >= 40)) {
-    GLContext::base_instance_support = false;
-  }
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(version, "4.5.13399") || strstr(version, "4.5.13417") ||
        strstr(version, "4.5.13422") || strstr(version, "4.5.13467")))
@@ -361,7 +342,6 @@ static void detect_workarounds()
      * And others... */
     GLContext::unused_fb_slot_workaround = true;
     GCaps.mip_render_workaround = true;
-    GCaps.shader_image_load_store_support = false;
     GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
@@ -377,7 +357,6 @@ static void detect_workarounds()
        strstr(renderer, "AMD TAHITI")))
   {
     GLContext::unused_fb_slot_workaround = true;
-    GCaps.shader_image_load_store_support = false;
     GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
@@ -385,7 +364,6 @@ static void detect_workarounds()
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
       strstr(version, "Mesa 19.3.4"))
   {
-    GCaps.shader_image_load_store_support = false;
     GCaps.shader_draw_parameters_support = false;
     GCaps.broken_amd_driver = true;
   }
@@ -402,27 +380,12 @@ static void detect_workarounds()
       GCaps.use_hq_normals_workaround = true;
     }
   }
-  /* Limit this fix to older hardware with GL < 4.5. This means Broadwell GPUs are
-   * covered since they only support GL 4.4 on windows.
-   * This fixes some issues with workbench anti-aliasing on Win + Intel GPU. (see #76273) */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-      !(epoxy_gl_version() >= 45))
-  {
-    GLContext::copy_image_support = false;
-  }
   /* Special fix for these specific GPUs.
    * Without this workaround, blender crashes on startup. (see #72098) */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
       (strstr(renderer, "HD Graphics 620") || strstr(renderer, "HD Graphics 630")))
   {
     GCaps.mip_render_workaround = true;
-  }
-  /* Intel Ivy Bridge GPU's seems to have buggy cube-map array support. (see #75943) */
-  if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_OFFICIAL) &&
-      (strstr(renderer, "HD Graphics 4000") || strstr(renderer, "HD Graphics 4400") ||
-       strstr(renderer, "HD Graphics 2500")))
-  {
-    GLContext::texture_cube_map_array_support = false;
   }
   /* Maybe not all of these drivers have problems with `GL_ARB_base_instance`.
    * But it's hard to test each case.
@@ -433,7 +396,6 @@ static void detect_workarounds()
        strstr(version, "Build 10.18.10.5") || strstr(version, "Build 10.18.14.4") ||
        strstr(version, "Build 10.18.14.5")))
   {
-    GLContext::base_instance_support = false;
     GCaps.use_main_context_workaround = true;
   }
   /* Somehow fixes armature display issues (see #69743). */
@@ -450,14 +412,6 @@ static void detect_workarounds()
   {
     GLContext::unused_fb_slot_workaround = true;
   }
-  /* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
-   * is reported to be supported but yield a compile error (see #55802). */
-  if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) &&
-      !(epoxy_gl_version() >= 40))
-  {
-    GLContext::texture_gather_support = false;
-  }
-
   /* dFdx/dFdy calculation factors, those are dependent on driver. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) && strstr(version, "3.3.10750"))
   {
@@ -521,15 +475,11 @@ GLint GLContext::max_ssbo_binds = 0;
 
 /** Extensions. */
 
-bool GLContext::base_instance_support = false;
 bool GLContext::clear_texture_support = false;
-bool GLContext::copy_image_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
 bool GLContext::framebuffer_fetch_support = false;
-bool GLContext::geometry_shader_invocations = false;
-bool GLContext::fixed_restart_index_support = false;
 bool GLContext::layered_rendering_support = false;
 bool GLContext::native_barycentric_support = false;
 bool GLContext::multi_bind_support = false;
@@ -538,11 +488,7 @@ bool GLContext::multi_draw_indirect_support = false;
 bool GLContext::shader_draw_parameters_support = false;
 bool GLContext::stencil_texturing_support = false;
 bool GLContext::texture_barrier_support = false;
-bool GLContext::texture_cube_map_array_support = false;
 bool GLContext::texture_filter_anisotropic_support = false;
-bool GLContext::texture_gather_support = false;
-bool GLContext::texture_storage_support = false;
-bool GLContext::vertex_attrib_binding_support = false;
 
 /** Workarounds. */
 
@@ -574,7 +520,6 @@ void GLBackend::capabilities_init()
   GCaps.max_samplers = GCaps.max_textures;
   GCaps.mem_stats_support = epoxy_has_gl_extension("GL_NVX_gpu_memory_info") ||
                             epoxy_has_gl_extension("GL_ATI_meminfo");
-  GCaps.shader_image_load_store_support = epoxy_has_gl_extension("GL_ARB_shader_image_load_store");
   GCaps.shader_draw_parameters_support = epoxy_has_gl_extension("GL_ARB_shader_draw_parameters");
   GCaps.compute_shader_support = epoxy_has_gl_extension("GL_ARB_compute_shader") &&
                                  epoxy_gl_version() >= 43;
@@ -614,16 +559,12 @@ void GLBackend::capabilities_init()
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
   glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &max_ssbo_binds);
   GLContext::max_ssbo_binds = min_ii(GLContext::max_ssbo_binds, max_ssbo_binds);
-  GLContext::base_instance_support = epoxy_has_gl_extension("GL_ARB_base_instance");
   GLContext::clear_texture_support = epoxy_has_gl_extension("GL_ARB_clear_texture");
-  GLContext::copy_image_support = epoxy_has_gl_extension("GL_ARB_copy_image");
   GLContext::debug_layer_support = epoxy_gl_version() >= 43 ||
                                    epoxy_has_gl_extension("GL_KHR_debug") ||
                                    epoxy_has_gl_extension("GL_ARB_debug_output");
   GLContext::direct_state_access_support = epoxy_has_gl_extension("GL_ARB_direct_state_access");
   GLContext::explicit_location_support = epoxy_gl_version() >= 43;
-  GLContext::geometry_shader_invocations = epoxy_has_gl_extension("GL_ARB_gpu_shader5");
-  GLContext::fixed_restart_index_support = epoxy_has_gl_extension("GL_ARB_ES3_compatibility");
   GLContext::framebuffer_fetch_support = epoxy_has_gl_extension("GL_EXT_shader_framebuffer_fetch");
   GLContext::texture_barrier_support = epoxy_has_gl_extension("GL_ARB_texture_barrier");
   GLContext::layered_rendering_support = epoxy_has_gl_extension(
@@ -636,14 +577,8 @@ void GLBackend::capabilities_init()
   GLContext::shader_draw_parameters_support = epoxy_has_gl_extension(
       "GL_ARB_shader_draw_parameters");
   GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
-  GLContext::texture_cube_map_array_support = epoxy_has_gl_extension(
-      "GL_ARB_texture_cube_map_array");
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
-  GLContext::texture_gather_support = epoxy_has_gl_extension("GL_ARB_texture_gather");
-  GLContext::texture_storage_support = epoxy_gl_version() >= 43;
-  GLContext::vertex_attrib_binding_support = epoxy_has_gl_extension(
-      "GL_ARB_vertex_attrib_binding");
 
   /* Disabled until it is proven to work. */
   GLContext::framebuffer_fetch_support = false;

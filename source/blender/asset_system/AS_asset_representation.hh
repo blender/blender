@@ -8,7 +8,7 @@
  * \brief Main runtime representation of an asset.
  *
  * Abstraction to reference an asset, with necessary data for display & interaction.
- * https://wiki.blender.org/wiki/Source/Architecture/Asset_System/Back_End#Asset_Representation
+ * https://developer.blender.org/docs/features/asset_system/backend/#asset-representation
  */
 
 #pragma once
@@ -39,7 +39,7 @@ class AssetRepresentation {
    */
   const bool is_local_id_ = false;
   /** Asset library that owns this asset representation. */
-  const AssetLibrary *owner_asset_library_;
+  const AssetLibrary &owner_asset_library_;
 
   struct ExternalAsset {
     std::string name;
@@ -67,16 +67,12 @@ class AssetRepresentation {
   AssetRepresentation(AssetIdentifier &&identifier,
                       ID &id,
                       const AssetLibrary &owner_asset_library);
-  AssetRepresentation(AssetRepresentation &&other);
-  /* Non-copyable type. */
-  AssetRepresentation(const AssetRepresentation &other) = delete;
   ~AssetRepresentation();
 
-  /* Non-move-assignable type. Move construction is fine, but treat the "identity" (e.g. local vs
-   * external asset) of an asset representation as immutable. */
-  AssetRepresentation &operator=(AssetRepresentation &&other) = delete;
-  /* Non-copyable type. */
-  AssetRepresentation &operator=(const AssetRepresentation &other) = delete;
+  AssetRepresentation(const AssetRepresentation &) = delete;
+  AssetRepresentation(AssetRepresentation &&) = delete;
+  AssetRepresentation &operator=(AssetRepresentation &&) = delete;
+  AssetRepresentation &operator=(const AssetRepresentation &) = delete;
 
   const AssetIdentifier &get_identifier() const;
 
@@ -84,10 +80,8 @@ class AssetRepresentation {
    * Create a weak reference for this asset that can be written to files, but can break under a
    * number of conditions.
    * A weak reference can only be created if an asset representation is owned by an asset library.
-   *
-   * Must be freed using #BKE_asset_weak_reference_free().
    */
-  AssetWeakReference *make_weak_reference() const;
+  AssetWeakReference make_weak_reference() const;
 
   StringRefNull get_name() const;
   ID_Type get_id_type() const;

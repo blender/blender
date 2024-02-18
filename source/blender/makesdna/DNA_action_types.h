@@ -15,7 +15,7 @@
 #include "DNA_ID.h"
 #include "DNA_armature_types.h"
 #include "DNA_listBase.h"
-#include "DNA_session_uuid_types.h"
+#include "DNA_session_uid_types.h"
 #include "DNA_userdef_types.h" /* ThemeWireColor */
 #include "DNA_vec_types.h"
 #include "DNA_view2d_types.h"
@@ -86,6 +86,8 @@ typedef enum eMotionPath_Flag {
   MOTIONPATH_FLAG_CUSTOM = (1 << 2),
   /* Draw lines or only points */
   MOTIONPATH_FLAG_LINES = (1 << 3),
+  /* Bake to scene camera. */
+  MOTIONPATH_FLAG_BAKE_CAMERA = (1 << 4),
 } eMotionPath_Flag;
 
 /* Visualization General --------------------------- */
@@ -163,6 +165,8 @@ typedef enum eMotionPaths_BakeFlag {
   /** motion paths exist for AnimVizSettings instance - set when calc for first time,
    * and unset when clearing */
   MOTIONPATH_BAKE_HAS_PATHS = (1 << 2),
+  /* Bake the path in camera space. */
+  MOTIONPATH_BAKE_CAMERA_SPACE = (1 << 3),
 } eMotionPath_BakeFlag;
 
 /* runtime */
@@ -197,7 +201,7 @@ typedef struct bPoseChannel_BBoneSegmentBoundary {
 } bPoseChannel_BBoneSegmentBoundary;
 
 typedef struct bPoseChannel_Runtime {
-  SessionUUID session_uuid;
+  SessionUID session_uid;
 
   /* Cached dual quaternion for deformation. */
   struct DualQuat deform_dual_quat;

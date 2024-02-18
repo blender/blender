@@ -33,7 +33,8 @@ void main()
 
   Sphere sphere;
   switch (light.type) {
-    case LIGHT_SPOT:
+    case LIGHT_SPOT_SPHERE:
+    case LIGHT_SPOT_DISK:
       /* Only for < ~170 degree Cone due to plane extraction precision. */
       if (light.spot_tan < 10.0) {
         Pyramid pyramid = shape_pyramid_non_oblique(
@@ -47,7 +48,8 @@ void main()
       }
     case LIGHT_RECT:
     case LIGHT_ELLIPSE:
-    case LIGHT_POINT:
+    case LIGHT_OMNI_SPHERE:
+    case LIGHT_OMNI_DISK:
       sphere.center = light._position;
       sphere.radius = light.influence_radius_max;
       break;

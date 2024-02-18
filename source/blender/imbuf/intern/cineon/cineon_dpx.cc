@@ -11,14 +11,12 @@
 #include <cstdio>
 #include <cstring>
 
-#include "IMB_filetype.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
-
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "MEM_guardedalloc.h"
 

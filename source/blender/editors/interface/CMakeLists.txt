@@ -19,7 +19,6 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/ghost
-  ../../../../extern/fmtlib/include
   ../../bmesh
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -70,6 +69,7 @@ set(SRC
   interface_template_bone_collection_tree.cc
   interface_template_light_linking.cc
   interface_template_list.cc
+  interface_template_node_inputs.cc
   interface_template_node_tree_interface.cc
   interface_template_search_menu.cc
   interface_template_search_operator.cc
@@ -102,6 +102,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_datafiles
+  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
 )

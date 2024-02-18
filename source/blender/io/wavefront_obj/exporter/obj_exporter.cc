@@ -10,7 +10,7 @@
 #include <exception>
 #include <memory>
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -138,7 +138,7 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
   return {std::move(r_exportable_meshes), std::move(r_exportable_nurbs)};
 }
 
-static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_mesh,
+static void write_mesh_objects(const Span<std::unique_ptr<OBJMesh>> exportable_as_mesh,
                                OBJWriter &obj_writer,
                                MTLWriter *mtl_writer,
                                const OBJExportParams &export_params)
@@ -147,7 +147,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
    * we have to have the output text buffer for each object,
    * and write them all into the file at the end. */
   size_t count = exportable_as_mesh.size();
-  std::vector<FormatHandler> buffers(count);
+  Array<FormatHandler> buffers(count);
 
   /* Serial: gather material indices, ensure normals & edges. */
   Vector<Vector<int>> mtlindices;
@@ -163,7 +163,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
   }
 
   /* Parallel over meshes: store normal coords & indices, uv coords and indices. */
-  blender::threading::parallel_for(IndexRange(count), 1, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(count), 1, [&](IndexRange range) {
     for (const int i : range) {
       OBJMesh &obj = *exportable_as_mesh[i];
       if (export_params.export_normals) {
@@ -185,11 +185,11 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
     index_offsets.append(offsets);
     offsets.vertex_offset += obj.tot_vertices();
     offsets.uv_vertex_offset += obj.tot_uv_vertices();
-    offsets.normal_offset += obj.tot_normal_indices();
+    offsets.normal_offset += obj.get_normal_coords().size();
   }
 
   /* Parallel over meshes: main result writing. */
-  blender::threading::parallel_for(IndexRange(count), 1, [&](IndexRange range) {
+  threading::parallel_for(IndexRange(count), 1, [&](IndexRange range) {
     for (const int i : range) {
       OBJMesh &obj = *exportable_as_mesh[i];
       auto &fh = buffers[i];
@@ -202,10 +202,10 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
           obj.calc_smooth_groups(export_params.smooth_groups_bitflags);
         }
         if (export_params.export_materials) {
-          obj.calc_poly_order();
+          obj.calc_face_order();
         }
         if (export_params.export_normals) {
-          obj_writer.write_poly_normals(fh, obj);
+          obj_writer.write_normals(fh, obj);
         }
         if (export_params.export_uv) {
           obj_writer.write_uv_coords(fh, obj);
@@ -219,7 +219,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
           }
           return mtl_writer->mtlmaterial_name((*obj_mtlindices)[s]);
         };
-        obj_writer.write_poly_elements(fh, index_offsets[i], obj, matname_fn);
+        obj_writer.write_face_elements(fh, index_offsets[i], obj, matname_fn);
       }
       obj_writer.write_edges_indices(fh, index_offsets[i], obj);
 
@@ -239,7 +239,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
 /**
  * Export NURBS Curves in parameter form, not as vertices and edges.
  */
-static void write_nurbs_curve_objects(const Vector<std::unique_ptr<OBJCurve>> &exportable_as_nurbs,
+static void write_nurbs_curve_objects(const Span<std::unique_ptr<OBJCurve>> exportable_as_nurbs,
                                       const OBJWriter &obj_writer)
 {
   FormatHandler fh;
@@ -280,13 +280,12 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
   auto [exportable_as_mesh, exportable_as_nurbs] = filter_supported_objects(depsgraph,
                                                                             export_params);
 
-  write_mesh_objects(
-      std::move(exportable_as_mesh), *frame_writer, mtl_writer.get(), export_params);
+  write_mesh_objects(exportable_as_mesh, *frame_writer, mtl_writer.get(), export_params);
   if (mtl_writer) {
     mtl_writer->write_header(export_params.blen_filepath);
-    char dest_dir[PATH_MAX];
+    char dest_dir[FILE_MAX];
     if (export_params.file_base_for_tests[0] == '\0') {
-      BLI_path_split_dir_part(export_params.filepath, dest_dir, PATH_MAX);
+      BLI_path_split_dir_part(export_params.filepath, dest_dir, sizeof(dest_dir));
     }
     else {
       STRNCPY(dest_dir, export_params.file_base_for_tests);
@@ -298,7 +297,7 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
                                 dest_dir,
                                 export_params.export_pbr_extensions);
   }
-  write_nurbs_curve_objects(std::move(exportable_as_nurbs), *frame_writer);
+  write_nurbs_curve_objects(exportable_as_nurbs, *frame_writer);
 }
 
 bool append_frame_to_filename(const char *filepath, const int frame, char *r_filepath_with_frames)

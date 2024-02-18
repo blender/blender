@@ -39,11 +39,11 @@ void VKStorageBuffer::ensure_allocated()
 void VKStorageBuffer::allocate()
 {
   const bool is_host_visible = false;
-  buffer_.create(size_in_bytes_,
-                 usage_,
-                 VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                 is_host_visible);
+  const VkBufferUsageFlags buffer_usage_flags = VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
+                                                VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
+                                                VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+                                                VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+  buffer_.create(size_in_bytes_, usage_, buffer_usage_flags, is_host_visible);
   debug::object_label(buffer_.vk_handle(), name_);
 }
 

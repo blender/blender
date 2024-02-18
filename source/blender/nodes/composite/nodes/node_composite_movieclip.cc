@@ -9,7 +9,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 

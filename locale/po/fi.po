@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3138,10 +3138,6 @@ msgid "Depth Object"
 msgstr "Syvyysobjekti"
 
 
-msgid "Track"
-msgstr "Raide"
-
-
 msgid "3D Position"
 msgstr "3D-sijainti"
 
@@ -4665,10 +4661,6 @@ msgid "Auto-Masking Strokes"
 msgstr "Automaattinen maskauspiirto"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktiivinen öljykynän taso"
-
-
 msgid "Key"
 msgstr "Avain"
 
@@ -4731,6 +4723,10 @@ msgstr "Muunnin"
 
 msgid "Mirror Object"
 msgstr "Peilaa objekti"
+
+
+msgid "Track"
+msgstr "Raide"
 
 
 msgid "Show/Hide"
@@ -5191,14 +5187,6 @@ msgstr "V-akseli"
 
 msgid "UV Center"
 msgstr "UV-keskus"
-
-
-msgid "UV Layer"
-msgstr "UV-taso"
-
-
-msgid "UV Layer name"
-msgstr "UV-tason nimi"
 
 
 msgid "Use Channel"
@@ -5909,6 +5897,10 @@ msgid "Pixelate"
 msgstr "Pikselöi"
 
 
+msgid "Pixel Size"
+msgstr "Pikselin koko"
+
+
 msgid "Alpha Convert"
 msgstr "Alfamuunnos"
 
@@ -6103,10 +6095,6 @@ msgstr "Käytä oikeaa kahvaa"
 
 msgid "Curve of Point"
 msgstr "Pisteen käyrä"
-
-
-msgid "Bezier Segment"
-msgstr "Bezier-segmentti"
 
 
 msgid "Curve Circle"
@@ -7064,6 +7052,10 @@ msgid "Active Layer"
 msgstr "Aktiivinen taso"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktiivinen öljykynän taso"
+
+
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Lisää uusi taso"
@@ -7423,6 +7415,10 @@ msgid "Save Sequence"
 msgstr "Tallenna sekvenssi"
 
 
+msgid "UV Layer"
+msgstr "UV-taso"
+
+
 msgid "Column"
 msgstr "Sarake"
 
@@ -7433,10 +7429,6 @@ msgstr "Kangas"
 
 msgid "XYZ"
 msgstr "XYZ"
-
-
-msgid "Pixel Size"
-msgstr "Pikselin koko"
 
 
 msgid "3D"
@@ -8198,16 +8190,6 @@ msgstr "Tallenna nimellä..."
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horisontaalisesti"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikaalisesti"
-
-
-msgctxt "Operator"
 msgid "Vertex"
 msgstr "Kärki"
 
@@ -8414,6 +8396,10 @@ msgid "Axis X"
 msgstr "X-akselit"
 
 
+msgid "Preferences:"
+msgstr "Mieltymykset:"
+
+
 msgid "Use Light"
 msgstr "Käytä valoa"
 
@@ -8428,6 +8414,10 @@ msgstr "Pöyrä"
 
 msgid "Fly/Walk"
 msgstr "Lennä/kävele"
+
+
+msgid "Error (see console)"
+msgstr "Virhe (katso konsoli)"
 
 
 msgid "Description:"
@@ -8452,22 +8442,6 @@ msgstr "Varoitus:"
 
 msgid "Internet:"
 msgstr "Internet:"
-
-
-msgid "description"
-msgstr "kuvaus"
-
-
-msgid "location"
-msgstr "sijainti"
-
-
-msgid "Preferences:"
-msgstr "Mieltymykset:"
-
-
-msgid "Error (see console)"
-msgstr "Virhe (katso konsoli)"
 
 
 msgctxt "Operator"
@@ -8513,11 +8487,6 @@ msgstr "Ruudukko"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Apina"
-
-
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgctxt "Operator"
@@ -8787,10 +8756,6 @@ msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
 
-msgid "✕ (Ax + B)"
-msgstr "✕ (Ax + B)"
-
-
 msgid "Add Control Point"
 msgstr "Lisää ohjauspiste"
 
@@ -8805,16 +8770,6 @@ msgstr "Erotetut luut"
 
 msgid "No pose to copy"
 msgstr "Ei kopioitavaa asentoa"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier-käyrä"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier-ympyrä"
 
 
 msgctxt "Curve"
@@ -9000,26 +8955,6 @@ msgid "Internal error!"
 msgstr "Sisäinen virhe!"
 
 
-msgid "Shortcut: %s"
-msgstr "Pikakomento: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Arvo: %s"
-
-
-msgid "Library: %s"
-msgstr "Kirjasto: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "Napsauta"
@@ -9100,6 +9035,10 @@ msgstr "Poista pisteitä"
 
 msgid "Stop this job"
 msgstr "Lopeta tämä työ"
+
+
+msgid "File Not Found"
+msgstr "Tiedostoa ei löydy"
 
 
 msgid "Today"
@@ -11067,16 +11006,12 @@ msgid "Don't Save"
 msgstr "Älä tallenna"
 
 
-msgid "unable to open the file"
-msgstr "kykenemätön avaamaan tiedostoa"
-
-
-msgid "File Not Found"
-msgstr "Tiedostoa ei löydy"
-
-
 msgid "Enable scripts"
 msgstr "Salli koodit"
+
+
+msgid "unable to open the file"
+msgstr "kykenemätön avaamaan tiedostoa"
 
 
 msgid "Startup file saved"

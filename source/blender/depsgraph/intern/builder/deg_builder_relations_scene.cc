@@ -56,7 +56,7 @@ void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
   build_parameters(&scene->id);
   OperationKey parameters_eval_key(
       &scene->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
-  OperationKey scene_eval_key(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
+  ComponentKey scene_eval_key(&scene->id, NodeType::SCENE);
   add_relation(parameters_eval_key, scene_eval_key, "Parameters -> Scene Eval");
 
   LISTBASE_FOREACH (TimeMarker *, marker, &scene->markers) {

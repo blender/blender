@@ -199,21 +199,23 @@ static void extract_attribute(const MeshRenderData &mr,
 
     bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
       using T = decltype(dummy);
-      switch (request.domain) {
-        case bke::AttrDomain::Point:
-          extract_data_bmesh_vert<T>(*mr.bm, cd_offset, vbo);
-          break;
-        case bke::AttrDomain::Edge:
-          extract_data_bmesh_edge<T>(*mr.bm, cd_offset, vbo);
-          break;
-        case bke::AttrDomain::Face:
-          extract_data_bmesh_face<T>(*mr.bm, cd_offset, vbo);
-          break;
-        case bke::AttrDomain::Corner:
-          extract_data_bmesh_loop<T>(*mr.bm, cd_offset, vbo);
-          break;
-        default:
-          BLI_assert_unreachable();
+      if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
+        switch (request.domain) {
+          case bke::AttrDomain::Point:
+            extract_data_bmesh_vert<T>(*mr.bm, cd_offset, vbo);
+            break;
+          case bke::AttrDomain::Edge:
+            extract_data_bmesh_edge<T>(*mr.bm, cd_offset, vbo);
+            break;
+          case bke::AttrDomain::Face:
+            extract_data_bmesh_face<T>(*mr.bm, cd_offset, vbo);
+            break;
+          case bke::AttrDomain::Corner:
+            extract_data_bmesh_loop<T>(*mr.bm, cd_offset, vbo);
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
       }
     });
   }
@@ -225,21 +227,23 @@ static void extract_attribute(const MeshRenderData &mr,
 
     bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
       using T = decltype(dummy);
-      switch (request.domain) {
-        case bke::AttrDomain::Point:
-          extract_data_mesh_mapped_corner(attribute.typed<T>(), mr.corner_verts, vbo);
-          break;
-        case bke::AttrDomain::Edge:
-          extract_data_mesh_mapped_corner(attribute.typed<T>(), mr.corner_edges, vbo);
-          break;
-        case bke::AttrDomain::Face:
-          extract_data_mesh_face(mr.faces, attribute.typed<T>(), vbo);
-          break;
-        case bke::AttrDomain::Corner:
-          vertbuf_data_extract_direct(attribute.typed<T>(), vbo);
-          break;
-        default:
-          BLI_assert_unreachable();
+      if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
+        switch (request.domain) {
+          case bke::AttrDomain::Point:
+            extract_data_mesh_mapped_corner(attribute.typed<T>(), mr.corner_verts, vbo);
+            break;
+          case bke::AttrDomain::Edge:
+            extract_data_mesh_mapped_corner(attribute.typed<T>(), mr.corner_edges, vbo);
+            break;
+          case bke::AttrDomain::Face:
+            extract_data_mesh_face(mr.faces, attribute.typed<T>(), vbo);
+            break;
+          case bke::AttrDomain::Corner:
+            vertbuf_data_extract_direct(attribute.typed<T>(), vbo);
+            break;
+          default:
+            BLI_assert_unreachable();
+        }
       }
     });
   }
@@ -282,12 +286,14 @@ static void extract_attr_init_subdiv(const DRWSubdivCache &subdiv_cache,
   bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
     using T = decltype(dummy);
     using Converter = AttributeConverter<T>;
-    draw_subdiv_interp_custom_data(subdiv_cache,
-                                   src_data,
-                                   dst_buffer,
-                                   Converter::gpu_component_type,
-                                   Converter::gpu_component_len,
-                                   0);
+    if constexpr (!std::is_void_v<typename Converter::VBOType>) {
+      draw_subdiv_interp_custom_data(subdiv_cache,
+                                     src_data,
+                                     dst_buffer,
+                                     Converter::gpu_component_type,
+                                     Converter::gpu_component_len,
+                                     0);
+    }
   });
 
   GPU_vertbuf_discard(src_data);

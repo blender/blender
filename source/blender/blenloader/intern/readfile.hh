@@ -20,7 +20,7 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h" /* for eReportType */
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 struct BlendFileData;
 struct BlendFileReadParams;
@@ -65,7 +65,13 @@ struct FileData {
    * to detect unchanged data from memfile. */
   int undo_direction; /* eUndoStepDir */
 
-  /** Now only in use for library appending. */
+  /** Used for relative paths handling.
+   *
+   * Typically the actual filepath of the read blend-file, except when recovering
+   * save-on-exit/autosave files. In the latter case, it will be the path of the file that
+   * generated the auto-saved one being recovered.
+   *
+   * NOTE: Currently expected to be the same path as #BlendFileData.filepath. */
   char relabase[FILE_MAX];
 
   /** General reading variables. */
@@ -118,11 +124,11 @@ struct FileData {
   /** Used for undo. */
   ListBase *old_mainlist;
   /**
-   * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
+   * IDMap using UID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
-  IDNameLib_Map *old_idmap_uuid;
+  IDNameLib_Map *old_idmap_uid;
   /**
-   * IDMap using uuids as keys of the IDs read (or moved) in the new main(s).
+   * IDMap using uids as keys of the IDs read (or moved) in the new main(s).
    *
    * Used during undo to ensure that the ID pointers from the 'no undo' IDs remain valid (these
    * IDs are re-used from old main even if their content is not the same as in the memfile undo
@@ -130,7 +136,7 @@ struct FileData {
    *
    * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
    * read memfile. */
-  IDNameLib_Map *new_idmap_uuid;
+  IDNameLib_Map *new_idmap_uid;
 
   BlendFileReadReport *reports;
 };

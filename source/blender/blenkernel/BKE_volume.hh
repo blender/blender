@@ -9,6 +9,7 @@
  * \brief Volume data-block.
  */
 
+#include <memory>
 #include <optional>
 
 #include "BLI_bounds_types.hh"
@@ -23,6 +24,10 @@ struct ReportList;
 struct Scene;
 struct Volume;
 struct VolumeGridVector;
+
+namespace blender::bke::bake {
+struct BakeMaterialsList;
+}
 
 /* Module */
 
@@ -133,6 +138,8 @@ struct VolumeRuntime {
   char velocity_x_grid[64] = "";
   char velocity_y_grid[64] = "";
   char velocity_z_grid[64] = "";
+
+  std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 };
 
 }  // namespace blender::bke

@@ -17,13 +17,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_main.hh"
 #include "BKE_preview_image.hh"
-#include "BKE_report.h"
-
-#include "BLT_translation.h"
+#include "BKE_report.hh"
 
 #include "ED_asset.hh"
 #include "ED_render.hh"
@@ -156,6 +153,7 @@ static bool lib_id_generate_preview_poll(bContext *C)
 
 static int lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::ed;
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
 
@@ -169,7 +167,7 @@ static int lib_id_generate_preview_exec(bContext *C, wmOperator * /*op*/)
   UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
 
   WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
-  ED_assetlist_storage_tag_main_data_dirty();
+  asset::list::storage_tag_main_data_dirty();
 
   return OPERATOR_FINISHED;
 }
@@ -201,6 +199,7 @@ static bool lib_id_generate_preview_from_object_poll(bContext *C)
 
 static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::ed;
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
 
@@ -213,7 +212,7 @@ static int lib_id_generate_preview_from_object_exec(bContext *C, wmOperator * /*
   UI_icon_render_id_ex(C, nullptr, &object_to_render->id, ICON_SIZE_PREVIEW, true, preview_image);
 
   WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
-  ED_assetlist_storage_tag_main_data_dirty();
+  asset::list::storage_tag_main_data_dirty();
 
   return OPERATOR_FINISHED;
 }

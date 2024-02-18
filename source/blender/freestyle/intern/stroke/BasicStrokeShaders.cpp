@@ -23,12 +23,12 @@
 #include "../view_map/Functions0D.h"
 #include "../view_map/Functions1D.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_sys_types.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 namespace Freestyle::StrokeShaders {
 

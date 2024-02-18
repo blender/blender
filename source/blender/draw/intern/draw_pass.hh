@@ -46,7 +46,7 @@
 #include "BKE_image.h"
 
 #include "GPU_debug.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "DRW_gpu_wrapper.hh"
 
@@ -496,7 +496,15 @@ class PassSortable : public PassMain {
     int64_t index = sub_passes_.append_and_get_index(
         PassBase(name, draw_commands_buf_, sub_passes_, shader_));
     headers_.append({Type::SubPass, uint(index)});
-    sorting_values_.append(sorting_value);
+    /* Some sub-pass can also create sub-sub-passes (curve, point-clouds...) which will de-sync
+     * the `sub_passes_.size()` and `sorting_values_.size()`, making the  `Header::index` not
+     * reusable for the sorting value in the `sort()` function. To fix this, we flood the
+     * `sorting_values_` to ensure the same index is valid for `sorting_values_` and
+     * `sub_passes_`. */
+    int64_t sorting_index;
+    do {
+      sorting_index = sorting_values_.append_and_get_index(sorting_value);
+    } while (sorting_index != index);
     return sub_passes_[index];
   }
 
@@ -923,20 +931,17 @@ template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMat
   for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
     if (tex->ima) {
       /* Image */
+      const bool use_tile_mapping = tex->tiled_mapping_name[0];
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-      if (tex->tiled_mapping_name[0]) {
-        GPUTexture *tiles = BKE_image_get_gpu_tiles(tex->ima, iuser, nullptr);
-        manager.acquire_texture(tiles);
-        bind_texture(tex->sampler_name, tiles, tex->sampler_state);
+      ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(
+          tex->ima, iuser, use_tile_mapping);
 
-        GPUTexture *tile_map = BKE_image_get_gpu_tilemap(tex->ima, iuser, nullptr);
-        manager.acquire_texture(tile_map);
-        bind_texture(tex->tiled_mapping_name, tile_map, tex->sampler_state);
-      }
-      else {
-        GPUTexture *texture = BKE_image_get_gpu_texture(tex->ima, iuser, nullptr);
-        manager.acquire_texture(texture);
-        bind_texture(tex->sampler_name, texture, tex->sampler_state);
+      manager.acquire_texture(gputex.texture);
+      bind_texture(tex->sampler_name, gputex.texture, tex->sampler_state);
+
+      if (gputex.tile_mapping) {
+        manager.acquire_texture(gputex.tile_mapping);
+        bind_texture(tex->tiled_mapping_name, gputex.tile_mapping, tex->sampler_state);
       }
     }
     else if (tex->colorband) {

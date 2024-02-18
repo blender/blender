@@ -4,7 +4,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "DNA_grease_pencil_types.h"
 

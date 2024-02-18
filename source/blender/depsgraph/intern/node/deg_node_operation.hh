@@ -163,6 +163,7 @@ enum class OperationCode {
 
   /* Shading. ------------------------------------------------------------- */
   SHADING,
+  SHADING_DONE,
   MATERIAL_UPDATE,
   LIGHT_UPDATE,
   WORLD_UPDATE,
@@ -197,8 +198,13 @@ enum class OperationCode {
 
   SEQUENCES_EVAL,
 
-  /* Duplication/instancing system. --------------------------------------- */
-  DUPLI,
+  /* instancing system. --------------------------------------------------- */
+
+  /* Operation on an instancer object. Relations from instanced objects go here. */
+  INSTANCER,
+
+  /* Operation on an object which is being instanced. */
+  INSTANCE,
 };
 const char *operationCodeAsString(OperationCode opcode);
 

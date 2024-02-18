@@ -25,7 +25,7 @@
 #include "util/log.h"
 #include "util/task.h"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -133,7 +133,12 @@ void BlenderSync::sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob
   }
 
   geom->set_use_motion_blur(use_motion_blur);
-  geom->set_motion_steps(motion_steps);
+
+  if (!geom->has_motion_blur()) {
+    /* Only set motion steps if geometry doesn't already have
+     * motion blur from a velocity attribute. */
+    geom->set_motion_steps(motion_steps);
+  }
 
   motion.resize(motion_steps, transform_empty());
 

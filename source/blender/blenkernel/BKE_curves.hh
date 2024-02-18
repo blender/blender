@@ -33,6 +33,9 @@ class AttributeAccessor;
 class MutableAttributeAccessor;
 enum class AttrDomain : int8_t;
 }  // namespace blender::bke
+namespace blender::bke::bake {
+struct BakeMaterialsList;
+}
 
 namespace blender::bke {
 
@@ -111,6 +114,9 @@ class CurvesGeometryRuntime {
 
   /** Normal direction vectors for each evaluated point. */
   mutable SharedCache<Vector<float3>> evaluated_normal_cache;
+
+  /** Stores weak references to material data blocks. */
+  std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 };
 
 /**
@@ -166,7 +172,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   /**
    * Mutable access to curve types. Call #tag_topology_changed and #update_curve_types after
    * changing any type. Consider using the other methods to change types below.
-   * */
+   */
   MutableSpan<int8_t> curve_types_for_write();
   /** Set all curve types to the value and call #update_curve_types. */
   void fill_curve_types(CurveType type);

@@ -737,7 +737,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "intel-oneapi-tbb",
                                   },
             ),
-    Package(name="OpenColorIO Library", is_mandatory=False, version="2.3.0", version_short="2.3", version_min="2.0", version_mex="3.0",
+    Package(name="OpenColorIO Library", is_mandatory=False, version="2.3.2", version_short="2.3", version_min="2.0", version_mex="3.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: "libopencolorio-dev",
                                   DISTRO_ID_FEDORA: "OpenColorIO-devel",
@@ -761,7 +761,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "openexr",
                                   },
             ),
-    Package(name="OpenImageIO Library", is_mandatory=True, version="2.4.11.0", version_short="2.4", version_min="2.2.0", version_mex="2.5.0",
+    Package(name="OpenImageIO Library", is_mandatory=True, version="2.5.6.0", version_short="2.5", version_min="2.5.0", version_mex="2.6.0",
             sub_packages=(
                 Package(name="OpenImageIO Tools", is_mandatory=False,
                         distro_package_names={DISTRO_ID_DEBIAN: "openimageio-tools",
@@ -777,7 +777,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "openimageio",
                                   },
             ),
-    Package(name="LLVM Library", is_mandatory=False, version="12.0.0", version_short="12.0", version_min="11.0", version_mex="16.0",
+    Package(name="LLVM Library", is_mandatory=False, version="17.0.6", version_short="17.0", version_min="15.0", version_mex="18.0",
             sub_packages=(
                 Package(name="Clang Compiler", is_mandatory=False,
                         distro_package_names={DISTRO_ID_DEBIAN: "clang",
@@ -800,7 +800,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "llvm",
                                   },
             ),
-    Package(name="OpenShadingLanguage Library", is_mandatory=False, version="1.13.0.2", version_short="1.13", version_min="1.11", version_mex="2.0",
+    Package(name="OpenShadingLanguage Library", is_mandatory=False, version="1.13.2.0", version_short="1.13", version_min="1.11", version_mex="2.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,  # No package currently.
                                   DISTRO_ID_FEDORA: "openshadinglanguage-devel",
@@ -860,7 +860,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "materialx-git",
                                   },
             ),
-    Package(name="USD Library", is_mandatory=False, version="23.05", version_short="23.05", version_min="20.05", version_mex="24.00",
+    Package(name="USD Library", is_mandatory=False, version="23.11", version_short="23.11", version_min="20.05", version_mex="24.00",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "usd-devel",
@@ -883,7 +883,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "embree",
                                   },
             ),
-    Package(name="OpenImageDenoiser Library", is_mandatory=False, version="2.1.0", version_short="2.1", version_min="2.0.0", version_mex="3.0",
+    Package(name="OpenImageDenoiser Library", is_mandatory=False, version="2.2.0", version_short="2.2", version_min="2.0.0", version_mex="3.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "oidn-devel",
@@ -891,7 +891,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "openimagedenoise",
                                   },
             ),
-    Package(name="Level Zero Library", is_mandatory=False, version="1.8.8", version_short="1.8", version_min="1.7", version_mex="2.0",
+    Package(name="Level Zero Library", is_mandatory=False, version="1.15.8", version_short="1.15", version_min="1.7", version_mex="2.0",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "oneapi-level-zero-devel",
@@ -1714,7 +1714,7 @@ def argparse_create():
         "NOTE: To build with system package libraries instead of the precompiled ones when both are available,\n"
         "the `WITH_LIBS_PRECOMPILED` option must be disabled in CMake.\n"
         "\n"
-        "See https://wiki.blender.org/wiki/Building_Blender for more details.\n"
+        "See https://developer.blender.org/docs/handbook/building_blender/ for more details.\n"
         "\n"
     )
 

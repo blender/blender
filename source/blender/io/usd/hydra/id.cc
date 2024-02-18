@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "id.h"
+#include "id.hh"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 namespace blender::io::hydra {
 

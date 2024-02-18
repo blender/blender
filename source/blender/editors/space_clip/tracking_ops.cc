@@ -11,7 +11,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -20,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"
@@ -34,10 +33,10 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "clip_intern.h"
 #include "tracking_ops_intern.h"
@@ -146,7 +145,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 
 static int add_marker_at_click_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  ED_workspace_status_text(C, TIP_("Use LMB click to define location where place the marker"));
+  ED_workspace_status_text(C, IFACE_("Use LMB click to define location where place the marker"));
 
   /* Add modal handler for ESC. */
   WM_event_add_modal_handler(C, op);

@@ -7,8 +7,7 @@
 #include "COM_ConstantOperation.h"
 
 #include "BLI_rand.h"
-
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 namespace blender::compositor {
 
@@ -74,7 +73,7 @@ void ScreenLensDistortionOperation::init_execution()
   input_program_ = this->get_input_socket_reader(0);
   this->init_mutex();
 
-  uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
   rng_seed ^= uint(POINTER_AS_INT(input_program_));
   rng_ = BLI_rng_new(rng_seed);
 }

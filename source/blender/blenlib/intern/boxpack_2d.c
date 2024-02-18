@@ -18,7 +18,7 @@
 #include "BLI_sort.h" /* qsort_r */
 #define qsort_r BLI_qsort_r
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #ifdef __GNUC__
 #  pragma GCC diagnostic error "-Wpadded"

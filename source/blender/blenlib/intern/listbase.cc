@@ -19,7 +19,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {
@@ -70,7 +70,7 @@ void BLI_listbase_split_after(ListBase *original_listbase, ListBase *split_listb
 
   if (vlink == nullptr) {
     /* Move everything into `split_listbase`. */
-    SWAP(ListBase, *original_listbase, *split_listbase);
+    std::swap(*original_listbase, *split_listbase);
     return;
   }
 

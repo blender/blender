@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,112 +7,60 @@
  * \ingroup imbuf
  */
 
-#include <array>
 #include <type_traits>
 
 #include "BLI_math_color_blend.h"
-#include "BLI_math_interp.h"
+#include "BLI_math_interp.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_task.hh"
-#include "BLI_vector.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_interp.hh"
+
+using blender::float4;
+using blender::uchar4;
 
 namespace blender::imbuf::transform {
 
-struct TransformUserData {
-  /** \brief Source image buffer to read from. */
+struct TransformContext {
   const ImBuf *src;
-  /** \brief Destination image buffer to write to. */
   ImBuf *dst;
-  /** \brief UV coordinates at the origin (0,0) in source image space. */
-  double2 start_uv;
+  eIMBTransformMode mode;
 
-  /**
-   * \brief delta UV coordinates along the source image buffer, when moving a single pixel in the X
-   * axis of the dst image buffer.
-   */
-  double2 add_x;
+  /* UV coordinates at the destination origin (0,0) in source image space. */
+  float2 start_uv;
 
-  /**
-   * \brief delta UV coordinate along the source image buffer, when moving a single pixel in the Y
-   * axes of the dst image buffer.
-   */
-  double2 add_y;
+  /* Source UV step delta, when moving along one destination pixel in X axis. */
+  float2 add_x;
 
-  struct {
-    /**
-     * Contains per sub-sample a delta to be added to the uv of the source image buffer.
-     */
-    Vector<double2, 9> delta_uvs;
-  } subsampling;
+  /* Source UV step delta, when moving along one destination pixel in Y axis. */
+  float2 add_y;
 
-  struct {
-    IndexRange x_range;
-    IndexRange y_range;
-  } destination_region;
+  /* Source corners in destination pixel space, counter-clockwise. */
+  float2 src_corners[4];
 
-  /**
-   * \brief Cropping region in source image pixel space.
-   */
+  IndexRange dst_region_x_range;
+  IndexRange dst_region_y_range;
+
+  /* Cropping region in source image pixel space. */
   rctf src_crop;
 
-  /**
-   * \brief Initialize the start_uv, add_x and add_y fields based on the given transform matrix.
-   */
-  void init(const float4x4 &transform_matrix,
-            const int num_subsamples,
-            const bool do_crop_destination_region)
+  void init(const float4x4 &transform_matrix, const bool has_source_crop)
   {
-    init_start_uv(transform_matrix);
-    init_add_x(transform_matrix);
-    init_add_y(transform_matrix);
-    init_subsampling(num_subsamples);
-    init_destination_region(transform_matrix, do_crop_destination_region);
+    start_uv = transform_matrix.location().xy();
+    add_x = transform_matrix.x_axis().xy();
+    add_y = transform_matrix.y_axis().xy();
+    init_destination_region(transform_matrix, has_source_crop);
   }
 
  private:
-  void init_start_uv(const float4x4 &transform_matrix)
+  void init_destination_region(const float4x4 &transform_matrix, const bool has_source_crop)
   {
-    start_uv = double2(transform_matrix.location().xy());
-  }
-
-  void init_add_x(const float4x4 &transform_matrix)
-  {
-    add_x = double2(transform_matrix.x_axis());
-  }
-
-  void init_add_y(const float4x4 &transform_matrix)
-  {
-    add_y = double2(transform_matrix.y_axis());
-  }
-
-  void init_subsampling(const int num_subsamples)
-  {
-    double2 subsample_add_x = add_x / num_subsamples;
-    double2 subsample_add_y = add_y / num_subsamples;
-    double2 offset_x = -add_x * 0.5 + subsample_add_x * 0.5;
-    double2 offset_y = -add_y * 0.5 + subsample_add_y * 0.5;
-
-    for (int y : IndexRange(0, num_subsamples)) {
-      for (int x : IndexRange(0, num_subsamples)) {
-        double2 delta_uv = offset_x + offset_y;
-        delta_uv += x * subsample_add_x;
-        delta_uv += y * subsample_add_y;
-        subsampling.delta_uvs.append(delta_uv);
-      }
-    }
-  }
-
-  void init_destination_region(const float4x4 &transform_matrix,
-                               const bool do_crop_destination_region)
-  {
-    if (!do_crop_destination_region) {
-      destination_region.x_range = IndexRange(dst->x);
-      destination_region.y_range = IndexRange(dst->y);
+    if (!has_source_crop) {
+      dst_region_x_range = IndexRange(dst->x);
+      dst_region_y_range = IndexRange(dst->y);
       return;
     }
 
@@ -120,14 +69,15 @@ struct TransformUserData {
     rcti rect;
     BLI_rcti_init_minmax(&rect);
     float4x4 inverse = math::invert(transform_matrix);
-    for (const int2 &src_coords : {
-             int2(src_crop.xmin, src_crop.ymin),
-             int2(src_crop.xmax, src_crop.ymin),
-             int2(src_crop.xmin, src_crop.ymax),
-             int2(src_crop.xmax, src_crop.ymax),
-         })
-    {
-      float3 dst_co = math::transform_point(inverse, float3(src_coords.x, src_coords.y, 0.0f));
+    const int2 src_coords[4] = {int2(src_crop.xmin, src_crop.ymin),
+                                int2(src_crop.xmax, src_crop.ymin),
+                                int2(src_crop.xmax, src_crop.ymax),
+                                int2(src_crop.xmin, src_crop.ymax)};
+    for (int i = 0; i < 4; i++) {
+      int2 src_co = src_coords[i];
+      float3 dst_co = math::transform_point(inverse, float3(src_co.x, src_co.y, 0.0f));
+      src_corners[i] = float2(dst_co.x, dst_co.y);
+
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) + margin);
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) - margin);
     }
@@ -136,99 +86,28 @@ struct TransformUserData {
     rcti dest_rect;
     BLI_rcti_init(&dest_rect, 0, dst->x, 0, dst->y);
     BLI_rcti_isect(&rect, &dest_rect, &rect);
-    destination_region.x_range = IndexRange(rect.xmin, BLI_rcti_size_x(&rect));
-    destination_region.y_range = IndexRange(rect.ymin, BLI_rcti_size_y(&rect));
+    dst_region_x_range = IndexRange(rect.xmin, BLI_rcti_size_x(&rect));
+    dst_region_y_range = IndexRange(rect.ymin, BLI_rcti_size_y(&rect));
   }
 };
 
-/**
- * \brief Crop uv-coordinates that are outside the user data src_crop rect.
- */
-struct CropSource {
-  /**
-   * \brief Should the source pixel at the given uv coordinate be discarded.
-   *
-   * Uses user_data.src_crop to determine if the uv coordinate should be skipped.
-   */
-  static bool should_discard(const TransformUserData &user_data, const double2 &uv)
-  {
-    return uv.x < user_data.src_crop.xmin || uv.x >= user_data.src_crop.xmax ||
-           uv.y < user_data.src_crop.ymin || uv.y >= user_data.src_crop.ymax;
-  }
-};
+/* Crop uv-coordinates that are outside the user data src_crop rect. */
+static bool should_discard(const TransformContext &ctx, const float2 &uv)
+{
+  return uv.x < ctx.src_crop.xmin || uv.x >= ctx.src_crop.xmax || uv.y < ctx.src_crop.ymin ||
+         uv.y >= ctx.src_crop.ymax;
+}
 
-/**
- * \brief Discard that does not discard anything.
- */
-struct NoDiscard {
-  /**
-   * \brief Should the source pixel at the given uv coordinate be discarded.
-   *
-   * Will never discard any pixels.
-   */
-  static bool should_discard(const TransformUserData & /*user_data*/, const double2 & /*uv*/)
-  {
-    return false;
-  }
-};
+template<typename T> static T *init_pixel_pointer(const ImBuf *image, int x, int y);
+template<> uchar *init_pixel_pointer(const ImBuf *image, int x, int y)
+{
+  return image->byte_buffer.data + (size_t(y) * image->x + x) * image->channels;
+}
+template<> float *init_pixel_pointer(const ImBuf *image, int x, int y)
+{
+  return image->float_buffer.data + (size_t(y) * image->x + x) * image->channels;
+}
 
-/**
- * \brief Pointer to a pixel to write to in serial.
- */
-template<
-    /**
-     * \brief Kind of buffer.
-     * Possible options: float, uchar.
-     */
-    typename StorageType = float,
-
-    /**
-     * \brief Number of channels of a single pixel.
-     */
-    int NumChannels = 4>
-class PixelPointer {
- public:
-  static const int ChannelLen = NumChannels;
-
- private:
-  StorageType *pointer;
-
- public:
-  void init_pixel_pointer(const ImBuf *image_buffer, int2 start_coordinate)
-  {
-    const size_t offset = (start_coordinate.y * size_t(image_buffer->x) + start_coordinate.x) *
-                          NumChannels;
-
-    if constexpr (std::is_same_v<StorageType, float>) {
-      pointer = image_buffer->float_buffer.data + offset;
-    }
-    else if constexpr (std::is_same_v<StorageType, uchar>) {
-      pointer = const_cast<uchar *>(
-          static_cast<const uchar *>(static_cast<const void *>(image_buffer->byte_buffer.data)) +
-          offset);
-    }
-    else {
-      pointer = nullptr;
-    }
-  }
-
-  /**
-   * \brief Get pointer to the current pixel to write to.
-   */
-  StorageType *get_pointer()
-  {
-    return pointer;
-  }
-
-  void increase_pixel_pointer()
-  {
-    pointer += NumChannels;
-  }
-};
-
-/**
- * \brief Repeats UV coordinate.
- */
 static float wrap_uv(float value, int size)
 {
   int x = int(floorf(value));
@@ -241,445 +120,389 @@ static float wrap_uv(float value, int size)
   return x;
 }
 
-/* TODO: should we use math_vectors for this. */
-template<typename StorageType, int NumChannels>
-class Pixel : public std::array<StorageType, NumChannels> {
- public:
-  void clear()
+/* Read a pixel from an image buffer, with filtering/wrapping parameters. */
+template<eIMBInterpolationFilterMode Filter, typename T, int NumChannels, bool WrapUV>
+static void sample_image(const ImBuf *source, float u, float v, T *r_sample)
+{
+  if constexpr (WrapUV) {
+    u = wrap_uv(u, source->x);
+    v = wrap_uv(v, source->y);
+  }
+  /* Bilinear/cubic interpolation functions use `floor(uv)` and `floor(uv)+1`
+   * texels. For proper mapping between pixel and texel spaces, need to
+   * subtract 0.5. */
+  if constexpr (Filter != IMB_FILTER_NEAREST) {
+    u -= 0.5f;
+    v -= 0.5f;
+  }
+  if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, float> && NumChannels == 4) {
+    interpolate_bilinear_fl(source, r_sample, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<T, uchar> && NumChannels == 4)
   {
-    for (int channel_index : IndexRange(NumChannels)) {
-      (*this)[channel_index] = 0;
+    interpolate_nearest_byte(source, r_sample, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, uchar> && NumChannels == 4)
+  {
+    interpolate_bilinear_byte(source, r_sample, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<T, float>) {
+    if constexpr (WrapUV) {
+      math::interpolate_bilinear_wrap_fl(source->float_buffer.data,
+                                         r_sample,
+                                         source->x,
+                                         source->y,
+                                         NumChannels,
+                                         u,
+                                         v,
+                                         true,
+                                         true);
+    }
+    else {
+      math::interpolate_bilinear_fl(
+          source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
     }
   }
-
-  void add_subsample(const Pixel<StorageType, NumChannels> other, int sample_number)
-  {
-    BLI_STATIC_ASSERT((std::is_same_v<StorageType, uchar>) || (std::is_same_v<StorageType, float>),
-                      "Only uchar and float channels supported.");
-
-    float factor = 1.0 / (sample_number + 1);
-    if constexpr (std::is_same_v<StorageType, uchar>) {
-      BLI_STATIC_ASSERT(NumChannels == 4, "Pixels using uchar requires to have 4 channels.");
-      blend_color_interpolate_byte(this->data(), this->data(), other.data(), factor);
-    }
-    else if constexpr (std::is_same_v<StorageType, float> && NumChannels == 4) {
-      blend_color_interpolate_float(this->data(), this->data(), other.data(), factor);
-    }
-    else if constexpr (std::is_same_v<StorageType, float>) {
-      for (int channel_index : IndexRange(NumChannels)) {
-        (*this)[channel_index] = (*this)[channel_index] * (1.0 - factor) +
-                                 other[channel_index] * factor;
-      }
-    }
+  else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<T, float>) {
+    math::interpolate_nearest_fl(
+        source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
   }
-};
+  else if constexpr (Filter == IMB_FILTER_CUBIC_BSPLINE && std::is_same_v<T, float>) {
+    math::interpolate_cubic_bspline_fl(
+        source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_CUBIC_BSPLINE && std::is_same_v<T, uchar> &&
+                     NumChannels == 4)
+  {
+    interpolate_cubic_bspline_byte(source, r_sample, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_CUBIC_MITCHELL && std::is_same_v<T, float>) {
+    math::interpolate_cubic_mitchell_fl(
+        source->float_buffer.data, r_sample, source->x, source->y, NumChannels, u, v);
+  }
+  else if constexpr (Filter == IMB_FILTER_CUBIC_MITCHELL && std::is_same_v<T, uchar> &&
+                     NumChannels == 4)
+  {
+    interpolate_cubic_mitchell_byte(source, r_sample, u, v);
+  }
+  else {
+    /* Unsupported sampler. */
+    BLI_assert_unreachable();
+  }
+}
 
-/**
- * \brief Read a sample from an image buffer.
- *
- * A sampler can read from an image buffer.
- */
-template<
-    /** \brief Interpolation mode to use when sampling. */
-    eIMBInterpolationFilterMode Filter,
+static void add_subsample(const float src[4], float dst[4])
+{
+  add_v4_v4(dst, src);
+}
 
-    /** \brief storage type of a single pixel channel (uchar or float). */
-    typename StorageType,
-    /**
-     * \brief number of channels if the image to read.
+static void add_subsample(const uchar src[4], float dst[4])
+{
+  float premul[4];
+  straight_uchar_to_premul_float(premul, src);
+  add_v4_v4(dst, premul);
+}
+
+static void store_premul_float_sample(const float sample[4], float dst[4])
+{
+  copy_v4_v4(dst, sample);
+}
+
+static void store_premul_float_sample(const float sample[4], uchar dst[4])
+{
+  premul_float_to_straight_uchar(dst, sample);
+}
+
+template<int SrcChannels> static void store_sample(const uchar *sample, uchar *dst)
+{
+  BLI_STATIC_ASSERT(SrcChannels == 4, "Unsigned chars always have 4 channels.");
+  copy_v4_v4_uchar(dst, sample);
+}
+
+template<int SrcChannels> static void store_sample(const float *sample, float *dst)
+{
+  if constexpr (SrcChannels == 4) {
+    copy_v4_v4(dst, sample);
+  }
+  else if constexpr (SrcChannels == 3) {
+    copy_v4_fl4(dst, sample[0], sample[1], sample[2], 1.0f);
+  }
+  else if constexpr (SrcChannels == 2) {
+    copy_v4_fl4(dst, sample[0], sample[1], 0.0f, 1.0f);
+  }
+  else if constexpr (SrcChannels == 1) {
+    /* Note: single channel sample is stored as grayscale. */
+    copy_v4_fl4(dst, sample[0], sample[0], sample[0], 1.0f);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
+/* Process a block of destination image scanlines. */
+template<eIMBInterpolationFilterMode Filter,
+         typename T,
+         int SrcChannels,
+         bool CropSource,
+         bool WrapUV>
+static void process_scanlines(const TransformContext &ctx, IndexRange y_range)
+{
+  if constexpr (Filter == IMB_FILTER_BOX) {
+
+    /* Multiple samples per pixel: accumulate them pre-multiplied,
+     * divide by sample count and write out (un-pre-multiplying if writing out
+     * to byte image).
      *
-     * Must match the actual channels of the image buffer that is sampled.
+     * Do a box filter: for each destination pixel, accumulate XxY samples from source,
+     * based on scaling factors (length of X/Y pixel steps). Use at least 2 samples
+     * along each direction, so that in case of rotation the image gets
+     * some anti-aliasing. Use at most 100 samples along each direction,
+     * just as some way of clamping possible upper cost. Scaling something down by more
+     * than 100x should rarely if ever happen, worst case they will get some aliasing.
      */
-    int NumChannels,
-    /**
-     * \brief Should UVs wrap
-     */
-    bool UVWrapping>
-class Sampler {
- public:
-  using ChannelType = StorageType;
-  static const int ChannelLen = NumChannels;
-  using SampleType = Pixel<StorageType, NumChannels>;
+    float2 uv_start = ctx.start_uv;
+    int sub_count_x = int(math::clamp(roundf(math::length(ctx.add_x)), 2.0f, 100.0f));
+    int sub_count_y = int(math::clamp(roundf(math::length(ctx.add_y)), 2.0f, 100.0f));
+    const float inv_count = 1.0f / (sub_count_x * sub_count_y);
+    const float2 sub_step_x = ctx.add_x / sub_count_x;
+    const float2 sub_step_y = ctx.add_y / sub_count_y;
 
-  void sample(const ImBuf *source, const double2 &uv, SampleType &r_sample)
-  {
-    float u = float(uv.x);
-    float v = float(uv.y);
-    if constexpr (UVWrapping) {
-      u = wrap_uv(u, source->x);
-      v = wrap_uv(v, source->y);
-    }
-    /* BLI_bilinear_interpolation functions use `floor(uv)` and `floor(uv)+1`
-     * texels. For proper mapping between pixel and texel spaces, need to
-     * subtract 0.5. */
-    if constexpr (Filter == IMB_FILTER_BILINEAR) {
-      u -= 0.5f;
-      v -= 0.5f;
-    }
-    if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
-                  NumChannels == 4)
-    {
-      bilinear_interpolation_color_fl(source, r_sample.data(), u, v);
-    }
-    else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, uchar> &&
-                       NumChannels == 4)
-    {
-      nearest_interpolation_color_char(source, r_sample.data(), nullptr, u, v);
-    }
-    else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, uchar> &&
-                       NumChannels == 4)
-    {
-      bilinear_interpolation_color_char(source, r_sample.data(), u, v);
-    }
-    else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
-      if constexpr (UVWrapping) {
-        BLI_bilinear_interpolation_wrap_fl(source->float_buffer.data,
-                                           r_sample.data(),
-                                           source->x,
-                                           source->y,
-                                           NumChannels,
-                                           UNPACK2(uv),
-                                           true,
-                                           true);
-      }
-      else {
-        BLI_bilinear_interpolation_fl(
-            source->float_buffer.data, r_sample.data(), source->x, source->y, NumChannels, u, v);
+    for (int yi : y_range) {
+      T *output = init_pixel_pointer<T>(ctx.dst, ctx.dst_region_x_range.first(), yi);
+      float2 uv_row = uv_start + yi * ctx.add_y;
+      for (int xi : ctx.dst_region_x_range) {
+        const float2 uv = uv_row + xi * ctx.add_x;
+        float sample[4] = {};
+
+        for (int sub_y = 0; sub_y < sub_count_y; sub_y++) {
+          for (int sub_x = 0; sub_x < sub_count_x; sub_x++) {
+            float2 delta = (sub_x + 0.5f) * sub_step_x + (sub_y + 0.5f) * sub_step_y;
+            float2 sub_uv = uv + delta;
+            if (!CropSource || !should_discard(ctx, sub_uv)) {
+              T sub_sample[4];
+              sample_image<eIMBInterpolationFilterMode::IMB_FILTER_NEAREST,
+                           T,
+                           SrcChannels,
+                           WrapUV>(ctx.src, sub_uv.x, sub_uv.y, sub_sample);
+              add_subsample(sub_sample, sample);
+            }
+          }
+        }
+
+        mul_v4_v4fl(sample, sample, inv_count);
+        store_premul_float_sample(sample, output);
+
+        output += 4;
       }
     }
-    else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, float>) {
-      sample_nearest_float(source, u, v, r_sample);
+  }
+  else {
+    /* One sample per pixel. Note: sample at pixel center for proper filtering. */
+    float2 uv_start = ctx.start_uv + ctx.add_x * 0.5f + ctx.add_y * 0.5f;
+    for (int yi : y_range) {
+      T *output = init_pixel_pointer<T>(ctx.dst, ctx.dst_region_x_range.first(), yi);
+      float2 uv_row = uv_start + yi * ctx.add_y;
+      for (int xi : ctx.dst_region_x_range) {
+        float2 uv = uv_row + xi * ctx.add_x;
+        if (!CropSource || !should_discard(ctx, uv)) {
+          T sample[4];
+          sample_image<Filter, T, SrcChannels, WrapUV>(ctx.src, uv.x, uv.y, sample);
+          store_sample<SrcChannels>(sample, output);
+        }
+        output += 4;
+      }
     }
-    else {
-      /* Unsupported sampler. */
+  }
+}
+
+template<eIMBInterpolationFilterMode Filter, typename T, int SrcChannels>
+static void transform_scanlines(const TransformContext &ctx, IndexRange y_range)
+{
+  switch (ctx.mode) {
+    case IMB_TRANSFORM_MODE_REGULAR:
+      process_scanlines<Filter, T, SrcChannels, false, false>(ctx, y_range);
+      break;
+    case IMB_TRANSFORM_MODE_CROP_SRC:
+      process_scanlines<Filter, T, SrcChannels, true, false>(ctx, y_range);
+      break;
+    case IMB_TRANSFORM_MODE_WRAP_REPEAT:
+      process_scanlines<Filter, T, SrcChannels, false, true>(ctx, y_range);
+      break;
+    default:
       BLI_assert_unreachable();
+      break;
+  }
+}
+
+template<eIMBInterpolationFilterMode Filter>
+static void transform_scanlines_filter(const TransformContext &ctx, IndexRange y_range)
+{
+  int channels = ctx.src->channels;
+
+  if (ctx.dst->float_buffer.data && ctx.src->float_buffer.data) {
+    /* Float pixels. */
+    if (channels == 4) {
+      transform_scanlines<Filter, float, 4>(ctx, y_range);
+    }
+    else if (channels == 3) {
+      transform_scanlines<Filter, float, 3>(ctx, y_range);
+    }
+    else if (channels == 2) {
+      transform_scanlines<Filter, float, 2>(ctx, y_range);
+    }
+    else if (channels == 1) {
+      transform_scanlines<Filter, float, 1>(ctx, y_range);
     }
   }
 
- private:
-  void sample_nearest_float(const ImBuf *source,
-                            const float u,
-                            const float v,
-                            SampleType &r_sample)
-  {
-    BLI_STATIC_ASSERT(std::is_same_v<StorageType, float>);
+  if (ctx.dst->byte_buffer.data && ctx.src->byte_buffer.data) {
+    /* Byte pixels. */
+    if (channels == 4) {
+      transform_scanlines<Filter, uchar, 4>(ctx, y_range);
+    }
+  }
+}
 
-    /* ImBuf in must have a valid rect or rect_float, assume this is already checked */
-    int x1 = int(u);
-    int y1 = int(v);
+static float calc_coverage(float2 pos, int2 ipos, float2 delta, bool is_steep)
+{
+  /* Very approximate: just take difference from coordinate (x or y based on
+   * steepness) to the integer coordinate. Adjust based on directions
+   * of the edges. */
+  float cov;
+  if (is_steep) {
+    cov = fabsf(ipos.x - pos.x);
+    if (delta.y < 0) {
+      cov = 1.0f - cov;
+    }
+  }
+  else {
+    cov = fabsf(ipos.y - pos.y);
+    if (delta.x > 0) {
+      cov = 1.0f - cov;
+    }
+  }
+  cov = math::clamp(cov, 0.0f, 1.0f);
+  /* Resulting coverage is 0.5 .. 1.0 range, since we are only covering
+   * half of the pixels that should be AA'd (the other half is outside the
+   * quad and does not get rasterized). Square the coverage to get
+   * more range, and it looks a bit nicer that way. */
+  cov *= cov;
+  return cov;
+}
 
-    /* Break when sample outside image is requested. */
-    if (x1 < 0 || x1 >= source->x || y1 < 0 || y1 >= source->y) {
-      for (int i = 0; i < NumChannels; i++) {
-        r_sample[i] = 0.0f;
+static void edge_aa(const TransformContext &ctx)
+{
+  /* Rasterize along outer source edges into the destination image,
+   * reducing alpha based on pixel distance to the edge at each pixel.
+   * This is very approximate and not 100% correct "analytical AA",
+   * but simple to do and better than nothing. */
+  for (int line_idx = 0; line_idx < 4; line_idx++) {
+    float2 ptA = ctx.src_corners[line_idx];
+    float2 ptB = ctx.src_corners[(line_idx + 1) & 3];
+    float2 delta = ptB - ptA;
+    float2 abs_delta = math::abs(delta);
+    float length = math::max(abs_delta.x, abs_delta.y);
+    if (length < 1) {
+      continue;
+    }
+    bool is_steep = length == abs_delta.y;
+
+    /* It is very common to have non-rotated strips; check if edge line is
+     * horizontal or vertical and would not alter the coverage and can
+     * be skipped. */
+    constexpr float NO_ROTATION = 1.0e-6f;
+    constexpr float NO_AA_CONTRIB = 1.0e-2f;
+    if (is_steep) {
+      if ((abs_delta.x < NO_ROTATION) && (fabsf(ptA.x - roundf(ptA.x)) < NO_AA_CONTRIB)) {
+        continue;
       }
-      return;
-    }
-
-    const size_t offset = (size_t(source->x) * y1 + x1) * NumChannels;
-    const float *dataF = source->float_buffer.data + offset;
-    for (int i = 0; i < NumChannels; i++) {
-      r_sample[i] = dataF[i];
-    }
-  }
-};
-
-/**
- * \brief Change the number of channels and store it.
- *
- * Template class to convert and store a sample in a PixelPointer.
- * It supports:
- * - 4 channel uchar -> 4 channel uchar.
- * - 4 channel float -> 4 channel float.
- * - 3 channel float -> 4 channel float.
- * - 2 channel float -> 4 channel float.
- * - 1 channel float -> 4 channel float.
- */
-template<typename StorageType, int SourceNumChannels, int DestinationNumChannels>
-class ChannelConverter {
- public:
-  using SampleType = Pixel<StorageType, SourceNumChannels>;
-  using PixelType = PixelPointer<StorageType, DestinationNumChannels>;
-
-  /**
-   * \brief Convert the number of channels of the given sample to match the pixel pointer and
-   * store it at the location the pixel_pointer points at.
-   */
-  void convert_and_store(const SampleType &sample, PixelType &pixel_pointer)
-  {
-    if constexpr (std::is_same_v<StorageType, uchar>) {
-      BLI_STATIC_ASSERT(SourceNumChannels == 4, "Unsigned chars always have 4 channels.");
-      BLI_STATIC_ASSERT(DestinationNumChannels == 4, "Unsigned chars always have 4 channels.");
-
-      copy_v4_v4_uchar(pixel_pointer.get_pointer(), sample.data());
-    }
-    else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
-                       DestinationNumChannels == 4)
-    {
-      copy_v4_v4(pixel_pointer.get_pointer(), sample.data());
-    }
-    else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 3 &&
-                       DestinationNumChannels == 4)
-    {
-      copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[1], sample[2], 1.0f);
-    }
-    else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 2 &&
-                       DestinationNumChannels == 4)
-    {
-      copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[1], 0.0f, 1.0f);
-    }
-    else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 1 &&
-                       DestinationNumChannels == 4)
-    {
-      copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[0], sample[0], 1.0f);
     }
     else {
-      BLI_assert_unreachable();
-    }
-  }
-
-  void mix_and_store(const SampleType &sample, PixelType &pixel_pointer, const float mix_factor)
-  {
-    if constexpr (std::is_same_v<StorageType, uchar>) {
-      BLI_STATIC_ASSERT(SourceNumChannels == 4, "Unsigned chars always have 4 channels.");
-      BLI_STATIC_ASSERT(DestinationNumChannels == 4, "Unsigned chars always have 4 channels.");
-      blend_color_interpolate_byte(
-          pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
-    }
-    else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
-                       DestinationNumChannels == 4)
-    {
-      blend_color_interpolate_float(
-          pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
-    }
-    else {
-      BLI_assert_unreachable();
-    }
-  }
-};
-
-/**
- * \brief Processor for a scanline.
- */
-template<
-    /**
-     * \brief Discard functor that implements `should_discard`.
-     */
-    typename Discard,
-
-    /**
-     * \brief Color interpolation function to read from the source buffer.
-     */
-    typename Sampler,
-
-    /**
-     * \brief Kernel to store to the destination buffer.
-     * Should be an PixelPointer
-     */
-    typename OutputPixelPointer>
-class ScanlineProcessor {
-  Discard discarder;
-  OutputPixelPointer output;
-  Sampler sampler;
-
-  /**
-   * \brief Channels sizzling logic to convert between the input image buffer and the output
-   * image buffer.
-   */
-  ChannelConverter<typename Sampler::ChannelType,
-                   Sampler::ChannelLen,
-                   OutputPixelPointer::ChannelLen>
-      channel_converter;
-
- public:
-  /**
-   * \brief Inner loop of the transformations, processing a full scanline.
-   */
-  void process(const TransformUserData *user_data, int scanline)
-  {
-    if (user_data->subsampling.delta_uvs.size() > 1) {
-      process_with_subsampling(user_data, scanline);
-    }
-    else {
-      process_one_sample_per_pixel(user_data, scanline);
-    }
-  }
-
- private:
-  void process_one_sample_per_pixel(const TransformUserData *user_data, int scanline)
-  {
-    /* Note: sample at pixel center for proper filtering. */
-    double pixel_x = user_data->destination_region.x_range.first() + 0.5;
-    double pixel_y = scanline + 0.5;
-    double2 uv = user_data->start_uv + user_data->add_x * pixel_x + user_data->add_y * pixel_y;
-
-    output.init_pixel_pointer(user_data->dst,
-                              int2(user_data->destination_region.x_range.first(), scanline));
-    for (int xi : user_data->destination_region.x_range) {
-      UNUSED_VARS(xi);
-      if (!discarder.should_discard(*user_data, uv)) {
-        typename Sampler::SampleType sample;
-        sampler.sample(user_data->src, uv, sample);
-        channel_converter.convert_and_store(sample, output);
+      if ((abs_delta.y < NO_ROTATION) && (fabsf(ptA.y - roundf(ptA.y)) < NO_AA_CONTRIB)) {
+        continue;
       }
-
-      uv += user_data->add_x;
-      output.increase_pixel_pointer();
     }
-  }
 
-  void process_with_subsampling(const TransformUserData *user_data, int scanline)
-  {
-    /* Note: sample at pixel center for proper filtering. */
-    double pixel_x = user_data->destination_region.x_range.first() + 0.5;
-    double pixel_y = scanline + 0.5;
-    double2 uv = user_data->start_uv + user_data->add_x * pixel_x + user_data->add_y * pixel_y;
-
-    output.init_pixel_pointer(user_data->dst,
-                              int2(user_data->destination_region.x_range.first(), scanline));
-    for (int xi : user_data->destination_region.x_range) {
-      UNUSED_VARS(xi);
-      typename Sampler::SampleType sample;
-      sample.clear();
-      int num_subsamples_added = 0;
-
-      for (const double2 &delta_uv : user_data->subsampling.delta_uvs) {
-        const double2 subsample_uv = uv + delta_uv;
-        if (!discarder.should_discard(*user_data, subsample_uv)) {
-          typename Sampler::SampleType sub_sample;
-          sampler.sample(user_data->src, subsample_uv, sub_sample);
-          sample.add_subsample(sub_sample, num_subsamples_added);
-          num_subsamples_added += 1;
+    /* DDA line raster: step one pixel along the longer direction. */
+    delta /= length;
+    if (ctx.dst->float_buffer.data != nullptr) {
+      /* Float pixels. */
+      float *dst = ctx.dst->float_buffer.data;
+      for (int i = 0; i < length; i++) {
+        float2 pos = ptA + i * delta;
+        int2 ipos = int2(pos);
+        if (ipos.x >= 0 && ipos.x < ctx.dst->x && ipos.y >= 0 && ipos.y < ctx.dst->y) {
+          float cov = calc_coverage(pos, ipos, delta, is_steep);
+          size_t idx = (size_t(ipos.y) * ctx.dst->x + ipos.x) * 4;
+          dst[idx + 0] *= cov;
+          dst[idx + 1] *= cov;
+          dst[idx + 2] *= cov;
+          dst[idx + 3] *= cov;
         }
       }
-
-      if (num_subsamples_added != 0) {
-        const float mix_weight = float(num_subsamples_added) /
-                                 user_data->subsampling.delta_uvs.size();
-        channel_converter.mix_and_store(sample, output, mix_weight);
-      }
-      uv += user_data->add_x;
-      output.increase_pixel_pointer();
     }
-  }
-};
-
-/**
- * \brief callback function for threaded transformation.
- */
-template<typename Processor> void transform_scanline_function(void *custom_data, int scanline)
-{
-  const TransformUserData *user_data = static_cast<const TransformUserData *>(custom_data);
-  Processor processor;
-  processor.process(user_data, scanline);
-}
-
-template<eIMBInterpolationFilterMode Filter,
-         typename StorageType,
-         int SourceNumChannels,
-         int DestinationNumChannels>
-ScanlineThreadFunc get_scanline_function(const eIMBTransformMode mode)
-
-{
-  switch (mode) {
-    case IMB_TRANSFORM_MODE_REGULAR:
-      return transform_scanline_function<
-          ScanlineProcessor<NoDiscard,
-                            Sampler<Filter, StorageType, SourceNumChannels, false>,
-                            PixelPointer<StorageType, DestinationNumChannels>>>;
-    case IMB_TRANSFORM_MODE_CROP_SRC:
-      return transform_scanline_function<
-          ScanlineProcessor<CropSource,
-                            Sampler<Filter, StorageType, SourceNumChannels, false>,
-                            PixelPointer<StorageType, DestinationNumChannels>>>;
-    case IMB_TRANSFORM_MODE_WRAP_REPEAT:
-      return transform_scanline_function<
-          ScanlineProcessor<NoDiscard,
-                            Sampler<Filter, StorageType, SourceNumChannels, true>,
-                            PixelPointer<StorageType, DestinationNumChannels>>>;
-  }
-
-  BLI_assert_unreachable();
-  return nullptr;
-}
-
-template<eIMBInterpolationFilterMode Filter>
-ScanlineThreadFunc get_scanline_function(const TransformUserData *user_data,
-                                         const eIMBTransformMode mode)
-{
-  const ImBuf *src = user_data->src;
-  const ImBuf *dst = user_data->dst;
-
-  if (src->channels == 4 && dst->channels == 4) {
-    return get_scanline_function<Filter, float, 4, 4>(mode);
-  }
-  if (src->channels == 3 && dst->channels == 4) {
-    return get_scanline_function<Filter, float, 3, 4>(mode);
-  }
-  if (src->channels == 2 && dst->channels == 4) {
-    return get_scanline_function<Filter, float, 2, 4>(mode);
-  }
-  if (src->channels == 1 && dst->channels == 4) {
-    return get_scanline_function<Filter, float, 1, 4>(mode);
-  }
-  return nullptr;
-}
-
-template<eIMBInterpolationFilterMode Filter>
-static void transform_threaded(TransformUserData *user_data, const eIMBTransformMode mode)
-{
-  ScanlineThreadFunc scanline_func = nullptr;
-
-  if (user_data->dst->float_buffer.data && user_data->src->float_buffer.data) {
-    scanline_func = get_scanline_function<Filter>(user_data, mode);
-  }
-  else if (user_data->dst->byte_buffer.data && user_data->src->byte_buffer.data) {
-    /* Number of channels is always 4 when using uchar buffers (sRGB + straight alpha). */
-    scanline_func = get_scanline_function<Filter, uchar, 4, 4>(mode);
-  }
-
-  if (scanline_func != nullptr) {
-    threading::parallel_for(user_data->destination_region.y_range, 8, [&](IndexRange range) {
-      for (int scanline : range) {
-        scanline_func(user_data, scanline);
+    if (ctx.dst->byte_buffer.data != nullptr) {
+      /* Byte pixels. */
+      uchar *dst = ctx.dst->byte_buffer.data;
+      for (int i = 0; i < length; i++) {
+        float2 pos = ptA + i * delta;
+        int2 ipos = int2(pos);
+        if (ipos.x >= 0 && ipos.x < ctx.dst->x && ipos.y >= 0 && ipos.y < ctx.dst->y) {
+          float cov = calc_coverage(pos, ipos, delta, is_steep);
+          size_t idx = (size_t(ipos.y) * ctx.dst->x + ipos.x) * 4;
+          dst[idx + 3] *= cov;
+        }
       }
-    });
+    }
   }
 }
 
 }  // namespace blender::imbuf::transform
 
-extern "C" {
-
 using namespace blender::imbuf::transform;
+using namespace blender;
 
 void IMB_transform(const ImBuf *src,
                    ImBuf *dst,
                    const eIMBTransformMode mode,
                    const eIMBInterpolationFilterMode filter,
-                   const int num_subsamples,
                    const float transform_matrix[4][4],
                    const rctf *src_crop)
 {
   BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != nullptr,
                  "No source crop rect given, but crop source is requested. Or source crop rect "
                  "was given, but crop source was not requested.");
+  BLI_assert_msg(dst->channels == 4, "Destination image must have 4 channels.");
 
-  TransformUserData user_data;
-  user_data.src = src;
-  user_data.dst = dst;
-  if (mode == IMB_TRANSFORM_MODE_CROP_SRC) {
-    user_data.src_crop = *src_crop;
+  TransformContext ctx;
+  ctx.src = src;
+  ctx.dst = dst;
+  ctx.mode = mode;
+  bool crop = mode == IMB_TRANSFORM_MODE_CROP_SRC;
+  if (crop) {
+    ctx.src_crop = *src_crop;
   }
-  user_data.init(blender::float4x4(transform_matrix),
-                 num_subsamples,
-                 ELEM(mode, IMB_TRANSFORM_MODE_CROP_SRC));
+  ctx.init(blender::float4x4(transform_matrix), crop);
 
-  if (filter == IMB_FILTER_NEAREST) {
-    transform_threaded<IMB_FILTER_NEAREST>(&user_data, mode);
+  threading::parallel_for(ctx.dst_region_y_range, 8, [&](IndexRange y_range) {
+    if (filter == IMB_FILTER_NEAREST) {
+      transform_scanlines_filter<IMB_FILTER_NEAREST>(ctx, y_range);
+    }
+    else if (filter == IMB_FILTER_BILINEAR) {
+      transform_scanlines_filter<IMB_FILTER_BILINEAR>(ctx, y_range);
+    }
+    else if (filter == IMB_FILTER_CUBIC_BSPLINE) {
+      transform_scanlines_filter<IMB_FILTER_CUBIC_BSPLINE>(ctx, y_range);
+    }
+    else if (filter == IMB_FILTER_CUBIC_MITCHELL) {
+      transform_scanlines_filter<IMB_FILTER_CUBIC_MITCHELL>(ctx, y_range);
+    }
+    else if (filter == IMB_FILTER_BOX) {
+      transform_scanlines_filter<IMB_FILTER_BOX>(ctx, y_range);
+    }
+  });
+
+  if (crop && (filter != IMB_FILTER_NEAREST)) {
+    edge_aa(ctx);
   }
-  else {
-    transform_threaded<IMB_FILTER_BILINEAR>(&user_data, mode);
-  }
-}
 }

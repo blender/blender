@@ -18,7 +18,7 @@
 
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -26,14 +26,17 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_types.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include <algorithm>
+#  include <fmt/format.h>
 
 #  include "DNA_movieclip_types.h"
 
@@ -166,12 +169,12 @@ static void rna_Mask_layer_active_index_range(
   *softmax = *max;
 }
 
-static char *rna_MaskLayer_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_MaskLayer_path(const PointerRNA *ptr)
 {
   const MaskLayer *masklay = (MaskLayer *)ptr->data;
   char name_esc[sizeof(masklay->name) * 2];
   BLI_str_escape(name_esc, masklay->name, sizeof(name_esc));
-  return BLI_sprintfN("layers[\"%s\"]", name_esc);
+  return fmt::format("layers[\"{}\"]", name_esc);
 }
 
 static PointerRNA rna_Mask_layer_active_get(PointerRNA *ptr)
@@ -461,7 +464,7 @@ static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)
   data->sfra = value;
 
   if (data->sfra >= data->efra) {
-    data->efra = MIN2(data->sfra, MAXFRAME);
+    data->efra = std::min(data->sfra, MAXFRAME);
   }
 }
 
@@ -472,7 +475,7 @@ static void rna_Mask_end_frame_set(PointerRNA *ptr, int value)
   data->efra = value;
 
   if (data->sfra >= data->efra) {
-    data->sfra = MAX2(data->efra, MINFRAME);
+    data->sfra = std::max(data->efra, MINFRAME);
   }
 }
 

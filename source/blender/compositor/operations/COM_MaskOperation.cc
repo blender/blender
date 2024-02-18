@@ -4,7 +4,7 @@
 
 #include "COM_MaskOperation.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 
 namespace blender::compositor {
@@ -84,7 +84,7 @@ void MaskOperation::deinit_execution()
 
 void MaskOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  if (mask_width_ == 0 || mask_height_ == 0) {
+  if (!mask_ || mask_width_ == 0 || mask_height_ == 0) {
     r_area = COM_AREA_NONE;
   }
   else {

@@ -51,18 +51,17 @@
 #  include "AVI_avi.h"
 #endif
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_colormanagement_intern.hh"
 
-#include "IMB_anim.h"
-#include "IMB_indexer.h"
-#include "IMB_metadata.h"
+#include "IMB_anim.hh"
+#include "IMB_indexer.hh"
+#include "IMB_metadata.hh"
 
 #ifdef WITH_FFMPEG
-#  include "BKE_global.h" /* ENDIAN_ORDER */
 #  include "BKE_writeffmpeg.hh"
 
 extern "C" {
@@ -83,21 +82,21 @@ int ismovie(const char * /*filepath*/)
 }
 
 /* never called, just keep the linker happy */
-static int startmovie(anim * /*anim*/)
+static int startmovie(ImBufAnim * /*anim*/)
 {
   return 1;
 }
-static ImBuf *movie_fetchibuf(anim * /*anim*/, int /*position*/)
+static ImBuf *movie_fetchibuf(ImBufAnim * /*anim*/, int /*position*/)
 {
   return nullptr;
 }
-static void free_anim_movie(anim * /*anim*/)
+static void free_anim_movie(ImBufAnim * /*anim*/)
 {
   /* pass */
 }
 
 #ifdef WITH_AVI
-static void free_anim_avi(anim *anim)
+static void free_anim_avi(ImBufAnim *anim)
 {
 #  if defined(_WIN32)
   int i;
@@ -138,10 +137,10 @@ static void free_anim_avi(anim *anim)
 #endif /* WITH_AVI */
 
 #ifdef WITH_FFMPEG
-static void free_anim_ffmpeg(anim *anim);
+static void free_anim_ffmpeg(ImBufAnim *anim);
 #endif
 
-void IMB_free_anim(anim *anim)
+void IMB_free_anim(ImBufAnim *anim)
 {
   if (anim == nullptr) {
     printf("free anim, anim == nullptr\n");
@@ -163,7 +162,7 @@ void IMB_free_anim(anim *anim)
   MEM_freeN(anim);
 }
 
-void IMB_close_anim(anim *anim)
+void IMB_close_anim(ImBufAnim *anim)
 {
   if (anim == nullptr) {
     return;
@@ -172,7 +171,7 @@ void IMB_close_anim(anim *anim)
   IMB_free_anim(anim);
 }
 
-void IMB_close_anim_proxies(anim *anim)
+void IMB_close_anim_proxies(ImBufAnim *anim)
 {
   if (anim == nullptr) {
     return;
@@ -181,7 +180,7 @@ void IMB_close_anim_proxies(anim *anim)
   IMB_free_indices(anim);
 }
 
-IDProperty *IMB_anim_load_metadata(anim *anim)
+IDProperty *IMB_anim_load_metadata(ImBufAnim *anim)
 {
   switch (anim->curtype) {
     case ANIM_FFMPEG: {
@@ -216,16 +215,16 @@ IDProperty *IMB_anim_load_metadata(anim *anim)
   return anim->metadata;
 }
 
-anim *IMB_open_anim(const char *filepath,
-                    int ib_flags,
-                    int streamindex,
-                    char colorspace[IM_MAX_SPACE])
+ImBufAnim *IMB_open_anim(const char *filepath,
+                         int ib_flags,
+                         int streamindex,
+                         char colorspace[IM_MAX_SPACE])
 {
-  anim *anim;
+  ImBufAnim *anim;
 
   BLI_assert(!BLI_path_is_rel(filepath));
 
-  anim = (struct anim *)MEM_callocN(sizeof(struct anim), "anim struct");
+  anim = (ImBufAnim *)MEM_callocN(sizeof(ImBufAnim), "anim struct");
   if (anim != nullptr) {
     if (colorspace) {
       colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -243,7 +242,7 @@ anim *IMB_open_anim(const char *filepath,
   return anim;
 }
 
-bool IMB_anim_can_produce_frames(const anim *anim)
+bool IMB_anim_can_produce_frames(const ImBufAnim *anim)
 {
 #if !(defined(WITH_AVI) || defined(WITH_FFMPEG))
   UNUSED_VARS(anim);
@@ -262,13 +261,13 @@ bool IMB_anim_can_produce_frames(const anim *anim)
   return false;
 }
 
-void IMB_suffix_anim(anim *anim, const char *suffix)
+void IMB_suffix_anim(ImBufAnim *anim, const char *suffix)
 {
   STRNCPY(anim->suffix, suffix);
 }
 
 #ifdef WITH_AVI
-static int startavi(anim *anim)
+static int startavi(ImBufAnim *anim)
 {
 
   AviError avierror;
@@ -387,7 +386,7 @@ static int startavi(anim *anim)
 #endif /* WITH_AVI */
 
 #ifdef WITH_AVI
-static ImBuf *avi_fetchibuf(anim *anim, int position)
+static ImBuf *avi_fetchibuf(ImBufAnim *anim, int position)
 {
   ImBuf *ibuf = nullptr;
   int *tmp;
@@ -414,7 +413,7 @@ static ImBuf *avi_fetchibuf(anim *anim, int position)
   else
 #  endif
   {
-    ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect);
+    ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect | IB_uninitialized_pixels);
 
     tmp = static_cast<int *>(AVI_read_frame(
         anim->avi, AVI_FORMAT_RGB32, position, AVI_get_stream(anim->avi, AVIST_VIDEO, 0)));
@@ -442,7 +441,7 @@ static ImBuf *avi_fetchibuf(anim *anim, int position)
 
 #ifdef WITH_FFMPEG
 
-static int startffmpeg(anim *anim)
+static int startffmpeg(ImBufAnim *anim)
 {
   int i, video_stream_index;
 
@@ -747,7 +746,7 @@ static int startffmpeg(anim *anim)
   return 0;
 }
 
-static double ffmpeg_steps_per_frame_get(anim *anim)
+static double ffmpeg_steps_per_frame_get(ImBufAnim *anim)
 {
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
   AVRational time_base = v_st->time_base;
@@ -760,7 +759,7 @@ static double ffmpeg_steps_per_frame_get(anim *anim)
  * It is likely to overshoot and scanning stops. Having previous frame backed up, it is possible
  * to use it when overshoot happens.
  */
-static void ffmpeg_double_buffer_backup_frame_store(anim *anim, int64_t pts_to_search)
+static void ffmpeg_double_buffer_backup_frame_store(ImBufAnim *anim, int64_t pts_to_search)
 {
   /* `anim->pFrame` is beyond `pts_to_search`. Don't store it. */
   if (anim->pFrame_backup_complete && anim->cur_pts >= pts_to_search) {
@@ -779,7 +778,7 @@ static void ffmpeg_double_buffer_backup_frame_store(anim *anim, int64_t pts_to_s
 }
 
 /* Free stored backup frame. */
-static void ffmpeg_double_buffer_backup_frame_clear(anim *anim)
+static void ffmpeg_double_buffer_backup_frame_clear(ImBufAnim *anim)
 {
   if (anim->pFrame_backup_complete) {
     av_frame_unref(anim->pFrame_backup);
@@ -788,7 +787,7 @@ static void ffmpeg_double_buffer_backup_frame_clear(anim *anim)
 }
 
 /* Return recently decoded frame. If it does not exist, return frame from backup buffer. */
-static AVFrame *ffmpeg_double_buffer_frame_fallback_get(anim *anim)
+static AVFrame *ffmpeg_double_buffer_frame_fallback_get(ImBufAnim *anim)
 {
   av_log(anim->pFormatCtx, AV_LOG_ERROR, "DECODE UNHAPPY: PTS not matched!\n");
 
@@ -806,7 +805,7 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(anim *anim)
  *
  * \param ibuf: The frame just read by `ffmpeg_fetchibuf`, processed in-place.
  */
-static void ffmpeg_postprocess(anim *anim, AVFrame *input, ImBuf *ibuf)
+static void ffmpeg_postprocess(ImBufAnim *anim, AVFrame *input, ImBuf *ibuf)
 {
   int filter_y = 0;
 
@@ -890,7 +889,7 @@ static void ffmpeg_postprocess(anim *anim, AVFrame *input, ImBuf *ibuf)
   }
 }
 
-static void final_frame_log(anim *anim,
+static void final_frame_log(ImBufAnim *anim,
                             int64_t frame_pts_start,
                             int64_t frame_pts_end,
                             const char *str)
@@ -909,7 +908,7 @@ static bool ffmpeg_pts_isect(int64_t pts_start, int64_t pts_end, int64_t pts_to_
 }
 
 /* Return frame that matches `pts_to_search`, nullptr if matching frame does not exist. */
-static AVFrame *ffmpeg_frame_by_pts_get(anim *anim, int64_t pts_to_search)
+static AVFrame *ffmpeg_frame_by_pts_get(ImBufAnim *anim, int64_t pts_to_search)
 {
   /* NOTE: `frame->pts + frame->pkt_duration` does not always match pts of next frame.
    * See footage from #86361. Here it is OK to use, because PTS must match current or backup frame.
@@ -936,7 +935,7 @@ static AVFrame *ffmpeg_frame_by_pts_get(anim *anim, int64_t pts_to_search)
   return best_frame;
 }
 
-static void ffmpeg_decode_store_frame_pts(anim *anim)
+static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
 {
   anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
@@ -951,7 +950,7 @@ static void ffmpeg_decode_store_frame_pts(anim *anim)
          int64_t(anim->cur_pts));
 }
 
-static int ffmpeg_read_video_frame(anim *anim, AVPacket *packet)
+static int ffmpeg_read_video_frame(ImBufAnim *anim, AVPacket *packet)
 {
   int ret = 0;
   while ((ret = av_read_frame(anim->pFormatCtx, packet)) >= 0) {
@@ -966,7 +965,7 @@ static int ffmpeg_read_video_frame(anim *anim, AVPacket *packet)
 }
 
 /* decode one video frame also considering the packet read into cur_packet */
-static int ffmpeg_decode_video_frame(anim *anim)
+static int ffmpeg_decode_video_frame(ImBufAnim *anim)
 {
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "  DECODE VIDEO FRAME\n");
 
@@ -1050,7 +1049,7 @@ static int match_format(const char *name, AVFormatContext *pFormatCtx)
 
   namelen = strlen(name);
   while ((p = strchr(names, ','))) {
-    len = MAX2(p - names, namelen);
+    len = std::max(int(p - names), namelen);
     if (!BLI_strncasecmp(name, names, len)) {
       return 1;
     }
@@ -1079,7 +1078,7 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
   return false;
 }
 
-static int64_t ffmpeg_get_seek_pts(anim *anim, int64_t pts_to_search)
+static int64_t ffmpeg_get_seek_pts(ImBufAnim *anim, int64_t pts_to_search)
 {
   /* FFMPEG seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
    * offset and sometimes FFMPEG fails to take this into account when seeking.
@@ -1099,7 +1098,7 @@ static int64_t ffmpeg_get_seek_pts(anim *anim, int64_t pts_to_search)
 /* This gives us an estimate of which pts our requested frame will have.
  * Note that this might be off a bit in certain video files, but it should still be close enough.
  */
-static int64_t ffmpeg_get_pts_to_search(anim *anim, anim_index *tc_index, int position)
+static int64_t ffmpeg_get_pts_to_search(ImBufAnim *anim, ImBufAnimIndex *tc_index, int position)
 {
   int64_t pts_to_search;
 
@@ -1120,12 +1119,12 @@ static int64_t ffmpeg_get_pts_to_search(anim *anim, anim_index *tc_index, int po
   return pts_to_search;
 }
 
-static bool ffmpeg_is_first_frame_decode(anim *anim)
+static bool ffmpeg_is_first_frame_decode(ImBufAnim *anim)
 {
   return anim->pFrame_complete == false;
 }
 
-static void ffmpeg_scan_log(anim *anim, int64_t pts_to_search)
+static void ffmpeg_scan_log(ImBufAnim *anim, int64_t pts_to_search)
 {
   int64_t frame_pts_start = av_get_pts_from_frame(anim->pFrame);
   int64_t frame_pts_end = frame_pts_start + av_get_frame_duration_in_pts_units(anim->pFrame);
@@ -1138,7 +1137,7 @@ static void ffmpeg_scan_log(anim *anim, int64_t pts_to_search)
 }
 
 /* Decode frames one by one until its PTS matches pts_to_search. */
-static void ffmpeg_decode_video_frame_scan(anim *anim, int64_t pts_to_search)
+static void ffmpeg_decode_video_frame_scan(ImBufAnim *anim, int64_t pts_to_search)
 {
   const int64_t start_gop_frame = anim->cur_key_frame_pts;
   bool decode_error = false;
@@ -1162,7 +1161,7 @@ static void ffmpeg_decode_video_frame_scan(anim *anim, int64_t pts_to_search)
  * read_seek2() functions defined. When seeking in these formats, rule to seek to last
  * necessary I-frame is not honored. It is not even guaranteed that I-frame, that must be
  * decoded will be read. See https://trac.ffmpeg.org/ticket/1607 & #86944. */
-static int ffmpeg_generic_seek_workaround(anim *anim,
+static int ffmpeg_generic_seek_workaround(ImBufAnim *anim,
                                           int64_t *requested_pts,
                                           int64_t pts_to_search)
 {
@@ -1174,7 +1173,7 @@ static int ffmpeg_generic_seek_workaround(anim *anim,
   /* Step backward frame by frame until we find the key frame we are looking for. */
   while (current_pts != 0) {
     current_pts = *requested_pts - int64_t(round(offset * ffmpeg_steps_per_frame_get(anim)));
-    current_pts = MAX2(current_pts, 0);
+    current_pts = std::max(current_pts, int64_t(0));
 
     /* Seek to timestamp. */
     if (av_seek_frame(anim->pFormatCtx, anim->videoStream, current_pts, AVSEEK_FLAG_BACKWARD) < 0)
@@ -1224,7 +1223,7 @@ static int ffmpeg_generic_seek_workaround(anim *anim,
 
 /* Read packet until timestamp matches `anim->cur_packet`, thus recovering internal `anim` stream
  * position state. */
-static void ffmpeg_seek_recover_stream_position(anim *anim)
+static void ffmpeg_seek_recover_stream_position(ImBufAnim *anim)
 {
   AVPacket *temp_packet = av_packet_alloc();
   while (ffmpeg_read_video_frame(anim, temp_packet) >= 0) {
@@ -1240,7 +1239,7 @@ static void ffmpeg_seek_recover_stream_position(anim *anim)
 }
 
 /* Check if seeking and mainly flushing codec buffers is needed. */
-static bool ffmpeg_seek_buffers_need_flushing(anim *anim, int position, int64_t seek_pos)
+static bool ffmpeg_seek_buffers_need_flushing(ImBufAnim *anim, int position, int64_t seek_pos)
 {
   /* Get timestamp of packet read after seeking. */
   AVPacket *temp_packet = av_packet_alloc();
@@ -1269,9 +1268,9 @@ static bool ffmpeg_seek_buffers_need_flushing(anim *anim, int position, int64_t 
 }
 
 /* Seek to last necessary key frame. */
-static int ffmpeg_seek_to_key_frame(anim *anim,
+static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
                                     int position,
-                                    anim_index *tc_index,
+                                    ImBufAnimIndex *tc_index,
                                     int64_t pts_to_search)
 {
   int64_t seek_pos;
@@ -1361,14 +1360,14 @@ static int ffmpeg_seek_to_key_frame(anim *anim,
   return ret;
 }
 
-static bool ffmpeg_must_seek(anim *anim, int position)
+static bool ffmpeg_must_seek(ImBufAnim *anim, int position)
 {
   bool must_seek = position != anim->cur_position + 1 || ffmpeg_is_first_frame_decode(anim);
   anim->seek_before_decode = must_seek;
   return must_seek;
 }
 
-static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
+static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type tc)
 {
   if (anim == nullptr) {
     return nullptr;
@@ -1376,7 +1375,7 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
 
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: seek_pos=%d\n", position);
 
-  anim_index *tc_index = IMB_anim_open_index(anim, tc);
+  ImBufAnimIndex *tc_index = IMB_anim_open_index(anim, tc);
   int64_t pts_to_search = ffmpeg_get_pts_to_search(anim, tc_index, position);
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
   double frame_rate = av_q2d(v_st->r_frame_rate);
@@ -1455,7 +1454,7 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
   return cur_frame_final;
 }
 
-static void free_anim_ffmpeg(anim *anim)
+static void free_anim_ffmpeg(ImBufAnim *anim)
 {
   if (anim == nullptr) {
     return;
@@ -1470,8 +1469,7 @@ static void free_anim_ffmpeg(anim *anim)
     av_frame_free(&anim->pFrame_backup);
     av_frame_free(&anim->pFrameRGB);
     av_frame_free(&anim->pFrameDeinterlaced);
-
-    sws_freeContext(anim->img_convert_ctx);
+    BKE_ffmpeg_sws_release_context(anim->img_convert_ctx);
   }
   anim->duration_in_frames = 0;
 }
@@ -1482,7 +1480,7 @@ static void free_anim_ffmpeg(anim *anim)
  * Try to initialize the #anim struct.
  * Returns true on success.
  */
-static bool anim_getnew(anim *anim)
+static bool anim_getnew(ImBufAnim *anim)
 {
   BLI_assert(anim->curtype == ANIM_NONE);
   if (anim == nullptr) {
@@ -1539,7 +1537,7 @@ static bool anim_getnew(anim *anim)
   return true;
 }
 
-ImBuf *IMB_anim_previewframe(anim *anim)
+ImBuf *IMB_anim_previewframe(ImBufAnim *anim)
 {
   ImBuf *ibuf = nullptr;
   int position = 0;
@@ -1577,7 +1575,7 @@ ImBuf *IMB_anim_previewframe(anim *anim)
   return ibuf;
 }
 
-ImBuf *IMB_anim_absolute(anim *anim,
+ImBuf *IMB_anim_absolute(ImBufAnim *anim,
                          int position,
                          IMB_Timecode_Type tc,
                          IMB_Proxy_Size preview_size)
@@ -1605,7 +1603,7 @@ ImBuf *IMB_anim_absolute(anim *anim,
     }
   }
   else {
-    struct anim *proxy = IMB_anim_open_proxy(anim, preview_size);
+    ImBufAnim *proxy = IMB_anim_open_proxy(anim, preview_size);
 
     if (proxy) {
       position = IMB_anim_index_get_frame_index(anim, tc, position);
@@ -1666,9 +1664,9 @@ ImBuf *IMB_anim_absolute(anim *anim,
 
 /***/
 
-int IMB_anim_get_duration(anim *anim, IMB_Timecode_Type tc)
+int IMB_anim_get_duration(ImBufAnim *anim, IMB_Timecode_Type tc)
 {
-  anim_index *idx;
+  ImBufAnimIndex *idx;
   if (tc == IMB_TC_NONE) {
     return anim->duration_in_frames;
   }
@@ -1681,12 +1679,15 @@ int IMB_anim_get_duration(anim *anim, IMB_Timecode_Type tc)
   return IMB_indexer_get_duration(idx);
 }
 
-double IMD_anim_get_offset(anim *anim)
+double IMD_anim_get_offset(ImBufAnim *anim)
 {
   return anim->start_offset;
 }
 
-bool IMB_anim_get_fps(const anim *anim, bool no_av_base, short *r_frs_sec, float *r_frs_sec_base)
+bool IMB_anim_get_fps(const ImBufAnim *anim,
+                      bool no_av_base,
+                      short *r_frs_sec,
+                      float *r_frs_sec_base)
 {
   double frs_sec_base_double;
   if (anim->frs_sec) {
@@ -1719,12 +1720,12 @@ bool IMB_anim_get_fps(const anim *anim, bool no_av_base, short *r_frs_sec, float
   return false;
 }
 
-int IMB_anim_get_image_width(anim *anim)
+int IMB_anim_get_image_width(ImBufAnim *anim)
 {
   return anim->x;
 }
 
-int IMB_anim_get_image_height(anim *anim)
+int IMB_anim_get_image_height(ImBufAnim *anim)
 {
   return anim->y;
 }

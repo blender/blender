@@ -66,17 +66,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    if (geometry::try_curves_conversion_in_place(
-            selection, dst_type, [&]() -> bke::CurvesGeometry & {
-              return geometry_set.get_curves_for_write()->geometry.wrap();
-            }))
-    {
-      return;
-    }
-
     bke::CurvesGeometry dst_curves = geometry::convert_curves(
         src_curves, selection, dst_type, params.get_output_propagation_info("Curve"));
-
     Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
     bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
     geometry_set.replace_curves(dst_curves_id);

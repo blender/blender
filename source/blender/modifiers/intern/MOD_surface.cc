@@ -10,25 +10,20 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_bvhutils.hh"
-#include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph.hh"
@@ -36,9 +31,6 @@
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
-#include "MOD_util.hh"
-
-#include "BLO_read_write.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -146,7 +138,7 @@ static void deform_verts(ModifierData *md,
         surmd->runtime.mesh->vert_positions_for_write();
     for (i = 0; i < mesh_verts_num; i++) {
       float *vec = positions[i];
-      mul_m4_v3(ctx->object->object_to_world, vec);
+      mul_m4_v3(ctx->object->object_to_world().ptr(), vec);
 
       if (init) {
         zero_v3(surmd->runtime.vert_velocities[i]);
@@ -184,7 +176,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemL(layout, TIP_("Settings are inside the Physics tab"), ICON_NONE);
+  uiItemL(layout, RPT_("Settings are inside the Physics tab"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -234,4 +226,5 @@ ModifierTypeInfo modifierType_Surface = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

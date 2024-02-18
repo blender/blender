@@ -17,12 +17,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "PIL_time.h"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -31,17 +30,16 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "NOD_composite.hh"
@@ -60,8 +58,8 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -432,17 +430,17 @@ static void make_renderinfo_string(const RenderStats *rs,
 
   /* local view */
   if (rs->localview) {
-    ret_array[i++] = TIP_("3D Local View ");
+    ret_array[i++] = RPT_("3D Local View ");
     ret_array[i++] = info_sep;
   }
   else if (v3d_override) {
-    ret_array[i++] = TIP_("3D View ");
+    ret_array[i++] = RPT_("3D View ");
     ret_array[i++] = info_sep;
   }
 
   /* frame number */
   SNPRINTF(info_buffers.frame, "%d ", scene->r.cfra);
-  ret_array[i++] = TIP_("Frame:");
+  ret_array[i++] = RPT_("Frame:");
   ret_array[i++] = info_buffers.frame;
 
   /* Previous and elapsed time. */
@@ -461,10 +459,10 @@ static void make_renderinfo_string(const RenderStats *rs,
     info_time = info_buffers.time_elapsed;
     BLI_timecode_string_from_time_simple(info_buffers.time_elapsed,
                                          sizeof(info_buffers.time_elapsed),
-                                         PIL_check_seconds_timer() - rs->starttime);
+                                         BLI_time_now_seconds() - rs->starttime);
   }
 
-  ret_array[i++] = TIP_("Time:");
+  ret_array[i++] = RPT_("Time:");
   ret_array[i++] = info_time;
   ret_array[i++] = info_space;
 
@@ -479,13 +477,13 @@ static void make_renderinfo_string(const RenderStats *rs,
     else {
       if (rs->mem_peak == 0.0f) {
         SNPRINTF(info_buffers.statistics,
-                 TIP_("Mem:%.2fM (Peak %.2fM)"),
+                 RPT_("Mem:%.2fM (Peak %.2fM)"),
                  megs_used_memory,
                  megs_peak_memory);
       }
       else {
         SNPRINTF(
-            info_buffers.statistics, TIP_("Mem:%.2fM, Peak: %.2fM"), rs->mem_used, rs->mem_peak);
+            info_buffers.statistics, RPT_("Mem:%.2fM, Peak: %.2fM"), rs->mem_used, rs->mem_peak);
       }
       info_statistics = info_buffers.statistics;
     }
@@ -1185,7 +1183,7 @@ void RENDER_OT_render(wmOperatorType *ot)
       "write_still",
       false,
       "Write Image",
-      "Save rendered the image to the output path (used only when animation is disabled)");
+      "Save the rendered image to the output path (used only when animation is disabled)");
   prop = RNA_def_boolean(ot->srna,
                          "use_viewport",
                          false,

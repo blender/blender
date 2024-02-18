@@ -3,11 +3,16 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
-from bpy.types import Panel, Menu
+from bpy.types import (
+    Menu,
+    Panel,
+    UIList,
+)
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import (
     contexts as i18n_contexts,
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
 )
 from bl_ui.utils import PresetPanel
 
@@ -125,7 +130,7 @@ def find_modifier(ob, psys):
     return None
 
 
-class PARTICLE_UL_particle_systems(bpy.types.UIList):
+class PARTICLE_UL_particle_systems(UIList):
 
     def draw_item(self, _context, layout, data, item, icon, _active_data, _active_propname, _index, _flt_flag):
         ob = data
@@ -221,7 +226,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                 row.template_ID(psys, "settings", new="particle.new")
 
             if part.is_fluid:
-                layout.label(text=iface_("%d fluid particles for this frame") % part.count, translate=False)
+                layout.label(text=rpt_("%d fluid particles for this frame") % part.count, translate=False)
                 return
 
             row = layout.row()
@@ -432,10 +437,10 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
                 label = "ERROR"
                 icon = 'ERROR'
             box.label(text=label, icon=icon)
-            box.label(text=iface_("Iterations: %d .. %d (avg. %d)") %
+            box.label(text=rpt_("Iterations: %d .. %d (avg. %d)") %
                       (result.min_iterations, result.max_iterations, result.avg_iterations),
                       translate=False)
-            box.label(text=iface_("Error: %.5f .. %.5f (avg. %.5f)")
+            box.label(text=rpt_("Error: %.5f .. %.5f (avg. %.5f)")
                       % (result.min_error, result.max_error, result.avg_error),
                       translate=False)
 

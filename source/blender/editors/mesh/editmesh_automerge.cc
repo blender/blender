@@ -21,7 +21,7 @@
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "PIL_time.h"
+#  include "BLI_time.h"
 #endif
 
 /* use bmesh operator flags for a few operators */
@@ -92,13 +92,13 @@ void EDBM_automerge_and_split(Object *obedit,
 #ifdef DEBUG_TIME
   em->bm = BM_mesh_copy(bm);
 
-  double t1 = PIL_check_seconds_timer();
+  double t1 = BLI_time_now_seconds();
   EDBM_automerge(obedit, false, hflag, dist);
-  t1 = PIL_check_seconds_timer() - t1;
+  t1 = BLI_time_now_seconds() - t1;
 
   BM_mesh_free(em->bm);
   em->bm = bm;
-  double t2 = PIL_check_seconds_timer();
+  double t2 = BLI_time_now_seconds();
 #endif
 
   BMOperator weldop;
@@ -118,7 +118,7 @@ void EDBM_automerge_and_split(Object *obedit,
   BMO_op_finish(bm, &weldop);
 
 #ifdef DEBUG_TIME
-  t2 = PIL_check_seconds_timer() - t2;
+  t2 = BLI_time_now_seconds() - t2;
   printf("t1: %lf; t2: %lf; fac: %lf\n", t1, t2, t1 / t2);
 #endif
 

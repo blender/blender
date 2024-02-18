@@ -44,11 +44,13 @@ void KeyingClipOperation::execute_pixel(float output[4], int x, int y, void *dat
   float value = buffer[(y * buffer_width + x)];
 
   bool ok = false;
-  int start_x = max_ff(0, x - delta + 1), start_y = max_ff(0, y - delta + 1),
-      end_x = min_ff(x + delta - 1, buffer_width - 1),
-      end_y = min_ff(y + delta - 1, buffer_height - 1);
 
-  int count = 0, total_count = (end_x - start_x + 1) * (end_y - start_y + 1) - 1;
+  const int start_x = max_ff(0, x - delta);
+  const int start_y = max_ff(0, y - delta);
+  const int end_x = min_ff(x + delta, buffer_width - 1);
+  const int end_y = min_ff(y + delta, buffer_height - 1);
+
+  int count = 0, total_count = (end_x - start_x + 1) * (end_y - start_y + 1);
   int threshold_count = ceil(float(total_count) * 0.9f);
 
   if (delta == 0) {
@@ -57,10 +59,6 @@ void KeyingClipOperation::execute_pixel(float output[4], int x, int y, void *dat
 
   for (int cx = start_x; ok == false && cx <= end_x; cx++) {
     for (int cy = start_y; ok == false && cy <= end_y; cy++) {
-      if (UNLIKELY(cx == x && cy == y)) {
-        continue;
-      }
-
       int buffer_index = (cy * buffer_width + cx);
       float current_value = buffer[buffer_index];
 
@@ -141,14 +139,14 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const int x = it.x;
     const int y = it.y;
 
-    const int start_x = std::max(0, x - delta + 1);
-    const int start_y = std::max(0, y - delta + 1);
-    const int end_x = std::min(x + delta, width);
-    const int end_y = std::min(y + delta, height);
-    const int x_len = end_x - start_x;
-    const int y_len = end_y - start_y;
+    const int start_x = std::max(0, x - delta);
+    const int start_y = std::max(0, y - delta);
+    const int end_x = std::min(x + delta, width - 1);
+    const int end_y = std::min(y + delta, height - 1);
+    const int x_len = end_x - start_x + 1;
+    const int y_len = end_y - start_y + 1;
 
-    const int total_count = x_len * y_len - 1;
+    const int total_count = x_len * y_len;
     const int threshold_count = ceil(float(total_count) * 0.9f);
     bool ok = false;
     if (delta == 0) {
@@ -163,10 +161,6 @@ void KeyingClipOperation::update_memory_buffer_partial(MemoryBuffer *output,
     for (; ok == false && row < end_row; row += row_stride) {
       const float *end_elem = row + x_len * elem_stride;
       for (const float *elem = row; ok == false && elem < end_elem; elem += elem_stride) {
-        if (UNLIKELY(elem == main_elem)) {
-          continue;
-        }
-
         const float current_value = *elem;
         if (fabsf(current_value - value) < tolerance) {
           count++;

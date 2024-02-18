@@ -19,8 +19,6 @@
 #include "BKE_DerivedMesh.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_editmesh_cache.hh"
-#include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
 #include "BKE_mesh_wrapper.hh"
@@ -230,8 +228,10 @@ const float (*BKE_editmesh_vert_coords_when_deformed(Depsgraph *depsgraph,
 
   Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
   Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object_eval);
+  Mesh *mesh_cage = BKE_object_get_editmesh_eval_cage(ob);
 
-  if (Mesh *mesh_cage = BKE_object_get_editmesh_eval_cage(ob)) {
+  if (mesh_cage && mesh_cage->runtime->deformed_only) {
+    BLI_assert(BKE_mesh_wrapper_vert_len(mesh_cage) == em->bm->totvert);
     /* Deformed, and we have deformed coords already. */
     coords = BKE_mesh_wrapper_vert_coords(mesh_cage);
   }

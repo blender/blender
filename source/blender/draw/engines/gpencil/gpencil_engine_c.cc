@@ -10,14 +10,14 @@
 
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_shader_fx.h"
 
 #include "BKE_camera.h"
-#include "BKE_global.h" /* for G.debug */
+#include "BKE_global.hh" /* for G.debug */
 
 #include "BLI_link_utils.h"
 #include "BLI_listbase.h"

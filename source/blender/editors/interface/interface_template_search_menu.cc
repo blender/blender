@@ -15,11 +15,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_shader_fx_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_dynstr.h"
@@ -31,13 +28,12 @@
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_screen.hh"
 
 #include "ED_screen.hh"
@@ -163,14 +159,14 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                                        MenuSearch_Context *wm_context,
                                                        MenuSearch_Parent *menu_parent)
 {
+  using namespace blender;
   MenuSearch_Item *item = nullptr;
 
   /* Use override if the name is empty, this can happen with popovers. */
   std::string drawstr_override;
-  const char *drawstr_sep = (but->flag & UI_BUT_HAS_SEP_CHAR) ?
-                                strrchr(but->drawstr, UI_SEP_CHAR) :
-                                nullptr;
-  const bool drawstr_is_empty = (drawstr_sep == but->drawstr) || (but->drawstr[0] == '\0');
+  const size_t sep_index = (but->flag & UI_BUT_HAS_SEP_CHAR) ? but->drawstr.find(UI_SEP_CHAR) :
+                                                               std::string::npos;
+  const bool drawstr_is_empty = sep_index == 0 || but->drawstr.empty();
 
   if (but->optype != nullptr) {
     if (drawstr_is_empty) {
@@ -215,7 +211,7 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
       /* Note that these buttons are not prevented,
        * but aren't typically used in menus. */
       printf("Button '%s' in menu '%s' is a menu item with unsupported RNA type %d\n",
-             but->drawstr,
+             but->drawstr.c_str(),
              mt->idname,
              prop_type);
     }
@@ -236,12 +232,14 @@ static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
   if (item != nullptr) {
     /* Handle shared settings. */
     if (!drawstr_override.empty()) {
-      const char *drawstr_suffix = drawstr_sep ? drawstr_sep : "";
+      const StringRef drawstr_suffix = sep_index == std::string::npos ?
+                                           "" :
+                                           StringRef(but->drawstr).drop_prefix(sep_index);
       std::string drawstr = std::string("(") + drawstr_override + ")" + drawstr_suffix;
       item->drawstr = strdup_memarena(memarena, drawstr.c_str());
     }
     else {
-      item->drawstr = strdup_memarena(memarena, but->drawstr);
+      item->drawstr = strdup_memarena(memarena, but->drawstr.c_str());
     }
 
     item->icon = ui_but_icon(but);
@@ -290,15 +288,14 @@ static bool menu_items_to_ui_button(MenuSearch_Item *item, uiBut *but)
   }
 
   if (changed) {
-    STRNCPY(but->drawstr, item->drawstr);
-    char *drawstr_sep = (item->state & UI_BUT_HAS_SEP_CHAR) ? strrchr(but->drawstr, UI_SEP_CHAR) :
-                                                              nullptr;
-    if (drawstr_sep) {
-      *drawstr_sep = '\0';
+    but->drawstr = item->drawstr;
+    const size_t sep_index = but->drawstr.find(UI_SEP_CHAR);
+
+    if (sep_index != std::string::npos) {
+      but->drawstr.resize(sep_index);
     }
 
     but->icon = item->icon;
-    but->str = but->strdata;
   }
 
   return changed;
@@ -708,7 +705,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           }
 
           if (but_test == nullptr) {
-            menu_display_name_map.add(mt, strdup_memarena(memarena, but->drawstr));
+            menu_display_name_map.add(mt, strdup_memarena(memarena, but->drawstr.c_str()));
           }
         }
         else if (menu_items_from_ui_create_item_from_button(
@@ -731,14 +728,14 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
              * we only want to do that for the last menu item, not the path that leads to it.
              */
             const char *drawstr_sep = but->flag & UI_BUT_HAS_SEP_CHAR ?
-                                          strrchr(but->drawstr, UI_SEP_CHAR) :
+                                          strrchr(but->drawstr.c_str(), UI_SEP_CHAR) :
                                           nullptr;
             bool drawstr_is_empty = false;
             if (drawstr_sep != nullptr) {
               BLI_assert(BLI_dynstr_get_len(dyn_str) == 0);
               /* Detect empty string, fallback to menu name. */
-              const char *drawstr = but->drawstr;
-              int drawstr_len = drawstr_sep - but->drawstr;
+              const char *drawstr = but->drawstr.c_str();
+              int drawstr_len = drawstr_sep - but->drawstr.c_str();
               if (UNLIKELY(drawstr_len == 0)) {
                 drawstr = CTX_IFACE_(mt_from_but->translation_context, mt_from_but->label);
                 drawstr_len = strlen(drawstr);
@@ -752,7 +749,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
               BLI_dynstr_clear(dyn_str);
             }
             else {
-              const char *drawstr = but->drawstr;
+              const char *drawstr = but->drawstr.c_str();
               if (UNLIKELY(drawstr[0] == '\0')) {
                 drawstr = CTX_IFACE_(mt_from_but->translation_context, mt_from_but->label);
                 if (drawstr[0] == '\0') {
@@ -793,7 +790,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
               memarena, sizeof(*menu_parent));
-          menu_parent->drawstr = strdup_memarena(memarena, but->drawstr);
+          menu_parent->drawstr = strdup_memarena(memarena, but->drawstr.c_str());
           menu_parent->parent = current_menu.self_as_parent;
 
           LISTBASE_FOREACH (uiBut *, sub_but, &sub_block->buttons) {
@@ -802,14 +799,15 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
           }
 
           if (region) {
-            BLI_ghash_remove(region->runtime.block_name_map, sub_block->name, nullptr, nullptr);
+            BLI_ghash_remove(
+                region->runtime.block_name_map, sub_block->name.c_str(), nullptr, nullptr);
             BLI_remlink(&region->uiblocks, sub_block);
           }
           UI_block_free(nullptr, sub_block);
         }
       }
       if (region) {
-        BLI_ghash_remove(region->runtime.block_name_map, block->name, nullptr, nullptr);
+        BLI_ghash_remove(region->runtime.block_name_map, block->name.c_str(), nullptr, nullptr);
         BLI_remlink(&region->uiblocks, block);
       }
       UI_block_free(nullptr, block);
@@ -863,9 +861,8 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
       wmKeyMapItem *kmi = menu_to_kmi.lookup_default(item->mt, nullptr);
       if (kmi != nullptr) {
-        char kmi_str[128];
-        WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
-        BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str);
+        std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
+        BLI_dynstr_appendf(dyn_str, " (%s)", kmi_str.c_str());
       }
 
       BLI_dynstr_append(dyn_str, " " UI_MENU_ARROW_SEP " ");

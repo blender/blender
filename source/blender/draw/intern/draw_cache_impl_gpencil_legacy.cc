@@ -11,7 +11,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 
@@ -615,7 +615,7 @@ static void gpencil_sbuffer_stroke_ensure(bGPdata *gpd, bool do_fill)
 
     for (int i = 0; i < vert_len; i++) {
       ED_gpencil_tpoint_to_point(region, origin, &tpoints[i], &gps->points[i]);
-      mul_m4_v3(ob->world_to_object, &gps->points[i].x);
+      mul_m4_v3(ob->world_to_object().ptr(), &gps->points[i].x);
       bGPDspoint *pt = &gps->points[i];
       copy_v4_v4(pt->vert_color, tpoints[i].vert_color);
     }

@@ -18,30 +18,14 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_fcurve.h"
-#include "BKE_movieclip.h"
-#include "BKE_scene.h"
 #include "BKE_sound.h"
 
-#include "DNA_anim_types.h"
-#include "DNA_sound_types.h"
-
-#include "IMB_imbuf.h"
-
-#include "RNA_prototypes.h"
-
-#include "SEQ_channels.hh"
-#include "SEQ_iterator.hh"
-#include "SEQ_relations.hh"
-#include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
-#include "SEQ_transform.hh"
 
 #include "sequencer.hh"
 #include "strip_time.hh"
-#include "utils.hh"
 
 using blender::MutableSpan;
 
@@ -189,8 +173,8 @@ static void seq_retiming_line_segments_tangent_circle(const SeqRetimingKey *star
   sub_v2_v2v2_db(v1, s1_1, s1_2);
   sub_v2_v2v2_db(v2, s2_1, s2_2);
   /* Rotate segments by 90 degrees around seg. 1 end and seg. 2 start point. */
-  SWAP(double, v1[0], v1[1]);
-  SWAP(double, v2[0], v2[1]);
+  std::swap(v1[0], v1[1]);
+  std::swap(v2[0], v2[1]);
   v1[0] *= -1;
   v2[0] *= -1;
   copy_v2_v2_db(s1_1, s1_2);
@@ -328,46 +312,34 @@ SeqRetimingKey *SEQ_retiming_add_key(const Scene *scene, Sequence *seq, const in
   return added_key;
 }
 
-void SEQ_retiming_offset_transition_key(const Scene *scene,
-                                        const Sequence *seq,
-                                        SeqRetimingKey *key,
-                                        const int offset)
+void SEQ_retiming_transition_key_frame_set(const Scene * /*scene */,
+                                           const Sequence *seq,
+                                           SeqRetimingKey *key,
+                                           const int timeline_frame)
 {
-  SeqRetimingKey *key_start, *key_end;
-  int corrected_offset;
-
-  if (SEQ_retiming_key_is_transition_type(key)) {
-    key_start = key;
-    key_end = key + 1;
-    corrected_offset = offset;
-  }
-  else {
-    key_start = key - 1;
-    key_end = key;
-    corrected_offset = -1 * offset;
-  }
-
-  /* Prevent transition keys crossing each other. */
-  const float start_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key_start);
-  const float end_frame = SEQ_retiming_key_timeline_frame_get(scene, seq, key_end);
-  int xmax = ((start_frame + end_frame) / 2) - 1;
-  int max_offset = xmax - start_frame;
-  corrected_offset = min_ii(corrected_offset, max_offset);
-  /* Prevent mirrored movement crossing any key. */
-  SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
-  const int offset_min_left = SEQ_retiming_key_timeline_frame_get(scene, seq, prev_segment_end) +
-                              1 - start_frame;
-  const int offset_min_right =
-      end_frame - SEQ_retiming_key_timeline_frame_get(scene, seq, next_segment_start) - 1;
-  corrected_offset = max_iii(corrected_offset, offset_min_left, offset_min_right);
-
+  SeqRetimingKey *key_start = SEQ_retiming_transition_start_get(key);
+  SeqRetimingKey *key_end = key_start + 1;
+  const int start_frame_index = key_start->strip_frame_index;
+  const int midpoint = key_start->original_strip_frame_index;
+  const int new_frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
+  int new_midpoint_offset = new_frame_index - midpoint;
   const float prev_segment_step = seq_retiming_segment_step_get(key_start - 1);
   const float next_segment_step = seq_retiming_segment_step_get(key_end);
 
-  key_start->strip_frame_index += corrected_offset;
-  key_start->retiming_factor += corrected_offset * prev_segment_step;
-  key_end->strip_frame_index -= corrected_offset;
-  key_end->retiming_factor -= corrected_offset * next_segment_step;
+  /* Prevent keys crossing eachother. */
+  SeqRetimingKey *prev_segment_end = key_start - 1, *next_segment_start = key_end + 1;
+  const int offset_max_left = midpoint - prev_segment_end->strip_frame_index - 1;
+  const int offset_max_right = next_segment_start->strip_frame_index - midpoint - 1;
+  new_midpoint_offset = abs(new_midpoint_offset);
+  new_midpoint_offset = min_iii(new_midpoint_offset, offset_max_left, offset_max_right);
+  new_midpoint_offset = max_ii(new_midpoint_offset, 1);
+
+  key_start->strip_frame_index = midpoint - new_midpoint_offset;
+  key_end->strip_frame_index = midpoint + new_midpoint_offset;
+
+  const int offset = key_start->strip_frame_index - start_frame_index;
+  key_start->retiming_factor += offset * prev_segment_step;
+  key_end->retiming_factor -= offset * next_segment_step;
 }
 
 static void seq_retiming_cleanup_freeze_frame(SeqRetimingKey *key)
@@ -539,7 +511,7 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
 
   /* Tag previous key as freeze frame key. This is only a convenient way to prevent creating
    * speed transitions. When freeze frame is deleted, this flag should be cleared. */
-  return new_key;
+  return new_key + 1;
 }
 
 SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
@@ -579,7 +551,7 @@ SeqRetimingKey *SEQ_retiming_add_transition(const Scene *scene,
   transition_in->original_retiming_factor = orig_retiming_factor;
 
   seq_retiming_remove_key_ex(seq, seq->retiming_keys + orig_key_index + 1);
-  return seq->retiming_keys + orig_key_index;
+  return seq->retiming_keys + orig_key_index + 1;
 }
 
 float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key)

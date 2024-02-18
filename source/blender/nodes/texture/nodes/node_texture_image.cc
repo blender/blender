@@ -9,8 +9,7 @@
 #include "BKE_image.h"
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
-#include "IMB_imbuf.h"
-#include "NOD_texture.h"
+#include "IMB_imbuf.hh"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 

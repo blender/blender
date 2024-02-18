@@ -6,6 +6,7 @@
  * \ingroup intern_mantaflow
  */
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -60,6 +61,7 @@ MANTA::MANTA(int *res, FluidModifierData *fmd)
   mUsingDiffusion = (fds->flags & FLUID_DOMAIN_USE_DIFFUSION) && mUsingLiquid;
   mUsingViscosity = (fds->flags & FLUID_DOMAIN_USE_VISCOSITY) && mUsingLiquid;
   mUsingMVel = (fds->flags & FLUID_DOMAIN_USE_SPEED_VECTORS) && mUsingLiquid;
+  mUsingGuiding = (fds->flags & FLUID_DOMAIN_USE_GUIDE);
   mUsingDrops = (fds->particle_type & FLUID_DOMAIN_PARTICLE_SPRAY) && mUsingLiquid;
   mUsingBubbles = (fds->particle_type & FLUID_DOMAIN_PARTICLE_BUBBLE) && mUsingLiquid;
   mUsingFloats = (fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) && mUsingLiquid;
@@ -69,7 +71,6 @@ MANTA::MANTA(int *res, FluidModifierData *fmd)
   mUsingFire = (fds->active_fields & FLUID_DOMAIN_ACTIVE_FIRE) && mUsingSmoke;
   mUsingColors = (fds->active_fields & FLUID_DOMAIN_ACTIVE_COLORS) && mUsingSmoke;
   mUsingObstacle = (fds->active_fields & FLUID_DOMAIN_ACTIVE_OBSTACLE);
-  mUsingGuiding = (fds->active_fields & FLUID_DOMAIN_ACTIVE_GUIDE);
   mUsingInvel = (fds->active_fields & FLUID_DOMAIN_ACTIVE_INVEL);
   mUsingOutflow = (fds->active_fields & FLUID_DOMAIN_ACTIVE_OUTFLOW);
 
@@ -593,7 +594,7 @@ MANTA::~MANTA()
  * with some differences:
  * - Doesn't touch `sys.modules`, use #manta_python_main_module_activate instead.
  * - Returns the module instead of the modules `dict`.
- * */
+ */
 static PyObject *manta_python_main_module_create(const char *filename)
 {
   PyObject *builtins = PyEval_GetBuiltins();
@@ -830,7 +831,7 @@ void MANTA::initializeRNAMap(FluidModifierData *fmd)
   string cacheDirectory(fds->cache_directory);
 
   float viscosity = fds->viscosity_base * pow(10.0f, -fds->viscosity_exponent);
-  float domainSize = MAX3(fds->global_size[0], fds->global_size[1], fds->global_size[2]);
+  float domainSize = std::max({fds->global_size[0], fds->global_size[1], fds->global_size[2]});
 
   string vdbCompressionMethod = "Compression_None";
   if (fds->openvdb_compression == VDB_COMPRESSION_NONE) {

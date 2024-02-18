@@ -10,19 +10,19 @@
 
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "IMB_colormanagement.h"
-
-#include "DEG_depsgraph.hh"
+#include "IMB_colormanagement.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -85,20 +85,23 @@ static void color_filter_task(Object *ob,
   SCULPT_orig_vert_data_init(&orig_data, ob, node, undo::Type::Color);
 
   auto_mask::NodeData automask_data = auto_mask::node_begin(
-      *ob, ss->filter_cache->automasking, *node);
+      *ob, ss->filter_cache->automasking.get(), *node);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     auto_mask::node_update(automask_data, vd);
 
-    float orig_color[3], final_color[4], hsv_color[3];
+    float3 orig_color;
+    float4 final_color;
+    float3 hsv_color;
     int hue;
     float brightness, contrast, gain, delta, offset;
     float fade = vd.mask;
     fade = 1.0f - fade;
     fade *= filter_strength;
-    fade *= auto_mask::factor_get(ss->filter_cache->automasking, ss, vd.vertex, &automask_data);
+    fade *= auto_mask::factor_get(
+        ss->filter_cache->automasking.get(), ss, vd.vertex, &automask_data);
     if (fade == 0.0f) {
       continue;
     }
@@ -208,7 +211,7 @@ static void color_filter_task(Object *ob,
           blend_color_interpolate_float(final_color, col, smooth_color, fade);
         }
 
-        CLAMP4(final_color, 0.0f, 1.0f);
+        final_color = math::clamp(final_color, 0.0f, 1.0f);
 
         /* Prevent accumulated numeric error from corrupting alpha. */
         if (copy_alpha) {
@@ -328,6 +331,11 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   SculptSession *ss = ob->sculpt;
   View3D *v3d = CTX_wm_view3d(C);
 
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);
   float mval_fl[2] = {float(mval[0]), float(mval[1])};
@@ -368,7 +376,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
                      RNA_float_get(op->ptr, "strength"));
   filter::Cache *filter_cache = ss->filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  filter_cache->automasking = auto_mask::cache_init(sd, nullptr, ob);
+  filter_cache->automasking = auto_mask::cache_init(sd, ob);
 
   return OPERATOR_PASS_THROUGH;
 }

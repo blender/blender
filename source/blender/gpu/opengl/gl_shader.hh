@@ -12,11 +12,49 @@
 
 #include <epoxy/gl.h>
 
+#include "BLI_map.hh"
+
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
 
 namespace blender {
+template<>
+struct DefaultHash<Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant::Value>> {
+  uint64_t operator()(
+      const Vector<gpu::shader::ShaderCreateInfo::SpecializationConstant::Value> &key) const
+  {
+    uint64_t hash = 0;
+    for (const gpu::shader::ShaderCreateInfo::SpecializationConstant::Value &value : key) {
+      hash = hash * 33 + value.u;
+    }
+    return hash;
+  }
+};
+
 namespace gpu {
+
+/**
+ * Shaders that uses specialization constants must keep track of the sources in order to rebuild
+ * shader stages.
+ *
+ * Some sources are shared and won't be copied. For example for dependencies. In this case we
+ * would only store the source_ref.
+ *
+ * Other sources would be stored in the #source attribute. #source_ref
+ * would still be updated.
+ */
+struct GLSource {
+  std::string source;
+  const char *source_ref;
+
+  GLSource() = default;
+  GLSource(const char *other_source);
+};
+class GLSources : public Vector<GLSource> {
+ public:
+  GLSources &operator=(Span<const char *> other);
+  Vector<const char *> sources_get() const;
+};
 
 /**
  * Implementation of shader compilation and uniforms handling using OpenGL.
@@ -26,13 +64,76 @@ class GLShader : public Shader {
   friend shader::StageInterfaceInfo;
 
  private:
-  /** Handle for full program (links shader stages below). */
-  GLuint shader_program_ = 0;
-  /** Individual shader stages. */
-  GLuint vert_shader_ = 0;
-  GLuint geom_shader_ = 0;
-  GLuint frag_shader_ = 0;
-  GLuint compute_shader_ = 0;
+  struct GLProgram {
+    /** Handle for program. */
+    GLuint program_id = 0;
+    /** Handle for individual shader stages. */
+    GLuint vert_shader = 0;
+    GLuint geom_shader = 0;
+    GLuint frag_shader = 0;
+    GLuint compute_shader = 0;
+
+    GLProgram() {}
+    GLProgram(GLProgram &&other)
+    {
+      program_id = other.program_id;
+      vert_shader = other.vert_shader;
+      geom_shader = other.geom_shader;
+      frag_shader = other.frag_shader;
+      compute_shader = other.compute_shader;
+      other.program_id = 0;
+      other.vert_shader = 0;
+      other.geom_shader = 0;
+      other.frag_shader = 0;
+      other.compute_shader = 0;
+    }
+    ~GLProgram();
+  };
+
+  using GLProgramCacheKey = Vector<shader::ShaderCreateInfo::SpecializationConstant::Value>;
+  Map<GLProgramCacheKey, GLProgram> program_cache_;
+
+  /**
+   * Points to the active program. When binding a shader the active program is
+   * setup.
+   */
+  GLProgram *program_active_ = nullptr;
+
+  /**
+   * When the shader uses Specialization Constants these attribute contains the sources to
+   * rebuild shader stages. When Specialization Constants aren't used they are empty to
+   * reduce memory needs.
+   */
+  GLSources vertex_sources_;
+  GLSources geometry_sources_;
+  GLSources fragment_sources_;
+  GLSources compute_sources_;
+
+  Vector<const char *> specialization_constant_names_;
+
+  /**
+   * Initialize an this instance.
+   *
+   * - Ensures that program_cache at least has a default GLProgram.
+   * - Ensures that active program is set.
+   * - Active GLProgram has a shader_program (at least in creation state).
+   * - Does nothing when instance was already initialized.
+   */
+  void init_program();
+
+  void update_program_and_sources(GLSources &stage_sources, MutableSpan<const char *> sources);
+
+  /**
+   * Link the active program.
+   */
+  bool program_link();
+
+  /**
+   * Return a GLProgram program id that reflects the current state of shader.constants.values.
+   * The returned program_id is in linked state, or an error happened during linking.
+   */
+  GLuint program_get();
+
   /** True if any shader failed to compile. */
   bool compilation_failed_ = false;
 
@@ -41,6 +142,8 @@ class GLShader : public Shader {
  public:
   GLShader(const char *name);
   ~GLShader();
+
+  void init(const shader::ShaderCreateInfo &info) override;
 
   /** Return true on success. */
   void vertex_shader_from_glsl(MutableSpan<const char *> sources) override;
@@ -51,6 +154,7 @@ class GLShader : public Shader {
   void warm_cache(int /*limit*/) override{};
 
   std::string resources_declare(const shader::ShaderCreateInfo &info) const override;
+  std::string constants_declare() const;
   std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const override;
   std::string fragment_interface_declare(const shader::ShaderCreateInfo &info) const override;
   std::string geometry_interface_declare(const shader::ShaderCreateInfo &info) const override;
@@ -84,14 +188,22 @@ class GLShader : public Shader {
 
   bool is_compute() const
   {
-    return compute_shader_ != 0;
+    if (!vertex_sources_.is_empty()) {
+      return false;
+    }
+    if (!compute_sources_.is_empty()) {
+      return true;
+    }
+    return program_active_->compute_shader != 0;
   }
 
  private:
   const char *glsl_patch_get(GLenum gl_stage);
 
   /** Create, compile and attach the shader stage to the shader program. */
-  GLuint create_shader_stage(GLenum gl_stage, MutableSpan<const char *> sources);
+  GLuint create_shader_stage(GLenum gl_stage,
+                             MutableSpan<const char *> sources,
+                             const GLSources &gl_sources);
 
   /**
    * \brief features available on newer implementation such as native barycentric coordinates

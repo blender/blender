@@ -34,14 +34,14 @@
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_key.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
@@ -109,13 +109,13 @@ static float *dm_getVertArray(DerivedMesh *dm)
   return (float *)positions;
 }
 
-static vec2i *dm_getEdgeArray(DerivedMesh *dm)
+static blender::int2 *dm_getEdgeArray(DerivedMesh *dm)
 {
-  vec2i *edge = (vec2i *)CustomData_get_layer_named_for_write(
+  blender::int2 *edge = (blender::int2 *)CustomData_get_layer_named_for_write(
       &dm->edgeData, CD_PROP_INT32_2D, ".edge_verts", dm->getNumEdges(dm));
 
   if (!edge) {
-    edge = (vec2i *)CustomData_add_layer_named(
+    edge = (blender::int2 *)CustomData_add_layer_named(
         &dm->edgeData, CD_PROP_INT32_2D, CD_SET_DEFAULT, dm->getNumEdges(dm), ".edge_verts");
     CustomData_set_layer_flag(&dm->edgeData, CD_PROP_INT32_2D, CD_FLAG_TEMPORARY);
     dm->copyEdgeArray(dm, edge);
@@ -357,9 +357,9 @@ static float (*get_orco_coords(Object *ob, BMEditMesh *em, int layer, int *free)
     if (!em) {
       ClothModifierData *clmd = (ClothModifierData *)BKE_modifiers_findby_type(
           ob, eModifierType_Cloth);
-      if (clmd) {
-        KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob),
-                                             clmd->sim_parms->shapekey_rest);
+      if (clmd && clmd->sim_parms->shapekey_rest) {
+        KeyBlock *kb = BKE_keyblock_find_by_index(BKE_key_from_object(ob),
+                                                  clmd->sim_parms->shapekey_rest);
 
         if (kb && kb->data) {
           return (float(*)[3])kb->data;

@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
@@ -15,39 +17,33 @@
 #include "DNA_modifier_types.h" /* for handling geometry nodes properties */
 #include "DNA_object_types.h"   /* for OB_DATA_SUPPORT_ID */
 #include "DNA_screen_types.h"
-#include "DNA_text_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 
-#include "BLF_api.h"
-#include "BLT_lang.h"
-#include "BLT_translation.h"
+#include "BLF_api.hh"
+#include "BLT_lang.hh"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_idprop.h"
-#include "BKE_idtype.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_idtype.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
-#include "BKE_text.h"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "UI_interface.hh"
 
@@ -64,10 +60,8 @@
 #include "ED_keyframing.hh"
 
 /* only for UI_OT_editsource */
-#include "BKE_main.hh"
 #include "BLI_ghash.h"
 #include "ED_screen.hh"
-#include "ED_text.hh"
 
 using namespace blender::ui;
 
@@ -105,16 +99,12 @@ static bool copy_data_path_button_poll(bContext *C)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
-  char *path;
   int index;
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop) {
-    path = RNA_path_from_ID_to_property(&ptr, prop);
-
-    if (path) {
-      MEM_freeN(path);
+    if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       return true;
     }
   }
@@ -127,7 +117,6 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   PointerRNA ptr;
   PropertyRNA *prop;
-  char *path;
   int index;
   ID *id;
 
@@ -136,6 +125,7 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
   /* try to create driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
+  std::optional<std::string> path;
   if (ptr.owner_id != nullptr) {
     if (full_path) {
       if (prop) {
@@ -155,8 +145,7 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *op)
     }
 
     if (path) {
-      WM_clipboard_text_set(path, false);
-      MEM_freeN(path);
+      WM_clipboard_text_set(path->c_str(), false);
       return OPERATOR_FINISHED;
     }
   }
@@ -195,7 +184,6 @@ static bool copy_as_driver_button_poll(bContext *C)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
-  char *path;
   int index;
 
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
@@ -204,10 +192,7 @@ static bool copy_as_driver_button_poll(bContext *C)
       ELEM(RNA_property_type(prop), PROP_BOOLEAN, PROP_INT, PROP_FLOAT, PROP_ENUM) &&
       (index >= 0 || !RNA_property_array_check(prop)))
   {
-    path = RNA_path_from_ID_to_property(&ptr, prop);
-
-    if (path) {
-      MEM_freeN(path);
+    if (const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop)) {
       return true;
     }
   }
@@ -228,11 +213,10 @@ static int copy_as_driver_button_exec(bContext *C, wmOperator *op)
   if (ptr.owner_id && ptr.data && prop) {
     ID *id;
     const int dim = RNA_property_array_dimension(&ptr, prop, nullptr);
-    char *path = RNA_path_from_real_ID_to_property_index(bmain, &ptr, prop, dim, index, &id);
-
-    if (path) {
-      ANIM_copy_as_driver(id, path, RNA_property_identifier(prop));
-      MEM_freeN(path);
+    if (const std::optional<std::string> path = RNA_path_from_real_ID_to_property_index(
+            bmain, &ptr, prop, dim, index, &id))
+    {
+      ANIM_copy_as_driver(id, path->c_str(), RNA_property_identifier(prop));
       return OPERATOR_FINISHED;
     }
 
@@ -283,15 +267,12 @@ static int copy_python_command_button_exec(bContext *C, wmOperator * /*op*/)
   uiBut *but = UI_context_active_but_get(C);
 
   if (but && (but->optype != nullptr)) {
-    PointerRNA *opptr;
-    char *str;
-    opptr = UI_but_operator_ptr_get(but); /* allocated when needed, the button owns it */
+    /* allocated when needed, the button owns it */
+    PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
 
-    str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
+    std::string str = WM_operator_pystring_ex(C, nullptr, false, true, but->optype, opptr);
 
-    WM_clipboard_text_set(str, false);
-
-    MEM_freeN(str);
+    WM_clipboard_text_set(str.c_str(), false);
 
     return OPERATOR_FINISHED;
   }
@@ -1080,12 +1061,11 @@ bool UI_context_copy_to_selected_list(bContext *C,
                                       PropertyRNA *prop,
                                       ListBase *r_lb,
                                       bool *r_use_path_from_id,
-                                      char **r_path)
+                                      std::optional<std::string> *r_path)
 {
   *r_use_path_from_id = false;
-  *r_path = nullptr;
+  *r_path = std::nullopt;
   /* special case for bone constraints */
-  char *path_from_bone = nullptr;
   const bool is_rna = !RNA_property_is_idprop(prop);
   /* Remove links from the collection list which don't contain 'prop'. */
   bool ensure_list_items_contain_prop = false;
@@ -1100,34 +1080,34 @@ bool UI_context_copy_to_selected_list(bContext *C,
    */
   if (is_rna && RNA_struct_is_a(ptr->type, &RNA_PropertyGroup)) {
     PointerRNA owner_ptr;
-    char *idpath = nullptr;
+    std::optional<std::string> idpath;
 
     /* First, check the active PoseBone and PoseBone->Bone. */
     if (NOT_RNA_NULL(owner_ptr = CTX_data_pointer_get_type(C, "active_pose_bone", &RNA_PoseBone)))
     {
-      if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                       &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
-      {
+      idpath = RNA_path_from_struct_to_idproperty(&owner_ptr,
+                                                  static_cast<const IDProperty *>(ptr->data));
+      if (idpath) {
         *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
       }
       else {
         bPoseChannel *pchan = static_cast<bPoseChannel *>(owner_ptr.data);
         owner_ptr = RNA_pointer_create(owner_ptr.owner_id, &RNA_Bone, pchan->bone);
-
-        if (NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                         &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
-        {
+        idpath = RNA_path_from_struct_to_idproperty(&owner_ptr,
+                                                    static_cast<const IDProperty *>(ptr->data));
+        if (idpath) {
           ui_context_selected_bones_via_pose(C, r_lb);
         }
       }
     }
 
-    if (idpath == nullptr) {
+    if (!idpath) {
       /* Check the active EditBone if in edit mode. */
+      idpath = RNA_path_from_struct_to_idproperty(&owner_ptr,
+                                                  static_cast<const IDProperty *>(ptr->data));
       if (NOT_RNA_NULL(
               owner_ptr = CTX_data_pointer_get_type_silent(C, "active_bone", &RNA_EditBone)) &&
-          NOT_NULL(idpath = RNA_path_from_struct_to_idproperty(
-                       &owner_ptr, static_cast<const IDProperty *>(ptr->data))))
+          idpath)
       {
         *r_lb = CTX_data_collection_get(C, "selected_editable_bones");
       }
@@ -1136,8 +1116,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
     }
 
     if (idpath) {
-      *r_path = BLI_sprintfN("%s.%s", idpath, RNA_property_identifier(prop));
-      MEM_freeN(idpath);
+      *r_path = fmt::format("{}.{}", *idpath, RNA_property_identifier(prop));
       return true;
     }
   }
@@ -1224,16 +1203,16 @@ bool UI_context_copy_to_selected_list(bContext *C,
   else if (RNA_struct_is_a(ptr->type, &RNA_MovieTrackingTrack)) {
     *r_lb = CTX_data_collection_get(C, "selected_movieclip_tracks");
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Constraint) &&
-           (path_from_bone = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone)) !=
-               nullptr)
+  else if (const std::optional<std::string> path_from_bone =
+               RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_PoseBone);
+           RNA_struct_is_a(ptr->type, &RNA_Constraint) && path_from_bone)
   {
     *r_lb = CTX_data_collection_get(C, "selected_pose_bones");
     *r_path = path_from_bone;
   }
   else if (RNA_struct_is_a(ptr->type, &RNA_Node) || RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
     ListBase lb = {nullptr, nullptr};
-    char *path = nullptr;
+    std::optional<std::string> path;
     bNode *node = nullptr;
 
     /* Get the node we're editing */
@@ -1241,7 +1220,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
       bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
       bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
       if (nodeFindNodeTry(ntree, sock, &node, nullptr)) {
-        if ((path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node)) != nullptr) {
+        path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node);
+        if (path) {
           /* we're good! */
         }
         else {
@@ -1282,7 +1262,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
       /* check we're using the active object */
       const short id_code = GS(id->name);
       ListBase lb = CTX_data_collection_get(C, "selected_editable_objects");
-      char *path = RNA_path_from_ID_to_property(ptr, prop);
+      const std::optional<std::string> path = RNA_path_from_ID_to_property(ptr, prop);
 
       /* de-duplicate obdata */
       if (!BLI_listbase_is_empty(&lb)) {
@@ -1322,8 +1302,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
       /* Sequencer's ID is scene :/ */
       /* Try to recursively find an RNA_Sequence ancestor,
        * to handle situations like #41062... */
-      if ((*r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence)) != nullptr)
-      {
+      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence);
+      if (r_path->has_value()) {
         /* Special case when we do this for 'Sequence.lock'.
          * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
         const char *prop_id = RNA_property_identifier(prop);
@@ -1340,14 +1320,14 @@ bool UI_context_copy_to_selected_list(bContext *C,
         }
       }
     }
-    return (*r_path != nullptr);
+    return r_path->has_value();
   }
   else {
     return false;
   }
 
   if (RNA_property_is_idprop(prop)) {
-    if (*r_path == nullptr) {
+    if (!r_path->has_value()) {
       *r_path = RNA_path_from_ptr_to_property_index(ptr, prop, 0, -1);
       BLI_assert(*r_path);
     }
@@ -1374,7 +1354,8 @@ bool UI_context_copy_to_selected_list(bContext *C,
       LISTBASE_FOREACH_MUTABLE (CollectionPointerLink *, link, r_lb) {
         PointerRNA lptr;
         PropertyRNA *lprop = nullptr;
-        RNA_path_resolve_property(&link->ptr, *r_path, &lptr, &lprop);
+        RNA_path_resolve_property(
+            &link->ptr, r_path->has_value() ? r_path->value().c_str() : nullptr, &lptr, &lprop);
 
         bool remove = false;
         if (lprop == nullptr) {
@@ -1520,7 +1501,7 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
   }
 
   bool success = false;
-  char *path = nullptr;
+  std::optional<std::string> path;
   bool use_path_from_id;
   ListBase lb = {nullptr};
 
@@ -1530,8 +1511,13 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
         continue;
       }
 
-      if (!UI_context_copy_to_selected_check(
-              &ptr, &link->ptr, prop, path, use_path_from_id, &lptr, &lprop))
+      if (!UI_context_copy_to_selected_check(&ptr,
+                                             &link->ptr,
+                                             prop,
+                                             path.has_value() ? path->c_str() : nullptr,
+                                             use_path_from_id,
+                                             &lptr,
+                                             &lprop))
       {
         continue;
       }
@@ -1547,7 +1533,6 @@ static bool copy_to_selected_button(bContext *C, bool all, bool poll)
     }
   }
 
-  MEM_SAFE_FREE(path);
   BLI_freelistN(&lb);
 
   return success;
@@ -1801,8 +1786,7 @@ static bool ui_editsource_uibut_match(uiBut *but_a, uiBut *but_b)
    * if this fails it only means edit-source fails - campbell */
   if (BLI_rctf_compare(&but_a->rect, &but_b->rect, FLT_EPSILON) && (but_a->type == but_b->type) &&
       (but_a->rnaprop == but_b->rnaprop) && (but_a->optype == but_b->optype) &&
-      (but_a->unit_type == but_b->unit_type) &&
-      STREQLEN(but_a->drawstr, but_b->drawstr, UI_MAX_DRAW_STR))
+      (but_a->unit_type == but_b->unit_type) && but_a->drawstr == but_b->drawstr)
   {
     return true;
   }
@@ -2010,17 +1994,6 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
   const char *root = U.i18ndir;
   const char *uilng = BLT_lang_get();
 
-  uiStringInfo but_label = {BUT_GET_LABEL, nullptr};
-  uiStringInfo rna_label = {BUT_GET_RNA_LABEL, nullptr};
-  uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, nullptr};
-  uiStringInfo but_tip = {BUT_GET_TIP, nullptr};
-  uiStringInfo rna_tip = {BUT_GET_RNA_TIP, nullptr};
-  uiStringInfo enum_tip = {BUT_GET_RNAENUM_TIP, nullptr};
-  uiStringInfo rna_struct = {BUT_GET_RNASTRUCT_IDENTIFIER, nullptr};
-  uiStringInfo rna_prop = {BUT_GET_RNAPROP_IDENTIFIER, nullptr};
-  uiStringInfo rna_enum = {BUT_GET_RNAENUM_IDENTIFIER, nullptr};
-  uiStringInfo rna_ctxt = {BUT_GET_RNA_LABEL_CONTEXT, nullptr};
-
   if (!BLI_is_dir(root)) {
     BKE_report(op->reports,
                RPT_ERROR,
@@ -2046,66 +2019,27 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  UI_but_string_info_get(C,
-                         but,
-                         &but_label,
-                         &rna_label,
-                         &enum_label,
-                         &but_tip,
-                         &rna_tip,
-                         &enum_tip,
-                         &rna_struct,
-                         &rna_prop,
-                         &rna_enum,
-                         &rna_ctxt,
-                         nullptr);
-
   WM_operator_properties_create_ptr(&ptr, ot);
   RNA_string_set(&ptr, "lang", uilng);
   RNA_string_set(&ptr, "po_file", popath);
-  RNA_string_set(&ptr, "but_label", but_label.strinfo);
-  RNA_string_set(&ptr, "rna_label", rna_label.strinfo);
-  RNA_string_set(&ptr, "enum_label", enum_label.strinfo);
-  RNA_string_set(&ptr, "but_tip", but_tip.strinfo);
-  RNA_string_set(&ptr, "rna_tip", rna_tip.strinfo);
-  RNA_string_set(&ptr, "enum_tip", enum_tip.strinfo);
-  RNA_string_set(&ptr, "rna_struct", rna_struct.strinfo);
-  RNA_string_set(&ptr, "rna_prop", rna_prop.strinfo);
-  RNA_string_set(&ptr, "rna_enum", rna_enum.strinfo);
-  RNA_string_set(&ptr, "rna_ctxt", rna_ctxt.strinfo);
-  const int ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
 
-  /* Clean up */
-  if (but_label.strinfo) {
-    MEM_freeN(but_label.strinfo);
-  }
-  if (rna_label.strinfo) {
-    MEM_freeN(rna_label.strinfo);
-  }
-  if (enum_label.strinfo) {
-    MEM_freeN(enum_label.strinfo);
-  }
-  if (but_tip.strinfo) {
-    MEM_freeN(but_tip.strinfo);
-  }
-  if (rna_tip.strinfo) {
-    MEM_freeN(rna_tip.strinfo);
-  }
-  if (enum_tip.strinfo) {
-    MEM_freeN(enum_tip.strinfo);
-  }
-  if (rna_struct.strinfo) {
-    MEM_freeN(rna_struct.strinfo);
-  }
-  if (rna_prop.strinfo) {
-    MEM_freeN(rna_prop.strinfo);
-  }
-  if (rna_enum.strinfo) {
-    MEM_freeN(rna_enum.strinfo);
-  }
-  if (rna_ctxt.strinfo) {
-    MEM_freeN(rna_ctxt.strinfo);
-  }
+  const EnumPropertyItem enum_item = UI_but_rna_enum_item_get(*C, *but).value_or(
+      EnumPropertyItem{});
+  RNA_string_set(&ptr, "enum_label", enum_item.name);
+  RNA_string_set(&ptr, "enum_tip", enum_item.description);
+  RNA_string_set(&ptr, "rna_enum", enum_item.identifier);
+
+  RNA_string_set(&ptr, "but_label", UI_but_string_get_label(*but).c_str());
+  RNA_string_set(&ptr, "rna_label", UI_but_string_get_rna_label(*but).c_str());
+
+  RNA_string_set(&ptr, "but_tip", UI_but_string_get_tooltip(*C, *but).c_str());
+  RNA_string_set(&ptr, "rna_tip", UI_but_string_get_rna_tooltip(*C, *but).c_str());
+
+  RNA_string_set(&ptr, "rna_struct", UI_but_string_get_rna_struct_identifier(*but).c_str());
+  RNA_string_set(&ptr, "rna_prop", UI_but_string_get_rna_property_identifier(*but).c_str());
+  RNA_string_set(&ptr, "rna_ctxt", UI_but_string_get_rna_label_context(*but).c_str());
+
+  const int ret = WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
 
   return ret;
 }
@@ -2622,7 +2556,7 @@ static int ui_drop_material_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 
-  Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
+  Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uid(
       bmain, op->ptr, ID_MA);
   if (ma == nullptr) {
     return OPERATOR_CANCELLED;

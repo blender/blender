@@ -27,13 +27,19 @@
 
 /* *********** STATIC *********** */
 
-static struct {
+struct SelectEngineData {
   GPUFrameBuffer *framebuffer_select_id;
   GPUTexture *texture_u32;
 
   SELECTID_Shaders sh_data[GPU_SHADER_CFG_LEN];
   SELECTID_Context context;
-} e_data = {nullptr}; /* Engine data */
+};
+
+static SelectEngineData &get_engine_data()
+{
+  static SelectEngineData data = {};
+  return data;
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Utils
@@ -41,6 +47,7 @@ static struct {
 
 static void select_engine_framebuffer_setup()
 {
+  SelectEngineData &e_data = get_engine_data();
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
   int size[2];
   size[0] = GPU_texture_width(dtxl->depth);
@@ -79,6 +86,7 @@ static void select_engine_framebuffer_setup()
 
 static void select_engine_init(void *vedata)
 {
+  SelectEngineData &e_data = get_engine_data();
   const DRWContextState *draw_ctx = DRW_context_state_get();
   eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
 
@@ -111,6 +119,7 @@ static void select_engine_init(void *vedata)
 
 static void select_cache_init(void *vedata)
 {
+  SelectEngineData &e_data = get_engine_data();
   SELECTID_PassList *psl = ((SELECTID_Data *)vedata)->psl;
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
   SELECTID_PrivateData *pd = stl->g_data;
@@ -193,6 +202,7 @@ static void select_cache_init(void *vedata)
 static void select_cache_populate(void *vedata, Object *ob)
 {
   using namespace blender::draw;
+  SelectEngineData &e_data = get_engine_data();
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
   SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
       &ob->id, &draw_engine_select_type);
@@ -207,7 +217,7 @@ static void select_cache_populate(void *vedata, Object *ob)
     /* This object is not in the array. It is here to participate in the depth buffer. */
     if (ob->dt >= OB_SOLID) {
       GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(static_cast<Mesh *>(ob->data));
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world);
+      DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world().ptr());
     }
   }
   else if (!sel_data->in_pass) {
@@ -231,6 +241,7 @@ static void select_cache_populate(void *vedata, Object *ob)
 
 static void select_draw_scene(void *vedata)
 {
+  SelectEngineData &e_data = get_engine_data();
   SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
   SELECTID_PassList *psl = ((SELECTID_Data *)vedata)->psl;
 
@@ -269,6 +280,7 @@ static void select_draw_scene(void *vedata)
 
 static void select_engine_free()
 {
+  SelectEngineData &e_data = get_engine_data();
   for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
     SELECTID_Shaders *sh_data = &e_data.sh_data[sh_data_index];
     DRW_SHADER_FREE_SAFE(sh_data->select_id_flat);
@@ -277,8 +289,6 @@ static void select_engine_free()
 
   DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
-  e_data.context.objects.reinitialize(0);
-  e_data.context.index_offsets.reinitialize(0);
 }
 
 /** \} */
@@ -341,16 +351,19 @@ RenderEngineType DRW_engine_viewport_select_type = {
 
 SELECTID_Context *DRW_select_engine_context_get()
 {
+  SelectEngineData &e_data = get_engine_data();
   return &e_data.context;
 }
 
 GPUFrameBuffer *DRW_engine_select_framebuffer_get()
 {
+  SelectEngineData &e_data = get_engine_data();
   return e_data.framebuffer_select_id;
 }
 
 GPUTexture *DRW_engine_select_texture_get()
 {
+  SelectEngineData &e_data = get_engine_data();
   return e_data.texture_u32;
 }
 

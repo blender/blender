@@ -8,7 +8,9 @@
  * Task graph.
  */
 
-#include "MEM_guardedalloc.h"
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
 
 #include "BLI_task.h"
 

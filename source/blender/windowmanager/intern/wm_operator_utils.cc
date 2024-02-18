@@ -10,12 +10,13 @@
 
 #include <cmath>
 
+#include "BLI_array.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -27,6 +28,9 @@
 
 #include "ED_object.hh"
 #include "ED_screen.hh"
+
+using blender::Array;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Utilities
@@ -165,9 +169,7 @@ struct ObCustomData_ForEditMode {
   ValueInteraction inter;
 
   /** This could be split into a sub-type if we support different kinds of data. */
-  Object **objects;
-  uint objects_len;
-  XFormObjectData **objects_xform;
+  blender::Array<XFormObjectData *> objects_xform;
 };
 
 /* Internal callback to free. */
@@ -177,15 +179,12 @@ static void op_generic_value_exit(wmOperator *op)
   if (cd) {
     interactive_value_exit(&cd->inter);
 
-    for (uint ob_index = 0; ob_index < cd->objects_len; ob_index++) {
-      XFormObjectData *xod = cd->objects_xform[ob_index];
+    for (XFormObjectData *xod : cd->objects_xform) {
       if (xod != nullptr) {
         ED_object_data_xform_destroy(xod);
       }
     }
-    MEM_freeN(cd->objects);
-    MEM_freeN(cd->objects_xform);
-    MEM_freeN(cd);
+    MEM_delete(cd);
   }
 
   G.moving &= ~G_TRANSFORM_EDIT;
@@ -194,9 +193,9 @@ static void op_generic_value_exit(wmOperator *op)
 static void op_generic_value_restore(wmOperator *op)
 {
   ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
-  for (uint ob_index = 0; ob_index < cd->objects_len; ob_index++) {
-    ED_object_data_xform_restore(cd->objects_xform[ob_index]);
-    ED_object_data_xform_tag_update(cd->objects_xform[ob_index]);
+  for (XFormObjectData *xod : cd->objects_xform) {
+    ED_object_data_xform_restore(xod);
+    ED_object_data_xform_tag_update(xod);
   }
 }
 
@@ -213,33 +212,26 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  if (objects_len == 0) {
-    MEM_freeN(objects);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  if (objects.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
-  ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(
-      MEM_callocN(sizeof(*cd), __func__));
+  ObCustomData_ForEditMode *cd = MEM_new<ObCustomData_ForEditMode>(__func__);
   cd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
   cd->wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
   cd->is_active = !cd->wait_for_input;
   cd->is_first = true;
-  cd->objects = objects;
-  cd->objects_len = objects_len;
 
   if (cd->wait_for_input == false) {
     interactive_value_init_from_property(C, &cd->inter, event, op->ptr, op->type->prop);
   }
 
-  cd->objects_xform = static_cast<XFormObjectData **>(
-      MEM_callocN(sizeof(*cd->objects_xform) * objects_len, __func__));
-
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
-    cd->objects_xform[ob_index] = ED_object_data_xform_create_from_edit_mode(
+  cd->objects_xform.reinitialize(objects.size());
+  for (const int i : objects.index_range()) {
+    Object *obedit = objects[i];
+    cd->objects_xform[i] = ED_object_data_xform_create_from_edit_mode(
         static_cast<ID *>(obedit->data));
   }
 

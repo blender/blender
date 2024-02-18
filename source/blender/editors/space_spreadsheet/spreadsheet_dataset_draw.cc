@@ -20,10 +20,9 @@
 
 #include "WM_types.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "spreadsheet_dataset_draw.hh"
-#include "spreadsheet_draw.hh"
 #include "spreadsheet_intern.hh"
 
 namespace blender::ed::spreadsheet {
@@ -138,7 +137,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
     mesh.add_tree_item<GeometryDataSetTreeViewItem>(bke::GeometryComponent::Type::Mesh,
                                                     bke::AttrDomain::Corner,
                                                     IFACE_("Face Corner"),
-                                                    ICON_NODE_CORNER);
+                                                    ICON_FACE_CORNER);
 
     GeometryDataSetTreeViewItem &curve = this->add_tree_item<GeometryDataSetTreeViewItem>(
         bke::GeometryComponent::Type::Curve, IFACE_("Curve"), ICON_CURVE_DATA);
@@ -158,7 +157,7 @@ class GeometryDataSetTreeView : public ui::AbstractTreeView {
     pointcloud.add_tree_item<GeometryDataSetTreeViewItem>(bke::GeometryComponent::Type::PointCloud,
                                                           bke::AttrDomain::Point,
                                                           IFACE_("Point"),
-                                                          ICON_PARTICLE_POINT);
+                                                          ICON_POINTCLOUD_POINT);
 
     this->add_tree_item<GeometryDataSetTreeViewItem>(
         bke::GeometryComponent::Type::Volume, IFACE_("Volume Grids"), ICON_VOLUME_DATA);

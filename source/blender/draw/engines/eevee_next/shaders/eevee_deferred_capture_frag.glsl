@@ -20,6 +20,7 @@ void main()
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
   if (gbuf.closure_count == 0) {
+    out_radiance = vec4(0.0);
     return;
   }
 

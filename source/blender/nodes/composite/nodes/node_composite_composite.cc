@@ -12,7 +12,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.h"
-#include "GPU_state.h"
 #include "GPU_texture.h"
 
 #include "COM_node_operation.hh"
@@ -43,9 +42,12 @@ class CompositeOperation : public NodeOperation {
 
   void execute() override
   {
+    if (!context().is_valid_compositing_region()) {
+      return;
+    }
+
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
-
     if (image.is_single_value() && alpha.is_single_value()) {
       execute_clear();
     }
@@ -89,7 +91,9 @@ class CompositeOperation : public NodeOperation {
      * that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    const int2 upper_bound = int2(compositing_region.xmax, compositing_region.ymax);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
@@ -117,7 +121,9 @@ class CompositeOperation : public NodeOperation {
      * that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    const int2 upper_bound = int2(compositing_region.xmax, compositing_region.ymax);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
@@ -145,7 +151,9 @@ class CompositeOperation : public NodeOperation {
      * that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    const int2 upper_bound = int2(compositing_region.xmax, compositing_region.ymax);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");

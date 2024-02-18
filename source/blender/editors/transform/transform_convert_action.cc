@@ -20,8 +20,8 @@
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
 
@@ -335,7 +335,12 @@ static void TimeToTransData(
   copy_v3_v3(td->iloc, td->loc);
   td->val = time;
   td->ival = *(time);
-  td->center[0] = td->ival;
+  if (adt) {
+    td->center[0] = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
+  }
+  else {
+    td->center[0] = td->ival;
+  }
   td->center[1] = ypos;
 
   /* Store the AnimData where this keyframe exists as a keyframe of the

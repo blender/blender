@@ -27,13 +27,13 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -49,7 +49,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -64,10 +64,13 @@
 
 #include "DRW_select_buffer.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 /* use bmesh operator flags for a few operators */
 #define BMO_ELE_TAG 1
+
+using blender::Span;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Select Mirror
@@ -172,7 +175,9 @@ void EDBM_select_mirrored(BMEditMesh *em,
 /** \name Back-Buffer OpenGL Selection
  * \{ */
 
-static BMElem *edbm_select_id_bm_elem_get(Base **bases, const uint sel_id, uint *r_base_index)
+static BMElem *edbm_select_id_bm_elem_get(const Span<Base *> bases,
+                                          const uint sel_id,
+                                          uint *r_base_index)
 {
   uint elem_id;
   char elem_type = 0;
@@ -268,8 +273,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
                                   float *dist_px_manhattan_p,
                                   const bool use_select_bias,
                                   bool use_cycle,
-                                  Base **bases,
-                                  uint bases_len,
+                                  const Span<Base *> bases,
                                   uint *r_base_index)
 {
   uint base_index = 0;
@@ -282,7 +286,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
 
     /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_VERTEX);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, SCE_SELECT_VERTEX);
 
       index = DRW_select_buffer_find_nearest_to_point(
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
@@ -325,7 +329,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
   data.use_select_bias = use_select_bias;
   data.use_cycle = use_cycle;
 
-  for (; base_index < bases_len; base_index++) {
+  for (; base_index < bases.size(); base_index++) {
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
     if (use_cycle && prev_select.bm == vc->em->bm &&
@@ -371,7 +375,7 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *dist_px_manhattan_p)
 {
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
   Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
-  return EDBM_vert_find_nearest_ex(vc, dist_px_manhattan_p, false, false, &base, 1, nullptr);
+  return EDBM_vert_find_nearest_ex(vc, dist_px_manhattan_p, false, false, {base}, nullptr);
 }
 
 /* find the distance to the edge we already have */
@@ -499,8 +503,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
                                   const bool use_select_bias,
                                   bool use_cycle,
                                   BMEdge **r_eed_zbuf,
-                                  Base **bases,
-                                  uint bases_len,
+                                  const Span<Base *> bases,
                                   uint *r_base_index)
 {
   uint base_index = 0;
@@ -513,7 +516,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
 
     /* No after-queue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
     {
-      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_EDGE);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, SCE_SELECT_EDGE);
 
       index = DRW_select_buffer_find_nearest_to_point(
           vc->depsgraph, vc->region, vc->v3d, vc->mval, 1, UINT_MAX, &dist_px_manhattan_test);
@@ -580,7 +583,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
   data.use_select_bias = use_select_bias;
   data.use_cycle = use_cycle;
 
-  for (; base_index < bases_len; base_index++) {
+  for (; base_index < bases.size(); base_index++) {
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
     if (use_cycle && prev_select.bm == vc->em->bm &&
@@ -632,7 +635,7 @@ BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *dist_px_manhattan_p)
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
   Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
   return EDBM_edge_find_nearest_ex(
-      vc, dist_px_manhattan_p, nullptr, false, false, nullptr, &base, 1, nullptr);
+      vc, dist_px_manhattan_p, nullptr, false, false, nullptr, {base}, nullptr);
 }
 
 /* find the distance to the face we already have */
@@ -715,8 +718,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
                                   const bool use_select_bias,
                                   bool use_cycle,
                                   BMFace **r_efa_zbuf,
-                                  Base **bases,
-                                  uint bases_len,
+                                  const Span<Base *> bases,
                                   uint *r_base_index)
 {
   uint base_index = 0;
@@ -733,7 +735,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
             ED_view3d_backbuf_sample_size_clamp(vc->region, *dist_px_manhattan_p));
       }
 
-      DRW_select_buffer_context_create(vc->depsgraph, bases, bases_len, SCE_SELECT_FACE);
+      DRW_select_buffer_context_create(vc->depsgraph, bases, SCE_SELECT_FACE);
 
       if (dist_px_manhattan_test == 0) {
         index = DRW_select_buffer_sample_point(vc->depsgraph, vc->region, vc->v3d, vc->mval);
@@ -803,7 +805,7 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
   data.use_select_bias = use_select_bias;
   data.use_cycle = use_cycle;
 
-  for (; base_index < bases_len; base_index++) {
+  for (; base_index < bases.size(); base_index++) {
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
     if (use_cycle && prev_select.bm == vc->em->bm &&
@@ -854,7 +856,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *dist_px_manhattan_p)
   BKE_view_layer_synced_ensure(vc->scene, vc->view_layer);
   Base *base = BKE_view_layer_base_find(vc->view_layer, vc->obact);
   return EDBM_face_find_nearest_ex(
-      vc, dist_px_manhattan_p, nullptr, false, false, false, nullptr, &base, 1, nullptr);
+      vc, dist_px_manhattan_p, nullptr, false, false, false, nullptr, {base}, nullptr);
 }
 
 #undef FIND_NEAR_SELECT_BIAS
@@ -866,8 +868,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *dist_px_manhattan_p)
  * return 1 if found one
  */
 static bool unified_findnearest(ViewContext *vc,
-                                Base **bases,
-                                const uint bases_len,
+                                const Span<Base *> bases,
                                 int *r_base_index,
                                 BMVert **r_eve,
                                 BMEdge **r_eed,
@@ -907,7 +908,7 @@ static bool unified_findnearest(ViewContext *vc,
     uint base_index = 0;
     BMFace *efa_zbuf = nullptr;
     BMFace *efa_test = EDBM_face_find_nearest_ex(
-        vc, &dist, dist_center_p, true, true, use_cycle, &efa_zbuf, bases, bases_len, &base_index);
+        vc, &dist, dist_center_p, true, true, use_cycle, &efa_zbuf, bases, &base_index);
 
     if (efa_test && dist_center_p) {
       dist = min_ff(dist_margin, dist_center);
@@ -929,7 +930,7 @@ static bool unified_findnearest(ViewContext *vc,
     uint base_index = 0;
     BMEdge *eed_zbuf = nullptr;
     BMEdge *eed_test = EDBM_edge_find_nearest_ex(
-        vc, &dist, dist_center_p, true, use_cycle, &eed_zbuf, bases, bases_len, &base_index);
+        vc, &dist, dist_center_p, true, use_cycle, &eed_zbuf, bases, &base_index);
 
     if (eed_test && dist_center_p) {
       dist = min_ff(dist_margin, dist_center);
@@ -946,8 +947,7 @@ static bool unified_findnearest(ViewContext *vc,
 
   if ((dist > 0.0f) && (em->selectmode & SCE_SELECT_VERTEX)) {
     uint base_index = 0;
-    BMVert *eve_test = EDBM_vert_find_nearest_ex(
-        vc, &dist, true, use_cycle, bases, bases_len, &base_index);
+    BMVert *eve_test = EDBM_vert_find_nearest_ex(vc, &dist, true, use_cycle, bases, &base_index);
 
     if (eve_test) {
       hit.v.base_index = base_index;
@@ -1001,14 +1001,13 @@ static bool unified_findnearest(ViewContext *vc,
 #undef FAKE_SELECT_MODE_END
 
 bool EDBM_unified_findnearest(ViewContext *vc,
-                              Base **bases,
-                              const uint bases_len,
+                              const Span<Base *> bases,
                               int *r_base_index,
                               BMVert **r_eve,
                               BMEdge **r_eed,
                               BMFace **r_efa)
 {
-  return unified_findnearest(vc, bases, bases_len, r_base_index, r_eve, r_eed, r_efa);
+  return unified_findnearest(vc, bases, r_base_index, r_eve, r_eed, r_efa);
 }
 
 /** \} */
@@ -1021,8 +1020,7 @@ bool EDBM_unified_findnearest(ViewContext *vc,
  * \{ */
 
 bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
-                                           Base **bases,
-                                           const uint bases_len,
+                                           const Span<Base *> bases,
                                            bool use_boundary_vertices,
                                            bool use_boundary_edges,
                                            int *r_base_index_vert,
@@ -1069,7 +1067,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
     const bool use_edge = (r_eed != nullptr);
     const bool use_face = (r_efa != nullptr);
 
-    for (uint base_index = 0; base_index < bases_len; base_index++) {
+    for (const int base_index : bases.index_range()) {
       Base *base_iter = bases[base_index];
       Object *obedit = base_iter->object;
 
@@ -1078,7 +1076,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
       float imat3[3][3];
 
       ED_view3d_viewcontext_init_object(vc, obedit);
-      copy_m3_m4(imat3, obedit->object_to_world);
+      copy_m3_m4(imat3, obedit->object_to_world().ptr());
       invert_m3(imat3);
 
       const float(*coords)[3] = nullptr;
@@ -1103,8 +1101,9 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               for (uint j = 0; j < 2; j++) {
                 BMVert *v = *((&e->v1) + j);
                 float point[3];
-                mul_v3_m4v3(
-                    point, obedit->object_to_world, coords ? coords[BM_elem_index_get(v)] : v->co);
+                mul_v3_m4v3(point,
+                            obedit->object_to_world().ptr(),
+                            coords ? coords[BM_elem_index_get(v)] : v->co);
                 const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                     ray_origin, ray_direction, point);
                 if (dist_sq_test < dist_sq_best_vert) {
@@ -1133,7 +1132,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
               else {
                 mid_v3_v3v3(point, e->v1->co, e->v2->co);
               }
-              mul_m4_v3(obedit->object_to_world, point);
+              mul_m4_v3(obedit->object_to_world().ptr(), point);
               const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                   ray_origin, ray_direction, point);
               if (dist_sq_test < dist_sq_best_edge) {
@@ -1158,8 +1157,9 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
         BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
           if (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == false) {
             float point[3];
-            mul_v3_m4v3(
-                point, obedit->object_to_world, coords ? coords[BM_elem_index_get(v)] : v->co);
+            mul_v3_m4v3(point,
+                        obedit->object_to_world().ptr(),
+                        coords ? coords[BM_elem_index_get(v)] : v->co);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_vert) {
@@ -1189,7 +1189,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             else {
               mid_v3_v3v3(point, e->v1->co, e->v2->co);
             }
-            mul_m4_v3(obedit->object_to_world, point);
+            mul_m4_v3(obedit->object_to_world().ptr(), point);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_edge) {
@@ -1218,7 +1218,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
             else {
               BM_face_calc_center_median(f, point);
             }
-            mul_m4_v3(obedit->object_to_world, point);
+            mul_m4_v3(obedit->object_to_world().ptr(), point);
             const float dist_sq_test = dist_squared_to_ray_v3_normalized(
                 ray_origin, ray_direction, point);
             if (dist_sq_test < dist_sq_best_face) {
@@ -1541,11 +1541,9 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
   const bool is_ring = RNA_boolean_get(op->ptr, "ring");
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totedgesel == 0) {
@@ -1600,7 +1598,6 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -1707,13 +1704,12 @@ static bool mouse_mesh_loop(
   const short selectmode = em_original->selectmode;
   em_original->selectmode = SCE_SELECT_EDGE;
 
-  uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-      vc.scene, vc.view_layer, vc.v3d, &bases_len);
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      vc.scene, vc.view_layer, vc.v3d);
 
   {
     int base_index = -1;
-    if (EDBM_unified_findnearest(&vc, bases, bases_len, &base_index, &eve, &eed, &efa)) {
+    if (EDBM_unified_findnearest(&vc, bases, &base_index, &eve, &eed, &efa)) {
       basact = bases[base_index];
       ED_view3d_viewcontext_init_object(&vc, basact->object);
       em = vc.em;
@@ -1726,7 +1722,6 @@ static bool mouse_mesh_loop(
   em_original->selectmode = selectmode;
 
   if (em == nullptr || eed == nullptr) {
-    MEM_freeN(bases);
     return false;
   }
 
@@ -1749,8 +1744,7 @@ static bool mouse_mesh_loop(
   }
 
   if (select_clear) {
-    for (uint base_index = 0; base_index < bases_len; base_index++) {
-      Base *base_iter = bases[base_index];
+    for (Base *base_iter : bases) {
       Object *ob_iter = base_iter->object;
       BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 
@@ -1849,8 +1843,6 @@ static bool mouse_mesh_loop(
     }
   }
 
-  MEM_freeN(bases);
-
   DEG_id_tag_update(static_cast<ID *>(vc.obedit->data), ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
@@ -1939,14 +1931,12 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int action = RNA_enum_get(op->ptr, "action");
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *obedit = objects[ob_index];
+    for (Object *obedit : objects) {
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel || em->bm->totedgesel || em->bm->totfacesel) {
         action = SEL_DESELECT;
@@ -1955,8 +1945,7 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
     }
   }
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     switch (action) {
       case SEL_SELECT:
@@ -1973,8 +1962,6 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -2006,12 +1993,10 @@ static int edbm_faces_select_interior_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (!EDBM_select_interior_faces(em)) {
@@ -2021,7 +2006,6 @@ static int edbm_faces_select_interior_exec(bContext *C, wmOperator * /*op*/)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -2062,12 +2046,11 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
   vc.mval[0] = mval[0];
   vc.mval[1] = mval[1];
 
-  uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-      vc.scene, vc.view_layer, vc.v3d, &bases_len);
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      vc.scene, vc.view_layer, vc.v3d);
 
   bool changed = false;
-  bool found = unified_findnearest(&vc, bases, bases_len, &base_index_active, &eve, &eed, &efa);
+  bool found = unified_findnearest(&vc, bases, &base_index_active, &eve, &eed, &efa);
 
   if (params->sel_op == SEL_OP_SET) {
     BMElem *ele = efa ? (BMElem *)efa : (eed ? (BMElem *)eed : (BMElem *)eve);
@@ -2076,8 +2059,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
     }
     else if (found || params->deselect_all) {
       /* Deselect everything. */
-      for (uint base_index = 0; base_index < bases_len; base_index++) {
-        Base *base_iter = bases[base_index];
+      for (Base *base_iter : bases) {
         Object *ob_iter = base_iter->object;
         EDBM_flag_disable_all(BKE_editmesh_from_object(ob_iter), BM_ELEM_SELECT);
         DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
@@ -2240,8 +2222,6 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
 
     changed = true;
   }
-
-  MEM_freeN(bases);
 
   return changed;
 }
@@ -2503,12 +2483,10 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       break;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  for (Object *ob_iter : objects) {
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
     if (em_iter != em) {
       em_iter->selectmode = em->selectmode;
@@ -2516,15 +2494,13 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
   }
 
   if (only_update) {
-    MEM_freeN(objects);
     return false;
   }
 
   if (use_extend == 0 || em->selectmode == 0) {
     if (use_expand) {
       const short selmode_max = highest_order_bit_s(ts->selectmode);
-      for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-        Object *ob_iter = objects[ob_index];
+      for (Object *ob_iter : objects) {
         BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
         EDBM_selectmode_convert(em_iter, selmode_max, selectmode_new);
       }
@@ -2558,8 +2534,7 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
   if (ret == true) {
     ts->selectmode = em->selectmode;
     em = nullptr;
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *ob_iter = objects[ob_index];
+    for (Object *ob_iter : objects) {
       BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
       em_iter->selectmode = ts->selectmode;
       EDBM_selectmode_set(em_iter);
@@ -2571,7 +2546,6 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
   }
 
-  MEM_freeN(objects);
   return ret;
 }
 
@@ -2600,12 +2574,10 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
     changed = true;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  for (Object *ob_iter : objects) {
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
     if (em_iter->selectmode != ts->selectmode) {
       em_iter->selectmode = ts->selectmode;
@@ -2616,7 +2588,6 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
       changed = true;
     }
   }
-  MEM_freeN(objects);
 
   if (changed) {
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
@@ -2716,11 +2687,10 @@ void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
   }
 }
 
-bool EDBM_mesh_deselect_all_multi_ex(Base **bases, const uint bases_len)
+bool EDBM_mesh_deselect_all_multi_ex(const Span<Base *> bases)
 {
   bool changed_multi = false;
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base_iter = bases[base_index];
+  for (Base *base_iter : bases) {
     Object *ob_iter = base_iter->object;
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 
@@ -2739,23 +2709,18 @@ bool EDBM_mesh_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc.scene, vc.view_layer, vc.v3d, &bases_len);
-  bool changed_multi = EDBM_mesh_deselect_all_multi_ex(bases, bases_len);
-  MEM_freeN(bases);
-  return changed_multi;
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, vc.v3d);
+  return EDBM_mesh_deselect_all_multi_ex(bases);
 }
 
 bool EDBM_selectmode_disable_multi_ex(Scene *scene,
-                                      Base **bases,
-                                      const uint bases_len,
+                                      const Span<Base *> bases,
                                       const short selectmode_disable,
                                       const short selectmode_fallback)
 {
   bool changed_multi = false;
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base_iter = bases[base_index];
+  for (Base *base_iter : bases) {
     Object *ob_iter = base_iter->object;
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 
@@ -2773,13 +2738,9 @@ bool EDBM_selectmode_disable_multi(bContext *C,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc.scene, vc.view_layer, nullptr, &bases_len);
-  bool changed_multi = EDBM_selectmode_disable_multi_ex(
-      scene, bases, bases_len, selectmode_disable, selectmode_fallback);
-  MEM_freeN(bases);
-  return changed_multi;
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, nullptr);
+  return EDBM_selectmode_disable_multi_ex(scene, bases, selectmode_disable, selectmode_fallback);
 }
 
 /** \} */
@@ -3264,12 +3225,10 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
   const int delimit_init = RNA_enum_get(op->ptr, "delimit");
 #endif
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
 
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
@@ -3455,8 +3414,6 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
-  MEM_freeN(objects);
-
   return OPERATOR_FINISHED;
 }
 
@@ -3631,21 +3588,19 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
   /* setup view context for argument to callbacks */
   ViewContext vc = em_setup_viewcontext(C);
 
-  uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(
-      vc.scene, vc.view_layer, vc.v3d, &bases_len);
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode(
+      vc.scene, vc.view_layer, vc.v3d);
 
   {
     bool has_edges = false;
-    for (uint base_index = 0; base_index < bases_len; base_index++) {
-      Object *ob_iter = bases[base_index]->object;
+    for (Base *base : bases) {
+      Object *ob_iter = base->object;
       ED_view3d_viewcontext_init_object(&vc, ob_iter);
       if (vc.em->bm->totedge) {
         has_edges = true;
       }
     }
     if (has_edges == false) {
-      MEM_freeN(bases);
       return OPERATOR_CANCELLED;
     }
   }
@@ -3656,9 +3611,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
   /* return warning! */
   {
     int base_index = -1;
-    const bool ok = unified_findnearest(&vc, bases, bases_len, &base_index, &eve, &eed, &efa);
+    const bool ok = unified_findnearest(&vc, bases, &base_index, &eve, &eed, &efa);
     if (!ok) {
-      MEM_freeN(bases);
       return OPERATOR_CANCELLED;
     }
     basact = bases[base_index];
@@ -3693,7 +3647,6 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
   DEG_id_tag_update(static_cast<ID *>(basact->object->data), ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, basact->object->data);
 
-  MEM_freeN(bases);
   return OPERATOR_FINISHED;
 }
 
@@ -3777,15 +3730,13 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
   const bool extend = RNA_boolean_get(op->ptr, "extend");
   const int numverts = RNA_int_get(op->ptr, "number");
   const int type = RNA_enum_get(op->ptr, "type");
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMFace *efa;
     BMIter iter;
@@ -3827,7 +3778,6 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -3871,12 +3821,10 @@ static int edbm_select_loose_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     BMIter iter;
@@ -3927,8 +3875,6 @@ static int edbm_select_loose_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
-  MEM_freeN(objects);
-
   return OPERATOR_FINISHED;
 }
 
@@ -3967,12 +3913,10 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
   const int select_mode = em_active->bm->selectmode;
   int tot_mirr = 0, tot_fail = 0;
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totvertsel == 0) {
@@ -4002,7 +3946,6 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
     tot_fail += tot_fail_iter;
     tot_mirr += tot_mirr_iter;
   }
-  MEM_freeN(objects);
 
   if (tot_mirr || tot_fail) {
     ED_mesh_report_mirror_ex(op, tot_mirr, tot_fail, select_mode);
@@ -4042,11 +3985,9 @@ static int edbm_select_more_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -4059,7 +4000,6 @@ static int edbm_select_more_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -4093,11 +4033,9 @@ static int edbm_select_less_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -4110,7 +4048,6 @@ static int edbm_select_less_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -4336,12 +4273,10 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
   WM_operator_properties_checker_interval_from_op(op, &op_params);
   bool found_active_elt = false;
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if ((em->bm->totvertsel == 0) && (em->bm->totedgesel == 0) && (em->bm->totfacesel == 0)) {
@@ -4357,7 +4292,6 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
       EDBM_update(static_cast<Mesh *>(obedit->data), &params);
     }
   }
-  MEM_freeN(objects);
 
   if (!found_active_elt) {
     BKE_report(op->reports, RPT_ERROR, "Mesh object(s) have no active vertex/edge/face");
@@ -4411,12 +4345,10 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMIter iter;
     BMEdge *e;
@@ -4443,7 +4375,6 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -4488,13 +4419,11 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
   const float angle_limit_cos = cosf(RNA_float_get(op->ptr, "sharpness"));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -4546,7 +4475,6 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -4598,12 +4526,10 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMVert *v;
     BMEdge *e;
@@ -4619,7 +4545,6 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 
     if (em->selectmode == SCE_SELECT_FACE) {
       BKE_report(op->reports, RPT_ERROR, "Does not work in face selection mode");
-      MEM_freeN(objects);
       return OPERATOR_CANCELLED;
     }
 
@@ -4654,7 +4579,6 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 
     EDBM_selectmode_flush(em);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -4705,10 +4629,9 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMIter iter;
@@ -4784,7 +4707,6 @@ static int edbm_select_random_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
 
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -4839,12 +4761,10 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     const int cd_dvert_offset = CustomData_get_offset(&em->bm->vdata, CD_MDEFORMVERT);
@@ -4882,7 +4802,6 @@ static int edbm_select_ungrouped_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -4952,7 +4871,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 
   {
     float vertex_world[3];
-    mul_v3_m4v3(vertex_world, obedit->object_to_world, v_act->co);
+    mul_v3_m4v3(vertex_world, obedit->object_to_world().ptr(), v_act->co);
     value = dot_v3v3(axis_vector, vertex_world);
   }
 
@@ -4963,11 +4882,9 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
     value -= limit;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit_iter = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit_iter : objects) {
     BMEditMesh *em_iter = BKE_editmesh_from_object(obedit_iter);
     BMesh *bm = em_iter->bm;
 
@@ -4982,7 +4899,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
     BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
       if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN | BM_ELEM_SELECT)) {
         float v_iter_world[3];
-        mul_v3_m4v3(v_iter_world, obedit_iter->object_to_world, v->co);
+        mul_v3_m4v3(v_iter_world, obedit_iter->object_to_world().ptr(), v->co);
         const float value_iter = dot_v3v3(axis_vector, v_iter_world);
         switch (sign) {
           case SELECT_AXIS_ALIGN:
@@ -5012,7 +4929,6 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(static_cast<ID *>(obedit_iter->data), ID_RECALC_SELECT);
     }
   }
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 
@@ -5065,11 +4981,9 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totfacesel == 0) {
@@ -5118,7 +5032,6 @@ static int edbm_region_to_loop_exec(bContext *C, wmOperator * /*op*/)
     DEG_id_tag_update(&obedit->id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -5296,11 +5209,9 @@ static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totedgesel == 0) {
@@ -5331,7 +5242,6 @@ static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -5402,11 +5312,9 @@ static int edbm_select_by_attribute_exec(bContext *C, wmOperator * /*op*/)
   using namespace blender;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     Mesh *mesh = static_cast<Mesh *>(obedit->data);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
@@ -5447,7 +5355,6 @@ static int edbm_select_by_attribute_exec(bContext *C, wmOperator * /*op*/)
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }

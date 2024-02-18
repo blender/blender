@@ -7,22 +7,15 @@
 #include "BLI_index_mask.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_collection_types.h"
-
-#include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 
 #include "attribute_access_intern.hh"
-
-#include "BLI_cpp_type_make.hh"
 
 namespace blender::bke {
 
@@ -31,6 +24,11 @@ namespace blender::bke {
  * \{ */
 
 InstancesComponent::InstancesComponent() : GeometryComponent(Type::Instance) {}
+
+InstancesComponent::InstancesComponent(Instances *instances, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::Instance), instances_(instances), ownership_(ownership)
+{
+}
 
 InstancesComponent::~InstancesComponent()
 {
@@ -163,6 +161,12 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
   }
 };
 
+static void tag_component_reference_index_changed(void *owner)
+{
+  Instances &instances = *static_cast<Instances *>(owner);
+  instances.tag_reference_handles_changed();
+}
+
 static ComponentAttributeProviders create_attribute_providers_for_instances()
 {
   static InstancePositionAttributeProvider position;
@@ -195,10 +199,20 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
                                            instance_custom_data_access,
                                            nullptr);
 
+  /** Indices into `Instances::references_`. Determines what data is instanced. */
+  static BuiltinCustomDataLayerProvider reference_index(".reference_index",
+                                                        AttrDomain::Instance,
+                                                        CD_PROP_INT32,
+                                                        CD_PROP_INT32,
+                                                        BuiltinAttributeProvider::Creatable,
+                                                        BuiltinAttributeProvider::NonDeletable,
+                                                        instance_custom_data_access,
+                                                        tag_component_reference_index_changed);
+
   static CustomDataAttributeProvider instance_custom_data(AttrDomain::Instance,
                                                           instance_custom_data_access);
 
-  return ComponentAttributeProviders({&position, &id}, {&instance_custom_data});
+  return ComponentAttributeProviders({&position, &id, &reference_index}, {&instance_custom_data});
 }
 
 static AttributeAccessorFunctions get_instances_accessor_functions()

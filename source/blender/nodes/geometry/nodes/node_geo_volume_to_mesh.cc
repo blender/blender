@@ -10,10 +10,8 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_lib_id.h"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
@@ -180,12 +178,12 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
   const Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
-  Vector<bke::VolumeTreeAccessToken> access_tokens;
+  Vector<bke::VolumeTreeAccessToken> tree_tokens;
   Vector<const openvdb::GridBase *> grids;
   for (const int i : IndexRange(BKE_volume_num_grids(volume))) {
     const bke::VolumeGridData *volume_grid = BKE_volume_grid_get(volume, i);
-    access_tokens.append(volume_grid->tree_access_token());
-    grids.append(&volume_grid->grid(access_tokens.last()));
+    tree_tokens.append_as();
+    grids.append(&volume_grid->grid(tree_tokens.last()));
   }
 
   if (grids.is_empty()) {

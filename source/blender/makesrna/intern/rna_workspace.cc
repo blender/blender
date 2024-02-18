@@ -19,7 +19,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_workspace_types.h"
 
@@ -27,7 +27,7 @@
 
 #  include "BLI_listbase.h"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"
@@ -99,13 +99,13 @@ static void rna_WorkSpace_owner_ids_clear(WorkSpace *workspace)
 static int rna_WorkSpace_asset_library_get(PointerRNA *ptr)
 {
   const WorkSpace *workspace = static_cast<WorkSpace *>(ptr->data);
-  return ED_asset_library_reference_to_enum_value(&workspace->asset_library_ref);
+  return blender::ed::asset::library_reference_to_enum_value(&workspace->asset_library_ref);
 }
 
 static void rna_WorkSpace_asset_library_set(PointerRNA *ptr, int value)
 {
   WorkSpace *workspace = static_cast<WorkSpace *>(ptr->data);
-  workspace->asset_library_ref = ED_asset_library_reference_from_enum_value(value);
+  workspace->asset_library_ref = blender::ed::asset::library_reference_from_enum_value(value);
 }
 
 static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace,
@@ -212,7 +212,6 @@ static void rna_def_workspace_owner(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "wmOwnerID", nullptr);
   RNA_def_struct_sdna(srna, "wmOwnerID");
-  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Work Space UI Tag", "");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -262,7 +261,6 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "WorkSpaceTool", nullptr);
   RNA_def_struct_sdna(srna, "bToolRef");
-  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Work Space Tool", "");
 
   prop = RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);

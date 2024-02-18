@@ -22,15 +22,25 @@ ExternalProject_Add(external_zstd
   URL_HASH ${ZSTD_HASH_TYPE}=${ZSTD_HASH}
   PREFIX ${BUILD_DIR}/zstd
   SOURCE_SUBDIR build/cmake
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/zstd ${DEFAULT_CMAKE_FLAGS} ${ZSTD_EXTRA_ARGS}
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/zstd
+    ${DEFAULT_CMAKE_FLAGS}
+    ${ZSTD_EXTRA_ARGS}
+
   INSTALL_DIR ${LIBDIR}/zstd
 )
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_zstd after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/zstd/lib/zstd_static${LIBEXT} ${HARVEST_TARGET}/zstd/lib/zstd_static${LIBEXT}
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/zstd/include/ ${HARVEST_TARGET}/zstd/include/
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/zstd/lib/zstd_static${LIBEXT}
+        ${HARVEST_TARGET}/zstd/lib/zstd_static${LIBEXT}
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/zstd/include/
+        ${HARVEST_TARGET}/zstd/include/
+
       DEPENDEES install
     )
   endif()

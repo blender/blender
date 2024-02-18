@@ -8,7 +8,7 @@
 
 #include "GEO_uv_pack.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
@@ -31,7 +31,7 @@
 
 namespace blender::geometry {
 
-/* Store information about an island's placement such as translation, rotation and reflection. */
+/** Store information about an island's placement such as translation, rotation and reflection. */
 class UVPhi {
  public:
   UVPhi();

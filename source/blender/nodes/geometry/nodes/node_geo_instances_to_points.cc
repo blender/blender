@@ -8,7 +8,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_instances.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "node_geometry_util.hh"
 

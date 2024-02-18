@@ -712,8 +712,13 @@ BLI_STATIC_ASSERT_ALIGN(LightCullingData, 16)
 enum eLightType : uint32_t {
   LIGHT_SUN = 0u,
   LIGHT_SUN_ORTHO = 1u,
-  LIGHT_POINT = 10u,
-  LIGHT_SPOT = 11u,
+  /* Point light. */
+  LIGHT_OMNI_SPHERE = 10u,
+  LIGHT_OMNI_DISK = 11u,
+  /* Spot light. */
+  LIGHT_SPOT_SPHERE = 12u,
+  LIGHT_SPOT_DISK = 13u,
+  /* Area light. */
   LIGHT_RECT = 20u,
   LIGHT_ELLIPSE = 21u
 };
@@ -730,9 +735,19 @@ static inline bool is_area_light(eLightType type)
   return type >= LIGHT_RECT;
 }
 
+static inline bool is_spot_light(eLightType type)
+{
+  return type == LIGHT_SPOT_SPHERE || type == LIGHT_SPOT_DISK;
+}
+
+static inline bool is_sphere_light(eLightType type)
+{
+  return type == LIGHT_SPOT_SPHERE || type == LIGHT_OMNI_SPHERE;
+}
+
 static inline bool is_sun_light(eLightType type)
 {
-  return type < LIGHT_POINT;
+  return type < LIGHT_OMNI_SPHERE;
 }
 
 struct LightData {
@@ -1014,7 +1029,80 @@ BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Irradiance Cache
+/** \name Light-probe Sphere
+ * \{ */
+
+struct ReflectionProbeLowFreqLight {
+  packed_float3 direction;
+  float ambient;
+};
+BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
+
+enum LightProbeShape : uint32_t {
+  SHAPE_ELIPSOID = 0u,
+  SHAPE_CUBOID = 1u,
+};
+
+/* Sampling coordinates using UV space. */
+struct SphereProbeUvArea {
+  /* Offset in UV space to the start of the sampling space of the octahedron map. */
+  float2 offset;
+  /* Scaling of the squared UV space of the octahedron map. */
+  float scale;
+  /* Layer of the atlas where the octahedron map is stored. */
+  float layer;
+};
+BLI_STATIC_ASSERT_ALIGN(SphereProbeUvArea, 16)
+
+/* Pixel read/write coordinates using pixel space. */
+struct SphereProbePixelArea {
+  /* Offset in pixel space to the start of the writing space of the octahedron map.
+   * Note that the writing space is not the same as the sampling space as we have borders. */
+  int2 offset;
+  /* Size of the area in pixel that is covered by this probe mip-map. */
+  int extent;
+  /* Layer of the atlas where the octahedron map is stored. */
+  int layer;
+};
+BLI_STATIC_ASSERT_ALIGN(SphereProbePixelArea, 16)
+
+/** Mapping data to locate a reflection probe in texture. */
+struct SphereProbeData {
+  /** Transform to probe local position with non-uniform scaling. */
+  float3x4 world_to_probe_transposed;
+
+  packed_float3 location;
+  /** Shape of the parallax projection. */
+  float parallax_distance;
+  LightProbeShape parallax_shape;
+  LightProbeShape influence_shape;
+  /** Influence factor based on the distance to the parallax shape. */
+  float influence_scale;
+  float influence_bias;
+
+  SphereProbeUvArea atlas_coord;
+
+  /**
+   * Irradiance at the probe location encoded as spherical harmonics.
+   * Only contain the average luminance. Used for cube-map normalization.
+   */
+  ReflectionProbeLowFreqLight low_freq_light;
+};
+BLI_STATIC_ASSERT_ALIGN(SphereProbeData, 16)
+
+/** Viewport Display Pass. */
+struct SphereProbeDisplayData {
+  int probe_index;
+  float display_size;
+  float _pad0;
+  float _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(SphereProbeDisplayData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Volume Probe Cache
  * \{ */
 
 struct SurfelRadiance {
@@ -1105,8 +1193,7 @@ struct CaptureInfoData {
   bool1 capture_emission;
   int _pad0;
   /* World light probe atlas coordinate. */
-  /* TODO(fclem): Remove this silly aliasing. */
-  int4 world_atlas_coord;
+  SphereProbeUvArea world_atlas_coord;
 };
 BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
 
@@ -1120,7 +1207,7 @@ struct SurfelListInfoData {
 };
 BLI_STATIC_ASSERT_ALIGN(SurfelListInfoData, 16)
 
-struct IrradianceGridData {
+struct VolumeProbeData {
   /** World to non-normalized local grid space [0..size-1]. Stored transposed for compactness. */
   float3x4 world_to_grid_transposed;
   /** Number of bricks for this grid. */
@@ -1133,7 +1220,7 @@ struct IrradianceGridData {
   float facing_bias;
   int _pad1;
 };
-BLI_STATIC_ASSERT_ALIGN(IrradianceGridData, 16)
+BLI_STATIC_ASSERT_ALIGN(VolumeProbeData, 16)
 
 struct IrradianceBrick {
   /* Offset in pixel to the start of the data inside the atlas texture. */
@@ -1200,6 +1287,9 @@ enum GBufferMode : uint32_t {
   GBUF_REFLECTION = 3u,
   GBUF_REFRACTION = 4u,
   GBUF_SUBSURFACE = 5u,
+
+  /** Used for surfaces that have no lit closure and just encode a normal layer. */
+  GBUF_UNLIT = 11u,
 
   /** Parameter Optimized. Packs one closure into less layer. */
   GBUF_REFLECTION_COLORLESS = 12u,
@@ -1323,78 +1413,10 @@ static inline float3 burley_eval(float3 d, float r)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Reflection Probes
+/** \name Light-probe Planar Data
  * \{ */
 
-struct ReflectionProbeLowFreqLight {
-  packed_float3 direction;
-  float ambient;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeLowFreqLight, 16)
-
-enum LightProbeShape : uint32_t {
-  SHAPE_ELIPSOID = 0u,
-  SHAPE_CUBOID = 1u,
-};
-
-struct ReflectionProbeAtlasCoordinate {
-  /** On which layer of the texture array is this reflection probe stored. */
-  int layer;
-  /**
-   * Subdivision of the layer. 0 = no subdivision and resolution would be
-   * ReflectionProbeModule::MAX_RESOLUTION.
-   */
-  int layer_subdivision;
-  /**
-   * Which area of the subdivided layer is the reflection probe located.
-   *
-   * A layer has (2^layer_subdivision)^2 areas.
-   */
-  int area_index;
-  int _pad1;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeAtlasCoordinate, 16)
-
-/** Mapping data to locate a reflection probe in texture. */
-struct ReflectionProbeData {
-  /** Transform to probe local position with non-uniform scaling. */
-  float3x4 world_to_probe_transposed;
-
-  packed_float3 location;
-  float _pad2;
-
-  /** Shape of the parallax projection. */
-  LightProbeShape parallax_shape;
-  LightProbeShape influence_shape;
-  float parallax_distance;
-  /** Influence factor based on the distance to the parallax shape. */
-  float influence_scale;
-  float influence_bias;
-  /** LOD factor for mipmap selection. */
-  float lod_factor;
-  float _pad0;
-  float _pad1;
-
-  ReflectionProbeAtlasCoordinate atlas_coord;
-
-  /**
-   * Irradiance at the probe location encoded as spherical harmonics.
-   * Only contain the average luminance. Used for cube-map normalization.
-   */
-  ReflectionProbeLowFreqLight low_freq_light;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
-
-/** Viewport Display Pass. */
-struct ReflectionProbeDisplayData {
-  int probe_index;
-  float display_size;
-  float _pad0;
-  float _pad1;
-};
-BLI_STATIC_ASSERT_ALIGN(ReflectionProbeDisplayData, 16)
-
-struct ProbePlanarData {
+struct PlanarProbeData {
   /** Matrices used to render the planar capture. */
   float4x4 viewmat;
   float4x4 winmat;
@@ -1405,7 +1427,7 @@ struct ProbePlanarData {
   /** Layer in the planar capture textures used by this probe. */
   int layer_id;
 };
-BLI_STATIC_ASSERT_ALIGN(ProbePlanarData, 16)
+BLI_STATIC_ASSERT_ALIGN(PlanarProbeData, 16)
 
 struct ClipPlaneData {
   /** World space clip plane equation. Used to render planar light-probes. */
@@ -1414,16 +1436,17 @@ struct ClipPlaneData {
 BLI_STATIC_ASSERT_ALIGN(ClipPlaneData, 16)
 
 /** Viewport Display Pass. */
-struct ProbePlanarDisplayData {
+struct PlanarProbeDisplayData {
   float4x4 plane_to_world;
   int probe_index;
   float _pad0;
   float _pad1;
   float _pad2;
 };
-BLI_STATIC_ASSERT_ALIGN(ProbePlanarDisplayData, 16)
+BLI_STATIC_ASSERT_ALIGN(PlanarProbeDisplayData, 16)
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Pipeline Data
  * \{ */
@@ -1437,6 +1460,7 @@ struct PipelineInfoData {
 BLI_STATIC_ASSERT_ALIGN(PipelineInfoData, 16)
 
 /** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Uniform Data
  * \{ */
@@ -1549,7 +1573,7 @@ using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, tru
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using DispatchIndirectBuf = draw::StorageBuffer<DispatchCommand>;
 using UniformDataBuf = draw::UniformBuffer<UniformData>;
-using IrradianceGridDataBuf = draw::UniformArrayBuffer<IrradianceGridData, IRRADIANCE_GRID_MAX>;
+using VolumeProbeDataBuf = draw::UniformArrayBuffer<VolumeProbeData, IRRADIANCE_GRID_MAX>;
 using IrradianceBrickBuf = draw::StorageVectorBuffer<IrradianceBrickPacked, 16>;
 using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
 using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
@@ -1561,11 +1585,10 @@ using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
 using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using RayTraceTileBuf = draw::StorageArrayBuffer<uint, 1024, true>;
 using SubsurfaceTileBuf = RayTraceTileBuf;
-using ReflectionProbeDataBuf =
-    draw::UniformArrayBuffer<ReflectionProbeData, REFLECTION_PROBES_MAX>;
-using ReflectionProbeDisplayDataBuf = draw::StorageArrayBuffer<ReflectionProbeDisplayData>;
-using ProbePlanarDataBuf = draw::UniformArrayBuffer<ProbePlanarData, PLANAR_PROBES_MAX>;
-using ProbePlanarDisplayDataBuf = draw::StorageArrayBuffer<ProbePlanarDisplayData>;
+using SphereProbeDataBuf = draw::UniformArrayBuffer<SphereProbeData, SPHERE_PROBE_MAX>;
+using SphereProbeDisplayDataBuf = draw::StorageArrayBuffer<SphereProbeDisplayData>;
+using PlanarProbeDataBuf = draw::UniformArrayBuffer<PlanarProbeData, PLANAR_PROBE_MAX>;
+using PlanarProbeDisplayDataBuf = draw::StorageArrayBuffer<PlanarProbeDisplayData>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using ShadowStatisticsBuf = draw::StorageBuffer<ShadowStatistics>;
 using ShadowPagesInfoDataBuf = draw::StorageBuffer<ShadowPagesInfoData>;

@@ -14,12 +14,12 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
 #include "BKE_unit.hh"
 
 #include "RNA_access.hh"
@@ -38,7 +38,9 @@
 #include "ED_util.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 struct InsetObjectStore {
   /** Must have a valid edit-mesh. */
@@ -71,8 +73,8 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
   InsetData *opdata = static_cast<InsetData *>(op->customdata);
 
-  const char *str = TIP_(
-      "Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, "
+  const char *str = IFACE_(
+      "Confirm: Enter/LMB, Cancel: (Esc/RMB), Thickness: %s, "
       "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): "
       "(%s)");
 
@@ -133,14 +135,13 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
   opdata->max_obj_scale = FLT_MIN;
 
   {
-    uint ob_store_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-        scene, view_layer, CTX_wm_view3d(C), &ob_store_len);
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+        scene, view_layer, CTX_wm_view3d(C));
     opdata->ob_store = static_cast<InsetObjectStore *>(
-        MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__));
-    for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
+        MEM_malloc_arrayN(objects.size(), sizeof(*opdata->ob_store), __func__));
+    for (uint ob_index = 0; ob_index < objects.size(); ob_index++) {
       Object *obedit = objects[ob_index];
-      float scale = mat4_to_scale(obedit->object_to_world);
+      float scale = mat4_to_scale(obedit->object_to_world().ptr());
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {
@@ -148,7 +149,6 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
         objects_used_len++;
       }
     }
-    MEM_freeN(objects);
     opdata->ob_store_len = objects_used_len;
   }
 

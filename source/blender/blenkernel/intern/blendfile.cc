@@ -24,50 +24,47 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "PIL_time.h"
-
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "BKE_addon.h"
-#include "BKE_appdir.h"
-#include "BKE_blender.h"
+#include "BKE_appdir.hh"
+#include "BKE_blender.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_colorband.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_idtype.h"
-#include "BKE_ipo.h"
-#include "BKE_keyconfig.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_preferences.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 #include "BKE_workspace.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
+#include "BLO_userdef_default.h"
 #include "BLO_writefile.hh"
-
-#include "RNA_access.hh"
 
 #include "RE_pipeline.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
+
+using namespace blender::bke;
 
 /* -------------------------------------------------------------------- */
 /** \name Blend/Library Paths
@@ -233,7 +230,7 @@ struct ReuseOldBMainData {
 
   /** Storage for all remapping rules (old_id -> new_id) required by the preservation of old IDs
    * into the new Main. */
-  IDRemapper *remapper;
+  id::IDRemapper *remapper;
   bool is_libraries_remapped;
 
   /** Used to find matching IDs by name/lib in new main, to remap ID usages of data ported over
@@ -251,25 +248,25 @@ struct ReuseOldBMainData {
  * double of a linked data as a local one, without any known relationships between them. In
  * practice, this latter case is not expected to commonly happen.
  */
-static IDRemapper *reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse_data)
+static id::IDRemapper &reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse_data)
 {
   if (reuse_data->is_libraries_remapped) {
-    return reuse_data->remapper;
+    return *reuse_data->remapper;
   }
 
   if (reuse_data->remapper == nullptr) {
-    reuse_data->remapper = BKE_id_remapper_create();
+    reuse_data->remapper = MEM_new<id::IDRemapper>(__func__);
   }
 
   Main *new_bmain = reuse_data->new_bmain;
   Main *old_bmain = reuse_data->old_bmain;
-  IDRemapper *remapper = reuse_data->remapper;
+  id::IDRemapper &remapper = *reuse_data->remapper;
 
   LISTBASE_FOREACH (Library *, old_lib_iter, &old_bmain->libraries) {
     /* In case newly opened `new_bmain` is a library of the `old_bmain`, remap it to null, since a
      * file should never ever have linked data from itself. */
     if (STREQ(old_lib_iter->filepath_abs, new_bmain->filepath)) {
-      BKE_id_remapper_add(remapper, &old_lib_iter->id, nullptr);
+      remapper.add(&old_lib_iter->id, nullptr);
       continue;
     }
 
@@ -282,19 +279,18 @@ static IDRemapper *reuse_bmain_data_remapper_ensure(ReuseOldBMainData *reuse_dat
         continue;
       }
 
-      BKE_id_remapper_add(remapper, &old_lib_iter->id, &new_lib_iter->id);
+      remapper.add(&old_lib_iter->id, &new_lib_iter->id);
       break;
     }
   }
 
   reuse_data->is_libraries_remapped = true;
-  return reuse_data->remapper;
+  return *reuse_data->remapper;
 }
 
-static bool reuse_bmain_data_remapper_is_id_remapped(IDRemapper *remapper, ID *id)
+static bool reuse_bmain_data_remapper_is_id_remapped(id::IDRemapper &remapper, ID *id)
 {
-  IDRemapperApplyResult result = BKE_id_remapper_get_mapping_result(
-      remapper, id, ID_REMAP_APPLY_DEFAULT, nullptr);
+  IDRemapperApplyResult result = remapper.get_mapping_result(id, ID_REMAP_APPLY_DEFAULT, nullptr);
   if (ELEM(result, ID_REMAP_RESULT_SOURCE_REMAPPED, ID_REMAP_RESULT_SOURCE_UNASSIGNED)) {
     /* ID is already remapped to its matching ID in the new main, or explicitly remapped to null,
      * nothing else to do here. */
@@ -324,14 +320,14 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
   ListBase *new_lb = which_libbase(new_bmain, id_code);
   ListBase *old_lb = which_libbase(old_bmain, id_code);
 
-  IDRemapper *remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
 
   /* NOTE: Full swapping is only supported for ID types that are assumed to be only local
    * data-blocks (like UI-like ones). Otherwise, the swapping could fail in many funny ways. */
   BLI_assert(BLI_listbase_is_empty(old_lb) || !ID_IS_LINKED(old_lb->last));
   BLI_assert(BLI_listbase_is_empty(new_lb) || !ID_IS_LINKED(new_lb->last));
 
-  SWAP(ListBase, *new_lb, *old_lb);
+  std::swap(*new_lb, *old_lb);
 
   /* TODO: Could add per-IDType control over namemaps clearing, if this becomes a performances
    * concern. */
@@ -351,14 +347,14 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
     const int strcmp_result = strcmp(discarded_id_iter->name + 2, reused_id_iter->name + 2);
     if (strcmp_result == 0) {
       /* Matching IDs, we can remap the discarded 'new' one to the re-used 'old' one. */
-      BKE_id_remapper_add(remapper, discarded_id_iter, reused_id_iter);
+      remapper.add(discarded_id_iter, reused_id_iter);
 
       discarded_id_iter = static_cast<ID *>(discarded_id_iter->next);
       reused_id_iter = static_cast<ID *>(reused_id_iter->next);
     }
     else if (strcmp_result < 0) {
       /* No matching reused 'old' ID for this discarded 'new' one. */
-      BKE_id_remapper_add(remapper, discarded_id_iter, nullptr);
+      remapper.add(discarded_id_iter, nullptr);
 
       discarded_id_iter = static_cast<ID *>(discarded_id_iter->next);
     }
@@ -370,16 +366,16 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
   for (; discarded_id_iter != nullptr;
        discarded_id_iter = static_cast<ID *>(discarded_id_iter->next))
   {
-    BKE_id_remapper_add(remapper, discarded_id_iter, nullptr);
+    remapper.add(discarded_id_iter, nullptr);
   }
 
   FOREACH_MAIN_LISTBASE_ID_BEGIN (new_lb, reused_id_iter) {
-    /* Necessary as all `session_uuid` are renewed on blendfile loading. */
-    BKE_lib_libblock_session_uuid_renew(reused_id_iter);
+    /* Necessary as all `session_uid` are renewed on blendfile loading. */
+    BKE_lib_libblock_session_uid_renew(reused_id_iter);
 
     /* Ensure that the reused ID is remapped to itself, since it is known to be in the `new_bmain`.
      */
-    BKE_id_remapper_add_overwrite(remapper, reused_id_iter, reused_id_iter);
+    remapper.add_overwrite(reused_id_iter, reused_id_iter);
   }
   FOREACH_MAIN_LISTBASE_ID_END;
 }
@@ -433,8 +429,8 @@ static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool
      * new WM, and is responsible to free it properly. */
     reuse_data->wm_setup_data->old_wm = old_wm;
 
-    IDRemapper *remapper = reuse_bmain_data_remapper_ensure(reuse_data);
-    BKE_id_remapper_add(remapper, &old_wm->id, &new_wm->id);
+    id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+    remapper.add(&old_wm->id, &new_wm->id);
   }
   /* Current (old) WM, but no (new) one in file (should only happen when reading pre 2.5 files, no
    * WM back then), or not loading UI: Keep current WM. */
@@ -457,7 +453,7 @@ static int swap_old_bmain_data_for_blendfile_dependencies_process_cb(
   ReuseOldBMainData *reuse_data = static_cast<ReuseOldBMainData *>(cb_data->user_data);
 
   /* First check if it has already been remapped. */
-  IDRemapper *remapper = reuse_bmain_data_remapper_ensure(reuse_data);
+  id::IDRemapper &remapper = reuse_bmain_data_remapper_ensure(reuse_data);
   if (reuse_bmain_data_remapper_is_id_remapped(remapper, id)) {
     return IDWALK_RET_NOP;
   }
@@ -466,7 +462,7 @@ static int swap_old_bmain_data_for_blendfile_dependencies_process_cb(
   BLI_assert(id_map != nullptr);
 
   ID *id_new = BKE_main_idmap_lookup_id(id_map, id);
-  BKE_id_remapper_add(remapper, id, id_new);
+  remapper.add(id, id_new);
 
   return IDWALK_RET_NOP;
 }
@@ -591,7 +587,7 @@ static void view3d_data_consistency_ensure(wmWindow *win, Scene *scene, ViewLaye
        * be found. */
       Base *base;
       for (base = static_cast<Base *>(view_layer->object_bases.first); base; base = base->next) {
-        if (base->local_view_bits & v3d->local_view_uuid) {
+        if (base->local_view_bits & v3d->local_view_uid) {
           break;
         }
       }
@@ -603,7 +599,7 @@ static void view3d_data_consistency_ensure(wmWindow *win, Scene *scene, ViewLaye
       /* No valid object found for the local view3D, it has to be cleared off. */
       MEM_freeN(v3d->localvd);
       v3d->localvd = nullptr;
-      v3d->local_view_uuid = 0;
+      v3d->local_view_uid = 0;
 
       /* Region-base storage is different depending on whether the space is active or not. */
       ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase : &sl->regionbase;
@@ -789,7 +785,7 @@ static void setup_app_data(bContext *C,
 
     /* Handle all pending remapping from swapping old and new IDs around. */
     BKE_libblock_remap_multiple_raw(bfd->main,
-                                    reuse_data.remapper,
+                                    *reuse_data.remapper,
                                     (ID_REMAP_FORCE_UI_POINTERS | ID_REMAP_SKIP_USER_REFCOUNT |
                                      ID_REMAP_SKIP_UPDATE_TAGGING | ID_REMAP_SKIP_USER_CLEAR));
 
@@ -798,7 +794,7 @@ static void setup_app_data(bContext *C,
      * library of the previous opened blendfile'. */
     reuse_bmain_data_invalid_local_usages_fix(&reuse_data);
 
-    BKE_id_remapper_free(reuse_data.remapper);
+    MEM_delete(reuse_data.remapper);
     reuse_data.remapper = nullptr;
 
     wm_data_consistency_ensure(CTX_wm_manager(C), curscene, cur_view_layer);
@@ -901,7 +897,8 @@ static void setup_app_data(bContext *C,
     bmain->filepath[0] = '\0';
   }
   else if (recover) {
-    /* In case of auto-save or quit.blend, use original filepath instead. */
+    /* In case of auto-save or quit.blend, use original filepath instead (see also #read_global in
+     * `readfile.cc`). */
     bmain->recovered = true;
     STRNCPY(bmain->filepath, bfd->filepath);
   }
@@ -942,7 +939,7 @@ static void setup_app_data(bContext *C,
   BLI_assert(BKE_main_namemap_validate(bmain));
 
   if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
-    reports->duration.lib_overrides_resync = PIL_check_seconds_timer();
+    reports->duration.lib_overrides_resync = BLI_time_now_seconds();
 
     BKE_lib_override_library_main_resync(
         bmain,
@@ -950,7 +947,7 @@ static void setup_app_data(bContext *C,
         bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene),
         reports);
 
-    reports->duration.lib_overrides_resync = PIL_check_seconds_timer() -
+    reports->duration.lib_overrides_resync = BLI_time_now_seconds() -
                                              reports->duration.lib_overrides_resync;
 
     /* We need to rebuild some of the deleted override rules (for UI feedback purpose). */
@@ -1272,13 +1269,13 @@ bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *
 bool BKE_blendfile_userdef_write_all(ReportList *reports)
 {
   char filepath[FILE_MAX];
-  const char *cfgdir;
+  std::optional<std::string> cfgdir;
   bool ok = true;
   const bool use_template_userpref = BKE_appdir_app_template_has_userpref(U.app_template);
 
   if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr))) {
     bool ok_write;
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
+    BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
     printf("Writing userprefs: \"%s\" ", filepath);
     if (use_template_userpref) {
@@ -1305,7 +1302,7 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
   if (use_template_userpref) {
     if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
       /* Also save app-template preferences. */
-      BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE);
+      BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
       printf("Writing userprefs app-template: \"%s\" ", filepath);
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {

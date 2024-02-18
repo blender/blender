@@ -30,6 +30,8 @@ namespace gpu {
 #define MTL_MAX_VERTEX_INPUT_ATTRIBUTES 31
 #define MTL_MAX_UNIFORMS_PER_BLOCK 64
 
+enum AppleGPUType { APPLE_GPU_UNKNOWN = 0, APPLE_GPU_M1 = 1, APPLE_GPU_M2 = 2, APPLE_GPU_M3 = 3 };
+
 /* Context-specific limits -- populated in 'MTLBackend::platform_init' */
 struct MTLCapabilities {
 
@@ -54,6 +56,7 @@ struct MTLCapabilities {
   bool supports_family_mac2 = false;
   bool supports_family_mac_catalyst1 = false;
   bool supports_family_mac_catalyst2 = false;
+  AppleGPUType gpu = APPLE_GPU_UNKNOWN;
 };
 
 }  // namespace gpu

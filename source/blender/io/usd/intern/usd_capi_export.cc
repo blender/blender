@@ -5,10 +5,10 @@
 #include <iostream>
 
 #include "IO_subdiv_disabler.hh"
-#include "usd.h"
 #include "usd.hh"
-#include "usd_hierarchy_iterator.h"
-#include "usd_hook.h"
+#include "usd_hierarchy_iterator.hh"
+#include "usd_hook.hh"
+#include "usd_private.hh"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
@@ -28,12 +28,12 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_global.hh"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
@@ -255,8 +255,8 @@ pxr::UsdStageRefPtr export_to_stage(const USDExportParams &params,
   /* For restoring the current frame after exporting animation is done. */
   const int orig_frame = scene->r.cfra;
 
-  /* Ensure Python types for invoking export hooks are registered. */
-  register_export_hook_converters();
+  /* Ensure Python types for invoking hooks are registered. */
+  register_hook_converters();
 
   usd_stage->SetMetadata(pxr::UsdGeomTokens->upAxis, pxr::VtValue(pxr::UsdGeomTokens->z));
   ensure_root_prim(usd_stage, params);
@@ -425,8 +425,6 @@ static void export_endjob(void *customdata)
   report_job_duration(data);
 }
 
-}  // namespace blender::io::usd
-
 /* To create a usdz file, we must first create a .usd/a/c file and then covert it to .usdz. The
  * temporary files will be created in Blender's temporary session storage. The .usdz file will then
  * be moved to job->usdz_filepath. */
@@ -537,3 +535,5 @@ int USD_get_version()
    */
   return PXR_VERSION;
 }
+
+}  // namespace blender::io::usd

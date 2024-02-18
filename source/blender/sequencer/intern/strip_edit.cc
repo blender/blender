@@ -16,15 +16,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_main.hh"
-#include "BKE_movieclip.h"
-#include "BKE_scene.h"
 #include "BKE_sound.h"
 
 #include "strip_time.hh"
-#include "utils.hh"
 
 #include "SEQ_add.hh"
 #include "SEQ_animation.hh"
@@ -79,15 +75,15 @@ bool SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, cons
   BLI_strncpy(seq_b->name + 2, name, sizeof(seq_b->name) - 2);
 
   /* swap back opacity, and overlay mode */
-  SWAP(int, seq_a->blend_mode, seq_b->blend_mode);
-  SWAP(float, seq_a->blend_opacity, seq_b->blend_opacity);
+  std::swap(seq_a->blend_mode, seq_b->blend_mode);
+  std::swap(seq_a->blend_opacity, seq_b->blend_opacity);
 
-  SWAP(Sequence *, seq_a->prev, seq_b->prev);
-  SWAP(Sequence *, seq_a->next, seq_b->next);
-  SWAP(float, seq_a->start, seq_b->start);
-  SWAP(float, seq_a->startofs, seq_b->startofs);
-  SWAP(float, seq_a->endofs, seq_b->endofs);
-  SWAP(int, seq_a->machine, seq_b->machine);
+  std::swap(seq_a->prev, seq_b->prev);
+  std::swap(seq_a->next, seq_b->next);
+  std::swap(seq_a->start, seq_b->start);
+  std::swap(seq_a->startofs, seq_b->startofs);
+  std::swap(seq_a->endofs, seq_b->endofs);
+  std::swap(seq_a->machine, seq_b->machine);
   seq_time_effect_range_set(scene, seq_a);
   seq_time_effect_range_set(scene, seq_b);
 
@@ -220,12 +216,12 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
   ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, src_seq);
 
   if (dst_seqm->type != SEQ_TYPE_META) {
-    *error_str = N_("Can not move strip to non-meta strip");
+    *error_str = N_("Cannot move strip to non-meta strip");
     return false;
   }
 
   if (src_seq == dst_seqm) {
-    *error_str = N_("Strip can not be moved into itself");
+    *error_str = N_("Strip cannot be moved into itself");
     return false;
   }
 
@@ -240,7 +236,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
   }
 
   if (!SEQ_exists_in_seqbase(dst_seqm, &ed->seqbase)) {
-    *error_str = N_("Can not move strip to different scene");
+    *error_str = N_("Cannot move strip to different scene");
     return false;
   }
 

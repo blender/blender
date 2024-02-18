@@ -2,22 +2,24 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_scene_delegate.h"
+#include "usd_scene_delegate.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_appdir.h"
-#include "BKE_report.h"
+#include "BKE_appdir.hh"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "usd.h"
 #include "usd.hh"
+#include "usd_private.hh"
+
+using namespace blender::io::usd;
 
 namespace blender::io::hydra {
 

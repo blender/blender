@@ -16,7 +16,7 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
@@ -139,8 +139,8 @@ bool LightSet::operator==(const LightSet &other) const
 
 uint64_t LightSet::hash() const
 {
-  return get_default_hash_2(get_default_hash(include_collection_mask),
-                            get_default_hash(exclude_collection_mask));
+  return get_default_hash(get_default_hash(include_collection_mask),
+                          get_default_hash(exclude_collection_mask));
 }
 
 /* EmitterSetMembership */

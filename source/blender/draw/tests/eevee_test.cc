@@ -5,7 +5,7 @@
 #include "testing/testing.h"
 
 #include "BKE_context.hh"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
@@ -51,7 +51,7 @@ static void test_eevee_shadow_shift_clear()
     tilemaps_data.push_update();
   }
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
 
     tile.page = uint3(1, 2, 0);
     tile.is_used = true;
@@ -135,7 +135,7 @@ static void test_eevee_shadow_shift()
     tilemaps_data.push_update();
   }
   {
-    ShadowTileData tile = shadow_tile_unpack(ShadowTileDataPacked(SHADOW_NO_DATA));
+    ShadowTileData tile = {};
 
     for (auto x : IndexRange(SHADOW_TILEMAP_RES)) {
       for (auto y : IndexRange(SHADOW_TILEMAP_RES)) {
@@ -402,7 +402,7 @@ static void test_eevee_shadow_free()
   pages_cached_data.push_update();
 
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
 
     tiles_data.clear_to_zero();
     tiles_data.read();
@@ -673,7 +673,7 @@ class TestAlloc {
     int tile_free = tiles_index * SHADOW_TILEDATA_PER_TILEMAP + 6;
 
     {
-      ShadowTileData tile;
+      ShadowTileData tile = {};
 
       tile.is_used = true;
       tile.do_update = false;
@@ -766,7 +766,7 @@ static void test_eevee_shadow_finalize()
   }
 
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
     tile.is_used = true;
     tile.is_allocated = true;
 
@@ -1191,7 +1191,7 @@ static void test_eevee_shadow_page_mask()
   const uint lod5_ofs = lod4_ofs + lod4_len;
 
   {
-    ShadowTileData tile;
+    ShadowTileData tile = {};
     /* Init all LOD to true. */
     for (auto i : IndexRange(SHADOW_TILEDATA_PER_TILEMAP)) {
       tile.is_used = true;
@@ -1440,14 +1440,14 @@ static void test_eevee_surfel_list()
   /* NOTE: All of these are unstable by definition (atomic + multi-thread).
    * But should be consistent since we only dispatch one thread-group. */
   /* Expect last added surfel index. It is the list start index before sorting. */
-  Vector<int> expect_list_start = {-1, 3, 5, 4};
+  Vector<int> expect_list_start = {-1, 1, 5, 4};
   // Span<int>(list_start_buf.data(), expect_list_start.size()).print_as_lines("list_start");
   // link_next.as_span().print_as_lines("link_next");
   // link_prev.as_span().print_as_lines("link_prev");
-  EXPECT_EQ_ARRAY(list_start_buf.data(), expect_list_start.data(), expect_list_start.size());
+  EXPECT_EQ_ARRAY(expect_list_start.data(), list_start_buf.data(), expect_list_start.size());
 #endif
-  EXPECT_EQ_ARRAY(link_next.data(), expect_link_next.data(), expect_link_next.size());
-  EXPECT_EQ_ARRAY(link_prev.data(), expect_link_prev.data(), expect_link_prev.size());
+  EXPECT_EQ_ARRAY(expect_link_next.data(), link_next.data(), expect_link_next.size());
+  EXPECT_EQ_ARRAY(expect_link_prev.data(), link_prev.data(), expect_link_prev.size());
 
   GPU_shader_free(sh_build);
   GPU_shader_free(sh_sort);

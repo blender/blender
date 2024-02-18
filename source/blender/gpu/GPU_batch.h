@@ -326,7 +326,8 @@ void GPU_batch_draw_advanced(
  * The argument are expected to be valid for the type of geometry contained by this #GPUBatch
  * (index or non-indexed).
  *
- * A `GPU_BARRIER_COMMAND` memory barrier is automatically added before the call.
+ * The indirect buffer needs to be synced after filling its contents and before calling this
+ * function using `GPU_storagebuf_sync_as_indirect_buffer`.
  *
  * For more info see the GL documentation:
  * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDrawArraysIndirect.xhtml
@@ -339,7 +340,8 @@ void GPU_batch_draw_indirect(GPUBatch *batch, GPUStorageBuf *indirect_buf, intpt
  * The argument are expected to be valid for the type of geometry contained by this #GPUBatch
  * (index or non-indexed).
  *
- * A `GPU_BARRIER_COMMAND` memory barrier is automatically added before the call.
+ * The indirect buffer needs to be synced after filling its contents and before calling this
+ * function using `GPU_storagebuf_sync_as_indirect_buffer`.
  *
  * For more info see the GL documentation:
  * https://registry.khronos.org/OpenGL-Refpages/gl4/html/glMultiDrawArraysIndirect.xhtml

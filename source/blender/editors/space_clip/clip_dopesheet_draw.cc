@@ -24,7 +24,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
@@ -400,8 +400,6 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *region)
                          UI_UNIT_Y,
                          &ptr,
                          chan_prop_lock,
-                         0,
-                         0,
                          0,
                          0,
                          0,

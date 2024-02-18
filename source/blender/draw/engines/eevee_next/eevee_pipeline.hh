@@ -145,6 +145,9 @@ class ForwardPipeline {
   PassSortable transparent_ps_ = {"Forward.Transparent"};
   float3 camera_forward_;
 
+  bool has_opaque_ = false;
+  bool has_transparent_ = false;
+
  public:
   ForwardPipeline(Instance &inst) : inst_(inst){};
 
@@ -482,38 +485,16 @@ class VolumePipeline {
 /** \name Deferred Probe Capture.
  * \{ */
 
-class DeferredProbePipeline;
-
-class DeferredProbeLayer : DeferredLayerBase {
-  friend DeferredProbePipeline;
-
+class DeferredProbePipeline {
  private:
   Instance &inst_;
+
+  DeferredLayerBase opaque_layer_;
 
   PassSimple eval_light_ps_ = {"EvalLights"};
 
  public:
-  DeferredProbeLayer(Instance &inst) : inst_(inst){};
-
-  void begin_sync();
-  void end_sync();
-
-  PassMain::Sub *prepass_add(::Material *blender_mat, GPUMaterial *gpumat);
-  PassMain::Sub *material_add(::Material *blender_mat, GPUMaterial *gpumat);
-
-  void render(View &view,
-              Framebuffer &prepass_fb,
-              Framebuffer &combined_fb,
-              Framebuffer &gbuffer_fb,
-              int2 extent);
-};
-
-class DeferredProbePipeline {
- private:
-  DeferredProbeLayer opaque_layer_;
-
- public:
-  DeferredProbePipeline(Instance &inst) : opaque_layer_(inst){};
+  DeferredProbePipeline(Instance &inst) : inst_(inst){};
 
   void begin_sync();
   void end_sync();

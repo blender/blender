@@ -222,11 +222,15 @@ static void node_rna(StructRNA *srna)
         *r_free = true;
         return enum_items_filter(rna_enum_node_socket_data_type_items,
                                  [](const EnumPropertyItem &item) -> bool {
+                                   if (item.value == SOCK_MATRIX) {
+                                     return U.experimental.use_new_matrix_socket;
+                                   }
                                    return ELEM(item.value,
                                                SOCK_FLOAT,
                                                SOCK_INT,
                                                SOCK_BOOLEAN,
                                                SOCK_ROTATION,
+                                               SOCK_MATRIX,
                                                SOCK_VECTOR,
                                                SOCK_STRING,
                                                SOCK_RGBA,
@@ -234,7 +238,8 @@ static void node_rna(StructRNA *srna)
                                                SOCK_OBJECT,
                                                SOCK_COLLECTION,
                                                SOCK_MATERIAL,
-                                               SOCK_IMAGE);
+                                               SOCK_IMAGE,
+                                               SOCK_MENU);
                                  });
       });
 }

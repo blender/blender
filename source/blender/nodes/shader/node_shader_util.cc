@@ -15,7 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_node_runtime.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "node_shader_util.hh"
 
@@ -30,7 +30,7 @@ bool sh_node_poll_default(const bNodeType * /*ntype*/,
                           const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "ShaderNodeTree")) {
-    *r_disabled_hint = TIP_("Not a shader node tree");
+    *r_disabled_hint = RPT_("Not a shader node tree");
     return false;
   }
   return true;
@@ -41,7 +41,7 @@ static bool sh_fn_poll_default(const bNodeType * /*ntype*/,
                                const char **r_disabled_hint)
 {
   if (!STR_ELEM(ntree->idname, "ShaderNodeTree", "GeometryNodeTree")) {
-    *r_disabled_hint = TIP_("Not a shader or geometry node tree");
+    *r_disabled_hint = RPT_("Not a shader or geometry node tree");
     return false;
   }
   return true;
@@ -305,7 +305,7 @@ bNode *nodeGetActivePaintCanvas(bNodeTree *ntree)
 }
 }  // namespace blender::bke
 
-void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node)
+void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node, int *depth_level)
 {
   bNodeExec *nodeexec;
   bNode *node;
@@ -321,6 +321,10 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
   for (n = 0, nodeexec = exec->nodeexec; n < exec->totnodes; n++, nodeexec++) {
     node = nodeexec->node;
 
+    if (depth_level && node->runtime->tmp_flag != *depth_level) {
+      continue;
+    }
+
     do_it = false;
     /* for groups, only execute outputs for edited group */
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
@@ -334,6 +338,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, bNode *output_node
     }
 
     if (do_it) {
+      BLI_assert(!depth_level || node->runtime->tmp_flag >= 0);
       if (node->typeinfo->gpu_fn) {
         node_get_stack(node, stack, nsin, nsout);
         gpu_stack_from_data_list(gpuin, &node->inputs, nsin);

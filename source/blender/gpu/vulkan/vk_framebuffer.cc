@@ -135,7 +135,7 @@ void VKFrameBuffer::build_clear_attachments_color(const float (*clear_colors)[4]
 /** \name Clear
  * \{ */
 
-void VKFrameBuffer::clear(const Vector<VkClearAttachment> &attachments) const
+void VKFrameBuffer::clear(const Span<VkClearAttachment> attachments) const
 {
   if (attachments.is_empty()) {
     return;
@@ -229,8 +229,8 @@ void VKFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType /*type*/, GPUL
 /** \name Sub-pass transition
  * \{ */
 
-void VKFrameBuffer::subpass_transition(const GPUAttachmentState /*depth_attachment_state*/,
-                                       Span<GPUAttachmentState> /*color_attachment_states*/)
+void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState /*depth_attachment_state*/,
+                                            Span<GPUAttachmentState> /*color_attachment_states*/)
 {
   NOT_YET_IMPLEMENTED;
 }
@@ -275,9 +275,9 @@ void VKFrameBuffer::read(eGPUFrameBufferBits plane,
   if (texture == nullptr) {
     return;
   }
-
+  const int area6[6] = {area[0], area[1], 0, area[2], area[3], 1};
   IndexRange layers(max_ii(attachment->layer, 0), 1);
-  texture->read_sub(0, format, area, layers, r_data);
+  texture->read_sub(0, format, area6, layers, r_data);
 }
 
 /** \} */

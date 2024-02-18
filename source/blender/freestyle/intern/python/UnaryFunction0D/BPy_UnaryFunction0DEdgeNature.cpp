@@ -47,7 +47,9 @@ int UnaryFunction0DEdgeNature_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char UnaryFunction0DEdgeNature___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    UnaryFunction0DEdgeNature___doc__,
     "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DEdgeNature`\n"
     "\n"
     "Base class for unary functions (functors) that work on\n"
@@ -55,7 +57,7 @@ static char UnaryFunction0DEdgeNature___doc__[] =
     "\n"
     ".. method:: __init__()\n"
     "\n"
-    "   Default constructor.\n";
+    "   Default constructor.\n");
 
 static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature *self,
                                               PyObject *args,

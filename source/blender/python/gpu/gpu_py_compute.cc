@@ -15,39 +15,31 @@
 
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
-#include "GPU_shader.h"
 #include "GPU_state.h"
-#include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
 
-#include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
-
-#include "../mathutils/mathutils.h"
 
 #include "gpu_py.h"
 #include "gpu_py_compute.h" /* own include */
 #include "gpu_py_shader.h"
-#include "gpu_py_texture.h"
-#include "gpu_py_uniformbuffer.h"
-#include "gpu_py_vertex_format.h"
 
-PyDoc_STRVAR(pygpu_compute_dispatch_doc,
-             ".. function:: dispatch(shader, groups_x_len,  groups_y_len,  groups_z_len)\n"
-             "\n"
-             "   Dispatches GPU compute.\n"
-             "\n"
-             "   :arg shader: The shader that you want to dispatch.\n"
-             "   :type shader: :class:`gpu.types.GPUShader`\n"
-             "   :arg groups_x_len: Int for group x length:\n"
-             "   :type groups_x_len: int\n"
-             "   :arg groups_y_len: Int for group y length:\n"
-             "   :type groups_y_len: int\n"
-             "   :arg groups_z_len: Int for group z length:\n"
-             "   :type groups_z_len: int\n"
-             "   :return: Shader object.\n"
-             "   :rtype: :class:`bpy.types.GPUShader`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_compute_dispatch_doc,
+    ".. function:: dispatch(shader, groups_x_len,  groups_y_len,  groups_z_len)\n"
+    "\n"
+    "   Dispatches GPU compute.\n"
+    "\n"
+    "   :arg shader: The shader that you want to dispatch.\n"
+    "   :type shader: :class:`gpu.types.GPUShader`\n"
+    "   :arg groups_x_len: Int for group x length:\n"
+    "   :type groups_x_len: int\n"
+    "   :arg groups_y_len: Int for group y length:\n"
+    "   :type groups_y_len: int\n"
+    "   :arg groups_z_len: Int for group z length:\n"
+    "   :type groups_z_len: int\n"
+    "   :return: Shader object.\n"
+    "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_compute_dispatch(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
   BPyGPUShader *py_shader;
@@ -127,8 +119,10 @@ static PyMethodDef pygpu_compute__tp_methods[] = {
 #  pragma GCC diagnostic pop
 #endif
 
-PyDoc_STRVAR(pygpu_compute__tp_doc,
-             "This module provides access to the global GPU compute functions");
+PyDoc_STRVAR(
+    /* Wrap. */
+    pygpu_compute__tp_doc,
+    "This module provides access to the global GPU compute functions");
 static PyModuleDef pygpu_compute_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.compute",

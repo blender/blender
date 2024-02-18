@@ -87,6 +87,10 @@ enum class NodeType {
    * not have very distinctive update procedure. */
   GENERIC_DATABLOCK,
 
+  /* Scene evaluation, for dependencies to other evaluation which might require accumulated custom
+   * data masks. */
+  SCENE,
+
   /* Component which is used to define visibility relation between IDs, on the ID level.
    *
    * Consider two ID nodes NodeA and NodeB, with the relation between visibility components going
@@ -124,9 +128,9 @@ enum class NodeType {
   /* Batch Cache Component.
    * TODO(dfelinto/sergey): rename to make it more generic. */
   BATCH_CACHE,
-  /* Duplication system. Used to force duplicated objects visible when
-   * when duplicator is visible. */
-  DUPLI,
+  /* Instancing system.
+   * Used to control visibility flags of dependencies. */
+  INSTANCING,
   /* Synchronization back to original datablock. */
   SYNCHRONIZATION,
   /* Node tree output component. */

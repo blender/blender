@@ -19,7 +19,6 @@
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "DNA_camera_types.h"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
@@ -33,14 +32,14 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_writeavi.h"
 
 #include "DEG_depsgraph.hh"
@@ -56,13 +55,12 @@
 #include "ED_view3d.hh"
 #include "ED_view3d_offscreen.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -79,7 +77,7 @@
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "PIL_time.h"
+#  include "BLI_time.h"
 #endif
 
 /* TODO(sergey): Find better approximation of the scheduled frames.
@@ -860,7 +858,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   BLI_condition_init(&oglrender->task_condition);
 
 #ifdef DEBUG_TIME
-  oglrender->time_start = PIL_check_seconds_timer();
+  oglrender->time_start = BLI_time_now_seconds();
 #endif
 
   return true;
@@ -896,7 +894,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
   BLI_condition_end(&oglrender->task_condition);
 
 #ifdef DEBUG_TIME
-  printf("Total render time: %f\n", PIL_check_seconds_timer() - oglrender->time_start);
+  printf("Total render time: %f\n", BLI_time_now_seconds() - oglrender->time_start);
 #endif
 
   MEM_SAFE_FREE(oglrender->render_frames);
@@ -1373,7 +1371,7 @@ void RENDER_OT_opengl(wmOperatorType *ot)
       "write_still",
       false,
       "Write Image",
-      "Save rendered the image to the output path (used only when animation is disabled)");
+      "Save the rendered image to the output path (used only when animation is disabled)");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "view_context",

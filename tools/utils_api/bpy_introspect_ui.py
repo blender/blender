@@ -322,6 +322,7 @@ def fake_main():
     bpy.app.translations = module_add("bpy.app.translations")
     bpy.app.translations.pgettext_iface = lambda s, context="": s
     bpy.app.translations.pgettext_data = lambda s: s
+    bpy.app.translations.pgettext_report = lambda s: s
     bpy.app.translations.pgettext_tip = lambda s: s
     # id's are chosen at random here...
     bpy.app.translations.contexts = module_add("bpy.app.translations.contexts")

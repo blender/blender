@@ -7,6 +7,7 @@
  *
  * \brief Functions to modify FCurves.
  */
+#pragma once
 
 #include "BLI_math_vector_types.hh"
 #include "DNA_anim_types.h"

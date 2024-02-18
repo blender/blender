@@ -6,21 +6,17 @@
  * \ingroup bke
  */
 
-#include "atomic_ops.h"
-
 #include "MEM_guardedalloc.h"
-
-#include "DNA_object_types.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_math_geom.h"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
+#include "BKE_bake_data_block_id.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh_cache.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
@@ -62,7 +58,7 @@ static void free_batch_cache(MeshRuntime &mesh_runtime)
   }
 }
 
-MeshRuntime::MeshRuntime() {}
+MeshRuntime::MeshRuntime() = default;
 
 MeshRuntime::~MeshRuntime()
 {
@@ -74,9 +70,9 @@ MeshRuntime::~MeshRuntime()
 static int reset_bits_and_count(MutableBitSpan bits, const Span<int> indices_to_reset)
 {
   int count = bits.size();
-  for (const int vert : indices_to_reset) {
-    if (bits[vert]) {
-      bits[vert].reset();
+  for (const int i : indices_to_reset) {
+    if (bits[i]) {
+      bits[i].reset();
       count--;
     }
   }
@@ -120,7 +116,7 @@ blender::Span<int> Mesh::corner_to_face_map() const
   using namespace blender;
   this->runtime->corner_to_face_map_cache.ensure([&](Array<int> &r_data) {
     const OffsetIndices faces = this->faces();
-    r_data = bke::mesh::build_loop_to_face_map(faces);
+    r_data = bke::mesh::build_corner_to_face_map(faces);
   });
   return this->runtime->corner_to_face_map_cache.data();
 }
@@ -297,6 +293,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->corner_to_face_map_cache.tag_dirty();
   mesh->runtime->vert_normals_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->corner_normals_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->loose_verts_cache.tag_dirty();
   mesh->runtime->verts_no_face_cache.tag_dirty();
@@ -338,6 +335,11 @@ void Mesh::tag_edges_split()
 }
 
 void Mesh::tag_sharpness_changed()
+{
+  this->runtime->corner_normals_cache.tag_dirty();
+}
+
+void Mesh::tag_custom_normals_changed()
 {
   this->runtime->corner_normals_cache.tag_dirty();
 }

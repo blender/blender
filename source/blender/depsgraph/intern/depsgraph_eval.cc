@@ -13,13 +13,14 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+#include "DEG_depsgraph_writeback_sync.hh"
 
 #include "intern/eval/deg_eval.h"
 #include "intern/eval/deg_eval_flush.h"
@@ -33,7 +34,8 @@
 
 namespace deg = blender::deg;
 
-static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph)
+static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph,
+                                          const DepsgraphEvaluateSyncWriteback sync_writeback)
 {
   /* Update the time on the cow scene. */
   if (deg_graph->scene_cow) {
@@ -43,9 +45,18 @@ static void deg_flush_updates_and_refresh(deg::Depsgraph *deg_graph)
   deg::graph_tag_ids_for_visible_update(deg_graph);
   deg::deg_graph_flush_updates(deg_graph);
   deg::deg_evaluate_on_refresh(deg_graph);
+
+  if (sync_writeback == DEG_EVALUATE_SYNC_WRITEBACK_YES) {
+    if (deg_graph->is_active) {
+      for (std::function<void()> &fn : deg_graph->sync_writeback_callbacks) {
+        fn();
+      }
+    }
+  }
+  deg_graph->sync_writeback_callbacks.clear();
 }
 
-void DEG_evaluate_on_refresh(Depsgraph *graph)
+void DEG_evaluate_on_refresh(Depsgraph *graph, const DepsgraphEvaluateSyncWriteback sync_writeback)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
   const Scene *scene = DEG_get_input_scene(graph);
@@ -66,10 +77,12 @@ void DEG_evaluate_on_refresh(Depsgraph *graph)
     deg_graph->tag_time_source();
   }
 
-  deg_flush_updates_and_refresh(deg_graph);
+  deg_flush_updates_and_refresh(deg_graph, sync_writeback);
 }
 
-void DEG_evaluate_on_framechange(Depsgraph *graph, float frame)
+void DEG_evaluate_on_framechange(Depsgraph *graph,
+                                 float frame,
+                                 const DepsgraphEvaluateSyncWriteback sync_writeback)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
   const Scene *scene = DEG_get_input_scene(graph);
@@ -77,5 +90,5 @@ void DEG_evaluate_on_framechange(Depsgraph *graph, float frame)
   deg_graph->tag_time_source();
   deg_graph->frame = frame;
   deg_graph->ctime = BKE_scene_frame_to_ctime(scene, frame);
-  deg_flush_updates_and_refresh(deg_graph);
+  deg_flush_updates_and_refresh(deg_graph, sync_writeback);
 }

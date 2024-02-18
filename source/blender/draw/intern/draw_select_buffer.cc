@@ -473,18 +473,17 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
  * \{ */
 
 void DRW_select_buffer_context_create(Depsgraph *depsgraph,
-                                      Base **bases,
-                                      const uint bases_len,
+                                      const blender::Span<Base *> bases,
                                       short select_mode)
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
-  select_ctx->objects.reinitialize(bases_len);
-  select_ctx->index_offsets.reinitialize(bases_len);
+  select_ctx->objects.reinitialize(bases.size());
+  select_ctx->index_offsets.reinitialize(bases.size());
 
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Object *obj = bases[base_index]->object;
-    select_ctx->objects[base_index] = DEG_get_evaluated_object(depsgraph, obj);
+  for (const int i : bases.index_range()) {
+    Object *obj = bases[i]->object;
+    select_ctx->objects[i] = DEG_get_evaluated_object(depsgraph, obj);
   }
 
   select_ctx->select_mode = select_mode;

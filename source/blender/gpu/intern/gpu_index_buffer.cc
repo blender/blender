@@ -186,8 +186,8 @@ void GPU_indexbuf_set_line_verts(GPUIndexBufBuilder *builder, uint elem, uint v1
   uint idx = elem * 2;
   builder->data[idx++] = v1;
   builder->data[idx++] = v2;
-  builder->index_min = MIN3(builder->index_min, v1, v2);
-  builder->index_max = MAX3(builder->index_max, v1, v2);
+  builder->index_min = std::min({builder->index_min, v1, v2});
+  builder->index_max = std::max({builder->index_max, v1, v2});
   builder->index_len = std::max(builder->index_len, idx);
 }
 
@@ -204,8 +204,8 @@ void GPU_indexbuf_set_tri_verts(GPUIndexBufBuilder *builder, uint elem, uint v1,
   builder->data[idx++] = v2;
   builder->data[idx++] = v3;
 
-  builder->index_min = MIN4(builder->index_min, v1, v2, v3);
-  builder->index_max = MAX4(builder->index_max, v1, v2, v3);
+  builder->index_min = std::min({builder->index_min, v1, v2, v3});
+  builder->index_max = std::max({builder->index_max, v1, v2, v3});
   builder->index_len = std::max(builder->index_len, idx);
 }
 
@@ -390,7 +390,7 @@ void IndexBuf::squeeze_indices_short(uint min_idx,
                                  0xFFFFu :
                                  (max_idx - min_idx);
     for (uint i = 0; i < index_len_; i++) {
-      ushort_idx[i] = uint16_t(MIN2(clamp_max_idx, uint_idx[i] - min_idx));
+      ushort_idx[i] = std::min<uint16_t>(clamp_max_idx, uint_idx[i] - min_idx);
     }
   }
   else {

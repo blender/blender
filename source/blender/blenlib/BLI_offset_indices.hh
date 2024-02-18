@@ -6,13 +6,7 @@
 
 #include <algorithm>
 
-namespace blender {
-namespace index_mask {
-class IndexMask;
-}
-using index_mask::IndexMask;
-}  // namespace blender
-
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_index_range.hh"
 #include "BLI_span.hh"
 
@@ -155,6 +149,8 @@ void copy_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, Mutable
 /** Gather the number of indices in each indexed group to sizes. */
 void gather_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, MutableSpan<int> sizes);
 
+void gather_group_sizes(OffsetIndices<int> offsets, Span<int> indices, MutableSpan<int> sizes);
+
 /** Build new offsets that contains only the groups chosen by \a selection. */
 OffsetIndices<int> gather_selected_offsets(OffsetIndices<int> src_offsets,
                                            const IndexMask &selection,
@@ -175,7 +171,7 @@ void build_reverse_map(OffsetIndices<int> offsets, MutableSpan<int> r_map);
 /**
  * Build offsets to group the elements of \a indices pointing to the same index.
  */
-void build_reverse_offsets(Span<int> indices, MutableSpan<int> r_map);
+void build_reverse_offsets(Span<int> indices, MutableSpan<int> offsets);
 
 }  // namespace blender::offset_indices
 

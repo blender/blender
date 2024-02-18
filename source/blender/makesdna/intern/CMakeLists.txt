@@ -48,7 +48,7 @@ file(GENERATE OUTPUT ${dna_header_string_file} CONTENT "${DNA_FILE_LIST}")
 set(SRC_BLENLIB
   ../../blenlib/intern/BLI_assert.c
   ../../blenlib/intern/BLI_ghash.c
-  ../../blenlib/intern/BLI_ghash_utils.c
+  ../../blenlib/intern/BLI_ghash_utils.cc
   ../../blenlib/intern/BLI_linklist.c
   ../../blenlib/intern/BLI_memarena.c
   ../../blenlib/intern/BLI_mempool.c
@@ -57,7 +57,7 @@ set(SRC_BLENLIB
   ../../blenlib/intern/string.c
 
   # Dependency of BLI_ghash.c
-  ../../blenlib/intern/hash_mm2a.c
+  ../../blenlib/intern/hash_mm2a.cc
 
   # Dependencies of BLI_mempool.c when ASAN is enabled.
   ../../blenlib/intern/gsqueue.c

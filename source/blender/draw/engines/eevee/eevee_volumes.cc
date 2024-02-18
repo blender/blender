@@ -20,7 +20,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_fluid.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_volume.hh"
@@ -32,7 +32,7 @@
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_texture.h"
 #include "eevee_private.h"
 
@@ -305,7 +305,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   }
 
   float size[3];
-  mat4_to_size(size, ob->object_to_world);
+  mat4_to_size(size, ob->object_to_world().ptr());
   /* Check if any of the axes have 0 length. (see #69070) */
   const float epsilon = 1e-8f;
   if ((size[0] < epsilon) || (size[1] < epsilon) || (size[2] < epsilon)) {
@@ -560,9 +560,9 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     DRW_draw_pass(psl->volumetric_integration_ps);
 
-    SWAP(GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
-    SWAP(GPUTexture *, txl->volume_scatter, txl->volume_scatter_history);
-    SWAP(GPUTexture *, txl->volume_transmit, txl->volume_transmit_history);
+    std::swap(fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
+    std::swap(txl->volume_scatter, txl->volume_scatter_history);
+    std::swap(txl->volume_transmit, txl->volume_transmit_history);
 
     effects->volume_scatter = txl->volume_scatter;
     effects->volume_transmit = txl->volume_transmit;

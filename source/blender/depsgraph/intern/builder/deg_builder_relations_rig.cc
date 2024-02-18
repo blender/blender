@@ -29,7 +29,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 
 #include "RNA_prototypes.h"
 
@@ -306,6 +306,11 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
   add_relation(armature_key, pose_init_key, "Data dependency");
   /* Run cleanup even when there are no bones. */
   add_relation(pose_init_key, pose_cleanup_key, "Init -> Cleanup");
+  /* Relation to the instance, so that instancer can use pose of this object. */
+  add_relation(ComponentKey(&object->id, NodeType::EVAL_POSE),
+               OperationKey{&object->id, NodeType::INSTANCING, OperationCode::INSTANCE},
+               "Transform -> Instance");
+
   /* IK Solvers.
    *
    * - These require separate processing steps are pose-level to be executed

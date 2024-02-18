@@ -68,7 +68,6 @@ def get_arguments(filepath, output_filepath):
 
     args = [
         "--background",
-        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
@@ -104,7 +103,7 @@ def create_argparse():
     parser.add_argument("-blender", nargs="+")
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-idiff", nargs=1)
+    parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument("-device", nargs=1)
     parser.add_argument("-blacklist", nargs="*")
     parser.add_argument('--batch', default=False, action='store_true')
@@ -117,7 +116,7 @@ def main():
 
     blender = args.blender[0]
     test_dir = args.testdir[0]
-    idiff = args.idiff[0]
+    oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
     device = args.device[0]
 
@@ -132,7 +131,7 @@ def main():
         blacklist += BLACKLIST_METAL
 
     from modules import render_report
-    report = render_report.Report('Cycles', output_dir, idiff, device, blacklist)
+    report = render_report.Report('Cycles', output_dir, oiiotool, device, blacklist)
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     if device == 'CPU':

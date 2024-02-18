@@ -16,23 +16,16 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_image_types.h"
-#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_colorband.hh"
 #include "BKE_image.h"
-#include "BKE_material.h"
-#include "BKE_node.h"
-#include "BKE_scene.h"
-#include "BKE_texture.h"
 
 #include "NOD_texture.h"
 
@@ -775,8 +768,8 @@ static void do_2d_mapping(
       proj = cubemap_glob(n, texvec[0], texvec[1], texvec[2], &fx, &fy);
 
       if (proj == 1) {
-        SWAP(float, dxt[1], dxt[2]);
-        SWAP(float, dyt[1], dyt[2]);
+        std::swap(dxt[1], dxt[2]);
+        std::swap(dyt[1], dyt[2]);
       }
       else if (proj == 2) {
         float f1 = dxt[0], f2 = dyt[0];
@@ -1226,7 +1219,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
   fact *= facg;
   facm = 1.0f - fact;
   if (flip) {
-    SWAP(float, fact, facm);
+    std::swap(fact, facm);
   }
 
   switch (blendtype) {

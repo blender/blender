@@ -11,7 +11,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_file_handler.hh"
 #include "BKE_idprop.h"
@@ -22,7 +22,7 @@
 #include "RNA_define.hh"
 
 #include "RNA_enum_types.hh"
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "UI_interface.hh"
 
@@ -63,11 +63,11 @@ const EnumPropertyItem rna_enum_uilist_layout_type_items[] = {
 
 #  include "BKE_context.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 #  include "BKE_screen.hh"
 
-#  include "ED_asset_library.h"
-#  include "ED_asset_shelf.h"
+#  include "ED_asset_library.hh"
+#  include "ED_asset_shelf.hh"
 
 #  include "WM_api.hh"
 
@@ -249,7 +249,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
                                      StructCallbackFunc call,
                                      StructFreeFunc free)
 {
-  const char *error_prefix = TIP_("Registering panel class:");
+  const char *error_prefix = RPT_("Registering panel class:");
   ARegionType *art;
   PanelType *pt, *parent = nullptr, dummy_pt = {nullptr};
   Panel dummy_panel = {nullptr};
@@ -315,6 +315,12 @@ static StructRNA *rna_Panel_register(Main *bmain,
       PanelType *pt_next = pt->next;
       StructRNA *srna = pt->rna_ext.srna;
       if (srna) {
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                    error_prefix,
+                    identifier,
+                    dummy_pt.idname);
         if (!rna_Panel_unregister(bmain, srna)) {
           BKE_reportf(reports,
                       RPT_ERROR,
@@ -721,6 +727,13 @@ static StructRNA *rna_UIList_register(Main *bmain,
   /* Check if we have registered this UI-list type before, and remove it. */
   ult = WM_uilisttype_find(dummy_ult.idname, true);
   if (ult) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_ult.idname);
+
     StructRNA *srna = ult->rna_ext.srna;
     if (!(srna && rna_UIList_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -852,6 +865,13 @@ static StructRNA *rna_Header_register(Main *bmain,
   ht = static_cast<HeaderType *>(
       BLI_findstring(&art->headertypes, dummy_ht.idname, offsetof(HeaderType, idname)));
   if (ht) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_ht.idname);
+
     StructRNA *srna = ht->rna_ext.srna;
     if (!(srna && rna_Header_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -1002,6 +1022,13 @@ static StructRNA *rna_Menu_register(Main *bmain,
   /* check if we have registered this menu type before, and remove it */
   mt = WM_menutype_find(dummy_mt.idname, true);
   if (mt) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_mt.idname);
+
     StructRNA *srna = mt->rna_ext.srna;
     if (!(srna && rna_Menu_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -1153,12 +1180,18 @@ static bool rna_AssetShelf_unregister(Main *bmain, StructRNA *type)
     return false;
   }
 
-  ED_asset_shelf_type_unlink(*bmain, *shelf_type);
+  blender::ed::asset::shelf::type_unlink(*bmain, *shelf_type);
 
   RNA_struct_free_extension(type, &shelf_type->rna_ext);
   RNA_struct_free(&BLENDER_RNA, type);
 
-  BLI_freelinkN(&space_type->asset_shelf_types, shelf_type);
+  const auto it = std::find_if(
+      space_type->asset_shelf_types.begin(),
+      space_type->asset_shelf_types.end(),
+      [&](const std::unique_ptr<AssetShelfType> &type) { return type.get() == shelf_type; });
+  BLI_assert(it != space_type->asset_shelf_types.end());
+
+  space_type->asset_shelf_types.remove(it - space_type->asset_shelf_types.begin());
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);
@@ -1174,11 +1207,11 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
                                           StructCallbackFunc call,
                                           StructFreeFunc free)
 {
-  AssetShelfType dummy_shelf_type = {};
-  AssetShelf dummy_shelf = {};
+  std::unique_ptr<AssetShelfType> shelf_type = std::make_unique<AssetShelfType>();
 
   /* setup dummy shelf & shelf type to store static properties in */
-  dummy_shelf.type = &dummy_shelf_type;
+  AssetShelf dummy_shelf = {};
+  dummy_shelf.type = shelf_type.get();
   PointerRNA dummy_shelf_ptr = RNA_pointer_create(nullptr, &RNA_AssetShelf, &dummy_shelf);
 
   bool have_function[3];
@@ -1188,58 +1221,62 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
     return nullptr;
   }
 
-  if (strlen(identifier) >= sizeof(dummy_shelf_type.idname)) {
+  if (strlen(identifier) >= sizeof(shelf_type->idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Registering asset shelf class: '%s' is too long, maximum length is %d",
                 identifier,
-                (int)sizeof(dummy_shelf_type.idname));
+                (int)sizeof(shelf_type->idname));
     return nullptr;
   }
 
-  SpaceType *space_type = BKE_spacetype_from_id(dummy_shelf_type.space_type);
+  SpaceType *space_type = BKE_spacetype_from_id(shelf_type->space_type);
   if (!space_type) {
     BLI_assert_unreachable();
     return nullptr;
   }
 
   /* Check if we have registered this asset shelf type before, and remove it. */
-  LISTBASE_FOREACH (AssetShelfType *, iter_shelf_type, &space_type->asset_shelf_types) {
-    if (STREQ(iter_shelf_type->idname, dummy_shelf_type.idname)) {
+  for (std::unique_ptr<AssetShelfType> &iter_shelf_type : space_type->asset_shelf_types) {
+    if (STREQ(iter_shelf_type->idname, shelf_type->idname)) {
       if (iter_shelf_type->rna_ext.srna) {
+        BKE_reportf(reports,
+                    RPT_INFO,
+                    "Registering asset shelf class: '%s' has been registered before, "
+                    "unregistering previous",
+                    shelf_type->idname);
+
         rna_AssetShelf_unregister(bmain, iter_shelf_type->rna_ext.srna);
       }
       break;
     }
   }
-  if (!RNA_struct_available_or_report(reports, dummy_shelf_type.idname)) {
+  if (!RNA_struct_available_or_report(reports, shelf_type->idname)) {
     return nullptr;
   }
-  if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_shelf_type.idname, "_AST_")) {
+  if (!RNA_struct_bl_idname_ok_or_report(reports, shelf_type->idname, "_AST_")) {
     return nullptr;
   }
 
   /* Create the new shelf type. */
-  AssetShelfType *shelf_type = static_cast<AssetShelfType *>(
-      MEM_mallocN(sizeof(*shelf_type), __func__));
-  memcpy(shelf_type, &dummy_shelf_type, sizeof(*shelf_type));
-
   shelf_type->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, shelf_type->idname, &RNA_AssetShelf);
   shelf_type->rna_ext.data = data;
   shelf_type->rna_ext.call = call;
   shelf_type->rna_ext.free = free;
-  RNA_struct_blender_type_set(shelf_type->rna_ext.srna, shelf_type);
+  RNA_struct_blender_type_set(shelf_type->rna_ext.srna, shelf_type.get());
 
   shelf_type->poll = have_function[0] ? asset_shelf_poll : nullptr;
   shelf_type->asset_poll = have_function[1] ? asset_shelf_asset_poll : nullptr;
   shelf_type->draw_context_menu = have_function[2] ? asset_shelf_draw_context_menu : nullptr;
 
-  BLI_addtail(&space_type->asset_shelf_types, shelf_type);
+  StructRNA *srna = shelf_type->rna_ext.srna;
+
+  space_type->asset_shelf_types.append(std::move(shelf_type));
 
   /* update while blender is running */
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
-  return shelf_type->rna_ext.srna;
+  return srna;
 }
 
 static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
@@ -1251,13 +1288,15 @@ static StructRNA *rna_AssetShelf_refine(PointerRNA *shelf_ptr)
 static int rna_AssetShelf_asset_library_get(PointerRNA *ptr)
 {
   AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
-  return ED_asset_library_reference_to_enum_value(&shelf->settings.asset_library_reference);
+  return blender::ed::asset::library_reference_to_enum_value(
+      &shelf->settings.asset_library_reference);
 }
 
 static void rna_AssetShelf_asset_library_set(PointerRNA *ptr, int value)
 {
   AssetShelf *shelf = static_cast<AssetShelf *>(ptr->data);
-  shelf->settings.asset_library_reference = ED_asset_library_reference_from_enum_value(value);
+  shelf->settings.asset_library_reference = blender::ed::asset::library_reference_from_enum_value(
+      value);
 }
 
 static void rna_Panel_bl_description_set(PointerRNA *ptr, const char *value)
@@ -2097,7 +2136,7 @@ static void rna_def_header(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "ID Name",
                            "If this is set, the header gets a custom ID, otherwise it takes the "
-                           "name of the class used to define the panel; for example, if the "
+                           "name of the class used to define the header; for example, if the "
                            "class name is \"OBJECT_HT_hello\", and bl_idname is not set by the "
                            "script, then bl_idname = \"OBJECT_HT_hello\"");
 
@@ -2241,7 +2280,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "ID Name",
                            "If this is set, the asset gets a custom ID, otherwise it takes the "
-                           "name of the class used to define the menu (for example, if the "
+                           "name of the class used to define the asset (for example, if the "
                            "class name is \"OBJECT_AST_hello\", and bl_idname is not set by the "
                            "script, then bl_idname = \"OBJECT_AST_hello\")");
 
@@ -2383,6 +2422,18 @@ static void rna_def_file_handler(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
+static void rna_def_layout_panel_state(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "LayoutPanelState", nullptr);
+
+  prop = RNA_def_property(srna, "is_open", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", LAYOUT_PANEL_STATE_FLAG_OPEN);
+  RNA_def_property_ui_text(prop, "Is Open", "");
+}
+
 void RNA_def_ui(BlenderRNA *brna)
 {
   rna_def_ui_layout(brna);
@@ -2392,6 +2443,7 @@ void RNA_def_ui(BlenderRNA *brna)
   rna_def_menu(brna);
   rna_def_asset_shelf(brna);
   rna_def_file_handler(brna);
+  rna_def_layout_panel_state(brna);
 }
 
 #endif /* RNA_RUNTIME */

@@ -12,28 +12,22 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_action.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
-#include "BKE_global.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
-#include "BKE_main.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -48,21 +42,19 @@
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
-#include "UI_interface.hh"
-
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 #undef DEBUG_TIME
 
-#include "PIL_time.h"
 #ifdef DEBUG_TIME
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #endif
+
+using blender::Vector;
 
 Object *ED_pose_object_from_context(bContext *C)
 {
@@ -235,7 +227,8 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
 
   /* show popup dialog to allow editing of range... */
   /* FIXME: hard-coded dimensions here are just arbitrary. */
-  return WM_operator_props_dialog_popup(C, op, 270);
+  return WM_operator_props_dialog_popup(
+      C, op, 270, IFACE_("Calculate Paths for the Selected Bones"), IFACE_("Calculate"));
 }
 
 /**
@@ -693,16 +686,13 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
-  Object **objects = BKE_object_pose_array_get_unique(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(scene, view_layer, CTX_wm_view3d(C));
   bool changed_multi = false;
 
   const int hide_select = !RNA_boolean_get(op->ptr, "unselected");
   void *hide_select_p = POINTER_FROM_INT(hide_select);
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  for (Object *ob_iter : objects) {
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     bool changed = bone_looper(ob_iter,
@@ -715,7 +705,6 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
-  MEM_freeN(objects);
 
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -762,15 +751,12 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
-  Object **objects = BKE_object_pose_array_get_unique(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_object_pose_array_get_unique(scene, view_layer, CTX_wm_view3d(C));
   bool changed_multi = false;
   const bool select = RNA_boolean_get(op->ptr, "select");
   void *select_p = POINTER_FROM_INT(select);
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob_iter = objects[ob_index];
+  for (Object *ob_iter : objects) {
     bArmature *arm = static_cast<bArmature *>(ob_iter->data);
 
     bool changed = bone_looper(
@@ -781,7 +767,6 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
       DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
     }
   }
-  MEM_freeN(objects);
 
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

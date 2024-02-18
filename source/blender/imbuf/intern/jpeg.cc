@@ -7,6 +7,7 @@
  */
 
 /* This little block needed for linking to Blender... */
+#include <algorithm>
 #include <csetjmp>
 #include <cstdio>
 
@@ -21,18 +22,15 @@
 
 #include "DNA_ID.h" /* ID property definitions. */
 
-#include "IMB_filetype.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
 
 #include <cstring>
 #include <jerror.h>
 #include <jpeglib.h>
-
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
 
 /* the types are from the jpeg lib */
 static void jpeg_error(j_common_ptr cinfo) ATTR_NORETURN;
@@ -294,7 +292,9 @@ static ImBuf *ibJpegImageFromCinfo(
       jpeg_abort_decompress(cinfo);
       ibuf = IMB_allocImBuf(x, y, 8 * depth, 0);
     }
-    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect)) == nullptr) {
+    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect | IB_uninitialized_pixels)) ==
+             nullptr)
+    {
       jpeg_abort_decompress(cinfo);
     }
     else {
@@ -430,7 +430,7 @@ static ImBuf *ibJpegImageFromCinfo(
       }
 
       ibuf->ftype = IMB_FTYPE_JPG;
-      ibuf->foptions.quality = MIN2(ibuf_quality, 100);
+      ibuf->foptions.quality = std::min<char>(ibuf_quality, 100);
     }
     jpeg_destroy((j_common_ptr)cinfo);
   }

@@ -27,8 +27,8 @@
 #  ifdef __SSSE3__
 #    define __KERNEL_SSSE3__
 #  endif
-#  ifdef __SSE4_1__
-#    define __KERNEL_SSE41__
+#  ifdef __SSE4_2__
+#    define __KERNEL_SSE42__
 #  endif
 #  ifdef __AVX__
 #    ifndef __KERNEL_SSE__

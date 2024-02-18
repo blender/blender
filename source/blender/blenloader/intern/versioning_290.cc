@@ -8,6 +8,8 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
+
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -23,7 +25,6 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -46,35 +47,29 @@
 
 #undef DNA_GENFILE_VERSIONING_MACROS
 
-#include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_attribute.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_fcurve.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 #include "MEM_guardedalloc.h"
 
-#include "RNA_access.hh"
-
 #include "SEQ_proxy.hh"
-#include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
-#include "SEQ_transform.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
 
@@ -227,8 +222,8 @@ static void seq_convert_transform_crop(const Scene *scene,
     old_image_center_y = image_size_y / 2 - c->bottom + t->yofs;
 
     /* Preserve original image size. */
-    t->scale_x = t->scale_y = MAX2(float(image_size_x) / float(scene->r.xsch),
-                                   float(image_size_y) / float(scene->r.ysch));
+    t->scale_x = t->scale_y = std::max(float(image_size_x) / float(scene->r.xsch),
+                                       float(image_size_y) / float(scene->r.ysch));
 
     /* Convert crop. */
     if ((seq->flag & use_crop_flag) != 0) {
@@ -311,8 +306,8 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   }
 
   /* Calculate scale factor, so image fits in preview area with original aspect ratio. */
-  const float scale_to_fit_factor = MIN2(float(scene->r.xsch) / float(image_size_x),
-                                         float(scene->r.ysch) / float(image_size_y));
+  const float scale_to_fit_factor = std::min(float(scene->r.xsch) / float(image_size_x),
+                                             float(scene->r.ysch) / float(image_size_y));
   t->scale_x *= scale_to_fit_factor;
   t->scale_y *= scale_to_fit_factor;
   c->top /= scale_to_fit_factor;

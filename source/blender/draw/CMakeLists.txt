@@ -432,7 +432,6 @@ set(GLSL_SRC
   engines/eevee/shaders/bsdf_common_lib.glsl
   engines/eevee/shaders/irradiance_lib.glsl
   engines/eevee/shaders/octahedron_lib.glsl
-  engines/eevee/shaders/cubemap_lib.glsl
   engines/eevee/shaders/bsdf_sampling_lib.glsl
   engines/eevee/shaders/random_lib.glsl
   engines/eevee/shaders/raytrace_lib.glsl
@@ -469,7 +468,6 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_closure_lib.glsl
   engines/eevee_next/shaders/eevee_colorspace_lib.glsl
   engines/eevee_next/shaders/eevee_cryptomatte_lib.glsl
-  engines/eevee_next/shaders/eevee_cubemap_lib.glsl
   engines/eevee_next/shaders/eevee_debug_gbuffer_frag.glsl
   engines/eevee_next/shaders/eevee_debug_surfels_vert.glsl
   engines/eevee_next/shaders/eevee_debug_surfels_frag.glsl
@@ -510,7 +508,8 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_film_lib.glsl
   engines/eevee_next/shaders/eevee_forward_lib.glsl
   engines/eevee_next/shaders/eevee_gbuffer_lib.glsl
-  engines/eevee_next/shaders/eevee_gbuffer_test.glsl
+  engines/eevee_next/shaders/eevee_gbuffer_closure_test.glsl
+  engines/eevee_next/shaders/eevee_gbuffer_normal_test.glsl
   engines/eevee_next/shaders/eevee_geom_curves_vert.glsl
   engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
   engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl
@@ -539,6 +538,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_lightprobe_irradiance_offset_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_irradiance_load_comp.glsl
   engines/eevee_next/shaders/eevee_lightprobe_lib.glsl
+  engines/eevee_next/shaders/eevee_lightprobe_volume_eval_lib.glsl
   engines/eevee_next/shaders/eevee_lookdev_display_frag.glsl
   engines/eevee_next/shaders/eevee_lookdev_display_vert.glsl
   engines/eevee_next/shaders/eevee_ltc_lib.glsl
@@ -564,6 +564,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ray_trace_screen_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee_next/shaders/eevee_ray_types_lib.glsl
+  engines/eevee_next/shaders/eevee_reflection_probe_convolve_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_eval_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_remap_comp.glsl
@@ -673,7 +674,6 @@ set(GLSL_SRC
   intern/shaders/common_grease_pencil_lib.glsl
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_comp.glsl
-  intern/shaders/common_hair_refine_vert.glsl
   intern/shaders/common_intersect_lib.glsl
   intern/shaders/common_math_geom_lib.glsl
   intern/shaders/common_math_lib.glsl

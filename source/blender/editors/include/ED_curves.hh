@@ -80,6 +80,7 @@ bool curves_poll(bContext *C);
 
 void CURVES_OT_attribute_set(wmOperatorType *ot);
 void CURVES_OT_draw(wmOperatorType *ot);
+void CURVES_OT_extrude(wmOperatorType *ot);
 
 /** \} */
 
@@ -143,6 +144,7 @@ IndexMask random_mask(const bke::CurvesGeometry &curves,
 
 void fill_selection_false(GMutableSpan span);
 void fill_selection_true(GMutableSpan span);
+void fill_selection(GMutableSpan selection, bool value);
 void fill_selection_false(GMutableSpan selection, const IndexMask &mask);
 void fill_selection_true(GMutableSpan selection, const IndexMask &mask);
 
@@ -237,9 +239,9 @@ struct FindClosestData {
  * \return A new point or curve closer than the \a initial input, if one exists.
  */
 std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext &vc,
-                                                              const Object &object,
                                                               OffsetIndices<int> points_by_curve,
                                                               Span<float3> deformed_positions,
+                                                              const float4x4 &projection,
                                                               const IndexMask &mask,
                                                               bke::AttrDomain domain,
                                                               int2 coord,
@@ -251,6 +253,7 @@ std::optional<FindClosestData> closest_elem_find_screen_space(const ViewContext 
 bool select_box(const ViewContext &vc,
                 bke::CurvesGeometry &curves,
                 Span<float3> deformed_positions,
+                const float4x4 &projection,
                 const IndexMask &mask,
                 bke::AttrDomain selection_domain,
                 const rcti &rect,
@@ -262,9 +265,10 @@ bool select_box(const ViewContext &vc,
 bool select_lasso(const ViewContext &vc,
                   bke::CurvesGeometry &curves,
                   Span<float3> deformed_positions,
+                  const float4x4 &projection_matrix,
                   const IndexMask &mask,
                   bke::AttrDomain selection_domain,
-                  Span<int2> coords,
+                  Span<int2> lasso_coords,
                   eSelectOp sel_op);
 
 /**
@@ -273,6 +277,7 @@ bool select_lasso(const ViewContext &vc,
 bool select_circle(const ViewContext &vc,
                    bke::CurvesGeometry &curves,
                    Span<float3> deformed_positions,
+                   const float4x4 &projection,
                    const IndexMask &mask,
                    bke::AttrDomain selection_domain,
                    int2 coord,

@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_reader_skeleton.h"
-#include "usd_skel_convert.h"
+#include "usd_reader_skeleton.hh"
+#include "usd_skel_convert.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_idprop.h"
@@ -15,8 +15,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
-
-#include <iostream>
 
 namespace blender::io::usd {
 

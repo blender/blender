@@ -48,6 +48,17 @@ void gather_group_sizes(const OffsetIndices<int> offsets,
   });
 }
 
+void gather_group_sizes(const OffsetIndices<int> offsets,
+                        const Span<int> indices,
+                        MutableSpan<int> sizes)
+{
+  threading::parallel_for(indices.index_range(), 4096, [&](const IndexRange range) {
+    for (const int i : range) {
+      sizes[i] = offsets[indices[i]].size();
+    }
+  });
+}
+
 OffsetIndices<int> gather_selected_offsets(const OffsetIndices<int> src_offsets,
                                            const IndexMask &selection,
                                            const int start_offset,

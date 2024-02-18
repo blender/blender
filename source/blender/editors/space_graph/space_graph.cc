@@ -21,7 +21,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
 
@@ -31,7 +31,6 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 
-#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
 #include "GPU_state.h"
 
@@ -333,8 +332,9 @@ static void graph_main_region_draw_overlay(const bContext *C, ARegion *region)
   }
 
   /* scrollers */
+  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
   /* FIXME: args for scrollers depend on the type of data being shown. */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  UI_view2d_scrollers_draw(v2d, &scroller_mask);
 
   /* scale numbers */
   {
@@ -796,15 +796,17 @@ static void graph_refresh(const bContext *C, ScrArea *area)
   graph_refresh_fcurve_colors(C);
 }
 
-static void graph_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void graph_id_remap(ScrArea * /*area*/,
+                           SpaceLink *slink,
+                           const blender::bke::id::IDRemapper &mappings)
 {
   SpaceGraph *sgraph = (SpaceGraph *)slink;
   if (!sgraph->ads) {
     return;
   }
 
-  BKE_id_remapper_apply(mappings, (ID **)&sgraph->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(mappings, (ID **)&sgraph->ads->source, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((ID **)&sgraph->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((ID **)&sgraph->ads->source, ID_REMAP_APPLY_DEFAULT);
 }
 
 static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -874,7 +876,7 @@ static void graph_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_ipo()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype ipo"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_GRAPH;
@@ -949,5 +951,5 @@ void ED_spacetype_ipo()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

@@ -14,7 +14,7 @@
 #include "../generic/py_capi_utils.h"
 
 #ifdef WITH_USD
-#  include "usd.h"
+#  include "usd.hh"
 #endif
 
 static PyTypeObject BlenderAppUSDType;
@@ -51,7 +51,7 @@ static PyObject *make_usd_info()
 #define SetObjItem(obj) PyStructSequence_SET_ITEM(usd_info, pos++, obj)
 
 #ifdef WITH_USD
-  const int curversion = USD_get_version();
+  const int curversion = blender::io::usd::USD_get_version();
   const int major = curversion / 10000;
   const int minor = (curversion / 100) % 100;
   const int patch = curversion % 100;

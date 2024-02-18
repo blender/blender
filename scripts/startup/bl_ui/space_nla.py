@@ -114,30 +114,29 @@ class NLA_MT_view(Menu):
 
         layout.prop(st, "show_region_ui")
         layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
+        layout.separator()
+
+        layout.operator("nla.view_selected")
+        layout.operator("nla.view_all")
+        layout.operator("nla.view_frame")
         layout.separator()
 
         layout.prop(st, "use_realtime_update")
-
-        layout.prop(st, "show_seconds")
-        layout.prop(st, "show_locked_time")
-
         layout.prop(st, "show_strip_curves")
-
         layout.separator()
+
         layout.prop(st, "show_markers")
         layout.prop(st, "show_local_markers")
-
+        layout.prop(st, "show_seconds")
+        layout.prop(st, "show_locked_time")
         layout.separator()
+
         layout.operator("anim.previewrange_set")
         layout.operator("anim.previewrange_clear")
         layout.operator("nla.previewrange_set")
-
         layout.separator()
-        layout.operator("nla.view_all")
-        layout.operator("nla.view_selected")
-        layout.operator("nla.view_frame")
 
-        layout.separator()
         layout.menu("INFO_MT_area")
 
 
@@ -207,6 +206,7 @@ class NLA_MT_add(Menu):
 
 class NLA_MT_tracks(Menu):
     bl_label = "Track"
+    bl_translation_context = i18n_contexts.id_action
 
     def draw(self, _context):
         layout = self.layout

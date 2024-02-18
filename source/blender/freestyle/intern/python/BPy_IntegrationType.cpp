@@ -26,30 +26,32 @@ using namespace Freestyle;
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
 
-PyDoc_STRVAR(Integrator_integrate_doc,
-             ".. function:: integrate(func, it, it_end, integration_type)\n"
-             "\n"
-             "   Returns a single value from a set of values evaluated at each 0D\n"
-             "   element of this 1D element.\n"
-             "\n"
-             "   :arg func: The UnaryFunction0D used to compute a value at each\n"
-             "      Interface0D.\n"
-             "   :type func: :class:`UnaryFunction0D`\n"
-             "   :arg it: The Interface0DIterator used to iterate over the 0D\n"
-             "      elements of this 1D element. The integration will occur over\n"
-             "      the 0D elements starting from the one pointed by it.\n"
-             "   :type it: :class:`Interface0DIterator`\n"
-             "   :arg it_end: The Interface0DIterator pointing the end of the 0D\n"
-             "      elements of the 1D element.\n"
-             "   :type it_end: :class:`Interface0DIterator`\n"
-             "   :arg integration_type: The integration method used to compute a\n"
-             "      single value from a set of values.\n"
-             "   :type integration_type: :class:`IntegrationType`\n"
-             "   :return: The single value obtained for the 1D element. The return\n"
-             "      value type is float if func is of the :class:`UnaryFunction0DDouble`\n"
-             "      or :class:`UnaryFunction0DFloat` type, and int if func is of the\n"
-             "      :class:`UnaryFunction0DUnsigned` type.\n"
-             "   :rtype: int or float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Integrator_integrate_doc,
+    ".. function:: integrate(func, it, it_end, integration_type)\n"
+    "\n"
+    "   Returns a single value from a set of values evaluated at each 0D\n"
+    "   element of this 1D element.\n"
+    "\n"
+    "   :arg func: The UnaryFunction0D used to compute a value at each\n"
+    "      Interface0D.\n"
+    "   :type func: :class:`UnaryFunction0D`\n"
+    "   :arg it: The Interface0DIterator used to iterate over the 0D\n"
+    "      elements of this 1D element. The integration will occur over\n"
+    "      the 0D elements starting from the one pointed by it.\n"
+    "   :type it: :class:`Interface0DIterator`\n"
+    "   :arg it_end: The Interface0DIterator pointing the end of the 0D\n"
+    "      elements of the 1D element.\n"
+    "   :type it_end: :class:`Interface0DIterator`\n"
+    "   :arg integration_type: The integration method used to compute a\n"
+    "      single value from a set of values.\n"
+    "   :type integration_type: :class:`IntegrationType`\n"
+    "   :return: The single value obtained for the 1D element. The return\n"
+    "      value type is float if func is of the :class:`UnaryFunction0DDouble`\n"
+    "      or :class:`UnaryFunction0DFloat` type, and int if func is of the\n"
+    "      :class:`UnaryFunction0DUnsigned` type.\n"
+    "   :rtype: int or float");
 
 static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
@@ -99,7 +101,11 @@ static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObj
 
 /*-----------------------Integrator module docstring---------------------------------------*/
 
-PyDoc_STRVAR(module_docstring, "The Blender Freestyle.Integrator submodule\n\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    module_docstring,
+    "The Blender Freestyle.Integrator submodule\n"
+    "\n");
 
 /*-----------------------Integrator module functions definitions---------------------------*/
 
@@ -127,23 +133,25 @@ static PyModuleDef module_definition = {
 
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
-PyDoc_STRVAR(IntegrationType_doc,
-             "Class hierarchy: int > :class:`IntegrationType`\n"
-             "\n"
-             "Different integration methods that can be invoked to integrate into a\n"
-             "single value the set of values obtained from each 0D element of an 1D\n"
-             "element:\n"
-             "\n"
-             "* IntegrationType.MEAN: The value computed for the 1D element is the\n"
-             "  mean of the values obtained for the 0D elements.\n"
-             "* IntegrationType.MIN: The value computed for the 1D element is the\n"
-             "  minimum of the values obtained for the 0D elements.\n"
-             "* IntegrationType.MAX: The value computed for the 1D element is the\n"
-             "  maximum of the values obtained for the 0D elements.\n"
-             "* IntegrationType.FIRST: The value computed for the 1D element is the\n"
-             "  first of the values obtained for the 0D elements.\n"
-             "* IntegrationType.LAST: The value computed for the 1D element is the\n"
-             "  last of the values obtained for the 0D elements.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    IntegrationType_doc,
+    "Class hierarchy: int > :class:`IntegrationType`\n"
+    "\n"
+    "Different integration methods that can be invoked to integrate into a\n"
+    "single value the set of values obtained from each 0D element of an 1D\n"
+    "element:\n"
+    "\n"
+    "* IntegrationType.MEAN: The value computed for the 1D element is the\n"
+    "  mean of the values obtained for the 0D elements.\n"
+    "* IntegrationType.MIN: The value computed for the 1D element is the\n"
+    "  minimum of the values obtained for the 0D elements.\n"
+    "* IntegrationType.MAX: The value computed for the 1D element is the\n"
+    "  maximum of the values obtained for the 0D elements.\n"
+    "* IntegrationType.FIRST: The value computed for the 1D element is the\n"
+    "  first of the values obtained for the 0D elements.\n"
+    "* IntegrationType.LAST: The value computed for the 1D element is the\n"
+    "  last of the values obtained for the 0D elements.");
 
 PyTypeObject IntegrationType_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
@@ -188,21 +196,6 @@ PyTypeObject IntegrationType_Type = {
 
 /*-----------------------BPy_IntegrationType instance definitions -------------------------*/
 
-static PyLongObject _IntegrationType_MEAN = {
-    PyVarObject_HEAD_INIT(&IntegrationType_Type, 1){MEAN}};
-static PyLongObject _IntegrationType_MIN = {PyVarObject_HEAD_INIT(&IntegrationType_Type, 1){MIN}};
-static PyLongObject _IntegrationType_MAX = {PyVarObject_HEAD_INIT(&IntegrationType_Type, 1){MAX}};
-static PyLongObject _IntegrationType_FIRST = {
-    PyVarObject_HEAD_INIT(&IntegrationType_Type, 1){FIRST}};
-static PyLongObject _IntegrationType_LAST = {
-    PyVarObject_HEAD_INIT(&IntegrationType_Type, 1){LAST}};
-
-#define BPy_IntegrationType_MEAN ((PyObject *)&_IntegrationType_MEAN)
-#define BPy_IntegrationType_MIN ((PyObject *)&_IntegrationType_MIN)
-#define BPy_IntegrationType_MAX ((PyObject *)&_IntegrationType_MAX)
-#define BPy_IntegrationType_FIRST ((PyObject *)&_IntegrationType_FIRST)
-#define BPy_IntegrationType_LAST ((PyObject *)&_IntegrationType_LAST)
-
 //-------------------MODULE INITIALIZATION--------------------------------
 int IntegrationType_Init(PyObject *module)
 {
@@ -218,11 +211,17 @@ int IntegrationType_Init(PyObject *module)
   Py_INCREF(&IntegrationType_Type);
   PyModule_AddObject(module, "IntegrationType", (PyObject *)&IntegrationType_Type);
 
-  PyDict_SetItemString(IntegrationType_Type.tp_dict, "MEAN", BPy_IntegrationType_MEAN);
-  PyDict_SetItemString(IntegrationType_Type.tp_dict, "MIN", BPy_IntegrationType_MIN);
-  PyDict_SetItemString(IntegrationType_Type.tp_dict, "MAX", BPy_IntegrationType_MAX);
-  PyDict_SetItemString(IntegrationType_Type.tp_dict, "FIRST", BPy_IntegrationType_FIRST);
-  PyDict_SetItemString(IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
+#define ADD_TYPE_CONST(id) \
+  PyLong_subtype_add_to_dict( \
+      IntegrationType_Type.tp_dict, &IntegrationType_Type, STRINGIFY(id), id)
+
+  ADD_TYPE_CONST(MEAN);
+  ADD_TYPE_CONST(MIN);
+  ADD_TYPE_CONST(MAX);
+  ADD_TYPE_CONST(FIRST);
+  ADD_TYPE_CONST(LAST);
+
+#undef ADD_TYPE_CONST
 
   m = PyModule_Create(&module_definition);
   if (m == nullptr) {

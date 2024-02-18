@@ -73,9 +73,9 @@ static DRWShadingGroup *gpencil_vfx_pass_create(
   tgp_vfx->target_fb = iter->target_fb;
   tgp_vfx->vfx_ps = pass;
 
-  SWAP(GPUFrameBuffer **, iter->target_fb, iter->source_fb);
-  SWAP(GPUTexture **, iter->target_color_tx, iter->source_color_tx);
-  SWAP(GPUTexture **, iter->target_reveal_tx, iter->source_reveal_tx);
+  std::swap(iter->target_fb, iter->source_fb);
+  std::swap(iter->target_color_tx, iter->source_color_tx);
+  std::swap(iter->target_reveal_tx, iter->source_reveal_tx);
 
   BLI_LINKS_APPEND(&iter->tgp_ob->vfx, tgp_vfx);
 
@@ -100,7 +100,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
   float winmat[4][4], persmat[4][4];
   float blur_size[2] = {fx->radius[0], fx->radius[1]};
   DRW_view_persmat_get(nullptr, persmat, false);
-  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world[3]));
+  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world().location()));
 
   if (fx->flag & FX_BLUR_DOF_MODE) {
     /* Compute circle of confusion size. */
@@ -112,7 +112,7 @@ static void gpencil_vfx_blur(BlurShaderFxData *fx, Object *ob, gpIterVfxData *it
     DRW_view_winmat_get(nullptr, winmat, false);
     const float *vp_size = DRW_viewport_size_get();
     float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-    float scale = mat4_to_scale(ob->object_to_world);
+    float scale = mat4_to_scale(ob->object_to_world().ptr());
     float distance_factor = world_pixel_scale * scale * winmat[1][1] * vp_size[1] / w;
     mul_v2_fl(blur_size, distance_factor);
   }
@@ -181,11 +181,11 @@ static void gpencil_vfx_rim(RimShaderFxData *fx, Object *ob, gpIterVfxData *iter
   const float *vp_size = DRW_viewport_size_get();
   const float *vp_size_inv = DRW_viewport_invert_size_get();
 
-  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world[3]));
+  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world().location()));
 
   /* Modify by distance to camera and object scale. */
   float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-  float scale = mat4_to_scale(ob->object_to_world);
+  float scale = mat4_to_scale(ob->object_to_world().ptr());
   float distance_factor = (world_pixel_scale * scale * winmat[1][1] * vp_size[1]) / w;
   mul_v2_fl(offset, distance_factor);
   mul_v2_v2(offset, vp_size_inv);
@@ -256,8 +256,8 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
   mul_v2_v2(pixel_size, vp_size_inv);
 
   /* Fixed pixelisation center from object center. */
-  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world[3]));
-  mul_v3_m4v3(ob_center, persmat, ob->object_to_world[3]);
+  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world().location()));
+  mul_v3_m4v3(ob_center, persmat, ob->object_to_world().location());
   mul_v3_fl(ob_center, 1.0f / w);
 
   const bool use_antialiasing = ((fx->flag & FX_PIXEL_FILTER_NEAREST) == 0);
@@ -268,7 +268,7 @@ static void gpencil_vfx_pixelize(PixelShaderFxData *fx, Object *ob, gpIterVfxDat
 
   /* Modify by distance to camera and object scale. */
   float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-  float scale = mat4_to_scale(ob->object_to_world);
+  float scale = mat4_to_scale(ob->object_to_world().ptr());
   mul_v2_fl(pixel_size, (world_pixel_scale * scale * winmat[1][1] * vp_size[1]) / w);
 
   /* Center to texel */
@@ -324,8 +324,8 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
   const float ratio = vp_size_inv[1] / vp_size_inv[0];
 
   copy_v3_v3(rot_center,
-             (use_obj_pivot && fx->object) ? fx->object->object_to_world[3] :
-                                             ob->object_to_world[3]);
+             (use_obj_pivot && fx->object) ? fx->object->object_to_world().location() :
+                                             ob->object_to_world().location());
 
   const float w = fabsf(mul_project_m4_v3_zfac(persmat, rot_center));
   mul_v3_m4v3(rot_center, persmat, rot_center);
@@ -333,7 +333,7 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
 
   /* Modify by distance to camera and object scale. */
   float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-  float scale = mat4_to_scale(ob->object_to_world);
+  float scale = mat4_to_scale(ob->object_to_world().ptr());
   float distance_factor = (world_pixel_scale * scale * winmat[1][1] * vp_size[1]) / w;
   mul_v2_fl(offset, distance_factor);
   mul_v2_v2(offset, vp_size_inv);
@@ -366,7 +366,7 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
     rotate_v2_v2fl(wave_dir, dir, fx->rotation);
     /* Rotate 90 degrees. */
     copy_v2_v2(wave_ofs, wave_dir);
-    SWAP(float, wave_ofs[0], wave_ofs[1]);
+    std::swap(wave_ofs[0], wave_ofs[1]);
     wave_ofs[1] *= -1.0f;
     /* Keep world space scaling and aspect ratio. */
     mul_v2_fl(wave_dir, 1.0f / (max_ff(1e-8f, fx->period) * distance_factor));
@@ -501,13 +501,13 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   const float *vp_size = DRW_viewport_size_get();
   const float *vp_size_inv = DRW_viewport_invert_size_get();
 
-  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world[3]));
-  mul_v3_m4v3(wave_center, persmat, ob->object_to_world[3]);
+  const float w = fabsf(mul_project_m4_v3_zfac(persmat, ob->object_to_world().location()));
+  mul_v3_m4v3(wave_center, persmat, ob->object_to_world().location());
   mul_v3_fl(wave_center, 1.0f / w);
 
   /* Modify by distance to camera and object scale. */
   float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-  float scale = mat4_to_scale(ob->object_to_world);
+  float scale = mat4_to_scale(ob->object_to_world().ptr());
   float distance_factor = (world_pixel_scale * scale * winmat[1][1] * vp_size[1]) / w;
 
   wave_center[0] = wave_center[0] * 0.5f + 0.5f;
@@ -523,7 +523,7 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
   }
   /* Rotate 90 degrees. */
   copy_v2_v2(wave_ofs, wave_dir);
-  SWAP(float, wave_ofs[0], wave_ofs[1]);
+  std::swap(wave_ofs[0], wave_ofs[1]);
   wave_ofs[1] *= -1.0f;
   /* Keep world space scaling and aspect ratio. */
   mul_v2_fl(wave_dir, 1.0f / (max_ff(1e-8f, fx->period) * distance_factor));
@@ -558,7 +558,7 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
   DRW_view_persmat_get(nullptr, persmat, false);
   const float *vp_size = DRW_viewport_size_get();
 
-  copy_v3_v3(swirl_center, fx->object->object_to_world[3]);
+  copy_v3_v3(swirl_center, fx->object->object_to_world().location());
 
   const float w = fabsf(mul_project_m4_v3_zfac(persmat, swirl_center));
   mul_v3_m4v3(swirl_center, persmat, swirl_center);
@@ -566,7 +566,7 @@ static void gpencil_vfx_swirl(SwirlShaderFxData *fx, Object * /*ob*/, gpIterVfxD
 
   /* Modify by distance to camera and object scale. */
   float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-  float scale = mat4_to_scale(fx->object->object_to_world);
+  float scale = mat4_to_scale(fx->object->object_to_world().ptr());
   float distance_factor = (world_pixel_scale * scale * winmat[1][1] * vp_size[1]) / w;
 
   mul_v2_fl(swirl_center, 0.5f);

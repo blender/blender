@@ -534,7 +534,7 @@ enum eAnimChannels_SetFlag {
   ACHANNEL_SETFLAG_INVERT = 2,
   /** some on -> all off / all on */
   ACHANNEL_SETFLAG_TOGGLE = 3,
-  /** turn off, keep active flag **/
+  /** Turn off, keep active flag. */
   ACHANNEL_SETFLAG_EXTEND_RANGE = 4,
 };
 

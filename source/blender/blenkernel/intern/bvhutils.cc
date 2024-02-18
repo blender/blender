@@ -6,31 +6,16 @@
  * \ingroup bke
  */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLI_bit_vector.hh"
-#include "BLI_linklist.h"
 #include "BLI_math_geom.h"
-#include "BLI_math_vector.h"
-#include "BLI_span.hh"
 #include "BLI_task.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
-#include "BKE_pointcloud.h"
-
-#include "MEM_guardedalloc.h"
 
 using blender::BitSpan;
 using blender::BitVector;
@@ -294,34 +279,6 @@ static void mesh_corner_tris_nearest_point(void *userdata,
     normal_tri_v3(nearest->no, UNPACK3(vtri_co));
   }
 }
-/* Copy of function above (warning, should de-duplicate with `editmesh_bvh.cc`). */
-static void editmesh_corner_tris_nearest_point(void *userdata,
-                                               int index,
-                                               const float co[3],
-                                               BVHTreeNearest *nearest)
-{
-  BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
-
-  const float *t0, *t1, *t2;
-  t0 = ltri[0]->v->co;
-  t1 = ltri[1]->v->co;
-  t2 = ltri[2]->v->co;
-
-  {
-    float nearest_tmp[3], dist_sq;
-
-    closest_on_tri_to_point_v3(nearest_tmp, co, t0, t1, t2);
-    dist_sq = len_squared_v3v3(co, nearest_tmp);
-
-    if (dist_sq < nearest->dist_sq) {
-      nearest->index = index;
-      nearest->dist_sq = dist_sq;
-      copy_v3_v3(nearest->co, nearest_tmp);
-      normal_tri_v3(nearest->no, t0, t1, t2);
-    }
-  }
-}
 
 /**
  * Callback to BVH-tree ray-cast.
@@ -397,38 +354,6 @@ static void mesh_corner_tris_spherecast(void *userdata,
     normal_tri_v3(hit->no, UNPACK3(vtri_co));
   }
 }
-/* Copy of function above (warning, should de-duplicate with `editmesh_bvh.cc`). */
-static void editmesh_corner_tris_spherecast(void *userdata,
-                                            int index,
-                                            const BVHTreeRay *ray,
-                                            BVHTreeRayHit *hit)
-{
-  BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  const BMLoop **ltri = const_cast<const BMLoop **>(em->looptris[index]);
-
-  const float *t0, *t1, *t2;
-  t0 = ltri[0]->v->co;
-  t1 = ltri[1]->v->co;
-  t2 = ltri[2]->v->co;
-
-  {
-    float dist;
-    if (ray->radius == 0.0f) {
-      dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
-    }
-    else {
-      dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, t0, t1, t2);
-    }
-
-    if (dist >= 0 && dist < hit->dist) {
-      hit->index = index;
-      hit->dist = dist;
-      madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
-
-      normal_tri_v3(hit->no, t0, t1, t2);
-    }
-  }
-}
 
 /**
  * Callback to BVH-tree nearest point.
@@ -482,17 +407,6 @@ static void mesh_verts_spherecast_do(int index,
     hit->dist = dist;
     copy_v3_v3(hit->co, i1);
   }
-}
-
-static void editmesh_verts_spherecast(void *userdata,
-                                      int index,
-                                      const BVHTreeRay *ray,
-                                      BVHTreeRayHit *hit)
-{
-  BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
-  BMVert *eve = BM_vert_at_index(em->bm, index);
-
-  mesh_verts_spherecast_do(index, eve->co, ray, hit);
 }
 
 /**
@@ -615,44 +529,6 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
       r_data->nearest_callback = mesh_corner_tris_nearest_point;
       r_data->raycast_callback = mesh_corner_tris_spherecast;
       break;
-    case BVHTREE_FROM_EM_LOOSEVERTS:
-    case BVHTREE_FROM_EM_EDGES:
-    case BVHTREE_FROM_EM_LOOPTRIS:
-    case BVHTREE_MAX_ITEM:
-      BLI_assert(false);
-      break;
-  }
-}
-
-static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
-                                             const BVHCacheType bvh_cache_type,
-                                             BVHTreeFromEditMesh *r_data)
-{
-  memset(r_data, 0, sizeof(*r_data));
-
-  r_data->tree = tree;
-
-  switch (bvh_cache_type) {
-    case BVHTREE_FROM_EM_LOOSEVERTS:
-      r_data->nearest_callback = nullptr;
-      r_data->raycast_callback = editmesh_verts_spherecast;
-      break;
-    case BVHTREE_FROM_EM_EDGES:
-      r_data->nearest_callback = nullptr; /* TODO */
-      r_data->raycast_callback = nullptr; /* TODO */
-      break;
-    case BVHTREE_FROM_EM_LOOPTRIS:
-      r_data->nearest_callback = editmesh_corner_tris_nearest_point;
-      r_data->raycast_callback = editmesh_corner_tris_spherecast;
-      break;
-
-    case BVHTREE_FROM_VERTS:
-    case BVHTREE_FROM_LOOSEVERTS:
-    case BVHTREE_FROM_EDGES:
-    case BVHTREE_FROM_LOOSEEDGES:
-    case BVHTREE_FROM_FACES:
-    case BVHTREE_FROM_CORNER_TRIS:
-    case BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN:
     case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
@@ -682,34 +558,6 @@ static BVHTree *bvhtree_new_common(
 /** \name Vertex Builder
  * \{ */
 
-static BVHTree *bvhtree_from_editmesh_verts_create_tree(float epsilon,
-                                                        int tree_type,
-                                                        int axis,
-                                                        BMEditMesh *em,
-                                                        const BitSpan verts_mask,
-                                                        int verts_num_active)
-{
-  const int verts_num = em->bm->totvert;
-
-  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, verts_num, verts_num_active);
-  if (!tree) {
-    return nullptr;
-  }
-
-  BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-
-  for (int i = 0; i < verts_num; i++) {
-    if (!verts_mask.is_empty() && !verts_mask[i]) {
-      continue;
-    }
-    BMVert *eve = BM_vert_at_index(em->bm, i);
-    BLI_bvhtree_insert(tree, i, eve->co, 1);
-  }
-  BLI_assert(BLI_bvhtree_get_len(tree) == verts_num_active);
-
-  return tree;
-}
-
 static BVHTree *bvhtree_from_mesh_verts_create_tree(float epsilon,
                                                     int tree_type,
                                                     int axis,
@@ -731,32 +579,6 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(float epsilon,
   BLI_assert(BLI_bvhtree_get_len(tree) == verts_num_active);
 
   return tree;
-}
-
-BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
-                                        BMEditMesh *em,
-                                        const BitSpan verts_mask,
-                                        int verts_num_active,
-                                        float epsilon,
-                                        int tree_type,
-                                        int axis)
-{
-  BVHTree *tree = bvhtree_from_editmesh_verts_create_tree(
-      epsilon, tree_type, axis, em, verts_mask, verts_num_active);
-
-  bvhtree_balance(tree, false);
-
-  if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOSEVERTS, data);
-  }
-
-  return tree;
-}
-
-BVHTree *bvhtree_from_editmesh_verts(
-    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
-{
-  return bvhtree_from_editmesh_verts_ex(data, em, {}, -1, epsilon, tree_type, axis);
 }
 
 BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
@@ -786,40 +608,6 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
 /** \name Edge Builder
  * \{ */
 
-static BVHTree *bvhtree_from_editmesh_edges_create_tree(float epsilon,
-                                                        int tree_type,
-                                                        int axis,
-                                                        BMEditMesh *em,
-                                                        const BitSpan edges_mask,
-                                                        int edges_num_active)
-{
-  const int edges_num = em->bm->totedge;
-
-  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, edges_num, edges_num_active);
-  if (!tree) {
-    return nullptr;
-  }
-
-  BM_mesh_elem_table_ensure(em->bm, BM_EDGE);
-
-  int i;
-  BMIter iter;
-  BMEdge *eed;
-  BM_ITER_MESH_INDEX (eed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
-    if (!edges_mask.is_empty() && !edges_mask[i]) {
-      continue;
-    }
-    float co[2][3];
-    copy_v3_v3(co[0], eed->v1->co);
-    copy_v3_v3(co[1], eed->v2->co);
-
-    BLI_bvhtree_insert(tree, i, co[0], 2);
-  }
-  BLI_assert(BLI_bvhtree_get_len(tree) == edges_num_active);
-
-  return tree;
-}
-
 static BVHTree *bvhtree_from_mesh_edges_create_tree(const Span<float3> positions,
                                                     const blender::Span<blender::int2> edges,
                                                     const BitSpan edges_mask,
@@ -845,32 +633,6 @@ static BVHTree *bvhtree_from_mesh_edges_create_tree(const Span<float3> positions
   }
 
   return tree;
-}
-
-BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
-                                        BMEditMesh *em,
-                                        const BitSpan edges_mask,
-                                        int edges_num_active,
-                                        float epsilon,
-                                        int tree_type,
-                                        int axis)
-{
-  BVHTree *tree = bvhtree_from_editmesh_edges_create_tree(
-      epsilon, tree_type, axis, em, edges_mask, edges_num_active);
-
-  bvhtree_balance(tree, false);
-
-  if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_EDGES, data);
-  }
-
-  return tree;
-}
-
-BVHTree *bvhtree_from_editmesh_edges(
-    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
-{
-  return bvhtree_from_editmesh_edges_ex(data, em, {}, -1, epsilon, tree_type, axis);
 }
 
 BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
@@ -944,46 +706,6 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
 /** \name corner_tri Face Builder
  * \{ */
 
-static BVHTree *bvhtree_from_editmesh_corner_tris_create_tree(float epsilon,
-                                                              int tree_type,
-                                                              int axis,
-                                                              BMEditMesh *em,
-                                                              const BitSpan corner_tris_mask,
-                                                              int corner_tris_num_active)
-{
-  const int corner_tris_num = em->tottri;
-
-  BVHTree *tree = bvhtree_new_common(
-      epsilon, tree_type, axis, corner_tris_num, corner_tris_num_active);
-  if (!tree) {
-    return nullptr;
-  }
-
-  const BMLoop *(*corner_tris)[3] = const_cast<const BMLoop *(*)[3]>(em->looptris);
-
-  /* Insert BMesh-tessellation triangles into the BVH-tree, unless they are hidden
-   * and/or selected. Even if the faces themselves are not selected for the snapped
-   * transform, having a vertex selected means the face (and thus it's tessellated
-   * triangles) will be moving and will not be a good snap targets. */
-  for (int i = 0; i < corner_tris_num; i++) {
-    const BMLoop **ltri = corner_tris[i];
-    bool insert = !corner_tris_mask.is_empty() ? corner_tris_mask[i] : true;
-
-    if (insert) {
-      /* No reason found to block hit-testing the triangle for snap, so insert it now. */
-      float co[3][3];
-      copy_v3_v3(co[0], ltri[0]->v->co);
-      copy_v3_v3(co[1], ltri[1]->v->co);
-      copy_v3_v3(co[2], ltri[2]->v->co);
-
-      BLI_bvhtree_insert(tree, i, co[0], 3);
-    }
-  }
-  BLI_assert(BLI_bvhtree_get_len(tree) == corner_tris_num_active);
-
-  return tree;
-}
-
 static BVHTree *bvhtree_from_mesh_corner_tris_create_tree(float epsilon,
                                                           int tree_type,
                                                           int axis,
@@ -1020,33 +742,6 @@ static BVHTree *bvhtree_from_mesh_corner_tris_create_tree(float epsilon,
   BLI_assert(BLI_bvhtree_get_len(tree) == corner_tris_num_active);
 
   return tree;
-}
-
-BVHTree *bvhtree_from_editmesh_looptris_ex(BVHTreeFromEditMesh *data,
-                                           BMEditMesh *em,
-                                           const BitSpan corner_tris_mask,
-                                           int corner_tris_num_active,
-                                           float epsilon,
-                                           int tree_type,
-                                           int axis)
-{
-  /* BMESH specific check that we have tessfaces,
-   * we _could_ tessellate here but rather not - campbell */
-  BVHTree *tree = bvhtree_from_editmesh_corner_tris_create_tree(
-      epsilon, tree_type, axis, em, corner_tris_mask, corner_tris_num_active);
-
-  bvhtree_balance(tree, false);
-
-  if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOPTRIS, data);
-  }
-  return tree;
-}
-
-BVHTree *bvhtree_from_editmesh_corner_tris(
-    BVHTreeFromEditMesh *data, BMEditMesh *em, float epsilon, int tree_type, int axis)
-{
-  return bvhtree_from_editmesh_looptris_ex(data, em, {}, -1, epsilon, tree_type, axis);
 }
 
 BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
@@ -1210,9 +905,6 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
           0.0f, tree_type, 6, positions, corner_verts, corner_tris, {}, -1);
       break;
     }
-    case BVHTREE_FROM_EM_LOOSEVERTS:
-    case BVHTREE_FROM_EM_EDGES:
-    case BVHTREE_FROM_EM_LOOPTRIS:
     case BVHTREE_MAX_ITEM:
       BLI_assert_unreachable();
       break;
@@ -1240,94 +932,51 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
   return data->tree;
 }
 
-static BitVector<> bmverts_loose_map_get(BMesh *bm, int *r_bmvert_active_len)
+void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
+                                     const blender::IndexMask &faces_mask,
+                                     BVHTreeFromMesh &r_data)
 {
-  BitVector<> bmvert_mask(bm->totvert);
+  using namespace blender;
+  using namespace blender::bke;
 
-  int i, bmvert_loose_len = 0;
-  BMIter iter;
-  BMVert *v;
-  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-    if (v->e == nullptr) {
-      bmvert_mask[i].set();
-      bmvert_loose_len++;
+  const Span<float3> positions = mesh.vert_positions();
+  const Span<int2> edges = mesh.edges();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const OffsetIndices faces = mesh.faces();
+  const Span<int3> corner_tris = mesh.corner_tris();
+  bvhtree_from_mesh_setup_data(nullptr,
+                               BVHTREE_FROM_CORNER_TRIS,
+                               positions,
+                               edges,
+                               corner_verts,
+                               corner_tris,
+                               nullptr,
+                               &r_data);
+
+  int tris_num = 0;
+  faces_mask.foreach_index(
+      [&](const int i) { tris_num += mesh::face_triangles_num(faces[i].size()); });
+
+  int active_num = -1;
+  BVHTree *tree = bvhtree_new_common(0.0f, 2, 6, tris_num, active_num);
+  r_data.tree = tree;
+  if (tree == nullptr) {
+    return;
+  }
+
+  faces_mask.foreach_index([&](const int face_i) {
+    const IndexRange triangles_range = mesh::face_triangles_range(faces, face_i);
+    for (const int tri_i : triangles_range) {
+      float co[3][3];
+      copy_v3_v3(co[0], positions[corner_verts[corner_tris[tri_i][0]]]);
+      copy_v3_v3(co[1], positions[corner_verts[corner_tris[tri_i][1]]]);
+      copy_v3_v3(co[2], positions[corner_verts[corner_tris[tri_i][2]]]);
+
+      BLI_bvhtree_insert(tree, tri_i, co[0], 3);
     }
-  }
+  });
 
-  *r_bmvert_active_len = bmvert_loose_len;
-
-  return bmvert_mask;
-}
-
-BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
-                                       BMEditMesh *em,
-                                       const int tree_type,
-                                       const BVHCacheType bvh_cache_type,
-                                       BVHCache **bvh_cache_p,
-                                       std::mutex *mesh_eval_mutex)
-{
-  bool lock_started = false;
-
-  bvhtree_from_editmesh_setup_data(nullptr, bvh_cache_type, data);
-
-  if (bvh_cache_p) {
-    data->cached = bvhcache_find(
-        bvh_cache_p, bvh_cache_type, &data->tree, &lock_started, mesh_eval_mutex);
-
-    if (data->cached) {
-      BLI_assert(lock_started == false);
-      return data->tree;
-    }
-  }
-
-  switch (bvh_cache_type) {
-    case BVHTREE_FROM_EM_LOOSEVERTS: {
-      int mask_bits_act_len = -1;
-      const BitVector<> mask = bmverts_loose_map_get(em->bm, &mask_bits_act_len);
-      data->tree = bvhtree_from_editmesh_verts_create_tree(
-          0.0f, tree_type, 6, em, mask, mask_bits_act_len);
-      break;
-    }
-    case BVHTREE_FROM_EM_EDGES:
-      data->tree = bvhtree_from_editmesh_edges_create_tree(0.0f, tree_type, 6, em, {}, -1);
-      break;
-    case BVHTREE_FROM_EM_LOOPTRIS:
-      data->tree = bvhtree_from_editmesh_corner_tris_create_tree(0.0f, tree_type, 6, em, {}, -1);
-      break;
-    case BVHTREE_FROM_VERTS:
-    case BVHTREE_FROM_EDGES:
-    case BVHTREE_FROM_FACES:
-    case BVHTREE_FROM_CORNER_TRIS:
-    case BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN:
-    case BVHTREE_FROM_LOOSEVERTS:
-    case BVHTREE_FROM_LOOSEEDGES:
-    case BVHTREE_MAX_ITEM:
-      BLI_assert(false);
-      break;
-  }
-
-  bvhtree_balance(data->tree, lock_started);
-
-  if (bvh_cache_p) {
-    /* Save on cache for later use */
-    // printf("BVHTree built and saved on cache\n");
-    BLI_assert(data->cached == false);
-    data->cached = true;
-    bvhcache_insert(*bvh_cache_p, data->tree, bvh_cache_type);
-    bvhcache_unlock(*bvh_cache_p, lock_started);
-  }
-
-#ifndef NDEBUG
-  if (data->tree != nullptr) {
-    if (BLI_bvhtree_get_tree_type(data->tree) != tree_type) {
-      printf("tree_type %d obtained instead of %d\n",
-             BLI_bvhtree_get_tree_type(data->tree),
-             tree_type);
-    }
-  }
-#endif
-
-  return data->tree;
+  BLI_bvhtree_balance(tree);
 }
 
 /** \} */
@@ -1335,16 +984,6 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
 /* -------------------------------------------------------------------- */
 /** \name Free Functions
  * \{ */
-
-void free_bvhtree_from_editmesh(BVHTreeFromEditMesh *data)
-{
-  if (data->tree) {
-    if (!data->cached) {
-      BLI_bvhtree_free(data->tree);
-    }
-    memset(data, 0, sizeof(*data));
-  }
-}
 
 void free_bvhtree_from_mesh(BVHTreeFromMesh *data)
 {

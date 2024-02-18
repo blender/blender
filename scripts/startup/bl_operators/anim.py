@@ -14,7 +14,7 @@ from bpy.props import (
     StringProperty,
 )
 from bpy.app.translations import (
-    pgettext_tip as tip_,
+    pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
 
@@ -114,7 +114,7 @@ class ANIM_OT_keying_set_export(Operator):
                 if not found:
                     self.report(
                         {'WARN'},
-                        tip_("Could not find material or light using Shader Node Tree - %s") %
+                        rpt_("Could not find material or light using Shader Node Tree - %s") %
                         (ksp.id))
             elif ksp.id.bl_rna.identifier.startswith("CompositorNodeTree"):
                 # Find compositor node-tree using this node tree.
@@ -123,7 +123,7 @@ class ANIM_OT_keying_set_export(Operator):
                         id_bpy_path = "bpy.data.scenes[\"%s\"].node_tree" % (scene.name)
                         break
                 else:
-                    self.report({'WARN'}, tip_("Could not find scene using Compositor Node Tree - %s") % (ksp.id))
+                    self.report({'WARN'}, rpt_("Could not find scene using Compositor Node Tree - %s") % (ksp.id))
             elif ksp.id.bl_rna.name == "Key":
                 # "keys" conflicts with a Python keyword, hence the simple solution won't work
                 id_bpy_path = "bpy.data.shape_keys[\"%s\"]" % (ksp.id.name)
@@ -358,7 +358,7 @@ class ClearUselessActions(Operator):
                     action.user_clear()
                     removed += 1
 
-        self.report({'INFO'}, tip_("Removed %d empty and/or fake-user only Actions")
+        self.report({'INFO'}, rpt_("Removed %d empty and/or fake-user only Actions")
                     % removed)
         return {'FINISHED'}
 
@@ -443,7 +443,7 @@ class UpdateAnimatedTransformConstraint(Operator):
             print(log)
             text = bpy.data.texts.new("UpdateAnimatedTransformConstraint Report")
             text.from_string(log)
-            self.report({'INFO'}, tip_("Complete report available on '%s' text datablock") % text.name)
+            self.report({'INFO'}, rpt_("Complete report available on '%s' text datablock") % text.name)
         return {'FINISHED'}
 
 
@@ -524,53 +524,6 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
         return {'FINISHED'}
 
 
-class ARMATURE_OT_collection_solo_visibility(Operator):
-    """Hide all other bone collections and show the active one.
-
-    Note that it is necessary to also show the ancestors of the active bone
-    collection in order to ensure its visibility.
-    """
-    bl_idname = "armature.collection_solo_visibility"
-    bl_label = "Solo Visibility"
-    bl_description = "Hide all other bone collections and show the active one. " + \
-        "Note that it is necessary to also show the ancestors of the active " + \
-        "bone collection in order to ensure its visibility"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    name: StringProperty(name='Bone Collection')
-
-    @classmethod
-    def poll(cls, context):
-        return context.object and context.object.type == 'ARMATURE' and context.object.data
-
-    def execute(self, context):
-        arm = context.object.data
-
-        # Find the named bone collection.
-        if self.name:
-            try:
-                solo_bcoll = arm.collections[self.name]
-            except KeyError:
-                self.report({'ERROR'}, "Bone collection %r not found" % self.name)
-                return {'CANCELLED'}
-        else:
-            solo_bcoll = arm.collections.active
-            if not solo_bcoll:
-                self.report({'ERROR'}, "Armature has no active Bone collection, nothing to solo")
-                return {'CANCELLED'}
-
-        # Hide everything first.
-        for bcoll in arm.collections.all:
-            bcoll.is_visible = False
-
-        # Show the named bone collection and all its ancestors.
-        while solo_bcoll:
-            solo_bcoll.is_visible = True
-            solo_bcoll = solo_bcoll.parent
-
-        return {'FINISHED'}
-
-
 class ARMATURE_OT_collection_show_all(Operator):
     """Show all bone collections"""
     bl_idname = "armature.collection_show_all"
@@ -583,9 +536,115 @@ class ARMATURE_OT_collection_show_all(Operator):
 
     def execute(self, context):
         arm = context.object.data
-        for bcoll in arm.collections.all:
+        for bcoll in arm.collections_all:
             bcoll.is_visible = True
         return {'FINISHED'}
+
+
+class ARMATURE_OT_collection_unsolo_all(Operator):
+    """Clear the 'solo' setting on all bone collections"""
+    bl_idname = "armature.collection_unsolo_all"
+    bl_label = "Un-solo All"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        if not (context.object and context.object.type == 'ARMATURE' and context.object.data):
+            return False
+        if not context.object.data.collections.is_solo_active:
+            cls.poll_message_set("None of the bone collections is marked 'solo'")
+            return False
+        return True
+
+    def execute(self, context):
+        arm = context.object.data
+        for bcoll in arm.collections_all:
+            bcoll.is_solo = False
+        return {'FINISHED'}
+
+
+class ARMATURE_OT_collection_remove_unused(Operator):
+    """Remove all bone collections that have neither bones nor children. """ \
+        """This is done recursively, so bone collections that only have unused children are also removed"""
+
+    bl_idname = "armature.collection_remove_unused"
+    bl_label = "Remove Unused Bone Collections"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        if not context.object or context.object.type != 'ARMATURE':
+            return False
+        arm = context.object.data
+        return len(arm.collections) > 0
+
+    def execute(self, context):
+        if context.object.mode == 'EDIT':
+            return self.execute_edit_mode(context)
+
+        armature = context.object.data
+
+        # Build a set of bone collections that don't contain any bones, and
+        # whose children also don't contain any bones.
+        bcolls_to_remove = {
+            bcoll
+            for bcoll in armature.collections_all
+            if len(bcoll.bones_recursive) == 0}
+
+        if not bcolls_to_remove:
+            self.report({'INFO'}, "All bone collections are in use")
+            return {'CANCELLED'}
+
+        self.remove_bcolls(armature, bcolls_to_remove)
+        return {'FINISHED'}
+
+    def execute_edit_mode(self, context):
+        # BoneCollection.bones_recursive or .bones are not available in armature
+        # edit mode, because that has a completely separate list of edit bones.
+        # This is why edit mode needs separate handling.
+
+        armature = context.object.data
+        bcolls_with_bones = {
+            bcoll
+            for ebone in armature.edit_bones
+            for bcoll in ebone.collections
+        }
+
+        bcolls_to_remove = []
+        for root in armature.collections:
+            self.visit(root, bcolls_with_bones, bcolls_to_remove)
+
+        if not bcolls_to_remove:
+            self.report({'INFO'}, "All bone collections are in use")
+            return {'CANCELLED'}
+
+        self.remove_bcolls(armature, bcolls_to_remove)
+        return {'FINISHED'}
+
+    def visit(self, bcoll, bcolls_with_bones, bcolls_to_remove):
+        has_bones = bcoll in bcolls_with_bones
+
+        for child in bcoll.children:
+            child_has_bones = self.visit(child, bcolls_with_bones, bcolls_to_remove)
+            has_bones = has_bones or child_has_bones
+
+        if not has_bones:
+            bcolls_to_remove.append(bcoll)
+
+        return has_bones
+
+    def remove_bcolls(self, armature, bcolls_to_remove):
+        # Count things before they get removed.
+        num_bcolls_before_removal = len(armature.collections_all)
+        num_bcolls_to_remove = len(bcolls_to_remove)
+
+        # Create a copy of bcolls_to_remove so that it doesn't change when we
+        # remove bone collections.
+        for bcoll in reversed(list(bcolls_to_remove)):
+            armature.collections.remove(bcoll)
+
+        self.report({'INFO'}, 'Removed %d of %d bone collections' %
+                    (num_bcolls_to_remove, num_bcolls_before_removal))
 
 
 classes = (
@@ -594,6 +653,7 @@ classes = (
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
     ARMATURE_OT_copy_bone_color_to_selected,
-    ARMATURE_OT_collection_solo_visibility,
     ARMATURE_OT_collection_show_all,
+    ARMATURE_OT_collection_unsolo_all,
+    ARMATURE_OT_collection_remove_unused,
 )

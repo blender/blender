@@ -23,6 +23,7 @@ from bpy.props import (
 from bpy.app.translations import (
     pgettext_iface as iface_,
     pgettext_tip as tip_,
+    pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
 
@@ -778,7 +779,7 @@ class WM_OT_operator_pie_enum(Operator):
         try:
             op_rna = op.get_rna_type()
         except KeyError:
-            self.report({'ERROR'}, tip_("Operator not found: bpy.ops.%s") % data_path)
+            self.report({'ERROR'}, rpt_("Operator not found: bpy.ops.%s") % data_path)
             return {'CANCELLED'}
 
         def draw_cb(self, context):
@@ -878,7 +879,7 @@ class WM_OT_context_collection_boolean_set(Operator):
             elif value_orig is False:
                 pass
             else:
-                self.report({'WARNING'}, tip_("Non boolean value found: %s[ ].%s") %
+                self.report({'WARNING'}, rpt_("Non boolean value found: %s[ ].%s") %
                             (data_path_iter, data_path_item))
                 return {'CANCELLED'}
 
@@ -981,7 +982,7 @@ class WM_OT_context_modal_mouse(Operator):
                     (item, ) = self._values.keys()
                     header_text = header_text % eval("item.%s" % self.data_path_item)
                 else:
-                    header_text = (self.header_text % delta) + tip_(" (delta)")
+                    header_text = (self.header_text % delta) + rpt_(" (delta)")
                 context.area.header_text_set(header_text)
 
         elif 'LEFTMOUSE' == event_type:
@@ -1001,7 +1002,7 @@ class WM_OT_context_modal_mouse(Operator):
         self._values_store(context)
 
         if not self._values:
-            self.report({'WARNING'}, tip_("Nothing to operate on: %s[ ].%s") %
+            self.report({'WARNING'}, rpt_("Nothing to operate on: %s[ ].%s") %
                         (self.data_path_iter, self.data_path_item))
 
             return {'CANCELLED'}
@@ -1168,7 +1169,7 @@ class WM_OT_path_open(Operator):
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, tip_("File '%s' not found") % filepath)
+            self.report({'ERROR'}, rpt_("File '%s' not found") % filepath)
             return {'CANCELLED'}
 
         if sys.platform[:3] == "win":
@@ -1239,7 +1240,7 @@ def _wm_doc_get_id(doc_id, *, do_url=True, url_prefix="", report=None):
 
             if rna_class is None:
                 if report is not None:
-                    report({'ERROR'}, tip_("Type \"%s\" can not be found") % class_name)
+                    report({'ERROR'}, rpt_("Type \"%s\" cannot be found") % class_name)
                 return None
 
             # Detect if this is a inherited member and use that name instead.
@@ -1334,7 +1335,7 @@ class WM_OT_doc_view_manual(Operator):
         if url is None:
             self.report(
                 {'WARNING'},
-                tip_("No reference available %r, "
+                rpt_("No reference available %r, "
                      "Update info in 'rna_manual_reference.py' "
                      "or callback to bpy.utils.manual_map()") %
                 self.doc_id
@@ -1906,7 +1907,7 @@ class WM_OT_properties_edit(Operator):
 
         item = eval("context.%s" % data_path)
         if (item.id_data and item.id_data.override_library and item.id_data.override_library.reference):
-            self.report({'ERROR'}, "Properties from override data can not be edited")
+            self.report({'ERROR'}, "Properties from override data cannot be edited")
             return {'CANCELLED'}
 
         # Set operator's property type with the type of the existing property, to display the right settings.
@@ -2317,7 +2318,7 @@ class WM_OT_tool_set_by_id(Operator):
                 tool_settings.workspace_tool_type = 'FALLBACK'
             return {'FINISHED'}
         else:
-            self.report({'WARNING'}, tip_("Tool %r not found for space %r") % (self.name, space_type))
+            self.report({'WARNING'}, rpt_("Tool %r not found for space %r") % (self.name, space_type))
             return {'CANCELLED'}
 
 
@@ -2654,10 +2655,11 @@ class BatchRenameAction(bpy.types.PropertyGroup):
 
 
 class WM_OT_batch_rename(Operator):
+    """Rename multiple items at once"""
+
     bl_idname = "wm.batch_rename"
     bl_label = "Batch Rename"
 
-    bl_description = "Rename multiple items at once"
     bl_options = {'UNDO'}
 
     data_type: EnumProperty(
@@ -3188,7 +3190,7 @@ class WM_OT_batch_rename(Operator):
                 change_len += 1
             total_len += 1
 
-        self.report({'INFO'}, tip_("Renamed %d of %d %s") % (change_len, total_len, descr))
+        self.report({'INFO'}, rpt_("Renamed %d of %d %s") % (change_len, total_len, descr))
 
         return {'FINISHED'}
 
@@ -3227,7 +3229,7 @@ class WM_MT_splash_quick_setup(Menu):
             )
             col.operator(
                 "wm.url_open", text="See What's New...", icon='URL',
-            ).url = "https://wiki.blender.org/wiki/Reference/Release_Notes/4.0"
+            ).url = "https://developer.blender.org/docs/release_notes/%d.%d" % bpy.app.version[:2]
             col.separator(factor=2.0)
 
         if can_import:
@@ -3485,7 +3487,8 @@ class WM_MT_region_toggle_pie(Menu):
             text = enum_items[region_type].name
             attr = cls._region_info[region_type]
             value = getattr(space_data, attr)
-            props = pie.operator("wm.context_toggle", text=text, icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
+            props = pie.operator("wm.context_toggle", text=text, text_ctxt=i18n_contexts.default,
+                                 icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
             props.data_path = "space_data." + attr
 
     def draw(self, context):

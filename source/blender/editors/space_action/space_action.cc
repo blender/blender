@@ -10,9 +10,7 @@
 #include <cstring>
 
 #include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -21,9 +19,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
-#include "BKE_nla.h"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -786,13 +783,15 @@ static void action_refresh(const bContext *C, ScrArea *area)
   /* XXX re-sizing y-extents of tot should go here? */
 }
 
-static void action_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void action_id_remap(ScrArea * /*area*/,
+                            SpaceLink *slink,
+                            const blender::bke::id::IDRemapper &mappings)
 {
   SpaceAction *sact = (SpaceAction *)slink;
 
-  BKE_id_remapper_apply(mappings, (ID **)&sact->action, ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(mappings, (ID **)&sact->ads.filter_grp, ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(mappings, &sact->ads.source, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((ID **)&sact->action, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((ID **)&sact->ads.filter_grp, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 }
 
 static void action_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -865,7 +864,7 @@ static void action_main_region_view2d_changed(const bContext * /*C*/, ARegion *r
 
 void ED_spacetype_action()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype action");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_ACTION;
@@ -942,7 +941,7 @@ void ED_spacetype_action()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }
 
 /** \} */

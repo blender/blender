@@ -6,7 +6,7 @@
 
 #include "RE_pipeline.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "DNA_material_types.h"
 

@@ -12,16 +12,14 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
 
-#include "DNA_light_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_gizmo_library.hh"
-#include "ED_screen.hh"
 
 #include "UI_resources.hh"
 
@@ -29,7 +27,6 @@
 
 #include "RNA_access.hh"
 
-#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */
@@ -144,7 +141,7 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzg
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
 
-  copy_m4_m4(gz->matrix_basis, ob->object_to_world);
+  copy_m4_m4(gz->matrix_basis, ob->object_to_world().ptr());
 
   RNA_enum_set(gz->ptr,
                "transform",

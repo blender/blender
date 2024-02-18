@@ -17,7 +17,7 @@ bool cmp_node_poll_default(const bNodeType * /*ntype*/,
                            const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = TIP_("Not a compositor node tree");
+    *r_disabled_hint = RPT_("Not a compositor node tree");
     return false;
   }
   return true;

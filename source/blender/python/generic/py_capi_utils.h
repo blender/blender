@@ -302,12 +302,14 @@ int32_t PyC_Long_AsI32(PyObject *value);
 int64_t PyC_Long_AsI64(PyObject *value);
 #endif
 
+/* Unlike Python's #PyLong_AsUnsignedLong and #PyLong_AsUnsignedLongLong, these unsigned integer
+ * parsing functions fall back to calling #PyNumber_Index when their argument is not a
+ * `PyLongObject`. This matches Python's signed integer parsing functions which also fall back to
+ * calling #PyNumber_Index. */
 uint8_t PyC_Long_AsU8(PyObject *value);
 uint16_t PyC_Long_AsU16(PyObject *value);
 uint32_t PyC_Long_AsU32(PyObject *value);
-#if 0 /* inline */
 uint64_t PyC_Long_AsU64(PyObject *value);
-#endif
 
 /* inline so type signatures match as expected */
 Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
@@ -317,10 +319,6 @@ Py_LOCAL_INLINE(int32_t) PyC_Long_AsI32(PyObject *value)
 Py_LOCAL_INLINE(int64_t) PyC_Long_AsI64(PyObject *value)
 {
   return (int64_t)PyLong_AsLongLong(value);
-}
-Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value)
-{
-  return (uint64_t)PyLong_AsUnsignedLongLong(value);
 }
 
 /* utils for format string in `struct` module style syntax */
@@ -336,6 +334,13 @@ bool PyC_StructFmt_type_is_bool(char format);
 
 #ifdef __cplusplus
 #  include "BLI_span.hh"
+
+#  include <string>
+
+/**
+ * Create a `str` from `std::string`, wraps #PyC_UnicodeFromBytesAndSize.
+ */
+PyObject *PyC_UnicodeFromStdStr(const std::string &str);
 
 inline PyObject *PyC_Tuple_Pack_F32(const blender::Span<float> values)
 {

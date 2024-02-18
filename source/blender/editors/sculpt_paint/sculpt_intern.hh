@@ -9,9 +9,6 @@
 #pragma once
 
 #include "DNA_brush_enums.h" /* For eAttrCorrectMode. */
-#include <memory>
-#include <queue>
-
 #include "DNA_brush_types.h"
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
@@ -42,9 +39,12 @@
 #include "bmesh.hh"
 
 #include <functional>
+#include <memory>
+#include <queue>
 
-namespace blender::ed::sculpt_paint::undo {
+namespace blender::ed::sculpt_paint {
 
+namespace undo {
 enum class Type {
   None = 0,
   Position = 1 << 0,
@@ -61,7 +61,6 @@ enum class Type {
 ENUM_OPERATORS(Type, Type::Color);
 }
 
-namespace blender::ed::sculpt_paint {
 namespace auto_mask {
 struct NodeData;
 struct Cache;
@@ -102,10 +101,6 @@ enough for about ~30 radial symmetry passes, which seems like plenty
 used by various code that needs to statically store per-pass state.
 */
 #define SCULPT_MAX_SYMMETRY_PASSES 255
-
-using blender::float3;
-using blender::Span;
-using blender::Vector;
 
 /* Updates */
 
@@ -323,7 +318,7 @@ struct Node {
   /* Set of Dyntopo nodes, indexed by node id and type, that've
    * already been undo pushed.
    */
-  blender::Set<NodeUndoKey> dyntopo_undo_set;
+  ::blender::Set<NodeUndoKey> dyntopo_undo_set;
   int typemask;
 
   Vector<int> face_indices;
@@ -355,7 +350,7 @@ struct SculptBrushTest {
   ePaintSymmetryFlags mirror_symmetry_pass;
 
   int radial_symmetry_pass;
-  float symm_rot_mat_inv[4][4];
+  blender::float4x4 symm_rot_mat_inv;
 
   float tip_roundness;
   float tip_scale_x;
@@ -459,7 +454,7 @@ struct Cache {
 
   /* Cloth filter. */
   cloth::SimulationData *cloth_sim;
-  float cloth_sim_pinch_point[3];
+  float3 cloth_sim_pinch_point;
 
   /* mask expand iteration caches */
   int mask_update_current_it;
@@ -478,8 +473,7 @@ struct Cache {
   /* Transform. */
   SculptTransformDisplacementMode transform_displacement_mode;
 
-  /* Auto-masking. */
-  auto_mask::Cache *automasking;
+  std::unique_ptr<auto_mask::Cache> automasking;
   float3 initial_normal;
   float3 view_normal;
 
@@ -516,8 +510,8 @@ struct StrokeCache {
   float3 scale;
   int flag;
   float3 clip_tolerance;
-  float clip_mirror_mtx[4][4];
-  float initial_mouse[2];
+  float4x4 clip_mirror_mtx;
+  float2 initial_mouse;
 
   /* Variants */
   float last_anchored_radius; /* Used by paint_mesh_restore_co. */
@@ -547,9 +541,9 @@ struct StrokeCache {
 
   /* Position of the mouse corresponding to the stroke location, modified by the paint_stroke
    * operator according to the stroke type. */
-  float mouse[2];
+  float2 mouse;
   /* Position of the mouse event in screen space, not modified by the stroke type. */
-  float mouse_event[2];
+  float2 mouse_event;
 
   float (*prev_colors)[4];
   GArray<> prev_colors_vpaint;
@@ -593,8 +587,8 @@ struct StrokeCache {
   /* Symmetry index between 0 and 7 bit combo 0 is Brush only;
    * 1 is X mirror; 2 is Y mirror; 3 is XY; 4 is Z; 5 is XZ; 6 is YZ; 7 is XYZ */
   int symmetry;
-  ePaintSymmetryFlags
-      mirror_symmetry_pass; /* The symmetry pass we are currently on between 0 and 7. */
+  /* The symmetry pass we are currently on between 0 and 7. */
+  ePaintSymmetryFlags mirror_symmetry_pass;
   float3 true_view_normal;
   float3 view_normal;
 
@@ -613,18 +607,18 @@ struct StrokeCache {
    * calc_brush_local_mat() and used in sculpt_apply_texture().
    * Transforms from model-space coords to local area coords.
    */
-  float brush_local_mat[4][4];
+  float4x4 brush_local_mat;
   /* The matrix from local area coords to model-space coords is used to calculate the vector
    * displacement in area plane mode. */
-  float brush_local_mat_inv[4][4];
+  float4x4 brush_local_mat_inv;
 
   float3 plane_offset; /* used to shift the plane around when doing tiled strokes */
   int tile_pass;
 
   float3 last_center;
   int radial_symmetry_pass;
-  float symm_rot_mat[4][4];
-  float symm_rot_mat_inv[4][4];
+  float4x4 symm_rot_mat;
+  float4x4 symm_rot_mat_inv;
 
   /* Accumulate mode. Note: inverted for SCULPT_TOOL_DRAW_SHARP. */
   bool accum;
@@ -680,13 +674,12 @@ struct StrokeCache {
   float3 true_gravity_direction;
   float3 gravity_direction;
 
-  /* Auto-masking. */
-  auto_mask::Cache *automasking;
+  std::unique_ptr<auto_mask::Cache> automasking;
 
-  float stroke_local_mat[4][4];
+  float4x4 stroke_local_mat;
   float multiplane_scrape_angle;
 
-  float wet_mix_prev_color[4];
+  float4 wet_mix_prev_color;
   float density_seed;
 
   rcti previous_r; /* previous redraw rectangle */
@@ -781,10 +774,10 @@ struct Cache {
    */
   bool all_enabled;
 
-  /* Initial mouse and cursor data from where the current falloff started. This data can be
-   * changed during the execution of Expand by moving the origin. */
-  float initial_mouse_move[2];
-  float initial_mouse[2];
+  /* Initial mouse and cursor data from where the current falloff started. This data can be changed
+   * during the execution of Expand by moving the origin. */
+  float2 initial_mouse_move;
+  float2 initial_mouse;
   PBVHVertRef initial_active_vertex;
   int initial_active_face_set;
 
@@ -805,7 +798,7 @@ struct Cache {
 
   /* Mouse position since the last time the origin was moved. Used for reference when moving the
    * initial position of Expand. */
-  float original_mouse_move[2];
+  float2 original_mouse_move;
 
   /* Active island checks. */
   /* Indexed by symmetry pass index, contains the connected island ID for that
@@ -1135,7 +1128,8 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 #define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, vertex_ref, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, vertex_ref, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
-       neighbor_iterator.i++) { \
+       neighbor_iterator.i++) \
+  { \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
     neighbor_iterator.edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge; \
     neighbor_iterator.index = neighbor_iterator.neighbor_indices[neighbor_iterator.i];
@@ -1182,7 +1176,7 @@ blender::MutableSpan<blender::float3> SCULPT_mesh_deformed_positions_get(SculptS
 
 #define FAKE_NEIGHBOR_NONE -1
 
-void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist);
+void SCULPT_fake_neighbors_ensure(Object *ob, float max_dist);
 void SCULPT_fake_neighbors_enable(Object *ob);
 void SCULPT_fake_neighbors_disable(Object *ob);
 void SCULPT_fake_neighbors_free(Object *ob);
@@ -1238,7 +1232,7 @@ void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIslands *islan
 SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, PBVHFaceRef face, int fset);
 void SCULPT_face_set_island_free(SculptFaceSetIsland *island);
 
-void face_normal_get(const SculptSession *ss, PBVHFaceRef face, float no[3]);
+void face_normal_get(const Object *ob, PBVHFaceRef face, float no[3]);
 
 /** \} */
 
@@ -1337,10 +1331,9 @@ void SCULPT_calc_brush_plane(Sculpt *sd,
                              float r_area_no[3],
                              float r_area_co[3]);
 
-void SCULPT_calc_area_normal(Sculpt *sd,
-                             Object *ob,
-                             blender::Span<PBVHNode *> nodes,
-                             float r_area_no[3]);
+std::optional<blender::float3> SCULPT_calc_area_normal(Sculpt *sd,
+                                                       Object *ob,
+                                                       blender::Span<PBVHNode *> nodes);
 /**
  * This calculates flatten center and area normal together,
  * amortizing the memory bandwidth and loop overhead to calculate both at the same time.
@@ -1355,8 +1348,10 @@ void SCULPT_calc_area_center(Sculpt *sd,
                              blender::Span<PBVHNode *> nodes,
                              float r_area_co[3]);
 
-PBVHVertRef SCULPT_nearest_vertex_get(
-    const Sculpt *sd, Object *ob, const float co[3], float max_distance, bool use_original);
+PBVHVertRef SCULPT_nearest_vertex_get(Object *ob,
+                                      const float co[3],
+                                      float max_distance,
+                                      bool use_original);
 
 int SCULPT_plane_point_side(const float co[3], const float plane[4]);
 int SCULPT_plane_trim(const blender::ed::sculpt_paint::StrokeCache *cache,
@@ -1399,7 +1394,7 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
 float SCULPT_calc_radius(ViewContext *vc,
                          const Brush *brush,
                          const Scene *scene,
-                         const float3 location);
+                         const blender::float3 location);
 
 SculptBrushTestFn SCULPT_brush_test_init(const SculptSession *ss, SculptBrushTest *test);
 SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
@@ -1407,6 +1402,7 @@ SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
                                             char falloff_shape,
                                             float tip_roundness,
                                             float tip_scale_x);
+bool SCULPT_brush_test(SculptBrushTest *test, const float co[3]);
 
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3]);
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
@@ -1417,15 +1413,17 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             bool test_z);
 
 bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
-bool SCULPT_brush_test(SculptBrushTest *test, const float co[3]);
-/**
- * Test AABB against sphere.
- */
-bool SCULPT_search_sphere(PBVHNode *node, SculptSearchSphereData *data);
-/**
- * 2D projection (distance to line).
- */
-bool SCULPT_search_circle(PBVHNode *node, SculptSearchCircleData *data);
+
+namespace blender::ed::sculpt_paint {
+
+bool node_fully_masked_or_hidden(const PBVHNode &node);
+bool node_in_sphere(const PBVHNode &node, const float3 &location, float radius_sq, bool original);
+bool node_in_cylinder(const DistRayAABB_Precalc &dist_ray_precalc,
+                      const PBVHNode &node,
+                      float radius_sq,
+                      bool original);
+
+}
 
 void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
 
@@ -1504,14 +1502,9 @@ void SCULPT_tilt_effective_normal_get(const SculptSession *ss, const Brush *brus
 namespace blender::ed::sculpt_paint::flood_fill {
 
 void init_fill(SculptSession *ss, SculptFloodFill *flood);
-void add_active(
-    const Sculpt *sd, Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius);
-void add_initial_with_symmetry(const Sculpt *sd,
-                               Object *ob,
-                               SculptSession *ss,
-                               SculptFloodFill *flood,
-                               PBVHVertRef vertex,
-                               float radius);
+void add_active(Object *ob, SculptSession *ss, SculptFloodFill *flood, float radius);
+void add_initial_with_symmetry(
+    Object *ob, SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex, float radius);
 void add_initial(SculptFloodFill *flood, PBVHVertRef vertex);
 void add_and_skip_initial(SculptSession *ss, SculptFloodFill *flood, PBVHVertRef vertex);
 void execute(SculptSession *ss,
@@ -1610,8 +1603,14 @@ float factor_get(Cache *automasking,
  * brushes and filter. */
 Cache *active_cache_get(SculptSession *ss);
 
-/* Brush can be null. */
-Cache *cache_init(const Sculpt *sd, const Brush *brush, Object *ob);
+/**
+ * Creates and initializes an automasking cache.
+ *
+ * For automasking modes that cannot be calculated in real time,
+ * data is also stored at the vertex level prior to the stroke starting.
+ */
+std::unique_ptr<Cache> cache_init(const Sculpt *sd, Object *ob);
+std::unique_ptr<Cache> cache_init(const Sculpt *sd, const Brush *brush, Object *ob);
 void cache_free(Cache *automasking);
 bool needs_original(Sculpt *sd, Brush *brush);
 
@@ -1619,7 +1618,7 @@ bool mode_enabled(const Sculpt *sd, const Brush *br, eAutomasking_flag mode);
 bool is_enabled(const Sculpt *sd, const SculptSession *ss, const Brush *br);
 
 bool needs_normal(const SculptSession *ss, const Sculpt *sculpt, const Brush *brush);
-int settings_hash(Object *ob, Cache *automasking);
+int settings_hash(const Object &ob, const Cache &automasking);
 
 bool tool_can_reuse_automask(int sculpt_tool);
 
@@ -1644,11 +1643,7 @@ float *distances_create(Object *ob,
                         float limit_radius,
                         PBVHVertRef *r_closest_verts = nullptr,
                         blender::Span<blender::float3> vertco_override = {});
-float *distances_create_from_vert_and_symm(Sculpt *sd,
-                                           Object *ob,
-                                           PBVHVertRef vertex,
-                                           float limit_radius);
-
+float *distances_create_from_vert_and_symm(Object *ob, PBVHVertRef vertex, float limit_radius);
 }
 
 /** \} */
@@ -1852,7 +1847,9 @@ void neighbor_coords_average(SculptSession *ss,
                              float hard_corner_pin,
                              bool weighted,
                              float factor = 1.0f);
-float neighbor_mask_average(SculptSession *ss, PBVHVertRef index);
+float neighbor_mask_average(SculptSession *ss,
+                            const SculptMaskWriteInfo write_info,
+                            PBVHVertRef index);
 void neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef index);
 
 /* Mask the mesh boundaries smoothing only the mesh surface without using automasking. */
@@ -1909,10 +1906,9 @@ void smooth_undo_push(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, Brush *bru
 /**
  * Expose 'calc_area_normal' externally (just for vertex paint).
  */
-bool SCULPT_pbvh_calc_area_normal(const Brush *brush,
-                                  Object *ob,
-                                  blender::Span<PBVHNode *> nodes,
-                                  float r_area_no[3]);
+std::optional<blender::float3> SCULPT_pbvh_calc_area_normal(const Brush *brush,
+                                                            Object *ob,
+                                                            blender::Span<PBVHNode *> nodes);
 
 /**
  * Flip all the edit-data across the axis/axes specified by \a symm.
@@ -2112,21 +2108,16 @@ void do_pose_brush(Sculpt *sd, Object *ob, blender::Span<PBVHNode *> nodes);
  * \param r_pose_origin: Must be a valid pointer.
  * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
  */
-void calc_pose_data(Sculpt *sd,
-                    Object *ob,
+void calc_pose_data(Object *ob,
                     SculptSession *ss,
                     float initial_location[3],
                     float radius,
                     float pose_offset,
                     float *r_pose_origin,
                     float *r_pose_factor);
-void pose_brush_init(Sculpt *sd, Object *ob, SculptSession *ss, Brush *br);
-SculptPoseIKChain *ik_chain_init(Sculpt *sd,
-                                 Object *ob,
-                                 SculptSession *ss,
-                                 Brush *br,
-                                 const float initial_location[3],
-                                 float radius);
+void pose_brush_init(Object *ob, SculptSession *ss, Brush *br);
+SculptPoseIKChain *ik_chain_init(
+    Object *ob, SculptSession *ss, Brush *br, const float initial_location[3], float radius);
 void ik_chain_free(SculptPoseIKChain *ik_chain);
 
 }
@@ -2139,8 +2130,7 @@ namespace blender::ed::sculpt_paint::boundary {
  * Main function to get #SculptBoundary data both for brush deformation and viewport preview.
  * Can return NULL if there is no boundary from the given vertex using the given radius.
  */
-SculptBoundary *data_init(
-    const Sculpt *sd, Object *object, Brush *brush, PBVHVertRef initial_vertex, float radius);
+SculptBoundary *data_init(Object *object, Brush *brush, PBVHVertRef initial_vertex, float radius);
 void data_free(SculptBoundary *boundary);
 
 /* Main Brush Function. */
@@ -2163,7 +2153,6 @@ void SCULPT_multiplane_scrape_preview_draw(uint gpuattr,
                                            const float outline_col[3],
                                            float outline_alpha);
 
-/* Draw Face Sets Brush. */
 namespace blender::ed::sculpt_paint {
 
 namespace face_set {
@@ -2239,9 +2228,11 @@ void SCULPT_bmesh_topology_rake(Sculpt *sd,
 
 /* sculpt_ops.cc */
 
+namespace blender::ed::sculpt_paint {
+
 void SCULPT_OT_brush_stroke(wmOperatorType *ot);
 
-/* end sculpt_ops.cc */
+}
 
 eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
                                         const PBVHEdgeRef edge,
@@ -2356,7 +2347,7 @@ bool SCULPT_dyntopo_automasking_init(const SculptSession *ss,
                                      Sculpt *sd,
                                      const Brush *br,
                                      Object *ob,
-                                     blender::bke::dyntopo::DyntopoMaskCB *r_mask_cb,
+                                     ::blender::bke::dyntopo::DyntopoMaskCB *r_mask_cb,
                                      void **r_mask_cb_data);
 void SCULPT_dyntopo_automasking_end(void *mask_data);
 
@@ -2382,14 +2373,20 @@ void SCULPT_dyntopo_automasking_end(void *mask_data);
 #define BOUNDARY_SMOOTH_EXP 2.0
 
 bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush);
-BLI_INLINE bool SCULPT_tool_is_paint(int tool)
+inline bool SCULPT_tool_is_paint(int tool)
 {
   return ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
 }
 
-BLI_INLINE bool SCULPT_tool_is_mask(int tool)
+inline bool SCULPT_tool_is_mask(int tool)
 {
   return ELEM(tool, SCULPT_TOOL_MASK);
+}
+
+BLI_INLINE bool SCULPT_tool_is_attribute_only(int tool)
+{
+  return SCULPT_tool_is_paint(tool) || SCULPT_tool_is_mask(tool) ||
+         ELEM(tool, SCULPT_TOOL_DRAW_FACE_SETS);
 }
 
 void SCULPT_stroke_id_ensure(Object *ob);
@@ -2397,7 +2394,6 @@ void SCULPT_stroke_id_next(Object *ob);
 
 namespace blender::ed::sculpt_paint {
 void ensure_valid_pivot(const Object *ob, Scene *scene);
-}
 
 /* -------------------------------------------------------------------- */
 /** \name Topology island API
@@ -2420,6 +2416,7 @@ void SCULPT_topology_islands_invalidate(SculptSession *ss);
 int SCULPT_vertex_island_get(const SculptSession *ss, PBVHVertRef vertex);
 
 /** \} */
+}
 
 int SCULPT_get_symmetry_pass(const struct SculptSession *ss);
 void SCULPT_update_object_bounding_box(Object *ob);

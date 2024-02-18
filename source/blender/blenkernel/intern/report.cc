@@ -20,34 +20,34 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_global.h" /* G.background only */
-#include "BKE_report.h"
+#include "BKE_global.hh" /* G.background only */
+#include "BKE_report.hh"
 
 const char *BKE_report_type_str(eReportType type)
 {
   switch (type) {
     case RPT_DEBUG:
-      return TIP_("Debug");
+      return RPT_("Debug");
     case RPT_INFO:
-      return TIP_("Info");
+      return RPT_("Info");
     case RPT_OPERATOR:
-      return TIP_("Operator");
+      return RPT_("Operator");
     case RPT_PROPERTY:
-      return TIP_("Property");
+      return RPT_("Property");
     case RPT_WARNING:
-      return TIP_("Warning");
+      return RPT_("Warning");
     case RPT_ERROR:
-      return TIP_("Error");
+      return RPT_("Error");
     case RPT_ERROR_INVALID_INPUT:
-      return TIP_("Invalid Input Error");
+      return RPT_("Invalid Input Error");
     case RPT_ERROR_INVALID_CONTEXT:
-      return TIP_("Invalid Context Error");
+      return RPT_("Invalid Context Error");
     case RPT_ERROR_OUT_OF_MEMORY:
-      return TIP_("Out Of Memory Error");
+      return RPT_("Out Of Memory Error");
     default:
-      return TIP_("Undefined Type");
+      return RPT_("Undefined Type");
   }
 }
 
@@ -126,7 +126,7 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
 {
   Report *report;
   int len;
-  const char *message = TIP_(_message);
+  const char *message = RPT_(_message);
 
   if (BKE_reports_print_test(reports, type)) {
     printf("%s: %s\n", BKE_report_type_str(type), message);
@@ -154,7 +154,7 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
 {
   Report *report;
   va_list args;
-  const char *format = TIP_(_format);
+  const char *format = RPT_(_format);
 
   if (BKE_reports_print_test(reports, type)) {
     printf("%s: ", BKE_report_type_str(type));
@@ -207,7 +207,7 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
   if (!reports || !reports->list.first) {
     return;
   }
-  reports_prepend_impl(reports, TIP_(prepend));
+  reports_prepend_impl(reports, RPT_(prepend));
 }
 
 void BKE_reports_prependf(ReportList *reports, const char *prepend_format, ...)
@@ -217,7 +217,7 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend_format, ...)
   }
   va_list args;
   va_start(args, prepend_format);
-  char *prepend = BLI_vsprintfN(TIP_(prepend_format), args);
+  char *prepend = BLI_vsprintfN(RPT_(prepend_format), args);
   va_end(args);
 
   reports_prepend_impl(reports, prepend);

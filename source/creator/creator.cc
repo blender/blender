@@ -32,16 +32,16 @@
 #include "BLI_utildefines.h"
 
 /* Mostly initialization functions. */
-#include "BKE_appdir.h"
-#include "BKE_blender.h"
+#include "BKE_appdir.hh"
+#include "BKE_blender.hh"
 #include "BKE_brush.hh"
-#include "BKE_cachefile.h"
-#include "BKE_callbacks.h"
+#include "BKE_cachefile.hh"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_cpp_types.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_node.h"
@@ -57,7 +57,7 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_imbuf.h" /* For #IMB_init. */
+#include "IMB_imbuf.hh" /* For #IMB_init. */
 
 #include "RE_engine.h"
 #include "RE_texture.h"
@@ -65,7 +65,6 @@
 #include "ED_datafiles.h"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.hh"
 
 #include "RNA_define.hh"
 
@@ -195,7 +194,7 @@ static void callback_clg_fatal(void *fp)
 /** \name Blender as a Stand-Alone Python Module (bpy)
  *
  * While not officially supported, this can be useful for Python developers.
- * See: https://wiki.blender.org/wiki/Building_Blender/Other/BlenderAsPyModule
+ * See: https://developer.blender.org/docs/handbook/building_blender/python_module/
  * \{ */
 
 #ifdef WITH_PYTHON_MODULE

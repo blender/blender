@@ -24,6 +24,8 @@ struct BakeSocketConfig {
    * for some socket types).
    */
   Vector<AttrDomain> domains;
+  /** User-defined name of every socket. */
+  Vector<StringRef> names;
   /**
    * Determines which geometries a field socket should be evaluated on. This can be used to
    * implement rules like a field should only be evaluated on the preceding or on all geometries.
@@ -35,8 +37,8 @@ struct BakeSocketConfig {
  * Create new bake items from the socket values. The socket values are not destructed, but they may
  * be in a moved-from state afterwards.
  */
-Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(Span<void *> socket_values,
-                                                                  const BakeSocketConfig &config);
+Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(
+    Span<void *> socket_values, const BakeSocketConfig &config, BakeDataBlockMap *data_block_map);
 
 /**
  * Create socket values from bake items.
@@ -52,6 +54,7 @@ Array<std::unique_ptr<BakeItem>> move_socket_values_to_bake_items(Span<void *> s
 void move_bake_items_to_socket_values(
     Span<BakeItem *> bake_items,
     const BakeSocketConfig &config,
+    BakeDataBlockMap *data_block_map,
     FunctionRef<std::shared_ptr<AnonymousAttributeFieldInput>(int socket_index, const CPPType &)>
         make_attribute_field,
     Span<void *> r_socket_values);
@@ -63,6 +66,7 @@ void move_bake_items_to_socket_values(
 void copy_bake_items_to_socket_values(
     Span<const BakeItem *> bake_items,
     const BakeSocketConfig &config,
+    BakeDataBlockMap *data_block_map,
     FunctionRef<std::shared_ptr<AnonymousAttributeFieldInput>(int, const CPPType &)>
         make_attribute_field,
     Span<void *> r_socket_values);

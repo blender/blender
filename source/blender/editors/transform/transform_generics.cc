@@ -16,18 +16,14 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
+#include "BLI_time.h"
 
-#include "PIL_time.h"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_matrix.h"
-
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
@@ -44,7 +40,6 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "SEQ_sequencer.hh"
@@ -52,7 +47,6 @@
 #include "transform.hh"
 #include "transform_convert.hh"
 #include "transform_gizmo.hh"
-#include "transform_mode.hh"
 #include "transform_orientations.hh"
 #include "transform_snap.hh"
 
@@ -231,7 +225,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
 
   /* Grease Pencil editing context */
-  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT) {
+  if (t->obedit_type == OB_GREASE_PENCIL && object_mode == OB_MODE_EDIT &&
+      (area->spacetype == SPACE_VIEW3D))
+  {
     t->options |= CTX_GPENCIL_STROKES;
   }
 
@@ -322,7 +318,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else if (t->spacetype == SPACE_SEQ && region->regiontype == RGN_TYPE_PREVIEW) {
     t->options |= CTX_SEQUENCER_IMAGE;
 
-    /* Needed for autokeying transforms in preview during playback. */
+    /* Needed for auto-keying transforms in preview during playback. */
     bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
     t->animtimer = (animscreen) ? animscreen->animtimer : nullptr;
   }
@@ -1097,7 +1093,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
   }
   if (tc->obedit) {
     if (ED_object_calc_active_center_for_editmode(tc->obedit, select_only, r_center)) {
-      mul_m4_v3(tc->obedit->object_to_world, r_center);
+      mul_m4_v3(tc->obedit->object_to_world().ptr(), r_center);
       return true;
     }
   }
@@ -1105,7 +1101,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
     BKE_view_layer_synced_ensure(t->scene, t->view_layer);
     Object *ob = BKE_view_layer_active_object_get(t->view_layer);
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
-      mul_m4_v3(ob->object_to_world, r_center);
+      mul_m4_v3(ob->object_to_world().ptr(), r_center);
       return true;
     }
   }
@@ -1122,7 +1118,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
     BKE_view_layer_synced_ensure(t->scene, t->view_layer);
     Base *base = BKE_view_layer_active_base_get(t->view_layer);
     if (base && ((!select_only) || ((base->flag & BASE_SELECTED) != 0))) {
-      copy_v3_v3(r_center, base->object->object_to_world[3]);
+      copy_v3_v3(r_center, base->object->object_to_world().location());
       return true;
     }
   }
@@ -1329,7 +1325,7 @@ void calculatePropRatio(TransInfo *t)
             case PROP_RANDOM:
               if (t->rng == nullptr) {
                 /* Lazy initialization. */
-                uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+                uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
                 t->rng = BLI_rng_new(rng_seed);
               }
               td->factor = BLI_rng_get_float(t->rng) * dist;

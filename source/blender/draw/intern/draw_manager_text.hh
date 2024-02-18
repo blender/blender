@@ -26,7 +26,9 @@ void DRW_text_cache_add(DRWTextStore *dt,
                         short xoffs,
                         short yoffs,
                         short flag,
-                        const uchar col[4]);
+                        const uchar col[4],
+                        const bool shadow = false,
+                        const bool align_center = false);
 
 void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d);
 

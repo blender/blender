@@ -11,8 +11,8 @@
 #include "BlenderContext.h"
 #include "ExportSettings.h"
 
-#include "BKE_layer.h"
-#include "BKE_scene.h"
+#include "BKE_layer.hh"
+#include "BKE_scene.hh"
 
 #include "BLI_listbase.h"
 

@@ -23,6 +23,7 @@
 
 /* We may want to load direct from file. */
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_app_icons_new_triangles_doc,
     ".. function:: new_triangles(range, coords, colors)\n"
     "\n"
@@ -88,15 +89,17 @@ static PyObject *bpy_app_icons_new_triangles(PyObject * /*self*/, PyObject *args
   return PyLong_FromLong(icon_id);
 }
 
-PyDoc_STRVAR(bpy_app_icons_new_triangles_from_file_doc,
-             ".. function:: new_triangles_from_file(filepath)\n"
-             "\n"
-             "   Create a new icon from triangle geometry.\n"
-             "\n"
-             "   :arg filepath: File path.\n"
-             "   :type filepath: string or bytes.\n"
-             "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
-             "   :rtype: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_icons_new_triangles_from_file_doc,
+    ".. function:: new_triangles_from_file(filepath)\n"
+    "\n"
+    "   Create a new icon from triangle geometry.\n"
+    "\n"
+    "   :arg filepath: File path.\n"
+    "   :type filepath: string or bytes.\n"
+    "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
+    "   :rtype: int\n");
 static PyObject *bpy_app_icons_new_triangles_from_file(PyObject * /*self*/,
                                                        PyObject *args,
                                                        PyObject *kw)
@@ -128,10 +131,12 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject * /*self*/,
   return PyLong_FromLong(icon_id);
 }
 
-PyDoc_STRVAR(bpy_app_icons_release_doc,
-             ".. function:: release(icon_id)\n"
-             "\n"
-             "   Release the icon.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_app_icons_release_doc,
+    ".. function:: release(icon_id)\n"
+    "\n"
+    "   Release the icon.\n");
 static PyObject *bpy_app_icons_release(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   int icon_id;

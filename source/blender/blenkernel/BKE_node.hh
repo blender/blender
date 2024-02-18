@@ -163,6 +163,9 @@ void nodeChainIter(const bNodeTree *ntree,
  * Can be called recursively (using another nodeChainIterBackwards) by
  * setting the recursion_lvl accordingly.
  *
+ * WARN: No node is guaranteed to be iterated as a to_node,
+ * since it could have been iterated earlier as a from_node.
+ *
  * \note Needs updated socket links (ntreeUpdateTree).
  * \note Recursive
  */

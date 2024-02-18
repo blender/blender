@@ -19,17 +19,17 @@
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph_build.hh"
@@ -266,7 +266,7 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
     if (disabled_hint) {
       BKE_reportf(&reports,
                   RPT_ERROR,
-                  "Can not add node group '%s' to '%s':\n  %s",
+                  "Cannot add node group '%s' to '%s':\n  %s",
                   node_group.id.name + 2,
                   node_tree.id.name + 2,
                   disabled_hint);
@@ -274,7 +274,7 @@ static bool node_group_add_poll(const bNodeTree &node_tree,
     else {
       BKE_reportf(&reports,
                   RPT_ERROR,
-                  "Can not add node group '%s' to '%s'",
+                  "Cannot add node group '%s' to '%s'",
                   node_group.id.name + 2,
                   node_tree.id.name + 2);
     }
@@ -292,7 +292,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
 
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_NT));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_NT));
   if (!node_group) {
     return OPERATOR_CANCELLED;
   }
@@ -511,7 +511,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
 
   Object *object = reinterpret_cast<Object *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_OB));
 
   if (!object) {
     return OPERATOR_CANCELLED;
@@ -597,7 +597,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   bNodeTree &ntree = *snode.edittree;
 
   Collection *collection = reinterpret_cast<Collection *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_GR));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_GR));
 
   if (!collection) {
     return OPERATOR_CANCELLED;
@@ -808,7 +808,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
 
-  ID *mask = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_MSK);
+  ID *mask = WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MSK);
   if (!mask) {
     return OPERATOR_CANCELLED;
   }
@@ -861,7 +861,7 @@ static int node_add_material_exec(bContext *C, wmOperator *op)
   bNodeTree *ntree = snode->edittree;
 
   Material *material = reinterpret_cast<Material *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_MA));
+      WM_operator_properties_id_lookup_from_name_or_session_uid(bmain, op->ptr, ID_MA));
 
   if (!material) {
     return OPERATOR_CANCELLED;

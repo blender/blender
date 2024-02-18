@@ -22,7 +22,7 @@
 #include "mathutils.h"
 #include "mathutils_kdtree.h" /* own include */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 struct PyKDTree {
   PyObject_HEAD
@@ -107,15 +107,17 @@ static void PyKDTree__tp_dealloc(PyKDTree *self)
   Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-PyDoc_STRVAR(py_kdtree_insert_doc,
-             ".. method:: insert(co, index)\n"
-             "\n"
-             "   Insert a point into the KDTree.\n"
-             "\n"
-             "   :arg co: Point 3d position.\n"
-             "   :type co: float triplet\n"
-             "   :arg index: The index of the point.\n"
-             "   :type index: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_kdtree_insert_doc,
+    ".. method:: insert(co, index)\n"
+    "\n"
+    "   Insert a point into the KDTree.\n"
+    "\n"
+    "   :arg co: Point 3d position.\n"
+    "   :type co: float triplet\n"
+    "   :arg index: The index of the point.\n"
+    "   :type index: int\n");
 static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *py_co;
@@ -147,14 +149,16 @@ static PyObject *py_kdtree_insert(PyKDTree *self, PyObject *args, PyObject *kwar
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(py_kdtree_balance_doc,
-             ".. method:: balance()\n"
-             "\n"
-             "   Balance the tree.\n"
-             "\n"
-             ".. note::\n"
-             "\n"
-             "   This builds the entire tree, avoid calling after each insertion.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_kdtree_balance_doc,
+    ".. method:: balance()\n"
+    "\n"
+    "   Balance the tree.\n"
+    "\n"
+    ".. note::\n"
+    "\n"
+    "   This builds the entire tree, avoid calling after each insertion.\n");
 static PyObject *py_kdtree_balance(PyKDTree *self)
 {
   BLI_kdtree_3d_balance(self->obj);
@@ -191,18 +195,20 @@ static int py_find_nearest_cb(void *user_data, int index, const float co[3], flo
   return -1;
 }
 
-PyDoc_STRVAR(py_kdtree_find_doc,
-             ".. method:: find(co, filter=None)\n"
-             "\n"
-             "   Find nearest point to ``co``.\n"
-             "\n"
-             "   :arg co: 3d coordinates.\n"
-             "   :type co: float triplet\n"
-             "   :arg filter: function which takes an index and returns True for indices to "
-             "include in the search.\n"
-             "   :type filter: callable\n"
-             "   :return: Returns (:class:`Vector`, index, distance).\n"
-             "   :rtype: :class:`tuple`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_kdtree_find_doc,
+    ".. method:: find(co, filter=None)\n"
+    "\n"
+    "   Find nearest point to ``co``.\n"
+    "\n"
+    "   :arg co: 3d coordinates.\n"
+    "   :type co: float triplet\n"
+    "   :arg filter: function which takes an index and returns True for indices to "
+    "include in the search.\n"
+    "   :type filter: callable\n"
+    "   :return: Returns (:class:`Vector`, index, distance).\n"
+    "   :rtype: :class:`tuple`\n");
 static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *py_co, *py_filter = nullptr;
@@ -246,17 +252,19 @@ static PyObject *py_kdtree_find(PyKDTree *self, PyObject *args, PyObject *kwargs
   return kdtree_nearest_to_py_and_check(&nearest);
 }
 
-PyDoc_STRVAR(py_kdtree_find_n_doc,
-             ".. method:: find_n(co, n)\n"
-             "\n"
-             "   Find nearest ``n`` points to ``co``.\n"
-             "\n"
-             "   :arg co: 3d coordinates.\n"
-             "   :type co: float triplet\n"
-             "   :arg n: Number of points to find.\n"
-             "   :type n: int\n"
-             "   :return: Returns a list of tuples (:class:`Vector`, index, distance).\n"
-             "   :rtype: :class:`list`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_kdtree_find_n_doc,
+    ".. method:: find_n(co, n)\n"
+    "\n"
+    "   Find nearest ``n`` points to ``co``.\n"
+    "\n"
+    "   :arg co: 3d coordinates.\n"
+    "   :type co: float triplet\n"
+    "   :arg n: Number of points to find.\n"
+    "   :type n: int\n"
+    "   :return: Returns a list of tuples (:class:`Vector`, index, distance).\n"
+    "   :rtype: :class:`list`\n");
 static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *py_list;
@@ -300,17 +308,19 @@ static PyObject *py_kdtree_find_n(PyKDTree *self, PyObject *args, PyObject *kwar
   return py_list;
 }
 
-PyDoc_STRVAR(py_kdtree_find_range_doc,
-             ".. method:: find_range(co, radius)\n"
-             "\n"
-             "   Find all points within ``radius`` of ``co``.\n"
-             "\n"
-             "   :arg co: 3d coordinates.\n"
-             "   :type co: float triplet\n"
-             "   :arg radius: Distance to search for points.\n"
-             "   :type radius: float\n"
-             "   :return: Returns a list of tuples (:class:`Vector`, index, distance).\n"
-             "   :rtype: :class:`list`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_kdtree_find_range_doc,
+    ".. method:: find_range(co, radius)\n"
+    "\n"
+    "   Find all points within ``radius`` of ``co``.\n"
+    "\n"
+    "   :arg co: 3d coordinates.\n"
+    "   :type co: float triplet\n"
+    "   :arg radius: Distance to search for points.\n"
+    "   :type radius: float\n"
+    "   :return: Returns a list of tuples (:class:`Vector`, index, distance).\n"
+    "   :rtype: :class:`list`\n");
 static PyObject *py_kdtree_find_range(PyKDTree *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *py_list;
@@ -378,13 +388,15 @@ static PyMethodDef PyKDTree_methods[] = {
 #  pragma GCC diagnostic pop
 #endif
 
-PyDoc_STRVAR(py_KDtree_doc,
-             "KdTree(size) -> new kd-tree initialized to hold ``size`` items.\n"
-             "\n"
-             ".. note::\n"
-             "\n"
-             "   :class:`KDTree.balance` must have been called before using any of the ``find`` "
-             "methods.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_KDtree_doc,
+    "KdTree(size) -> new kd-tree initialized to hold ``size`` items.\n"
+    "\n"
+    ".. note::\n"
+    "\n"
+    "   :class:`KDTree.balance` must have been called before using any of the ``find`` "
+    "methods.\n");
 
 PyTypeObject PyKDTree_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
@@ -438,7 +450,10 @@ PyTypeObject PyKDTree_Type = {
     /*tp_vectorcall*/ nullptr,
 };
 
-PyDoc_STRVAR(py_kdtree_doc, "Generic 3-dimensional kd-tree to perform spatial searches.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    py_kdtree_doc,
+    "Generic 3-dimensional kd-tree to perform spatial searches.");
 static PyModuleDef kdtree_moduledef = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.kdtree",

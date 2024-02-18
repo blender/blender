@@ -20,23 +20,24 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_image.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -46,14 +47,11 @@
 #include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
-#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
-#include "GPU_texture.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 
 #include "RE_texture.h"
 
@@ -138,12 +136,12 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
   float delta[3], scale, loc[3];
   const float xy_delta[2] = {pixel_radius, 0.0f};
 
-  mul_v3_m4v3(loc, ob->object_to_world, center);
+  mul_v3_m4v3(loc, ob->object_to_world().ptr(), center);
 
   const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
   ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
 
-  scale = fabsf(mat4_to_scale(ob->object_to_world));
+  scale = fabsf(mat4_to_scale(ob->object_to_world().ptr()));
   scale = (scale == 0.0f) ? 1.0f : scale;
 
   return len_v3(delta) / scale;
@@ -293,7 +291,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   GPU_matrix_model_view_get(matrix);
   GPU_matrix_projection_get(proj);
   view[0] = view[1] = 0;
-  mul_m4_m4m4(matrix, matrix, ob_eval->object_to_world);
+  mul_m4_m4m4(matrix, matrix, ob_eval->object_to_world().ptr());
   mul_m4_m4m4(matrix, proj, matrix);
 
   minabsw = 1e10;
@@ -379,6 +377,7 @@ static int imapaint_pick_face(ViewContext *vc, const int mval[2], uint *r_index,
 void paint_sample_color(
     bContext *C, ARegion *region, int x, int y, bool texpaint_proj, bool use_palette)
 {
+  using namespace blender;
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -452,46 +451,31 @@ void paint_sample_color(
           }
 
           if (image) {
-            float uv[2];
-            float u, v;
             /* XXX get appropriate ImageUser instead */
             ImageUser iuser;
             BKE_imageuser_default(&iuser);
             iuser.framenr = image->lastframe;
 
+            float uv[2];
             imapaint_pick_uv(me_eval, scene, ob_eval, faceindex, mval, uv);
 
             if (image->source == IMA_SRC_TILED) {
               float new_uv[2];
               iuser.tile = BKE_image_get_tile_from_pos(image, uv, new_uv, nullptr);
-              u = new_uv[0];
-              v = new_uv[1];
-            }
-            else {
-              u = fmodf(uv[0], 1.0f);
-              v = fmodf(uv[1], 1.0f);
-
-              if (u < 0.0f) {
-                u += 1.0f;
-              }
-              if (v < 0.0f) {
-                v += 1.0f;
-              }
+              uv[0] = new_uv[0];
+              uv[1] = new_uv[1];
             }
 
             ImBuf *ibuf = BKE_image_acquire_ibuf(image, &iuser, nullptr);
             if (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data)) {
-              u = u * ibuf->x;
-              v = v * ibuf->y;
+              float u = uv[0] * ibuf->x;
+              float v = uv[1] * ibuf->y;
 
               if (ibuf->float_buffer.data) {
-                float rgba_f[4];
-                if (interp == SHD_INTERP_CLOSEST) {
-                  nearest_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
-                }
-                else {
-                  bilinear_interpolation_color_wrap(ibuf, nullptr, rgba_f, u, v);
-                }
+                float4 rgba_f = interp == SHD_INTERP_CLOSEST ?
+                                    imbuf::interpolate_nearest_wrap_fl(ibuf, u, v) :
+                                    imbuf::interpolate_bilinear_wrap_fl(ibuf, u, v);
+                rgba_f = math::clamp(rgba_f, 0.0f, 1.0f);
                 straight_to_premul_v4(rgba_f);
                 if (use_palette) {
                   linearrgb_to_srgb_v3_v3(color->rgb, rgba_f);
@@ -502,13 +486,9 @@ void paint_sample_color(
                 }
               }
               else {
-                uchar rgba[4];
-                if (interp == SHD_INTERP_CLOSEST) {
-                  nearest_interpolation_color_wrap(ibuf, rgba, nullptr, u, v);
-                }
-                else {
-                  bilinear_interpolation_color_wrap(ibuf, rgba, nullptr, u, v);
-                }
+                uchar4 rgba = interp == SHD_INTERP_CLOSEST ?
+                                  imbuf::interpolate_nearest_wrap_byte(ibuf, u, v) :
+                                  imbuf::interpolate_bilinear_wrap_byte(ibuf, u, v);
                 if (use_palette) {
                   rgb_uchar_to_float(color->rgb, rgba);
                 }

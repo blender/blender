@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstring>
 
-#include "BLI_blenlib.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -20,11 +19,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
-#include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -668,7 +664,7 @@ static void draw_fcurve_curve(bAnimContext *ac,
 
     /* Account for reversed NLA strip effect. */
     if (fcu_end < fcu_start) {
-      SWAP(float, fcu_start, fcu_end);
+      std::swap(fcu_start, fcu_end);
     }
 
     /* Clamp to graph editor rendering bounds. */

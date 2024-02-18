@@ -7,8 +7,7 @@
  */
 
 #include "BKE_colorband.hh"
-#include "IMB_colormanagement.h"
-#include "NOD_texture.h"
+#include "IMB_colormanagement.hh"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 

@@ -73,9 +73,9 @@ typedef struct bGPDspoint {
 
   /** Factor of uv along the stroke. */
   float uv_fac;
-  /** Uv rotation for dot mode. */
+  /** UV rotation for dot mode. */
   float uv_rot;
-  /** Uv for fill mode */
+  /** UV for fill mode */
   float uv_fill[2];
 
   /** Vertex Color RGBA (A=mix factor). */
@@ -186,9 +186,9 @@ typedef struct bGPDcurve_point {
 
   /** Factor of uv along the stroke. */
   float uv_fac;
-  /** Uv rotation for dot mode. */
+  /** UV rotation for dot mode. */
   float uv_rot;
-  /** Uv for fill mode. */
+  /** UV for fill mode. */
   float uv_fill[2];
 
   /** Vertex Color RGBA (A=mix factor). */

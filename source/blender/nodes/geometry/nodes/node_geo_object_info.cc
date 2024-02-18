@@ -14,6 +14,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "GEO_transform.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_object_info_cc {
@@ -52,16 +54,16 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 object_matrix = float4x4(object->object_to_world);
-  const float4x4 transform = float4x4(self_object->world_to_object) * object_matrix;
+  const float4x4 object_matrix = object->object_to_world();
+  const float4x4 transform = self_object->world_to_object() * object_matrix;
 
   float3 location, scale;
   math::Quaternion rotation;
   if (transform_space_relative) {
-    math::to_loc_rot_scale(transform, location, rotation, scale);
+    math::to_loc_rot_scale<true>(transform, location, rotation, scale);
   }
   else {
-    math::to_loc_rot_scale(object_matrix, location, rotation, scale);
+    math::to_loc_rot_scale<true>(object_matrix, location, rotation, scale);
   }
   params.set_output("Location", location);
   params.set_output("Rotation", rotation);
@@ -90,7 +92,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     else {
       geometry_set = bke::object_get_evaluated_geometry_set(*object);
       if (transform_space_relative) {
-        transform_geometry_set(params, geometry_set, transform, *params.depsgraph());
+        geometry::transform_geometry(geometry_set, transform);
       }
     }
 

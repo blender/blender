@@ -20,8 +20,8 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
-#include "BKE_layer.h"
-#include "BKE_report.h"
+#include "BKE_layer.hh"
+#include "BKE_report.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -34,9 +34,7 @@
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 
-#include "intern/bmesh_private.hh"
-
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 #include "tools/bmesh_boolean.hh"
 #include "tools/bmesh_intersect.hh"
@@ -44,6 +42,8 @@
 
 /* detect isolated holes and fill them */
 #define USE_NET_ISLAND_CONNECT
+
+using blender::Vector;
 
 /**
  * Compare selected with itself.
@@ -184,12 +184,10 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
   }
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
   uint isect_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totfacesel == 0) {
@@ -237,9 +235,8 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
       isect_len++;
     }
   }
-  MEM_freeN(objects);
 
-  if (isect_len == objects_len) {
+  if (isect_len == objects.size()) {
     BKE_report(op->reports, RPT_WARNING, "No intersections found");
   }
   return OPERATOR_FINISHED;
@@ -355,12 +352,10 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
   test_fn = use_swap ? bm_face_isect_pair_swap : bm_face_isect_pair;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
   uint isect_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totfacesel == 0) {
@@ -401,9 +396,8 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
       isect_len++;
     }
   }
-  MEM_freeN(objects);
 
-  if (isect_len == objects_len) {
+  if (isect_len == objects.size()) {
     BKE_report(op->reports, RPT_WARNING, "No intersections found");
   }
   return OPERATOR_FINISHED;
@@ -828,11 +822,9 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator * /*op*/)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -1086,7 +1078,6 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator * /*op*/)
     BLI_stack_free(edges_loose);
 #endif /* USE_NET_ISLAND_CONNECT */
   }
-  MEM_freeN(objects);
   return OPERATOR_FINISHED;
 }
 

@@ -10,13 +10,13 @@
 
 #include "DNA_object_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
-#include "BKE_layer.h"
-#include "BKE_report.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
+#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -36,7 +36,7 @@
 
 #include "UI_resources.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 #define USE_GIZMO
 
@@ -44,6 +44,8 @@
 #  include "ED_gizmo_library.hh"
 #  include "ED_undo.hh"
 #endif
+
+using blender::Vector;
 
 static int mesh_bisect_exec(bContext *C, wmOperator *op);
 
@@ -117,11 +119,9 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return mesh_bisect_exec(C, op);
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
     if (em->bm->totedgesel != 0) {
@@ -131,7 +131,6 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   if (valid_objects == 0) {
     BKE_report(op->reports, RPT_ERROR, "Selected edges/faces required");
-    MEM_freeN(objects);
     return OPERATOR_CANCELLED;
   }
 
@@ -154,12 +153,12 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     opdata = static_cast<BisectData *>(MEM_mallocN(sizeof(BisectData), "inset_operator_data"));
     gesture->user_data.data = opdata;
 
-    opdata->backup_len = objects_len;
+    opdata->backup_len = objects.size();
     opdata->backup = static_cast<BisectData::BisectDataBackup *>(
-        MEM_callocN(sizeof(*opdata->backup) * objects_len, __func__));
+        MEM_callocN(sizeof(*opdata->backup) * objects.size(), __func__));
 
     /* Store the mesh backups. */
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    for (const int ob_index : objects.index_range()) {
       Object *obedit = objects[ob_index];
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
@@ -173,9 +172,8 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     G.moving = G_TRANSFORM_EDIT;
 
     /* Initialize modal callout. */
-    ED_workspace_status_text(C, TIP_("LMB: Click and drag to draw cut line"));
+    ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
   }
-  MEM_freeN(objects);
   return ret;
 }
 
@@ -203,7 +201,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* update or clear modal callout */
   if (event->type == EVT_MODAL_MAP) {
     if (event->val == GESTURE_MODAL_BEGIN) {
-      ED_workspace_status_text(C, TIP_("LMB: Release to confirm cut line"));
+      ED_workspace_status_text(C, IFACE_("LMB: Release to confirm cut line"));
     }
     else {
       ED_workspace_status_text(C, nullptr);
@@ -292,11 +290,10 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
   /* End Modal */
   /* -------------------------------------------------------------------- */
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
@@ -323,9 +320,9 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
     copy_v3_v3(plane_co_local, plane_co);
     copy_v3_v3(plane_no_local, plane_no);
 
-    invert_m4_m4(imat, obedit->object_to_world);
+    invert_m4_m4(imat, obedit->object_to_world().ptr());
     mul_m4_v3(imat, plane_co_local);
-    mul_transposed_mat3_m4_v3(obedit->object_to_world, plane_no_local);
+    mul_transposed_mat3_m4_v3(obedit->object_to_world().ptr(), plane_no_local);
 
     BMOperator bmop;
     EDBM_op_init(
@@ -394,7 +391,6 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
       ret = OPERATOR_FINISHED;
     }
   }
-  MEM_freeN(objects);
   return ret;
 }
 

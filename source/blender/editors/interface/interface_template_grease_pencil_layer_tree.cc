@@ -9,7 +9,7 @@
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -60,8 +60,8 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
         static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
     Layer &drag_layer = drag_grease_pencil->layer->wrap();
 
-    std::string_view drag_name = drag_layer.name();
-    std::string_view drop_name = drop_tree_node_.name();
+    const StringRef drag_name = drag_layer.name();
+    const StringRef drop_name = drop_tree_node_.name();
 
     switch (drag_info.drop_location) {
       case DropLocation::Into:
@@ -268,8 +268,6 @@ class LayerViewItem : public AbstractTreeViewItem {
                         0,
                         0.0f,
                         0.0f,
-                        0.0f,
-                        0.0f,
                         nullptr);
     if (!layer_.parent_group().is_visible()) {
       UI_but_flag_enable(but, UI_BUT_INACTIVE);
@@ -286,8 +284,6 @@ class LayerViewItem : public AbstractTreeViewItem {
                         &layer_ptr,
                         "lock",
                         0,
-                        0.0f,
-                        0.0f,
                         0.0f,
                         0.0f,
                         nullptr);

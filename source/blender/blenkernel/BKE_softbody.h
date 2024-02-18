@@ -48,7 +48,7 @@ extern void sbFreeSimulation(struct SoftBody *sb);
 
 /**
  * Do one simulation step, reading and writing vertex locs from given array.
- * */
+ */
 extern void sbObjectStep(struct Depsgraph *depsgraph,
                          struct Scene *scene,
                          struct Object *ob,

@@ -24,8 +24,8 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
 
 #include "RNA_access.hh"
 
@@ -45,11 +45,12 @@
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
 #include "SEQ_transform.hh"
 
 #include "transform.hh"
 #include "transform_gizmo.hh"
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Callback's
@@ -237,13 +238,11 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   if (area->spacetype == SPACE_IMAGE) {
     Scene *scene = CTX_data_scene(C);
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    uint objects_len = 0;
-    Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
-        scene, view_layer, nullptr, &objects_len);
-    if (ED_uvedit_minmax_multi(scene, objects, objects_len, r_min, r_max)) {
+    Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+        scene, view_layer, nullptr);
+    if (ED_uvedit_minmax_multi(scene, objects, r_min, r_max)) {
       has_select = true;
     }
-    MEM_freeN(objects);
   }
   else if (area->spacetype == SPACE_SEQ) {
     Scene *scene = CTX_data_scene(C);

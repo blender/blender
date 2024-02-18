@@ -21,29 +21,31 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-PyDoc_STRVAR(ViewEdgeIterator_doc,
-             "Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator`\n"
-             "\n"
-             "Base class for iterators over ViewEdges of the :class:`ViewMap` Graph.\n"
-             "Basically the increment() operator of this class should be able to\n"
-             "take the decision of \"where\" (on which ViewEdge) to go when pointing\n"
-             "on a given ViewEdge.\n"
-             "\n"
-             ".. method:: __init__(begin=None, orientation=True)\n"
-             "            __init__(brother)\n"
-             "\n"
-             "   Builds a ViewEdgeIterator from a starting ViewEdge and its\n"
-             "   orientation or the copy constructor.\n"
-             "\n"
-             "   :arg begin: The ViewEdge from where to start the iteration.\n"
-             "   :type begin: :class:`ViewEdge` or None\n"
-             "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
-             "      the ViewEdges that surround the ending ViewVertex of begin. If\n"
-             "      false, we'll search over the ViewEdges surrounding the ending\n"
-             "      ViewVertex of begin.\n"
-             "   :type orientation: bool\n"
-             "   :arg brother: A ViewEdgeIterator object.\n"
-             "   :type brother: :class:`ViewEdgeIterator`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewEdgeIterator_doc,
+    "Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator`\n"
+    "\n"
+    "Base class for iterators over ViewEdges of the :class:`ViewMap` Graph.\n"
+    "Basically the increment() operator of this class should be able to\n"
+    "take the decision of \"where\" (on which ViewEdge) to go when pointing\n"
+    "on a given ViewEdge.\n"
+    "\n"
+    ".. method:: __init__(begin=None, orientation=True)\n"
+    "            __init__(brother)\n"
+    "\n"
+    "   Builds a ViewEdgeIterator from a starting ViewEdge and its\n"
+    "   orientation or the copy constructor.\n"
+    "\n"
+    "   :arg begin: The ViewEdge from where to start the iteration.\n"
+    "   :type begin: :class:`ViewEdge` or None\n"
+    "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
+    "      the ViewEdges that surround the ending ViewVertex of begin. If\n"
+    "      false, we'll search over the ViewEdges surrounding the ending\n"
+    "      ViewVertex of begin.\n"
+    "   :type orientation: bool\n"
+    "   :arg brother: A ViewEdgeIterator object.\n"
+    "   :type brother: :class:`ViewEdgeIterator`");
 
 static int check_begin(PyObject *obj, void *v)
 {
@@ -82,10 +84,12 @@ static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args, PyO
   return 0;
 }
 
-PyDoc_STRVAR(ViewEdgeIterator_change_orientation_doc,
-             ".. method:: change_orientation()\n"
-             "\n"
-             "   Changes the current orientation.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewEdgeIterator_change_orientation_doc,
+    ".. method:: change_orientation()\n"
+    "\n"
+    "   Changes the current orientation.");
 
 static PyObject *ViewEdgeIterator_change_orientation(BPy_ViewEdgeIterator *self)
 {
@@ -103,10 +107,12 @@ static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
 
 /*----------------------ViewEdgeIterator get/setters ----------------------------*/
 
-PyDoc_STRVAR(ViewEdgeIterator_object_doc,
-             "The ViewEdge object currently pointed by this iterator.\n"
-             "\n"
-             ":type: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewEdgeIterator_object_doc,
+    "The ViewEdge object currently pointed by this iterator.\n"
+    "\n"
+    ":type: :class:`ViewEdge`");
 
 static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
@@ -121,10 +127,12 @@ static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void * 
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(ViewEdgeIterator_current_edge_doc,
-             "The ViewEdge object currently pointed by this iterator.\n"
-             "\n"
-             ":type: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewEdgeIterator_current_edge_doc,
+    "The ViewEdge object currently pointed by this iterator.\n"
+    "\n"
+    ":type: :class:`ViewEdge`");
 
 static PyObject *ViewEdgeIterator_current_edge_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
@@ -147,14 +155,16 @@ static int ViewEdgeIterator_current_edge_set(BPy_ViewEdgeIterator *self,
   return 0;
 }
 
-PyDoc_STRVAR(ViewEdgeIterator_orientation_doc,
-             "The orientation of the pointed ViewEdge in the iteration.\n"
-             "If true, the iterator looks for the next ViewEdge among those ViewEdges\n"
-             "that surround the ending ViewVertex of the \"begin\" ViewEdge. If false,\n"
-             "the iterator searches over the ViewEdges surrounding the ending ViewVertex\n"
-             "of the \"begin\" ViewEdge.\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewEdgeIterator_orientation_doc,
+    "The orientation of the pointed ViewEdge in the iteration.\n"
+    "If true, the iterator looks for the next ViewEdge among those ViewEdges\n"
+    "that surround the ending ViewVertex of the \"begin\" ViewEdge. If false,\n"
+    "the iterator searches over the ViewEdges surrounding the ending ViewVertex\n"
+    "of the \"begin\" ViewEdge.\n"
+    "\n"
+    ":type: bool");
 
 static PyObject *ViewEdgeIterator_orientation_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {
@@ -173,10 +183,12 @@ static int ViewEdgeIterator_orientation_set(BPy_ViewEdgeIterator *self,
   return 0;
 }
 
-PyDoc_STRVAR(ViewEdgeIterator_begin_doc,
-             "The first ViewEdge used for the iteration.\n"
-             "\n"
-             ":type: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewEdgeIterator_begin_doc,
+    "The first ViewEdge used for the iteration.\n"
+    "\n"
+    ":type: :class:`ViewEdge`");
 
 static PyObject *ViewEdgeIterator_begin_get(BPy_ViewEdgeIterator *self, void * /*closure*/)
 {

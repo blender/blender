@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -1611,10 +1611,6 @@ msgid "Split Materials"
 msgstr "Rozdělit materiály"
 
 
-msgid "Bezier Curve Point"
-msgstr "Bezierový bod zakroucení"
-
-
 msgid "Control Point"
 msgstr "Kontrolní bod"
 
@@ -2689,6 +2685,10 @@ msgstr "Kosti"
 
 msgid "Index"
 msgstr "Index"
+
+
+msgid "Solo"
+msgstr "Barva"
 
 
 msgid "Visible"
@@ -4908,8 +4908,9 @@ msgid "How the footage fits in the camera frame"
 msgstr "Určuje délku životnosti vlny"
 
 
+msgctxt "MovieClip"
 msgid "Track"
-msgstr "Sledování"
+msgstr "Stopa"
 
 
 msgid "Movie tracking track to follow"
@@ -5566,10 +5567,6 @@ msgstr "Střih"
 
 msgid "White Level"
 msgstr "Bílá úroveň"
-
-
-msgid "Bezier"
-msgstr "Bezierova"
 
 
 msgid "Depth"
@@ -12008,10 +12005,6 @@ msgid "Unit editing settings"
 msgstr "Zobrazit nastaveni hran"
 
 
-msgid "Audio Muted"
-msgstr "Audio hlasitost"
-
-
 msgid "Audio Scrubbing"
 msgstr "NLA Proužky"
 
@@ -14092,10 +14085,6 @@ msgid "Specular Hardness"
 msgstr "Speciality"
 
 
-msgid "Bezier Curve"
-msgstr "Bezierova křivka"
-
-
 msgid "Sampling"
 msgstr "Vzorkování"
 
@@ -14430,6 +14419,10 @@ msgid "Select Grouped"
 msgstr "Vybrat seskupené"
 
 
+msgid "Track"
+msgstr "Sledování"
+
+
 msgid "Clean Up"
 msgstr "Vyčistit"
 
@@ -14517,10 +14510,6 @@ msgstr "Matematika"
 
 msgid "Keying"
 msgstr "Klíčovací sestava"
-
-
-msgid "Tracking"
-msgstr "Sledování"
 
 
 msgid "Layout"
@@ -16215,14 +16204,6 @@ msgid "Object defining offset"
 msgstr "Objekt"
 
 
-msgid "UV Layer"
-msgstr "Vrstva"
-
-
-msgid "UV Layer name"
-msgstr "Název vrstvy"
-
-
 msgid "WeightVG Edit Modifier"
 msgstr "Váha vertexů"
 
@@ -17019,10 +17000,6 @@ msgstr "Sledování"
 
 msgid "NLA Track is active"
 msgstr "Přidat primitivum"
-
-
-msgid "Solo"
-msgstr "Barva"
 
 
 msgid "NLA Track is locked"
@@ -17849,6 +17826,10 @@ msgid "Pixelate"
 msgstr "Pixely"
 
 
+msgid "Pixel Size"
+msgstr "Velikost Pixelu"
+
+
 msgid "Alpha Convert"
 msgstr "Činitel"
 
@@ -18031,6 +18012,10 @@ msgstr "Nerovná se"
 
 msgid "Compare"
 msgstr "Porovnat"
+
+
+msgid "Menu"
+msgstr "Nabídka"
 
 
 msgid "Less Than"
@@ -21184,6 +21169,19 @@ msgid "Duplicate"
 msgstr "Zdvojit"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Zobrazit neoznačení řídící body"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Opakované tažení"
+
+
+msgid "Extrude curve and move result"
+msgstr "Opakované tažení"
+
+
 msgid "(De)select all control points"
 msgstr "O(d)značit vše"
 
@@ -21266,10 +21264,6 @@ msgid "Duplicate Curve"
 msgstr "Zdvojit křivku"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Zobrazit neoznačení řídící body"
-
-
 msgid "Resize"
 msgstr "Původni velikost"
 
@@ -21300,15 +21294,6 @@ msgstr "Čas Bake"
 
 msgid "Edge Slide"
 msgstr "Posouvat hranu"
-
-
-msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Opakované tažení"
-
-
-msgid "Extrude curve and move result"
-msgstr "Opakované tažení"
 
 
 msgctxt "Operator"
@@ -21358,15 +21343,6 @@ msgid "Toggle the selection"
 msgstr "Mód vybírání hran"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Bezieruv kruh"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Sestaví bezierův kruh"
-
-
 msgid "Align the new object to the world"
 msgstr "Zarovnat nové objekty k okolí"
 
@@ -21393,15 +21369,6 @@ msgstr "Umístění nově přidaného objektu"
 
 msgid "Rotation for the newly added object"
 msgstr "Rotace pro nově přidaný objekt"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Přidat Bezier"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Sestaví bezierovu křivku"
 
 
 msgctxt "Operator"
@@ -23120,6 +23087,10 @@ msgstr "Režim tahu"
 
 msgid "Flat"
 msgstr "Ploché"
+
+
+msgid "By Material"
+msgstr "Podle Materiálu"
 
 
 msgctxt "Operator"
@@ -24962,10 +24933,6 @@ msgid "Separate selected geometry into a new mesh"
 msgstr "Odstranit aktuální skript link"
 
 
-msgid "By Material"
-msgstr "Podle Materiálu"
-
-
 msgid "By Loose Parts"
 msgstr "Podle Volných Částí"
 
@@ -25931,6 +25898,10 @@ msgstr "Bake"
 
 msgid "Bake image textures of selected objects"
 msgstr "Bake obrázkové textury vybraných objektů"
+
+
+msgid "UV Layer"
+msgstr "Vrstva"
 
 
 msgctxt "Operator"
@@ -26919,6 +26890,10 @@ msgid "Clear Shape Keys"
 msgstr "Zrušit šev"
 
 
+msgid "Lock action to execute on vertex groups"
+msgstr "Vybrat řádek"
+
+
 msgctxt "Operator"
 msgid "Mirror Shape Key"
 msgstr "Zrcadlit UV"
@@ -27123,10 +27098,6 @@ msgstr "Číslo ve stupních určující počet otočení"
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Aktuální skupina vertexů"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Vybrat řádek"
 
 
 msgid "Lock all vertex groups"
@@ -28417,6 +28388,10 @@ msgid "Copy settings from previous version"
 msgstr "Kopírovat nastavení z předcházející verze"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Export Key Configuration..."
 msgstr "Exportovat Konfiguraci Klíčů..."
@@ -29053,10 +29028,6 @@ msgstr "Mapa kláves"
 
 msgid "File Paths"
 msgstr "Cesty k souborům"
-
-
-msgid "Extensions"
-msgstr "Rozšíření"
 
 
 msgid "Experimental"
@@ -32153,10 +32124,6 @@ msgid "Open a website in the web browser"
 msgstr "Otevřít webovou stránku ve webovém prohlížeči"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "URL k otevření"
 
@@ -32525,11 +32492,6 @@ msgstr "Nástroje masky"
 
 msgid "Transforms"
 msgstr "Transformace"
-
-
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Nastavení scény"
 
 
 msgid "Predefined track color"
@@ -33023,10 +32985,6 @@ msgid "Helpers"
 msgstr "Pomocníci"
 
 
-msgid "Viscosity"
-msgstr "Viskozita"
-
-
 msgid "Indirect Lighting"
 msgstr "Nepřímé osvětlení"
 
@@ -33229,10 +33187,6 @@ msgid "Styles"
 msgstr "Styly"
 
 
-msgid "Menu"
-msgstr "Nabídka"
-
-
 msgid "Menu Item"
 msgstr "Položka nabídky"
 
@@ -33374,11 +33328,6 @@ msgstr "Nůž"
 msgctxt "Operator"
 msgid "Poly Build"
 msgstr "Poly Sestavení"
-
-
-msgctxt "Operator"
-msgid "Spin Duplicates"
-msgstr "Otočit kopie"
 
 
 msgctxt "Operator"
@@ -34473,10 +34422,6 @@ msgstr "Celkové vrácení"
 
 msgid "Auto Keyframe Insert Available"
 msgstr "Vložit hodnotu"
-
-
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
 
 
 msgid "Allow Negative Frames"
@@ -35783,10 +35728,6 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Svislý poměr stran - pro anamorfní a nečtvercové pixelové výstupy"
 
 
-msgid "Pixel Size"
-msgstr "Velikost Pixelu"
-
-
 msgid "Resolution Scale"
 msgstr "Měřítko rozlišení"
 
@@ -36153,6 +36094,10 @@ msgstr "Základní síť"
 
 msgid "All modifiers"
 msgstr "Všechny modifikátor"
+
+
+msgid "Viscosity"
+msgstr "Viskozita"
 
 
 msgid "Linear viscosity"
@@ -37093,10 +37038,6 @@ msgid "Vertex weight group, to blend with basis shape"
 msgstr "Žádné skupiny vertexů"
 
 
-msgid "Shape Key Bezier Point"
-msgstr "Opustit Editační mód"
-
-
 msgid "Handle 1 Location"
 msgstr "Náhodné umístění"
 
@@ -37264,11 +37205,6 @@ msgstr "NLA editor"
 msgctxt "MovieClip"
 msgid "Annotation Source"
 msgstr "Zdroj Poznámek"
-
-
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "Stopa"
 
 
 msgid "2D Cursor Location"
@@ -37576,10 +37512,6 @@ msgstr "Zobrazit Extrapolaci"
 
 msgid "Show Handles"
 msgstr "Mód Úchopu"
-
-
-msgid "Show handles of Bezier control points"
-msgstr "Vyrovná úhly označených plošek"
 
 
 msgid "Only Selected Keyframes Handles"
@@ -38163,14 +38095,6 @@ msgid "Live Unwrap"
 msgstr "Metoda rozbalení"
 
 
-msgid "Bezier Points"
-msgstr "Bezierové body"
-
-
-msgid "Collection of points for Bezier curves only"
-msgstr "Vybrat řádek"
-
-
 msgid "Character Index"
 msgstr "Znak"
 
@@ -38205,14 +38129,6 @@ msgstr "Počet dělení plošek v 3D pohledu"
 
 msgid "Tilt Interpolation"
 msgstr "Mód Interpolace"
-
-
-msgid "Bezier U"
-msgstr "Bezierova křivka"
-
-
-msgid "Bezier V"
-msgstr "Bezierova křivka"
 
 
 msgid "Make this surface a closed loop in the V direction"
@@ -40291,6 +40207,14 @@ msgid "Invert Selection"
 msgstr "Vybrat cestu"
 
 
+msgid "Tracking"
+msgstr "Sledování"
+
+
+msgid "Extensions"
+msgstr "Rozšíření"
+
+
 msgid "Note:"
 msgstr "Poznámka:"
 
@@ -40389,6 +40313,16 @@ msgstr "Znaky"
 
 msgid "Date: %s %s"
 msgstr "Datum: %s %s"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Umístění"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotace"
 
 
 msgid "Frame Numbers"
@@ -41425,11 +41359,6 @@ msgstr "Použít Původní Nastavení"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Umístění"
-
-
-msgctxt "Operator"
 msgid "Set Viewport Background"
 msgstr "Nastavit Obrázek Pozadí"
 
@@ -41465,6 +41394,11 @@ msgstr "Nastavit Osu Y"
 
 msgid "No active track"
 msgstr "Žádná aktivní stopa"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Přiblížit"
 
 
 msgctxt "Operator"
@@ -41749,16 +41683,6 @@ msgstr "Generovat skicovací tužku"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontálně"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikálně"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Invertovat červený kanál"
 
@@ -41930,10 +41854,6 @@ msgid "Online Manual"
 msgstr "Online Návod"
 
 
-msgid "Inputs:"
-msgstr "Vstupy:"
-
-
 msgctxt "Operator"
 msgid "Show One Level"
 msgstr "Zobrazit jednu úroveň"
@@ -42062,11 +41982,6 @@ msgstr "Odsazení:"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Přiblížit"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Přizpůsobit Náhled v Okně"
 
@@ -42154,11 +42069,6 @@ msgstr "Gaussovské Rozostření"
 msgctxt "Operator"
 msgid "Reload Strips and Adjust Length"
 msgstr "Přidat vazbu aktivní kosti"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotace"
 
 
 msgid "Resolutions"
@@ -42573,16 +42483,16 @@ msgid "Minimum Grid Spacing"
 msgstr "Minimální rozestupy mřížky"
 
 
+msgid "Enable in New Scenes"
+msgstr "Povolit v nových scénách"
+
+
 msgid "Show Warning"
 msgstr "Zobrazit upozornění"
 
 
 msgid "Only Insert Available"
 msgstr "Vložit hodnotu"
-
-
-msgid "Enable in New Scenes"
-msgstr "Povolit v nových scénách"
 
 
 msgid "XYZ to RGB"
@@ -42642,6 +42552,10 @@ msgid "Swap Y and Z Axes"
 msgstr "Vyměnit osy Y a Z"
 
 
+msgid "Preferences:"
+msgstr "Předvolby:"
+
+
 msgid "Use Light"
 msgstr "Použít světlo"
 
@@ -42669,14 +42583,6 @@ msgstr "Létat/Chodit"
 
 msgid "No custom %s configured"
 msgstr "Žádná vlastní %s nastavena"
-
-
-msgid "Color Set %d"
-msgstr "Sada Barev %d"
-
-
-msgid "Color %d"
-msgstr "Barva %d"
 
 
 msgid "Description:"
@@ -42707,21 +42613,17 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "popis"
+msgid "Color Set %d"
+msgstr "Sada Barev %d"
 
 
-msgid "location"
-msgstr "umístění"
+msgid "Color %d"
+msgstr "Barva %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentace"
-
-
-msgid "Preferences:"
-msgstr "Předvolby:"
 
 
 msgctxt "Operator"
@@ -42867,11 +42769,6 @@ msgstr "Mřížka"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Opice"
-
-
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgctxt "Operator"
@@ -44053,20 +43950,6 @@ msgid "Cannot spin"
 msgstr "Nelze otáčet"
 
 
-msgid "Only bezier curves are supported"
-msgstr "Podporovány jsou pouze bezierové křivky"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezierova křivka"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezieruv kruh"
-
-
 msgctxt "Curve"
 msgid "CurvePath"
 msgstr "CestaKřivky"
@@ -44205,10 +44088,6 @@ msgstr "Nástroj výplň potřebuje aktivní materiál"
 
 msgid "No valid object selected"
 msgstr "Nebyl vybrán žádný platný objekt"
-
-
-msgid "Confirm: Enter/LClick, Cancel: (Esc/RClick) %s"
-msgstr "Potvrdit: Enter/LCKlik, Zrušit: (Esc/RKlik) %s"
 
 
 msgid "Failed to set value"
@@ -44354,38 +44233,6 @@ msgid "Unsupported context"
 msgstr "Nepodporovaný kontext"
 
 
-msgid "Shortcut: %s"
-msgstr "Zkratka: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Hodnota: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radiány: %f"
-
-
-msgid "Expression: %s"
-msgstr "Výraz: %s"
-
-
-msgid "Library: %s"
-msgstr "Knihovna: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Zakázané: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
-
-
 msgctxt "Operator"
 msgid "Click"
 msgstr "Kliknout"
@@ -44470,10 +44317,6 @@ msgstr "Seřadit podle:"
 
 msgid "Anim Player"
 msgstr "Přehrávač animací"
-
-
-msgid "Can't edit external library data"
-msgstr "Nelze upravovat data externí knihovny"
 
 
 msgid "Reset operator defaults"
@@ -44650,6 +44493,14 @@ msgstr "Procházet Data Objemu k připojení"
 
 msgid "Browse ID data to be linked"
 msgstr "Procházet ID Data k připojení"
+
+
+msgid "Can't edit external library data"
+msgstr "Nelze upravovat data externí knihovny"
+
+
+msgid "File Not Found"
+msgstr "Soubor nebyl nalezen"
 
 
 msgid "Today"
@@ -45723,16 +45574,16 @@ msgid "Update Dependencies"
 msgstr "Přehrát animaci"
 
 
+msgid "Delete target variable"
+msgstr "Renderovat plošky z obou stran"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-Křivka má pouze F-Modifikátory"
 
 
 msgid "No active keyframe on F-Curve"
 msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
-
-
-msgid "Delete target variable"
-msgstr "Renderovat plošky z obou stran"
 
 
 msgid "Active F-Curve is not editable"
@@ -46091,10 +45942,6 @@ msgid "No object selected"
 msgstr "Nebyl vybrán žádný objekt"
 
 
-msgid "Auto Keying On"
-msgstr "Další klíč"
-
-
 msgid "along X"
 msgstr "podél X"
 
@@ -46133,6 +45980,10 @@ msgstr "uzamčení %s Z"
 
 msgid "along local Z"
 msgstr "podél místního Z"
+
+
+msgid "Auto Keying On"
+msgstr "Další klíč"
 
 
 msgid " along Y axis"
@@ -46302,14 +46153,6 @@ msgstr "Zobrazit materiál daného objektu"
 
 msgid "Relationship"
 msgstr "Vztah"
-
-
-msgid "Bezier spline cannot have points added"
-msgstr "Přesunout modifikátor dolů v zásobníku modifikátorů"
-
-
-msgid "Only Bezier splines can be added"
-msgstr "Přesunout modifikátor dolů v zásobníku modifikátorů"
 
 
 msgid "Keyframe not in F-Curve"
@@ -46639,10 +46482,6 @@ msgstr "Neukládat"
 
 msgid "unable to open the file"
 msgstr "není možné otevřít soubor"
-
-
-msgid "File Not Found"
-msgstr "Soubor nebyl nalezen"
 
 
 msgid "Save changes before closing?"

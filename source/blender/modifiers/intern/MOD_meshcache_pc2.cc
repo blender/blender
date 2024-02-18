@@ -6,6 +6,7 @@
  * \ingroup modifiers
  */
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -21,7 +22,7 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_modifier_types.h"
 
@@ -42,12 +43,12 @@ static bool meshcache_read_pc2_head(FILE *fp,
                                     const char **err_str)
 {
   if (!fread(pc2_head, sizeof(*pc2_head), 1, fp)) {
-    *err_str = TIP_("Missing header");
+    *err_str = RPT_("Missing header");
     return false;
   }
 
   if (!STREQ(pc2_head->header, "POINTCACHE2")) {
-    *err_str = TIP_("Invalid header");
+    *err_str = RPT_("Invalid header");
     return false;
   }
 
@@ -57,12 +58,12 @@ static bool meshcache_read_pc2_head(FILE *fp,
 #endif
 
   if (pc2_head->verts_tot != verts_tot) {
-    *err_str = TIP_("Vertex count mismatch");
+    *err_str = RPT_("Vertex count mismatch");
     return false;
   }
 
   if (pc2_head->frame_tot <= 0) {
-    *err_str = TIP_("Invalid frame total");
+    *err_str = RPT_("Invalid frame total");
     return false;
   }
   /* Intentionally don't seek back. */
@@ -137,7 +138,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
   }
 
   if (BLI_fseek(fp, sizeof(float[3]) * index * pc2_head.verts_tot, SEEK_CUR) != 0) {
-    *err_str = TIP_("Failed to seek frame");
+    *err_str = RPT_("Failed to seek frame");
     return false;
   }
 
@@ -177,7 +178,7 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
   }
 
   if (verts_read_num != pc2_head.verts_tot) {
-    *err_str = errno ? strerror(errno) : TIP_("Vertex coordinate read failed");
+    *err_str = errno ? strerror(errno) : RPT_("Vertex coordinate read failed");
     return false;
   }
 
@@ -243,7 +244,7 @@ bool MOD_meshcache_read_pc2_times(const char *filepath,
   bool ok;
 
   if (fp == nullptr) {
-    *err_str = errno ? strerror(errno) : TIP_("Unknown error opening file");
+    *err_str = errno ? strerror(errno) : RPT_("Unknown error opening file");
     return false;
   }
 
@@ -269,7 +270,7 @@ bool MOD_meshcache_read_pc2_times(const char *filepath,
         return false;
       }
 
-      frame = CLAMPIS(time, 0.0f, 1.0f) * float(pc2_head.frame_tot);
+      frame = std::clamp(time, 0.0f, 1.0f) * float(pc2_head.frame_tot);
       rewind(fp);
       break;
     }

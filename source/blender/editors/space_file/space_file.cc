@@ -12,16 +12,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_lib_query.h"
-#include "BKE_lib_remap.hh"
+#include "BKE_global.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -33,20 +31,18 @@
 #include "WM_types.hh"
 
 #include "ED_asset.hh"
-#include "ED_asset_indexer.h"
+#include "ED_asset_indexer.hh"
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "IMB_thumbs.hh"
 
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
 
-#include "GPU_framebuffer.h"
 #include "file_indexer.hh"
 #include "file_intern.hh" /* own include */
 #include "filelist.hh"
@@ -202,6 +198,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 
 static void file_refresh(const bContext *C, ScrArea *area)
 {
+  using namespace blender::ed;
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
@@ -231,7 +228,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   if (ED_fileselect_is_asset_browser(sfile)) {
     /* Ask the asset code for appropriate ID filter flags for the supported assets, and mask others
      * out. */
-    params->filter_id &= ED_asset_types_supported_as_filter_flags();
+    params->filter_id &= asset::types_supported_as_filter_flags();
   }
 
   filelist_settype(sfile->files, params->type);
@@ -258,8 +255,8 @@ static void file_refresh(const bContext *C, ScrArea *area)
 
   if (ED_fileselect_is_asset_browser(sfile)) {
     const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
-    filelist_setindexer(sfile->files,
-                        use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
+    filelist_setindexer(
+        sfile->files, use_asset_indexer ? &asset::index::file_indexer_asset : &file_indexer_noop);
   }
 
   /* Update the active indices of bookmarks & co. */
@@ -830,7 +827,9 @@ static void file_space_subtype_item_extend(bContext * /*C*/, EnumPropertyItem **
   RNA_enum_items_add(item, totitem, rna_enum_space_file_browse_mode_items);
 }
 
-static void file_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper * /*mappings*/)
+static void file_id_remap(ScrArea *area,
+                          SpaceLink *sl,
+                          const blender::bke::id::IDRemapper & /*mappings*/)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -904,7 +903,7 @@ static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_file()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype file"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_FILE;
@@ -998,7 +997,7 @@ void ED_spacetype_file()
   file_tool_props_region_panels_register(art);
   file_external_operations_menu_register();
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }
 
 void ED_file_init()
@@ -1023,15 +1022,15 @@ void ED_file_exit()
 
 void ED_file_read_bookmarks()
 {
-  const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
 
   fsmenu_free();
 
   fsmenu_read_system(ED_fsmenu_get(), true);
 
-  if (cfgdir) {
+  if (cfgdir.has_value()) {
     char filepath[FILE_MAX];
-    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+    BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
     fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
   }
 }

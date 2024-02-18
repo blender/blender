@@ -13,6 +13,7 @@ struct Base;
 struct BezTriple;
 struct Curve;
 struct EditNurb;
+struct KeyBlock;
 struct ListBase;
 struct Main;
 struct Nurb;
@@ -34,6 +35,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf);
 /* `editcurve.cc` */
 
 ListBase *object_editcurve_get(Object *ob);
+
+KeyBlock *ED_curve_get_edit_shape_key(const Curve *cu);
 
 /**
  * Load editNurb in object.
@@ -71,7 +74,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op);
 
 bool ED_curve_select_check(const View3D *v3d, const EditNurb *editnurb);
 bool ED_curve_deselect_all(EditNurb *editnurb);
-bool ED_curve_deselect_all_multi_ex(Base **bases, int bases_len);
+bool ED_curve_deselect_all_multi_ex(blender::Span<Base *> bases);
 bool ED_curve_deselect_all_multi(bContext *C);
 bool ED_curve_select_all(EditNurb *editnurb);
 bool ED_curve_select_swap(EditNurb *editnurb, bool hide_handles);

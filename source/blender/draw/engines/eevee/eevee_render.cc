@@ -16,7 +16,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_object.hh"
 
 #include "BLI_rand.h"
@@ -31,7 +31,7 @@
 
 #include "RE_pipeline.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "eevee_private.h"
 

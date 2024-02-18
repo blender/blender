@@ -63,9 +63,8 @@ void GPU_storagebuf_sync_to_host(GPUStorageBuf *ssbo);
  * If pending GPU updates to the storage buffer are not yet visible to the host, the command will
  * stall until dependent GPU work has completed.
  *
- * Otherwise, this command is unsynchronized and will return current visible storage buffer
- * contents immediately.
- * Alternatively, use appropriate barrier or GPU_finish before reading.
+ * Otherwise, this command is synchronized against this call and will stall the CPU until the
+ * buffer content can be read by the host.
  */
 void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data);
 
@@ -80,6 +79,12 @@ void GPU_storagebuf_read(GPUStorageBuf *ssbo, void *data);
  */
 void GPU_storagebuf_copy_sub_from_vertbuf(
     GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size);
+
+/**
+ * Ensure the ssbo is ready to be used as an indirect buffer in `GPU_batch_draw_indirect`.
+ * NOTE: Internally, this is only required for the OpenGL backend.
+ */
+void GPU_storagebuf_sync_as_indirect_buffer(GPUStorageBuf *ssbo);
 
 #ifdef __cplusplus
 }

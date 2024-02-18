@@ -41,7 +41,7 @@
 
 #include "tools/bmesh_edgesplit.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /*
  * Some of these depend on each other:
@@ -349,7 +349,7 @@ static BMVert *bm_isect_edge_tri(ISectState *s,
   float ix[3];
 
   if (BM_elem_index_get(e_v0) > BM_elem_index_get(e_v1)) {
-    SWAP(BMVert *, e_v0, e_v1);
+    std::swap(e_v0, e_v1);
   }
 
 #ifdef USE_PARANOID
@@ -374,11 +374,11 @@ static BMVert *bm_isect_edge_tri(ISectState *s,
 #define KEY_EDGE_TRI_ORDER(k) \
   { \
     if (k[2] > k[3]) { \
-      SWAP(int, k[2], k[3]); \
+      std::swap(k[2], k[3]); \
     } \
     if (k[0] > k[2]) { \
-      SWAP(int, k[0], k[2]); \
-      SWAP(int, k[1], k[3]); \
+      std::swap(k[0], k[2]); \
+      std::swap(k[1], k[3]); \
     } \
   } \
   (void)0
@@ -1305,7 +1305,7 @@ bool BM_mesh_intersect(BMesh *bm,
 #  endif
         }
         else {
-          SWAP(BMVert *, v_a, v_b);
+          std::swap(v_a, v_b);
           e = e_pair[1];
 #  ifdef USE_PARANOID
           e_keep = e_pair[0];

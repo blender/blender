@@ -8,19 +8,16 @@
 
 #include <mutex>
 
-#include "atomic_ops.h"
-
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 
 #include "BLI_array.hh"
-#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
 #include "BKE_customdata.hh"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_subdiv.hh"

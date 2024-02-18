@@ -22,16 +22,18 @@ namespace blender::eevee {
 /** \name LightData
  * \{ */
 
-static eLightType to_light_type(short blender_light_type, short blender_area_type)
+static eLightType to_light_type(short blender_light_type,
+                                short blender_area_type,
+                                bool use_soft_falloff)
 {
   switch (blender_light_type) {
     default:
     case LA_LOCAL:
-      return LIGHT_POINT;
+      return use_soft_falloff ? LIGHT_OMNI_DISK : LIGHT_OMNI_SPHERE;
     case LA_SUN:
       return LIGHT_SUN;
     case LA_SPOT:
-      return LIGHT_SPOT;
+      return use_soft_falloff ? LIGHT_SPOT_DISK : LIGHT_SPOT_SPHERE;
     case LA_AREA:
       return ELEM(blender_area_type, LA_AREA_DISK, LA_AREA_ELLIPSE) ? LIGHT_ELLIPSE : LIGHT_RECT;
   }
@@ -60,7 +62,7 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   this->influence_radius_invsqr_volume = 1.0f / square_f(max_ff(influence_radius_volume, 1e-8f));
 
   this->color = float3(&la->r) * la->energy;
-  normalize_m4_m4_ex(this->object_mat.ptr(), ob->object_to_world, scale);
+  normalize_m4_m4_ex(this->object_mat.ptr(), ob->object_to_world().ptr(), scale);
   /* Make sure we have consistent handedness (in case of negatively scaled Z axis). */
   float3 cross = math::cross(float3(this->_right), float3(this->_up));
   if (math::dot(cross, float3(this->_back)) < 0.0f) {
@@ -76,7 +78,7 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
   this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
 
-  eLightType new_type = to_light_type(la->type, la->area_shape);
+  eLightType new_type = to_light_type(la->type, la->area_shape, la->mode & LA_USE_SOFT_FALLOFF);
   if (assign_if_different(this->type, new_type)) {
     shadow_discard_safe(shadows);
   }
@@ -354,6 +356,7 @@ void LightModule::end_sync()
     /* Default to 32 as this is likely to be the maximum
      * tile size used by hardware or compute shading. */
     uint tile_size = 16;
+    bool tile_size_valid = false;
     do {
       tile_size *= 2;
       tiles_extent = math::divide_ceil(render_extent, int2(tile_size));
@@ -362,8 +365,9 @@ void LightModule::end_sync()
         continue;
       }
       total_word_count_ = tile_count * word_per_tile;
+      tile_size_valid = true;
 
-    } while (total_word_count_ > max_word_count_threshold);
+    } while (total_word_count_ > max_word_count_threshold || !tile_size_valid);
     /* Keep aligned with storage buffer requirements. */
     total_word_count_ = ceil_to_multiple_u(total_word_count_, 32);
 

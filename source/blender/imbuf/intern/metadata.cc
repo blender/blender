@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2005 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -17,12 +17,9 @@
 
 #include "DNA_ID.h" /* ID property definitions. */
 
-#include "MEM_guardedalloc.h"
+#include "IMB_imbuf_types.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
-#include "IMB_metadata.h"
+#include "IMB_metadata.hh"
 
 void IMB_metadata_ensure(IDProperty **metadata)
 {

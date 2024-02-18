@@ -8,12 +8,11 @@
 #include "DNA_curve_types.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_curve.hh"
 #include "BKE_curves.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "FN_multi_function_builder.hh"
 
@@ -26,6 +25,11 @@ namespace blender::bke {
  * \{ */
 
 CurveComponent::CurveComponent() : GeometryComponent(Type::Curve) {}
+
+CurveComponent::CurveComponent(Curves *curve, GeometryOwnershipType ownership)
+    : GeometryComponent(Type::Curve), curves_(curve), ownership_(ownership)
+{
+}
 
 CurveComponent::~CurveComponent()
 {
@@ -363,8 +367,7 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     }
     const Span<MDeformVert> dverts = curves->deform_verts();
     if (dverts.is_empty()) {
-      static const float default_value = 0.0f;
-      return {VArray<float>::ForSingle(default_value, curves->points_num()), AttrDomain::Point};
+      return {VArray<float>::ForSingle(0.0f, curves->points_num()), AttrDomain::Point};
     }
     return {varray_for_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }

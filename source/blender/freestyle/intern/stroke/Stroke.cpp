@@ -12,7 +12,7 @@
 #include "StrokeIterators.h"
 #include "StrokeRenderer.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_node.hh"
 
 namespace Freestyle {

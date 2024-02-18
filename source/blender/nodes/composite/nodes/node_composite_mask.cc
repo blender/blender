@@ -15,7 +15,6 @@
 
 #include "COM_cached_mask.hh"
 #include "COM_node_operation.hh"
-#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -87,7 +86,7 @@ class MaskOperation : public NodeOperation {
   void execute() override
   {
     Result &output_mask = get_result("Mask");
-    if (!get_mask()) {
+    if (!get_mask() || (!is_fixed_size() && !context().is_valid_compositing_region())) {
       output_mask.allocate_invalid();
       return;
     }
@@ -130,11 +129,16 @@ class MaskOperation : public NodeOperation {
 
   float get_aspect_ratio()
   {
-    if (get_flags() & (CMP_NODE_MASK_FLAG_SIZE_FIXED | CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE)) {
+    if (is_fixed_size()) {
       return 1.0f;
     }
 
     return context().get_render_data().yasp / context().get_render_data().xasp;
+  }
+
+  bool is_fixed_size()
+  {
+    return get_flags() & (CMP_NODE_MASK_FLAG_SIZE_FIXED | CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE);
   }
 
   bool get_use_feather()

@@ -26,6 +26,14 @@ namespace gpu {
 class GPULogParser;
 
 /**
+ * Compilation is done on a list of GLSL sources. This list contains placeholders that should be
+ * provided by the backend shader. These defines contains the locations where the backend can patch
+ * the sources.
+ */
+#define SOURCES_INDEX_VERSION 0
+#define SOURCES_INDEX_SPECIALIZATION_CONSTANTS 1
+
+/**
  * Implementation of shader compilation and uniforms handling.
  * Base class which is then specialized for each implementation (GL, VK, ...).
  */
@@ -44,6 +52,13 @@ class Shader {
     /* Current values set by `GPU_shader_constant_*()` call. The backend can choose to interpret
      * that however it wants (i.e: bind another shader instead). */
     Vector<Value> values;
+
+    /**
+     * OpenGL needs to know if a different program needs to be attached when constants are
+     * changed. Vulkan and Metal uses pipelines and don't have this issue. Attribute can be
+     * removed after the OpenGL backend has been phased out.
+     */
+    bool is_dirty;
   } constants;
 
  protected:
@@ -59,6 +74,8 @@ class Shader {
  public:
   Shader(const char *name);
   virtual ~Shader();
+
+  virtual void init(const shader::ShaderCreateInfo &info) = 0;
 
   virtual void vertex_shader_from_glsl(MutableSpan<const char *> sources) = 0;
   virtual void geometry_shader_from_glsl(MutableSpan<const char *> sources) = 0;

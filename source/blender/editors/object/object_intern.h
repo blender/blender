@@ -225,6 +225,9 @@ void OBJECT_OT_laplaciandeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_surfacedeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_geometry_nodes_input_attribute_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_geometry_node_tree_copy_assign(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_dash_modifier_segment_add(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_dash_modifier_segment_remove(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_dash_modifier_segment_move(struct wmOperatorType *ot);
 
 /* object_gpencil_modifiers.c */
 
@@ -329,6 +332,7 @@ void OBJECT_OT_shape_key_clear(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_retime(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
+void OBJECT_OT_shape_key_lock(struct wmOperatorType *ot);
 
 /* `object_collection.cc` */
 

@@ -11,15 +11,13 @@
 
 #include "BLI_bit_span.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_index_mask_fwd.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_offset_span.hh"
 #include "BLI_task.hh"
 #include "BLI_unique_sorted_indices.hh"
 #include "BLI_vector.hh"
-
-namespace blender {
-template<typename T> class VArray;
-}
+#include "BLI_virtual_array_fwd.hh"
 
 namespace blender::index_mask {
 
@@ -142,8 +140,8 @@ using IndexMaskSegment = OffsetSpan<int64_t, int16_t>;
  *   various sources. Those generally need additional memory which is provided with by an
  *   #IndexMaskMemory.
  *
- *   Some of the `IndexMask::from_*` functions are have an `IndexMask universe` input. When
- *   provided, the function will only consider the indices in the "universe". The term comes from
+ *   Some of the `IndexMask::from_*` functions have an `IndexMask universe` input. When provided,
+ *   the function will only consider the indices in the "universe". The term comes from
  *   mathematics: https://en.wikipedia.org/wiki/Universe_(mathematics).
  *
  * Iteration:
@@ -188,6 +186,35 @@ class IndexMask : private IndexMaskData {
   static IndexMask from_bools(const IndexMask &universe,
                               const VArray<bool> &bools,
                               IndexMaskMemory &memory);
+  /**
+   * Constructs a mask by repeating the indices in the given mask with a stride.
+   * For example, with an input mask containing `{3, 5}` and a stride of 10 the resulting mask
+   * would contain `{3, 5, 13, 15, 23, 25, ...}`.
+   */
+  static IndexMask from_repeating(const IndexMask &mask_to_repeat,
+                                  int64_t repetitions,
+                                  int64_t stride,
+                                  int64_t initial_offset,
+                                  IndexMaskMemory &memory);
+  /**
+   * Constructs a mask that contains every nth index the given number of times.
+   */
+  static IndexMask from_every_nth(int64_t n,
+                                  int64_t indices_num,
+                                  const int64_t initial_offset,
+                                  IndexMaskMemory &memory);
+  /**
+   * Construct a mask from the given segments. The provided segments are expected to be
+   * sorted and owned by #memory already.
+   */
+  static IndexMask from_segments(Span<IndexMaskSegment> segments, IndexMaskMemory &memory);
+  /**
+   * Construct a mask from some parts. This is mainly meant for more concise testing code.
+   * The individual items are unioned together.
+   */
+  using Initializer = std::variant<IndexRange, Span<int64_t>, Span<int>, int64_t>;
+  static IndexMask from_initializers(const Span<Initializer> initializers,
+                                     IndexMaskMemory &memory);
   /** Construct a mask from the union of two other masks. */
   static IndexMask from_union(const IndexMask &mask_a,
                               const IndexMask &mask_b,
@@ -212,6 +239,11 @@ class IndexMask : private IndexMaskData {
   int64_t last() const;
 
   /**
+   * Returns the smallest range that contains all indices stored in this mask.
+   */
+  IndexRange bounds() const;
+
+  /**
    * \return Minimum number of elements an array has to have so that it can be indexed by every
    * index stored in the mask.
    */
@@ -221,6 +253,8 @@ class IndexMask : private IndexMaskData {
    * \return Position where the #query_index is stored, or none if the index is not in the mask.
    */
   std::optional<RawMaskIterator> find(int64_t query_index) const;
+  std::optional<RawMaskIterator> find_larger_equal(int64_t query_index) const;
+  std::optional<RawMaskIterator> find_smaller_equal(int64_t query_index) const;
   /**
    * \return True when the #query_index is stored in the mask.
    */
@@ -248,15 +282,27 @@ class IndexMask : private IndexMaskData {
    */
   IndexMask slice(IndexRange range) const;
   IndexMask slice(int64_t start, int64_t size) const;
+  IndexMask slice(RawMaskIterator first_it, RawMaskIterator last_it, int64_t size) const;
   /**
-   * Same as above but can also add an offset to every index in the mask.
+   * Slices the mask based on the stored indices. The resulting mask only contains the indices that
+   * are within the given range.
+   */
+  IndexMask slice_content(IndexRange range) const;
+  IndexMask slice_content(int64_t start, int64_t size) const;
+  /**
+   * Same #slice but can also add an offset to every index in the mask.
    * Takes O(log n + range.size()) time but with a very small constant factor.
    */
-  IndexMask slice_and_offset(IndexRange range, int64_t offset, IndexMaskMemory &memory) const;
-  IndexMask slice_and_offset(int64_t start,
-                             int64_t size,
-                             int64_t offset,
-                             IndexMaskMemory &memory) const;
+  IndexMask slice_and_shift(IndexRange range, int64_t offset, IndexMaskMemory &memory) const;
+  IndexMask slice_and_shift(int64_t start,
+                            int64_t size,
+                            int64_t offset,
+                            IndexMaskMemory &memory) const;
+
+  /**
+   * Adds an offset to every index in the mask.
+   */
+  IndexMask shift(const int64_t offset, IndexMaskMemory &memory) const;
 
   /**
    * \return A new index mask that contains all the indices from the universe that are not in the
@@ -272,6 +318,22 @@ class IndexMask : private IndexMaskData {
    * \return Indices stored in the n-th segment.
    */
   IndexMaskSegment segment(int64_t segment_i) const;
+
+  /**
+   * Iterate over the indices in multiple masks which have the same size. The given function is
+   * called for groups of segments where each segment has the same size and comes from a different
+   * input mask.
+   * For example, if the input masks are (both have size 18):
+   *   A: [0, 15), {20, 24, 25}
+   *   B: [0, 5), [10, 15], {20, 30, 40, 50, 60, 70, 80, 90}
+   * Then the function will be called multiple times, each time with two segments:
+   *   1. [0, 5), [0, 5)
+   *   2. [5, 10), [10, 15)
+   *   3. [10, 15), {20, 30, 40, 50, 60}
+   *   4. {20, 24, 25}, {70, 80, 90}
+   */
+  static void foreach_segment_zipped(Span<IndexMask> masks,
+                                     FunctionRef<bool(Span<IndexMaskSegment> segments)> fn);
 
   /**
    * Calls the function once for every index.
@@ -370,6 +432,9 @@ class IndexMask : private IndexMaskData {
    * Is used by some functions to get low level access to the mask in order to construct it.
    */
   IndexMaskData &data_for_inplace_construction();
+
+  friend bool operator==(const IndexMask &a, const IndexMask &b);
+  friend bool operator!=(const IndexMask &a, const IndexMask &b);
 };
 
 /**
@@ -472,7 +537,7 @@ inline void init_empty_mask(IndexMaskData &data)
   data.indices_num_ = 0;
   data.segments_num_ = 0;
   data.cumulative_segment_sizes_ = cumulative_sizes_for_empty_mask;
-  /* Intentionally leave some pointer uninitialized which must not be accessed on empty masks
+  /* Intentionally leave some pointers uninitialized which must not be accessed on empty masks
    * anyway. */
 }
 
@@ -528,6 +593,17 @@ inline bool IndexMask::is_empty() const
 inline IndexRange IndexMask::index_range() const
 {
   return IndexRange(indices_num_);
+}
+
+inline IndexRange IndexMask::bounds() const
+{
+  if (this->is_empty()) {
+    return IndexRange();
+  }
+  const int64_t first = this->first();
+  const int64_t last = this->last();
+  const int64_t range = last - first + 1;
+  return IndexRange(first, range);
 }
 
 inline int64_t IndexMask::first() const
@@ -905,6 +981,11 @@ inline Vector<std::variant<IndexRange, IndexMaskSegment>, N> IndexMask::to_spans
   Vector<std::variant<IndexRange, IndexMaskSegment>, N> segments;
   this->foreach_segment_optimized([&](const auto segment) { segments.append(segment); });
   return segments;
+}
+
+inline bool operator!=(const IndexMask &a, const IndexMask &b)
+{
+  return !(a == b);
 }
 
 }  // namespace blender::index_mask

@@ -24,14 +24,14 @@
 #include "DNA_node_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_node.h"
 #include "BLI_fileops.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -39,7 +39,7 @@
 
 #include "WM_api.hh"
 
-#include "usd.h"
+#include "usd.hh"
 
 namespace blender::io::usd {
 

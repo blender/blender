@@ -119,7 +119,7 @@ void BKE_mesh_vert_corner_tri_map_create(MeshElemMap **r_map,
                                          int **r_mem,
                                          int totvert,
                                          const blender::int3 *corner_tris,
-                                         int tottris,
+                                         int tris_num,
                                          const int *corner_verts,
                                          int corners_num);
 /**
@@ -274,7 +274,7 @@ int *BKE_mesh_calc_smoothgroups(int edges_num,
 
 namespace blender::bke::mesh {
 
-Array<int> build_loop_to_face_map(OffsetIndices<int> faces);
+Array<int> build_corner_to_face_map(OffsetIndices<int> faces);
 
 GroupedSpan<int> build_vert_to_edge_map(Span<int2> edges,
                                         int verts_num,
@@ -292,15 +292,15 @@ GroupedSpan<int> build_vert_to_face_map(OffsetIndices<int> faces,
                                         Array<int> &r_indices);
 
 Array<int> build_vert_to_corner_indices(Span<int> corner_verts, OffsetIndices<int> offsets);
-GroupedSpan<int> build_vert_to_loop_map(Span<int> corner_verts,
-                                        int verts_num,
-                                        Array<int> &r_offsets,
-                                        Array<int> &r_indices);
+GroupedSpan<int> build_vert_to_corner_map(Span<int> corner_verts,
+                                          int verts_num,
+                                          Array<int> &r_offsets,
+                                          Array<int> &r_indices);
 
-GroupedSpan<int> build_edge_to_loop_map(Span<int> corner_edges,
-                                        int edges_num,
-                                        Array<int> &r_offsets,
-                                        Array<int> &r_indices);
+GroupedSpan<int> build_edge_to_corner_map(Span<int> corner_edges,
+                                          int edges_num,
+                                          Array<int> &r_offsets,
+                                          Array<int> &r_indices);
 
 GroupedSpan<int> build_edge_to_face_map(OffsetIndices<int> faces,
                                         Span<int> corner_edges,

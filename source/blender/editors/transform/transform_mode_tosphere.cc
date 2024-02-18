@@ -15,14 +15,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -196,11 +195,11 @@ static void applyToSphere(TransInfo *t)
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    SNPRINTF(str, TIP_("To Sphere: %s %s"), c, t->proptext);
+    SNPRINTF(str, IFACE_("To Sphere: %s %s"), c, t->proptext);
   }
   else {
     /* default header print */
-    SNPRINTF(str, TIP_("To Sphere: %.4f %s"), ratio, t->proptext);
+    SNPRINTF(str, IFACE_("To Sphere: %.4f %s"), ratio, t->proptext);
   }
 
   const ToSphereInfo *to_sphere_info = static_cast<const ToSphereInfo *>(t->custom.mode.data);

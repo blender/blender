@@ -61,14 +61,14 @@
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
 #include "BKE_node.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "RE_bake.h"
 #include "RE_texture_margin.h"
@@ -550,8 +550,8 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                                           const bool is_custom_cage,
                                           const float cage_extrusion,
                                           const float max_ray_distance,
-                                          float mat_low[4][4],
-                                          float mat_cage[4][4],
+                                          const float mat_low[4][4],
+                                          const float mat_cage[4][4],
                                           Mesh *me_cage)
 {
   size_t i;
@@ -855,7 +855,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      float result[],
                                      Mesh *mesh,
                                      const eBakeNormalSwizzle normal_swizzle[3],
-                                     float mat[4][4])
+                                     const float mat[4][4])
 {
   size_t i;
 
@@ -984,7 +984,7 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
   size_t i;
   float iobmat[4][4];
 
-  invert_m4_m4(iobmat, ob->object_to_world);
+  invert_m4_m4(iobmat, ob->object_to_world().ptr());
 
   for (i = 0; i < pixels_num; i++) {
     size_t offset;

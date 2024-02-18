@@ -23,7 +23,7 @@
 
 #include "ED_view3d.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "overlay_private.hh"
 
@@ -129,7 +129,6 @@ static GPUTexture *image_camera_background_texture_get(CameraBGImage *bgpic,
                                                        bool *r_use_alpha_premult,
                                                        bool *r_use_view_transform)
 {
-  void *lock;
   Image *image = bgpic->ima;
   ImageUser *iuser = &bgpic->iuser;
   MovieClip *clip = nullptr;
@@ -158,21 +157,15 @@ static GPUTexture *image_camera_background_texture_get(CameraBGImage *bgpic,
       camera_background_images_stereo_setup(scene, draw_ctx->v3d, image, iuser);
 
       iuser->scene = draw_ctx->scene;
-      ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, &lock);
-      if (ibuf == nullptr) {
-        BKE_image_release_ibuf(image, ibuf, lock);
-        iuser->scene = nullptr;
-        return nullptr;
-      }
-      width = ibuf->x;
-      height = ibuf->y;
-      tex = BKE_image_get_gpu_texture(image, iuser, ibuf);
-      BKE_image_release_ibuf(image, ibuf, lock);
+      tex = BKE_image_get_gpu_viewer_texture(image, iuser);
       iuser->scene = nullptr;
 
       if (tex == nullptr) {
         return nullptr;
       }
+
+      width = GPU_texture_original_width(tex);
+      height = GPU_texture_original_height(tex);
 
       aspect_x = bgpic->ima->aspx;
       aspect_y = bgpic->ima->aspy;
@@ -381,7 +374,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     if (ima != nullptr) {
       ImageUser iuser = *ob->iuser;
       camera_background_images_stereo_setup(draw_ctx->scene, draw_ctx->v3d, ima, &iuser);
-      tex = BKE_image_get_gpu_texture(ima, &iuser, nullptr);
+      tex = BKE_image_get_gpu_texture(ima, &iuser);
       if (tex) {
         size[0] = GPU_texture_original_width(tex);
         size[1] = GPU_texture_original_height(tex);
@@ -393,7 +386,7 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
     float image_aspect[2];
     overlay_image_calc_aspect(ima, size, image_aspect);
 
-    copy_m4_m4(mat, ob->object_to_world);
+    copy_m4_m4(mat, ob->object_to_world().ptr());
     mul_v3_fl(mat[0], image_aspect[0] * 0.5f * ob->empty_drawsize);
     mul_v3_fl(mat[1], image_aspect[1] * 0.5f * ob->empty_drawsize);
     madd_v3_v3fl(mat[3], mat[0], ob->ima_ofs[0] * 2.0f + 1.0f);

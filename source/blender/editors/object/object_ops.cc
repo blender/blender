@@ -141,6 +141,9 @@ void ED_operatortypes_object()
   WM_operatortype_append(OBJECT_OT_skin_armature_create);
   WM_operatortype_append(OBJECT_OT_geometry_nodes_input_attribute_toggle);
   WM_operatortype_append(OBJECT_OT_geometry_node_tree_copy_assign);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_dash_modifier_segment_add);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_dash_modifier_segment_remove);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_dash_modifier_segment_move);
 
   /* grease pencil modifiers */
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);
@@ -240,6 +243,7 @@ void ED_operatortypes_object()
   WM_operatortype_append(OBJECT_OT_shape_key_retime);
   WM_operatortype_append(OBJECT_OT_shape_key_mirror);
   WM_operatortype_append(OBJECT_OT_shape_key_move);
+  WM_operatortype_append(OBJECT_OT_shape_key_lock);
 
   WM_operatortype_append(OBJECT_OT_collection_add);
   WM_operatortype_append(OBJECT_OT_collection_link);

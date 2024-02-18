@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
+
 #include "COM_BokehBlurOperation.h"
 #include "COM_ConstantOperation.h"
 
@@ -40,16 +43,6 @@ void BokehBlurOperation::init_data()
   if (execution_model_ == eExecutionModel::FullFrame) {
     update_size();
   }
-
-  NodeOperation *bokeh = get_input_operation(BOKEH_INPUT_INDEX);
-  const int width = bokeh->get_width();
-  const int height = bokeh->get_height();
-
-  const float dimension = std::min(width, height);
-
-  bokeh_mid_x_ = width / 2.0f;
-  bokeh_mid_y_ = height / 2.0f;
-  bokehDimension_ = dimension / 2.0f;
 }
 
 void *BokehBlurOperation::initialize_tile_data(rcti * /*rect*/)
@@ -76,63 +69,37 @@ void BokehBlurOperation::init_execution()
 
 void BokehBlurOperation::execute_pixel(float output[4], int x, int y, void *data)
 {
-  float color_accum[4];
+  MemoryBuffer *input_buffer = (MemoryBuffer *)data;
+
   float temp_bounding_box[4];
-  float bokeh[4];
-
   input_bounding_box_reader_->read_sampled(temp_bounding_box, x, y, PixelSampler::Nearest);
-  if (temp_bounding_box[0] > 0.0f) {
-    float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    MemoryBuffer *input_buffer = (MemoryBuffer *)data;
-    const rcti &input_rect = input_buffer->get_rect();
-    float *buffer = input_buffer->get_buffer();
-    int bufferwidth = input_buffer->get_width();
-    int bufferstartx = input_rect.xmin;
-    int bufferstarty = input_rect.ymin;
-    const float max_dim = std::max(this->get_width(), this->get_height());
-    int pixel_size = size_ * max_dim / 100.0f;
-    zero_v4(color_accum);
-
-    if (pixel_size < 2) {
-      input_program_->read_sampled(color_accum, x, y, PixelSampler::Nearest);
-      multiplier_accum[0] = 1.0f;
-      multiplier_accum[1] = 1.0f;
-      multiplier_accum[2] = 1.0f;
-      multiplier_accum[3] = 1.0f;
-    }
-    int miny = y - pixel_size;
-    int maxy = y + pixel_size;
-    int minx = x - pixel_size;
-    int maxx = x + pixel_size;
-    miny = std::max(miny, input_rect.ymin);
-    minx = std::max(minx, input_rect.xmin);
-    maxy = MIN2(maxy, input_rect.ymax);
-    maxx = MIN2(maxx, input_rect.xmax);
-
-    int step = get_step();
-    int offsetadd = get_offset_add() * COM_DATA_TYPE_COLOR_CHANNELS;
-
-    float m = bokehDimension_ / pixel_size;
-    for (int ny = miny; ny < maxy; ny += step) {
-      int bufferindex = ((minx - bufferstartx) * COM_DATA_TYPE_COLOR_CHANNELS) +
-                        ((ny - bufferstarty) * COM_DATA_TYPE_COLOR_CHANNELS * bufferwidth);
-      for (int nx = minx; nx < maxx; nx += step) {
-        float u = bokeh_mid_x_ - (nx - x) * m;
-        float v = bokeh_mid_y_ - (ny - y) * m;
-        input_bokeh_program_->read_sampled(bokeh, u, v, PixelSampler::Nearest);
-        madd_v4_v4v4(color_accum, bokeh, &buffer[bufferindex]);
-        add_v4_v4(multiplier_accum, bokeh);
-        bufferindex += offsetadd;
-      }
-    }
-    output[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
-    output[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
-    output[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
-    output[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
+  if (temp_bounding_box[0] <= 0.0f) {
+    copy_v4_v4(output, input_buffer->get_elem(x, y));
+    return;
   }
-  else {
-    input_program_->read_sampled(output, x, y, PixelSampler::Nearest);
+
+  const float max_dim = std::max(this->get_width(), this->get_height());
+  int radius = size_ * max_dim / 100.0f;
+  const int2 bokeh_size = int2(input_bokeh_program_->get_width(),
+                               input_bokeh_program_->get_height());
+
+  float4 accumulated_color = float4(0.0f);
+  float4 accumulated_weight = float4(0.0f);
+  int step = get_step();
+  for (int yi = -radius; yi <= radius; yi += step) {
+    for (int xi = -radius; xi <= radius; xi += step) {
+      const float2 normalized_texel = (float2(xi, yi) + radius + 0.5f) / (radius * 2.0f + 1.0f);
+      const float2 weight_texel = (1.0f - normalized_texel) * float2(bokeh_size - 1);
+      float4 weight;
+      input_bokeh_program_->read(weight, int(weight_texel.x), int(weight_texel.y), nullptr);
+      const float4 color = float4(input_buffer->get_elem_clamped(x + xi, y + yi)) * weight;
+      accumulated_color += color;
+      accumulated_weight += weight;
+    }
   }
+
+  const float4 final_color = math::safe_divide(accumulated_color, accumulated_weight);
+  copy_v4_v4(output, final_color);
 }
 
 void BokehBlurOperation::deinit_execution()
@@ -261,8 +228,9 @@ void BokehBlurOperation::determine_canvas(const rcti &preferred_area, rcti &r_ar
     case eExecutionModel::Tiled: {
       NodeOperation::determine_canvas(preferred_area, r_area);
       const float max_dim = std::max(BLI_rcti_size_x(&r_area), BLI_rcti_size_y(&r_area));
-      r_area.xmax += 2 * size_ * max_dim / 100.0f;
-      r_area.ymax += 2 * size_ * max_dim / 100.0f;
+      float add_size = round_to_even(2 * size_ * max_dim / 100.0f);
+      r_area.xmax += add_size;
+      r_area.ymax += add_size;
       break;
     }
     case eExecutionModel::FullFrame: {
@@ -313,14 +281,13 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                       Span<MemoryBuffer *> inputs)
 {
   const float max_dim = std::max(this->get_width(), this->get_height());
-  const int pixel_size = size_ * max_dim / 100.0f;
-  const float m = bokehDimension_ / pixel_size;
+  const int radius = size_ * max_dim / 100.0f;
 
   const MemoryBuffer *image_input = inputs[IMAGE_INPUT_INDEX];
   const MemoryBuffer *bokeh_input = inputs[BOKEH_INPUT_INDEX];
+  const int2 bokeh_size = int2(bokeh_input->get_width(), bokeh_input->get_height());
   MemoryBuffer *bounding_input = inputs[BOUNDING_BOX_INPUT_INDEX];
   BuffersIterator<float> it = output->iterate_with({bounding_input}, area);
-  const rcti &image_rect = image_input->get_rect();
   for (; !it.is_end(); ++it) {
     const int x = it.x;
     const int y = it.y;
@@ -330,38 +297,22 @@ void BokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *output,
       continue;
     }
 
-    float color_accum[4] = {0};
-    float multiplier_accum[4] = {0};
-    if (pixel_size < 2) {
-      image_input->read_elem(x, y, color_accum);
-      multiplier_accum[0] = 1.0f;
-      multiplier_accum[1] = 1.0f;
-      multiplier_accum[2] = 1.0f;
-      multiplier_accum[3] = 1.0f;
-    }
-    const int miny = std::max(y - pixel_size, image_rect.ymin);
-    const int maxy = MIN2(y + pixel_size, image_rect.ymax);
-    const int minx = std::max(x - pixel_size, image_rect.xmin);
-    const int maxx = MIN2(x + pixel_size, image_rect.xmax);
+    float4 accumulated_color = float4(0.0f);
+    float4 accumulated_weight = float4(0.0f);
     const int step = get_step();
-    const int elem_stride = image_input->elem_stride * step;
-    const int row_stride = image_input->row_stride * step;
-    const float *row_color = image_input->get_elem(minx, miny);
-    for (int ny = miny; ny < maxy; ny += step, row_color += row_stride) {
-      const float *color = row_color;
-      const float v = bokeh_mid_y_ - (ny - y) * m;
-      for (int nx = minx; nx < maxx; nx += step, color += elem_stride) {
-        const float u = bokeh_mid_x_ - (nx - x) * m;
-        float bokeh[4];
-        bokeh_input->read_elem_checked(u, v, bokeh);
-        madd_v4_v4v4(color_accum, bokeh, color);
-        add_v4_v4(multiplier_accum, bokeh);
+    for (int yi = -radius; yi <= radius; yi += step) {
+      for (int xi = -radius; xi <= radius; xi += step) {
+        const float2 normalized_texel = (float2(xi, yi) + radius + 0.5f) / (radius * 2.0f + 1.0f);
+        const float2 weight_texel = (1.0f - normalized_texel) * float2(bokeh_size - 1);
+        const float4 weight = bokeh_input->get_elem(int(weight_texel.x), int(weight_texel.y));
+        const float4 color = float4(image_input->get_elem_clamped(x + xi, y + yi)) * weight;
+        accumulated_color += color;
+        accumulated_weight += weight;
       }
     }
-    it.out[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
-    it.out[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
-    it.out[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
-    it.out[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
+
+    const float4 final_color = math::safe_divide(accumulated_color, accumulated_weight);
+    copy_v4_v4(it.out, final_color);
   }
 }
 

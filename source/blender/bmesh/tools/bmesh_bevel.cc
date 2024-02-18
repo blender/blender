@@ -13,7 +13,6 @@
 #include "DNA_curveprofile_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
@@ -26,7 +25,7 @@
 
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 
 #include "eigen_capi.h"
@@ -40,7 +39,7 @@ using blender::Vector;
 
 // #define BEVEL_DEBUG_TIME
 #ifdef BEVEL_DEBUG_TIME
-#  include "PIL_time.h"
+#  include "BLI_time.h"
 #endif
 
 #define BEVEL_EPSILON_D 1e-6
@@ -763,7 +762,7 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
    * should now have lef1 and lef2 being f1 and f2 in either order.
    */
   if (lef1->f == f2) {
-    SWAP(BMLoop *, lef1, lef2);
+    std::swap(lef1, lef2);
   }
   if (lef1->f != f1 || lef2->f != f2) {
     return false;
@@ -6405,13 +6404,13 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
     }
     if (ccw_test_sum < 0) {
       for (int i = 0; i <= (tot_edges / 2) - 1; i++) {
-        SWAP(EdgeHalf, bv->edges[i], bv->edges[tot_edges - i - 1]);
-        SWAP(BMFace *, bv->edges[i].fprev, bv->edges[i].fnext);
-        SWAP(BMFace *, bv->edges[tot_edges - i - 1].fprev, bv->edges[tot_edges - i - 1].fnext);
+        std::swap(bv->edges[i], bv->edges[tot_edges - i - 1]);
+        std::swap(bv->edges[i].fprev, bv->edges[i].fnext);
+        std::swap(bv->edges[tot_edges - i - 1].fprev, bv->edges[tot_edges - i - 1].fnext);
       }
       if (tot_edges % 2 == 1) {
         int i = tot_edges / 2;
-        SWAP(BMFace *, bv->edges[i].fprev, bv->edges[i].fnext);
+        std::swap(bv->edges[i].fprev, bv->edges[i].fnext);
       }
     }
   }
@@ -7764,7 +7763,7 @@ void BM_mesh_bevel(BMesh *bm,
   }
 
 #ifdef BEVEL_DEBUG_TIME
-  double start_time = PIL_check_seconds_timer();
+  double start_time = BLI_time_now_seconds();
 #endif
 
   /* Disable the miters with the cutoff vertex mesh method, the combination isn't useful anyway. */
@@ -7932,7 +7931,7 @@ void BM_mesh_bevel(BMesh *bm,
   BLI_memarena_free(bp.mem_arena);
 
 #ifdef BEVEL_DEBUG_TIME
-  double end_time = PIL_check_seconds_timer();
+  double end_time = BLI_time_now_seconds();
   printf("BMESH BEVEL TIME = %.3f\n", end_time - start_time);
 #endif
 }

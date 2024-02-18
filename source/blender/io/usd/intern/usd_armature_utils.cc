@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_armature_utils.h"
+#include "usd_armature_utils.hh"
 
 #include "BKE_armature.hh"
 #include "BKE_modifier.hh"

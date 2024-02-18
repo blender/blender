@@ -6,6 +6,8 @@
  * \ingroup ikplugin
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BIK_api.h"
@@ -142,11 +144,11 @@ static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
       BLI_addtail(&pchan_root->iktree, tree);
     }
     else {
-      tree->iterations = MAX2(data->iterations, tree->iterations);
+      tree->iterations = std::max<int>(data->iterations, tree->iterations);
       tree->stretch = tree->stretch && !(data->flag & CONSTRAINT_IK_STRETCH);
 
       /* Skip common pose channels and add remaining. */
-      const int size = MIN2(segcount, tree->totchannel);
+      const int size = std::min(segcount, tree->totchannel);
       int a, t;
       a = t = 0;
       while (a < size && t < tree->totchannel) {
@@ -426,7 +428,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
   }
   copy_v3_v3(rootmat[3], pchan->pose_head);
 
-  mul_m4_m4m4(imat, ob->object_to_world, rootmat);
+  mul_m4_m4m4(imat, ob->object_to_world().ptr(), rootmat);
   invert_m4_m4(goalinv, imat);
 
   LISTBASE_FOREACH (PoseTarget *, target, &tree->targets) {
@@ -485,7 +487,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
       /* end effector in world space */
       copy_m4_m4(end_pose, pchan->pose_mat);
       copy_v3_v3(end_pose[3], pchan->pose_tail);
-      mul_m4_series(world_pose, goalinv, ob->object_to_world, end_pose);
+      mul_m4_series(world_pose, goalinv, ob->object_to_world().ptr(), end_pose);
 
       /* blend position */
       goalpos[0] = fac * goalpos[0] + mfac * world_pose[3][0];

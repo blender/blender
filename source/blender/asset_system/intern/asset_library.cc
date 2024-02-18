@@ -10,10 +10,10 @@
 
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_identifier.hh"
-#include "AS_asset_library.h"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
+#include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
@@ -31,7 +31,7 @@
 using namespace blender;
 using namespace blender::asset_system;
 
-bool asset_system::AssetLibrary::save_catalogs_when_file_is_saved = true;
+bool AssetLibrary::save_catalogs_when_file_is_saved = true;
 
 void AS_asset_libraries_exit()
 {
@@ -40,27 +40,27 @@ void AS_asset_libraries_exit()
   AssetLibraryService::destroy();
 }
 
-asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
-                                                  const AssetLibraryReference &library_reference)
+AssetLibrary *AS_asset_library_load(const Main *bmain,
+                                    const AssetLibraryReference &library_reference)
 {
   AssetLibraryService *service = AssetLibraryService::get();
   return service->get_asset_library(bmain, library_reference);
 }
 
-::AssetLibrary *AS_asset_library_load(const char *name, const char *library_dirpath)
+AssetLibrary *AS_asset_library_load(const char *name, const char *library_dirpath)
 {
   /* NOTE: Loading an asset library at this point only means loading the catalogs.
    * Later on this should invoke reading of asset representations too. */
 
   AssetLibraryService *service = AssetLibraryService::get();
-  asset_system::AssetLibrary *lib;
+  AssetLibrary *lib;
   if (library_dirpath == nullptr || library_dirpath[0] == '\0') {
     lib = service->get_asset_library_current_file();
   }
   else {
     lib = service->get_asset_library_on_disk_custom(name, library_dirpath);
   }
-  return reinterpret_cast<::AssetLibrary *>(lib);
+  return lib;
 }
 
 bool AS_asset_library_has_any_unsaved_catalogs()
@@ -94,42 +94,11 @@ std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain
   return AS_asset_library_find_suitable_root_path_from_path(bmain->filepath);
 }
 
-AssetCatalogService *AS_asset_library_get_catalog_service(const ::AssetLibrary *library_c)
-{
-  if (library_c == nullptr) {
-    return nullptr;
-  }
-
-  const asset_system::AssetLibrary &library = reinterpret_cast<const asset_system::AssetLibrary &>(
-      *library_c);
-  return library.catalog_service.get();
-}
-
-AssetCatalogTree *AS_asset_library_get_catalog_tree(const ::AssetLibrary *library)
-{
-  AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(library);
-  if (catalog_service == nullptr) {
-    return nullptr;
-  }
-
-  return catalog_service->get_catalog_tree();
-}
-
-void AS_asset_library_refresh_catalog_simplename(::AssetLibrary *asset_library,
-                                                 AssetMetaData *asset_data)
-{
-  asset_system::AssetLibrary *lib = reinterpret_cast<asset_system::AssetLibrary *>(asset_library);
-  lib->refresh_catalog_simplename(asset_data);
-}
-
-void AS_asset_library_remap_ids(const IDRemapper *mappings)
+void AS_asset_library_remap_ids(const bke::id::IDRemapper &mappings)
 {
   AssetLibraryService *service = AssetLibraryService::get();
   service->foreach_loaded_asset_library(
-      [mappings](asset_system::AssetLibrary &library) {
-        library.remap_ids_and_remove_invalid(*mappings);
-      },
-      true);
+      [mappings](AssetLibrary &library) { library.remap_ids_and_remove_invalid(mappings); }, true);
 }
 
 void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
@@ -223,12 +192,7 @@ void AssetLibrary::load_catalogs()
   this->catalog_service = std::move(catalog_service);
 }
 
-void AssetLibrary::refresh()
-{
-  if (on_refresh_) {
-    on_refresh_(*this);
-  }
-}
+void AssetLibrary::refresh_catalogs() {}
 
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,
                                                       StringRef name,
@@ -251,7 +215,7 @@ bool AssetLibrary::remove_asset(AssetRepresentation &asset)
   return asset_storage_->remove_asset(asset);
 }
 
-void AssetLibrary::remap_ids_and_remove_invalid(const IDRemapper &mappings)
+void AssetLibrary::remap_ids_and_remove_invalid(const bke::id::IDRemapper &mappings)
 {
   asset_storage_->remap_ids_and_remove_invalid(mappings);
 }

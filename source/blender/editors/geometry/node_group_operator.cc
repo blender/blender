@@ -25,16 +25,16 @@
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_pointcloud.h"
-#include "BKE_report.h"
+#include "BKE_pointcloud.hh"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "DNA_object_types.h"
@@ -56,7 +56,7 @@
 #include "ED_mesh.hh"
 #include "ED_sculpt.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "FN_lazy_function_execute.hh"
 
@@ -85,7 +85,7 @@ static const bNodeTree *get_asset_or_local_node_group(const bContext &C,
 {
   Main &bmain = *CTX_data_main(&C);
   if (bNodeTree *group = reinterpret_cast<bNodeTree *>(
-          WM_operator_properties_id_lookup_from_name_or_session_uuid(&bmain, &ptr, ID_NT)))
+          WM_operator_properties_id_lookup_from_name_or_session_uid(&bmain, &ptr, ID_NT)))
   {
     return group;
   }
@@ -904,7 +904,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   const Set<std::string> builtin_menus = get_builtin_menus(ObjectType(active_object->type),
                                                            eObjectMode(active_object->mode));
 
-  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
       asset_system::all_library_reference());
   if (!all_library) {
     return;
@@ -929,7 +929,7 @@ MenuType node_group_operator_assets_menu()
   STRNCPY(type.idname, "GEO_MT_node_operator_catalog_assets");
   type.poll = asset_menu_poll;
   type.draw = catalog_assets_draw;
-  type.listener = asset::asset_reading_region_listen_fn;
+  type.listener = asset::list::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
   return type;
 }
@@ -1028,7 +1028,7 @@ MenuType node_group_operator_assets_menu_unassigned()
   STRNCPY(type.idname, "GEO_MT_node_operator_unassigned");
   type.poll = asset_menu_poll;
   type.draw = catalog_assets_draw_unassigned;
-  type.listener = asset::asset_reading_region_listen_fn;
+  type.listener = asset::list::asset_reading_region_listen_fn;
   type.flag = MenuTypeFlag::ContextDependent;
   type.description = N_(
       "Tool node group assets not assigned to a catalog.\n"
@@ -1053,7 +1053,7 @@ void ui_template_node_operator_asset_menu_items(uiLayout &layout,
   if (!item) {
     return;
   }
-  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
       asset_system::all_library_reference());
   if (!all_library) {
     return;
@@ -1082,7 +1082,7 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, const bContext
     *tree = build_catalog_tree(C, *active_object);
   }
 
-  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+  asset_system::AssetLibrary *all_library = asset::list::library_get_once_available(
       asset_system::all_library_reference());
   if (!all_library) {
     return;

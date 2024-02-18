@@ -38,15 +38,15 @@
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "GPU_batch.h"
 #include "GPU_matrix.h"
 
-#include "blf_internal.h"
-#include "blf_internal_types.h"
+#include "blf_internal.hh"
+#include "blf_internal_types.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #ifdef WIN32
 #  define FT_New_Face FT_New_Face__win32_compat
@@ -65,7 +65,7 @@ static FTC_CMapCache ftc_charmap_cache = nullptr;
 static ThreadMutex ft_lib_mutex;
 
 /* May be set to #UI_widgetbase_draw_cache_flush. */
-static void (*blf_draw_cache_flush)(void) = nullptr;
+static void (*blf_draw_cache_flush)() = nullptr;
 
 static ft_pix blf_font_height_max_ft_pix(FontBLF *font);
 static ft_pix blf_font_width_max_ft_pix(FontBLF *font);
@@ -1334,7 +1334,7 @@ void blf_font_exit()
   blf_batch_draw_exit();
 }
 
-void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void))
+void BLF_cache_flush_set_fn(void (*cache_flush_fn)())
 {
   blf_draw_cache_flush = cache_flush_fn;
 }

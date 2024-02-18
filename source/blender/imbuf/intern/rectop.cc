@@ -15,10 +15,10 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -1098,10 +1098,10 @@ void IMB_rectfill_area_replace(
   CLAMP(y2, 0, height);
 
   if (x1 > x2) {
-    SWAP(int, x1, x2);
+    std::swap(x1, x2);
   }
   if (y1 > y2) {
-    SWAP(int, y1, y2);
+    std::swap(y1, y2);
   }
   if (x1 == x2 || y1 == y2) {
     return;
@@ -1153,10 +1153,10 @@ void buf_rectfill_area(uchar *rect,
   CLAMP(y2, 0, height);
 
   if (x1 > x2) {
-    SWAP(int, x1, x2);
+    std::swap(x1, x2);
   }
   if (y1 > y2) {
-    SWAP(int, y1, y2);
+    std::swap(y1, y2);
   }
   if (x1 == x2 || y1 == y2) {
     return;

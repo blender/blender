@@ -10,13 +10,12 @@
 #include <cstring>
 
 #include "BLI_math_vector.hh"
-#include "BLI_task.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "sequencer_scopes.hh"
 
@@ -64,8 +63,8 @@ static blender::float2 rgb_to_uv_normalized(const float rgb[3])
   float u = -0.09991f * r - 0.33609f * g + 0.436f * b;
   float v = 0.615f * r - 0.55861f * g - 0.05639f * b;
 
-  /* Normalize: (U, V) range is +/- (0.436, 0.615) */
-  u = clamp_f(u * (0.5f / 0.436f) + 0.5f, 0.0f, 1.0f);
+  /* Normalize: possible range is +/- 0.615. */
+  u = clamp_f(u * (0.5f / 0.615f) + 0.5f, 0.0f, 1.0f);
   v = clamp_f(v * (0.5f / 0.615f) + 0.5f, 0.0f, 1.0f);
   return float2(u, v);
 }
@@ -114,7 +113,7 @@ ImBuf *make_waveform_view_from_ibuf(const ImBuf *ibuf)
 #endif
   const int w = ibuf->x;
   const int h = 256;
-  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect);
+  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect | IB_uninitialized_pixels);
   uchar *tgt = rval->byte_buffer.data;
 
   uchar wtable[256];
@@ -173,7 +172,7 @@ ImBuf *make_sep_waveform_view_from_ibuf(const ImBuf *ibuf)
 #endif
   int w = ibuf->x;
   int h = 256;
-  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect);
+  ImBuf *rval = IMB_allocImBuf(w, h, 32, IB_rect | IB_uninitialized_pixels);
   uchar *tgt = rval->byte_buffer.data;
   int sw = ibuf->x / 3;
 
@@ -223,7 +222,7 @@ ImBuf *make_zebra_view_from_ibuf(const ImBuf *ibuf, float perc)
 #ifdef DEBUG_TIME
   SCOPED_TIMER(__func__);
 #endif
-  ImBuf *res = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect);
+  ImBuf *res = IMB_allocImBuf(ibuf->x, ibuf->y, 32, IB_rect | IB_uninitialized_pixels);
 
   threading::parallel_for(IndexRange(ibuf->y), 16, [&](IndexRange y_range) {
     if (ibuf->float_buffer.data) {
@@ -347,7 +346,7 @@ ImBuf *make_vectorscope_view_from_ibuf(const ImBuf *ibuf)
 #endif
   const int size = 512;
   const float size_mul = size - 1.0f;
-  ImBuf *rval = IMB_allocImBuf(size, size, 32, IB_rect);
+  ImBuf *rval = IMB_allocImBuf(size, size, 32, IB_rect | IB_uninitialized_pixels);
 
   uchar *dst = rval->byte_buffer.data;
   float rgb[3];

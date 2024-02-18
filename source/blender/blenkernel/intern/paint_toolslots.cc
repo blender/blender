@@ -11,13 +11,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 
 #include "BKE_brush.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
 

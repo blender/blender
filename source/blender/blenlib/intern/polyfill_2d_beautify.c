@@ -31,7 +31,7 @@
 
 #include "BLI_polyfill_2d_beautify.h" /* own include */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* Used to find matching edges. */
 struct OrderEdge {

@@ -60,7 +60,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
   fcu->rna_path = BLI_strdup(rna_path);
   fcu->array_index = array_index;
 
-  if (U.autokey_flag & AUTOKEY_FLAG_XYZ2RGB && ptr != nullptr) {
+  if (U.keying_flag & KEYING_FLAG_XYZ2RGB && ptr != nullptr) {
     /* For Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
      * is determined by the array index for the F-Curve.
      */

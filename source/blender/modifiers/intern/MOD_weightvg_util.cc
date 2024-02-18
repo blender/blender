@@ -12,7 +12,7 @@
 #include "BLI_rand.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_color_types.h" /* CurveMapping. */
 #include "DNA_mesh_types.h"
@@ -24,9 +24,9 @@
 #include "BKE_colortools.hh" /* CurveMapping. */
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_modifier.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_texture.h" /* Texture masking. */
 
 #include "UI_interface.hh"

@@ -15,6 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -27,12 +28,14 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_data_transfer.h"
-#include "BKE_deform.h" /* own include */
+#include "BKE_deform.hh" /* own include */
+#include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
@@ -56,6 +59,11 @@ bDeformGroup *BKE_object_defgroup_new(Object *ob, const char *name)
 
   BLI_addtail(defbase, defgroup);
   BKE_object_defgroup_unique_name(defgroup, ob);
+
+  if (ob->type == OB_GREASE_PENCIL) {
+    blender::bke::greasepencil::validate_drawing_vertex_groups(
+        *static_cast<GreasePencil *>(ob->data));
+  }
 
   BKE_object_batch_cache_dirty_tag(ob);
 
@@ -440,7 +448,7 @@ bool BKE_id_supports_vertex_groups(const ID *id)
   if (id == nullptr) {
     return false;
   }
-  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD_LEGACY);
+  return ELEM(GS(id->name), ID_ME, ID_LT, ID_GD_LEGACY, ID_GP);
 }
 
 bool BKE_object_supports_vertex_groups(const Object *ob)
@@ -465,6 +473,10 @@ const ListBase *BKE_id_defgroup_list_get(const ID *id)
       const bGPdata *gpd = (const bGPdata *)id;
       return &gpd->vertex_group_names;
     }
+    case ID_GP: {
+      const GreasePencil *grease_pencil = (const GreasePencil *)id;
+      return &grease_pencil->vertex_group_names;
+    }
     default: {
       BLI_assert_unreachable();
     }
@@ -487,6 +499,10 @@ static const int *object_defgroup_active_index_get_p(const Object *ob)
     case OB_GPENCIL_LEGACY: {
       const bGPdata *gpd = (const bGPdata *)ob->data;
       return &gpd->vertex_group_active_index;
+    }
+    case OB_GREASE_PENCIL: {
+      const GreasePencil *grease_pencil = (const GreasePencil *)ob->data;
+      return &grease_pencil->vertex_group_active_index;
     }
   }
   return nullptr;
@@ -1765,6 +1781,30 @@ void remove_defgroup_index(MutableSpan<MDeformVert> dverts, const int defgroup_i
         }
       }
     }
+  });
+}
+
+void gather_deform_verts(const Span<MDeformVert> src,
+                         const Span<int> indices,
+                         MutableSpan<MDeformVert> dst)
+{
+  threading::parallel_for(indices.index_range(), 512, [&](const IndexRange range) {
+    for (const int dst_i : range) {
+      const int src_i = indices[dst_i];
+      dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
+      dst[dst_i].totweight = src[src_i].totweight;
+      dst[dst_i].flag = src[src_i].flag;
+    }
+  });
+}
+void gather_deform_verts(const Span<MDeformVert> src,
+                         const IndexMask &indices,
+                         MutableSpan<MDeformVert> dst)
+{
+  indices.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
+    dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
+    dst[dst_i].totweight = src[src_i].totweight;
+    dst[dst_i].flag = src[src_i].flag;
   });
 }
 

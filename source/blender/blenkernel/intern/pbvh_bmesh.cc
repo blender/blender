@@ -53,8 +53,8 @@ Topology rake:
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
+#include "BLI_time.h"
 
-#include "PIL_time.h"
 #include "atomic_ops.h"
 
 #include "DNA_material_types.h"
@@ -65,7 +65,7 @@ Topology rake:
 #include "BKE_context.hh"
 #include "BKE_dyntopo.hh"
 #include "BKE_dyntopo_set.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.hh"
@@ -2611,16 +2611,22 @@ namespace blender::bke::dyntopo {
 bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
                            Object *ob,
                            PBVH *pbvh,
-                           bool (*searchcb)(PBVHNode *node, SculptSearchSphereData *data),
+                           bool (*searchcb)(const PBVHNode &node,
+                                            const float3 &location,
+                                            const float radius_sq,
+                                            const bool original),
                            void (*undopush)(PBVHNode *node, void *data),
-                           SculptSearchSphereData *searchdata,
+                           const blender::float3 &location,
+                           const float radius_sq,
+                           const bool original,
                            PBVHTopologyUpdateMode mode,
                            const bool use_frontface,
                            float3 view_normal,
                            bool updatePBVH,
                            DyntopoMaskCB mask_cb,
                            void *mask_cb_data,
-                           float quality)
+                           float quality,
+                           void *searchdata)
 {
   bool modified = false;
   Vector<PBVHNode *> nodes;
@@ -2628,7 +2634,7 @@ bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
   for (int i = 0; i < pbvh->nodes.size(); i++) {
     PBVHNode *node = &pbvh->nodes[i];
 
-    if (!(node->flag & PBVH_Leaf) || !searchcb(node, searchdata)) {
+    if (!(node->flag & PBVH_Leaf) || !searchcb(*node, location, radius_sq, original)) {
       continue;
     }
 

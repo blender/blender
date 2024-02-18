@@ -55,4 +55,5 @@ ModifierTypeInfo modifierType_None = {
     /*panel_register*/ nullptr,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

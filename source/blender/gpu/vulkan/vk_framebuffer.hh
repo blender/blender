@@ -27,7 +27,7 @@ class VKFrameBuffer : public FrameBuffer {
   VkFramebuffer vk_framebuffer_ = VK_NULL_HANDLE;
   /* Vulkan device who created the handle. */
   VkDevice vk_device_ = VK_NULL_HANDLE;
-  /* Base render pass used for framebuffer creation. */
+  /* Base render pass used for frame-buffer creation. */
   VkRenderPass vk_render_pass_ = VK_NULL_HANDLE;
   /* Number of layers if the attachments are layered textures. */
   int depth_ = 1;
@@ -40,8 +40,8 @@ class VKFrameBuffer : public FrameBuffer {
 
  public:
   /**
-   * Create a conventional framebuffer to attach texture to.
-   **/
+   * Create a conventional frame-buffer to attach texture to.
+   */
   VKFrameBuffer(const char *name);
 
   ~VKFrameBuffer();
@@ -59,9 +59,11 @@ class VKFrameBuffer : public FrameBuffer {
 
   void attachment_set_loadstore_op(GPUAttachmentType type, GPULoadStore /*ls*/) override;
 
-  void subpass_transition(const GPUAttachmentState depth_attachment_state,
-                          Span<GPUAttachmentState> color_attachment_states) override;
+ protected:
+  void subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
+                               Span<GPUAttachmentState> color_attachment_states) override;
 
+ public:
   void read(eGPUFrameBufferBits planes,
             eGPUDataFormat format,
             const int area[4],
@@ -137,7 +139,7 @@ class VKFrameBuffer : public FrameBuffer {
   void build_clear_attachments_color(const float (*clear_colors)[4],
                                      const bool multi_clear_colors,
                                      Vector<VkClearAttachment> &r_attachments) const;
-  void clear(const Vector<VkClearAttachment> &attachments) const;
+  void clear(Span<VkClearAttachment> attachments) const;
 };
 
 static inline VKFrameBuffer *unwrap(FrameBuffer *framebuffer)

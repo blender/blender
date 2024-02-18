@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_skel_convert.h"
+#include "usd_skel_convert.hh"
 
-#include "usd.h"
-#include "usd_armature_utils.h"
-#include "usd_blend_shape_utils.h"
-#include "usd_hash_types.h"
+#include "usd.hh"
+#include "usd_armature_utils.hh"
+#include "usd_blend_shape_utils.hh"
+#include "usd_hash_types.hh"
 
 #include <pxr/usd/sdf/namespaceEdit.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
@@ -28,16 +28,16 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_key.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
@@ -53,7 +53,6 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_fcurve.hh"
 
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -207,17 +206,17 @@ void import_skeleton_curves(Main *bmain,
 
   /* Sanity checks: make sure we have a curve entry for each joint. */
   if (loc_curves.size() != joint_order.size() * 3) {
-    std::cout << "PROGRAMMER ERROR: location curve count mismatch\n";
+    CLOG_ERROR(&LOG, "Location curve count mismatch");
     return;
   }
 
   if (rot_curves.size() != joint_order.size() * 4) {
-    std::cout << "PROGRAMMER ERROR: rotation curve count mismatch\n";
+    CLOG_ERROR(&LOG, "Rotation curve count mismatch");
     return;
   }
 
   if (scale_curves.size() != joint_order.size() * 3) {
-    std::cout << "PROGRAMMER ERROR: scale curve count mismatch\n";
+    CLOG_ERROR(&LOG, "Scale curve count mismatch");
     return;
   }
 
@@ -273,14 +272,16 @@ void import_skeleton_curves(Main *bmain,
   for (const double frame : samples) {
     pxr::VtMatrix4dArray joint_local_xforms;
     if (!skel_query.ComputeJointLocalTransforms(&joint_local_xforms, frame)) {
-      std::cout << "WARNING: couldn't compute joint local transforms on frame " << frame
-                << std::endl;
+      CLOG_WARN(&LOG, "Couldn't compute joint local transforms on frame %f", frame);
       continue;
     }
 
     if (joint_local_xforms.size() != joint_order.size()) {
-      std::cout << "WARNING: number of joint local transform entries " << joint_local_xforms.size()
-                << " doesn't match the number of joints " << joint_order.size() << std::endl;
+      CLOG_WARN(
+          &LOG,
+          "Number of joint local transform entries %zu doesn't match the number of joints %zu",
+          joint_local_xforms.size(),
+          joint_order.size());
       continue;
     }
 
@@ -292,7 +293,7 @@ void import_skeleton_curves(Main *bmain,
       pxr::GfVec3h s;
 
       if (!pxr::UsdSkelDecomposeTransform(bone_xform, &t, &qrot, &s)) {
-        std::cout << "WARNING: error decomposing matrix on frame " << frame << std::endl;
+        CLOG_WARN(&LOG, "Error decomposing matrix on frame %f", frame);
         continue;
       }
 
@@ -302,7 +303,7 @@ void import_skeleton_curves(Main *bmain,
       for (int j = 0; j < 3; ++j) {
         const int k = 3 * i + j;
         if (k >= loc_curves.size()) {
-          std::cout << "PROGRAMMER ERROR: out of bounds translation curve index." << std::endl;
+          CLOG_ERROR(&LOG, "Out of bounds translation curve index %d", k);
           break;
         }
         if (FCurve *fcu = loc_curves[k]) {
@@ -313,7 +314,7 @@ void import_skeleton_curves(Main *bmain,
       for (int j = 0; j < 4; ++j) {
         const int k = 4 * i + j;
         if (k >= rot_curves.size()) {
-          std::cout << "PROGRAMMER ERROR: out of bounds rotation curve index." << std::endl;
+          CLOG_ERROR(&LOG, "Out of bounds rotation curve index %d", k);
           break;
         }
         if (FCurve *fcu = rot_curves[k]) {
@@ -329,7 +330,7 @@ void import_skeleton_curves(Main *bmain,
       for (int j = 0; j < 3; ++j) {
         const int k = 3 * i + j;
         if (k >= scale_curves.size()) {
-          std::cout << "PROGRAMMER ERROR: out of bounds scale curve index." << std::endl;
+          CLOG_ERROR(&LOG, "Out of bounds scale curve index %d", k);
           break;
         }
         if (FCurve *fcu = scale_curves[k]) {
@@ -545,8 +546,10 @@ void import_blendshapes(Main *bmain,
       int a = 0;
       for (int i : point_indices) {
         if (i < 0 || i > kb->totelem) {
-          std::cerr << "Out of bounds point index " << i << " for blendshape " << path
-                    << std::endl;
+          CLOG_WARN(&LOG,
+                    "Out of bounds point index %d for blendshape %s",
+                    i,
+                    path.GetAsString().c_str());
           ++a;
           continue;
         }
@@ -654,14 +657,15 @@ void import_blendshapes(Main *bmain,
   for (double frame : times) {
     pxr::VtFloatArray weights;
     if (!weights_attr.Get(&weights, frame)) {
-      std::cerr << "Couldn't get blendshape weights for time " << frame << std::endl;
+      CLOG_WARN(&LOG, "Couldn't get blendshape weights for time %f", frame);
       continue;
     }
 
     if (weights.size() != curves.size()) {
-      std::cerr << "Programmer error: number of weight samples doesn't match number of shapekey "
-                   "curve entries for frame "
-                << frame << std::endl;
+      CLOG_WARN(
+          &LOG,
+          "Number of weight samples doesn't match number of shapekey curve entries for frame %f",
+          frame);
       continue;
     }
 
@@ -840,8 +844,10 @@ void import_skeleton(Main *bmain,
       continue;
     }
     if (parent_idx >= edit_bones.size()) {
-      std::cout << "WARNING: out of bounds parent index for bone " << pxr::SdfPath(joint_order[i])
-                << " for skeleton " << skel.GetPath() << std::endl;
+      CLOG_WARN(&LOG,
+                "Out of bounds parent index for bone %s on skeleton %s",
+                pxr::SdfPath(joint_order[i]).GetAsString().c_str(),
+                skel.GetPath().GetAsString().c_str());
       continue;
     }
 
@@ -1050,7 +1056,7 @@ void import_mesh_skel_bindings(Main *bmain,
     if (std::find(used_indices.begin(), used_indices.end(), index) == used_indices.end()) {
       /* We haven't accounted for this index yet. */
       if (index < 0 || index >= joints.size()) {
-        std::cerr << "Out of bound joint index " << index << std::endl;
+        CLOG_WARN(&LOG, "Out of bound joint index %d", index);
         continue;
       }
       used_indices.append(index);
@@ -1074,6 +1080,7 @@ void import_mesh_skel_bindings(Main *bmain,
   if (!BKE_modifiers_findby_type(mesh_obj, eModifierType_Armature)) {
     ModifierData *md = BKE_modifier_new(eModifierType_Armature);
     BLI_addtail(&mesh_obj->modifiers, md);
+    BKE_modifiers_persistent_uid_init(*mesh_obj, *md);
   }
 
   /* Create a deform group per joint. */
@@ -1240,7 +1247,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Vector<std::string> &bone_names)
+                         const Span<std::string> bone_names)
 {
   BLI_assert(mesh);
   BLI_assert(skel_api);
@@ -1304,7 +1311,7 @@ void export_deform_verts(const Mesh *mesh,
         continue;
       }
 
-      int def_nr = static_cast<int>(vert.dw[j].def_nr);
+      int def_nr = int(vert.dw[j].def_nr);
 
       if (def_nr >= joint_index.size()) {
         BLI_assert_unreachable();

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_math_base.hh"
+
 #include "COM_MultiThreadedOperation.h"
 #include "COM_QualityStepHelper.h"
 
@@ -14,7 +16,7 @@ class BilateralBlurOperation : public MultiThreadedOperation, public QualityStep
   SocketReader *input_color_program_;
   SocketReader *input_determinator_program_;
   NodeBilateralBlurData *data_;
-  float space_;
+  int radius_;
 
  public:
   BilateralBlurOperation();
@@ -41,7 +43,7 @@ class BilateralBlurOperation : public MultiThreadedOperation, public QualityStep
   void set_data(NodeBilateralBlurData *data)
   {
     data_ = data;
-    space_ = data->sigma_space + data->iter;
+    radius_ = int(math::ceil(data->sigma_space + data->iter));
   }
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;

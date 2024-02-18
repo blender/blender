@@ -9,17 +9,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_utildefines_stack.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 
 #include "bmesh.hh"
-#include "intern/bmesh_private.hh"
 
 BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, const int layer)
 {

@@ -15,7 +15,7 @@ set(INC_SYS
 set(SRC_KERNEL_DEVICE_CPU
   device/cpu/kernel.cpp
   device/cpu/kernel_sse2.cpp
-  device/cpu/kernel_sse41.cpp
+  device/cpu/kernel_sse42.cpp
   device/cpu/kernel_avx2.cpp
 )
 
@@ -492,6 +492,11 @@ if(WITH_CYCLES_CUDA_BINARIES)
       set(cuda_flags ${cuda_flags} --ptxas-options="-v")
     endif()
 
+    if(${cuda_version} GREATER_EQUAL 110)
+      # Helps with compatibility when using recent clang host compiler.
+      set(cuda_flags ${cuda_flags} -std=c++17)
+    endif()
+
     set(_cuda_nvcc_args
           -arch=${arch}
           ${CUDA_NVCC_FLAGS}
@@ -526,9 +531,11 @@ if(WITH_CYCLES_CUDA_BINARIES)
       if(DEFINED CUDA10_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA10_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA10_TOOLKIT_ROOT_DIR})
+        set(cuda_version 100)
       elseif("${CUDA_VERSION}" LESS 110) # Support for sm_30 was removed in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+        set(cuda_version ${CUDA_VERSION})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 10 or earlier, skipped.")
       endif()
@@ -536,9 +543,11 @@ if(WITH_CYCLES_CUDA_BINARIES)
       if(DEFINED CUDA11_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
+        set(cuda_version 110)
       elseif("${CUDA_VERSION}" LESS 120) # Support for sm_35, sm_37 was removed in CUDA 12
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+        set(cuda_version ${CUDA_VERSION})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 11 or earlier, skipped.")
       endif()
@@ -548,15 +557,18 @@ if(WITH_CYCLES_CUDA_BINARIES)
       if("${CUDA_VERSION}" GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+        set(cuda_version ${CUDA_VERSION})
       elseif(DEFINED CUDA11_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
+        set(cuda_version 110)
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 11.1+, skipped.")
       endif()
     else()
       set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
       set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
+      set(cuda_version ${CUDA_VERSION})
     endif()
     if(DEFINED cuda_nvcc_executable AND DEFINED cuda_toolkit_root_dir)
       # Compile regular kernel
@@ -615,7 +627,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
 
     set(hip_flags
       ${hip_flags}
-      --amdgpu-target=${arch}
+      --offload-arch=${arch}
       ${HIP_HIPCC_FLAGS}
       --genco
       ${CMAKE_CURRENT_SOURCE_DIR}${hip_kernel_src}
@@ -627,7 +639,6 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -I ${CMAKE_CURRENT_SOURCE_DIR}/device/hip
       -Wno-parentheses-equality
       -Wno-unused-value
-      --hipcc-func-supp
       -ffast-math
       ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
@@ -703,7 +714,6 @@ if(WITH_CYCLES_DEVICE_HIPRT AND WITH_CYCLES_HIP_BINARIES)
     -I ${HIPRT_INCLUDE_DIR}
     -Wno-parentheses-equality
     -Wno-unused-value
-    --hipcc-func-supp
     -ffast-math
     -o ${bitcode_file})
   if(WITH_CYCLES_DEBUG)
@@ -1155,7 +1165,7 @@ set_source_files_properties(device/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CY
 
 if(CXX_HAS_SSE)
   set_source_files_properties(device/cpu/kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
-  set_source_files_properties(device/cpu/kernel_sse41.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE41_KERNEL_FLAGS}")
+  set_source_files_properties(device/cpu/kernel_sse42.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE42_KERNEL_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)

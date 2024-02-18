@@ -11,7 +11,7 @@
 #include "DNA_object_enums.h"
 #include "DNA_view3d_types.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 /* ********* exports for space_view3d/ module for offscreen rendering ********** */
 struct ARegion;

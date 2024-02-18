@@ -257,6 +257,12 @@ class Device {
     return false;
   }
 
+  /* Returns native buffer handle for device pointer. */
+  virtual void *get_native_buffer(device_ptr /*ptr*/)
+  {
+    return nullptr;
+  }
+
   /* Guiding */
 
   /* Returns path guiding device handle. */

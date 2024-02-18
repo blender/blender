@@ -12,13 +12,13 @@
 
 #include "BLI_string.h"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "multiview.hh"
 
-void seq_anim_add_suffix(Scene *scene, anim *anim, const int view_id)
+void seq_anim_add_suffix(Scene *scene, ImBufAnim *anim, const int view_id)
 {
   const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, view_id);
   IMB_suffix_anim(anim, suffix);

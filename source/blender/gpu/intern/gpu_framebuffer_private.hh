@@ -19,7 +19,7 @@
 
 struct GPUTexture;
 
-typedef enum GPUAttachmentType : int {
+enum GPUAttachmentType : int {
   GPU_FB_DEPTH_ATTACHMENT = 0,
   GPU_FB_DEPTH_STENCIL_ATTACHMENT,
   GPU_FB_COLOR_ATTACHMENT0,
@@ -35,7 +35,7 @@ typedef enum GPUAttachmentType : int {
    * the maximum number of COLOR attachments specified by glDrawBuffers. */
   GPU_FB_MAX_ATTACHMENT,
 
-} GPUAttachmentType;
+};
 
 #define GPU_FB_MAX_COLOR_ATTACHMENT (GPU_FB_MAX_ATTACHMENT - GPU_FB_COLOR_ATTACHMENT0)
 
@@ -129,8 +129,13 @@ class FrameBuffer {
                        int dst_offset_x,
                        int dst_offset_y) = 0;
 
-  virtual void subpass_transition(const GPUAttachmentState depth_attachment_state,
-                                  Span<GPUAttachmentState> color_attachment_states) = 0;
+ protected:
+  virtual void subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
+                                       Span<GPUAttachmentState> color_attachment_states) = 0;
+
+ public:
+  void subpass_transition(const GPUAttachmentState depth_attachment_state,
+                          Span<GPUAttachmentState> color_attachment_states);
 
   void load_store_config_array(const GPULoadStore *load_store_actions, uint actions_len);
 

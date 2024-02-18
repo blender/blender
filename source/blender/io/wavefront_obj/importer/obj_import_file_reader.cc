@@ -229,7 +229,7 @@ static void geom_add_polygon(Geometry *geom,
                              const int group_index,
                              const bool shaded_smooth)
 {
-  PolyElem curr_face;
+  FaceElem curr_face;
   curr_face.shaded_smooth = shaded_smooth;
   curr_face.material_index = material_index;
   if (group_index >= 0) {
@@ -243,7 +243,7 @@ static void geom_add_polygon(Geometry *geom,
   bool face_valid = true;
   p = drop_whitespace(p, end);
   while (p < end && face_valid) {
-    PolyCorner corner;
+    FaceCorner corner;
     bool got_uv = false, got_normal = false;
     /* Parse vertex index. */
     p = parse_int(p, end, INT32_MAX, corner.vert_index, false);
@@ -313,7 +313,7 @@ static void geom_add_polygon(Geometry *geom,
 
   if (face_valid) {
     geom->face_elements_.append(curr_face);
-    geom->total_loops_ += curr_face.corner_count_;
+    geom->total_corner_ += curr_face.corner_count_;
   }
   else {
     /* Remove just-added corners for the invalid face. */
@@ -474,7 +474,7 @@ static bool parse_keyword(const char *&p, const char *end, StringRef keyword)
 /* Special case: if there were no faces/edges in any geometries,
  * treat all the vertices as a point cloud. */
 static void use_all_vertices_if_no_faces(Geometry *geom,
-                                         const Vector<std::unique_ptr<Geometry>> &all_geometries,
+                                         const Span<std::unique_ptr<Geometry>> all_geometries,
                                          const GlobalVertices &global_vertices)
 {
   if (!global_vertices.vertices.is_empty() && geom && geom->geom_type_ == GEOM_MESH) {

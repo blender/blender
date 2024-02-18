@@ -6,8 +6,6 @@
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "IMB_colormanagement.h"
-
 #include "COM_KuwaharaClassicOperation.h"
 #include "COM_SummedAreaTableOperation.h"
 
@@ -54,8 +52,10 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
   size_reader_->read_sampled(size, x, y, sampler);
   const int kernel_size = int(math::max(0.0f, size[0]));
 
-  /* Naive implementation is more accurate for small kernel sizes. */
-  if (kernel_size >= 4) {
+  /* For high radii, we accelerate the filter using a summed area table, making the filter
+   * execute in constant time as opposed to having quadratic complexity. Except if high precision
+   * is enabled, since summed area tables are less precise. */
+  if (!data_->high_precision && size[0] > 5.0f) {
     for (int q = 0; q < 4; q++) {
       /* A fancy expression to compute the sign of the quadrant q. */
       int2 sign = int2((q % 2) * 2 - 1, ((q / 2) * 2 - 1));
@@ -172,10 +172,13 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     float4 mean_of_squared_color[4] = {float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
     int quadrant_pixel_count[4] = {0, 0, 0, 0};
 
-    const int kernel_size = int(math::max(0.0f, *size_image->get_elem(x, y)));
+    const float size = *size_image->get_elem(x, y);
+    const int kernel_size = int(math::max(0.0f, size));
 
-    /* Naive implementation is more accurate for small kernel sizes. */
-    if (kernel_size >= 4) {
+    /* For high radii, we accelerate the filter using a summed area table, making the filter
+     * execute in constant time as opposed to having quadratic complexity. Except if high precision
+     * is enabled, since summed area tables are less precise. */
+    if (!data_->high_precision && size > 5.0f) {
       for (int q = 0; q < 4; q++) {
         /* A fancy expression to compute the sign of the quadrant q. */
         int2 sign = int2((q % 2) * 2 - 1, ((q / 2) * 2 - 1));

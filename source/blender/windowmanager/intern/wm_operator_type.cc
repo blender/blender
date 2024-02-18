@@ -18,7 +18,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
@@ -249,12 +249,12 @@ void WM_operatortype_last_properties_clear_all()
   }
 }
 
-void WM_operatortype_idname_visit_for_search(const bContext * /*C*/,
-                                             PointerRNA * /*ptr*/,
-                                             PropertyRNA * /*prop*/,
-                                             const char * /*edit_text*/,
-                                             StringPropertySearchVisitFunc visit_fn,
-                                             void *visit_user_data)
+void WM_operatortype_idname_visit_for_search(
+    const bContext * /*C*/,
+    PointerRNA * /*ptr*/,
+    PropertyRNA * /*prop*/,
+    const char * /*edit_text*/,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, global_ops_hash) {
@@ -263,10 +263,10 @@ void WM_operatortype_idname_visit_for_search(const bContext * /*C*/,
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, ot->idname);
 
-    StringPropertySearchVisitParams visit_params = {nullptr};
+    StringPropertySearchVisitParams visit_params{};
     visit_params.text = idname_py;
     visit_params.info = ot->name;
-    visit_fn(visit_user_data, &visit_params);
+    visit_fn(visit_params);
   }
 }
 
@@ -509,7 +509,8 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   return ot;
 }
 
-void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
+                                      void *userdata)
 {
   wmOperatorType *ot;
 
@@ -606,9 +607,9 @@ std::string WM_operatortype_description_or_name(bContext *C,
 {
   std::string text = WM_operatortype_description(C, ot, properties);
   if (text.empty()) {
-    const std::string text_orig = WM_operatortype_name(ot, properties);
+    std::string text_orig = WM_operatortype_name(ot, properties);
     if (!text_orig.empty()) {
-      text = BLI_strdupn(text_orig.c_str(), text_orig.size());
+      return text_orig;
     }
   }
   return text;

@@ -7,9 +7,9 @@
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 input_size = texture_size(input_tx);
+  vec2 input_size = vec2(texture_size(input_tx));
 
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(input_size);
+  vec2 coordinates = vec2(texel) + vec2(0.5);
 
   float current_sin = 0.0;
   float current_cos = 1.0;
@@ -30,7 +30,7 @@ void main()
     transformed_coordinates *= mat2(current_cos, current_sin, -current_sin, current_cos);
     transformed_coordinates += origin;
 
-    accumulated_color += texture(input_tx, transformed_coordinates);
+    accumulated_color += texture(input_tx, transformed_coordinates / input_size);
 
     current_scale += scale;
     current_translation += translation;

@@ -21,7 +21,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
 
@@ -29,13 +29,13 @@
 #  include "BKE_armature.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
-#  include "BKE_collection.h"
+#  include "BKE_collection.hh"
 #  include "BKE_curve.hh"
 #  include "BKE_curves.h"
 #  include "BKE_displist.h"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
-#  include "BKE_idtype.h"
+#  include "BKE_idtype.hh"
 #  include "BKE_image.h"
 #  include "BKE_lattice.hh"
 #  include "BKE_lib_remap.hh"
@@ -44,15 +44,15 @@
 #  include "BKE_linestyle.h"
 #  include "BKE_mask.h"
 #  include "BKE_material.h"
-#  include "BKE_mball.h"
+#  include "BKE_mball.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
 #  include "BKE_object.hh"
 #  include "BKE_paint.hh"
 #  include "BKE_particle.h"
-#  include "BKE_pointcloud.h"
-#  include "BKE_scene.h"
+#  include "BKE_pointcloud.hh"
+#  include "BKE_scene.hh"
 #  include "BKE_sound.h"
 #  include "BKE_speaker.h"
 #  include "BKE_text.h"
@@ -94,7 +94,7 @@
 #  include "ED_node.hh"
 #  include "ED_screen.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"
@@ -120,7 +120,7 @@ static void rna_Main_ID_remove(Main *bmain,
   if (id->tag & LIB_TAG_NO_MAIN) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is outside of main database and can not be removed from it",
+                "%s '%s' is outside of main database and cannot be removed from it",
                 BKE_idtype_idcode_to_name(GS(id->name)),
                 id->name + 2);
     return;
@@ -212,7 +212,7 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
   if (data != nullptr && (data->tag & LIB_TAG_NO_MAIN)) {
     BKE_report(reports,
                RPT_ERROR,
-               "Can not create object in main database with an evaluated data data-block");
+               "Cannot create object in main database with an evaluated data data-block");
     return nullptr;
   }
 
@@ -406,7 +406,7 @@ static Image *rna_Main_images_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unsupported image format"));
+                errno ? strerror(errno) : RPT_("unsupported image format"));
   }
 
   id_us_min((ID *)ima);
@@ -475,7 +475,7 @@ static VFont *rna_Main_fonts_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unsupported font format"));
+                errno ? strerror(errno) : RPT_("unsupported font format"));
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -600,7 +600,7 @@ static Text *rna_Main_texts_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unable to load text"));
+                errno ? strerror(errno) : RPT_("unable to load text"));
   }
 
   WM_main_add_notifier(NC_ID | NA_ADDED, nullptr);
@@ -685,7 +685,7 @@ static MovieClip *rna_Main_movieclip_load(Main *bmain,
                 RPT_ERROR,
                 "Cannot read '%s': %s",
                 filepath,
-                errno ? strerror(errno) : TIP_("unable to load movie clip"));
+                errno ? strerror(errno) : RPT_("unable to load movie clip"));
   }
 
   id_us_min((ID *)clip);

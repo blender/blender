@@ -15,7 +15,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
@@ -52,14 +52,14 @@ bool AbcPointsReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::IPoints::matches(alembic_header)) {
-    *err_str = TIP_(
+    *err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to Points when importing, but not any "
         "more");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = TIP_("Object type mismatch, Alembic object path points to Points");
+    *err_str = RPT_("Object type mismatch, Alembic object path points to Points");
     return false;
   }
 
@@ -131,7 +131,7 @@ Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    *err_str = TIP_("Error reading points sample; more detail on the console");
+    *err_str = RPT_("Error reading points sample; more detail on the console");
     printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
            m_schema.getName().c_str(),

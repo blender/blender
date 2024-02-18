@@ -34,8 +34,8 @@ void BoxMaskOperation::execute_pixel_sampled(float output[4],
   float input_mask[4];
   float input_value[4];
 
-  float rx = x / MAX2(this->get_width() - 1.0f, FLT_EPSILON);
-  float ry = y / MAX2(this->get_height() - 1.0f, FLT_EPSILON);
+  float rx = x / std::max(this->get_width() - 1.0f, FLT_EPSILON);
+  float ry = y / std::max(this->get_height() - 1.0f, FLT_EPSILON);
 
   const float dy = (ry - data_->y) / aspect_ratio_;
   const float dx = rx - data_->x;
@@ -105,7 +105,7 @@ void BoxMaskOperation::update_memory_buffer_partial(MemoryBuffer *output,
       break;
     case CMP_NODE_MASKTYPE_SUBTRACT:
       mask_func = [](const bool is_inside, const float *mask, const float *value) {
-        return is_inside ? CLAMPIS(mask[0] - value[0], 0, 1) : mask[0];
+        return is_inside ? std::clamp(mask[0] - value[0], 0.0f, 1.0f) : mask[0];
       };
       break;
     case CMP_NODE_MASKTYPE_MULTIPLY:
@@ -130,8 +130,8 @@ void BoxMaskOperation::apply_mask(MemoryBuffer *output,
                                   Span<MemoryBuffer *> inputs,
                                   MaskFunc mask_func)
 {
-  const float op_last_x = MAX2(this->get_width() - 1.0f, FLT_EPSILON);
-  const float op_last_y = MAX2(this->get_height() - 1.0f, FLT_EPSILON);
+  const float op_last_x = std::max(this->get_width() - 1.0f, FLT_EPSILON);
+  const float op_last_y = std::max(this->get_height() - 1.0f, FLT_EPSILON);
   const float half_w = data_->width / 2.0f + FLT_EPSILON;
   const float half_h = data_->height / 2.0f + FLT_EPSILON;
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {

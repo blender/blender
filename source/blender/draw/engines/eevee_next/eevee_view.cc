@@ -15,7 +15,7 @@
  * its type. Passes are shared between views.
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "DRW_render.hh"
 
 #include "eevee_instance.hh"
@@ -120,7 +120,7 @@ void ShadingView::render()
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_, extent_);
-  inst_.reflection_probes.set_view(render_view_);
+  inst_.sphere_probes.set_view(render_view_);
 
   inst_.pipelines.background.render(render_view_);
 
@@ -151,8 +151,8 @@ void ShadingView::render()
   inst_.lights.debug_draw(render_view_, combined_fb_);
   inst_.hiz_buffer.debug_draw(render_view_, combined_fb_);
   inst_.shadows.debug_draw(render_view_, combined_fb_);
-  inst_.irradiance_cache.viewport_draw(render_view_, combined_fb_);
-  inst_.reflection_probes.viewport_draw(render_view_, combined_fb_);
+  inst_.volume_probes.viewport_draw(render_view_, combined_fb_);
+  inst_.sphere_probes.viewport_draw(render_view_, combined_fb_);
   inst_.planar_probes.viewport_draw(render_view_, combined_fb_);
 
   inst_.ambient_occlusion.render_pass(render_view_);
@@ -186,6 +186,15 @@ GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
     return input_tx;
   }
   postfx_tx_.acquire(extent_, GPU_RGBA16F);
+
+  /* Fix a sync bug on AMD + Mesa when volume + motion blur create artifacts
+   * except if there is a clear event between them. */
+  if (inst_.volume.enabled() && inst_.motion_blur.postfx_enabled() &&
+      !inst_.depth_of_field.postfx_enabled() &&
+      GPU_type_matches_ex(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OFFICIAL, GPU_BACKEND_OPENGL))
+  {
+    postfx_tx_.clear(float4(0.0f));
+  }
 
   GPUTexture *output_tx = postfx_tx_;
 
@@ -228,8 +237,7 @@ void ShadingView::update_view()
 
 void CaptureView::render_world()
 {
-  const std::optional<ReflectionProbeUpdateInfo> update_info =
-      inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::WORLD);
+  const auto update_info = inst_.sphere_probes.world_update_info_pop();
   if (!update_info.has_value()) {
     return;
   }
@@ -248,19 +256,17 @@ void CaptureView::render_world()
                                                       update_info->clipping_distances.y);
       view.sync(view_m4, win_m4);
 
-      combined_fb_.ensure(
-          GPU_ATTACHMENT_NONE,
-          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
+      combined_fb_.ensure(GPU_ATTACHMENT_NONE,
+                          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
       GPU_framebuffer_bind(combined_fb_);
       inst_.pipelines.world.render(view);
     }
 
-    inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
-    inst_.reflection_probes.update_probes_texture_mipmaps();
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
   }
 
   if (update_info->do_world_irradiance_update) {
-    inst_.reflection_probes.update_world_irradiance();
+    inst_.sphere_probes.update_world_irradiance();
   }
 
   GPU_debug_group_end();
@@ -270,12 +276,13 @@ void CaptureView::render_probes()
 {
   Framebuffer prepass_fb;
   View view = {"Capture.View"};
-  bool do_update_mipmap_chain = false;
-  while (const std::optional<ReflectionProbeUpdateInfo> update_info =
-             inst_.reflection_probes.update_info_pop(ReflectionProbe::Type::PROBE))
-  {
+  while (const auto update_info = inst_.sphere_probes.probe_update_info_pop()) {
     GPU_debug_group_begin("Probe.Capture");
-    do_update_mipmap_chain = true;
+
+    if (!inst_.pipelines.data.is_probe_reflection) {
+      inst_.pipelines.data.is_probe_reflection = true;
+      inst_.uniform_data.push_update();
+    }
 
     int2 extent = int2(update_info->resolution);
     inst_.render_buffers.acquire(extent);
@@ -299,17 +306,15 @@ void CaptureView::render_probes()
                                                       update_info->clipping_distances.y);
       view.sync(view_m4, win_m4);
 
-      combined_fb_.ensure(
-          GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
-          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
+      combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
+                          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face));
 
-      gbuffer_fb_.ensure(
-          GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
-          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face),
-          GPU_ATTACHMENT_TEXTURE(inst_.gbuffer.header_tx),
-          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.normal_tx.layer_view(0), 0),
-          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(0), 0),
-          GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(1), 0));
+      gbuffer_fb_.ensure(GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.depth_tx),
+                         GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.sphere_probes.cubemap_tx_, face),
+                         GPU_ATTACHMENT_TEXTURE(inst_.gbuffer.header_tx),
+                         GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.normal_tx.layer_view(0), 0),
+                         GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(0), 0),
+                         GPU_ATTACHMENT_TEXTURE_LAYER(inst_.gbuffer.closure_tx.layer_view(1), 0));
 
       GPU_framebuffer_bind(combined_fb_);
       GPU_framebuffer_clear_color_depth(combined_fb_, float4(0.0f, 0.0f, 0.0f, 1.0f), 1.0f);
@@ -319,12 +324,12 @@ void CaptureView::render_probes()
     inst_.render_buffers.release();
     inst_.gbuffer.release();
     GPU_debug_group_end();
-    inst_.reflection_probes.remap_to_octahedral_projection(update_info->atlas_coord);
+    inst_.sphere_probes.remap_to_octahedral_projection(update_info->atlas_coord);
   }
 
-  if (do_update_mipmap_chain) {
-    /* TODO: only update the regions that have been updated. */
-    inst_.reflection_probes.update_probes_texture_mipmaps();
+  if (inst_.pipelines.data.is_probe_reflection) {
+    inst_.pipelines.data.is_probe_reflection = false;
+    inst_.uniform_data.push_update();
   }
 }
 

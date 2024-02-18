@@ -5,21 +5,17 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
 #include "DNA_image_types.h"
-#include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 
-#include "PIL_time.h"
-
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image_wrappers.hh"
 
 #include "pbvh_intern.hh"
@@ -213,7 +209,7 @@ static void split_pixel_node(
         if (mid < co1[axis]) {
           t = 1.0f - (mid - co2[axis]) / (co1[axis] - co2[axis]);
 
-          SWAP(UDIMTilePixels *, tile1, tile2);
+          std::swap(tile1, tile2);
         }
         else {
           t = (mid - co1[axis]) / (co2[axis] - co1[axis]);

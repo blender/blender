@@ -15,12 +15,11 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
 
 #include "BKE_context.hh"
@@ -39,7 +38,7 @@
 
 #include "ANIM_keyframing.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 /* *********************************************** */
 /* Contents of this File:
@@ -76,7 +75,7 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
 
     /* get the RNA path to this pchan - this needs to be freed! */
     PointerRNA ptr = RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan);
-    pfl->pchan_path = RNA_path_from_ID_to_struct(&ptr);
+    pfl->pchan_path = BLI_strdup(RNA_path_from_ID_to_struct(&ptr).value_or("").c_str());
 
     /* add linkage data to operator data */
     BLI_addtail(pfLinks, pfl);

@@ -10,7 +10,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_ghash.h"
 #include "BLI_hash.hh"
 
 #include "RE_pipeline.h"
@@ -26,7 +25,7 @@ TilesHighlight::Tile::Tile(const int x, const int y, const int width, const int 
 
 uint64_t TilesHighlight::Tile::hash() const
 {
-  return get_default_hash_4(rect.xmin, rect.xmax, rect.ymin, rect.ymax);
+  return get_default_hash(rect.xmin, rect.xmax, rect.ymin, rect.ymax);
 }
 
 void TilesHighlight::highlight_tile_for_result(const RenderResult *result)

@@ -89,6 +89,7 @@ LANGUAGES = (
     (50, "Khmer (ខ្មែរ)", "km"),
     (51, "Swahili (Kiswahili)", "sw"),
     (52, "Belarusian (беларуску)", "be"),
+    (53, "Danish (Dansk)", "da"),
 )
 
 # Default context, in py (keep in sync with `BLT_translation.h`)!
@@ -243,14 +244,15 @@ _ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("IFACE_", "TIP_", "DATA_", "N_")) +
+          for it in ("IFACE_", "TIP_", "RPT_", "DATA_", "N_")) +
 
     tuple((r"{}\(\s*" + _ctxt_re + r"\s*,\s*" + _msg_re + r"\s*\)").format(it)
-          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_DATA_", "CTX_N_")) +
+          for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_RPT_", "CTX_DATA_", "CTX_N_")) +
 
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
-                     "CTX_wm_operator_poll_msg_set", "WM_report", "WM_reportf")) +
+                     "CTX_wm_operator_poll_msg_set", "WM_report", "WM_reportf",
+                     "UI_but_disable")) +
 
     # bmesh operator errors
     tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
@@ -550,6 +552,9 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Invalid surface UVs on %d curves.",
     "The pose library moved.",
     "in the asset shelf.",
+    "Remove, local files not found.",
+    "Remove all files in \"{}\".",
+    "Remove, keeping local files.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

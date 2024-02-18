@@ -8,13 +8,21 @@ import os
 import subprocess
 import sys
 
+from typing import (
+    Dict,
+    Generator,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
-def run(cmd, *, env=None):
+
+def run(cmd: Sequence[str], *, env: Optional[Dict[str, str]] = None) -> None:
     print("   ", " ".join(cmd))
     subprocess.check_call(cmd, env=env)
 
 
-def edit_text_file(filename, marker_begin, marker_end, content):
+def edit_text_file(filename: str, marker_begin: str, marker_end: str, content: str) -> None:
     with open(filename, 'r', encoding='utf-8') as f:
         data = f.read()
     marker_begin_index = data.find(marker_begin)
@@ -53,7 +61,7 @@ icons_blend = (
 )
 
 
-def names_and_time_from_path(path):
+def names_and_time_from_path(path: str) -> Generator[Tuple[str, float], None, None]:
     for entry in os.scandir(path):
         name = entry.name
         if name.endswith(".dat"):
@@ -68,7 +76,7 @@ for blend in icons_blend:
     output_dir = os.path.join(BASEDIR, "icons")
     files_old = set(names_and_time_from_path(output_dir))
     cmd = (
-        blender_bin, "--background", "--factory-startup", "-noaudio",
+        blender_bin, "--background", "--factory-startup",
         blend,
         "--python", os.path.join(BASEDIR, "blender_icons_geom.py"),
         "--",

@@ -324,9 +324,9 @@ void DenoiserGPU::denoise_color_read(const DenoiseContext &context, const Denois
       denoiser_queue_.get(), pass_access_info, 1.0f, context.num_samples);
 
   PassAccessor::Destination destination(pass_access_info.type);
-  destination.d_pixels = context.render_buffers->buffer.device_pointer +
-                         pass.denoised_offset * sizeof(float);
+  destination.d_pixels = context.render_buffers->buffer.device_pointer;
   destination.num_components = 3;
+  destination.pixel_offset = pass.denoised_offset;
   destination.pixel_stride = context.buffer_params.pass_stride;
 
   BufferParams buffer_params = context.buffer_params;

@@ -8,7 +8,6 @@
 
 #include "BLI_string.h"
 
-#include "NOD_texture.h"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 

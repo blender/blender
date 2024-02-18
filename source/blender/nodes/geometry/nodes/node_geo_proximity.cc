@@ -4,9 +4,6 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
-
-#include "DNA_mesh_types.h"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_geometry_set.hh"
@@ -24,9 +21,11 @@ NODE_STORAGE_FUNCS(NodeGeometryProximity)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Target").only_realized_data().supported_type(
-      {GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud});
-  b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Geometry>("Geometry", "Target")
+      .only_realized_data()
+      .supported_type({GeometryComponent::Type::Mesh, GeometryComponent::Type::PointCloud});
+  b.add_input<decl::Vector>("Sample Position", "Source Position")
+      .implicit_field(implicit_field_inputs::position);
   b.add_output<decl::Vector>("Position").dependent_field().reference_pass_all();
   b.add_output<decl::Float>("Distance").dependent_field().reference_pass_all();
 }

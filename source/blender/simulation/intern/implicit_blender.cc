@@ -39,7 +39,7 @@
 // #define DEBUG_TIME
 
 #  ifdef DEBUG_TIME
-#    include "PIL_time.h"
+#    include "BLI_time.h"
 #  endif
 
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
@@ -964,7 +964,7 @@ static int cg_filtered_pre(lfVector *dv,
   delta0 = deltaNew * sqrt(conjgrad_epsilon);
 
 #      ifdef DEBUG_TIME
-  double start = PIL_check_seconds_timer();
+  double start = BLI_time_now_seconds();
 #      endif
 
   while ((deltaNew > delta0) && (iterations < conjgrad_looplimit)) {
@@ -992,7 +992,7 @@ static int cg_filtered_pre(lfVector *dv,
   }
 
 #      ifdef DEBUG_TIME
-  double end = PIL_check_seconds_timer();
+  double end = BLI_time_now_seconds();
   printf("cg_filtered_pre time: %f\n", float(end - start));
 #      endif
 
@@ -1073,7 +1073,7 @@ static int cg_filtered_pre(lfVector *dv,
 #    endif
 
 #    ifdef DEBUG_TIME
-  double start = PIL_check_seconds_timer();
+  double start = BLI_time_now_seconds();
 #    endif
 
   tol = (0.01 * 0.2);
@@ -1103,7 +1103,7 @@ static int cg_filtered_pre(lfVector *dv,
   }
 
 #    ifdef DEBUG_TIME
-  double end = PIL_check_seconds_timer();
+  double end = BLI_time_now_seconds();
   printf("cg_filtered_pre time: %f\n", float(end - start));
 #    endif
 
@@ -1136,7 +1136,7 @@ bool SIM_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
   add_lfvectorS_lfvectorS(data->B, data->F, dt, dFdXmV, (dt * dt), numverts);
 
 #  ifdef DEBUG_TIME
-  double start = PIL_check_seconds_timer();
+  double start = BLI_time_now_seconds();
 #  endif
 
   /* Conjugate gradient algorithm to solve Ax=b. */
@@ -1145,7 +1145,7 @@ bool SIM_mass_spring_solve_velocities(Implicit_Data *data, float dt, ImplicitSol
   // cg_filtered_pre(id->dV, id->A, id->B, id->z, id->S, id->P, id->Pinv, id->bigI);
 
 #  ifdef DEBUG_TIME
-  double end = PIL_check_seconds_timer();
+  double end = BLI_time_now_seconds();
   printf("cg_filtered calc time: %f\n", float(end - start));
 #  endif
 
@@ -1654,7 +1654,7 @@ BLI_INLINE void dfdx_damp(float to[3][3],
   // return (I - outerprod(dir, dir)) * (-damping * -(dot(dir, vel) / Max(length, rest)));
   mul_fvectorT_fvector(to, dir, dir);
   sub_fmatrix_fmatrix(to, I, to);
-  mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / MAX2(length, rest))));
+  mul_fmatrix_S(to, (-damping * -(dot_v3v3(dir, vel) / std::max(length, rest))));
 }
 #  endif
 

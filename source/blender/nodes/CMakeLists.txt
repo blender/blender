@@ -66,7 +66,6 @@ set(INC
   ../modifiers
   ../render
   ../windowmanager
-  ../../../extern/fmtlib/include
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -134,7 +133,7 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
-  extern_fmtlib
+  PRIVATE bf::extern::fmtlib
 )
 
 if(WITH_BULLET)

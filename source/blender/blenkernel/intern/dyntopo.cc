@@ -35,7 +35,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 #include "atomic_ops.h"
 
 #include "BKE_customdata.hh"
@@ -701,7 +701,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
                                        const int n,
                                        const TaskParallelTLS *__restrict /*tls*/)
 {
-  blender::RandomNumberGenerator rand(uint32_t(n + PIL_check_seconds_timer() * 100000.0f));
+  blender::RandomNumberGenerator rand(uint32_t(n + BLI_time_now_seconds() * 100000.0f));
   EdgeQueueThreadData *tdata = ((EdgeQueueThreadData *)userdata) + n;
   PBVH *pbvh = tdata->pbvh;
   PBVHNode *node = tdata->node;

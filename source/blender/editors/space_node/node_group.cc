@@ -22,18 +22,16 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_build.hh"
 
@@ -209,7 +207,8 @@ void NODE_OT_group_edit(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "exit", false, "Exit", "");
+  PropertyRNA *prop = RNA_def_boolean(ot->srna, "exit", false, "Exit", "");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -222,13 +221,13 @@ void NODE_OT_group_edit(wmOperatorType *ot)
  * The given paths will be owned by the returned instance.
  * Both pointers are allowed to point to the same string.
  */
-static AnimationBasePathChange *animation_basepath_change_new(const char *src_basepath,
-                                                              const char *dst_basepath)
+static AnimationBasePathChange *animation_basepath_change_new(const StringRef src_basepath,
+                                                              const StringRef dst_basepath)
 {
   AnimationBasePathChange *basepath_change = (AnimationBasePathChange *)MEM_callocN(
       sizeof(*basepath_change), AT);
-  basepath_change->src_basepath = src_basepath;
-  basepath_change->dst_basepath = dst_basepath;
+  basepath_change->src_basepath = BLI_strdupn(src_basepath.data(), src_basepath.size());
+  basepath_change->dst_basepath = BLI_strdupn(dst_basepath.data(), dst_basepath.size());
   return basepath_change;
 }
 
@@ -296,7 +295,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old node-tree has animation data which potentially covers this node. */
-    const char *old_animation_basepath = nullptr;
+    std::optional<std::string> old_animation_basepath;
     if (wgroup->adt) {
       PointerRNA ptr = RNA_pointer_create(&wgroup->id, &RNA_Node, node);
       old_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
@@ -314,9 +313,9 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     if (wgroup->adt) {
       PointerRNA ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
-      const char *new_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
+      const std::optional<std::string> new_animation_basepath = RNA_path_from_ID_to_struct(&ptr);
       BLI_addtail(&anim_basepaths,
-                  animation_basepath_change_new(old_animation_basepath, new_animation_basepath));
+                  animation_basepath_change_new(*old_animation_basepath, *new_animation_basepath));
     }
 
     if (!node->parent) {
@@ -539,13 +538,9 @@ static bool node_group_separate_selected(
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old node-tree has animation data which potentially covers this node. */
     if (ngroup.adt) {
-      char *path;
-
       PointerRNA ptr = RNA_pointer_create(&ngroup.id, &RNA_Node, newnode);
-      path = RNA_path_from_ID_to_struct(&ptr);
-
-      if (path) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(path, path));
+      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
+        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
       }
     }
 
@@ -742,12 +737,12 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       if (disabled_hint) {
         BKE_reportf(&reports,
                     RPT_WARNING,
-                    "Can not add node '%s' in a group:\n  %s",
+                    "Cannot add node '%s' in a group:\n  %s",
                     node->name,
                     disabled_hint);
       }
       else {
-        BKE_reportf(&reports, RPT_WARNING, "Can not add node '%s' in a group", node->name);
+        BKE_reportf(&reports, RPT_WARNING, "Cannot add node '%s' in a group", node->name);
       }
       return false;
     }
@@ -786,7 +781,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
         if (input_selected && !output_selected) {
           BKE_reportf(&reports,
                       RPT_WARNING,
-                      "Can not add zone input node '%s' to a group without its paired output '%s'",
+                      "Cannot add zone input node '%s' to a group without its paired output '%s'",
                       input_node->name,
                       output_node->name);
           return false;
@@ -794,7 +789,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
         if (output_selected && !input_selected) {
           BKE_reportf(&reports,
                       RPT_WARNING,
-                      "Can not add zone output node '%s' to a group without its paired input '%s'",
+                      "Cannot add zone output node '%s' to a group without its paired input '%s'",
                       output_node->name,
                       input_node->name);
           return false;
@@ -884,7 +879,7 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
     const Map<int32_t, int32_t> &node_identifier_map)
 {
   /* Update nested node references in the parent and child node tree. */
-  RandomNumberGenerator rng(PIL_check_seconds_timer_i() & UINT_MAX);
+  RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
   Vector<bNestedNodeRef> new_nested_node_refs;
   /* Keep all nested node references that were in the group before. */
   for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
@@ -1089,8 +1084,8 @@ static void node_group_make_insert_selected(const bContext &C,
     ListBase anim_basepaths = {nullptr, nullptr};
     for (bNode *node : nodes_to_move) {
       PointerRNA ptr = RNA_pointer_create(&ntree.id, &RNA_Node, node);
-      if (char *path = RNA_path_from_ID_to_struct(&ptr)) {
-        BLI_addtail(&anim_basepaths, animation_basepath_change_new(path, path));
+      if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(&ptr)) {
+        BLI_addtail(&anim_basepaths, animation_basepath_change_new(*path, *path));
       }
     }
     BKE_animdata_transfer_by_basepath(bmain, &ntree.id, &group.id, &anim_basepaths);
@@ -1311,7 +1306,7 @@ static int node_group_insert_exec(bContext *C, wmOperator *op)
     }
     if (ntreeContainsTree(reinterpret_cast<bNodeTree *>(group->id), ngroup)) {
       BKE_reportf(
-          op->reports, RPT_WARNING, "Can not insert group '%s' in '%s'", group->name, gnode->name);
+          op->reports, RPT_WARNING, "Cannot insert group '%s' in '%s'", group->name, gnode->name);
       return OPERATOR_CANCELLED;
     }
   }

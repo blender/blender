@@ -14,7 +14,6 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
@@ -22,16 +21,13 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_query.h"
-#include "BKE_main.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -42,7 +38,6 @@
 
 #include "RNA_access.hh"
 
-#include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 
@@ -111,7 +106,7 @@ static void duplicateStroke(Object *ob,
   float opacity_factor;
 
   /* Apply object scale to offset distance. */
-  offset *= mat4_to_scale(ob->object_to_world);
+  offset *= mat4_to_scale(ob->object_to_world().ptr());
 
   BKE_gpencil_stroke_normal(gps, stroke_normal);
   if (len_v3(stroke_normal) < FLT_EPSILON) {

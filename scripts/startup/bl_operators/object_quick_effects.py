@@ -12,7 +12,7 @@ from bpy.props import (
     IntProperty,
 )
 from bpy.app.translations import (
-    pgettext_tip as tip_,
+    pgettext_rpt as rpt_,
     pgettext_data as data_,
 )
 
@@ -282,7 +282,7 @@ class QuickExplode(ObjectModeOperator, Operator):
         for obj in mesh_objects:
             if obj.particle_systems:
                 self.report({'ERROR'},
-                            tip_("Object %r already has a "
+                            rpt_("Object %r already has a "
                                  "particle system") % obj.name)
 
                 return {'CANCELLED'}

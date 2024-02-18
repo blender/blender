@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DNA_userdef_types.h"
 
@@ -2342,13 +2342,12 @@ void gpu::MTLTexture::ensure_baked()
     /* Determine Resource Mode. */
     resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
 
-    /* Override storage mode if memoryless attachments are being used. */
+    /* Override storage mode if memoryless attachments are being used.
+     * NOTE: Memoryless textures can only be supported on TBDR GPUs. */
     if (gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORYLESS) {
-      if (@available(macOS 11.00, *)) {
+      const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
+      if (is_tile_based_arch) {
         texture_descriptor_.storageMode = MTLStorageModeMemoryless;
-      }
-      else {
-        BLI_assert_msg(0, "GPU_TEXTURE_USAGE_MEMORYLESS is not available on older MacOS versions");
       }
     }
 

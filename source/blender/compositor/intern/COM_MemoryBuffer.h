@@ -9,9 +9,12 @@
 #include "COM_BuffersIterator.h"
 #include "COM_Enums.h"
 
-#include "BLI_math_interp.h"
+#include "BLI_math_base.hh"
+#include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+
+#include <cstring>
 
 struct ColormanageProcessor;
 struct ImBuf;
@@ -192,9 +195,24 @@ class MemoryBuffer {
     return buffer_ + get_coords_offset(x, y);
   }
 
+  /**
+   * Get buffer element at given coordinates, clamped to border.
+   */
+  const float *get_elem_clamped(int x, int y) const
+  {
+    const int clamped_x = math::clamp(x, 0, this->get_width() - 1);
+    const int clamped_y = math::clamp(y, 0, this->get_height() - 1);
+    return buffer_ + get_coords_offset(clamped_x, clamped_y);
+  }
+
   void read_elem(int x, int y, float *out) const
   {
     memcpy(out, get_elem(x, y), get_elem_bytes_len());
+  }
+
+  void read_elem_clamped(int x, int y, float *out) const
+  {
+    memcpy(out, get_elem_clamped(x, y), get_elem_bytes_len());
   }
 
   void read_elem_checked(int x, int y, float *out) const
@@ -247,17 +265,17 @@ class MemoryBuffer {
         single_y = rel_y - last_y;
       }
 
-      BLI_bilinear_interpolation_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
+      math::interpolate_bilinear_border_fl(buffer_, out, 1, 1, num_channels_, single_x, single_y);
       return;
     }
 
-    BLI_bilinear_interpolation_fl(buffer_,
-                                  out,
-                                  get_width(),
-                                  get_height(),
-                                  num_channels_,
-                                  get_relative_x(x),
-                                  get_relative_y(y));
+    math::interpolate_bilinear_border_fl(buffer_,
+                                         out,
+                                         get_width(),
+                                         get_height(),
+                                         num_channels_,
+                                         get_relative_x(x),
+                                         get_relative_y(y));
   }
 
   void read_elem_sampled(float x, float y, PixelSampler sampler, float *out) const
@@ -449,10 +467,7 @@ class MemoryBuffer {
         }
         break;
       case MemoryBufferExtend::Repeat:
-        x = fmodf(x, w);
-        if (x < 0.0f) {
-          x += w;
-        }
+        x = floored_fmod(x, w);
         break;
     }
 
@@ -468,10 +483,7 @@ class MemoryBuffer {
         }
         break;
       case MemoryBufferExtend::Repeat:
-        y = fmodf(y, h);
-        if (y < 0.0f) {
-          y += h;
-        }
+        y = floored_fmod(y, h);
         break;
     }
 
@@ -545,7 +557,7 @@ class MemoryBuffer {
       memcpy(result, buffer_, sizeof(float) * num_channels_);
     }
     else {
-      BLI_bilinear_interpolation_wrap_fl(buffer_,
+      math::interpolate_bilinear_wrap_fl(buffer_,
                                          result,
                                          get_width(),
                                          get_height(),

@@ -11,14 +11,15 @@
 #  include "DNA_space_types.h"
 
 #  include "BKE_context.hh"
+#  include "BKE_file_handler.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_outliner.hh"
@@ -41,6 +42,7 @@
 #  include "IO_wavefront_obj.hh"
 
 #  include "io_obj.hh"
+#  include "io_utils.hh"
 
 static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
@@ -385,16 +387,9 @@ void WM_OT_obj_export(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
-{
-  WM_event_add_fileselect(C, op);
-  return OPERATOR_RUNNING_MODAL;
-}
-
 static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
   OBJImportParams import_params{};
-  RNA_string_get(op->ptr, "filepath", import_params.filepath);
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
@@ -409,32 +404,18 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
   import_params.clear_selection = true;
 
-  int files_len = RNA_collection_length(op->ptr, "files");
-  if (files_len) {
-    /* Importing multiple files: loop over them and import one by one. */
-    PointerRNA fileptr;
-    PropertyRNA *prop;
-    char dir_only[FILE_MAX], file_only[FILE_MAX];
+  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
-    RNA_string_get(op->ptr, "directory", dir_only);
-    prop = RNA_struct_find_property(op->ptr, "files");
-    for (int i = 0; i < files_len; i++) {
-      RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
-      RNA_string_get(&fileptr, "name", file_only);
-      BLI_path_join(import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
-      import_params.clear_selection = (i == 0);
-      OBJ_import(C, &import_params);
-    }
-  }
-  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    /* Importing one file. */
-    RNA_string_get(op->ptr, "filepath", import_params.filepath);
-    OBJ_import(C, &import_params);
-  }
-  else {
+  if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
+  for (const auto &path : paths) {
+    STRNCPY(import_params.filepath, path.c_str());
+    OBJ_import(C, &import_params);
+    /* Only first import clears selection. */
+    import_params.clear_selection = false;
+  };
 
   Scene *scene = CTX_data_scene(C);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
@@ -485,9 +466,9 @@ void WM_OT_obj_import(wmOperatorType *ot)
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
+  ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
 
-  ot->invoke = wm_obj_import_invoke;
+  ot->invoke = blender::ed::io::filesel_drop_import_invoke;
   ot->exec = wm_obj_import_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_obj_import_draw;
@@ -558,5 +539,18 @@ void WM_OT_obj_import(wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+namespace blender::ed::io {
+void obj_file_handler_add()
+{
+  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  STRNCPY(fh->idname, "IO_FH_obj");
+  STRNCPY(fh->import_operator, "WM_OT_obj_import");
+  STRNCPY(fh->label, "Wavefront OBJ");
+  STRNCPY(fh->file_extensions_str, ".obj");
+  fh->poll_drop = poll_file_object_drop;
+  bke::file_handler_add(std::move(fh));
+}
+}  // namespace blender::ed::io
 
 #endif /* WITH_IO_WAVEFRONT_OBJ */

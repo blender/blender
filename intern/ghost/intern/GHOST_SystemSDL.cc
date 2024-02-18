@@ -802,5 +802,5 @@ void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
 
 uint64_t GHOST_SystemSDL::getMilliSeconds() const
 {
-  return uint64_t(SDL_GetTicks()); /* NOTE: 32 -> 64bits. */
+  return SDL_GetTicks64();
 }

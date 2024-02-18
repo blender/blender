@@ -21,7 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
@@ -37,33 +37,33 @@
 #include "DNA_vfont_types.h"
 #include "DNA_workspace_types.h"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_softbody.h"
 #include "BKE_workspace.h"
 
@@ -105,6 +105,8 @@
 
 #include "object_intern.h" /* own include */
 
+using blender::Vector;
+
 static CLG_LogRef LOG = {"ed.object.edit"};
 
 /* prototypes */
@@ -133,10 +135,8 @@ Object *ED_object_active_context(const bContext *C)
   return ob;
 }
 
-Object **ED_object_array_in_mode_or_selected(bContext *C,
-                                             bool (*filter_fn)(const Object *ob, void *user_data),
-                                             void *filter_user_data,
-                                             uint *r_objects_len)
+Vector<Object *> ED_object_array_in_mode_or_selected(
+    bContext *C, bool (*filter_fn)(const Object *ob, void *user_data), void *filter_user_data)
 {
   ScrArea *area = CTX_wm_area(C);
   const Scene *scene = CTX_data_scene(C);
@@ -147,7 +147,6 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
   const bool use_objects_in_mode = (ob_active != nullptr) &&
                                    (ob_active->mode & (OB_MODE_EDIT | OB_MODE_POSE));
   const eSpace_Type space_type = area ? eSpace_Type(area->spacetype) : SPACE_EMPTY;
-  Object **objects;
 
   Object *ob = nullptr;
   bool use_ob = true;
@@ -185,37 +184,28 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
     if ((ob != nullptr) && !filter_fn(ob, filter_user_data)) {
       ob = nullptr;
     }
-    *r_objects_len = (ob != nullptr) ? 1 : 0;
-    objects = static_cast<Object **>(MEM_mallocN(sizeof(*objects) * *r_objects_len, __func__));
-    if (ob != nullptr) {
-      objects[0] = ob;
-    }
+    return ob ? Vector<Object *>({ob}) : Vector<Object *>();
   }
-  else {
-    const View3D *v3d = (space_type == SPACE_VIEW3D) ?
-                            static_cast<const View3D *>(area->spacedata.first) :
-                            nullptr;
-    /* When in a mode that supports multiple active objects, use "objects in mode"
-     * instead of the object's selection. */
-    if (use_objects_in_mode) {
-      ObjectsInModeParams params = {0};
-      params.object_mode = ob_active->mode;
-      params.no_dup_data = true;
-      params.filter_fn = filter_fn;
-      params.filter_userdata = filter_user_data;
-      objects = BKE_view_layer_array_from_objects_in_mode_params(
-          scene, view_layer, v3d, r_objects_len, &params);
-    }
-    else {
-      ObjectsInViewLayerParams params{};
-      params.no_dup_data = true;
-      params.filter_fn = filter_fn;
-      params.filter_userdata = filter_user_data;
-      objects = BKE_view_layer_array_selected_objects_params(
-          view_layer, v3d, r_objects_len, &params);
-    }
+  const View3D *v3d = (space_type == SPACE_VIEW3D) ?
+                          static_cast<const View3D *>(area->spacedata.first) :
+                          nullptr;
+
+  /* When in a mode that supports multiple active objects, use "objects in mode"
+   * instead of the object's selection. */
+  if (use_objects_in_mode) {
+    ObjectsInModeParams params = {0};
+    params.object_mode = ob_active->mode;
+    params.no_dup_data = true;
+    params.filter_fn = filter_fn;
+    params.filter_userdata = filter_user_data;
+    return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, &params);
   }
-  return objects;
+
+  ObjectsInViewLayerParams params{};
+  params.no_dup_data = true;
+  params.filter_fn = filter_fn;
+  params.filter_userdata = filter_user_data;
+  return BKE_view_layer_array_selected_objects_params(view_layer, v3d, &params);
 }
 
 /** \} */
@@ -415,7 +405,7 @@ static int object_hide_collection_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
     if (toggle) {
-      lc->local_collections_bits ^= v3d->local_collections_uuid;
+      lc->local_collections_bits ^= v3d->local_collections_uid;
       BKE_layer_collection_local_sync(scene, view_layer, v3d);
     }
     else {
@@ -1616,12 +1606,12 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 
     bool changed = false;
     if (ob->type == OB_MESH) {
-      bke::mesh_smooth_set(*static_cast<Mesh *>(ob->data), use_smooth || use_smooth_by_angle);
-      if (use_smooth || use_smooth_by_angle) {
-        if (use_smooth_by_angle) {
-          const float angle = RNA_float_get(op->ptr, "angle");
-          bke::mesh_sharp_edges_set_from_angle(*static_cast<Mesh *>(ob->data), angle);
-        }
+      Mesh &mesh = *static_cast<Mesh *>(ob->data);
+      const bool keep_sharp_edges = RNA_boolean_get(op->ptr, "keep_sharp_edges");
+      bke::mesh_smooth_set(mesh, use_smooth || use_smooth_by_angle, keep_sharp_edges);
+      if (use_smooth_by_angle) {
+        const float angle = RNA_float_get(op->ptr, "angle");
+        bke::mesh_sharp_edges_set_from_angle(mesh, angle, keep_sharp_edges);
       }
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(ob->data), BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
@@ -1671,7 +1661,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Shade Flat";
-  ot->description = "Render and display faces uniform, using Face Normals";
+  ot->description = "Render and display faces uniform, using face normals";
   ot->idname = "OBJECT_OT_shade_flat";
 
   /* api callbacks */
@@ -1680,13 +1670,19 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "keep_sharp_edges",
+                  true,
+                  "Keep Sharp Edges",
+                  "Don't remove sharp edges, which are redundant with faces shaded smooth");
 }
 
 void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Shade Smooth";
-  ot->description = "Render and display faces smooth, using interpolated Vertex Normals";
+  ot->description = "Render and display faces smooth, using interpolated vertex normals";
   ot->idname = "OBJECT_OT_shade_smooth";
 
   /* api callbacks */
@@ -1695,6 +1691,12 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "keep_sharp_edges",
+                  true,
+                  "Keep Sharp Edges",
+                  "Don't remove sharp edges. Tagged edges will remain sharp");
 }
 
 void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
@@ -1714,6 +1716,12 @@ void OBJECT_OT_shade_smooth_by_angle(wmOperatorType *ot)
   RNA_def_property_float_default(prop, DEG2RADF(30.0f));
   RNA_def_property_ui_text(
       prop, "Angle", "Maximum angle between face normals that will be considered as smooth");
+
+  RNA_def_boolean(ot->srna,
+                  "keep_sharp_edges",
+                  true,
+                  "Keep Sharp Edges",
+                  "Only add sharp edges instead of clearing existing tags first");
 }
 
 /** \} */

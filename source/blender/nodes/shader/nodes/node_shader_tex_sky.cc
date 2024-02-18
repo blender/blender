@@ -10,7 +10,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_context.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 
 #include "RNA_access.hh"
@@ -44,7 +44,7 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
     Scene *scene = CTX_data_scene(C);
     if (BKE_scene_uses_blender_eevee(scene)) {
-      uiItemL(layout, TIP_("Sun disc not available in EEVEE"), ICON_ERROR);
+      uiItemL(layout, RPT_("Sun disc not available in EEVEE"), ICON_ERROR);
     }
     uiItemR(layout, ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 

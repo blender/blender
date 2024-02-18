@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_math_base.h"
 #include "BLI_math_bits.h"
@@ -30,7 +30,6 @@ GLStateManager::GLStateManager()
   /* Set other states that never change. */
   glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   glEnable(GL_MULTISAMPLE);
-  glEnable(GL_PRIMITIVE_RESTART);
 
   glDisable(GL_DITHER);
 
@@ -38,12 +37,9 @@ GLStateManager::GLStateManager()
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
-  glPrimitiveRestartIndex((GLuint)0xFFFFFFFF);
-  /* TODO: Should become default. But needs at least GL 4.3 */
-  if (GLContext::fixed_restart_index_support) {
-    /* Takes precedence over #GL_PRIMITIVE_RESTART. */
-    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-  }
+  /* Takes precedence over #GL_PRIMITIVE_RESTART.
+   * Sets restart index correctly following the IBO type. */
+  glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 
   /* Limits. */
   glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, line_width_range_);
@@ -559,7 +555,7 @@ uint64_t GLStateManager::bound_texture_slots()
 void GLStateManager::image_bind(Texture *tex_, int unit)
 {
   /* Minimum support is 8 image in the fragment shader. No image for other stages. */
-  BLI_assert(GPU_shader_image_load_store_support() && unit < 8);
+  BLI_assert(unit < 8);
   GLTexture *tex = static_cast<GLTexture *>(tex_);
   if (G.debug & G_DEBUG_GPU) {
     tex->check_feedback_loop();

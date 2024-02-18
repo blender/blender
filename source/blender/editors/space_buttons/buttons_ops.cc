@@ -18,12 +18,12 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "WM_api.hh"
@@ -350,6 +350,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         path = BLI_strdup(U.fontdir);
       }
       RNA_boolean_set(op->ptr, "filter_font", true);
+      RNA_boolean_set(op->ptr, "filter_folder", true);
       RNA_enum_set(op->ptr, "display_type", FILE_IMGDISPLAY);
       RNA_enum_set(op->ptr, "sort_method", FILE_SORT_ALPHA);
     }

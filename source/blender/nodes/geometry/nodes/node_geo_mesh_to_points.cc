@@ -10,8 +10,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_customdata.hh"
-#include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"
 

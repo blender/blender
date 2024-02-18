@@ -803,6 +803,7 @@ class _defs_edit_mesh:
         def draw_settings(_context, layout, tool):
             props = tool.operator_properties("mesh.spin")
             layout.prop(props, "steps")
+            layout.prop(props, "dupli")
             props = tool.gizmo_group_properties("MESH_GGT_spin")
             layout.prop(props, "axis")
 
@@ -810,23 +811,6 @@ class _defs_edit_mesh:
             idname="builtin.spin",
             label="Spin",
             icon="ops.mesh.spin",
-            widget="MESH_GGT_spin",
-            keymap=(),
-            draw_settings=draw_settings,
-        )
-
-    @ToolDef.from_fn
-    def spin_duplicate():
-        def draw_settings(_context, layout, tool):
-            props = tool.operator_properties("mesh.spin")
-            layout.prop(props, "steps")
-            props = tool.gizmo_group_properties("MESH_GGT_spin")
-            layout.prop(props, "axis")
-
-        return dict(
-            idname="builtin.spin_duplicates",
-            label="Spin Duplicates",
-            icon="ops.mesh.spin.duplicate",
             widget="MESH_GGT_spin",
             keymap=(),
             draw_settings=draw_settings,
@@ -1307,6 +1291,7 @@ class _defs_edit_curves:
                 props = tool.operator_properties("curves.draw")
                 col = layout.column(align=True)
                 col.prop(props, "is_curve_2d", text="Curve 2D")
+                col.prop(props, "bezier_as_nurbs", text="As NURBS")
 
         return dict(
             idname="builtin.draw",
@@ -1774,6 +1759,19 @@ class _defs_weight_paint:
 
 
 class _defs_paint_grease_pencil:
+
+    # FIXME: Replace brush tools with code below once they are all implemented:
+    #
+    # @staticmethod
+    # def generate_from_brushes(context):
+    #     return generate_from_enum_ex(
+    #         context,
+    #         idname_prefix="builtin_brush.",
+    #         icon_prefix="brush.gpencil_draw.",
+    #         type=bpy.types.Brush,
+    #         attr="gpencil_tool",
+    #         cursor='DOT',
+    #     )
 
     @ToolDef.from_fn
     def draw():
@@ -2986,10 +2984,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_edit_mesh.bisect,
             ),
             _defs_edit_mesh.poly_build,
-            (
-                _defs_edit_mesh.spin,
-                _defs_edit_mesh.spin_duplicate,
-            ),
+            _defs_edit_mesh.spin,
             (
                 _defs_edit_mesh.vertex_smooth,
                 _defs_edit_mesh.vertex_randomize,

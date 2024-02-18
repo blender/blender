@@ -15,11 +15,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -579,7 +579,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
                                        const char **r_disabled_hint)
 {
   if (!STREQ(ntree->idname, "CompositorNodeTree")) {
-    *r_disabled_hint = TIP_("Not a compositor node tree");
+    *r_disabled_hint = RPT_("Not a compositor node tree");
     return false;
   }
 
@@ -596,7 +596,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
   }
 
   if (scene == nullptr) {
-    *r_disabled_hint = TIP_(
+    *r_disabled_hint = RPT_(
         "The node tree must be the compositing node tree of any scene in the file");
     return false;
   }
@@ -742,6 +742,11 @@ class RenderLayerOperation : public NodeOperation {
       /* Pass not rendered yet, or not supported by viewport. */
       result.allocate_invalid();
       context().set_info_message("Viewport compositor setup not fully supported");
+      return;
+    }
+
+    if (!context().is_valid_compositing_region()) {
+      result.allocate_invalid();
       return;
     }
 

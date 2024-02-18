@@ -6,9 +6,13 @@
  * \ingroup cmpnodes
  */
 
-#include "BLI_math_matrix.hh"
+#include "GPU_shader.h"
 
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "node_composite_util.hh"
 
@@ -18,8 +22,18 @@ namespace blender::nodes::node_composite_pixelate_cc {
 
 static void cmp_node_pixelate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Color");
+  b.add_input<decl::Color>("Color").compositor_domain_priority(0);
   b.add_output<decl::Color>("Color");
+}
+
+static void node_composit_init_pixelate(bNodeTree * /*ntree*/, bNode *node)
+{
+  node->custom1 = 1;
+}
+
+static void node_composit_buts_pixelate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;
@@ -30,36 +44,35 @@ class PixelateOperation : public NodeOperation {
 
   void execute() override
   {
-    /* It might seems strange that the input is passed through without any processing, but note
-     * that the actual processing happens inside the domain realization input processor of the
-     * input. Indeed, the pixelate node merely realizes its input on a smaller-sized domain that
-     * matches its apparent size, that is, its size after the domain transformation. The pixelate
-     * node has no effect if the input is scaled-up. See the compute_domain method for more
-     * information. */
-    Result &result = get_result("Color");
-    get_input("Color").pass_through(result);
+    Result &input_image = get_input("Color");
+    Result &output_image = get_result("Color");
+    const int pixel_size = get_pixel_size();
+    if (input_image.is_single_value() || pixel_size == 1) {
+      input_image.pass_through(output_image);
+      return;
+    }
 
-    result.get_realization_options().interpolation = Interpolation::Nearest;
+    GPUShader *shader = context().get_shader("compositor_pixelate");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "pixel_size", pixel_size);
+
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Domain domain = compute_domain();
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    GPU_shader_unbind();
+    output_image.unbind_as_image();
+    input_image.unbind_as_texture();
   }
 
-  /* Compute a smaller-sized domain that matches the apparent size of the input while having a unit
-   * scale transformation, see the execute method for more information. */
-  Domain compute_domain() override
+  float get_pixel_size()
   {
-    Domain domain = get_input("Color").domain();
-
-    /* Get the scaling component of the domain transformation, but make sure it doesn't exceed 1,
-     * because pixelation should only happen if the input is scaled down. */
-    const float2 scale = math::min(float2(1.0f), math::to_scale(float2x2(domain.transformation)));
-
-    /* Multiply the size of the domain by its scale to match its apparent size, but make sure it is
-     * at least 1 pixel in both axis. */
-    domain.size = math::max(int2(float2(domain.size) * scale), int2(1));
-
-    /* Reset the scale of the transformation by transforming it with the inverse of the scale. */
-    domain.transformation *= math::from_scale<float3x3>(math::safe_divide(float2(1.0f), scale));
-
-    return domain;
+    return bnode().custom1;
   }
 };
 
@@ -78,6 +91,8 @@ void register_node_type_cmp_pixelate()
 
   cmp_node_type_base(&ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER);
   ntype.declare = file_ns::cmp_node_pixelate_declare;
+  ntype.draw_buttons = file_ns::node_composit_buts_pixelate;
+  ntype.initfunc = file_ns::node_composit_init_pixelate;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   nodeRegisterType(&ntype);

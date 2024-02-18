@@ -12,15 +12,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -56,9 +55,9 @@ static const char *get_curve_defname(int type)
   if ((type & CU_TYPE) == CU_BEZIER) {
     switch (stype) {
       case CU_PRIM_CURVE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BezierCurve");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BézierCurve");
       case CU_PRIM_CIRCLE:
-        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BezierCircle");
+        return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "BézierCircle");
       case CU_PRIM_PATH:
         return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "CurvePath");
       default:
@@ -584,8 +583,8 @@ static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Bezier";
-  ot->description = "Construct a Bezier Curve";
+  ot->name = "Add Bézier";
+  ot->description = "Construct a Bézier Curve";
   ot->idname = "CURVE_OT_primitive_bezier_curve_add";
 
   /* api callbacks */
@@ -607,8 +606,8 @@ static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Add Bezier Circle";
-  ot->description = "Construct a Bezier Circle";
+  ot->name = "Add Bézier Circle";
+  ot->description = "Construct a Bézier Circle";
   ot->idname = "CURVE_OT_primitive_bezier_circle_add";
 
   /* api callbacks */

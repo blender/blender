@@ -8,19 +8,16 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_time.h"
 
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "WM_api.hh"
 
 #include "RNA_access.hh"
 
 #include "ED_screen.hh"
-
-#include "PIL_time.h"
 
 #include "view3d_intern.h"
 #include "view3d_navigate.hh" /* own include */
@@ -163,7 +160,7 @@ static float viewzoom_scale_value(const rcti *winrct,
   float zfac;
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
-    double time = PIL_check_seconds_timer();
+    double time = BLI_time_now_seconds();
     float time_step = float(time - *r_timer_lastdraw);
     float fac;
 
@@ -195,7 +192,7 @@ static float viewzoom_scale_value(const rcti *winrct,
 
     /* intentionally ignore 'zoom_invert' for scale */
     if (zoom_invert_force) {
-      SWAP(float, len_new, len_old);
+      std::swap(len_new, len_old);
     }
 
     zfac = val_orig * (len_old / max_ff(len_new, 1.0f)) / val;
@@ -214,7 +211,7 @@ static float viewzoom_scale_value(const rcti *winrct,
     }
 
     if (zoom_invert != zoom_invert_force) {
-      SWAP(float, len_new, len_old);
+      std::swap(len_new, len_old);
     }
 
     zfac = val_orig * (2.0f * ((len_new / max_ff(len_old, 1.0f)) - 1.0f) + 1.0f) / val;
@@ -516,7 +513,7 @@ static int viewzoom_invoke_impl(bContext *C,
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vod->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vod->prev.time = PIL_check_seconds_timer();
+    vod->prev.time = BLI_time_now_seconds();
   }
 
   return OPERATOR_RUNNING_MODAL;

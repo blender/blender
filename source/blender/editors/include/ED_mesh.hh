@@ -23,6 +23,7 @@ struct BMeshNormalsUpdate_Params;
 struct Base;
 struct Depsgraph;
 struct ID;
+struct KeyBlock;
 struct MDeformVert;
 struct Mesh;
 struct Object;
@@ -212,8 +213,7 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
                                   float *dist_px_manhattan_p,
                                   bool use_select_bias,
                                   bool use_cycle,
-                                  Base **bases,
-                                  uint bases_len,
+                                  blender::Span<Base *> bases,
                                   uint *r_base_index);
 BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *dist_px_manhattan_p);
 
@@ -223,8 +223,7 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
                                   bool use_select_bias,
                                   bool use_cycle,
                                   BMEdge **r_eed_zbuf,
-                                  Base **bases,
-                                  uint bases_len,
+                                  blender::Span<Base *> bases,
                                   uint *r_base_index);
 BMEdge *EDBM_edge_find_nearest(ViewContext *vc, float *dist_px_manhattan_p);
 
@@ -242,22 +241,19 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
                                   bool use_select_bias,
                                   bool use_cycle,
                                   BMFace **r_efa_zbuf,
-                                  Base **bases,
-                                  uint bases_len,
+                                  blender::Span<Base *> bases,
                                   uint *r_base_index);
 BMFace *EDBM_face_find_nearest(ViewContext *vc, float *dist_px_manhattan_p);
 
 bool EDBM_unified_findnearest(ViewContext *vc,
-                              Base **bases,
-                              uint bases_len,
+                              blender::Span<Base *> bases,
                               int *r_base_index,
                               BMVert **r_eve,
                               BMEdge **r_eed,
                               BMFace **r_efa);
 
 bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
-                                           Base **bases,
-                                           uint bases_len,
+                                           blender::Span<Base *> bases,
                                            bool use_boundary_vertices,
                                            bool use_boundary_edges,
                                            int *r_base_index_vert,
@@ -319,11 +315,10 @@ void EDBM_select_swap(BMEditMesh *em); /* exported for UV */
 bool EDBM_select_interior_faces(BMEditMesh *em);
 ViewContext em_setup_viewcontext(bContext *C); /* rename? */
 
-bool EDBM_mesh_deselect_all_multi_ex(Base **bases, uint bases_len);
+bool EDBM_mesh_deselect_all_multi_ex(blender::Span<Base *> bases);
 bool EDBM_mesh_deselect_all_multi(bContext *C);
 bool EDBM_selectmode_disable_multi_ex(Scene *scene,
-                                      Base **bases,
-                                      uint bases_len,
+                                      blender::Span<Base *> bases,
                                       short selectmode_disable,
                                       short selectmode_fallback);
 bool EDBM_selectmode_disable_multi(bContext *C,
@@ -531,12 +526,12 @@ void ED_mesh_faces_remove(Mesh *mesh, ReportList *reports, int count);
 
 void ED_mesh_geometry_clear(Mesh *mesh);
 
-bool *ED_mesh_uv_map_vert_select_layer_ensure(Mesh *mesh, int uv_map_index);
-bool *ED_mesh_uv_map_edge_select_layer_ensure(Mesh *mesh, int uv_map_index);
-bool *ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, int uv_map_index);
-const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, int uv_map_index);
-const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, int uv_map_index);
-const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, int uv_map_index);
+bool *ED_mesh_uv_map_vert_select_layer_ensure(Mesh *mesh, int uv_index);
+bool *ED_mesh_uv_map_edge_select_layer_ensure(Mesh *mesh, int uv_index);
+bool *ED_mesh_uv_map_pin_layer_ensure(Mesh *mesh, int uv_index);
+const bool *ED_mesh_uv_map_vert_select_layer_get(const Mesh *mesh, int uv_index);
+const bool *ED_mesh_uv_map_edge_select_layer_get(const Mesh *mesh, int uv_index);
+const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, int uv_index);
 
 void ED_mesh_uv_ensure(Mesh *mesh, const char *name);
 int ED_mesh_uv_add(
@@ -553,6 +548,8 @@ int ED_mesh_color_add(
 
 void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char selectmode);
+
+KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me);
 
 /**
  * Returns the pinned mesh, the mesh from the pinned object, or the mesh from the active object.
@@ -650,8 +647,8 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve);
 MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index);
 MDeformVert *ED_mesh_active_dvert_get_only(Object *ob);
 
-void EDBM_mesh_stats_multi(Object **objects, uint objects_len, int totelem[3], int totelem_sel[3]);
-void EDBM_mesh_elem_index_ensure_multi(Object **objects, uint objects_len, char htype);
+void EDBM_mesh_stats_multi(blender::Span<Object *> objects, int totelem[3], int totelem_sel[3]);
+void EDBM_mesh_elem_index_ensure_multi(blender::Span<Object *> objects, char htype);
 
 #define ED_MESH_PICK_DEFAULT_VERT_DIST 25
 #define ED_MESH_PICK_DEFAULT_FACE_DIST 1

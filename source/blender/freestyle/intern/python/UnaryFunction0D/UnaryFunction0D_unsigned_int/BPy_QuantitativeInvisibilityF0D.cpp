@@ -20,7 +20,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char QuantitativeInvisibilityF0D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    QuantitativeInvisibilityF0D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction0D` > "
     ":class:`freestyle.types.UnaryFunction0DUnsigned` > :class:`QuantitativeInvisibilityF0D`\n"
     "\n"
@@ -42,7 +44,7 @@ static char QuantitativeInvisibilityF0D___doc__[] =
     "   :arg it: An Interface0DIterator object.\n"
     "   :type it: :class:`freestyle.types.Interface0DIterator`\n"
     "   :return: The quantitative invisibility of the pointed Interface0D.\n"
-    "   :rtype: int\n";
+    "   :rtype: int\n");
 
 static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D *self,
                                                 PyObject *args,

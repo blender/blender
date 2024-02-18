@@ -11,12 +11,11 @@
  * Event codes are used as identifiers.
  */
 
-#include "GPU_batch.h"
 #include "GPU_state.h"
 
 #include "BLI_string.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "UI_interface.hh"
 

@@ -25,15 +25,15 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h" /* only for G.background test */
+#include "BKE_global.hh" /* only for G.background test */
 #include "BKE_icons.h"
 #include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 /**
  * Only allow non-managed icons to be removed (by Python for eg).

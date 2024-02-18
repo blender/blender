@@ -8,6 +8,7 @@
  * Operators for dealing with GP data-blocks and layers.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
@@ -24,36 +25,31 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_modifier.hh"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -70,7 +66,6 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 
@@ -2729,7 +2724,7 @@ static int gpencil_vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
       }
 
       /* Normalize weights. */
-      float fac = MAX2(0, (1.0f - sum_lock) / sum_unlock);
+      float fac = std::max(0.0f, (1.0f - sum_lock) / sum_unlock);
 
       for (v = 0; v < defbase_tot; v++) {
         /* Get vertex group. */
@@ -2977,8 +2972,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         float offset_global[3];
         float offset_local[3];
 
-        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world[3]);
-        copy_m3_m4(bmat, ob_active->object_to_world);
+        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world().location());
+        copy_m3_m4(bmat, ob_active->object_to_world().ptr());
 
         /* Inverse transform for all selected curves in this object,
          * See #object_join_exec for detailed comment on why the safe version is used. */

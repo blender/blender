@@ -21,7 +21,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
+#include "BKE_lib_id.hh"
 
 #include "RNA_prototypes.h"
 
@@ -183,6 +184,7 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
   /* Re-tag IDs for update if it was tagged before the relations
    * update tag. */
   for (IDNode *id_node : graph->id_nodes) {
+    const ID_Type id_type = id_node->id_type;
     ID *id_orig = id_node->id_orig;
     id_node->finalize_build(graph);
     int flag = 0;
@@ -194,28 +196,48 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
     if (id_node->customdata_masks != id_node->previous_customdata_masks) {
       flag |= ID_RECALC_GEOMETRY;
     }
-    if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+    const bool is_expanded = deg_copy_on_write_is_expanded(id_node->id_cow);
+    if (!is_expanded) {
       flag |= ID_RECALC_COPY_ON_WRITE;
       /* This means ID is being added to the dependency graph first
        * time, which is similar to "ob-visible-change" */
-      if (GS(id_orig->name) == ID_OB) {
+      if (id_type == ID_OB) {
         flag |= ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY;
       }
-      if (GS(id_orig->name) == ID_NT) {
+      if (id_type == ID_NT) {
         flag |= ID_RECALC_NTREE_OUTPUT;
       }
     }
     else {
-      /* Collection content might have changed (children collection might have been added or
-       * removed from the graph based on their inclusion and visibility flags). */
-      const ID_Type id_type = GS(id_node->id_cow->name);
       if (id_type == ID_GR) {
-        BKE_collection_object_cache_free(reinterpret_cast<Collection *>(id_node->id_cow));
+        /* Collection content might have changed (children collection might have been added or
+         * removed from the graph based on their inclusion and visibility flags). */
+        BKE_collection_object_cache_free(
+            nullptr, reinterpret_cast<Collection *>(id_node->id_cow), LIB_ID_CREATE_NO_DEG_TAG);
+      }
+      else if (id_type == ID_SCE) {
+        /* During undo the sequence strips might obtain a new session ID, which will disallow the
+         * audio handles to be re-used. Tag for the audio and sequence update to ensure the audio
+         * handles are open.
+         * NOTE: This is not something that should be required, and perhaps indicates a weakness in
+         * design somewhere else. For the cause of the problem check #117760. */
+        flag |= ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS;
       }
     }
     /* Restore recalc flags from original ID, which could possibly contain recalc flags set by
-     * an operator and then were carried on by the undo system. */
-    flag |= id_orig->recalc;
+     * an operator and then were carried on by the undo system.
+     *
+     * Only do it for active dependency graph, because otherwise modifications to the original
+     * objects might keep affecting the render pipeline. For example, when a Python script is
+     * executed in headless mode it will tag original objects for recalculation, and the flag
+     * will never be reset to 0 because there is no active dependency graph (since the
+     * DEG_ids_clear_recalc() only clears original ID recalc flags for the active depsgraph.
+     *
+     * A bit of a safety is to also consider the accumulated recalc flags from the original
+     * data-block for the first evaluation of the data-block within an inactive graph. */
+    if (graph->is_active || !is_expanded) {
+      flag |= id_orig->recalc;
+    }
     if (flag != 0) {
       graph_id_tag_update(bmain, graph, id_node->id_orig, flag, DEG_UPDATE_SOURCE_RELATIONS);
     }

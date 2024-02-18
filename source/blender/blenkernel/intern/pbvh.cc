@@ -36,6 +36,7 @@
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
+#include "BLI_time.h"
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -59,8 +60,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "DRW_pbvh.hh"
-
-#include "PIL_time.h"
 
 #include "bmesh.hh"
 
@@ -1588,7 +1587,7 @@ static void update_normals_faces(PBVH &pbvh, Span<PBVHNode *> nodes, Mesh &mesh)
    *
    * Those boundary face and vertex indices are deduplicated with #VectorSet in order to avoid
    * duplicate work recalculation for the same vertex, and to make parallel storage for vertices
-   * during reclculation thread-safe. */
+   * during recalculation thread-safe. */
   const Span<float3> positions = pbvh.vert_positions;
   const OffsetIndices faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
@@ -2306,7 +2305,7 @@ void BKE_pbvh_node_mark_redraw(PBVHNode *node)
   node->flag |= PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
 }
 
-void BKE_pbvh_node_mark_normals_update(PBVHNode *node)
+void BKE_pbvh_node_mark_positions_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateCurvatureDir;
 }
@@ -2360,7 +2359,7 @@ void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked)
   }
 }
 
-bool BKE_pbvh_node_fully_masked_get(PBVHNode *node)
+bool BKE_pbvh_node_fully_masked_get(const PBVHNode *node)
 {
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyMasked);
 }
@@ -2597,12 +2596,12 @@ void BKE_pbvh_node_get_grids(PBVH *pbvh,
   }
 }
 
-Bounds<float3> BKE_pbvh_node_get_BB(PBVHNode *node)
+Bounds<float3> BKE_pbvh_node_get_BB(const PBVHNode *node)
 {
   return node->vb;
 }
 
-Bounds<float3> BKE_pbvh_node_get_original_BB(PBVHNode *node)
+Bounds<float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node)
 {
 
   return node->orig_vb;
@@ -3139,16 +3138,13 @@ void clip_ray_ortho(
 
 /* -------------------------------------------------------------------- */
 
-typedef struct {
-  struct DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-  bool original;
-} FindNearestRayData;
-
-static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, FindNearestRayData *rcd)
+static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node,
+                                        const DistRayAABB_Precalc &dist_ray_to_aabb_precalc,
+                                        const bool original)
 {
   const float *bb_min, *bb_max;
 
-  if (rcd->original) {
+  if (original) {
     /* BKE_pbvh_node_get_original_BB */
     bb_min = node->orig_vb.min;
     bb_max = node->orig_vb.max;
@@ -3161,7 +3157,7 @@ static bool nearest_to_ray_aabb_dist_sq(PBVHNode *node, FindNearestRayData *rcd)
 
   float co_dummy[3], depth;
   node->tmin = dist_squared_ray_to_aabb_v3(
-      &rcd->dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
+      &dist_ray_to_aabb_precalc, bb_min, bb_max, co_dummy, &depth);
   /* Ideally we would skip distances outside the range. */
   return depth > 0.0f;
 }
@@ -3171,15 +3167,17 @@ void find_nearest_to_ray(PBVH *pbvh,
                          const FunctionRef<void(PBVHNode &node, float *tmin)> fn,
                          const float ray_start[3],
                          const float ray_normal[3],
-                         bool original)
+                         const bool original)
 {
-  FindNearestRayData ncd;
-
-  dist_squared_ray_to_aabb_v3_precalc(&ncd.dist_ray_to_aabb_precalc, ray_start, ray_normal);
-  ncd.original = original;
+  const DistRayAABB_Precalc ray_dist_precalc = dist_squared_ray_to_aabb_v3_precalc(ray_start,
+                                                                                   ray_normal);
 
   search_callback_occluded(
-      pbvh, [&](PBVHNode &node) { return nearest_to_ray_aabb_dist_sq(&node, &ncd); }, fn);
+      pbvh,
+      [&](PBVHNode &node) {
+        return nearest_to_ray_aabb_dist_sq(&node, ray_dist_precalc, original);
+      },
+      fn);
 }
 }  // namespace blender::bke::pbvh
 
@@ -3727,7 +3725,7 @@ void get_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes)
 }
 }  // namespace blender::bke::pbvh
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
                                       bool use_threading,
                                       int totnode)
@@ -4058,7 +4056,7 @@ void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas
       int len = 16;
 
       BKE_pbvh_pmap_to_edges(pbvh, vertex, &edges, &len, &heap_alloc, &faces);
-      len = MIN2(len, valence);
+      len = std::min(len, valence);
 
       if (!pbvh->vert_to_edge_map.is_empty()) {
         /* sort face references by vemap edge ordering */

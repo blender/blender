@@ -11,7 +11,7 @@
 #include "ply_data.hh"
 
 #include "BKE_attribute.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BLI_hash.hh"
@@ -55,10 +55,10 @@ static void set_world_axes_transform(const Object &object,
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the default Blender axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object.object_to_world);
+  mul_m4_m3m4(r_world_and_axes_transform, axes_transform, object.object_to_world().ptr());
   /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
-  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object.object_to_world[3]);
-  r_world_and_axes_transform[3][3] = object.object_to_world[3][3];
+  mul_v3_m3v3(r_world_and_axes_transform[3], axes_transform, object.object_to_world().location());
+  r_world_and_axes_transform[3][3] = object.object_to_world()[3][3];
 
   /* Normals need inverse transpose of the regular matrix to handle non-uniform scale. */
   float normal_matrix[3][3];
@@ -78,7 +78,7 @@ struct uv_vertex_key {
 
   uint64_t hash() const
   {
-    return get_default_hash_3(uv.x, uv.y, vertex_index);
+    return get_default_hash(uv.x, uv.y, vertex_index);
   }
 };
 
@@ -167,7 +167,7 @@ static float *find_or_add_attribute(const StringRef name,
 }
 
 static void load_custom_attributes(const Mesh *mesh,
-                                   const Vector<int> &ply_to_vertex,
+                                   const Span<int> ply_to_vertex,
                                    uint32_t vertex_offset,
                                    Vector<PlyCustomAttribute> &r_attributes)
 {

@@ -6,6 +6,8 @@
  * \ingroup bke
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -17,17 +19,14 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_anim_path.h"
 #include "BKE_armature.hh"
 #include "BKE_curve.hh"
-#include "BKE_displist.h"
 #include "BKE_fcurve.h"
-#include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BIK_api.h"
 
@@ -255,11 +254,11 @@ static void apply_curve_transform(
    * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root).
    */
   if ((ik_data->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0) {
-    mul_m4_v3(ik_data->tar->object_to_world, r_vec);
+    mul_m4_v3(ik_data->tar->object_to_world().ptr(), r_vec);
   }
 
   /* Convert the position to pose-space. */
-  mul_m4_v3(ob->world_to_object, r_vec);
+  mul_m4_v3(ob->world_to_object().ptr(), r_vec);
 
   /* Set the new radius (it should be the average value). */
   *r_radius = (radius + *r_radius) / 2;
@@ -665,7 +664,7 @@ static void splineik_evaluate_bone(
           }
           if (bulge < 1.0f) {
             if (ik_data->flag & CONSTRAINT_SPLINEIK_USE_BULGE_MIN) {
-              float bulge_min = CLAMPIS(ik_data->bulge_min, 0.0f, 1.0f);
+              float bulge_min = std::clamp(ik_data->bulge_min, 0.0f, 1.0f);
               float hard = max_ff(bulge, bulge_min);
 
               float range = 1.0f - bulge_min;
@@ -830,7 +829,7 @@ void BKE_pose_eval_init(Depsgraph *depsgraph, Scene * /*scene*/, Object *object)
   BLI_assert((object->pose->flag & POSE_RECALC) == 0);
 
   /* world_to_object is needed for solvers. */
-  invert_m4_m4(object->world_to_object, object->object_to_world);
+  invert_m4_m4(object->runtime->world_to_object.ptr(), object->object_to_world().ptr());
 
   /* clear flags */
   for (bPoseChannel *pchan = static_cast<bPoseChannel *>(pose->chanbase.first); pchan != nullptr;

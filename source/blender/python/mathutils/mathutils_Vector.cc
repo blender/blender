@@ -6,6 +6,8 @@
  * \ingroup pymathutils
  */
 
+#include <algorithm>
+
 #include <Python.h>
 
 #include "mathutils.h"
@@ -183,15 +185,17 @@ static PyObject *Vector_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 /** \name Vector Class Methods
  * \{ */
 
-PyDoc_STRVAR(C_Vector_Fill_doc,
-             ".. classmethod:: Fill(size, fill=0.0)\n"
-             "\n"
-             "   Create a vector of length size with all values set to fill.\n"
-             "\n"
-             "   :arg size: The length of the vector to be created.\n"
-             "   :type size: int\n"
-             "   :arg fill: The value used to fill the vector.\n"
-             "   :type fill: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    C_Vector_Fill_doc,
+    ".. classmethod:: Fill(size, fill=0.0)\n"
+    "\n"
+    "   Create a vector of length size with all values set to fill.\n"
+    "\n"
+    "   :arg size: The length of the vector to be created.\n"
+    "   :type size: int\n"
+    "   :arg fill: The value used to fill the vector.\n"
+    "   :type fill: float\n");
 static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -221,17 +225,19 @@ static PyObject *C_Vector_Fill(PyObject *cls, PyObject *args)
   return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
 
-PyDoc_STRVAR(C_Vector_Range_doc,
-             ".. classmethod:: Range(start, stop, step=1)\n"
-             "\n"
-             "   Create a filled with a range of values.\n"
-             "\n"
-             "   :arg start: The start of the range used to fill the vector.\n"
-             "   :type start: int\n"
-             "   :arg stop: The end of the range used to fill the vector.\n"
-             "   :type stop: int\n"
-             "   :arg step: The step between successive values in the vector.\n"
-             "   :type step: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    C_Vector_Range_doc,
+    ".. classmethod:: Range(start, stop, step=1)\n"
+    "\n"
+    "   Create a filled with a range of values.\n"
+    "\n"
+    "   :arg start: The start of the range used to fill the vector.\n"
+    "   :type start: int\n"
+    "   :arg stop: The end of the range used to fill the vector.\n"
+    "   :type stop: int\n"
+    "   :arg step: The step between successive values in the vector.\n"
+    "   :type step: int\n");
 static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -296,18 +302,20 @@ static PyObject *C_Vector_Range(PyObject *cls, PyObject *args)
   return Vector_CreatePyObject_alloc(vec, vec_num, (PyTypeObject *)cls);
 }
 
-PyDoc_STRVAR(C_Vector_Linspace_doc,
-             ".. classmethod:: Linspace(start, stop, size)\n"
-             "\n"
-             "   Create a vector of the specified size which is filled with linearly spaced "
-             "values between start and stop values.\n"
-             "\n"
-             "   :arg start: The start of the range used to fill the vector.\n"
-             "   :type start: int\n"
-             "   :arg stop: The end of the range used to fill the vector.\n"
-             "   :type stop: int\n"
-             "   :arg size: The size of the vector to be created.\n"
-             "   :type size: int\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    C_Vector_Linspace_doc,
+    ".. classmethod:: Linspace(start, stop, size)\n"
+    "\n"
+    "   Create a vector of the specified size which is filled with linearly spaced "
+    "values between start and stop values.\n"
+    "\n"
+    "   :arg start: The start of the range used to fill the vector.\n"
+    "   :type start: int\n"
+    "   :arg stop: The end of the range used to fill the vector.\n"
+    "   :type stop: int\n"
+    "   :arg size: The size of the vector to be created.\n"
+    "   :type size: int\n");
 static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 {
   float *vec;
@@ -340,6 +348,7 @@ static PyObject *C_Vector_Linspace(PyObject *cls, PyObject *args)
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     C_Vector_Repeat_doc,
     ".. classmethod:: Repeat(vector, size)\n"
     "\n"
@@ -405,10 +414,12 @@ static PyObject *C_Vector_Repeat(PyObject *cls, PyObject *args)
 /** \name Vector Methods: Zero
  * \{ */
 
-PyDoc_STRVAR(Vector_zero_doc,
-             ".. method:: zero()\n"
-             "\n"
-             "   Set all values to zero.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_zero_doc,
+    ".. method:: zero()\n"
+    "\n"
+    "   Set all values to zero.\n");
 static PyObject *Vector_zero(VectorObject *self)
 {
   if (BaseMath_Prepare_ForWrite(self) == -1) {
@@ -430,15 +441,17 @@ static PyObject *Vector_zero(VectorObject *self)
 /** \name Vector Methods: Normalize
  * \{ */
 
-PyDoc_STRVAR(Vector_normalize_doc,
-             ".. method:: normalize()\n"
-             "\n"
-             "   Normalize the vector, making the length of the vector always 1.0.\n"
-             "\n"
-             "   .. warning:: Normalizing a vector where all values are zero has no effect.\n"
-             "\n"
-             "   .. note:: Normalize works for vectors of all sizes,\n"
-             "      however 4D Vectors w axis is left untouched.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_normalize_doc,
+    ".. method:: normalize()\n"
+    "\n"
+    "   Normalize the vector, making the length of the vector always 1.0.\n"
+    "\n"
+    "   .. warning:: Normalizing a vector where all values are zero has no effect.\n"
+    "\n"
+    "   .. note:: Normalize works for vectors of all sizes,\n"
+    "      however 4D Vectors w axis is left untouched.\n");
 static PyObject *Vector_normalize(VectorObject *self)
 {
   const int vec_num = (self->vec_num == 4 ? 3 : self->vec_num);
@@ -451,13 +464,15 @@ static PyObject *Vector_normalize(VectorObject *self)
   (void)BaseMath_WriteCallback(self);
   Py_RETURN_NONE;
 }
-PyDoc_STRVAR(Vector_normalized_doc,
-             ".. method:: normalized()\n"
-             "\n"
-             "   Return a new, normalized vector.\n"
-             "\n"
-             "   :return: a normalized copy of the vector\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_normalized_doc,
+    ".. method:: normalized()\n"
+    "\n"
+    "   Return a new, normalized vector.\n"
+    "\n"
+    "   :return: a normalized copy of the vector\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_normalized(VectorObject *self)
 {
   return vec__apply_to_copy(Vector_normalize, self);
@@ -469,10 +484,12 @@ static PyObject *Vector_normalized(VectorObject *self)
 /** \name Vector Methods: Resize
  * \{ */
 
-PyDoc_STRVAR(Vector_resize_doc,
-             ".. method:: resize(size=3)\n"
-             "\n"
-             "   Resize the vector to have size number of elements.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_resize_doc,
+    ".. method:: resize(size=3)\n"
+    "\n"
+    "   Resize the vector to have size number of elements.\n");
 static PyObject *Vector_resize(VectorObject *self, PyObject *value)
 {
   int vec_num;
@@ -519,13 +536,15 @@ static PyObject *Vector_resize(VectorObject *self, PyObject *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Vector_resized_doc,
-             ".. method:: resized(size=3)\n"
-             "\n"
-             "   Return a resized copy of the vector with size number of elements.\n"
-             "\n"
-             "   :return: a new vector\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_resized_doc,
+    ".. method:: resized(size=3)\n"
+    "\n"
+    "   Return a resized copy of the vector with size number of elements.\n"
+    "\n"
+    "   :return: a new vector\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_resized(VectorObject *self, PyObject *value)
 {
   int vec_num;
@@ -555,10 +574,12 @@ static PyObject *Vector_resized(VectorObject *self, PyObject *value)
   return Vector_CreatePyObject_alloc(vec, vec_num, nullptr);
 }
 
-PyDoc_STRVAR(Vector_resize_2d_doc,
-             ".. method:: resize_2d()\n"
-             "\n"
-             "   Resize the vector to 2D  (x, y).\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_resize_2d_doc,
+    ".. method:: resize_2d()\n"
+    "\n"
+    "   Resize the vector to 2D  (x, y).\n");
 static PyObject *Vector_resize_2d(VectorObject *self)
 {
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
@@ -586,10 +607,12 @@ static PyObject *Vector_resize_2d(VectorObject *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Vector_resize_3d_doc,
-             ".. method:: resize_3d()\n"
-             "\n"
-             "   Resize the vector to 3D  (x, y, z).\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_resize_3d_doc,
+    ".. method:: resize_3d()\n"
+    "\n"
+    "   Resize the vector to 3D  (x, y, z).\n");
 static PyObject *Vector_resize_3d(VectorObject *self)
 {
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
@@ -621,10 +644,12 @@ static PyObject *Vector_resize_3d(VectorObject *self)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(Vector_resize_4d_doc,
-             ".. method:: resize_4d()\n"
-             "\n"
-             "   Resize the vector to 4D (x, y, z, w).\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_resize_4d_doc,
+    ".. method:: resize_4d()\n"
+    "\n"
+    "   Resize the vector to 4D (x, y, z, w).\n");
 static PyObject *Vector_resize_4d(VectorObject *self)
 {
   if (self->flag & BASE_MATH_FLAG_IS_WRAP) {
@@ -665,13 +690,15 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 /** \name Vector Methods: To N-dimensions
  * \{ */
 
-PyDoc_STRVAR(Vector_to_2d_doc,
-             ".. method:: to_2d()\n"
-             "\n"
-             "   Return a 2d copy of the vector.\n"
-             "\n"
-             "   :return: a new vector\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_to_2d_doc,
+    ".. method:: to_2d()\n"
+    "\n"
+    "   Return a 2d copy of the vector.\n"
+    "\n"
+    "   :return: a new vector\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_to_2d(VectorObject *self)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -680,13 +707,15 @@ static PyObject *Vector_to_2d(VectorObject *self)
 
   return Vector_CreatePyObject(self->vec, 2, Py_TYPE(self));
 }
-PyDoc_STRVAR(Vector_to_3d_doc,
-             ".. method:: to_3d()\n"
-             "\n"
-             "   Return a 3d copy of the vector.\n"
-             "\n"
-             "   :return: a new vector\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_to_3d_doc,
+    ".. method:: to_3d()\n"
+    "\n"
+    "   Return a 3d copy of the vector.\n"
+    "\n"
+    "   :return: a new vector\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_to_3d(VectorObject *self)
 {
   float tvec[3] = {0.0f};
@@ -698,13 +727,15 @@ static PyObject *Vector_to_3d(VectorObject *self)
   memcpy(tvec, self->vec, sizeof(float) * std::min(self->vec_num, 3));
   return Vector_CreatePyObject(tvec, 3, Py_TYPE(self));
 }
-PyDoc_STRVAR(Vector_to_4d_doc,
-             ".. method:: to_4d()\n"
-             "\n"
-             "   Return a 4d copy of the vector.\n"
-             "\n"
-             "   :return: a new vector\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_to_4d_doc,
+    ".. method:: to_4d()\n"
+    "\n"
+    "   Return a 4d copy of the vector.\n"
+    "\n"
+    "   :return: a new vector\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_to_4d(VectorObject *self)
 {
   float tvec[4] = {0.0f, 0.0f, 0.0f, 1.0f};
@@ -723,15 +754,17 @@ static PyObject *Vector_to_4d(VectorObject *self)
 /** \name Vector Methods: To Tuple
  * \{ */
 
-PyDoc_STRVAR(Vector_to_tuple_doc,
-             ".. method:: to_tuple(precision=-1)\n"
-             "\n"
-             "   Return this vector as a tuple with.\n"
-             "\n"
-             "   :arg precision: The number to round the value to in [-1, 21].\n"
-             "   :type precision: int\n"
-             "   :return: the values of the vector rounded by *precision*\n"
-             "   :rtype: tuple\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_to_tuple_doc,
+    ".. method:: to_tuple(precision=-1)\n"
+    "\n"
+    "   Return this vector as a tuple with.\n"
+    "\n"
+    "   :arg precision: The number to round the value to in [-1, 21].\n"
+    "   :type precision: int\n"
+    "   :return: the values of the vector rounded by *precision*\n"
+    "   :rtype: tuple\n");
 static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 {
   int ndigits = 0;
@@ -764,17 +797,19 @@ static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 /** \name Vector Methods: To Track Quaternion
  * \{ */
 
-PyDoc_STRVAR(Vector_to_track_quat_doc,
-             ".. method:: to_track_quat(track, up)\n"
-             "\n"
-             "   Return a quaternion rotation from the vector and the track and up axis.\n"
-             "\n"
-             "   :arg track: Track axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z'].\n"
-             "   :type track: string\n"
-             "   :arg up: Up axis in ['X', 'Y', 'Z'].\n"
-             "   :type up: string\n"
-             "   :return: rotation from the vector and the track and up axis.\n"
-             "   :rtype: :class:`Quaternion`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_to_track_quat_doc,
+    ".. method:: to_track_quat(track, up)\n"
+    "\n"
+    "   Return a quaternion rotation from the vector and the track and up axis.\n"
+    "\n"
+    "   :arg track: Track axis in ['X', 'Y', 'Z', '-X', '-Y', '-Z'].\n"
+    "   :type track: string\n"
+    "   :arg up: Up axis in ['X', 'Y', 'Z'].\n"
+    "   :type up: string\n"
+    "   :return: rotation from the vector and the track and up axis.\n"
+    "   :rtype: :class:`Quaternion`\n");
 static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 {
   float vec[3], quat[4];
@@ -890,6 +925,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Vector_orthogonal_doc,
     ".. method:: orthogonal()\n"
     "\n"
@@ -933,15 +969,17 @@ static PyObject *Vector_orthogonal(VectorObject *self)
  * `vec - ((2 * dot(vec, mirror)) * mirror)`.
  * \{ */
 
-PyDoc_STRVAR(Vector_reflect_doc,
-             ".. method:: reflect(mirror)\n"
-             "\n"
-             "   Return the reflection vector from the *mirror* argument.\n"
-             "\n"
-             "   :arg mirror: This vector could be a normal from the reflecting surface.\n"
-             "   :type mirror: :class:`Vector`\n"
-             "   :return: The reflected vector matching the size of this vector.\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_reflect_doc,
+    ".. method:: reflect(mirror)\n"
+    "\n"
+    "   Return the reflection vector from the *mirror* argument.\n"
+    "\n"
+    "   :arg mirror: This vector could be a normal from the reflecting surface.\n"
+    "   :type mirror: :class:`Vector`\n"
+    "   :return: The reflected vector matching the size of this vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 {
   int value_num;
@@ -984,17 +1022,19 @@ static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 /** \name Vector Methods: Cross Product
  * \{ */
 
-PyDoc_STRVAR(Vector_cross_doc,
-             ".. method:: cross(other)\n"
-             "\n"
-             "   Return the cross product of this vector and another.\n"
-             "\n"
-             "   :arg other: The other vector to perform the cross product with.\n"
-             "   :type other: :class:`Vector`\n"
-             "   :return: The cross product.\n"
-             "   :rtype: :class:`Vector` or float when 2D vectors are used\n"
-             "\n"
-             "   .. note:: both vectors must be 2D or 3D\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_cross_doc,
+    ".. method:: cross(other)\n"
+    "\n"
+    "   Return the cross product of this vector and another.\n"
+    "\n"
+    "   :arg other: The other vector to perform the cross product with.\n"
+    "   :type other: :class:`Vector`\n"
+    "   :return: The cross product.\n"
+    "   :rtype: :class:`Vector` or float when 2D vectors are used\n"
+    "\n"
+    "   .. note:: both vectors must be 2D or 3D\n");
 static PyObject *Vector_cross(VectorObject *self, PyObject *value)
 {
   PyObject *ret;
@@ -1033,15 +1073,17 @@ static PyObject *Vector_cross(VectorObject *self, PyObject *value)
 /** \name Vector Methods: Dot Product
  * \{ */
 
-PyDoc_STRVAR(Vector_dot_doc,
-             ".. method:: dot(other)\n"
-             "\n"
-             "   Return the dot product of this vector and another.\n"
-             "\n"
-             "   :arg other: The other vector to perform the dot product with.\n"
-             "   :type other: :class:`Vector`\n"
-             "   :return: The dot product.\n"
-             "   :rtype: float\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_dot_doc,
+    ".. method:: dot(other)\n"
+    "\n"
+    "   Return the dot product of this vector and another.\n"
+    "\n"
+    "   :arg other: The other vector to perform the dot product with.\n"
+    "   :type other: :class:`Vector`\n"
+    "   :return: The dot product.\n"
+    "   :rtype: float\n");
 static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 {
   float *tvec;
@@ -1069,6 +1111,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Vector_angle_doc,
     ".. function:: angle(other, fallback=None)\n"
     "\n"
@@ -1141,6 +1184,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Vector_angle_signed_doc,
     ".. function:: angle_signed(other, fallback)\n"
     "\n"
@@ -1201,18 +1245,20 @@ static PyObject *Vector_angle_signed(VectorObject *self, PyObject *args)
 /** \name Vector Methods: Rotation Difference
  * \{ */
 
-PyDoc_STRVAR(Vector_rotation_difference_doc,
-             ".. function:: rotation_difference(other)\n"
-             "\n"
-             "   Returns a quaternion representing the rotational difference between this\n"
-             "   vector and another.\n"
-             "\n"
-             "   :arg other: second vector.\n"
-             "   :type other: :class:`Vector`\n"
-             "   :return: the rotational difference between the two vectors.\n"
-             "   :rtype: :class:`Quaternion`\n"
-             "\n"
-             "   .. note:: 2D vectors raise an :exc:`AttributeError`.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_rotation_difference_doc,
+    ".. function:: rotation_difference(other)\n"
+    "\n"
+    "   Returns a quaternion representing the rotational difference between this\n"
+    "   vector and another.\n"
+    "\n"
+    "   :arg other: second vector.\n"
+    "   :type other: :class:`Vector`\n"
+    "   :return: the rotational difference between the two vectors.\n"
+    "   :rtype: :class:`Quaternion`\n"
+    "\n"
+    "   .. note:: 2D vectors raise an :exc:`AttributeError`.\n");
 static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 {
   float quat[4], vec_a[3], vec_b[3];
@@ -1248,15 +1294,17 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 /** \name Vector Methods: Project
  * \{ */
 
-PyDoc_STRVAR(Vector_project_doc,
-             ".. function:: project(other)\n"
-             "\n"
-             "   Return the projection of this vector onto the *other*.\n"
-             "\n"
-             "   :arg other: second vector.\n"
-             "   :type other: :class:`Vector`\n"
-             "   :return: the parallel projection vector\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_project_doc,
+    ".. function:: project(other)\n"
+    "\n"
+    "   Return the projection of this vector onto the *other*.\n"
+    "\n"
+    "   :arg other: second vector.\n"
+    "   :type other: :class:`Vector`\n"
+    "   :return: the parallel projection vector\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_project(VectorObject *self, PyObject *value)
 {
   const int vec_num = self->vec_num;
@@ -1293,17 +1341,19 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 /** \name Vector Methods: Linear Interpolation
  * \{ */
 
-PyDoc_STRVAR(Vector_lerp_doc,
-             ".. function:: lerp(other, factor)\n"
-             "\n"
-             "   Returns the interpolation of two vectors.\n"
-             "\n"
-             "   :arg other: value to interpolate with.\n"
-             "   :type other: :class:`Vector`\n"
-             "   :arg factor: The interpolation value in [0.0, 1.0].\n"
-             "   :type factor: float\n"
-             "   :return: The interpolated vector.\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_lerp_doc,
+    ".. function:: lerp(other, factor)\n"
+    "\n"
+    "   Returns the interpolation of two vectors.\n"
+    "\n"
+    "   :arg other: value to interpolate with.\n"
+    "   :type other: :class:`Vector`\n"
+    "   :arg factor: The interpolation value in [0.0, 1.0].\n"
+    "   :type factor: float\n"
+    "   :return: The interpolated vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 {
   const int vec_num = self->vec_num;
@@ -1336,21 +1386,23 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 /** \name Vector Methods: Spherical Interpolation
  * \{ */
 
-PyDoc_STRVAR(Vector_slerp_doc,
-             ".. function:: slerp(other, factor, fallback=None)\n"
-             "\n"
-             "   Returns the interpolation of two non-zero vectors (spherical coordinates).\n"
-             "\n"
-             "   :arg other: value to interpolate with.\n"
-             "   :type other: :class:`Vector`\n"
-             "   :arg factor: The interpolation value typically in [0.0, 1.0].\n"
-             "   :type factor: float\n"
-             "   :arg fallback: return this when the vector can't be calculated (zero length "
-             "vector or direct opposites),\n"
-             "      (instead of raising a :exc:`ValueError`).\n"
-             "   :type fallback: any\n"
-             "   :return: The interpolated vector.\n"
-             "   :rtype: :class:`Vector`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_slerp_doc,
+    ".. function:: slerp(other, factor, fallback=None)\n"
+    "\n"
+    "   Returns the interpolation of two non-zero vectors (spherical coordinates).\n"
+    "\n"
+    "   :arg other: value to interpolate with.\n"
+    "   :type other: :class:`Vector`\n"
+    "   :arg factor: The interpolation value typically in [0.0, 1.0].\n"
+    "   :type factor: float\n"
+    "   :arg fallback: return this when the vector can't be calculated (zero length "
+    "vector or direct opposites),\n"
+    "      (instead of raising a :exc:`ValueError`).\n"
+    "   :type fallback: any\n"
+    "   :return: The interpolated vector.\n"
+    "   :rtype: :class:`Vector`\n");
 static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
 {
   const int vec_num = self->vec_num;
@@ -1430,6 +1482,7 @@ static PyObject *Vector_slerp(VectorObject *self, PyObject *args)
  * \{ */
 
 PyDoc_STRVAR(
+    /* Wrap. */
     Vector_rotate_doc,
     ".. function:: rotate(other)\n"
     "\n"
@@ -1476,10 +1529,12 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 /** \name Vector Methods: Negate
  * \{ */
 
-PyDoc_STRVAR(Vector_negate_doc,
-             ".. method:: negate()\n"
-             "\n"
-             "   Set all values to their negative.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_negate_doc,
+    ".. method:: negate()\n"
+    "\n"
+    "   Set all values to their negative.\n");
 static PyObject *Vector_negate(VectorObject *self)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -1498,16 +1553,18 @@ static PyObject *Vector_negate(VectorObject *self)
 /** \name Vector Methods: Copy/Deep-Copy
  * \{ */
 
-PyDoc_STRVAR(Vector_copy_doc,
-             ".. function:: copy()\n"
-             "\n"
-             "   Returns a copy of this vector.\n"
-             "\n"
-             "   :return: A copy of the vector.\n"
-             "   :rtype: :class:`Vector`\n"
-             "\n"
-             "   .. note:: use this to get a copy of a wrapped vector with\n"
-             "      no reference to the original data.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_copy_doc,
+    ".. function:: copy()\n"
+    "\n"
+    "   Returns a copy of this vector.\n"
+    "\n"
+    "   :return: A copy of the vector.\n"
+    "   :rtype: :class:`Vector`\n"
+    "\n"
+    "   .. note:: use this to get a copy of a wrapped vector with\n"
+    "      no reference to the original data.\n");
 static PyObject *Vector_copy(VectorObject *self)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -1782,7 +1839,7 @@ static PyObject *Vector_slice(VectorObject *self, int begin, int end)
     end = self->vec_num + end + 1;
   }
   CLAMP(end, 0, self->vec_num);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   tuple = PyTuple_New(end - begin);
   for (count = begin; count < end; count++) {
@@ -1804,7 +1861,7 @@ static int Vector_ass_slice(VectorObject *self, int begin, int end, PyObject *se
 
   CLAMP(begin, 0, self->vec_num);
   CLAMP(end, 0, self->vec_num);
-  begin = MIN2(begin, end);
+  begin = std::min(begin, end);
 
   vec_num = (end - begin);
   if (mathutils_array_parse_alloc(&vec, vec_num, seq, "vector[begin:end] = [...]") == -1) {
@@ -2467,10 +2524,30 @@ static PyNumberMethods Vector_NumMethods = {
 
 /* Vector axis: `vector.x/y/z/w`. */
 
-PyDoc_STRVAR(Vector_axis_x_doc, "Vector X axis.\n\n:type: float");
-PyDoc_STRVAR(Vector_axis_y_doc, "Vector Y axis.\n\n:type: float");
-PyDoc_STRVAR(Vector_axis_z_doc, "Vector Z axis (3D Vectors only).\n\n:type: float");
-PyDoc_STRVAR(Vector_axis_w_doc, "Vector W axis (4D Vectors only).\n\n:type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_axis_x_doc,
+    "Vector X axis.\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_axis_y_doc,
+    "Vector Y axis.\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_axis_z_doc,
+    "Vector Z axis (3D Vectors only).\n"
+    "\n"
+    ":type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_axis_w_doc,
+    "Vector W axis (4D Vectors only).\n"
+    "\n"
+    ":type: float");
 
 static PyObject *Vector_axis_get(VectorObject *self, void *type)
 {
@@ -2484,7 +2561,12 @@ static int Vector_axis_set(VectorObject *self, PyObject *value, void *type)
 
 /* `Vector.length`. */
 
-PyDoc_STRVAR(Vector_length_doc, "Vector Length.\n\n:type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_length_doc,
+    "Vector Length.\n"
+    "\n"
+    ":type: float");
 static PyObject *Vector_length_get(VectorObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -2539,7 +2621,12 @@ static int Vector_length_set(VectorObject *self, PyObject *value)
 }
 
 /* `Vector.length_squared`. */
-PyDoc_STRVAR(Vector_length_squared_doc, "Vector length squared (v.dot(v)).\n\n:type: float");
+PyDoc_STRVAR(
+    /* Wrap. */
+    Vector_length_squared_doc,
+    "Vector length squared (v.dot(v)).\n"
+    "\n"
+    ":type: float");
 static PyObject *Vector_length_squared_get(VectorObject *self, void * /*closure*/)
 {
   if (BaseMath_ReadCallback(self) == -1) {
@@ -3341,13 +3428,15 @@ static PyMethodDef Vector_methods[] = {
 #  define Vector_str nullptr
 #endif
 
-PyDoc_STRVAR(vector_doc,
-             ".. class:: Vector(seq)\n"
-             "\n"
-             "   This object gives access to Vectors in Blender.\n"
-             "\n"
-             "   :arg seq: Components of the vector, must be a sequence of at least two\n"
-             "   :type seq: sequence of numbers\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    vector_doc,
+    ".. class:: Vector(seq)\n"
+    "\n"
+    "   This object gives access to Vectors in Blender.\n"
+    "\n"
+    "   :arg seq: Components of the vector, must be a sequence of at least two\n"
+    "   :type seq: sequence of numbers\n");
 PyTypeObject vector_Type = {
     /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Vector",

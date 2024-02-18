@@ -6,8 +6,9 @@
  * \ingroup texnodes
  */
 
+#include <algorithm>
+
 #include "BKE_colortools.hh"
-#include "NOD_texture.h"
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
@@ -29,7 +30,7 @@ static void time_colorfn(
   CurveMapping *mapping = static_cast<CurveMapping *>(node->storage);
   BKE_curvemapping_init(mapping);
   fac = BKE_curvemapping_evaluateF(mapping, 0, fac);
-  out[0] = CLAMPIS(fac, 0.0f, 1.0f);
+  out[0] = std::clamp(fac, 0.0f, 1.0f);
 }
 
 static void time_exec(void *data,

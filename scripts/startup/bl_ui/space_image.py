@@ -231,7 +231,7 @@ class IMAGE_MT_image(Menu):
 
             layout.menu("IMAGE_MT_image_invert")
             layout.operator("image.resize", text="Resize")
-            layout.menu("IMAGE_MT_image_flip")
+            layout.menu("IMAGE_MT_image_transform")
 
         if ima and not show_render:
             if ima.packed_file:
@@ -248,13 +248,17 @@ class IMAGE_MT_image(Menu):
             layout.operator("gpencil.image_to_grease_pencil", text="Generate Grease Pencil")
 
 
-class IMAGE_MT_image_flip(Menu):
-    bl_label = "Flip"
+class IMAGE_MT_image_transform(Menu):
+    bl_label = "Transform"
 
     def draw(self, _context):
         layout = self.layout
-        layout.operator("image.flip", text="Horizontally").use_flip_x = True
-        layout.operator("image.flip", text="Vertically").use_flip_y = True
+        layout.operator("image.flip", text="Flip Horizontally").use_flip_x = True
+        layout.operator("image.flip", text="Flip Vertically").use_flip_y = True
+        layout.separator()
+        layout.operator("image.rotate_orthogonal", text="Rotate 90\u00B0 Clockwise").degrees = '90'
+        layout.operator("image.rotate_orthogonal", text="Rotate 90\u00B0 Counter-Clockwise").degrees = '270'
+        layout.operator("image.rotate_orthogonal", text="Rotate 180\u00B0").degrees = '180'
 
 
 class IMAGE_MT_image_invert(Menu):
@@ -1427,8 +1431,11 @@ class IMAGE_PT_view_vectorscope(ImageScopesPanel, Panel):
         layout = self.layout
 
         sima = context.space_data
+
         layout.template_vectorscope(sima, "scopes")
-        layout.prop(sima.scopes, "vectorscope_alpha")
+        row = layout.split(factor=0.75)
+        row.prop(sima.scopes, "vectorscope_alpha")
+        row.prop(sima.scopes, "vectorscope_mode", text="")
 
 
 class IMAGE_PT_sample_line(ImageScopesPanel, Panel):
@@ -1684,7 +1691,7 @@ classes = (
     IMAGE_MT_select,
     IMAGE_MT_select_linked,
     IMAGE_MT_image,
-    IMAGE_MT_image_flip,
+    IMAGE_MT_image_transform,
     IMAGE_MT_image_invert,
     IMAGE_MT_uvs,
     IMAGE_MT_uvs_showhide,

@@ -10,7 +10,7 @@
 
 #include <cstdio>
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 void BKE_subdiv_stats_init(SubdivStats *stats)
 {
@@ -26,12 +26,12 @@ void BKE_subdiv_stats_init(SubdivStats *stats)
 
 void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value)
 {
-  stats->begin_timestamp_[value] = PIL_check_seconds_timer();
+  stats->begin_timestamp_[value] = BLI_time_now_seconds();
 }
 
 void BKE_subdiv_stats_end(SubdivStats *stats, eSubdivStatsValue value)
 {
-  stats->values_[value] = PIL_check_seconds_timer() - stats->begin_timestamp_[value];
+  stats->values_[value] = BLI_time_now_seconds() - stats->begin_timestamp_[value];
 }
 
 void BKE_subdiv_stats_reset(SubdivStats *stats, eSubdivStatsValue value)

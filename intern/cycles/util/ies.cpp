@@ -154,11 +154,7 @@ bool IESFile::parse(const string &ies)
   int h_angles_num = parser.get_long(); /* Number of horizontal angles */
   type = (IESType)parser.get_long();    /* Photometric type */
 
-  /* TODO(lukas): Test whether the current type B processing can also deal with type A files.
-   * In theory the only difference should be orientation which we ignore anyways, but with IES you
-   * never know...
-   */
-  if (type != TYPE_B && type != TYPE_C) {
+  if (type != TYPE_A && type != TYPE_B && type != TYPE_C) {
     return false;
   }
 
@@ -205,8 +201,26 @@ bool IESFile::parse(const string &ies)
   return !parser.has_error();
 }
 
-bool IESFile::process_type_b()
+static bool angle_close(float a, float b)
 {
+  return fabsf(a - b) < 1e-4f;
+}
+
+/* Processing functions to turn file contents into the format that Cycles expects.
+ * Handles type conversion (the output format is based on Type C), symmetry/mirroring,
+ * value shifting etc.
+ * Note that this code is much more forgiving than the spec. For example, in type A and B,
+ * the range of vertical angles officially must be either exactly 0°-90° or -90°-90°.
+ * However, in practice, IES files are all over the place. Therefore, the handling is as
+ * flexible as possible, and tries to turn any input into something useful. */
+
+void IESFile::process_type_b()
+{
+  /* According to the standard, Type B defines a different coordinate system where the polar axis
+   * is horizontal, not vertical.
+   * To avoid over complicating the conversion logic, we just transpose the angles and use the
+   * regular Type A/C coordinate system. Users can just rotate the light to get the "proper"
+   * orientation. */
   vector<vector<float>> newintensity;
   newintensity.resize(v_angles.size());
   for (int i = 0; i < v_angles.size(); i++) {
@@ -218,14 +232,8 @@ bool IESFile::process_type_b()
   intensity.swap(newintensity);
   h_angles.swap(v_angles);
 
-  float h_first = h_angles[0], h_last = h_angles[h_angles.size() - 1];
-  if (h_last != 90.0f) {
-    return false;
-  }
-
-  if (h_first == 0.0f) {
-    /* The range in the file corresponds to 90°-180°, we need to mirror that to get the
-     * full 180° range. */
+  if (angle_close(h_angles[0], 0.0f)) {
+    /* File angles cover 0°-90°. Mirror that to -90°-90°, and shift to 0°-180° to match Cycles. */
     vector<float> new_h_angles;
     vector<vector<float>> new_intensity;
     int hnum = h_angles.size();
@@ -242,26 +250,15 @@ bool IESFile::process_type_b()
     h_angles.swap(new_h_angles);
     intensity.swap(new_intensity);
   }
-  else if (h_first == -90.0f) {
-    /* We have full 180° coverage, so just shift to match the angle range convention. */
+  else {
+    /* File angles cover -90°-90°. Shift to 0°-180° to match Cycles. */
     for (int i = 0; i < h_angles.size(); i++) {
       h_angles[i] += 90.0f;
     }
   }
-  /* To get correct results with the cubic interpolation in the kernel, the horizontal range
-   * has to cover all 360°. Therefore, we copy the 0° entry to 360° to ensure full coverage
-   * and seamless interpolation. */
-  h_angles.push_back(360.0f);
-  intensity.push_back(intensity[0]);
 
-  float v_first = v_angles[0], v_last = v_angles[v_angles.size() - 1];
-  if (v_last != 90.0f) {
-    return false;
-  }
-
-  if (v_first == 0.0f) {
-    /* The range in the file corresponds to 90°-180°, we need to mirror that to get the
-     * full 180° range. */
+  if (angle_close(v_angles[0], 0.0f)) {
+    /* File angles cover 0°-90°. Mirror that to -90°-90°, and shift to 0°-180° to match Cycles. */
     vector<float> new_v_angles;
     int hnum = h_angles.size();
     int vnum = v_angles.size();
@@ -275,7 +272,7 @@ bool IESFile::process_type_b()
     for (int i = 0; i < hnum; i++) {
       vector<float> new_intensity;
       new_intensity.reserve(2 * vnum - 1);
-      for (int j = vnum - 2; j >= 0; j--) {
+      for (int j = vnum - 1; j > 0; j--) {
         new_intensity.push_back(intensity[i][j]);
       }
       new_intensity.insert(new_intensity.end(), intensity[i].begin(), intensity[i].end());
@@ -283,36 +280,64 @@ bool IESFile::process_type_b()
     }
     v_angles.swap(new_v_angles);
   }
-  else if (v_first == -90.0f) {
-    /* We have full 180° coverage, so just shift to match the angle range convention. */
+  else {
+    /* File angles cover -90°-90°. Shift to 0°-180° to match Cycles. */
     for (int i = 0; i < v_angles.size(); i++) {
       v_angles[i] += 90.0f;
     }
   }
-
-  return true;
 }
 
-bool IESFile::process_type_c()
+void IESFile::process_type_a()
 {
-  if (h_angles[0] == 90.0f) {
-    /* Some files are stored from 90° to 270°, so we just rotate them to the regular 0°-180° range
-     * here. */
+  /* Convert vertical angles - just a simple offset. */
+  for (int i = 0; i < v_angles.size(); i++) {
+    v_angles[i] += 90.0f;
+  }
+
+  vector<float> new_h_angles;
+  new_h_angles.reserve(h_angles.size());
+  vector<vector<float>> new_intensity;
+  new_intensity.reserve(h_angles.size());
+
+  /* Type A goes from -90° to 90°, which is mapped to 270° to 90° respectively in Type C. */
+  for (int i = h_angles.size() - 1; i >= 0; i--) {
+    new_h_angles.push_back(180.0f - h_angles[i]);
+    new_intensity.push_back(intensity[i]);
+  }
+
+  /* If the file angles start at 0°, we need to mirror around that.
+   * Since the negative input range (which we generate here) maps to 180° to 270°,
+   * it comes after the original entries in the output. */
+  if (angle_close(h_angles[0], 0.0f)) {
+    new_h_angles.reserve(2 * h_angles.size() - 1);
+    new_intensity.reserve(2 * h_angles.size() - 1);
+    for (int i = 1; i < h_angles.size(); i++) {
+      new_h_angles.push_back(180.0f + h_angles[i]);
+      new_intensity.push_back(intensity[i]);
+    }
+  }
+
+  h_angles.swap(new_h_angles);
+  intensity.swap(new_intensity);
+}
+
+void IESFile::process_type_c()
+{
+  if (angle_close(h_angles[0], 90.0f)) {
+    /* Some files are stored from 90° to 270°, so rotate them to the regular 0°-180° range. */
     for (int i = 0; i < h_angles.size(); i++) {
       h_angles[i] -= 90.0f;
     }
   }
 
-  if (h_angles[0] != 0.0f) {
-    return false;
-  }
-
   if (h_angles.size() == 1) {
+    h_angles[0] = 0.0f;
     h_angles.push_back(360.0f);
     intensity.push_back(intensity[0]);
   }
 
-  if (h_angles[h_angles.size() - 1] == 90.0f) {
+  if (angle_close(h_angles[h_angles.size() - 1], 90.0f)) {
     /* Only one quadrant is defined, so we need to mirror twice (from one to two, then to four).
      * Since the two->four mirroring step might also be required if we get an input of two
      * quadrants, we only do the first mirror here and later do the second mirror in either case.
@@ -324,7 +349,7 @@ bool IESFile::process_type_c()
     }
   }
 
-  if (h_angles[h_angles.size() - 1] == 180.0f) {
+  if (angle_close(h_angles[h_angles.size() - 1], 180.0f)) {
     /* Mirror half to the full range. */
     int hnum = h_angles.size();
     for (int i = hnum - 2; i >= 0; i--) {
@@ -335,31 +360,16 @@ bool IESFile::process_type_c()
 
   /* Some files skip the 360° entry (contrary to standard) because it's supposed to be identical to
    * the 0° entry. If the file has a discernible order in its spacing, just fix this. */
-  if (h_angles[h_angles.size() - 1] != 360.0f) {
+  if (angle_close(h_angles[0], 0.0f) && !angle_close(h_angles[h_angles.size() - 1], 360.0f)) {
     int hnum = h_angles.size();
     float last_step = h_angles[hnum - 1] - h_angles[hnum - 2];
     float first_step = h_angles[1] - h_angles[0];
-    float difference = 360.0f - h_angles[hnum - 1];
-    if (last_step == difference || first_step == difference) {
+    float gap_step = 360.0f - h_angles[hnum - 1];
+    if (angle_close(last_step, gap_step) || angle_close(first_step, gap_step)) {
       h_angles.push_back(360.0f);
       intensity.push_back(intensity[0]);
     }
-    else {
-      return false;
-    }
   }
-
-  float v_first = v_angles[0], v_last = v_angles[v_angles.size() - 1];
-  if (v_first == 90.0f) {
-    if (v_last != 180.0f) {
-      return false;
-    }
-  }
-  else if (v_first != 0.0f) {
-    return false;
-  }
-
-  return true;
 }
 
 bool IESFile::process()
@@ -368,21 +378,18 @@ bool IESFile::process()
     return false;
   }
 
-  if (type == TYPE_B) {
-    if (!process_type_b()) {
-      return false;
-    }
+  if (type == TYPE_A) {
+    process_type_a();
+  }
+  else if (type == TYPE_B) {
+    process_type_b();
+  }
+  else if (type == TYPE_C) {
+    process_type_c();
   }
   else {
-    assert(type == TYPE_C);
-    if (!process_type_c()) {
-      return false;
-    }
+    return false;
   }
-
-  assert(v_angles[0] == 0.0f || v_angles[0] == 90.0f);
-  assert(h_angles[0] == 0.0f);
-  assert(h_angles[h_angles.size() - 1] == 360.0f);
 
   /* Convert from deg to rad. */
   for (int i = 0; i < v_angles.size(); i++) {

@@ -125,9 +125,6 @@ class ConvertColorToVectorOperation : public ConversionOperation {
  * components.
  * \{ */
 
-/*
- *
- * */
 class ConvertVectorToFloatOperation : public ConversionOperation {
  public:
   ConvertVectorToFloatOperation(Context &context);

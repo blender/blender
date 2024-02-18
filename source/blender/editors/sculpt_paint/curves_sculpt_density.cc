@@ -14,7 +14,7 @@
 #include "BKE_mesh_sample.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
@@ -27,8 +27,6 @@
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
 #include "BLI_task.hh"
-
-#include "PIL_time.h"
 
 #include "GEO_add_curves_on_mesh.hh"
 
@@ -160,13 +158,11 @@ struct DensityAddOperationExecutor {
     brush_radius_re_ = brush_radius_get(*ctx_.scene, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
-    const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
-        brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     Vector<float3> new_positions_cu;
     Vector<float2> new_uvs;
-    const double time = PIL_check_seconds_timer() * 1000000.0;
-    RandomNumberGenerator rng{*(uint32_t *)(&time)};
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
     /* Find potential new curve root points. */
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
@@ -565,8 +561,7 @@ struct DensitySubtractOperationExecutor {
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
-    const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
-        brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     if (stroke_extension.is_first) {
       const bke::crazyspace::GeometryDeformation deformation =
@@ -636,7 +631,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
       for (const int curve_i : range) {
         if (!curves_to_keep[curve_i]) {
@@ -726,7 +721,7 @@ struct DensitySubtractOperationExecutor {
      * strength. */
     Array<bool> allow_remove_curve(curves_->curves_num(), false);
     threading::parallel_for(curves_->curves_range(), 512, [&](const IndexRange range) {
-      RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
+      RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
 
       for (const int curve_i : range) {
         if (!curves_to_keep[curve_i]) {
@@ -802,7 +797,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
   const ARegion &region = *CTX_wm_region(&C);
   const View3D &v3d = *CTX_wm_view3d(&C);
 
-  const eBrushCurvesSculptDensityMode density_mode = static_cast<eBrushCurvesSculptDensityMode>(
+  const eBrushCurvesSculptDensityMode density_mode = eBrushCurvesSculptDensityMode(
       brush.curves_sculpt_settings->density_mode);
   const bool use_invert = brush_mode == BRUSH_STROKE_INVERT;
 

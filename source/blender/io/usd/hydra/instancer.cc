@@ -2,16 +2,21 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "instancer.h"
+#include "instancer.hh"
 
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/imaging/hd/light.h>
 
+#include "BKE_particle.h"
+
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
 #include "DEG_depsgraph_query.hh"
 
-#include "hydra_scene_delegate.h"
+#include "DNA_particle_types.h"
+
+#include "hydra_scene_delegate.hh"
 
 namespace blender::io::hydra {
 
@@ -157,8 +162,26 @@ void InstancerData::update_instance(DupliObject *dupli)
       nm_inst = &nonmesh_instances_.lookup_or_add_default(p_id);
       nm_inst->data = ObjectData::create(scene_delegate_, object, p_id);
     }
-    ID_LOG(2, "Light %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
+    ID_LOG(2, "Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
     nm_inst->transforms.push_back(gf_matrix_from_transform(dupli->mat));
+  }
+
+  LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+    if (psys_in_edit_mode(scene_delegate_->depsgraph, psys)) {
+      continue;
+    }
+    if (HairData::is_supported(psys) && HairData::is_visible(scene_delegate_, object, psys)) {
+      pxr::SdfPath h_id = hair_prim_id(object, psys);
+      NonmeshInstance *nm_inst = nonmesh_instance(h_id);
+      if (!nm_inst) {
+        nm_inst = &nonmesh_instances_.lookup_or_add_default(h_id);
+        nm_inst->data = std::make_unique<HairData>(scene_delegate_, object, h_id, psys);
+        nm_inst->data->init();
+      }
+      ID_LOG(2, "Nonmesh %s %d", nm_inst->data->id->name, int(nm_inst->transforms.size()));
+      nm_inst->transforms.push_back(gf_matrix_from_transform(psys->imat) *
+                                    gf_matrix_from_transform(dupli->mat));
+    }
   }
 }
 
@@ -208,6 +231,14 @@ pxr::SdfPath InstancerData::object_prim_id(Object *object) const
   return prim_id.AppendElementString(name);
 }
 
+pxr::SdfPath InstancerData::hair_prim_id(Object *parent_obj, const ParticleSystem *psys) const
+{
+  /* Making id of object in form like <prefix>_<pointer in 16 hex digits format> */
+  char name[128];
+  SNPRINTF(name, "%s_PS_%p", object_prim_id(parent_obj).GetName().c_str(), psys);
+  return prim_id.AppendElementString(name);
+}
+
 pxr::SdfPath InstancerData::nonmesh_prim_id(pxr::SdfPath const &prim_id, int index) const
 {
   char name[16];
@@ -228,17 +259,17 @@ void InstancerData::update_nonmesh_instance(NonmeshInstance &nm_inst)
   pxr::SdfPath prev_id = nm_inst.data->prim_id;
   int i;
 
-  /* Remove old light instances */
+  /* Remove old Nonmesh instances */
   while (nm_inst.count > nm_inst.transforms.size()) {
     --nm_inst.count;
     obj_data->prim_id = nonmesh_prim_id(prev_id, nm_inst.count);
     obj_data->remove();
   }
 
-  /* Update current light instances */
+  /* NOTE: Special case: recreate instances when prim_type was changed.
+   * Doing only update for other Nonmesh objects. */
   LightData *l_data = dynamic_cast<LightData *>(obj_data);
   if (l_data && l_data->prim_type((Light *)((Object *)l_data->id)->data) != l_data->prim_type_) {
-    /* Special case: recreate instances when prim_type was changed */
     for (i = 0; i < nm_inst.count; ++i) {
       obj_data->prim_id = nonmesh_prim_id(prev_id, i);
       obj_data->remove();
@@ -256,7 +287,7 @@ void InstancerData::update_nonmesh_instance(NonmeshInstance &nm_inst)
     }
   }
 
-  /* Add new light instances */
+  /* Add new Nonmesh instances */
   while (nm_inst.count < nm_inst.transforms.size()) {
     obj_data->prim_id = nonmesh_prim_id(prev_id, nm_inst.count);
     obj_data->insert();

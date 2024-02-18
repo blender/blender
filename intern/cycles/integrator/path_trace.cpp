@@ -492,7 +492,12 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
 
   if (denoiser_) {
     const DenoiseParams old_denoiser_params = denoiser_->get_params();
-    if (old_denoiser_params.type == params.type) {
+    const bool is_same_denoising_device_type = old_denoiser_params.use_gpu == params.use_gpu;
+    /* Optix Denoiser is not supporting CPU devices, so use_gpu option is not
+     * shown in the UI and changes in the option value should not be checked. */
+    if (old_denoiser_params.type == params.type &&
+        (is_same_denoising_device_type || params.type == DENOISER_OPTIX))
+    {
       denoiser_->set_params(params);
       return;
     }
@@ -996,6 +1001,9 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
 
   if (denoise_params.use) {
     progress_set_status(layer_view_name, "Denoising");
+
+    /* If GPU should be used is not based on file metadata. */
+    denoise_params.use_gpu = render_scheduler_.is_denoiser_gpu_used();
 
     /* Re-use the denoiser as much as possible, avoiding possible device re-initialization.
      *

@@ -176,6 +176,8 @@ typedef struct BrushCurvesSculptSettings {
   struct CurveMapping *curve_parameter_falloff;
 } BrushCurvesSculptSettings;
 
+/** Max number of propagation steps for automasking settings.*/
+#define AUTOMASKING_BOUNDARY_EDGES_MAX_PROPAGATION_STEPS 20
 typedef struct Brush {
   DNA_DEFINE_CXX_METHODS(Brush)
 
@@ -218,6 +220,9 @@ typedef struct Brush {
   int flag;
   int flag2;
   int sampling_flag;
+
+  /** Number of samples used to smooth the stroke. */
+  int input_samples;
 
   /** Pressure influence for mask. */
   int mask_pressure;
@@ -275,7 +280,7 @@ typedef struct Brush {
   /** Source for fill tool color gradient application. */
   char gradient_fill_mode;
 
-  char _pad0[1];
+  char _pad0;
 
   /** Projection shape (sphere, circle). */
   char falloff_shape;
@@ -341,6 +346,11 @@ typedef struct Brush {
   /* automasking */
   int automasking_flags;
   int automasking_boundary_edges_propagation_steps;
+
+  float automasking_start_normal_limit;
+  float automasking_start_normal_falloff;
+  float automasking_view_normal_limit;
+  float automasking_view_normal_falloff;
 
   int elastic_deform_type;
   float elastic_deform_volume_preservation;
@@ -424,6 +434,7 @@ typedef struct Brush {
   float concave_mask_factor;
 
   float sharp_angle_limit;
+  char _pad2[4];
   struct BrushGpencilSettings *gpencil_settings;
 
   DynTopoSettings dyntopo;

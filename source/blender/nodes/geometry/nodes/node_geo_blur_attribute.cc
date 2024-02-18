@@ -88,6 +88,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     /* Don't implement quaternion blurring for now. */
     return;
   }
+  if (fixed_data_type == CD_PROP_FLOAT4X4) {
+    /* Don't implement matrix blurring for now. */
+    return;
+  }
   if (fixed_data_type == CD_PROP_BOOL) {
     /* This node does not support boolean sockets, use integer instead. */
     fixed_data_type = CD_PROP_INT32;
@@ -428,7 +432,7 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
 
   uint64_t hash() const override
   {
-    return get_default_hash_3(iterations_, weight_field_, value_field_);
+    return get_default_hash(iterations_, weight_field_, value_field_);
   }
 
   bool is_equal_to(const fn::FieldNode &other) const override

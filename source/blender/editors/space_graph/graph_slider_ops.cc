@@ -27,7 +27,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 
@@ -127,7 +127,7 @@ static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const ch
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, TIP_(operator_name));
+  STRNCPY(mode_str, IFACE_(operator_name));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -432,7 +432,7 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
-      WM_report(RPT_WARNING, "Decimate: Skipping non linear/bezier keyframes!");
+      WM_report(RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
     }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
@@ -451,7 +451,7 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
 
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, TIP_("Decimate Keyframes"));
+  STRNCPY(mode_str, IFACE_("Decimate Keyframes"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1451,7 +1451,7 @@ static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
   char slider_string[UI_MAX_DRAW_STR];
   ED_slider_status_string_get(gso->slider, slider_string, UI_MAX_DRAW_STR);
 
-  STRNCPY(mode_str, TIP_("Shear Keys"));
+  STRNCPY(mode_str, IFACE_("Shear Keys"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -1461,7 +1461,7 @@ static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
   else {
-    const char *operator_string = "D - Toggle Direction";
+    const char *operator_string = IFACE_("D - Toggle Direction");
     SNPRINTF(status_str, "%s: %s | %s", mode_str, slider_string, operator_string);
   }
 
@@ -2330,15 +2330,15 @@ static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
   const FCurveSegmentAnchor anchor = FCurveSegmentAnchor(RNA_enum_get(op->ptr, "anchor"));
   switch (anchor) {
     case FCurveSegmentAnchor::LEFT:
-      SNPRINTF(op_slider_string, "%s | %s", slider_string, "[D] - Scale From Right End");
+      SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[D] - Scale From Right End"));
       break;
 
     case FCurveSegmentAnchor::RIGHT:
-      SNPRINTF(op_slider_string, "%s | %s", slider_string, "[D] - Scale From Left End");
+      SNPRINTF(op_slider_string, "%s | %s", slider_string, IFACE_("[D] - Scale From Left End"));
       break;
   }
 
-  STRNCPY(mode_str, TIP_("Scale from Neighbor Keys"));
+  STRNCPY(mode_str, IFACE_("Scale from Neighbor Keys"));
 
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -2440,8 +2440,7 @@ void GRAPH_OT_scale_from_neighbor(wmOperatorType *ot)
   ot->name = "Scale from Neighbor";
   ot->idname = "GRAPH_OT_scale_from_neighbor";
   ot->description =
-      "Increase or decrease the value of selected keys \n\
-  in relationship to the neighboring one";
+      "Increase or decrease the value of selected keys in relationship to the neighboring one";
 
   /* API callbacks. */
   ot->invoke = scale_from_neighbor_invoke;

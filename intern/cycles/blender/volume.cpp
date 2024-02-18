@@ -231,7 +231,6 @@ class BlenderVolumeLoader : public VDBImageLoader {
       if (b_volume_grid.name() == grid_name) {
         const auto *volume_grid = static_cast<const blender::bke::VolumeGridData *>(
             b_volume_grid.ptr.data);
-        tree_access_token = volume_grid->tree_access_token();
         grid = volume_grid->grid_ptr(tree_access_token);
         break;
       }

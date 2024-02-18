@@ -182,7 +182,6 @@ void VKDevice::init_glsl_patch()
 
   ss << "#define gl_VertexID gl_VertexIndex\n";
   ss << "#define gpu_InstanceIndex (gl_InstanceIndex)\n";
-  ss << "#define GPU_ARB_texture_cube_map_array\n";
   ss << "#define gl_InstanceID (gpu_InstanceIndex - gpu_BaseInstance)\n";
 
   /* TODO(fclem): This creates a validation error and should be already part of Vulkan 1.2. */
@@ -317,7 +316,7 @@ void VKDevice::context_unregister(VKContext &context)
 {
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
 }
-const Vector<std::reference_wrapper<VKContext>> &VKDevice::contexts_get() const
+Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const
 {
   return contexts_;
 };

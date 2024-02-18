@@ -1836,9 +1836,7 @@ void get_next_crossing_from_edge(CrossData<T> *cd,
   }
 }
 
-constexpr int inline_crossings_size = 128;
-template<typename T>
-void dump_crossings(const Vector<CrossData<T>, inline_crossings_size> &crossings)
+template<typename T> void dump_crossings(const Span<CrossData<T>> crossings)
 {
   std::cout << "CROSSINGS\n";
   for (int i = 0; i < crossings.size(); ++i) {
@@ -1917,7 +1915,7 @@ void add_edge_constraint(
    * one hop. Saves a bunch of orient2d tests in that common case.
    */
   int visit = ++cdt_state->visit_count;
-  Vector<CrossData<T>, inline_crossings_size> crossings;
+  Vector<CrossData<T>, 128> crossings;
   crossings.append(CrossData<T>(T(0), v1, nullptr, nullptr));
   int n;
   while (!((n = crossings.size()) > 0 && crossings[n - 1].vert == v2)) {
@@ -1949,7 +1947,7 @@ void add_edge_constraint(
   }
 
   if (dbg_level > 0) {
-    dump_crossings(crossings);
+    dump_crossings<T>(crossings);
   }
 
   /*

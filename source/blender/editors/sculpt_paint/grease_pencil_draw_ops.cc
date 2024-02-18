@@ -4,7 +4,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -19,8 +19,6 @@
 #include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -120,7 +118,18 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
   operation->~GreasePencilStrokeOperation();
 }
 
-static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static bool grease_pencil_brush_stroke_poll(bContext *C)
+{
+  if (!ed::greasepencil::grease_pencil_painting_poll(C)) {
+    return false;
+  }
+  if (!WM_toolsystem_active_tool_is_brush(C)) {
+    return false;
+  }
+  return true;
+}
+
+static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);
@@ -156,15 +165,18 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
 
   /* If auto-key is on and the drawing at the current frame starts before the current frame a new
    * keyframe needs to be inserted. */
-  if (blender::animrig::is_autokey_on(scene) &&
-      active_layer.frame_key_at(current_frame) < current_frame)
-  {
+  const bool is_first = active_layer.sorted_keys().is_empty() ||
+                        (active_layer.sorted_keys().first() > current_frame);
+  const bool needs_new_drawing = is_first ||
+                                 (*active_layer.frame_key_at(current_frame) < current_frame);
+
+  if (blender::animrig::is_autokey_on(scene) && needs_new_drawing) {
     const ToolSettings *ts = CTX_data_tool_settings(C);
     if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
        * current frame. */
       grease_pencil.insert_duplicate_frame(
-          active_layer, active_layer.frame_key_at(current_frame), current_frame, false);
+          active_layer, *active_layer.frame_key_at(current_frame), current_frame, false);
     }
     else {
       /* Otherwise we just insert a blank keyframe at the current frame. */
@@ -192,12 +204,12 @@ static int grease_pencil_stroke_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int grease_pencil_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static int grease_pencil_brush_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   return paint_stroke_modal(C, op, event, reinterpret_cast<PaintStroke **>(&op->customdata));
 }
 
-static void grease_pencil_stroke_cancel(bContext *C, wmOperator *op)
+static void grease_pencil_brush_stroke_cancel(bContext *C, wmOperator *op)
 {
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
 }
@@ -208,9 +220,10 @@ static void GREASE_PENCIL_OT_brush_stroke(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_brush_stroke";
   ot->description = "Draw a new stroke in the active Grease Pencil object";
 
-  ot->invoke = grease_pencil_stroke_invoke;
-  ot->modal = grease_pencil_stroke_modal;
-  ot->cancel = grease_pencil_stroke_cancel;
+  ot->poll = grease_pencil_brush_stroke_poll;
+  ot->invoke = grease_pencil_brush_stroke_invoke;
+  ot->modal = grease_pencil_brush_stroke_modal;
+  ot->cancel = grease_pencil_brush_stroke_cancel;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -223,9 +236,9 @@ static void GREASE_PENCIL_OT_brush_stroke(wmOperatorType *ot)
 /** \name Toggle Draw Mode
  * \{ */
 
-static bool grease_pencil_mode_poll_view3d(bContext *C)
+static bool grease_pencil_mode_poll_paint_cursor(bContext *C)
 {
-  if (!ed::greasepencil::grease_pencil_painting_poll(C)) {
+  if (!grease_pencil_brush_stroke_poll(C)) {
     return false;
   }
   if (CTX_wm_region_view3d(C) == nullptr) {
@@ -246,7 +259,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
   ob->mode = OB_MODE_PAINT_GREASE_PENCIL;
 
   /* TODO: Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  ED_paint_cursor_start(&grease_pencil_paint->paint, grease_pencil_mode_poll_view3d);
+  ED_paint_cursor_start(&grease_pencil_paint->paint, grease_pencil_mode_poll_paint_cursor);
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */

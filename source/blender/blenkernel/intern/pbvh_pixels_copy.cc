@@ -11,8 +11,8 @@
 #include "BLI_vector.hh"
 #include "BLI_string_ref.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_image_wrappers.hh"
 #include "BKE_pbvh_api.hh"
@@ -473,7 +473,7 @@ struct Rows {
     return selected_pixels;
   }
 
-  void pack_into(const Vector<std::reference_wrapper<Pixel>> &selected_pixels,
+  void pack_into(const Span<std::reference_wrapper<Pixel>> selected_pixels,
                  CopyPixelTile &copy_tile) const
   {
     std::optional<std::reference_wrapper<CopyPixelGroup>> last_group = std::nullopt;

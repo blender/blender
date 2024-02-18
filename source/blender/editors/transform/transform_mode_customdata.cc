@@ -12,14 +12,13 @@
 #include "BLI_string.h"
 #include "BLI_task.h"
 
-#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -138,12 +137,12 @@ static void apply_value_impl(TransInfo *t, const char *value_name)
 
 static void applyCrease(TransInfo *t)
 {
-  apply_value_impl(t, TIP_("Crease"));
+  apply_value_impl(t, IFACE_("Crease"));
 }
 
 static void applyBevelWeight(TransInfo *t)
 {
-  apply_value_impl(t, TIP_("Bevel Weight"));
+  apply_value_impl(t, IFACE_("Bevel Weight"));
 }
 
 static void init_mode_impl(TransInfo *t)

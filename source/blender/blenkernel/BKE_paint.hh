@@ -15,13 +15,10 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_ordered_edge.hh"
 #include "BLI_set.hh"
-
-#include "BLI_math_vector_types.hh"
-#include "BLI_offset_indices.hh"
 #include "BLI_utildefines.h"
-#include "DNA_brush_types.h"
 
 #include "DNA_brush_enums.h"
+#include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_enums.h"
 #include "DNA_scene_enums.h"
@@ -100,29 +97,29 @@ extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
 extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
 
-enum ePaintMode {
-  PAINT_MODE_SCULPT = 0,
+enum class PaintMode : int8_t {
+  Sculpt = 0,
   /** Vertex color. */
-  PAINT_MODE_VERTEX = 1,
-  PAINT_MODE_WEIGHT = 2,
+  Vertex = 1,
+  Weight = 2,
   /** 3D view (projection painting). */
-  PAINT_MODE_TEXTURE_3D = 3,
+  Texture3D = 3,
   /** Image space (2D painting). */
-  PAINT_MODE_TEXTURE_2D = 4,
-  PAINT_MODE_SCULPT_UV = 5,
-  PAINT_MODE_GPENCIL = 6,
+  Texture2D = 4,
+  SculptUV = 5,
+  GPencil = 6,
   /* Grease Pencil Vertex Paint */
-  PAINT_MODE_VERTEX_GPENCIL = 7,
-  PAINT_MODE_SCULPT_GPENCIL = 8,
-  PAINT_MODE_WEIGHT_GPENCIL = 9,
+  VertexGPencil = 7,
+  SculptGPencil = 8,
+  WeightGPencil = 9,
   /** Curves. */
-  PAINT_MODE_SCULPT_CURVES = 10,
+  SculptCurves = 10,
 
   /** Keep last. */
-  PAINT_MODE_INVALID = 11,
+  Invalid = 11,
 };
 
-#define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PAINT_MODE_SCULPT_UV)
+#define PAINT_MODE_HAS_BRUSH(mode) !ELEM(mode, PaintMode::SculptUV)
 
 /* overlay invalidation */
 enum ePaintOverlayControlFlags {
@@ -187,7 +184,7 @@ PaintCurve *BKE_paint_curve_add(Main *bmain, const char *name);
  * Call when entering each respective paint mode.
  */
 bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint);
-void BKE_paint_init(Main *bmain, Scene *sce, ePaintMode mode, const uchar col[3]);
+void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3]);
 void BKE_paint_free(Paint *p);
 /**
  * Called when copying scene settings, so even if 'src' and 'tar' are the same still do a
@@ -200,17 +197,17 @@ void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint);
 
 void BKE_paint_cavity_curve_preset(Paint *p, int preset);
 
-eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode);
-bool BKE_paint_ensure_from_paintmode(Scene *sce, ePaintMode mode);
-Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode);
-const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
-const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(ePaintMode mode);
-const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode);
-uint BKE_paint_get_brush_tool_offset_from_paintmode(ePaintMode mode);
+eObjectMode BKE_paint_object_mode_from_paintmode(PaintMode mode);
+bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode);
+Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
+const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
+const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(PaintMode mode);
+const char *BKE_paint_get_tool_prop_id_from_paintmode(PaintMode mode);
+uint BKE_paint_get_brush_tool_offset_from_paintmode(PaintMode mode);
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
 Paint *BKE_paint_get_active_from_context(const bContext *C);
-ePaintMode BKE_paintmode_get_active_from_context(const bContext *C);
-ePaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
+PaintMode BKE_paintmode_get_active_from_context(const bContext *C);
+PaintMode BKE_paintmode_get_from_tool(const bToolRef *tref);
 Brush *BKE_paint_brush(Paint *paint);
 const Brush *BKE_paint_brush_for_read(const Paint *p);
 void BKE_paint_brush_set(Paint *paint, Brush *br);
@@ -261,7 +258,7 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    Brush *brush,
                                    const float mouse_pos[2],
                                    const float initial_mouse_pos[2],
-                                   ePaintMode paint_mode,
+                                   PaintMode paint_mode,
                                    bool stroke_has_started);
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation);
 

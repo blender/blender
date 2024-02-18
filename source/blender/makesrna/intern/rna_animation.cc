@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -22,7 +22,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_types.hh"
 
@@ -86,6 +86,8 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 };
 
 #ifdef RNA_RUNTIME
+
+#  include <algorithm>
 
 #  include "BLI_math_base.h"
 
@@ -325,6 +327,13 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain,
   /* check if we have registered this info before, and remove it */
   ksi = ANIM_keyingset_info_find_name(dummy_ksi.idname);
   if (ksi) {
+    BKE_reportf(reports,
+                RPT_INFO,
+                "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
+                error_prefix,
+                identifier,
+                dummy_ksi.idname);
+
     StructRNA *srna = ksi->rna_ext.srna;
     if (!(srna && rna_KeyingSetInfo_unregister(bmain, srna))) {
       BKE_reportf(reports,
@@ -496,7 +505,7 @@ static void rna_KeyingSet_active_ksPath_set(PointerRNA *ptr,
 static int rna_KeyingSet_active_ksPath_index_get(PointerRNA *ptr)
 {
   KeyingSet *ks = (KeyingSet *)ptr->data;
-  return MAX2(ks->active_path - 1, 0);
+  return std::max(ks->active_path - 1, 0);
 }
 
 static void rna_KeyingSet_active_ksPath_index_set(PointerRNA *ptr, int value)

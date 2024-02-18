@@ -9,6 +9,7 @@
  */
 
 #include <cstring>
+#include <fmt/format.h>
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -24,18 +25,18 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "UI_interface.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -1192,20 +1193,17 @@ const char *WM_key_event_string(const short type, const bool compact)
   return CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, it->name);
 }
 
-int WM_keymap_item_raw_to_string(const short shift,
-                                 const short ctrl,
-                                 const short alt,
-                                 const short oskey,
-                                 const short keymodifier,
-                                 const short val,
-                                 const short type,
-                                 const bool compact,
-                                 char *result,
-                                 const int result_maxncpy)
+std::optional<std::string> WM_keymap_item_raw_to_string(const short shift,
+                                                        const short ctrl,
+                                                        const short alt,
+                                                        const short oskey,
+                                                        const short keymodifier,
+                                                        const short val,
+                                                        const short type,
+                                                        const bool compact)
 {
   /* TODO: also support (some) value, like e.g. double-click? */
-  const char *result_array[12];
-  int i = 0;
+  blender::Vector<std::string_view, 12> result_array;
 
   const char *space = " ";
 
@@ -1214,136 +1212,80 @@ int WM_keymap_item_raw_to_string(const short shift,
   }
   else {
     if (shift) {
-      result_array[i++] = WM_key_event_string(EVT_LEFTSHIFTKEY, true);
-      result_array[i++] = space;
+      result_array.append(WM_key_event_string(EVT_LEFTSHIFTKEY, true));
+      result_array.append(space);
     }
     if (ctrl) {
-      result_array[i++] = WM_key_event_string(EVT_LEFTCTRLKEY, true);
-      result_array[i++] = space;
+      result_array.append(WM_key_event_string(EVT_LEFTCTRLKEY, true));
+      result_array.append(space);
     }
     if (alt) {
-      result_array[i++] = WM_key_event_string(EVT_LEFTALTKEY, true);
-      result_array[i++] = space;
+      result_array.append(WM_key_event_string(EVT_LEFTALTKEY, true));
+      result_array.append(space);
     }
     if (oskey) {
-      result_array[i++] = WM_key_event_string(EVT_OSKEY, true);
-      result_array[i++] = space;
+      result_array.append(WM_key_event_string(EVT_OSKEY, true));
+      result_array.append(space);
     }
   }
 
   if (keymodifier) {
-    result_array[i++] = WM_key_event_string(keymodifier, compact);
-    result_array[i++] = space;
+    result_array.append(WM_key_event_string(keymodifier, compact));
+    result_array.append(space);
   }
 
   if (type) {
     if (val == KM_DBL_CLICK) {
-      result_array[i++] = IFACE_("dbl-");
+      result_array.append(IFACE_("dbl-"));
     }
     else if (val == KM_CLICK_DRAG) {
-      result_array[i++] = IFACE_("drag-");
+      result_array.append(IFACE_("drag-"));
     }
-    result_array[i++] = WM_key_event_string(type, compact);
+    result_array.append(WM_key_event_string(type, compact));
   }
 
-  /* We assume size of buf is enough to always store any possible shortcut,
-   * but let's add a debug check about it! */
-  BLI_assert(i < ARRAY_SIZE(result_array));
-
-  if (i > 0 && result_array[i - 1] == space) {
-    i--;
+  if (result_array.last() == space) {
+    result_array.remove_last();
   }
 
-  return BLI_string_join_array(result, result_maxncpy, result_array, i);
+  return fmt::to_string(fmt::join(result_array, ""));
 }
 
-int WM_keymap_item_to_string(const wmKeyMapItem *kmi,
-                             const bool compact,
-                             char *result,
-                             const int result_maxncpy)
+std::optional<std::string> WM_keymap_item_to_string(const wmKeyMapItem *kmi, const bool compact)
 {
-  return WM_keymap_item_raw_to_string(kmi->shift,
-                                      kmi->ctrl,
-                                      kmi->alt,
-                                      kmi->oskey,
-                                      kmi->keymodifier,
-                                      kmi->val,
-                                      kmi->type,
-                                      compact,
-                                      result,
-                                      result_maxncpy);
+  return WM_keymap_item_raw_to_string(
+      kmi->shift, kmi->ctrl, kmi->alt, kmi->oskey, kmi->keymodifier, kmi->val, kmi->type, compact);
 }
 
-int WM_modalkeymap_items_to_string(const wmKeyMap *km,
-                                   const int propvalue,
-                                   const bool compact,
-                                   char *result,
-                                   const int result_maxncpy)
+std::optional<std::string> WM_modalkeymap_items_to_string(const wmKeyMap *km,
+                                                          const int propvalue,
+                                                          const bool compact)
 {
-  BLI_string_debug_size(result, result_maxncpy);
-  BLI_assert(result_maxncpy > 0);
-
   const wmKeyMapItem *kmi;
   if (km == nullptr || (kmi = WM_modalkeymap_find_propvalue(km, propvalue)) == nullptr) {
-    *result = '\0';
-    return 0;
+    return std::nullopt;
   }
 
-  int totlen = 0;
+  std::string result;
   do {
-    totlen += WM_keymap_item_to_string(kmi, compact, &result[totlen], result_maxncpy - totlen);
+    result += WM_keymap_item_to_string(kmi, compact).value_or("");
 
-    if ((kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) == nullptr ||
-        totlen >= (result_maxncpy - 2))
-    {
+    if ((kmi = wm_modalkeymap_find_propvalue_iter(km, kmi, propvalue)) == nullptr) {
       break;
     }
-
-    result[totlen++] = '/';
-    result[totlen] = '\0';
+    result += '/';
   } while (true);
 
-  return totlen;
+  return result;
 }
 
-int WM_modalkeymap_operator_items_to_string(wmOperatorType *ot,
-                                            const int propvalue,
-                                            const bool compact,
-                                            char *result,
-                                            const int result_maxncpy)
+std::optional<std::string> WM_modalkeymap_operator_items_to_string(wmOperatorType *ot,
+                                                                   const int propvalue,
+                                                                   const bool compact)
 {
-  BLI_string_debug_size_after_nil(result, result_maxncpy);
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   wmKeyMap *keymap = WM_keymap_active(wm, ot->modalkeymap);
-  return WM_modalkeymap_items_to_string(keymap, propvalue, compact, result, result_maxncpy);
-}
-
-char *WM_modalkeymap_operator_items_to_string_buf(wmOperatorType *ot,
-                                                  const int propvalue,
-                                                  const bool compact,
-                                                  const int result_maxncpy,
-                                                  int *r_available_len,
-                                                  char **r_result)
-{
-  BLI_string_debug_size(*r_result, result_maxncpy);
-  char *ret = *r_result;
-
-  if (*r_available_len > 1) {
-    int used_len = WM_modalkeymap_operator_items_to_string(
-                       ot, propvalue, compact, ret, min_ii(*r_available_len, result_maxncpy)) +
-                   1;
-
-    *r_available_len -= used_len;
-    *r_result += used_len;
-    if (*r_available_len == 0) {
-      (*r_result)--; /* So that *result keeps pointing on a valid char, we'll stay on it anyway. */
-    }
-  }
-  else {
-    *ret = '\0';
-  }
-
-  return ret;
+  return WM_modalkeymap_items_to_string(keymap, propvalue, compact);
 }
 
 /** \} */
@@ -1399,14 +1341,13 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
             WM_operator_properties_default(&opptr, true);
 
             if (IDP_EqualsProperties_ex(properties, properties_default, is_strict)) {
-              char kmi_str[128];
-              WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
+              std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
               /* NOTE: given properties could come from other things than menu entry. */
               printf(
                   "%s: Some set values in menu entry match default op values, "
                   "this might not be desired!\n",
                   opname);
-              printf("\tkm: '%s', kmi: '%s'\n", keymap->idname, kmi_str);
+              printf("\tkm: '%s', kmi: '%s'\n", keymap->idname, kmi_str.c_str());
 #ifndef NDEBUG
 #  ifdef WITH_PYTHON
               printf("OPERATOR\n");
@@ -1651,13 +1592,12 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
         wmKeyMapItem *kmi = wm_keymap_item_find_props(
             C, opname, opcontext, properties_default, is_strict, params, &km);
         if (kmi) {
-          char kmi_str[128];
-          WM_keymap_item_to_string(kmi, false, kmi_str, sizeof(kmi_str));
+          std::string kmi_str = WM_keymap_item_to_string(kmi, false).value_or("");
           printf(
               "%s: Some set values in keymap entry match default op values, "
               "this might not be desired!\n",
               opname);
-          printf("\tkm: '%s', kmi: '%s'\n", km->idname, kmi_str);
+          printf("\tkm: '%s', kmi: '%s'\n", km->idname, kmi_str.c_str());
 #ifndef NDEBUG
 #  ifdef WITH_PYTHON
           printf("OPERATOR\n");
@@ -1685,13 +1625,11 @@ static bool kmi_filter_is_visible(const wmKeyMap * /*km*/,
           (IS_EVENT_ACTIONZONE(kmi->type) == false));
 }
 
-char *WM_key_event_operator_string(const bContext *C,
-                                   const char *opname,
-                                   wmOperatorCallContext opcontext,
-                                   IDProperty *properties,
-                                   const bool is_strict,
-                                   char *result,
-                                   const int result_maxncpy)
+std::optional<std::string> WM_key_event_operator_string(const bContext *C,
+                                                        const char *opname,
+                                                        wmOperatorCallContext opcontext,
+                                                        IDProperty *properties,
+                                                        const bool is_strict)
 {
   wmKeyMapItemFind_Params params{};
   params.filter_fn = kmi_filter_is_visible;
@@ -1699,16 +1637,17 @@ char *WM_key_event_operator_string(const bContext *C,
   wmKeyMapItem *kmi = wm_keymap_item_find(
       C, opname, opcontext, properties, is_strict, &params, nullptr);
   if (kmi) {
-    WM_keymap_item_to_string(kmi, false, result, result_maxncpy);
-    return result;
+    return WM_keymap_item_to_string(kmi, false);
   }
 
   /* Check UI state (non key-map actions for UI regions). */
-  if (UI_key_event_operator_string(C, opname, properties, is_strict, result, result_maxncpy)) {
+  if (std::optional<std::string> result = UI_key_event_operator_string(
+          C, opname, properties, is_strict))
+  {
     return result;
   }
 
-  return nullptr;
+  return std::nullopt;
 }
 
 static bool kmi_filter_is_visible_type_mask(const wmKeyMap *km,

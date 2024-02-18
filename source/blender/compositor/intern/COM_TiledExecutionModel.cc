@@ -8,7 +8,7 @@
 #include "COM_ReadBufferOperation.h"
 #include "COM_WorkScheduler.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -23,7 +23,7 @@ TiledExecutionModel::TiledExecutionModel(CompositorContext &context,
 {
   const bNodeTree *node_tree = context.get_bnodetree();
   node_tree->runtime->stats_draw(node_tree->runtime->sdh,
-                                 TIP_("Compositing | Determining resolution"));
+                                 RPT_("Compositing | Determining resolution"));
 
   uint resolution[2];
   for (ExecutionGroup *group : groups_) {
@@ -103,7 +103,7 @@ void TiledExecutionModel::execute(ExecutionSystem &exec_system)
   const bNodeTree *editingtree = this->context_.get_bnodetree();
 
   editingtree->runtime->stats_draw(editingtree->runtime->sdh,
-                                   TIP_("Compositing | Initializing execution"));
+                                   RPT_("Compositing | Initializing execution"));
 
   update_read_buffer_offset(operations_);
 
@@ -122,7 +122,7 @@ void TiledExecutionModel::execute(ExecutionSystem &exec_system)
   WorkScheduler::stop();
 
   editingtree->runtime->stats_draw(editingtree->runtime->sdh,
-                                   TIP_("Compositing | De-initializing execution"));
+                                   RPT_("Compositing | De-initializing execution"));
 
   for (NodeOperation *operation : operations_) {
     operation->deinit_execution();

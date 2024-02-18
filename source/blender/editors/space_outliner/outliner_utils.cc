@@ -6,6 +6,7 @@
  * \ingroup spoutliner
  */
 
+#include <algorithm>
 #include <cstring>
 
 #include "BLI_listbase.h"
@@ -15,11 +16,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
-#include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_outliner_treehash.hh"
 
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
@@ -29,7 +28,6 @@
 
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
-#include "tree/tree_iterator.hh"
 
 namespace blender::ed::outliner {
 
@@ -421,7 +419,7 @@ void outliner_scroll_view(SpaceOutliner *space_outliner, ARegion *region, int de
 {
   int tree_width, tree_height;
   outliner_tree_dimensions(space_outliner, &tree_width, &tree_height);
-  int y_min = MIN2(region->v2d.cur.ymin, -tree_height);
+  int y_min = std::min(int(region->v2d.cur.ymin), -tree_height);
 
   region->v2d.cur.ymax += delta_y;
   region->v2d.cur.ymin += delta_y;

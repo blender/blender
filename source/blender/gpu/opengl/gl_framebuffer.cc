@@ -8,7 +8,7 @@
 
 #include "BLI_string.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "gl_backend.hh"
 #include "gl_debug.hh"
@@ -226,12 +226,9 @@ void GLFrameBuffer::update_attachments()
   }
 }
 
-void GLFrameBuffer::subpass_transition(const GPUAttachmentState depth_attachment_state,
-                                       Span<GPUAttachmentState> color_attachment_states)
+void GLFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
+                                            Span<GPUAttachmentState> color_attachment_states)
 {
-  /* NOTE: Depth is not supported as input attachment because the Metal API doesn't support it and
-   * because depth is not compatible with the framebuffer fetch implementation. */
-  BLI_assert(depth_attachment_state != GPU_ATTACHEMENT_READ);
   GPU_depth_mask(depth_attachment_state == GPU_ATTACHEMENT_WRITE);
 
   bool any_read = false;

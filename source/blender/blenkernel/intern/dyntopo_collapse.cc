@@ -22,7 +22,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
 #include "atomic_ops.h"
 
 #include "BKE_customdata.hh"

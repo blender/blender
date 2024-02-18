@@ -32,14 +32,13 @@
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mask.h"
 #include "BKE_nla.h"
-#include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
@@ -4029,6 +4028,12 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
     return false;
   }
 
+  /* Only FCuves can have their keys selected. */
+  if (ale->datatype != ALE_FCURVE) {
+    ANIM_animdata_freelist(&anim_data);
+    return false;
+  }
+
   fcu = (FCurve *)ale->key_data;
   success = (fcu != nullptr);
 
@@ -4312,7 +4317,7 @@ static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
 }
 
 static const EnumPropertyItem channel_bake_key_options[] = {
-    {BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", "New keys will be beziers"},
+    {BEZT_IPO_BEZ, "BEZIER", 0, "Bézier", "New keys will be Bézier"},
     {BEZT_IPO_LIN, "LIN", 0, "Linear", "New keys will be linear"},
     {BEZT_IPO_CONST, "CONST", 0, "Constant", "New keys will be constant"},
     {0, nullptr, 0, nullptr, nullptr},
@@ -4478,36 +4483,33 @@ static void ANIM_OT_channels_bake(wmOperatorType *ot)
                   "Bake Modifiers into keyframes and delete them after");
 }
 
-/* Find a Graph Editor area and modify the given context to be the window region of it. */
-static bool move_context_to_graph_editor(bContext *C)
+/**
+ *  Find a Graph Editor area and set the context arguments accordingly.
+ */
+static bool context_find_graph_editor(bContext *C,
+                                      wmWindow **r_win,
+                                      ScrArea **r_area,
+                                      ARegion **r_region)
 {
-  bool found_graph_editor = false;
   LISTBASE_FOREACH (wmWindow *, win, &CTX_wm_manager(C)->windows) {
-    bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+    bScreen *screen = WM_window_get_active_screen(win);
 
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (area->spacetype != SPACE_GRAPH) {
         continue;
       }
-      ARegion *window_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-
-      if (!window_region) {
+      ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+      if (!region) {
         continue;
       }
 
-      CTX_wm_window_set(C, win);
-      CTX_wm_screen_set(C, screen);
-      CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, window_region);
-      found_graph_editor = true;
-      break;
-    }
-
-    if (found_graph_editor) {
-      break;
+      *r_win = win;
+      *r_area = area;
+      *r_region = region;
+      return true;
     }
   }
-  return found_graph_editor;
+  return false;
 }
 
 static void deselect_all_fcurves(bAnimContext *ac, const bool hide)
@@ -4533,7 +4535,7 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
     bContext *C,
     ListBase /* CollectionPointerLink */ *selection,
     PropertyRNA *prop,
-    char *id_to_prop_path,
+    const blender::StringRefNull id_to_prop_path,
     const int index,
     const bool whole_array)
 {
@@ -4560,9 +4562,9 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
     }
     PointerRNA resolved_ptr;
     PropertyRNA *resolved_prop;
-    if (id_to_prop_path != nullptr) {
+    if (!id_to_prop_path.is_empty()) {
       const bool resolved = RNA_path_resolve_property(
-          &selected->ptr, id_to_prop_path, &resolved_ptr, &resolved_prop);
+          &selected->ptr, id_to_prop_path.c_str(), &resolved_ptr, &resolved_prop);
       if (!resolved) {
         continue;
       }
@@ -4571,7 +4573,8 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
       resolved_ptr = selected->ptr;
       resolved_prop = prop;
     }
-    char *path = RNA_path_from_ID_to_property(&resolved_ptr, resolved_prop);
+    const std::optional<std::string> path = RNA_path_from_ID_to_property(&resolved_ptr,
+                                                                         resolved_prop);
 
     AnimData *anim_data = BKE_animdata_from_id(selected_id);
     blender::Vector<FCurve *> fcurves;
@@ -4579,7 +4582,7 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
       const int length = RNA_property_array_length(&selected->ptr, prop);
       for (int i = 0; i < length; i++) {
         FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-            anim_data, path, i, nullptr, nullptr);
+            anim_data, path->c_str(), i, nullptr, nullptr);
         if (fcurve != nullptr) {
           fcurves.append(fcurve);
         }
@@ -4587,13 +4590,11 @@ static rctf calculate_selection_fcurve_bounds_and_unhide(
     }
     else {
       FCurve *fcurve = BKE_animadata_fcurve_find_by_rna_path(
-          anim_data, path, index, nullptr, nullptr);
+          anim_data, path->c_str(), index, nullptr, nullptr);
       if (fcurve != nullptr) {
         fcurves.append(fcurve);
       }
     }
-
-    MEM_freeN(path);
 
     for (FCurve *fcurve : fcurves) {
       fcurve->flag |= (FCURVE_SELECTED | FCURVE_VISIBLE);
@@ -4630,62 +4631,80 @@ static int view_curve_in_graph_editor_exec(bContext *C, wmOperator *op)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
+  int retval = OPERATOR_FINISHED;
+
   ListBase selection = {nullptr, nullptr};
 
+  struct {
+    wmWindow *win;
+    ScrArea *area;
+    ARegion *region;
+  } wm_context_prev = {nullptr}, wm_context_temp = {nullptr};
+
   bool path_from_id;
-  char *id_to_prop_path;
+  std::optional<std::string> id_to_prop_path;
   const bool selected_list_success = UI_context_copy_to_selected_list(
       C, &ptr, prop, &selection, &path_from_id, &id_to_prop_path);
 
   if (BLI_listbase_is_empty(&selection) || !selected_list_success) {
     WM_report(RPT_ERROR, "Nothing selected");
-    BLI_freelistN(&selection);
-    return OPERATOR_CANCELLED;
+    retval = OPERATOR_CANCELLED;
   }
-
-  const bool found_graph_editor = move_context_to_graph_editor(C);
-
-  if (!found_graph_editor) {
+  else if (!context_find_graph_editor(
+               C, &wm_context_temp.win, &wm_context_temp.area, &wm_context_temp.region))
+  {
     WM_report(RPT_WARNING, "No open Graph Editor window found");
-    return OPERATOR_CANCELLED;
+    retval = OPERATOR_CANCELLED;
   }
+  else {
+    wm_context_prev.win = CTX_wm_window(C);
+    wm_context_prev.area = CTX_wm_area(C);
+    wm_context_prev.region = CTX_wm_region(C);
 
-  bAnimContext ac;
-  if (!ANIM_animdata_get_context(C, &ac)) {
-    /* This might never be called since we are manually setting the Graph Editor just before. */
-    WM_report(RPT_ERROR, "Cannot create the Animation Context");
-    return OPERATOR_CANCELLED;
+    CTX_wm_window_set(C, wm_context_temp.win);
+    CTX_wm_area_set(C, wm_context_temp.area);
+    CTX_wm_region_set(C, wm_context_temp.region);
+
+    bAnimContext ac;
+    if (!ANIM_animdata_get_context(C, &ac)) {
+      /* This might never be called since we are manually setting the Graph Editor just before. */
+      WM_report(RPT_ERROR, "Cannot create the Animation Context");
+      retval = OPERATOR_CANCELLED;
+    }
+    else {
+      const bool isolate = RNA_boolean_get(op->ptr, "isolate");
+      deselect_all_fcurves(&ac, isolate);
+
+      const bool whole_array = RNA_boolean_get(op->ptr, "all");
+
+      rctf bounds = calculate_selection_fcurve_bounds_and_unhide(
+          C, &selection, prop, id_to_prop_path.value_or(""), index, whole_array);
+
+      if (!BLI_rctf_is_valid(&bounds)) {
+        WM_report(RPT_ERROR, "F-Curves have no valid size");
+        retval = OPERATOR_CANCELLED;
+      }
+      else {
+        ARegion *region = wm_context_temp.region;
+        ScrArea *area = wm_context_temp.area;
+        add_region_padding(C, region, &bounds);
+
+        const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+        UI_view2d_smooth_view(C, region, &bounds, smooth_viewtx);
+
+        /* This ensures the channel list updates. */
+        ED_area_tag_redraw(area);
+      }
+    }
+
+    CTX_wm_window_set(C, wm_context_prev.win);
+    CTX_wm_area_set(C, wm_context_prev.area);
+    CTX_wm_region_set(C, wm_context_prev.region);
   }
-
-  const bool isolate = RNA_boolean_get(op->ptr, "isolate");
-  deselect_all_fcurves(&ac, isolate);
-
-  const bool whole_array = RNA_boolean_get(op->ptr, "all");
-
-  rctf bounds = calculate_selection_fcurve_bounds_and_unhide(
-      C, &selection, prop, id_to_prop_path, index, whole_array);
 
   BLI_freelistN(&selection);
 
-  if (id_to_prop_path != nullptr) {
-    MEM_freeN(id_to_prop_path);
-  }
-
-  if (!BLI_rctf_is_valid(&bounds)) {
-    WM_report(RPT_ERROR, "F-Curves have no valid size");
-    return OPERATOR_CANCELLED;
-  }
-
-  ARegion *region = CTX_wm_region(C);
-  add_region_padding(C, region, &bounds);
-
-  const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-  UI_view2d_smooth_view(C, region, &bounds, smooth_viewtx);
-
-  /* This ensures the channel list updates. */
-  ED_area_tag_redraw(CTX_wm_area(C));
-
-  return OPERATOR_FINISHED;
+  return retval;
 }
 
 static void ANIM_OT_view_curve_in_graph_editor(wmOperatorType *ot)

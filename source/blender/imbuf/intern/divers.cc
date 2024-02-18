@@ -9,13 +9,13 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_filter.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "imbuf.h"
+#include "IMB_filter.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "imbuf.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_colormanagement_intern.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -702,7 +702,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 
   /* create byte rect if it didn't exist yet */
   if (ibuf->byte_buffer.data == nullptr) {
-    if (imb_addrectImBuf(ibuf) == 0) {
+    if (imb_addrectImBuf(ibuf, false) == 0) {
       return;
     }
   }

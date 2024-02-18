@@ -12,11 +12,11 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "DRW_render.hh"
 
@@ -35,7 +35,7 @@ static void add_values_to_text_cache(const GVArray &values,
   DRWTextStore *dt = DRW_text_cache_ensure();
 
   uchar col[4];
-  UI_GetThemeColor4ubv(TH_DRAWEXTRA_FACEANG, col);
+  UI_GetThemeColor4ubv(TH_TEXT_HI, col);
 
   bke::attribute_math::convert_to_static_type(values.type(), [&](auto dummy) {
     using T = decltype(dummy);
@@ -83,7 +83,8 @@ static void add_values_to_text_cache(const GVArray &values,
         BLI_assert_unreachable();
       }
 
-      DRW_text_cache_add(dt, position, numstr, numstr_len, 0, 0, DRW_TEXT_CACHE_GLOBALSPACE, col);
+      DRW_text_cache_add(
+          dt, position, numstr, numstr_len, 0, 0, DRW_TEXT_CACHE_GLOBALSPACE, col, true, true);
     }
   });
 }
@@ -121,7 +122,7 @@ void OVERLAY_viewer_attribute_text(const Object &object)
 {
   using namespace blender;
   using namespace blender::draw::overlay;
-  const float4x4 object_to_world = float4x4(object.object_to_world);
+  const float4x4 &object_to_world = object.object_to_world();
   DupliObject *dupli_object = DRW_object_get_dupli(&object);
 
   if (dupli_object->preview_instance_index >= 0) {

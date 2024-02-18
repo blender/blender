@@ -40,10 +40,10 @@ SeqRetimingKey *SEQ_retiming_add_freeze_frame(const Scene *scene,
 bool SEQ_retiming_is_last_key(const Sequence *seq, const SeqRetimingKey *key);
 SeqRetimingKey *SEQ_retiming_last_key_get(const Sequence *seq);
 void SEQ_retiming_remove_key(const Scene *scene, Sequence *seq, SeqRetimingKey *key);
-void SEQ_retiming_offset_transition_key(const Scene *scene,
-                                        const Sequence *seq,
-                                        SeqRetimingKey *key,
-                                        int offset);
+void SEQ_retiming_transition_key_frame_set(const Scene *scene,
+                                           const Sequence *seq,
+                                           SeqRetimingKey *key,
+                                           int timeline_frame);
 float SEQ_retiming_key_speed_get(const Sequence *seq, const SeqRetimingKey *key);
 void SEQ_retiming_key_speed_set(
     const Scene *scene, Sequence *seq, SeqRetimingKey *key, float speed, bool keep_retiming);

@@ -29,6 +29,9 @@ struct SubsurfRuntimeData;
 namespace blender::bke {
 struct EditMeshData;
 }
+namespace blender::bke::bake {
+struct BakeMaterialsList;
+}
 
 /** #MeshRuntime.wrapper_type */
 enum eMeshWrapperType {
@@ -170,9 +173,9 @@ struct MeshRuntime {
 
   /** Lazily computed vertex normals (#Mesh::vert_normals()). */
   SharedCache<Vector<float3>> vert_normals_cache;
-  /** Lazily computed face normals (#Mesh::vert_normals()). */
+  /** Lazily computed face normals (#Mesh::face_normals()). */
   SharedCache<Vector<float3>> face_normals_cache;
-  /** Lazily computed face corner normals (#Mesh::vert_normals()). */
+  /** Lazily computed face corner normals (#Mesh::corner_normals()). */
   SharedCache<Vector<float3>> corner_normals_cache;
 
   /**
@@ -206,6 +209,9 @@ struct MeshRuntime {
    * Otherwise it will be empty.
    */
   BitVector<> subsurf_optimal_display_edges;
+
+  /** Stores weak references to material data blocks. */
+  std::unique_ptr<bake::BakeMaterialsList> bake_materials;
 
   MeshRuntime();
   ~MeshRuntime();

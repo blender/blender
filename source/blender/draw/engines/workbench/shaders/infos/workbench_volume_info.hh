@@ -17,6 +17,7 @@ GPU_SHADER_CREATE_INFO(workbench_volume_common)
     .push_constant(Type::FLOAT, "noiseOfs")
     .push_constant(Type::FLOAT, "stepLength")
     .push_constant(Type::FLOAT, "densityScale")
+    .push_constant(Type::BOOL, "do_depth_test")
     .vertex_source("workbench_volume_vert.glsl")
     .fragment_source("workbench_volume_frag.glsl");
 

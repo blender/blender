@@ -8,7 +8,7 @@ import bpy
 from bpy.types import Operator
 from bpy.app.translations import (
     pgettext_data as data_,
-    pgettext_tip as tip_,
+    pgettext_rpt as rpt_,
 )
 
 
@@ -125,7 +125,7 @@ class ASSET_OT_open_containing_blend_file(Operator):
             return {'RUNNING_MODAL'}
 
         if returncode:
-            self.report({'WARNING'}, tip_("Blender sub-process exited with error code %d") % returncode)
+            self.report({'WARNING'}, rpt_("Blender sub-process exited with error code %d") % returncode)
 
         if bpy.ops.asset.library_refresh.poll():
             bpy.ops.asset.library_refresh()

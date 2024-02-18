@@ -19,12 +19,11 @@
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_text.h"
 
 #include "DNA_text_types.h"
 
-#include "BPY_extern.h"
 #include "BPY_extern_run.h"
 
 #include "bpy_capi_utils.h"
@@ -222,7 +221,9 @@ static bool python_script_exec(
         }
       }
     }
-    PyErr_Print();
+    if (!reports) {
+      PyErr_Print();
+    }
     PyErr_Clear();
   }
   else {

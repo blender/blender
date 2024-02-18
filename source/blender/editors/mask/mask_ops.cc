@@ -13,7 +13,6 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_main.hh"
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.hh"
@@ -29,7 +28,6 @@
 #include "ED_clip.hh"
 #include "ED_image.hh"
 #include "ED_mask.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
 #include "ANIM_keyframing.hh"
@@ -701,7 +699,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
                    &data->spline->points[0],
                    &data->spline->points[data->spline->tot_point - 1]))
           {
-            SWAP(float, delta[0], delta[1]);
+            std::swap(delta[0], delta[1]);
             delta[1] *= -1;
 
             /* flip last point */

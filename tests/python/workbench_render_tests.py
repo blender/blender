@@ -37,7 +37,6 @@ if inside_blender:
 def get_arguments(filepath, output_filepath):
     return [
         "--background",
-        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
@@ -56,8 +55,9 @@ def create_argparse():
     parser.add_argument("-blender", nargs="+")
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-idiff", nargs=1)
+    parser.add_argument("-oiiotool", nargs=1)
     parser.add_argument('--batch', default=False, action='store_true')
+    parser.add_argument('--fail-silently', default=False, action='store_true')
     return parser
 
 
@@ -67,11 +67,11 @@ def main():
 
     blender = args.blender[0]
     test_dir = args.testdir[0]
-    idiff = args.idiff[0]
+    oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("Workbench", output_dir, idiff)
+    report = render_report.Report("Workbench", output_dir, oiiotool)
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
     report.set_compare_engine('eevee')
@@ -80,7 +80,7 @@ def main():
     if test_dir_name.startswith('hair') and platform.system() == "Darwin":
         report.set_fail_threshold(0.050)
 
-    ok = report.run(test_dir, blender, get_arguments, batch.args=batch)
+    ok = report.run(test_dir, blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
 
     sys.exit(not ok)
 

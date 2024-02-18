@@ -35,10 +35,11 @@ void OBJCurve::set_world_axes_transform(const eIOAxis forward, const eIOAxis up)
   unit_m3(axes_transform);
   /* +Y-forward and +Z-up are the Blender's default axis settings. */
   mat3_from_axis_conversion(forward, up, IO_AXIS_Y, IO_AXIS_Z, axes_transform);
-  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->object_to_world);
+  mul_m4_m3m4(world_axes_transform_, axes_transform, export_object_eval_->object_to_world().ptr());
   /* #mul_m4_m3m4 does not transform last row of #Object.object_to_world, i.e. location data. */
-  mul_v3_m3v3(world_axes_transform_[3], axes_transform, export_object_eval_->object_to_world[3]);
-  world_axes_transform_[3][3] = export_object_eval_->object_to_world[3][3];
+  mul_v3_m3v3(
+      world_axes_transform_[3], axes_transform, export_object_eval_->object_to_world().location());
+  world_axes_transform_[3][3] = export_object_eval_->object_to_world().location()[3];
 }
 
 const char *OBJCurve::get_curve_name() const
@@ -76,11 +77,11 @@ int OBJCurve::total_spline_control_points(const int spline_index) const
   int degree = nurb->type == CU_POLY ? 1 : nurb->orderu - 1;
   /* Total control points = Number of points in the curve (+ degree of the
    * curve if it is cyclic). */
-  int r_tot_control_points = nurb->pntsv * nurb->pntsu;
+  int tot_control_points = nurb->pntsv * nurb->pntsu;
   if (nurb->flagu & CU_NURB_CYCLIC) {
-    r_tot_control_points += degree;
+    tot_control_points += degree;
   }
-  return r_tot_control_points;
+  return tot_control_points;
 }
 
 int OBJCurve::get_nurbs_degree(const int spline_index) const

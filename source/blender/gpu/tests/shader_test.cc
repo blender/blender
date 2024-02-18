@@ -457,7 +457,8 @@ static void test_eevee_lib()
   // gpu_shader_lib_test("eevee_shadow_test.glsl", "eevee_shared");
   gpu_shader_lib_test("eevee_occupancy_test.glsl");
   gpu_shader_lib_test("eevee_horizon_scan_test.glsl");
-  gpu_shader_lib_test("eevee_gbuffer_test.glsl", "eevee_shared");
+  gpu_shader_lib_test("eevee_gbuffer_normal_test.glsl", "eevee_shared");
+  gpu_shader_lib_test("eevee_gbuffer_closure_test.glsl", "eevee_shared");
 }
 GPU_TEST(eevee_lib)
 

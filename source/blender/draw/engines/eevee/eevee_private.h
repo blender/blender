@@ -47,14 +47,14 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #endif
 
 #define EEVEE_PROBE_MAX min_ii(MAX_PROBE, GPU_max_texture_layers() / 6)
-#define USE_VOLUME_OPTI (GPU_shader_image_load_store_support())
+#define USE_VOLUME_OPTI true
 
 #define SWAP_DOUBLE_BUFFERS() \
   { \
     if (effects->swap_double_buffer) { \
-      SWAP(struct GPUFrameBuffer *, fbl->main_fb, fbl->double_buffer_fb); \
-      SWAP(struct GPUFrameBuffer *, fbl->main_color_fb, fbl->double_buffer_color_fb); \
-      SWAP(GPUTexture *, txl->color, txl->color_double_buffer); \
+      std::swap(fbl->main_fb, fbl->double_buffer_fb); \
+      std::swap(fbl->main_color_fb, fbl->double_buffer_color_fb); \
+      std::swap(txl->color, txl->color_double_buffer); \
       effects->swap_double_buffer = false; \
     } \
   } \
@@ -78,16 +78,16 @@ extern struct DrawEngineType draw_engine_eevee_type;
 #define SWAP_BUFFERS_TAA() \
   { \
     if (effects->target_buffer == fbl->effect_color_fb) { \
-      SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->taa_history_fb); \
-      SWAP(struct GPUFrameBuffer *, fbl->effect_color_fb, fbl->taa_history_color_fb); \
-      SWAP(GPUTexture *, txl->color_post, txl->taa_history); \
+      std::swap(fbl->effect_fb, fbl->taa_history_fb); \
+      std::swap(fbl->effect_color_fb, fbl->taa_history_color_fb); \
+      std::swap(txl->color_post, txl->taa_history); \
       effects->source_buffer = txl->taa_history; \
       effects->target_buffer = fbl->effect_color_fb; \
     } \
     else { \
-      SWAP(struct GPUFrameBuffer *, fbl->main_fb, fbl->taa_history_fb); \
-      SWAP(struct GPUFrameBuffer *, fbl->main_color_fb, fbl->taa_history_color_fb); \
-      SWAP(GPUTexture *, txl->color, txl->taa_history); \
+      std::swap(fbl->main_fb, fbl->taa_history_fb); \
+      std::swap(fbl->main_color_fb, fbl->taa_history_color_fb); \
+      std::swap(txl->color, txl->taa_history); \
       effects->source_buffer = txl->taa_history; \
       effects->target_buffer = fbl->main_color_fb; \
     } \
@@ -447,7 +447,9 @@ typedef struct EEVEE_Light {
   float diff, spec, volume, volume_radius;
 } EEVEE_Light;
 
-/* Special type for elliptic area lights, matches lamps_lib.glsl */
+/* Special type for elliptic area lights and point/spot disk lights, matches lights_lib.glsl */
+#define LAMPTYPE_OMNI_DISK 0.5f
+#define LAMPTYPE_SPOT_DISK 2.5f
 #define LAMPTYPE_AREA_ELLIPSE 100.0f
 
 typedef struct EEVEE_Shadow {

@@ -9,6 +9,7 @@
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -44,34 +45,31 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
 #include "BKE_anim_path.h"
 #include "BKE_boids.h"
 #include "BKE_cloth.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
-#include "BKE_idtype.h"
-#include "BKE_key.h"
+#include "BKE_idtype.hh"
+#include "BKE_key.hh"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
-#include "BKE_main.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.hh"
@@ -381,6 +379,7 @@ static void particle_settings_blend_read_after_liblink(BlendLibReader * /*reader
 IDTypeInfo IDType_ID_PA = {
     /*id_code*/ ID_PA,
     /*id_filter*/ FILTER_ID_PA,
+    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE,
     /*main_listbase_index*/ INDEX_ID_PA,
     /*struct_size*/ sizeof(ParticleSettings),
     /*name*/ "ParticleSettings",
@@ -2301,8 +2300,8 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
                              nullptr,
                              nullptr);
 
-    mul_m4_v3(sim->ob->object_to_world, state.co);
-    mul_mat3_m4_v3(sim->ob->object_to_world, state.vel);
+    mul_m4_v3(sim->ob->object_to_world().ptr(), state.co);
+    mul_mat3_m4_v3(sim->ob->object_to_world().ptr(), state.vel);
 
     pd_point_from_particle(sim, pa, &state, &point);
 
@@ -2390,8 +2389,8 @@ bool do_guides(Depsgraph *depsgraph,
         }
       }
 
-      mul_m4_v3(eff->ob->object_to_world, guidevec);
-      mul_mat3_m4_v3(eff->ob->object_to_world, guidedir);
+      mul_m4_v3(eff->ob->object_to_world().ptr(), guidevec);
+      mul_mat3_m4_v3(eff->ob->object_to_world().ptr(), guidedir);
 
       normalize_v3(guidedir);
 
@@ -2718,7 +2717,7 @@ static bool psys_thread_context_init_path(ParticleThreadContext *ctx,
     totchild = int(float(totchild) * float(part->disp) / 100.0f);
   }
 
-  totparent = MIN2(totparent, totchild);
+  totparent = std::min(totparent, totchild);
 
   if (totchild == 0) {
     return false;
@@ -2920,7 +2919,7 @@ static void psys_thread_create_path(ParticleTask *task,
                              nullptr,
                              orco);
 
-    mul_m4_v3(ob->object_to_world, co);
+    mul_m4_v3(ob->object_to_world().ptr(), co);
 
     for (w = 0; w < 4; w++) {
       sub_v3_v3v3(off1[w], co, key[w]->co);
@@ -3356,7 +3355,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
     copy_v3_v3(rotmat[2], hairmat[0]);
 
     if (part->draw & PART_ABS_PATH_TIME) {
-      birthtime = MAX2(pind.birthtime, part->path_start);
+      birthtime = std::max(pind.birthtime, part->path_start);
       dietime = std::min(pind.dietime, part->path_end);
     }
     else {
@@ -3383,7 +3382,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
       /* dynamic hair is in object space */
       /* keyed and baked are already in global space */
       if (hair_mesh) {
-        mul_m4_v3(sim->ob->object_to_world, ca->co);
+        mul_m4_v3(sim->ob->object_to_world().ptr(), ca->co);
       }
       else if (!keyed && !baked && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         mul_m4_v3(hairmat, ca->co);
@@ -3910,7 +3909,7 @@ void psys_mat_hair_to_global(
 
   psys_mat_hair_to_object(ob, mesh, from, pa, facemat);
 
-  mul_m4_m4m4(hairmat, ob->object_to_world, facemat);
+  mul_m4_m4m4(hairmat, ob->object_to_world().ptr(), facemat);
 }
 
 /************************************************/
@@ -3957,6 +3956,7 @@ static ModifierData *object_add_or_copy_particle_system(
   psmd->psys = psys;
   BLI_addtail(&ob->modifiers, md);
   BKE_object_modifier_set_active(ob, md);
+  BKE_modifiers_persistent_uid_init(*ob, *md);
 
   psys->totpart = 0;
   psys->flag = PSYS_CURRENT;
@@ -4280,7 +4280,7 @@ static void get_cpa_texture(Mesh *mesh,
         case TEXCO_OBJECT:
           copy_v3_v3(texvec, par->state.co);
           if (mtex->object) {
-            mul_m4_v3(mtex->object->world_to_object, texvec);
+            mul_m4_v3(mtex->object->world_to_object().ptr(), texvec);
           }
           break;
         case TEXCO_UV:
@@ -4370,7 +4370,7 @@ void psys_get_texture(
         case TEXCO_OBJECT:
           copy_v3_v3(texvec, pa->state.co);
           if (mtex->object) {
-            mul_m4_v3(mtex->object->world_to_object, texvec);
+            mul_m4_v3(mtex->object->world_to_object().ptr(), texvec);
           }
           break;
         case TEXCO_UV:
@@ -4653,8 +4653,8 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
       do_particle_interpolation(psys, p, pa, t, &pind, state);
 
       if (pind.mesh) {
-        mul_m4_v3(sim->ob->object_to_world, state->co);
-        mul_mat3_m4_v3(sim->ob->object_to_world, state->vel);
+        mul_m4_v3(sim->ob->object_to_world().ptr(), state->co);
+        mul_mat3_m4_v3(sim->ob->object_to_world().ptr(), state->vel);
       }
       else if (!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
         if ((pa->flag & PARS_REKEY) == 0) {
@@ -4677,7 +4677,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
     }
   }
   else if (totchild) {
-    // invert_m4_m4(imat, ob->object_to_world);
+    // invert_m4_m4(imat, ob->object_to_world().ptr());
 
     /* interpolate childcache directly if it exists */
     if (psys->childcache) {
@@ -4734,7 +4734,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim,
          * positioning it accurately to the surface of the emitter. */
         // copy_v3_v3(cpa_1st, co);
 
-        // mul_m4_v3(ob->object_to_world, cpa_1st);
+        // mul_m4_v3(ob->object_to_world().ptr(), cpa_1st);
 
         pa = psys->particles + cpa->parent;
 
@@ -5199,7 +5199,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim,
   }
 
   if (psys->part->rotmode == PART_ROT_VEL) {
-    transpose_m3_m4(nmat, ob->world_to_object);
+    transpose_m3_m4(nmat, ob->world_to_object().ptr());
     mul_m3_v3(nmat, nor);
     normalize_v3(nor);
 

@@ -12,7 +12,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -24,7 +24,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "UI_resources.hh"
 
@@ -59,6 +59,8 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BLI_ghash.h"
 #  include "BLI_string_utils.hh"
 
@@ -72,7 +74,7 @@ const EnumPropertyItem rna_enum_color_sets_items[] = {
 
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_idprop.h"
 
 #  include "DEG_depsgraph.hh"
@@ -112,18 +114,18 @@ static void rna_Pose_IK_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
   BIK_clear_data(ob->pose);
 }
 
-static char *rna_Pose_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_Pose_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("pose");
+  return "pose";
 }
 
-static char *rna_PoseBone_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_PoseBone_path(const PointerRNA *ptr)
 {
   const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
   char name_esc[sizeof(pchan->name) * 2];
 
   BLI_str_escape(name_esc, pchan->name, sizeof(name_esc));
-  return BLI_sprintfN("pose.bones[\"%s\"]", name_esc);
+  return fmt::format("pose.bones[\"{}\"]", name_esc);
 }
 
 /* shared for actions groups and bone groups */
@@ -967,6 +969,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_in_ik_chain", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_PoseChannel_has_ik_get", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Has IK", "Is part of an IK chain");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_IK_update");
 

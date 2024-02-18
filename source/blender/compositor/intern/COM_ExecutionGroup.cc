@@ -13,10 +13,9 @@
 
 #include "BLI_rand.hh"
 #include "BLI_string.h"
+#include "BLI_time.h"
 
-#include "BLT_translation.h"
-
-#include "PIL_time.h"
+#include "BLT_translation.hh"
 
 namespace blender::compositor {
 
@@ -305,7 +304,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   } /** \note Early break out. */
   uint chunk_index;
 
-  execution_start_time_ = PIL_check_seconds_timer();
+  execution_start_time_ = BLI_time_now_seconds();
 
   chunks_finished_ = 0;
   bTree_ = bTree;
@@ -421,7 +420,7 @@ void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **m
     bTree_->runtime->progress(bTree_->runtime->prh, progress);
 
     char buf[128];
-    SNPRINTF(buf, TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
+    SNPRINTF(buf, RPT_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
     bTree_->runtime->stats_draw(bTree_->runtime->sdh, buf);
   }
 }
@@ -439,8 +438,8 @@ inline void ExecutionGroup::determine_chunk_rect(rcti *r_rect,
   else {
     const uint minx = x_chunk * chunk_size_ + viewer_border_.xmin;
     const uint miny = y_chunk * chunk_size_ + viewer_border_.ymin;
-    const uint width = MIN2(uint(viewer_border_.xmax), width_);
-    const uint height = MIN2(uint(viewer_border_.ymax), height_);
+    const uint width = std::min(uint(viewer_border_.xmax), width_);
+    const uint height = std::min(uint(viewer_border_.ymax), height_);
     BLI_rcti_init(r_rect,
                   std::min(minx, width_),
                   std::min(minx + chunk_size_, width),

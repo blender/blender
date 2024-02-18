@@ -32,7 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value").hide_value().field_on_all();
   }
-  b.add_input<decl::Vector>("Source UV Map")
+  b.add_input<decl::Vector>("UV Map", "Source UV Map")
       .hide_value()
       .field_on_all()
       .description("The mesh UV map to sample. Should not have overlapping faces");
@@ -172,7 +172,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Use the output of the UV sampling to interpolate the mesh attribute. */
   GField field = params.extract_input<GField>("Value");
-  ;
+
   auto sample_op = FieldOperation::Create(
       std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(geometry),
                                                                      std::move(field)),

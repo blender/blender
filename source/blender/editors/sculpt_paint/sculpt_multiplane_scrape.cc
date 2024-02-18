@@ -7,6 +7,7 @@
  */
 
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
@@ -16,7 +17,6 @@
 #include "DNA_object_types.h"
 
 #include "BKE_ccg.h"
-#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -60,10 +60,10 @@ static void calc_multiplane_scrape_surface_task(Object *ob,
   test_radius *= brush->normal_radius_factor;
   test.radius_squared = test_radius * test_radius;
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, ss->cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
-
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
     }
@@ -120,7 +120,8 @@ static void do_multiplane_scrape_brush_task(Object *ob,
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(nullptr);
 
-  auto_mask::NodeData automask_data = auto_mask::node_begin(*ob, ss->cache->automasking, *node);
+  auto_mask::NodeData automask_data = auto_mask::node_begin(
+      *ob, ss->cache->automasking.get(), *node);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
@@ -197,22 +198,22 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, blender::Span<PBV
   const float displace = -radius * offset;
 
   /* The sculpt-plane normal (whatever its set to) */
-  float area_no_sp[3];
+  float3 area_no_sp;
 
   /* Geometry normal. */
-  float area_no[3];
-  float area_co[3];
+  float3 area_no;
+  float3 area_co;
 
   float temp[3];
-  float mat[4][4];
+  float4x4 mat;
 
   SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co);
 
   if (brush->sculpt_plane != SCULPT_DISP_DIR_AREA || (brush->flag & BRUSH_ORIGINAL_NORMAL)) {
-    SCULPT_calc_area_normal(sd, ob, nodes, area_no);
+    area_no = SCULPT_calc_area_normal(sd, ob, nodes).value_or(float3(0));
   }
   else {
-    copy_v3_v3(area_no, area_no_sp);
+    area_no = area_no_sp;
   }
 
   /* Delay the first daub because grab delta is not setup. */
@@ -238,12 +239,12 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, blender::Span<PBV
   mat[2][3] = 0.0f;
   copy_v3_v3(mat[3], ss->cache->location);
   mat[3][3] = 1.0f;
-  normalize_m4(mat);
-  invert_m4(mat);
+  normalize_m4(mat.ptr());
+  invert_m4(mat.ptr());
 
   /* Update matrix for the cursor preview. */
   if (ss->cache->mirror_symmetry_pass == 0 && ss->cache->radial_symmetry_pass == 0) {
-    copy_m4_m4(ss->cache->stroke_local_mat, mat);
+    ss->cache->stroke_local_mat = mat;
   }
 
   /* Dynamic mode. */
@@ -257,7 +258,7 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, blender::Span<PBV
         MultiplaneScrapeSampleData{},
         [&](const IndexRange range, MultiplaneScrapeSampleData mssd) {
           for (const int i : range) {
-            calc_multiplane_scrape_surface_task(ob, brush, mat, nodes[i], &mssd);
+            calc_multiplane_scrape_surface_task(ob, brush, mat.ptr(), nodes[i], &mssd);
           }
           return mssd;
         },
@@ -331,29 +332,32 @@ void SCULPT_do_multiplane_scrape_brush(Sculpt *sd, Object *ob, blender::Span<PBV
   float plane_no[3];
   float plane_no_rot[3];
   const float y_axis[3] = {0.0f, 1.0f, 0.0f};
-  float mat_inv[4][4];
-  invert_m4_m4(mat_inv, mat);
+  const float4x4 mat_inv = math::invert(mat);
 
   float multiplane_scrape_planes[2][4];
 
-  mul_v3_mat3_m4v3(plane_no, mat, area_no);
+  mul_v3_mat3_m4v3(plane_no, mat.ptr(), area_no);
   rotate_v3_v3v3fl(
       plane_no_rot, plane_no, y_axis, DEG2RADF(-ss->cache->multiplane_scrape_angle * 0.5f));
-  mul_v3_mat3_m4v3(plane_no, mat_inv, plane_no_rot);
+  mul_v3_mat3_m4v3(plane_no, mat_inv.ptr(), plane_no_rot);
   normalize_v3(plane_no);
   plane_from_point_normal_v3(multiplane_scrape_planes[1], area_co, plane_no);
 
-  mul_v3_mat3_m4v3(plane_no, mat, area_no);
+  mul_v3_mat3_m4v3(plane_no, mat.ptr(), area_no);
   rotate_v3_v3v3fl(
       plane_no_rot, plane_no, y_axis, DEG2RADF(ss->cache->multiplane_scrape_angle * 0.5f));
-  mul_v3_mat3_m4v3(plane_no, mat_inv, plane_no_rot);
+  mul_v3_mat3_m4v3(plane_no, mat_inv.ptr(), plane_no_rot);
   normalize_v3(plane_no);
   plane_from_point_normal_v3(multiplane_scrape_planes[0], area_co, plane_no);
 
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      do_multiplane_scrape_brush_task(
-          ob, brush, mat, multiplane_scrape_planes, ss->cache->multiplane_scrape_angle, nodes[i]);
+      do_multiplane_scrape_brush_task(ob,
+                                      brush,
+                                      mat.ptr(),
+                                      multiplane_scrape_planes,
+                                      ss->cache->multiplane_scrape_angle,
+                                      nodes[i]);
     }
   });
 }
@@ -364,13 +368,13 @@ void SCULPT_multiplane_scrape_preview_draw(const uint gpuattr,
                                            const float outline_col[3],
                                            const float outline_alpha)
 {
+  using namespace blender;
   if (!(brush->flag2 & BRUSH_MULTIPLANE_SCRAPE_PLANES_PREVIEW)) {
     return;
   }
 
-  float local_mat_inv[4][4];
-  invert_m4_m4(local_mat_inv, ss->cache->stroke_local_mat);
-  GPU_matrix_mul(local_mat_inv);
+  float4x4 local_mat_inv = math::invert(ss->cache->stroke_local_mat);
+  GPU_matrix_mul(local_mat_inv.ptr());
   float angle = ss->cache->multiplane_scrape_angle;
   if (ss->cache->pen_flip || ss->cache->invert) {
     angle = -angle;

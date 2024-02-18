@@ -10,7 +10,6 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
-#include "AS_asset_library.hh"
 
 #include "BLI_string.h"
 
@@ -19,10 +18,9 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_asset_filter.hh"
-#include "ED_asset_list.h"
 #include "ED_asset_list.hh"
 
 #include "RNA_access.hh"
@@ -59,7 +57,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
   void build_tree() override
   {
     if (catalog_tree_.is_empty()) {
-      auto &item = add_tree_item<ui::BasicTreeViewItem>(TIP_("No applicable assets found"),
+      auto &item = add_tree_item<ui::BasicTreeViewItem>(RPT_("No applicable assets found"),
                                                         ICON_INFO);
       item.disable_interaction();
       return;
@@ -155,8 +153,6 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
                                     (char *)&catalog_path_enabled_,
                                     0,
                                     0,
-                                    0,
-                                    0,
                                     TIP_("Toggle catalog visibility in the asset shelf"));
       UI_but_func_set(toggle_but, [&tree](bContext &C) {
         tree.update_shelf_settings_from_enabled_catalogs();
@@ -202,7 +198,7 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
     uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
   }
 
-  asset_system::AssetLibrary *library = ED_assetlist_library_get_once_available(*library_ref);
+  asset_system::AssetLibrary *library = list::library_get_once_available(*library_ref);
   if (!library) {
     return;
   }
@@ -230,7 +226,7 @@ void catalog_selector_panel_register(ARegionType *region_type)
   pt->description = N_(
       "Select the asset library and the contained catalogs to display in the asset shelf");
   pt->draw = catalog_selector_panel_draw;
-  pt->listener = asset::asset_reading_region_listen_fn;
+  pt->listener = asset::list::asset_reading_region_listen_fn;
   BLI_addtail(&region_type->paneltypes, pt);
   WM_paneltype_add(pt);
 }

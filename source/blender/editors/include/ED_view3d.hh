@@ -53,6 +53,7 @@ struct rcti;
 struct wmEvent;
 struct wmGizmo;
 struct wmKeyMapItem;
+struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -288,6 +289,7 @@ ENUM_OPERATORS(eV3DProjTest, V3D_PROJ_TEST_CLIP_CONTENT);
 /* `view3d_snap.cc` */
 
 bool ED_view3d_snap_selected_to_location(bContext *C,
+                                         wmOperator *op,
                                          const float snap_target_global[3],
                                          int pivot_point);
 
@@ -652,7 +654,7 @@ bool ED_view3d_win_to_3d_on_plane_int(
  * \param region: The region (used for the window width and height).
  * \param xy_delta: 2D difference (in pixels) such as `event->mval[0] - other_x`.
  * \param zfac: The depth result typically calculated by #ED_view3d_calc_zfac
- * (see it's doc-string for details).
+ * (see its doc-string for details).
  * \param r_out: The resulting world-space delta.
  */
 void ED_view3d_win_to_delta(const ARegion *region,
@@ -706,9 +708,8 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
                                       float r_ray_end[3],
                                       bool do_clip_planes);
 blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob);
-void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
-                                             const float obmat[4][4],
-                                             float r_pmat[4][4]);
+blender::float4x4 ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
+                                                          const blender::float4x4 &obmat);
 
 /**
  * Convert between region relative coordinates (x,y) and depth component z and
@@ -826,10 +827,6 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
                                float radius);
 
 /**
- * Back-buffer select and draw support.
- */
-void ED_view3d_backbuf_depth_validate(ViewContext *vc);
-/**
  * allow for small values [0.5 - 2.5],
  * and large values, FLT_MAX by clamping by the area size
  */
@@ -936,7 +933,7 @@ ViewContext ED_view3d_viewcontext_init(bContext *C, Depsgraph *depsgraph);
  * Re-initialize `vc` with `obact` as if it's active object (with some differences).
  *
  * This is often used when operating on multiple objects in modes (edit, pose mode etc)
- * where the `vc` is passed in as an argument which then references it's object data.
+ * where the `vc` is passed in as an argument which then references its object data.
  *
  * \note members #ViewContext.obedit & #ViewContext.em are only initialized if they're already set,
  * by #ED_view3d_viewcontext_init in most cases.

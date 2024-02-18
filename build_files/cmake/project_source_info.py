@@ -158,12 +158,13 @@ def build_info(
         del args_orig
 
         # join args incase they are not.
-        args = ' '.join(args)
-        args = args.replace(" -isystem", " -I")
-        args = args.replace(" -D ", " -D")
-        args = args.replace(" -I ", " -I")
+        args_str = " ".join(args)
+        args_str = args_str.replace(" -isystem", " -I")
+        args_str = args_str.replace(" -D ", " -D")
+        args_str = args_str.replace(" -I ", " -I")
 
-        args = shlex.split(args)
+        args = shlex.split(args_str)
+        del args_str
         # end
 
         # remove compiler

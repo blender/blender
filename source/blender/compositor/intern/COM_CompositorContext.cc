@@ -30,18 +30,7 @@ Size2f CompositorContext::get_render_size() const
 
 eExecutionModel CompositorContext::get_execution_model() const
 {
-  if (U.experimental.use_full_frame_compositor) {
-    BLI_assert(bnodetree_ != nullptr);
-    switch (bnodetree_->execution_mode) {
-      case 1:
-        return eExecutionModel::FullFrame;
-      case 0:
-        return eExecutionModel::Tiled;
-      default:
-        BLI_assert_msg(0, "Invalid execution mode");
-    }
-  }
-  return eExecutionModel::Tiled;
+  return eExecutionModel::FullFrame;
 }
 
 }  // namespace blender::compositor

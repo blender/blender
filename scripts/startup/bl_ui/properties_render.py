@@ -10,6 +10,7 @@ from bl_ui.space_view3d import (
     VIEW3D_PT_shading_options,
 )
 from bl_ui.utils import PresetPanel
+from bpy.app.translations import pgettext_rpt as rpt_
 
 
 class RenderButtonsPanel:
@@ -209,23 +210,24 @@ class RENDER_PT_eevee_motion_blur(RenderButtonsPanel, Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        props = scene.eevee
+        props = scene.render
         self.layout.prop(props, "use_motion_blur", text="")
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         scene = context.scene
-        props = scene.eevee
+        props = scene.render
+        eevee_props = scene.eevee
 
         layout.active = props.use_motion_blur
         col = layout.column()
         col.prop(props, "motion_blur_position", text="Position")
         col.prop(props, "motion_blur_shutter")
         col.separator()
-        col.prop(props, "motion_blur_depth_scale")
-        col.prop(props, "motion_blur_max")
-        col.prop(props, "motion_blur_steps", text="Steps")
+        col.prop(eevee_props, "motion_blur_depth_scale")
+        col.prop(eevee_props, "motion_blur_max")
+        col.prop(eevee_props, "motion_blur_steps", text="Steps")
 
 
 class RENDER_PT_eevee_next_motion_blur(RenderButtonsPanel, Panel):
@@ -239,22 +241,24 @@ class RENDER_PT_eevee_next_motion_blur(RenderButtonsPanel, Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        props = scene.eevee
+        props = scene.render
         self.layout.prop(props, "use_motion_blur", text="")
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         scene = context.scene
-        props = scene.eevee
+        props = scene.render
+        eevee_props = scene.eevee
 
         layout.active = props.use_motion_blur
         col = layout.column()
         col.prop(props, "motion_blur_position", text="Position")
         col.prop(props, "motion_blur_shutter")
         col.separator()
-        col.prop(props, "motion_blur_depth_scale")
-        col.prop(props, "motion_blur_steps", text="Steps")
+        col.prop(eevee_props, "motion_blur_depth_scale")
+        col.prop(eevee_props, "motion_blur_max")
+        col.prop(eevee_props, "motion_blur_steps", text="Steps")
 
 
 class RENDER_PT_eevee_next_motion_blur_curve(RenderButtonsPanel, Panel):
@@ -829,7 +833,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
 
         cache_info = scene.eevee.gi_cache_info
         if cache_info:
-            col.label(text=cache_info)
+            col.label(text=rpt_(cache_info), translate=False)
 
         col.prop(props, "gi_auto_bake")
 

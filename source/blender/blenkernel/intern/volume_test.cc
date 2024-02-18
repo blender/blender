@@ -10,8 +10,8 @@
 
 #  include "DNA_volume_types.h"
 
-#  include "BKE_idtype.h"
-#  include "BKE_lib_id.h"
+#  include "BKE_idtype.hh"
+#  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
 #  include "BKE_volume.hh"
 #  include "BKE_volume_grid.hh"
@@ -85,24 +85,23 @@ TEST_F(VolumeTest, lazy_load_grid)
   VolumeGrid<float> volume_grid{MEM_new<VolumeGridData>(__func__, load_grid)};
   EXPECT_EQ(load_counter, 0);
   EXPECT_FALSE(volume_grid->is_loaded());
-  VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
-  EXPECT_EQ(volume_grid.grid(access_token).background(), 10.0f);
+  VolumeTreeAccessToken tree_token;
+  EXPECT_EQ(volume_grid.grid(tree_token).background(), 10.0f);
   EXPECT_EQ(load_counter, 1);
   EXPECT_TRUE(volume_grid->is_loaded());
   EXPECT_TRUE(volume_grid->is_reloadable());
-  EXPECT_EQ(volume_grid.grid(access_token).background(), 10.0f);
+  EXPECT_EQ(volume_grid.grid(tree_token).background(), 10.0f);
   EXPECT_EQ(load_counter, 1);
   volume_grid->unload_tree_if_possible();
   EXPECT_TRUE(volume_grid->is_loaded());
-  access_token.reset();
+  tree_token.reset();
   volume_grid->unload_tree_if_possible();
   EXPECT_FALSE(volume_grid->is_loaded());
-  access_token = volume_grid->tree_access_token();
-  EXPECT_EQ(volume_grid.grid(access_token).background(), 10.0f);
+  EXPECT_EQ(volume_grid.grid(tree_token).background(), 10.0f);
   EXPECT_TRUE(volume_grid->is_loaded());
   EXPECT_EQ(load_counter, 2);
-  volume_grid.grid_for_write(access_token).getAccessor().setValue({0, 0, 0}, 1.0f);
-  EXPECT_EQ(volume_grid.grid(access_token).getAccessor().getValue({0, 0, 0}), 1.0f);
+  volume_grid.grid_for_write(tree_token).getAccessor().setValue({0, 0, 0}, 1.0f);
+  EXPECT_EQ(volume_grid.grid(tree_token).getAccessor().getValue({0, 0, 0}), 1.0f);
   EXPECT_FALSE(volume_grid->is_reloadable());
 }
 
@@ -121,11 +120,11 @@ TEST_F(VolumeTest, lazy_load_tree_only)
   volume_grid.get_for_write().set_name("Test");
   EXPECT_FALSE(load_run);
   EXPECT_EQ(volume_grid->name(), "Test");
-  VolumeTreeAccessToken access_token = volume_grid->tree_access_token();
-  volume_grid.grid_for_write(access_token);
+  VolumeTreeAccessToken tree_token;
+  volume_grid.grid_for_write(tree_token);
   EXPECT_TRUE(load_run);
   EXPECT_EQ(volume_grid->name(), "Test");
-  EXPECT_EQ(volume_grid.grid(access_token).background(), 10.0f);
+  EXPECT_EQ(volume_grid.grid(tree_token).background(), 10.0f);
 }
 
 }  // namespace blender::bke::tests

@@ -6,6 +6,7 @@ import bpy
 from bpy.types import Panel, Header, Menu, UIList
 from bpy.app.translations import (
     pgettext_iface as iface_,
+    pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
 from bl_ui.utils import PresetPanel
@@ -170,7 +171,7 @@ class CLIP_HT_header(Header):
                 r = active_object.reconstruction
 
                 if r.is_valid and sc.view == 'CLIP':
-                    layout.label(text=iface_("Solve error: %.2f px") %
+                    layout.label(text=rpt_("Solve error: %.2f px") %
                                  (r.average_error),
                                  translate=False)
 
@@ -362,7 +363,7 @@ class CLIP_PT_tools_clip(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Clip"
-    bl_translation_context = bpy.app.translations.contexts.id_movieclip
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_category = "Track"
 
     @classmethod
@@ -472,6 +473,7 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Track"
+    bl_translation_context = i18n_contexts.id_movieclip
     bl_category = "Track"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -724,6 +726,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
     bl_region_type = 'UI'
     bl_category = "Track"
     bl_label = "Track"
+    bl_translation_context = i18n_contexts.id_movieclip
 
     def draw(self, context):
         layout = self.layout
@@ -769,7 +772,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         layout.prop(act_track, "weight_stab")
 
         if act_track.has_bundle:
-            label_text = iface_("Average Error: %.2f px") % (act_track.average_error)
+            label_text = rpt_("Average Error: %.2f px") % (act_track.average_error)
             layout.label(text=label_text, translate=False)
 
         layout.use_property_split = False
@@ -1264,7 +1267,6 @@ class CLIP_PT_tools_scenesetup(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Scene Setup"
-    bl_translation_context = bpy.app.translations.contexts.id_movieclip
     bl_category = "Solve"
 
     @classmethod
@@ -1326,47 +1328,44 @@ class CLIP_MT_view(Menu):
         sc = context.space_data
 
         if sc.view == 'CLIP':
-            layout.prop(sc, "show_region_ui")
             layout.prop(sc, "show_region_toolbar")
+            layout.prop(sc, "show_region_ui")
             layout.prop(sc, "show_region_hud")
-
             layout.separator()
 
             layout.operator("clip.view_selected")
             layout.operator("clip.view_all")
             layout.operator("clip.view_all", text="View Fit").fit_view = True
             layout.operator("clip.view_center_cursor")
-
+            layout.menu("CLIP_MT_view_zoom")
             layout.separator()
 
             layout.operator("clip.view_zoom_in")
             layout.operator("clip.view_zoom_out")
-
             layout.separator()
 
             layout.prop(sc, "show_metadata")
+            layout.separator()
+        else:
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
+            layout.operator("clip.graph_view_all")
+            if sc.view == 'GRAPH':
+                layout.operator("clip.graph_center_current_frame")
+
+            layout.operator("view2d.zoom_border", text="Zoom")
+            layout.operator_context = 'INVOKE_DEFAULT'
 
             layout.separator()
-
-            layout.menu("CLIP_MT_view_zoom")
-        else:
-            if sc.view == 'GRAPH':
-                layout.operator_context = 'INVOKE_REGION_PREVIEW'
-                layout.operator("clip.graph_center_current_frame")
-                layout.operator("clip.graph_view_all")
-                layout.operator_context = 'INVOKE_DEFAULT'
-
             layout.prop(sc, "show_seconds")
             layout.prop(sc, "show_locked_time")
 
         layout.separator()
-
         layout.menu("INFO_MT_area")
 
 
 class CLIP_MT_clip(Menu):
     bl_label = "Clip"
-    bl_translation_context = bpy.app.translations.contexts.id_movieclip
+    bl_translation_context = i18n_contexts.id_movieclip
 
     def draw(self, context):
         layout = self.layout

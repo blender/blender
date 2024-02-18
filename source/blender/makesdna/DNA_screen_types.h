@@ -28,6 +28,7 @@ struct SpaceType;
 struct uiBlock;
 struct uiLayout;
 struct uiList;
+struct uiListType;
 struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
@@ -129,6 +130,19 @@ typedef struct ScrAreaMap {
   ListBase areabase;
 } ScrAreaMap;
 
+typedef struct LayoutPanelState {
+  struct LayoutPanelState *next, *prev;
+  /** Identifier of the panel. */
+  char *idname;
+  uint8_t flag;
+  char _pad[7];
+} LayoutPanelState;
+
+enum LayoutPanelStateFlag {
+  /** If set, the panel is currently open. Otherwise it is collapsed. */
+  LAYOUT_PANEL_STATE_FLAG_OPEN = (1 << 0),
+};
+
 /** The part from uiBlock that needs saved in file. */
 typedef struct Panel {
   struct Panel *next, *prev;
@@ -157,6 +171,12 @@ typedef struct Panel {
   void *activedata;
   /** Sub panels. */
   ListBase children;
+
+  /**
+   * List of #LayoutPanelState. This stores the open-close-state of layout-panels created with
+   * `layout.panel(...)` in Python. For more information on layout-panels, see `uiLayoutPanelProp`.
+   */
+  ListBase layout_panel_states;
 
   struct Panel_Runtime *runtime;
 } Panel;

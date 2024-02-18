@@ -24,31 +24,33 @@ using namespace Freestyle;
 
 /*----------------------FEdge methods ----------------------------*/
 
-PyDoc_STRVAR(FEdge_doc,
-             "Class hierarchy: :class:`Interface1D` > :class:`FEdge`\n"
-             "\n"
-             "Base Class for feature edges. This FEdge can represent a silhouette,\n"
-             "a crease, a ridge/valley, a border or a suggestive contour. For\n"
-             "silhouettes, the FEdge is oriented so that the visible face lies on\n"
-             "the left of the edge. For borders, the FEdge is oriented so that the\n"
-             "face lies on the left of the edge. An FEdge can represent an initial\n"
-             "edge of the mesh or runs across a face of the initial mesh depending\n"
-             "on the smoothness or sharpness of the mesh. This class is specialized\n"
-             "into a smooth and a sharp version since their properties slightly vary\n"
-             "from one to the other.\n"
-             "\n"
-             ".. method:: FEdge()\n"
-             "            FEdge(brother)\n"
-             "\n"
-             "   Builds an :class:`FEdge` using the default constructor,\n"
-             "   copy constructor, or between two :class:`SVertex` objects.\n"
-             "\n"
-             "   :arg brother: An FEdge object.\n"
-             "   :type brother: :class:`FEdge`\n"
-             "   :arg first_vertex: The first SVertex.\n"
-             "   :type first_vertex: :class:`SVertex`\n"
-             "   :arg second_vertex: The second SVertex.\n"
-             "   :type second_vertex: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_doc,
+    "Class hierarchy: :class:`Interface1D` > :class:`FEdge`\n"
+    "\n"
+    "Base Class for feature edges. This FEdge can represent a silhouette,\n"
+    "a crease, a ridge/valley, a border or a suggestive contour. For\n"
+    "silhouettes, the FEdge is oriented so that the visible face lies on\n"
+    "the left of the edge. For borders, the FEdge is oriented so that the\n"
+    "face lies on the left of the edge. An FEdge can represent an initial\n"
+    "edge of the mesh or runs across a face of the initial mesh depending\n"
+    "on the smoothness or sharpness of the mesh. This class is specialized\n"
+    "into a smooth and a sharp version since their properties slightly vary\n"
+    "from one to the other.\n"
+    "\n"
+    ".. method:: FEdge()\n"
+    "            FEdge(brother)\n"
+    "\n"
+    "   Builds an :class:`FEdge` using the default constructor,\n"
+    "   copy constructor, or between two :class:`SVertex` objects.\n"
+    "\n"
+    "   :arg brother: An FEdge object.\n"
+    "   :type brother: :class:`FEdge`\n"
+    "   :arg first_vertex: The first SVertex.\n"
+    "   :type first_vertex: :class:`SVertex`\n"
+    "   :arg second_vertex: The second SVertex.\n"
+    "   :type second_vertex: :class:`SVertex`");
 
 static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 {
@@ -117,10 +119,12 @@ static PySequenceMethods BPy_FEdge_as_sequence = {
 
 /*----------------------FEdge get/setters ----------------------------*/
 
-PyDoc_STRVAR(FEdge_first_svertex_doc,
-             "The first SVertex constituting this FEdge.\n"
-             "\n"
-             ":type: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_first_svertex_doc,
+    "The first SVertex constituting this FEdge.\n"
+    "\n"
+    ":type: :class:`SVertex`");
 
 static PyObject *FEdge_first_svertex_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -141,10 +145,12 @@ static int FEdge_first_svertex_set(BPy_FEdge *self, PyObject *value, void * /*cl
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_second_svertex_doc,
-             "The second SVertex constituting this FEdge.\n"
-             "\n"
-             ":type: :class:`SVertex`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_second_svertex_doc,
+    "The second SVertex constituting this FEdge.\n"
+    "\n"
+    ":type: :class:`SVertex`");
 
 static PyObject *FEdge_second_svertex_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -165,11 +171,13 @@ static int FEdge_second_svertex_set(BPy_FEdge *self, PyObject *value, void * /*c
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_next_fedge_doc,
-             "The FEdge following this one in the ViewEdge. The value is None if\n"
-             "this FEdge is the last of the ViewEdge.\n"
-             "\n"
-             ":type: :class:`FEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_next_fedge_doc,
+    "The FEdge following this one in the ViewEdge. The value is None if\n"
+    "this FEdge is the last of the ViewEdge.\n"
+    "\n"
+    ":type: :class:`FEdge`");
 
 static PyObject *FEdge_next_fedge_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -190,11 +198,13 @@ static int FEdge_next_fedge_set(BPy_FEdge *self, PyObject *value, void * /*closu
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_previous_fedge_doc,
-             "The FEdge preceding this one in the ViewEdge. The value is None if\n"
-             "this FEdge is the first one of the ViewEdge.\n"
-             "\n"
-             ":type: :class:`FEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_previous_fedge_doc,
+    "The FEdge preceding this one in the ViewEdge. The value is None if\n"
+    "this FEdge is the first one of the ViewEdge.\n"
+    "\n"
+    ":type: :class:`FEdge`");
 
 static PyObject *FEdge_previous_fedge_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -215,10 +225,12 @@ static int FEdge_previous_fedge_set(BPy_FEdge *self, PyObject *value, void * /*c
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_viewedge_doc,
-             "The ViewEdge to which this FEdge belongs to.\n"
-             "\n"
-             ":type: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_viewedge_doc,
+    "The ViewEdge to which this FEdge belongs to.\n"
+    "\n"
+    ":type: :class:`ViewEdge`");
 
 static PyObject *FEdge_viewedge_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -239,10 +251,12 @@ static int FEdge_viewedge_set(BPy_FEdge *self, PyObject *value, void * /*closure
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_is_smooth_doc,
-             "True if this FEdge is a smooth FEdge.\n"
-             "\n"
-             ":type: bool");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_is_smooth_doc,
+    "True if this FEdge is a smooth FEdge.\n"
+    "\n"
+    ":type: bool");
 
 static PyObject *FEdge_is_smooth_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -259,10 +273,12 @@ static int FEdge_is_smooth_set(BPy_FEdge *self, PyObject *value, void * /*closur
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_id_doc,
-             "The Id of this FEdge.\n"
-             "\n"
-             ":type: :class:`Id`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_id_doc,
+    "The Id of this FEdge.\n"
+    "\n"
+    ":type: :class:`Id`");
 
 static PyObject *FEdge_id_get(BPy_FEdge *self, void * /*closure*/)
 {
@@ -280,10 +296,12 @@ static int FEdge_id_set(BPy_FEdge *self, PyObject *value, void * /*closure*/)
   return 0;
 }
 
-PyDoc_STRVAR(FEdge_nature_doc,
-             "The nature of this FEdge.\n"
-             "\n"
-             ":type: :class:`Nature`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    FEdge_nature_doc,
+    "The nature of this FEdge.\n"
+    "\n"
+    ":type: :class:`Nature`");
 
 static PyObject *FEdge_nature_get(BPy_FEdge *self, void * /*closure*/)
 {

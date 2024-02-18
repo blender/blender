@@ -15,7 +15,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 static void rna_Lattice_transform(Lattice *lt, const float mat[16], bool shape_keys)

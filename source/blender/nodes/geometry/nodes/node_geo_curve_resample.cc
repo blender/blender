@@ -179,7 +179,7 @@ static void node_rna(StructRNA *srna)
        0,
        "Evaluated",
        "Output the input spline's evaluated points, based on the resolution attribute for NURBS "
-       "and Bezier splines. Poly splines are unchanged"},
+       "and Bézier splines. Poly splines are unchanged"},
       {GEO_NODE_CURVE_RESAMPLE_COUNT,
        "COUNT",
        0,

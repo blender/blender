@@ -41,7 +41,7 @@ const float *NodeOperation::get_constant_elem_default(const float *default_elem)
 
 std::optional<NodeOperationHash> NodeOperation::generate_hash()
 {
-  params_hash_ = get_default_hash_2(canvas_.xmin, canvas_.xmax);
+  params_hash_ = get_default_hash(canvas_.xmin, canvas_.xmax);
 
   /* Hash subclasses params. */
   is_hash_output_params_implemented_ = true;

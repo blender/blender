@@ -28,17 +28,18 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_system.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_icons.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
@@ -65,15 +66,13 @@
 #include "ED_scene.hh"
 #include "ED_screen.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 
-#include "PIL_time.h"
-
-#include "BLF_api.h"
+#include "BLF_api.hh"
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_context.h"
@@ -1664,9 +1663,14 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
           int icon = ED_file_extension_icon((char *)stra->strings[0]);
           wmDragPath *path_data = WM_drag_create_path_data(
               blender::Span((char **)stra->strings, stra->count));
-          WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, 0.0, WM_DRAG_NOP);
+          WM_event_start_drag(C, icon, WM_DRAG_PATH, path_data, WM_DRAG_NOP);
           /* Void pointer should point to string, it makes a copy. */
         }
+      }
+      else if (ddd->dataType == GHOST_kDragnDropTypeString) {
+        /* Drop an arbitrary string. */
+        std::string *str = MEM_new<std::string>(__func__, static_cast<const char *>(ddd->data));
+        WM_event_start_drag(C, ICON_NONE, WM_DRAG_STRING, str, WM_DRAG_FREE_DATA);
       }
 
       break;
@@ -1727,7 +1731,7 @@ static bool wm_window_timers_process(const bContext *C, int *sleep_us_p)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
-  const double time = PIL_check_seconds_timer();
+  const double time = BLI_time_now_seconds();
   bool has_event = false;
 
   const int sleep_us = *sleep_us_p;
@@ -1834,11 +1838,11 @@ void wm_window_events_process(const bContext *C)
    * events are typically generated from a timer that runs in the main loop. */
   if ((has_event == false) && (sleep_us != 0) && !(G.f & G_FLAG_EVENT_SIMULATE)) {
     if (sleep_us == sleep_us_default) {
-      /* NOTE(@ideasman42): prefer #PIL_sleep_ms over `sleep_for(..)` in the common case
+      /* NOTE(@ideasman42): prefer #BLI_time_sleep_ms over `sleep_for(..)` in the common case
        * because this function uses lower resolution (millisecond) resolution sleep timers
        * which are tried & true for the idle loop. We could move to C++ `sleep_for(..)`
        * if this works well on all platforms but this needs further testing. */
-      PIL_sleep_ms(sleep_us_default / 1000);
+      BLI_time_sleep_ms(sleep_us_default / 1000);
     }
     else {
       /* The time was shortened to resume for the upcoming timer, use a high resolution sleep.
@@ -1983,13 +1987,13 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
 
   /* Title and explanation text. */
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemL_ex(col, TIP_("Python script uses OpenGL for drawing"), ICON_NONE, true, false);
-  uiItemL(col, TIP_("This may lead to unexpected behavior"), ICON_NONE);
+  uiItemL_ex(col, RPT_("Python script uses OpenGL for drawing"), ICON_NONE, true, false);
+  uiItemL(col, RPT_("This may lead to unexpected behavior"), ICON_NONE);
   uiItemL(col,
-          TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal"),
+          RPT_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal"),
           ICON_NONE);
   uiItemL(col,
-          TIP_("Please contact the developer of the add-on to migrate to use 'gpu' module"),
+          RPT_("Please contact the developer of the add-on to migrate to use 'gpu' module"),
           ICON_NONE);
   if (G.opengl_deprecation_usage_filename) {
     char location[1024];
@@ -1997,7 +2001,7 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
         location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
     uiItemL(col, location, ICON_NONE);
   }
-  uiItemL(col, TIP_("See system tab in preferences to switch to OpenGL backend"), ICON_NONE);
+  uiItemL(col, RPT_("See system tab in preferences to switch to OpenGL backend"), ICON_NONE);
 
   uiItemS(layout);
 
@@ -2024,11 +2028,10 @@ void wm_test_opengl_deprecation_warning(bContext *C)
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = static_cast<wmWindow *>((wm->winactive) ? wm->winactive : wm->windows.first);
 
-  BKE_report(
-      &wm->reports,
-      RPT_ERROR,
-      TIP_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
-           "Please contact the developer of the add-on to migrate to use 'gpu' module"));
+  BKE_report(&wm->runtime->reports,
+             RPT_ERROR,
+             "One of the add-ons or scripts is using OpenGL and will not work correct on Metal. "
+             "Please contact the developer of the add-on to migrate to use 'gpu' module");
 
   if (win) {
     wmWindow *prevwin = CTX_wm_window(C);
@@ -2094,13 +2097,18 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *time
   timer->sleep = do_sleep;
 }
 
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step)
+wmTimer *WM_event_timer_add(wmWindowManager *wm,
+                            wmWindow *win,
+                            const int event_type,
+                            const double time_step)
 {
+  BLI_assert(ISTIMER(event_type));
+
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = event_type;
-  wt->time_last = PIL_check_seconds_timer();
+  wt->time_last = BLI_time_now_seconds();
   wt->time_next = wt->time_last + time_step;
   wt->time_start = wt->time_last;
   wt->time_step = time_step;
@@ -2113,14 +2121,14 @@ wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, 
 
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
-                                     uint type,
-                                     double time_step)
+                                     const uint type,
+                                     const double time_step)
 {
   wmTimer *wt = static_cast<wmTimer *>(MEM_callocN(sizeof(wmTimer), "window timer"));
   BLI_assert(time_step >= 0.0f);
 
   wt->event_type = TIMERNOTIFIER;
-  wt->time_last = PIL_check_seconds_timer();
+  wt->time_last = BLI_time_now_seconds();
   wt->time_next = wt->time_last + time_step;
   wt->time_start = wt->time_last;
   wt->time_step = time_step;
@@ -2174,8 +2182,8 @@ void WM_event_timer_remove(wmWindowManager *wm, wmWindow * /*win*/, wmTimer *tim
   timer->flags |= WM_TIMER_TAGGED_FOR_REMOVAL;
 
   /* Clear existing references to the timer. */
-  if (wm->reports.reporttimer == timer) {
-    wm->reports.reporttimer = nullptr;
+  if (wm->runtime->reports.reporttimer == timer) {
+    wm->runtime->reports.reporttimer = nullptr;
   }
   /* There might be events in queue with this timer as customdata. */
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {

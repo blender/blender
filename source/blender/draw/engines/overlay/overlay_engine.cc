@@ -17,7 +17,7 @@
 
 #include "UI_interface.hh"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 

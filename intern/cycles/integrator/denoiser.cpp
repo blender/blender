@@ -27,7 +27,9 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
 #endif
 
 #ifdef WITH_OPENIMAGEDENOISE
-  if (params.type == DENOISER_OPENIMAGEDENOISE && path_trace_device->info.type != DEVICE_CPU &&
+  /* If available and allowed, then we will use OpenImageDenoise on GPU, otherwise on CPU. */
+  if (params.type == DENOISER_OPENIMAGEDENOISE && params.use_gpu &&
+      path_trace_device->info.type != DEVICE_CPU &&
       OIDNDenoiserGPU::is_device_supported(path_trace_device->info))
   {
     return make_unique<OIDNDenoiserGPU>(path_trace_device, params);
@@ -84,8 +86,14 @@ Device *Denoiser::get_denoiser_device() const
 }
 
 /* Check whether given device is single (not a MultiDevice) and supports requested denoiser. */
-static bool is_single_supported_device(Device *device, DenoiserType type)
+static bool is_single_supported_device(const Device *device,
+                                       const uint device_type_mask,
+                                       const DenoiserType type)
 {
+  if (!(device_type_mask & (1 << device->info.type))) {
+    return false;
+  }
+
   if (device->info.type == DEVICE_MULTI) {
     /* Assume multi-device is never created with a single sub-device.
      * If one requests such configuration it should be checked on the session level. */
@@ -107,11 +115,16 @@ static bool is_single_supported_device(Device *device, DenoiserType type)
  * multi-device.
  *
  * If there is no device available which supports given denoiser type nullptr is returned. */
-static Device *find_best_device(Device *device, DenoiserType type)
+static Device *find_best_device(Device *device,
+                                const uint device_type_mask,
+                                const DenoiserType type)
 {
   Device *best_device = nullptr;
 
   device->foreach_device([&](Device *sub_device) {
+    if (!(device_type_mask & (1 << sub_device->info.type))) {
+      return;
+    }
     if ((sub_device->info.denoisers & type) == 0) {
       return;
     }
@@ -135,7 +148,7 @@ static Device *find_best_device(Device *device, DenoiserType type)
 }
 
 static DeviceInfo find_best_denoiser_device_info(const vector<DeviceInfo> &device_infos,
-                                                 DenoiserType denoiser_type)
+                                                 const DenoiserType denoiser_type)
 {
   for (const DeviceInfo &device_info : device_infos) {
     if ((device_info.denoisers & denoiser_type) == 0) {
@@ -157,7 +170,7 @@ static DeviceInfo find_best_denoiser_device_info(const vector<DeviceInfo> &devic
 
 static unique_ptr<Device> create_denoiser_device(Device *path_trace_device,
                                                  const uint device_type_mask,
-                                                 DenoiserType denoiser_type)
+                                                 const DenoiserType denoiser_type)
 {
   const vector<DeviceInfo> device_infos = Device::available_devices(device_type_mask);
   if (device_infos.empty()) {
@@ -197,14 +210,16 @@ Device *Denoiser::ensure_denoiser_device(Progress *progress)
     return denoiser_device_;
   }
 
+  const uint device_type_mask = get_device_type_mask();
+
   /* Simple case: rendering happens on a single device which also supports denoiser. */
-  if (is_single_supported_device(path_trace_device_, params_.type)) {
+  if (is_single_supported_device(path_trace_device_, device_type_mask, params_.type)) {
     denoiser_device_ = path_trace_device_;
     return denoiser_device_;
   }
 
   /* Find best device from the ones which are already used for rendering. */
-  denoiser_device_ = find_best_device(path_trace_device_, params_.type);
+  denoiser_device_ = find_best_device(path_trace_device_, device_type_mask, params_.type);
   if (denoiser_device_) {
     return denoiser_device_;
   }
@@ -215,7 +230,6 @@ Device *Denoiser::ensure_denoiser_device(Progress *progress)
 
   device_creation_attempted_ = true;
 
-  const uint device_type_mask = get_device_type_mask();
   local_denoiser_device_ = create_denoiser_device(
       path_trace_device_, device_type_mask, params_.type);
   denoiser_device_ = local_denoiser_device_.get();

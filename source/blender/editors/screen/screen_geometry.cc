@@ -84,7 +84,7 @@ ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
     if (screen_geom_edge_is_horizontal(se)) {
       if ((se->v1->vec.y > bounds_rect->ymin) && (se->v1->vec.y < (bounds_rect->ymax - 1))) {
         short min, max;
-        min = MIN2(se->v1->vec.x, se->v2->vec.x);
+        min = std::min(se->v1->vec.x, se->v2->vec.x);
         max = std::max(se->v1->vec.x, se->v2->vec.x);
 
         if (abs(my - se->v1->vec.y) <= safety && mx >= min && mx <= max) {
@@ -95,7 +95,7 @@ ScrEdge *screen_geom_area_map_find_active_scredge(const ScrAreaMap *area_map,
     else {
       if ((se->v1->vec.x > bounds_rect->xmin) && (se->v1->vec.x < (bounds_rect->xmax - 1))) {
         short min, max;
-        min = MIN2(se->v1->vec.y, se->v2->vec.y);
+        min = std::min(se->v1->vec.y, se->v2->vec.y);
         max = std::max(se->v1->vec.y, se->v2->vec.y);
 
         if (abs(mx - se->v1->vec.x) <= safety && my >= min && my <= max) {

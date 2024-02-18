@@ -11,7 +11,7 @@
 #include "BKE_asset.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
@@ -21,9 +21,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "BLT_translation.h"
-
-#include "RNA_access.hh"
+#include "BLT_translation.hh"
 
 #include "WM_api.hh"
 
@@ -238,10 +236,9 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
   AssetFilterSettings filter_settings{};
   filter_settings.id_types = FILTER_ID_NT;
 
-  ED_assetlist_storage_fetch(&library_ref, &C);
-  ED_assetlist_ensure_previews_job(&library_ref, &C);
-  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
-    if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
+  asset::list::storage_fetch(&library_ref, &C);
+  asset::list::iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!asset::filter_matches_asset(&filter_settings, asset)) {
       return true;
     }
     if (skip_local && asset.is_local_id()) {

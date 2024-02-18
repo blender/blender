@@ -62,21 +62,20 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_key.h"
-#include "BKE_layer.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_material.h"
@@ -90,8 +89,6 @@
 #include "SEQ_utils.hh"
 
 #include "ANIM_bone_collections.hh"
-
-#include "UI_resources.hh" /* for TH_KEYFRAME_SCALE lookup */
 
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */
@@ -942,14 +939,9 @@ static bAnimListElem *make_new_animlistelem(void *data,
           /* the corresponding keyframes are from the animdata */
           if (ale->adt && ale->adt->action) {
             bAction *act = ale->adt->action;
-            char *rna_path = BKE_keyblock_curval_rnapath_get(key, kb);
-
-            /* try to find the F-Curve which corresponds to this exactly,
-             * then free the MEM_alloc'd string
-             */
-            if (rna_path) {
-              ale->key_data = (void *)BKE_fcurve_find(&act->curves, rna_path, 0);
-              MEM_freeN(rna_path);
+            /* Try to find the F-Curve which corresponds to this exactly. */
+            if (std::optional<std::string> rna_path = BKE_keyblock_curval_rnapath_get(key, kb)) {
+              ale->key_data = (void *)BKE_fcurve_find(&act->curves, rna_path->c_str(), 0);
             }
           }
           ale->datatype = (ale->key_data) ? ALE_FCURVE : ALE_NONE;
@@ -1108,7 +1100,7 @@ static bool skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_id
          * since data-paths that point to missing strips are not shown.
          * If this is an important difference, the nullptr case could perform a global lookup,
          * only returning `true` if the sequence strip exists elsewhere
-         * (ignoring it's selection state). */
+         * (ignoring its selection state). */
         if (seq == nullptr) {
           return true;
         }

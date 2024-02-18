@@ -113,9 +113,15 @@ class prettyface:
 
                 # ngons work different, we store projected result
                 # in UVs to avoid having to re-project later.
-                for i, co in enumerate(cos_2d):
-                    self.uv[i][:] = ((co.x - xmin) / xspan,
-                                     (co.y - ymin) / yspan)
+                if xspan < 0.0000001 or yspan < 0.0000001:
+                    for i in range(len(cos_2d)):
+                        self.uv[i][:] = (0.0, 0.0)
+                else:
+                    for i, co in enumerate(cos_2d):
+                        self.uv[i][:] = (
+                            (co.x - xmin) / xspan,
+                            (co.y - ymin) / yspan,
+                        )
 
             self.children = []
 
@@ -296,28 +302,52 @@ def lightmap_uvpack(
             tri_lengths = [trylens(f) for f in face_sel if f.loop_total == 3]
             del trylens
 
-            def trilensdiff(t1, t2):
-                return (abs(t1[1][t1[2][0]] - t2[1][t2[2][0]]) +
-                        abs(t1[1][t1[2][1]] - t2[1][t2[2][1]]) +
-                        abs(t1[1][t1[2][2]] - t2[1][t2[2][2]]))
+            # To add triangles into the light-map pack triangles are grouped in pairs to fill rectangular areas.
+            # In the following for each triangle we add the sorted triangle edge lengths (3d point) into a KD-Tree
+            # then iterate over all triangles and search for pairs of triangles by looking for the closest
+            # sorted triangle point.
+            # Additionally clusters of similar/equal triangles are parsed by searching for ranges in a second step.
+            kd = mathutils.kdtree.KDTree(len(tri_lengths))
+            for i, (f, lens, o) in enumerate(tri_lengths):
+                vector = (lens[o[0]], lens[o[1]], lens[o[2]])
+                kd.insert(vector, i)
+            kd.balance()
 
-            while tri_lengths:
-                tri1 = tri_lengths.pop()
+            added_ids = [False] * len(tri_lengths)
+            pairs_added = 0
+            tri_equality_threshold = 0.00001  # Add multiple pairs at once that are within this threshold.
+            for i in range(len(tri_lengths)):
+                if added_ids[i]:
+                    continue
+                tri1 = tri_lengths[i]
+                f1, lens1, lo1 = tri1
 
-                if not tri_lengths:
+                sorted_l = (lens1[lo1[0]], lens1[lo1[1]], lens1[lo1[2]])
+                added_ids[i] = True
+                vec, nearest, dist = kd.find(sorted_l, filter=lambda idx: not added_ids[idx])
+                if not nearest or nearest < 0:
                     pretty_faces.append(prettyface((tri1, None)))
                     break
+                tri2 = tri_lengths[nearest]
+                pretty_faces.append(prettyface((tri1, tri2)))
+                pairs_added = pairs_added + 1
+                added_ids[nearest] = True
 
-                best_tri_index = -1
-                best_tri_diff = 100000000.0
+                # Look in threshold proximity to add all similar/equal triangles in one go.
+                # This code is not necessary but acts as a shortcut (~9% performance improvement).
+                if dist < tri_equality_threshold:
+                    cluster_tri_ids = [
+                        idx for _, idx, _ in kd.find_range(sorted_l, tri_equality_threshold)
+                        if not added_ids[idx]
+                    ]
 
-                for i, tri2 in enumerate(tri_lengths):
-                    diff = trilensdiff(tri1, tri2)
-                    if diff < best_tri_diff:
-                        best_tri_index = i
-                        best_tri_diff = diff
-
-                pretty_faces.append(prettyface((tri1, tri_lengths.pop(best_tri_index))))
+                    if len(cluster_tri_ids) > 1:
+                        for ci in range(0, len(cluster_tri_ids) - (len(cluster_tri_ids) % 2), 2):
+                            pretty_faces.append(
+                                prettyface((tri_lengths[cluster_tri_ids[ci]], tri_lengths[cluster_tri_ids[ci + 1]]))
+                            )
+                            added_ids[cluster_tri_ids[ci]] = added_ids[cluster_tri_ids[ci + 1]] = True
+                            pairs_added = pairs_added + 1
 
         # Get the min, max and total areas
         max_area = 0.0

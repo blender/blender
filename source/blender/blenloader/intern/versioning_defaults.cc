@@ -22,7 +22,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
-#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_camera_types.h"
@@ -33,7 +32,6 @@
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -42,7 +40,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -50,22 +48,21 @@
 #include "BKE_customdata.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "versioning_common.hh"
 
@@ -320,7 +317,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* New EEVEE defaults. */
   scene->eevee.bloom_intensity = 0.05f;
   scene->eevee.bloom_clamp = 0.0f;
-  scene->eevee.motion_blur_shutter = 0.5f;
+  scene->eevee.motion_blur_shutter_deprecated = 0.5f;
 
   copy_v3_v3(scene->display.light_direction, blender::float3(M_SQRT1_3));
   copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);
@@ -382,6 +379,15 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   IDProperty *idprop = IDP_GetProperties(&scene->id);
   if (idprop) {
     IDP_ClearProperty(idprop);
+  }
+
+  if (ts->sculpt) {
+    ts->sculpt->automasking_boundary_edges_propagation_steps = 1;
+  }
+
+  /* Ensure input_samples has a correct default value of 1. */
+  if (ts->unified_paint_settings.input_samples == 0) {
+    ts->unified_paint_settings.input_samples = 1;
   }
 }
 
@@ -497,9 +503,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       }
 
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
 
       /* Enable cursor. */
       if (ts->gp_paint) {
@@ -531,7 +537,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
             BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
             BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-            BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+            BKE_libblock_ensure_unique_name(bmain, &screen->id);
           }
         }
 
@@ -675,6 +681,9 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
     /* Enable anti-aliasing by default. */
     brush->sampling_flag |= BRUSH_PAINT_ANTIALIASING;
+
+    /* By default, each brush should use a single input sample. */
+    brush->input_samples = 1;
   }
 
   {
@@ -817,12 +826,28 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
   }
 
   {
-    /* Use the same tool icon color in the brush cursor */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      /* Use the same tool icon color in the brush cursor */
       if (brush->ob_mode & OB_MODE_SCULPT) {
         BLI_assert(brush->sculpt_tool != 0);
         BKE_brush_sculpt_reset(brush);
       }
+
+      /* Set the default texture mapping.
+       * Do it for all brushes, since some of them might be coming from the startup file. */
+      brush->mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
+      brush->mask_mtex.brush_map_mode = MTEX_MAP_MODE_VIEW;
+    }
+  }
+
+  {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
+      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
+
+      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
+      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
     }
   }
 }

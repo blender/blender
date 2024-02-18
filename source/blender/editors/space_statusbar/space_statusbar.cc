@@ -19,13 +19,10 @@
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
 
-#include "RNA_access.hh"
-
 #include "UI_interface.hh"
 
 #include "BLO_read_write.hh"
 
-#include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 
@@ -132,7 +129,7 @@ static void statusbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_statusbar()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(*st), "spacetype statusbar"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_STATUSBAR;
@@ -159,5 +156,5 @@ void ED_spacetype_statusbar()
   art->message_subscribe = statusbar_header_region_message_subscribe;
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

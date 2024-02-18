@@ -19,13 +19,21 @@ bool COM_is_denoise_supported()
 #  ifdef __APPLE__
   return true;
 #  else
-  return BLI_cpu_support_sse41();
+  return BLI_cpu_support_sse42();
 #  endif
 
 #else
   return false;
 #endif
 }
+
+#ifdef WITH_OPENIMAGEDENOISE
+static bool oidn_progress_monitor_function(void *user_ptr, double /*n*/)
+{
+  const NodeOperation *operation = static_cast<const NodeOperation *>(user_ptr);
+  return !operation->is_braked();
+}
+#endif
 
 class DenoiseFilter {
  private:
@@ -42,7 +50,7 @@ class DenoiseFilter {
     BLI_assert(!initialized_);
   }
 
-  void init_and_lock_denoiser(MemoryBuffer *output)
+  void init_and_lock_denoiser(NodeOperation *operation, MemoryBuffer *output)
   {
     /* Since it's memory intensive, it's better to run only one instance of OIDN at a time.
      * OpenImageDenoise is multithreaded internally and should use all available cores
@@ -53,6 +61,7 @@ class DenoiseFilter {
     device_.set("setAffinity", false);
     device_.commit();
     filter_ = device_.newFilter("RT");
+    filter_.setProgressMonitorFunction(oidn_progress_monitor_function, operation);
     initialized_ = true;
     set_image("output", output);
   }
@@ -90,7 +99,7 @@ class DenoiseFilter {
   }
 
 #else
-  void init_and_lock_denoiser(MemoryBuffer * /*output*/) {}
+  void init_and_lock_denoiser(NodeOperation * /*operation*/, MemoryBuffer * /*output*/) {}
 
   void deinit_and_unlock_denoiser() {}
 
@@ -210,7 +219,7 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
                                  input_albedo;
 
   DenoiseFilter filter;
-  filter.init_and_lock_denoiser(output);
+  filter.init_and_lock_denoiser(this, output);
 
   filter.set_image("color", buf_color);
   filter.set_image("normal", buf_normal);
@@ -283,7 +292,7 @@ void DenoisePrefilterOperation::generate_denoise(MemoryBuffer *output, MemoryBuf
   MemoryBuffer *input_buf = input->is_a_single_elem() ? input->inflate() : input;
 
   DenoiseFilter filter;
-  filter.init_and_lock_denoiser(output);
+  filter.init_and_lock_denoiser(this, output);
   filter.set_image(image_name_, input_buf);
   filter.execute();
   filter.deinit_and_unlock_denoiser();

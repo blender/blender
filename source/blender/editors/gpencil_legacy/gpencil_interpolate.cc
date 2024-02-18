@@ -23,11 +23,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_color_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -38,7 +37,7 @@
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -598,7 +597,7 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
   char status_str[UI_MAX_DRAW_STR];
   char msg_str[UI_MAX_DRAW_STR];
 
-  STRNCPY(msg_str, TIP_("GPencil Interpolation: "));
+  STRNCPY(msg_str, IFACE_("GPencil Interpolation: "));
 
   if (hasNumInput(&p->num)) {
     char str_ofs[NUM_STR_REP_LEN];
@@ -612,7 +611,7 @@ static void gpencil_interpolate_status_indicators(bContext *C, tGPDinterpolate *
 
   ED_area_status_text(p->area, status_str);
   ED_workspace_status_text(
-      C, TIP_("ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"));
+      C, IFACE_("ESC/RMB to cancel, Enter/LMB to confirm, WHEEL/MOVE to adjust factor"));
 }
 
 /* Update screen and stroke */

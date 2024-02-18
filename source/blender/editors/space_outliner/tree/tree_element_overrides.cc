@@ -6,7 +6,7 @@
  * \ingroup spoutliner
  */
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_lib_override.hh"
 
 #include "BLI_function_ref.hh"
@@ -14,7 +14,7 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_space_types.h"
 
@@ -77,11 +77,11 @@ TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &i
 StringRefNull TreeElementOverridesBase::get_warning() const
 {
   if (id.flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
-    return TIP_("This override data-block is not needed anymore, but was detected as user-edited");
+    return RPT_("This override data-block is not needed anymore, but was detected as user-edited");
   }
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(&id) && ID_REAL_USERS(&id) == 0) {
-    return TIP_("This override data-block is unused");
+    return RPT_("This override data-block is unused");
   }
 
   return {};
@@ -185,7 +185,7 @@ TreeElementOverridesProperty::TreeElementOverridesProperty(TreeElement &legacy_t
 StringRefNull TreeElementOverridesProperty::get_warning() const
 {
   if (!is_rna_path_valid) {
-    return TIP_(
+    return RPT_(
         "This override property does not exist in current data, it will be removed on "
         "next .blend file save");
   }
@@ -235,20 +235,20 @@ StringRefNull TreeElementOverridesPropertyOperation::get_override_operation_labe
   switch (operation_->operation) {
     case LIBOVERRIDE_OP_INSERT_AFTER:
     case LIBOVERRIDE_OP_INSERT_BEFORE:
-      return TIP_("Added through override");
+      return RPT_("Added through override");
     case LIBOVERRIDE_OP_REPLACE:
       /* Returning nothing so that drawing code shows actual RNA button instead. */
       return {};
     /* Following cases are not expected in regular situation, but could be found in experimental
      * files. */
     case LIBOVERRIDE_OP_NOOP:
-      return TIP_("Protected from override");
+      return RPT_("Protected from override");
     case LIBOVERRIDE_OP_ADD:
-      return TIP_("Additive override");
+      return RPT_("Additive override");
     case LIBOVERRIDE_OP_SUBTRACT:
-      return TIP_("Subtractive override");
+      return RPT_("Subtractive override");
     case LIBOVERRIDE_OP_MULTIPLY:
-      return TIP_("Multiplicative override");
+      return RPT_("Multiplicative override");
     default:
       BLI_assert_unreachable();
       return {};

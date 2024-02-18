@@ -11,8 +11,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "CLG_log.h"
-
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
@@ -27,6 +25,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 
 #include "DNA_defaults.h"
@@ -48,7 +47,6 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_collection.h"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
@@ -56,23 +54,19 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
-#include "SEQ_retiming.hh"
-#include "SEQ_sequencer.hh"
+#include "SEQ_iterator.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
 
-#include "ED_armature.hh"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 
@@ -393,14 +387,14 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
           if (ob->id.lib) {
             BLO_reportf_wrap(fd->reports,
                              RPT_INFO,
-                             TIP_("Proxy lost from object %s lib %s\n"),
+                             RPT_("Proxy lost from object %s lib %s\n"),
                              ob->id.name + 2,
                              ob->id.lib->filepath);
           }
           else {
             BLO_reportf_wrap(fd->reports,
                              RPT_INFO,
-                             TIP_("Proxy lost from object %s lib <NONE>\n"),
+                             RPT_("Proxy lost from object %s lib <NONE>\n"),
                              ob->id.name + 2);
           }
           fd->reports->count.missing_obproxies++;
@@ -1386,6 +1380,36 @@ static void version_geometry_nodes_use_rotation_socket(bNodeTree &ntree)
     }
   }
 }
+
+/* Find the base socket name for an idname that may include a subtype. */
+static blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname)
+{
+  using string_pair = std::pair<const char *, const char *>;
+  static const string_pair subtypes_map[] = {{"NodeSocketFloatUnsigned", "NodeSocketFloat"},
+                                             {"NodeSocketFloatPercentage", "NodeSocketFloat"},
+                                             {"NodeSocketFloatFactor", "NodeSocketFloat"},
+                                             {"NodeSocketFloatAngle", "NodeSocketFloat"},
+                                             {"NodeSocketFloatTime", "NodeSocketFloat"},
+                                             {"NodeSocketFloatTimeAbsolute", "NodeSocketFloat"},
+                                             {"NodeSocketFloatDistance", "NodeSocketFloat"},
+                                             {"NodeSocketIntUnsigned", "NodeSocketInt"},
+                                             {"NodeSocketIntPercentage", "NodeSocketInt"},
+                                             {"NodeSocketIntFactor", "NodeSocketInt"},
+                                             {"NodeSocketVectorTranslation", "NodeSocketVector"},
+                                             {"NodeSocketVectorDirection", "NodeSocketVector"},
+                                             {"NodeSocketVectorVelocity", "NodeSocketVector"},
+                                             {"NodeSocketVectorAcceleration", "NodeSocketVector"},
+                                             {"NodeSocketVectorEuler", "NodeSocketVector"},
+                                             {"NodeSocketVectorXYZ", "NodeSocketVector"}};
+  for (const string_pair &pair : subtypes_map) {
+    if (pair.first == idname) {
+      return pair.second;
+    }
+  }
+  /* Unchanged socket idname. */
+  return idname;
+}
+
 static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &legacy_socket,
                                                                const eNodeSocketInOut in_out)
 {
@@ -1396,7 +1420,10 @@ static bNodeTreeInterfaceItem *legacy_socket_move_to_interface(bNodeSocket &lega
   new_socket->name = BLI_strdup(legacy_socket.name);
   new_socket->identifier = BLI_strdup(legacy_socket.identifier);
   new_socket->description = BLI_strdup(legacy_socket.description);
-  new_socket->socket_type = BLI_strdup(legacy_socket.idname);
+  /* If the socket idname includes a subtype (e.g. "NodeSocketFloatFactor") this will convert it to
+   * the base type name ("NodeSocketFloat"). */
+  new_socket->socket_type = BLI_strdup(
+      legacy_socket_idname_to_socket_type(legacy_socket.idname).data());
   new_socket->flag = (in_out == SOCK_IN ? NODE_INTERFACE_SOCKET_INPUT :
                                           NODE_INTERFACE_SOCKET_OUTPUT);
   SET_FLAG_FROM_TEST(
@@ -1444,6 +1471,28 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
   }
 }
 
+/**
+ * Original node tree interface conversion in did not convert socket idnames with subtype suffixes
+ * to correct socket base types (see #versioning_convert_node_tree_socket_lists_to_interface).
+ */
+static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
+{
+  bNodeTreeInterface &tree_interface = ntree->tree_interface;
+
+  tree_interface.foreach_item([](bNodeTreeInterfaceItem &item) -> bool {
+    if (item.item_type == NODE_INTERFACE_SOCKET) {
+      bNodeTreeInterfaceSocket &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+      blender::StringRef corrected_socket_type = legacy_socket_idname_to_socket_type(
+          socket.socket_type);
+      if (socket.socket_type != corrected_socket_type) {
+        MEM_freeN(socket.socket_type);
+        socket.socket_type = BLI_strdup(corrected_socket_type.data());
+      }
+    }
+    return true;
+  });
+}
+
 /* Convert coat inputs on the Principled BSDF. */
 static void version_principled_bsdf_coat(bNodeTree *ntree)
 {
@@ -1487,16 +1536,72 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
     }
 
     bNodeSocket *base_color_sock = nodeFindSocket(node, SOCK_IN, "Base Color");
+    bNodeSocket *metallic_sock = nodeFindSocket(node, SOCK_IN, "Metallic");
     float specular_tint_old = *version_cycles_node_socket_float_value(specular_tint_sock);
     float *base_color = version_cycles_node_socket_rgba_value(base_color_sock);
+    float metallic = *version_cycles_node_socket_float_value(metallic_sock);
 
     /* Change socket type to Color. */
     nodeModifySocketTypeStatic(ntree, node, specular_tint_sock, SOCK_RGBA, 0);
+    float *specular_tint = version_cycles_node_socket_rgba_value(specular_tint_sock);
+
+    /* The conversion logic here is that the new Specular Tint should be
+     * mix(one, mix(base_color, one, metallic), old_specular_tint).
+     * This needs to be handled both for the fixed values, as well as for any potential connected
+     * inputs. */
 
     static float one[] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-    /* Add a mix node when working with dynamic inputs. */
-    if (specular_tint_sock->link || (base_color_sock->link && specular_tint_old != 0)) {
+    /* Mix the fixed values. */
+    float metallic_mix[4];
+    interp_v4_v4v4(metallic_mix, base_color, one, metallic);
+    interp_v4_v4v4(specular_tint, one, metallic_mix, specular_tint_old);
+
+    if (specular_tint_sock->link == nullptr && specular_tint_old <= 0.0f) {
+      /* Specular Tint was fixed at zero, we don't need any conversion node setup. */
+      continue;
+    }
+
+    /* If the Metallic input is dynamic, or fixed > 0 and base color is dynamic,
+     * we need to insert a node to compute the metallic_mix.
+     * Otherwise, use whatever is connected to the base color, or the static value
+     * if it's unconnected. */
+    bNodeSocket *metallic_mix_out = nullptr;
+    bNode *metallic_mix_node = nullptr;
+    if (metallic_sock->link || (base_color_sock->link && metallic > 0.0f)) {
+      /* Metallic Mix needs to be dynamically mixed. */
+      bNode *mix = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX);
+      static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
+      mix->locx = node->locx - 270;
+      mix->locy = node->locy - 120;
+
+      bNodeSocket *a_in = nodeFindSocket(mix, SOCK_IN, "A_Color");
+      bNodeSocket *b_in = nodeFindSocket(mix, SOCK_IN, "B_Color");
+      bNodeSocket *fac_in = nodeFindSocket(mix, SOCK_IN, "Factor_Float");
+      metallic_mix_out = nodeFindSocket(mix, SOCK_OUT, "Result_Color");
+      metallic_mix_node = mix;
+
+      copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), base_color);
+      if (base_color_sock->link) {
+        nodeAddLink(
+            ntree, base_color_sock->link->fromnode, base_color_sock->link->fromsock, mix, a_in);
+      }
+      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), one);
+      *version_cycles_node_socket_float_value(fac_in) = metallic;
+      if (metallic_sock->link) {
+        nodeAddLink(
+            ntree, metallic_sock->link->fromnode, metallic_sock->link->fromsock, mix, fac_in);
+      }
+    }
+    else if (base_color_sock->link) {
+      /* Metallic Mix is a no-op and equivalent to Base Color*/
+      metallic_mix_out = base_color_sock->link->fromsock;
+      metallic_mix_node = base_color_sock->link->fromnode;
+    }
+
+    /* Similar to above, if the Specular Tint input is dynamic, or fixed > 0 and metallic mix
+     * is dynamic, we need to insert a node to compute the new specular tint. */
+    if (specular_tint_sock->link || (metallic_mix_out && specular_tint_old > 0.0f)) {
       bNode *mix = nodeAddStaticNode(nullptr, ntree, SH_NODE_MIX);
       static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
       mix->locx = node->locx - 170;
@@ -1508,13 +1613,11 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       bNodeSocket *result_out = nodeFindSocket(mix, SOCK_OUT, "Result_Color");
 
       copy_v4_v4(version_cycles_node_socket_rgba_value(a_in), one);
-      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), base_color);
-      *version_cycles_node_socket_float_value(fac_in) = specular_tint_old;
-
-      if (base_color_sock->link) {
-        nodeAddLink(
-            ntree, base_color_sock->link->fromnode, base_color_sock->link->fromsock, mix, b_in);
+      copy_v4_v4(version_cycles_node_socket_rgba_value(b_in), metallic_mix);
+      if (metallic_mix_out) {
+        nodeAddLink(ntree, metallic_mix_node, metallic_mix_out, mix, b_in);
       }
+      *version_cycles_node_socket_float_value(fac_in) = specular_tint_old;
       if (specular_tint_sock->link) {
         nodeAddLink(ntree,
                     specular_tint_sock->link->fromnode,
@@ -1525,10 +1628,6 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       }
       nodeAddLink(ntree, mix, result_out, node, specular_tint_sock);
     }
-
-    float *specular_tint = version_cycles_node_socket_rgba_value(specular_tint_sock);
-    /* Mix the fixed values. */
-    interp_v4_v4v4(specular_tint, one, base_color, specular_tint_old);
   }
 }
 
@@ -1793,6 +1892,51 @@ static void versioning_grease_pencil_stroke_radii_scaling(GreasePencil *grease_p
       }
     });
   }
+}
+
+static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
+{
+  using namespace blender;
+  MultiValueMap<bNodeSocket *, bNodeLink *> out_links_per_socket;
+  LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
+    if (link->fromnode->type == GEO_NODE_OBJECT_INFO) {
+      out_links_per_socket.add(link->fromsock, link);
+    }
+  }
+
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
+    if (node->type != GEO_NODE_OBJECT_INFO) {
+      continue;
+    }
+    bNodeSocket *scale = nodeFindSocket(node, SOCK_OUT, "Scale");
+    const Span<bNodeLink *> links = out_links_per_socket.lookup(scale);
+    if (links.is_empty()) {
+      continue;
+    }
+    bNode *absolute_value = nodeAddNode(nullptr, &ntree, "ShaderNodeVectorMath");
+    absolute_value->custom1 = NODE_VECTOR_MATH_ABSOLUTE;
+    absolute_value->parent = node->parent;
+    absolute_value->locx = node->locx + 100;
+    absolute_value->locy = node->locy - 50;
+    nodeAddLink(&ntree,
+                node,
+                scale,
+                absolute_value,
+                static_cast<bNodeSocket *>(absolute_value->inputs.first));
+    for (bNodeLink *link : links) {
+      link->fromnode = absolute_value;
+      link->fromsock = static_cast<bNodeSocket *>(absolute_value->outputs.first);
+    }
+  }
+}
+
+static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
+{
+  StripTransform *transform = seq->strip->transform;
+  if (transform != nullptr && transform->filter == SEQ_TRANSFORM_FILTER_BILINEAR) {
+    transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
+  }
+  return true;
 }
 
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
@@ -2586,8 +2730,235 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_GEOMETRY) {
         version_geometry_nodes_use_rotation_socket(*ntree);
         versioning_nodes_dynamic_sockets_2(*ntree);
+        fix_geometry_nodes_object_info_scale(*ntree);
       }
     }
+  }
+
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 400, 20) && !MAIN_VERSION_FILE_ATLEAST(bmain, 401, 11)) {
+    /* Convert old socket lists into new interface items. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_fix_socket_subtype_idnames(ntree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 12)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_PIXELATE) {
+            node->custom1 = 1;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 13)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_MAP_UV) {
+            node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 14)) {
+    const Brush *default_brush = DNA_struct_default_get(Brush);
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->automasking_start_normal_limit = default_brush->automasking_start_normal_limit;
+      brush->automasking_start_normal_falloff = default_brush->automasking_start_normal_falloff;
+
+      brush->automasking_view_normal_limit = default_brush->automasking_view_normal_limit;
+      brush->automasking_view_normal_falloff = default_brush->automasking_view_normal_falloff;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 15)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_KEYING) {
+            NodeKeyingData &keying_data = *static_cast<NodeKeyingData *>(node->storage);
+            keying_data.edge_kernel_radius = max_ii(keying_data.edge_kernel_radius - 1, 0);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 16)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Sculpt *sculpt = scene->toolsettings->sculpt;
+      if (sculpt != nullptr) {
+        Sculpt default_sculpt = *DNA_struct_default_get(Sculpt);
+        sculpt->automasking_boundary_edges_propagation_steps =
+            default_sculpt.automasking_boundary_edges_propagation_steps;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 17)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      int input_sample_values[10];
+
+      input_sample_values[0] = ts->imapaint.paint.num_input_samples_deprecated;
+      input_sample_values[1] = ts->sculpt != nullptr ?
+                                   ts->sculpt->paint.num_input_samples_deprecated :
+                                   1;
+      input_sample_values[2] = ts->curves_sculpt != nullptr ?
+                                   ts->curves_sculpt->paint.num_input_samples_deprecated :
+                                   1;
+      input_sample_values[3] = ts->uvsculpt != nullptr ?
+                                   ts->uvsculpt->paint.num_input_samples_deprecated :
+                                   1;
+
+      input_sample_values[4] = ts->gp_paint != nullptr ?
+                                   ts->gp_paint->paint.num_input_samples_deprecated :
+                                   1;
+      input_sample_values[5] = ts->gp_vertexpaint != nullptr ?
+                                   ts->gp_vertexpaint->paint.num_input_samples_deprecated :
+                                   1;
+      input_sample_values[6] = ts->gp_sculptpaint != nullptr ?
+                                   ts->gp_sculptpaint->paint.num_input_samples_deprecated :
+                                   1;
+      input_sample_values[7] = ts->gp_weightpaint != nullptr ?
+                                   ts->gp_weightpaint->paint.num_input_samples_deprecated :
+                                   1;
+
+      input_sample_values[8] = ts->vpaint != nullptr ?
+                                   ts->vpaint->paint.num_input_samples_deprecated :
+                                   1;
+      input_sample_values[9] = ts->wpaint != nullptr ?
+                                   ts->wpaint->paint.num_input_samples_deprecated :
+                                   1;
+
+      int unified_value = 1;
+      for (int i = 0; i < 10; i++) {
+        if (input_sample_values[i] != 1) {
+          if (unified_value == 1) {
+            unified_value = input_sample_values[i];
+          }
+          else {
+            /* In the case of a user having multiple tools with different num_input_value values
+             * set we cannot support this in the single UnifiedPaintSettings value, so fallback
+             * to 1 instead of deciding that one value is more canonical than the other.
+             */
+            break;
+          }
+        }
+      }
+
+      ts->unified_paint_settings.input_samples = unified_value;
+    }
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      brush->input_samples = 1;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->ed != nullptr) {
+        SEQ_for_each_callback(&scene->ed->seqbase, seq_filter_bilinear_to_auto, nullptr);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 19)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_socket_name(ntree, FN_NODE_ROTATE_ROTATION, "Rotation 1", "Rotation");
+        version_node_socket_name(ntree, FN_NODE_ROTATE_ROTATION, "Rotation 2", "Rotate By");
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 20)) {
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      int uid = 1;
+      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+        /* These identifiers are not necessarily stable for linked data. If the linked data has a
+         * new modifier inserted, the identifiers of other modifiers can change. */
+        md->persistent_uid = uid++;
+      }
+    }
+  }
+
+  /* Keep point/spot light soft falloff for files created before 4.0. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 0)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      if (ELEM(light->type, LA_LOCAL, LA_SPOT)) {
+        light->mode |= LA_USE_SOFT_FALLOFF;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 1)) {
+    using namespace blender::bke::greasepencil;
+    /* Initialize newly added scale layer transform to one. */
+    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+      for (Layer *layer : grease_pencil->layers_for_write()) {
+        copy_v3_fl(layer->scale, 1.0f);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 2)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      bool is_cycles = scene && STREQ(scene->r.engine, RE_engine_id_CYCLES);
+      if (is_cycles) {
+        if (IDProperty *cscene = version_cycles_properties_from_ID(&scene->id)) {
+          int cposition = version_cycles_property_int(cscene, "motion_blur_position", 1);
+          BLI_assert(cposition >= 0 && cposition < 3);
+          int order_conversion[3] = {SCE_MB_START, SCE_MB_CENTER, SCE_MB_END};
+          scene->r.motion_blur_position = order_conversion[std::clamp(cposition, 0, 2)];
+        }
+      }
+      else {
+        SET_FLAG_FROM_TEST(
+            scene->r.mode, scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED_DEPRECATED, R_MBLUR);
+        scene->r.motion_blur_position = scene->eevee.motion_blur_position_deprecated;
+        scene->r.motion_blur_shutter = scene->eevee.motion_blur_shutter_deprecated;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 3)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings) {
+        continue;
+      }
+
+      UnifiedPaintSettings &ups = scene->toolsettings->unified_paint_settings;
+      ups.flag |= UNIFIED_PAINT_HARD_CORNER_PIN | UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT |
+                   UNIFIED_PAINT_FLAG_HARD_EDGE_MODE;
+    }
+
+    constexpr int NTREE_EXECUTION_MODE_FULL_FRAME = 1;
+
+    constexpr int NTREE_COM_GROUPNODE_BUFFER = 1 << 3;
+    constexpr int NTREE_COM_OPENCL = 1 << 1;
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+
+      ntree->flag &= ~(NTREE_COM_GROUPNODE_BUFFER | NTREE_COM_OPENCL);
+
+      if (ntree->execution_mode == NTREE_EXECUTION_MODE_FULL_FRAME) {
+        ntree->execution_mode = NTREE_EXECUTION_MODE_CPU;
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

@@ -74,6 +74,15 @@ class EllipseMaskOperation : public NodeOperation {
 
   void execute() override
   {
+    const Result &input_mask = get_input("Mask");
+    Result &output_mask = get_result("Mask");
+    /* For single value masks, the output will assume the compositing region, so ensure it is valid
+     * first. See the compute_domain method. */
+    if (input_mask.is_single_value() && !context().is_valid_compositing_region()) {
+      output_mask.allocate_invalid();
+      return;
+    }
+
     GPUShader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
@@ -86,13 +95,11 @@ class EllipseMaskOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "cos_angle", std::cos(get_angle()));
     GPU_shader_uniform_1f(shader, "sin_angle", std::sin(get_angle()));
 
-    const Result &input_mask = get_input("Mask");
     input_mask.bind_as_texture(shader, "base_mask_tx");
 
     const Result &value = get_input("Value");
     value.bind_as_texture(shader, "mask_value_tx");
 
-    Result &output_mask = get_result("Mask");
     output_mask.allocate_texture(domain);
     output_mask.bind_as_image(shader, "output_mask_img");
 

@@ -11,19 +11,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_array.hh"
-#include "BLI_blenlib.h"
 #include "BLI_compiler_attrs.h"
-#include "BLI_hash.h"
-#include "BLI_index_range.hh"
-#include "BLI_linklist.h"
 #include "BLI_math_vector.h"
-#include "BLI_memarena.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -32,8 +23,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_main.hh"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.hh"
@@ -42,7 +32,7 @@
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_index_range.hh"
 
@@ -144,29 +134,7 @@ void SCULPT_pbvh_clear(Object *ob)
 }
 
 namespace blender::ed::sculpt_paint::dyntopo {
-
-void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
-{
-  SculptSession *ss = ob->sculpt;
-
-  ss->vert_to_face_map = {};
-  ss->edge_to_face_map = {};
-  ss->edge_to_face_indices = {};
-  ss->edge_to_face_offsets = {};
-  ss->vert_to_edge_map = {};
-
-  /* Clear out any existing DM and PBVH. */
-  if (ss->pbvh) {
-    bke::pbvh::free(ss->pbvh);
-    ss->pbvh = nullptr;
-  }
-
-  BKE_object_free_derived_caches(ob);
-
-  /* Tag to rebuild PBVH in depsgraph. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-}
-
+//XXX is this needed?
 static void customdata_strip_templayers(CustomData *cdata, int totelem)
 {
   for (int i = 0; i < cdata->totlayer; i++) {
@@ -179,7 +147,7 @@ static void customdata_strip_templayers(CustomData *cdata, int totelem)
   }
 }
 
-void SCULPT_dynamic_topology_enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
+void enable_ex(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -443,8 +411,8 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag 
   uiLayout *layout = UI_popup_menu_layout(pup);
 
   if (flag & MODIFIER) {
-    const char *msg_error = TIP_("Generative Modifiers Detected!");
-    const char *msg = TIP_(
+    const char *msg_error = RPT_("Generative Modifiers Detected!");
+    const char *msg = RPT_(
         "Keeping the modifiers will increase polycount when returning to object mode");
 
     uiItemL(layout, msg_error, ICON_INFO);

@@ -46,8 +46,6 @@
  * This is getting a bit complicated with the addition of unfilled splines and end capping -
  * If large changes are needed here we would be better off using an iterable
  * BLI_mempool for triangles and converting to a contiguous array afterwards.
- *
- * - Campbell
  */
 
 #include <algorithm> /* For `min/max`. */
@@ -73,7 +71,7 @@
 
 #include "BKE_mask.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* this is rather and annoying hack, use define to isolate it.
  * problem is caused by scanfill removing edges on us. */
@@ -632,9 +630,9 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle,
       float(*diff_feather_points_flip)[2];
       uint tot_diff_feather_points;
 
-      const uint resol_a = BKE_mask_spline_resolution(spline, width, height) / 4;
+      const uint resol_a = uint(BKE_mask_spline_resolution(spline, width, height) / 4);
       const uint resol_b = BKE_mask_spline_feather_resolution(spline, width, height) / 4;
-      const uint resol = CLAMPIS(std::max(resol_a, resol_b), 4, 512);
+      const uint resol = std::clamp(std::max(resol_a, resol_b), 4u, 512u);
 
       diff_points = BKE_mask_spline_differentiate_with_resolution(spline, resol, &tot_diff_point);
 

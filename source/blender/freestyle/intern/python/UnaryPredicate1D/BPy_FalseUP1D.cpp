@@ -18,7 +18,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char FalseUP1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    FalseUP1D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryPredicate1D` > :class:`FalseUP1D`\n"
     "\n"
     ".. method:: __call__(inter)\n"
@@ -28,7 +30,7 @@ static char FalseUP1D___doc__[] =
     "   :arg inter: An Interface1D object.\n"
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: False.\n"
-    "   :rtype: bool\n";
+    "   :rtype: bool\n");
 
 static int FalseUP1D___init__(BPy_FalseUP1D *self, PyObject *args, PyObject *kwds)
 {

@@ -182,11 +182,11 @@ add_library(bli_lib
   "../../../source/blender/blenlib/intern/path_util.c"
   "../../../source/blender/blenlib/intern/BLI_dynstr.c"
   "../../../source/blender/blenlib/intern/BLI_ghash.c"
-  "../../../source/blender/blenlib/intern/BLI_ghash_utils.c"
+  "../../../source/blender/blenlib/intern/BLI_ghash_utils.cc"
   "../../../source/blender/blenlib/intern/BLI_linklist.c"
   "../../../source/blender/blenlib/intern/BLI_memarena.c"
   "../../../source/blender/blenlib/intern/BLI_mempool.c"
-  "../../../source/blender/blenlib/intern/hash_mm2a.c"
+  "../../../source/blender/blenlib/intern/hash_mm2a.cc"
   "../../../source/blender/blenlib/intern/string_utils.c"
   "../../../source/blender/blenlib/intern/system.c"
 )

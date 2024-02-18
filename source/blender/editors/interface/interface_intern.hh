@@ -13,6 +13,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
 #include "DNA_listBase.h"
@@ -178,9 +179,9 @@ struct uiBut {
   short bit = 0, bitnr = 0, retval = 0, strwidth = 0, alignnr = 0;
   short ofs = 0, pos = 0, selsta = 0, selend = 0;
 
-  char *str = nullptr;
-  char strdata[UI_MAX_NAME_STR] = "";
-  char drawstr[UI_MAX_DRAW_STR] = "";
+  std::string str;
+
+  std::string drawstr;
 
   char *placeholder = nullptr;
 
@@ -197,6 +198,7 @@ struct uiBut {
    * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
    * - UI_BTYPE_SCROLL:       Use as scroll size.
    * - UI_BTYPE_SEARCH_MENU:  Use as number or rows.
+   * - UI_BTYPE_SEPR_LINE:    1.0 = vertical
    */
   float a1 = 0;
 
@@ -320,8 +322,14 @@ struct uiBut {
 
 /** Derived struct for #UI_BTYPE_NUM */
 struct uiButNumber : public uiBut {
-  float step_size = 0;
-  float precision = 0;
+  float step_size = 0.0f;
+  float precision = 0.0f;
+};
+
+/** Derived struct for #UI_BTYPE_NUM_SLIDER */
+struct uiButNumberSlider : public uiBut {
+  float step_size = 0.0f;
+  float precision = 0.0f;
 };
 
 /** Derived struct for #UI_BTYPE_COLOR */
@@ -332,7 +340,7 @@ struct uiButColor : public uiBut {
 
 /** Derived struct for #UI_BTYPE_TAB */
 struct uiButTab : public uiBut {
-  struct MenuType *menu = nullptr;
+  MenuType *menu = nullptr;
 };
 
 /** Derived struct for #UI_BTYPE_SEARCH_MENU */
@@ -530,7 +538,7 @@ struct uiBlock {
 
   ListBase dynamic_listeners; /* #uiBlockDynamicListener */
 
-  char name[UI_MAX_NAME_STR];
+  std::string name;
 
   float winmat[4][4];
 
@@ -979,8 +987,11 @@ uiPopupBlockHandle *ui_popup_menu_create(
 
 /* `interface_region_popover.cc` */
 
-uiPopupBlockHandle *ui_popover_panel_create(
-    bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg);
+uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
+                                            ARegion *butregion,
+                                            uiBut *but,
+                                            uiMenuCreateFunc menu_func,
+                                            const PanelType *panel_type);
 
 /* `interface_region_menu_pie.cc` */
 
@@ -1251,7 +1262,7 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
  */
 void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
                                     rcti *rect,
-                                    const char *name,
+                                    blender::StringRef name,
                                     int iconid,
                                     const uchar text_col[4],
                                     eFontStyle_Align text_align,
@@ -1425,8 +1436,7 @@ uiBut *ui_list_find_mouse_over_ex(const ARegion *region, const int xy[2])
 
 bool ui_but_contains_password(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 
-size_t ui_but_drawstr_without_sep_char(const uiBut *but, char *str, size_t str_maxncpy)
-    ATTR_NONNULL(1, 2);
+blender::StringRef ui_but_drawstr_without_sep_char(const uiBut *but) ATTR_NONNULL();
 size_t ui_but_drawstr_len_without_sep_char(const uiBut *but);
 size_t ui_but_tip_len_only_first_line(const uiBut *but);
 

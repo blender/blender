@@ -10,10 +10,8 @@
 
 #include <climits>
 
-#include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_ghash.h"
@@ -29,9 +27,10 @@
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_interp.hh"
 #include "MEM_guardedalloc.h"
 
 /* == Parameterization constants == */
@@ -1286,34 +1285,79 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
   discard_stabilization_working_context(ctx);
 }
 
-using interpolation_func = void (*)(const ImBuf *, ImBuf *, float, float, int, int);
-
 struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;
   ImBuf *tmpibuf;
   float (*mat)[4];
-
-  interpolation_func interpolation;
+  int tracking_filter;
 };
 
 static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
-                                                      const int j,
+                                                      const int y,
                                                       const TaskParallelTLS *__restrict /*tls*/)
 {
+  using namespace blender;
+
   TrackingStabilizeFrameInterpolationData *data =
       static_cast<TrackingStabilizeFrameInterpolationData *>(userdata);
   ImBuf *ibuf = data->ibuf;
   ImBuf *tmpibuf = data->tmpibuf;
   float(*mat)[4] = data->mat;
 
-  interpolation_func interpolation = data->interpolation;
+  float vec[3] = {0.0f, float(y), 0.0f};
+  float rvec[3];
 
-  for (int i = 0; i < tmpibuf->x; i++) {
-    float vec[3] = {float(i), float(j), 0.0f};
-
-    mul_v3_m4v3(vec, mat, vec);
-
-    interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
+  if (ibuf->float_buffer.data) {
+    /* Float image. */
+    float4 *dst = reinterpret_cast<float4 *>(tmpibuf->float_buffer.data) + y * tmpibuf->x;
+    if (data->tracking_filter == TRACKING_FILTER_BILINEAR) {
+      for (int x = 0; x < tmpibuf->x; x++, dst++) {
+        vec[0] = float(x);
+        mul_v3_m4v3(rvec, mat, vec);
+        *dst = imbuf::interpolate_bilinear_border_fl(ibuf, rvec[0], rvec[1]);
+      }
+    }
+    else if (data->tracking_filter == TRACKING_FILTER_BICUBIC) {
+      for (int x = 0; x < tmpibuf->x; x++, dst++) {
+        vec[0] = float(x);
+        mul_v3_m4v3(rvec, mat, vec);
+        *dst = imbuf::interpolate_cubic_bspline_fl(ibuf, rvec[0], rvec[1]);
+      }
+    }
+    else {
+      /* Nearest or fallback to nearest. */
+      for (int x = 0; x < tmpibuf->x; x++, dst++) {
+        vec[0] = float(x);
+        mul_v3_m4v3(rvec, mat, vec);
+        *dst = imbuf::interpolate_nearest_fl(ibuf, rvec[0], rvec[1]);
+      }
+    }
+  }
+  else if (ibuf->byte_buffer.data) {
+    /* Byte image. */
+    uchar4 *dst = reinterpret_cast<uchar4 *>(tmpibuf->byte_buffer.data) + y * tmpibuf->x;
+    if (data->tracking_filter == TRACKING_FILTER_BILINEAR) {
+      for (int x = 0; x < tmpibuf->x; x++, dst++) {
+        vec[0] = float(x);
+        mul_v3_m4v3(rvec, mat, vec);
+        *dst = imbuf::interpolate_bilinear_border_byte(ibuf, rvec[0], rvec[1]);
+      }
+    }
+    else if (data->tracking_filter == TRACKING_FILTER_BICUBIC) {
+      for (int x = 0; x < tmpibuf->x; x++, dst++) {
+        vec[0] = float(x);
+        mul_v3_m4v3(rvec, mat, vec);
+        *dst = imbuf::interpolate_cubic_bspline_byte(ibuf, rvec[0], rvec[1]);
+      }
+    }
+    else {
+      /* Nearest or fallback to nearest. */
+      for (int x = 0; x < tmpibuf->x; x++, dst++) {
+        vec[0] = float(x);
+        mul_v3_m4v3(rvec, mat, vec);
+        *dst = imbuf::interpolate_nearest_byte(ibuf, rvec[0], rvec[1]);
+      }
+    }
   }
 }
 
@@ -1327,8 +1371,6 @@ ImBuf *BKE_tracking_stabilize_frame(
   int width = ibuf->x, height = ibuf->y;
   float pixel_aspect = tracking->camera.pixel_aspect;
   float mat[4][4];
-  int filter = tracking->stabilization.filter;
-  interpolation_func interpolation = nullptr;
   int ibuf_flags;
 
   if (translation) {
@@ -1378,25 +1420,11 @@ ImBuf *BKE_tracking_stabilize_frame(
    * thus we need the inverse of the transformation to apply. */
   invert_m4(mat);
 
-  if (filter == TRACKING_FILTER_NEAREST) {
-    interpolation = nearest_interpolation;
-  }
-  else if (filter == TRACKING_FILTER_BILINEAR) {
-    interpolation = bilinear_interpolation;
-  }
-  else if (filter == TRACKING_FILTER_BICUBIC) {
-    interpolation = bicubic_interpolation;
-  }
-  else {
-    /* fallback to default interpolation method */
-    interpolation = nearest_interpolation;
-  }
-
   TrackingStabilizeFrameInterpolationData data = {};
   data.ibuf = ibuf;
   data.tmpibuf = tmpibuf;
   data.mat = mat;
-  data.interpolation = interpolation;
+  data.tracking_filter = tracking->stabilization.filter;
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);

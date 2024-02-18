@@ -93,9 +93,9 @@ typedef struct TexResult {
 /* This one uses nodes. */
 
 /**
- * \warning if the texres's values are not declared zero,
+ * WARNING(@ideasman42): if the texres's values are not declared zero,
  * check the return value to be sure the color values are set before using the r/g/b values,
- * otherwise you may use uninitialized values - Campbell
+ * otherwise you may use uninitialized values.
  *
  * Use it for stuff which is out of render pipeline.
  */

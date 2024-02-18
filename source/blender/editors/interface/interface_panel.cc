@@ -16,12 +16,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "PIL_time.h"
-
 #include "BLI_blenlib.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
@@ -31,7 +30,7 @@
 
 #include "RNA_access.hh"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1096,10 +1095,10 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     const float size_y = BLI_rcti_size_y(&widget_rect);
     GPU_blend(GPU_BLEND_ALPHA);
     UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
-                    widget_rect.ymin + size_y * 0.2f,
+                    widget_rect.ymin + size_y * (UI_panel_is_closed(panel) ? 0.17f : 0.14f),
                     UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                     aspect * UI_INV_SCALE_FAC,
-                    0.7f,
+                    0.8f,
                     0.0f,
                     title_color,
                     false,
@@ -1168,8 +1167,9 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
                                         const rcti *rect,
                                         const rcti *header_rect)
 {
-  const bool is_subpanel = panel->type->parent != nullptr;
   const bool is_open = !UI_panel_is_closed(panel);
+  const bool is_subpanel = panel->type->parent != nullptr;
+  const bool has_header = (panel->type->flag & PANEL_TYPE_NO_HEADER) == 0;
 
   if (is_subpanel && !is_open) {
     return;
@@ -1183,10 +1183,15 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
   GPU_blend(GPU_BLEND_ALPHA);
 
   /* Panel backdrop. */
-  if (is_open || panel->type->flag & PANEL_TYPE_NO_HEADER) {
+  if (is_open || !has_header) {
     float panel_backcolor[4];
     UI_draw_roundbox_corner_set(is_open ? UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT : UI_CNR_ALL);
-    UI_GetThemeColor4fv((is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK), panel_backcolor);
+    if (!has_header) {
+      UI_GetThemeColor4fv(TH_BACK, panel_backcolor);
+    }
+    else {
+      UI_GetThemeColor4fv((is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK), panel_backcolor);
+    }
 
     rctf box_rect;
     box_rect.xmin = rect->xmin;
@@ -1223,7 +1228,7 @@ static void panel_draw_aligned_backdrop(const ARegion *region,
   }
 
   /* Panel header backdrops for non sub-panels. */
-  if (!is_subpanel) {
+  if (!is_subpanel && has_header) {
     float panel_headercolor[4];
     UI_GetThemeColor4fv(UI_panel_matches_search_filter(panel) ? TH_MATCH : TH_PANEL_HEADER,
                         panel_headercolor);
@@ -1260,7 +1265,7 @@ void ui_draw_aligned_panel(const ARegion *region,
       rect->ymax + int(floor(PNL_HEADER / block->aspect + 0.001f)),
   };
 
-  if (show_background) {
+  if (show_background || (panel->type->flag & PANEL_TYPE_NO_HEADER)) {
     panel_draw_aligned_backdrop(region, panel, rect, &header_rect);
   }
 
@@ -1792,7 +1797,7 @@ static void ui_do_animate(bContext *C, Panel *panel)
   uiHandlePanelData *data = static_cast<uiHandlePanelData *>(panel->activedata);
   ARegion *region = CTX_wm_region(C);
 
-  float fac = (PIL_check_seconds_timer() - data->starttime) / ANIMATION_TIME;
+  float fac = (BLI_time_now_seconds() - data->starttime) / ANIMATION_TIME;
   fac = min_ff(sqrtf(fac), 1.0f);
 
   if (uiAlignPanelStep(region, fac, false)) {
@@ -2005,6 +2010,7 @@ static void ui_panel_drag_collapse(const bContext *C,
             const_cast<bContext *>(C),
             &header.open_owner_ptr,
             RNA_struct_find_property(&header.open_owner_ptr, header.open_prop_name.c_str()));
+        ED_region_tag_redraw(region);
       }
     }
 
@@ -2109,6 +2115,7 @@ static void ui_handle_layout_panel_header(
       const_cast<bContext *>(C),
       &header->open_owner_ptr,
       RNA_struct_find_property(&header->open_owner_ptr, header->open_prop_name.c_str()));
+  ED_region_tag_redraw(CTX_wm_region(C));
 
   if (event_type == LEFTMOUSE) {
     ui_panel_drag_collapse_handler_add(C, is_open);
@@ -2453,10 +2460,9 @@ int ui_handler_panel_region(bContext *C,
     if (panel == nullptr || panel->type == nullptr) {
       continue;
     }
-    /* We can't expand or collapse panels without headers, they would disappear. */
-    if (panel->type->flag & PANEL_TYPE_NO_HEADER) {
-      continue;
-    }
+    /* We can't expand or collapse panels without headers, they would disappear. Layout panels can
+     * be expanded and collapsed though. */
+    const bool has_panel_header = !(panel->type->flag & PANEL_TYPE_NO_HEADER);
 
     int mx = event->xy[0];
     int my = event->xy[1];
@@ -2464,7 +2470,7 @@ int ui_handler_panel_region(bContext *C,
 
     const uiPanelMouseState mouse_state = ui_panel_mouse_state_get(block, panel, mx, my);
 
-    if (mouse_state != PANEL_MOUSE_OUTSIDE) {
+    if (has_panel_header && mouse_state != PANEL_MOUSE_OUTSIDE) {
       /* Mark panels that have been interacted with so their expansion
        * doesn't reset when property search finishes. */
       SET_FLAG_FROM_TEST(panel->flag, UI_panel_is_closed(panel), PNL_CLOSED);
@@ -2487,7 +2493,7 @@ int ui_handler_panel_region(bContext *C,
       continue;
     }
 
-    if (mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
+    if (has_panel_header && mouse_state == PANEL_MOUSE_INSIDE_HEADER) {
       /* All mouse clicks inside panel headers should return in break. */
       if (ELEM(event->type, EVT_RETKEY, EVT_PADENTER, LEFTMOUSE)) {
         retval = WM_UI_HANDLER_BREAK;
@@ -2649,7 +2655,7 @@ static void panel_handle_data_ensure(const bContext *C,
   data->startofsy = panel->ofsy;
   data->start_cur_xmin = region->v2d.cur.xmin;
   data->start_cur_ymin = region->v2d.cur.ymin;
-  data->starttime = PIL_check_seconds_timer();
+  data->starttime = BLI_time_now_seconds();
 }
 
 /**

@@ -31,8 +31,8 @@
 // #define DEBUG_TIME
 
 #ifdef DEBUG_TIME
-#  include "PIL_time.h"
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -100,7 +100,7 @@ static GSet *erot_gset_new()
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1) \
   if (v0 > v1) { \
-    SWAP(int, v0, v1); \
+    std::swap(v0, v1); \
   } \
   (void)0
 

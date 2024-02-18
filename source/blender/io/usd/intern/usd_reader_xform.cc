@@ -5,10 +5,10 @@
  *
  * Adapted from the Blender Alembic importer implementation. */
 
-#include "usd_reader_xform.h"
+#include "usd_reader_xform.hh"
 
 #include "BKE_constraint.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -45,7 +45,7 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
 
   read_matrix(transform_from_usd, motionSampleTime, import_params_.scale, &is_constant);
 
-  if (!is_constant) {
+  if (!is_constant && settings_->get_cache_file) {
     bConstraint *con = BKE_constraint_add_for_object(
         object_, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
     bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
@@ -55,7 +55,7 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
 
     STRNCPY(data->object_path, prim_path.c_str());
 
-    data->cache_file = settings_->cache_file;
+    data->cache_file = settings_->get_cache_file();
     id_us_plus(&data->cache_file->id);
   }
 
@@ -118,7 +118,7 @@ bool USDXformReader::is_root_xform_prim() const
     return false;
   }
 
-  if (prim_.IsInPrototype()) {
+  if (is_in_proto()) {
     /* We don't consider prototypes to be root prims,
      * because we never want to apply global scaling
      * or rotations to the prototypes themselves. */

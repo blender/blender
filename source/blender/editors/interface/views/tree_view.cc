@@ -11,7 +11,7 @@
 
 #include "BKE_context.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GPU_immediate.h"
 
@@ -25,6 +25,8 @@
 #include "UI_tree_view.hh"
 
 namespace blender::ui {
+
+#define UI_TREEVIEW_INDENT short(0.7f * UI_UNIT_X)
 
 static int unpadded_item_height()
 {
@@ -135,14 +137,15 @@ AbstractTreeViewItem *AbstractTreeView::find_last_visible_descendant(
 
 void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
                                                       const TreeViewOrItem &parent,
-                                                      const uint pos) const
+                                                      const uint pos,
+                                                      const float aspect) const
 {
   for (const auto &item : parent.children_) {
     if (!item->is_collapsible() || item->is_collapsed()) {
       continue;
     }
 
-    draw_hierarchy_lines_recursive(region, *item, pos);
+    draw_hierarchy_lines_recursive(region, *item, pos, aspect);
 
     const AbstractTreeViewItem *first_descendant = item->children_.first().get();
     const AbstractTreeViewItem *last_descendant = find_last_visible_descendant(*item);
@@ -161,39 +164,33 @@ void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
     rcti last_child_rect;
     ui_but_to_pixelrect(&last_child_rect, &region, block, &last_child_but);
 
-    /* Small vertical padding. */
-    const short line_padding = UI_UNIT_Y / 4.0f;
-    const float x = first_child_rect.xmin + first_descendant->indent_width() -
-                    UI_ICON_SIZE * 0.5f + 2 * UI_SCALE_FAC;
+    const float x = first_child_rect.xmin + ((first_descendant->indent_width() -
+                                              (0.5f * UI_ICON_SIZE) + U.pixelsize + UI_SCALE_FAC) /
+                                             aspect);
+    const int first_child_top = first_child_rect.ymax - (2.0f * UI_SCALE_FAC / aspect);
+    const int last_child_bottom = last_child_rect.ymin + (4.0f * UI_SCALE_FAC / aspect);
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(pos, x, first_child_rect.ymax - line_padding);
-    immVertex2f(pos, x, last_child_rect.ymin + line_padding);
+    immVertex2f(pos, x, first_child_top);
+    immVertex2f(pos, x, last_child_bottom);
     immEnd();
   }
 }
 
 void AbstractTreeView::draw_hierarchy_lines(const ARegion &region) const
 {
+  const float aspect = (region.v2d.flag & V2D_IS_INIT) ?
+                           BLI_rctf_size_y(&region.v2d.cur) /
+                               (BLI_rcti_size_y(&region.v2d.mask) + 1) :
+                           1.0f;
+
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  uchar col[4];
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformThemeColorAlpha(TH_TEXT, 0.2f);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
-
-  float viewport_size[4];
-  GPU_viewport_size_get_f(viewport_size);
-  immUniform2f("viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
-  immUniform1i("colors_len", 0); /* "simple"  mode */
-  immUniform1f("dash_width", 8.0f);
-  /* >= is 1.0 for un-dashed lines. */
-  immUniform1f("udash_factor", 1.0f);
-  UI_GetThemeColorBlend3ubv(TH_BACK, TH_TEXT, 0.4f, col);
-  col[3] = 255;
-  immUniformColor4ubv(col);
-
-  GPU_line_width(1.0f);
+  GPU_line_width(1.0f / aspect);
   GPU_blend(GPU_BLEND_ALPHA);
-  draw_hierarchy_lines_recursive(region, *this, pos);
+  draw_hierarchy_lines_recursive(region, *this, pos, aspect);
   GPU_blend(GPU_BLEND_NONE);
 
   immUnbindProgram();
@@ -298,9 +295,6 @@ void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void *
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
 
   tree_item.activate(*C);
-  /* Not only activate the item, also show its children. Maybe this should be optional, or
-   * controlled by the specific tree-view. */
-  tree_item.set_collapsed(false);
 }
 
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
@@ -316,7 +310,7 @@ void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
 
 int AbstractTreeViewItem::indent_width() const
 {
-  return count_parents() * UI_ICON_SIZE;
+  return count_parents() * UI_TREEVIEW_INDENT;
 }
 
 void AbstractTreeViewItem::add_indent(uiLayout &row) const
@@ -329,8 +323,9 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
 
   /* Indent items without collapsing icon some more within their parent. Makes it clear that they
    * are actually nested and not just a row at the same level without a chevron. */
-  if (!is_collapsible() && parent_) {
-    uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, 0.2f * UI_UNIT_X, 0, nullptr, 0.0, 0.0, 0, 0, "");
+  if (!is_collapsible()) {
+    uiDefBut(
+        block, UI_BTYPE_SEPR, 0, "", 0, 0, UI_TREEVIEW_INDENT, 0, nullptr, 0.0, 0.0, 0, 0, "");
   }
 
   /* Restore. */
@@ -353,7 +348,7 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
   AbstractTreeViewItem *hovered_item = from_item_handle<AbstractTreeViewItem>(hovered_item_handle);
   BLI_assert(hovered_item != nullptr);
 
-  hovered_item->toggle_collapsed();
+  hovered_item->toggle_collapsed_from_view(*C);
   /* When collapsing an item with an active child, make this collapsed item active instead so the
    * active item stays visible. */
   if (hovered_item->has_active_child()) {
@@ -367,10 +362,21 @@ void AbstractTreeViewItem::add_collapse_chevron(uiBlock &block) const
     return;
   }
 
-  const BIFIconID icon = is_collapsed() ? ICON_TRIA_RIGHT : ICON_TRIA_DOWN;
-  uiBut *but = uiDefIconBut(
-      &block, UI_BTYPE_BUT_TOGGLE, 0, icon, 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
-  /* Note that we're passing the tree-row button here, not the chevron one. */
+  const BIFIconID icon = is_collapsed() ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
+  uiBut *but = uiDefIconBut(&block,
+                            UI_BTYPE_BUT_TOGGLE,
+                            0,
+                            icon,
+                            0,
+                            0,
+                            UI_TREEVIEW_INDENT,
+                            UI_UNIT_Y,
+                            nullptr,
+                            0,
+                            0,
+                            0,
+                            0,
+                            "");
   UI_but_func_set(but, collapse_chevron_click_fn, nullptr, nullptr);
   UI_but_flag_disable(but, UI_BUT_UNDO);
 }
@@ -503,22 +509,61 @@ bool AbstractTreeViewItem::is_collapsed() const
   return is_collapsible() && !is_open_;
 }
 
-void AbstractTreeViewItem::toggle_collapsed()
+bool AbstractTreeViewItem::toggle_collapsed()
 {
-  is_open_ = !is_open_;
+  return set_collapsed(is_open_);
 }
 
-void AbstractTreeViewItem::set_collapsed(const bool collapsed)
+bool AbstractTreeViewItem::set_collapsed(const bool collapsed)
 {
+  if (!is_collapsible()) {
+    return false;
+  }
+  if (collapsed == !is_open_) {
+    return false;
+  }
+
   is_open_ = !collapsed;
+  return true;
 }
 
 bool AbstractTreeViewItem::is_collapsible() const
 {
+  // BLI_assert_msg(get_tree_view().is_reconstructed(),
+  //  "State can't be queried until reconstruction is completed");
   if (children_.is_empty()) {
     return false;
   }
   return this->supports_collapsing();
+}
+
+void AbstractTreeViewItem::on_collapse_change(bContext & /*C*/, const bool /*is_collapsed*/)
+{
+  /* Do nothing by default. */
+}
+
+std::optional<bool> AbstractTreeViewItem::should_be_collapsed() const
+{
+  return std::nullopt;
+}
+
+void AbstractTreeViewItem::toggle_collapsed_from_view(bContext &C)
+{
+  if (toggle_collapsed()) {
+    on_collapse_change(C, is_collapsed());
+  }
+}
+
+void AbstractTreeViewItem::change_state_delayed()
+{
+  AbstractViewItem::change_state_delayed();
+
+  const std::optional<bool> should_be_collapsed = this->should_be_collapsed();
+  if (should_be_collapsed.has_value()) {
+    /* This reflects an external state change and therefore shouldn't call #on_collapse_change().
+     */
+    set_collapsed(*should_be_collapsed);
+  }
 }
 
 void AbstractTreeViewItem::ensure_parents_uncollapsed()
@@ -688,11 +733,6 @@ void BasicTreeViewItem::build_row(uiLayout &row)
 void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override)
 {
   const StringRefNull label = label_override.is_empty() ? StringRefNull(label_) : label_override;
-
-  /* Some padding for labels without collapse chevron and no icon. Looks weird without. */
-  if (icon == ICON_NONE && !is_collapsible()) {
-    uiItemS_ex(&layout, 0.8f);
-  }
   uiItemL(&layout, IFACE_(label.c_str()), icon);
 }
 

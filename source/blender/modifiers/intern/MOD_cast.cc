@@ -10,32 +10,23 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.hh"
-#include "BKE_deform.h"
-#include "BKE_editmesh.hh"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
-#include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
-#include "BKE_mesh_wrapper.hh"
+#include "BKE_deform.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
+#include "BKE_object_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
@@ -124,13 +115,13 @@ static void sphere_do(CastModifierData *cmd,
    * we use its location, transformed to ob's local space. */
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-      invert_m4_m4(imat, ctrl_ob->object_to_world);
-      mul_m4_m4m4(mat, imat, ob->object_to_world);
+      invert_m4_m4(imat, ctrl_ob->object_to_world().ptr());
+      mul_m4_m4m4(mat, imat, ob->object_to_world().ptr());
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    mul_v3_m4v3(center, ob->world_to_object().ptr(), ctrl_ob->object_to_world().location());
   }
 
   /* now we check which options the user wants */
@@ -272,13 +263,13 @@ static void cuboid_do(CastModifierData *cmd,
 
   if (ctrl_ob) {
     if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-      invert_m4_m4(imat, ctrl_ob->object_to_world);
-      mul_m4_m4m4(mat, imat, ob->object_to_world);
+      invert_m4_m4(imat, ctrl_ob->object_to_world().ptr());
+      mul_m4_m4m4(mat, imat, ob->object_to_world().ptr());
       invert_m4_m4(imat, mat);
     }
 
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    mul_v3_m4v3(center, ob->world_to_object, ctrl_ob->object_to_world[3]);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    mul_v3_m4v3(center, ob->world_to_object().ptr(), ctrl_ob->object_to_world().location());
   }
 
   if ((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
@@ -541,4 +532,5 @@ ModifierTypeInfo modifierType_Cast = {
     /*panel_register*/ panel_register,
     /*blend_write*/ nullptr,
     /*blend_read*/ nullptr,
+    /*foreach_cache*/ nullptr,
 };

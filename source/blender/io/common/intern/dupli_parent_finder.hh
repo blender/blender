@@ -5,7 +5,7 @@
 
 #include "IO_dupli_persistent_id.hh"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 #include <map>
 #include <set>

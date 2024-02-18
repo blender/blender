@@ -10,15 +10,13 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "BLI_path_util.h"
+#include "BLI_path_util.h" /* For assertions. */
 #include "BLI_utildefines.h"
 
-#include "IMB_filetype.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
-#include "IMB_colormanagement.h"
-#include "IMB_colormanagement_intern.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags)
 {

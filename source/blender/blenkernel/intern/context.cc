@@ -30,14 +30,15 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
+#include "BKE_wm_runtime.hh"
 #include "BKE_workspace.h"
 
 #include "RE_engine.h"
@@ -706,7 +707,7 @@ wmWindowManager *CTX_wm_manager(const bContext *C)
 
 bool CTX_wm_interface_locked(const bContext *C)
 {
-  return bool(C->wm.manager->is_interface_locked);
+  return C->wm.manager->runtime->is_interface_locked;
 }
 
 wmWindow *CTX_wm_window(const bContext *C)
@@ -766,7 +767,7 @@ wmMsgBus *CTX_wm_message_bus(const bContext *C)
 ReportList *CTX_wm_reports(const bContext *C)
 {
   if (C->wm.manager) {
-    return &(C->wm.manager->reports);
+    return &(C->wm.manager->runtime->reports);
   }
 
   return nullptr;

@@ -19,7 +19,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_outliner_treehash.hh"
 #include "BKE_screen.hh"
@@ -30,8 +30,6 @@
 #include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
-
-#include "RNA_access.hh"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -412,7 +410,9 @@ static SpaceLink *outliner_duplicate(SpaceLink *sl)
   return (SpaceLink *)space_outliner_new;
 }
 
-static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const IDRemapper *mappings)
+static void outliner_id_remap(ScrArea *area,
+                              SpaceLink *slink,
+                              const blender::bke::id::IDRemapper &mappings)
 {
   SpaceOutliner *space_outliner = (SpaceOutliner *)slink;
 
@@ -427,7 +427,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const IDRemapper 
 
   BLI_mempool_iternew(space_outliner->treestore, &iter);
   while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
-    switch (BKE_id_remapper_apply(mappings, &tselem->id, ID_REMAP_APPLY_DEFAULT)) {
+    switch (mappings.apply(&tselem->id, ID_REMAP_APPLY_DEFAULT)) {
       case ID_REMAP_RESULT_SOURCE_REMAPPED:
         changed = true;
         break;
@@ -616,7 +616,7 @@ void ED_spacetype_outliner()
 {
   using namespace blender::ed::outliner;
 
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype time");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_OUTLINER;
@@ -661,5 +661,5 @@ void ED_spacetype_outliner()
   art->listener = outliner_header_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

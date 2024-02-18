@@ -25,7 +25,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 
@@ -144,6 +144,10 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
   if (view_layer->mat_override != nullptr) {
     build_material(view_layer->mat_override);
   }
+  /* World override */
+  if (view_layer->world_override != nullptr) {
+    build_world(view_layer->world_override);
+  }
   /* Freestyle linesets. */
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
     build_freestyle_lineset(fls);
@@ -154,7 +158,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
   /* Make final scene evaluation dependent on view layer evaluation. */
   OperationKey scene_view_layer_key(
       &scene->id, NodeType::LAYER_COLLECTIONS, OperationCode::VIEW_LAYER_EVAL);
-  OperationKey scene_eval_key(&scene->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
+  ComponentKey scene_eval_key(&scene->id, NodeType::SCENE);
   add_relation(scene_view_layer_key, scene_eval_key, "View Layer -> Scene Eval");
   /* Sequencer. */
   if (linked_state == DEG_ID_LINKED_DIRECTLY) {

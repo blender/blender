@@ -11,11 +11,11 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_screen.hh"
@@ -71,7 +71,7 @@ static void rna_SpaceTextEditor_region_location_from_cursor(
   if (area) {
     ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
     const int cursor_co[2] = {line, column};
-    ED_text_region_location_from_cursor(st, region, cursor_co, r_pixel_pos);
+    ED_space_text_region_location_from_cursor(st, region, cursor_co, r_pixel_pos);
   }
 }
 

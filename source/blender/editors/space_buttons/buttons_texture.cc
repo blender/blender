@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
@@ -31,10 +31,9 @@
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_linestyle.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
@@ -698,9 +697,9 @@ void uiTemplateTextureShow(uiLayout *layout, const bContext *C, PointerRNA *ptr,
                   user_found ? user->ptr.data : nullptr,
                   user_found ? user->prop : nullptr);
   if (ct == nullptr) {
-    UI_but_disable(but, TIP_("No (unpinned) Properties Editor found to display texture in"));
+    UI_but_disable(but, "No (unpinned) Properties Editor found to display texture in");
   }
   else if (!user_found) {
-    UI_but_disable(but, TIP_("No texture user found"));
+    UI_but_disable(but, "No texture user found");
   }
 }

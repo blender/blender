@@ -10,6 +10,7 @@
 
 #include "DNA_view3d_enums.h"
 
+enum class PaintMode : int8_t;
 struct bContext;
 struct bToolRef;
 struct PaintModeSettings;
@@ -57,7 +58,7 @@ bool ED_paint_proj_mesh_data_check(Scene *scene,
  * The caller is responsible for running #ED_image_undo_push_end,
  * failure to do so causes an invalid state for the undo system.
  */
-void ED_image_undo_push_begin(const char *name, int paint_mode);
+void ED_image_undo_push_begin(const char *name, PaintMode paint_mode);
 void ED_image_undo_push_begin_with_image(const char *name,
                                          Image *image,
                                          ImBuf *ibuf,

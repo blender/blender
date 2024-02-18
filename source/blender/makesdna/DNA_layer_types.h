@@ -178,6 +178,7 @@ typedef struct ViewLayer {
   int samples;
 
   struct Material *mat_override;
+  struct World *world_override;
   /** Equivalent to datablocks ID properties. */
   struct IDProperty *id_properties;
 

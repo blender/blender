@@ -10,9 +10,11 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 /* interface_region_menu_popup.cc */
 
-uint ui_popup_menu_hash(const char *str);
+uint ui_popup_menu_hash(blender::StringRef str);
 
 /* interface_regions.cc */
 

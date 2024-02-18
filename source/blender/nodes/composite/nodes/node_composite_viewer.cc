@@ -8,7 +8,7 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 
 #include "RNA_access.hh"
@@ -17,7 +17,6 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.h"
-#include "GPU_state.h"
 #include "GPU_texture.h"
 
 #include "COM_node_operation.hh"
@@ -72,6 +71,11 @@ class ViewerOperation : public NodeOperation {
 
   void execute() override
   {
+    /* See the compute_domain method for more information on the first condition. */
+    if (!context().use_composite_output() && !context().is_valid_compositing_region()) {
+      return;
+    }
+
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
 
@@ -119,7 +123,9 @@ class ViewerOperation : public NodeOperation {
      * write into that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    const int2 upper_bound = int2(compositing_region.xmax, compositing_region.ymax);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
@@ -147,7 +153,9 @@ class ViewerOperation : public NodeOperation {
      * write into that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    const int2 upper_bound = int2(compositing_region.xmax, compositing_region.ymax);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");
@@ -175,7 +183,9 @@ class ViewerOperation : public NodeOperation {
      * write into that compositing region. */
     const rcti compositing_region = context().get_compositing_region();
     const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
+    const int2 upper_bound = int2(compositing_region.xmax, compositing_region.ymax);
     GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
 
     const Result &image = get_input("Image");
     image.bind_as_texture(shader, "input_tx");

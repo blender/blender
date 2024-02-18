@@ -14,8 +14,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
-#include "BKE_report.h"
+#include "BKE_layer.hh"
+#include "BKE_report.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -28,7 +28,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 #define USE_GIZMO
 
@@ -57,12 +59,10 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
     BMOperator spinop;
@@ -79,7 +79,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
                       d,
                       steps,
                       -angle,
-                      obedit->object_to_world,
+                      obedit->object_to_world().ptr(),
                       use_normal_flip,
                       dupli,
                       use_auto_merge))
@@ -102,8 +102,6 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }

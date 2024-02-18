@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Use for validating our manual interlinking.
-#  ./blender.bin --background -noaudio --python tests/python/bl_rna_manual_reference.py
+#  ./blender.bin --background --python tests/python/bl_rna_manual_reference.py
 #
 # 1) test_data()              -- ensure the data we have is correct format
 # 2) test_lookup_coverage()   -- ensure that we have lookups for _every_ RNA path and all patterns are used.

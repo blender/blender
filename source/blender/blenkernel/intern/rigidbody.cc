@@ -7,6 +7,7 @@
  * \brief Blender-side interface and methods for dealing with Rigid Body simulations
  */
 
+#include <algorithm>
 #include <cfloat>
 #include <climits>
 #include <cmath>
@@ -35,22 +36,22 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_layer.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #ifdef WITH_BULLET
-#  include "BKE_lib_id.h"
-#  include "BKE_lib_query.h"
+#  include "BKE_lib_id.hh"
+#  include "BKE_lib_query.hh"
 #endif
 
 #include "DEG_depsgraph.hh"
@@ -505,7 +506,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
     /* take radius to the largest dimension to try and encompass everything */
-    radius = MAX3(size[0], size[1], size[2]);
+    radius = std::max({size[0], size[1], size[2]});
   }
 
   /* create new shape */
@@ -531,7 +532,7 @@ static rbCollisionShape *rigidbody_validate_sim_shape_helper(RigidBodyWorld *rbw
 
     case RB_SHAPE_CONVEXH:
       /* try to embed collision margin */
-      has_volume = (MIN3(size[0], size[1], size[2]) > 0.0f);
+      has_volume = (std::min({size[0], size[1], size[2]}) > 0.0f);
 
       if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && has_volume) {
         hull_margin = 0.04f;
@@ -636,7 +637,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
 
   if (ELEM(rbo->shape, RB_SHAPE_CAPSULE, RB_SHAPE_CYLINDER, RB_SHAPE_CONE)) {
     /* take radius as largest x/y dimension, and height as z-dimension */
-    radius = MAX2(size[0], size[1]) * 0.5f;
+    radius = std::max(size[0], size[1]) * 0.5f;
     height = size[2];
   }
   else if (rbo->shape == RB_SHAPE_SPHERE) {
@@ -684,7 +685,7 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
                                corner_verts.data(),
                                &volume,
                                nullptr);
-          const float volume_scale = mat4_to_volume_scale(ob->object_to_world);
+          const float volume_scale = mat4_to_volume_scale(ob->object_to_world().ptr());
           volume *= fabsf(volume_scale);
         }
       }
@@ -810,7 +811,7 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
       return;
     }
 
-    mat4_to_loc_quat(loc, rot, ob->object_to_world);
+    mat4_to_loc_quat(loc, rot, ob->object_to_world().ptr());
 
     rbo->shared->physics_object = RB_body_new(
         static_cast<rbCollisionShape *>(rbo->shared->physics_shape), loc, rot);
@@ -1031,7 +1032,7 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
       rbc->physics_constraint = nullptr;
     }
 
-    mat4_to_loc_quat(loc, rot, ob->object_to_world);
+    mat4_to_loc_quat(loc, rot, ob->object_to_world().ptr());
 
     if (rb1 && rb2) {
       switch (rbc->type) {
@@ -1344,7 +1345,7 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
   rbo->mesh_source = RBO_MESH_DEFORM;
 
   /* set initial transform */
-  mat4_to_loc_quat(rbo->pos, rbo->orn, ob->object_to_world);
+  mat4_to_loc_quat(rbo->pos, rbo->orn, ob->object_to_world().ptr());
 
   /* flag cache as outdated */
   BKE_rigidbody_cache_reset(rbw);
@@ -1781,7 +1782,7 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
   if (!(rbo->flag & RBO_FLAG_KINEMATIC)) {
     /* update scale for all non kinematic objects */
     float new_scale[3], old_scale[3];
-    mat4_to_size(new_scale, ob->object_to_world);
+    mat4_to_size(new_scale, ob->object_to_world().ptr());
     RB_body_get_scale(static_cast<rbRigidBody *>(rbo->shared->physics_object), old_scale);
 
     /* Avoid updating collision shape AABBs if scale didn't change. */
@@ -1790,7 +1791,8 @@ static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyO
       /* compensate for embedded convex hull collision margin */
       if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && rbo->shape == RB_SHAPE_CONVEXH) {
         RB_shape_set_margin(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
-                            RBO_GET_MARGIN(rbo) * MIN3(new_scale[0], new_scale[1], new_scale[2]));
+                            RBO_GET_MARGIN(rbo) *
+                                std::min({new_scale[0], new_scale[1], new_scale[2]}));
       }
     }
   }
@@ -1981,7 +1983,7 @@ static ListBase rigidbody_create_substep_data(RigidBodyWorld *rbw)
       copy_v4_v4(data->old_rot, rot);
       copy_v3_v3(data->old_scale, scale);
 
-      mat4_decompose(loc, rot, scale, ob->object_to_world);
+      mat4_decompose(loc, rot, scale, ob->object_to_world().ptr());
 
       copy_v3_v3(data->new_pos, loc);
       copy_v4_v4(data->new_rot, rot);
@@ -2026,7 +2028,7 @@ static void rigidbody_update_kinematic_obj_substep(ListBase *substep_targets, fl
     /* compensate for embedded convex hull collision margin */
     if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && rbo->shape == RB_SHAPE_CONVEXH) {
       RB_shape_set_margin(static_cast<rbCollisionShape *>(rbo->shared->physics_shape),
-                          RBO_GET_MARGIN(rbo) * MIN3(scale[0], scale[1], scale[2]));
+                          RBO_GET_MARGIN(rbo) * std::min({scale[0], scale[1], scale[2]}));
     }
   }
 }
@@ -2156,15 +2158,15 @@ void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime)
     quat_to_mat4(mat, rbo->orn);
     copy_v3_v3(mat[3], rbo->pos);
 
-    mat4_to_size(size, ob->object_to_world);
+    mat4_to_size(size, ob->object_to_world().ptr());
     size_to_mat4(size_mat, size);
     mul_m4_m4m4(mat, mat, size_mat);
 
-    copy_m4_m4(ob->object_to_world, mat);
+    copy_m4_m4(ob->runtime->object_to_world.ptr(), mat);
   }
   /* otherwise set rigid body transform to current obmat */
   else {
-    mat4_to_loc_quat(rbo->pos, rbo->orn, ob->object_to_world);
+    mat4_to_loc_quat(rbo->pos, rbo->orn, ob->object_to_world().ptr());
   }
 }
 

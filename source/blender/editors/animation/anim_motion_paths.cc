@@ -13,6 +13,7 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -21,7 +22,7 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -127,8 +128,12 @@ void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 /* ........ */
 
 /* perform baking for the targets on the current frame */
-static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
+static void motionpaths_calc_bake_targets(ListBase *targets,
+                                          int cframe,
+                                          Depsgraph *depsgraph,
+                                          Object *camera)
 {
+  using namespace blender;
   /* for each target, check if it can be baked on the current frame */
   LISTBASE_FOREACH (MPathTarget *, mpt, targets) {
     bMotionPath *mpath = mpt->mpath;
@@ -163,11 +168,18 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
       }
 
       /* Result must be in world-space. */
-      mul_m4_v3(ob_eval->object_to_world, mpv->co);
+      mul_m4_v3(ob_eval->object_to_world().ptr(), mpv->co);
     }
     else {
       /* World-space object location. */
-      copy_v3_v3(mpv->co, ob_eval->object_to_world[3]);
+      copy_v3_v3(mpv->co, ob_eval->object_to_world().location());
+    }
+
+    if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
+      Object *cam_eval = DEG_get_evaluated_object(depsgraph, camera);
+      /* Convert point to camera space. */
+      float3 co_camera_space = math::transform_point(cam_eval->world_to_object(), float3(mpv->co));
+      copy_v3_v3(mpv->co, co_camera_space);
     }
 
     float mframe = float(cframe);
@@ -503,7 +515,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     }
 
     /* perform baking for targets */
-    motionpaths_calc_bake_targets(targets, scene->r.cfra);
+    motionpaths_calc_bake_targets(targets, scene->r.cfra, depsgraph, scene->camera);
   }
 
   /* reset original environment */

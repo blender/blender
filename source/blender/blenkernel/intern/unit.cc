@@ -492,7 +492,7 @@ static bUnitDef buImperialAreaDef[] = {
         /*name*/ "square mile",
         /*name_plural*/ "square miles",
         /*name_short*/ "sq mi",
-        /*name_alt*/ "sq m",
+        /*name_alt*/ nullptr,
         /*name_display*/ "Square Miles",
         /*identifier*/ nullptr,
         /*scalar*/ UN_SC_MI *UN_SC_MI,
@@ -680,7 +680,7 @@ static bUnitDef buImperialVolDef[] = {
         /*name*/ "cubic mile",
         /*name_plural*/ "cubic miles",
         /*name_short*/ "cu mi",
-        /*name_alt*/ "cu m",
+        /*name_alt*/ nullptr,
         /*name_display*/ "Cubic Miles",
         /*identifier*/ nullptr,
         /*scalar*/ UN_SC_MI *UN_SC_MI *UN_SC_MI,
@@ -766,10 +766,10 @@ static bUnitCollection buImperialVolCollection = {
 /* Mass. */
 static bUnitDef buMetricMassDef[] = {
     {
-        /*name*/ "ton",
+        /*name*/ "tonne",
         /*name_plural*/ "tonnes",
-        /*name_short*/ "ton",
-        /*name_alt*/ "t",
+        /*name_short*/ "t",
+        /*name_alt*/ "ton",
         /*name_display*/ "Tonnes",
         /*identifier*/ "TONNES",
         /*scalar*/ UN_SC_MTON,
@@ -855,10 +855,10 @@ static bUnitCollection buMetricMassCollection = {
 static bUnitDef buImperialMassDef[] = {
     {
         /*name*/ "ton",
-        /*name_plural*/ "tonnes",
-        /*name_short*/ "ton",
-        /*name_alt*/ "t",
-        /*name_display*/ "Tonnes",
+        /*name_plural*/ "tons",
+        /*name_short*/ "tn",
+        /*name_alt*/ nullptr,
+        /*name_display*/ "Tons",
         /*identifier*/ "TONNES",
         /*scalar*/ UN_SC_ITON,
         /*bias*/ 0.0,
@@ -939,7 +939,7 @@ static bUnitDef buMetricVelDef[] = {
         /*name*/ "kilometer per hour",
         /*name_plural*/ "kilometers per hour",
         /*name_short*/ "km/h",
-        /*name_alt*/ nullptr,
+        /*name_alt*/ "kph",
         /*name_display*/ "Kilometers per hour",
         /*identifier*/ nullptr,
         /*scalar*/ UN_SC_KM / 3600.0f,
@@ -1050,8 +1050,8 @@ static bUnitDef buNaturalTimeDef[] = {
     {
         /*name*/ "hour",
         /*name_plural*/ "hours",
-        /*name_short*/ "hr",
-        /*name_alt*/ "h",
+        /*name_short*/ "h",
+        /*name_alt*/ "hr",
         /*name_display*/ "Hours",
         /*identifier*/ "HOURS",
         /*scalar*/ 3600.0,
@@ -1073,8 +1073,8 @@ static bUnitDef buNaturalTimeDef[] = {
     {
         /*name*/ "second",
         /*name_plural*/ "seconds",
-        /*name_short*/ "sec",
-        /*name_alt*/ "s",
+        /*name_short*/ "s",
+        /*name_alt*/ "sec",
         /*name_display*/ "Seconds",
         /*identifier*/ "SECONDS",
         /*scalar*/ 1.0,
@@ -1129,7 +1129,7 @@ static bUnitDef buNaturalRotDef[] = {
         /*name*/ "arcminute",
         /*name_plural*/ "arcminutes",
         /*name_short*/ "'",
-        /*name_alt*/ nullptr,
+        /*name_alt*/ "amin",
         /*name_display*/ "Arcminutes",
         /*identifier*/ "ARCMINUTES",
         /*scalar*/ (M_PI / 180.0) / 60.0,
@@ -1140,7 +1140,7 @@ static bUnitDef buNaturalRotDef[] = {
         /*name*/ "arcsecond",
         /*name_plural*/ "arcseconds",
         /*name_short*/ "\"",
-        /*name_alt*/ nullptr,
+        /*name_alt*/ "asec",
         /*name_display*/ "Arcseconds",
         /*identifier*/ "ARCSECONDS",
         /*scalar*/ (M_PI / 180.0) / 3600.0,
@@ -1150,8 +1150,8 @@ static bUnitDef buNaturalRotDef[] = {
     {
         /*name*/ "radian",
         /*name_plural*/ "radians",
-        /*name_short*/ "r",
-        /*name_alt*/ nullptr,
+        /*name_short*/ "rad",
+        /*name_alt*/ "r",
         /*name_display*/ "Radians",
         /*identifier*/ "RADIANS",
         /*scalar*/ 1.0,
@@ -1844,6 +1844,18 @@ static bool ch_is_op(char op)
   }
 }
 
+static bool ch_is_op_unary(char op)
+{
+  switch (op) {
+    case '+':
+    case '-':
+    case '~':
+      return true;
+    default:
+      return false;
+  }
+}
+
 /**
  * Helper function for #unit_distribute_negatives to find the next negative to distribute.
  *
@@ -1913,6 +1925,18 @@ static char *find_next_op(const char *str, char *remaining_str, int remaining_st
 }
 
 /**
+ * Skip over multiple successive unary operators (typically `-`), skipping spaces.
+ * This allows for `--90d` to be handled properly, see: #117783.
+ */
+static char *skip_unary_op(char *str)
+{
+  while (*str == ' ' || ch_is_op_unary(*str)) {
+    str++;
+  }
+  return str;
+}
+
+/**
  * Put parentheses around blocks of values after negative signs to get rid of an implied "+"
  * between numbers without an operation between them. For example:
  *
@@ -1937,8 +1961,9 @@ static bool unit_distribute_negatives(char *str, const int str_maxncpy)
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = '(';
 
-    /* Add the ')' before the next operation or at the end. */
-    remaining_str = find_next_op(str, remaining_str + 1, remaining_str_maxncpy);
+    /* Add the ')' before the next operation or at the end.
+     * Unary operators are skipped to allow `--` to be a supported prefix. */
+    remaining_str = find_next_op(str, skip_unary_op(remaining_str + 1), remaining_str_maxncpy);
     remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = ')';

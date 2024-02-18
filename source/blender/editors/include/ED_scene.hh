@@ -10,7 +10,7 @@
 
 #include "BLI_compiler_attrs.h"
 
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 struct ReportList;
 struct bContext;
@@ -54,7 +54,7 @@ struct SceneFPS_State {
 /**
  * Update frame rate info for viewport drawing.
  * \param ltime: Time since the last update,
- * compatible with the result of #PIL_check_seconds_timer.
+ * compatible with the result of #BLI_time_now_seconds.
  */
 void ED_scene_fps_average_accumulate(Scene *scene, short fps_samples, double ltime)
     ATTR_NONNULL(1);

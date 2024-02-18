@@ -8,6 +8,7 @@
 
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_bxdf_sampling_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_types_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_trace_screen_lib.glsl)
@@ -50,8 +51,7 @@ void main()
   /* Set point really far for correct reprojection of background. */
   float hit_time = 1000.0;
 
-  float luma = max(1e-8, reduce_max(radiance));
-  radiance *= 1.0 - max(0.0, luma - uniform_buf.raytrace.brightness_clamp) / luma;
+  radiance = colorspace_brightness_clamp_max(radiance, uniform_buf.raytrace.brightness_clamp);
 
   imageStore(ray_time_img, texel, vec4(hit_time));
   imageStore(ray_radiance_img, texel, vec4(radiance, 0.0));

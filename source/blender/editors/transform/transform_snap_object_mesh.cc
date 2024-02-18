@@ -10,9 +10,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_bvhutils.hh"
-#include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.hh"
 
 #include "ED_transform_snap_object_context.hh"
 
@@ -108,14 +106,12 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   /* Test bounding box */
-  if (ob_eval->data == me_eval) {
-    const Bounds<float3> bounds = *me_eval->bounds_min_max();
-    /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
-    if (!isect_ray_aabb_v3_simple(
-            ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
-    {
-      return retval;
-    }
+  const Bounds<float3> bounds = *me_eval->bounds_min_max();
+  /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+  if (!isect_ray_aabb_v3_simple(
+          ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
+  {
+    return retval;
   }
 
   /* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
@@ -241,19 +237,19 @@ class SnapData_Mesh : public SnapData {
     this->corner_tris = mesh_eval->corner_tris().data();
   };
 
-  void get_vert_co(const int index, const float **r_co)
+  void get_vert_co(const int index, const float **r_co) override
   {
     *r_co = this->vert_positions[index];
   }
 
-  void get_edge_verts_index(const int index, int r_v_index[2])
+  void get_edge_verts_index(const int index, int r_v_index[2]) override
   {
     const blender::int2 &edge = this->edges[index];
     r_v_index[0] = edge[0];
     r_v_index[1] = edge[1];
   }
 
-  void copy_vert_no(const int index, float r_no[3])
+  void copy_vert_no(const int index, float r_no[3]) override
   {
     copy_v3_v3(r_no, this->vert_normals[index]);
   }

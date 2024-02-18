@@ -10,7 +10,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "COM_shader_node.hh"
 #include "COM_utilities.hh"

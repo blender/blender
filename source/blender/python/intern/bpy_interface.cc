@@ -29,6 +29,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "RNA_types.hh"
 
 #include "bpy.h"
@@ -43,9 +45,9 @@
 
 #include "DNA_text_types.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h" /* Only for script checking. */
+#include "BKE_global.hh" /* Only for script checking. */
 #include "BKE_main.hh"
 #include "BKE_text.h"
 
@@ -87,7 +89,7 @@ static bool py_use_system_env = false;
 // #define TIME_PY_RUN /* Simple python tests. prints on exit. */
 
 #ifdef TIME_PY_RUN
-#  include "PIL_time.h"
+#  include "BLI_time.h"
 static int bpy_timer_count = 0;
 /** Time since python starts. */
 static double bpy_timer;
@@ -126,10 +128,10 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 #ifdef TIME_PY_RUN
     if (bpy_timer_count == 0) {
       /* Record time from the beginning. */
-      bpy_timer = PIL_check_seconds_timer();
+      bpy_timer = BLI_time_now_seconds();
       bpy_timer_run = bpy_timer_run_tot = 0.0;
     }
-    bpy_timer_run = PIL_check_seconds_timer();
+    bpy_timer_run = BLI_time_now_seconds();
 
     bpy_timer_count++;
 #endif
@@ -155,7 +157,7 @@ void bpy_context_clear(bContext * /*C*/, const PyGILState_STATE *gilstate)
 #endif
 
 #ifdef TIME_PY_RUN
-    bpy_timer_run_tot += PIL_check_seconds_timer() - bpy_timer_run;
+    bpy_timer_run_tot += BLI_time_now_seconds() - bpy_timer_run;
     bpy_timer_count++;
 #endif
   }
@@ -434,21 +436,22 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
 
     /* Allow to use our own included Python. `py_path_bundle` may be nullptr. */
     {
-      const char *py_path_bundle = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON, nullptr);
-      if (py_path_bundle != nullptr) {
+      const std::optional<std::string> py_path_bundle = BKE_appdir_folder_id(BLENDER_SYSTEM_PYTHON,
+                                                                             nullptr);
+      if (py_path_bundle.has_value()) {
 
 #  ifdef __APPLE__
         /* Mac-OS allows file/directory names to contain `:` character
          * (represented as `/` in the Finder) but current Python lib (as of release 3.1.1)
          * doesn't handle these correctly. */
-        if (strchr(py_path_bundle, ':')) {
+        if (strchr(py_path_bundle->c_str(), ':')) {
           fprintf(stderr,
                   "Warning! Blender application is located in a path containing ':' or '/' chars\n"
                   "This may make Python import function fail\n");
         }
 #  endif /* __APPLE__ */
 
-        status = PyConfig_SetBytesString(&config, &config.home, py_path_bundle);
+        status = PyConfig_SetBytesString(&config, &config.home, py_path_bundle->c_str());
         pystatus_exit_on_error(status);
 
 #  ifdef PYTHON_SSL_CERT_FILE
@@ -458,7 +461,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
           const char *ssl_cert_file_suffix = PYTHON_SSL_CERT_FILE;
           char ssl_cert_file[FILE_MAX];
           BLI_path_join(
-              ssl_cert_file, sizeof(ssl_cert_file), py_path_bundle, ssl_cert_file_suffix);
+              ssl_cert_file, sizeof(ssl_cert_file), py_path_bundle->c_str(), ssl_cert_file_suffix);
           BLI_setenv(ssl_cert_file_env, ssl_cert_file);
         }
 #  endif /* PYTHON_SSL_CERT_FILE */
@@ -590,7 +593,7 @@ void BPY_python_end(const bool do_python_exit)
 
 #ifdef TIME_PY_RUN
   /* Measure time since Python started. */
-  bpy_timer = PIL_check_seconds_timer() - bpy_timer;
+  bpy_timer = BLI_time_now_seconds() - bpy_timer;
 
   printf("*bpy stats* - ");
   printf("tot exec: %d,  ", bpy_timer_count);
@@ -688,7 +691,7 @@ void BPY_modules_load_user(bContext *C)
       if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-          SNPRINTF(G.autoexec_fail, "Text '%s'", text->id.name + 2);
+          SNPRINTF(G.autoexec_fail, RPT_("Text '%s'"), text->id.name + 2);
 
           printf("scripts disabled for \"%s\", skipping '%s'\n",
                  BKE_main_blendfile_path(bmain),

@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
 
@@ -33,6 +34,7 @@ struct ModifierData;
 struct Object;
 struct Scene;
 struct StructRNA;
+struct IDCacheKey;
 
 enum class ModifierTypeType {
   /* Should not be used, only for None modifier type */
@@ -68,6 +70,22 @@ enum class ModifierTypeType {
 enum ModifierTypeFlag {
   eModifierTypeFlag_AcceptsMesh = (1 << 0),
   eModifierTypeFlag_AcceptsCVs = (1 << 1),
+  /**
+   * Modifiers that enable this flag can have the modifiers "On Cage" option toggled,
+   * see: #eModifierMode_OnCage, where the output of the modifier can be selected directly.
+   * In some cases the cage geometry use read to tool code as well (loop-cut & knife are examples).
+   *
+   * When set, geometry from the resulting mesh can be mapped back to the original indices
+   * via #CD_ORIGINDEX.
+   *
+   * While many modifiers using this flag preserve the order of geometry arrays,
+   * this isn't always the case, this flag doesn't imply #ModifierTypeType::OnlyDeform.
+   * Geometry from the original mesh may be removed from the resulting mesh or new geometry
+   * may be added (where the #CD_ORIGINDEX value will be #ORIGINDEX_NONE).
+   *
+   * Modifiers that create entirely new geometry from the input should not enable this flag
+   * because none of the geometry will be selectable when "On Cage" is enabled.
+   */
   eModifierTypeFlag_SupportsMapping = (1 << 2),
   eModifierTypeFlag_SupportsEditmode = (1 << 3),
 
@@ -106,7 +124,7 @@ enum ModifierTypeFlag {
   /** Accepts #GreasePencil data input. */
   eModifierTypeFlag_AcceptsGreasePencil = (1 << 12),
 };
-ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsBMesh)
+ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsGreasePencil)
 
 using IDWalkFunc = void (*)(void *user_data, Object *ob, ID **idpoin, int cb_flag);
 using TexWalkFunc = void (*)(void *user_data, Object *ob, ModifierData *md, const char *propname);
@@ -147,15 +165,15 @@ struct ModifierEvalContext {
 struct ModifierTypeInfo {
   /* A unique identifier for this modifier. Used to generate the panel id type name.
    * See #BKE_modifier_type_panel_id. */
-  char idname[32];
+  char idname[64];
 
   /* The user visible name for this modifier */
-  char name[32];
+  char name[64];
 
   /* The DNA struct name for the modifier data type, used to
    * write the DNA data out.
    */
-  char struct_name[32];
+  char struct_name[64];
 
   /* The size of the modifier data type, used by allocation. */
   int struct_size;
@@ -175,7 +193,7 @@ struct ModifierTypeInfo {
    * Copy instance data for this modifier type. Should copy all user
    * level settings to the target modifier.
    *
-   * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+   * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
    */
   void (*copy_data)(const ModifierData *md, ModifierData *target, int flag);
 
@@ -365,6 +383,14 @@ struct ModifierTypeInfo {
    * not been written (e.g. runtime data) can be reset.
    */
   void (*blend_read)(BlendDataReader *reader, ModifierData *md);
+
+  /**
+   * Iterate over all cache pointers of given modifier. Also see #IDTypeInfo::foreach_cache.
+   */
+  void (*foreach_cache)(
+      Object *object,
+      ModifierData *md,
+      blender::FunctionRef<void(const IDCacheKey &cache_key, void **cache_p, uint flags)> fn);
 };
 
 /* Used to set a modifier's panel type. */
@@ -394,9 +420,6 @@ void BKE_modifier_free(ModifierData *md);
  * Use instead of `BLI_remlink` when the object's active modifier should change.
  */
 void BKE_modifier_remove_from_list(Object *ob, ModifierData *md);
-
-/* Generate new UUID for the given modifier. */
-void BKE_modifier_session_uuid_generate(ModifierData *md);
 
 void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md);
 
@@ -446,8 +469,20 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *user_dat
 
 ModifierData *BKE_modifiers_findby_type(const Object *ob, ModifierType type);
 ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name);
-ModifierData *BKE_modifiers_findby_session_uuid(const Object *ob, const SessionUUID *session_uuid);
+ModifierData *BKE_modifiers_findby_persistent_uid(const Object *ob, int persistent_uid);
+
 void BKE_modifiers_clear_errors(Object *ob);
+
+/**
+ * Updates `md.persistent_uid` so that it is a valid identifier (>=1) and is unique in the object.
+ */
+void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md);
+/**
+ * Returns true when all the modifier identifiers are positive and unique. This should generally be
+ * true and should only be used by asserts.
+ */
+bool BKE_modifiers_persistent_uids_are_valid(const Object &object);
+
 /**
  * used for buttons, to find out if the 'draw deformed in edit-mode option is there.
  *
@@ -557,8 +592,6 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
  * never original ones. Makes things simpler.
  */
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval);
-
-void BKE_modifier_check_uuids_unique_and_report(const Object *object);
 
 void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase);
 void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob);

@@ -97,7 +97,7 @@ set(SRC
   GPU_immediate_util.h
   GPU_index_buffer.h
   GPU_init_exit.h
-  GPU_material.h
+  GPU_material.hh
   GPU_matrix.h
   GPU_platform.h
   GPU_primitive.h
@@ -825,31 +825,26 @@ endif()
 
 
 if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
-  # TODO(@fclem) Fix this mess.
-  if(APPLE)
-    add_executable(shader_builder
-      intern/gpu_shader_builder.cc
-      intern/gpu_shader_builder_stubs.cc
-      ${shader_create_info_list_file}
-      )
-    target_link_libraries(shader_builder PUBLIC buildinfoobj)
-  else()
-    if(WIN32)
-      # We can re-use the manifest from tests.exe here since it's
-      # rather generic and just selects the appropriate common
-      # controls version.
-      set(MANIFEST "${CMAKE_BINARY_DIR}/tests.exe.manifest")
-    endif()
-    add_executable(shader_builder
-      intern/gpu_shader_builder.cc
-      intern/gpu_shader_builder_stubs.cc
-      ${shader_create_info_list_file}
-      ${MANIFEST}
-    )
+  set(_manifest)
+  if(WIN32)
+    # We can re-use the manifest from tests.exe here since it's
+    # rather generic and just selects the appropriate common
+    # controls version.
+    set(_manifest "${CMAKE_BINARY_DIR}/tests.exe.manifest")
   endif()
+  add_executable(shader_builder
+    intern/gpu_shader_builder.cc
+    intern/gpu_shader_builder_stubs.cc
+    ${shader_create_info_list_file}
+    ${_manifest}
+  )
+  unset(_manifest)
   setup_platform_linker_flags(shader_builder)
 
-  target_link_libraries(shader_builder PUBLIC
+  if (WITH_BUILD_INFO)
+    target_link_libraries(shader_builder PRIVATE buildinfoobj)
+  endif()
+  target_link_libraries(shader_builder PRIVATE
     bf_gpu
     bf_intern_clog
     bf_blenlib
@@ -857,6 +852,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
     ${PLATFORM_LINKLIBS}
     PRIVATE bf::intern::guardedalloc
   )
+  target_include_directories(shader_builder SYSTEM PRIVATE ${INC_SYS})
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
   set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)

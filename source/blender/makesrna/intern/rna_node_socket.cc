@@ -14,7 +14,7 @@
 #include "RNA_enum_types.hh"
 #include "RNA_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 
@@ -25,6 +25,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
     {SOCK_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
     {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
     {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {SOCK_MATRIX, "MATRIX", 0, "Matrix", ""},
     {SOCK_STRING, "STRING", 0, "String", ""},
     {SOCK_RGBA, "RGBA", 0, "RGBA", ""},
     {SOCK_SHADER, "SHADER", 0, "Shader", ""},
@@ -34,14 +35,18 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
     {SOCK_COLLECTION, "COLLECTION", 0, "Collection", ""},
     {SOCK_TEXTURE, "TEXTURE", 0, "Texture", ""},
     {SOCK_MATERIAL, "MATERIAL", 0, "Material", ""},
+    {SOCK_MENU, "MENU", 0, "Menu", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "DNA_material_types.h"
 
 #  include "BKE_node.h"
+#  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_update.hh"
 
@@ -217,7 +222,7 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_NodeSocket_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_NodeSocket_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
@@ -230,11 +235,9 @@ static char *rna_NodeSocket_path(const PointerRNA *ptr)
   BLI_str_escape(name_esc, node->name, sizeof(name_esc));
 
   if (sock->in_out == SOCK_IN) {
-    return BLI_sprintfN("nodes[\"%s\"].inputs[%d]", name_esc, socketindex);
+    return fmt::format("nodes[\"{}\"].inputs[{}]", name_esc, socketindex);
   }
-  else {
-    return BLI_sprintfN("nodes[\"%s\"].outputs[%d]", name_esc, socketindex);
-  }
+  return fmt::format("nodes[\"{}\"].outputs[{}]", name_esc, socketindex);
 }
 
 static IDProperty **rna_NodeSocket_idprops(PointerRNA *ptr)
@@ -412,6 +415,56 @@ bool rna_NodeSocketMaterial_default_value_poll(PointerRNA * /*ptr*/, PointerRNA 
   /* Do not show grease pencil materials for now. */
   Material *ma = static_cast<Material *>(value.data);
   return ma->gp_style == nullptr;
+}
+
+const EnumPropertyItem *RNA_node_enum_definition_itemf(
+    const blender::bke::RuntimeNodeEnumItems &enum_items, bool *r_free)
+{
+  EnumPropertyItem tmp = {0};
+  EnumPropertyItem *result = nullptr;
+  int totitem = 0;
+
+  for (const blender::bke::RuntimeNodeEnumItem &item : enum_items.items) {
+    tmp.value = item.identifier;
+    /* Item name is unique and used as the RNA identifier as well.
+     * The integer value is persistent and unique and should be used
+     * when storing the enum value. */
+    tmp.identifier = item.name.c_str();
+    /* TODO support icons in enum definition. */
+    tmp.icon = ICON_NONE;
+    tmp.name = item.name.c_str();
+    tmp.description = item.description.c_str();
+
+    RNA_enum_item_add(&result, &totitem, &tmp);
+  }
+
+  if (totitem == 0) {
+    *r_free = false;
+    return rna_enum_dummy_NULL_items;
+  }
+
+  RNA_enum_item_end(&result, &totitem);
+  *r_free = true;
+
+  return result;
+}
+
+const EnumPropertyItem *RNA_node_socket_menu_itemf(bContext * /*C*/,
+                                                   PointerRNA *ptr,
+                                                   PropertyRNA * /*prop*/,
+                                                   bool *r_free)
+{
+  const bNodeSocket *socket = static_cast<bNodeSocket *>(ptr->data);
+  if (!socket) {
+    *r_free = false;
+    return rna_enum_dummy_NULL_items;
+  }
+  const bNodeSocketValueMenu *data = static_cast<bNodeSocketValueMenu *>(socket->default_value);
+  if (!data->enum_items) {
+    *r_free = false;
+    return rna_enum_dummy_NULL_items;
+  }
+  return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 
 #else
@@ -959,6 +1012,30 @@ static void rna_def_node_socket_interface_rotation(BlenderRNA *brna, const char 
   rna_def_node_tree_interface_socket_builtin(srna);
 }
 
+static void rna_def_node_socket_matrix(BlenderRNA *brna, const char *identifier)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
+  RNA_def_struct_ui_text(srna, "Matrix Node Socket", "Matrix value socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocket", nullptr);
+}
+
+static void rna_def_node_socket_interface_matrix(BlenderRNA *brna, const char *identifier)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, identifier, "NodeTreeInterfaceSocket");
+  RNA_def_struct_ui_text(srna, "Matrix Node Socket Interface", "Matrix value socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeTreeInterfaceSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeTreeInterfaceSocket", nullptr);
+
+  rna_def_node_tree_interface_socket_builtin(srna);
+}
+
 static void rna_def_node_socket_vector(BlenderRNA *brna,
                                        const char *identifier,
                                        PropertySubType subtype)
@@ -1120,6 +1197,52 @@ static void rna_def_node_socket_interface_string(BlenderRNA *brna, const char *i
 
   prop = RNA_def_property(srna, "default_value", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "value");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceSocket_value_update");
+
+  RNA_def_struct_sdna_from(srna, "bNodeTreeInterfaceSocket", nullptr);
+
+  rna_def_node_tree_interface_socket_builtin(srna);
+}
+
+static void rna_def_node_socket_menu(BlenderRNA *brna, const char *identifier)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, identifier, "NodeSocketStandard");
+  RNA_def_struct_ui_text(srna, "Menu Node Socket", "Menu socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocketValueMenu", "default_value");
+
+  prop = RNA_def_property(srna, "default_value", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "value");
+  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "RNA_node_socket_menu_itemf");
+  RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocket", nullptr);
+}
+
+static void rna_def_node_socket_interface_menu(BlenderRNA *brna, const char *identifier)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, identifier, "NodeTreeInterfaceSocket");
+  RNA_def_struct_ui_text(srna, "Menu Node Socket Interface", "Menu socket of a node");
+  RNA_def_struct_sdna(srna, "bNodeTreeInterfaceSocket");
+
+  RNA_def_struct_sdna_from(srna, "bNodeSocketValueMenu", "socket_data");
+
+  prop = RNA_def_property(srna, "default_value", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "value");
+  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "RNA_node_tree_interface_socket_menu_itemf");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceSocket_value_update");
@@ -1430,6 +1553,7 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
     {"NodeSocketIntFactor", "NodeTreeInterfaceSocketIntFactor", SOCK_INT, PROP_FACTOR},
     {"NodeSocketBool", "NodeTreeInterfaceSocketBool", SOCK_BOOLEAN, PROP_NONE},
     {"NodeSocketRotation", "NodeTreeInterfaceSocketRotation", SOCK_ROTATION, PROP_NONE},
+    {"NodeSocketMatrix", "NodeTreeInterfaceSocketMatrix", SOCK_MATRIX, PROP_NONE},
     {"NodeSocketVector", "NodeTreeInterfaceSocketVector", SOCK_VECTOR, PROP_NONE},
     {"NodeSocketVectorTranslation",
      "NodeTreeInterfaceSocketVectorTranslation",
@@ -1458,6 +1582,7 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
     {"NodeSocketCollection", "NodeTreeInterfaceSocketCollection", SOCK_COLLECTION, PROP_NONE},
     {"NodeSocketTexture", "NodeTreeInterfaceSocketTexture", SOCK_TEXTURE, PROP_NONE},
     {"NodeSocketMaterial", "NodeTreeInterfaceSocketMaterial", SOCK_MATERIAL, PROP_NONE},
+    {"NodeSocketMenu", "NodeTreeInterfaceSocketMenu", SOCK_MENU, PROP_NONE},
 };
 
 static void rna_def_node_socket_subtypes(BlenderRNA *brna)
@@ -1477,6 +1602,9 @@ static void rna_def_node_socket_subtypes(BlenderRNA *brna)
         break;
       case SOCK_ROTATION:
         rna_def_node_socket_rotation(brna, identifier);
+        break;
+      case SOCK_MATRIX:
+        rna_def_node_socket_matrix(brna, identifier);
         break;
       case SOCK_VECTOR:
         rna_def_node_socket_vector(brna, identifier, info.subtype);
@@ -1508,6 +1636,9 @@ static void rna_def_node_socket_subtypes(BlenderRNA *brna)
       case SOCK_MATERIAL:
         rna_def_node_socket_material(brna, identifier);
         break;
+      case SOCK_MENU:
+        rna_def_node_socket_menu(brna, identifier);
+        break;
 
       case SOCK_CUSTOM:
         break;
@@ -1538,6 +1669,9 @@ void rna_def_node_socket_interface_subtypes(BlenderRNA *brna)
       case SOCK_ROTATION:
         rna_def_node_socket_interface_rotation(brna, identifier);
         break;
+      case SOCK_MATRIX:
+        rna_def_node_socket_interface_matrix(brna, identifier);
+        break;
       case SOCK_VECTOR:
         rna_def_node_socket_interface_vector(brna, identifier, info.subtype);
         break;
@@ -1546,6 +1680,9 @@ void rna_def_node_socket_interface_subtypes(BlenderRNA *brna)
         break;
       case SOCK_STRING:
         rna_def_node_socket_interface_string(brna, identifier);
+        break;
+      case SOCK_MENU:
+        rna_def_node_socket_interface_menu(brna, identifier);
         break;
       case SOCK_SHADER:
         rna_def_node_socket_interface_shader(brna, identifier);

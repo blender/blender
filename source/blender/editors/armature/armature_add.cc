@@ -22,19 +22,17 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
-#include "BKE_library.hh"
-#include "BKE_main.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_object_types.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -51,7 +49,9 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
+
+using blender::Vector;
 
 /* *************** Adding stuff in editmode *************** */
 
@@ -177,7 +177,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
       if (flipbone == nullptr) {
         break;
       }
-      SWAP(EditBone *, flipbone, ebone);
+      std::swap(flipbone, ebone);
     }
 
     newbone = ED_armature_ebone_add(arm, ebone->name);
@@ -197,13 +197,13 @@ static int armature_click_extrude_exec(bContext *C, wmOperator * /*op*/)
 
     const View3DCursor *curs = &scene->cursor;
     copy_v3_v3(newbone->tail, curs->location);
-    sub_v3_v3v3(newbone->tail, newbone->tail, obedit->object_to_world[3]);
+    sub_v3_v3v3(newbone->tail, newbone->tail, obedit->object_to_world().location());
 
     if (a == 1) {
       newbone->tail[0] = -newbone->tail[0];
     }
 
-    copy_m3_m4(mat, obedit->object_to_world);
+    copy_m3_m4(mat, obedit->object_to_world().ptr());
     invert_m3_m3(imat, mat);
     mul_m3_v3(imat, newbone->tail);
 
@@ -978,15 +978,13 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *ob : objects) {
     EditBone *ebone_iter;
     /* The beginning of the duplicated bones in the edbo list */
     EditBone *ebone_first_dupe = nullptr;
 
-    Object *ob = objects[ob_index];
     bArmature *arm = static_cast<bArmature *>(ob->data);
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
@@ -1099,7 +1097,6 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
   }
-  MEM_freeN(objects);
 
   ED_outliner_select_sync_from_edit_bone_tag(C);
 
@@ -1158,15 +1155,13 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     EditBone *ebone_iter;
     /* The beginning of the duplicated mirrored bones in the edbo list */
     EditBone *ebone_first_dupe = nullptr;
 
-    Object *obedit = objects[ob_index];
     bArmature *arm = static_cast<bArmature *>(obedit->data);
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
@@ -1378,7 +1373,6 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
     DEG_id_tag_update(&obedit->id, ID_RECALC_SELECT);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -1425,9 +1419,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool forked = RNA_boolean_get(op->ptr, "forked");
   bool changed_multi = false;
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
   enum ExtrudePoint {
     SKIP_EXTRUDE,
@@ -1435,8 +1428,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
     ROOT_EXTRUDE,
   };
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *ob = objects[ob_index];
+  for (Object *ob : objects) {
     bArmature *arm = static_cast<bArmature *>(ob->data);
     bool forked_iter = forked;
 
@@ -1499,7 +1491,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
               if (flipbone == nullptr) {
                 break;
               }
-              SWAP(EditBone *, flipbone, ebone);
+              std::swap(flipbone, ebone);
             }
 
             totbone++;
@@ -1573,7 +1565,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
             /* restore ebone if we were flipping */
             if (a == 1 && flipbone) {
-              SWAP(EditBone *, flipbone, ebone);
+              std::swap(flipbone, ebone);
             }
           }
         }
@@ -1602,7 +1594,6 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_SELECT);
   }
-  MEM_freeN(objects);
 
   if (!changed_multi) {
     return OPERATOR_CANCELLED;
@@ -1648,8 +1639,8 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
   copy_v3_v3(curs, CTX_data_scene(C)->cursor.location);
 
   /* Get inverse point for head and orientation for tail */
-  invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
-  mul_m4_v3(obedit->world_to_object, curs);
+  invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
+  mul_m4_v3(obedit->world_to_object().ptr(), curs);
 
   if (rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
     copy_m3_m4(obmat, rv3d->viewmat);
@@ -1658,7 +1649,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
     unit_m3(obmat);
   }
 
-  copy_m3_m4(viewmat, obedit->object_to_world);
+  copy_m3_m4(viewmat, obedit->object_to_world().ptr());
   mul_m3_m3m3(totmat, obmat, viewmat);
   invert_m3_m3(imat, totmat);
 

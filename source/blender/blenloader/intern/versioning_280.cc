@@ -9,6 +9,7 @@
 /* allow readfile to use deprecated functionality */
 #define DNA_DEPRECATED_ALLOW
 
+#include <algorithm>
 #include <cfloat>
 #include <cstring>
 
@@ -61,10 +62,8 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_animsys.h"
-#include "BKE_blender.h"
-#include "BKE_brush.hh"
-#include "BKE_cloth.hh"
-#include "BKE_collection.h"
+#include "BKE_blender.hh"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_constraint.h"
 #include "BKE_curveprofile.h"
@@ -72,22 +71,18 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
-#include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"
-#include "BKE_gpencil_legacy.h"
-#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.h"
-#include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
@@ -100,15 +95,13 @@
 
 #include "NOD_shader.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 
-#include "DEG_depsgraph.hh"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 
 #include "versioning_common.hh"
@@ -329,6 +322,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
     view_layer->pass_alpha_threshold = srl->pass_alpha_threshold;
     view_layer->samples = srl->samples;
     view_layer->mat_override = srl->mat_override;
+    view_layer->world_override = srl->world_override;
 
     BKE_freestyle_config_free(&view_layer->freestyle_config, true);
     view_layer->freestyle_config = srl->freestyleConfig;
@@ -2883,10 +2877,10 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       ToolSettings *ts = scene->toolsettings;
 
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::GPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
 
       /* Set default Draw brush. */
       if (brush != nullptr) {
@@ -2927,9 +2921,9 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
     /* Reset all grease pencil brushes. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       /* Ensure new Paint modes. */
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_VERTEX_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_SCULPT_GPENCIL);
-      BKE_paint_ensure_from_paintmode(scene, PAINT_MODE_WEIGHT_GPENCIL);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::VertexGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::SculptGPencil);
+      BKE_paint_ensure_from_paintmode(scene, PaintMode::WeightGPencil);
     }
   }
 
@@ -2961,7 +2955,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
       if (ob->type != OB_EMPTY && ob->instance_collection != nullptr) {
         BLO_reportf_wrap(fd->reports,
                          RPT_INFO,
-                         TIP_("Non-Empty object '%s' cannot duplicate collection '%s' "
+                         RPT_("Non-Empty object '%s' cannot duplicate collection '%s' "
                               "anymore in Blender 2.80 and later, removed instancing"),
                          ob->id.name + 2,
                          ob->instance_collection->id.name + 2);
@@ -3312,8 +3306,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Calculate window width/height from screen vertices */
       int win_width = 0, win_height = 0;
       LISTBASE_FOREACH (ScrVert *, vert, &screen->vertbase) {
-        win_width = MAX2(win_width, vert->vec.x);
-        win_height = MAX2(win_height, vert->vec.y);
+        win_width = std::max<int>(win_width, vert->vec.x);
+        win_height = std::max<int>(win_height, vert->vec.y);
       }
 
       for (ScrArea *area = static_cast<ScrArea *>(screen->areabase.first), *area_next; area;
@@ -3466,7 +3460,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.bloom_clamp = 0.0f;
 
         scene->eevee.motion_blur_samples = 8;
-        scene->eevee.motion_blur_shutter = 0.5f;
+        scene->eevee.motion_blur_shutter_deprecated = 0.5f;
 
         scene->eevee.shadow_method = SHADOW_ESM;
         scene->eevee.shadow_cube_size = 512;
@@ -3537,7 +3531,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
         EEVEE_GET_BOOL(props, dof_enable, SCE_EEVEE_DOF_ENABLED);
         EEVEE_GET_BOOL(props, bloom_enable, SCE_EEVEE_BLOOM_ENABLED);
-        EEVEE_GET_BOOL(props, motion_blur_enable, SCE_EEVEE_MOTION_BLUR_ENABLED);
+        EEVEE_GET_BOOL(props, motion_blur_enable, SCE_EEVEE_MOTION_BLUR_ENABLED_DEPRECATED);
         EEVEE_GET_BOOL(props, shadow_high_bitdepth, SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
         EEVEE_GET_BOOL(props, taa_reprojection, SCE_EEVEE_TAA_REPROJECTION);
         // EEVEE_GET_BOOL(props, sss_enable, SCE_EEVEE_SSS_ENABLED);
@@ -3586,7 +3580,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         EEVEE_GET_FLOAT(props, bloom_clamp);
 
         EEVEE_GET_INT(props, motion_blur_samples);
-        EEVEE_GET_FLOAT(props, motion_blur_shutter);
+        EEVEE_GET_FLOAT(props, motion_blur_shutter_deprecated);
 
         EEVEE_GET_INT(props, shadow_method);
         EEVEE_GET_INT(props, shadow_cube_size);
@@ -4580,7 +4574,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     if (!DNA_struct_member_exists(fd->filesdna, "SceneDisplay", "float", "shadow_focus")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         float *dir = scene->display.light_direction;
-        SWAP(float, dir[2], dir[1]);
+        std::swap(dir[2], dir[1]);
         dir[2] = -dir[2];
         dir[0] = -dir[0];
       }
@@ -4887,7 +4881,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      arm->flag &= ~(ARM_FLAG_UNUSED_1 | ARM_DRAW_RELATION_FROM_HEAD | ARM_FLAG_UNUSED_6 |
+      arm->flag &= ~(ARM_FLAG_UNUSED_1 | ARM_DRAW_RELATION_FROM_HEAD | ARM_BCOLL_SOLO_ACTIVE |
                      ARM_FLAG_UNUSED_7 | ARM_FLAG_UNUSED_12);
     }
 
@@ -5366,7 +5360,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      arm->flag &= ~(ARM_FLAG_UNUSED_6);
+      arm->flag &= ~(ARM_BCOLL_SOLO_ACTIVE);
     }
   }
 

@@ -12,7 +12,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_volume_types.h"
@@ -22,7 +22,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},
@@ -59,14 +59,14 @@ struct DummyVolumeGridData;
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-static char *rna_VolumeRender_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_VolumeRender_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("render");
+  return "render";
 }
 
-static char *rna_VolumeDisplay_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_VolumeDisplay_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("display");
+  return "display";
 }
 
 /* Updates */

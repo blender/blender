@@ -18,7 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
 
@@ -554,17 +554,18 @@ static void nla_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void nla_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void nla_id_remap(ScrArea * /*area*/,
+                         SpaceLink *slink,
+                         const blender::bke::id::IDRemapper &mappings)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(slink);
 
   if (snla->ads == nullptr) {
     return;
   }
-  BKE_id_remapper_apply(
-      mappings, reinterpret_cast<ID **>(&snla->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(
-      mappings, reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
+
+  mappings.apply(reinterpret_cast<ID **>(&snla->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void nla_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
@@ -598,7 +599,7 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_nla()
 {
-  SpaceType *st = MEM_cnew<SpaceType>("spacetype nla");
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_NLA;
@@ -670,5 +671,5 @@ void ED_spacetype_nla()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

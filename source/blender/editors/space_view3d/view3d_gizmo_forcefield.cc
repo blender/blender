@@ -9,13 +9,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 
 #include "ED_gizmo_library.hh"
-#include "ED_screen.hh"
 
 #include "UI_resources.hh"
 
@@ -24,7 +23,6 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */
@@ -89,8 +87,8 @@ static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmGizmoGroup *gzgr
     const float ofs[3] = {0.0f, -size, 0.0f};
 
     PointerRNA field_ptr = RNA_pointer_create(&ob->id, &RNA_FieldSettings, pd);
-    WM_gizmo_set_matrix_location(gz, ob->object_to_world[3]);
-    WM_gizmo_set_matrix_rotation_from_z_axis(gz, ob->object_to_world[2]);
+    WM_gizmo_set_matrix_location(gz, ob->object_to_world().location());
+    WM_gizmo_set_matrix_rotation_from_z_axis(gz, ob->object_to_world().ptr()[2]);
     WM_gizmo_set_matrix_offset_location(gz, ofs);
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
     WM_gizmo_target_property_def_rna(gz, "offset", &field_ptr, "strength", -1);

@@ -29,5 +29,5 @@ void BM_mesh_wireframe(BMesh *bm,
                        int defgrp_index,
                        bool defgrp_invert,
                        short mat_offset,
-                       short mat_max,
+                       int mat_max,
                        bool use_tag);

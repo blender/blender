@@ -23,10 +23,10 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_pointcloud.h"
+#include "BKE_pointcloud.hh"
 
 #include "GPU_batch.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "draw_attributes.hh"
 #include "draw_cache_impl.hh"

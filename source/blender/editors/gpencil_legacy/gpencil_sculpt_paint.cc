@@ -22,15 +22,13 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "PIL_time.h"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -40,15 +38,12 @@
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_deform.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_object_deform.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "UI_interface.hh"
 
@@ -57,7 +52,6 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "UI_view2d.hh"
@@ -683,7 +677,7 @@ static bool gpencil_brush_pinch_apply(tGP_BrushEditData *gso,
 
   /* 1) Make this point relative to the cursor/midpoint (dvec) */
   float fpt[3];
-  mul_v3_m4v3(fpt, gso->object->object_to_world, &pt->x);
+  mul_v3_m4v3(fpt, gso->object->object_to_world().ptr(), &pt->x);
   sub_v3_v3v3(vec, fpt, gso->dvec);
 
   /* 2) Shrink the distance by pulling the point towards the midpoint
@@ -703,7 +697,7 @@ static bool gpencil_brush_pinch_apply(tGP_BrushEditData *gso,
 
   /* 3) Translate back to original space, with the shrinkage applied */
   add_v3_v3v3(fpt, gso->dvec, vec);
-  mul_v3_m4v3(&pt->x, gso->object->world_to_object, fpt);
+  mul_v3_m4v3(&pt->x, gso->object->world_to_object().ptr(), fpt);
 
   /* compute lock axis */
   gpencil_sculpt_compute_lock_axis(gso, pt, save_pt);
@@ -755,12 +749,12 @@ static bool gpencil_brush_twist_apply(tGP_BrushEditData *gso,
 
     /* Rotate point */
     float fpt[3];
-    mul_v3_m4v3(fpt, gso->object->object_to_world, &pt->x);
+    mul_v3_m4v3(fpt, gso->object->object_to_world().ptr(), &pt->x);
     sub_v3_v3v3(vec, fpt, gso->dvec); /* make relative to center
                                        * (center is stored in dvec) */
     mul_m3_v3(rmat, vec);
     add_v3_v3v3(fpt, vec, gso->dvec); /* restore */
-    mul_v3_m4v3(&pt->x, gso->object->world_to_object, fpt);
+    mul_v3_m4v3(&pt->x, gso->object->world_to_object().ptr(), fpt);
 
     /* compute lock axis */
     gpencil_sculpt_compute_lock_axis(gso, pt, save_pt);
@@ -1051,11 +1045,11 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
        */
       for (i = 0, pt = new_stroke->points; i < new_stroke->totpoints; i++, pt++) {
         /* Rotate around center new position */
-        mul_mat3_m4_v3(gso->object->object_to_world, &pt->x); /* only rotation component */
+        mul_mat3_m4_v3(gso->object->object_to_world().ptr(), &pt->x); /* only rotation component */
 
         /* assume that the delta can just be applied, and then everything works */
         add_v3_v3(&pt->x, delta);
-        mul_m4_v3(gso->object->world_to_object, &pt->x);
+        mul_m4_v3(gso->object->world_to_object().ptr(), &pt->x);
       }
 
       /* Store ref for later */
@@ -1138,9 +1132,9 @@ static void gpencil_sculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
   char str[UI_MAX_DRAW_STR] = "";
 
   SNPRINTF(str,
-           TIP_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
-                " | Ctrl to Invert Action | Wheel Up/Down for Size "
-                " | Shift-Wheel Up/Down for Strength"),
+           IFACE_("GPencil Sculpt: %s Stroke  | LMB to paint | RMB/Escape to Exit"
+                  " | Ctrl to Invert Action | Wheel Up/Down for Size "
+                  " | Shift-Wheel Up/Down for Strength"),
            brush->id.name + 2);
 
   ED_workspace_status_text(C, str);
@@ -1171,7 +1165,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->settings = gpencil_sculpt_get_settings(scene);
 
   /* Random generator, only init once. */
-  uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
   rng_seed ^= POINTER_AS_UINT(gso);
   gso->rng = BLI_rng_new(rng_seed);
 
@@ -1186,7 +1180,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
   gso->object = ob;
   if (ob) {
     float matrix[4][4];
-    copy_m4_m4(matrix, ob->object_to_world);
+    copy_m4_m4(matrix, ob->object_to_world().ptr());
     zero_axis_bias_m4(matrix);
     invert_m4_m4(gso->inv_mat, matrix);
     gso->vrgroup = gso->gpd->vertex_group_active_index - 1;

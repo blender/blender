@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "eevee_lightprobe.hh"
 #include "eevee_shader_shared.hh"
 
 #include "BKE_cryptomatte.hh"
@@ -22,65 +23,17 @@ class Instance;
 struct ObjectHandle;
 struct WorldHandle;
 class CaptureView;
-struct ReflectionProbeUpdateInfo;
-
-/* -------------------------------------------------------------------- */
-/** \name Reflection Probe
- * \{ */
-
-struct ReflectionProbe : ReflectionProbeData {
-  enum class Type {
-    WORLD,
-    PROBE,
-  } type;
-
-  /* Used to sort the probes by priority. */
-  float volume;
-
-  /* Should the area in the probes_tx_ be updated? */
-  bool do_render = false;
-  bool do_world_irradiance_update = false;
-
-  /**
-   * Probes that aren't used during a draw can be cleared.
-   *
-   * Only valid when type == Type::Probe.
-   */
-  bool is_probe_used = false;
-
-  /**
-   * Far and near clipping distances for rendering
-   */
-  float2 clipping_distances;
-
-  /** Display debug spheres in the viewport. */
-  bool viewport_display;
-  float viewport_display_size;
-
-  ReflectionProbe()
-  {
-    this->atlas_coord.layer_subdivision = -1;
-    this->atlas_coord.layer = -1;
-    this->atlas_coord.area_index = -1;
-  }
-
-  void recalc_lod_factors(int atlas_resolution)
-  {
-    const float probe_resolution = atlas_resolution >> atlas_coord.layer_subdivision;
-    const float bias = 0.0;
-    const float lod_factor = bias + 0.5 * log(float(square_i(probe_resolution))) / log(2.0);
-    this->lod_factor = lod_factor;
-  }
-};
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Reflection Probe Module
  * \{ */
 
-class ReflectionProbeModule {
-  using ReflectionProbes = Map<uint64_t, ReflectionProbe>;
+class SphereProbeModule {
+  friend LightProbeModule;
+  /* Capture View requires access to the cube-maps texture for frame-buffer configuration. */
+  friend class CaptureView;
+  /* Instance requires access to #update_probes_this_sample_ */
+  friend class Instance;
 
  private:
   /**
@@ -90,23 +43,27 @@ class ReflectionProbeModule {
    */
   static constexpr int max_resolution_ = 2048;
 
-  static constexpr uint64_t world_object_key_ = 0;
-
-  bool is_initialized = false;
   Instance &instance_;
-  ReflectionProbeDataBuf data_buf_;
-  ReflectionProbes probes_;
-
-  ReflectionProbe world_probe_data;
+  SphereProbeDataBuf data_buf_;
 
   /** Probes texture stored in octahedral mapping. */
   Texture probes_tx_ = {"Probes"};
 
+  /** Copy the rendered cube-map to the atlas texture. */
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
+  /** Extract irradiance information from the world. */
   PassSimple update_irradiance_ps_ = {"Probe.UpdateIrradiance"};
+  /** Copy volume probe irradiance for the center of sphere probes. */
   PassSimple select_ps_ = {"Probe.Select"};
+  /** Convolve the octahedral map to fill the Mip-map levels. */
+  PassSimple convolve_ps_ = {"Probe.Convolve"};
+  /** Input mip level for the convolution. */
+  GPUTexture *convolve_input_ = nullptr;
+  /** Output mip level for the convolution. */
+  GPUTexture *convolve_output_ = nullptr;
 
   int3 dispatch_probe_pack_ = int3(1);
+  int3 dispatch_probe_convolve_ = int3(1);
   int3 dispatch_probe_select_ = int3(1);
 
   /**
@@ -116,101 +73,109 @@ class ReflectionProbeModule {
    */
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Index of the probe being updated. */
-  int reflection_probe_index_ = 0;
+  int probe_index_ = 0;
   /** Updated Probe coordinates in the atlas. */
-  ReflectionProbeAtlasCoordinate reflection_probe_coord_;
+  SphereProbeUvArea probe_sampling_coord_;
+  SphereProbePixelArea probe_write_coord_;
   /** World coordinates in the atlas. */
-  ReflectionProbeAtlasCoordinate world_probe_coord_;
+  SphereProbeUvArea world_sampling_coord_;
   /** Number of the probe to process in the select phase. */
   int reflection_probe_count_ = 0;
 
+  /**
+   * True if the next redraw will trigger a light-probe sphere update.
+   * As syncing the draw passes for rendering has a significant overhead,
+   * we only trigger this sync path if we detect updates. But we only know
+   * this after `end_sync` which is too late to sync objects for light-probe
+   * rendering. So we tag the next redraw (or sample) to do the sync.
+   */
   bool update_probes_next_sample_ = false;
+  /** True if the this redraw will trigger a light-probe sphere update. */
   bool update_probes_this_sample_ = false;
+  /** Compute world irradiance coefficient and store them into the volume probe atlas. */
+  bool do_world_irradiance_update = true;
 
   /** Viewport data display drawing. */
   bool do_display_draw_ = false;
-  ReflectionProbeDisplayDataBuf display_data_buf_;
-  PassSimple viewport_display_ps_ = {"ReflectionProbeModule.Viewport Display"};
+  SphereProbeDisplayDataBuf display_data_buf_;
+  PassSimple viewport_display_ps_ = {"ProbeSphereModule.Viewport Display"};
 
  public:
-  ReflectionProbeModule(Instance &instance) : instance_(instance) {}
+  SphereProbeModule(Instance &instance) : instance_(instance){};
 
   void init();
   void begin_sync();
-  void sync_world(::World *world);
-  void sync_world_lookdev();
-  void sync_object(Object *ob, ObjectHandle &ob_handle);
   void end_sync();
 
   void viewport_draw(View &view, GPUFrameBuffer *view_fb);
 
   template<typename PassType> void bind_resources(PassType &pass)
   {
-    pass.bind_texture(REFLECTION_PROBE_TEX_SLOT, &probes_tx_);
-    pass.bind_ubo(REFLECTION_PROBE_BUF_SLOT, &data_buf_);
+    pass.bind_texture(SPHERE_PROBE_TEX_SLOT, &probes_tx_);
+    pass.bind_ubo(SPHERE_PROBE_BUF_SLOT, &data_buf_);
   }
-
-  bool do_world_update_get() const;
-  void do_world_update_set(bool value);
-  void do_world_update_irradiance_set(bool value);
 
   void set_view(View &view);
 
-  void debug_print() const;
+  /**
+   * Get the resolution of a single cube-map side when rendering probes.
+   *
+   * The cube-maps are rendered half size of the size of the octahedral texture.
+   */
+  int probe_render_extent() const;
 
-  ReflectionProbeAtlasCoordinate world_atlas_coord_get() const;
+  void tag_world_irradiance_for_update()
+  {
+    do_world_irradiance_update = true;
+  }
 
  private:
-  /** Get the number of layers that is needed to store probes. */
-  int needed_layers_get() const;
-
-  bool remove_unused_probes();
+  /* Return the subdivision level for the requested probe resolution.
+   * Result is safely clamped to max resolution. */
+  int subdivision_level_get(const eLightProbeResolution probe_resolution)
+  {
+    return max_ii(int(log2(max_resolution_)) - int(probe_resolution), 0);
+  }
 
   /**
-   * Create a reflection probe data element that points to an empty spot in the cubemap that can
-   * hold a texture with the given subdivision_level.
+   * Ensure atlas texture is the right size.
+   * Returns true if the texture has been cleared and all probes needs to be rendered again.
    */
-  ReflectionProbeAtlasCoordinate find_empty_atlas_region(int subdivision_level) const;
+  bool ensure_atlas();
+
+  /**
+   * Ensure the cube-map target texture for rendering the probe is allocated.
+   */
+  void ensure_cubemap_render_target(int resolution);
+
+  struct UpdateInfo {
+    float3 probe_pos;
+    /** Resolution of the cube-map to be rendered. */
+    int resolution;
+
+    float2 clipping_distances;
+
+    SphereProbeAtlasCoord atlas_coord;
+
+    bool do_render;
+    bool do_world_irradiance_update;
+  };
+
+  UpdateInfo update_info_from_probe(const SphereProbe &probe);
 
   /**
    * Pop the next reflection probe that requires to be updated.
    */
-  std::optional<ReflectionProbeUpdateInfo> update_info_pop(ReflectionProbe::Type probe_type);
+  std::optional<UpdateInfo> world_update_info_pop();
+  std::optional<UpdateInfo> probe_update_info_pop();
 
-  void remap_to_octahedral_projection(const ReflectionProbeAtlasCoordinate &atlas_coord);
-  void update_probes_texture_mipmaps();
+  /**
+   * Internal processing passes.
+   */
+  void remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord);
   void update_world_irradiance();
 
-  bool has_only_world_probe() const;
-
-  eLightProbeResolution reflection_probe_resolution() const;
-
-  /* Capture View requires access to the cube-maps texture for frame-buffer configuration. */
-  friend class CaptureView;
-  /* Instance requires access to #update_probes_this_sample_ */
-  friend class Instance;
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Reflection Probe Update Info
- * \{ */
-
-struct ReflectionProbeUpdateInfo {
-  float3 probe_pos;
-  ReflectionProbe::Type probe_type;
-  /**
-   * Resolution of the cubemap to be rendered.
-   */
-  int resolution;
-
-  float2 clipping_distances;
-
-  ReflectionProbeAtlasCoordinate atlas_coord;
-
-  bool do_render;
-  bool do_world_irradiance_update;
+  void sync_display(Vector<SphereProbe *> &probe_active);
 };
 
 /** \} */

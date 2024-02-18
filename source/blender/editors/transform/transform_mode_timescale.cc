@@ -8,12 +8,9 @@
 
 #include <cstdlib>
 
-#include "DNA_anim_types.h"
-
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_context.hh"
 #include "BKE_nla.h"
 #include "BKE_unit.hh"
 
@@ -21,7 +18,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -53,7 +50,7 @@ static void headerTimeScale(TransInfo *t, char str[UI_MAX_DRAW_STR])
     BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", t->values_final[0]);
   }
 
-  BLI_snprintf(str, UI_MAX_DRAW_STR, TIP_("ScaleX: %s"), &tvec[0]);
+  BLI_snprintf(str, UI_MAX_DRAW_STR, IFACE_("ScaleX: %s"), &tvec[0]);
 }
 
 static void applyTimeScaleValue(TransInfo *t, float value)

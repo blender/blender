@@ -29,16 +29,15 @@
 #include "BKE_cloth.hh"
 #include "BKE_customdata.hh"
 #include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
 
 #include "SIM_mass_spring.h"
 
-// #include "PIL_time.h"  /* timing for debug prints */
+// #include "BLI_time.h"  /* timing for debug prints */
 
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
@@ -273,7 +272,7 @@ static int do_step_cloth(
 
     /* Get the current position. */
     copy_v3_v3(verts->xconst, positions[i]);
-    mul_m4_v3(ob->object_to_world, verts->xconst);
+    mul_m4_v3(ob->object_to_world().ptr(), verts->xconst);
 
     if (vert_mass_changed) {
       verts->mass = clmd->sim_parms->mass;
@@ -576,11 +575,11 @@ static void cloth_to_object(Object *ob, ClothModifierData *clmd, float (*vertexC
 
   if (clmd->clothObject) {
     /* Inverse matrix is not up to date. */
-    invert_m4_m4(ob->world_to_object, ob->object_to_world);
+    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
 
     for (i = 0; i < cloth->mvert_num; i++) {
       copy_v3_v3(vertexCos[i], cloth->verts[i].x);
-      mul_m4_v3(ob->world_to_object, vertexCos[i]); /* cloth is in global coords */
+      mul_m4_v3(ob->world_to_object().ptr(), vertexCos[i]); /* cloth is in global coords */
     }
   }
 }
@@ -760,11 +759,11 @@ static bool cloth_from_object(
     if (first) {
       copy_v3_v3(verts->x, positions[i]);
 
-      mul_m4_v3(ob->object_to_world, verts->x);
+      mul_m4_v3(ob->object_to_world().ptr(), verts->x);
 
       if (shapekey_rest) {
         copy_v3_v3(verts->xrest, shapekey_rest[i]);
-        mul_m4_v3(ob->object_to_world, verts->xrest);
+        mul_m4_v3(ob->object_to_world().ptr(), verts->xrest);
       }
       else {
         copy_v3_v3(verts->xrest, verts->x);
@@ -1154,7 +1153,7 @@ static void cloth_update_verts(Object *ob, ClothModifierData *clmd, Mesh *mesh)
   /* vertex count is already ensured to match */
   for (i = 0; i < mesh->verts_num; i++, verts++) {
     copy_v3_v3(verts->xrest, positions[i]);
-    mul_m4_v3(ob->object_to_world, verts->xrest);
+    mul_m4_v3(ob->object_to_world().ptr(), verts->xrest);
   }
 }
 

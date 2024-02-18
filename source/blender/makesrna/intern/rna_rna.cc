@@ -18,7 +18,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Enum's
@@ -153,28 +153,51 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+/* Descriptions for rna_enum_property_flag_items and rna_enum_property_flag_enum_items. */
+static constexpr auto PROP_HIDDEN_DESCR =
+    "For operators: hide from places in the user interface where Blender would add the property "
+    "automatically, like Adjust Last Operation. Also this property is not written to presets";
+static constexpr auto PROP_SKIP_SAVE_DESCR =
+    "For operators: the value of this property will not be remembered between invocations of the "
+    "operator; instead, each invocation will start by using the default value. Also this "
+    "property is not written to presets";
+static constexpr auto PROP_SKIP_PRESET_DESCR = "Do not write in presets";
+static constexpr auto PROP_ANIMATABLE_DESCR = "";
+static constexpr auto PROP_LIB_EXCEPTION_DESCR =
+    "This property can be edited, even when it is used on linked data (which normally is "
+    "read-only). Note that edits to the property will not be saved to the blend file";
+static constexpr auto PROP_PROPORTIONAL_DESCR = "";
+static constexpr auto PROP_TEXTEDIT_UPDATE_DESCR = "";
+static constexpr auto PROP_PATH_OUTPUT_DESCR = "";
+static constexpr auto PROP_ENUM_FLAG_DESCR = "";
+
 const EnumPropertyItem rna_enum_property_flag_items[] = {
-    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
-    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
-    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to each other", ""},
+    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", PROP_HIDDEN_DESCR},
+    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", PROP_SKIP_SAVE_DESCR},
+    {PROP_SKIP_PRESET, "SKIP_PRESET", 0, "Skip Preset", PROP_SKIP_PRESET_DESCR},
+    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", PROP_ANIMATABLE_DESCR},
+    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", PROP_LIB_EXCEPTION_DESCR},
+    {PROP_PROPORTIONAL,
+     "PROPORTIONAL",
+     0,
+     "Adjust values proportionally to each other",
+     PROP_PROPORTIONAL_DESCR},
     {int(PROP_TEXTEDIT_UPDATE),
      "TEXTEDIT_UPDATE",
      0,
      "Update on every keystroke in textedit 'mode'",
-     ""},
-    {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", ""},
+     PROP_TEXTEDIT_UPDATE_DESCR},
+    {PROP_PATH_OUTPUT, "OUTPUT_PATH", 0, "Output Path", PROP_PATH_OUTPUT_DESCR},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 /** Only for enum type properties. */
 const EnumPropertyItem rna_enum_property_flag_enum_items[] = {
-    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
-    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
-    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
+    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", PROP_HIDDEN_DESCR},
+    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", PROP_SKIP_SAVE_DESCR},
+    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", PROP_ANIMATABLE_DESCR},
+    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", PROP_LIB_EXCEPTION_DESCR},
+    {PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", PROP_ENUM_FLAG_DESCR},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -726,6 +749,12 @@ static bool rna_Property_is_skip_save_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
   return (prop->flag & PROP_SKIP_SAVE) != 0;
+}
+
+static bool rna_Property_is_skip_preset_get(PointerRNA *ptr)
+{
+  PropertyRNA *prop = (PropertyRNA *)ptr->data;
+  return (prop->flag & (PROP_SKIP_SAVE | PROP_HIDDEN | PROP_SKIP_PRESET)) != 0;
 }
 
 static bool rna_Property_is_enum_flag_get(PointerRNA *ptr)
@@ -3136,7 +3165,12 @@ static void rna_def_property(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_skip_save", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_funcs(prop, "rna_Property_is_skip_save_get", nullptr);
-  RNA_def_property_ui_text(prop, "Skip Save", "True when the property is not saved in presets");
+  RNA_def_property_ui_text(prop, "Skip Save", "True when the property uses ghost values");
+
+  prop = RNA_def_property(srna, "is_skip_preset", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_Property_is_skip_preset_get", nullptr);
+  RNA_def_property_ui_text(prop, "Skip Preset", "True when the property is not saved in presets");
 
   prop = RNA_def_property(srna, "is_output", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -123,35 +123,28 @@ class TIME_MT_view(Menu):
         scene = context.scene
         st = context.space_data
 
-        layout.menu("INFO_MT_area")
-
+        layout.prop(st, "show_region_hud")
+        layout.prop(st, "show_region_channels")
         layout.separator()
 
         # NOTE: "action" now, since timeline is in the dopesheet editor, instead of as own editor
-        layout.operator("action.view_frame")
         layout.operator("action.view_all")
-
-        layout.separator()
-
-        layout.menu("TIME_MT_cache")
-
-        layout.separator()
-
-        layout.prop(st.dopesheet, "show_only_errors")
-        layout.prop(scene, "show_keys_from_selected_only")
-
+        layout.operator("action.view_frame")
         layout.separator()
 
         layout.prop(st, "show_markers")
-
-        layout.separator()
-
-        layout.prop(st, "show_locked_time")
         layout.prop(st, "show_seconds")
-
+        layout.prop(st, "show_locked_time")
         layout.separator()
 
-        layout.prop(st, "show_region_hud")
+        layout.prop(scene, "show_keys_from_selected_only")
+        layout.prop(st.dopesheet, "show_only_errors")
+        layout.separator()
+
+        layout.menu("TIME_MT_cache")
+        layout.separator()
+
+        layout.menu("INFO_MT_area")
 
 
 class TIME_MT_cache(Menu):
@@ -248,7 +241,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         layout.prop(scene, "sync_mode", text="Sync")
         col = layout.column(heading="Audio")
         col.prop(scene, "use_audio_scrub", text="Scrubbing")
-        col.prop(scene, "use_audio", text="Mute")
+        col.prop(scene, "use_audio")
 
         col = layout.column(heading="Playback")
         col.prop(scene, "lock_frame_selection_to_range", text="Limit to Frame Range")

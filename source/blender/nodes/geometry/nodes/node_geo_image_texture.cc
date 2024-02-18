@@ -8,11 +8,10 @@
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_threads.h"
-#include "BLI_timeit.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

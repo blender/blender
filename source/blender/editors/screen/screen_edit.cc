@@ -14,19 +14,18 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_icons.h"
 #include "BKE_image.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_workspace.h"
@@ -286,8 +285,8 @@ eScreenDir area_getorientation(ScrArea *sa_a, ScrArea *sa_b)
   short overlapy = std::min(top_a, top_b) - std::max(bottom_a, bottom_b);
 
   /* Minimum overlap required. */
-  const short minx = MIN3(AREAJOINTOLERANCEX, right_a - left_a, right_b - left_b);
-  const short miny = MIN3(AREAJOINTOLERANCEY, top_a - bottom_a, top_b - bottom_b);
+  const short minx = std::min({int(AREAJOINTOLERANCEX), right_a - left_a, right_b - left_b});
+  const short miny = std::min({int(AREAJOINTOLERANCEY), top_a - bottom_a, top_b - bottom_b});
 
   if (top_a == bottom_b && overlapx >= minx) {
     return eScreenDir(1); /* sa_a to bottom of sa_b = N */

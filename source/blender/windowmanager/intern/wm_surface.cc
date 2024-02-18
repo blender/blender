@@ -6,25 +6,20 @@
  * \ingroup wm
  */
 
-#include "BKE_context.hh"
-
-#include "BLF_api.h"
-
 #include "BLI_listbase.h"
-#include "BLI_threads.h"
+#ifndef NDEBUG
+#  include "BLI_threads.h"
+#endif
 
 #include "GHOST_C-api.h"
 
-#include "GPU_batch_presets.h"
 #include "GPU_context.h"
 #include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
-#include "wm.hh"
 
 #include "wm_surface.hh"
 

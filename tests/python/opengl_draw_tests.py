@@ -54,7 +54,7 @@ def create_argparse():
     parser.add_argument("-blender", nargs="+")
     parser.add_argument("-testdir", nargs=1)
     parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-idiff", nargs=1)
+    parser.add_argument("-oiiotool", nargs=1)
     return parser
 
 
@@ -64,11 +64,11 @@ def main():
 
     blender = args.blender[0]
     test_dir = args.testdir[0]
-    idiff = args.idiff[0]
+    oiiotool = args.oiiotool[0]
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("OpenGL Draw", output_dir, idiff)
+    report = render_report.Report("OpenGL Draw", output_dir, oiiotool)
     ok = report.run(test_dir, blender, get_arguments)
 
     sys.exit(not ok)

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2007 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -6,6 +6,7 @@
  * \ingroup imbuf
  */
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 
@@ -15,7 +16,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
-#include "BLI_hash_md5.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -26,10 +27,10 @@
 
 #include "DNA_space_types.h" /* For FILE_MAX_LIBEXTRA */
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_metadata.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+#include "IMB_metadata.hh"
+#include "IMB_thumbs.hh"
 
 #include <cctype>
 #include <cstring>
@@ -390,7 +391,7 @@ static ImBuf *thumb_create_ex(const char *file_path,
         }
       }
       else if (THB_SOURCE_MOVIE == source) {
-        anim *anim = nullptr;
+        ImBufAnim *anim = nullptr;
         anim = IMB_open_anim(file_path, IB_rect | IB_metadata, 0, nullptr);
         if (anim != nullptr) {
           img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -412,10 +413,10 @@ static ImBuf *thumb_create_ex(const char *file_path,
       }
 
       if (img->x > tsize || img->y > tsize) {
-        float scale = MIN2(float(tsize) / float(img->x), float(tsize) / float(img->y));
+        float scale = std::min(float(tsize) / float(img->x), float(tsize) / float(img->y));
         /* Scaling down must never assign zero width/height, see: #89868. */
-        short ex = MAX2(1, short(img->x * scale));
-        short ey = MAX2(1, short(img->y * scale));
+        short ex = std::max(short(1), short(img->x * scale));
+        short ey = std::max(short(1), short(img->y * scale));
         /* Save some time by only scaling byte buffer. */
         if (img->float_buffer.data) {
           if (img->byte_buffer.data == nullptr) {

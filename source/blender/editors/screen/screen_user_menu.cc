@@ -19,9 +19,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_blender_user_menu.h"
+#include "BKE_blender_user_menu.hh"
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_screen.hh"
@@ -250,7 +250,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, TIP_("Missing: %s"), umi_op->op_idname);
+            SNPRINTF(label, RPT_("Missing: %s"), umi_op->op_idname);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -264,7 +264,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         else {
           if (show_missing) {
-            SNPRINTF(label, TIP_("Missing: %s"), umi_mt->mt_idname);
+            SNPRINTF(label, RPT_("Missing: %s"), umi_mt->mt_idname);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -313,7 +313,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
         if (!ok) {
           if (show_missing) {
-            SNPRINTF(label, TIP_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
+            SNPRINTF(label, RPT_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
             uiItemL(menu->layout, label, ICON_NONE);
           }
         }
@@ -328,8 +328,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
   }
 
   if (is_empty) {
-    uiItemL(menu->layout, TIP_("No menu items found"), ICON_NONE);
-    uiItemL(menu->layout, TIP_("Right click on buttons to add them to this menu"), ICON_NONE);
+    uiItemL(menu->layout, RPT_("No menu items found"), ICON_NONE);
+    uiItemL(menu->layout, RPT_("Right click on buttons to add them to this menu"), ICON_NONE);
   }
 }
 

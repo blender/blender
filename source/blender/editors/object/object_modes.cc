@@ -9,29 +9,20 @@
  * actual mode switching logic is per-object type.
  */
 
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_workspace_types.h"
 
-#include "BLI_kdopbvh.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
-
-#include "PIL_time.h"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_layer.h"
-#include "BKE_main.hh"
+#include "BKE_layer.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.hh"
+#include "BKE_report.hh"
 
 #include "BLI_math_vector.h"
 
@@ -47,8 +38,6 @@
 #include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_outliner.hh"
-#include "ED_screen.hh"
-#include "ED_transform_snap_object_context.hh"
 #include "ED_undo.hh"
 #include "ED_view3d.hh"
 
@@ -153,7 +142,7 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
       }
       break;
     case OB_GREASE_PENCIL:
-      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL)) {
+      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GREASE_PENCIL | OB_MODE_WEIGHT_PAINT)) {
         return true;
       }
       break;
@@ -444,7 +433,7 @@ static void object_overlay_mode_transfer_animation_start(bContext *C, Object *ob
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob_dst_eval = DEG_get_evaluated_object(depsgraph, ob_dst);
-  ob_dst_eval->runtime->overlay_mode_transfer_start_time = PIL_check_seconds_timer();
+  ob_dst_eval->runtime->overlay_mode_transfer_start_time = BLI_time_now_seconds();
 }
 
 static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base_dst)

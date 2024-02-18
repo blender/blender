@@ -13,7 +13,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_types.hh"
 
@@ -22,7 +22,7 @@
 #  include "DNA_brush_types.h"
 
 #  include "BKE_paint.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 static PaletteColor *rna_Palette_color_new(Palette *palette)
 {
   if (ID_IS_LINKED(palette) || ID_IS_OVERRIDE_LIBRARY(palette)) {

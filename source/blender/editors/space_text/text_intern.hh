@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "DNA_vec_types.h"
+
 /* internal exports only */
 
 struct ARegion;
@@ -28,24 +30,25 @@ void draw_text_main(SpaceText *st, ARegion *region);
 
 void text_update_line_edited(TextLine *line);
 void text_update_edited(Text *text);
-void text_update_character_width(SpaceText *st);
+
+void space_text_update_character_width(SpaceText *st);
 /**
  * Takes an area instead of a region, use for listeners.
  */
-void text_scroll_to_cursor__area(SpaceText *st, ScrArea *area, bool center);
-void text_update_cursor_moved(bContext *C);
+void space_text_scroll_to_cursor_with_area(SpaceText *st, ScrArea *area, bool center);
+void space_text_update_cursor_moved(bContext *C);
 
 /* Padding around line numbers in character widths. */
 #define TXT_NUMCOL_PAD 1.0f
 /* Total width of the optional line numbers column. */
 #define TXT_NUMCOL_WIDTH(st) \
-  ((st)->runtime.cwidth_px * ((st)->runtime.line_number_display_digits + (2 * TXT_NUMCOL_PAD)))
+  ((st)->runtime->cwidth_px * ((st)->runtime->line_number_display_digits + (2 * TXT_NUMCOL_PAD)))
 
 /* Padding on left of body text in character units. */
 #define TXT_BODY_LPAD 1.0f
 /* Left position of body text. */
 #define TXT_BODY_LEFT(st) \
-  ((st)->showlinenrs ? TXT_NUMCOL_WIDTH(st) : 0) + (TXT_BODY_LPAD * (st)->runtime.cwidth_px)
+  ((st)->showlinenrs ? TXT_NUMCOL_WIDTH(st) : 0) + (TXT_BODY_LPAD * (st)->runtime->cwidth_px)
 
 #define TXT_SCROLL_WIDTH U.widget_unit
 #define TXT_SCROLL_SPACE ((int)(0.1f * U.widget_unit))
@@ -53,37 +56,48 @@ void text_update_cursor_moved(bContext *C);
 /* Space between lines, in relation to letter height. */
 #define TXT_LINE_VPAD 0.3f
 /* Space between lines. */
-#define TXT_LINE_SPACING(st) ((int)(TXT_LINE_VPAD * st->runtime.lheight_px))
+#define TXT_LINE_SPACING(st) ((int)(TXT_LINE_VPAD * st->runtime->lheight_px))
 /* Total height of each line. */
-#define TXT_LINE_HEIGHT(st) ((int)((1.0f + TXT_LINE_VPAD) * st->runtime.lheight_px))
+#define TXT_LINE_HEIGHT(st) ((int)((1.0f + TXT_LINE_VPAD) * st->runtime->lheight_px))
 
 #define SUGG_LIST_SIZE 7
 #define SUGG_LIST_WIDTH 20
 
 #define TOOL_SUGG_LIST 0x01
 
-int wrap_width(const SpaceText *st, ARegion *region);
+int space_text_wrap_width(const SpaceText *st, const ARegion *region);
 /**
  * Sets (offl, offc) for transforming (line, curs) to its wrapped position.
  */
-void wrap_offset(
-    const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc);
+void space_text_wrap_offset(const SpaceText *st,
+                            const ARegion *region,
+                            TextLine *linein,
+                            int cursin,
+                            int *offl,
+                            int *offc);
 /**
  * cursin - mem, offc - view.
  */
-void wrap_offset_in_line(
-    const SpaceText *st, ARegion *region, TextLine *linein, int cursin, int *offl, int *offc);
-int text_get_char_pos(const SpaceText *st, const char *line, int cur);
+void space_text_wrap_offset_in_line(const SpaceText *st,
+                                    const ARegion *region,
+                                    TextLine *linein,
+                                    int cursin,
+                                    int *offl,
+                                    int *offc);
+int space_text_get_char_pos(const SpaceText *st, const char *line, int cur);
 
-void text_drawcache_tag_update(SpaceText *st, bool full);
-void text_free_caches(SpaceText *st);
+void space_text_drawcache_tag_update(SpaceText *st, bool full);
+void space_text_free_caches(SpaceText *st);
 
-bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2]);
+bool space_text_do_suggest_select(SpaceText *st, const ARegion *region, const int mval[2]);
 void text_pop_suggest_list();
 
-int text_get_visible_lines(const SpaceText *st, ARegion *region, const char *str);
-int text_get_span_wrap(const SpaceText *st, ARegion *region, TextLine *from, TextLine *to);
-int text_get_total_lines(SpaceText *st, ARegion *region);
+int space_text_get_visible_lines(const SpaceText *st, const ARegion *region, const char *str);
+int space_text_get_span_wrap(const SpaceText *st,
+                             const ARegion *region,
+                             TextLine *from,
+                             TextLine *to);
+int space_text_get_total_lines(SpaceText *st, const ARegion *region);
 
 /* `text_ops.cc` */
 
@@ -172,3 +186,37 @@ extern const char *text_context_dir[]; /* doc access */
 #ifdef __cplusplus
 }
 #endif
+
+namespace blender::ed::text {
+struct SpaceText_Runtime {
+
+  /** Actual line height, scaled by DPI. */
+  int lheight_px = 0;
+
+  /** Runtime computed, character width. */
+  int cwidth_px = 0;
+
+  /** The handle of the scroll-bar which can be clicked and dragged. */
+  rcti scroll_region_handle{0, 0, 0, 0};
+  /** The region for selected text to show in the scrolling area. */
+  rcti scroll_region_select{0, 0, 0, 0};
+
+  /** Number of digits to show in the line numbers column (when enabled). */
+  int line_number_display_digits = 0;
+
+  /** Number of lines this window can display (even when they aren't used). */
+  int viewlines = 0;
+
+  /** Use for drawing scroll-bar & calculating scroll operator motion scaling. */
+  float scroll_px_per_line = 0.0f;
+
+  /**
+   * Run-time for scroll increments smaller than a line (smooth scroll).
+   * Values must be between zero and the line, column width: (cwidth, TXT_LINE_HEIGHT(st)).
+   */
+  int scroll_ofs_px[2]{0, 0};
+
+  /** Cache for faster drawing. */
+  void *drawcache = nullptr;
+};
+}  // namespace blender::ed::text

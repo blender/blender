@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "world.h"
+#include "world.hh"
 
 #include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec2f.h>
@@ -24,8 +24,8 @@
 
 #include "NOD_shader.h"
 
-#include "hydra_scene_delegate.h"
-#include "image.h"
+#include "hydra_scene_delegate.hh"
+#include "image.hh"
 
 /* TODO: add custom `tftoken` "transparency"? */
 
@@ -72,10 +72,10 @@ void WorldData::init()
       if (!input_socket) {
         return;
       }
-      bNodeLink const *link = input_socket->directly_linked_links()[0];
       if (input_socket->directly_linked_links().is_empty()) {
         return;
       }
+      bNodeLink const *link = input_socket->directly_linked_links()[0];
 
       bNode *input_node = link->fromnode;
       if (input_node->type != SH_NODE_BACKGROUND) {

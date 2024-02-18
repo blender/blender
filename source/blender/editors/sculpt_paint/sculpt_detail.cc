@@ -12,7 +12,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
@@ -41,7 +41,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -123,7 +123,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
 
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
-                                               mat4_to_scale(ob->object_to_world));
+                                               mat4_to_scale(ob->object_to_world().ptr()));
   blender::bke::dyntopo::detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
   BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
 
@@ -144,7 +144,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     mode |= PBVH_Cleanup;
   }
 
-  double time = PIL_check_seconds_timer();
+  double time = BLI_time_now_seconds();
 
   unlock_main_thread();
 
@@ -167,7 +167,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     printf("radius: %.5f", radius);
   }
 
-  double last_flush = PIL_check_seconds_timer();
+  double last_flush = BLI_time_now_seconds();
 
   int repeat = ss->cached_dyntopo.repeat;
   for (int i = 0; i < 1 + repeat; i++) {
@@ -208,22 +208,23 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
 
     float quality = ss->cached_dyntopo.quality;
     float time_limit = (min_ff(1.0f * (100.0f - quality + 2500.0f * quality), 2500.0f)) * 0.001f;
-    float quality_time = PIL_check_seconds_timer();
+    float quality_time = BLI_time_now_seconds();
 
     printf("Remesh\n");
 
-    while (!remesher.done() && PIL_check_seconds_timer() - quality_time < time_limit) {
+    while (!remesher.done() && BLI_time_now_seconds() - quality_time < time_limit) {
       remesher.step();
 
       if (developer_mode &&
-          (remesher.was_flushed() || (PIL_check_seconds_timer() - last_flush > 0.5))) {
+          (remesher.was_flushed() || (BLI_time_now_seconds() - last_flush > 0.5)))
+      {
         DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
         unlock_main_thread();
         update_main_thread();
-        PIL_sleep_ms(1);
+        BLI_time_sleep_ms(1);
         lock_main_thread();
 
-        last_flush = PIL_check_seconds_timer();
+        last_flush = BLI_time_now_seconds();
       }
 
       if (should_stop()) {
@@ -242,7 +243,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
 
   lock_main_thread();
 
-  time = (PIL_check_seconds_timer() - time) * 1000.0;
+  time = (BLI_time_now_seconds() - time) * 1000.0;
   printf("    Time: %.3fms\n", float(time));
 
   SCULPT_dyntopo_automasking_end(mask_cb_data);
@@ -275,8 +276,8 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
     BM_log_vert_if_modified(bm, ss->bm_log, v);
   }
 
-  double time = PIL_check_seconds_timer();
-  auto should_stop = [&time]() { return PIL_check_seconds_timer() - time > 1.0f; };
+  double time = BLI_time_now_seconds();
+  auto should_stop = [&time]() { return BLI_time_now_seconds() - time > 1.0f; };
 
   int ret = sculpt_detail_flood_fill_run(
       CTX_data_scene(C),
@@ -339,7 +340,7 @@ static void start_fill_job(void * /*custom_data*/, wmJobWorkerStatus *status)
     }
 
     status->do_update = true;
-    PIL_sleep_ms(15);
+    BLI_time_sleep_ms(15);
   }
 
   printf("\nJob finished\n\n");
@@ -560,7 +561,8 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
                                    &brush->dyntopo;
 
     /* Convert edge length to world space detail resolution. */
-    dyntopo->constant_detail = 1.0f / (srd.edge_length * mat4_to_scale(ob->object_to_world));
+    dyntopo->constant_detail = 1.0f /
+                               (srd.edge_length * mat4_to_scale(ob->object_to_world().ptr()));
   }
 }
 
@@ -813,8 +815,9 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
                                                     bool flip,
                                                     const float angle)
 {
-  float object_space_constant_detail = 1.0f / (cd->detail_size *
-                                               mat4_to_scale(cd->active_object->object_to_world));
+  float object_space_constant_detail = 1.0f /
+                                       (cd->detail_size *
+                                        mat4_to_scale(cd->active_object->object_to_world().ptr()));
 
   /* The constant detail represents the maximum edge length allowed before subdividing it. If the
    * triangle grid preview is created with this value it will represent an ideal mesh density
@@ -931,8 +934,8 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
   if (num_neighbors > 0) {
     const float avg_edge_len = len_accum / num_neighbors;
     /* Use 0.7 as the average of min and max dyntopo edge length. */
-    const float detail_size = 0.7f /
-                              (avg_edge_len * mat4_to_scale(cd->active_object->object_to_world));
+    const float detail_size = 0.7f / (avg_edge_len *
+                                      mat4_to_scale(cd->active_object->object_to_world().ptr()));
     cd->detail_size = clamp_f(detail_size, 1.0f, 500.0f);
   }
 }
@@ -1070,7 +1073,7 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
   float cursor_trans[4][4], cursor_rot[4][4];
   const float z_axis[4] = {0.0f, 0.0f, 1.0f, 0.0f};
   float quat[4];
-  copy_m4_m4(cursor_trans, active_object->object_to_world);
+  copy_m4_m4(cursor_trans, active_object->object_to_world().ptr());
   translate_m4(
       cursor_trans, ss->cursor_location[0], ss->cursor_location[1], ss->cursor_location[2]);
 

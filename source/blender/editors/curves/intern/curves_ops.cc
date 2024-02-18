@@ -18,7 +18,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_curves.hh"
 #include "ED_object.hh"
@@ -34,8 +34,8 @@
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
@@ -43,7 +43,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -280,7 +280,15 @@ static void try_convert_single_object(Object &curves_ob,
     *r_could_not_convert_some_curves = true;
   }
 
-  const int hair_num = curves.curves_num();
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  IndexMaskMemory memory;
+  const IndexMask multi_point_curves = IndexMask::from_predicate(
+      curves.curves_range(), GrainSize(4096), memory, [&](const int curve_i) {
+        return points_by_curve[curve_i].size() > 1;
+      });
+
+  const int hair_num = multi_point_curves.size();
+
   if (hair_num == 0) {
     return;
   }
@@ -327,11 +335,9 @@ static void try_convert_single_object(Object &curves_ob,
   const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
   const MFace *mfaces = (const MFace *)CustomData_get_layer(&surface_me.fdata_legacy, CD_MFACE);
-  const OffsetIndices points_by_curve = curves.points_by_curve();
   const Span<float3> positions = surface_me.vert_positions();
 
-  for (const int new_hair_i : IndexRange(hair_num)) {
-    const int curve_i = new_hair_i;
+  multi_point_curves.foreach_index([&](const int curve_i, const int new_hair_i) {
     const IndexRange points = points_by_curve[curve_i];
 
     const float3 &root_pos_cu = positions_cu[points.first()];
@@ -382,7 +388,7 @@ static void try_convert_single_object(Object &curves_ob,
       key.time = 100.0f * key_fac;
       key.weight = 1.0f - key_fac;
     }
-  }
+  });
 
   particle_system->particles = particles.data();
   particle_system->totpart = particles.size();
@@ -479,7 +485,7 @@ static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &p
   bke::CurvesGeometry curves(points_num, curves_num);
   curves.offsets_for_write().copy_from(curve_offsets);
 
-  const float4x4 object_to_world_mat(object.object_to_world);
+  const float4x4 object_to_world_mat = object.object_to_world();
   const float4x4 world_to_object_mat = math::invert(object_to_world_mat);
 
   MutableSpan<float3> positions = curves.positions_for_write();
@@ -542,7 +548,7 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator * /*
 
   Object *ob_new = BKE_object_add(&bmain, &scene, &view_layer, OB_CURVES, psys_eval->name);
   Curves *curves_id = static_cast<Curves *>(ob_new->data);
-  BKE_object_apply_mat4(ob_new, ob_from_orig->object_to_world, true, false);
+  BKE_object_apply_mat4(ob_new, ob_from_orig->object_to_world().ptr(), true, false);
   curves_id->geometry.wrap() = particles_to_curves(*ob_from_eval, *psys_eval);
 
   DEG_relations_tag_update(&bmain);
@@ -1332,6 +1338,7 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_convert_to_particle_system);
   WM_operatortype_append(CURVES_OT_convert_from_particle_system);
   WM_operatortype_append(CURVES_OT_draw);
+  WM_operatortype_append(CURVES_OT_extrude);
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
   WM_operatortype_append(CURVES_OT_set_selection_domain);
   WM_operatortype_append(CURVES_OT_select_all);
@@ -1357,6 +1364,16 @@ void ED_operatormacros_curves()
                                     "Make copies of selected elements and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "CURVES_OT_duplicate");
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
+  RNA_boolean_set(otmacro->ptr, "mirror", false);
+
+  /* Extrude + Move */
+  ot = WM_operatortype_append_macro("CURVES_OT_extrude_move",
+                                    "Extrude Curve and Move",
+                                    "Extrude curve and move result",
+                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  WM_operatortype_macro_define(ot, "CURVES_OT_extrude");
   otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   RNA_boolean_set(otmacro->ptr, "mirror", false);

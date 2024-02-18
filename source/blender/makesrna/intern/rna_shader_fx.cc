@@ -19,7 +19,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
 
@@ -27,7 +27,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -84,6 +84,8 @@ static const EnumPropertyItem rna_enum_glow_blend_modes_items[] = {
     {0, nullptr, 0, nullptr, nullptr}};
 
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
 
 #  include "BKE_shader_fx.h"
 
@@ -144,13 +146,13 @@ static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(nullptr, "shader_effects", oldname, gmd->name);
 }
 
-static char *rna_ShaderFx_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_ShaderFx_path(const PointerRNA *ptr)
 {
   const ShaderFxData *gmd = static_cast<ShaderFxData *>(ptr->data);
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
-  return BLI_sprintfN("shader_effects[\"%s\"]", name_esc);
+  return fmt::format("shader_effects[\"{}\"]", name_esc);
 }
 
 static void rna_ShaderFx_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -704,7 +706,7 @@ void RNA_def_shader_fx(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "ui_expand_flag", 0);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Expanded", "Set effect expansion in the user interface");
-  RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
+  RNA_def_property_ui_icon(prop, ICON_RIGHTARROW, 1);
 
   /* types */
   rna_def_shader_fx_blur(brna);

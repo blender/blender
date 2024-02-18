@@ -14,7 +14,7 @@
 
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
@@ -25,7 +25,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_types.hh"
 
@@ -37,33 +37,35 @@ const EnumPropertyItem rna_enum_prop_dynamicpaint_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <fmt/format.h>
+
 #  include "BKE_context.hh"
 #  include "BKE_particle.h"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
-static char *rna_DynamicPaintCanvasSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_DynamicPaintCanvasSettings_path(const PointerRNA *ptr)
 {
   const DynamicPaintCanvasSettings *settings = (DynamicPaintCanvasSettings *)ptr->data;
   const ModifierData *md = (ModifierData *)settings->pmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"].canvas_settings", name_esc);
+  return fmt::format("modifiers[\"{}\"].canvas_settings", name_esc);
 }
 
-static char *rna_DynamicPaintBrushSettings_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_DynamicPaintBrushSettings_path(const PointerRNA *ptr)
 {
   const DynamicPaintBrushSettings *settings = (DynamicPaintBrushSettings *)ptr->data;
   const ModifierData *md = (ModifierData *)settings->pmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
-  return BLI_sprintfN("modifiers[\"%s\"].brush_settings", name_esc);
+  return fmt::format("modifiers[\"{}\"].brush_settings", name_esc);
 }
 
-static char *rna_DynamicPaintSurface_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_DynamicPaintSurface_path(const PointerRNA *ptr)
 {
   const DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
   const ModifierData *md = (ModifierData *)surface->canvas->pmd;
@@ -72,8 +74,8 @@ static char *rna_DynamicPaintSurface_path(const PointerRNA *ptr)
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   BLI_str_escape(name_esc_surface, surface->name, sizeof(name_esc_surface));
-  return BLI_sprintfN(
-      "modifiers[\"%s\"].canvas_settings.canvas_surfaces[\"%s\"]", name_esc, name_esc_surface);
+  return fmt::format(
+      "modifiers[\"{}\"].canvas_settings.canvas_surfaces[\"{}\"]", name_esc, name_esc_surface);
 }
 
 /*

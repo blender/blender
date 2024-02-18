@@ -50,11 +50,6 @@ typedef struct AssetFilterSettings {
  *       more than that from the file. So pointers to other IDs or ID data are strictly forbidden.
  */
 typedef struct AssetMetaData {
-#ifdef __cplusplus
-  /** Enables use with `std::unique_ptr<AssetMetaData>`. */
-  ~AssetMetaData();
-#endif
-
   /** Runtime type, to reference event callbacks. Only valid for local assets. */
   struct AssetTypeInfo *local_type_info;
 
@@ -96,6 +91,11 @@ typedef struct AssetMetaData {
   short tot_tags;
 
   char _pad[4];
+
+#ifdef __cplusplus
+  /** Enables use with `std::unique_ptr<AssetMetaData>`. */
+  ~AssetMetaData();
+#endif
 } AssetMetaData;
 
 typedef enum eAssetLibraryType {
@@ -182,10 +182,9 @@ typedef struct AssetWeakReference {
   ~AssetWeakReference();
 
   /**
-   * See AssetRepresentation::make_weak_reference(). Must be freed using
-   * #BKE_asset_weak_reference_free().
+   * See AssetRepresentation::make_weak_reference().
    */
-  static AssetWeakReference *make_reference(
+  static AssetWeakReference make_reference(
       const blender::asset_system::AssetLibrary &library,
       const blender::asset_system::AssetIdentifier &asset_identifier);
 #endif
@@ -198,9 +197,9 @@ typedef struct AssetWeakReference {
  * into a type with PropertyGroup as base, so we can have an RNA collection of #AssetHandle's to
  * pass to the UI.
  *
- * \warning Never store this! When using #ED_assetlist_iterate(), only access it within the
- *          iterator function. The contained file data can be freed since the file cache has a
- *          maximum number of items.
+ * \warning Never store this! When using #blender::ed::asset::list::iterate(), only access it
+ * within the iterator function. The contained file data can be freed since the file cache has a
+ * maximum number of items.
  */
 #
 #

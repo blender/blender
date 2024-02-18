@@ -26,8 +26,8 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 
-#include "IMB_colormanagement.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BLO_read_write.hh"
 
@@ -1359,6 +1359,12 @@ static void save_sample_line(
   scopes->vecscope[idx + 0] = yuv[1];
   scopes->vecscope[idx + 1] = yuv[2];
 
+  int color_idx = (idx / 2) * 4;
+  scopes->vecscope_rgb[color_idx + 0] = rgb[0];
+  scopes->vecscope_rgb[color_idx + 1] = rgb[1];
+  scopes->vecscope_rgb[color_idx + 2] = rgb[2];
+  scopes->vecscope_rgb[color_idx + 3] = scopes->vecscope_alpha;
+
   /* Waveform. */
   switch (scopes->wavefrm_mode) {
     case SCOPES_WAVEFRM_RGB:
@@ -1707,6 +1713,7 @@ void BKE_scopes_update(Scopes *scopes,
   }
   if (scopes->vecscope) {
     MEM_freeN(scopes->vecscope);
+    MEM_freeN(scopes->vecscope_rgb);
   }
 
   scopes->waveform_1 = static_cast<float *>(
@@ -1717,6 +1724,8 @@ void BKE_scopes_update(Scopes *scopes,
       MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3"));
   scopes->vecscope = static_cast<float *>(
       MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel"));
+  scopes->vecscope_rgb = static_cast<float *>(
+      MEM_callocN(scopes->waveform_tot * 4 * sizeof(float), "vectorscope color channel"));
 
   if (ibuf->float_buffer.data) {
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
@@ -1794,6 +1803,7 @@ void BKE_scopes_free(Scopes *scopes)
   MEM_SAFE_FREE(scopes->waveform_2);
   MEM_SAFE_FREE(scopes->waveform_3);
   MEM_SAFE_FREE(scopes->vecscope);
+  MEM_SAFE_FREE(scopes->vecscope_rgb);
 }
 
 void BKE_scopes_new(Scopes *scopes)
@@ -1810,6 +1820,7 @@ void BKE_scopes_new(Scopes *scopes)
   scopes->waveform_2 = nullptr;
   scopes->waveform_3 = nullptr;
   scopes->vecscope = nullptr;
+  scopes->vecscope_rgb = nullptr;
 }
 
 void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settings)

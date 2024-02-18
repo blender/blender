@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include <algorithm>
 #include <cstdio>
 
 #include "MEM_guardedalloc.h"
@@ -17,7 +18,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -30,13 +31,13 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_colortools.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lattice.hh"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -227,12 +228,13 @@ GpencilLineartLimitInfo BKE_gpencil_get_lineart_modifier_limits(const Object *ob
     if (md->type == eGpencilModifierType_Lineart) {
       LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
       if (is_first || (lmd->flags & LRT_GPENCIL_USE_CACHE)) {
-        info.min_level = MIN2(info.min_level, lmd->level_start);
-        info.max_level = MAX2(info.max_level,
-                              (lmd->use_multiple_levels ? lmd->level_end : lmd->level_start));
+        info.min_level = std::min<char>(info.min_level, lmd->level_start);
+        info.max_level = std::max<char>(
+            info.max_level, (lmd->use_multiple_levels ? lmd->level_end : lmd->level_start));
         info.edge_types |= lmd->edge_types;
-        info.shadow_selection = MAX2(lmd->shadow_selection, info.shadow_selection);
-        info.silhouette_selection = MAX2(lmd->silhouette_selection, info.silhouette_selection);
+        info.shadow_selection = std::max<char>(lmd->shadow_selection, info.shadow_selection);
+        info.silhouette_selection = std::max<char>(lmd->silhouette_selection,
+                                                   info.silhouette_selection);
         is_first = false;
       }
     }
@@ -542,7 +544,7 @@ void BKE_gpencil_modifier_set_error(GpencilModifierData *md, const char *format,
 {
   char buffer[512];
   va_list ap;
-  const char *format_tip = TIP_(format);
+  const char *format_tip = RPT_(format);
 
   va_start(ap, format);
   vsnprintf(buffer, sizeof(buffer), format_tip, ap);

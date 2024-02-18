@@ -15,7 +15,7 @@
 #include "BLI_rand.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_color_types.h" /* CurveMapping. */
 #include "DNA_defaults.h"
@@ -27,16 +27,12 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_colortools.hh" /* CurveMapping. */
-#include "BKE_context.hh"
-#include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
+#include "BKE_deform.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 #include "BKE_texture.h" /* Texture masking. */
 
 #include "UI_interface.hh"
@@ -52,7 +48,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
 #include "MOD_weightvg_util.hh"
@@ -60,8 +55,8 @@
 // #define USE_TIMEIT
 
 #ifdef USE_TIMEIT
-#  include "PIL_time.h"
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
 /**************************************
@@ -233,9 +228,9 @@ static void get_vert2ob_distance(int verts_num,
 
   while (i-- > 0) {
     /* Get world-coordinates of the vertex (constraints and anim included). */
-    mul_v3_m4v3(v_wco, ob->object_to_world, positions[indices ? indices[i] : i]);
+    mul_v3_m4v3(v_wco, ob->object_to_world().ptr(), positions[indices ? indices[i] : i]);
     /* Return distance between both coordinates. */
-    dist[i] = len_v3v3(v_wco, obr->object_to_world[3]);
+    dist[i] = len_v3v3(v_wco, obr->object_to_world().location());
   }
 }
 
@@ -245,7 +240,7 @@ static void get_vert2ob_distance(int verts_num,
  */
 static float get_ob2ob_distance(const Object *ob, const Object *obr)
 {
-  return len_v3v3(ob->object_to_world[3], obr->object_to_world[3]);
+  return len_v3v3(ob->object_to_world().location(), obr->object_to_world().location());
 }
 
 /**
@@ -765,4 +760,5 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
     /*panel_register*/ panel_register,
     /*blend_write*/ blend_write,
     /*blend_read*/ blend_read,
+    /*foreach_cache*/ nullptr,
 };

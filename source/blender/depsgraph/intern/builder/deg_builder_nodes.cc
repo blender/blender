@@ -57,8 +57,8 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
-#include "BKE_cachefile.h"
-#include "BKE_collection.h"
+#include "BKE_cachefile.hh"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
@@ -67,17 +67,17 @@
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.h"
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_image.h"
-#include "BKE_key.h"
+#include "BKE_key.hh"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_light.h"
 #include "BKE_mask.h"
 #include "BKE_material.h"
-#include "BKE_mball.h"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_movieclip.h"
@@ -87,7 +87,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
@@ -150,7 +150,7 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 
 IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
-  BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+  BLI_assert(id->session_uid != MAIN_ID_SESSION_UID_UNSET);
 
   const ID_Type id_type = GS(id->name);
   IDNode *id_node = nullptr;
@@ -158,7 +158,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   IDComponentsMask previously_visible_components_mask = 0;
   uint32_t previous_eval_flags = 0;
   DEGCustomDataMeshMasks previous_customdata_masks;
-  IDInfo *id_info = id_info_hash_.lookup_default(id->session_uuid, nullptr);
+  IDInfo *id_info = id_info_hash_.lookup_default(id->session_uid, nullptr);
   if (id_info != nullptr) {
     id_cow = id_info->id_cow;
     previously_visible_components_mask = id_info->previously_visible_components_mask;
@@ -397,8 +397,8 @@ void DepsgraphNodeBuilder::begin_build()
     id_info->previously_visible_components_mask = id_node->visible_components_mask;
     id_info->previous_eval_flags = id_node->eval_flags;
     id_info->previous_customdata_masks = id_node->customdata_masks;
-    BLI_assert(!id_info_hash_.contains(id_node->id_orig_session_uuid));
-    id_info_hash_.add_new(id_node->id_orig_session_uuid, id_info);
+    BLI_assert(!id_info_hash_.contains(id_node->id_orig_session_uid));
+    id_info_hash_.add_new(id_node->id_orig_session_uid, id_info);
     id_node->id_cow = nullptr;
   }
 
@@ -833,13 +833,17 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_texture(object->pd->tex);
   }
 
-  /* Object dupligroup. */
+  /* Object instancing. */
   if (object->instance_collection != nullptr) {
     build_object_instance_collection(object, is_visible);
-    OperationNode *op_node = add_operation_node(
-        &object->id, NodeType::DUPLI, OperationCode::DUPLI);
-    op_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
+
+    OperationNode *instancer_node = add_operation_node(
+        &object->id, NodeType::INSTANCING, OperationCode::INSTANCER);
+    instancer_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
   }
+  OperationNode *instance_node = add_operation_node(
+      &object->id, NodeType::INSTANCING, OperationCode::INSTANCE);
+  instance_node->flag |= OperationFlag::DEPSOP_FLAG_PINNED;
 
   build_object_light_linking(object);
 
@@ -969,8 +973,10 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
-    case OB_GREASE_PENCIL:
       build_object_data_geometry(object);
+      break;
+    case OB_GREASE_PENCIL:
+      build_object_data_grease_pencil(object);
       break;
     case OB_ARMATURE:
       build_rig(object);
@@ -1020,6 +1026,20 @@ void DepsgraphNodeBuilder::build_object_data_lightprobe(Object *object)
   LightProbe *probe = (LightProbe *)object->data;
   build_lightprobe(probe);
   add_operation_node(&object->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_object_data_grease_pencil(Object *object)
+{
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  /* Build the layer parents. */
+  for (const bke::greasepencil::Layer *layer : grease_pencil.layers()) {
+    Object *parent = layer->parent;
+    if (parent == nullptr) {
+      continue;
+    }
+    build_object(-1, parent, DEG_ID_LINKED_INDIRECTLY, false);
+  }
+  build_object_data_geometry(object);
 }
 
 void DepsgraphNodeBuilder::build_object_data_speaker(Object *object)
@@ -1179,6 +1199,10 @@ void DepsgraphNodeBuilder::build_object_shading(Object *object)
       NodeType::SHADING,
       OperationCode::SHADING,
       [object_cow](::Depsgraph *depsgraph) { BKE_object_eval_shading(depsgraph, object_cow); });
+
+  OperationNode *done_node = add_operation_node(
+      &object->id, NodeType::SHADING, OperationCode::SHADING_DONE);
+  done_node->set_as_exit();
 }
 
 void DepsgraphNodeBuilder::build_animdata(ID *id)

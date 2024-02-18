@@ -28,8 +28,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_lattice.hh"
-#include "BKE_layer.h"
-#include "BKE_report.h"
+#include "BKE_layer.hh"
+#include "BKE_report.hh"
 
 #include "ED_lattice.hh"
 #include "ED_object.hh"
@@ -43,6 +43,9 @@
 #include "DEG_depsgraph.hh"
 
 #include "lattice_intern.h"
+
+using blender::Span;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
@@ -60,12 +63,11 @@ static void bpoint_select_set(BPoint *bp, bool select)
   }
 }
 
-bool ED_lattice_deselect_all_multi_ex(Base **bases, const uint bases_len)
+static bool lattice_deselect_all_multi(const Span<Base *> bases)
 {
   bool changed_multi = false;
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base_iter = bases[base_index];
-    Object *ob_iter = base_iter->object;
+  for (Base *base : bases) {
+    Object *ob_iter = base->object;
     changed_multi |= ED_lattice_flags_set(ob_iter, 0);
     DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SELECT);
   }
@@ -76,12 +78,9 @@ bool ED_lattice_deselect_all_multi(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
-  uint bases_len = 0;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc.scene, vc.view_layer, vc.v3d, &bases_len);
-  bool changed_multi = ED_lattice_deselect_all_multi_ex(bases, bases_len);
-  MEM_freeN(bases);
-  return changed_multi;
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc.scene, vc.view_layer, vc.v3d);
+  return lattice_deselect_all_multi(bases);
 }
 
 /** \} */
@@ -98,10 +97,9 @@ static int lattice_select_random_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (const int ob_index : objects.index_range()) {
     Object *obedit = objects[ob_index];
     Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
     int seed_iter = seed;
@@ -137,7 +135,6 @@ static int lattice_select_random_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -208,12 +205,10 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 
     for (int axis = 0; axis < 3; axis++) {
@@ -226,7 +221,6 @@ static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return OPERATOR_FINISHED;
 }
@@ -275,13 +269,11 @@ static int lattice_select_more_less(bContext *C, const bool select)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
   bool changed = false;
 
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
     BPoint *bp;
     const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
@@ -319,7 +311,6 @@ static int lattice_select_more_less(bContext *C, const bool select)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -404,14 +395,12 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int action = RNA_enum_get(op->ptr, "action");
 
-  uint objects_len = 0;
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      Object *obedit = objects[ob_index];
+    for (Object *obedit : objects) {
       Lattice *lt = static_cast<Lattice *>(obedit->data);
       if (BKE_lattice_is_any_selected(lt->editlatt->latt)) {
         action = SEL_DESELECT;
@@ -421,8 +410,7 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
   }
 
   bool changed_multi = false;
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     Lattice *lt;
     BPoint *bp;
     int a;
@@ -456,7 +444,6 @@ static int lattice_select_all_exec(bContext *C, wmOperator *op)
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
-  MEM_freeN(objects);
 
   if (changed_multi) {
     return OPERATOR_FINISHED;
@@ -491,14 +478,12 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  uint objects_len;
   const bool is_extend = RNA_boolean_get(op->ptr, "extend");
   bool changed = false;
 
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
+  for (Object *obedit : objects) {
     Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
     MDeformVert *dv;
     BPoint *bp;
@@ -527,7 +512,6 @@ static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   }
-  MEM_freeN(objects);
 
   if (!changed) {
     BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object(s)");
@@ -596,11 +580,9 @@ static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
   data.mval_fl[0] = vc->mval[0];
   data.mval_fl[1] = vc->mval[1];
 
-  uint bases_len;
-  Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
-      vc->scene, vc->view_layer, vc->v3d, &bases_len);
-  for (uint base_index = 0; base_index < bases_len; base_index++) {
-    Base *base = bases[base_index];
+  Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
+      vc->scene, vc->view_layer, vc->v3d);
+  for (Base *base : bases) {
     data.is_changed = false;
 
     ED_view3d_viewcontext_init_object(vc, base->object);
@@ -612,7 +594,6 @@ static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
       *r_base = base;
     }
   }
-  MEM_freeN(bases);
   return data.bp;
 }
 
@@ -636,17 +617,14 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
     }
     else if (found || params->deselect_all) {
       /* Deselect everything. */
-      uint objects_len = 0;
-      Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-          vc.scene, vc.view_layer, vc.v3d, &objects_len);
-      for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-        Object *ob = objects[ob_index];
+      Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+          vc.scene, vc.view_layer, vc.v3d);
+      for (Object *ob : objects) {
         if (ED_lattice_flags_set(ob, 0)) {
           DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
           WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
         }
       }
-      MEM_freeN(objects);
       changed = true;
     }
   }

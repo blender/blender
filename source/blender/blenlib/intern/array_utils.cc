@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <functional>
+
 #include "BLI_array_utils.hh"
 #include "BLI_threads.h"
 
@@ -194,6 +196,24 @@ int64_t count_booleans(const VArray<bool> &varray, const IndexMask &mask)
 int64_t count_booleans(const VArray<bool> &varray)
 {
   return count_booleans(varray, IndexMask(varray.size()));
+}
+
+bool indices_are_range(Span<int> indices, IndexRange range)
+{
+  if (indices.size() != range.size()) {
+    return false;
+  }
+  return threading::parallel_reduce(
+      range.index_range(),
+      4096,
+      true,
+      [&](const IndexRange part, const bool is_range) {
+        const Span<int> local_indices = indices.slice(part);
+        const IndexRange local_range = range.slice(part);
+        return is_range &&
+               std::equal(local_indices.begin(), local_indices.end(), local_range.begin());
+      },
+      std::logical_and<bool>());
 }
 
 }  // namespace blender::array_utils

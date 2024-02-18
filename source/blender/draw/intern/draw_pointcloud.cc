@@ -14,7 +14,7 @@
 #include "GPU_batch.h"
 #include "GPU_capabilities.h"
 #include "GPU_compute.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
@@ -123,13 +123,12 @@ GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
   if (gpu_material != nullptr) {
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+      char sampler_name[32];
+      /** NOTE: Reusing curve attribute function. */
+      drw_curves_get_attribute_sampler_name(gpu_attr->name, sampler_name);
+
       GPUVertBuf **attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud, gpu_attr->name);
-      if (attribute_buf) {
-        char sampler_name[32];
-        /** NOTE: Reusing curve attribute function. */
-        drw_curves_get_attribute_sampler_name(gpu_attr->name, sampler_name);
-        sub_ps.bind_texture(sampler_name, attribute_buf);
-      }
+      sub_ps.bind_texture(sampler_name, (attribute_buf) ? attribute_buf : &g_dummy_vbo);
     }
   }
 

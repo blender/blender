@@ -73,7 +73,9 @@ int BinaryPredicate1D_Init(PyObject *module)
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char BinaryPredicate1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    BinaryPredicate1D___doc__,
     "Base class for binary predicates working on :class:`Interface1D`\n"
     "objects. A BinaryPredicate1D is typically an ordering relation\n"
     "between two Interface1D objects. The predicate evaluates a relation\n"
@@ -94,7 +96,7 @@ static char BinaryPredicate1D___doc__[] =
     "   :arg inter2: The second Interface1D object.\n"
     "   :type inter2: :class:`Interface1D`\n"
     "   :return: True or false.\n"
-    "   :rtype: bool\n";
+    "   :rtype: bool\n");
 
 static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
@@ -147,10 +149,12 @@ static PyObject *BinaryPredicate1D___call__(BPy_BinaryPredicate1D *self,
 
 /*----------------------BinaryPredicate0D get/setters ----------------------------*/
 
-PyDoc_STRVAR(BinaryPredicate1D_name_doc,
-             "The name of the binary 1D predicate.\n"
-             "\n"
-             ":type: str");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BinaryPredicate1D_name_doc,
+    "The name of the binary 1D predicate.\n"
+    "\n"
+    ":type: str");
 
 static PyObject *BinaryPredicate1D_name_get(BPy_BinaryPredicate1D *self, void * /*closure*/)
 {

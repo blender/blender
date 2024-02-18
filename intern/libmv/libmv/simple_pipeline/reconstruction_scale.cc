@@ -44,7 +44,7 @@ void EuclideanScaleToUnity(EuclideanReconstruction* reconstruction) {
   }
 
   if (max_distance == 0.0) {
-    LG << "Cameras position variance is too small, can not rescale";
+    LG << "Cameras position variance is too small, cannot rescale";
     return;
   }
 

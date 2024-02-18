@@ -13,7 +13,7 @@
 #include "BKE_image.h"
 #include "BKE_image_wrappers.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 namespace blender::bke::pbvh::pixels {
 

@@ -88,15 +88,16 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
 
   BL::Mesh mesh = (b_ob_info.object_data.is_a(&RNA_Mesh)) ? BL::Mesh(b_ob_info.object_data) :
                                                             BL::Mesh(PointerRNA_NULL);
+  const bool split_faces = (mesh) && (subdivision_type == Mesh::SUBDIVISION_NONE) &&
+                           (static_cast<const ::Mesh *>(mesh.ptr.data)->normals_domain(true) ==
+                            blender::bke::MeshNormalDomain::Corner);
 
   if (b_ob_info.is_real_object_data()) {
     if (mesh) {
       /* Make a copy to split faces if we use auto-smooth, otherwise not needed.
        * Also in edit mode do we need to make a copy, to ensure data layers like
        * UV are not empty. */
-      if (mesh.is_editmode() || (mesh.normals_domain() == BL::Mesh::normals_domain_CORNER &&
-                                 subdivision_type == Mesh::SUBDIVISION_NONE))
-      {
+      if (mesh.is_editmode() || split_faces) {
         BL::Depsgraph depsgraph(PointerRNA_NULL);
         mesh = b_ob_info.real_object.to_mesh(false, depsgraph);
       }
@@ -119,12 +120,14 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
   }
 #endif
 
-  if ((bool)mesh && subdivision_type == Mesh::SUBDIVISION_NONE) {
-    if (mesh.normals_domain() == BL::Mesh::normals_domain_CORNER) {
+  if (mesh) {
+    if (split_faces) {
       mesh.split_faces();
     }
 
-    mesh.calc_loop_triangles();
+    if (subdivision_type == Mesh::SUBDIVISION_NONE) {
+      mesh.calc_loop_triangles();
+    }
   }
 
   return mesh;
@@ -564,7 +567,7 @@ static inline uint object_motion_steps(BL::Object &b_parent,
   int steps = max(1, get_int(cobject, "motion_steps"));
 
   /* Also check parent object, so motion blur and steps can be
-   * controlled by dupligroup duplicator for linked groups. */
+   * controlled by dupli-group duplicator for linked groups. */
   if (b_parent.ptr.data != b_ob.ptr.data) {
     PointerRNA parent_cobject = RNA_pointer_get(&b_parent.ptr, "cycles");
     use_motion &= get_boolean(parent_cobject, "use_motion_blur");
@@ -590,9 +593,8 @@ static inline bool object_use_deform_motion(BL::Object &b_parent, BL::Object &b_
   /* If motion blur is enabled for the object we also check
    * whether it's enabled for the parent object as well.
    *
-   * This way we can control motion blur from the dupligroup
-   * duplicator much easier.
-   */
+   * This way we can control motion blur from the dupli-group
+   * duplicator much easier. */
   if (use_deform_motion && b_parent.ptr.data != b_ob.ptr.data) {
     PointerRNA parent_cobject = RNA_pointer_get(&b_parent.ptr, "cycles");
     use_deform_motion &= get_boolean(parent_cobject, "use_deform_motion");

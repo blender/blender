@@ -2,9 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "COM_DefocusNode.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_camera.h"
+
 #include "COM_BokehImageOperation.h"
 #include "COM_ConvertDepthToRadiusOperation.h"
+#include "COM_DefocusNode.h"
+#include "COM_FastGaussianBlurOperation.h"
 #include "COM_GammaCorrectOperation.h"
 #include "COM_MathBaseOperation.h"
 #include "COM_SetValueOperation.h"
@@ -22,8 +27,6 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
 {
   const bNode *node = this->get_bnode();
   const NodeDefocus *data = (const NodeDefocus *)node->storage;
-  Scene *scene = node->id ? (Scene *)node->id : context.get_scene();
-  Object *camob = scene ? scene->camera : nullptr;
 
   NodeOperation *radius_operation;
   if (data->no_zbuf) {
@@ -48,22 +51,31 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
   }
   else {
     ConvertDepthToRadiusOperation *radius_op = new ConvertDepthToRadiusOperation();
-    radius_op->set_camera_object(camob);
-    radius_op->setf_stop(data->fstop);
-    radius_op->set_max_radius(data->maxblur);
+    radius_op->set_data(data);
+    radius_op->set_scene(get_scene(context));
     converter.add_operation(radius_op);
-
     converter.map_input_socket(get_input_socket(1), radius_op->get_input_socket(0));
+    converter.map_input_socket(get_input_socket(0), radius_op->get_input_socket(1));
 
-    FastGaussianBlurValueOperation *blur = new FastGaussianBlurValueOperation();
-    /* maintain close pixels so far Z values don't bleed into the foreground */
-    blur->set_overlay(FAST_GAUSS_OVERLAY_MIN);
-    converter.add_operation(blur);
+    GaussianXBlurOperation *blur_x_operation = new GaussianXBlurOperation();
+    converter.add_operation(blur_x_operation);
+    converter.add_link(radius_op->get_output_socket(), blur_x_operation->get_input_socket(0));
 
-    converter.add_link(radius_op->get_output_socket(0), blur->get_input_socket(0));
-    radius_op->set_post_blur(blur);
+    GaussianYBlurOperation *blur_y_operation = new GaussianYBlurOperation();
+    converter.add_operation(blur_y_operation);
+    converter.add_link(blur_x_operation->get_output_socket(),
+                       blur_y_operation->get_input_socket(0));
 
-    radius_operation = blur;
+    MathMinimumOperation *minimum_operation = new MathMinimumOperation();
+    converter.add_operation(minimum_operation);
+    converter.add_link(blur_y_operation->get_output_socket(),
+                       minimum_operation->get_input_socket(0));
+    converter.add_link(radius_op->get_output_socket(), minimum_operation->get_input_socket(1));
+
+    radius_op->set_blur_x_operation(blur_x_operation);
+    radius_op->set_blur_y_operation(blur_y_operation);
+
+    radius_operation = minimum_operation;
   }
 
   NodeBokehImage *bokehdata = new NodeBokehImage();
@@ -82,30 +94,19 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
   bokeh->delete_data_on_finish();
   converter.add_operation(bokeh);
 
-#ifdef COM_DEFOCUS_SEARCH
-  InverseSearchRadiusOperation *search = new InverseSearchRadiusOperation();
-  search->set_max_blur(data->maxblur);
-  converter.add_operation(search);
-
-  converter.add_link(radius_operation->get_output_socket(0), search->get_input_socket(0));
-#endif
+  SetValueOperation *bounding_box_operation = new SetValueOperation();
+  bounding_box_operation->set_value(1.0f);
+  converter.add_operation(bounding_box_operation);
 
   VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-  if (data->preview) {
-    operation->set_quality(eCompositorQuality::Low);
-  }
-  else {
-    operation->set_quality(context.get_quality());
-  }
+  operation->set_quality(eCompositorQuality::High);
   operation->set_max_blur(data->maxblur);
   operation->set_threshold(data->bthresh);
   converter.add_operation(operation);
 
   converter.add_link(bokeh->get_output_socket(), operation->get_input_socket(1));
   converter.add_link(radius_operation->get_output_socket(), operation->get_input_socket(2));
-#ifdef COM_DEFOCUS_SEARCH
-  converter.add_link(search->get_output_socket(), operation->get_input_socket(3));
-#endif
+  converter.add_link(bounding_box_operation->get_output_socket(), operation->get_input_socket(3));
 
   if (data->gamco) {
     GammaCorrectOperation *correct = new GammaCorrectOperation();
@@ -122,6 +123,11 @@ void DefocusNode::convert_to_operations(NodeConverter &converter,
     converter.map_input_socket(get_input_socket(0), operation->get_input_socket(0));
     converter.map_output_socket(get_output_socket(), operation->get_output_socket());
   }
+}
+
+const Scene *DefocusNode::get_scene(const CompositorContext &context) const
+{
+  return get_bnode()->id ? reinterpret_cast<Scene *>(get_bnode()->id) : context.get_scene();
 }
 
 }  // namespace blender::compositor

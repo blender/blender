@@ -20,8 +20,8 @@
 #include "DNA_camera_types.h"
 #include "DNA_screen_types.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "ED_image.hh"
 

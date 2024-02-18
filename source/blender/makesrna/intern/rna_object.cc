@@ -29,13 +29,13 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
 
@@ -43,7 +43,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "BLI_sys_types.h" /* needed for intptr_t used in ED_mesh.hh */
 #include "ED_mesh.hh"
@@ -314,6 +314,10 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#  include <algorithm>
+
+#  include <fmt/format.h>
+
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
 #  include "DNA_gpencil_legacy_types.h"
@@ -326,11 +330,11 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_constraint.h"
 #  include "BKE_context.hh"
 #  include "BKE_curve.hh"
-#  include "BKE_deform.h"
+#  include "BKE_deform.hh"
 #  include "BKE_effect.h"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_gpencil_modifier_legacy.h"
-#  include "BKE_key.h"
+#  include "BKE_key.hh"
 #  include "BKE_light_linking.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.hh"
@@ -338,7 +342,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_modifier.hh"
 #  include "BKE_object.hh"
 #  include "BKE_particle.h"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -363,7 +367,7 @@ static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA
 {
   /* Don't use compatibility so we get predictable rotation. */
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  BKE_object_apply_mat4(ob, ob->object_to_world, false, true);
+  BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, true);
   rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -401,6 +405,18 @@ static void rna_GPencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
   }
+}
+
+static void rna_Object_matrix_world_get(PointerRNA *ptr, float *values)
+{
+  Object *ob = static_cast<Object *>(ptr->data);
+  std::copy_n(ob->object_to_world().base_ptr(), 16, values);
+}
+
+static void rna_Object_matrix_world_set(PointerRNA *ptr, const float *values)
+{
+  Object *ob = static_cast<Object *>(ptr->data);
+  ob->runtime->object_to_world = blender::float4x4(values);
 }
 
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
@@ -1096,7 +1112,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr,
 static int rna_Object_active_material_index_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  return MAX2(ob->actcol - 1, 0);
+  return std::max<int>(ob->actcol - 1, 0);
 }
 
 static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
@@ -1460,10 +1476,10 @@ static void rna_MaterialSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_MaterialSlot_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_MaterialSlot_path(const PointerRNA *ptr)
 {
   int index = rna_MaterialSlot_index(ptr);
-  return BLI_sprintfN("material_slots[%d]", index);
+  return fmt::format("material_slots[{}]", index);
 }
 
 static int rna_Object_material_slots_length(PointerRNA *ptr)
@@ -1510,9 +1526,9 @@ static PointerRNA rna_Object_display_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ObjectDisplay, ptr->data);
 }
 
-static char *rna_ObjectDisplay_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ObjectDisplay_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("display");
+  return "display";
 }
 
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
@@ -1544,7 +1560,7 @@ static int rna_Object_active_shape_key_index_get(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
 
-  return MAX2(ob->shapenr - 1, 0);
+  return std::max<int>(ob->shapenr - 1, 0);
 }
 
 static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
@@ -1861,7 +1877,9 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   ParticleSystem *psys_dst = (mod_dst->type == eModifierType_ParticleSystem) ?
                                  (reinterpret_cast<ParticleSystemModifierData *>(mod_dst))->psys :
                                  nullptr;
+  const int persistent_uid = mod_dst->persistent_uid;
   BKE_modifier_copydata(mod_src, mod_dst);
+  mod_dst->persistent_uid = persistent_uid;
   if (mod_dst->type == eModifierType_ParticleSystem) {
     psys_dst->flag &= ~PSYS_DELETE;
     (reinterpret_cast<ParticleSystemModifierData *>(mod_dst))->psys = psys_dst;
@@ -2172,9 +2190,9 @@ static void rna_object_lineart_update(Main * /*bmain*/, Scene * /*scene*/, Point
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->owner_id);
 }
 
-static char *rna_ObjectLineArt_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ObjectLineArt_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("lineart");
+  return "lineart";
 }
 
 static bool mesh_symmetry_get_common(PointerRNA *ptr, const eMeshSymmetryType sym)
@@ -2276,9 +2294,9 @@ static PointerRNA rna_Object_light_linking_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ObjectLightLinking, ptr->data);
 }
 
-static char *rna_ObjectLightLinking_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_ObjectLightLinking_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("light_linking");
+  return "light_linking";
 }
 
 static PointerRNA rna_LightLinking_receiver_collection_get(PointerRNA *ptr)
@@ -3333,11 +3351,12 @@ static void rna_def_object(BlenderRNA *brna)
 
   /* matrix */
   prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
-  RNA_def_property_float_sdna(prop, nullptr, "object_to_world");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_float_funcs(
+      prop, "rna_Object_matrix_world_get", "rna_Object_matrix_world_set", nullptr);
   RNA_def_property_ui_text(prop, "Matrix World", "Worldspace transformation matrix");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_matrix_world_update");
 

@@ -67,7 +67,8 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
 #endif
 
 #ifdef MAT_SUBSURFACE
-  vec3 sss_profile = subsurface_transmission(g_diffuse_data.sss_radius, thickness);
+  vec3 sss_profile = subsurface_transmission(to_closure_subsurface(g_diffuse_data).sss_radius,
+                                             thickness);
   stack.cl[cl_subsurface_id].light_shadowed *= sss_profile;
   stack.cl[cl_subsurface_id].light_unshadowed *= sss_profile;
   /* Fuse back the SSS transmittance with the diffuse lighting. */
@@ -80,28 +81,24 @@ void forward_lighting_eval(float thickness, out vec3 radiance, out vec3 transmit
   vec3 reflection_light = vec3(0.0);
   vec3 refraction_light = vec3(0.0);
 
-  vec2 noise_probe = interlieved_gradient_noise(gl_FragCoord.xy, vec2(0, 1), vec2(0.0));
   LightProbeSample samp = lightprobe_load(g_data.P, g_data.Ng, V);
 
 #ifdef MAT_DIFFUSE
   diffuse_light = stack.cl[cl_diffuse_id].light_shadowed;
-  diffuse_light += lightprobe_eval(
-      samp, to_closure_diffuse(g_diffuse_data), g_data.P, V, noise_probe);
+  diffuse_light += lightprobe_eval(samp, to_closure_diffuse(g_diffuse_data), g_data.P, V);
 #endif
 #ifdef MAT_TRANSLUCENT
   translucent_light = stack.cl[cl_translucent_id].light_shadowed;
   translucent_light += lightprobe_eval(
-      samp, to_closure_translucent(g_translucent_data), g_data.P, V, noise_probe);
+      samp, to_closure_translucent(g_translucent_data), g_data.P, V);
 #endif
 #ifdef MAT_REFLECTION
   reflection_light = stack.cl[cl_reflection_id].light_shadowed;
-  reflection_light += lightprobe_eval(
-      samp, to_closure_reflection(g_reflection_data), g_data.P, V, noise_probe);
+  reflection_light += lightprobe_eval(samp, to_closure_reflection(g_reflection_data), g_data.P, V);
 #endif
 #ifdef MAT_REFRACTION
-  /* TODO(fclem): Refraction from lightprobe. */
-  // refraction_light += lightprobe_eval(samp, to_closure_refraction(g_refraction_data), g_data.P,
-  // V, noise_probe);
+  /* TODO(fclem): Refraction from light. */
+  refraction_light += lightprobe_eval(samp, to_closure_refraction(g_refraction_data), g_data.P, V);
 #endif
 
   /* Apply weight. */

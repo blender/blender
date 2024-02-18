@@ -22,7 +22,9 @@ using namespace Freestyle;
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char GetCompleteViewMapDensityF1D___doc__[] =
+PyDoc_STRVAR(
+    /* Wrap. */
+    GetCompleteViewMapDensityF1D___doc__,
     "Class hierarchy: :class:`freestyle.types.UnaryFunction1D` > "
     ":class:`freestyle.types.UnaryFunction1DDouble` > :class:`GetCompleteViewMapDensityF1D`\n"
     "\n"
@@ -55,7 +57,7 @@ static char GetCompleteViewMapDensityF1D___doc__[] =
     "   :type inter: :class:`freestyle.types.Interface1D`\n"
     "   :return: The density evaluated for the Interface1D in the complete\n"
     "      viewmap image.\n"
-    "   :rtype: float\n";
+    "   :rtype: float\n");
 
 static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1D *self,
                                                  PyObject *args,

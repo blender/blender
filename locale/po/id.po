@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -1551,14 +1551,6 @@ msgid "Above Surface"
 msgstr "Di Atas Permukaan"
 
 
-msgid "Bezier Curve Point"
-msgstr "Titik Kurva Bezier"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Titik kurva bezier dengan dua pegangan"
-
-
 msgid "Control Point"
 msgstr "Titik Kontrol"
 
@@ -2747,14 +2739,6 @@ msgid "Bone that serves as the start handle for the B-Bone curve"
 msgstr "Tulang yang berfungsi sebagai pegangan awal untuk kurva B-Tulang"
 
 
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Panjang Pegangan Bezier pertama (untuk B-Tulang saja)"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Panjang Pegangan Bezier kedua (untuk B-Tulang saja)"
-
-
 msgid "B-Bone End Handle Type"
 msgstr "Tipe Pegangan Akhir B-Tulang"
 
@@ -3037,6 +3021,10 @@ msgstr "Tulang"
 
 msgid "Index"
 msgstr "Index"
+
+
+msgid "Solo"
+msgstr "Sendiri"
 
 
 msgid "Visible"
@@ -5320,10 +5308,6 @@ msgstr "Sunting Objek"
 
 msgid "Object used to define depth in camera space by projecting onto surface of this object"
 msgstr "Objek digunakan untuk mendefinisikan kedalaman di spasi kamera dengan proyeksi ke permukaan objek ini"
-
-
-msgid "Track"
-msgstr "Lacak"
 
 
 msgid "3D Position"
@@ -11636,6 +11620,10 @@ msgid "Clip"
 msgstr "Klip"
 
 
+msgid "Track"
+msgstr "Lacak"
+
+
 msgid "Console"
 msgstr "Konsol"
 
@@ -11707,10 +11695,6 @@ msgstr "Utilitas"
 
 msgid "Math"
 msgstr "Matematika"
-
-
-msgid "Tracking"
-msgstr "Pelacakan"
 
 
 msgid "Layout"
@@ -12412,14 +12396,6 @@ msgstr "Objek mendefisikan offset"
 
 msgid "Object To"
 msgstr "Objek Ke"
-
-
-msgid "UV Layer"
-msgstr "Layer UV"
-
-
-msgid "UV Layer name"
-msgstr "Nama layer UV"
 
 
 msgid "Null action"
@@ -13178,10 +13154,6 @@ msgstr "Pengaruh Teranimasi"
 
 msgid "Animated Strip Time"
 msgstr "Waktu Strip Teranimasi"
-
-
-msgid "Solo"
-msgstr "Sendiri"
 
 
 msgid "Node in a node tree"
@@ -14195,6 +14167,10 @@ msgstr "Bandingkan"
 
 msgid "Input Type"
 msgstr "Tipe Masukan"
+
+
+msgid "Menu"
+msgstr "Menu"
 
 
 msgid "Dot Product"
@@ -15295,6 +15271,14 @@ msgid "Remove Target"
 msgstr "Hapus Target"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Modus Sunting"
+
+
+msgid "Extrude curve and move result"
+msgstr "Partikel"
+
+
 msgid "(De)select all control points"
 msgstr "Material"
 
@@ -15323,20 +15307,12 @@ msgid "Duplicate curve and move"
 msgstr "Hapus"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Modus Sunting"
-
-
 msgid "Skin Resize"
 msgstr "Mengubah Ukuran Kulit"
 
 
 msgid "Bend"
 msgstr "Membengkokkan"
-
-
-msgid "Extrude curve and move result"
-msgstr "Partikel"
 
 
 msgctxt "Operator"
@@ -15355,11 +15331,6 @@ msgstr "Hapus Titik"
 
 msgid "Remove from selection"
 msgstr "Menghapus dari seleksi"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Tambah Gambar"
 
 
 msgctxt "Operator"
@@ -15879,6 +15850,10 @@ msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
 
 msgid "Flat"
 msgstr "Datar"
+
+
+msgid "By Material"
+msgstr "Oleh Material"
 
 
 msgctxt "Operator"
@@ -16602,10 +16577,6 @@ msgid "Wire edges"
 msgstr "Tepi Kabel"
 
 
-msgid "By Material"
-msgstr "Oleh Material"
-
-
 msgid "Face Stepping"
 msgstr "Wajah Melangkah"
 
@@ -16975,6 +16946,10 @@ msgstr "Tambah objek armatur ke adegan"
 
 msgid "Split baked maps per material, using material name in output file (external only)"
 msgstr "Pisah map yang terbakar per material, menggunakan nama material di dokumen output (eksternal saja)"
+
+
+msgid "UV Layer"
+msgstr "Layer UV"
 
 
 msgctxt "Operator"
@@ -17428,6 +17403,10 @@ msgid "Add Shape Key"
 msgstr "Tambah Kunci Bentuk"
 
 
+msgid "Lock action to execute on vertex groups"
+msgstr "Warna Standar"
+
+
 msgctxt "Operator"
 msgid "Remove Shape Key"
 msgstr "Induk"
@@ -17502,10 +17481,6 @@ msgstr "Warna Standar"
 
 msgctxt "Operator"
 msgid "Vertex Group Levels"
-msgstr "Warna Standar"
-
-
-msgid "Lock action to execute on vertex groups"
 msgstr "Warna Standar"
 
 
@@ -20193,10 +20168,6 @@ msgid "Icon Colors"
 msgstr "Warna Icon"
 
 
-msgid "Menu"
-msgstr "Menu"
-
-
 msgid "Menu Item"
 msgstr "Item Menu"
 
@@ -22234,6 +22205,10 @@ msgid "Add-ons:"
 msgstr "Tambahan:"
 
 
+msgid "Tracking"
+msgstr "Pelacakan"
+
+
 msgid "Note:"
 msgstr "Catatan:"
 
@@ -22434,6 +22409,16 @@ msgstr "Ganti nama %d %s"
 
 msgid "Date: %s %s"
 msgstr "Tanggal: %s %s"
+
+
+msgctxt "Operator"
+msgid "Location"
+msgstr "Lokasi"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotasi"
 
 
 msgid "After"
@@ -23359,11 +23344,6 @@ msgstr "Setelah"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Lokasi"
-
-
-msgctxt "Operator"
 msgid "Set Viewport Background"
 msgstr "Set Latar Belakang Viewport"
 
@@ -23782,16 +23762,6 @@ msgstr "Membuat Pensil Grease"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Secara Horizontal"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Secara Vertikal"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Membalikkan Saluran Merah"
 
@@ -23940,10 +23910,6 @@ msgstr "Pilih Dikelompokkan..."
 msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Material"
-
-
-msgid "Inputs:"
-msgstr "Input:"
 
 
 msgctxt "Operator"
@@ -24154,11 +24120,6 @@ msgstr "Adegan..."
 
 
 msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotasi"
-
-
-msgctxt "Operator"
 msgid "Scale To Fit"
 msgstr "Skala ke Cukup"
 
@@ -24336,6 +24297,10 @@ msgid "Invert Pan Axis"
 msgstr "Membalikkan Sumbu Pan"
 
 
+msgid "Preferences:"
+msgstr "Pengaturan Pengguna:"
+
+
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Simpan sebagai cahaya Studio"
@@ -24369,16 +24334,12 @@ msgid "No custom %s configured"
 msgstr "Tidak ada %s kustom yang dikonfigurasi"
 
 
+msgid "Error (see console)"
+msgstr "Error (lihat konsol)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Set Warna %d"
-
-
-msgid "Color %d"
-msgstr "Warna %d"
 
 
 msgid "Description:"
@@ -24413,25 +24374,17 @@ msgid "User:"
 msgstr "Pengguna:"
 
 
-msgid "description"
-msgstr "deskripsi"
+msgid "Color Set %d"
+msgstr "Set Warna %d"
 
 
-msgid "location"
-msgstr "lokasi"
+msgid "Color %d"
+msgstr "Warna %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentasi"
-
-
-msgid "Preferences:"
-msgstr "Pengaturan Pengguna:"
-
-
-msgid "Error (see console)"
-msgstr "Error (lihat konsol)"
 
 
 msgctxt "Operator"
@@ -24517,11 +24470,6 @@ msgstr "Tambah Gambar"
 msgctxt "Operator"
 msgid "Cone"
 msgstr "Tulang"
-
-
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Tambah Gambar"
 
 
 msgctxt "Operator"
@@ -25064,18 +25012,6 @@ msgstr "Keringanan:"
 
 msgid "Alpha:"
 msgstr "Alpha:"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Value: %s"
-msgstr "Nilai: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgid "Anim Player"
@@ -26525,16 +26461,16 @@ msgid "Don't Save"
 msgstr "Jangan Disimpan"
 
 
+msgid "Enable scripts"
+msgstr "Mengaktifkan skrip"
+
+
 msgid "unable to open the file"
 msgstr "tidak dapat membuka dokumen"
 
 
 msgid "Permanently allow execution of scripts"
 msgstr "Memperbolehkan eksekusi skrip secara permanen"
-
-
-msgid "Enable scripts"
-msgstr "Mengaktifkan skrip"
 
 
 msgid "Context window not set"

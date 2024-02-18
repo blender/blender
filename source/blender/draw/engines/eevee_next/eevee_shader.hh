@@ -16,7 +16,7 @@
 
 #include "BLI_string_ref.hh"
 #include "DRW_render.hh"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 #include "GPU_shader.h"
 
 #include "eevee_material.hh"
@@ -104,9 +104,10 @@ enum eShaderType {
   RAY_TRACE_PLANAR,
   RAY_TRACE_SCREEN,
 
-  REFLECTION_PROBE_REMAP,
-  REFLECTION_PROBE_UPDATE_IRRADIANCE,
-  REFLECTION_PROBE_SELECT,
+  SPHERE_PROBE_CONVOLVE,
+  SPHERE_PROBE_REMAP,
+  SPHERE_PROBE_SELECT,
+  SPHERE_PROBE_UPDATE_IRRADIANCE,
 
   SHADOW_CLIPMAP_CLEAR,
   SHADOW_DEBUG,

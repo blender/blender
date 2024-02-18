@@ -32,10 +32,10 @@
 
 #include "render_types.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"

@@ -37,17 +37,17 @@
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_key.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ANIM_bone_collections.hh"
 
@@ -135,7 +135,9 @@ bool bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
   const bool keep_transform = false;
 
   if (par && is_parent_space) {
-    mul_m4_m4m4(ob->object_to_world, par->object_to_world, ob->object_to_world);
+    mul_m4_m4m4(ob->runtime->object_to_world.ptr(),
+                par->object_to_world().ptr(),
+                ob->object_to_world().ptr());
   }
 
   bool ok = ED_object_parent_set(
@@ -391,10 +393,12 @@ std::string bc_replace_string(std::string data,
 void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_scene)
 {
   if (scale_to_scene) {
-    mul_m4_m4m4(ob->object_to_world, bc_unit.get_scale(), ob->object_to_world);
+    mul_m4_m4m4(
+        ob->runtime->object_to_world.ptr(), bc_unit.get_scale(), ob->object_to_world().ptr());
   }
-  mul_m4_m4m4(ob->object_to_world, bc_unit.get_rotation(), ob->object_to_world);
-  BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
+  mul_m4_m4m4(
+      ob->runtime->object_to_world.ptr(), bc_unit.get_rotation(), ob->object_to_world().ptr());
+  BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, false);
 }
 
 void bc_match_scale(std::vector<Object *> *objects_done,

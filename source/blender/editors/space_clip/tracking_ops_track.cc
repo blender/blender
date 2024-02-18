@@ -8,13 +8,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_string.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -23,12 +23,9 @@
 #include "WM_types.hh"
 
 #include "ED_clip.hh"
-#include "ED_screen.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-
-#include "PIL_time.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -219,15 +216,15 @@ static void track_markers_startjob(void *tmv, wmJobWorkerStatus *worker_status)
        * exec_time for "Fastest" tracking
        */
 
-      double start_time = PIL_check_seconds_timer(), exec_time;
+      double start_time = BLI_time_now_seconds(), exec_time;
 
       if (!BKE_autotrack_context_step(tmj->context)) {
         break;
       }
 
-      exec_time = PIL_check_seconds_timer() - start_time;
+      exec_time = BLI_time_now_seconds() - start_time;
       if (tmj->delay > float(exec_time)) {
-        PIL_sleep_ms(tmj->delay - float(exec_time));
+        BLI_time_sleep_ms(tmj->delay - float(exec_time));
       }
     }
     else if (!BKE_autotrack_context_step(tmj->context)) {

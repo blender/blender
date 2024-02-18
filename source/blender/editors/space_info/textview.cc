@@ -6,9 +6,11 @@
  * \ingroup spinfo
  */
 
+#include <algorithm>
+
 #include "MEM_guardedalloc.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "BLI_math_color.h"
 #include "BLI_string_utf8.h"
@@ -325,10 +327,10 @@ int textview_draw(TextViewContext *tvc,
   const int mval[2] = {
       (mval_init[0] == INT_MAX) ?
           INT_MAX :
-          CLAMPIS(mval_init[0], tvc->draw_rect.xmin, tvc->draw_rect.xmax) - tvc->draw_rect.xmin,
+          std::clamp(mval_init[0], tvc->draw_rect.xmin, tvc->draw_rect.xmax) - tvc->draw_rect.xmin,
       (mval_init[1] == INT_MAX) ?
           INT_MAX :
-          CLAMPIS(mval_init[1], tvc->draw_rect.ymin, tvc->draw_rect.ymax) + tvc->scroll_ymin,
+          std::clamp(mval_init[1], tvc->draw_rect.ymin, tvc->draw_rect.ymax) + tvc->scroll_ymin,
   };
 
   if (r_mval_pick_offset != nullptr) {

@@ -14,7 +14,7 @@
 #include "ED_armature.hh"
 #include "ED_screen.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 /* ************************** registration **********************************/
 

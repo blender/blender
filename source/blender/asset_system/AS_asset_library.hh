@@ -19,11 +19,13 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 
-struct AssetLibrary;
-struct IDRemapper;
 struct Main;
+
+namespace blender::bke::id {
+class IDRemapper;
+}
 
 namespace blender::asset_system {
 
@@ -66,8 +68,7 @@ class AssetLibrary {
    */
   std::unique_ptr<AssetStorage> asset_storage_;
 
-  std::function<void(AssetLibrary &self)> on_refresh_;
-
+ protected:
   std::optional<eAssetImportMethod> import_method_;
   /** Assets owned by this library may be imported with a different method than set in
    * #import_method_ above, it's just a default. */
@@ -78,7 +79,7 @@ class AssetLibrary {
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
-  /* Controlled by #ED_asset_catalogs_set_save_catalogs_when_file_is_saved,
+  /* Controlled by #ed::asset::catalogs_set_save_catalogs_when_file_is_saved,
    * for managing the "Save Catalog Changes" in the quit-confirmation dialog box. */
   static bool save_catalogs_when_file_is_saved;
 
@@ -96,7 +97,7 @@ class AssetLibrary {
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
   AssetLibrary(eAssetLibraryType library_type, StringRef name = "", StringRef root_path = "");
-  ~AssetLibrary();
+  virtual ~AssetLibrary();
 
   /**
    * Execute \a fn for every asset library that is loaded. The asset library is passed to the
@@ -109,9 +110,6 @@ class AssetLibrary {
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
   void load_catalogs();
-
-  /** Load catalogs that have changed on disk. */
-  void refresh();
 
   /**
    * Create a representation of an asset to be considered part of this library. Once the
@@ -145,7 +143,7 @@ class AssetLibrary {
    * mapped to null (typically when an ID gets removed), the asset is removed, because we don't
    * support such empty/null assets.
    */
-  void remap_ids_and_remove_invalid(const IDRemapper &mappings);
+  void remap_ids_and_remove_invalid(const blender::bke::id::IDRemapper &mappings);
 
   /**
    * Update `catalog_simple_name` by looking up the asset's catalog by its ID.
@@ -172,6 +170,10 @@ class AssetLibrary {
   eAssetLibraryType library_type() const;
   StringRefNull name() const;
   StringRefNull root_path() const;
+
+ protected:
+  /** Load catalogs that have changed on disk. */
+  virtual void refresh_catalogs();
 };
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
@@ -231,7 +233,53 @@ std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRe
  */
 std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain);
 
-blender::asset_system::AssetCatalogService *AS_asset_library_get_catalog_service(
-    const ::AssetLibrary *library);
-blender::asset_system::AssetCatalogTree *AS_asset_library_get_catalog_tree(
-    const ::AssetLibrary *library);
+/**
+ * Force clearing of all asset library data. After calling this, new asset libraries can be loaded
+ * just as usual using #AS_asset_library_load(), no init or other setup is needed.
+ *
+ * Does not need to be called on exit, this is handled internally.
+ */
+void AS_asset_libraries_exit();
+
+/**
+ * Return the #AssetLibrary rooted at the given directory path.
+ *
+ * Will return the same pointer for repeated calls, until another blend file is loaded.
+ *
+ * To get the in-memory-only "current file" asset library, pass an empty path.
+ */
+blender::asset_system::AssetLibrary *AS_asset_library_load(const char *name,
+                                                           const char *library_dirpath);
+
+/** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
+bool AS_asset_library_has_any_unsaved_catalogs(void);
+
+/**
+ * An asset library can include local IDs (IDs in the current file). Their pointers need to be
+ * remapped on change (or assets removed as IDs gets removed).
+ */
+void AS_asset_library_remap_ids(const blender::bke::id::IDRemapper &mappings);
+
+/**
+ * Attempt to resolve a full path to an asset based on the currently available (not necessary
+ * loaded) asset libraries, and split it into it's directory, ID group and ID name components. The
+ * path is not guaranteed to exist on disk. On failure to resolve the reference, return arguments
+ * will point to null.
+ *
+ * \note Only works for asset libraries on disk and the "Current File" one (others can't be
+ *       resolved).
+ *
+ * \param r_path_buffer: Buffer to hold the result in on success. Will be the full path with null
+ *                       terminators instead of slashes separating the directory, group and name
+ *                       components. Must be at least #FILE_MAX_LIBEXTRA long.
+ * \param r_dir: Returns the .blend file path with native slashes on success. Optional (passing
+ *               null is allowed). For the "Current File" library this will be empty.
+ * \param r_group: Returns the ID group such as "Object", "Material" or "Brush". Optional (passing
+ *                 null is allowed).
+ * \param r_name: Returns the ID name on success. Optional (passing null is allowed).
+ */
+void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
+                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char **r_dir,
+                                              char **r_group,
+                                              char **r_name);

@@ -6,8 +6,6 @@
 
 #include "NOD_zone_socket_items.hh"
 
-#include "BKE_node.hh"
-
 #include "BLO_read_write.hh"
 
 namespace blender::nodes {

@@ -32,7 +32,7 @@
 
 #include "BLI_scanfill.h" /* own include */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* local types */
 typedef struct PolyFill {

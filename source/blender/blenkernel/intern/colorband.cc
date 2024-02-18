@@ -17,8 +17,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_colorband.hh"
-#include "BKE_key.h"
-#include "BKE_material.h"
+#include "BKE_key.hh"
 
 void BKE_colorband_init(ColorBand *coba, bool rangetype)
 {

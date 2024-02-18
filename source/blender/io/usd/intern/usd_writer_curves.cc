@@ -11,18 +11,18 @@
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
-#include "usd_hierarchy_iterator.h"
-#include "usd_writer_curves.h"
+#include "usd_hierarchy_iterator.hh"
+#include "usd_writer_curves.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

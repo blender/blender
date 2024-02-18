@@ -380,8 +380,6 @@ def extract_c_comments(filepath: str) -> Tuple[List[Comment], Set[str]]:
 
     BEGIN = "/*"
     END = "*/"
-    TABSIZE = 4
-    SINGLE_LINE = False
 
     # reverse these to find blocks we won't parse
     PRINT_NON_ALIGNED = False

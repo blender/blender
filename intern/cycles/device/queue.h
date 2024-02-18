@@ -157,6 +157,11 @@ class DeviceQueue {
   /* Device this queue has been created for. */
   Device *device;
 
+  virtual void *native_queue()
+  {
+    return nullptr;
+  }
+
  protected:
   /* Hide construction so that allocation via `Device` API is enforced. */
   explicit DeviceQueue(Device *device);

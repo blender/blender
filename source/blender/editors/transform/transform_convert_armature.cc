@@ -18,24 +18,17 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_action.h"
-#include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
-#include "BKE_main.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
 
 #include "BIK_api.h"
 
 #include "ED_armature.hh"
-#include "ED_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
-
-#include "RNA_access.hh"
-#include "RNA_prototypes.h"
 
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
@@ -443,7 +436,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   td->ext->rotOrder = pchan->rotmode;
 
   /* proper way to get parent transform + own transform + constraints transform */
-  copy_m3_m4(omat, ob->object_to_world);
+  copy_m3_m4(omat, ob->object_to_world().ptr());
 
   /* New code, using "generic" BKE_bone_parent_transform_calc_from_pchan(). */
   {
@@ -807,7 +800,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
     BoneInitData *bid = static_cast<BoneInitData *>(tc->custom.type.data);
 
-    copy_m3_m4(mtx, tc->obedit->object_to_world);
+    copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     td = tc->data = static_cast<TransData *>(
@@ -1330,7 +1323,7 @@ static void autokeyframe_pose(
     const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
         eRotationModes(pchan->rotmode));
 
-    if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+    if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
       rna_paths = get_affected_rna_paths_from_transform_mode(
           tmode, scene->toolsettings, rotation_path, targetless_ik);
     }

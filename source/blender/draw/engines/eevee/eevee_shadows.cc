@@ -52,9 +52,7 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
   }
 
   /* Flip buffers */
-  SWAP(EEVEE_ShadowCasterBuffer *,
-       sldata->lights->shcaster_frontbuffer,
-       sldata->lights->shcaster_backbuffer);
+  std::swap(sldata->lights->shcaster_frontbuffer, sldata->lights->shcaster_backbuffer);
 
   int sh_cube_size = scene_eval->eevee.shadow_cube_size;
   int sh_cascade_size = scene_eval->eevee.shadow_cascade_size;
@@ -165,7 +163,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   for (int i = 0; i < 8; i++) {
     float vec[3];
     copy_v3_v3(vec, bb.vec[i]);
-    mul_m4_v3(ob->object_to_world, vec);
+    mul_m4_v3(ob->object_to_world().ptr(), vec);
     minmax_v3v3_v3(min, max, vec);
   }
 

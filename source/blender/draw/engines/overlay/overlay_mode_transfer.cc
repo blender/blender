@@ -10,11 +10,12 @@
 #include "BKE_paint.hh"
 
 #include "BLI_math_color.h"
+#include "BLI_time.h"
+
 #include "DRW_render.hh"
 
 #include "ED_view3d.hh"
 
-#include "PIL_time.h"
 #include "UI_resources.hh"
 
 #include "overlay_private.hh"
@@ -24,7 +25,7 @@ void OVERLAY_mode_transfer_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
-  pd->mode_transfer.time = PIL_check_seconds_timer();
+  pd->mode_transfer.time = BLI_time_now_seconds();
 
   for (int i = 0; i < 2; i++) {
     /* Non Meshes Pass (Camera, empties, lights ...) */

@@ -21,11 +21,12 @@
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
-#include "RNA_prototypes.h"
 
-#include "ED_asset_library.h"
+#include "ED_asset_library.hh"
 
-int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *library)
+namespace blender::ed::asset {
+
+int library_reference_to_enum_value(const AssetLibraryReference *library)
 {
   /* Simple case: Predefined repository, just set the value. */
   if (library->type < ASSET_LIBRARY_CUSTOM) {
@@ -43,7 +44,7 @@ int ED_asset_library_reference_to_enum_value(const AssetLibraryReference *librar
   return ASSET_LIBRARY_LOCAL;
 }
 
-AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
+AssetLibraryReference library_reference_from_enum_value(int value)
 {
   AssetLibraryReference library;
 
@@ -74,7 +75,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
   return library;
 }
 
-const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(const bool include_generated)
+const EnumPropertyItem *library_reference_to_rna_enum_itemf(const bool include_generated)
 {
   EnumPropertyItem *item = nullptr;
   int totitem = 0;
@@ -110,7 +111,7 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(const bool 
     library_reference.type = ASSET_LIBRARY_CUSTOM;
     library_reference.custom_library_index = i;
 
-    const int enum_value = ED_asset_library_reference_to_enum_value(&library_reference);
+    const int enum_value = library_reference_to_enum_value(&library_reference);
     /* Use library path as description, it's a nice hint for users. */
     EnumPropertyItem tmp = {
         enum_value, user_library->name, ICON_NONE, user_library->name, user_library->dirpath};
@@ -120,3 +121,5 @@ const EnumPropertyItem *ED_asset_library_reference_to_rna_enum_itemf(const bool 
   RNA_enum_item_end(&item, &totitem);
   return item;
 }
+
+}  // namespace blender::ed::asset

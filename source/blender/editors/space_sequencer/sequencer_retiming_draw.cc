@@ -11,26 +11,16 @@
 #include "BLI_blenlib.h"
 #include "BLI_span.hh"
 
-#include "DNA_anim_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_scene.h"
 
-#include "BLF_api.h"
+#include "BLF_api.hh"
 
 #include "GPU_batch.h"
-#include "GPU_batch_utils.h"
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_select.hh"
 #include "GPU_state.h"
-
-#include "RNA_access.hh"
-#include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -38,15 +28,9 @@
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_screen.hh"
-#include "ED_sequencer.hh"
-#include "ED_view3d.hh"
 
-#include "UI_interface.hh"
-#include "UI_interface_icons.hh"
-#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
@@ -155,8 +139,6 @@ static rctf keys_box_get(const bContext *C, const Sequence *seq)
   rctf rect = strip_box_get(C, seq);
   rect.ymax = KEY_CENTER + KEY_SIZE / 2;
   rect.ymin = KEY_CENTER - KEY_SIZE / 2;
-  rect.xmax += RETIME_KEY_MOUSEOVER_THRESHOLD;
-  rect.xmin -= RETIME_KEY_MOUSEOVER_THRESHOLD;
   return rect;
 }
 
@@ -231,7 +213,14 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
     int distance = round_fl_to_int(
         fabsf(UI_view2d_view_to_region_x(v2d, key_x_get(scene, seq, &key)) - mval[0]));
 
-    if (distance < RETIME_KEY_MOUSEOVER_THRESHOLD && distance < best_distance) {
+    int threshold = RETIME_KEY_MOUSEOVER_THRESHOLD;
+    if (key_x_get(scene, seq, &key) == SEQ_time_left_handle_frame_get(scene, seq) ||
+        key_x_get(scene, seq, &key) == SEQ_time_right_handle_frame_get(scene, seq))
+    {
+      threshold *= 2; /* Make first and last key easier to select. */
+    }
+
+    if (distance < threshold && distance < best_distance) {
       best_distance = distance;
       best_key = &key;
     }
@@ -243,7 +232,6 @@ static SeqRetimingKey *mouse_over_key_get_from_strip(const bContext *C,
 SeqRetimingKey *retiming_mousover_key_get(const bContext *C, const int mval[2], Sequence **r_seq)
 {
   for (Sequence *seq : sequencer_visible_strips_get(C)) {
-
     rctf box = keys_box_get(C, seq);
     if (!BLI_rctf_isect_pt(&box, mval[0], mval[1])) {
       continue;
@@ -404,8 +392,7 @@ static bool fake_keys_draw(const bContext *C,
     SeqRetimingKey fake_key;
     fake_key.strip_frame_index = (right_key_frame - SEQ_time_start_frame_get(seq)) *
                                  SEQ_time_media_playback_rate_factor_get(scene, seq);
-
-    fake_key.flag = SEQ_SPEED_TRANSITION_IN;
+    fake_key.flag = 0;
     retime_key_draw(C, seq, &fake_key, sh_bindings, selection);
   }
   return true;

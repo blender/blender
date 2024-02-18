@@ -35,8 +35,8 @@
 #include "PIL_time.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_paint.h"
+#include "BKE_global.hh"
+#include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "paint_intern.h"

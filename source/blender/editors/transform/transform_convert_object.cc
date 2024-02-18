@@ -13,20 +13,16 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
-#include "BKE_main.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "ANIM_keyframing.hh"
 #include "ANIM_rna.hh"
-#include "ED_keyframing.hh"
 #include "ED_object.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -162,14 +158,14 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
         copy_qt_qt(td->ext->oquat, ob->quat);
       }
       /* update object's loc/rot to get current rigid body transform */
-      mat4_to_loc_rot_size(ob->loc, rot, scale, ob->object_to_world);
+      mat4_to_loc_rot_size(ob->loc, rot, scale, ob->object_to_world().ptr());
       sub_v3_v3(ob->loc, ob->dloc);
       BKE_object_mat3_to_rot(ob, rot, false); /* drot is already corrected here */
     }
   }
 
   /* axismtx has the real orientation */
-  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->object_to_world));
+  transform_orientations_create_from_axis(td->axismtx, UNPACK3(ob->object_to_world().ptr()));
   if (t->orient_type_mask & (1 << V3D_ORIENT_GIMBAL)) {
     if (!gimbal_axis_object(ob, td->ext->axismtx_gimbal)) {
       copy_m3_m3(td->ext->axismtx_gimbal, td->axismtx);
@@ -196,7 +192,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
    * More proper solution would be to make a shallow copy of the object and
    * evaluate that, and access matrix of that evaluated copy of the object.
    * Might be more tricky than it sounds, if some logic later on accesses the
-   * object matrix via td->ob->object_to_world. */
+   * object matrix via td->ob->object_to_world().ptr(). */
   Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
   if (skip_invert == false && constinv == false) {
     object_eval->transflag |= OB_NO_CONSTRAINTS; /* BKE_object_where_is_calc checks this */
@@ -212,7 +208,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   }
   /* Copy newly evaluated fields to the original object, similar to how
    * active dependency graph will do it. */
-  copy_m4_m4(ob->object_to_world, object_eval->object_to_world);
+  copy_m4_m4(ob->runtime->object_to_world.ptr(), object_eval->object_to_world().ptr());
   /* Only copy negative scale flag, this is the only flag which is modified by
    * the BKE_object_where_is_calc(). The rest of the flags we need to keep,
    * otherwise we might lose dupli flags  (see #61787). */
@@ -262,9 +258,9 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
   copy_v3_v3(td->ext->isize, ob->scale);
   copy_v3_v3(td->ext->dscale, ob->dscale);
 
-  copy_v3_v3(td->center, ob->object_to_world[3]);
+  copy_v3_v3(td->center, ob->object_to_world().location());
 
-  copy_m4_m4(td->ext->obmat, ob->object_to_world);
+  copy_m4_m4(td->ext->obmat, ob->object_to_world().ptr());
 
   /* is there a need to set the global<->data space conversion matrices? */
   if (ob->parent || constinv) {
@@ -275,7 +271,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
      *       done, as it doesn't work well.
      */
     BKE_object_to_mat3(ob, obmtx);
-    copy_m3_m4(totmat, ob->object_to_world);
+    copy_m3_m4(totmat, ob->object_to_world().ptr());
 
     /* If the object scale is zero on any axis, this might result in a zero matrix.
      * In this case, the transformation would not do anything, see: #50103. */
@@ -303,9 +299,7 @@ static void trans_object_base_deps_flag_prepare(const Scene *scene, ViewLayer *v
   }
 }
 
-static void set_trans_object_base_deps_flag_cb(ID *id,
-                                               eDepsObjectComponentType component,
-                                               void * /*user_data*/)
+static void set_trans_object_base_deps_flag_cb(ID *id, eDepsObjectComponentType component)
 {
   /* Here we only handle object IDs. */
   if (GS(id->name) != ID_OB) {
@@ -324,8 +318,7 @@ static void flush_trans_object_base_deps_flag(Depsgraph *depsgraph, Object *obje
                                      &object->id,
                                      DEG_OB_COMP_TRANSFORM,
                                      DEG_FOREACH_COMPONENT_IGNORE_TRANSFORM_SOLVERS,
-                                     set_trans_object_base_deps_flag_cb,
-                                     nullptr);
+                                     set_trans_object_base_deps_flag_cb);
 }
 
 static void trans_object_base_deps_flag_finish(const TransInfo *t,
@@ -553,8 +546,8 @@ static void createTransObject(bContext *C, TransInfo *t)
         td->flag |= TD_SKIP;
       }
       else if (BKE_object_is_in_editmode(ob)) {
-        /* The object could have edit-mode data from another view-layer,
-         * it's such a corner-case it can be skipped for now - Campbell. */
+        /* NOTE(@ideasman42): The object could have edit-mode data from another view-layer,
+         * it's such a corner-case it can be skipped for now. */
         td->flag |= TD_SKIP;
       }
     }
@@ -821,7 +814,7 @@ static void autokeyframe_object(bContext *C, Scene *scene, Object *ob, const eTf
   const blender::StringRef rotation_path = blender::animrig::get_rotation_mode_path(
       eRotationModes(ob->rotmode));
 
-  if (blender::animrig::is_autokey_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
+  if (blender::animrig::is_keying_flag(scene, AUTOKEY_FLAG_INSERTNEEDED)) {
     rna_paths = get_affected_rna_paths_from_transform_mode(
         tmode, scene, view_layer, ob, rotation_path);
   }

@@ -99,7 +99,7 @@ class MyCustomNode(MyCustomTreeNode, Node):
     def init(self, context):
         self.inputs.new('CustomSocketType', "Hello")
         self.inputs.new('NodeSocketFloat', "World")
-        self.inputs.new('NodeSocketVector', "!")
+        self.inputs.new('NodeSocketVector', "!", use_multi_input=True)
 
         self.outputs.new('NodeSocketColor', "How")
         self.outputs.new('NodeSocketColor', "are")

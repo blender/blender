@@ -23,7 +23,6 @@
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 
-#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
@@ -126,7 +125,8 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
     BLI_str_tolower_ascii(id_lower, strlen(id_lower));
   }
 
-  ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, nullptr);
+  ED_region_panels_layout_ex(
+      C, region, &region->type->paneltypes, WM_OP_INVOKE_REGION_WIN, contexts, nullptr);
 }
 
 static void userpref_operatortypes() {}
@@ -185,7 +185,7 @@ static void userpref_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_userpref()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype userpref"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_USERPREF;
@@ -245,5 +245,5 @@ void ED_spacetype_userpref()
 
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

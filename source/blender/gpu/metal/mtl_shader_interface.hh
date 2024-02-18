@@ -163,7 +163,7 @@ MTLVertexFormat mtl_datatype_to_vertex_type(eMTLDataType type);
 
 /**
  * Implementation of Shader interface for Metal Back-end.
- **/
+ */
 class MTLShaderInterface : public ShaderInterface {
 
  private:

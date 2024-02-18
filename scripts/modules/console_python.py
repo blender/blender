@@ -164,8 +164,14 @@ def execute(context, is_interactive):
             line_exec = line if line.strip() else "\n"
 
             is_multiline = console.push(line_exec)
+        except SystemExit as ex:
+            # Occurs when `exit(..)` is called, this raises an exception instead of exiting.
+            # The trace-back isn't helpful in this case, just print the exception.
+            stderr.write("%r\n" % ex)
+            # Without this, entering new commands may include the previous command, see: #109435.
+            console.resetbuffer()
         except:
-            # unlikely, but this can happen with unicode errors for example.
+            # Unlikely, but this can happen with unicode errors accessing `line_object.body`.
             import traceback
             stderr.write(traceback.format_exc())
 

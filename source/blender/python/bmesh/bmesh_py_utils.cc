@@ -25,17 +25,19 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-PyDoc_STRVAR(bpy_bm_utils_vert_collapse_edge_doc,
-             ".. method:: vert_collapse_edge(vert, edge)\n"
-             "\n"
-             "   Collapse a vertex into an edge.\n"
-             "\n"
-             "   :arg vert: The vert that will be collapsed.\n"
-             "   :type vert: :class:`bmesh.types.BMVert`\n"
-             "   :arg edge: The edge to collapse into.\n"
-             "   :type edge: :class:`bmesh.types.BMEdge`\n"
-             "   :return: The resulting edge from the collapse operation.\n"
-             "   :rtype: :class:`bmesh.types.BMEdge`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_vert_collapse_edge_doc,
+    ".. method:: vert_collapse_edge(vert, edge)\n"
+    "\n"
+    "   Collapse a vertex into an edge.\n"
+    "\n"
+    "   :arg vert: The vert that will be collapsed.\n"
+    "   :type vert: :class:`bmesh.types.BMVert`\n"
+    "   :arg edge: The edge to collapse into.\n"
+    "   :type edge: :class:`bmesh.types.BMEdge`\n"
+    "   :return: The resulting edge from the collapse operation.\n"
+    "   :rtype: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMEdge *py_edge;
@@ -79,23 +81,25 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject * /*self*/, PyObject *
   return nullptr;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_vert_collapse_faces_doc,
-             ".. method:: vert_collapse_faces(vert, edge, fac, join_faces)\n"
-             "\n"
-             "   Collapses a vertex that has only two manifold edges onto a vertex it shares an "
-             "edge with.\n"
-             "\n"
-             "   :arg vert: The vert that will be collapsed.\n"
-             "   :type vert: :class:`bmesh.types.BMVert`\n"
-             "   :arg edge: The edge to collapse into.\n"
-             "   :type edge: :class:`bmesh.types.BMEdge`\n"
-             "   :arg fac: The factor to use when merging customdata [0 - 1].\n"
-             "   :type fac: float\n"
-             "   :arg join_faces: When true the faces around the vertex will be joined otherwise "
-             "collapse the vertex by merging the 2 edges this vertex connects to into one.\n"
-             "   :type join_faces: bool\n"
-             "   :return: The resulting edge from the collapse operation.\n"
-             "   :rtype: :class:`bmesh.types.BMEdge`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_vert_collapse_faces_doc,
+    ".. method:: vert_collapse_faces(vert, edge, fac, join_faces)\n"
+    "\n"
+    "   Collapses a vertex that has only two manifold edges onto a vertex it shares an "
+    "edge with.\n"
+    "\n"
+    "   :arg vert: The vert that will be collapsed.\n"
+    "   :type vert: :class:`bmesh.types.BMVert`\n"
+    "   :arg edge: The edge to collapse into.\n"
+    "   :type edge: :class:`bmesh.types.BMEdge`\n"
+    "   :arg fac: The factor to use when merging customdata [0 - 1].\n"
+    "   :type fac: float\n"
+    "   :arg join_faces: When true the faces around the vertex will be joined otherwise "
+    "collapse the vertex by merging the 2 edges this vertex connects to into one.\n"
+    "   :type join_faces: bool\n"
+    "   :return: The resulting edge from the collapse operation.\n"
+    "   :rtype: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMEdge *py_edge;
@@ -149,15 +153,17 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject * /*self*/, PyObject 
   return nullptr;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_vert_dissolve_doc,
-             ".. method:: vert_dissolve(vert)\n"
-             "\n"
-             "   Dissolve this vertex (will be removed).\n"
-             "\n"
-             "   :arg vert: The vert to be dissolved.\n"
-             "   :type vert: :class:`bmesh.types.BMVert`\n"
-             "   :return: True when the vertex dissolve is successful.\n"
-             "   :rtype: boolean\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_vert_dissolve_doc,
+    ".. method:: vert_dissolve(vert)\n"
+    "\n"
+    "   Dissolve this vertex (will be removed).\n"
+    "\n"
+    "   :arg vert: The vert to be dissolved.\n"
+    "   :type vert: :class:`bmesh.types.BMVert`\n"
+    "   :return: True when the vertex dissolve is successful.\n"
+    "   :rtype: boolean\n");
 static PyObject *bpy_bm_utils_vert_dissolve(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMVert *py_vert;
@@ -175,17 +181,19 @@ static PyObject *bpy_bm_utils_vert_dissolve(PyObject * /*self*/, PyObject *args)
   return PyBool_FromLong(BM_vert_dissolve(bm, py_vert->v));
 }
 
-PyDoc_STRVAR(bpy_bm_utils_vert_splice_doc,
-             ".. method:: vert_splice(vert, vert_target)\n"
-             "\n"
-             "   Splice vert into vert_target.\n"
-             "\n"
-             "   :arg vert: The vertex to be removed.\n"
-             "   :type vert: :class:`bmesh.types.BMVert`\n"
-             "   :arg vert_target: The vertex to use.\n"
-             "   :type vert_target: :class:`bmesh.types.BMVert`\n"
-             "\n"
-             "   .. note:: The verts mustn't share an edge or face.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_vert_splice_doc,
+    ".. method:: vert_splice(vert, vert_target)\n"
+    "\n"
+    "   Splice vert into vert_target.\n"
+    "\n"
+    "   :arg vert: The vertex to be removed.\n"
+    "   :type vert: :class:`bmesh.types.BMVert`\n"
+    "   :arg vert_target: The vertex to use.\n"
+    "   :type vert_target: :class:`bmesh.types.BMVert`\n"
+    "\n"
+    "   .. note:: The verts mustn't share an edge or face.\n");
 static PyObject *bpy_bm_utils_vert_splice(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMVert *py_vert;
@@ -230,17 +238,19 @@ static PyObject *bpy_bm_utils_vert_splice(PyObject * /*self*/, PyObject *args)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_vert_separate_doc,
-             ".. method:: vert_separate(vert, edges)\n"
-             "\n"
-             "   Separate this vertex at every edge.\n"
-             "\n"
-             "   :arg vert: The vert to be separated.\n"
-             "   :type vert: :class:`bmesh.types.BMVert`\n"
-             "   :arg edges: The edges to separated.\n"
-             "   :type edges: :class:`bmesh.types.BMEdge`\n"
-             "   :return: The newly separated verts (including the vertex passed).\n"
-             "   :rtype: tuple of :class:`bmesh.types.BMVert`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_vert_separate_doc,
+    ".. method:: vert_separate(vert, edges)\n"
+    "\n"
+    "   Separate this vertex at every edge.\n"
+    "\n"
+    "   :arg vert: The vert to be separated.\n"
+    "   :type vert: :class:`bmesh.types.BMVert`\n"
+    "   :arg edges: The edges to separated.\n"
+    "   :type edges: :class:`bmesh.types.BMEdge`\n"
+    "   :return: The newly separated verts (including the vertex passed).\n"
+    "   :rtype: tuple of :class:`bmesh.types.BMVert`\n");
 static PyObject *bpy_bm_utils_vert_separate(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMVert *py_vert;
@@ -288,19 +298,21 @@ static PyObject *bpy_bm_utils_vert_separate(PyObject * /*self*/, PyObject *args)
   return ret;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_edge_split_doc,
-             ".. method:: edge_split(edge, vert, fac)\n"
-             "\n"
-             "   Split an edge, return the newly created data.\n"
-             "\n"
-             "   :arg edge: The edge to split.\n"
-             "   :type edge: :class:`bmesh.types.BMEdge`\n"
-             "   :arg vert: One of the verts on the edge, defines the split direction.\n"
-             "   :type vert: :class:`bmesh.types.BMVert`\n"
-             "   :arg fac: The point on the edge where the new vert will be created [0 - 1].\n"
-             "   :type fac: float\n"
-             "   :return: The newly created (edge, vert) pair.\n"
-             "   :rtype: tuple\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_edge_split_doc,
+    ".. method:: edge_split(edge, vert, fac)\n"
+    "\n"
+    "   Split an edge, return the newly created data.\n"
+    "\n"
+    "   :arg edge: The edge to split.\n"
+    "   :type edge: :class:`bmesh.types.BMEdge`\n"
+    "   :arg vert: One of the verts on the edge, defines the split direction.\n"
+    "   :type vert: :class:`bmesh.types.BMVert`\n"
+    "   :arg fac: The point on the edge where the new vert will be created [0 - 1].\n"
+    "   :type fac: float\n"
+    "   :return: The newly created (edge, vert) pair.\n"
+    "   :rtype: tuple\n");
 static PyObject *bpy_bm_utils_edge_split(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMEdge *py_edge;
@@ -343,18 +355,20 @@ static PyObject *bpy_bm_utils_edge_split(PyObject * /*self*/, PyObject *args)
   return nullptr;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
-             ".. method:: edge_rotate(edge, ccw=False)\n"
-             "\n"
-             "   Rotate the edge and return the newly created edge.\n"
-             "   If rotating the edge fails, None will be returned.\n"
-             "\n"
-             "   :arg edge: The edge to rotate.\n"
-             "   :type edge: :class:`bmesh.types.BMEdge`\n"
-             "   :arg ccw: When True the edge will be rotated counter clockwise.\n"
-             "   :type ccw: boolean\n"
-             "   :return: The newly rotated edge.\n"
-             "   :rtype: :class:`bmesh.types.BMEdge`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_edge_rotate_doc,
+    ".. method:: edge_rotate(edge, ccw=False)\n"
+    "\n"
+    "   Rotate the edge and return the newly created edge.\n"
+    "   If rotating the edge fails, None will be returned.\n"
+    "\n"
+    "   :arg edge: The edge to rotate.\n"
+    "   :type edge: :class:`bmesh.types.BMEdge`\n"
+    "   :arg ccw: When True the edge will be rotated counter clockwise.\n"
+    "   :type ccw: boolean\n"
+    "   :return: The newly rotated edge.\n"
+    "   :rtype: :class:`bmesh.types.BMEdge`\n");
 static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
 {
   BPy_BMEdge *py_edge;
@@ -383,6 +397,7 @@ static PyObject *bpy_bm_utils_edge_rotate(PyObject * /*self*/, PyObject *args)
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_bm_utils_face_split_doc,
     ".. method:: face_split(face, vert_a, vert_b, coords=(), use_exist=True, example=None)\n"
     "\n"
@@ -517,24 +532,26 @@ static PyObject *bpy_bm_utils_face_split(PyObject * /*self*/, PyObject *args, Py
   return nullptr;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_face_split_edgenet_doc,
-             ".. method:: face_split_edgenet(face, edgenet)\n"
-             "\n"
-             "   Splits a face into any number of regions defined by an edgenet.\n"
-             "\n"
-             "   :arg face: The face to split.\n"
-             "   :type face: :class:`bmesh.types.BMFace`\n"
-             "   :arg face: The face to split.\n"
-             "   :type face: :class:`bmesh.types.BMFace`\n"
-             "   :arg edgenet: Sequence of edges.\n"
-             "   :type edgenet: :class:`bmesh.types.BMEdge`\n"
-             "   :return: The newly created faces.\n"
-             "   :rtype: tuple of (:class:`bmesh.types.BMFace`)\n"
-             "\n"
-             "   .. note::\n"
-             "\n"
-             "      Regions defined by edges need to connect to the face, otherwise they're "
-             "ignored as loose edges.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_face_split_edgenet_doc,
+    ".. method:: face_split_edgenet(face, edgenet)\n"
+    "\n"
+    "   Splits a face into any number of regions defined by an edgenet.\n"
+    "\n"
+    "   :arg face: The face to split.\n"
+    "   :type face: :class:`bmesh.types.BMFace`\n"
+    "   :arg face: The face to split.\n"
+    "   :type face: :class:`bmesh.types.BMFace`\n"
+    "   :arg edgenet: Sequence of edges.\n"
+    "   :type edgenet: :class:`bmesh.types.BMEdge`\n"
+    "   :return: The newly created faces.\n"
+    "   :rtype: tuple of (:class:`bmesh.types.BMFace`)\n"
+    "\n"
+    "   .. note::\n"
+    "\n"
+    "      Regions defined by edges need to connect to the face, otherwise they're "
+    "ignored as loose edges.\n");
 static PyObject *bpy_bm_utils_face_split_edgenet(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
   static const char *kwlist[] = {"face", "edgenet", nullptr};
@@ -599,17 +616,19 @@ static PyObject *bpy_bm_utils_face_split_edgenet(PyObject * /*self*/, PyObject *
   return nullptr;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_face_join_doc,
-             ".. method:: face_join(faces, remove=True)\n"
-             "\n"
-             "   Joins a sequence of faces.\n"
-             "\n"
-             "   :arg faces: Sequence of faces.\n"
-             "   :type faces: :class:`bmesh.types.BMFace`\n"
-             "   :arg remove: Remove the edges and vertices between the faces.\n"
-             "   :type remove: boolean\n"
-             "   :return: The newly created face or None on failure.\n"
-             "   :rtype: :class:`bmesh.types.BMFace`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_face_join_doc,
+    ".. method:: face_join(faces, remove=True)\n"
+    "\n"
+    "   Joins a sequence of faces.\n"
+    "\n"
+    "   :arg faces: Sequence of faces.\n"
+    "   :type faces: :class:`bmesh.types.BMFace`\n"
+    "   :arg remove: Remove the edges and vertices between the faces.\n"
+    "   :type remove: boolean\n"
+    "   :return: The newly created face or None on failure.\n"
+    "   :rtype: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 {
   BMesh *bm = nullptr;
@@ -651,6 +670,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 }
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_bm_utils_face_vert_separate_doc,
     ".. method:: face_vert_separate(face, vert)\n"
     "\n"
@@ -703,13 +723,15 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject * /*self*/, PyObject *
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_face_flip_doc,
-             ".. method:: face_flip(faces)\n"
-             "\n"
-             "   Flip the faces direction.\n"
-             "\n"
-             "   :arg face: Face to flip.\n"
-             "   :type face: :class:`bmesh.types.BMFace`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_face_flip_doc,
+    ".. method:: face_flip(faces)\n"
+    "\n"
+    "   Flip the faces direction.\n"
+    "\n"
+    "   :arg face: Face to flip.\n"
+    "   :type face: :class:`bmesh.types.BMFace`\n");
 static PyObject *bpy_bm_utils_face_flip(PyObject * /*self*/, BPy_BMFace *value)
 {
   if (!BPy_BMFace_Check(value)) {
@@ -726,15 +748,17 @@ static PyObject *bpy_bm_utils_face_flip(PyObject * /*self*/, BPy_BMFace *value)
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpy_bm_utils_loop_separate_doc,
-             ".. method:: loop_separate(loop)\n"
-             "\n"
-             "   Rip a vertex in a face away and add a new vertex.\n"
-             "\n"
-             "   :arg loop: The loop to separate.\n"
-             "   :type loop: :class:`bmesh.types.BMLoop`\n"
-             "   :return vert: The newly created vertex or None on failure.\n"
-             "   :rtype vert: :class:`bmesh.types.BMVert`\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    bpy_bm_utils_loop_separate_doc,
+    ".. method:: loop_separate(loop)\n"
+    "\n"
+    "   Rip a vertex in a face away and add a new vertex.\n"
+    "\n"
+    "   :arg loop: The loop to separate.\n"
+    "   :type loop: :class:`bmesh.types.BMLoop`\n"
+    "   :return vert: The newly created vertex or None on failure.\n"
+    "   :rtype vert: :class:`bmesh.types.BMVert`\n");
 static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *value)
 {
   BMesh *bm;
@@ -822,7 +846,10 @@ static PyMethodDef BPy_BM_utils_methods[] = {
 #  pragma GCC diagnostic pop
 #endif
 
-PyDoc_STRVAR(BPy_BM_utils_doc, "This module provides access to blenders bmesh data structures.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPy_BM_utils_doc,
+    "This module provides access to blenders bmesh data structures.");
 static PyModuleDef BPy_BM_utils_module_def = {
     /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.utils",

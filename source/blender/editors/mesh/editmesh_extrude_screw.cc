@@ -12,8 +12,8 @@
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.h"
-#include "BKE_report.h"
+#include "BKE_layer.hh"
+#include "BKE_report.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -28,7 +28,9 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
+
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Screw Operator
@@ -51,14 +53,12 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "center", cent);
   RNA_float_get_array(op->ptr, "axis", axis);
 
-  uint objects_len = 0;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      scene, view_layer, CTX_wm_view3d(C), &objects_len);
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
+      scene, view_layer, CTX_wm_view3d(C));
 
-  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
+  for (Object *obedit : objects) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
 
@@ -105,11 +105,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    copy_v3_v3(nor, obedit->object_to_world[2]);
+    copy_v3_v3(nor, obedit->object_to_world().ptr()[2]);
 
     /* calculate dvec */
-    mul_v3_m4v3(v1_co_global, obedit->object_to_world, v1->co);
-    mul_v3_m4v3(v2_co_global, obedit->object_to_world, v2->co);
+    mul_v3_m4v3(v1_co_global, obedit->object_to_world().ptr(), v1->co);
+    mul_v3_m4v3(v2_co_global, obedit->object_to_world().ptr(), v2->co);
     sub_v3_v3v3(dvec, v1_co_global, v2_co_global);
     mul_v3_fl(dvec, 1.0f / steps);
 
@@ -129,7 +129,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
             dvec,
             turns * steps,
             DEG2RADF(360.0f * turns),
-            obedit->object_to_world,
+            obedit->object_to_world().ptr(),
             false))
     {
       continue;
@@ -150,12 +150,11 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
     params.is_destructive = true;
     EDBM_update(static_cast<Mesh *>(obedit->data), &params);
   }
-  MEM_freeN(objects);
 
-  if (failed_axis_len == objects_len - objects_empty_len) {
+  if (failed_axis_len == objects.size() - objects_empty_len) {
     BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
   }
-  else if (failed_verts_len == objects_len - objects_empty_len) {
+  else if (failed_verts_len == objects.size() - objects_empty_len) {
     BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
   }
 

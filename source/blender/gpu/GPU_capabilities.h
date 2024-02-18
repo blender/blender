@@ -52,7 +52,6 @@ bool GPU_crappy_amd_driver(void);
 
 bool GPU_geometry_shader_support(void);
 bool GPU_compute_shader_support(void);
-bool GPU_shader_image_load_store_support(void);
 bool GPU_shader_draw_parameters_support(void);
 bool GPU_hdr_support(void);
 bool GPU_texture_view_support();

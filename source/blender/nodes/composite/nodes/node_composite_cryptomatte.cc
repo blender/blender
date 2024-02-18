@@ -12,7 +12,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_dynstr.h"
-#include "BLI_hash_mm3.h"
+#include "BLI_hash_mm3.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
@@ -21,7 +21,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf_types.hh"
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -30,9 +30,9 @@
 
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 
@@ -319,12 +319,12 @@ static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
     }
 
     if (scene == nullptr) {
-      *r_disabled_hint = TIP_(
+      *r_disabled_hint = RPT_(
           "The node tree must be the compositing node tree of any scene in the file");
     }
     return scene != nullptr;
   }
-  *r_disabled_hint = TIP_("Not a compositor node tree");
+  *r_disabled_hint = RPT_("Not a compositor node tree");
   return false;
 }
 
@@ -578,11 +578,11 @@ class CryptoMatteOperation : public NodeOperation {
     int layer_index;
     const std::string type_name = get_type_name();
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
-      /* If the layer name doesn't start with the Cryptomatte type name, then it is not a
+      /* If the Cryptomatte type name name doesn't start with the layer name, then it is not a
        * Cryptomatte layer. Unless it is an unnamed layer, in which case, we need to check its
        * passes. */
       const bool is_unnamed_layer = render_layer->name[0] == '\0';
-      if (!is_unnamed_layer && !StringRefNull(render_layer->name).startswith(type_name)) {
+      if (!is_unnamed_layer && !StringRefNull(type_name).startswith(render_layer->name)) {
         continue;
       }
 

@@ -33,7 +33,7 @@ SymmetricBlurWeightsKey::SymmetricBlurWeightsKey(int type, float2 radius)
 
 uint64_t SymmetricBlurWeightsKey::hash() const
 {
-  return get_default_hash_3(type, radius.x, radius.y);
+  return get_default_hash(type, radius.x, radius.y);
 }
 
 bool operator==(const SymmetricBlurWeightsKey &a, const SymmetricBlurWeightsKey &b)

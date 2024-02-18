@@ -12,7 +12,6 @@
 #include <cstring>
 
 #include "DNA_listBase.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -21,8 +20,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
-
-#include "BKE_context.hh"
 
 #include "RNA_access.hh"
 
@@ -33,8 +30,6 @@
 #include "wm_event_types.hh"
 
 #include "RNA_enum_types.hh"
-
-#include "DEG_depsgraph.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Event Printing

@@ -14,17 +14,20 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "WM_api.hh"
 
 #ifdef RNA_RUNTIME
+
+#  include <fmt/format.h>
 
 #  include "BKE_grease_pencil.hh"
 
 #  include "BLI_span.hh"
 
 #  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
 
 static GreasePencil *rna_grease_pencil(const PointerRNA *ptr)
 {
@@ -34,7 +37,30 @@ static GreasePencil *rna_grease_pencil(const PointerRNA *ptr)
 static void rna_grease_pencil_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   DEG_id_tag_update(&rna_grease_pencil(ptr)->id, ID_RECALC_GEOMETRY);
-  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, rna_grease_pencil(ptr));
+}
+
+static void rna_grease_pencil_autolock(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
+{
+  using namespace blender::bke::greasepencil;
+  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  if (grease_pencil->flag & GREASE_PENCIL_AUTOLOCK_LAYERS) {
+    grease_pencil->autolock_inactive_layers();
+  }
+  else {
+    for (Layer *layer : grease_pencil->layers_for_write()) {
+      layer->set_locked(false);
+    }
+  }
+
+  rna_grease_pencil_update(nullptr, nullptr, ptr);
+}
+
+static void rna_grease_pencil_dependency_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  DEG_id_tag_update(&rna_grease_pencil(ptr)->id, ID_RECALC_GEOMETRY);
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, rna_grease_pencil(ptr));
 }
 
 static void rna_iterator_grease_pencil_layers_begin(CollectionPropertyIterator *iter,
@@ -72,17 +98,18 @@ static int tree_node_name_length(blender::bke::greasepencil::TreeNode &node)
   return 0;
 }
 
-static char *tree_node_name_path(blender::bke::greasepencil::TreeNode &node, const char *prefix)
+static std::optional<std::string> tree_node_name_path(blender::bke::greasepencil::TreeNode &node,
+                                                      const char *prefix)
 {
   using namespace blender::bke::greasepencil;
   BLI_assert(!node.name().is_empty());
   const size_t name_length = node.name().size();
   std::string name_esc(name_length * 2, '\0');
   BLI_str_escape(name_esc.data(), node.name().c_str(), name_length * 2);
-  return BLI_sprintfN("%s[\"%s\"]", prefix, name_esc.c_str());
+  return fmt::format("{}[\"{}\"]", prefix, name_esc.c_str());
 }
 
-static char *rna_GreasePencilLayer_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_GreasePencilLayer_path(const PointerRNA *ptr)
 {
   GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
   return tree_node_name_path(layer->wrap().as_node(), "layers");
@@ -127,7 +154,7 @@ static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
 }
 
-static char *rna_GreasePencilLayerGroup_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_GreasePencilLayerGroup_path(const PointerRNA *ptr)
 {
   GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
   return tree_node_name_path(group->wrap().as_node(), "layer_groups");
@@ -178,6 +205,8 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const float scale_defaults[3] = {1.0f, 1.0f, 1.0f};
+
   srna = RNA_def_struct(brna, "GreasePencilLayer", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencilLayer");
   RNA_def_struct_ui_text(srna, "Grease Pencil Layer", "Collection of related drawings");
@@ -222,6 +251,41 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_ONION_SKINNING);
   RNA_def_property_ui_text(
       prop, "Onion Skinning", "Display onion skins before and after the current frame");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Parent", "Parent object");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_dependency_update");
+
+  prop = RNA_def_property(srna, "parent_bone", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "parsubstr");
+  RNA_def_property_ui_text(
+      prop, "Parent Bone", "Name of parent bone. Only used when the parent object is an armature");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_dependency_update");
+
+  prop = RNA_def_property(srna, "translation", PROP_FLOAT, PROP_TRANSLATION);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_sdna(prop, nullptr, "translation");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_ui_text(prop, "Translation", "Translation of the layer");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_sdna(prop, nullptr, "rotation");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+  RNA_def_property_ui_text(prop, "Rotation", "Euler rotation of the layer");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_float_sdna(prop, nullptr, "scale");
+  RNA_def_property_float_array_default(prop, scale_defaults);
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
+  RNA_def_property_ui_text(prop, "Scale", "Scale of the layer");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 }
 
@@ -301,6 +365,22 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
   /* Animation Data */
   rna_def_animdata_common(srna);
 
+  /* Materials */
+  prop = RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "material_array", "material_array_num");
+  RNA_def_property_struct_type(prop, "Material");
+  RNA_def_property_ui_text(prop, "Materials", "");
+  RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.cc */
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "rna_IDMaterials_assign_int");
+
   /* Layers */
   prop = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayer");
@@ -329,6 +409,14 @@ static void rna_def_grease_pencil_data(BlenderRNA *brna)
                                     nullptr, /* TODO */
                                     nullptr);
   RNA_def_property_ui_text(prop, "Layer Groups", "Grease Pencil layer groups");
+
+  prop = RNA_def_property(srna, "use_autolock_layers", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GREASE_PENCIL_AUTOLOCK_LAYERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Auto-Lock Layers",
+      "Automatically lock all layers except the active one to avoid accidental changes");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_autolock");
 }
 
 void RNA_def_grease_pencil(BlenderRNA *brna)

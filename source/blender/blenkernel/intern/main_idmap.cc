@@ -8,14 +8,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_listbase.h"
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_ID.h"
 
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh" /* own include */
 
@@ -54,7 +53,7 @@ struct IDNameLib_TypeMap {
  */
 struct IDNameLib_Map {
   IDNameLib_TypeMap type_maps[INDEX_ID_MAX];
-  GHash *uuid_map;
+  GHash *uid_map;
   Main *bmain;
   GSet *valid_id_pointers;
   int idmap_types;
@@ -94,14 +93,14 @@ IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
   BLI_assert(index == INDEX_ID_MAX);
   id_map->type_maps_keys_pool = nullptr;
 
-  if (idmap_types & MAIN_IDMAP_TYPE_UUID) {
+  if (idmap_types & MAIN_IDMAP_TYPE_UID) {
     ID *id;
-    id_map->uuid_map = BLI_ghash_int_new(__func__);
+    id_map->uid_map = BLI_ghash_int_new(__func__);
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
-      BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+      BLI_assert(id->session_uid != MAIN_ID_SESSION_UID_UNSET);
       void **id_ptr_v;
       const bool existing_key = BLI_ghash_ensure_p(
-          id_map->uuid_map, POINTER_FROM_UINT(id->session_uuid), &id_ptr_v);
+          id_map->uid_map, POINTER_FROM_UINT(id->session_uid), &id_ptr_v);
       BLI_assert(existing_key == false);
       UNUSED_VARS_NDEBUG(existing_key);
 
@@ -110,7 +109,7 @@ IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
     FOREACH_MAIN_ID_END;
   }
   else {
-    id_map->uuid_map = nullptr;
+    id_map->uid_map = nullptr;
   }
 
   if (create_valid_ids_set) {
@@ -144,12 +143,12 @@ void BKE_main_idmap_insert_id(IDNameLib_Map *id_map, ID *id)
     }
   }
 
-  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UUID) {
-    BLI_assert(id_map->uuid_map != nullptr);
-    BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UID) {
+    BLI_assert(id_map->uid_map != nullptr);
+    BLI_assert(id->session_uid != MAIN_ID_SESSION_UID_UNSET);
     void **id_ptr_v;
     const bool existing_key = BLI_ghash_ensure_p(
-        id_map->uuid_map, POINTER_FROM_UINT(id->session_uuid), &id_ptr_v);
+        id_map->uid_map, POINTER_FROM_UINT(id->session_uid), &id_ptr_v);
     BLI_assert(existing_key == false);
     UNUSED_VARS_NDEBUG(existing_key);
 
@@ -174,11 +173,11 @@ void BKE_main_idmap_remove_id(IDNameLib_Map *id_map, ID *id)
     }
   }
 
-  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UUID) {
-    BLI_assert(id_map->uuid_map != nullptr);
-    BLI_assert(id->session_uuid != MAIN_ID_SESSION_UUID_UNSET);
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UID) {
+    BLI_assert(id_map->uid_map != nullptr);
+    BLI_assert(id->session_uid != MAIN_ID_SESSION_UID_UNSET);
 
-    BLI_ghash_remove(id_map->uuid_map, POINTER_FROM_UINT(id->session_uuid), nullptr, nullptr);
+    BLI_ghash_remove(id_map->uid_map, POINTER_FROM_UINT(id->session_uid), nullptr, nullptr);
   }
 }
 
@@ -251,10 +250,10 @@ ID *BKE_main_idmap_lookup_id(IDNameLib_Map *id_map, const ID *id)
   return nullptr;
 }
 
-ID *BKE_main_idmap_lookup_uuid(IDNameLib_Map *id_map, const uint session_uuid)
+ID *BKE_main_idmap_lookup_uid(IDNameLib_Map *id_map, const uint session_uid)
 {
-  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UUID) {
-    return static_cast<ID *>(BLI_ghash_lookup(id_map->uuid_map, POINTER_FROM_UINT(session_uuid)));
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UID) {
+    return static_cast<ID *>(BLI_ghash_lookup(id_map->uid_map, POINTER_FROM_UINT(session_uid)));
   }
   return nullptr;
 }
@@ -274,8 +273,8 @@ void BKE_main_idmap_destroy(IDNameLib_Map *id_map)
       id_map->type_maps_keys_pool = nullptr;
     }
   }
-  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UUID) {
-    BLI_ghash_free(id_map->uuid_map, nullptr, nullptr);
+  if (id_map->idmap_types & MAIN_IDMAP_TYPE_UID) {
+    BLI_ghash_free(id_map->uid_map, nullptr, nullptr);
   }
 
   BLI_assert(id_map->type_maps_keys_pool == nullptr);

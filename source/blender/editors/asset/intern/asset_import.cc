@@ -10,7 +10,7 @@
 
 #include "DNA_space_types.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "WM_api.hh"
 

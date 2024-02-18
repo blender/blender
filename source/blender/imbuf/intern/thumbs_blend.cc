@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -10,22 +10,17 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLI_linklist.h"
-#include "BLI_listbase.h" /* Needed due to import of BLO_readfile.h */
+#include "BLI_listbase.h" /* Needed due to import of BLO_readfile.hh */
 #include "BLI_utildefines.h"
 
-#include "BLO_blend_defs.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
-#include "BKE_idtype.h"
+#include "BKE_idtype.hh"
 #include "BKE_main.hh"
 #include "BKE_preview_image.hh"
 
-#include "DNA_ID.h" /* For preview images... */
-
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_thumbs.h"
+#include "IMB_imbuf_types.hh"
+#include "IMB_thumbs.hh"
 
 #include "MEM_guardedalloc.h"
 

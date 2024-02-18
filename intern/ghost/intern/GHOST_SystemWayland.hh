@@ -88,6 +88,13 @@ bool ghost_wl_dynload_libraries_init();
 void ghost_wl_dynload_libraries_exit();
 #endif
 
+#if defined(WITH_GHOST_WAYLAND_LIBDECOR) && defined(WITH_VULKAN_BACKEND)
+/**
+ * Needed for temporary buffer creation.
+ */
+int memfd_create_sealed_for_vulkan_hack(const char *name);
+#endif
+
 struct GWL_Output {
 
   /** Wayland core types. */
@@ -186,6 +193,8 @@ class GHOST_SystemWayland : public GHOST_System {
                               const GHOST_IWindow *parentWindow) override;
 
   GHOST_TCapabilityFlag getCapabilities() const override;
+
+  void setMultitouchGestures(const bool use) override;
 
   /* WAYLAND utility functions (share window/system logic). */
 

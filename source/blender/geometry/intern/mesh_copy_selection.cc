@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_enumerable_thread_specific.hh"
@@ -11,6 +10,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_mesh.hh"
 
@@ -70,25 +70,6 @@ static void remap_edges(const OffsetIndices<int> src_faces,
   });
 }
 
-/** Create a mesh with no built-in attributes. */
-static Mesh *create_mesh_no_attributes(const Mesh &params_mesh,
-                                       const int verts_num,
-                                       const int edges_num,
-                                       const int faces_num,
-                                       const int corners_num)
-{
-  Mesh *mesh = BKE_mesh_new_nomain(0, 0, faces_num, 0);
-  mesh->verts_num = verts_num;
-  mesh->edges_num = edges_num;
-  mesh->corners_num = corners_num;
-  CustomData_free_layer_named(&mesh->vert_data, "position", 0);
-  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert", 0);
-  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge", 0);
-  BKE_mesh_copy_parameters_for_eval(mesh, &params_mesh);
-  return mesh;
-}
-
 static void copy_loose_vert_hint(const Mesh &src, Mesh &dst)
 {
   const auto &src_cache = src.runtime->loose_verts_cache;
@@ -124,26 +105,17 @@ static void gather_vert_attributes(const Mesh &mesh_src,
   }
 
   const Span<MDeformVert> src = mesh_src.deform_verts();
-  MutableSpan<MDeformVert> dst = mesh_dst.deform_verts_for_write();
-  threading::parallel_invoke(
-      src.size() > 1024,
-      [&]() {
-        if (!src.is_empty() && !dst.is_empty()) {
-          vert_mask.foreach_index(GrainSize(512), [&](const int64_t src_i, const int64_t dst_i) {
-            dst[dst_i].dw = static_cast<MDeformWeight *>(MEM_dupallocN(src[src_i].dw));
-            dst[dst_i].totweight = src[src_i].totweight;
-            dst[dst_i].flag = src[src_i].flag;
-          });
-        }
-      },
-      [&]() {
-        bke::gather_attributes(mesh_src.attributes(),
-                               bke::AttrDomain::Point,
-                               propagation_info,
-                               vertex_group_names,
-                               vert_mask,
-                               mesh_dst.attributes_for_write());
-      });
+  if (!vertex_group_names.is_empty() && !src.is_empty()) {
+    MutableSpan<MDeformVert> dst = mesh_dst.deform_verts_for_write();
+    bke::gather_deform_verts(src, vert_mask, dst);
+  }
+
+  bke::gather_attributes(mesh_src.attributes(),
+                         bke::AttrDomain::Point,
+                         propagation_info,
+                         vertex_group_names,
+                         vert_mask,
+                         mesh_dst.attributes_for_write());
 }
 
 std::optional<Mesh *> mesh_copy_selection(
@@ -227,8 +199,9 @@ std::optional<Mesh *> mesh_copy_selection(
     return std::nullopt;
   }
 
-  Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, vert_mask.size(), edge_mask.size(), face_mask.size(), 0);
+  Mesh *dst_mesh = bke::mesh_new_no_attributes(
+      vert_mask.size(), edge_mask.size(), face_mask.size(), 0);
+  BKE_mesh_copy_parameters_for_eval(dst_mesh, &src_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
   dst_attributes.add<int2>(".edge_verts", bke::AttrDomain::Edge, bke::AttributeInitConstruct());
   MutableSpan<int2> dst_edges = dst_mesh->edges_for_write();
@@ -360,8 +333,9 @@ std::optional<Mesh *> mesh_copy_selection_keep_verts(
     return std::nullopt;
   }
 
-  Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, src_mesh.verts_num, edge_mask.size(), face_mask.size(), 0);
+  Mesh *dst_mesh = bke::mesh_new_no_attributes(
+      src_mesh.verts_num, edge_mask.size(), face_mask.size(), 0);
+  BKE_mesh_copy_parameters_for_eval(dst_mesh, &src_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
 
   const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(
@@ -452,8 +426,9 @@ std::optional<Mesh *> mesh_copy_selection_keep_edges(
     return std::nullopt;
   }
 
-  Mesh *dst_mesh = create_mesh_no_attributes(
-      src_mesh, src_mesh.verts_num, src_mesh.edges_num, face_mask.size(), 0);
+  Mesh *dst_mesh = bke::mesh_new_no_attributes(
+      src_mesh.verts_num, src_mesh.edges_num, face_mask.size(), 0);
+  BKE_mesh_copy_parameters_for_eval(dst_mesh, &src_mesh);
   bke::MutableAttributeAccessor dst_attributes = dst_mesh->attributes_for_write();
 
   const OffsetIndices<int> dst_faces = offset_indices::gather_selected_offsets(

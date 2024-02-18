@@ -40,15 +40,9 @@ NODE_SHADER_MATERIALX_BEGIN
   if (name == "Location") {
     res = create_node("position", NodeItem::Type::Vector3, {{"space", val(std::string("world"))}});
   }
-  /* TODO: This node doesn't have an implementation in MaterialX.
-   * It's added in MaterialX 1.38.8. Uncomment this code after switching to 1.38.8.
-   * if (name=="Random") {
-   *  res = create_node("randomfloat", NodeItem::Type::Float);
-   *  res.set_input("in", val(0.0));
-   *  res.set_input("min", val(0.0));
-   *  res.set_input("max", val(1.0));
-   *  res.set_input("seed", val(0));
-   *}*/
+  else if (name == "Random") {
+    res = create_node("randomfloat", NodeItem::Type::Float);
+  }
   else {
     res = get_output_default(name, NodeItem::Type::Any);
   }

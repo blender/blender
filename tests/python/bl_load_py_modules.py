@@ -5,7 +5,7 @@
 # simple script to enable all addons, and disable
 
 """
-./blender.bin --background -noaudio --factory-startup --python tests/python/bl_load_py_modules.py
+./blender.bin --background --factory-startup --python tests/python/bl_load_py_modules.py
 """
 
 import bpy
@@ -26,10 +26,6 @@ BLACKLIST = {
     # The unpacked wheel is only loaded when actually used, not directly on import:
     os.path.join("io_blend_utils", "blender_bam-unpacked.whl"),
 }
-
-for mod in addon_utils.modules():
-    if addon_utils.module_bl_info(mod)['blender'] < (2, 80, 0):
-        BLACKLIST.add(mod.__name__)
 
 # Some modules need to add to the `sys.path`.
 MODULE_SYS_PATHS = {

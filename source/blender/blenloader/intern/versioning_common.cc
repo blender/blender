@@ -21,19 +21,18 @@
 #include "BKE_animsys.h"
 #include "BKE_idprop.h"
 #include "BKE_ipo.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "SEQ_sequencer.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
 
@@ -104,7 +103,7 @@ ID *do_versions_rename_id(Main *bmain,
     BKE_main_namemap_remove_name(bmain, id, id->name + 2);
     BLI_strncpy(id->name + 2, name_dst, sizeof(id->name) - 2);
     /* We know it's unique, this just sorts. */
-    BLI_libblock_ensure_unique_name(bmain, id->name);
+    BKE_libblock_ensure_unique_name(bmain, id);
   }
   return id;
 }

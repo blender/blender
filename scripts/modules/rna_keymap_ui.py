@@ -164,8 +164,6 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
         if km.is_modal:
             sub.prop(kmi, "propvalue", text="")
         else:
-            # One day...
-            # sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
             sub.prop(kmi, "idname", text="")
 
         if map_type not in {'TEXTINPUT', 'TIMER'}:

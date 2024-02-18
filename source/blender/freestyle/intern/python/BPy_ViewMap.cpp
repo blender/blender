@@ -39,12 +39,14 @@ int ViewMap_Init(PyObject *module)
 
 /*----------------------ViewMap methods----------------------------*/
 
-PyDoc_STRVAR(ViewMap_doc,
-             "Class defining the ViewMap.\n"
-             "\n"
-             ".. method:: __init__()\n"
-             "\n"
-             "   Default constructor.");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewMap_doc,
+    "Class defining the ViewMap.\n"
+    "\n"
+    ".. method:: __init__()\n"
+    "\n"
+    "   Default constructor.");
 
 static int ViewMap_init(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
@@ -68,17 +70,19 @@ static PyObject *ViewMap_repr(BPy_ViewMap *self)
   return PyUnicode_FromFormat("ViewMap - address: %p", self->vm);
 }
 
-PyDoc_STRVAR(ViewMap_get_closest_viewedge_doc,
-             ".. method:: get_closest_viewedge(x, y)\n"
-             "\n"
-             "   Gets the ViewEdge nearest to the 2D point specified as arguments.\n"
-             "\n"
-             "   :arg x: X coordinate of a 2D point.\n"
-             "   :type x: float\n"
-             "   :arg y: Y coordinate of a 2D point.\n"
-             "   :type y: float\n"
-             "   :return: The ViewEdge nearest to the specified 2D point.\n"
-             "   :rtype: :class:`ViewEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewMap_get_closest_viewedge_doc,
+    ".. method:: get_closest_viewedge(x, y)\n"
+    "\n"
+    "   Gets the ViewEdge nearest to the 2D point specified as arguments.\n"
+    "\n"
+    "   :arg x: X coordinate of a 2D point.\n"
+    "   :type x: float\n"
+    "   :arg y: Y coordinate of a 2D point.\n"
+    "   :type y: float\n"
+    "   :return: The ViewEdge nearest to the specified 2D point.\n"
+    "   :rtype: :class:`ViewEdge`");
 
 static PyObject *ViewMap_get_closest_viewedge(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
@@ -95,17 +99,19 @@ static PyObject *ViewMap_get_closest_viewedge(BPy_ViewMap *self, PyObject *args,
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(ViewMap_get_closest_fedge_doc,
-             ".. method:: get_closest_fedge(x, y)\n"
-             "\n"
-             "   Gets the FEdge nearest to the 2D point specified as arguments.\n"
-             "\n"
-             "   :arg x: X coordinate of a 2D point.\n"
-             "   :type x: float\n"
-             "   :arg y: Y coordinate of a 2D point.\n"
-             "   :type y: float\n"
-             "   :return: The FEdge nearest to the specified 2D point.\n"
-             "   :rtype: :class:`FEdge`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewMap_get_closest_fedge_doc,
+    ".. method:: get_closest_fedge(x, y)\n"
+    "\n"
+    "   Gets the FEdge nearest to the 2D point specified as arguments.\n"
+    "\n"
+    "   :arg x: X coordinate of a 2D point.\n"
+    "   :type x: float\n"
+    "   :arg y: Y coordinate of a 2D point.\n"
+    "   :type y: float\n"
+    "   :return: The FEdge nearest to the specified 2D point.\n"
+    "   :rtype: :class:`FEdge`");
 
 static PyObject *ViewMap_get_closest_fedge(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
@@ -138,10 +144,12 @@ static PyMethodDef BPy_ViewMap_methods[] = {
 
 /*----------------------ViewMap get/setters ----------------------------*/
 
-PyDoc_STRVAR(ViewMap_scene_bbox_doc,
-             "The 3D bounding box of the scene.\n"
-             "\n"
-             ":type: :class:`BBox`");
+PyDoc_STRVAR(
+    /* Wrap. */
+    ViewMap_scene_bbox_doc,
+    "The 3D bounding box of the scene.\n"
+    "\n"
+    ":type: :class:`BBox`");
 
 static PyObject *ViewMap_scene_bbox_get(BPy_ViewMap *self, void * /*closure*/)
 {

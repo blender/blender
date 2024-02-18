@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "volume_modifier.h"
+#include "volume_modifier.hh"
 
 #include <pxr/usdImaging/usdVolImaging/tokens.h>
 
@@ -15,11 +15,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.hh"
 
-#include "hydra_scene_delegate.h"
-
-PXR_NAMESPACE_OPEN_SCOPE
-TF_DEFINE_PRIVATE_TOKENS(grid_tokens_, (density)(flame)(shadow)(temperature)(velocity));
-PXR_NAMESPACE_CLOSE_SCOPE
+#include "hydra_scene_delegate.hh"
 
 namespace blender::io::hydra {
 
@@ -62,7 +58,13 @@ void VolumeModifierData::init()
                                    scene_delegate_->scene->r.cfra);
   ID_LOG(1, "%s", filepath_.c_str());
 
-  for (auto &grid_name : pxr::grid_tokens_->allTokens) {
+  static const pxr::TfToken grid_tokens[] = {pxr::TfToken("density", pxr::TfToken::Immortal),
+                                             pxr::TfToken("flame", pxr::TfToken::Immortal),
+                                             pxr::TfToken("shadow", pxr::TfToken::Immortal),
+                                             pxr::TfToken("temperature", pxr::TfToken::Immortal),
+                                             pxr::TfToken("velocity", pxr::TfToken::Immortal)};
+
+  for (const auto &grid_name : grid_tokens) {
     field_descriptors_.emplace_back(grid_name,
                                     pxr::UsdVolImagingTokens->openvdbAsset,
                                     prim_id.AppendElementString("VF_" + grid_name.GetString()));
@@ -118,7 +120,7 @@ void VolumeModifierData::write_transform()
                pxr::GfMatrix4d(1.0f).SetTranslate(pxr::GfVec3d(texspace_loc));
 
   /* applying object transform */
-  transform *= gf_matrix_from_transform(object->object_to_world);
+  transform *= gf_matrix_from_transform(object->object_to_world().ptr());
 }
 
 std::string VolumeModifierData::get_cached_file_path(std::string directory, int frame)

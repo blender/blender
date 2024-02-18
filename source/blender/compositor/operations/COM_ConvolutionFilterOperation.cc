@@ -90,10 +90,10 @@ void ConvolutionFilterOperation::execute_pixel(float output[4], int x, int y, vo
   output[3] = output[3] * value[0] + in2[3] * mval;
 
   /* Make sure we don't return negative color. */
-  output[0] = MAX2(output[0], 0.0f);
-  output[1] = MAX2(output[1], 0.0f);
-  output[2] = MAX2(output[2], 0.0f);
-  output[3] = MAX2(output[3], 0.0f);
+  output[0] = std::max(output[0], 0.0f);
+  output[1] = std::max(output[1], 0.0f);
+  output[2] = std::max(output[2], 0.0f);
+  output[3] = std::max(output[3], 0.0f);
 }
 
 bool ConvolutionFilterOperation::determine_depending_area_of_interest(

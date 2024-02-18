@@ -277,9 +277,9 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader,
                                 ID *id) ATTR_NONNULL(2);
 
 /**
- * Search for the new address of the ID for the given `session_uuid`.
+ * Search for the new address of the ID for the given `session_uid`.
  *
- * Only IDs existing in the newly read Main will be returned. If no matching `session_uuid` in new
+ * Only IDs existing in the newly read Main will be returned. If no matching `session_uid` in new
  * main can be found, `nullptr` is returned.
  *
  * This expected to be used during library-linking and/or 'undo_preserve' processes in undo case
@@ -287,7 +287,7 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader,
  * coming from the previous, existing Main data, when it is preserved in newly read Main.
  * See e.g. the #scene_undo_preserve code-path.
  */
-ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
+ID *BLO_read_get_new_id_address_from_session_uid(BlendLibReader *reader, uint session_uid)
     ATTR_NONNULL(1);
 
 /* Misc. */

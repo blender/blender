@@ -5,7 +5,7 @@
  *
  * Adapted from the Blender Alembic importer implementation. */
 
-#include "usd_reader_camera.h"
+#include "usd_reader_camera.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"

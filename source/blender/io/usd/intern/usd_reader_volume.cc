@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_reader_volume.h"
+#include "usd_reader_volume.hh"
 
 #include "BLI_string.h"
 
@@ -14,8 +14,6 @@
 
 #include <pxr/usd/usdVol/openVDBAsset.h>
 #include <pxr/usd/usdVol/volume.h>
-
-#include <iostream>
 
 namespace usdtokens {
 

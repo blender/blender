@@ -5,19 +5,16 @@
 #include "DNA_space_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_update.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_node.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
-
-#include "NOD_socket.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

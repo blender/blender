@@ -11,13 +11,13 @@
 
 #pragma once
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_object_types.h"
 #include "DRW_render.hh"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "eevee_shader_shared.hh"
 
@@ -34,15 +34,15 @@ class Instance;
 
 class ObjectKey {
   /** Hash value of the key. */
-  uint64_t hash_value_;
+  uint64_t hash_value_ = 0;
   /** Original Object or source object for duplis. */
-  Object *ob_;
+  Object *ob_ = nullptr;
   /** Original Parent object for duplis. */
-  Object *parent_;
+  Object *parent_ = nullptr;
   /** Dupli objects recursive unique identifier */
   int id_[MAX_DUPLI_RECUR];
   /** Used for particle system hair. */
-  int sub_key_;
+  int sub_key_ = 0;
 
  public:
   ObjectKey() = default;
@@ -186,7 +186,6 @@ class SyncModule {
                    const ObjectRef &ob_ref,
                    ModifierData *modifier_data = nullptr,
                    ParticleSystem *particle_sys = nullptr);
-  void sync_light_probe(Object *ob, ObjectHandle &ob_handle);
 };
 
 using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;

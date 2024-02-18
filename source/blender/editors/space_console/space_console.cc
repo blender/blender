@@ -15,7 +15,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
 #include "BKE_screen.hh"
 
 #include "ED_screen.hh"
@@ -151,31 +150,44 @@ static void console_cursor(wmWindow *win, ScrArea * /*area*/, ARegion *region)
 
 /* ************* dropboxes ************* */
 
-static bool id_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool console_drop_id_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return WM_drag_get_local_ID(drag, 0) != nullptr;
 }
 
-static void id_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void console_drop_id_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID(drag, 0);
 
   /* copy drag path to properties */
-  char *text = RNA_path_full_ID_py(id);
-  RNA_string_set(drop->ptr, "text", text);
-  MEM_freeN(text);
+  std::string text = RNA_path_full_ID_py(id);
+  RNA_string_set(drop->ptr, "text", text.c_str());
 }
 
-static bool path_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+static bool console_drop_path_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   return (drag->type == WM_DRAG_PATH);
 }
 
-static void path_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+static void console_drop_path_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 {
   char pathname[FILE_MAX + 2];
   SNPRINTF(pathname, "\"%s\"", WM_drag_get_single_path(drag));
   RNA_string_set(drop->ptr, "text", pathname);
+}
+
+static bool console_drop_string_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  return (drag->type == WM_DRAG_STRING);
+}
+
+static void console_drop_string_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  /* NOTE(@ideasman42): Only a single line is supported, multiple lines could be supported
+   * but this implies executing all lines except for the last. While we could consider that,
+   * there are some security implications for this, so just drop one line for now. */
+  std::string str = WM_drag_get_string_firstline(drag);
+  RNA_string_set(drop->ptr, "text", str.c_str());
 }
 
 /* this region dropbox definition */
@@ -183,8 +195,16 @@ static void console_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Console", SPACE_CONSOLE, RGN_TYPE_WINDOW);
 
-  WM_dropbox_add(lb, "CONSOLE_OT_insert", id_drop_poll, id_drop_copy, nullptr, nullptr);
-  WM_dropbox_add(lb, "CONSOLE_OT_insert", path_drop_poll, path_drop_copy, nullptr, nullptr);
+  WM_dropbox_add(
+      lb, "CONSOLE_OT_insert", console_drop_id_poll, console_drop_id_copy, nullptr, nullptr);
+  WM_dropbox_add(
+      lb, "CONSOLE_OT_insert", console_drop_path_poll, console_drop_path_copy, nullptr, nullptr);
+  WM_dropbox_add(lb,
+                 "CONSOLE_OT_insert",
+                 console_drop_string_poll,
+                 console_drop_string_copy,
+                 nullptr,
+                 nullptr);
 }
 
 /* ************* end drop *********** */
@@ -325,7 +345,7 @@ static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_console()
 {
-  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype console"));
+  std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
   ARegionType *art;
 
   st->spaceid = SPACE_CONSOLE;
@@ -365,5 +385,5 @@ void ED_spacetype_console()
 
   BLI_addhead(&st->regiontypes, art);
 
-  BKE_spacetype_register(st);
+  BKE_spacetype_register(std::move(st));
 }

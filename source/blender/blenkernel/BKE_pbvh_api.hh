@@ -447,12 +447,12 @@ void BKE_pbvh_node_mark_update_face_sets(PBVHNode *node);
 void BKE_pbvh_node_mark_update_visibility(PBVHNode *node);
 void BKE_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BKE_pbvh_node_mark_redraw(PBVHNode *node);
-void BKE_pbvh_node_mark_normals_update(PBVHNode *node);
+void BKE_pbvh_node_mark_positions_update(PBVHNode *node);
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node);
 void BKE_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 bool BKE_pbvh_node_fully_hidden_get(const PBVHNode *node);
 void BKE_pbvh_node_fully_masked_set(PBVHNode *node, int fully_masked);
-bool BKE_pbvh_node_fully_masked_get(PBVHNode *node);
+bool BKE_pbvh_node_fully_masked_get(const PBVHNode *node);
 void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 void BKE_pbvh_node_mark_curvature_update(PBVHNode *node);
@@ -500,8 +500,8 @@ blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBV
  */
 int BKE_pbvh_num_faces(const PBVH *pbvh);
 
-blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(PBVHNode *node);
-blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(PBVHNode *node);
+blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
+blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);
 
 float BKE_pbvh_node_get_tmin(PBVHNode *node);
 

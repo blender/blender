@@ -21,14 +21,12 @@
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_tangent.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
-#include "BLI_strict_flags.h"
-
-#include "atomic_ops.h"
 #include "mikktspace.hh"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 using blender::float2;
 
@@ -61,7 +59,7 @@ struct BKEMeshToTangent {
 
   mikk::float3 GetNormal(const uint face_num, const uint vert_num)
   {
-    return mikk::float3(loop_normals[uint(faces[face_num].start()) + vert_num]);
+    return mikk::float3(corner_normals[uint(faces[face_num].start()) + vert_num]);
   }
 
   void SetTangentSpace(const uint face_num, const uint vert_num, mikk::float3 T, bool orientation)
@@ -74,7 +72,7 @@ struct BKEMeshToTangent {
   const int *corner_verts;           /* faces vertices */
   const float (*positions)[3];       /* vertices */
   const float (*luvs)[2];            /* texture coordinates */
-  const float (*loop_normals)[3];    /* loops' normals */
+  const float (*corner_normals)[3];  /* loops' normals */
   float (*tangents)[4];              /* output tangents */
   int num_faces;                     /* number of polygons */
 };
@@ -83,7 +81,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
                                           const int /*numVerts*/,
                                           const int *corner_verts,
                                           float (*r_looptangent)[4],
-                                          const float (*loop_normals)[3],
+                                          const float (*corner_normals)[3],
                                           const float (*loop_uvs)[2],
                                           const int /*numLoops*/,
                                           const blender::OffsetIndices<int> faces,
@@ -95,7 +93,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const float (*vert_positions)[3],
   mesh_to_tangent.corner_verts = corner_verts;
   mesh_to_tangent.positions = vert_positions;
   mesh_to_tangent.luvs = loop_uvs;
-  mesh_to_tangent.loop_normals = loop_normals;
+  mesh_to_tangent.corner_normals = corner_normals;
   mesh_to_tangent.tangents = r_looptangent;
   mesh_to_tangent.num_faces = int(faces.size());
 
@@ -401,7 +399,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    int tangent_names_len,
                                    const float (*vert_normals)[3],
                                    const float (*face_normals)[3],
-                                   const float (*loop_normals)[3],
+                                   const float (*corner_normals)[3],
                                    const float (*vert_orco)[3],
                                    /* result */
                                    CustomData *loopdata_out,
@@ -503,7 +501,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
         mesh2tangent->sharp_faces = sharp_faces;
         /* NOTE: we assume we do have tessellated loop normals at this point
          * (in case it is object-enabled), have to check this is valid. */
-        mesh2tangent->precomputedLoopNormals = loop_normals;
+        mesh2tangent->precomputedLoopNormals = corner_normals;
         mesh2tangent->precomputedFaceNormals = face_normals;
 
         mesh2tangent->orco = nullptr;

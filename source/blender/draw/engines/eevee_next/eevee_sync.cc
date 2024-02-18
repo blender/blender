@@ -90,6 +90,10 @@ void SyncModule::sync_mesh(Object *ob,
                            ResourceHandle res_handle,
                            const ObjectRef &ob_ref)
 {
+  if (!inst_.use_surfaces) {
+    return;
+  }
+
   bool has_motion = inst_.velocity.step_object_sync(
       ob, ob_handle.object_key, res_handle, ob_handle.recalc);
 
@@ -167,6 +171,10 @@ bool SyncModule::sync_sculpt(Object *ob,
                              ResourceHandle res_handle,
                              const ObjectRef &ob_ref)
 {
+  if (!inst_.use_surfaces) {
+    return false;
+  }
+
   bool pbvh_draw = BKE_sculptsession_use_pbvh_draw(ob, inst_.rv3d) && !DRW_state_is_image_render();
   /* Needed for mesh cache validation, to prevent two copies of
    * of vertex color arrays from being sent to the GPU (e.g.
@@ -317,6 +325,10 @@ void SyncModule::sync_point_cloud(Object *ob,
 
 void SyncModule::sync_volume(Object *ob, ObjectHandle & /*ob_handle*/, ResourceHandle res_handle)
 {
+  if (!inst_.use_volumes) {
+    return;
+  }
+
   const int material_slot = VOLUME_MATERIAL_NR;
 
   /* Motion is not supported on volumes yet. */
@@ -460,6 +472,11 @@ void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandl
     inst_.gpencil_engine_enabled = true;
     return;
   }
+  /* Is this a surface or curves? */
+  if (!inst_.use_surfaces) {
+    return;
+  }
+
   UNUSED_VARS(res_handle);
 
   gpIterData iter(inst_, ob, ob_handle, res_handle);
@@ -485,6 +502,10 @@ void SyncModule::sync_curves(Object *ob,
                              ModifierData *modifier_data,
                              ParticleSystem *particle_sys)
 {
+  if (!inst_.use_curves) {
+    return;
+  }
+
   int mat_nr = CURVES_MATERIAL_NR;
   if (particle_sys != nullptr) {
     mat_nr = particle_sys->part->omat;
@@ -546,19 +567,6 @@ void SyncModule::sync_curves(Object *ob,
   }
 
   inst_.shadows.sync_object(ob, ob_handle, res_handle, is_alpha_blend);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Light Probes
- * \{ */
-
-void SyncModule::sync_light_probe(Object *ob, ObjectHandle &ob_handle)
-{
-  inst_.light_probes.sync_probe(ob, ob_handle);
-  inst_.reflection_probes.sync_object(ob, ob_handle);
-  inst_.planar_probes.sync_object(ob, ob_handle);
 }
 
 /** \} */

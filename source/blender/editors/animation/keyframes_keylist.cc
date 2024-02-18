@@ -19,7 +19,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_range.h"
 #include "BLI_utildefines.h"
@@ -885,7 +884,7 @@ static void update_keyblocks(AnimKeylist *keylist, BezTriple *bezt, const int be
   int max_curve = 0;
 
   LISTBASE_FOREACH (ActKeyColumn *, col, &keylist->key_columns) {
-    max_curve = MAX2(max_curve, col->totcurve);
+    max_curve = std::max(max_curve, int(col->totcurve));
   }
 
   /* Propagate blocks to inserted keys. */

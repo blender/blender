@@ -4,7 +4,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 

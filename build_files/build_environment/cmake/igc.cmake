@@ -21,7 +21,10 @@ ExternalProject_Add(external_igc_opencl_clang
   CONFIGURE_COMMAND echo .
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/ < ${PATCH_DIR}/igc_opencl_clang.diff
+
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
+    ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/ <
+    ${PATCH_DIR}/igc_opencl_clang.diff
 )
 
 set(IGC_OPENCL_CLANG_PATCH_DIR ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/patches)
@@ -36,12 +39,26 @@ ExternalProject_Add(external_igc_llvm
   CONFIGURE_COMMAND echo .
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0001-Remove-__IMAGE_SUPPORT__-macro-for-SPIR.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0002-Remove-wrong-check-of-__opencl_c_images-feature-macr.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0003-Fix-checking-mechanism-for-read_write-Image-type.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0004-OpenCL-Allow-undefining-header-only-macros.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-Enable-use-of-GNU-C-extension.patch &&
-    ${PATCH_CMD} -p 1 -d ${IGC_LLVM_SOURCE_DIR} < ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0006-Make-globals-used-for-array-initialization-codegen-c.patch
+
+  PATCH_COMMAND
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0001-Remove-__IMAGE_SUPPORT__-macro-for-SPIR.patch &&
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0002-Remove-wrong-check-of-__opencl_c_images-feature-macr.patch &&
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0003-Fix-checking-mechanism-for-read_write-Image-type.patch &&
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0004-OpenCL-Allow-undefining-header-only-macros.patch &&
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0005-Enable-use-of-GNU-C-extension.patch &&
+    ${PATCH_CMD} -p 1 -d
+      ${IGC_LLVM_SOURCE_DIR} <
+      ${IGC_OPENCL_CLANG_PATCH_DIR}/clang/0006-Make-globals-used-for-array-initialization-codegen-c.patch
 )
 add_dependencies(
   external_igc_llvm
@@ -86,19 +103,36 @@ ExternalProject_Add(external_igc
   URL file://${PACKAGE_DIR}/${IGC_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${IGC_HASH_TYPE}=${IGC_HASH}
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/igc ${DEFAULT_CMAKE_FLAGS} ${IGC_EXTRA_ARGS}
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/igc
+    ${DEFAULT_CMAKE_FLAGS}
+    ${IGC_EXTRA_ARGS}
 
   # IGC is pretty set in its way where sub projects ought to live, for some it offers
-  # hooks to supply alternatives folders, other are just hardocded with no way to configure
+  # hooks to supply alternatives folders, other are just hard-coded with no way to configure
   # we symlink everything here, since it's less work than trying to convince the cmake
   # scripts to accept alternative locations.
-  #
-  PATCH_COMMAND ${CMAKE_COMMAND} -E create_symlink ${BUILD_DIR}/igc_llvm/src/external_igc_llvm/ ${BUILD_DIR}/igc/src/llvm-project &&
-    ${CMAKE_COMMAND} -E create_symlink ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/ ${BUILD_DIR}/igc/src/llvm-project/llvm/projects/opencl-clang &&
-    ${CMAKE_COMMAND} -E create_symlink ${BUILD_DIR}/igc_spirv_translator/src/external_igc_spirv_translator/ ${BUILD_DIR}/igc/src/llvm-project/llvm/projects/llvm-spirv &&
-    ${CMAKE_COMMAND} -E create_symlink ${BUILD_DIR}/igc_spirv_tools/src/external_igc_spirv_tools/ ${BUILD_DIR}/igc/src/SPIRV-Tools &&
-    ${CMAKE_COMMAND} -E create_symlink ${BUILD_DIR}/igc_spirv_headers/src/external_igc_spirv_headers/ ${BUILD_DIR}/igc/src/SPIRV-Headers &&
-    ${CMAKE_COMMAND} -E create_symlink ${BUILD_DIR}/igc_vcintrinsics/src/external_igc_vcintrinsics/ ${BUILD_DIR}/igc/src/vc-intrinsics
+  PATCH_COMMAND
+    ${CMAKE_COMMAND} -E create_symlink
+      ${BUILD_DIR}/igc_llvm/src/external_igc_llvm/
+      ${BUILD_DIR}/igc/src/llvm-project &&
+    ${CMAKE_COMMAND} -E create_symlink
+      ${BUILD_DIR}/igc_opencl_clang/src/external_igc_opencl_clang/
+      ${BUILD_DIR}/igc/src/llvm-project/llvm/projects/opencl-clang &&
+    ${CMAKE_COMMAND} -E create_symlink
+      ${BUILD_DIR}/igc_spirv_translator/src/external_igc_spirv_translator/
+      ${BUILD_DIR}/igc/src/llvm-project/llvm/projects/llvm-spirv &&
+    ${CMAKE_COMMAND} -E create_symlink
+      ${BUILD_DIR}/igc_spirv_tools/src/external_igc_spirv_tools/
+      ${BUILD_DIR}/igc/src/SPIRV-Tools &&
+    ${CMAKE_COMMAND} -E create_symlink
+      ${BUILD_DIR}/igc_spirv_headers/src/external_igc_spirv_headers/
+      ${BUILD_DIR}/igc/src/SPIRV-Headers &&
+    ${CMAKE_COMMAND} -E create_symlink
+      ${BUILD_DIR}/igc_vcintrinsics/src/external_igc_vcintrinsics/
+      ${BUILD_DIR}/igc/src/vc-intrinsics
+
   PREFIX ${BUILD_DIR}/igc
   INSTALL_DIR ${LIBDIR}/igc
   INSTALL_COMMAND ${CMAKE_COMMAND} --install . --strip

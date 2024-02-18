@@ -119,6 +119,9 @@ def bake_action_objects(
     :return: A sequence of Action or None types (aligned with `object_action_pairs`)
     :rtype: sequence of :class:`bpy.types.Action`
     """
+    if not (bake_options.do_pose or bake_options.do_object):
+        return []
+
     iter = bake_action_objects_iter(object_action_pairs, bake_options=bake_options)
     iter.send(None)
     for frame in frames:
@@ -202,11 +205,40 @@ def bake_action_iter(
         "bbone_easeout": 1,
     }
 
+    def can_be_keyed(value):
+        """Returns a tri-state boolean.
+
+        - True: known to be keyable.
+        - False: known to not be keyable.
+        - None: unknown, might be an enum property for which RNA uses a string to
+            indicate a specific item (keyable) or an actual string property (not
+            keyable).
+        """
+        if isinstance(value, (int, float, bool)):
+            # These types are certainly keyable.
+            return True
+        if isinstance(value, (list, tuple, set, dict)):
+            # These types are certainly not keyable.
+            return False
+        # Maybe this could be made stricter, as also ID pointer properties and
+        # some other types cannot be keyed. However, the above checks are enough
+        # to fix the crash that this code was written for (#117988).
+        return None
+
     # Convert rna_prop types (IDPropertyArray, etc) to python types.
     def clean_custom_properties(obj):
+        if not bake_options.do_custom_props:
+            # Don't bother remembering any custom properties when they're not
+            # going to be baked anyway.
+            return {}
+
+        # Be careful about which properties to actually consider for baking, as
+        # keeping references to complex Blender data-structures around for too long
+        # can cause crashes. See #117988.
         clean_props = {
             key: rna_idprop_value_to_python(value)
             for key, value in obj.items()
+            if can_be_keyed(value) is not False
         }
         return clean_props
 
@@ -336,7 +368,8 @@ def bake_action_iter(
     lookup_fcurves = {(fcurve.data_path, fcurve.array_index): fcurve for fcurve in action.fcurves}
     if bake_options.do_pose:
         for f, armature_custom_properties in armature_info:
-            bake_custom_properties(obj, custom_props=armature_custom_properties, frame=f)
+            bake_custom_properties(obj, custom_props=armature_custom_properties,
+                                   frame=f, group_name="Armature Custom Properties")
 
         for name, pbone in obj.pose.bones.items():
             if bake_options.only_selected and not pbone.bone.select:

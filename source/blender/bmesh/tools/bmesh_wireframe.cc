@@ -8,9 +8,9 @@
  * Creates a solid wireframe from connected faces.
  */
 
-#include "MEM_guardedalloc.h"
+#include <algorithm>
 
-#include "DNA_meshdata_types.h"
+#include "MEM_guardedalloc.h"
 
 #include "bmesh.hh"
 
@@ -18,7 +18,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 
 #include "bmesh_wireframe.hh"
 
@@ -154,7 +154,7 @@ void BM_mesh_wireframe(BMesh *bm,
                        const int defgrp_index,
                        const bool defgrp_invert,
                        const short mat_offset,
-                       const short mat_max,
+                       const int mat_max,
                        /* for operators */
                        const bool use_tag)
 {
@@ -423,7 +423,7 @@ void BM_mesh_wireframe(BMesh *bm,
 
       f_new = BM_face_create_quad_tri(bm, v_l1, v_l2, v_neg2, v_neg1, f_src, BM_CREATE_NOP);
       if (mat_offset) {
-        f_new->mat_nr = CLAMPIS(f_new->mat_nr + mat_offset, 0, mat_max);
+        f_new->mat_nr = std::clamp(f_new->mat_nr + mat_offset, 0, mat_max);
       }
       BM_elem_flag_enable(f_new, BM_ELEM_TAG);
       l_new = BM_FACE_FIRST_LOOP(f_new);
@@ -436,7 +436,7 @@ void BM_mesh_wireframe(BMesh *bm,
       f_new = BM_face_create_quad_tri(bm, v_l2, v_l1, v_pos1, v_pos2, f_src, BM_CREATE_NOP);
 
       if (mat_offset) {
-        f_new->mat_nr = CLAMPIS(f_new->mat_nr + mat_offset, 0, mat_max);
+        f_new->mat_nr = std::clamp(f_new->mat_nr + mat_offset, 0, mat_max);
       }
       BM_elem_flag_enable(f_new, BM_ELEM_TAG);
       l_new = BM_FACE_FIRST_LOOP(f_new);
@@ -455,7 +455,7 @@ void BM_mesh_wireframe(BMesh *bm,
 
           f_new = BM_face_create_quad_tri(bm, v_b2, v_b1, v_neg1, v_neg2, f_src, BM_CREATE_NOP);
           if (mat_offset) {
-            f_new->mat_nr = CLAMPIS(f_new->mat_nr + mat_offset, 0, mat_max);
+            f_new->mat_nr = std::clamp(f_new->mat_nr + mat_offset, 0, mat_max);
           }
           BM_elem_flag_enable(f_new, BM_ELEM_TAG);
           l_new = BM_FACE_FIRST_LOOP(f_new);
@@ -467,7 +467,7 @@ void BM_mesh_wireframe(BMesh *bm,
 
           f_new = BM_face_create_quad_tri(bm, v_b1, v_b2, v_pos2, v_pos1, f_src, BM_CREATE_NOP);
           if (mat_offset) {
-            f_new->mat_nr = CLAMPIS(f_new->mat_nr + mat_offset, 0, mat_max);
+            f_new->mat_nr = std::clamp(f_new->mat_nr + mat_offset, 0, mat_max);
           }
           BM_elem_flag_enable(f_new, BM_ELEM_TAG);
           l_new = BM_FACE_FIRST_LOOP(f_new);

@@ -22,7 +22,6 @@
 #include "BKE_nla.h"
 
 #include "ED_anim_api.hh"
-#include "ED_markers.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -32,8 +31,6 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
-#include "transform_mode.hh"
-#include "transform_snap.hh"
 
 /** Used for NLA transform (stored in #TransData.extra pointer). */
 struct TransDataNla {

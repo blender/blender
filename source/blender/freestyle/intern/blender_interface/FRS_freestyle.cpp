@@ -28,16 +28,16 @@ using namespace Freestyle;
 #include "DNA_material_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_freestyle.h"
-#include "BKE_global.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_linestyle.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_text.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color_blend.h"
@@ -48,7 +48,7 @@ using namespace Freestyle;
 
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "pipeline.hh"
 
@@ -279,7 +279,7 @@ static bool test_edge_type_conditions(edge_type_condition *conditions,
 static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
 {
   // load mesh
-  re->i.infostr = TIP_("Freestyle: Mesh loading");
+  re->i.infostr = RPT_("Freestyle: Mesh loading");
   re->stats_draw(&re->i);
   re->i.infostr = nullptr;
   if (controller->LoadMesh(re, view_layer, depsgraph)) {
@@ -466,7 +466,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   }
 
   // compute view map
-  re->i.infostr = TIP_("Freestyle: View map creation");
+  re->i.infostr = RPT_("Freestyle: View map creation");
   re->stats_draw(&re->i);
   re->i.infostr = nullptr;
   controller->ComputeViewMap();
@@ -640,7 +640,7 @@ void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
     // render and composite Freestyle result
     if (controller->_ViewMap) {
       // render strokes
-      re->i.infostr = TIP_("Freestyle: Stroke rendering");
+      re->i.infostr = RPT_("Freestyle: Stroke rendering");
       re->stats_draw(&re->i);
       re->i.infostr = nullptr;
       g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);

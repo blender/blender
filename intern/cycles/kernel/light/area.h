@@ -308,7 +308,7 @@ ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
   }
 
   if (in_volume_segment || (!sample_rectangle && klight->area.tan_half_spread > 0)) {
-    ls->pdf *= lamp_light_pdf(Ng, -ls->D, ls->t);
+    ls->pdf *= light_pdf_area_to_solid_angle(Ng, -ls->D, ls->t);
   }
 
   return ls->eval_fac > 0;
@@ -368,7 +368,7 @@ ccl_device_forceinline void area_light_mnee_sample_update(const ccl_global Kerne
     ls->D = normalize_len(ls->P - P, &ls->t);
     area_light_eval<false>(klight, P, &ls->P, ls, zero_float2(), false);
     /* Convert pdf to be in area measure. */
-    ls->pdf /= lamp_light_pdf(ls->Ng, -ls->D, ls->t);
+    ls->pdf /= light_pdf_area_to_solid_angle(ls->Ng, -ls->D, ls->t);
   }
 }
 

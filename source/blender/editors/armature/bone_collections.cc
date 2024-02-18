@@ -9,8 +9,6 @@
 
 #include <cstring>
 
-#include "BLI_string.h"
-
 #include "ANIM_bone_collections.hh"
 
 #include "DNA_ID.h"
@@ -18,17 +16,15 @@
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_layer.h"
 #include "BKE_lib_override.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -36,12 +32,11 @@
 #include "ED_armature.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
-#include "ED_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 struct wmOperator;
 
@@ -111,8 +106,10 @@ static bool active_bone_collection_poll(bContext *C)
   return true;
 }
 
-static int bone_collection_add_exec(bContext *C, wmOperator *op)
+static int bone_collection_add_exec(bContext *C, wmOperator * /*op*/)
 {
+  using namespace blender::animrig;
+
   Object *ob = ED_object_context(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
@@ -120,23 +117,20 @@ static int bone_collection_add_exec(bContext *C, wmOperator *op)
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
 
-  const int parent_index = RNA_int_get(op->ptr, "parent_index");
-  if (parent_index < -1) {
-    BKE_reportf(
-        op->reports, RPT_ERROR, "parent_index should not be less than -1: %d", parent_index);
-    return OPERATOR_CANCELLED;
-  }
-  if (parent_index >= armature->collection_array_num) {
-    BKE_reportf(op->reports,
-                RPT_ERROR,
-                "parent_index (%d) should be less than the number of bone collections (%d)",
-                parent_index,
-                armature->collection_array_num);
-    return OPERATOR_CANCELLED;
-  }
+  /* If there is an active bone collection, create the new one as a sibling. */
+  const int parent_index = armature_bonecoll_find_parent_index(
+      armature, armature->runtime.active_collection_index);
 
   BoneCollection *bcoll = ANIM_armature_bonecoll_new(armature, nullptr, parent_index);
+
+  if (armature->runtime.active_collection) {
+    const int active_child_index = armature_bonecoll_child_number_find(
+        armature, armature->runtime.active_collection);
+    armature_bonecoll_child_number_set(armature, bcoll, active_child_index + 1);
+  }
+
   ANIM_armature_bonecoll_active_set(armature, bcoll);
+  /* TODO: ensure the ancestors of the new bone collection are all expanded. */
 
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
   return OPERATOR_FINISHED;
@@ -155,19 +149,6 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-  PropertyRNA *prop;
-  prop = RNA_def_int(
-      ot->srna,
-      "parent_index",
-      -1,
-      -1,
-      INT_MAX,
-      "Parent Index",
-      "Index of the parent bone collection, or -1 if the new bone collection should be a root",
-      -1,
-      INT_MAX);
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static int bone_collection_remove_exec(bContext *C, wmOperator * /*op*/)
@@ -432,6 +413,8 @@ static bool bone_collection_assign_poll(bContext *C)
                                  "override; explicitly create an override on the Armature");
     return false;
   }
+
+  CTX_wm_operator_poll_msg_set(C, "Linked bone collections are not editable");
 
   /* The target bone collection can be specified by name in an operator property, but that's not
    * available here. So just allow in the poll function, and do the final check in the execute. */
@@ -944,6 +927,10 @@ static int add_or_move_to_collection_exec(bContext *C,
 
   bArmature *arm = static_cast<bArmature *>(ob->data);
   BoneCollection *target_bcoll = add_or_move_to_collection_bcoll(op, arm);
+  if (!target_bcoll) {
+    /* add_or_move_to_collection_bcoll() already reported the reason. */
+    return OPERATOR_CANCELLED;
+  }
 
   bool made_any_changes = false;
   bool had_bones_to_assign = false;
@@ -1013,6 +1000,8 @@ static bool move_to_collection_poll(bContext *C)
                                  "explicitly create an override on the Armature");
     return false;
   }
+
+  CTX_wm_operator_poll_msg_set(C, "Linked bone collections are not editable");
 
   /* Ideally this would also check the target bone collection to move/assign to.
    * However, that requires access to the operator properties, and those are not
@@ -1122,7 +1111,9 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
     child_count = arm->collection_root_count;
   }
   else {
-    /* Add a menu item to assign to the parent first, before listing the children. */
+    /* Add a menu item to assign to the parent first, before listing the children.
+     * The parent is assumed to be editable, because otherwise the menu would
+     * have been disabled already one recursion level higher. */
     const BoneCollection *parent = arm->collection_array[parent_bcoll_index];
     menu_add_item_for_move_assign_unassign(
         layout, arm, parent, parent_bcoll_index, is_move_operation);
@@ -1136,6 +1127,15 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
    * bone collection wouldn't have been drawn as a menu. */
   for (int index = child_index; index < child_index + child_count; index++) {
     const BoneCollection *bcoll = arm->collection_array[index];
+
+    /* Avoid assigning/moving to a linked bone collection. */
+    if (!ANIM_armature_bonecoll_is_editable(arm, bcoll)) {
+      uiLayout *sub = uiLayoutRow(layout, false);
+      uiLayoutSetEnabled(sub, false);
+
+      menu_add_item_for_move_assign_unassign(sub, arm, bcoll, index, is_move_operation);
+      continue;
+    }
 
     if (blender::animrig::bonecoll_has_children(bcoll)) {
       uiItemMenuF(layout,
@@ -1166,7 +1166,8 @@ static int move_to_collection_regular_invoke(bContext *C, wmOperator *op)
 
 static int move_to_new_collection_invoke(bContext *C, wmOperator *op)
 {
-  return WM_operator_props_dialog_popup(C, op, 200);
+  return WM_operator_props_dialog_popup(
+      C, op, 200, IFACE_("Move to New Collection"), IFACE_("Move"));
 }
 
 static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)

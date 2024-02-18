@@ -13,15 +13,14 @@
 #  include <cstring>
 
 #  include "BKE_context.hh"
-#  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_file_handler.hh"
+#  include "BKE_report.hh"
 
-#  include "BLI_blenlib.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_object.hh"
@@ -30,8 +29,6 @@
 
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
-
-#  include "RNA_enum_types.hh"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"
@@ -42,9 +39,12 @@
 #  include "DEG_depsgraph.hh"
 
 #  include "io_usd.hh"
-#  include "usd.h"
+#  include "io_utils.hh"
+#  include "usd.hh"
 
 #  include <cstdio>
+
+using namespace blender::io::usd;
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,
@@ -457,7 +457,7 @@ static int wm_usd_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
   options->as_background_job = true;
   op->customdata = options;
 
-  return WM_operator_filesel(C, op, event);
+  return blender::ed::io::filesel_drop_import_invoke(C, op, event);
 }
 
 static int wm_usd_import_exec(bContext *C, wmOperator *op)
@@ -603,7 +603,6 @@ static void wm_usd_import_draw(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-
   uiLayout *box = uiLayoutBox(layout);
   uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("Data Types"));
   uiItemR(col, ptr, "import_cameras", UI_ITEM_NONE, nullptr, ICON_NONE);
@@ -672,7 +671,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_import_draw;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
+  ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_USD,
@@ -826,5 +825,18 @@ void WM_OT_usd_import(wmOperatorType *ot)
       "File Name Collision",
       "Behavior when the name of an imported texture file conflicts with an existing file");
 }
+
+namespace blender::ed::io {
+void usd_file_handler_add()
+{
+  auto fh = std::make_unique<blender::bke::FileHandlerType>();
+  STRNCPY(fh->idname, "IO_FH_usd");
+  STRNCPY(fh->import_operator, "WM_OT_usd_import");
+  STRNCPY(fh->label, "Universal Scene Description");
+  STRNCPY(fh->file_extensions_str, ".usd;.usda;.usdc;.usdz");
+  fh->poll_drop = poll_file_object_drop;
+  bke::file_handler_add(std::move(fh));
+}
+}  // namespace blender::ed::io
 
 #endif /* WITH_USD */

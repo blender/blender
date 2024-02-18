@@ -10,8 +10,6 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
 #include "DEG_depsgraph.hh"
 
 #include "BKE_brush.hh"
@@ -111,8 +109,7 @@ struct PinchOperationExecutor {
     curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
-    const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
-        brush_->falloff_shape);
+    const eBrushFalloffShape falloff_shape = eBrushFalloffShape(brush_->falloff_shape);
 
     if (stroke_extension.is_first) {
       if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {

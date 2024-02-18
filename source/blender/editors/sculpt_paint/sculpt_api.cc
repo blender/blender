@@ -37,8 +37,7 @@
 #include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
-
-#include "PIL_time.h"
+#include "BLI_time.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
@@ -58,8 +57,8 @@
 #include "BKE_context.hh"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
-#include "BKE_key.h"
-#include "BKE_lib_id.h"
+#include "BKE_key.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_fair.hh"
@@ -72,8 +71,8 @@
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 #include "NOD_texture.h"
@@ -81,7 +80,7 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "IMB_colormanagement.h"
+#include "IMB_colormanagement.hh"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
@@ -122,6 +121,10 @@ using blender::float2;
 using blender::float3;
 using blender::IndexRange;
 using blender::OffsetIndices;
+using blender::Span;
+using blender::MutableSpan;
+using blender::Vector;
+using blender::Set;
 
 using namespace blender::bke::paint;
 

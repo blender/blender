@@ -15,7 +15,7 @@
 
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 
@@ -24,10 +24,10 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BKE_pose_backup.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -48,7 +48,7 @@
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 
-#include "armature_intern.h"
+#include "armature_intern.hh"
 
 enum ePoseBlendState {
   POSE_BLEND_INIT,
@@ -282,17 +282,19 @@ static Object *get_poselib_object(bContext *C)
 
 static void poselib_tempload_exit(PoseBlendData *pbd)
 {
-  ED_asset_temp_id_consumer_free(&pbd->temp_id_consumer);
+  using namespace blender::ed;
+  asset::temp_id_consumer_free(&pbd->temp_id_consumer);
 }
 
 static bAction *poselib_blend_init_get_action(bContext *C, wmOperator *op)
 {
+  using namespace blender::ed;
   const AssetRepresentationHandle *asset = CTX_wm_asset(C);
 
   PoseBlendData *pbd = static_cast<PoseBlendData *>(op->customdata);
 
-  pbd->temp_id_consumer = ED_asset_temp_id_consumer_create(asset);
-  return (bAction *)ED_asset_temp_id_consumer_ensure_local_id(
+  pbd->temp_id_consumer = asset::temp_id_consumer_create(asset);
+  return (bAction *)asset::temp_id_consumer_ensure_local_id(
       pbd->temp_id_consumer, ID_AC, CTX_data_main(C), op->reports);
 }
 
@@ -321,7 +323,7 @@ static bool poselib_blend_init_data(bContext *C, wmOperator *op, const wmEvent *
   /* check if valid poselib */
   Object *ob = get_poselib_object(C);
   if (ELEM(nullptr, ob, ob->pose, ob->data)) {
-    BKE_report(op->reports, RPT_ERROR, TIP_("Pose lib is only for armatures in pose mode"));
+    BKE_report(op->reports, RPT_ERROR, "Pose lib is only for armatures in pose mode");
     return false;
   }
 
@@ -500,13 +502,13 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
     ED_slider_status_string_get(pbd->slider, slider_string, sizeof(slider_string));
 
     if (pbd->state == POSE_BLEND_BLENDING) {
-      STRNCPY(tab_string, TIP_("[Tab] - Show original pose"));
+      STRNCPY(tab_string, IFACE_("[Tab] - Show original pose"));
     }
     else {
-      STRNCPY(tab_string, TIP_("[Tab] - Show blended pose"));
+      STRNCPY(tab_string, IFACE_("[Tab] - Show blended pose"));
     }
 
-    SNPRINTF(status_string, "%s | %s | [Ctrl] - Flip Pose", tab_string, slider_string);
+    SNPRINTF(status_string, IFACE_("%s | %s | [Ctrl] - Flip Pose"), tab_string, slider_string);
     ED_workspace_status_text(C, status_string);
 
     poselib_blend_apply(C, op);

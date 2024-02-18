@@ -17,8 +17,8 @@
 #include "BLI_task.hh"
 #include "BLI_vector_set.hh"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -27,7 +27,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
@@ -725,7 +725,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
     return ok;
   }
 
-  copy_m3_m4(bmat, ob->object_to_world);
+  copy_m3_m4(bmat, ob->object_to_world().ptr());
 
   const Span<float3> positions = mesh->vert_positions();
   const OffsetIndices faces = mesh->faces();
@@ -743,7 +743,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 
     for (const int vert : corner_verts.slice(faces[i])) {
       mul_v3_m3v3(vec, bmat, positions[vert]);
-      add_v3_v3v3(vec, vec, ob->object_to_world[3]);
+      add_v3_v3v3(vec, vec, ob->object_to_world().location());
       minmax_v3v3_v3(r_min, r_max, vec);
     }
 

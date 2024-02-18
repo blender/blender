@@ -6,11 +6,13 @@
 
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "COM_Debug.h"
 #include "COM_ViewerOperation.h"
 #include "COM_WorkScheduler.h"
+
+#include "BLI_timeit.hh"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -36,12 +38,14 @@ void FullFrameExecutionModel::execute(ExecutionSystem &exec_system)
 {
   const bNodeTree *node_tree = this->context_.get_bnodetree();
   node_tree->runtime->stats_draw(node_tree->runtime->sdh,
-                                 TIP_("Compositing | Initializing execution"));
+                                 RPT_("Compositing | Initializing execution"));
 
   DebugInfo::graphviz(&exec_system, "compositor_prior_rendering");
 
   determine_areas_to_render_and_reads();
   render_operations();
+
+  profiler_.finalize(*node_tree);
 }
 
 void FullFrameExecutionModel::determine_areas_to_render_and_reads()
@@ -101,6 +105,8 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
   constexpr int output_x = 0;
   constexpr int output_y = 0;
 
+  const timeit::TimePoint time_start = timeit::Clock::now();
+
   const bool has_outputs = op->get_number_of_output_sockets() > 0;
   MemoryBuffer *op_buf = has_outputs ? create_operation_buffer(op, output_x, output_y) : nullptr;
   if (op->get_width() > 0 && op->get_height() > 0) {
@@ -120,6 +126,8 @@ void FullFrameExecutionModel::render_operation(NodeOperation *op)
   active_buffers_.set_rendered_buffer(op, std::unique_ptr<MemoryBuffer>(op_buf));
 
   operation_finished(op);
+
+  profiler_.add_operation_execution_time(*op, time_start, timeit::Clock::now());
 }
 
 void FullFrameExecutionModel::render_operations()
@@ -281,7 +289,7 @@ void FullFrameExecutionModel::update_progress_bar()
 
     char buf[128];
     SNPRINTF(buf,
-             TIP_("Compositing | Operation %i-%li"),
+             RPT_("Compositing | Operation %i-%li"),
              num_operations_finished_ + 1,
              operations_.size());
     tree->runtime->stats_draw(tree->runtime->sdh, buf);

@@ -12,7 +12,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -56,7 +56,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #  include "RNA_access.hh"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_screen.hh"
 #  include "BKE_workspace.h"
 
@@ -64,7 +64,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #  include "UI_view2d.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"
@@ -109,7 +109,7 @@ static int rna_region_alignment_get(PointerRNA *ptr)
 static bool rna_Screen_fullscreen_get(PointerRNA *ptr)
 {
   bScreen *screen = (bScreen *)ptr->data;
-  return (screen->state == SCREENMAXIMIZED);
+  return (screen->state == SCREENMAXIMIZED || screen->state == SCREENFULL);
 }
 
 static int rna_Area_type_get(PointerRNA *ptr)

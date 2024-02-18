@@ -28,7 +28,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_mesh.hh"
 
 #include "DEG_depsgraph.hh"
@@ -221,7 +221,7 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
                               int *corner_verts,
                               int *corner_edges,
                               uint corners_num,
-                              int *face_offsets,
+                              const int *face_offsets,
                               uint faces_num,
                               MDeformVert *dverts, /* assume verts_num length */
                               const bool do_verbose,

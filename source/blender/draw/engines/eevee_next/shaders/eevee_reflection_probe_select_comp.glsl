@@ -7,7 +7,8 @@
  * irradiance cache from each spherical probe location except for the world probe.
  */
 
-#pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_lightprobe_volume_eval_lib.glsl)
 
 void main()
 {
@@ -17,7 +18,7 @@ void main()
   }
 
   SphericalHarmonicL1 sh;
-  if (idx == 0) {
+  if (idx == reflection_probe_count - 1) {
     sh = lightprobe_irradiance_world();
   }
   else {

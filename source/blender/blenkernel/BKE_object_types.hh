@@ -26,6 +26,9 @@ namespace blender::bke {
 struct GeometrySet;
 
 struct ObjectRuntime {
+  /** Final transformation matrices with constraints & animsys applied. */
+  float4x4 object_to_world;
+  float4x4 world_to_object;
   /**
    * The custom data layer mask that was last used
    * to calculate data_eval and mesh_deform_eval.
@@ -87,7 +90,14 @@ struct ObjectRuntime {
    */
   Mesh *mesh_deform_eval = nullptr;
 
-  /* Evaluated mesh cage in edit mode. */
+  /**
+   * Evaluated mesh cage in edit mode.
+   *
+   * \note When the mesh's `runtime->deformed_only` is true, the meshes vertex positions
+   * and other geometry arrays will be aligned the edit-mesh. Otherwise the #CD_ORIGINDEX
+   * custom-data should be used to map the cage geometry back to the original indices, see
+   * #eModifierTypeFlag_SupportsMapping.
+   */
   Mesh *editmesh_eval_cage = nullptr;
 
   /**

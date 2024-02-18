@@ -54,6 +54,9 @@ template<typename T> static std::optional<eNodeSocketDatatype> static_type_to_so
   if constexpr (is_single_or_field_or_grid_v<T, math::Quaternion>) {
     return SOCK_ROTATION;
   }
+  if constexpr (is_same_any_v<T, float4x4, fn::Field<float4x4>>) {
+    return SOCK_MATRIX;
+  }
   if constexpr (is_same_any_v<T, std::string>) {
     return SOCK_STRING;
   }
@@ -195,6 +198,10 @@ void SocketValueVariant::store_single(const eNodeSocketDatatype socket_type, con
       value_.emplace<math::Quaternion>(*static_cast<const math::Quaternion *>(value));
       break;
     }
+    case SOCK_MATRIX: {
+      value_.emplace<float4x4>(*static_cast<const float4x4 *>(value));
+      break;
+    }
     case SOCK_RGBA: {
       value_.emplace<ColorGeometry4f>(*static_cast<const ColorGeometry4f *>(value));
       break;
@@ -208,7 +215,6 @@ void SocketValueVariant::store_single(const eNodeSocketDatatype socket_type, con
       break;
     }
   }
-  UNUSED_VARS(socket_type, value);
 }
 
 bool SocketValueVariant::is_context_dependent_field() const
@@ -223,24 +229,6 @@ bool SocketValueVariant::is_context_dependent_field() const
   return field.node().depends_on_input();
 }
 
-void *SocketValueVariant::new_single_for_write(const eNodeSocketDatatype socket_type)
-{
-  const CPPType *cpp_type = socket_type_to_geo_nodes_base_cpp_type(socket_type);
-  BLI_assert(cpp_type != nullptr);
-  BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
-  cpp_type->value_initialize(buffer);
-  this->store_single(socket_type, buffer);
-  return value_.get();
-}
-
-void *SocketValueVariant::new_single_for_write(const CPPType &cpp_type)
-{
-  const std::optional<eNodeSocketDatatype> socket_type = geo_nodes_base_cpp_type_to_socket_type(
-      cpp_type);
-  BLI_assert(socket_type);
-  return this->new_single_for_write(*socket_type);
-}
-
 void SocketValueVariant::convert_to_single()
 {
   switch (kind_) {
@@ -252,16 +240,15 @@ void SocketValueVariant::convert_to_single()
       /* Evaluates the field without inputs to try to get a single value. If the field depends on
        * context, the default value is used instead. */
       fn::GField field = std::move(value_.get<fn::GField>());
-      const CPPType &cpp_type = field.cpp_type();
-      void *buffer = this->new_single_for_write(cpp_type);
-      cpp_type.destruct(buffer);
+      void *buffer = this->allocate_single(socket_type_);
       fn::evaluate_constant_field(field, buffer);
       break;
     }
     case Kind::Grid: {
       /* Can't convert a grid to a single value, so just use the default value of the current
        * socket type. */
-      this->new_single_for_write(socket_type_);
+      const CPPType &cpp_type = *socket_type_to_geo_nodes_base_cpp_type(socket_type_);
+      this->store_single(socket_type_, cpp_type.default_value());
       break;
     }
     case Kind::None: {
@@ -284,6 +271,34 @@ GMutablePointer SocketValueVariant::get_single_ptr()
 {
   const GPointer ptr = const_cast<const SocketValueVariant *>(this)->get_single_ptr();
   return GMutablePointer(ptr.type(), const_cast<void *>(ptr.get()));
+}
+
+void *SocketValueVariant::allocate_single(const eNodeSocketDatatype socket_type)
+{
+  kind_ = Kind::Single;
+  socket_type_ = socket_type;
+  switch (socket_type) {
+    case SOCK_FLOAT:
+      return value_.allocate<float>();
+    case SOCK_INT:
+      return value_.allocate<int>();
+    case SOCK_VECTOR:
+      return value_.allocate<float3>();
+    case SOCK_BOOLEAN:
+      return value_.allocate<bool>();
+    case SOCK_ROTATION:
+      return value_.allocate<math::Quaternion>();
+    case SOCK_MATRIX:
+      return value_.allocate<float4x4>();
+    case SOCK_RGBA:
+      return value_.allocate<ColorGeometry4f>();
+    case SOCK_STRING:
+      return value_.allocate<std::string>();
+    default: {
+      BLI_assert_unreachable();
+      return nullptr;
+    }
+  }
 }
 
 std::ostream &operator<<(std::ostream &stream, const SocketValueVariant &value_variant)
@@ -337,6 +352,9 @@ INSTANTIATE_SINGLE_AND_FIELD_AND_GRID(blender::math::Quaternion)
 
 INSTANTIATE(std::string)
 INSTANTIATE(fn::GField)
+
+INSTANTIATE(float4x4)
+INSTANTIATE(fn::Field<float4x4>)
 
 #ifdef WITH_OPENVDB
 INSTANTIATE(GVolumeGrid)

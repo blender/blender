@@ -8,12 +8,11 @@
 
 #include <cstdio>
 
-#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -22,15 +21,12 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 
-#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "UI_interface.hh"
@@ -38,7 +34,6 @@
 
 #include "RNA_access.hh"
 
-#include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 
@@ -65,8 +60,8 @@ static float calc_point_weight_by_distance(Object *ob,
 {
   float weight;
   float gvert[3];
-  mul_v3_m4v3(gvert, ob->object_to_world, &pt->x);
-  float dist = len_v3v3(mmd->object->object_to_world[3], gvert);
+  mul_v3_m4v3(gvert, ob->object_to_world().ptr(), &pt->x);
+  float dist = len_v3v3(mmd->object->object_to_world().location(), gvert);
 
   if (dist > dist_max) {
     weight = 1.0f;
@@ -108,8 +103,8 @@ static void deform_stroke(GpencilModifierData *md,
     return;
   }
 
-  const float dist_max = MAX2(mmd->dist_start, mmd->dist_end);
-  const float dist_min = MIN2(mmd->dist_start, mmd->dist_end);
+  const float dist_max = std::max(mmd->dist_start, mmd->dist_end);
+  const float dist_min = std::min(mmd->dist_start, mmd->dist_end);
   const int target_def_nr = BKE_object_defgroup_name_index(ob, mmd->target_vgname);
 
   if (target_def_nr == -1) {

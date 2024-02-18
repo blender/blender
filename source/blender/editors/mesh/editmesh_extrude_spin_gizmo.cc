@@ -13,7 +13,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -32,7 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "mesh_intern.h" /* own include */
+#include "mesh_intern.hh" /* own include */
 
 #include "ED_transform.hh"
 
@@ -367,7 +367,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
     }
     if (totsel) {
       mul_v3_fl(select_center, 1.0f / totsel);
-      mul_m4_v3(obedit->object_to_world, select_center);
+      mul_m4_v3(obedit->object_to_world().ptr(), select_center);
       copy_v3_v3(ggd->data.select_center, select_center);
       ggd->data.use_select_center = true;
     }

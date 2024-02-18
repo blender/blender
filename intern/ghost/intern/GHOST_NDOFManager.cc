@@ -302,8 +302,8 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
       break;
     case 0x256F: /* 3Dconnexion. */
       switch (product_id) {
-        case 0xC62E: /* Plugged in. */
-        case 0xC62F: /* Wireless. */
+        case 0xC62E: /* SpaceMouse Wireless (cabled). */
+        case 0xC62F: /* SpaceMouse Wireless Receiver. */
         case 0xC658: /* Wireless (3DConnexion Universal Wireless Receiver in WIN32), see #82412. */
         {
           device_type_ = NDOF_SpaceMouseWireless;
@@ -311,8 +311,11 @@ bool GHOST_NDOFManager::setDevice(ushort vendor_id, ushort product_id)
           hid_map_ = ndof_HID_map_Modern3Dx;
           break;
         }
-        case 0xC631: /* Plugged in. */
-        case 0xC632: /* Wireless. */
+        case 0xC631: /* SpaceMouse Pro Wireless (cabled). */
+        case 0xC632: /* SpaceMouse Pro Wireless Receiver. */
+        case 0xC638: /* SpaceMouse Pro Wireless BT (cabled), see #116393.
+                      * 3Dconnexion docs describe this as "Wireless BT", but it is cabled. */
+        case 0xC652: /* Universal Receiver. */
         {
           device_type_ = NDOF_SpaceMouseProWireless;
           hid_map_button_num_ = 27; /* 15 physical buttons, but HID codes range from 0 to 26. */

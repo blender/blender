@@ -194,6 +194,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_data_light(Object *object);
   virtual void build_object_data_lightprobe(Object *object);
   virtual void build_object_data_speaker(Object *object);
+  virtual void build_object_data_grease_pencil(Object *object);
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);
@@ -322,7 +323,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    * very root is visible (aka not restricted.). */
   bool is_parent_collection_visible_;
 
-  /* Indexed by original ID.session_uuid, values are IDInfo. */
+  /* Indexed by original ID.session_uid, values are IDInfo. */
   Map<uint, IDInfo *> id_info_hash_;
 
   /* Set of IDs which were already build. Makes it easier to keep track of

@@ -101,34 +101,14 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
   }
   if (ELEM(node.type, GEO_NODE_REPEAT_INPUT, GEO_NODE_REPEAT_OUTPUT)) {
     aal::RelationsInNode &relations = scope.construct<aal::RelationsInNode>();
-    /* TODO: Add a smaller set of relations. This requires changing the inferencing algorithm to
-     * make it aware of loops. */
+    /* TODO: Use smaller set of eval and available relations. For now this makes the pessimistic
+     * assumption that every field may belong to any geometry. In many cases it should be possible
+     * to reduce this set a bit with static analysis. */
     for (const bNodeSocket *socket : node.output_sockets()) {
       if (socket->type == SOCK_GEOMETRY) {
         for (const bNodeSocket *other_output : node.output_sockets()) {
           if (socket_is_field(*other_output)) {
             relations.available_relations.append({other_output->index(), socket->index()});
-          }
-        }
-        for (const bNodeSocket *input_socket : node.input_sockets()) {
-          if (input_socket->type == SOCK_GEOMETRY) {
-            relations.propagate_relations.append({input_socket->index(), socket->index()});
-          }
-        }
-      }
-      else if (socket_is_field(*socket)) {
-        /* Reference relations are not added for the repeat output node here, because those need
-         * some special handling which is done during the actual inferencing. This is necessary,
-         * because nodes coming after the repeat zone don't have access to the intermediate fields
-         * created inside of the repeat zone. Instead, the outputs of the repeat zone are treated
-         * as new field sources which wrap all fields created in the zone.
-         *
-         * The repeat input node does get the expected reference relations though. */
-        if (node.type == GEO_NODE_REPEAT_INPUT) {
-          for (const bNodeSocket *input_socket : node.input_sockets()) {
-            if (socket_is_field(*input_socket)) {
-              relations.reference_relations.append({input_socket->index(), socket->index()});
-            }
           }
         }
       }
@@ -140,6 +120,18 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
             relations.eval_relations.append({other_input->index(), socket->index()});
           }
         }
+      }
+    }
+    const int items_num = node.output_sockets().size() - 1;
+    for (const int i : IndexRange(items_num)) {
+      const int input_index = (node.type == GEO_NODE_REPEAT_INPUT) ? i + 1 : i;
+      const int output_index = i;
+      const bNodeSocket &input_socket = node.input_socket(input_index);
+      if (input_socket.type == SOCK_GEOMETRY) {
+        relations.propagate_relations.append({input_index, output_index});
+      }
+      else if (socket_is_field(input_socket)) {
+        relations.reference_relations.append({input_index, output_index});
       }
     }
     return relations;
@@ -174,7 +166,7 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
   {
   }
 
-  std::string socket_name(const bNodeSocket &socket) const
+  std::string socket_name(const bNodeSocket &socket) const override
   {
     if (socket.type == SOCK_GEOMETRY) {
       std::stringstream ss;
@@ -188,7 +180,7 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
       ss << "]";
       return ss.str();
     }
-    else if (nodes::socket_type_supports_fields(eNodeSocketDatatype(socket.type))) {
+    if (nodes::socket_type_supports_fields(eNodeSocketDatatype(socket.type))) {
       std::stringstream ss;
       ss << socket.identifier << " [";
       bits::foreach_1_index(result_.propagated_fields_by_socket[socket.index_in_tree()],
@@ -374,64 +366,109 @@ static AnonymousAttributeInferencingResult analyze_anonymous_attribute_usages(
           }
         }
       }
-      const aal::RelationsInNode &relations = *relations_by_node[node->index()];
-      for (const aal::ReferenceRelation &relation : relations.reference_relations) {
-        const bNodeSocket &from_socket = node->input_socket(relation.from_field_input);
-        const bNodeSocket &to_socket = node->output_socket(relation.to_field_output);
-        if (!from_socket.is_available() || !to_socket.is_available()) {
-          continue;
-        }
-        const int src_index = from_socket.index_in_tree();
-        const int dst_index = to_socket.index_in_tree();
-        propagated_fields_by_socket[dst_index] |= propagated_fields_by_socket[src_index];
-      }
-      for (const aal::PropagateRelation &relation : relations.propagate_relations) {
-        const bNodeSocket &from_socket = node->input_socket(relation.from_geometry_input);
-        const bNodeSocket &to_socket = node->output_socket(relation.to_geometry_output);
-        if (!from_socket.is_available() || !to_socket.is_available()) {
-          continue;
-        }
-        const int src_index = from_socket.index_in_tree();
-        const int dst_index = to_socket.index_in_tree();
-        propagated_geometries_by_socket[dst_index] |= propagated_geometries_by_socket[src_index];
-        available_fields_by_geometry_socket[dst_index] |=
-            available_fields_by_geometry_socket[src_index];
-      }
-      if (node->type == GEO_NODE_REPEAT_OUTPUT && zones) {
-        /* If the amount of iterations is zero, the data is directly forwarded from the Repeat
-         * Input to the Repeat Output node. Therefor, all anonymous attributes may be propagated as
-         * well. */
-        const bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
-        const int items_num = node->output_sockets().size() - 1;
-        if (const bNode *input_node = zone->input_node) {
-          for (const int i : IndexRange(items_num)) {
-            const int src_index = input_node->input_socket(i + 1).index_in_tree();
-            const int dst_index = node->output_socket(i).index_in_tree();
+      switch (node->type) {
+        default: {
+          const aal::RelationsInNode &relations = *relations_by_node[node->index()];
+          for (const aal::ReferenceRelation &relation : relations.reference_relations) {
+            const bNodeSocket &from_socket = node->input_socket(relation.from_field_input);
+            const bNodeSocket &to_socket = node->output_socket(relation.to_field_output);
+            if (!from_socket.is_available() || !to_socket.is_available()) {
+              continue;
+            }
+            const int src_index = from_socket.index_in_tree();
+            const int dst_index = to_socket.index_in_tree();
             propagated_fields_by_socket[dst_index] |= propagated_fields_by_socket[src_index];
+          }
+          for (const aal::PropagateRelation &relation : relations.propagate_relations) {
+            const bNodeSocket &from_socket = node->input_socket(relation.from_geometry_input);
+            const bNodeSocket &to_socket = node->output_socket(relation.to_geometry_output);
+            if (!from_socket.is_available() || !to_socket.is_available()) {
+              continue;
+            }
+            const int src_index = from_socket.index_in_tree();
+            const int dst_index = to_socket.index_in_tree();
             propagated_geometries_by_socket[dst_index] |=
                 propagated_geometries_by_socket[src_index];
             available_fields_by_geometry_socket[dst_index] |=
                 available_fields_by_geometry_socket[src_index];
           }
+          break;
         }
-        /* Propagate fields that have not been created inside of the repeat zones. Field sources
-         * from inside the repeat zone become new field sources on the outside. */
-        for (const int i : IndexRange(items_num)) {
-          const int src_index = node->input_socket(i).index_in_tree();
-          const int dst_index = node->output_socket(i).index_in_tree();
-          bits::foreach_1_index(
-              propagated_fields_by_socket[src_index], [&](const int field_source_index) {
-                const FieldSource &field_source = all_field_sources[field_source_index];
-                if (const auto *socket_field_source = std::get_if<SocketFieldSource>(
-                        &field_source.data))
-                {
-                  const bNode &field_source_node = socket_field_source->socket->owner_node();
-                  if (zone->contains_node_recursively(field_source_node)) {
-                    return;
+        /* The repeat output node needs special handling for two reasons:
+         * - It propagates data directly from the zone input in case the iteration count is zero.
+         * - Fields coming out of the repeat zone are wrapped by a new #FieldSource, because the
+         *   intermediate fields from within the zone are not available afterwards. */
+        case GEO_NODE_REPEAT_OUTPUT: {
+          if (zones == nullptr) {
+            break;
+          }
+          /* If the amount of iterations is zero, the data is directly forwarded from the Repeat
+           * Input to the Repeat Output node. Therefor, all anonymous attributes may be propagated
+           * as well. */
+          const bNodeTreeZone *zone = zones->get_zone_by_node(node->identifier);
+          const int items_num = node->output_sockets().size() - 1;
+          if (const bNode *input_node = zone->input_node) {
+            for (const int i : IndexRange(items_num)) {
+              const int src_index = input_node->input_socket(i + 1).index_in_tree();
+              const int dst_index = node->output_socket(i).index_in_tree();
+              propagated_fields_by_socket[dst_index] |= propagated_fields_by_socket[src_index];
+              propagated_geometries_by_socket[dst_index] |=
+                  propagated_geometries_by_socket[src_index];
+              available_fields_by_geometry_socket[dst_index] |=
+                  available_fields_by_geometry_socket[src_index];
+            }
+          }
+
+          auto can_propagate_field_source_out_of_zone = [&](const int field_source_index) {
+            const FieldSource &field_source = all_field_sources[field_source_index];
+            if (const auto *socket_field_source = std::get_if<SocketFieldSource>(
+                    &field_source.data))
+            {
+              const bNode &field_source_node = socket_field_source->socket->owner_node();
+              if (zone->contains_node_recursively(field_source_node)) {
+                return false;
+              }
+            }
+            return true;
+          };
+          auto can_propagated_geometry_source_out_of_zone = [&](const int geometry_source_index) {
+            const GeometrySource &geometry_source = all_geometry_sources[geometry_source_index];
+            if (const auto *socket_geometry_source = std::get_if<SocketGeometrySource>(
+                    &geometry_source.data))
+            {
+              const bNode &geometry_source_node = socket_geometry_source->socket->owner_node();
+              if (zone->contains_node_recursively(geometry_source_node)) {
+                return false;
+              }
+            }
+            return true;
+          };
+
+          /* Propagate fields that have not been created inside of the repeat zones. Field sources
+           * from inside the repeat zone become new field sources on the outside. */
+          for (const int i : IndexRange(items_num)) {
+            const int src_index = node->input_socket(i).index_in_tree();
+            const int dst_index = node->output_socket(i).index_in_tree();
+            bits::foreach_1_index(
+                propagated_fields_by_socket[src_index], [&](const int field_source_index) {
+                  if (can_propagate_field_source_out_of_zone(field_source_index)) {
+                    propagated_fields_by_socket[dst_index][field_source_index].set();
                   }
-                }
-                propagated_fields_by_socket[dst_index][field_source_index].set();
-              });
+                });
+            bits::foreach_1_index(
+                available_fields_by_geometry_socket[src_index], [&](const int field_source_index) {
+                  if (can_propagate_field_source_out_of_zone(field_source_index)) {
+                    available_fields_by_geometry_socket[dst_index][field_source_index].set();
+                  }
+                });
+            bits::foreach_1_index(
+                propagated_geometries_by_socket[src_index], [&](const int geometry_source_index) {
+                  if (can_propagated_geometry_source_out_of_zone(geometry_source_index)) {
+                    propagated_geometries_by_socket[dst_index][geometry_source_index].set();
+                  }
+                });
+          }
+          break;
         }
       }
     }
@@ -662,7 +699,7 @@ bool update_anonymous_attribute_relations(bNodeTree &tree)
   tree.ensure_topology_cache();
 
   if (tree.has_available_link_cycle()) {
-    const bool changed = tree.runtime->anonymous_attribute_inferencing.get() != nullptr;
+    const bool changed = bool(tree.runtime->anonymous_attribute_inferencing);
     tree.runtime->anonymous_attribute_inferencing.reset();
     return changed;
   }

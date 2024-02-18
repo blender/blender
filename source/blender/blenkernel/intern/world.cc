@@ -23,23 +23,21 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
 #include "BKE_icons.h"
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
-#include "BKE_main.hh"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_world.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DRW_engine.hh"
 
 #include "DEG_depsgraph.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "BLO_read_write.hh"
 
@@ -81,7 +79,7 @@ static void world_init_data(ID *id)
  *
  * WARNING! This function will not handle ID user count!
  *
- * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
+ * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
 static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
@@ -179,6 +177,7 @@ static void world_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_WO = {
     /*id_code*/ ID_WO,
     /*id_filter*/ FILTER_ID_WO,
+    /*dependencies_id_types*/ FILTER_ID_TE,
     /*main_listbase_index*/ INDEX_ID_WO,
     /*struct_size*/ sizeof(World),
     /*name*/ "World",

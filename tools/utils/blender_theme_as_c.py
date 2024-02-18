@@ -29,7 +29,7 @@ C_SOURCE_HEADER = r'''/* SPDX-FileCopyrightText: 2018 Blender Authors
 
 #include "DNA_userdef_types.h"
 
-#include "BLO_readfile.h"
+#include "BLO_userdef_default.h"
 
 /* clang-format off */
 

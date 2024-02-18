@@ -192,8 +192,8 @@ void VolumeModule::end_sync()
   scatter_ps_.shader_set(
       inst_.shaders.static_shader_get(use_lights_ ? VOLUME_SCATTER_WITH_LIGHTS : VOLUME_SCATTER));
   inst_.lights.bind_resources(scatter_ps_);
-  inst_.reflection_probes.bind_resources(scatter_ps_);
-  inst_.irradiance_cache.bind_resources(scatter_ps_);
+  inst_.sphere_probes.bind_resources(scatter_ps_);
+  inst_.volume_probes.bind_resources(scatter_ps_);
   inst_.shadows.bind_resources(scatter_ps_);
   inst_.sampling.bind_resources(scatter_ps_);
   scatter_ps_.bind_image("in_scattering_img", &prop_scattering_tx_);
@@ -225,7 +225,7 @@ void VolumeModule::end_sync()
   resolve_ps_.shader_set(inst_.shaders.static_shader_get(VOLUME_RESOLVE));
   resolve_ps_.bind_resources(inst_.uniform_data);
   resolve_ps_.bind_resources(this->result);
-  resolve_ps_.bind_texture("depth_tx", &inst_.render_buffers.depth_tx);
+  resolve_ps_.bind_resources(inst_.hiz_buffer.front);
   resolve_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
   resolve_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
   /* Sync with the integration pass. */
@@ -276,6 +276,8 @@ void VolumeModule::draw_resolve(View &view)
   if (!enabled_) {
     return;
   }
+
+  inst_.hiz_buffer.update();
 
   resolve_fb_.ensure(GPU_ATTACHMENT_NONE,
                      GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.combined_tx));

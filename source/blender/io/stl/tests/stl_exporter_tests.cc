@@ -4,13 +4,13 @@
 
 #include "tests/blendfile_loading_base_test.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_main.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -34,7 +34,7 @@ static std::string read_temp_file_in_string(const std::string &file_path)
   return res;
 }
 
-class stl_export_test : public BlendfileLoadingBaseTest {
+class STLExportTest : public BlendfileLoadingBaseTest {
  public:
   bool load_file_and_depsgraph(const std::string &filepath)
   {
@@ -46,7 +46,7 @@ class stl_export_test : public BlendfileLoadingBaseTest {
   }
 
  protected:
-  stl_export_test()
+  STLExportTest()
   {
     _params = {};
     _params.forward_axis = IO_AXIS_Y;
@@ -105,25 +105,25 @@ class stl_export_test : public BlendfileLoadingBaseTest {
   STLExportParams _params;
 };
 
-TEST_F(stl_export_test, all_tris)
+TEST_F(STLExportTest, all_tris)
 {
   compare_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "all_tris.blend",
                     "io_tests" SEP_STR "stl" SEP_STR "all_tris.stl");
 }
 
-TEST_F(stl_export_test, all_quads)
+TEST_F(STLExportTest, all_quads)
 {
   compare_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "all_quads.blend",
                     "io_tests" SEP_STR "stl" SEP_STR "all_quads.stl");
 }
 
-TEST_F(stl_export_test, non_uniform_scale)
+TEST_F(STLExportTest, non_uniform_scale)
 {
   compare_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "non_uniform_scale.blend",
                     "io_tests" SEP_STR "stl" SEP_STR "non_uniform_scale.stl");
 }
 
-TEST_F(stl_export_test, cubes_positioned)
+TEST_F(STLExportTest, cubes_positioned)
 {
   compare_to_golden("io_tests" SEP_STR "blend_geometry" SEP_STR "cubes_positioned.blend",
                     "io_tests" SEP_STR "stl" SEP_STR "cubes_positioned.stl");

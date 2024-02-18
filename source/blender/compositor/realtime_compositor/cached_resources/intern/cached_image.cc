@@ -15,11 +15,11 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
 #include "BKE_image.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
@@ -42,7 +42,7 @@ CachedImageKey::CachedImageKey(ImageUser image_user, std::string pass_name)
 
 uint64_t CachedImageKey::hash() const
 {
-  return get_default_hash_4(image_user.framenr, image_user.layer, image_user.view, pass_name);
+  return get_default_hash(image_user.framenr, image_user.layer, image_user.view, pass_name);
 }
 
 bool operator==(const CachedImageKey &a, const CachedImageKey &b)
@@ -229,6 +229,7 @@ CachedImage::CachedImage(Context &context,
   ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_pass, nullptr);
   const bool is_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
   texture_ = IMB_create_gpu_texture("Image Texture", image_buffer, true, is_premultiplied);
+  GPU_texture_update_mipmap_chain(texture_);
 
   const eGPUTextureFormat original_format = GPU_texture_format(texture_);
   const eGPUTextureFormat target_format = get_compatible_texture_format(original_format);

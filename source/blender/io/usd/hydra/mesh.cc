@@ -16,14 +16,14 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 
-#include "hydra_scene_delegate.h"
-#include "mesh.h"
-
-PXR_NAMESPACE_OPEN_SCOPE
-TF_DEFINE_PRIVATE_TOKENS(tokens_, (st));
-PXR_NAMESPACE_CLOSE_SCOPE
+#include "hydra_scene_delegate.hh"
+#include "mesh.hh"
 
 namespace blender::io::hydra {
+
+namespace usdtokens {
+static const pxr::TfToken st("st", pxr::TfToken::Immortal);
+}
 
 MeshData::MeshData(HydraSceneDelegate *scene_delegate,
                    const Object *object,
@@ -99,7 +99,7 @@ pxr::VtValue MeshData::get_data(pxr::SdfPath const &id, pxr::TfToken const &key)
   if (key == pxr::HdTokens->normals) {
     return pxr::VtValue(submesh(id).normals);
   }
-  if (key == pxr::tokens_->st) {
+  if (key == usdtokens::st) {
     return pxr::VtValue(submesh(id).uvs);
   }
   if (key == pxr::HdTokens->points) {
@@ -150,7 +150,7 @@ pxr::HdPrimvarDescriptorVector MeshData::primvar_descriptors(
     }
     if (!submeshes_[0].uvs.empty()) {
       primvars.emplace_back(
-          pxr::tokens_->st, interpolation, pxr::HdPrimvarRoleTokens->textureCoordinate);
+          usdtokens::st, interpolation, pxr::HdPrimvarRoleTokens->textureCoordinate);
     }
   }
   return primvars;

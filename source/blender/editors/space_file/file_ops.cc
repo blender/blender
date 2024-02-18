@@ -11,21 +11,19 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
 
-#include "ED_asset.hh"
 #include "ED_fileselect.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -382,15 +380,16 @@ static bool fsmenu_write_file_and_refresh_or_report_error(FSMenu *fsmenu,
 {
   /* NOTE: use warning instead of error here, because the bookmark operation may be part of
    * other actions which should not cause the operator to fail entirely. */
-  const char *cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr);
-  if (UNLIKELY(!cfgdir)) {
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG,
+                                                                        nullptr);
+  if (!cfgdir.has_value()) {
     BKE_report(reports, RPT_ERROR, "Unable to create configuration directory to write bookmarks");
     return false;
   }
 
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
-  if (UNLIKELY(!fsmenu_write_file(fsmenu, filepath))) {
+  BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_BOOKMARK_FILE);
+  if (!fsmenu_write_file(fsmenu, filepath)) {
     BKE_reportf(reports, RPT_ERROR, "Unable to open or write bookmark file \"%s\"", filepath);
     return false;
   }
@@ -792,7 +791,7 @@ static bool file_walk_select_selection_set(bContext *C,
 
   /* do the actual selection */
   if (fill) {
-    FileSelection sel = {MIN2(active, last_sel), MAX2(active, last_sel)};
+    FileSelection sel = {std::min(active, last_sel), std::max(active, last_sel)};
 
     /* fill selection between last and first selected file */
     filelist_entries_select_index_range_set(

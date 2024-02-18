@@ -4,7 +4,7 @@
 
 #include "COM_ConvertColorProfileOperation.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 namespace blender::compositor {
 

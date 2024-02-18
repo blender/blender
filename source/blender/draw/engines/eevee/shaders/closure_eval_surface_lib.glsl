@@ -29,7 +29,7 @@ vec3 out_aov;
 
 bool output_sss(ClosureSubsurface diffuse, ClosureOutputDiffuse diffuse_out)
 {
-  if (diffuse.sss_radius.r == -1.0 || !do_sss || !sssToggle || outputSssId == 0) {
+  if (diffuse.sss_radius.b == -1.0 || !do_sss || !sssToggle || outputSssId == 0) {
     return false;
   }
   if (renderPassSSSColor) {

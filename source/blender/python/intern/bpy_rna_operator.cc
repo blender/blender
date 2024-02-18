@@ -19,7 +19,7 @@
 #include "BPY_extern.h"
 #include "bpy_capi_utils.h"
 
-#include "bpy_rna_operator.h" /* Own include. */
+#include "bpy_rna_operator.h" /* Own include, #BPY_rna_operator_poll_message_set_method_def. */
 
 /* -------------------------------------------------------------------- */
 /** \name Operator `poll_message_set` Method
@@ -82,16 +82,18 @@ static void pyop_poll_message_free_fn(bContext * /*C*/, void *user_data)
   BPY_DECREF(user_data);
 }
 
-PyDoc_STRVAR(BPY_rna_operator_poll_message_set_doc,
-             ".. classmethod:: poll_message_set(message, *args)\n"
-             "\n"
-             "   Set the message to show in the tool-tip when poll fails.\n"
-             "\n"
-             "   When message is callable, "
-             "additional user defined positional arguments are passed to the message function.\n"
-             "\n"
-             "   :arg message: The message or a function that returns the message.\n"
-             "   :type message: string or a callable that returns a string or None.\n");
+PyDoc_STRVAR(
+    /* Wrap. */
+    BPY_rna_operator_poll_message_set_doc,
+    ".. classmethod:: poll_message_set(message, *args)\n"
+    "\n"
+    "   Set the message to show in the tool-tip when poll fails.\n"
+    "\n"
+    "   When message is callable, "
+    "additional user defined positional arguments are passed to the message function.\n"
+    "\n"
+    "   :arg message: The message or a function that returns the message.\n"
+    "   :type message: string or a callable that returns a string or None.\n");
 
 static PyObject *BPY_rna_operator_poll_message_set(PyObject * /*self*/, PyObject *args)
 {

@@ -20,11 +20,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
-#include "BKE_idtype.h"
-#include "BKE_report.h"
+#include "BKE_idtype.hh"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"

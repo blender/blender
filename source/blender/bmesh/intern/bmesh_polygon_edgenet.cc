@@ -201,7 +201,7 @@ static bool bm_face_split_edgenet_find_loop_pair(BMVert *v_init,
     swap = !swap;
   }
   if (swap) {
-    SWAP(BMEdge *, e_pair[0], e_pair[1]);
+    std::swap(e_pair[0], e_pair[1]);
   }
 
   return true;
@@ -1642,7 +1642,7 @@ finally:
 /* Sanity check: ensure we don't have connecting edges before splicing begins. */
 #  ifndef NDEBUG
     {
-      struct TempVertPair *tvp = temp_vert_pairs.list;
+      TempVertPair *tvp = temp_vert_pairs.list;
       do {
         /* We must _never_ create connections here
          * (in case the islands can't have a connection at all). */

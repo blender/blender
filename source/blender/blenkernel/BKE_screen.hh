@@ -7,6 +7,7 @@
  * \ingroup bke
  */
 
+#include <memory>
 #include <string>
 
 #include "BLI_compiler_attrs.h"
@@ -16,17 +17,22 @@
 
 #include "BKE_context.hh"
 
+namespace blender::bke::id {
+class IDRemapper;
+}
+
 namespace blender::asset_system {
 class AssetRepresentation;
 }
 
 struct ARegion;
+struct AssetShelfType;
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
 struct Header;
 struct ID;
-struct IDRemapper;
+struct LayoutPanelState;
 struct LibraryForeachIDData;
 struct ListBase;
 struct Menu;
@@ -66,8 +72,6 @@ struct wmSpaceTypeListenerParams {
 };
 
 struct SpaceType {
-  SpaceType *next, *prev;
-
   char name[BKE_ST_MAXNAME]; /* for menus */
   int spaceid;               /* unique space identifier */
   int iconid;                /* icon lookup for menus */
@@ -108,7 +112,7 @@ struct SpaceType {
   bContextDataCallback context;
 
   /* Used when we want to replace an ID by another (or NULL). */
-  void (*id_remap)(ScrArea *area, SpaceLink *sl, const IDRemapper *mappings);
+  void (*id_remap)(ScrArea *area, SpaceLink *sl, const blender::bke::id::IDRemapper &mappings);
 
   /**
    * foreach_id callback to process all ID pointers of the editor. Used indirectly by lib_query's
@@ -140,12 +144,14 @@ struct SpaceType {
   ListBase regiontypes;
 
   /** Asset shelf type definitions. */
-  ListBase asset_shelf_types; /* #AssetShelfType */
+  blender::Vector<std::unique_ptr<AssetShelfType>> asset_shelf_types;
 
   /* read and write... */
 
   /** Default key-maps to add. */
   int keymapflag;
+
+  ~SpaceType();
 };
 
 /* region types are also defined using spacetypes_init, via a callback */
@@ -516,8 +522,6 @@ enum AssetShelfTypeFlag {
 ENUM_OPERATORS(AssetShelfTypeFlag, ASSET_SHELF_TYPE_FLAG_MAX);
 
 struct AssetShelfType {
-  AssetShelfType *next, *prev;
-
   char idname[BKE_ST_MAXNAME]; /* unique name */
 
   int space_type;
@@ -546,8 +550,8 @@ struct AssetShelfType {
 
 SpaceType *BKE_spacetype_from_id(int spaceid);
 ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid);
-const ListBase *BKE_spacetypes_list();
-void BKE_spacetype_register(SpaceType *st);
+blender::Span<std::unique_ptr<SpaceType>> BKE_spacetypes_list();
+void BKE_spacetype_register(std::unique_ptr<SpaceType> st);
 bool BKE_spacetype_exists(int spaceid);
 void BKE_spacetypes_free(); /* only for quitting blender */
 
@@ -605,6 +609,14 @@ void BKE_screen_area_free(ScrArea *area);
  */
 void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *));
 void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(wmGizmoMap *));
+
+/**
+ * Get the layout panel state for the given idname. If it does not exist yet, initialize a new
+ * panel state with the given default value.
+ */
+LayoutPanelState *BKE_panel_layout_panel_state_ensure(Panel *panel,
+                                                      const char *idname,
+                                                      bool default_closed);
 
 /**
  * Find a region of type \a region_type in provided \a regionbase.

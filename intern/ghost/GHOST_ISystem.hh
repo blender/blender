@@ -170,8 +170,10 @@ class GHOST_ISystem {
 
   /**
    * Returns the system time.
-   * Returns the number of milliseconds since the start of the system process.
-   * Based on ANSI clock() routine.
+   * Returns the number of milliseconds since the start of the system.
+   * \note The exact method used is platform dependent however monotonic methods should be used
+   * instead of wall-clock time.
+   *
    * \return The number of milliseconds.
    */
   virtual uint64_t getMilliSeconds() const = 0;

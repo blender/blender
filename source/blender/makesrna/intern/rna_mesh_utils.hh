@@ -53,7 +53,7 @@
     *max = data ? CustomData_number_of_layers(data, layer_type) - \
                       CustomData_number_of_anonymous_layers(data, layer_type) - 1 : \
                   0; \
-    *max = MAX2(0, *max); \
+    *max = std::max(0, *max); \
   }
 
 /* Define the accessors for special CustomDataLayers in the collection

@@ -13,6 +13,7 @@
 #include "ED_armature.hh"
 #include "ED_curve.hh"
 #include "ED_curves.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_lattice.hh"
 #include "ED_mball.hh"
 #include "ED_mesh.hh"
@@ -24,7 +25,7 @@
 #include "undo_intern.hh"
 
 /* Keep last */
-#include "BKE_undo_system.h"
+#include "BKE_undo_system.hh"
 
 void ED_undosys_type_init()
 {
@@ -37,6 +38,7 @@ void ED_undosys_type_init()
   BKE_undosys_type_append(ED_mball_undosys_type);
   BKE_undosys_type_append(ED_mesh_undosys_type);
   BKE_undosys_type_append(ED_curves_undosys_type);
+  BKE_undosys_type_append(ED_undosys_type_grease_pencil);
 
   /* Paint Modes */
   BKE_UNDOSYS_TYPE_IMAGE = BKE_undosys_type_append(ED_image_undosys_type);

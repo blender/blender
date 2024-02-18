@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "COM_NodeOperation.h"
+#include "COM_MultiThreadedOperation.h"
 
 namespace blender::compositor {
 
@@ -15,19 +15,26 @@ namespace blender::compositor {
  * For some setups you don want this.
  * This operation will remove the sub-pixel accuracy
  */
-class PixelateOperation : public NodeOperation {
+class PixelateOperation : public MultiThreadedOperation {
  private:
   /**
    * \brief cached reference to the input operation
    */
   SocketReader *input_operation_;
 
+  int pixel_size_;
+
  public:
-  /**
-   * \brief PixelateOperation
-   * \param data_type: the datatype to create this operator for (saves datatype conversions)
-   */
-  PixelateOperation(DataType data_type);
+  PixelateOperation();
+
+  void set_pixel_size(const int pixel_size)
+  {
+    if (pixel_size < 1) {
+      pixel_size_ = 1;
+      return;
+    }
+    pixel_size_ = pixel_size;
+  }
 
   /**
    * \brief initialization of the execution
@@ -39,6 +46,10 @@ class PixelateOperation : public NodeOperation {
    */
   void deinit_execution() override;
 
+  bool determine_depending_area_of_interest(rcti *input,
+                                            ReadBufferOperation *read_operation,
+                                            rcti *output) override;
+
   /**
    * \brief execute_pixel
    * \param output: result
@@ -47,6 +58,11 @@ class PixelateOperation : public NodeOperation {
    * \param sampler: sampler
    */
   void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+  void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
+  void update_memory_buffer_partial(MemoryBuffer *output,
+                                    const rcti &area,
+                                    Span<MemoryBuffer *> inputs) override;
 };
 
 }  // namespace blender::compositor

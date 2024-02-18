@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1719,14 +1719,6 @@ msgid "Horizontal dimension of the baking map"
 msgstr "Horizontale Dimension der Backkarte"
 
 
-msgid "Bezier Curve Point"
-msgstr "Bezierkurven-Punkt"
-
-
-msgid "Bezier curve point with two handles"
-msgstr "Bezierkurven-Punkt mit zwei Griffen"
-
-
 msgid "Control Point"
 msgstr "Kontrollpunkt"
 
@@ -2985,14 +2977,6 @@ msgstr "B-Bone Griffanfang"
 
 msgid "Bone that serves as the start handle for the B-Bone curve"
 msgstr "Knochen, der als Griffanfang für die B-Knochen-Kurve dient"
-
-
-msgid "Length of first Bezier Handle (for B-Bones only)"
-msgstr "Länge vom ersten Bezier-Griff(nur für B-Knochen)"
-
-
-msgid "Length of second Bezier Handle (for B-Bones only)"
-msgstr "Länge vom zweiten Bezier-Griff (nur für B-Knochen)"
 
 
 msgid "B-Bone End Handle Type"
@@ -6492,6 +6476,7 @@ msgid "Depth Object"
 msgstr "Objekttiefe"
 
 
+msgctxt "MovieClip"
 msgid "Track"
 msgstr "Spur"
 
@@ -7386,10 +7371,6 @@ msgstr "Eckwinkel"
 
 msgid "Poly"
 msgstr "Poly"
-
-
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgid "Depth"
@@ -12415,10 +12396,6 @@ msgid "Active index in layer mask array"
 msgstr "Aktiver Index im Ebenen-Maskenarray"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "Aktive Wachsstift-Ebene"
-
-
 msgid "Luma"
 msgstr "Luma"
 
@@ -14472,10 +14449,6 @@ msgid "Surface Offset"
 msgstr "Oberflächenversatz"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Wachsstift-Datenblock"
-
-
 msgid "Alpha Mode"
 msgstr "Alphamodus"
 
@@ -15449,6 +15422,10 @@ msgstr "Knotenbaum beinhaltet verknüpfte Knoten, die für Shading, Texturen und
 
 msgid "Grease Pencil Data"
 msgstr "Wachsstift-Daten"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Wachsstift-Datenblock"
 
 
 msgid "Interface"
@@ -16916,14 +16893,6 @@ msgstr "Einheiten Einstellungen"
 
 msgid "Unit editing settings"
 msgstr "Partikelsystem-Einstellungen"
-
-
-msgid "Audio Muted"
-msgstr "Ton stummschalten"
-
-
-msgid "Play back of audio from Sequence Editor will be muted"
-msgstr "Ton vom Sequenzeditor beim Abspielen stumm schalten"
 
 
 msgid "Audio Scrubbing"
@@ -19509,11 +19478,6 @@ msgid "Linear"
 msgstr "Linear"
 
 
-msgctxt "Action"
-msgid "Bezier"
-msgstr "Bézier"
-
-
 msgid "Smooth interpolation between A and B, with some control over curve shape"
 msgstr "Interpolation zwischen zwei Farbstoppern festlegen"
 
@@ -20328,6 +20292,10 @@ msgid "Rotation Track Specials"
 msgstr "Rotation Track Specials"
 
 
+msgid "Track"
+msgstr "Spur"
+
+
 msgid "Clean Up"
 msgstr "Aufräumen"
 
@@ -20427,10 +20395,6 @@ msgstr "Grundkörper"
 
 msgid "Keying"
 msgstr "Schlüsselbilder"
-
-
-msgid "Tracking"
-msgstr "Verfolgen"
 
 
 msgid "Layout"
@@ -22591,14 +22555,6 @@ msgstr "Objekt definiert Versatz"
 
 msgid "Object To"
 msgstr "Objekt zu"
-
-
-msgid "UV Layer"
-msgstr "Ebene"
-
-
-msgid "UV Layer name"
-msgstr "Ebenenname"
 
 
 msgid "Default Weight"
@@ -25161,6 +25117,10 @@ msgid "Pixelate"
 msgstr "Pixel"
 
 
+msgid "Pixel Size"
+msgstr "Pixelgröße"
+
+
 msgid "Alpha Convert"
 msgstr "Umwandeln"
 
@@ -25443,6 +25403,10 @@ msgstr "Vergleichen"
 
 msgid "Input Type"
 msgstr "Eingabetyp"
+
+
+msgid "Menu"
+msgstr "Menü"
 
 
 msgid "Dot Product"
@@ -29137,6 +29101,19 @@ msgid "Duplicate"
 msgstr "Duplizieren"
 
 
+msgid "Extrude selected control point(s)"
+msgstr "Ausgewählte Kontrollpunkte extrudieren"
+
+
+msgctxt "Operator"
+msgid "Extrude Curve and Move"
+msgstr "Kurve extrudieren und bewegen"
+
+
+msgid "Extrude curve and move result"
+msgstr "Kurve extrudieren und Ergebnis bewegen"
+
+
 msgid "(De)select all control points"
 msgstr "Kontrollpunkte aus-/abwählen"
 
@@ -29230,10 +29207,6 @@ msgid "Duplicate Curve"
 msgstr "Kurve duplizieren"
 
 
-msgid "Extrude selected control point(s)"
-msgstr "Ausgewählte Kontrollpunkte extrudieren"
-
-
 msgid "Init"
 msgstr "Initialisieren"
 
@@ -29315,15 +29288,6 @@ msgstr "Wachsstiftdeckkraft"
 
 
 msgctxt "Operator"
-msgid "Extrude Curve and Move"
-msgstr "Kurve extrudieren und bewegen"
-
-
-msgid "Extrude curve and move result"
-msgstr "Kurve extrudieren und Ergebnis bewegen"
-
-
-msgctxt "Operator"
 msgid "Set Handle Type"
 msgstr "Grifftyp festlegen"
 
@@ -29400,15 +29364,6 @@ msgid "Toggle Vector"
 msgstr "Vektor umschalten"
 
 
-msgctxt "Operator"
-msgid "Add Bezier Circle"
-msgstr "Bezier-Kreis hinzufügen"
-
-
-msgid "Construct a Bezier Circle"
-msgstr "Einen Bezier-Kreis erzeugen"
-
-
 msgid "Align the new object to the world"
 msgstr "Neues Objekt an der Welt ausrichten"
 
@@ -29435,15 +29390,6 @@ msgstr "Rotation des neu hinzufügten Objekts"
 
 msgid "Scale for the newly added object"
 msgstr "Skalierung des neu hinzufügten Objekts"
-
-
-msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Bezier hinzufügen"
-
-
-msgid "Construct a Bezier Curve"
-msgstr "Bezier-Kurve erzeugen"
 
 
 msgctxt "Operator"
@@ -31118,6 +31064,10 @@ msgid "Active Layer"
 msgstr "Aktive Ebene"
 
 
+msgid "Active Grease Pencil layer"
+msgstr "Aktive Wachsstift-Ebene"
+
+
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "Neue Ebene hinzufügen"
@@ -31916,6 +31866,10 @@ msgstr "Strichmodus"
 
 msgid "Flat"
 msgstr "Flach"
+
+
+msgid "By Material"
+msgstr "Nach Material"
 
 
 msgctxt "Operator"
@@ -33936,10 +33890,6 @@ msgid "Select Similar Regions"
 msgstr "Ähnliche Regionen auswählen"
 
 
-msgid "By Material"
-msgstr "Nach Material"
-
-
 msgid "Keep Sharp Edges"
 msgstr "Scharfe Kanten beibehalten"
 
@@ -34936,6 +34886,10 @@ msgid "Bake image textures of selected objects"
 msgstr "Bildtexturen von ausgewählten Objekten backen"
 
 
+msgid "UV Layer"
+msgstr "Ebene"
+
+
 msgctxt "Operator"
 msgid "Add Camera"
 msgstr "Kamera hinzufügen"
@@ -35889,14 +35843,6 @@ msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
 msgstr "Namensfilter mit '*' und '?' als Platzhaltern"
 
 
-msgid "Render and display faces uniform, using Face Normals"
-msgstr "Rendern und Darstellen von einheitlichen Flächen, durch Verwendung der Flächen-Normalen"
-
-
-msgid "Render and display faces smooth, using interpolated Vertex Normals"
-msgstr "Rendern und Darstellen von weichen Flächen, durch Verwendung von interpolierten Knoten-Normalen"
-
-
 msgctxt "Operator"
 msgid "Add Effect"
 msgstr "Effekt hinzufügen"
@@ -35979,6 +35925,10 @@ msgstr "Formschlüssel hinzufügen"
 msgctxt "Operator"
 msgid "Clear Shape Keys"
 msgstr "Formschlüssel löschen"
+
+
+msgid "Lock action to execute on vertex groups"
+msgstr "Kopie der aktiven Knotengruppe erstellen"
 
 
 msgctxt "Operator"
@@ -36158,10 +36108,6 @@ msgstr "Maximale Anzahl der transparenten Begrenzung"
 msgctxt "Operator"
 msgid "Change the Lock On Vertex Groups"
 msgstr "Die Sperrung von Knotengruppen ändern"
-
-
-msgid "Lock action to execute on vertex groups"
-msgstr "Kopie der aktiven Knotengruppe erstellen"
 
 
 msgid "Lock all vertex groups"
@@ -37481,6 +37427,10 @@ msgid "Copy settings from previous version"
 msgstr "Einstellungen von voriger Version übernehmen"
 
 
+msgid "URL"
+msgstr "URL"
+
+
 msgctxt "Operator"
 msgid "Activate Keyconfig"
 msgstr "Keyconfig aktivieren"
@@ -38275,10 +38225,6 @@ msgstr "Add-Ons"
 
 msgid "File Paths"
 msgstr "Dateipfade"
-
-
-msgid "Extensions"
-msgstr "Erweiterungen"
 
 
 msgid "Experimental"
@@ -41765,10 +41711,6 @@ msgid "Open a website in the web browser"
 msgstr "Eine Webseite im Webbrowser öffnen"
 
 
-msgid "URL"
-msgstr "URL"
-
-
 msgid "URL to open"
 msgstr "Zu öffnende URL"
 
@@ -42218,11 +42160,6 @@ msgstr "Maskenwerkzeug"
 
 msgid "Transforms"
 msgstr "Transformieren"
-
-
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Szene einrichten"
 
 
 msgid "Color Presets"
@@ -42728,10 +42665,6 @@ msgid "Helpers"
 msgstr "Helfer"
 
 
-msgid "Viscosity"
-msgstr "Zähigkeit"
-
-
 msgid "Indirect Lighting"
 msgstr "Indirekte Beleuchtung"
 
@@ -42937,10 +42870,6 @@ msgid "Styles"
 msgstr "Stile"
 
 
-msgid "Menu"
-msgstr "Menü"
-
-
 msgid "Menu Item"
 msgstr "Menüeintrag"
 
@@ -43113,11 +43042,6 @@ msgstr "Versatz vom Schnitt der Knotenschleife"
 msgctxt "Operator"
 msgid "Knife"
 msgstr "Messer"
-
-
-msgctxt "Operator"
-msgid "Spin Duplicates"
-msgstr "Duplikate drehen"
 
 
 msgctxt "Operator"
@@ -44362,16 +44286,8 @@ msgid "Auto Keyframe Insert Available"
 msgstr "Automatische Schlüsselbilder fügen Verfügbares ein"
 
 
-msgid "Automatic keyframe insertion in available F-Curves"
-msgstr "Automatisches Schlüsselbild-Einfügen in verfügbaren F-Kurven"
-
-
 msgid "Keyframe Insert Needed"
 msgstr "Schlüsselbilder bei Bedarf einfügen"
-
-
-msgid "Keyframe insertion only when keyframe needed"
-msgstr "Schlüsselbilder nur einfügen wenn sie benötigt werden"
 
 
 msgid "Allow Negative Frames"
@@ -46482,10 +46398,6 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "Vertikales Seitenverhältnis - für verzerrte oder nicht-quadratische Pixelausgabe"
 
 
-msgid "Pixel Size"
-msgstr "Pixelgröße"
-
-
 msgid "Render at full resolution"
 msgstr "Mit voller Auflösung rendern"
 
@@ -47360,6 +47272,10 @@ msgstr "Deaktiviert Rigid Body beim Start der Simulation"
 
 msgid "Simulation will be evaluated"
 msgstr "Simulation wird ausgewertet"
+
+
+msgid "Viscosity"
+msgstr "Zähigkeit"
 
 
 msgid "Plasticity"
@@ -48371,10 +48287,6 @@ msgid "Value of shape key at the current frame"
 msgstr "Wert des Formschlüssels beim aktuellen Bild"
 
 
-msgid "Shape Key Bezier Point"
-msgstr "Formschlüssel-Bezierpunkt"
-
-
 msgid "Handle 1 Location"
 msgstr "Position von Griff 1"
 
@@ -48493,11 +48405,6 @@ msgstr "Woher die Bemerkung kommt"
 
 msgid "Show annotation data-block which belongs to movie clip"
 msgstr "Bemerkung Datenblock anzeigen, der dem Filmklipp gehört"
-
-
-msgctxt "MovieClip"
-msgid "Track"
-msgstr "Spur"
 
 
 msgid "Show annotation data-block which belongs to active track"
@@ -48888,10 +48795,6 @@ msgstr "Extrapolation anzeigen"
 
 msgid "Show Handles"
 msgstr "Griffe anzeigen"
-
-
-msgid "Show handles of Bezier control points"
-msgstr "Griffe von Bezier-Kontrollpunkten anzeigen"
 
 
 msgid "Auto Normalization"
@@ -49665,10 +49568,6 @@ msgstr "Oberflächenunterteilungen pro Segment"
 
 msgid "Tilt Interpolation"
 msgstr "Neigung interpolieren"
-
-
-msgid "Bezier U"
-msgstr "Bezier U"
 
 
 msgid "NURBS weight"
@@ -53193,6 +53092,10 @@ msgid "Invert Selection"
 msgstr "Auswahl umkehren"
 
 
+msgid "Tracking"
+msgstr "Verfolgen"
+
+
 msgid "Positional"
 msgstr "Positionelle"
 
@@ -53207,6 +53110,10 @@ msgstr "Objektextras"
 
 msgid "Gamepad"
 msgstr "Gamepad"
+
+
+msgid "Extensions"
+msgstr "Erweiterungen"
 
 
 msgid "HP Reverb G2"
@@ -53671,8 +53578,14 @@ msgid "Branch: %s"
 msgstr "Abzweig: %s"
 
 
-msgid "Type \"%s\" can not be found"
-msgstr "Typ \"%s\" konnte nicht gefunden werden"
+msgctxt "Operator"
+msgid "Location"
+msgstr "Position"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotation"
 
 
 msgid "Unknown"
@@ -55165,11 +55078,6 @@ msgstr "Anwenden der Standardeinstellungen"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Position"
-
-
-msgctxt "Operator"
 msgid "Affine"
 msgstr "Affine"
 
@@ -55222,6 +55130,11 @@ msgstr "Keine aktive Ebenenspur"
 
 msgid "Tracks for Location"
 msgstr "Tracks für Ort"
+
+
+msgctxt "Operator"
+msgid "Zoom"
+msgstr "Zoom"
 
 
 msgctxt "Operator"
@@ -55710,16 +55623,6 @@ msgstr "Wachsstift erzeugen"
 
 
 msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontal"
-
-
-msgctxt "Operator"
-msgid "Vertically"
-msgstr "Vertikal"
-
-
-msgctxt "Operator"
 msgid "Invert Red Channel"
 msgstr "Rotkanal invertieren"
 
@@ -55937,10 +55840,6 @@ msgstr "Verknüpfungen ersetzen und erzeugen"
 msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Online-Handbuch"
-
-
-msgid "Inputs:"
-msgstr "Eingaben:"
 
 
 msgid "Timings"
@@ -56205,11 +56104,6 @@ msgstr "Vorschau als Hintergrund"
 
 
 msgctxt "Operator"
-msgid "Zoom"
-msgstr "Zoom"
-
-
-msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Vorschau in Fenster einpassen"
 
@@ -56321,11 +56215,6 @@ msgstr "Gaußscher Weichzeichner"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Position"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotation"
 
 
 msgctxt "Operator"
@@ -56590,21 +56479,6 @@ msgstr "Unbenutzte Datenblöcke"
 
 
 msgctxt "Operator"
-msgid "Recursive Unused Data-Blocks"
-msgstr "Rekursive nicht verwendete Datenblöcke"
-
-
-msgctxt "Operator"
-msgid "Unused Linked Data-Blocks"
-msgstr "Nicht verwendete verknüpfte Datenblöcke"
-
-
-msgctxt "Operator"
-msgid "Unused Local Data-Blocks"
-msgstr "Nicht verwendete lokale Datenblöcke"
-
-
-msgctxt "Operator"
 msgid "Quit"
 msgstr "Beenden"
 
@@ -56843,16 +56717,16 @@ msgid "Auto-Keyframing"
 msgstr "Auto-Schlüsselbilder"
 
 
+msgid "Enable in New Scenes"
+msgstr "Aktivieren in neuer Szene"
+
+
 msgid "Show Warning"
 msgstr "Warnung anzeigen"
 
 
 msgid "Only Insert Available"
 msgstr "Nur Verfügbare einfügen"
-
-
-msgid "Enable in New Scenes"
-msgstr "Aktivieren in neuer Szene"
 
 
 msgid "Default Interpolation"
@@ -56976,6 +56850,10 @@ msgid "Invert Pan Axis"
 msgstr "Schwenkachse umkehren"
 
 
+msgid "Preferences:"
+msgstr "Benutzereinstellungen:"
+
+
 msgid "Use Light"
 msgstr "Verwende Licht"
 
@@ -57009,16 +56887,12 @@ msgid "No custom %s configured"
 msgstr "Kein Benutzerdefiniertes %s konfiguriert"
 
 
+msgid "Error (see console)"
+msgstr "Fehler (siehe Konsole)"
+
+
 msgid ":"
 msgstr ":"
-
-
-msgid "Color Set %d"
-msgstr "Farbset %d"
-
-
-msgid "Color %d"
-msgstr "Farbe %d"
 
 
 msgid "Description:"
@@ -57049,25 +56923,17 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "Beschreibung"
+msgid "Color Set %d"
+msgstr "Farbset %d"
 
 
-msgid "location"
-msgstr "Position"
+msgid "Color %d"
+msgstr "Farbe %d"
 
 
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Dokumentation"
-
-
-msgid "Preferences:"
-msgstr "Benutzereinstellungen:"
-
-
-msgid "Error (see console)"
-msgstr "Fehler (siehe Konsole)"
 
 
 msgctxt "Operator"
@@ -57273,11 +57139,6 @@ msgstr "Raster"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Affe"
-
-
-msgctxt "Operator"
-msgid "Bezier"
-msgstr "Bezier"
 
 
 msgctxt "Operator"
@@ -58981,10 +58842,6 @@ msgid "Out"
 msgstr "Ausschneiden"
 
 
-msgid "✕ (Ax + B)"
-msgstr "✕ (Ax + B)"
-
-
 msgid "Add Control Point"
 msgstr "Kontrollpunkt hinzufügen"
 
@@ -59125,22 +58982,8 @@ msgid "Cannot duplicate current selection"
 msgstr "Aktuelle Auswahl kann nicht dupliziert werden"
 
 
-msgid "Only bezier curves are supported"
-msgstr "Nur Bezier Kurven werden unterstützt"
-
-
 msgid "Active object is not a selected curve"
 msgstr "Aktives Objekt ist keine ausgewählte Kurve"
-
-
-msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier-Kurve"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier-Kreis"
 
 
 msgctxt "Curve"
@@ -59487,44 +59330,8 @@ msgid "Internal error!"
 msgstr "Interner Fehler!"
 
 
-msgid "Shortcut: %s"
-msgstr "Tastenkürzel: %s"
-
-
-msgid "Python: %s"
-msgstr "Python: %s"
-
-
-msgid "Shortcut Cycle: %s"
-msgstr "Tastenkürzel: %s"
-
-
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Umschalt-Klick/Ziehen um mehreres zu selektieren)"
-
-
-msgid "Value: %s"
-msgstr "Wert: %s"
-
-
-msgid "Radians: %f"
-msgstr "Radiant: %f"
-
-
-msgid "Expression: %s"
-msgstr "Ausdruck: %s"
-
-
-msgid "Library: %s"
-msgstr "Bibliothek: %s"
-
-
-msgid "Disabled: %s"
-msgstr "Deaktiviert: %s"
-
-
-msgid "Python: %s.%s"
-msgstr "Python: %s.%s"
 
 
 msgctxt "Operator"
@@ -59643,10 +59450,6 @@ msgstr ""
 
 msgid "Direct linked library data-block, click to make local, Shift + Click to create a library override"
 msgstr "Direkter verknüpfter Bibliotheksdatenblock, klicken um lokal zu machen, Umschalt + Klicken, um eine Bibliotheksüberschreibung zu erstellen"
-
-
-msgid "Can't edit external library data"
-msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
 
 
 msgid "Delete the active position"
@@ -59815,6 +59618,14 @@ msgstr "Durchsuche Volumendaten zum Verknüpfen"
 
 msgid "Browse ID data to be linked"
 msgstr "Zu verknüpfende ID-Daten durchsuchen"
+
+
+msgid "Can't edit external library data"
+msgstr "Externe Bibliotheksdaten können nicht bearbeiten werden"
+
+
+msgid "File Not Found"
+msgstr "Datei nicht gefunden"
 
 
 msgid "Today"
@@ -61220,6 +61031,10 @@ msgid "Driven Property:"
 msgstr "Steuerungs Einstellungen:"
 
 
+msgid "Delete target variable"
+msgstr "Zielvariable löschen"
+
+
 msgid "F-Curve only has F-Modifiers"
 msgstr "F-Kurve die nur F-Modifikatoren haben"
 
@@ -61246,10 +61061,6 @@ msgstr "FEHLER: ein oder mehrere ungültige Zielkanäle"
 
 msgid "ERROR: Driver is useless without any inputs"
 msgstr "FEHLER: Treiber ist nutzlos ohne Eingabemöglichkeit"
-
-
-msgid "Delete target variable"
-msgstr "Zielvariable löschen"
 
 
 msgid "Driven Property"
@@ -61404,16 +61215,16 @@ msgid "Cannot set absolute paths with an unsaved blend file"
 msgstr "Absolute Pfade können nicht bei einer ungespeicherten blend-Datei gesetzt werden"
 
 
-msgid "Joints"
-msgstr "Gelenke"
-
-
 msgid " | Objects:%s/%s"
 msgstr " | Objekte:%s/%s"
 
 
 msgid "Memory: %s"
 msgstr "Arbeitsspeicher: %s"
+
+
+msgid "Joints"
+msgstr "Gelenke"
 
 
 msgid "Sync Length"
@@ -61912,10 +61723,6 @@ msgid "No object selected"
 msgstr "Kein Objekt ausgewählt"
 
 
-msgid "Auto Keying On"
-msgstr "Automatische Schlüsselbilder"
-
-
 msgid "along X"
 msgstr "entlang X"
 
@@ -61954,6 +61761,10 @@ msgstr "sperre %s Z"
 
 msgid "along local Z"
 msgstr "entlang lokaler Z"
+
+
+msgid "Auto Keying On"
+msgstr "Automatische Schlüsselbilder"
 
 
 msgid " along Y axis"
@@ -62294,14 +62105,6 @@ msgid "Relationship"
 msgstr "Beziehung"
 
 
-msgid "Bezier spline cannot have points added"
-msgstr "Bezier-Splines können keine hinzugefügten Punkte haben"
-
-
-msgid "Only Bezier splines can be added"
-msgstr "Nur Bezier-Splines können hinzugefügt werden"
-
-
 msgid "Unable to remove path point"
 msgstr "Pfadpunkt kann nicht entfernt werden"
 
@@ -62525,10 +62328,6 @@ msgstr "Speichern Extern..."
 
 msgid "No named attributes used"
 msgstr "Keine benannten Attribute verwendet"
-
-
-msgid "Internal Dependencies"
-msgstr "Interne Abhängigkeiten"
 
 
 msgid "Delete Bake"
@@ -63375,12 +63174,20 @@ msgid "Don't Save"
 msgstr "Nicht speichern"
 
 
+msgid "Reload file with execution of Python scripts enabled"
+msgstr "Datei neu laden mit aktiver Ausführung von Python Skripten"
+
+
+msgid "Enable scripts"
+msgstr "Skripte aktivieren"
+
+
+msgid "Continue using file without Python scripts"
+msgstr "Datei ohne Python-Skripte weiter verwenden"
+
+
 msgid "unable to open the file"
 msgstr "Datei kann nicht geöffnet werden"
-
-
-msgid "File Not Found"
-msgstr "Datei nicht gefunden"
 
 
 msgid "For security reasons, automatic execution of Python scripts in this file was disabled:"
@@ -63393,18 +63200,6 @@ msgstr "Dies kann zu unerwartetem Verhalten führen"
 
 msgid "Permanently allow execution of scripts"
 msgstr "Skripte ausführen immer erlauben"
-
-
-msgid "Reload file with execution of Python scripts enabled"
-msgstr "Datei neu laden mit aktiver Ausführung von Python Skripten"
-
-
-msgid "Enable scripts"
-msgstr "Skripte aktivieren"
-
-
-msgid "Continue using file without Python scripts"
-msgstr "Datei ohne Python-Skripte weiter verwenden"
 
 
 msgid "Save changes before closing?"

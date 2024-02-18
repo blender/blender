@@ -26,15 +26,17 @@
 #include "BLI_sort_utils.h"
 #include "BLI_string_utils.hh"
 
+#include "BLT_translation.hh"
+
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
-#include "BKE_lib_query.h"
+#include "BKE_lib_query.hh"
 #include "BKE_nla.h"
 
 #include "BLO_read_write.hh"
@@ -169,7 +171,7 @@ void BKE_fmodifier_name_set(FModifier *fcm, const char *name)
    * Ensure the name is unique. */
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(fcm->type);
   ListBase list = BLI_listbase_from_link((Link *)fcm);
-  BLI_uniquename(&list, fcm, fmi->name, '.', offsetof(FModifier, name), sizeof(fcm->name));
+  BLI_uniquename(&list, fcm, DATA_(fmi->name), '.', offsetof(FModifier, name), sizeof(fcm->name));
 }
 
 void BKE_fmodifiers_foreach_id(ListBase *fmodifiers, LibraryForeachIDData *data)
@@ -238,23 +240,22 @@ FCurve *id_data_find_fcurve(
     return nullptr;
   }
 
-  char *path = RNA_path_from_ID_to_property(&ptr, prop);
-  if (path == nullptr) {
+  const std::optional<std::string> path = RNA_path_from_ID_to_property(&ptr, prop);
+  if (!path) {
     return nullptr;
   }
 
   /* FIXME: The way drivers are handled here (always nullptr-ifying `fcu`) is very weird, this
    * needs to be re-checked I think?. */
   bool is_driven = false;
-  FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(adt, path, index, nullptr, &is_driven);
+  FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(
+      adt, path->c_str(), index, nullptr, &is_driven);
   if (is_driven) {
     if (r_driven != nullptr) {
       *r_driven = is_driven;
     }
     fcu = nullptr;
   }
-
-  MEM_freeN(path);
 
   return fcu;
 }
@@ -454,19 +455,19 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext * /*C*/,
   }
 
   /* XXX This function call can become a performance bottleneck. */
-  char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
-  if (rna_path == nullptr) {
+  const std::optional<std::string> rna_path = RNA_path_from_ID_to_property(ptr, prop);
+  if (!rna_path) {
     return nullptr;
   }
 
   /* Standard F-Curve from animdata - Animation (Action) or Drivers. */
-  FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(adt, rna_path, rnaindex, r_action, r_driven);
+  FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(
+      adt, rna_path->c_str(), rnaindex, r_action, r_driven);
 
   if (fcu != nullptr && r_animdata != nullptr) {
     *r_animdata = adt;
   }
 
-  MEM_freeN(rna_path);
   return fcu;
 }
 
@@ -1344,7 +1345,7 @@ void sort_time_fcurve(FCurve *fcu)
       if (a < (fcu->totvert - 1)) {
         /* Swap if one is after the other (and indicate that order has changed). */
         if (bezt->vec[1][0] > (bezt + 1)->vec[1][0]) {
-          SWAP(BezTriple, *bezt, *(bezt + 1));
+          std::swap(*bezt, *(bezt + 1));
           ok = true;
         }
       }

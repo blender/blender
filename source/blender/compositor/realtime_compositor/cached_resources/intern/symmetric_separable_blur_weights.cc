@@ -32,7 +32,7 @@ SymmetricSeparableBlurWeightsKey::SymmetricSeparableBlurWeightsKey(int type, flo
 
 uint64_t SymmetricSeparableBlurWeightsKey::hash() const
 {
-  return get_default_hash_2(type, radius);
+  return get_default_hash(type, radius);
 }
 
 bool operator==(const SymmetricSeparableBlurWeightsKey &a,

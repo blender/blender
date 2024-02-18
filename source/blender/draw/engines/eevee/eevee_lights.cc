@@ -144,7 +144,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   const float light_threshold = draw_ctx->scene->eevee.light_threshold;
 
   /* Position */
-  copy_v3_v3(evli->position, ob->object_to_world[3]);
+  copy_v3_v3(evli->position, ob->object_to_world().location());
 
   /* Color */
   copy_v3_v3(evli->color, &la->r);
@@ -165,7 +165,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   evli->invsqrdist_volume = 1.0f / max_ff(1e-4f, square_f(att_radius_volume));
 
   /* Vectors */
-  normalize_m4_m4_ex(mat, ob->object_to_world, scale);
+  normalize_m4_m4_ex(mat, ob->object_to_world().ptr(), scale);
   copy_v3_v3(evli->forwardvec, mat[2]);
   normalize_v3(evli->forwardvec);
   negate_v3(evli->forwardvec);
@@ -190,6 +190,14 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
   evli->light_type = float(la->type);
   if ((la->type == LA_AREA) && ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
     evli->light_type = LAMPTYPE_AREA_ELLIPSE;
+  }
+  else if (la->mode & LA_USE_SOFT_FALLOFF) {
+    if (la->type == LA_LOCAL) {
+      evli->light_type = LAMPTYPE_OMNI_DISK;
+    }
+    else if (la->type == LA_SPOT) {
+      evli->light_type = LAMPTYPE_SPOT_DISK;
+    }
   }
 
   float shape_power = light_shape_radiance_get(la, evli);

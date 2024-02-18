@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -90,6 +90,15 @@ bool BLT_translate_tooltips()
 #endif
 }
 
+bool BLT_translate_reports()
+{
+#ifdef WITH_INTERNATIONAL
+  return BLT_translate() && (U.transopts & USER_TR_REPORTS);
+#else
+  return false;
+#endif
+}
+
 bool BLT_translate_new_dataname()
 {
 #ifdef WITH_INTERNATIONAL
@@ -133,6 +142,21 @@ const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
   if (BLT_translate_tooltips()) {
+    return BLT_pgettext(msgctxt, msgid);
+  }
+
+  return msgid;
+
+#else
+  (void)msgctxt;
+  return msgid;
+#endif
+}
+
+const char *BLT_translate_do_report(const char *msgctxt, const char *msgid)
+{
+#ifdef WITH_INTERNATIONAL
+  if (BLT_translate_reports()) {
     return BLT_pgettext(msgctxt, msgid);
   }
 

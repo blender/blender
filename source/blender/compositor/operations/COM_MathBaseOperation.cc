@@ -468,7 +468,7 @@ void MathMinimumOperation::execute_pixel_sampled(float output[4],
   input_value1_operation_->read_sampled(input_value1, x, y, sampler);
   input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = MIN2(input_value1[0], input_value2[0]);
+  output[0] = std::min(input_value1[0], input_value2[0]);
 
   clamp_if_needed(output);
 }
@@ -476,7 +476,7 @@ void MathMinimumOperation::execute_pixel_sampled(float output[4],
 void MathMinimumOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
 {
   for (; !it.is_end(); ++it) {
-    *it.out = MIN2(*it.in(0), *it.in(1));
+    *it.out = std::min(*it.in(0), *it.in(1));
     clamp_when_enabled(it.out);
   }
 }
@@ -492,7 +492,7 @@ void MathMaximumOperation::execute_pixel_sampled(float output[4],
   input_value1_operation_->read_sampled(input_value1, x, y, sampler);
   input_value2_operation_->read_sampled(input_value2, x, y, sampler);
 
-  output[0] = MAX2(input_value1[0], input_value2[0]);
+  output[0] = std::max(input_value1[0], input_value2[0]);
 
   clamp_if_needed(output);
 }
@@ -500,7 +500,7 @@ void MathMaximumOperation::execute_pixel_sampled(float output[4],
 void MathMaximumOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
 {
   for (; !it.is_end(); ++it) {
-    *it.out = MAX2(*it.in(0), *it.in(1));
+    *it.out = std::max(*it.in(0), *it.in(1));
     clamp_when_enabled(it.out);
   }
 }
@@ -1007,7 +1007,7 @@ void MathCompareOperation::execute_pixel_sampled(float output[4],
 void MathCompareOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
 {
   for (; !it.is_end(); ++it) {
-    *it.out = (fabsf(*it.in(0) - *it.in(1)) <= MAX2(*it.in(2), 1e-5f)) ? 1.0f : 0.0f;
+    *it.out = (fabsf(*it.in(0) - *it.in(1)) <= std::max(*it.in(2), 1e-5f)) ? 1.0f : 0.0f;
     clamp_when_enabled(it.out);
   }
 }

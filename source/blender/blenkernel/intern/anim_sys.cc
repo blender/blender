@@ -23,7 +23,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_light_types.h"
@@ -40,14 +40,14 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_lib_id.h"
-#include "BKE_lib_query.h"
+#include "BKE_global.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_nla.h"
 #include "BKE_node.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.hh"
@@ -3235,7 +3235,7 @@ static void animsys_create_action_track_strip(const AnimData *adt,
   /* Must set NLASTRIP_FLAG_USR_INFLUENCE, or else the default setting overrides, and influence
    * doesn't work.
    */
-  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+  r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE | NLASTRIP_FLAG_NO_TIME_MAP;
 
   const bool tweaking = (adt->flag & ADT_NLA_EDIT_ON) != 0;
   const bool soloing = (adt->flag & ADT_NLA_SOLO_TRACK) != 0;

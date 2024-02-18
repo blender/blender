@@ -93,7 +93,7 @@ void shadow_tag_usage_tilemap_punctual(
   if (dist_to_light > light.influence_radius_max) {
     return;
   }
-  if (light.type == LIGHT_SPOT) {
+  if (is_spot_light(light.type)) {
     /* Early out if out of cone. */
     float angle_tan = length(lP.xy / dist_to_light);
     if (angle_tan > light.spot_tan) {

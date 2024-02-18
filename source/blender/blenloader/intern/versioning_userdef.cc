@@ -19,7 +19,6 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -34,9 +33,10 @@
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
+#include "BLO_userdef_default.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GPU_platform.h"
 
@@ -52,7 +52,7 @@
  * If this is important we can set the translations as part of versioning preferences,
  * however that should only be done if there are important use-cases. */
 #if 0
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 #else
 #  define N_(msgid) msgid
 #endif
@@ -262,6 +262,18 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->pad_rot_angle = 15.0f;
   }
 
+  /* If the userdef was created on a different platform, it may have an
+   * unsupported GPU backend selected.  If so, pick a supported default. */
+#ifdef __APPLE__
+  if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
+    userdef->gpu_backend = GPU_BACKEND_METAL;
+  }
+#else
+  if (userdef->gpu_backend == GPU_BACKEND_METAL) {
+    userdef->gpu_backend = GPU_BACKEND_OPENGL;
+  }
+#endif
+
   /* graph editor - unselected F-Curve visibility */
   if (userdef->fcu_inactive_alpha == 0) {
     userdef->fcu_inactive_alpha = 0.25f;
@@ -403,7 +415,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   if (!USER_VERSION_ATLEAST(257, 0)) {
     /* Clear #AUTOKEY_FLAG_ONLYKEYINGSET flag from user-preferences,
      * so that it doesn't linger around from old configurations like a ghost. */
-    userdef->autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
+    userdef->keying_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
   }
 
   if (!USER_VERSION_ATLEAST(260, 3)) {
@@ -482,8 +494,8 @@ void blo_do_versions_userdef(UserDef *userdef)
                        USER_FLAG_UNUSED_6 | USER_FLAG_UNUSED_7 | USER_FLAG_UNUSED_9 |
                        USER_DEVELOPER_UI);
     userdef->uiflag &= ~(USER_HEADER_BOTTOM);
-    userdef->transopts &= ~(USER_TR_UNUSED_2 | USER_TR_UNUSED_3 | USER_TR_UNUSED_4 |
-                            USER_TR_UNUSED_6 | USER_TR_UNUSED_7);
+    userdef->transopts &= ~(USER_TR_UNUSED_3 | USER_TR_UNUSED_4 | USER_TR_UNUSED_6 |
+                            USER_TR_UNUSED_7);
 
     userdef->uiflag |= USER_LOCK_CURSOR_ADJUST;
   }
@@ -856,15 +868,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     BKE_addon_remove_safe(&userdef->addons, "io_scene_obj");
   }
 
-  if (!USER_VERSION_ATLEAST(400, 12)) {
-#ifdef __APPLE__
-    /* Drop OpenGL support on MAC devices as they don't support OpenGL 4.3. */
-    if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
-      userdef->gpu_backend = GPU_BACKEND_METAL;
-    }
-#endif
-  }
-
   if (!USER_VERSION_ATLEAST(400, 15)) {
     userdef->node_preview_res = 120;
   }
@@ -903,6 +906,21 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->key_insert_channels = (USER_ANIM_KEY_CHANNEL_LOCATION |
                                     USER_ANIM_KEY_CHANNEL_ROTATION | USER_ANIM_KEY_CHANNEL_SCALE |
                                     USER_ANIM_KEY_CHANNEL_CUSTOM_PROPERTIES);
+  }
+
+  if (!USER_VERSION_ATLEAST(401, 13)) {
+    if (userdef->keying_flag & AUTOKEY_FLAG_INSERTNEEDED) {
+      userdef->keying_flag |= MANUALKEY_FLAG_INSERTNEEDED;
+    }
+    userdef->keying_flag |= AUTOKEY_FLAG_INSERTNEEDED;
+  }
+
+  if (!USER_VERSION_ATLEAST(401, 21)) {
+    LISTBASE_FOREACH (wmKeyMap *, km, &userdef->user_keymaps) {
+      if (STREQ(km->idname, "NLA Channels")) {
+        STRNCPY(km->idname, "NLA Tracks");
+      }
+    }
   }
 
   /**

@@ -5,7 +5,6 @@
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "BLI_math_geom.h"
@@ -200,7 +199,7 @@ static void sample_nearest_weights(const Span<float3> vert_positions,
 
 int sample_surface_points_spherical(RandomNumberGenerator &rng,
                                     const Mesh &mesh,
-                                    const Span<int> tri_indices_to_sample,
+                                    const Span<int> tris_to_sample,
                                     const float3 &sample_pos,
                                     const float sample_radius,
                                     const float approximate_density,
@@ -219,7 +218,7 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
 
   const int old_num = r_bary_coords.size();
 
-  for (const int tri_index : tri_indices_to_sample) {
+  for (const int tri_index : tris_to_sample) {
     const int3 &tri = corner_tris[tri_index];
 
     const float3 &v0 = positions[corner_verts[tri[0]]];

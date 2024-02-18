@@ -10,7 +10,6 @@
 #include "BLI_function_ref.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 #include "NOD_geometry_nodes_lazy_function.hh"
 
@@ -608,7 +607,8 @@ bool bNodeTree::node_id_path_from_nested_node_ref(const int32_t nested_node_id,
   return group->node_id_path_from_nested_node_ref(ref->path.id_in_node, r_node_ids);
 }
 
-const bNode *bNodeTree::find_nested_node(const int32_t nested_node_id) const
+const bNode *bNodeTree::find_nested_node(const int32_t nested_node_id,
+                                         const bNodeTree **r_tree) const
 {
   const bNestedNodeRef *ref = this->find_nested_node_ref(nested_node_id);
   if (ref == nullptr) {
@@ -620,11 +620,14 @@ const bNode *bNodeTree::find_nested_node(const int32_t nested_node_id) const
     return nullptr;
   }
   if (!node->is_group()) {
+    if (r_tree) {
+      *r_tree = this;
+    }
     return node;
   }
   const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
   if (group == nullptr) {
     return nullptr;
   }
-  return group->find_nested_node(ref->path.id_in_node);
+  return group->find_nested_node(ref->path.id_in_node, r_tree);
 }

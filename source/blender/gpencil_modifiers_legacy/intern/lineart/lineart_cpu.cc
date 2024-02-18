@@ -6,40 +6,35 @@
  * \ingroup editors
  */
 
+#include <algorithm>
+
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_lineart.h"
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
 #include "BLI_task.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "PIL_time.h"
-
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
-#include "BKE_duplilist.h"
-#include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_deform.hh"
+#include "BKE_global.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -49,7 +44,6 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -345,7 +339,7 @@ void lineart_edge_cut(LineartData *ld,
       continue;
     }
 
-    min_occ = MIN2(min_occ, seg->occlusion);
+    min_occ = std::min<int8_t>(min_occ, seg->occlusion);
 
     prev_seg = seg;
   }
@@ -2460,7 +2454,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
                                                 Scene *scene,
                                                 Object *ob,
                                                 Object *ref_ob,
-                                                float use_mat[4][4],
+                                                const float use_mat[4][4],
                                                 bool is_render,
                                                 LineartObjectLoadTaskInfo *olti,
                                                 int thread_count,
@@ -2572,7 +2566,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
+    t_start = BLI_time_now_seconds();
   }
 
   int thread_count = ld->thread_count;
@@ -2622,7 +2616,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                           scene,
                                           eval_ob,
                                           eval_ob,
-                                          eval_ob->object_to_world,
+                                          eval_ob->object_to_world().ptr(),
                                           is_render,
                                           olti,
                                           thread_count,
@@ -2682,7 +2676,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_time_now_seconds() - t_start;
     printf("Line art loading time: %lf\n", t_elapsed);
     printf("Discarded %d object from bound box check\n", bound_box_discard_count);
   }
@@ -2844,11 +2838,11 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
          *FBC1 = tri->v[1]->fbcoord, *FBC2 = tri->v[2]->fbcoord;
 
   /* Overlapping not possible, return early. */
-  if ((MAX3(FBC0[0], FBC1[0], FBC2[0]) < MIN2(LFBC[0], RFBC[0])) ||
-      (MIN3(FBC0[0], FBC1[0], FBC2[0]) > MAX2(LFBC[0], RFBC[0])) ||
-      (MAX3(FBC0[1], FBC1[1], FBC2[1]) < MIN2(LFBC[1], RFBC[1])) ||
-      (MIN3(FBC0[1], FBC1[1], FBC2[1]) > MAX2(LFBC[1], RFBC[1])) ||
-      (MIN3(FBC0[3], FBC1[3], FBC2[3]) > MAX2(LFBC[3], RFBC[3])))
+  if ((std::max({FBC0[0], FBC1[0], FBC2[0]}) < std::min(LFBC[0], RFBC[0])) ||
+      (std::min({FBC0[0], FBC1[0], FBC2[0]}) > std::max(LFBC[0], RFBC[0])) ||
+      (std::max({FBC0[1], FBC1[1], FBC2[1]}) < std::min(LFBC[1], RFBC[1])) ||
+      (std::min({FBC0[1], FBC1[1], FBC2[1]}) > std::max(LFBC[1], RFBC[1])) ||
+      (std::min({FBC0[3], FBC1[3], FBC2[3]}) > std::max(LFBC[3], RFBC[3])))
   {
     return false;
   }
@@ -3068,8 +3062,8 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
 
   /* Determine the start and end point of image space cut on a line. */
   if (dot_1f <= 0 && dot_2f <= 0 && (dot_v1 || dot_v2)) {
-    *from = MAX2(0, cross_ratios[cross_v1]);
-    *to = MIN2(1, cross_ratios[cross_v2]);
+    *from = std::max(0.0, cross_ratios[cross_v1]);
+    *to = std::min(1.0, cross_ratios[cross_v2]);
     if (*from >= *to) {
       return false;
     }
@@ -3077,14 +3071,14 @@ static bool lineart_triangle_edge_image_space_occlusion(const LineartTriangle *t
   }
   if (dot_1f >= 0 && dot_2f <= 0 && (dot_v1 || dot_v2)) {
     *from = std::max(cut, cross_ratios[cross_v1]);
-    *to = MIN2(1, cross_ratios[cross_v2]);
+    *to = std::min(1.0, cross_ratios[cross_v2]);
     if (*from >= *to) {
       return false;
     }
     return true;
   }
   if (dot_1f <= 0 && dot_2f >= 0 && (dot_v1 || dot_v2)) {
-    *from = MAX2(0, cross_ratios[cross_v1]);
+    *from = std::max(0.0, cross_ratios[cross_v1]);
     *to = std::min(cut, cross_ratios[cross_v2]);
     if (*from >= *to) {
       return false;
@@ -3347,7 +3341,7 @@ static bool lineart_schedule_new_triangle_task(LineartIsecThread *th)
 
   while (remaining > 0 && eln) {
     int remaining_this_eln = eln->element_count - ld->isect_scheduled_up_to_index;
-    int added_count = MIN2(remaining, remaining_this_eln);
+    int added_count = std::min(remaining, remaining_this_eln);
     remaining -= added_count;
     if (remaining || added_count == remaining_this_eln) {
       eln = eln->next;
@@ -3442,12 +3436,12 @@ static void lineart_triangle_intersect_in_bounding_area(LineartTriangle *tri,
            *RG2 = testing_triangle->v[2]->gloc;
 
     /* Bounding box not overlapping or triangles share edges, not potential of intersecting. */
-    if ((MIN3(G0[2], G1[2], G2[2]) > MAX3(RG0[2], RG1[2], RG2[2])) ||
-        (MAX3(G0[2], G1[2], G2[2]) < MIN3(RG0[2], RG1[2], RG2[2])) ||
-        (MIN3(G0[0], G1[0], G2[0]) > MAX3(RG0[0], RG1[0], RG2[0])) ||
-        (MAX3(G0[0], G1[0], G2[0]) < MIN3(RG0[0], RG1[0], RG2[0])) ||
-        (MIN3(G0[1], G1[1], G2[1]) > MAX3(RG0[1], RG1[1], RG2[1])) ||
-        (MAX3(G0[1], G1[1], G2[1]) < MIN3(RG0[1], RG1[1], RG2[1])) ||
+    if ((std::min({G0[2], G1[2], G2[2]}) > std::max({RG0[2], RG1[2], RG2[2]})) ||
+        (std::max({G0[2], G1[2], G2[2]}) < std::min({RG0[2], RG1[2], RG2[2]})) ||
+        (std::min({G0[0], G1[0], G2[0]}) > std::max({RG0[0], RG1[0], RG2[0]})) ||
+        (std::max({G0[0], G1[0], G2[0]}) < std::min({RG0[0], RG1[0], RG2[0]})) ||
+        (std::min({G0[1], G1[1], G2[1]}) > std::max({RG0[1], RG1[1], RG2[1]})) ||
+        (std::max({G0[1], G1[1], G2[1]}) < std::min({RG0[1], RG1[1], RG2[1]})) ||
         lineart_triangle_share_edge(tri, testing_triangle))
     {
       continue;
@@ -3598,11 +3592,11 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world[3]);
+  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world().location());
   if (active_camera) {
-    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world[3]);
+    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world().location());
   }
-  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world);
+  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world().ptr());
   /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and
    * lights. */
   normalize_v3(ld->conf.cam_obmat[0]);
@@ -3634,8 +3628,8 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   if (lmd->light_contour_object) {
     Object *light_obj = lmd->light_contour_object;
-    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world[3]);
-    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world);
+    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world().location());
+    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world().ptr());
     /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and
      * lights. */
     normalize_v3(ld->conf.cam_obmat_secondary[0]);
@@ -4030,10 +4024,10 @@ static void lineart_bounding_area_split(LineartData *ld,
     LineartTriangle *tri = root->linked_triangles[i];
 
     double b[4];
-    b[0] = MIN3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
-    b[1] = MAX3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
-    b[2] = MAX3(tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]);
-    b[3] = MIN3(tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]);
+    b[0] = std::min({tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]});
+    b[1] = std::max({tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]});
+    b[2] = std::max({tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]});
+    b[3] = std::min({tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]});
 
     /* Re-link triangles into child tiles, not doing intersection lines during this because this
      * batch of triangles are all tested with each other for intersections. */
@@ -4069,8 +4063,9 @@ static bool lineart_bounding_area_edge_intersect(LineartData * /*fb*/,
   double converted[4];
   double c1, c;
 
-  if (((converted[0] = ba->l) > MAX2(l[0], r[0])) || ((converted[1] = ba->r) < MIN2(l[0], r[0])) ||
-      ((converted[2] = ba->b) > MAX2(l[1], r[1])) ||
+  if (((converted[0] = ba->l) > std::max(l[0], r[0])) ||
+      ((converted[1] = ba->r) < std::min(l[0], r[0])) ||
+      ((converted[2] = ba->b) > std::max(l[1], r[1])) ||
       ((converted[3] = ba->u) < std::min(l[1], r[1])))
   {
     return false;
@@ -4178,10 +4173,10 @@ static void lineart_bounding_area_link_triangle(LineartData *ld,
     double *B1 = l_r_u_b;
     double b[4];
     if (!l_r_u_b) {
-      b[0] = MIN3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
-      b[1] = MAX3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
-      b[2] = MAX3(tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]);
-      b[3] = MIN3(tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]);
+      b[0] = std::min({tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]});
+      b[1] = std::max({tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]});
+      b[2] = std::max({tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]});
+      b[3] = std::min({tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]});
       B1 = b;
     }
     for (int iba = 0; iba < 4; iba++) {
@@ -4410,10 +4405,10 @@ static bool lineart_get_triangle_bounding_areas(
     return false;
   }
 
-  b[0] = MIN3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
-  b[1] = MAX3(tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]);
-  b[2] = MIN3(tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]);
-  b[3] = MAX3(tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]);
+  b[0] = std::min({tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]});
+  b[1] = std::max({tri->v[0]->fbcoord[0], tri->v[1]->fbcoord[0], tri->v[2]->fbcoord[0]});
+  b[2] = std::min({tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]});
+  b[3] = std::max({tri->v[0]->fbcoord[1], tri->v[1]->fbcoord[1], tri->v[2]->fbcoord[1]});
 
   if (b[0] > 1 || b[1] < -1 || b[2] > 1 || b[3] < -1) {
     return false;
@@ -4454,9 +4449,9 @@ static bool lineart_get_edge_bounding_areas(
     return false;
   }
 
-  b[0] = MIN2(e->v1->fbcoord[0], e->v2->fbcoord[0]);
+  b[0] = std::min(e->v1->fbcoord[0], e->v2->fbcoord[0]);
   b[1] = std::max(e->v1->fbcoord[0], e->v2->fbcoord[0]);
-  b[2] = MIN2(e->v1->fbcoord[1], e->v2->fbcoord[1]);
+  b[2] = std::min(e->v1->fbcoord[1], e->v2->fbcoord[1]);
   b[3] = std::max(e->v1->fbcoord[1], e->v2->fbcoord[1]);
 
   if (b[0] > 1 || b[1] < -1 || b[2] > 1 || b[3] < -1) {
@@ -4716,7 +4711,7 @@ void lineart_main_add_triangles(LineartData *ld)
 {
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
+    t_start = BLI_time_now_seconds();
   }
 
   /* Initialize per-thread data for thread task scheduling information and storing intersection
@@ -4739,7 +4734,7 @@ void lineart_main_add_triangles(LineartData *ld)
   lineart_destroy_isec_thread(&d);
 
   if (G.debug_value == 4000) {
-    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_time_now_seconds() - t_start;
     printf("Line art intersection time: %f\n", t_elapsed);
   }
 }
@@ -4800,7 +4795,7 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       ux = x + (uy - y) / k;
       r1 = ratiod(fbcoord1[0], fbcoord2[0], rx);
       r2 = ratiod(fbcoord1[0], fbcoord2[0], ux);
-      if (MIN2(r1, r2) > 1) {
+      if (std::min(r1, r2) > 1) {
         return nullptr;
       }
 
@@ -4833,7 +4828,7 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       bx = x + (by - y) / k;
       r1 = ratiod(fbcoord1[0], fbcoord2[0], rx);
       r2 = ratiod(fbcoord1[0], fbcoord2[0], bx);
-      if (MIN2(r1, r2) > 1) {
+      if (std::min(r1, r2) > 1) {
         return nullptr;
       }
       if (r1 <= r2) {
@@ -4885,7 +4880,7 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       ux = x + (uy - y) / k;
       r1 = ratiod(fbcoord1[0], fbcoord2[0], lx);
       r2 = ratiod(fbcoord1[0], fbcoord2[0], ux);
-      if (MIN2(r1, r2) > 1) {
+      if (std::min(r1, r2) > 1) {
         return nullptr;
       }
       if (r1 <= r2) {
@@ -4916,7 +4911,7 @@ LineartBoundingArea *lineart_bounding_area_next(LineartBoundingArea *self,
       bx = x + (by - y) / k;
       r1 = ratiod(fbcoord1[0], fbcoord2[0], lx);
       r2 = ratiod(fbcoord1[0], fbcoord2[0], bx);
-      if (MIN2(r1, r2) > 1) {
+      if (std::min(r1, r2) > 1) {
         return nullptr;
       }
       if (r1 <= r2) {
@@ -5006,7 +5001,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = PIL_check_seconds_timer();
+    t_start = BLI_time_now_seconds();
   }
 
   bool use_render_camera_override = false;
@@ -5180,7 +5175,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
   if (G.debug_value == 4000) {
     lineart_count_and_print_render_buffer_memory(ld);
 
-    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_time_now_seconds() - t_start;
     printf("Line art total time: %lf\n", t_elapsed);
   }
 
@@ -5463,7 +5458,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
   }
 
   float gp_obmat_inverse[4][4];
-  invert_m4_m4(gp_obmat_inverse, ob->object_to_world);
+  invert_m4_m4(gp_obmat_inverse, ob->object_to_world().ptr());
   lineart_gpencil_generate(cache,
                            depsgraph,
                            ob,

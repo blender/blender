@@ -13,11 +13,11 @@
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_filter.h"
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_filter.hh"
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
 
-#include "imbuf.h"
+#include "imbuf.hh"
 
 static void filtrow(uchar *point, int x)
 {

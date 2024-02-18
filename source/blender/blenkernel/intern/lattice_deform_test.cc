@@ -3,20 +3,21 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
-#include "BKE_idtype.h"
-#include "BKE_lattice.hh"
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
-
-#include "BLI_rand.hh"
-
 #define DO_PERF_TESTS 0
 
 #if DO_PERF_TESTS
+
+#  include "BKE_idtype.hh"
+#  include "BKE_lattice.hh"
+
+#  include "MEM_guardedalloc.h"
+
+#  include "DNA_lattice_types.h"
+#  include "DNA_mesh_types.h"
+#  include "DNA_object_types.h"
+
+#  include "BLI_rand.hh"
+
 namespace blender::bke::tests {
 
 struct LatticeDeformTestContext {

@@ -2,12 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <algorithm>
+
 #include "GEO_reverse_uv_sampler.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 namespace blender::geometry {
 
@@ -72,7 +73,7 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     const float x_dist = std::max(-bary_weights.x, bary_weights.x - 1.0f);
     const float y_dist = std::max(-bary_weights.y, bary_weights.y - 1.0f);
     const float z_dist = std::max(-bary_weights.z, bary_weights.z - 1.0f);
-    const float dist = MAX3(x_dist, y_dist, z_dist);
+    const float dist = std::max({x_dist, y_dist, z_dist});
 
     if (dist <= 0.0f && best_dist <= 0.0f) {
       const float worse_dist = std::max(dist, best_dist);

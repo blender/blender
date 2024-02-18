@@ -112,10 +112,14 @@ struct wmWindowManager;
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
+
+#include "BKE_wm_runtime.hh"
+
 #include "RNA_types.hh"
 
 /* exported types for WM */
@@ -919,29 +923,14 @@ struct wmTimer {
   bool sleep;
 };
 
-enum wmWarningSize {
-  WM_WARNING_SIZE_SMALL = 0,
-  WM_WARNING_SIZE_LARGE,
+enum wmPopupSize {
+  WM_POPUP_SIZE_SMALL = 0,
+  WM_POPUP_SIZE_LARGE,
 };
 
-enum wmWarningPosition {
-  WM_WARNING_POSITION_MOUSE = 0,
-  WM_WARNING_POSITION_CENTER,
-};
-
-struct wmWarningDetails {
-  char title[1024];
-  char message[1024];
-  char message2[1024];
-  char confirm_button[256];
-  char cancel_button[256];
-  int icon;
-  wmWarningSize size;
-  wmWarningPosition position;
-  bool confirm_default;
-  bool cancel_default;
-  bool mouse_move_quit;
-  bool red_alert;
+enum wmPopupPosition {
+  WM_POPUP_POSITION_MOUSE = 0,
+  WM_POPUP_POSITION_CENTER,
 };
 
 /**
@@ -1071,11 +1060,6 @@ struct wmOperatorType {
    */
   std::string (*get_description)(bContext *C, wmOperatorType *ot, PointerRNA *ptr);
 
-  /**
-   * If using WM_operator_confirm the following can override all parts of the dialog.
-   */
-  void (*warning)(bContext *C, wmOperator *, wmWarningDetails *warning);
-
   /** RNA for properties */
   StructRNA *srna;
 
@@ -1159,7 +1143,14 @@ enum eWM_DragDataType {
   WM_DRAG_RNA,
   WM_DRAG_PATH,
   WM_DRAG_NAME,
-  WM_DRAG_VALUE,
+  /**
+   * Arbitrary text such as dragging from a text editor,
+   * this is also used when dragging a URL from a browser.
+   *
+   * An #std::string expected to be UTF8 encoded.
+   * Callers that require valid UTF8 sequences must validate the text.
+   */
+  WM_DRAG_STRING,
   WM_DRAG_COLOR,
   WM_DRAG_DATASTACK,
   WM_DRAG_ASSET_CATALOG,
@@ -1224,10 +1215,10 @@ struct wmDragGreasePencilLayer {
   GreasePencilLayer *layer;
 };
 
-using WMDropboxTooltipFunc = char *(*)(bContext *C,
-                                       wmDrag *drag,
-                                       const int xy[2],
-                                       wmDropBox *drop);
+using WMDropboxTooltipFunc = std::string (*)(bContext *C,
+                                             wmDrag *drag,
+                                             const int xy[2],
+                                             wmDropBox *drop);
 
 struct wmDragActiveDropState {
   wmDragActiveDropState();
@@ -1271,7 +1262,6 @@ struct wmDrag {
   int icon;
   eWM_DragDataType type;
   void *poin;
-  double value;
 
   /** If no icon but imbuf should be drawn around cursor. */
   const ImBuf *imb;

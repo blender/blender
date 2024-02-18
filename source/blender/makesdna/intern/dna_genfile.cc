@@ -12,6 +12,7 @@
  * SDNA and the SDNA of the current (running) version of Blender.
  */
 
+#include <algorithm>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -1328,7 +1329,7 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
 
   const int new_array_length = newsdna->names_array_len[new_member->name];
   const int old_array_length = oldsdna->names_array_len[old_member->name];
-  const int shared_array_length = MIN2(new_array_length, old_array_length);
+  const int shared_array_length = std::min(new_array_length, old_array_length);
 
   const char *new_type_name = newsdna->types[new_member->type];
   const char *old_type_name = oldsdna->types[old_member->type];

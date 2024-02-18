@@ -11,9 +11,9 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_collection.h"
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_collection.hh"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 

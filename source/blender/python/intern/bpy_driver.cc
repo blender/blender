@@ -20,12 +20,11 @@
 
 #include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
-#include "BKE_idtype.h"
+#include "BKE_global.hh"
+#include "BKE_idtype.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 #include "bpy_rna_driver.h" /* For #pyrna_driver_get_variable_value. */
 

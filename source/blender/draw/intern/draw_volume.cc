@@ -15,13 +15,13 @@
 #include "DNA_volume_types.h"
 
 #include "BKE_fluid.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_render.hh"
 
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 #include "draw_common.h"
 #include "draw_manager.h"
@@ -129,7 +129,7 @@ static DRWShadingGroup *drw_volume_object_grids_init(Object *ob,
 
   grp = DRW_shgroup_create_sub(grp);
 
-  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world);
+  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
@@ -305,7 +305,7 @@ PassType *volume_object_grids_init(PassType &ps,
   Volume *volume = (Volume *)ob->data;
   BKE_volume_load(volume, G.main);
 
-  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world);
+  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;

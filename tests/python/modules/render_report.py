@@ -67,19 +67,21 @@ def test_get_images(output_dir, filepath, reference_dir, reference_override_dir)
 
     diff_dirpath = os.path.join(output_dir, os.path.basename(dirpath), "diff")
     os.makedirs(diff_dirpath, exist_ok=True)
-    diff_img = os.path.join(diff_dirpath, testname + ".diff.png")
+    diff_color_img = os.path.join(diff_dirpath, testname + ".diff_color.png")
+    diff_alpha_img = os.path.join(diff_dirpath, testname + ".diff_alpha.png")
 
-    return old_img, ref_img, new_img, diff_img
+    return old_img, ref_img, new_img, diff_color_img, diff_alpha_img
 
 
 class Report:
     __slots__ = (
         'title',
+        'engine_name',
         'output_dir',
         'global_dir',
         'reference_dir',
         'reference_override_dir',
-        'idiff',
+        'oiiotool',
         'pixelated',
         'fail_threshold',
         'fail_percent',
@@ -93,16 +95,17 @@ class Report:
         'blacklist',
     )
 
-    def __init__(self, title, output_dir, idiff, device=None, blacklist=[]):
+    def __init__(self, title, output_dir, oiiotool, device=None, blacklist=[]):
         self.title = title
         self.output_dir = output_dir
         self.global_dir = os.path.dirname(output_dir)
         self.reference_dir = 'reference_renders'
         self.reference_override_dir = None
-        self.idiff = idiff
+        self.oiiotool = oiiotool
         self.compare_engine = None
         self.fail_threshold = 0.016
         self.fail_percent = 1
+        self.engine_name = self.title.lower().replace(" ", "_")
         self.device = device
         self.blacklist = blacklist
 
@@ -141,10 +144,13 @@ class Report:
     def set_compare_engine(self, other_engine, other_device=None):
         self.compare_engine = (other_engine, other_device)
 
-    def run(self, dirpath, blender, arguments_cb, batch=False):
+    def set_engine_name(self, engine_name):
+        self.engine_name = engine_name
+
+    def run(self, dirpath, blender, arguments_cb, batch=False, fail_silently=False):
         # Run tests and output report.
         dirname = os.path.basename(dirpath)
-        ok = self._run_all_tests(dirname, dirpath, blender, arguments_cb, batch)
+        ok = self._run_all_tests(dirname, dirpath, blender, arguments_cb, batch, fail_silently)
         self._write_data(dirname)
         self._write_html()
         if self.compare_engine:
@@ -231,7 +237,7 @@ class Report:
         if failed:
             message = """<div class="alert alert-danger" role="alert">"""
             message += """<p>Run this command to regenerate reference (ground truth) images:</p>"""
-            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.title.lower()
+            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.engine_name
             message += """<p>This then happens for new and failing tests; reference images of """ \
                        """passing test cases will not be updated. Be sure to commit the new reference """ \
                        """images to the SVN repository afterwards.</p>"""
@@ -246,13 +252,22 @@ class Report:
             columns_html = "<tr><th>Name</th><th>%s</th><th>%s</th>" % (engine_self, engine_other)
         else:
             title = self.title + " Test Report"
-            columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff</th>"
+            columns_html = "<tr><th>Name</th><th>New</th><th>Reference</th><th>Diff Color</th><th>Diff Alpha</th>"
 
-        html = """
+        html = f"""
 <html>
 <head>
     <title>{title}</title>
     <style>
+        div.page_container {{
+          text-align: center;
+        }}
+        div.page_container div {{
+          text-align: left;
+        }}
+        div.page_content {{
+          display: inline-block;
+        }}
         img {{ image-rendering: {image_rendering}; width: 256px; background-color: #000; }}
         img.render {{
             background-color: #fff;
@@ -279,7 +294,7 @@ class Report:
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
-    <div class="container">
+    <div class="page_container"><div class="page_content">
         <br/>
         <h1>{title}</h1>
         {menu}
@@ -291,15 +306,10 @@ class Report:
             {tests_html}
         </table>
         <br/>
-    </div>
+    </div></div>
 </body>
 </html>
-            """ . format(title=title,
-                         menu=menu,
-                         message=message,
-                         image_rendering=image_rendering,
-                         tests_html=tests_html,
-                         columns_html=columns_html)
+            """
 
         filename = "report.html" if not comparison else "compare.html"
         filepath = os.path.join(self.output_dir, filename)
@@ -320,7 +330,7 @@ class Report:
         name = test_get_name(filepath)
         name = name.replace('_', ' ')
 
-        old_img, ref_img, new_img, diff_img = test_get_images(
+        old_img, ref_img, new_img, diff_color_img, diff_alpha_img = test_get_images(
             self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
 
         status = error if error else ""
@@ -328,21 +338,17 @@ class Report:
 
         new_url = self._relative_url(new_img)
         ref_url = self._relative_url(ref_img)
-        diff_url = self._relative_url(diff_img)
+        diff_color_url = self._relative_url(diff_color_img)
+        diff_alpha_url = self._relative_url(diff_alpha_img)
 
-        test_html = """
+        test_html = f"""
             <tr{tr_style}>
                 <td><b>{name}</b><br/>{testname}<br/>{status}</td>
                 <td><img src="{new_url}" onmouseover="this.src='{ref_url}';" onmouseout="this.src='{new_url}';" class="render"></td>
                 <td><img src="{ref_url}" onmouseover="this.src='{new_url}';" onmouseout="this.src='{ref_url}';" class="render"></td>
-                <td><img src="{diff_url}"></td>
-            </tr>""" . format(tr_style=tr_style,
-                              name=name,
-                              testname=testname,
-                              status=status,
-                              new_url=new_url,
-                              ref_url=ref_url,
-                              diff_url=diff_url)
+                <td><img src="{diff_color_url}"></td>
+                <td><img src="{diff_alpha_url}"></td>
+            </tr>"""
 
         if error:
             self.failed_tests += test_html
@@ -368,7 +374,7 @@ class Report:
             self.compare_tests += test_html
 
     def _diff_output(self, filepath, tmp_filepath):
-        old_img, ref_img, new_img, diff_img = test_get_images(
+        old_img, ref_img, new_img, diff_color_img, diff_alpha_img = test_get_images(
             self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
 
         # Create reference render directory.
@@ -384,11 +390,12 @@ class Report:
         if os.path.exists(ref_img):
             # Diff images test with threshold.
             command = (
-                self.idiff,
-                "-fail", str(self.fail_threshold),
-                "-failpercent", str(self.fail_percent),
+                self.oiiotool,
                 ref_img,
                 tmp_filepath,
+                "--fail", str(self.fail_threshold),
+                "--failpercent", str(self.fail_percent),
+                "--diff",
             )
             try:
                 subprocess.check_output(command)
@@ -396,7 +403,7 @@ class Report:
             except subprocess.CalledProcessError as e:
                 if self.verbose:
                     print_message(e.output.decode("utf-8", 'ignore'))
-                failed = e.returncode != 1
+                failed = e.returncode != 0
         else:
             if not self.update:
                 return False
@@ -409,20 +416,45 @@ class Report:
             shutil.copy(new_img, old_img)
             failed = False
 
-        # Generate diff image.
+        # Generate color diff image.
         command = (
-            self.idiff,
-            "-o", diff_img,
-            "-abs", "-scale", "16",
+            self.oiiotool,
             ref_img,
-            tmp_filepath
+            "--ch", "R,G,B",
+            tmp_filepath,
+            "--ch", "R,G,B",
+            "--sub",
+            "--abs",
+            "--mulc", "16",
+            "-o", diff_color_img,
         )
-
         try:
             subprocess.check_output(command)
         except subprocess.CalledProcessError as e:
             if self.verbose:
                 print_message(e.output.decode("utf-8", 'ignore'))
+
+        # Generate alpha diff image.
+        command = (
+            self.oiiotool,
+            ref_img,
+            "--ch", "A",
+            tmp_filepath,
+            "--ch", "A",
+            "--sub",
+            "--abs",
+            "--mulc", "16",
+            "-o", diff_alpha_img,
+        )
+        try:
+            subprocess.check_output(command)
+        except subprocess.CalledProcessError as e:
+            if self.verbose:
+                msg = e.output.decode("utf-8", 'ignore')
+                for line in msg.splitlines():
+                    # Ignore warnings for images without alpha channel.
+                    if "--ch: Unknown channel name" not in line:
+                        print_message(line)
 
         return not failed
 
@@ -506,9 +538,10 @@ class Report:
 
         return errors
 
-    def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch):
+    def _run_all_tests(self, dirname, dirpath, blender, arguments_cb, batch, fail_silently):
         passed_tests = []
         failed_tests = []
+        silently_failed_tests = []
         all_files = list(blend_list(dirpath, self.device, self.blacklist))
         all_files.sort()
         print_message("Running {} tests from 1 test case." .
@@ -523,7 +556,11 @@ class Report:
                     return False
                 elif error == "NO_START":
                     return False
-                failed_tests.append(testname)
+
+                if fail_silently and error != 'CRASH':
+                    silently_failed_tests.append(testname)
+                else:
+                    failed_tests.append(testname)
             else:
                 passed_tests.append(testname)
             self._write_test_html(dirname, filepath, error)
@@ -536,12 +573,13 @@ class Report:
         print_message("{} tests." .
                       format(len(passed_tests)),
                       'SUCCESS', 'PASSED')
-        if failed_tests:
+        all_failed_tests = silently_failed_tests + failed_tests
+        if all_failed_tests:
             print_message("{} tests, listed below:" .
-                          format(len(failed_tests)),
+                          format(len(all_failed_tests)),
                           'FAILURE', 'FAILED')
-            failed_tests.sort()
-            for test in failed_tests:
+            all_failed_tests.sort()
+            for test in all_failed_tests:
                 print_message("{}" . format(test), 'FAILURE', "FAILED")
 
         return not bool(failed_tests)

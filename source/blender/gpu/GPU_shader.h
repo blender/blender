@@ -332,7 +332,14 @@ typedef enum {
  */
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
 
-/** DEPRECATED: Use hardcoded buffer location instead. */
+/**
+ * Compile all statically defined shaders and print a report to the console.
+ *
+ * This is used for platform support, where bug reports can list all failing shaders.
+ */
+void GPU_shader_compile_static();
+
+/** DEPRECATED: Use hard-coded buffer location instead. */
 typedef enum {
   GPU_UNIFORM_BLOCK_VIEW = 0, /* viewBlock */
   GPU_UNIFORM_BLOCK_MODEL,    /* modelBlock */
@@ -346,7 +353,7 @@ typedef enum {
   GPU_NUM_UNIFORM_BLOCKS, /* Special value, denotes number of builtin uniforms block. */
 } GPUUniformBlockBuiltin;
 
-/** DEPRECATED: Use hardcoded buffer location instead. */
+/** DEPRECATED: Use hard-coded buffer location instead. */
 int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
 
 /** DEPRECATED: Kept only because of Python GPU API. */

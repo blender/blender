@@ -16,7 +16,7 @@
 #include "AVI_avi.h"
 #include "avi_rgb.h"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "BLI_utildefines.h"
 
@@ -43,7 +43,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, uchar *buffer, con
 #endif
 
     buf = static_cast<uchar *>(imb_alloc_pixels(
-        movie->header->Height, movie->header->Width, 3, sizeof(uchar), "fromavirgbbuf"));
+        movie->header->Height, movie->header->Width, 3, sizeof(uchar), false, "fromavirgbbuf"));
 
     if (buf) {
       size_t y = movie->header->Height;
@@ -80,7 +80,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, uchar *buffer, con
   }
 
   buf = static_cast<uchar *>(imb_alloc_pixels(
-      movie->header->Height, movie->header->Width, 3, sizeof(uchar), "fromavirgbbuf"));
+      movie->header->Height, movie->header->Width, 3, sizeof(uchar), false, "fromavirgbbuf"));
 
   if (buf) {
     size_t rowstride = movie->header->Width * 3;

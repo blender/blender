@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_fileops.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_serialize.hh"
 
 #include "BKE_bake_items.hh"
@@ -33,6 +34,13 @@ class BlobReader {
    * \return True on success, otherwise false.
    */
   [[nodiscard]] virtual bool read(const BlobSlice &slice, void *r_data) const = 0;
+
+  /**
+   * Provides an #istream that can be used to read the data from the given slice.
+   * \return True on success, otherwise false.
+   */
+  [[nodiscard]] virtual bool read_as_stream(const BlobSlice &slice,
+                                            FunctionRef<bool(std::istream &)> fn) const;
 };
 
 /**
@@ -45,13 +53,21 @@ class BlobWriter {
    * \return Slice where the data has been written to.
    */
   virtual BlobSlice write(const void *data, int64_t size) = 0;
+
+  /**
+   * Provides an #ostream that can be used to write the blob.
+   * \param file_extension: May be used if the data is written to an independent file. Based on the
+   *   implementation, this may be ignored.
+   * \return Slice where the data has been written to.
+   */
+  virtual BlobSlice write_as_stream(StringRef file_extension,
+                                    FunctionRef<void(std::ostream &)> fn);
 };
 
 /**
- * Allows for simple data deduplication when writing or reading data by making use of implicit
- * sharing.
+ * Allows deduplicating data before it's written.
  */
-class BlobSharing {
+class BlobWriteSharing : NonCopyable, NonMovable {
  private:
   struct StoredByRuntimeValue {
     /**
@@ -73,6 +89,51 @@ class BlobSharing {
    */
   Map<const ImplicitSharingInfo *, StoredByRuntimeValue> stored_by_runtime_;
 
+  struct SliceHash {
+    uint64_t a;
+    uint64_t b;
+
+    BLI_STRUCT_EQUALITY_OPERATORS_2(SliceHash, a, b)
+
+    uint64_t hash() const
+    {
+      return get_default_hash(this->a, this->b);
+    }
+  };
+
+  /**
+   * Remembers where data was stored based on the hash of the data. This allows us to skip writing
+   * the same array again if it has the same hash.
+   */
+  Map<SliceHash, BlobSlice> slice_by_content_hash_;
+
+ public:
+  ~BlobWriteSharing();
+
+  /**
+   * Check if the data referenced by `sharing_info` has been written before. If yes, return the
+   * identifier for the previously written data. Otherwise, write the data now and store the
+   * identifier for later use.
+   * \return Identifier that indicates from where the data has been written.
+   */
+  [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_implicitly_shared(
+      const ImplicitSharingInfo *sharing_info,
+      FunctionRef<std::shared_ptr<io::serialize::DictionaryValue>()> write_fn);
+
+  /**
+   * Checks if the given data was written before. If it was, it's not written again, but a
+   * reference to the previously written data is returned. If the data is new, it's written now.
+   * Its hash is remembered so that the same data won't be written again.
+   */
+  [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_deduplicated(
+      BlobWriter &writer, const void *data, int64_t size_in_bytes);
+};
+
+/**
+ * Avoids loading the same data multiple times by caching and sharing previously read buffers.
+ */
+class BlobReadSharing : NonCopyable, NonMovable {
+ private:
   /**
    * Use a mutex so that #read_shared can be implemented in a thread-safe way.
    */
@@ -84,17 +145,7 @@ class BlobSharing {
   mutable Map<std::string, ImplicitSharingInfoAndData> runtime_by_stored_;
 
  public:
-  ~BlobSharing();
-
-  /**
-   * Check if the data referenced by `sharing_info` has been written before. If yes, return the
-   * identifier for the previously written data. Otherwise, write the data now and store the
-   * identifier for later use.
-   * \return Identifier that indicates from where the data has been written.
-   */
-  [[nodiscard]] std::shared_ptr<io::serialize::DictionaryValue> write_shared(
-      const ImplicitSharingInfo *sharing_info,
-      FunctionRef<std::shared_ptr<io::serialize::DictionaryValue>()> write_fn);
+  ~BlobReadSharing();
 
   /**
    * Check if the data identified by `io_data` has been read before or load it now.
@@ -124,26 +175,34 @@ class DiskBlobReader : public BlobReader {
  */
 class DiskBlobWriter : public BlobWriter {
  private:
+  /** Directory path that contains all blob files. */
+  std::string blob_dir_;
   /** Name of the file that data is written to. */
+  std::string base_name_;
   std::string blob_name_;
-  /** File handle. */
-  std::ostream &blob_file_;
+  /** File handle. The file is opened when the first data is written. */
+  std::fstream blob_stream_;
   /** Current position in the file. */
-  int64_t current_offset_;
+  int64_t current_offset_ = 0;
+  /** Used to generate file names for bake data that is stored in independent files. */
+  int independent_file_count_ = 0;
 
  public:
-  DiskBlobWriter(std::string blob_name, std::ostream &blob_file, int64_t current_offset);
+  DiskBlobWriter(std::string blob_dir, std::string base_name);
 
   BlobSlice write(const void *data, int64_t size) override;
+
+  BlobSlice write_as_stream(StringRef file_extension,
+                            FunctionRef<void(std::ostream &)> fn) override;
 };
 
 void serialize_bake(const BakeState &bake_state,
                     BlobWriter &blob_writer,
-                    BlobSharing &blob_sharing,
+                    BlobWriteSharing &blob_sharing,
                     std::ostream &r_stream);
 
 std::optional<BakeState> deserialize_bake(std::istream &stream,
                                           const BlobReader &blob_reader,
-                                          const BlobSharing &blob_sharing);
+                                          const BlobReadSharing &blob_sharing);
 
 }  // namespace blender::bke::bake

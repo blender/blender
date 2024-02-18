@@ -206,7 +206,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
 #define DYNTOPO_SAFE_SMOOTH_FAC 0.02f
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #endif
 
 /* Support for only operating on front-faces */

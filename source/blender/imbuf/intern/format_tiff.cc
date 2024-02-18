@@ -8,9 +8,9 @@
 
 #include "oiio/openimageio_support.hh"
 
-#include "IMB_colormanagement.h"
-#include "IMB_filetype.h"
-#include "IMB_imbuf_types.h"
+#include "IMB_colormanagement.hh"
+#include "IMB_filetype.hh"
+#include "IMB_imbuf_types.hh"
 
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
@@ -68,6 +68,9 @@ bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags)
   }
   else if (ibuf->foptions.flag & TIF_COMPRESS_PACKBITS) {
     file_spec.attribute("compression", "packbits");
+  }
+  else if (ibuf->foptions.flag & TIF_COMPRESS_NONE) {
+    file_spec.attribute("compression", "none");
   }
 
   return imb_oiio_write(ctx, filepath, file_spec);

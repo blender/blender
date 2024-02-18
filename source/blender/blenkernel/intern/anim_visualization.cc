@@ -8,14 +8,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
-#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_visualization.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "GPU_batch.h"
 
@@ -137,43 +135,44 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
                 (pchan) ? pchan->name : ob->id.name,
                 avs->path_sf,
                 avs->path_ef,
-                (avs->path_sf == avs->path_ef) ? TIP_(", cannot have single-frame paths") : "");
+                (avs->path_sf == avs->path_ef) ? RPT_(", cannot have single-frame paths") : "");
     return nullptr;
   }
 
-  /* if there is already a motionpath, just return that,
-   * provided its settings are ok (saves extra free+alloc)
-   */
-  if (*dst != nullptr) {
-    int expected_length = avs->path_ef - avs->path_sf;
+  const int expected_length = avs->path_ef - avs->path_sf;
+  BLI_assert(expected_length > 0); /* Because the `if` above. */
 
+  /* If there is already a motionpath, just return that, provided its settings
+   * are ok (saves extra free+alloc). */
+  if (*dst != nullptr) {
     mpath = *dst;
 
-    /* Path is "valid" if length is valid,
-     * but must also be of the same length as is being requested. */
-    if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0)) {
-      /* outer check ensures that we have some curve data for this path */
-      if (mpath->length == expected_length) {
-        mpath->start_frame = avs->path_sf;
-        mpath->end_frame = avs->path_ef;
-        /* return/use this as it is already valid length */
-        return mpath;
-      }
-      /* clear the existing path (as the range has changed), and reallocate below */
-      animviz_free_motionpath_cache(mpath);
+    if (avs->path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE) {
+      mpath->flag |= MOTIONPATH_FLAG_BAKE_CAMERA;
     }
+    else {
+      mpath->flag &= ~MOTIONPATH_FLAG_BAKE_CAMERA;
+    }
+
+    /* Only reuse a path if it was already a valid path, and of the expected length. */
+    if (mpath->start_frame != mpath->end_frame && mpath->length == expected_length) {
+      mpath->start_frame = avs->path_sf;
+      mpath->end_frame = avs->path_ef;
+      return mpath;
+    }
+
+    /* Clear the existing cache, to allocate a new one below. */
+    animviz_free_motionpath_cache(mpath);
   }
   else {
-    /* create a new motionpath, and assign it */
     mpath = static_cast<bMotionPath *>(MEM_callocN(sizeof(bMotionPath), "bMotionPath"));
     *dst = mpath;
   }
 
-  /* set settings from the viz settings */
+  /* Copy mpath settings from the viz settings. */
   mpath->start_frame = avs->path_sf;
   mpath->end_frame = avs->path_ef;
-
-  mpath->length = mpath->end_frame - mpath->start_frame;
+  mpath->length = expected_length;
 
   if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS) {
     mpath->flag |= MOTIONPATH_FLAG_BHEAD;
@@ -182,22 +181,28 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
     mpath->flag &= ~MOTIONPATH_FLAG_BHEAD;
   }
 
-  /* set default custom values */
-  mpath->color[0] = 1.0; /* Red */
+  if (avs->path_bakeflag & MOTIONPATH_BAKE_CAMERA_SPACE) {
+    mpath->flag |= MOTIONPATH_FLAG_BAKE_CAMERA;
+  }
+  else {
+    mpath->flag &= ~MOTIONPATH_FLAG_BAKE_CAMERA;
+  }
+
+  /* Set default custom values (RGB). */
+  mpath->color[0] = 1.0;
   mpath->color[1] = 0.0;
   mpath->color[2] = 0.0;
 
   mpath->line_thickness = 2;
-  mpath->flag |= MOTIONPATH_FLAG_LINES; /* draw lines by default */
+  mpath->flag |= MOTIONPATH_FLAG_LINES;
 
-  /* allocate a cache */
+  /* Allocate a cache. */
   mpath->points = static_cast<bMotionPathVert *>(
       MEM_callocN(sizeof(bMotionPathVert) * mpath->length, "bMotionPathVerts"));
 
-  /* tag viz settings as currently having some path(s) which use it */
+  /* Tag viz settings as currently having some path(s) which use it. */
   avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;
 
-  /* return it */
   return mpath;
 }
 

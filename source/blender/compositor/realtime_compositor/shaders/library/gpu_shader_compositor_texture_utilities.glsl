@@ -28,6 +28,12 @@ vec4 texture_load(sampler2D sampler_2d, ivec2 texel)
   return texelFetch(sampler_2d, clamp(texel, ivec2(0), texture_bounds), 0);
 }
 
+/* A shorthand for 2D texelFetch with zero LOD. */
+vec4 texture_load_unbound(sampler2D sampler_2d, ivec2 texel)
+{
+  return texelFetch(sampler_2d, texel, 0);
+}
+
 /* A shorthand for 2D texelFetch with zero LOD and a fallback value for out-of-bound access. */
 vec4 texture_load(sampler2D sampler_2d, ivec2 texel, vec4 fallback)
 {

@@ -3,26 +3,27 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "IO_types.hh"
-#include "usd.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_reader_geom.h"
-#include "usd_reader_prim.h"
-#include "usd_reader_stage.h"
+#include "usd.hh"
+#include "usd_hierarchy_iterator.hh"
+#include "usd_hook.hh"
+#include "usd_reader_geom.hh"
+#include "usd_reader_prim.hh"
+#include "usd_reader_stage.hh"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_world.h"
 
 #include "BLI_fileops.h"
@@ -33,7 +34,7 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -183,6 +184,8 @@ struct ImportJobData {
   bool was_canceled;
   bool import_ok;
   timeit::TimePoint start_time;
+
+  CacheFile *cache_file;
 };
 
 static void report_job_duration(const ImportJobData *data)
@@ -203,6 +206,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   data->was_canceled = false;
   data->archive = nullptr;
   data->start_time = timeit::Clock::now();
+  data->cache_file = nullptr;
 
   data->params.worker_status = worker_status;
 
@@ -227,19 +231,26 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
 
-  CacheFile *cache_file = static_cast<CacheFile *>(
-      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
+  /* Callback function to lazily create a cache file when converting
+   * time varying data. */
+  auto get_cache_file = [data]() {
+    if (!data->cache_file) {
+      data->cache_file = static_cast<CacheFile *>(
+          BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
 
-  /* Decrement the ID ref-count because it is going to be incremented for each
-   * modifier and constraint that it will be attached to, so since currently
-   * it is not used by anyone, its use count will off by one. */
-  id_us_min(&cache_file->id);
+      /* Decrement the ID ref-count because it is going to be incremented for each
+       * modifier and constraint that it will be attached to, so since currently
+       * it is not used by anyone, its use count will off by one. */
+      id_us_min(&data->cache_file->id);
 
-  cache_file->is_sequence = data->params.is_sequence;
-  cache_file->scale = data->params.scale;
-  STRNCPY(cache_file->filepath, data->filepath);
+      data->cache_file->is_sequence = data->params.is_sequence;
+      data->cache_file->scale = data->params.scale;
+      STRNCPY(data->cache_file->filepath, data->filepath);
+    }
+    return data->cache_file;
+  };
 
-  data->settings.cache_file = cache_file;
+  data->settings.get_cache_file = get_cache_file;
 
   *data->do_update = true;
   *data->progress = 0.05f;
@@ -294,7 +305,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   data->archive = archive;
 
-  archive->collect_readers(data->bmain);
+  archive->collect_readers();
 
   if (data->params.import_materials && data->params.import_all_materials) {
     archive->import_all_materials(data->bmain);
@@ -402,7 +413,7 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
-      if (reader->prim().IsInPrototype()) {
+      if (reader->is_in_proto()) {
         /* Skip prototype prims, as these are added to prototype collections. */
         continue;
       }
@@ -419,6 +430,7 @@ static void import_endjob(void *customdata)
       if (!reader) {
         continue;
       }
+
       Object *ob = reader->object();
       if (!ob) {
         continue;
@@ -440,6 +452,11 @@ static void import_endjob(void *customdata)
     if (data->params.import_materials && data->params.import_all_materials) {
       data->archive->fake_users_for_unused_materials();
     }
+
+    /* Ensure Python types for invoking hooks are registered. */
+    register_hook_converters();
+
+    call_import_hooks(data->archive->stage(), data->params.worker_status->reports);
   }
 
   WM_set_locked_interface(data->wm, false);
@@ -469,10 +486,6 @@ static void import_freejob(void *user_data)
   delete data->archive;
   delete data;
 }
-
-}  // namespace blender::io::usd
-
-using namespace blender::io::usd;
 
 bool USD_import(bContext *C,
                 const char *filepath,
@@ -546,7 +559,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader,
   pxr::UsdPrim iobject = usd_reader->prim();
 
   if (!iobject.IsValid()) {
-    *err_str = TIP_("Invalid object: verify object path");
+    *err_str = RPT_("Invalid object: verify object path");
     return nullptr;
   }
 
@@ -703,3 +716,5 @@ void USD_get_transform(CacheReader *reader, float r_mat_world[4][4], float time,
   mul_m4_m4m4(r_mat_world, mat_parent, object->parentinv);
   mul_m4_m4m4(r_mat_world, r_mat_world, mat_local);
 }
+
+}  // namespace blender::io::usd

@@ -52,6 +52,11 @@ int OneapiDeviceQueue::num_concurrent_busy_states(const size_t /*state_size*/) c
   return 4 * max(8 * max_num_threads, 65536);
 }
 
+int OneapiDeviceQueue::num_sort_partition_elements() const
+{
+  return 8192;
+}
+
 void OneapiDeviceQueue::init_execution()
 {
   oneapi_device_->load_texture_info();

@@ -11,7 +11,7 @@
 #include "DNA_movieclip_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 #include "BKE_tracking.h"
 
 #include "UI_interface.hh"

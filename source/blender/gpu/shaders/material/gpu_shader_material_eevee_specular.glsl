@@ -44,6 +44,8 @@ void node_eevee_specular(vec4 diffuse,
    * So this has no performance penalty. However, using a separate closure for subsurface
    * (just like for EEVEE-Next) would induce a huge performance hit. */
   ClosureSubsurface diffuse_data;
+  /* Disable subsurface. */
+  diffuse_data.sss_radius.b = -1.0;
 #else
   ClosureDiffuse diffuse_data;
 #endif

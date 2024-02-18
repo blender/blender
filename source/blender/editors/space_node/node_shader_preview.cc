@@ -34,23 +34,21 @@
 #include "BKE_colortools.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_layer.h"
-#include "BKE_lib_id.h"
+#include "BKE_global.hh"
+#include "BKE_layer.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_imbuf.h"
+#include "IMB_imbuf.hh"
 
 #include "WM_api.hh"
 
-#include "ED_datafiles.h"
 #include "ED_node_preview.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"

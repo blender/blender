@@ -34,20 +34,17 @@ namespace blender::bke {
 
 namespace greasepencil {
 
-struct DrawingTransforms {
-  float4x4 world_space_to_layer_space;
-  float4x4 layer_space_to_world_space;
-
-  DrawingTransforms() = default;
-  DrawingTransforms(const Object &grease_pencil_ob);
-};
-
 class DrawingRuntime {
  public:
   /**
    * Triangle cache for all the strokes in the drawing.
    */
   mutable SharedCache<Vector<uint3>> triangles_cache;
+
+  /**
+   * Normal vector cache for every stroke. Computed using Newell's method.
+   */
+  mutable SharedCache<Vector<float3>> curve_plane_normals_cache;
 
   /**
    * Number of users for this drawing. The users are the frames in the Grease Pencil layers.
@@ -69,6 +66,10 @@ class Drawing : public ::GreasePencilDrawing {
    * The triangles for all the fills in the geometry.
    */
   Span<uint3> triangles() const;
+  /**
+   * Normal vectors for a plane that fits the stroke.
+   */
+  Span<float3> curve_plane_normals() const;
   void tag_positions_changed();
   void tag_topology_changed();
 
@@ -324,6 +325,10 @@ class LayerRuntime {
 
   /* Runtime data used for frame transformations. */
   LayerTransformData trans_data_;
+
+ public:
+  /* Reset all runtime data. */
+  void clear();
 };
 
 /**
@@ -400,9 +405,9 @@ class Layer : public ::GreasePencilLayer {
   bool has_drawing_at(const int frame_number) const;
 
   /**
-   * \returns the key of the active frame at \a frame_number or -1 if there is no frame.
+   * \returns the key of the active frame at \a frame_number or #std::nullopt if there is no frame.
    */
-  FramesMapKey frame_key_at(int frame_number) const;
+  std::optional<FramesMapKey> frame_key_at(int frame_number) const;
 
   /**
    * \returns a pointer to the active frame at \a frame_number or nullptr if there is no frame.
@@ -424,6 +429,33 @@ class Layer : public ::GreasePencilLayer {
    */
   void tag_frames_map_keys_changed();
 
+  /**
+   * Prepare the DNA #GreasePencilLayer data before blend-file writing.
+   */
+  void prepare_for_dna_write();
+
+  /**
+   * Update from DNA #GreasePencilLayer data after blend-file reading.
+   */
+  void update_from_dna_read();
+
+  /**
+   * Returns the transformation from layer space to object space.
+   */
+  float4x4 to_object_space(const Object &object) const;
+
+  /**
+   * Returns the transformation from layer space to world space.
+   */
+  float4x4 to_world_space(const Object &object) const;
+
+  /**
+   * Returns the name of the parent bone. Should only be used in case the parent object is an
+   * armature.
+   */
+  StringRefNull parent_bone_name() const;
+  void set_parent_bone_name(const char *new_name);
+
  private:
   using SortedKeysIterator = const int *;
 
@@ -437,6 +469,16 @@ class Layer : public ::GreasePencilLayer {
    */
   SortedKeysIterator remove_leading_null_frames_in_range(SortedKeysIterator begin,
                                                          SortedKeysIterator end);
+
+  /**
+   * The local transform of the layer (in layer space, not object space).
+   */
+  float4x4 local_transform() const;
+
+  /**
+   * Get the parent to world matrix for this layer.
+   */
+  float4x4 parent_to_world(const Object &parent) const;
 };
 
 class LayerGroupRuntime {
@@ -470,6 +512,8 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   explicit LayerGroup(StringRefNull name);
   LayerGroup(const LayerGroup &other);
   ~LayerGroup();
+
+  LayerGroup &operator=(const LayerGroup &other);
 
  public:
   /* Define the common functions for #TreeNode. */
@@ -518,6 +562,16 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * Print the nodes. For debugging purposes.
    */
   void print_nodes(StringRefNull header) const;
+
+  /**
+   * Prepare the DNA #GreasePencilLayerTreeGroup data before blend-file writing.
+   */
+  void prepare_for_dna_write();
+
+  /**
+   * Update from DNA #GreasePencilLayerTreeGroup data after blend-file reading.
+   */
+  void update_from_dna_read();
 
  protected:
   /**
@@ -670,13 +724,6 @@ inline LayerGroup &Layer::parent_group() const
 
 TREENODE_COMMON_METHODS_FORWARD_IMPL(LayerGroup);
 
-namespace convert {
-
-void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
-                                                   GreasePencilDrawing &r_drawing);
-void legacy_gpencil_to_grease_pencil(Main &main, GreasePencil &grease_pencil, bGPdata &gpd);
-
-}  // namespace convert
 }  // namespace greasepencil
 
 class GreasePencilRuntime {
@@ -818,7 +865,6 @@ void BKE_grease_pencil_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
 void BKE_grease_pencil_duplicate_drawing_array(const GreasePencil *grease_pencil_src,
                                                GreasePencil *grease_pencil_dst);
 
-int BKE_grease_pencil_object_material_index_get(Object *ob, Material *ma);
 int BKE_grease_pencil_object_material_index_get_by_name(Object *ob, const char *name);
 Material *BKE_grease_pencil_object_material_new(Main *bmain,
                                                 Object *ob,

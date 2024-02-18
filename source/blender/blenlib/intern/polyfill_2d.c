@@ -40,7 +40,7 @@
 
 #include "BLI_polyfill_2d.h" /* own include */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* avoid fan-fill topology */
 #define USE_CLIP_EVEN
@@ -58,7 +58,7 @@
 
 // #define DEBUG_TIME
 #ifdef DEBUG_TIME
-#  include "PIL_time_utildefines.h"
+#  include "BLI_time_utildefines.h"
 #endif
 
 typedef int8_t eSign;
@@ -799,17 +799,17 @@ static void polyfill_prepare(PolyFill *pf,
   pf->tris_num = 0;
 
   if (coords_sign == 0) {
-    coords_sign = (cross_poly_v2(coords, coords_num) >= 0.0f) ? 1 : -1;
+    coords_sign = (cross_poly_v2(coords, coords_num) <= 0.0f) ? 1 : -1;
   }
   else {
     /* check we're passing in correct args */
 #ifdef USE_STRICT_ASSERT
 #  ifndef NDEBUG
     if (coords_sign == 1) {
-      BLI_assert(cross_poly_v2(coords, coords_num) >= 0.0f);
+      BLI_assert(cross_poly_v2(coords, coords_num) <= 0.0f);
     }
     else {
-      BLI_assert(cross_poly_v2(coords, coords_num) <= 0.0f);
+      BLI_assert(cross_poly_v2(coords, coords_num) >= 0.0f);
     }
 #  endif
 #endif

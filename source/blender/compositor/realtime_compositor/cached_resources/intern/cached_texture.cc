@@ -8,6 +8,7 @@
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 
@@ -39,7 +40,7 @@ CachedTextureKey::CachedTextureKey(int2 size, float3 offset, float3 scale)
 
 uint64_t CachedTextureKey::hash() const
 {
-  return get_default_hash_3(size, offset, scale);
+  return get_default_hash(size, offset, scale);
 }
 
 bool operator==(const CachedTextureKey &a, const CachedTextureKey &b)
@@ -71,21 +72,19 @@ CachedTexture::CachedTexture(Context &context,
         const float2 pixel_coordinates = ((float2(x, y) + 0.5f) / float2(size)) * 2.0f - 1.0f;
         /* Note that it is expected that the offset is scaled by the scale. */
         const float3 coordinates = (float3(pixel_coordinates, 0.0f) + offset) * scale;
+
         TexResult texture_result;
-        BKE_texture_get_value_ex(
-            texture, coordinates, &texture_result, image_pool, use_color_management);
+        const int result_type = multitex_ext_safe(
+            texture, coordinates, &texture_result, image_pool, use_color_management, false);
 
         float4 color = float4(texture_result.trgba);
-        float value = texture_result.tin;
-        if (texture_result.talpha) {
-          value = texture_result.trgba[3];
-        }
-        else {
-          color.w = 1.0f;
+        color.w = texture_result.talpha ? color.w : texture_result.tin;
+        if (!(result_type & TEX_RGB)) {
+          copy_v3_fl(color, color.w);
         }
 
         color_pixels[y * size.x + x] = color;
-        value_pixels[y * size.x + x] = value;
+        value_pixels[y * size.x + x] = color.w;
       }
     }
   });

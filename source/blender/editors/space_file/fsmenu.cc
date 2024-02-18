@@ -6,6 +6,7 @@
  * \ingroup spfile
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -14,17 +15,15 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_appdir.h"
+#include "BKE_appdir.hh"
 
 #include "ED_fileselect.hh"
 
-#include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -135,11 +134,13 @@ void ED_fsmenu_entry_set_path(FSMenuEntry *fsentry, const char *path)
 
     fsentry->path = (path && path[0]) ? BLI_strdup(path) : nullptr;
 
-    BLI_path_join(tmp_name,
-                  sizeof(tmp_name),
-                  BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr),
-                  BLENDER_BOOKMARK_FILE);
-    fsmenu_write_file(ED_fsmenu_get(), tmp_name);
+    const std::optional<std::string> user_config_dir = BKE_appdir_folder_id_create(
+        BLENDER_USER_CONFIG, nullptr);
+
+    if (user_config_dir.has_value()) {
+      BLI_path_join(tmp_name, sizeof(tmp_name), user_config_dir->c_str(), BLENDER_BOOKMARK_FILE);
+      fsmenu_write_file(ED_fsmenu_get(), tmp_name);
+    }
   }
 }
 
@@ -163,7 +164,7 @@ static void fsmenu_entry_generate_name(FSMenuEntry *fsentry, char *name, size_t 
     len += 1;
   }
 
-  BLI_strncpy(name, &fsentry->path[offset], MIN2(len, name_size));
+  BLI_strncpy(name, &fsentry->path[offset], std::min(size_t(len), name_size));
   if (!name[0]) {
     name[0] = '/';
     name[1] = '\0';
@@ -199,11 +200,13 @@ void ED_fsmenu_entry_set_name(FSMenuEntry *fsentry, const char *name)
       STRNCPY(fsentry->name, name);
     }
 
-    BLI_path_join(tmp_name,
-                  sizeof(tmp_name),
-                  BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, nullptr),
-                  BLENDER_BOOKMARK_FILE);
-    fsmenu_write_file(ED_fsmenu_get(), tmp_name);
+    const std::optional<std::string> user_config_dir = BKE_appdir_folder_id_create(
+        BLENDER_USER_CONFIG, nullptr);
+
+    if (user_config_dir.has_value()) {
+      BLI_path_join(tmp_name, sizeof(tmp_name), user_config_dir->c_str(), BLENDER_BOOKMARK_FILE);
+      fsmenu_write_file(ED_fsmenu_get(), tmp_name);
+    }
   }
 }
 

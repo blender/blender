@@ -1369,7 +1369,7 @@ typedef struct KernelSpotLight {
   float half_cot_half_spot_angle;
   float inv_len_z;
   float spot_smooth;
-  float pad;
+  int is_sphere;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */

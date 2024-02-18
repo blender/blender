@@ -20,18 +20,11 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-#include "BKE_mesh_runtime.hh"
-#include "BKE_modifier.hh"
 #include "BKE_multires.hh"
-#include "BKE_subdiv.hh"
 #include "BKE_subsurf.hh"
 
 #include "bmesh.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "multires_reshape.hh"
 #include "multires_unsubdivide.hh"

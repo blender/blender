@@ -11,14 +11,13 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -63,19 +62,19 @@ static void applyBakeTime(TransInfo *t)
     outputNumInput(&(t->num), c, &t->scene->unit);
 
     if (time >= 0.0f) {
-      SNPRINTF(str, TIP_("Time: +%s %s"), c, t->proptext);
+      SNPRINTF(str, IFACE_("Time: +%s %s"), c, t->proptext);
     }
     else {
-      SNPRINTF(str, TIP_("Time: %s %s"), c, t->proptext);
+      SNPRINTF(str, IFACE_("Time: %s %s"), c, t->proptext);
     }
   }
   else {
     /* default header print */
     if (time >= 0.0f) {
-      SNPRINTF(str, TIP_("Time: +%.3f %s"), time, t->proptext);
+      SNPRINTF(str, IFACE_("Time: +%.3f %s"), time, t->proptext);
     }
     else {
-      SNPRINTF(str, TIP_("Time: %.3f %s"), time, t->proptext);
+      SNPRINTF(str, IFACE_("Time: %.3f %s"), time, t->proptext);
     }
   }
 

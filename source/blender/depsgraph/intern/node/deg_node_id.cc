@@ -17,7 +17,7 @@
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
 
-#include "BKE_lib_id.h"
+#include "BKE_lib_id.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -62,7 +62,7 @@ void IDNode::init(const ID *id, const char * /*subdata*/)
   /* Store ID-pointer. */
   id_type = GS(id->name);
   id_orig = (ID *)id;
-  id_orig_session_uuid = id->session_uuid;
+  id_orig_session_uid = id->session_uid;
   eval_flags = 0;
   previous_eval_flags = 0;
   customdata_masks = DEGCustomDataMeshMasks();

@@ -21,7 +21,7 @@
 
 #include "RNA_enum_types.hh" /* own include */
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 

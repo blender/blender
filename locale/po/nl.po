@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Alpha (b'd13edee3e0cc')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-08 11:04:23\n"
+"POT-Creation-Date: 2024-02-12 11:01+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -3884,11 +3884,6 @@ msgstr "Selectie Aan/Uit"
 
 
 msgctxt "Operator"
-msgid "Add Bezier"
-msgstr "Voeg Bezier Toe"
-
-
-msgctxt "Operator"
 msgid "Add Path"
 msgstr "Voeg Pad Toe"
 
@@ -6540,11 +6535,6 @@ msgid "Custom Shape"
 msgstr "Aangepaste Vorm"
 
 
-msgctxt "MovieClip"
-msgid "Scene Setup"
-msgstr "Scene Opstelling"
-
-
 msgid "Restrictions"
 msgstr "Beperkingen"
 
@@ -7468,6 +7458,16 @@ msgid "Characters"
 msgstr "Karakters"
 
 
+msgctxt "Operator"
+msgid "Location"
+msgstr "Locatie"
+
+
+msgctxt "Operator"
+msgid "Rotation"
+msgstr "Rotatie"
+
+
 msgid "Frame Range Before"
 msgstr "Framebereik Voor"
 
@@ -7777,11 +7777,6 @@ msgstr "Solutie"
 
 
 msgctxt "Operator"
-msgid "Location"
-msgstr "Locatie"
-
-
-msgctxt "Operator"
 msgid "Set Floor"
 msgstr "Zet Vloer"
 
@@ -7933,11 +7928,6 @@ msgstr "Selectie"
 msgctxt "Operator"
 msgid "Save As..."
 msgstr "Opslaan Als..."
-
-
-msgctxt "Operator"
-msgid "Horizontally"
-msgstr "Horizontaal"
 
 
 msgctxt "Operator"
@@ -8100,11 +8090,6 @@ msgstr "Gloed"
 msgctxt "Operator"
 msgid "Position"
 msgstr "Positie"
-
-
-msgctxt "Operator"
-msgid "Rotation"
-msgstr "Rotatie"
 
 
 msgctxt "Operator"
@@ -8286,6 +8271,10 @@ msgid "Double Click Speed"
 msgstr "Snelheid Dubbelklik"
 
 
+msgid "Preferences:"
+msgstr "Instellingen:"
+
+
 msgid "Use Light"
 msgstr "Gebruik Licht"
 
@@ -8322,21 +8311,9 @@ msgid "Internet:"
 msgstr "Internet:"
 
 
-msgid "description"
-msgstr "beschrijving"
-
-
-msgid "location"
-msgstr "locatie"
-
-
 msgctxt "Operator"
 msgid "Documentation"
 msgstr "Documentatie"
-
-
-msgid "Preferences:"
-msgstr "Instellingen:"
 
 
 msgctxt "Operator"
@@ -8861,16 +8838,6 @@ msgstr "Teveel punten geselecteerd: %d"
 
 
 msgctxt "Curve"
-msgid "BezierCurve"
-msgstr "Bezier Kromme"
-
-
-msgctxt "Curve"
-msgid "BezierCircle"
-msgstr "Bezier Cirkel"
-
-
-msgctxt "Curve"
 msgid "CurvePath"
 msgstr "Kromme Pad"
 
@@ -8967,10 +8934,6 @@ msgid "Copy All to Selected"
 msgstr "Kopieer Alles naar Geselecteerd"
 
 
-msgid "Value: %s"
-msgstr "Waarde: %s"
-
-
 msgid "Double click to rename"
 msgstr "Dubbelklik om te hernoemen"
 
@@ -8989,6 +8952,10 @@ msgstr "Verwijder punten"
 
 msgid "Choose Screen layout"
 msgstr "Kies Scherm indeling"
+
+
+msgid "File Not Found"
+msgstr "Bestand Niet Gevonden"
 
 
 msgid "Today"
@@ -9550,10 +9517,6 @@ msgstr "Niet Opslaan"
 
 msgid "unable to open the file"
 msgstr "kan het bestand niet openen"
-
-
-msgid "File Not Found"
-msgstr "Bestand Niet Gevonden"
 
 
 msgid "This may lead to unexpected behavior"

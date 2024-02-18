@@ -28,8 +28,7 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_main.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -936,7 +935,7 @@ void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
     /* This simulates the fcu curve moving in time. */
     const float time = fcu->bezt[segment->start_index + i].vec[1][0] + frame_offset;
     /* Need to normalize time to first_key to specify that as the wrapping point. */
-    const float wrapped_time = mod_f_positive(time - first_key_x, fcu_x_range) + first_key_x;
+    const float wrapped_time = floored_fmod(time - first_key_x, fcu_x_range) + first_key_x;
     const float delta_y = fcu_y_range * floorf((time - first_key_x) / fcu_x_range);
 
     const float key_y_value = evaluate_fcurve(fcu, wrapped_time) + delta_y;

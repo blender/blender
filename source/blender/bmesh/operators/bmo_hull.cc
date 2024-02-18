@@ -176,7 +176,7 @@ static int hull_final_edges_lookup(HullFinalEdges *final_edges, BMVert *v1, BMVe
 
   /* Use lower vertex pointer for hash key */
   if (v1 > v2) {
-    SWAP(BMVert *, v1, v2);
+    std::swap(v1, v2);
   }
 
   adj = static_cast<ListBase *>(BLI_ghash_lookup(final_edges->edges, v1));
@@ -213,7 +213,7 @@ static HullFinalEdges *hull_final_edges(BLI_mempool *hull_triangles)
 
       /* Use lower vertex pointer for hash key */
       if (v1 > v2) {
-        SWAP(BMVert *, v1, v2);
+        std::swap(v1, v2);
       }
 
       adj = static_cast<ListBase *>(BLI_ghash_lookup(final_edges->edges, v1));

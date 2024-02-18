@@ -8,17 +8,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_set.hh"
 
-#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "ED_select_utils.hh"
 #include "ED_sequencer.hh"
@@ -32,14 +29,10 @@
 #include "SEQ_transform.hh"
 
 #include "WM_api.hh"
-#include "WM_toolsystem.hh"
 
 #include "RNA_define.hh"
 
-#include "UI_interface.hh"
 #include "UI_view2d.hh"
-
-#include "DEG_depsgraph.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"
@@ -139,7 +132,7 @@ static bool retiming_poll(bContext *C)
     return false;
   }
   if (!SEQ_retiming_is_allowed(seq)) {
-    CTX_wm_operator_poll_msg_set(C, "This strip type can not be retimed");
+    CTX_wm_operator_poll_msg_set(C, "This strip type cannot be retimed");
     return false;
   }
   return true;
@@ -205,7 +198,7 @@ static bool retiming_key_add_new_for_seq(bContext *C,
   const SeqRetimingKey *key = SEQ_retiming_find_segment_start_key(seq, frame_index);
 
   if (key != nullptr && SEQ_retiming_key_is_transition_start(key)) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create key inside of speed transition");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create key inside of speed transition");
     return false;
   }
 
@@ -325,20 +318,23 @@ static bool freeze_frame_add_new_for_seq(const bContext *C,
   }
 
   if (SEQ_retiming_key_is_transition_start(key)) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create key inside of speed transition");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create key inside of speed transition");
     return false;
   }
   if (key == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create freeze frame");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create freeze frame");
     return false;
   }
 
   SeqRetimingKey *freeze = SEQ_retiming_add_freeze_frame(scene, seq, key, duration);
 
   if (freeze == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create freeze frame");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create freeze frame");
     return false;
   }
+
+  ED_sequencer_deselect_all(scene);
+  SEQ_retiming_selection_append(freeze);
 
   SEQ_relations_invalidate_cache_raw(scene, seq);
   return true;
@@ -380,8 +376,7 @@ static int sequencer_retiming_freeze_frame_add_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  const float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-  int duration = 4 * fps;
+  int duration = 1;
 
   if (RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "duration"))) {
     duration = RNA_int_get(op->ptr, "duration");
@@ -447,16 +442,19 @@ static bool transition_add_new_for_seq(const bContext *C,
   }
 
   if (SEQ_retiming_is_last_key(seq, key) || key->strip_frame_index == 0) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create transition from first or last key");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create transition from first or last key");
     return false;
   }
 
   SeqRetimingKey *transition = SEQ_retiming_add_transition(scene, seq, key, duration);
 
   if (transition == nullptr) {
-    BKE_report(op->reports, RPT_WARNING, "Can not create transition");
+    BKE_report(op->reports, RPT_WARNING, "Cannot create transition");
     return false;
   }
+
+  ED_sequencer_deselect_all(scene);
+  SEQ_retiming_selection_append(transition);
 
   SEQ_relations_invalidate_cache_raw(scene, seq);
   return true;
@@ -481,8 +479,7 @@ static int sequencer_retiming_transition_add_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   bool success = false;
 
-  const float fps = scene->r.frs_sec / scene->r.frs_sec_base;
-  int duration = 4 * fps;
+  int duration = 1;
 
   if (RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "duration"))) {
     duration = RNA_int_get(op->ptr, "duration");
@@ -536,8 +533,34 @@ void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot)
 static SeqRetimingKey *ensure_left_and_right_keys(const bContext *C, Sequence *seq)
 {
   Scene *scene = CTX_data_scene(C);
+  SEQ_retiming_data_ensure(seq);
   SEQ_retiming_add_key(scene, seq, left_fake_key_frame_get(C, seq));
   return SEQ_retiming_add_key(scene, seq, right_fake_key_frame_get(C, seq));
+}
+
+/* Return speed of existing segment or strip. Assume 1 element is selected. */
+static float strip_speed_get(bContext *C, const wmOperator * /* op */)
+{
+  /* Strip mode. */
+  if (!sequencer_retiming_mode_is_active(C)) {
+    blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
+    if (strips.size() == 1) {
+      Sequence *seq = strips[0];
+      SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
+      return SEQ_retiming_key_speed_get(seq, key);
+    }
+  }
+
+  Scene *scene = CTX_data_scene(C);
+  blender::Map selection = SEQ_retiming_selection_get(SEQ_editing_get(scene));
+  /* Retiming mode. */
+  if (selection.size() == 1) {
+    for (auto item : selection.items()) {
+      return SEQ_retiming_key_speed_get(item.value, item.key);
+    }
+  }
+
+  return 1.0f;
 }
 
 static int strip_speed_set_exec(bContext *C, const wmOperator *op)
@@ -546,7 +569,6 @@ static int strip_speed_set_exec(bContext *C, const wmOperator *op)
   blender::VectorSet<Sequence *> strips = selected_strips_from_context(C);
 
   for (Sequence *seq : strips) {
-    SEQ_retiming_data_ensure(seq);
     SeqRetimingKey *key = ensure_left_and_right_keys(C, seq);
 
     if (key == nullptr) {
@@ -611,8 +633,10 @@ static int sequencer_retiming_segment_speed_set_invoke(bContext *C,
                                                        const wmEvent *event)
 {
   if (!RNA_struct_property_is_set(op->ptr, "speed")) {
+    RNA_float_set(op->ptr, "speed", strip_speed_get(C, op) * 100.0f);
     return WM_operator_props_popup(C, op, event);
   }
+
   return sequencer_retiming_segment_speed_set_exec(C, op);
 }
 
@@ -645,7 +669,7 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
   RNA_def_boolean(ot->srna,
                   "keep_retiming",
                   true,
-                  "Preserve Current retiming",
+                  "Preserve Current Retiming",
                   "Keep speed of other segments unchanged, change strip length instead");
 }
 

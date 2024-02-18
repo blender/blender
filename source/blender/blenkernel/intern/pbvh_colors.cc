@@ -16,6 +16,7 @@
 #include "BLI_rand.h"
 #include "BLI_span.hh"
 #include "BLI_task.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -28,8 +29,6 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.hh"
-
-#include "PIL_time.h"
 
 #include "bmesh.hh"
 

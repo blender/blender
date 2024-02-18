@@ -921,8 +921,8 @@ static void mirror_bezier_xaxis_ex(BezTriple *bezt, const float center)
   }
   swap_v3_v3(bezt->vec[0], bezt->vec[2]);
 
-  SWAP(uint8_t, bezt->h1, bezt->h2);
-  SWAP(uint8_t, bezt->f1, bezt->f3);
+  std::swap(bezt->h1, bezt->h2);
+  std::swap(bezt->f1, bezt->f3);
 }
 
 static void mirror_bezier_yaxis_ex(BezTriple *bezt, const float center)

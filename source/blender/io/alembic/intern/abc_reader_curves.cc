@@ -20,7 +20,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_curve.hh"
 #include "BKE_mesh.hh"
@@ -63,14 +63,14 @@ bool AbcCurveReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ICurves::matches(alembic_header)) {
-    *err_str = TIP_(
+    *err_str = RPT_(
         "Object type mismatch, Alembic object path pointed to Curves when importing, but not any "
         "more");
     return false;
   }
 
   if (ob->type != OB_CURVES_LEGACY) {
-    *err_str = TIP_("Object type mismatch, Alembic object path points to Curves");
+    *err_str = RPT_("Object type mismatch, Alembic object path points to Curves");
     return false;
   }
 
@@ -274,7 +274,7 @@ Mesh *AbcCurveReader::read_mesh(Mesh *existing_mesh,
     sample = m_curves_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    *err_str = TIP_("Error reading curve sample; more detail on the console");
+    *err_str = RPT_("Error reading curve sample; more detail on the console");
     printf("Alembic: error reading curve sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
            m_curves_schema.getName().c_str(),

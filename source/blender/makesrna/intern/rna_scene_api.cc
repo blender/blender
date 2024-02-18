@@ -10,6 +10,8 @@
 #include <cstdlib>
 
 #include "BLI_kdopbvh.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
@@ -20,7 +22,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef WITH_ALEMBIC
 #  include "ABC_alembic.h"
@@ -29,9 +31,9 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_editmesh.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_image.h"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 #  include "BKE_writeavi.h"
 
 #  include "DEG_depsgraph_query.hh"

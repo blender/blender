@@ -150,16 +150,22 @@ bool remesh_topology(blender::bke::dyntopo::BrushTester *brush_tester,
 bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *tester,
                            struct Object *ob,
                            PBVH *pbvh,
-                           bool (*searchcb)(PBVHNode *node, SculptSearchSphereData *data),
+                           bool (*searchcb)(const PBVHNode &node,
+                                            const float3 &location,
+                                            const float radius_sq,
+                                            const bool original),
                            void (*undopush)(PBVHNode *node, void *data),
-                           SculptSearchSphereData *searchdata,
+                           const blender::float3 &location,
+                           const float radius_sq,
+                           const bool original,
                            PBVHTopologyUpdateMode mode,
                            bool use_frontface,
                            blender::float3 view_normal,
                            bool updatePBVH,
                            DyntopoMaskCB mask_cb,
                            void *mask_cb_data,
-                           float quality);
+                           float quality,
+                           void *searchData);
 
 void after_stroke(PBVH *pbvh, bool force_balance);
 }  // namespace blender::bke::dyntopo

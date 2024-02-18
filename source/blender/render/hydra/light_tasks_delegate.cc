@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "light_tasks_delegate.h"
-#include "engine.h"
+#include "light_tasks_delegate.hh"
+#include "engine.hh"
 
 namespace blender::render::hydra {
 

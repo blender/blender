@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -17,7 +17,7 @@
 #include "DNA_defs.h"
 #include "DNA_space_types.h"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 const EnumPropertyItem rna_enum_asset_library_type_items[] = {
     {ASSET_LIBRARY_ALL, "ALL", 0, "All", "Show assets from all of the listed asset libraries"},
@@ -41,7 +41,10 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "AS_asset_library.h"
+#  include <algorithm>
+#  include <fmt/format.h>
+
+#  include "AS_asset_library.hh"
 #  include "AS_asset_representation.hh"
 
 #  include "BKE_asset.hh"
@@ -58,9 +61,9 @@ const EnumPropertyItem rna_enum_asset_library_type_items[] = {
 
 using namespace blender::asset_system;
 
-static char *rna_AssetMetaData_path(const PointerRNA * /*ptr*/)
+static std::optional<std::string> rna_AssetMetaData_path(const PointerRNA * /*ptr*/)
 {
-  return BLI_strdup("asset_data");
+  return "asset_data";
 }
 
 static bool rna_AssetMetaData_editable_from_owner_id(const ID *owner_id,
@@ -88,12 +91,12 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
              PropertyFlag(0);
 }
 
-static char *rna_AssetTag_path(const PointerRNA *ptr)
+static std::optional<std::string> rna_AssetTag_path(const PointerRNA *ptr)
 {
   const AssetTag *asset_tag = static_cast<const AssetTag *>(ptr->data);
   char asset_tag_name_esc[sizeof(asset_tag->name) * 2];
   BLI_str_escape(asset_tag_name_esc, asset_tag->name, sizeof(asset_tag_name_esc));
-  return BLI_sprintfN("asset_data.tags[\"%s\"]", asset_tag_name_esc);
+  return fmt::format("asset_data.tags[\"{}\"]", asset_tag_name_esc);
 }
 
 static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
@@ -307,7 +310,7 @@ static void rna_AssetMetaData_active_tag_range(
 {
   const AssetMetaData *asset_data = static_cast<const AssetMetaData *>(ptr->data);
   *min = *softmin = 0;
-  *max = *softmax = MAX2(asset_data->tot_tags - 1, 0);
+  *max = *softmax = std::max(int(asset_data->tot_tags - 1), 0);
 }
 
 static void rna_AssetMetaData_catalog_id_get(PointerRNA *ptr, char *value)
@@ -353,14 +356,15 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
     return;
   }
 
-  ::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(sfile);
+  blender::asset_system::AssetLibrary *asset_library = ED_fileselect_active_asset_library_get(
+      sfile);
   if (asset_library == nullptr) {
     /* The SpaceFile may not be an asset browser but a regular file browser. */
     return;
   }
 
   AssetMetaData *asset_data = static_cast<AssetMetaData *>(ptr->data);
-  AS_asset_library_refresh_catalog_simplename(asset_library, asset_data);
+  asset_library->refresh_catalog_simplename(asset_data);
 }
 
 static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
@@ -456,7 +460,7 @@ const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*/,
                                                           PropertyRNA * /*prop*/,
                                                           bool *r_free)
 {
-  const EnumPropertyItem *items = ED_asset_library_reference_to_rna_enum_itemf(true);
+  const EnumPropertyItem *items = blender::ed::asset::library_reference_to_rna_enum_itemf(true);
   if (!items) {
     *r_free = false;
   }

@@ -8,7 +8,7 @@
 #pragma once
 
 #include "BLI_assert.h"
-#include "GPU_material.h"
+#include "GPU_material.hh"
 
 enum eMTLDataType {
   MTL_DATATYPE_CHAR,

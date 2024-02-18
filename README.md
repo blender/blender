@@ -23,10 +23,10 @@ Project Pages
 Development
 -----------
 
-- [Build Instructions](https://wiki.blender.org/wiki/Building_Blender)
+- [Build Instructions](https://developer.blender.org/docs/handbook/building_blender/)
 - [Code Review & Bug Tracker](https://projects.blender.org)
 - [Developer Forum](https://devtalk.blender.org)
-- [Developer Documentation](https://wiki.blender.org)
+- [Developer Documentation](https://developer.blender.org/docs/)
 
 
 License

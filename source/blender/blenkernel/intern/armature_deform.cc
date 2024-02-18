@@ -35,7 +35,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.h"
+#include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_lattice.hh"
 #include "BKE_mesh.hh"
@@ -600,9 +600,9 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   data.bmesh.cd_dvert_offset = cd_dvert_offset;
 
   float obinv[4][4];
-  invert_m4_m4(obinv, ob_target->object_to_world);
+  invert_m4_m4(obinv, ob_target->object_to_world().ptr());
 
-  mul_m4_m4m4(data.postmat, obinv, ob_arm->object_to_world);
+  mul_m4_m4m4(data.postmat, obinv, ob_arm->object_to_world().ptr());
   invert_m4_m4(data.premat, data.postmat);
 
   if (em_target != nullptr) {

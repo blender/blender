@@ -138,6 +138,7 @@ static void node_register()
   ntype.draw_buttons = node_layout;
   ntype.updatefunc = node_update;
   ntype.build_multi_function = node_build_multi_function;
+  ntype.deprecation_notice = N_("Use the \"Rotate Rotation\" node instead");
   nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)

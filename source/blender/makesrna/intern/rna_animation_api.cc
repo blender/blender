@@ -16,13 +16,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "rna_internal.h" /* own include */
+#include "rna_internal.hh" /* own include */
 
 #ifdef RNA_RUNTIME
 
 #  include "BKE_context.hh"
 #  include "BKE_nla.h"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "ED_keyframing.hh"
 

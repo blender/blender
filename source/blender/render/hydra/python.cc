@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "final_engine.h"
-#include "preview_engine.h"
-#include "viewport_engine.h"
+#include "final_engine.hh"
+#include "preview_engine.hh"
+#include "viewport_engine.hh"
 
 #include <Python.h>
 
@@ -19,7 +19,7 @@
 
 #include "RNA_prototypes.h"
 
-#include "hydra/image.h"
+#include "hydra/image.hh"
 
 namespace blender::render::hydra {
 
@@ -176,7 +176,7 @@ static PyObject *cache_or_get_image_file_func(PyObject * /*self*/, PyObject *arg
 
   std::string image_path = io::hydra::cache_or_get_image_file(
       CTX_data_main(context), CTX_data_scene(context), image, nullptr);
-  return PyC_UnicodeFromBytes(image_path.c_str());
+  return PyC_UnicodeFromStdStr(image_path);
 }
 
 static PyMethodDef methods[] = {

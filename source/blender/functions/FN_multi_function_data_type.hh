@@ -96,7 +96,7 @@ class DataType {
 
   uint64_t hash() const
   {
-    return get_default_hash_2(*type_, category_);
+    return get_default_hash(*type_, category_);
   }
 };
 

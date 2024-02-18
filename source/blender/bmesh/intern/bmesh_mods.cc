@@ -569,8 +569,8 @@ BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts, BMVert **r_varr)
 
 void BM_edge_verts_swap(BMEdge *e)
 {
-  SWAP(BMVert *, e->v1, e->v2);
-  SWAP(BMDiskLink, e->v1_disk_link, e->v2_disk_link);
+  std::swap(e->v1, e->v2);
+  std::swap(e->v1_disk_link, e->v2_disk_link);
 }
 
 void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2)
@@ -592,7 +592,7 @@ void BM_edge_calc_rotate(BMEdge *e, const bool ccw, BMLoop **r_l1, BMLoop **r_l2
    * gives more predictable results since that way the next vert
    * just stitches from face fa / fb */
   if (!ccw) {
-    SWAP(BMFace *, fa, fb);
+    std::swap(fa, fb);
   }
 
   *r_l1 = BM_face_other_vert_loop(fb, v2, v1);

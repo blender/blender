@@ -84,10 +84,6 @@ void main()
   GBufferReader gbuf = gbuffer_read(
       gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel_fullres);
 
-#ifndef GPU_METAL
-  /* TODO(fclem): Support specialization on OpenGL and Vulkan. */
-  int closure_index = uniform_buf.raytrace.closure_index;
-#endif
   bool has_valid_closure = closure_index < gbuf.closure_count;
   if (!has_valid_closure) {
     return;

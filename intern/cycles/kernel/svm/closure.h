@@ -176,12 +176,11 @@ ccl_device
 #ifdef __CAUSTICS_TRICKS__
       const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
                                         (path_flag & PATH_RAY_DIFFUSE) == 0);
-      const bool glass_caustics = (kernel_data.integrator.caustics_reflective ||
-                                   kernel_data.integrator.caustics_refractive ||
-                                   (path_flag & PATH_RAY_DIFFUSE) == 0);
+      const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
+                                        (path_flag & PATH_RAY_DIFFUSE) == 0);
 #else
       const bool reflective_caustics = true;
-      const bool glass_caustics = true;
+      const bool refractive_caustics = true;
 #endif
 
       /* Before any actual shader components, apply transparency. */
@@ -271,64 +270,68 @@ ccl_device
       }
 
       /* Metallic component */
-      if (reflective_caustics && metallic > CLOSURE_WEIGHT_CUTOFF) {
-        ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-            sd, sizeof(MicrofacetBsdf), metallic * weight);
-        ccl_private FresnelF82Tint *fresnel =
-            (bsdf != NULL) ?
-                (ccl_private FresnelF82Tint *)closure_alloc_extra(sd, sizeof(FresnelF82Tint)) :
-                NULL;
+      if (metallic > CLOSURE_WEIGHT_CUTOFF) {
+        if (reflective_caustics) {
+          ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+              sd, sizeof(MicrofacetBsdf), metallic * weight);
+          ccl_private FresnelF82Tint *fresnel =
+              (bsdf != NULL) ?
+                  (ccl_private FresnelF82Tint *)closure_alloc_extra(sd, sizeof(FresnelF82Tint)) :
+                  NULL;
 
-        if (bsdf && fresnel) {
-          bsdf->N = valid_reflection_N;
-          bsdf->ior = 1.0f;
-          bsdf->T = T;
-          bsdf->alpha_x = alpha_x;
-          bsdf->alpha_y = alpha_y;
+          if (bsdf && fresnel) {
+            bsdf->N = valid_reflection_N;
+            bsdf->ior = 1.0f;
+            bsdf->T = T;
+            bsdf->alpha_x = alpha_x;
+            bsdf->alpha_y = alpha_y;
 
-          fresnel->f0 = rgb_to_spectrum(clamped_base_color);
-          const Spectrum f82 = min(specular_tint, one_spectrum());
+            fresnel->f0 = rgb_to_spectrum(clamped_base_color);
+            const Spectrum f82 = min(specular_tint, one_spectrum());
 
-          /* setup bsdf */
-          sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
-          const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-          bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd, fresnel, f82, is_multiggx);
-
-          /* Attenuate other components */
-          weight *= (1.0f - metallic);
+            /* setup bsdf */
+            sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
+            const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+            bsdf_microfacet_setup_fresnel_f82_tint(kg, bsdf, sd, fresnel, f82, is_multiggx);
+          }
         }
+        /* Attenuate other components */
+        weight *= (1.0f - metallic);
       }
 
       /* Transmission component */
-      if (glass_caustics && transmission_weight > CLOSURE_WEIGHT_CUTOFF) {
-        ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
-            sd, sizeof(MicrofacetBsdf), transmission_weight * weight);
-        ccl_private FresnelGeneralizedSchlick *fresnel =
-            (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
-                                 sd, sizeof(FresnelGeneralizedSchlick)) :
-                             NULL;
+      if (transmission_weight > CLOSURE_WEIGHT_CUTOFF) {
+        if (reflective_caustics || refractive_caustics) {
+          ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
+              sd, sizeof(MicrofacetBsdf), transmission_weight * weight);
+          ccl_private FresnelGeneralizedSchlick *fresnel =
+              (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                                   sd, sizeof(FresnelGeneralizedSchlick)) :
+                               NULL;
 
-        if (bsdf && fresnel) {
-          bsdf->N = valid_reflection_N;
-          bsdf->T = zero_float3();
+          if (bsdf && fresnel) {
+            bsdf->N = valid_reflection_N;
+            bsdf->T = zero_float3();
 
-          bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
-          bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
+            bsdf->alpha_x = bsdf->alpha_y = sqr(roughness);
+            bsdf->ior = (sd->flag & SD_BACKFACING) ? 1.0f / ior : ior;
 
-          fresnel->f0 = make_float3(F0_from_ior(ior)) * specular_tint;
-          fresnel->f90 = one_spectrum();
-          fresnel->exponent = -ior;
-          fresnel->reflection_tint = one_spectrum();
-          fresnel->transmission_tint = sqrt(rgb_to_spectrum(clamped_base_color));
+            fresnel->f0 = make_float3(F0_from_ior(ior)) * specular_tint;
+            fresnel->f90 = one_spectrum();
+            fresnel->exponent = -ior;
+            fresnel->reflection_tint = reflective_caustics ? one_spectrum() : zero_spectrum();
+            fresnel->transmission_tint = refractive_caustics ?
+                                             sqrt(rgb_to_spectrum(clamped_base_color)) :
+                                             zero_spectrum();
 
-          /* setup bsdf */
-          sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
-          const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
-          bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, is_multiggx);
-
-          /* Attenuate other components */
-          weight *= (1.0f - transmission_weight);
+            /* setup bsdf */
+            sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+            const bool is_multiggx = (distribution == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+            bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, is_multiggx);
+          }
         }
+        /* Attenuate other components */
+        weight *= (1.0f - transmission_weight);
       }
 
       /* Apply IOR adjustment */
@@ -554,9 +557,15 @@ ccl_device
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID: {
 #ifdef __CAUSTICS_TRICKS__
-      if (!kernel_data.integrator.caustics_reflective &&
-          !kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
+      const bool reflective_caustics = (kernel_data.integrator.caustics_reflective ||
+                                        (path_flag & PATH_RAY_DIFFUSE) == 0);
+      const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
+                                        (path_flag & PATH_RAY_DIFFUSE) == 0);
+      if (!(reflective_caustics || refractive_caustics))
         break;
+#else
+      const bool reflective_caustics = true;
+      const bool refractive_caustics = true;
 #endif
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), make_spectrum(mix_weight));
@@ -577,8 +586,9 @@ ccl_device
         fresnel->f90 = one_spectrum();
         fresnel->exponent = -ior;
         const float3 color = stack_load_float3(stack, data_node.z);
-        fresnel->reflection_tint = color;
-        fresnel->transmission_tint = color;
+        fresnel->reflection_tint = reflective_caustics ? rgb_to_spectrum(color) : zero_spectrum();
+        fresnel->transmission_tint = refractive_caustics ? rgb_to_spectrum(color) :
+                                                           zero_spectrum();
 
         /* setup bsdf */
         if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID) {

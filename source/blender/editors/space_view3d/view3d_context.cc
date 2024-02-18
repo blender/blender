@@ -11,14 +11,12 @@
 #include "DNA_space_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_layer.h"
+#include "BKE_layer.hh"
 #include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
 
 #include "ED_view3d.hh"
-
-#include "RNA_types.hh"
 
 #include "view3d_intern.h"
 

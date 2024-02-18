@@ -139,7 +139,7 @@ void OVERLAY_paint_cache_init(OVERLAY_Data *vedata)
         state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND_ALPHA;
         DRW_PASS_CREATE(psl->paint_color_ps, state | pd->clipping_state);
 
-        GPUTexture *tex = BKE_image_get_gpu_texture(imapaint->stencil, nullptr, nullptr);
+        GPUTexture *tex = BKE_image_get_gpu_texture(imapaint->stencil, nullptr);
 
         const bool mask_premult = (imapaint->stencil->alpha_mode == IMA_ALPHA_PREMUL);
         const bool mask_inverted = (imapaint->flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) != 0;
@@ -249,7 +249,16 @@ void OVERLAY_paint_vertex_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
 void OVERLAY_paint_weight_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
-  OVERLAY_paint_vertex_cache_populate(vedata, ob);
+  switch (ob->type) {
+    case OB_MESH:
+      OVERLAY_paint_vertex_cache_populate(vedata, ob);
+      break;
+    case OB_GREASE_PENCIL:
+      /* TODO */
+      break;
+    default:
+      BLI_assert_unreachable();
+  }
 }
 
 void OVERLAY_paint_draw(OVERLAY_Data *vedata)

@@ -9,13 +9,13 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
-#include "rna_internal.h"
+#include "rna_internal.hh"
 
 const EnumPropertyItem rna_enum_velocity_unit_items[] = {
     {CACHEFILE_VELOCITY_UNIT_SECOND, "SECOND", 0, "Second", ""},
@@ -27,7 +27,7 @@ const EnumPropertyItem rna_enum_velocity_unit_items[] = {
 
 #  include "BLI_string.h"
 
-#  include "BKE_cachefile.h"
+#  include "BKE_cachefile.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

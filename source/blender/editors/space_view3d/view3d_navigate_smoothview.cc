@@ -262,7 +262,7 @@ void ED_view3d_smooth_view_ex(
     Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
     if (sview->ofs != nullptr) {
       sms.dst.dist = ED_view3d_offset_distance(
-          ob_camera_eval->object_to_world, sview->ofs, VIEW3D_DIST_FALLBACK);
+          ob_camera_eval->object_to_world().ptr(), sview->ofs, VIEW3D_DIST_FALLBACK);
     }
     ED_view3d_from_object(ob_camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, &sms.dst.lens);
     sms.to_camera = true; /* restore view3d values in end */
@@ -287,7 +287,7 @@ void ED_view3d_smooth_view_ex(
       Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
       if (sview->ofs != nullptr) {
         sms.src.dist = ED_view3d_offset_distance(
-            ob_camera_old_eval->object_to_world, sview->ofs, 0.0f);
+            ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0.0f);
       }
       ED_view3d_from_object(
           ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);

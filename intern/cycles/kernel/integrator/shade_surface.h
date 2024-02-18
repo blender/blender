@@ -238,10 +238,17 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
 /* Path tracing: sample point on light and evaluate light shader, then
  * queue shadow ray to be traced. */
 template<uint node_feature_mask>
-ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
-                                                           IntegratorState state,
-                                                           ccl_private ShaderData *sd,
-                                                           ccl_private const RNGState *rng_state)
+#if defined(__KERNEL_GPU__)
+ccl_device_forceinline
+#else
+/* MSVC has very long compilation time (x20) if we force inline this function */
+ccl_device
+#endif
+    void
+    integrate_surface_direct_light(KernelGlobals kg,
+                                   IntegratorState state,
+                                   ccl_private ShaderData *sd,
+                                   ccl_private const RNGState *rng_state)
 {
   /* Test if there is a light or BSDF that needs direct light. */
   if (!(kernel_data.integrator.use_direct_light && (sd->flag & SD_BSDF_HAS_EVAL))) {
@@ -495,12 +502,13 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     INTEGRATOR_STATE_WRITE(state, path, mis_origin_n) = sc->N;
     INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
         unguided_bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
-  }
+
 #ifdef __LIGHT_LINKING__
-  if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING) {
-    INTEGRATOR_STATE_WRITE(state, path, mis_ray_object) = sd->object;
-  }
+    if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING) {
+      INTEGRATOR_STATE_WRITE(state, path, mis_ray_object) = sd->object;
+    }
 #endif
+  }
 
   path_state_next(kg, state, label, sd->flag);
 

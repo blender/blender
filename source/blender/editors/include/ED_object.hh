@@ -8,8 +8,11 @@
 
 #pragma once
 
+#include <string>
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 #include "DNA_object_enums.h"
 #include "DNA_userdef_enums.h"
@@ -58,10 +61,31 @@ void ED_collection_hide_menu_draw(const bContext *C, uiLayout *layout);
  *   the callers \a filter_fn needs to check of they are editable
  *   (assuming they need to be modified).
  */
-Object **ED_object_array_in_mode_or_selected(bContext *C,
-                                             bool (*filter_fn)(const Object *ob, void *user_data),
-                                             void *filter_user_data,
-                                             uint *r_objects_len);
+blender::Vector<Object *> ED_object_array_in_mode_or_selected(
+    bContext *C, bool (*filter_fn)(const Object *ob, void *user_data), void *filter_user_data);
+
+/* `object_shapekey.cc` */
+
+/**
+ * Checks if the currently active Edit Mode on the object is targeting a locked shape key,
+ * and produces an error message if so (unless \a reports is null).
+ * \return true if the shape key was locked.
+ */
+bool ED_object_edit_report_if_shape_key_is_locked(const Object *obedit, ReportList *reports);
+
+/**
+ * Checks if the active shape key of the object is locked, and produces an error message
+ * if so (unless \a reports is null).
+ * \return true if the shape key was locked.
+ */
+bool ED_object_report_if_active_shape_key_is_locked(Object *ob, ReportList *reports);
+
+/**
+ * Checks if any of the shape keys of the object are locked, and produces an error message if so
+ * (unless \a reports is null).
+ * \return true if a shape key was locked.
+ */
+bool ED_object_report_if_any_shape_key_is_locked(Object *ob, ReportList *reports);
 
 /* `object_utils.cc` */
 
@@ -225,10 +249,12 @@ Base *ED_object_add_duplicate(
     Main *bmain, Scene *scene, ViewLayer *view_layer, Base *base, eDupli_ID_Flags dupflag);
 
 void ED_object_parent(Object *ob, Object *parent, int type, const char *substr);
-char *ED_object_ot_drop_named_material_tooltip(bContext *C, const char *name, const int mval[2]);
-char *ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
-                                               PointerRNA *properties,
-                                               const int mval[2]);
+std::string ED_object_ot_drop_named_material_tooltip(bContext *C,
+                                                     const char *name,
+                                                     const int mval[2]);
+std::string ED_object_ot_drop_geometry_nodes_tooltip(bContext *C,
+                                                     PointerRNA *properties,
+                                                     const int mval[2]);
 
 /* bitflags for enter/exit editmode */
 enum {
@@ -457,7 +483,7 @@ void ED_object_posemode_set_for_weight_paint(bContext *C,
  * Return the index of an object in a mode (typically edit/pose mode).
  *
  * Useful for operators with multi-mode editing to be able to redo an action on an object
- * by it's index which (unlike pointers) the operator can store for redo.
+ * by its index which (unlike pointers) the operator can store for redo.
  *
  * The indices aren't intended to be useful from Python scripts,
  * although they are not prevented from passing them in, this is mainly to enable redo.

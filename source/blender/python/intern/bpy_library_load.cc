@@ -16,7 +16,6 @@
 #include <Python.h>
 #include <cstddef>
 
-#include "BLI_ghash.h"
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -24,14 +23,14 @@
 
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
-#include "BKE_idtype.h"
-#include "BKE_lib_id.h"
+#include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_space_types.h" /* FILE_LINK, FILE_RELPATH */
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -152,6 +151,7 @@ static PyTypeObject bpy_lib_Type = {
 };
 
 PyDoc_STRVAR(
+    /* Wrap. */
     bpy_lib_load_doc,
     ".. method:: load("
     "filepath, "

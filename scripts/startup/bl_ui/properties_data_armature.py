@@ -118,13 +118,15 @@ class DATA_PT_bone_collections(ArmatureButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("armature.collection_add", icon='ADD', text="")
         col.operator("armature.collection_remove", icon='REMOVE', text="")
+
+        col.separator()
+
+        col.menu("ARMATURE_MT_collection_context_menu", icon='DOWNARROW_HLT', text="")
+
         if active_bcoll:
             col.separator()
             col.operator("armature.collection_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("armature.collection_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
-            col.separator()
-
-        col.menu("ARMATURE_MT_collection_context_menu", icon='DOWNARROW_HLT', text="")
 
         row = layout.row()
 
@@ -143,12 +145,10 @@ class ARMATURE_MT_collection_context_menu(Menu):
     def draw(self, context):
         layout = self.layout
 
-        arm = context.armature
-        active_bcoll = arm.collections.active
-
-        props = layout.operator("armature.collection_solo_visibility")
-        props.name = active_bcoll.name if active_bcoll else ""
         layout.operator("armature.collection_show_all")
+        layout.operator("armature.collection_unsolo_all")
+        layout.separator()
+        layout.operator("armature.collection_remove_unused", text="Remove Unused")
 
 
 class ARMATURE_MT_collection_tree_context_menu(Menu):
@@ -165,16 +165,14 @@ class ARMATURE_MT_collection_tree_context_menu(Menu):
         # editable or not. That means this menu has to do the disabling for it.
         sub = layout.column()
         sub.enabled = not active_bcoll_is_locked
-        props = sub.operator(
-            "armature.collection_add", text="Add Child Collection"
-        )
-        props.parent_index = arm.collections.active_index
+        sub.operator("armature.collection_add", text="Add Child Collection")
         sub.operator("armature.collection_remove")
+        sub.operator("armature.collection_remove_unused", text="Remove Unused Collections")
 
         layout.separator()
 
-        layout.operator("armature.collection_solo_visibility")
         layout.operator("armature.collection_show_all")
+        layout.operator("armature.collection_unsolo_all")
 
         layout.separator()
 

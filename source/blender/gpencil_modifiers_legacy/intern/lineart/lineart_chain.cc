@@ -6,7 +6,6 @@
  * \ingroup editors
  */
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 
@@ -1372,7 +1371,7 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
         sub_v3_v3v3(dir, cam, eci->gpos);
         float orig_len = len_v3(dir);
         normalize_v3(dir);
-        mul_v3_fl(dir, MIN2(dist, orig_len - ld->conf.near_clip));
+        mul_v3_fl(dir, std::min<float>(dist, orig_len - ld->conf.near_clip));
         add_v3_v3(eci->gpos, dir);
       }
     }

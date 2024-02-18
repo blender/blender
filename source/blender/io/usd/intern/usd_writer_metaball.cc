@@ -1,8 +1,8 @@
 /* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
-#include "usd_writer_metaball.h"
-#include "usd_hierarchy_iterator.h"
+#include "usd_writer_metaball.hh"
+#include "usd_hierarchy_iterator.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdShade/material.h>
@@ -11,8 +11,8 @@
 #include "BLI_assert.h"
 
 #include "BKE_displist.h"
-#include "BKE_lib_id.h"
-#include "BKE_mball.h"
+#include "BKE_lib_id.hh"
+#include "BKE_mball.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
