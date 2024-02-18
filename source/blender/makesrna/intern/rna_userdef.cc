@@ -7159,7 +7159,7 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Extensions",
                            "Enables support for extensions, accessible from the \"Extensions\" "
-                           "section of the preferences.");
+                           "section of the preferences");
   RNA_def_property_boolean_funcs(
       prop, nullptr, "rna_PreferencesExperimental_use_extension_repos_set");
 }

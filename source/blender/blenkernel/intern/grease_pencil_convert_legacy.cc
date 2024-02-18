@@ -588,8 +588,8 @@ void legacy_gpencil_object(Main &bmain, Object &object)
 
   /* NOTE: Could also use #BKE_id_free_us, to also free the legacy GP if not used anymore? */
   id_us_min(&gpd->id);
-  /* No need to increase usercount of `new_grease_pencil`, since ID creation already set it
-   * to 1. */
+  /* No need to increase user-count of `new_grease_pencil`,
+   * since ID creation already set it to 1. */
 
   legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *gpd);
   layer_adjustments_to_modifiers(bmain, *gpd, object);

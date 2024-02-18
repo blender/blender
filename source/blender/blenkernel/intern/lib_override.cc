@@ -4178,7 +4178,7 @@ void BKE_lib_override_library_validate(Main * /*bmain*/, ID *id, ReportList *rep
 
   /* NOTE: In code deleting liboverride data below, #BKE_lib_override_library_make_local is used
    * instead of directly calling #BKE_lib_override_library_free, because the former also handles
-   * properly 'liboverride embedded' IDs, like root nodetrees, or shapekeys. */
+   * properly 'liboverride embedded' IDs, like root node-trees, or shape-keys. */
 
   if (id->override_library->reference == nullptr) {
     /* This (probably) used to be a template ID, could be linked or local, not an override. */
