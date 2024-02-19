@@ -1077,7 +1077,7 @@ void psys_copy_particles(ParticleSystem *psys_dst, ParticleSystem *psys_src)
    *
    * Furthermore, #free_hair() always frees `pa->hair` if it's not nullptr, regardless of the
    * particle type. So *not* copying here would cause a double free (or more), e.g. freeing the
-   * copy-on-write copy and the original data will crash Blender.
+   * copy-on-evaluation copy and the original data will crash Blender.
    * In any case, sharing pointers between `psys_src` and `psys_dst` should be forbidden.
    *
    * So while we could in theory 'sanitize' the situation by setting `pa->hair` to nullptr in the
@@ -4084,7 +4084,7 @@ void object_remove_particle_system(Main *bmain,
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)

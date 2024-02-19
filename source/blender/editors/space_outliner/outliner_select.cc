@@ -444,7 +444,7 @@ static void tree_element_camera_activate(bContext *C, Scene *scene, TreeElement 
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
   WM_windows_scene_data_sync(&wm->windows, scene);
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_SCENE | NA_EDITED, nullptr);
 }

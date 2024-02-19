@@ -330,7 +330,7 @@ void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
     bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&gpd->id);
 
     /* sync "actframe" changes back to main-db too,
-     * so that editing tools work with copy-on-write
+     * so that editing tools work with copy-on-evaluation
      * when the current frame changes
      */
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd_orig->layers) {
@@ -640,13 +640,13 @@ bGPDframe *BKE_gpencil_frame_retime_get(Depsgraph *depsgraph,
 
 static void gpencil_assign_object_eval(Object *object)
 {
-  BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_EVAL);
 
   bGPdata *gpd_eval = object->runtime->gpd_eval;
 
-  gpd_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+  gpd_eval->id.tag |= LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT;
 
-  if (object->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+  if (object->id.tag & LIB_TAG_COPIED_ON_EVAL) {
     object->data = gpd_eval;
   }
 }

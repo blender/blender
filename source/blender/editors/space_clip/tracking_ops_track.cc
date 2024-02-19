@@ -270,7 +270,7 @@ static void track_markers_endjob(void *tmv)
   BKE_autotrack_context_sync(tmj->context);
   BKE_autotrack_context_finish(tmj->context);
 
-  DEG_id_tag_update(&tmj->clip->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&tmj->clip->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_FRAME, tmj->scene);
 }
 
@@ -446,7 +446,7 @@ static int refine_marker_exec(bContext *C, wmOperator *op)
     }
   }
 
-  DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&clip->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 
   return OPERATOR_FINISHED;

@@ -251,7 +251,7 @@ static int collection_new_exec(bContext *C, wmOperator *op)
 
   BKE_collection_add(bmain, data.collection, nullptr);
 
-  DEG_id_tag_update(&data.collection->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&data.collection->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
 
   outliner_cleanup_tree(space_outliner);
@@ -417,7 +417,7 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
 
   outliner_collection_delete(C, bmain, scene, op->reports, true);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);
@@ -743,7 +743,7 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
   BLI_gset_free(data.collections_to_edit, nullptr);
 
-  DEG_id_tag_update(&active_collection->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&active_collection->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER, nullptr);

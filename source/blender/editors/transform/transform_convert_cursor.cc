@@ -77,7 +77,7 @@ static void recalcData_cursor_2D_impl(TransInfo *t)
   td2d->loc2d[0] = td->loc[0] * aspect_inv[0];
   td2d->loc2d[1] = td->loc[1] * aspect_inv[1];
 
-  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /** \} */
@@ -185,7 +185,7 @@ static void createTransCursor_view3d(bContext * /*C*/, TransInfo *t)
 
 static void recalcData_cursor_view3d(TransInfo *t)
 {
-  DEG_id_tag_update(&t->scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&t->scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /** \} */

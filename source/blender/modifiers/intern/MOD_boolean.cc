@@ -316,7 +316,7 @@ static void BMD_mesh_intersection(BMesh *bm,
     Array<short> material_remap(operand_ob->totcol ? operand_ob->totcol : 1);
 
     /* Using original (not evaluated) object here since we are writing to it. */
-    /* XXX Pretty sure comment above is fully wrong now with CoW & co ? */
+    /* XXX Pretty sure comment above is fully wrong now with copy-on-eval & co ? */
     BKE_object_material_remap_calc(ctx->object, operand_ob, material_remap.data());
 
     BMFace *efa;

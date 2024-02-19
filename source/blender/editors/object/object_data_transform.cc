@@ -779,13 +779,13 @@ void ED_object_data_xform_tag_update(XFormObjectData *xod_base)
     case ID_MB: {
       /* Generic update. */
       MetaBall *mb = (MetaBall *)xod_base->id;
-      DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&mb->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
     case ID_GD_LEGACY: {
       /* Generic update. */
       bGPdata *gpd = (bGPdata *)xod_base->id;
-      DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
       break;
     }
 

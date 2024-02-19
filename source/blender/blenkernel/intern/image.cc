@@ -2996,8 +2996,8 @@ static void image_tag_frame_recalc(Image *ima, ID *iuser_id, ImageUser *iuser, v
     iuser->flag |= IMA_NEED_FRAME_RECALC;
 
     if (iuser_id) {
-      /* Must copy image user changes to CoW data-block. */
-      DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
+      /* Must copy image user changes to evaluated data-block. */
+      DEG_id_tag_update(iuser_id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 }
@@ -3011,8 +3011,8 @@ static void image_tag_reload(Image *ima, ID *iuser_id, ImageUser *iuser, void *c
       image_update_views_format(ima, iuser);
     }
     if (iuser_id) {
-      /* Must copy image user changes to CoW data-block. */
-      DEG_id_tag_update(iuser_id, ID_RECALC_COPY_ON_WRITE);
+      /* Must copy image user changes to evaluated data-block. */
+      DEG_id_tag_update(iuser_id, ID_RECALC_SYNC_TO_EVAL);
     }
     BKE_image_partial_update_mark_full_update(ima);
   }

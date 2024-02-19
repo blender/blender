@@ -301,7 +301,7 @@ static void bone_collection_assign_editbones(bContext *C,
 
   ED_armature_edit_sync_selection(arm->edbo);
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /**
@@ -380,7 +380,7 @@ static bool bone_collection_assign_named_mode_specific(bContext *C,
 
       ED_armature_edit_sync_selection(arm->edbo);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
-      DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
       return true;
     }
 

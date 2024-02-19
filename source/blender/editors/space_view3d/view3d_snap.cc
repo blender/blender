@@ -681,7 +681,7 @@ static int snap_curs_to_grid_exec(bContext *C, wmOperator * /*op*/)
   curs[2] = gridf * floorf(0.5f + curs[2] / gridf);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr); /* hrm */
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
   return OPERATOR_FINISHED;
 }
@@ -870,7 +870,7 @@ static int snap_curs_to_sel_exec(bContext *C, wmOperator * /*op*/)
   const int pivot_point = scene->toolsettings->transform_pivot_point;
   if (snap_curs_to_sel_ex(C, pivot_point, scene->cursor.location)) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
     return OPERATOR_FINISHED;
   }
@@ -919,7 +919,7 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator * /*op*/)
 
   if (snap_calc_active_center(C, false, scene->cursor.location)) {
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
     return OPERATOR_FINISHED;
   }
@@ -957,7 +957,7 @@ static int snap_curs_to_center_exec(bContext *C, wmOperator * /*op*/)
   zero_v3(scene->cursor.location);
   BKE_scene_cursor_mat3_to_rot(&scene->cursor, mat3, false);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
   WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
   return OPERATOR_FINISHED;

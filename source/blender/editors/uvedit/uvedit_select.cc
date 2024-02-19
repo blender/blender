@@ -2975,13 +2975,13 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
       scene, objects, pick ? &hit : nullptr, extend, deselect, false, select_faces);
 
   if (pick) {
-    DEG_id_tag_update(static_cast<ID *>(hit.ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(hit.ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, hit.ob->data);
   }
   else {
     for (Object *obedit : objects) {
       DEG_id_tag_update(static_cast<ID *>(obedit->data),
-                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -5540,7 +5540,7 @@ static int uv_select_mode_exec(bContext *C, wmOperator *op)
   /* Handle UV selection states according to new select mode and sticky mode. */
   ED_uvedit_selectmode_clean_multi(C);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   return OPERATOR_FINISHED;

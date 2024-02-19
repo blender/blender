@@ -180,7 +180,7 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA * /*ptr*/)
 
   BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
   psys_free_path_cache(edit->psys, edit);
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_ParticleEdit_update(bContext *C, PointerRNA * /*ptr*/)
@@ -195,7 +195,7 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA * /*ptr*/)
   }
 
   /* Sync tool setting changes from original to evaluated scenes. */
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)

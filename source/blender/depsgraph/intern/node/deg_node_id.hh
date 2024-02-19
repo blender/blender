@@ -59,9 +59,9 @@ struct IDNode : public Node {
 
   IDComponentsMask get_visible_components_mask() const;
 
-  /* Type of the ID stored separately, so it's possible to perform check whether CoW is needed
-   * without de-referencing the id_cow (which is not safe when ID is NOT covered by CoW and has
-   * been deleted from the main database.) */
+  /* Type of the ID stored separately, so it's possible to perform check whether evaluated copy is
+   * needed without de-referencing the id_cow (which is not safe when ID is NOT covered by
+   * copy-on-evaluation and has been deleted from the main database.) */
   ID_Type id_type;
 
   /* ID Block referenced. */
@@ -74,7 +74,7 @@ struct IDNode : public Node {
   uint id_orig_session_uid;
 
   /* Evaluated data-block.
-   * Will be covered by the copy-on-write system if the ID Type needs it. */
+   * Will be covered by the copy-on-evaluation system if the ID Type needs it. */
   ID *id_cow;
 
   /* Hash to make it faster to look up components. */

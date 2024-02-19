@@ -100,7 +100,7 @@ bool ED_rigidbody_constraint_add(
 
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
-  DEG_id_tag_update(&rbw->constraints->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&rbw->constraints->id, ID_RECALC_SYNC_TO_EVAL);
 
   return true;
 }

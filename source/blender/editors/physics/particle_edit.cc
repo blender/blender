@@ -5493,7 +5493,7 @@ void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, O
   }
 
   toggle_particle_cursor(scene, true);
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_PARTICLE, nullptr);
 }
 
@@ -5511,7 +5511,7 @@ void ED_object_particle_edit_mode_exit_ex(Scene *scene, Object *ob)
   toggle_particle_cursor(scene, false);
   free_all_psys_edit(ob);
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, nullptr);
 }
 

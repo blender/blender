@@ -178,9 +178,10 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
   ID *id = static_cast<ID *>(cb_data->user_data);
   if (*cb_data->id_pointer == id) {
     /* Even though the ID itself remain the same after being made local, from depsgraph point of
-     * view this is a different ID. Hence we need to tag all of its users for COW update. */
+     * view this is a different ID. Hence we need to tag all of its users for a copy-on-eval
+     * update. */
     DEG_id_tag_update_ex(
-        cb_data->bmain, cb_data->owner_id, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
+        cb_data->bmain, cb_data->owner_id, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_SYNC_TO_EVAL);
     return IDWALK_RET_STOP_ITER;
   }
   return IDWALK_RET_NOP;
@@ -227,7 +228,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
    * ones are two completely different data-blocks that were virtually remapped, even though in
    * reality they remain the same data. For undo this info is critical now. */
-  DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_SYNC_TO_EVAL);
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     BKE_library_foreach_ID_link(
@@ -1273,7 +1274,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
 
     /* We also need to ensure a valid `session_uid` for some non-main data (like embedded IDs).
      * IDs not allocated however should not need those (this would e.g. avoid generating session
-     * uids for depsgraph CoW IDs, if it was using this function). */
+     * uids for depsgraph evaluated IDs, if it was using this function). */
     if ((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
       BKE_lib_libblock_session_uid_ensure(id);
     }
@@ -1393,10 +1394,10 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   BLI_assert(new_id != nullptr);
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
-    new_id->tag |= LIB_TAG_COPIED_ON_WRITE;
+    new_id->tag |= LIB_TAG_COPIED_ON_EVAL;
   }
   else {
-    new_id->tag &= ~LIB_TAG_COPIED_ON_WRITE;
+    new_id->tag &= ~LIB_TAG_COPIED_ON_EVAL;
   }
 
   const size_t id_len = BKE_libblock_get_alloc_info(GS(new_id->name), nullptr);

@@ -2022,7 +2022,7 @@ static void gpencil_init_drawing_brush(bContext *C, tGPsdata *p)
 
   /* Need this update to synchronize brush with draw manager. */
   if (changed) {
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 
@@ -2188,7 +2188,7 @@ static void gpencil_session_cleanup(tGPsdata *p)
   gpd->runtime.sbuffer_size = 0;
   gpd->runtime.sbuffer_sflag = 0;
   /* This update is required for update-on-write because the sbuffer data is not longer overwritten
-   * by a copy-on-write. */
+   * by a copy-on-evaluation. */
   ED_gpencil_sbuffer_update_eval(gpd, p->ob_eval);
   p->inittime = 0.0;
 }
@@ -3719,7 +3719,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
       p->paintmode = GP_PAINTMODE_DRAW;
       WM_cursor_modal_restore(p->win);
       ED_gpencil_toggle_brush_cursor(C, true, nullptr);
-      DEG_id_tag_update(&p->scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&p->scene->id, ID_RECALC_SYNC_TO_EVAL);
     }
     else {
       return OPERATOR_RUNNING_MODAL;

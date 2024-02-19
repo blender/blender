@@ -405,7 +405,7 @@ static void gizmo_area_light_prop_matrix_set(const wmGizmo * /*gz*/,
     la->area_size = len_v3(matrix[0]);
   }
 
-  DEG_id_tag_update(&la->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&la->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 

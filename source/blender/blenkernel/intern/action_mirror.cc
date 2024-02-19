@@ -458,7 +458,7 @@ void BKE_action_flip_with_pose(bAction *act, Object *ob_arm)
 
   action_flip_pchan_rna_paths(act);
 
-  DEG_id_tag_update(&act->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&act->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /** \} */

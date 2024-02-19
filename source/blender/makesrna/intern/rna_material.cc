@@ -200,7 +200,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
     ED_node_shader_default(C, &ma->id);
   }
 
-  DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
   rna_Material_draw_update(bmain, CTX_data_scene(C), ptr);
 }

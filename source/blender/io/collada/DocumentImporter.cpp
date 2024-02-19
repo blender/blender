@@ -256,7 +256,7 @@ void DocumentImporter::finish()
   delete objects_to_scale;
 
   /* update scene */
-  DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&sce->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, nullptr);
 }

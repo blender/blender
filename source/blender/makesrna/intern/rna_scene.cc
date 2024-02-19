@@ -970,7 +970,7 @@ static void rna_Scene_camera_update(Main *bmain, Scene * /*scene_unused*/, Point
   Scene *scene = (Scene *)ptr->data;
 
   WM_windows_scene_data_sync(&wm->windows, scene);
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
 }
 
@@ -1731,7 +1731,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 
   if (type) {
     STRNCPY_UTF8(rd->engine, type->idname);
-    DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 
@@ -1798,7 +1798,7 @@ void rna_Scene_render_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
 {
   Scene *scene = (Scene *)ptr->owner_id;
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_Scene_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1828,14 +1828,14 @@ void rna_Scene_freestyle_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA 
 {
   Scene *scene = (Scene *)ptr->owner_id;
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 void rna_Scene_use_freestyle_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
   if (scene->nodetree) {
     ntreeCompositUpdateRLayers(scene->nodetree);
@@ -1958,7 +1958,7 @@ static void rna_Physics_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *
   }
   FOREACH_SCENE_OBJECT_END;
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const bool *value)
@@ -2090,7 +2090,7 @@ static void rna_Scene_simplify_update_impl(Main *bmain,
 
   WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
-  DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&sce->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_Scene_use_simplify_update(bContext *C, PointerRNA *ptr)
@@ -2469,7 +2469,7 @@ FreestyleLineSet *rna_FreestyleSettings_lineset_add(ID *id,
   Scene *scene = (Scene *)id;
   FreestyleLineSet *lineset = BKE_freestyle_lineset_add(bmain, (FreestyleConfig *)config, name);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   return lineset;
@@ -2490,7 +2490,7 @@ void rna_FreestyleSettings_lineset_remove(ID *id,
 
   RNA_POINTER_INVALIDATE(lineset_ptr);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 
@@ -2527,7 +2527,7 @@ FreestyleModuleConfig *rna_FreestyleSettings_module_add(ID *id, FreestyleSetting
   Scene *scene = (Scene *)id;
   FreestyleModuleConfig *module = BKE_freestyle_module_add((FreestyleConfig *)config);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   return module;
@@ -2556,7 +2556,7 @@ void rna_FreestyleSettings_module_remove(ID *id,
 
   RNA_POINTER_INVALIDATE(module_ptr);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 }
 

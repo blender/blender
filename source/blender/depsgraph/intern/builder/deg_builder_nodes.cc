@@ -141,7 +141,7 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 {
   for (IDInfo *id_info : id_info_hash_.values()) {
     if (id_info->id_cow != nullptr) {
-      deg_free_copy_on_write_datablock(id_info->id_cow);
+      deg_free_eval_copy_datablock(id_info->id_cow);
       MEM_freeN(id_info->id_cow);
     }
     MEM_freeN(id_info);
@@ -164,7 +164,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
     previously_visible_components_mask = id_info->previously_visible_components_mask;
     previous_eval_flags = id_info->previous_eval_flags;
     previous_customdata_masks = id_info->previous_customdata_masks;
-    /* Tag ID info to not free the CoW ID pointer. */
+    /* Tag ID info to not free the evaluated ID pointer. */
     id_info->id_cow = nullptr;
   }
   id_node = graph_->add_id_node(id, id_cow);
@@ -176,11 +176,11 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
   const bool is_newly_created = id_node->components.is_empty();
 
   if (is_newly_created) {
-    if (deg_copy_on_write_is_needed(id_type)) {
-      ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
+    if (deg_eval_copy_is_needed(id_type)) {
+      ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_EVAL);
       OperationNode *op_cow = comp_cow->add_operation(
-          [id_node](::Depsgraph *depsgraph) { deg_evaluate_copy_on_write(depsgraph, id_node); },
-          OperationCode::COPY_ON_WRITE);
+          [id_node](::Depsgraph *depsgraph) { deg_create_eval_copy(depsgraph, id_node); },
+          OperationCode::COPY_ON_EVAL);
       graph_->operations.append(op_cow);
     }
 
@@ -365,8 +365,8 @@ ID *DepsgraphNodeBuilder::get_cow_id(const ID *id_orig) const
 
 ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
 {
-  if (id_orig->tag & LIB_TAG_COPIED_ON_WRITE) {
-    /* ID is already remapped to copy-on-write. */
+  if (id_orig->tag & LIB_TAG_COPIED_ON_EVAL) {
+    /* ID is already remapped to copy-on-evaluation. */
     return id_orig;
   }
   IDNode *id_node = add_id_node(id_orig);
@@ -377,17 +377,17 @@ ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
 
 void DepsgraphNodeBuilder::begin_build()
 {
-  /* Store existing copy-on-write versions of datablock, so we can re-use
+  /* Store existing evaluated versions of datablock, so we can re-use
    * them for new ID nodes. */
   for (IDNode *id_node : graph_->id_nodes) {
-    /* It is possible that the ID does not need to have CoW version in which case id_cow is the
-     * same as id_orig. Additionally, such ID might have been removed, which makes the check
+    /* It is possible that the ID does not need to have evaluated version in which case id_cow is
+     * the same as id_orig. Additionally, such ID might have been removed, which makes the check
      * for whether id_cow is expanded to access freed memory. In order to deal with this we
-     * check whether CoW is needed based on a scalar value which does not lead to access of
-     * possibly deleted memory. */
+     * check whether an evaluated copy is needed based on a scalar value which does not lead to
+     * access of possibly deleted memory. */
     IDInfo *id_info = (IDInfo *)MEM_mallocN(sizeof(IDInfo), "depsgraph id info");
-    if (deg_copy_on_write_is_needed(id_node->id_type) &&
-        deg_copy_on_write_is_expanded(id_node->id_cow) && id_node->id_orig != id_node->id_cow)
+    if (deg_eval_copy_is_needed(id_node->id_type) && deg_eval_copy_is_expanded(id_node->id_cow) &&
+        id_node->id_orig != id_node->id_cow)
     {
       id_info->id_cow = id_node->id_cow;
     }
@@ -412,12 +412,12 @@ void DepsgraphNodeBuilder::begin_build()
   graph_->entry_tags.clear();
 }
 
-/* Util callbacks for `BKE_library_foreach_ID_link`, used to detect when a COW ID is using ID
- * pointers that are either:
- *  - COW ID pointers that do not exist anymore in current depsgraph.
- *  - Orig ID pointers that do have now a COW version in current depsgraph.
- * In both cases, it means the COW ID user needs to be flushed, to ensure its pointers are properly
- * remapped.
+/* Util callbacks for `BKE_library_foreach_ID_link`, used to detect when an evaluated ID is using
+ * ID pointers that are either:
+ *  - evaluated ID pointers that do not exist anymore in current depsgraph.
+ *  - Orig ID pointers that do have now an evaluated version in current depsgraph.
+ * In both cases, it means the evaluated ID user needs to be flushed, to ensure its pointers are
+ * properly remapped.
  *
  * NOTE: This is split in two, a static function and a public method of the node builder, to allow
  * the code to access the builder's data more easily. */
@@ -426,30 +426,30 @@ int DepsgraphNodeBuilder::foreach_id_cow_detect_need_for_update_callback(ID *id_
                                                                          ID *id_pointer)
 {
   if (id_pointer->orig_id == nullptr) {
-    /* `id_cow_self` uses a non-cow ID, if that ID has a COW copy in current depsgraph its owner
-     * needs to be remapped, i.e. COW-flushed. */
+    /* `id_cow_self` uses a non-cow ID, if that ID has an evaluated copy in current depsgraph its
+     * owner needs to be remapped, i.e. copy-on-eval-flushed. */
     IDNode *id_node = find_id_node(id_pointer);
     if (id_node != nullptr && id_node->id_cow != nullptr) {
       graph_id_tag_update(bmain_,
                           graph_,
                           id_cow_self->orig_id,
-                          ID_RECALC_COPY_ON_WRITE,
+                          ID_RECALC_SYNC_TO_EVAL,
                           DEG_UPDATE_SOURCE_RELATIONS);
       return IDWALK_RET_STOP_ITER;
     }
   }
   else {
-    /* `id_cow_self` uses a COW ID, if that COW copy is removed from current depsgraph its owner
-     * needs to be remapped, i.e. COW-flushed. */
-    /* NOTE: at that stage, old existing COW copies that are to be removed from current state of
-     * evaluated depsgraph are still valid pointers, they are freed later (typically during
+    /* `id_cow_self` uses an evaluated ID, if that evaluated copy is removed from current depsgraph
+     * its owner needs to be remapped, i.e. copy-on-eval-flushed. */
+    /* NOTE: at that stage, old existing evaluated copies that are to be removed from current state
+     * of evaluated depsgraph are still valid pointers, they are freed later (typically during
      * destruction of the builder itself). */
     IDNode *id_node = find_id_node(id_pointer->orig_id);
     if (id_node == nullptr) {
       graph_id_tag_update(bmain_,
                           graph_,
                           id_cow_self->orig_id,
-                          ID_RECALC_COPY_ON_WRITE,
+                          ID_RECALC_SYNC_TO_EVAL,
                           DEG_UPDATE_SOURCE_RELATIONS);
       return IDWALK_RET_STOP_ITER;
     }
@@ -463,9 +463,9 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
   if (id == nullptr) {
     return IDWALK_RET_NOP;
   }
-  if (!ID_TYPE_IS_COW(GS(id->name))) {
-    /* No need to go further if the id never had a cow copy in the depsgraph. This function is
-     * only concerned with keeping the mapping between original and COW ids intact. */
+  if (!ID_TYPE_USE_COPY_ON_EVAL(GS(id->name))) {
+    /* No need to go further if the id never had an evaluated copy in the depsgraph. This function
+     * is only concerned with keeping the mapping between original and evaluated IDs intact. */
     return IDWALK_RET_NOP;
   }
 
@@ -477,7 +477,7 @@ static int foreach_id_cow_detect_need_for_update_callback(LibraryIDLinkCallbackD
 
 void DepsgraphNodeBuilder::update_invalid_cow_pointers()
 {
-  /* NOTE: Currently the only ID types that depsgraph may decide to not evaluate/generate COW
+  /* NOTE: Currently the only ID types that depsgraph may decide to not evaluate/generate evaluated
    * copies for, even though they are referenced by other data-blocks, are Collections and Objects
    * (through their various visibility flags, and the ones from #LayerCollections too). However,
    * this code is kept generic as it makes it more future-proof, and optimization here would give
@@ -493,11 +493,11 @@ void DepsgraphNodeBuilder::update_invalid_cow_pointers()
       continue;
     }
     if (ELEM(id_node->id_cow, id_node->id_orig, nullptr)) {
-      /* Node/ID with no COW data, no need to check it. */
+      /* Node/ID with no copy-on-eval data, no need to check it. */
       continue;
     }
-    if ((id_node->id_cow->recalc & ID_RECALC_COPY_ON_WRITE) != 0) {
-      /* Node/ID already tagged for COW flush, no need to check it. */
+    if ((id_node->id_cow->recalc & ID_RECALC_SYNC_TO_EVAL) != 0) {
+      /* Node/ID already tagged for copy-on-eval flush, no need to check it. */
       continue;
     }
     if ((id_node->id_cow->flag & LIB_EMBEDDED_DATA) != 0) {
@@ -512,8 +512,9 @@ void DepsgraphNodeBuilder::update_invalid_cow_pointers()
        *
        * E.g. when undoing creation/deletion of a collection directly child of a scene's master
        * collection, the scene itself is re-read in place, but its master collection becomes a
-       * completely new different pointer, and the existing COW of the old master collection in the
-       * matching deg node is therefore pointing to fully invalid (freed) memory. */
+       * completely new different pointer, and the existing copy-on-eval of the old master
+       * collection in the matching deg node is therefore pointing to fully invalid (freed) memory.
+       */
       continue;
     }
     BKE_library_foreach_ID_link(nullptr,
@@ -650,7 +651,7 @@ void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
     case ID_PAL:
     case ID_PC:
     case ID_WS:
-      BLI_assert(!deg_copy_on_write_is_needed(id_type));
+      BLI_assert(!deg_eval_copy_is_needed(id_type));
       build_generic_id(id);
       break;
   }
@@ -1295,7 +1296,7 @@ void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index
   /* Create data node for this driver */
   ID *id_cow = get_cow_id(id);
 
-  /* TODO(sergey): ideally we could pass the COW of fcu, but since it
+  /* TODO(sergey): ideally we could pass the copy-on-eval of fcu, but since it
    * has not yet been allocated at this point we can't. As a workaround
    * the animation systems allocates an array so we can do a fast lookup
    * with the driver index. */
@@ -1697,7 +1698,7 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
     return;
   }
   OperationNode *op_node;
-  /* Make sure we've got an ID node before requesting CoW pointer. */
+  /* Make sure we've got an ID node before requesting evaluated pointer. */
   (void)add_id_node((ID *)obdata);
   ID *obdata_cow = get_cow_id(obdata);
   build_idproperties(obdata->properties);

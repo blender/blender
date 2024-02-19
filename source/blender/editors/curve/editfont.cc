@@ -2593,7 +2593,7 @@ bool ED_curve_editfont_select_pick(
       cu->actbox = actbox_select;
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
       /* TODO: support #ID_RECALC_SELECT. */
-      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SYNC_TO_EVAL);
     }
     return true;
   }

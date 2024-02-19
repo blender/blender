@@ -912,7 +912,7 @@ void ED_object_texture_paint_mode_enter_ex(Main *bmain,
 
   Mesh *mesh = BKE_mesh_from_object(ob);
   BLI_assert(mesh != nullptr);
-  DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_SYNC_TO_EVAL);
 
   /* Ensure we have evaluated data for bounding box. */
   BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -946,7 +946,7 @@ void ED_object_texture_paint_mode_exit_ex(Main *bmain, Scene *scene, Object *ob)
 
   Mesh *mesh = BKE_mesh_from_object(ob);
   BLI_assert(mesh != nullptr);
-  DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&mesh->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_SCENE | ND_MODE, scene);
 }
 

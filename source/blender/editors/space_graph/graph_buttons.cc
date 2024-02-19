@@ -617,15 +617,15 @@ static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
       ID *id = static_cast<ID *>(id_v);
       AnimData *adt = BKE_animdata_from_id(id);
 
-      /* Rebuild depsgraph for the new dependencies, and ensure COW copies get flushed. */
+      /* Rebuild depsgraph for the new dependencies, and ensure evaluated copies get flushed. */
       DEG_relations_tag_update(bmain);
-      DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update_ex(bmain, id, ID_RECALC_SYNC_TO_EVAL);
       if (adt != nullptr) {
         if (adt->action != nullptr) {
-          DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_SYNC_TO_EVAL);
         }
         if (adt->tmpact != nullptr) {
-          DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
         }
       }
 

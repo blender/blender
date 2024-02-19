@@ -211,7 +211,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.
-     * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
+     * XXX(Hans): This probably isn't true anymore with various copy-on-eval improvements, etc. */
     if ((me_positions.data() == mesh_positions.data()) || (me_edges.data() == mesh_edges.data()) ||
         (me_faces.data() == mesh_faces.data()))
     {

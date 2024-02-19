@@ -1064,7 +1064,7 @@ static void drw_engines_cache_populate(Object *ob)
 {
   DST.ob_handle = 0;
 
-  /* HACK: DrawData is copied by COW from the duplicated object.
+  /* HACK: DrawData is copied by copy-on-eval from the duplicated object.
    * This is valid for IDs that cannot be instantiated but this
    * is not what we want in this case so we clear the pointer
    * ourselves here. */
@@ -1469,7 +1469,7 @@ void DRW_draw_callbacks_post_scene()
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (do_annotations) {
       GPU_depth_test(GPU_DEPTH_NONE);
-      /* XXX: as `scene->gpd` is not copied for COW yet. */
+      /* XXX: as `scene->gpd` is not copied for copy-on-eval yet. */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }
@@ -1522,7 +1522,7 @@ void DRW_draw_callbacks_post_scene()
     /* XXX: Or should we use a proper draw/overlay engine for this case? */
     if (((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0) && (do_annotations)) {
       GPU_depth_test(GPU_DEPTH_NONE);
-      /* XXX: as `scene->gpd` is not copied for COW yet */
+      /* XXX: as `scene->gpd` is not copied for copy-on-eval yet */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, false);
     }
 
@@ -1545,7 +1545,7 @@ void DRW_draw_callbacks_post_scene()
   else {
     if (v3d && ((v3d->flag2 & V3D_SHOW_ANNOTATION) != 0)) {
       GPU_depth_test(GPU_DEPTH_NONE);
-      /* XXX: as `scene->gpd` is not copied for COW yet */
+      /* XXX: as `scene->gpd` is not copied for copy-on-eval yet */
       ED_annotation_draw_view3d(DEG_get_input_scene(depsgraph), depsgraph, v3d, region, true);
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
     }

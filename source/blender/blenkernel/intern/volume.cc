@@ -777,19 +777,19 @@ void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, co
 #ifdef WITH_OPENVDB
   /* Restore grids after datablock was re-copied from original by depsgraph,
    * we don't want to load them again if possible. */
-  BLI_assert(volume->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  BLI_assert(volume->id.tag & LIB_TAG_COPIED_ON_EVAL);
   BLI_assert(volume->runtime->grids != nullptr && grids != nullptr);
 
   if (!grids->is_loaded()) {
-    /* No grids loaded in CoW datablock, nothing lost by discarding. */
+    /* No grids loaded in evaluated datablock, nothing lost by discarding. */
     MEM_delete(grids);
   }
   else if (!STREQ(volume->filepath, filepath)) {
-    /* Filepath changed, discard grids from CoW datablock. */
+    /* Filepath changed, discard grids from evaluated datablock. */
     MEM_delete(grids);
   }
   else {
-    /* Keep grids from CoW datablock. We might still unload them a little
+    /* Keep grids from evaluated datablock. We might still unload them a little
      * later in BKE_volume_eval_geometry if the frame changes. */
     MEM_delete(volume->runtime->grids);
     volume->runtime->grids = grids;

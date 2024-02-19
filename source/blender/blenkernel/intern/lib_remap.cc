@@ -123,11 +123,11 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
       if (id_remap_data->bmain != nullptr) {
         DEG_id_tag_update_ex(id_remap_data->bmain,
                              id_self,
-                             ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+                             ID_RECALC_SYNC_TO_EVAL | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
         if (id_self != id_owner) {
           DEG_id_tag_update_ex(id_remap_data->bmain,
                                id_owner,
-                               ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+                               ID_RECALC_SYNC_TO_EVAL | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
         }
       }
       if (GS(id_owner->name) == ID_NT) {

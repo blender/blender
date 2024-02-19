@@ -80,7 +80,7 @@ static int view_camera_exec(bContext *C, wmOperator *op)
       /* important these don't get out of sync for locked scenes */
       if (v3d->scenelock && scene->camera != v3d->camera) {
         scene->camera = v3d->camera;
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
 
       /* finally do snazzy view zooming */

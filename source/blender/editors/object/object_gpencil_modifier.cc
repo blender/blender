@@ -987,7 +987,7 @@ static int time_segment_add_exec(bContext *C, wmOperator *op)
   gpmd->segments_len++;
   gpmd->segment_active_index++;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -1058,7 +1058,7 @@ static int time_segment_remove_exec(bContext *C, wmOperator *op)
 
   gpmd->segments_len--;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -1136,7 +1136,7 @@ static int time_segment_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -1228,7 +1228,7 @@ static int dash_segment_add_exec(bContext *C, wmOperator *op)
   dmd->segments_len++;
   dmd->segment_active_index++;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -1300,7 +1300,7 @@ static int dash_segment_remove_exec(bContext *C, wmOperator *op)
 
   dmd->segments_len--;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -1379,7 +1379,7 @@ static int dash_segment_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;

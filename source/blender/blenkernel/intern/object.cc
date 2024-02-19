@@ -1543,7 +1543,7 @@ static void object_update_from_subsurf_ccg(Object *object)
     return;
   }
   /* If object does not own evaluated mesh we can not access it since it might be freed already
-   * (happens on dependency graph free where order of CoW-ed IDs free is undefined).
+   * (happens on dependency graph free where order of evaluated IDs free is undefined).
    *
    * Good news is: such mesh does not have modifiers applied, so no need to worry about CCG. */
   if (!object->runtime->is_data_eval_owned) {
@@ -1610,13 +1610,13 @@ static void object_update_from_subsurf_ccg(Object *object)
 
 void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_owned)
 {
-  BLI_assert(object_eval->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  BLI_assert(object_eval->id.tag & LIB_TAG_COPIED_ON_EVAL);
   BLI_assert(object_eval->runtime->data_eval == nullptr);
   BLI_assert(data_eval->tag & LIB_TAG_NO_MAIN);
 
   if (is_owned) {
     /* Set flag for debugging. */
-    data_eval->tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+    data_eval->tag |= LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT;
   }
 
   /* Assigned evaluated data. */
@@ -1628,7 +1628,7 @@ void BKE_object_eval_assign_data(Object *object_eval, ID *data_eval, bool is_own
   if (GS(data->name) == GS(data_eval->name)) {
     /* NOTE: we are not supposed to invoke evaluation for original objects,
      * but some areas are still being ported, so we play safe here. */
-    if (object_eval->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+    if (object_eval->id.tag & LIB_TAG_COPIED_ON_EVAL) {
       object_eval->data = data_eval;
     }
   }
@@ -1670,7 +1670,7 @@ void BKE_object_free_derived_caches(Object *ob)
     ob->runtime->mesh_deform_eval = nullptr;
   }
 
-  /* Restore initial pointer for copy-on-write data-blocks, object->data
+  /* Restore initial pointer for copy-on-evaluation data-blocks, object->data
    * might be pointing to an evaluated data-block data was just freed above. */
   if (ob->runtime->data_orig != nullptr) {
     ob->data = ob->runtime->data_orig;
@@ -4178,15 +4178,15 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object)
 Mesh *BKE_object_get_pre_modified_mesh(const Object *object)
 {
   if (object->type == OB_MESH && object->runtime->data_orig != nullptr) {
-    BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
+    BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_EVAL);
     BLI_assert(object->id.orig_id != nullptr);
     BLI_assert(object->runtime->data_orig->orig_id == ((Object *)object->id.orig_id)->data);
     Mesh *result = (Mesh *)object->runtime->data_orig;
-    BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_WRITE) != 0);
-    BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT) == 0);
+    BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_EVAL) != 0);
+    BLI_assert((result->id.tag & LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT) == 0);
     return result;
   }
-  BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0);
+  BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0);
   return (Mesh *)object->data;
 }
 
@@ -4194,15 +4194,15 @@ Mesh *BKE_object_get_original_mesh(const Object *object)
 {
   Mesh *result = nullptr;
   if (object->id.orig_id == nullptr) {
-    BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0);
+    BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0);
     result = (Mesh *)object->data;
   }
   else {
-    BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_WRITE) != 0);
+    BLI_assert((object->id.tag & LIB_TAG_COPIED_ON_EVAL) != 0);
     result = (Mesh *)((Object *)object->id.orig_id)->data;
   }
   BLI_assert(result != nullptr);
-  BLI_assert((result->id.tag & (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT)) ==
+  BLI_assert((result->id.tag & (LIB_TAG_COPIED_ON_EVAL | LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT)) ==
              0);
   return result;
 }
@@ -4281,10 +4281,10 @@ static int pc_cmp(const void *a, const void *b)
   return 0;
 }
 
-/* TODO: Review the usages of this function, currently with COW it will be called for orig object
- * and then again for COW copies of it, think this is bad since there is no guarantee that we get
- * the same stack index in both cases? Order is important since this index is used for filenames
- * on disk. */
+/* TODO: Review the usages of this function, currently with copy-on-eval it will be called for orig
+ * object and then again for evaluated copies of it, think this is bad since there is no guarantee
+ * that we get the same stack index in both cases? Order is important since this index is used for
+ * filenames on disk. */
 int BKE_object_insert_ptcache(Object *ob)
 {
   LinkData *link = nullptr;
@@ -5024,7 +5024,7 @@ void BKE_object_groups_clear(Main *bmain, Scene *scene, Object *ob)
   Collection *collection = nullptr;
   while ((collection = BKE_collection_object_find(bmain, scene, collection, ob))) {
     BKE_collection_object_remove(bmain, collection, ob, false);
-    DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 

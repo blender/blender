@@ -419,7 +419,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   ensure_valid_pivot(ob, scene);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 void ED_object_sculptmode_enter(bContext *C, Depsgraph *depsgraph, ReportList *reports)
@@ -473,7 +473,7 @@ void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scen
   BKE_object_free_derived_caches(ob);
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)

@@ -1612,7 +1612,7 @@ static int arg_handle_output_set(int argc, const char **argv, void *data)
     Scene *scene = CTX_data_scene(C);
     if (scene) {
       STRNCPY(scene->r.pic, argv[1]);
-      DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
     }
     else {
       fprintf(stderr, "\nError: no blend loaded. cannot use '-o / --render-output'.\n");
@@ -1643,7 +1643,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
       if (scene) {
         if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
           STRNCPY_UTF8(scene->r.engine, argv[1]);
-          DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
         }
         else {
           fprintf(stderr, "\nError: engine not found '%s'\n", argv[1]);
@@ -1687,7 +1687,7 @@ static int arg_handle_image_type_set(int argc, const char **argv, void *data)
       }
       else {
         scene->r.im_format.imtype = imtype_new;
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
     }
     else {
@@ -1772,11 +1772,11 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
     if (scene) {
       if (argv[1][0] == '0') {
         scene->r.scemode &= ~R_EXTENSION;
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
       else if (argv[1][0] == '1') {
         scene->r.scemode |= R_EXTENSION;
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
       else {
         fprintf(stderr,
@@ -1928,7 +1928,7 @@ static int arg_handle_frame_start_set(int argc, const char **argv, void *data)
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
       return 1;
     }
@@ -1962,7 +1962,7 @@ static int arg_handle_frame_end_set(int argc, const char **argv, void *data)
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
       return 1;
     }
@@ -1988,7 +1988,7 @@ static int arg_handle_frame_skip_set(int argc, const char **argv, void *data)
         fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
       }
       else {
-        DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       }
       return 1;
     }

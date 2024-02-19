@@ -139,7 +139,7 @@ enum {
    * specific code in some copy cases (mostly for node trees). */
   LIB_ID_CREATE_LOCAL = 1 << 9,
 
-  /** Create for the depsgraph, when set #LIB_TAG_COPIED_ON_WRITE must be set.
+  /** Create for the depsgraph, when set #LIB_TAG_COPIED_ON_EVAL must be set.
    * Internally this is used to share some pointers instead of duplicating them. */
   LIB_ID_COPY_SET_COPIED_ON_WRITE = 1 << 10,
 
@@ -182,7 +182,7 @@ enum {
   /** Create a local, outside of bmain, data-block to work on. */
   LIB_ID_CREATE_LOCALIZE = LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT |
                            LIB_ID_CREATE_NO_DEG_TAG,
-  /** Generate a local copy, outside of bmain, to work on (used by COW e.g.). */
+  /** Generate a local copy, outside of bmain, to work on (used by copy-on-eval e.g.). */
   LIB_ID_COPY_LOCALIZE = LIB_ID_CREATE_LOCALIZE | LIB_ID_COPY_NO_PREVIEW | LIB_ID_COPY_CACHES |
                          LIB_ID_COPY_NO_LIB_OVERRIDE,
 };

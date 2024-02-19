@@ -1791,7 +1791,7 @@ static int tracking_object_new_exec(bContext *C, wmOperator * /*op*/)
 
   BKE_tracking_object_add(tracking, "Object");
 
-  DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&clip->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
   return OPERATOR_FINISHED;
@@ -1832,7 +1832,7 @@ static int tracking_object_remove_exec(bContext *C, wmOperator *op)
 
   BKE_tracking_object_delete(tracking, tracking_object);
 
-  DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&clip->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
   return OPERATOR_FINISHED;

@@ -1956,7 +1956,7 @@ static int collection_drop_exec(bContext *C, wmOperator *op)
 
   if (RNA_boolean_get(op->ptr, "use_instance")) {
     BKE_collection_child_remove(bmain, active_collection->collection, add_info->collection);
-    DEG_id_tag_update(&active_collection->collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&active_collection->collection->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(bmain);
 
     Object *ob = ED_object_add_type(C,
@@ -2835,7 +2835,7 @@ static void make_object_duplilist_real(bContext *C,
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   base->object->transflag &= ~OB_DUPLI;
-  DEG_id_tag_update(&base->object->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&base->object->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
@@ -3985,7 +3985,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   ED_outliner_select_sync_from_object_tag(C);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
 
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);

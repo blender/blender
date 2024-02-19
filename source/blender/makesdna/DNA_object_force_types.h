@@ -178,10 +178,10 @@ typedef struct SBVertex {
   float vec[4];
 } SBVertex;
 
-/* Container for data that is shared among CoW copies.
+/* Container for data that is shared among evaluated copies.
  *
  * This is placed in a separate struct so that values can be changed
- * without having to update all CoW copies. */
+ * without having to update all evaluated copies. */
 typedef struct SoftBody_Shared {
   struct PointCache *pointcache;
   struct ListBase ptcaches;

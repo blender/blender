@@ -221,7 +221,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
         data->bmain, data->scene->master_collection, display_name);
     id_fake_user_set(&import_collection->id);
 
-    DEG_id_tag_update(&import_collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(data->bmain);
 
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
@@ -439,7 +439,7 @@ static void import_endjob(void *customdata)
       /* TODO: is setting active needed? */
       BKE_view_layer_base_select_and_set_active(view_layer, base);
 
-      DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
       DEG_id_tag_update_ex(data->bmain,
                            &ob->id,
                            ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |

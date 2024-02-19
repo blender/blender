@@ -1073,7 +1073,7 @@ class NodeTreeMainUpdater {
        * be used without causing updates all the time currently. In the future we could try to
        * handle other drivers better as well.
        * Note that this optimization only works in practice when the depsgraph didn't also get a
-       * copy-on-write tag for the node tree (which happens when changing node properties). It
+       * copy-on-evaluation tag for the node tree (which happens when changing node properties). It
        * does work in a few situations like adding reroutes and duplicating nodes though. */
       LISTBASE_FOREACH (const FCurve *, fcurve, &adt->drivers) {
         const ChannelDriver *driver = fcurve->driver;

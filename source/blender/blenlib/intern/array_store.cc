@@ -6,7 +6,7 @@
  * \ingroup bli
  * \brief Array storage to minimize duplication.
  *
- * This is done by splitting arrays into chunks and using copy-on-write (COW),
+ * This is done by splitting arrays into chunks and using copy-on-evaluation,
  * to de-duplicate chunks, from the users perspective this is an implementation detail.
  *
  * Overview

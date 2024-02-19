@@ -760,7 +760,7 @@ void BKE_mesh_copy_parameters(Mesh *me_dst, const Mesh *me_src)
 void BKE_mesh_copy_parameters_for_eval(Mesh *me_dst, const Mesh *me_src)
 {
   /* User counts aren't handled, don't copy into a mesh from #G_MAIN. */
-  BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE));
+  BLI_assert(me_dst->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_EVAL));
 
   BKE_mesh_copy_parameters(me_dst, me_src);
   copy_attribute_names(*me_src, *me_dst);

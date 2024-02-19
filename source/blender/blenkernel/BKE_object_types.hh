@@ -67,7 +67,7 @@ struct ObjectRuntime {
   /**
    * Original data pointer, before object->data was changed to point
    * to data_eval.
-   * Is assigned by dependency graph's copy-on-write evaluation.
+   * Is assigned by dependency graph's copy-on-evaluation.
    */
   ID *data_orig = nullptr;
   /**
@@ -103,7 +103,7 @@ struct ObjectRuntime {
   /**
    * Original grease pencil bGPdata pointer, before object->data was changed to point
    * to gpd_eval.
-   * Is assigned by dependency graph's copy-on-write evaluation.
+   * Is assigned by dependency graph's copy-on-evaluation.
    */
   bGPdata *gpd_orig = nullptr;
   /**

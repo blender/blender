@@ -362,7 +362,7 @@ static void gizmo_render_border_prop_matrix_set(const wmGizmo * /*gz*/,
   BLI_rctf_isect(&rect, border, border);
 
   if (viewgroup->is_camera) {
-    DEG_id_tag_update(&viewgroup->scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&viewgroup->scene->id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 

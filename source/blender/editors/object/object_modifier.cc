@@ -3352,7 +3352,7 @@ static void oceanbake_endjob(void *customdata)
   oj->omd->cached = true;
 
   Object *ob = oj->owner;
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static int ocean_bake_exec(bContext *C, wmOperator *op)
@@ -3789,7 +3789,7 @@ static int dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
   dmd->segments_num++;
   dmd->segment_active_index++;
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -3846,7 +3846,7 @@ static int dash_modifier_segment_remove_exec(bContext *C, wmOperator *op)
                                     dmd->segment_active_index,
                                     dash_modifier_segment_free);
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
@@ -3932,7 +3932,7 @@ static int dash_modifier_segment_move_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
   }
 
-  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
   return OPERATOR_FINISHED;
