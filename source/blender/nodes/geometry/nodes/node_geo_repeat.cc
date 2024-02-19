@@ -20,6 +20,8 @@ NODE_STORAGE_FUNCS(NodeGeometryRepeatInput);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Int>("Iterations").min(0).default_value(1);
 
   const bNode *node = b.node_or_null();
@@ -36,7 +38,7 @@ static void node_declare(NodeDeclarationBuilder &b)
         const StringRef name = item.name ? item.name : "";
         const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
         auto &input_decl = b.add_input(socket_type, name, identifier);
-        auto &output_decl = b.add_output(socket_type, name, identifier);
+        auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
         if (socket_type_supports_fields(socket_type)) {
           input_decl.supports_field();
           output_decl.dependent_field({input_decl.input_index()});
@@ -45,7 +47,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__");
+  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -98,6 +100,8 @@ NODE_STORAGE_FUNCS(NodeGeometryRepeatOutput);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   const bNode *node = b.node_or_null();
   if (node) {
     const NodeGeometryRepeatOutput &storage = node_storage(*node);
@@ -107,7 +111,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const StringRef name = item.name ? item.name : "";
       const std::string identifier = RepeatItemsAccessor::socket_identifier_for_item(item);
       auto &input_decl = b.add_input(socket_type, name, identifier);
-      auto &output_decl = b.add_output(socket_type, name, identifier);
+      auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
       if (socket_type_supports_fields(socket_type)) {
         input_decl.supports_field();
         output_decl.dependent_field({input_decl.input_index()});
@@ -115,7 +119,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__");
+  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
