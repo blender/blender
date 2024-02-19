@@ -26,14 +26,13 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "SEQ_sequencer.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "readfile.hh"
 #include "versioning_common.hh"
 

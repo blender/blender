@@ -12,9 +12,6 @@
 #include "BLI_task.h"
 #include "BLI_time.h"
 
-#include "DNA_brush_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_ccg.h"
@@ -23,8 +20,6 @@
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -112,7 +107,7 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
     SCULPT_topology_islands_ensure(ob);
   }
 
-  const int mask_init_seed = BLI_check_seconds_timer();
+  const int mask_init_seed = BLI_time_now_seconds();
 
   const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(ss);
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {

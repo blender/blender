@@ -12,7 +12,7 @@
 
 #include "BLI_rand.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_object.hh"
 
@@ -472,7 +472,7 @@ static void eevee_render_to_image(void *vedata,
   Depsgraph *depsgraph = draw_ctx->depsgraph;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
-  const bool do_motion_blur = (scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) != 0;
+  const bool do_motion_blur = (scene->r.mode & R_MBLUR) != 0;
   const bool do_motion_blur_fx = do_motion_blur && (scene->eevee.motion_blur_max > 0);
 
   if (!EEVEE_render_init(static_cast<EEVEE_Data *>(vedata), engine, depsgraph)) {
@@ -482,7 +482,7 @@ static void eevee_render_to_image(void *vedata,
 
   int initial_frame = scene->r.cfra;
   float initial_subframe = scene->r.subframe;
-  float shuttertime = (do_motion_blur) ? scene->eevee.motion_blur_shutter : 0.0f;
+  float shuttertime = (do_motion_blur) ? scene->r.motion_blur_shutter : 0.0f;
   int time_steps_tot = (do_motion_blur) ? max_ii(1, scene->eevee.motion_blur_steps) : 1;
   g_data->render_timesteps = time_steps_tot;
 
@@ -496,14 +496,14 @@ static void eevee_render_to_image(void *vedata,
 
   /* Compute start time. The motion blur will cover `[time ...time + shuttertime]`. */
   float time = initial_frame + initial_subframe;
-  switch (scene->eevee.motion_blur_position) {
-    case SCE_EEVEE_MB_START:
+  switch (scene->r.motion_blur_position) {
+    case SCE_MB_START:
       /* No offset. */
       break;
-    case SCE_EEVEE_MB_CENTER:
+    case SCE_MB_CENTER:
       time -= shuttertime * 0.5f;
       break;
-    case SCE_EEVEE_MB_END:
+    case SCE_MB_END:
       time -= shuttertime;
       break;
     default:

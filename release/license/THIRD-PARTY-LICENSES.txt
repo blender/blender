@@ -25,7 +25,7 @@ PERFORMANCE OF THIS SOFTWARE.
 ** Embree; version 4.1.0 -- https://github.com/embree/embree
 ** Intel(R) oneAPI DPC++ compiler; version 2022-12 --
 https://github.com/intel/llvm#oneapi-dpc-compiler
-** Intel® Open Path Guiding Library; version 0.5.0 -- http://www.openpgl.org/
+** Intel® Open Path Guiding Library; version 0.6.0 -- http://www.openpgl.org/
 ** Mantaflow; version 0.13 -- http://mantaflow.com/
 ** materialX; version 1.38.6 --
 https://github.com/AcademySoftwareFoundation/MaterialX

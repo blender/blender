@@ -25,7 +25,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -33,7 +33,7 @@
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
@@ -336,6 +336,22 @@ void ED_armature_bone_rename(Main *bmain,
           }
         }
       }
+
+      if (ob->type == OB_GREASE_PENCIL) {
+        using namespace blender;
+        GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);
+        for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+          Object *parent = layer->parent;
+          if (parent == nullptr) {
+            continue;
+          }
+          StringRefNull bone_name = layer->parent_bone_name();
+          if (!bone_name.is_empty() && bone_name == StringRef(oldname)) {
+            layer->set_parent_bone_name(newname);
+          }
+        }
+      }
+
       DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
     }
 

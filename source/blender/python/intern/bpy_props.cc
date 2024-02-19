@@ -27,8 +27,6 @@
 #include "bpy_props.h"
 #include "bpy_rna.h"
 
-#include "BKE_idprop.h"
-
 #include "RNA_access.hh"
 #include "RNA_define.hh" /* for defining our own rna */
 #include "RNA_enum_types.hh"
@@ -1599,10 +1597,10 @@ static void bpy_prop_string_set_fn(PointerRNA *ptr, PropertyRNA *prop, const cha
   }
 }
 
-static bool bpy_prop_string_visit_fn_call(PyObject *py_func,
-                                          PyObject *item,
-                                          StringPropertySearchVisitFunc visit_fn,
-                                          void *visit_user_data)
+static bool bpy_prop_string_visit_fn_call(
+    PyObject *py_func,
+    PyObject *item,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   const char *text;
   const char *info = nullptr;
@@ -1639,19 +1637,19 @@ static bool bpy_prop_string_visit_fn_call(PyObject *py_func,
     }
   }
 
-  StringPropertySearchVisitParams visit_params = {nullptr};
+  StringPropertySearchVisitParams visit_params{};
   visit_params.text = text;
-  visit_params.info = info;
-  visit_fn(visit_user_data, &visit_params);
+  visit_params.info = info ? info : "";
+  visit_fn(visit_params);
   return true;
 }
 
-static void bpy_prop_string_visit_for_search_fn(const bContext *C,
-                                                PointerRNA *ptr,
-                                                PropertyRNA *prop,
-                                                const char *edit_text,
-                                                StringPropertySearchVisitFunc visit_fn,
-                                                void *visit_user_data)
+static void bpy_prop_string_visit_for_search_fn(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *edit_text,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   BPyPropStore *prop_store = static_cast<BPyPropStore *>(RNA_property_py_data_get(prop));
   PyObject *py_func;
@@ -1705,8 +1703,7 @@ static void bpy_prop_string_visit_for_search_fn(const bContext *C,
           if (py_text == nullptr) {
             break;
           }
-          const bool ok = bpy_prop_string_visit_fn_call(
-              py_func, py_text, visit_fn, visit_user_data);
+          const bool ok = bpy_prop_string_visit_fn_call(py_func, py_text, visit_fn);
           Py_DECREF(py_text);
           if (!ok) {
             break;
@@ -1736,8 +1733,7 @@ static void bpy_prop_string_visit_for_search_fn(const bContext *C,
         const Py_ssize_t ret_num = PySequence_Fast_GET_SIZE(ret_fast);
         PyObject **ret_fast_items = PySequence_Fast_ITEMS(ret_fast);
         for (Py_ssize_t i = 0; i < ret_num; i++) {
-          const bool ok = bpy_prop_string_visit_fn_call(
-              py_func, ret_fast_items[i], visit_fn, visit_user_data);
+          const bool ok = bpy_prop_string_visit_fn_call(py_func, ret_fast_items[i], visit_fn);
           if (!ok) {
             break;
           }

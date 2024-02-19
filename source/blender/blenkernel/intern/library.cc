@@ -8,10 +8,6 @@
  * Contains code specific to the `Library` ID type.
  */
 
-#include "CLG_log.h"
-
-#include "MEM_guardedalloc.h"
-
 /* all types are needed here, in order to do memory operations */
 #include "DNA_ID.h"
 
@@ -19,11 +15,10 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_idtype.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
@@ -86,6 +81,7 @@ static void library_blend_read_data(BlendDataReader * /*reader*/, ID *id)
 IDTypeInfo IDType_ID_LI = {
     /*id_code*/ ID_LI,
     /*id_filter*/ FILTER_ID_LI,
+    /*dependencies_id_types*/ FILTER_ID_LI,
     /*main_listbase_index*/ INDEX_ID_LI,
     /*struct_size*/ sizeof(Library),
     /*name*/ "Library",

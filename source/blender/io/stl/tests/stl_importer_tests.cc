@@ -11,7 +11,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph_query.hh"
 

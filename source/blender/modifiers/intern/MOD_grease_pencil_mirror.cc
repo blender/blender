@@ -14,9 +14,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_material.h"
 #include "BKE_modifier.hh"
-#include "BKE_screen.hh"
 
 #include "BLO_read_write.hh"
 
@@ -25,15 +23,13 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "WM_types.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MOD_grease_pencil_util.hh"
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 namespace blender {
@@ -93,8 +89,7 @@ static float4x4 get_mirror_matrix(const Object &ob,
 
   if (mmd.object) {
     /* Transforms from parent object space to target object space. */
-    const float4x4 to_target = math::invert(float4x4(mmd.object->object_to_world)) *
-                               float4x4(ob.object_to_world);
+    const float4x4 to_target = math::invert(mmd.object->object_to_world()) * ob.object_to_world();
     /* Mirror points in the target object space. */
     matrix = math::invert(to_target) * matrix * to_target;
   }

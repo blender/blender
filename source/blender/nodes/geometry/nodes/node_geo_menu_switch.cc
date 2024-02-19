@@ -8,7 +8,6 @@
 
 #include "DNA_node_types.h"
 
-#include "BLI_array_utils.hh"
 #include "BLI_string.h"
 
 #include "FN_multi_function.hh"
@@ -20,10 +19,7 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "RNA_access.hh"
 #include "RNA_enum_types.hh"
-
-#include "WM_api.hh"
 
 namespace blender::nodes::node_geo_menu_switch_cc {
 

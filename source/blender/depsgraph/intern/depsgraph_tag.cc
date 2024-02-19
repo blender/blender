@@ -29,11 +29,11 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_workspace.h"
 
@@ -840,7 +840,7 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
   deg::id_tag_update(bmain, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
-void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, unsigned int flags)
+void DEG_id_tag_update_for_side_effect_request(Depsgraph *depsgraph, ID *id, uint flags)
 {
   BLI_assert(depsgraph != nullptr);
   BLI_assert(id != nullptr);

@@ -10,7 +10,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph.hh"
 

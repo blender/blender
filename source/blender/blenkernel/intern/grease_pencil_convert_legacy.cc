@@ -7,20 +7,36 @@
  */
 
 #include "BKE_attribute.hh"
+#include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_legacy_convert.hh"
+#include "BKE_idprop.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_material.h"
+#include "BKE_modifier.hh"
+#include "BKE_node.hh"
+#include "BKE_node_tree_update.hh"
+#include "BKE_object.hh"
 
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+
+#include "DEG_depsgraph_build.hh"
 
 namespace blender::bke::greasepencil::convert {
 
@@ -75,13 +91,23 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   /* Get the number of points, number of strokes and the offsets for each stroke. */
   Vector<int> offsets;
+  Vector<int8_t> curve_types;
   offsets.append(0);
   int num_strokes = 0;
   int num_points = 0;
+  bool has_bezier_stroke = false;
   LISTBASE_FOREACH (bGPDstroke *, gps, &gpf.strokes) {
-    num_points += gps->totpoints;
-    offsets.append(num_points);
+    if (gps->editcurve != nullptr) {
+      has_bezier_stroke = true;
+      num_points += gps->editcurve->tot_curve_points;
+      curve_types.append(CURVE_TYPE_BEZIER);
+    }
+    else {
+      num_points += gps->totpoints;
+      curve_types.append(CURVE_TYPE_POLY);
+    }
     num_strokes++;
+    offsets.append(num_points);
   }
 
   /* Resize the CurvesGeometry. */
@@ -94,8 +120,14 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   OffsetIndices<int> points_by_curve = curves.points_by_curve();
   MutableAttributeAccessor attributes = curves.attributes_for_write();
 
-  /* All strokes are poly curves. */
-  curves.fill_curve_types(CURVE_TYPE_POLY);
+  if (!has_bezier_stroke) {
+    /* All strokes are poly curves. */
+    curves.fill_curve_types(CURVE_TYPE_POLY);
+  }
+  else {
+    curves.curve_types_for_write().copy_from(curve_types);
+    curves.update_curve_types();
+  }
 
   /* Find used vertex groups in this drawing. */
   ListBase stroke_vertex_group_names;
@@ -118,6 +150,12 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   /* Point Attributes. */
   MutableSpan<float3> positions = curves.positions_for_write();
+  MutableSpan<float3> handle_positions_left = has_bezier_stroke ?
+                                                  curves.handle_positions_left_for_write() :
+                                                  MutableSpan<float3>();
+  MutableSpan<float3> handle_positions_right = has_bezier_stroke ?
+                                                   curves.handle_positions_right_for_write() :
+                                                   MutableSpan<float3>();
   MutableSpan<float> radii = drawing.radii_for_write();
   MutableSpan<float> opacities = drawing.opacities_for_write();
   SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
@@ -158,9 +196,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   int stroke_i = 0;
   LISTBASE_FOREACH_INDEX (bGPDstroke *, gps, &gpf.strokes, stroke_i) {
-    /* TODO: check if `gps->editcurve` is not nullptr and parse bezier curve instead. */
-
-    /* Write curve attributes. */
     stroke_cyclic.span[stroke_i] = (gps->flag & GP_STROKE_CYCLIC) != 0;
     /* TODO: This should be a `double` attribute. */
     stroke_init_times.span[stroke_i] = float(gps->inittime);
@@ -175,59 +210,86 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     stroke_fill_colors.span[stroke_i] = ColorGeometry4f(gps->vert_color_fill);
     stroke_materials.span[stroke_i] = gps->mat_nr;
 
-    /* Write point attributes. */
-    IndexRange stroke_points_range = points_by_curve[stroke_i];
-    if (stroke_points_range.is_empty()) {
+    IndexRange points = points_by_curve[stroke_i];
+    if (points.is_empty()) {
       continue;
     }
 
-    Span<bGPDspoint> stroke_points{gps->points, gps->totpoints};
-    MutableSpan<float3> stroke_positions = positions.slice(stroke_points_range);
-    MutableSpan<float> stroke_radii = radii.slice(stroke_points_range);
-    MutableSpan<float> stroke_opacities = opacities.slice(stroke_points_range);
-    MutableSpan<float> stroke_deltatimes = delta_times.span.slice(stroke_points_range);
-    MutableSpan<float> stroke_rotations = rotations.span.slice(stroke_points_range);
-    MutableSpan<ColorGeometry4f> stroke_vertex_colors = vertex_colors.span.slice(
-        stroke_points_range);
-    MutableSpan<bool> stroke_selections = selection.span.slice(stroke_points_range);
-    MutableSpan<MDeformVert> stroke_dverts = use_dverts ? dverts.slice(stroke_points_range) :
-                                                          MutableSpan<MDeformVert>();
+    const Span<bGPDspoint> src_points{gps->points, gps->totpoints};
+    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px`
+     * was the brush size which would be stored in the stroke thickness and then scaled by the
+     * point pressure factor. Finally, the render engine would divide this thickness value by
+     * 2000 (we're going from a thickness to a radius, hence the factor of two) to convert back
+     * into blender units. Store the radius now directly in blender units. This makes it
+     * consistent with how hair curves handle the radius. */
+    const float stroke_thickness = float(gps->thickness) / 2000.0f;
+    MutableSpan<float3> dst_positions = positions.slice(points);
+    MutableSpan<float3> dst_handle_positions_left = has_bezier_stroke ?
+                                                        handle_positions_left.slice(points) :
+                                                        MutableSpan<float3>();
+    MutableSpan<float3> dst_handle_positions_right = has_bezier_stroke ?
+                                                         handle_positions_right.slice(points) :
+                                                         MutableSpan<float3>();
+    MutableSpan<float> dst_radii = radii.slice(points);
+    MutableSpan<float> dst_opacities = opacities.slice(points);
+    MutableSpan<float> dst_deltatimes = delta_times.span.slice(points);
+    MutableSpan<float> dst_rotations = rotations.span.slice(points);
+    MutableSpan<ColorGeometry4f> dst_vertex_colors = vertex_colors.span.slice(points);
+    MutableSpan<bool> dst_selection = selection.span.slice(points);
+    MutableSpan<MDeformVert> dst_dverts = use_dverts ? dverts.slice(points) :
+                                                       MutableSpan<MDeformVert>();
 
-    /* Do first point. */
-    const bGPDspoint &first_pt = stroke_points.first();
-    stroke_positions.first() = float3(first_pt.x, first_pt.y, first_pt.z);
-    /* Previously, Grease Pencil used a radius convention where 1 `px` = 0.001 units. This `px` was
-     * the brush size which would be stored in the stroke thickness and then scaled by the point
-     * pressure factor. Finally, the render engine would divide this thickness value by 2000 (we're
-     * going from a thickness to a radius, hence the factor of two) to convert back into blender
-     * units.
-     * Store the radius now directly in blender units. This makes it consistent with how hair
-     * curves handle the radius. */
-    stroke_radii.first() = gps->thickness * first_pt.pressure / 2000.0f;
-    stroke_opacities.first() = first_pt.strength;
-    stroke_deltatimes.first() = 0;
-    stroke_rotations.first() = first_pt.uv_rot;
-    stroke_vertex_colors.first() = ColorGeometry4f(first_pt.vert_color);
-    stroke_selections.first() = (first_pt.flag & GP_SPOINT_SELECT) != 0;
-    if (use_dverts && gps->dvert) {
-      copy_dvert(gps->dvert[0], stroke_dverts.first());
+    if (curve_types[stroke_i] == CURVE_TYPE_POLY) {
+      threading::parallel_for(src_points.index_range(), 4096, [&](const IndexRange range) {
+        for (const int point_i : range) {
+          const bGPDspoint &pt = src_points[point_i];
+          dst_positions[point_i] = float3(pt.x, pt.y, pt.z);
+          dst_radii[point_i] = stroke_thickness * pt.pressure;
+          dst_opacities[point_i] = pt.strength;
+          dst_rotations[point_i] = pt.uv_rot;
+          dst_vertex_colors[point_i] = ColorGeometry4f(pt.vert_color);
+          dst_selection[point_i] = (pt.flag & GP_SPOINT_SELECT) != 0;
+          if (use_dverts && gps->dvert) {
+            copy_dvert(gps->dvert[point_i], dst_dverts[point_i]);
+          }
+        }
+      });
+
+      dst_deltatimes.first() = 0;
+      threading::parallel_for(
+          src_points.index_range().drop_front(1), 4096, [&](const IndexRange range) {
+            for (const int point_i : range) {
+              const bGPDspoint &pt = src_points[point_i];
+              const bGPDspoint &pt_prev = src_points[point_i - 1];
+              dst_deltatimes[point_i] = pt.time - pt_prev.time;
+            }
+          });
     }
+    else if (curve_types[stroke_i] == CURVE_TYPE_BEZIER) {
+      BLI_assert(gps->editcurve != nullptr);
+      Span<bGPDcurve_point> src_curve_points{gps->editcurve->curve_points,
+                                             gps->editcurve->tot_curve_points};
 
-    /* Do the rest of the points. */
-    for (const int i : stroke_points.index_range().drop_back(1)) {
-      const int point_i = i + 1;
-      const bGPDspoint &pt_prev = stroke_points[point_i - 1];
-      const bGPDspoint &pt = stroke_points[point_i];
-      stroke_positions[point_i] = float3(pt.x, pt.y, pt.z);
-      stroke_radii[point_i] = gps->thickness * pt.pressure / 2000.0f;
-      stroke_opacities[point_i] = pt.strength;
-      stroke_deltatimes[point_i] = pt.time - pt_prev.time;
-      stroke_rotations[point_i] = pt.uv_rot;
-      stroke_vertex_colors[point_i] = ColorGeometry4f(pt.vert_color);
-      stroke_selections[point_i] = (pt.flag & GP_SPOINT_SELECT) != 0;
-      if (use_dverts && gps->dvert) {
-        copy_dvert(gps->dvert[point_i], stroke_dverts[point_i]);
-      }
+      threading::parallel_for(src_curve_points.index_range(), 4096, [&](const IndexRange range) {
+        for (const int point_i : range) {
+          const bGPDcurve_point &cpt = src_curve_points[point_i];
+          dst_positions[point_i] = float3(cpt.bezt.vec[1]);
+          dst_handle_positions_left[point_i] = float3(cpt.bezt.vec[0]);
+          dst_handle_positions_right[point_i] = float3(cpt.bezt.vec[2]);
+          dst_radii[point_i] = stroke_thickness * cpt.pressure;
+          dst_opacities[point_i] = cpt.strength;
+          dst_rotations[point_i] = cpt.uv_rot;
+          dst_vertex_colors[point_i] = ColorGeometry4f(cpt.vert_color);
+          dst_selection[point_i] = (cpt.flag & GP_CURVE_POINT_SELECT) != 0;
+          if (use_dverts && gps->dvert) {
+            copy_dvert(gps->dvert[point_i], dst_dverts[point_i]);
+          }
+        }
+      });
+    }
+    else {
+      /* Unknown curve type. */
+      BLI_assert_unreachable();
     }
   }
 
@@ -282,9 +344,16 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
 
     new_layer.blend_mode = int8_t(gpl->blend_mode);
 
+    new_layer.parent = gpl->parent;
+    new_layer.set_parent_bone_name(gpl->parsubstr);
+
+    copy_v3_v3(new_layer.translation, gpl->location);
+    copy_v3_v3(new_layer.rotation, gpl->rotation);
+    copy_v3_v3(new_layer.scale, gpl->scale);
+
     /* Convert the layer masks. */
     LISTBASE_FOREACH (bGPDlayer_Mask *, mask, &gpl->mask_layers) {
-      LayerMask *new_mask = new LayerMask(mask->name);
+      LayerMask *new_mask = MEM_new<LayerMask>(mask->name);
       new_mask->flag = mask->flag;
       BLI_addtail(&new_layer.masks, new_mask);
     }
@@ -333,6 +402,360 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
   copy_v3_v3(grease_pencil.onion_skinning_settings.color_after, gpd.gcolor_next);
 
   BKE_id_materials_copy(&bmain, &gpd.id, &grease_pencil.id);
+}
+
+static bNodeTree *add_offset_radius_node_tree(Main &bmain)
+{
+  using namespace blender;
+  bNodeTree *group = ntreeAddTree(&bmain, DATA_("Offset Radius"), "GeometryNodeTree");
+
+  if (!group->geometry_node_asset_traits) {
+    group->geometry_node_asset_traits = MEM_new<GeometryNodeAssetTraits>(__func__);
+  }
+  group->geometry_node_asset_traits->flag |= GEO_NODE_ASSET_MODIFIER;
+
+  group->tree_interface.add_socket(DATA_("Geometry"),
+                                   "",
+                                   "NodeSocketGeometry",
+                                   NODE_INTERFACE_SOCKET_INPUT | NODE_INTERFACE_SOCKET_OUTPUT,
+                                   nullptr);
+
+  bNodeTreeInterfaceSocket *radius_offset = group->tree_interface.add_socket(
+      DATA_("Offset"), "", "NodeSocketFloat", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+  auto &radius_offset_data = *static_cast<bNodeSocketValueFloat *>(radius_offset->socket_data);
+  radius_offset_data.subtype = PROP_DISTANCE;
+  radius_offset_data.min = -FLT_MAX;
+  radius_offset_data.max = FLT_MAX;
+
+  group->tree_interface.add_socket(
+      DATA_("Layer"), "", "NodeSocketString", NODE_INTERFACE_SOCKET_INPUT, nullptr);
+
+  bNode *group_output = nodeAddNode(nullptr, group, "NodeGroupOutput");
+  group_output->locx = 580;
+  group_output->locy = 160;
+  bNode *group_input = nodeAddNode(nullptr, group, "NodeGroupInput");
+  group_input->locx = 0;
+  group_input->locy = 160;
+
+  bNode *set_curve_radius = nodeAddNode(nullptr, group, "GeometryNodeSetCurveRadius");
+  set_curve_radius->locx = 400;
+  set_curve_radius->locy = 160;
+  bNode *named_layer_selection = nodeAddNode(
+      nullptr, group, "GeometryNodeInputNamedLayerSelection");
+  named_layer_selection->locx = 200;
+  named_layer_selection->locy = 100;
+  bNode *input_radius = nodeAddNode(nullptr, group, "GeometryNodeInputRadius");
+  input_radius->locx = 0;
+  input_radius->locy = 0;
+
+  bNode *add = nodeAddNode(nullptr, group, "ShaderNodeMath");
+  add->custom1 = NODE_MATH_ADD;
+  add->locx = 200;
+  add->locy = 0;
+
+  nodeAddLink(group,
+              group_input,
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_0"),
+              set_curve_radius,
+              nodeFindSocket(set_curve_radius, SOCK_IN, "Curve"));
+  nodeAddLink(group,
+              set_curve_radius,
+              nodeFindSocket(set_curve_radius, SOCK_OUT, "Curve"),
+              group_output,
+              nodeFindSocket(group_output, SOCK_IN, "Socket_0"));
+
+  nodeAddLink(group,
+              group_input,
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_2"),
+              named_layer_selection,
+              nodeFindSocket(named_layer_selection, SOCK_IN, "Name"));
+  nodeAddLink(group,
+              named_layer_selection,
+              nodeFindSocket(named_layer_selection, SOCK_OUT, "Selection"),
+              set_curve_radius,
+              nodeFindSocket(set_curve_radius, SOCK_IN, "Selection"));
+
+  nodeAddLink(group,
+              group_input,
+              nodeFindSocket(group_input, SOCK_OUT, "Socket_1"),
+              add,
+              nodeFindSocket(add, SOCK_IN, "Value"));
+  nodeAddLink(group,
+              input_radius,
+              nodeFindSocket(input_radius, SOCK_OUT, "Radius"),
+              add,
+              nodeFindSocket(add, SOCK_IN, "Value_001"));
+  nodeAddLink(group,
+              add,
+              nodeFindSocket(add, SOCK_OUT, "Value"),
+              set_curve_radius,
+              nodeFindSocket(set_curve_radius, SOCK_IN, "Radius"));
+
+  LISTBASE_FOREACH (bNode *, node, &group->nodes) {
+    nodeSetSelected(node, false);
+  }
+
+  return group;
+}
+
+void thickness_factor_to_modifier(const bGPdata &src_object_data, Object &dst_object)
+{
+  if (src_object_data.pixfactor == 1.0f) {
+    return;
+  }
+  const float thickness_factor = src_object_data.pixfactor;
+
+  ModifierData *md = BKE_modifier_new(eModifierType_GreasePencilThickness);
+  GreasePencilThickModifierData *tmd = reinterpret_cast<GreasePencilThickModifierData *>(md);
+
+  tmd->thickness_fac = thickness_factor;
+
+  STRNCPY(md->name, DATA_("Thickness"));
+  BKE_modifier_unique_name(&dst_object.modifiers, md);
+
+  BLI_addtail(&dst_object.modifiers, md);
+  BKE_modifiers_persistent_uid_init(dst_object, *md);
+}
+
+void layer_adjustments_to_modifiers(Main &bmain,
+                                    const bGPdata &src_object_data,
+                                    Object &dst_object)
+{
+  bNodeTree *offset_radius_node_tree = nullptr;
+  /* Replace layer adjustments with modifiers. */
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &src_object_data.layers) {
+    const float3 tint_color = float3(gpl->tintcolor);
+    const float tint_factor = gpl->tintcolor[3];
+    const int thickness_px = gpl->line_change;
+    /* Tint adjustment. */
+    if (tint_factor > 0.0f) {
+      ModifierData *md = BKE_modifier_new(eModifierType_GreasePencilTint);
+      GreasePencilTintModifierData *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
+
+      copy_v3_v3(tmd->color, tint_color);
+      tmd->factor = tint_factor;
+      STRNCPY(tmd->influence.layer_name, gpl->info);
+
+      char modifier_name[64];
+      BLI_snprintf(modifier_name, 64, "Tint %s", gpl->info);
+      STRNCPY(md->name, modifier_name);
+      BKE_modifier_unique_name(&dst_object.modifiers, md);
+
+      BLI_addtail(&dst_object.modifiers, md);
+      BKE_modifiers_persistent_uid_init(dst_object, *md);
+    }
+    /* Thickness adjustment. */
+    if (thickness_px != 0) {
+      /* Convert the "pixel" offset value into a radius value.
+       * GPv2 used a conversion of 1 "px" = 0.001. */
+      /* Note: this offset may be negative. */
+      const float radius_offset = float(thickness_px) / 2000.0f;
+      if (!offset_radius_node_tree) {
+        offset_radius_node_tree = add_offset_radius_node_tree(bmain);
+        BKE_ntree_update_main_tree(&bmain, offset_radius_node_tree, nullptr);
+      }
+      auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
+
+      char modifier_name[64];
+      BLI_snprintf(modifier_name, 64, "Thickness %s", gpl->info);
+      STRNCPY(md->modifier.name, modifier_name);
+      BKE_modifier_unique_name(&dst_object.modifiers, &md->modifier);
+      md->node_group = offset_radius_node_tree;
+
+      BLI_addtail(&dst_object.modifiers, md);
+      BKE_modifiers_persistent_uid_init(dst_object, md->modifier);
+
+      md->settings.properties = bke::idprop::create_group("Nodes Modifier Settings").release();
+      IDProperty *radius_offset_prop =
+          bke::idprop::create(DATA_("Socket_1"), radius_offset).release();
+      auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(
+          IDP_ui_data_ensure(radius_offset_prop));
+      ui_data->soft_min = 0.0f;
+      ui_data->base.rna_subtype = PROP_TRANSLATION;
+      IDP_AddToGroup(md->settings.properties, radius_offset_prop);
+      IDP_AddToGroup(md->settings.properties,
+                     bke::idprop::create(DATA_("Socket_2"), gpl->info).release());
+    }
+  }
+
+  DEG_relations_tag_update(&bmain);
+}
+
+static ModifierData &legacy_object_modifier_common(Object &object,
+                                                   const ModifierType type,
+                                                   GpencilModifierData &legacy_md)
+{
+  /* TODO: Copy of most of #ED_object_modifier_add, this should be a BKE_modifiers function
+   * actually. */
+  const ModifierTypeInfo *mti = BKE_modifier_get_info(type);
+
+  ModifierData &new_md = *BKE_modifier_new(type);
+
+  if (mti->flags & eModifierTypeFlag_RequiresOriginalData) {
+    ModifierData *md;
+    for (md = static_cast<ModifierData *>(object.modifiers.first);
+         md && BKE_modifier_get_info(ModifierType(md->type))->type == ModifierTypeType::OnlyDeform;
+         md = md->next)
+      ;
+    BLI_insertlinkbefore(&object.modifiers, md, &new_md);
+  }
+  else {
+    BLI_addtail(&object.modifiers, &new_md);
+  }
+
+  /* Generate new persistent UID and best possible unique name. */
+  BKE_modifiers_persistent_uid_init(object, new_md);
+  if (legacy_md.name[0]) {
+    STRNCPY_UTF8(new_md.name, legacy_md.name);
+  }
+  BKE_modifier_unique_name(&object.modifiers, &new_md);
+
+  /* Handle commom modifier data. */
+  new_md.mode = legacy_md.mode;
+  new_md.flag |= legacy_md.flag & (eModifierFlag_OverrideLibrary_Local | eModifierFlag_Active);
+
+  /* Attempt to copy UI state (panels) as best as possible. */
+  new_md.ui_expand_flag = legacy_md.ui_expand_flag;
+
+  return new_md;
+}
+
+static void legacy_object_modifier_noise(GreasePencilNoiseModifierData &gp_md_noise,
+                                         NoiseGpencilModifierData &legacy_md_noise)
+{
+  gp_md_noise.flag = legacy_md_noise.flag;
+  gp_md_noise.factor = legacy_md_noise.factor;
+  gp_md_noise.factor_strength = legacy_md_noise.factor_strength;
+  gp_md_noise.factor_thickness = legacy_md_noise.factor_thickness;
+  gp_md_noise.factor_uvs = legacy_md_noise.factor_uvs;
+  gp_md_noise.noise_scale = legacy_md_noise.noise_scale;
+  gp_md_noise.noise_offset = legacy_md_noise.noise_offset;
+  gp_md_noise.noise_mode = legacy_md_noise.noise_mode;
+  gp_md_noise.step = legacy_md_noise.step;
+  gp_md_noise.seed = legacy_md_noise.seed;
+
+  STRNCPY(gp_md_noise.influence.layer_name, legacy_md_noise.layername);
+  if (legacy_md_noise.flag & GP_NOISE_INVERT_LAYER) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_FILTER;
+  }
+  gp_md_noise.influence.layer_pass = legacy_md_noise.layer_pass;
+  if (gp_md_noise.influence.layer_pass > 0) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_USE_LAYER_PASS_FILTER;
+  }
+  if (legacy_md_noise.flag & GP_NOISE_INVERT_LAYERPASS) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_PASS_FILTER;
+  }
+
+  if (legacy_md_noise.material) {
+    gp_md_noise.influence.material = legacy_md_noise.material;
+    legacy_md_noise.material = nullptr;
+  }
+  if (legacy_md_noise.flag & GP_NOISE_INVERT_MATERIAL) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_FILTER;
+  }
+  gp_md_noise.influence.material_pass = legacy_md_noise.pass_index;
+  if (gp_md_noise.influence.material_pass > 0) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_USE_MATERIAL_PASS_FILTER;
+  }
+  if (legacy_md_noise.flag & GP_NOISE_INVERT_PASS) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_PASS_FILTER;
+  }
+
+  if (legacy_md_noise.vgname[0] != '\0') {
+    STRNCPY(gp_md_noise.influence.vertex_group_name, legacy_md_noise.vgname);
+  }
+  if (legacy_md_noise.flag & GP_NOISE_INVERT_VGROUP) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP;
+  }
+
+  if (legacy_md_noise.curve_intensity) {
+    if (gp_md_noise.influence.custom_curve) {
+      BKE_curvemapping_free(gp_md_noise.influence.custom_curve);
+    }
+    gp_md_noise.influence.custom_curve = legacy_md_noise.curve_intensity;
+    legacy_md_noise.curve_intensity = nullptr;
+  }
+  if (legacy_md_noise.flag & GP_NOISE_CUSTOM_CURVE) {
+    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE;
+  }
+}
+
+static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
+{
+  BLI_assert(BLI_listbase_is_empty(&object.modifiers));
+
+  while (GpencilModifierData *gpd_md = static_cast<GpencilModifierData *>(
+             BLI_pophead(&object.greasepencil_modifiers)))
+  {
+    switch (gpd_md->type) {
+      case eGpencilModifierType_None:
+        /* Unknown type, just ignore. */
+        break;
+      case eGpencilModifierType_Noise: {
+        NoiseGpencilModifierData &legacy_md_noise = *reinterpret_cast<NoiseGpencilModifierData *>(
+            gpd_md);
+        GreasePencilNoiseModifierData &gp_md_noise =
+            reinterpret_cast<GreasePencilNoiseModifierData &>(
+                legacy_object_modifier_common(object, eModifierType_GreasePencilNoise, *gpd_md));
+        legacy_object_modifier_noise(gp_md_noise, legacy_md_noise);
+        break;
+      }
+      case eGpencilModifierType_Subdiv:
+      case eGpencilModifierType_Thick:
+      case eGpencilModifierType_Tint:
+      case eGpencilModifierType_Array:
+      case eGpencilModifierType_Build:
+      case eGpencilModifierType_Opacity:
+      case eGpencilModifierType_Color:
+      case eGpencilModifierType_Lattice:
+      case eGpencilModifierType_Simplify:
+      case eGpencilModifierType_Smooth:
+      case eGpencilModifierType_Hook:
+      case eGpencilModifierType_Offset:
+      case eGpencilModifierType_Mirror:
+      case eGpencilModifierType_Armature:
+      case eGpencilModifierType_Time:
+      case eGpencilModifierType_Multiply:
+      case eGpencilModifierType_Texture:
+      case eGpencilModifierType_Lineart:
+      case eGpencilModifierType_Length:
+      case eGpencilModifierType_WeightProximity:
+      case eGpencilModifierType_Dash:
+      case eGpencilModifierType_WeightAngle:
+      case eGpencilModifierType_Shrinkwrap:
+      case eGpencilModifierType_Envelope:
+      case eGpencilModifierType_Outline:
+        break;
+    }
+
+    BKE_gpencil_modifier_free_ex(gpd_md, 0);
+  }
+}
+
+void legacy_gpencil_object(Main &bmain, Object &object)
+{
+  bGPdata *gpd = static_cast<bGPdata *>(object.data);
+
+  GreasePencil *new_grease_pencil = static_cast<GreasePencil *>(
+      BKE_id_new(&bmain, ID_GP, gpd->id.name + 2));
+  object.data = new_grease_pencil;
+  object.type = OB_GREASE_PENCIL;
+
+  /* NOTE: Could also use #BKE_id_free_us, to also free the legacy GP if not used anymore? */
+  id_us_min(&gpd->id);
+  /* No need to increase user-count of `new_grease_pencil`,
+   * since ID creation already set it to 1. */
+
+  legacy_gpencil_to_grease_pencil(bmain, *new_grease_pencil, *gpd);
+
+  legacy_object_modifiers(bmain, object);
+
+  /* Layer adjusments should be added after all other modifiers. */
+  layer_adjustments_to_modifiers(bmain, *gpd, object);
+  /* Thickness factor is applied after all other changes to the radii. */
+  thickness_factor_to_modifier(*gpd, object);
+
+  BKE_object_free_derived_caches(&object);
 }
 
 }  // namespace blender::bke::greasepencil::convert

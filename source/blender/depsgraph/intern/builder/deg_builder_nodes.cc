@@ -57,8 +57,8 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
-#include "BKE_cachefile.h"
-#include "BKE_collection.h"
+#include "BKE_cachefile.hh"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
@@ -87,7 +87,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
@@ -973,8 +973,10 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
     case OB_CURVES:
     case OB_POINTCLOUD:
     case OB_VOLUME:
-    case OB_GREASE_PENCIL:
       build_object_data_geometry(object);
+      break;
+    case OB_GREASE_PENCIL:
+      build_object_data_grease_pencil(object);
       break;
     case OB_ARMATURE:
       build_rig(object);
@@ -1024,6 +1026,20 @@ void DepsgraphNodeBuilder::build_object_data_lightprobe(Object *object)
   LightProbe *probe = (LightProbe *)object->data;
   build_lightprobe(probe);
   add_operation_node(&object->id, NodeType::PARAMETERS, OperationCode::LIGHT_PROBE_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_object_data_grease_pencil(Object *object)
+{
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  /* Build the layer parents. */
+  for (const bke::greasepencil::Layer *layer : grease_pencil.layers()) {
+    Object *parent = layer->parent;
+    if (parent == nullptr) {
+      continue;
+    }
+    build_object(-1, parent, DEG_ID_LINKED_INDIRECTLY, false);
+  }
+  build_object_data_geometry(object);
 }
 
 void DepsgraphNodeBuilder::build_object_data_speaker(Object *object)

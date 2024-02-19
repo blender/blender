@@ -10,8 +10,6 @@
 
 #include <cstring>
 
-#include "DNA_asset_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
@@ -24,7 +22,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_preferences.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_userdef_types.h"

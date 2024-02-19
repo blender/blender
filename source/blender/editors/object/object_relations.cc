@@ -19,18 +19,13 @@
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_legacy_types.h"
-#include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
@@ -41,48 +36,34 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_armature.hh"
-#include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_curves.h"
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil_legacy.h"
-#include "BKE_idprop.h"
 #include "BKE_idtype.hh"
-#include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
-#include "BKE_light.h"
-#include "BKE_lightprobe.h"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_mball.hh"
-#include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_pointcloud.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_speaker.h"
-#include "BKE_texture.h"
-#include "BKE_volume.hh"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -101,7 +82,6 @@
 #include "ED_armature.hh"
 #include "ED_curve.hh"
 #include "ED_gpencil_legacy.hh"
-#include "ED_keyframing.hh"
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
@@ -285,7 +265,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
           /* inverse parent matrix */
           BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-          invert_m4_m4(ob->parentinv, workob.object_to_world);
+          invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
         }
         else {
           ob->partype = PARVERT1;
@@ -293,7 +273,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 
           /* inverse parent matrix */
           BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-          invert_m4_m4(ob->parentinv, workob.object_to_world);
+          invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
         }
       }
     }
@@ -415,7 +395,7 @@ void ED_object_parent_clear(Object *ob, const int type)
       /* remove parent, and apply the parented transform
        * result as object's local transforms */
       ob->parent = nullptr;
-      BKE_object_apply_mat4(ob, ob->object_to_world, true, false);
+      BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), true, false);
       /* Don't recalculate the animation because it would change the transform
        * instead of keeping it. */
       flags &= ~ID_RECALC_ANIMATION;
@@ -601,7 +581,7 @@ bool ED_object_parent_set(ReportList *reports,
   if (keep_transform) {
     /* Was removed because of bug #23577,      * but this can be handy in some cases too #32616, so
      * make optional. */
-    BKE_object_apply_mat4(ob, ob->object_to_world, false, false);
+    BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), false, false);
   }
 
   /* Set the parent (except for follow-path constraint option). */
@@ -726,7 +706,7 @@ bool ED_object_parent_set(ReportList *reports,
 
     BKE_constraint_target_matrix_get(
         depsgraph, scene, con, 0, CONSTRAINT_OBTYPE_OBJECT, nullptr, cmat, scene->r.cfra);
-    sub_v3_v3v3(vec, ob->object_to_world[3], cmat[3]);
+    sub_v3_v3v3(vec, ob->object_to_world().location(), cmat[3]);
 
     copy_v3_v3(ob->loc, vec);
   }
@@ -749,7 +729,7 @@ bool ED_object_parent_set(ReportList *reports,
     ob->partype = PAROBJECT;
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.object_to_world);
+    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
   }
   else if (is_armature_parent && (ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_ARMATURE)) {
     if (partype == PAR_ARMATURE) {
@@ -767,7 +747,7 @@ bool ED_object_parent_set(ReportList *reports,
     ob->partype = PAROBJECT;
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.object_to_world);
+    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
   }
   else if ((ob->type == OB_GPENCIL_LEGACY) && (par->type == OB_LATTICE)) {
     /* Add Lattice modifier */
@@ -778,12 +758,12 @@ bool ED_object_parent_set(ReportList *reports,
     ob->partype = PAROBJECT;
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 
-    invert_m4_m4(ob->parentinv, workob.object_to_world);
+    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
   }
   else {
     /* calculate inverse parent matrix */
     BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
-    invert_m4_m4(ob->parentinv, workob.object_to_world);
+    invert_m4_m4(ob->parentinv, workob.object_to_world().ptr());
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
@@ -792,7 +772,7 @@ bool ED_object_parent_set(ReportList *reports,
 
 static void parent_set_vert_find(KDTree_3d *tree, Object *child, int vert_par[3], bool is_tri)
 {
-  const float *co_find = child->object_to_world[3];
+  const float *co_find = child->object_to_world().location();
   if (is_tri) {
     KDTreeNearest_3d nearest[3];
     int tot;
@@ -1210,7 +1190,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
     }
 
     if (type == CLEAR_TRACK_KEEP_TRANSFORM) {
-      BKE_object_apply_mat4(ob, ob->object_to_world, true, true);
+      BKE_object_apply_mat4(ob, ob->object_to_world().ptr(), true, true);
     }
   }
   CTX_DATA_END;

@@ -18,11 +18,14 @@
 struct ImBuf;
 struct MovieCache;
 
-typedef void (*MovieCacheGetKeyDataFP)(void *userkey, int *framenr, int *proxy, int *render_flags);
+using MovieCacheGetKeyDataFP = void (*)(void *userkey,
+                                        int *framenr,
+                                        int *proxy,
+                                        int *render_flags);
 
-typedef void *(*MovieCacheGetPriorityDataFP)(void *userkey);
-typedef int (*MovieCacheGetItemPriorityFP)(void *last_userkey, void *priority_data);
-typedef void (*MovieCachePriorityDeleterFP)(void *priority_data);
+using MovieCacheGetPriorityDataFP = void *(*)(void *userkey);
+using MovieCacheGetItemPriorityFP = int (*)(void *last_userkey, void *priority_data);
+using MovieCachePriorityDeleterFP = void (*)(void *priority_data);
 
 void IMB_moviecache_init(void);
 void IMB_moviecache_destruct(void);

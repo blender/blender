@@ -26,7 +26,7 @@ exit /b 1
 :detect_blender_done
 
 %BLENDER_BIN% ^
-	--background -noaudio --factory-startup ^
+	--background --factory-startup ^
 	--python %BLENDER_DIR%/doc/python_api/sphinx_doc_gen.py
 
 "%SPHINX_BIN%" -b html %SPHINXOPTS% %O% %SOURCEDIR% %BUILDDIR%

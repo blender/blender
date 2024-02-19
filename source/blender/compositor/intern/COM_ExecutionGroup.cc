@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 namespace blender::compositor {
 
@@ -304,7 +304,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
   } /** \note Early break out. */
   uint chunk_index;
 
-  execution_start_time_ = BLI_check_seconds_timer();
+  execution_start_time_ = BLI_time_now_seconds();
 
   chunks_finished_ = 0;
   bTree_ = bTree;

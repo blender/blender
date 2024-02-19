@@ -30,7 +30,7 @@ ccl_device_forceinline float3 transform_inverse_cross(const float3 a_, const flo
 
 ccl_device_forceinline float transform_inverse_dot(const float3 a_, const float3 b_)
 {
-#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE41__)
+#if defined(__KERNEL_SSE__) && defined(__KERNEL_SSE42__)
   const __m128 a = (const __m128 &)a_;
   const __m128 b = (const __m128 &)b_;
   return _mm_cvtss_f32(_mm_dp_ps(a, b, 0x7F));

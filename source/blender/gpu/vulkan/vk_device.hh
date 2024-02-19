@@ -207,7 +207,7 @@ class VKDevice : public NonCopyable {
 
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
-  const Vector<std::reference_wrapper<VKContext>> &contexts_get() const;
+  Span<std::reference_wrapper<VKContext>> contexts_get() const;
 
   const VKBuffer &dummy_buffer_get() const
   {

@@ -6,7 +6,7 @@
 
 #include "BLI_time.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DNA_scene_types.h"
 
@@ -29,7 +29,7 @@ void AbstractBuilderPipeline::build()
 {
   double start_time = 0.0;
   if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
-    start_time = BLI_check_seconds_timer();
+    start_time = BLI_time_now_seconds();
   }
 
   build_step_sanity_check();
@@ -38,7 +38,7 @@ void AbstractBuilderPipeline::build()
   build_step_finalize();
 
   if (G.debug & (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_TIME)) {
-    printf("Depsgraph built in %f seconds.\n", BLI_check_seconds_timer() - start_time);
+    printf("Depsgraph built in %f seconds.\n", BLI_time_now_seconds() - start_time);
   }
 }
 

@@ -18,7 +18,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_node_socket_value.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -42,7 +42,7 @@
 
 #include "MOD_nodes.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GEO_mix_geometries.hh"
 
@@ -341,6 +341,8 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_output<decl::Float>("Delta Time");
 
   const bNode *node = b.node_or_null();
@@ -362,14 +364,14 @@ static void node_declare(NodeDeclarationBuilder &b)
     const StringRef name = item.name;
     const std::string identifier = SimulationItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, identifier);
-    auto &output_decl = b.add_output(socket_type, name, identifier);
+    auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
     if (socket_type_supports_fields(socket_type)) {
       input_decl.supports_field();
       output_decl.dependent_field({input_decl.input_index()});
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__");
+  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -427,9 +429,9 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   Span<NodeSimulationItem> simulation_items_;
   int skip_input_index_;
   /**
-   * Start index of the simulation state inputs that are used when the simulation is skipped. Those
-   * inputs are linked directly to the simulation input node. Those inputs only exist internally,
-   * but not in the UI.
+   * Start index of the simulation state inputs that are used when the simulation is skipped.
+   * Those inputs are linked directly to the simulation input node. Those inputs only exist
+   * internally, but not in the UI.
    */
   int skip_inputs_offset_;
   /**
@@ -648,8 +650,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     }
     const bool skip = skip_variant->get<bool>();
 
-    /* Instead of outputting the values directly, convert them to a bake state and then back. This
-     * ensures that some geometry processing happens on the data consistently (e.g. removing
+    /* Instead of outputting the values directly, convert them to a bake state and then back.
+     * This ensures that some geometry processing happens on the data consistently (e.g. removing
      * anonymous attributes). */
     std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(
         params, data_block_map, skip);
@@ -681,6 +683,8 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Bool>("Skip").description(
       "Forward the output of the simulation input node directly to the output node and ignore "
       "the nodes in the simulation zone");
@@ -698,14 +702,14 @@ static void node_declare(NodeDeclarationBuilder &b)
     const StringRef name = item.name;
     const std::string identifier = SimulationItemsAccessor::socket_identifier_for_item(item);
     auto &input_decl = b.add_input(socket_type, name, identifier);
-    auto &output_decl = b.add_output(socket_type, name, identifier);
+    auto &output_decl = b.add_output(socket_type, name, identifier).align_with_previous();
     if (socket_type_supports_fields(socket_type)) {
       input_decl.supports_field();
       output_decl.dependent_field({input_decl.input_index()});
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__");
+  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -945,7 +949,8 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
     case SOCK_INT:
     case SOCK_BOOLEAN:
     case SOCK_ROTATION:
-    case SOCK_RGBA: {
+    case SOCK_RGBA:
+    case SOCK_MATRIX: {
       const CPPType &type = node_geo_simulation_cc::get_simulation_item_cpp_type(socket_type);
       SocketValueVariant prev_value_variant = *static_cast<const SocketValueVariant *>(prev);
       SocketValueVariant next_value_variant = *static_cast<const SocketValueVariant *>(next);

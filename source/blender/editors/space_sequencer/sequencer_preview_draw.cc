@@ -22,8 +22,8 @@
 #include "DNA_space_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_scene.h"
+#include "BKE_global.hh"
+#include "BKE_scene.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
@@ -556,8 +556,7 @@ static void draw_histogram(ARegion *region,
 
     /* Label. */
     char buf[10];
-    BLI_snprintf(buf, sizeof(buf), "%.2f", val);
-    size_t buf_len = strlen(buf);
+    const size_t buf_len = SNPRINTF_RLEN(buf, "%.2f", val);
 
     float text_width, text_height;
     BLF_width_and_height(BLF_default(), buf, buf_len, &text_width, &text_height);

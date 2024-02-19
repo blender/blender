@@ -18,7 +18,7 @@ void main()
   }
 
   SphericalHarmonicL1 sh;
-  if (idx == 0) {
+  if (idx == reflection_probe_count - 1) {
     sh = lightprobe_irradiance_world();
   }
   else {

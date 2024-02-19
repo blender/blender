@@ -595,15 +595,18 @@ void *imb_alloc_pixels(unsigned int x,
                        unsigned int y,
                        unsigned int channels,
                        size_t typesize,
+                       bool initialize_pixels,
                        const char *alloc_name);
 
-bool imb_addrectImBuf(ImBuf *ibuf);
+bool imb_addrectImBuf(ImBuf *ibuf, bool initialize_pixels = true);
 /**
  * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
  */
 void imb_freerectImBuf(ImBuf *ibuf);
 
-bool imb_addrectfloatImBuf(ImBuf *ibuf, const unsigned int channels);
+bool imb_addrectfloatImBuf(ImBuf *ibuf,
+                           const unsigned int channels,
+                           bool initialize_pixels = true);
 /**
  * Any free `ibuf->rect` frees mipmaps to be sure, creation is in render on first request.
  */
@@ -627,7 +630,7 @@ void IMB_processor_apply_threaded(
     void(init_handle)(void *handle, int start_line, int tot_line, void *customdata),
     void *(do_thread)(void *));
 
-typedef void (*ScanlineThreadFunc)(void *custom_data, int scanline);
+using ScanlineThreadFunc = void (*)(void *custom_data, int scanline);
 void IMB_processor_apply_threaded_scanlines(int total_scanlines,
                                             ScanlineThreadFunc do_thread,
                                             void *custom_data);

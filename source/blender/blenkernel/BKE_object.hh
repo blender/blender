@@ -319,7 +319,7 @@ blender::Vector<Base *> BKE_object_pose_base_array_get(const Scene *scene,
 void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4]);
 
 /**
- * Compute object world transform and store it in `ob->object_to_world`.
+ * Compute object world transform and store it in `ob->object_to_world().ptr()`.
  */
 void BKE_object_where_is_calc(Depsgraph *depsgraph, Scene *scene, Object *ob);
 void BKE_object_where_is_calc_ex(

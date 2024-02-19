@@ -711,7 +711,7 @@ static void copy_indices_to_offset_ranges(const VArray<T> &src,
   /* This unnecessarily instantiates the "is single" case (which should be handled elsewhere if
    * it's ever used for attributes), but the alternative is duplicating the function for spans and
    * other virtual arrays. */
-  devirtualize_varray(src, [&](const auto &src) {
+  devirtualize_varray(src, [&](const auto src) {
     threading::parallel_for(curve_indices.index_range(), 512, [&](IndexRange range) {
       for (const int i : range) {
         dst.slice(mesh_offsets[i]).fill(src[curve_indices[i]]);

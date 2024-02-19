@@ -52,7 +52,7 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal UIDWalk API

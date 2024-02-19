@@ -42,7 +42,7 @@ static void object_warp_calc_view_matrix(float r_mat_view[4][4],
   mul_m4_m4m4(viewmat_roll, mat_offset, viewmat);
 
   /* apply the view and the object matrix */
-  mul_m4_m4m4(r_mat_view, viewmat_roll, obedit->object_to_world);
+  mul_m4_m4m4(r_mat_view, viewmat_roll, obedit->object_to_world().ptr());
 
   /* get the view-space cursor */
   mul_v3_m4v3(r_center_view, viewmat_roll, center);

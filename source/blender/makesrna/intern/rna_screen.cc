@@ -56,7 +56,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #  include "RNA_access.hh"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_screen.hh"
 #  include "BKE_workspace.h"
 
@@ -64,7 +64,7 @@ static const EnumPropertyItem rna_enum_region_panel_category_items[] = {
 
 #  include "UI_view2d.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

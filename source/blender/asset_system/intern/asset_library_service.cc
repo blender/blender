@@ -6,7 +6,7 @@
  * \ingroup asset_system
  */
 
-#include "BKE_blender.h"
+#include "BKE_blender.hh"
 #include "BKE_preferences.h"
 
 #include "BLI_path_util.h"
@@ -74,7 +74,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      return get_asset_library_on_disk_builtin(type, root_path);
+      return this->get_asset_library_on_disk_builtin(type, root_path);
     }
     case ASSET_LIBRARY_LOCAL: {
       /* For the "Current File" library  we get the asset library root path based on main. */
@@ -83,14 +83,14 @@ AssetLibrary *AssetLibraryService::get_asset_library(
 
       if (root_path.empty()) {
         /* File wasn't saved yet. */
-        return get_asset_library_current_file();
+        return this->get_asset_library_current_file();
       }
-      return get_asset_library_on_disk_builtin(type, root_path);
+      return this->get_asset_library_on_disk_builtin(type, root_path);
     }
     case ASSET_LIBRARY_ALL:
-      return get_asset_library_all(bmain);
+      return this->get_asset_library_all(bmain);
     case ASSET_LIBRARY_CUSTOM: {
-      bUserAssetLibrary *custom_library = find_custom_asset_library_from_library_ref(
+      bUserAssetLibrary *custom_library = this->find_custom_asset_library_from_library_ref(
           library_reference);
       if (!custom_library) {
         return nullptr;
@@ -101,7 +101,8 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = get_asset_library_on_disk_custom(custom_library->name, root_path);
+      AssetLibrary *library = this->get_asset_library_on_disk_custom(custom_library->name,
+                                                                     root_path);
       library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
       library->use_relative_path_ = (custom_library->flag & ASSET_LIBRARY_RELATIVE_PATH) != 0;
@@ -156,7 +157,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom(StringRef name,
                                                                     StringRefNull root_path)
 {
-  return get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, root_path);
+  return this->get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, root_path);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,
@@ -168,7 +169,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibra
 
   /* Builtin asset libraries don't need a name, the #eAssetLibraryType is enough to identify them
    * (and doesn't change, unlike the name). */
-  return get_asset_library_on_disk(type, {}, root_path);
+  return this->get_asset_library_on_disk(type, {}, root_path);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_current_file()
@@ -203,7 +204,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
     }
 
     /* Ensure all asset libraries are loaded. */
-    get_asset_library(bmain, library_ref);
+    this->get_asset_library(bmain, library_ref);
   }
 
   if (all_library_) {
@@ -249,8 +250,8 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_CUSTOM: {
-      bUserAssetLibrary *custom_lib = find_custom_preferences_asset_library_from_asset_weak_ref(
-          asset_reference);
+      bUserAssetLibrary *custom_lib =
+          this->find_custom_preferences_asset_library_from_asset_weak_ref(asset_reference);
       if (custom_lib) {
         library_dirpath = custom_lib->dirpath;
         break;
@@ -258,7 +259,7 @@ std::string AssetLibraryService::resolve_asset_weak_reference_to_library_path(
 
       /* A bit of an odd-ball, the API supports loading custom libraries from arbitrary paths (used
        * by unit tests). So check all loaded on-disk libraries too. */
-      AssetLibrary *loaded_custom_lib = find_loaded_on_disk_asset_library_from_name(
+      AssetLibrary *loaded_custom_lib = this->find_loaded_on_disk_asset_library_from_name(
           asset_reference.asset_library_identifier);
       if (!loaded_custom_lib) {
         return "";
@@ -368,7 +369,7 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
 
   switch (eAssetLibraryType(asset_reference.asset_library_type)) {
     case ASSET_LIBRARY_LOCAL: {
-      std::string path_in_file = normalize_asset_weak_reference_relative_asset_identifier(
+      std::string path_in_file = this->normalize_asset_weak_reference_relative_asset_identifier(
           asset_reference);
       const int64_t group_len = int64_t(path_in_file.find(SEP));
 
@@ -381,14 +382,14 @@ std::optional<AssetLibraryService::ExplodedPath> AssetLibraryService::
     }
     case ASSET_LIBRARY_CUSTOM:
     case ASSET_LIBRARY_ESSENTIALS: {
-      std::string full_path = resolve_asset_weak_reference_to_full_path(asset_reference);
+      std::string full_path = this->resolve_asset_weak_reference_to_full_path(asset_reference);
       /* #full_path uses native slashes, so others don't need to be considered in the following. */
 
       if (full_path.empty()) {
         return std::nullopt;
       }
 
-      int64_t blendfile_extension_pos = rfind_blendfile_extension(full_path);
+      int64_t blendfile_extension_pos = this->rfind_blendfile_extension(full_path);
       BLI_assert(blendfile_extension_pos != StringRef::not_found);
 
       size_t group_pos = full_path.find(SEP, blendfile_extension_pos);

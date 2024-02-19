@@ -6,14 +6,10 @@
 #include <iomanip>
 #include <random>
 
-#include "BLI_endian_defines.h"
-#include "BLI_endian_switch.h"
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
 #include "BLI_serialize.hh"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
-#include "BLI_time.h"
 #include "BLI_vector.hh"
 
 #include "WM_api.hh"
@@ -22,36 +18,23 @@
 #include "ED_screen.hh"
 
 #include "DNA_array_utils.hh"
-#include "DNA_curves_types.h"
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_pointcloud_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
 #include "BKE_context.hh"
-#include "BKE_curves.hh"
-#include "BKE_global.h"
-#include "BKE_instances.hh"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.hh"
-#include "BKE_pointcloud.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-
-#include "BLT_translation.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_build.hh"
 
 #include "MOD_nodes.hh"
 

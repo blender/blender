@@ -24,7 +24,7 @@
 
 #include <pxr/base/tf/stringUtils.h>
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"

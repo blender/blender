@@ -22,18 +22,13 @@
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_nla.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
-#include "ED_keyframes_edit.hh"
-#include "ED_keyframing.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
 #include "ED_screen_types.hh"
@@ -48,7 +43,6 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "transform.hh"
-#include "transform_snap.hh"
 
 /* Own include. */
 #include "transform_convert.hh"
@@ -866,7 +860,7 @@ static void init_TransDataContainers(TransInfo *t, Object *obact, Span<Object *>
 
       if (tc->use_local_mat) {
         BLI_assert((t->flag & T_2D_EDIT) == 0);
-        copy_m4_m4(tc->mat, objects[i]->object_to_world);
+        copy_m4_m4(tc->mat, objects[i]->object_to_world().ptr());
         copy_m3_m4(tc->mat3, tc->mat);
         /* for non-invertible scale matrices, invert_m4_m4_fallback()
          * can still provide a valid pivot */
@@ -908,7 +902,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
   if (t->options & CTX_EDGE_DATA) {
     return &TransConvertType_MeshEdge;
   }
-  if ((t->options & CTX_GPENCIL_STROKES) && (t->spacetype == SPACE_VIEW3D)) {
+  if (t->options & CTX_GPENCIL_STROKES) {
     if (t->obedit_type == OB_GREASE_PENCIL) {
       return &TransConvertType_GreasePencil;
     }
@@ -1119,8 +1113,8 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
       if (mmd->mirror_ob) {
         float obinv[4][4];
 
-        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world);
-        mul_m4_m4m4(mtx, obinv, ob->object_to_world);
+        invert_m4_m4(obinv, mmd->mirror_ob->object_to_world().ptr());
+        mul_m4_m4m4(mtx, obinv, ob->object_to_world().ptr());
         invert_m4_m4(imtx, mtx);
       }
 

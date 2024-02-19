@@ -19,9 +19,9 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -29,7 +29,6 @@
 #include "WM_types.hh"
 
 #include "ED_mesh.hh"
-#include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 

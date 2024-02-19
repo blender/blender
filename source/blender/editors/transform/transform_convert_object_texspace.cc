@@ -11,11 +11,9 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_animsys.h"
-#include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -70,8 +68,8 @@ static void createTransTexspace(bContext * /*C*/, TransInfo *t)
   td->flag = TD_SELECTED;
   td->ob = ob;
 
-  copy_m3_m4(td->mtx, ob->object_to_world);
-  copy_m3_m4(td->axismtx, ob->object_to_world);
+  copy_m3_m4(td->mtx, ob->object_to_world().ptr());
+  copy_m3_m4(td->axismtx, ob->object_to_world().ptr());
   normalize_m3(td->axismtx);
   pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 

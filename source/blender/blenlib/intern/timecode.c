@@ -18,7 +18,7 @@
 
 #include "DNA_userdef_types.h" /* for eTimecodeStyles only */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 size_t BLI_timecode_string_from_time(char *str,
                                      const size_t maxncpy,

@@ -32,7 +32,7 @@ struct Object;
 struct rctf;
 struct TextBox;
 
-typedef int eBezTriple_Flag__Alias;
+using eBezTriple_Flag__Alias = int;
 
 struct CurveCache {
   ListBase disp;

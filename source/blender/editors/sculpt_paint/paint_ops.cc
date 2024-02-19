@@ -17,8 +17,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
 #include "IMB_interp.hh"
 
 #include "DNA_brush_types.h"
@@ -32,7 +30,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_image.hh"
 #include "ED_paint.hh"

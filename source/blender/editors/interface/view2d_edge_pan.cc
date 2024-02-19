@@ -18,7 +18,6 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "WM_api.hh"
@@ -99,7 +98,7 @@ void UI_view2d_edge_pan_reset(View2DEdgePanData *vpd)
 {
   vpd->edge_pan_start_time_x = 0.0;
   vpd->edge_pan_start_time_y = 0.0;
-  vpd->edge_pan_last_time = BLI_check_seconds_timer();
+  vpd->edge_pan_last_time = BLI_time_now_seconds();
   vpd->initial_rect = vpd->region->v2d.cur;
 }
 
@@ -251,7 +250,7 @@ void UI_view2d_edge_pan_apply(bContext *C, View2DEdgePanData *vpd, const int xy[
     }
   }
 
-  const double current_time = BLI_check_seconds_timer();
+  const double current_time = BLI_time_now_seconds();
   edge_pan_manage_delay_timers(vpd, pan_dir_x, pan_dir_y, current_time);
 
   /* Calculate the delta since the last time the operator was called. */

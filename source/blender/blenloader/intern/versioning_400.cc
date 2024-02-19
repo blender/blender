@@ -11,8 +11,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "CLG_log.h"
-
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
@@ -49,7 +47,6 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
-#include "BKE_collection.h"
 #include "BKE_curve.hh"
 #include "BKE_effect.h"
 #include "BKE_grease_pencil.hh"
@@ -57,24 +54,19 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_legacy_convert.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
 #include "SEQ_iterator.hh"
-#include "SEQ_retiming.hh"
-#include "SEQ_sequencer.hh"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
 
-#include "ED_armature.hh"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "readfile.hh"
 
@@ -2890,10 +2882,60 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   /* Keep point/spot light soft falloff for files created before 4.0. */
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 0)) {
     LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-      if (light->type == LA_LOCAL || light->type == LA_SPOT) {
+      if (ELEM(light->type, LA_LOCAL, LA_SPOT)) {
         light->mode |= LA_USE_SOFT_FALLOFF;
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 1)) {
+    using namespace blender::bke::greasepencil;
+    /* Initialize newly added scale layer transform to one. */
+    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+      for (Layer *layer : grease_pencil->layers_for_write()) {
+        copy_v3_fl(layer->scale, 1.0f);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 2)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      bool is_cycles = scene && STREQ(scene->r.engine, RE_engine_id_CYCLES);
+      if (is_cycles) {
+        if (IDProperty *cscene = version_cycles_properties_from_ID(&scene->id)) {
+          int cposition = version_cycles_property_int(cscene, "motion_blur_position", 1);
+          BLI_assert(cposition >= 0 && cposition < 3);
+          int order_conversion[3] = {SCE_MB_START, SCE_MB_CENTER, SCE_MB_END};
+          scene->r.motion_blur_position = order_conversion[std::clamp(cposition, 0, 2)];
+        }
+      }
+      else {
+        SET_FLAG_FROM_TEST(
+            scene->r.mode, scene->eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED_DEPRECATED, R_MBLUR);
+        scene->r.motion_blur_position = scene->eevee.motion_blur_position_deprecated;
+        scene->r.motion_blur_shutter = scene->eevee.motion_blur_shutter_deprecated;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 3)) {
+    constexpr int NTREE_EXECUTION_MODE_FULL_FRAME = 1;
+
+    constexpr int NTREE_COM_GROUPNODE_BUFFER = 1 << 3;
+    constexpr int NTREE_COM_OPENCL = 1 << 1;
+
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+
+      ntree->flag &= ~(NTREE_COM_GROUPNODE_BUFFER | NTREE_COM_OPENCL);
+
+      if (ntree->execution_mode == NTREE_EXECUTION_MODE_FULL_FRAME) {
+        ntree->execution_mode = NTREE_EXECUTION_MODE_CPU;
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

@@ -21,7 +21,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "DEG_depsgraph.hh"
 

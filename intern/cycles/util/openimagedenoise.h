@@ -20,7 +20,7 @@ static inline bool openimagedenoise_supported()
   /* Always supported through Accelerate framework BNNS. */
   return true;
 #  else
-  return system_cpu_support_sse41();
+  return system_cpu_support_sse42();
 #  endif
 #else
   return false;

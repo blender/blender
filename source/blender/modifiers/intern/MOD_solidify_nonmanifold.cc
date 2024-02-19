@@ -20,7 +20,6 @@
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_mesh.hh"
-#include "BKE_particle.h"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_solidify_util.hh" /* Own include. */

@@ -13,7 +13,7 @@
 #include "BLI_color.hh"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_node_tree_interface_types.h"
 

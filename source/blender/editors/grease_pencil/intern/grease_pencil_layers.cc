@@ -8,6 +8,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -307,6 +308,7 @@ static int grease_pencil_layer_hide_exec(bContext *C, wmOperator *op)
   /* notifiers */
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -349,6 +351,7 @@ static int grease_pencil_layer_reveal_exec(bContext *C, wmOperator * /*op*/)
   /* notifiers */
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -370,7 +373,7 @@ static void GREASE_PENCIL_OT_layer_reveal(wmOperatorType *ot)
 
 static int grease_pencil_layer_isolate_exec(bContext *C, wmOperator *op)
 {
-  using namespace ::blender::bke::greasepencil;
+  using namespace blender::bke::greasepencil;
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const int affect_visibility = RNA_boolean_get(op->ptr, "affect_visibility");
@@ -426,6 +429,101 @@ static void GREASE_PENCIL_OT_layer_isolate(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "affect_visibility", false, "Affect Visibility", "Also affect the visibility");
 }
+
+static int grease_pencil_layer_lock_all_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const bool lock_value = RNA_boolean_get(op->ptr, "lock");
+
+  if (grease_pencil.layers().is_empty()) {
+    return OPERATOR_CANCELLED;
+  }
+
+  for (Layer *layer : grease_pencil.layers_for_write()) {
+    layer->set_locked(lock_value);
+  }
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_lock_all(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Lock All Layers";
+  ot->idname = "GREASE_PENCIL_OT_layer_lock_all";
+  ot->description =
+      "Lock all Grease Pencil layers to prevent them from being accidentally modified";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_lock_all_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_boolean(ot->srna, "lock", true, "Lock Value", "Lock/Unlock all layers");
+}
+
+static int grease_pencil_layer_duplicate_exec(bContext *C, wmOperator *op)
+{
+  using namespace ::blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  const bool empty_keyframes = RNA_boolean_get(op->ptr, "empty_keyframes");
+
+  if (!grease_pencil.has_active_layer()) {
+    BKE_reportf(op->reports, RPT_ERROR, "No active layer to duplicate");
+    return OPERATOR_CANCELLED;
+  }
+
+  Layer &active_layer = *grease_pencil.get_active_layer();
+  Layer &new_layer = grease_pencil.add_layer(active_layer.name());
+
+  for (auto [key, frame] : active_layer.frames().items()) {
+    const int duration = frame.is_implicit_hold() ? 0 : active_layer.get_frame_duration_at(key);
+    const int drawing_index = grease_pencil.drawings().size();
+    GreasePencilFrame *new_frame = new_layer.add_frame(key, drawing_index, duration);
+    new_frame->type = frame.type;
+    if (empty_keyframes) {
+      grease_pencil.add_empty_drawings(1);
+    }
+    else {
+      const Drawing &drawing = *grease_pencil.get_drawing_at(active_layer, key);
+      grease_pencil.add_duplicate_drawings(1, drawing);
+    }
+  }
+
+  grease_pencil.move_node_after(new_layer.as_node(), active_layer.as_node());
+  grease_pencil.set_active_layer(&new_layer);
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_duplicate(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Duplicate Layer";
+  ot->idname = "GREASE_PENCIL_OT_layer_duplicate";
+  ot->description = "Make a copy of the active Grease Pencil layer";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_duplicate_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  RNA_def_boolean(ot->srna, "empty_keyframes", false, "Empty Keyframes", "Add Empty Keyframes");
+}
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_layers()
@@ -438,6 +536,8 @@ void ED_operatortypes_grease_pencil_layers()
   WM_operatortype_append(GREASE_PENCIL_OT_layer_hide);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_reveal);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_isolate);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_lock_all);
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_duplicate);
 
   WM_operatortype_append(GREASE_PENCIL_OT_layer_group_add);
 }

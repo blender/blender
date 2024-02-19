@@ -10,7 +10,6 @@
 #include "BKE_node_enum.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_socket_value.hh"
-#include "BKE_viewer_path.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"

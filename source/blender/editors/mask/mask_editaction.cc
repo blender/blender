@@ -14,13 +14,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_fcurve.h"
 #include "BKE_mask.h"
 
 #include "ED_anim_api.hh"

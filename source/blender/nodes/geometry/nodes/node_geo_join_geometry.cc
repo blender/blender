@@ -4,8 +4,6 @@
 
 #include "GEO_join_geometries.hh"
 
-#include "BKE_instances.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_join_geometry_cc {

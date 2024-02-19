@@ -11,7 +11,7 @@
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "BLI_string.h"
 
@@ -26,17 +26,14 @@
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "MEM_guardedalloc.h"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"
 
-#  include "DEG_depsgraph.hh"
-
 #  include "IO_orientation.hh"
-#  include "IO_path_util_types.hh"
 
 #  include "IO_ply.hh"
 #  include "io_ply_ops.hh"

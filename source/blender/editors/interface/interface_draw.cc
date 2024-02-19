@@ -26,7 +26,6 @@
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
-#include "BKE_node.hh"
 #include "BKE_tracking.h"
 
 #include "IMB_colormanagement.hh"
@@ -39,7 +38,6 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
-#include "GPU_context.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"

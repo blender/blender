@@ -68,7 +68,6 @@ def get_arguments(filepath, output_filepath):
 
     args = [
         "--background",
-        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",

@@ -6,12 +6,12 @@
  * \ingroup wm
  */
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
@@ -180,7 +180,7 @@ static void wm_xr_session_base_pose_calc(const Scene *scene,
     float tmp_quat[4];
     float tmp_eul[3];
 
-    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world);
+    mat4_to_loc_quat(r_base_pose->position, tmp_quat, base_pose_object->object_to_world().ptr());
 
     /* Only use rotation around Z-axis to align view with floor. */
     quat_to_eul(tmp_eul, tmp_quat);
@@ -1114,7 +1114,7 @@ static void wm_xr_session_events_dispatch(wmXrData *xr,
     return;
   }
 
-  const int64_t time_now = int64_t(BLI_check_seconds_timer() * 1000);
+  const int64_t time_now = int64_t(BLI_time_now_seconds() * 1000);
 
   ListBase *active_modal_actions = &action_set->active_modal_actions;
   ListBase *active_haptic_actions = &action_set->active_haptic_actions;

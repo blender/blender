@@ -22,7 +22,7 @@
 
 #include "BLI_scanfill.h" /* own include */
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 typedef struct PolyInfo {
   ScanFillEdge *edge_first, *edge_last;

@@ -40,16 +40,16 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_attribute.hh"
 #include "BKE_bake_data_block_id.hh"
-#include "BKE_bpath.h"
+#include "BKE_bpath.hh"
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
@@ -96,7 +96,7 @@ static void mesh_init_data(ID *id)
 
   mesh->runtime = new blender::bke::MeshRuntime();
 
-  mesh->face_sets_color_seed = BLI_hash_int(BLI_check_seconds_timer_i() & UINT_MAX);
+  mesh->face_sets_color_seed = BLI_hash_int(BLI_time_now_seconds_i() & UINT_MAX);
 }
 
 static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
@@ -383,6 +383,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_ME = {
     /*id_code*/ ID_ME,
     /*id_filter*/ FILTER_ID_ME,
+    /*dependencies_id_types*/ FILTER_ID_ME | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_KE,
     /*main_listbase_index*/ INDEX_ID_ME,
     /*struct_size*/ sizeof(Mesh),
     /*name*/ "Mesh",
@@ -701,6 +702,26 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
 
   return mesh;
 }
+
+namespace blender::bke {
+
+Mesh *mesh_new_no_attributes(const int verts_num,
+                             const int edges_num,
+                             const int faces_num,
+                             const int corners_num)
+{
+  Mesh *mesh = BKE_mesh_new_nomain(0, 0, faces_num, 0);
+  mesh->verts_num = verts_num;
+  mesh->edges_num = edges_num;
+  mesh->corners_num = corners_num;
+  CustomData_free_layer_named(&mesh->vert_data, "position", 0);
+  CustomData_free_layer_named(&mesh->edge_data, ".edge_verts", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_vert", 0);
+  CustomData_free_layer_named(&mesh->corner_data, ".corner_edge", 0);
+  return mesh;
+}
+
+}  // namespace blender::bke
 
 static void copy_attribute_names(const Mesh &mesh_src, Mesh &mesh_dst)
 {

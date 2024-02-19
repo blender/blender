@@ -17,8 +17,8 @@ set(SRC
   intern/blt_lang.cc
   intern/blt_translation.cc
 
-  BLT_lang.h
-  BLT_translation.h
+  BLT_lang.hh
+  BLT_translation.hh
 )
 
 set(LIB

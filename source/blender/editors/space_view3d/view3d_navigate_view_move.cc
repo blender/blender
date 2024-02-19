@@ -6,14 +6,9 @@
  * \ingroup spview3d
  */
 
-#include "BLI_math_vector.h"
-
 #include "BKE_context.hh"
 
 #include "WM_api.hh"
-
-#include "RNA_access.hh"
-#include "RNA_define.hh"
 
 #include "ED_screen.hh"
 

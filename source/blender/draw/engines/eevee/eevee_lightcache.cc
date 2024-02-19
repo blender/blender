@@ -10,7 +10,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_endian_switch.h"
 #include "BLI_threads.h"
@@ -1453,7 +1453,7 @@ void EEVEE_lightbake_job(void *custom_data, wmJobWorkerStatus *worker_status)
    * because this step is locking at this moment. */
   /* TODO: remove this. */
   if (lbake->delay) {
-    BLI_sleep_ms(lbake->delay);
+    BLI_time_sleep_ms(lbake->delay);
   }
 
   /* Render world irradiance and reflection first */

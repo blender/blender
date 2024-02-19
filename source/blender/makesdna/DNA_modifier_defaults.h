@@ -812,7 +812,7 @@
   { \
     .level = 1, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilColorModifierData \
   { \
     .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
@@ -859,7 +859,7 @@
     .step = 4, \
     .seed = 1, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilMirrorModifierData \
   { \
     .flag = MOD_GREASE_PENCIL_MIRROR_AXIS_X, \
@@ -870,6 +870,85 @@
     .flag = 0, \
     .thickness_fac = 1.0f, \
     .thickness = 0.02, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilLatticeModifierData \
+  { \
+    .object = NULL, \
+    .strength = 1.0f, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilDashModifierData \
+  { \
+    .dash_offset = 0, \
+    .segments_array = NULL, \
+    .segments_num = 0, \
+    .segment_active_index = 0, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilDashModifierSegment \
+  { \
+    .name = "Segment", \
+    .dash = 2, \
+    .gap = 1, \
+    .radius = 1.0f, \
+    .opacity = 1.0f, \
+    .mat_nr = -1, \
+  }
+  
+#define _DNA_DEFAULT_GreasePencilMultiModifierData \
+  { \
+    .flag = 0, \
+    .duplications = 3, \
+    .distance = 0.1f, \
+    .offset = 0.0f, \
+    .fading_center = 0.5f, \
+    .fading_thickness = 0.5f, \
+    .fading_opacity = 0.5f, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilLengthModifierData \
+  { \
+    .start_fac = 0.1f,\
+    .end_fac = 0.1f,\
+    .overshoot_fac = 0.1f,\
+    .flag = GP_LENGTH_USE_CURVATURE,\
+    .point_density = 30.0f,\
+    .segment_influence = 0.0f,\
+    .max_angle = DEG2RAD(170.0f),\
+    .rand_start_fac = 0.0f,\
+    .rand_end_fac = 0.0f,\
+    .rand_offset = 0.0f,\
+    .seed = 0,\
+    .step = 4,\
+  }
+
+#define _DNA_DEFAULT_GreasePencilWeightAngleModifierData \
+  { \
+    .flag = 0, \
+    .axis = 1, \
+  }
+  
+#define _DNA_DEFAULT_GreasePencilArrayModifierData \
+  { \
+    .object = NULL, \
+    .count = 2, \
+    .flag = GP_ARRAY_USE_RELATIVE, \
+    .offset = {0.0f, 0.0f, 0.0f}, \
+    .shift = {1.0f, 0.0f, 0.0f}, \
+    .rnd_offset = {0.0f, 0.0f, 0.0f}, \
+    .rnd_rot = {0.0f, 0.0f, 0.0f}, \
+    .rnd_scale = {0.0f, 0.0f, 0.0f}, \
+    .seed = 1, \
+    .mat_rpl = 0, \
+  }
+  
+#define _DNA_DEFAULT_GreasePencilWeightProximityModifierData \
+  { \
+    .target_vgname = "", \
+    .flag = 0, \
+    .dist_start = 0.0f, \
+    .dist_end = 20.0f, \
   }
 
 /* clang-format off */

@@ -25,7 +25,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h" /* only for G.background test */
+#include "BKE_global.hh" /* only for G.background test */
 #include "BKE_icons.h"
 #include "BKE_preview_image.hh"
 #include "BKE_studiolight.h"

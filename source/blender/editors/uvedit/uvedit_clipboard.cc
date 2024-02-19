@@ -23,18 +23,17 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh_mapping.hh" /* UvElementMap */
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
-#include "ED_uvedit.hh" /* Own include. */
 
 #include "WM_api.hh"
 
 #include "uvedit_clipboard_graph_iso.hh"
-#include "uvedit_intern.hh" /* linker, extern "C" */
+#include "uvedit_intern.hh" /* Own include. */
 
 using blender::Vector;
 

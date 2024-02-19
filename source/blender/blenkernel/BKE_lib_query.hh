@@ -19,10 +19,13 @@
  * - `BKE_lib_query_` should be used for functions in that file.
  */
 
+#include "DNA_ID.h"
+
 #include "BLI_sys_types.h"
 
-struct ID;
-struct IDProperty;
+#include <array>
+
+struct IDTypeInfo;
 struct LibraryForeachIDData;
 struct Main;
 
@@ -139,7 +142,7 @@ struct LibraryIDLinkCallbackData {
  *
  * \return a set of flags to control further iteration (0 to keep going).
  */
-typedef int (*LibraryIDLinkCallback)(LibraryIDLinkCallbackData *cb_data);
+using LibraryIDLinkCallback = int (*)(LibraryIDLinkCallbackData *cb_data);
 
 /* Flags for the foreach function itself. */
 enum {
@@ -297,7 +300,9 @@ bool BKE_library_id_can_use_idtype(ID *owner_id, short id_type_used);
 /**
  * Given the owner_id return the type of id_types it can use as a filter_id.
  */
-uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include_ui);
+uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id,
+                                          const bool include_ui,
+                                          const IDTypeInfo *owner_id_type = nullptr);
 
 /**
  * Check whether given ID is used locally (i.e. by another non-linked ID).
@@ -316,27 +321,81 @@ void BKE_library_ID_test_usages(Main *bmain,
                                 bool *r_is_used_local,
                                 bool *r_is_used_linked);
 
+/** Parameters and result data structure for the 'unused IDs' functions below. */
+struct LibQueryUnusedIDsData {
+  /** Process local data-blocks. */
+  bool do_local_ids;
+  /** Process linked data-blocks. */
+  bool do_linked_ids;
+  /**
+   * Process all actually unused data-blocks, including these that are currently only used by
+   * other unused data-blocks, and 'dependency islands' of several data-blocks using each-other,
+   * without any external valid user.
+   */
+  bool do_recursive;
+
+  /**
+   * Amount of detected as unused data-blocks, per type and total as the last value of the array
+   * (#INDEX_ID_NULL).
+   *
+   * \note: Return value, set by the executed function.
+   */
+  std::array<int, INDEX_ID_MAX> num_total;
+  /**
+   * Amount of detected as unused local data-blocks, per type and total as the last value of the
+   * array (#INDEX_ID_NULL).
+   *
+   * \note: Return value, set by the executed function.
+   */
+  std::array<int, INDEX_ID_MAX> num_local;
+  /**
+   * Amount of detected as unused linked data-blocks, per type and total as the last value of the
+   * array (#INDEX_ID_NULL).
+   *
+   * \note: Return value, set by the executed function.
+   */
+  std::array<int, INDEX_ID_MAX> num_linked;
+};
+
 /**
- * Tag all unused IDs (a.k.a 'orphaned').
+ * Compute amount of unused IDs (a.k.a 'orphaned').
  *
- * By default only tag IDs with `0` user count.
- * If `do_tag_recursive` is set, it will check dependencies to detect all IDs that are not actually
+ * By default only consider IDs with `0` user count.
+ * If `do_recursive` is set, it will check dependencies to detect all IDs that are not actually
  * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
  * loops, but without any 'external' valid usages.
  *
  * Valid usages here are defined as ref-counting usages, which are not towards embedded or
  * loop-back data.
  *
- * \param r_num_tagged: If non-NULL, must be a zero-initialized array of #INDEX_ID_MAX integers.
- * Number of tagged-as-unused IDs is then set for each type, and as total in
+ * \param r_num_total: A zero-initialized array of #INDEX_ID_MAX integers. Number of IDs detected
+ * as unused from given parameters, per ID type in the matching index, and as total in
+ * #INDEX_ID_NULL item.
+ * \param r_num_local: A zero-initialized array of #INDEX_ID_MAX integers. Number of local IDs
+ * detected as unused from given parameters (but assuming \a do_local_ids is true), per ID type in
+ * the matching index, and as total in #INDEX_ID_NULL item.
+ * \param r_num_linked: A zero-initialized array of #INDEX_ID_MAX integers. Number of linked IDs
+ * detected as unused from given parameters (but assuming \a do_linked_ids is true), per ID type in
+ * the matching index, and as total in #INDEX_ID_NULL item.
+ */
+void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parameters);
+/**
+ * Tag all unused IDs (a.k.a 'orphaned').
+ *
+ * By default only tag IDs with `0` user count.
+ * If `do_recursive` is set, it will check dependencies to detect all IDs that are not actually
+ * used in current file, including 'archipelagos` (i.e. set of IDs referencing each other in
+ * loops, but without any 'external' valid usages.
+ *
+ * Valid usages here are defined as ref-counting usages, which are not towards embedded or
+ * loop-back data.
+ *
+ * \param tag: the ID tag to use to mark the ID as unused. Should never be `0`.
+ * \param r_num_tagged_total: A zero-initialized array of #INDEX_ID_MAX integers. Number of IDs
+ * tagged as unused from given parameters, per ID type in the matching index, and as total in
  * #INDEX_ID_NULL item.
  */
-void BKE_lib_query_unused_ids_tag(Main *bmain,
-                                  int tag,
-                                  bool do_local_ids,
-                                  bool do_linked_ids,
-                                  bool do_tag_recursive,
-                                  int *r_num_tagged);
+void BKE_lib_query_unused_ids_tag(Main *bmain, int tag, LibQueryUnusedIDsData &parameters);
 
 /**
  * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly)

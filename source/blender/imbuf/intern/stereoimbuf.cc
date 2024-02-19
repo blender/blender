@@ -12,11 +12,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "IMB_allocimbuf.hh"
-#include "IMB_colormanagement_intern.hh"
-#include "IMB_filetype.hh"
-#include "IMB_metadata.hh"
-
 #include "imbuf.hh"
 
 #include "MEM_guardedalloc.h"

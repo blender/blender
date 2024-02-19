@@ -15,7 +15,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_simd.h"
-#include "BLI_strict_flags.h"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 namespace blender::math {
 

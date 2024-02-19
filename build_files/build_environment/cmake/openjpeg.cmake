@@ -19,9 +19,22 @@ if(NOT WIN32)
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${OPENJPEG_HASH_TYPE}=${OPENJPEG_HASH}
     PREFIX ${BUILD_DIR}/openjpeg
-    CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build && ${CMAKE_COMMAND} ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg ${BUILD_DIR}/openjpeg/src/external_openjpeg
-    BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build/ && make -j${MAKE_THREADS}
-    INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build/ && make install
+
+    CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build &&
+      ${CMAKE_COMMAND}
+        ${OPENJPEG_EXTRA_ARGS}
+        -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg
+        ${BUILD_DIR}/openjpeg/src/external_openjpeg
+
+    BUILD_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build/ &&
+      make -j${MAKE_THREADS}
+
+    INSTALL_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/openjpeg/src/external_openjpeg-build/ &&
+      make install
+
     INSTALL_DIR ${LIBDIR}/openjpeg
   )
 else()
@@ -30,20 +43,34 @@ else()
     URL file://${PACKAGE_DIR}/${OPENJPEG_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${OPENJPEG_HASH_TYPE}=${OPENJPEG_HASH}
-    PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openjpeg_msvc/src/external_openjpeg_msvc < ${PATCH_DIR}/openjpeg_msvc.diff
+
+    PATCH_COMMAND ${PATCH_CMD} -p 1 -d
+      ${BUILD_DIR}/openjpeg_msvc/src/external_openjpeg_msvc <
+      ${PATCH_DIR}/openjpeg_msvc.diff
+
     PREFIX ${BUILD_DIR}/openjpeg_msvc
-    CMAKE_ARGS ${OPENJPEG_EXTRA_ARGS} -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg_msvc -DBUILD_SHARED_LIBS=Off -DBUILD_THIRDPARTY=OFF
+
+    CMAKE_ARGS
+      ${OPENJPEG_EXTRA_ARGS}
+      -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openjpeg_msvc
+      -DBUILD_SHARED_LIBS=Off
+      -DBUILD_THIRDPARTY=OFF
+
     INSTALL_DIR ${LIBDIR}/openjpeg_msvc
   )
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_openjpeg_msvc after_install
       COMMAND
-      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/lib ${HARVEST_TARGET}/openjpeg/lib &&
-      ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openjpeg_msvc/include ${HARVEST_TARGET}/openjpeg/include
+      ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/openjpeg_msvc/lib
+        ${HARVEST_TARGET}/openjpeg/lib &&
+      ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/openjpeg_msvc/include
+        ${HARVEST_TARGET}/openjpeg/include
 
       DEPENDEES install
     )
-endif()
+  endif()
 endif()
 
 set(OPENJPEG_LIBRARY libopenjp2${LIBEXT})

@@ -17,7 +17,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -93,9 +93,9 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
   BLI_assert_msg(!operation_node->is_noop(), "NOOP nodes should not actually be scheduled");
   /* Perform operation. */
   if (state->do_stats) {
-    const double start_time = BLI_check_seconds_timer();
+    const double start_time = BLI_time_now_seconds();
     operation_node->evaluate(depsgraph);
-    operation_node->stats.current_time += BLI_check_seconds_timer() - start_time;
+    operation_node->stats.current_time += BLI_time_now_seconds() - start_time;
   }
   else {
     operation_node->evaluate(depsgraph);

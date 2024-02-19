@@ -19,7 +19,6 @@
 
 #include "../outliner_intern.hh"
 #include "tree_display.hh"
-#include "tree_element.hh"
 
 namespace blender::ed::outliner {
 

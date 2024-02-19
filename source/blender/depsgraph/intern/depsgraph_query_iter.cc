@@ -13,7 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
@@ -180,8 +180,9 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     bool is_neg_scale = is_negative_m4(dob->mat);
     SET_FLAG_FROM_TEST(data->temp_dupli_object.transflag, is_neg_scale, OB_NEG_SCALE);
 
-    copy_m4_m4(data->temp_dupli_object.object_to_world, dob->mat);
-    invert_m4_m4(data->temp_dupli_object.world_to_object, data->temp_dupli_object.object_to_world);
+    copy_m4_m4(data->temp_dupli_object.runtime->object_to_world.ptr(), dob->mat);
+    invert_m4_m4(data->temp_dupli_object.runtime->world_to_object.ptr(),
+                 data->temp_dupli_object.object_to_world().ptr());
     data->next_object = &data->temp_dupli_object;
     BLI_assert(deg::deg_validate_copy_on_write_datablock(&data->temp_dupli_object.id));
     return true;

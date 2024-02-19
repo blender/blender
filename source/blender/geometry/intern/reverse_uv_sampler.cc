@@ -9,7 +9,6 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 
 namespace blender::geometry {
 

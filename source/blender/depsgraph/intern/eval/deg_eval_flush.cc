@@ -19,7 +19,7 @@
 
 #include "BKE_key.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
@@ -262,7 +262,7 @@ void invalidate_tagged_evaluated_transform(ID *id)
   switch (id_type) {
     case ID_OB: {
       Object *object = (Object *)id;
-      copy_vn_fl((float *)object->object_to_world, 16, NAN);
+      copy_vn_fl((float *)object->object_to_world().ptr(), 16, NAN);
       break;
     }
     default:

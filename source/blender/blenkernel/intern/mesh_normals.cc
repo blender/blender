@@ -25,17 +25,13 @@
 #include "BLI_memarena.h"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
-#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_editmesh_cache.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-
-#include "atomic_ops.h"
 
 // #define DEBUG_TIME
 
@@ -804,48 +800,48 @@ static void corner_manifold_fan_around_vert_next(const Span<int> corner_verts,
                                                  const Span<int> corner_to_face,
                                                  const int2 e2lfan_curr,
                                                  const int vert_pivot,
-                                                 int *r_mlfan_curr_index,
-                                                 int *r_mlfan_vert_index)
+                                                 int *r_fan_corner,
+                                                 int *r_vert_corner)
 {
-  const int mlfan_curr_orig = *r_mlfan_curr_index;
-  const int vert_fan_orig = corner_verts[mlfan_curr_orig];
+  const int fan_corner_orig = *r_fan_corner;
+  const int vert_fan_orig = corner_verts[fan_corner_orig];
 
   /* WARNING: This is rather complex!
    * We have to find our next edge around the vertex (fan mode).
-   * First we find the next corner, which is either previous or next to mlfan_curr_index, depending
+   * First we find the next corner, which is either previous or next to fan_corner, depending
    * whether both corners using current edge are in the same direction or not, and whether
-   * mlfan_curr_index actually uses the vertex we are fanning around!
-   * mlfan_curr_index is the index of mlfan_next here, and mlfan_next is not the real next one
-   * (i.e. not the future `mlfan_curr`). */
-  *r_mlfan_curr_index = (e2lfan_curr[0] == *r_mlfan_curr_index) ? e2lfan_curr[1] : e2lfan_curr[0];
+   * fan_corner actually uses the vertex we are fanning around!
+   * fan_corner is the index of the next corner here, and the next corner is not the real next one
+   * (i.e. not the future `fan_corner`). */
+  *r_fan_corner = (e2lfan_curr[0] == *r_fan_corner) ? e2lfan_curr[1] : e2lfan_curr[0];
 
-  BLI_assert(*r_mlfan_curr_index >= 0);
+  BLI_assert(*r_fan_corner >= 0);
 
-  const int vert_fan_next = corner_verts[*r_mlfan_curr_index];
-  const IndexRange face_fan_next = faces[corner_to_face[*r_mlfan_curr_index]];
+  const int vert_fan_next = corner_verts[*r_fan_corner];
+  const IndexRange face_fan_next = faces[corner_to_face[*r_fan_corner]];
   if ((vert_fan_orig == vert_fan_next && vert_fan_orig == vert_pivot) ||
       !ELEM(vert_fan_orig, vert_fan_next, vert_pivot))
   {
     /* We need the previous corner, but current one is our vertex's corner. */
-    *r_mlfan_vert_index = *r_mlfan_curr_index;
-    *r_mlfan_curr_index = face_corner_prev(face_fan_next, *r_mlfan_curr_index);
+    *r_vert_corner = *r_fan_corner;
+    *r_fan_corner = face_corner_prev(face_fan_next, *r_fan_corner);
   }
   else {
     /* We need the next corner, which is also our vertex's corner. */
-    *r_mlfan_curr_index = face_corner_next(face_fan_next, *r_mlfan_curr_index);
-    *r_mlfan_vert_index = *r_mlfan_curr_index;
+    *r_fan_corner = face_corner_next(face_fan_next, *r_fan_corner);
+    *r_vert_corner = *r_fan_corner;
   }
 }
 
 static void lnor_space_for_single_fan(CornerSplitTaskDataCommon *common_data,
-                                      const int ml_curr_index,
+                                      const int corner,
                                       const int space_index)
 {
   const Span<int> corner_to_face = common_data->corner_to_face;
   const Span<float3> face_normals = common_data->face_normals;
   MutableSpan<float3> corner_normals = common_data->corner_normals;
 
-  corner_normals[ml_curr_index] = face_normals[corner_to_face[ml_curr_index]];
+  corner_normals[corner] = face_normals[corner_to_face[corner]];
 
   if (CornerNormalSpaceArray *lnors_spacearr = common_data->lnors_spacearr) {
     const Span<float3> positions = common_data->positions;
@@ -855,34 +851,33 @@ static void lnor_space_for_single_fan(CornerSplitTaskDataCommon *common_data,
     const Span<int> corner_edges = common_data->corner_edges;
     const Span<short2> clnors_data = common_data->clnors_data;
 
-    const int face_index = corner_to_face[ml_curr_index];
-    const int ml_prev_index = mesh::face_corner_prev(faces[face_index], ml_curr_index);
+    const int face_index = corner_to_face[corner];
+    const int corner_prev = mesh::face_corner_prev(faces[face_index], corner);
 
     /* The vertex we are "fanning" around. */
-    const int vert_pivot = corner_verts[ml_curr_index];
-    const int vert_2 = edge_other_vert(edges[corner_edges[ml_curr_index]], vert_pivot);
-    const int vert_3 = edge_other_vert(edges[corner_edges[ml_prev_index]], vert_pivot);
+    const int vert_pivot = corner_verts[corner];
+    const int vert_2 = edge_other_vert(edges[corner_edges[corner]], vert_pivot);
+    const int vert_3 = edge_other_vert(edges[corner_edges[corner_prev]], vert_pivot);
 
     const float3 vec_curr = math::normalize(positions[vert_2] - positions[vert_pivot]);
     const float3 vec_prev = math::normalize(positions[vert_3] - positions[vert_pivot]);
 
     CornerNormalSpace &space = lnors_spacearr->spaces[space_index];
-    space = corner_fan_space_define(corner_normals[ml_curr_index], vec_curr, vec_prev, {});
-    lnors_spacearr->corner_space_indices[ml_curr_index] = space_index;
+    space = corner_fan_space_define(corner_normals[corner], vec_curr, vec_prev, {});
+    lnors_spacearr->corner_space_indices[corner] = space_index;
 
     if (!clnors_data.is_empty()) {
-      corner_normals[ml_curr_index] = corner_space_custom_data_to_normal(
-          space, clnors_data[ml_curr_index]);
+      corner_normals[corner] = corner_space_custom_data_to_normal(space, clnors_data[corner]);
     }
 
     if (!lnors_spacearr->corners_by_space.is_empty()) {
-      lnors_spacearr->corners_by_space[space_index] = {ml_curr_index};
+      lnors_spacearr->corners_by_space[space_index] = {corner};
     }
   }
 }
 
 static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
-                                       const int ml_curr_index,
+                                       const int corner,
                                        const int space_index,
                                        Vector<float3, 16> *edge_vectors)
 {
@@ -899,8 +894,8 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
   const Span<float3> face_normals = common_data->face_normals;
   const Span<short2> clnors_data = common_data->clnors_data;
 
-  const int face_index = corner_to_face[ml_curr_index];
-  const int ml_prev_index = face_corner_prev(faces[face_index], ml_curr_index);
+  const int face_index = corner_to_face[corner];
+  const int corner_prev = face_corner_prev(faces[face_index], corner);
 
   /* Sigh! we have to fan around current vertex, until we find the other non-smooth edge,
    * and accumulate face normals into the vertex!
@@ -908,10 +903,10 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
    * same as the vertex normal, but I do not see any easy way to detect that (would need to count
    * number of sharp edges per vertex, I doubt the additional memory usage would be worth it,
    * especially as it should not be a common case in real-life meshes anyway). */
-  const int vert_pivot = corner_verts[ml_curr_index]; /* The vertex we are "fanning" around! */
+  const int vert_pivot = corner_verts[corner]; /* The vertex we are "fanning" around! */
 
-  /* `ml_curr_index` would be mlfan_prev if we needed that one. */
-  const int2 &edge_orig = edges[corner_edges[ml_curr_index]];
+  /* `corner` would be `corner_prev` if we needed that one. */
+  const int2 &edge_orig = edges[corner_edges[corner]];
 
   float3 vec_curr;
   float3 vec_prev;
@@ -922,14 +917,14 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
 
   Vector<int, 32> processed_corners;
 
-  /* `mlfan_vert_index` the corner of our current edge might not be the corner of our current
+  /* `vert_corner` the corner of our current edge might not be the corner of our current
    * vertex!
    */
-  int mlfan_curr_index = ml_prev_index;
-  int mlfan_vert_index = ml_curr_index;
+  int fan_corner = corner_prev;
+  int vert_corner = corner;
 
-  BLI_assert(mlfan_curr_index >= 0);
-  BLI_assert(mlfan_vert_index >= 0);
+  BLI_assert(fan_corner >= 0);
+  BLI_assert(vert_corner >= 0);
 
   /* Only need to compute previous edge's vector once, then we can just reuse old current one! */
   {
@@ -942,10 +937,8 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
     }
   }
 
-  // printf("FAN: vert %d, start edge %d\n", vert_pivot, ml_curr->e);
-
   while (true) {
-    const int2 &edge = edges[corner_edges[mlfan_curr_index]];
+    const int2 &edge = edges[corner_edges[fan_corner]];
     /* Compute edge vectors.
      * NOTE: We could pre-compute those into an array, in the first iteration, instead of computing
      *       them twice (or more) here. However, time gained is not worth memory and time lost,
@@ -956,15 +949,12 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
       vec_curr = math::normalize(positions[vert_2] - positions[vert_pivot]);
     }
 
-    // printf("\thandling edge %d / corner %d\n", corner_edges[mlfan_curr_index],
-    // mlfan_curr_index);
-
     /* Code similar to accumulate_vertex_normals_poly_v3. */
     /* Calculate angle between the two face edges incident on this vertex. */
-    lnor += face_normals[corner_to_face[mlfan_curr_index]] *
+    lnor += face_normals[corner_to_face[fan_corner]] *
             math::safe_acos_approx(math::dot(vec_curr, vec_prev));
 
-    processed_corners.append(mlfan_vert_index);
+    processed_corners.append(vert_corner);
 
     if (lnors_spacearr) {
       if (edge != edge_orig) {
@@ -975,11 +965,11 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
         lnors_spacearr->corners_by_space[space_index] = processed_corners.as_span();
       }
       if (!clnors_data.is_empty()) {
-        clnors_avg += int2(clnors_data[mlfan_vert_index]);
+        clnors_avg += int2(clnors_data[vert_corner]);
       }
     }
 
-    if (IS_EDGE_SHARP(edge_to_corners[corner_edges[mlfan_curr_index]]) || (edge == edge_orig)) {
+    if (IS_EDGE_SHARP(edge_to_corners[corner_edges[fan_corner]]) || (edge == edge_orig)) {
       /* Current edge is sharp and we have finished with this fan of faces around this vert,
        * or this vert is smooth, and we have completed a full turn around it. */
       break;
@@ -991,10 +981,10 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
     corner_manifold_fan_around_vert_next(corner_verts,
                                          faces,
                                          corner_to_face,
-                                         edge_to_corners[corner_edges[mlfan_curr_index]],
+                                         edge_to_corners[corner_edges[fan_corner]],
                                          vert_pivot,
-                                         &mlfan_curr_index,
-                                         &mlfan_vert_index);
+                                         &fan_corner,
+                                         &vert_corner);
   }
 
   float length;
@@ -1006,7 +996,7 @@ static void split_corner_normal_fan_do(CornerSplitTaskDataCommon *common_data,
   if (lnors_spacearr) {
     if (UNLIKELY(length == 0.0f)) {
       /* Use vertex normal as fallback! */
-      lnor = corner_normals[mlfan_vert_index];
+      lnor = corner_normals[vert_corner];
       length = 1.0f;
     }
 
@@ -1041,11 +1031,11 @@ static bool corner_split_generator_check_cyclic_smooth_fan(const Span<int> corne
                                                            const Span<int> corner_to_face,
                                                            const int2 e2l_prev,
                                                            MutableBitSpan skip_corners,
-                                                           const int ml_curr_index,
-                                                           const int ml_prev_index)
+                                                           const int corner,
+                                                           const int corner_prev)
 {
   /* The vertex we are "fanning" around. */
-  const int vert_pivot = corner_verts[ml_curr_index];
+  const int vert_pivot = corner_verts[corner];
 
   int2 e2lfan_curr = e2l_prev;
   if (IS_EDGE_SHARP(e2lfan_curr)) {
@@ -1053,37 +1043,32 @@ static bool corner_split_generator_check_cyclic_smooth_fan(const Span<int> corne
     return false;
   }
 
-  /* `mlfan_vert_index` the corner of our current edge might not be the corner of our current
+  /* `vert_corner` the corner of our current edge might not be the corner of our current
    * vertex!
    */
-  int mlfan_curr_index = ml_prev_index;
-  int mlfan_vert_index = ml_curr_index;
+  int fan_corner = corner_prev;
+  int vert_corner = corner;
 
-  BLI_assert(mlfan_curr_index >= 0);
-  BLI_assert(mlfan_vert_index >= 0);
+  BLI_assert(fan_corner >= 0);
+  BLI_assert(vert_corner >= 0);
 
-  BLI_assert(!skip_corners[mlfan_vert_index]);
-  skip_corners[mlfan_vert_index].set();
+  BLI_assert(!skip_corners[vert_corner]);
+  skip_corners[vert_corner].set();
 
   while (true) {
     /* Find next corner of the smooth fan. */
-    corner_manifold_fan_around_vert_next(corner_verts,
-                                         faces,
-                                         corner_to_face,
-                                         e2lfan_curr,
-                                         vert_pivot,
-                                         &mlfan_curr_index,
-                                         &mlfan_vert_index);
+    corner_manifold_fan_around_vert_next(
+        corner_verts, faces, corner_to_face, e2lfan_curr, vert_pivot, &fan_corner, &vert_corner);
 
-    e2lfan_curr = edge_to_corners[corner_edges[mlfan_curr_index]];
+    e2lfan_curr = edge_to_corners[corner_edges[fan_corner]];
 
     if (IS_EDGE_SHARP(e2lfan_curr)) {
       /* Sharp corner/edge, so not a cyclic smooth fan. */
       return false;
     }
     /* Smooth corner/edge. */
-    if (skip_corners[mlfan_vert_index]) {
-      if (mlfan_vert_index == ml_curr_index) {
+    if (skip_corners[vert_corner]) {
+      if (vert_corner == corner) {
         /* We walked around a whole cyclic smooth fan without finding any already-processed corner,
          * means we can use initial current / previous edge as start for this smooth fan. */
         return true;
@@ -1093,7 +1078,7 @@ static bool corner_split_generator_check_cyclic_smooth_fan(const Span<int> corne
     }
 
     /* We can skip it in future, and keep checking the smooth fan. */
-    skip_corners[mlfan_vert_index].set();
+    skip_corners[vert_corner].set();
   }
 }
 
@@ -1119,16 +1104,16 @@ static void corner_split_generator(CornerSplitTaskDataCommon *common_data,
   for (const int face_index : faces.index_range()) {
     const IndexRange face = faces[face_index];
 
-    for (const int ml_curr_index : face) {
-      const int ml_prev_index = mesh::face_corner_prev(face, ml_curr_index);
+    for (const int corner : face) {
+      const int corner_prev = mesh::face_corner_prev(face, corner);
 
 #if 0
       printf("Checking corner %d / edge %u / vert %u (sharp edge: %d, skiploop: %d)",
-             ml_curr_index,
-             corner_edges[ml_curr_index],
-             corner_verts[ml_curr_index],
-             IS_EDGE_SHARP(edge_to_corners[corner_edges[ml_curr_index]]),
-             skip_corners[ml_curr_index]);
+             corner,
+             corner_edges[corner],
+             corner_verts[corner],
+             IS_EDGE_SHARP(edge_to_corners[corner_edges[corner]]),
+             skip_corners[corner]);
 #endif
 
       /* A smooth edge, we have to check for cyclic smooth fan case.
@@ -1136,32 +1121,32 @@ static void corner_split_generator(CornerSplitTaskDataCommon *common_data,
        * corner/edge as 'entry point', otherwise we can skip it. */
 
       /* NOTE: In theory, we could make #corner_split_generator_check_cyclic_smooth_fan() store
-       * mlfan_vert_index'es and edge indexes in two stacks, to avoid having to fan again around
+       * vert_corner'es and edge indexes in two stacks, to avoid having to fan again around
        * the vert during actual computation of `clnor` & `clnorspace`.
        * However, this would complicate the code, add more memory usage, and despite its logical
        * complexity, #corner_manifold_fan_around_vert_next() is quite cheap in term of CPU cycles,
        * so really think it's not worth it. */
-      if (!IS_EDGE_SHARP(edge_to_corners[corner_edges[ml_curr_index]]) &&
-          (skip_corners[ml_curr_index] || !corner_split_generator_check_cyclic_smooth_fan(
-                                              corner_verts,
-                                              corner_edges,
-                                              faces,
-                                              edge_to_corners,
-                                              corner_to_face,
-                                              edge_to_corners[corner_edges[ml_prev_index]],
-                                              skip_corners,
-                                              ml_curr_index,
-                                              ml_prev_index)))
+      if (!IS_EDGE_SHARP(edge_to_corners[corner_edges[corner]]) &&
+          (skip_corners[corner] || !corner_split_generator_check_cyclic_smooth_fan(
+                                       corner_verts,
+                                       corner_edges,
+                                       faces,
+                                       edge_to_corners,
+                                       corner_to_face,
+                                       edge_to_corners[corner_edges[corner_prev]],
+                                       skip_corners,
+                                       corner,
+                                       corner_prev)))
       {
         // printf("SKIPPING!\n");
       }
       else {
-        if (IS_EDGE_SHARP(edge_to_corners[corner_edges[ml_curr_index]]) &&
-            IS_EDGE_SHARP(edge_to_corners[corner_edges[ml_prev_index]]))
+        if (IS_EDGE_SHARP(edge_to_corners[corner_edges[corner]]) &&
+            IS_EDGE_SHARP(edge_to_corners[corner_edges[corner_prev]]))
         {
           /* Simple case (both edges around that vertex are sharp in current face),
            * this corner just takes its face normal. */
-          r_single_corners.append(ml_curr_index);
+          r_single_corners.append(corner);
         }
         else {
           /* We do not need to check/tag corners as already computed. Due to the fact that a corner
@@ -1171,7 +1156,7 @@ static void corner_split_generator(CornerSplitTaskDataCommon *common_data,
            * current edge, smooth previous edge), and not the alternative (smooth current edge,
            * sharp previous edge). All this due/thanks to the link between normals and corner
            * ordering (i.e. winding). */
-          r_fan_corners.append(ml_curr_index);
+          r_fan_corners.append(corner);
         }
       }
     }
@@ -1399,11 +1384,11 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
            * We know those two corners do not point to the same edge,
            * since we do not allow reversed winding in a same smooth fan. */
           const IndexRange face = faces[corner_to_face[lidx]];
-          const int mlp = (lidx == face.start()) ? face.start() + face.size() - 1 : lidx - 1;
+          const int corner_prev = face_corner_prev(face, lidx);
           const int edge = corner_edges[lidx];
-          const int edge_p = corner_edges[mlp];
+          const int edge_prev = corner_edges[corner_prev];
           const int prev_edge = corner_edges[prev_corner];
-          sharp_edges[prev_edge == edge_p ? prev_edge : edge] = true;
+          sharp_edges[prev_edge == edge_prev ? prev_edge : edge] = true;
 
           org_nor = nor;
         }
@@ -1422,11 +1407,11 @@ static void mesh_normals_corner_custom_set(const Span<float3> positions,
 
         if (dot_v3v3(org_nor, nor) < LNOR_SPACE_TRIGO_THRESHOLD) {
           const IndexRange face = faces[corner_to_face[lidx]];
-          const int mlp = (lidx == face.start()) ? face.start() + face.size() - 1 : lidx - 1;
+          const int corner_prev = face_corner_prev(face, lidx);
           const int edge = corner_edges[lidx];
-          const int edge_p = corner_edges[mlp];
+          const int edge_prev = corner_edges[corner_prev];
           const int prev_edge = corner_edges[prev_corner];
-          sharp_edges[prev_edge == edge_p ? prev_edge : edge] = true;
+          sharp_edges[prev_edge == edge_prev ? prev_edge : edge] = true;
         }
       }
     }

@@ -21,7 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -29,14 +29,14 @@
 #include "BKE_curve.hh"
 #include "BKE_displist.h"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -5016,7 +5016,7 @@ bool ed_editnurb_spin(
   invert_m3_m3(persinv, persmat);
 
   /* imat and center and size */
-  copy_m3_m4(bmat, obedit->object_to_world);
+  copy_m3_m4(bmat, obedit->object_to_world().ptr());
   invert_m3_m3(imat, bmat);
 
   axis_angle_to_mat3(cmat, axis, M_PI_4);
@@ -5110,8 +5110,8 @@ static int spin_exec(bContext *C, wmOperator *op)
       continue;
     }
 
-    invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
-    mul_m4_v3(obedit->world_to_object, cent);
+    invert_m4_m4(obedit->runtime->world_to_object.ptr(), obedit->object_to_world().ptr());
+    mul_m4_v3(obedit->world_to_object().ptr(), cent);
 
     if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
       count_failed += 1;
@@ -5589,7 +5589,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
   RNA_float_get_array(op->ptr, "location", location);
 
-  invert_m4_m4(imat, obedit->object_to_world);
+  invert_m4_m4(imat, obedit->object_to_world().ptr());
   mul_m4_v3(imat, location);
 
   if (ed_editcurve_addvert(cu, editnurb, v3d, location)) {
@@ -5628,10 +5628,10 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     ED_curve_nurb_vert_selected_find(cu, vc.v3d, &nu, &bezt, &bp);
 
     if (bezt) {
-      mul_v3_m4v3(location, vc.obedit->object_to_world, bezt->vec[1]);
+      mul_v3_m4v3(location, vc.obedit->object_to_world().ptr(), bezt->vec[1]);
     }
     else if (bp) {
-      mul_v3_m4v3(location, vc.obedit->object_to_world, bp->vec);
+      mul_v3_m4v3(location, vc.obedit->object_to_world().ptr(), bp->vec);
     }
     else {
       copy_v3_v3(location, vc.scene->cursor.location);
@@ -5672,17 +5672,17 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       ED_view3d_global_to_vector(vc.rv3d, location, view_dir);
 
       /* get the plane */
-      float plane[4];
+      const float *plane_co = vc.obedit->object_to_world().location();
+      float plane_no[3];
       /* only normalize to avoid precision errors */
-      normalize_v3_v3(plane, vc.obedit->object_to_world[2]);
-      plane[3] = -dot_v3v3(plane, vc.obedit->object_to_world[3]);
+      normalize_v3_v3(plane_no, vc.obedit->object_to_world()[2]);
 
-      if (fabsf(dot_v3v3(view_dir, plane)) < eps) {
+      if (fabsf(dot_v3v3(view_dir, plane_no)) < eps) {
         /* can't project on an aligned plane. */
       }
       else {
         float lambda;
-        if (isect_ray_plane_v3(location, view_dir, plane, &lambda, false)) {
+        if (isect_ray_plane_v3_factor(location, view_dir, plane_co, plane_no, &lambda)) {
           /* check if we're behind the viewport */
           float location_test[3];
           madd_v3_v3v3fl(location_test, location, view_dir, lambda);
@@ -6922,7 +6922,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected curves in this object,
    * See object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(imat, ob_active->object_to_world);
+  invert_m4_m4_safe_ortho(imat, ob_active->object_to_world().ptr());
 
   Curve *cu_active = static_cast<Curve *>(ob_active->data);
 
@@ -6934,7 +6934,7 @@ int ED_curve_join_objects_exec(bContext *C, wmOperator *op)
 
         if (cu->nurb.first) {
           /* watch it: switch order here really goes wrong */
-          mul_m4_m4m4(cmat, imat, ob_iter->object_to_world);
+          mul_m4_m4m4(cmat, imat, ob_iter->object_to_world().ptr());
 
           /* Compensate for different bevel depth. */
           bool do_radius = false;

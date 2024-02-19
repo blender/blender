@@ -41,13 +41,13 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_ipo.h"
 #include "BKE_key.hh"
@@ -156,7 +156,8 @@ static void ipo_blend_read_data(BlendDataReader *reader, ID *id)
 
 IDTypeInfo IDType_ID_IP = {
     /*id_code*/ ID_IP,
-    /*id_filter*/ 0,
+    /*id_filter*/ FILTER_ID_IP,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_IP,
     /*struct_size*/ sizeof(Ipo),
     /*name*/ "Ipo",

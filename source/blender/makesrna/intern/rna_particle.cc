@@ -32,7 +32,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "rna_internal.hh"
 
@@ -474,7 +474,7 @@ static void rna_ParticleSystem_co_hair(
   if (step >= 0 && step <= max_k) {
     copy_v3_v3(n_co, (cache + step)->co);
     mul_m4_v3(particlesystem->imat, n_co);
-    mul_m4_v3(object->object_to_world, n_co);
+    mul_m4_v3(object->object_to_world().ptr(), n_co);
   }
 }
 

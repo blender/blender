@@ -20,10 +20,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "opensubdiv_capi.hh"
 #include "opensubdiv_converter_capi.hh"
-
-#include "bmesh_class.hh"
 
 /* Enable work-around for non-working CPU evaluator when using bilinear scheme.
  * This forces Catmark scheme with all edges marked as infinitely sharp. */

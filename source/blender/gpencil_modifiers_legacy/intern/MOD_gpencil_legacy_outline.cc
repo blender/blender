@@ -14,7 +14,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -29,10 +29,8 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_query.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_scene.h"
-#include "BKE_screen.hh"
+#include "BKE_scene.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -42,7 +40,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 
@@ -119,7 +116,7 @@ static void convert_stroke(GpencilModifierData *md,
   /* Apply layer thickness change. */
   gps_duplicate->thickness += gpl->line_change;
   /* Apply object scale to thickness. */
-  gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
+  gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world().ptr());
   CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
   /* Stroke. */
@@ -200,7 +197,7 @@ static void generate_strokes(GpencilModifierData *md, Depsgraph *depsgraph, Obje
   }
   Object *cam_ob = scene->camera;
   float viewmat[4][4];
-  invert_m4_m4(viewmat, cam_ob->object_to_world);
+  invert_m4_m4(viewmat, cam_ob->object_to_world().ptr());
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
@@ -243,7 +240,7 @@ static void bake_modifier(Main * /*bmain*/,
       BKE_scene_graph_update_for_newframe(depsgraph);
       /* Ensure the camera is the right one. */
       BKE_scene_camera_switch_update(scene);
-      invert_m4_m4(viewmat, cam_ob->object_to_world);
+      invert_m4_m4(viewmat, cam_ob->object_to_world().ptr());
 
       /* Prepare transform matrix. */
       float diff_mat[4][4];

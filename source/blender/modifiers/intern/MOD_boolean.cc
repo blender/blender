@@ -17,19 +17,16 @@
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_collection.h"
-#include "BKE_context.hh"
-#include "BKE_global.h" /* only to check G.debug */
+#include "BKE_collection.hh"
+#include "BKE_global.hh" /* only to check G.debug */
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_material.h"
@@ -45,17 +42,12 @@
 #include "RNA_prototypes.h"
 
 #include "MOD_ui_common.hh"
-#include "MOD_util.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "GEO_randomize.hh"
 
 #include "bmesh.hh"
-#include "bmesh_tools.hh"
-#include "tools/bmesh_boolean.hh"
 #include "tools/bmesh_intersect.hh"
 
 // #define DEBUG_TIME
@@ -143,8 +135,8 @@ static Mesh *get_quick_mesh(
 
           float imat[4][4];
           float omat[4][4];
-          invert_m4_m4(imat, ob_self->object_to_world);
-          mul_m4_m4m4(omat, imat, ob_operand_ob->object_to_world);
+          invert_m4_m4(imat, ob_self->object_to_world().ptr());
+          mul_m4_m4m4(omat, imat, ob_operand_ob->object_to_world().ptr());
 
           MutableSpan<float3> positions = result->vert_positions_for_write();
           for (const int i : positions.index_range()) {
@@ -231,8 +223,8 @@ static BMesh *BMD_mesh_bm_create(
   SCOPED_TIMER(__func__);
 #endif
 
-  *r_is_flip = (is_negative_m4(object->object_to_world) !=
-                is_negative_m4(operand_ob->object_to_world));
+  *r_is_flip = (is_negative_m4(object->object_to_world().ptr()) !=
+                is_negative_m4(operand_ob->object_to_world().ptr()));
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_operand_ob);
 
@@ -299,8 +291,8 @@ static void BMD_mesh_intersection(BMesh *bm,
 
     float imat[4][4];
     float omat[4][4];
-    invert_m4_m4(imat, object->object_to_world);
-    mul_m4_m4m4(omat, imat, operand_ob->object_to_world);
+    invert_m4_m4(imat, object->object_to_world().ptr());
+    mul_m4_m4m4(omat, imat, operand_ob->object_to_world().ptr());
 
     BMVert *eve;
     i = 0;
@@ -428,7 +420,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   }
 
   meshes.append(mesh);
-  obmats.append(float4x4(ctx->object->object_to_world));
+  obmats.append(ctx->object->object_to_world());
   material_remaps.append({});
 
   const BooleanModifierMaterialMode material_mode = BooleanModifierMaterialMode(
@@ -451,7 +443,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     }
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     meshes.append(mesh_operand);
-    obmats.append(float4x4(bmd->object->object_to_world));
+    obmats.append(bmd->object->object_to_world());
     if (material_mode == eBooleanModifierMaterialMode_Index) {
       material_remaps.append(get_material_remap_index_based(ctx->object, bmd->object));
     }
@@ -471,7 +463,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
           }
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           meshes.append(collection_mesh);
-          obmats.append(float4x4(ob->object_to_world));
+          obmats.append(ob->object_to_world());
           if (material_mode == eBooleanModifierMaterialMode_Index) {
             material_remaps.append(get_material_remap_index_based(ctx->object, ob));
           }
@@ -486,15 +478,14 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  Mesh *result = blender::meshintersect::direct_mesh_boolean(
-      meshes,
-      obmats,
-      float4x4(ctx->object->object_to_world),
-      material_remaps,
-      use_self,
-      hole_tolerant,
-      bmd->operation,
-      nullptr);
+  Mesh *result = blender::meshintersect::direct_mesh_boolean(meshes,
+                                                             obmats,
+                                                             ctx->object->object_to_world(),
+                                                             material_remaps,
+                                                             use_self,
+                                                             hole_tolerant,
+                                                             bmd->operation,
+                                                             nullptr);
 
   if (material_mode == eBooleanModifierMaterialMode_Transfer) {
     MEM_SAFE_FREE(result->mat);

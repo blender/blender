@@ -38,7 +38,7 @@
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
@@ -695,7 +695,7 @@ static void sculpt_gesture_context_init_common(bContext *C,
   copy_m3_m4(mat, sgcontext->vc.rv3d->viewinv);
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(sgcontext->world_space_view_normal, view_dir);
-  copy_m3_m4(mat, ob->world_to_object);
+  copy_m3_m4(mat, ob->world_to_object().ptr());
   mul_m3_v3(mat, view_dir);
   normalize_v3_v3(sgcontext->true_view_normal, view_dir);
 
@@ -807,12 +807,12 @@ static void sculpt_gesture_line_plane_from_tri(float *r_plane,
 {
   float normal[3];
   normal_tri_v3(normal, p1, p2, p3);
-  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->world_to_object, normal);
+  mul_v3_mat3_m4v3(normal, sgcontext->vc.obact->world_to_object().ptr(), normal);
   if (flip) {
     mul_v3_fl(normal, -1.0f);
   }
   float plane_point_object_space[3];
-  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->world_to_object, p1);
+  mul_v3_m4v3(plane_point_object_space, sgcontext->vc.obact->world_to_object().ptr(), p1);
   plane_from_point_normal_v3(r_plane, plane_point_object_space, normal);
 }
 
@@ -1422,18 +1422,20 @@ static void sculpt_gesture_trim_shape_origin_normal_get(SculptGestureContext *sg
    */
   switch (trim_operation->orientation) {
     case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
-      mul_v3_m4v3(
-          r_origin, sgcontext->vc.obact->object_to_world, sgcontext->ss->gesture_initial_location);
+      mul_v3_m4v3(r_origin,
+                  sgcontext->vc.obact->object_to_world().ptr(),
+                  sgcontext->ss->gesture_initial_location);
       copy_v3_v3(r_normal, sgcontext->world_space_view_normal);
       negate_v3(r_normal);
       break;
     case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
-      mul_v3_m4v3(
-          r_origin, sgcontext->vc.obact->object_to_world, sgcontext->ss->gesture_initial_location);
+      mul_v3_m4v3(r_origin,
+                  sgcontext->vc.obact->object_to_world().ptr(),
+                  sgcontext->ss->gesture_initial_location);
       /* Transforming the normal does not take non uniform scaling into account. Sculpt mode is not
        * expected to work on object with non uniform scaling. */
       copy_v3_v3(r_normal, sgcontext->ss->gesture_initial_normal);
-      mul_mat3_m4_v3(sgcontext->vc.obact->object_to_world, r_normal);
+      mul_mat3_m4_v3(sgcontext->vc.obact->object_to_world().ptr(), r_normal);
       break;
   }
 }
@@ -1464,7 +1466,7 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
      * mesh, coordinates are first calculated in world space, then converted to object space to
      * store them. */
     float world_space_vco[3];
-    mul_v3_m4v3(world_space_vco, vc->obact->object_to_world, vco);
+    mul_v3_m4v3(world_space_vco, vc->obact->object_to_world().ptr(), vco);
     const float dist = dist_signed_to_plane_v3(world_space_vco, shape_plane);
     trim_operation->depth_front = min_ff(dist, trim_operation->depth_front);
     trim_operation->depth_back = max_ff(dist, trim_operation->depth_back);
@@ -1473,7 +1475,7 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
   if (trim_operation->use_cursor_depth) {
     float world_space_gesture_initial_location[3];
     mul_v3_m4v3(world_space_gesture_initial_location,
-                vc->obact->object_to_world,
+                vc->obact->object_to_world().ptr(),
                 ss->gesture_initial_location);
 
     float mid_point_depth;
@@ -1557,7 +1559,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   sculpt_gesture_trim_shape_origin_normal_get(sgcontext, shape_origin, shape_normal);
   plane_from_point_normal_v3(shape_plane, shape_origin, shape_normal);
 
-  const float(*ob_imat)[4] = vc->obact->world_to_object;
+  const float(*ob_imat)[4] = vc->obact->world_to_object().ptr();
 
   /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
   MutableSpan<float3> positions = trim_operation->mesh->vert_positions_for_write();

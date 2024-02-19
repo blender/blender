@@ -10,13 +10,10 @@
 
 #include "atomic_ops.h"
 
-#include "DNA_key_types.h"
-
 #include "BLI_bitmap.h"
 #include "BLI_task.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_mesh.hh"

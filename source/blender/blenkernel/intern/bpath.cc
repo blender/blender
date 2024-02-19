@@ -61,18 +61,18 @@
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
-#include "BKE_node.h"
-#include "BKE_report.h"
+#include "BKE_node.hh"
+#include "BKE_report.hh"
 #include "BKE_vfont.hh"
 
-#include "BKE_bpath.h" /* own include */
+#include "BKE_bpath.hh" /* own include */
 
 #include "CLG_log.h"
 
 #include "SEQ_iterator.hh"
 
 #ifndef _MSC_VER
-#  include "BLI_strict_flags.h"
+#  include "BLI_strict_flags.h" /* Keep last. */
 #endif
 
 static CLG_LogRef LOG = {"bke.bpath"};

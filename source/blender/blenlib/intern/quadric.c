@@ -17,14 +17,14 @@
  * often need high precision, see #44780.
  */
 
-#include "BLI_strict_flags.h"
+#include <string.h>
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_quadric.h" /* own include */
 
-#include <string.h>
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #define QUADRIC_FLT_TOT (sizeof(Quadric) / sizeof(double))
 

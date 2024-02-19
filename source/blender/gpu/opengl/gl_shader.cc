@@ -8,7 +8,7 @@
 
 #include <iomanip>
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_string.h"
 #include "BLI_vector.hh"
@@ -755,9 +755,9 @@ std::string GLShader::fragment_interface_declare(const ShaderCreateInfo &info) c
   std::string pre_main, post_main;
 
   ss << "\n/* Interfaces. */\n";
-  const Vector<StageInterfaceInfo *> &in_interfaces = info.geometry_source_.is_empty() ?
-                                                          info.vertex_out_interfaces_ :
-                                                          info.geometry_out_interfaces_;
+  const Span<StageInterfaceInfo *> in_interfaces = info.geometry_source_.is_empty() ?
+                                                       info.vertex_out_interfaces_ :
+                                                       info.geometry_out_interfaces_;
   for (const StageInterfaceInfo *iface : in_interfaces) {
     print_interface(ss, "in", *iface);
   }
@@ -909,7 +909,7 @@ std::string GLShader::geometry_layout_declare(const ShaderCreateInfo &info) cons
   return ss.str();
 }
 
-static StageInterfaceInfo *find_interface_by_name(const Vector<StageInterfaceInfo *> &ifaces,
+static StageInterfaceInfo *find_interface_by_name(const Span<StageInterfaceInfo *> ifaces,
                                                   const StringRefNull &name)
 {
   for (auto *iface : ifaces) {

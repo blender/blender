@@ -14,10 +14,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_context.hh"
-#include "BKE_customdata.hh"
 #include "BKE_mesh_iterators.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 
 #include "BLI_math_vector.h"
@@ -25,7 +22,6 @@
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "ED_screen.hh"
 #include "ED_view3d.hh"
 
 #include "paint_intern.hh" /* own include */

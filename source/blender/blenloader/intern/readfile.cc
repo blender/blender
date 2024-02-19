@@ -58,14 +58,14 @@
 #include "BLI_threads.h"
 #include "BLI_time.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_asset.hh"
 #include "BKE_blender_version.h"
-#include "BKE_collection.h"
-#include "BKE_global.h" /* for G */
+#include "BKE_collection.hh"
+#include "BKE_global.hh" /* for G */
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -82,8 +82,8 @@
 #include "BKE_node.hh" /* for tree type defines */
 #include "BKE_object.hh"
 #include "BKE_packedFile.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_undo_system.hh"
 #include "BKE_workspace.h"
@@ -95,7 +95,7 @@
 #include "BLO_blend_defs.hh"
 #include "BLO_blend_validate.hh"
 #include "BLO_read_write.hh"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_undofile.hh"
 
 #include "SEQ_iterator.hh"
@@ -2401,91 +2401,30 @@ static void placeholders_ensure_valid(Main *bmain)
   }
 }
 
-static const char *dataname(short id_code)
+static const char *idtype_alloc_name_get(short id_code)
 {
-  switch ((ID_Type)id_code) {
-    case ID_OB:
-      return "Data from OB";
-    case ID_ME:
-      return "Data from ME";
-    case ID_IP:
-      return "Data from IP";
-    case ID_SCE:
-      return "Data from SCE";
-    case ID_MA:
-      return "Data from MA";
-    case ID_TE:
-      return "Data from TE";
-    case ID_CU_LEGACY:
-      return "Data from CU";
-    case ID_GR:
-      return "Data from GR";
-    case ID_AR:
-      return "Data from AR";
-    case ID_AC:
-      return "Data from AC";
-    case ID_LI:
-      return "Data from LI";
-    case ID_MB:
-      return "Data from MB";
-    case ID_IM:
-      return "Data from IM";
-    case ID_LT:
-      return "Data from LT";
-    case ID_LA:
-      return "Data from LA";
-    case ID_CA:
-      return "Data from CA";
-    case ID_KE:
-      return "Data from KE";
-    case ID_WO:
-      return "Data from WO";
-    case ID_SCR:
-      return "Data from SCR";
-    case ID_VF:
-      return "Data from VF";
-    case ID_TXT:
-      return "Data from TXT";
-    case ID_SPK:
-      return "Data from SPK";
-    case ID_LP:
-      return "Data from LP";
-    case ID_SO:
-      return "Data from SO";
-    case ID_NT:
-      return "Data from NT";
-    case ID_BR:
-      return "Data from BR";
-    case ID_PA:
-      return "Data from PA";
-    case ID_PAL:
-      return "Data from PAL";
-    case ID_PC:
-      return "Data from PCRV";
-    case ID_GD_LEGACY:
-      return "Data from GD";
-    case ID_WM:
-      return "Data from WM";
-    case ID_MC:
-      return "Data from MC";
-    case ID_MSK:
-      return "Data from MSK";
-    case ID_LS:
-      return "Data from LS";
-    case ID_CF:
-      return "Data from CF";
-    case ID_WS:
-      return "Data from WS";
-    case ID_CV:
-      return "Data from HA";
-    case ID_PT:
-      return "Data from PT";
-    case ID_VO:
-      return "Data from VO";
-    case ID_GP:
-      return "Data from GP";
+  static const std::array<std::string, INDEX_ID_MAX> id_alloc_names = [] {
+    auto n = decltype(id_alloc_names)();
+    for (int idtype_index = 0; idtype_index < INDEX_ID_MAX; idtype_index++) {
+      const IDTypeInfo *idtype_info = BKE_idtype_get_info_from_idtype_index(idtype_index);
+      BLI_assert(idtype_info);
+      if (idtype_index == INDEX_ID_NULL) {
+        /* #INDEX_ID_NULL returns the #IDType_ID_LINK_PLACEHOLDER type info, here we will rather
+         * use it for unknown/invalid ID types. */
+        n[size_t(idtype_index)] = "Data from UNKNWOWN ID Type";
+      }
+      else {
+        n[size_t(idtype_index)] = std::string("Data from '") + idtype_info->name + "'";
+      }
+    }
+    return n;
+  }();
+
+  const int idtype_index = BKE_idtype_idcode_to_index(id_code);
+  if (LIKELY(idtype_index >= 0 && idtype_index < INDEX_ID_MAX)) {
+    return id_alloc_names[size_t(idtype_index)].c_str();
   }
-  return "Data from Lib Block";
+  return id_alloc_names[INDEX_ID_NULL].c_str();
 }
 
 static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *id_old)
@@ -3031,7 +2970,7 @@ static BHead *read_libblock(FileData *fd,
 
   /* Read datablock contents.
    * Use convenient malloc name for debugging and better memory link prints. */
-  const char *allocname = dataname(idcode);
+  const char *allocname = idtype_alloc_name_get(idcode);
   bhead = read_data_into_datamap(fd, bhead, allocname);
   const bool success = direct_link_id(fd, main, id_tag, id, id_old);
   oldnewmap_clear(fd->datamap);
@@ -3719,7 +3658,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if ((fd->skip_flags & BLO_READ_SKIP_DATA) == 0) {
-    fd->reports->duration.libraries = BLI_check_seconds_timer();
+    fd->reports->duration.libraries = BLI_time_now_seconds();
     read_libraries(fd, &mainlist);
 
     blo_join_main(&mainlist);
@@ -3734,7 +3673,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       read_undo_remap_noundo_data(fd);
     }
 
-    fd->reports->duration.libraries = BLI_check_seconds_timer() - fd->reports->duration.libraries;
+    fd->reports->duration.libraries = BLI_time_now_seconds() - fd->reports->duration.libraries;
 
     /* Skip in undo case. */
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
@@ -3792,7 +3731,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
      * we can re-generate overrides from their references. */
     if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
       /* Do not apply in undo case! */
-      fd->reports->duration.lib_overrides = BLI_check_seconds_timer();
+      fd->reports->duration.lib_overrides = BLI_time_now_seconds();
 
       std::string cur_view_layer_name = bfd->cur_view_layer != nullptr ?
                                             bfd->cur_view_layer->name :
@@ -3813,7 +3752,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        * Proper fix involves first addressing #90610. */
       BKE_main_collections_parent_relations_rebuild(bfd->main);
 
-      fd->reports->duration.lib_overrides = BLI_check_seconds_timer() -
+      fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
                                             fd->reports->duration.lib_overrides;
     }
 

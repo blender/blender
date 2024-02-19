@@ -15,7 +15,7 @@
 #include "StrokeRenderer.h"
 #include "StrokeRep.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 using namespace std;
 

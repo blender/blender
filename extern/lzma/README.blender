@@ -1,5 +1,8 @@
 Project: LZMA SDK
 URL: https://www.7-zip.org/sdk.html
 License: Public Domain
-Upstream version: 4.65
-Local modifications: None
+Upstream version: 23.01
+Local modifications: No code changes
+
+- Took only files needed for Blender: C source for raw LZMA1 encoder/decoder.
+- CMakeLists.txt is made for Blender codebase

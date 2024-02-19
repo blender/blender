@@ -26,14 +26,13 @@
 #include "BLI_memarena.h"
 #include "BLI_multi_value_map.hh"
 #include "BLI_polyfill_2d.h"
-#include "BLI_resource_scope.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
@@ -41,10 +40,9 @@
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_node.hh"
-#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 using blender::MutableSpan;
 using blender::Span;
@@ -1712,7 +1710,7 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
 
   for (const int i : uv_names.index_range()) {
     const MLoopUV *mloopuv = static_cast<const MLoopUV *>(
-        CustomData_get_layer_named(&mesh->corner_data, CD_MLOOPUV, uv_names[i].c_str()));
+        CustomData_get_layer_named(&mesh->corner_data, CD_MLOOPUV, uv_names[i]));
     const uint32_t needed_boolean_attributes = threading::parallel_reduce(
         IndexRange(mesh->corners_num),
         4096,
@@ -1763,13 +1761,13 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
       }
     });
 
-    CustomData_free_layer_named(&mesh->corner_data, uv_names[i].c_str(), mesh->corners_num);
+    CustomData_free_layer_named(&mesh->corner_data, uv_names[i], mesh->corners_num);
 
     const std::string new_name = BKE_id_attribute_calc_unique_name(mesh->id, uv_names[i].c_str());
     uv_names[i] = new_name;
 
     CustomData_add_layer_named_with_data(
-        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name.c_str(), nullptr);
+        &mesh->corner_data, CD_PROP_FLOAT2, coords, mesh->corners_num, new_name, nullptr);
     char buffer[MAX_CUSTOMDATA_LAYER_NAME];
     if (vert_selection) {
       CustomData_add_layer_named_with_data(
@@ -1800,18 +1798,18 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
   }
 
   if (active_name_i != -1) {
-    CustomData_set_layer_active_index(
-        &mesh->corner_data,
-        CD_PROP_FLOAT2,
-        CustomData_get_named_layer_index(
-            &mesh->corner_data, CD_PROP_FLOAT2, uv_names[active_name_i].c_str()));
+    CustomData_set_layer_active_index(&mesh->corner_data,
+                                      CD_PROP_FLOAT2,
+                                      CustomData_get_named_layer_index(&mesh->corner_data,
+                                                                       CD_PROP_FLOAT2,
+                                                                       uv_names[active_name_i]));
   }
   if (default_name_i != -1) {
-    CustomData_set_layer_render_index(
-        &mesh->corner_data,
-        CD_PROP_FLOAT2,
-        CustomData_get_named_layer_index(
-            &mesh->corner_data, CD_PROP_FLOAT2, uv_names[default_name_i].c_str()));
+    CustomData_set_layer_render_index(&mesh->corner_data,
+                                      CD_PROP_FLOAT2,
+                                      CustomData_get_named_layer_index(&mesh->corner_data,
+                                                                       CD_PROP_FLOAT2,
+                                                                       uv_names[default_name_i]));
   }
 }
 

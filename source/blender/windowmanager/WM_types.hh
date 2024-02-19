@@ -112,10 +112,14 @@ struct wmWindowManager;
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+
 #include "DNA_listBase.h"
 #include "DNA_uuid_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_xr_types.h"
+
+#include "BKE_wm_runtime.hh"
+
 #include "RNA_types.hh"
 
 /* exported types for WM */
@@ -1139,7 +1143,14 @@ enum eWM_DragDataType {
   WM_DRAG_RNA,
   WM_DRAG_PATH,
   WM_DRAG_NAME,
-  WM_DRAG_VALUE,
+  /**
+   * Arbitrary text such as dragging from a text editor,
+   * this is also used when dragging a URL from a browser.
+   *
+   * An #std::string expected to be UTF8 encoded.
+   * Callers that require valid UTF8 sequences must validate the text.
+   */
+  WM_DRAG_STRING,
   WM_DRAG_COLOR,
   WM_DRAG_DATASTACK,
   WM_DRAG_ASSET_CATALOG,
@@ -1251,7 +1262,6 @@ struct wmDrag {
   int icon;
   eWM_DragDataType type;
   void *poin;
-  double value;
 
   /** If no icon but imbuf should be drawn around cursor. */
   const ImBuf *imb;

@@ -28,7 +28,7 @@
 #include "IMB_imbuf_types.hh"
 
 #if 1  // FRS_antialiasing
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "DNA_scene_types.h"
 #endif
 

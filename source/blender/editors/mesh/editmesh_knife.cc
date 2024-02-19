@@ -12,6 +12,8 @@
 #  define _USE_MATH_DEFINES
 #endif
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLF_api.hh"
@@ -30,15 +32,14 @@
 #include "BLI_stack.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_editmesh_bvh.h"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
@@ -591,9 +592,9 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
     float axis[3];
     float arc_angle;
 
-    const float inverse_average_scale = 1 / (kcd->curr.ob->object_to_world[0][0] +
-                                             kcd->curr.ob->object_to_world[1][1] +
-                                             kcd->curr.ob->object_to_world[2][2]);
+    const float inverse_average_scale = 1 / (kcd->curr.ob->object_to_world().ptr()[0][0] +
+                                             kcd->curr.ob->object_to_world().ptr()[1][1] +
+                                             kcd->curr.ob->object_to_world().ptr()[2][2]);
 
     const float px_scale =
         3.0f * inverse_average_scale *
@@ -1098,37 +1099,29 @@ static void knifetool_draw(const bContext * /*C*/, ARegion * /*region*/, void *a
 
 static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *kcd)
 {
-  char header[UI_MAX_DRAW_STR];
-  char buf[UI_MAX_DRAW_STR];
+  auto get_modal_key_str = [&](int id) {
+    return WM_modalkeymap_operator_items_to_string(op->type, id, true).value_or("");
+  };
 
-  char *p = buf;
-  int available_len = sizeof(buf);
-
-#define WM_MODALKEY(_id) \
-\
-  WM_modalkeymap_operator_items_to_string_buf( \
-      op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
-
-  SNPRINTF(
-      header,
-      IFACE_("%s: confirm, %s: cancel, %s: undo, "
-             "%s: start/define cut, %s: close cut, %s: new cut, "
-             "%s: midpoint snap (%s), %s: ignore snap (%s), "
-             "%s: angle constraint %.2f(%.2f) (%s%s%s%s), %s: cut through (%s), "
-             "%s: panning, %s%s%s: orientation lock (%s), "
-             "%s: distance/angle measurements (%s), "
-             "%s: x-ray (%s)"),
-      WM_MODALKEY(KNF_MODAL_CONFIRM),
-      WM_MODALKEY(KNF_MODAL_CANCEL),
-      WM_MODALKEY(KNF_MODAL_UNDO),
-      WM_MODALKEY(KNF_MODAL_ADD_CUT),
-      WM_MODALKEY(KNF_MODAL_ADD_CUT_CLOSED),
-      WM_MODALKEY(KNF_MODAL_NEW_CUT),
-      WM_MODALKEY(KNF_MODAL_MIDPOINT_ON),
+  const std::string header = fmt::format(
+      IFACE_("{}: confirm, {}: cancel, {}: undo, "
+             "{}: start/define cut, {}: close cut, {}: new cut, "
+             "{}: midpoint snap ({}), {}: ignore snap ({}), "
+             "{}: angle constraint {:.2f}({:.2f}) ({}{}{}{}), {}: cut through ({}), "
+             "{}: panning, {}{}{}: orientation lock ({}), "
+             "{}: distance/angle measurements ({}), "
+             "{}: x-ray ({})"),
+      get_modal_key_str(KNF_MODAL_CONFIRM),
+      get_modal_key_str(KNF_MODAL_CANCEL),
+      get_modal_key_str(KNF_MODAL_UNDO),
+      get_modal_key_str(KNF_MODAL_ADD_CUT),
+      get_modal_key_str(KNF_MODAL_ADD_CUT_CLOSED),
+      get_modal_key_str(KNF_MODAL_NEW_CUT),
+      get_modal_key_str(KNF_MODAL_MIDPOINT_ON),
       WM_bool_as_string(kcd->snap_midpoints),
-      WM_MODALKEY(KNF_MODAL_IGNORE_SNAP_ON),
+      get_modal_key_str(KNF_MODAL_IGNORE_SNAP_ON),
       WM_bool_as_string(kcd->ignore_edge_snapping),
-      WM_MODALKEY(KNF_MODAL_ANGLE_SNAP_TOGGLE),
+      get_modal_key_str(KNF_MODAL_ANGLE_SNAP_TOGGLE),
       (kcd->angle >= 0.0f) ? RAD2DEGF(kcd->angle) : 360.0f + RAD2DEGF(kcd->angle),
       (kcd->angle_snapping_increment > KNIFE_MIN_ANGLE_SNAPPING_INCREMENT &&
        kcd->angle_snapping_increment <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) ?
@@ -1139,24 +1132,22 @@ static void knife_update_header(bContext *C, wmOperator *op, KnifeTool_OpData *k
           "OFF", /* TODO: Can this be simplified? */
       (kcd->angle_snapping_mode == KNF_CONSTRAIN_ANGLE_MODE_RELATIVE) ? " - " : "",
       (kcd->angle_snapping_mode == KNF_CONSTRAIN_ANGLE_MODE_RELATIVE) ?
-          WM_MODALKEY(KNF_MODAL_CYCLE_ANGLE_SNAP_EDGE) :
+          get_modal_key_str(KNF_MODAL_CYCLE_ANGLE_SNAP_EDGE) :
           "",
       (kcd->angle_snapping_mode == KNF_CONSTRAIN_ANGLE_MODE_RELATIVE) ? ": cycle edge" : "", /**/
-      WM_MODALKEY(KNF_MODAL_CUT_THROUGH_TOGGLE),
+      get_modal_key_str(KNF_MODAL_CUT_THROUGH_TOGGLE),
       WM_bool_as_string(kcd->cut_through),
-      WM_MODALKEY(KNF_MODAL_PANNING),
-      WM_MODALKEY(KNF_MODAL_X_AXIS),
-      WM_MODALKEY(KNF_MODAL_Y_AXIS),
-      WM_MODALKEY(KNF_MODAL_Z_AXIS),
+      get_modal_key_str(KNF_MODAL_PANNING),
+      get_modal_key_str(KNF_MODAL_X_AXIS),
+      get_modal_key_str(KNF_MODAL_Y_AXIS),
+      get_modal_key_str(KNF_MODAL_Z_AXIS),
       (kcd->axis_constrained ? kcd->axis_string : WM_bool_as_string(kcd->axis_constrained)),
-      WM_MODALKEY(KNF_MODAL_SHOW_DISTANCE_ANGLE_TOGGLE),
+      get_modal_key_str(KNF_MODAL_SHOW_DISTANCE_ANGLE_TOGGLE),
       WM_bool_as_string(kcd->show_dist_angle),
-      WM_MODALKEY(KNF_MODAL_DEPTH_TEST_TOGGLE),
+      get_modal_key_str(KNF_MODAL_DEPTH_TEST_TOGGLE),
       WM_bool_as_string(!kcd->depth_test));
 
-#undef WM_MODALKEY
-
-  ED_workspace_status_text(C, header);
+  ED_workspace_status_text(C, header.c_str());
 }
 
 /** \} */
@@ -1201,7 +1192,7 @@ static void knife_bm_tri_cagecos_get_worldspace(const KnifeTool_OpData *kcd,
   knife_bm_tri_cagecos_get(kcd, ob_index, tri_index, cos);
   const Object *ob = kcd->objects[ob_index];
   for (int i = 0; i < 3; i++) {
-    mul_m4_v3(ob->object_to_world, cos[i]);
+    mul_m4_v3(ob->object_to_world().ptr(), cos[i]);
   }
 }
 
@@ -1744,7 +1735,7 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v, Object *ob
     }
 
     float cageco_ws[3];
-    mul_v3_m4v3(cageco_ws, ob->object_to_world, cageco);
+    mul_v3_m4v3(cageco_ws, ob->object_to_world().ptr(), cageco);
 
     kfv = new_knife_vert(kcd, v->co, cageco_ws);
     kfv->v = v;
@@ -2647,14 +2638,14 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
     if (cagecos) {
       for (int i = 0; i < em->bm->totvert; i++) {
         copy_v3_v3(ws, cagecos[i]);
-        mul_m4_v3(ob->object_to_world, ws);
+        mul_m4_v3(ob->object_to_world().ptr(), ws);
         minmax_v3v3_v3(min, max, ws);
       }
     }
     else {
       BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
         copy_v3_v3(ws, v->co);
-        mul_m4_v3(ob->object_to_world, ws);
+        mul_m4_v3(ob->object_to_world().ptr(), ws);
         minmax_v3v3_v3(min, max, ws);
       }
     }
@@ -3602,7 +3593,6 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
   float curr_ray[3], curr_ray_normal[3];
   float curr_co[3], curr_cage[3]; /* Unused. */
 
-  float plane[4];
   float ray_hit[3];
   float lambda;
 
@@ -3693,12 +3683,11 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
   /* Use normal global direction. */
   float no_global[3];
   copy_v3_v3(no_global, fprev->no);
-  mul_transposed_mat3_m4_v3(kcd->curr.ob->world_to_object, no_global);
+  mul_transposed_mat3_m4_v3(kcd->curr.ob->world_to_object().ptr(), no_global);
   normalize_v3(no_global);
 
-  plane_from_point_normal_v3(plane, kcd->prev.cage, no_global);
-
-  if (isect_ray_plane_v3(curr_origin, curr_ray_normal, plane, &lambda, false)) {
+  if (isect_ray_plane_v3_factor(curr_origin, curr_ray_normal, kcd->prev.cage, no_global, &lambda))
+  {
     madd_v3_v3v3fl(ray_hit, curr_origin, curr_ray_normal, lambda);
 
     /* Calculate snap step. */
@@ -5021,7 +5010,7 @@ void EDBM_mesh_knife(
           BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
             float cent[3], cent_ss[2];
             BM_face_calc_point_in_face(f, cent);
-            mul_m4_v3(ob->object_to_world, cent);
+            mul_m4_v3(ob->object_to_world().ptr(), cent);
             knife_project_v2(kcd, cent, cent_ss);
             if (edbm_mesh_knife_point_isect(polys, cent_ss)) {
               BM_elem_flag_enable(f, BM_ELEM_TAG);
@@ -5062,7 +5051,7 @@ void EDBM_mesh_knife(
             if (found) {
               float cent[3], cent_ss[2];
               BM_face_calc_point_in_face(f, cent);
-              mul_m4_v3(ob->object_to_world, cent);
+              mul_m4_v3(ob->object_to_world().ptr(), cent);
               knife_project_v2(kcd, cent, cent_ss);
               if ((kcd->cut_through || point_is_visible(kcd, cent, cent_ss, (BMElem *)f)) &&
                   edbm_mesh_knife_point_isect(polys, cent_ss))

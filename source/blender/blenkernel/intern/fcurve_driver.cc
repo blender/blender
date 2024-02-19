@@ -25,14 +25,14 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_constraint.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_object.hh"
 
 #include "RNA_access.hh"
@@ -435,7 +435,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
     return 0.0f;
   }
 
-  float(*mat[2])[4];
+  const float(*mat[2])[4];
 
   /* NOTE: for now, these are all just world-space. */
   for (int i = 0; i < 2; i++) {
@@ -457,7 +457,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
     }
     else {
       /* Object. */
-      mat[i] = ob->object_to_world;
+      mat[i] = ob->object_to_world().ptr();
     }
   }
 
@@ -537,7 +537,7 @@ static float dvar_eval_locDiff(const AnimationEvalContext * /*anim_eval_context*
       else {
         /* Convert to world-space. */
         copy_v3_v3(tmp_loc, pchan->pose_head);
-        mul_m4_v3(ob->object_to_world, tmp_loc);
+        mul_m4_v3(ob->object_to_world().ptr(), tmp_loc);
       }
     }
     else {
@@ -548,7 +548,7 @@ static float dvar_eval_locDiff(const AnimationEvalContext * /*anim_eval_context*
           float mat[4][4];
 
           /* Extract transform just like how the constraints do it! */
-          copy_m4_m4(mat, ob->object_to_world);
+          copy_m4_m4(mat, ob->object_to_world().ptr());
           BKE_constraint_mat_convertspace(
               ob, nullptr, nullptr, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, false);
 
@@ -562,7 +562,7 @@ static float dvar_eval_locDiff(const AnimationEvalContext * /*anim_eval_context*
       }
       else {
         /* World-space. */
-        copy_v3_v3(tmp_loc, ob->object_to_world[3]);
+        copy_v3_v3(tmp_loc, ob->object_to_world().location());
       }
     }
 
@@ -640,7 +640,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
     }
     else {
       /* World-space matrix. */
-      mul_m4_m4m4(mat, ob->object_to_world, pchan->pose_mat);
+      mul_m4_m4m4(mat, ob->object_to_world().ptr(), pchan->pose_mat);
     }
   }
   else {
@@ -654,7 +654,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
     if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
       if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
         /* Just like how the constraints do it! */
-        copy_m4_m4(mat, ob->object_to_world);
+        copy_m4_m4(mat, ob->object_to_world().ptr());
         BKE_constraint_mat_convertspace(
             ob, nullptr, nullptr, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, false);
       }
@@ -665,7 +665,7 @@ static float dvar_eval_transChan(const AnimationEvalContext * /*anim_eval_contex
     }
     else {
       /* World-space matrix - just the good-old one. */
-      copy_m4_m4(mat, ob->object_to_world);
+      copy_m4_m4(mat, ob->object_to_world().ptr());
     }
   }
 

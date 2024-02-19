@@ -35,9 +35,9 @@
 
 #  include "RNA_access.hh"
 
-#  include "BKE_duplilist.h"
+#  include "BKE_duplilist.hh"
 #  include "BKE_object.hh"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 
 #  include "DEG_depsgraph_build.hh"
 #  include "DEG_depsgraph_debug.hh"
@@ -174,7 +174,7 @@ static void rna_DepsgraphObjectInstance_matrix_world_get(PointerRNA *ptr, float 
     /* We can return actual object's matrix here, no reason to return identity matrix
      * when this is not actually an instance... */
     Object *ob = (Object *)di->iter.current;
-    copy_m4_m4((float(*)[4])mat, ob->object_to_world);
+    copy_m4_m4((float(*)[4])mat, ob->object_to_world().ptr());
   }
 }
 

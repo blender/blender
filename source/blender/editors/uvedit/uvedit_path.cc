@@ -17,7 +17,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_linklist_stack.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -33,14 +32,13 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "ED_object.hh"
 #include "ED_screen.hh"
-#include "ED_transform.hh"
 #include "ED_uvedit.hh"
 
 #include "RNA_access.hh"

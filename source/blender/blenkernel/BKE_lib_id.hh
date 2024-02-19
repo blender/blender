@@ -33,6 +33,8 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+#include "BLI_set.hh"
+
 #include "DNA_userdef_enums.h"
 
 struct BlendWriter;
@@ -212,7 +214,7 @@ ID *BKE_libblock_find_name_and_library(Main *bmain,
  * Duplicate (a.k.a. deep copy) common processing options.
  * See also eDupli_ID_Flags for options controlling what kind of IDs to duplicate.
  */
-typedef enum eLibIDDuplicateFlags {
+enum eLibIDDuplicateFlags {
   /** This call to a duplicate function is part of another call for some parent ID.
    * Therefore, this sub-process should not clear `newid` pointers, nor handle remapping itself.
    * NOTE: In some cases (like Object one), the duplicate function may be called on the root ID
@@ -222,7 +224,7 @@ typedef enum eLibIDDuplicateFlags {
   /** This call is performed on a 'root' ID, and should therefore perform some decisions regarding
    * sub-IDs (dependencies), check for linked vs. locale data, etc. */
   LIB_ID_DUPLICATE_IS_ROOT_ID = 1 << 1,
-} eLibIDDuplicateFlags;
+};
 
 ENUM_OPERATORS(eLibIDDuplicateFlags, LIB_ID_DUPLICATE_IS_ROOT_ID)
 
@@ -319,11 +321,23 @@ void BKE_id_delete_ex(Main *bmain, void *idv, const int extra_remapping_flags) A
  * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs
  * (several times faster when deleting most of the IDs at once).
  *
- * \warning Considered experimental for now, seems to be working OK but this is
- * risky code in a complicated area.
  * \return Number of deleted data-blocks.
  */
 size_t BKE_id_multi_tagged_delete(Main *bmain) ATTR_NONNULL();
+/**
+ * Properly delete all IDs from \a ids_to_delete, from given \a bmain database.
+ *
+ * This is more efficient than calling #BKE_id_delete repetitively on a large set of IDs
+ * (several times faster when deleting most of the IDs at once).
+ *
+ * \note The ID pointers are not removed from the Set (which may contain more pointers than
+ * originally given, when extra users or dependencies also had to be deleted with the original set
+ * of IDs). They are all freed though, so these pointers are all invalid after calling this
+ * function.
+ *
+ * \return Number of deleted data-blocks.
+ */
+size_t BKE_id_multi_delete(Main *bmain, blender::Set<ID *> &ids_to_delete);
 
 /**
  * Add a 'NO_MAIN' data-block to given main (also sets user-counts of its IDs if needed).

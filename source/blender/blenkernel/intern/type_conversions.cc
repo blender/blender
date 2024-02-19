@@ -349,9 +349,19 @@ static ColorGeometry4f byte_color_to_color(const ColorGeometry4b &a)
   return a.decode();
 }
 
+static math::Quaternion float4x4_to_quaternion(const float4x4 &a)
+{
+  return math::to_quaternion(a);
+}
+
 static float3 quaternion_to_float3(const math::Quaternion &a)
 {
   return float3(math::to_euler(a).xyz());
+}
+
+static float4x4 quaternion_to_float4x4(const math::Quaternion &a)
+{
+  return math::from_rotation<float4x4>(a);
 }
 
 static DataTypeConversions create_implicit_conversions()
@@ -441,7 +451,10 @@ static DataTypeConversions create_implicit_conversions()
   add_implicit_conversion<ColorGeometry4b, float3, byte_color_to_float3>(conversions);
   add_implicit_conversion<ColorGeometry4b, ColorGeometry4f, byte_color_to_color>(conversions);
 
+  add_implicit_conversion<float4x4, math::Quaternion, float4x4_to_quaternion>(conversions);
+
   add_implicit_conversion<math::Quaternion, float3, quaternion_to_float3>(conversions);
+  add_implicit_conversion<math::Quaternion, float4x4, quaternion_to_float4x4>(conversions);
 
   return conversions;
 }

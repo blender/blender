@@ -14,7 +14,6 @@
 #include "BLI_math_mpq.hh"
 #include "BLI_mesh_boolean.hh"
 #include "BLI_mesh_intersect.hh"
-#include "BLI_time.h"
 
 #include "bmesh.hh"
 #include "bmesh_boolean.hh"
@@ -351,11 +350,11 @@ static bool bmesh_boolean(BMesh *bm,
   IMeshArena arena;
   IMesh m_triangulated;
 #  ifdef PERF_DEBUG
-  double start_time = BLI_check_seconds_timer();
+  double start_time = BLI_time_now_seconds();
 #  endif
   IMesh m_in = mesh_from_bm(bm, looptris, looptris_tot, &m_triangulated, &arena);
 #  ifdef PERF_DEBUG
-  double mesh_time = BLI_check_seconds_timer();
+  double mesh_time = BLI_time_now_seconds();
   std::cout << "bmesh_boolean, imesh_from_bm done, time = " << mesh_time - start_time << "\n";
 #  endif
   std::function<int(int)> shape_fn;
@@ -383,12 +382,12 @@ static bool bmesh_boolean(BMesh *bm,
   IMesh m_out = boolean_mesh(
       m_in, boolean_mode, nshapes, shape_fn, use_self, hole_tolerant, &m_triangulated, &arena);
 #  ifdef PERF_DEBUG
-  double boolean_time = BLI_check_seconds_timer();
+  double boolean_time = BLI_time_now_seconds();
   std::cout << "boolean done, time = " << boolean_time - mesh_time << "\n";
 #  endif
   bool any_change = apply_mesh_output_to_bmesh(bm, m_out, keep_hidden);
 #  ifdef PERF_DEBUG
-  double apply_mesh_time = BLI_check_seconds_timer();
+  double apply_mesh_time = BLI_time_now_seconds();
   std::cout << "applied boolean output to bmesh, time = " << apply_mesh_time - boolean_time
             << "\n";
 #  endif

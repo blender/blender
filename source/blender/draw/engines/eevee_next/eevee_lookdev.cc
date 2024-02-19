@@ -235,8 +235,8 @@ void LookdevModule::sync_pass(PassSimple &pass,
   pass.bind_image("aov_value_img", dummy_aov_value_tx_);
   pass.bind_resources(inst_.uniform_data);
   pass.bind_resources(inst_.hiz_buffer.front);
-  pass.bind_resources(inst_.reflection_probes);
-  pass.bind_resources(inst_.irradiance_cache);
+  pass.bind_resources(inst_.sphere_probes);
+  pass.bind_resources(inst_.volume_probes);
   pass.bind_resources(inst_.shadows);
   pass.bind_resources(inst_.volume.result);
   pass.bind_resources(inst_.cryptomatte);

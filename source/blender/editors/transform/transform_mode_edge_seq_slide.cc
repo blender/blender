@@ -13,7 +13,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
@@ -22,13 +21,8 @@
 #include "WM_types.hh"
 
 #include "UI_interface.hh"
-#include "UI_view2d.hh"
 
-#include "SEQ_iterator.hh"
-#include "SEQ_sequencer.hh"
-#include "SEQ_time.hh"
-
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

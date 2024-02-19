@@ -15,7 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -24,7 +24,6 @@
 #include "WM_types.hh"
 
 #include "ED_mesh.hh"
-#include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 

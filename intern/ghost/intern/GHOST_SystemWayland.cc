@@ -2926,6 +2926,9 @@ static char *read_buffer_from_data_offer(GWL_DataOffer *data_offer,
     }
     close(pipefd[0]);
   }
+  else {
+    *r_len = 0;
+  }
   return buf;
 }
 
@@ -3259,20 +3262,19 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
 
   CLOG_INFO(LOG, 2, "drop mime_recieve=%s", mime_receive);
 
-  auto read_uris_fn = [](GWL_Seat *const seat,
-                         GWL_DataOffer *data_offer,
-                         wl_surface *wl_surface_window,
-                         const char *mime_receive) {
+  auto read_drop_data_fn = [](GWL_Seat *const seat,
+                              GWL_DataOffer *data_offer,
+                              wl_surface *wl_surface_window,
+                              const char *mime_receive) {
     const uint64_t event_ms = seat->system->getMilliSeconds();
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
+    const bool nil_terminate = (mime_receive != ghost_wl_mime_text_uri);
     size_t data_buf_len = 0;
     const char *data_buf = read_buffer_from_data_offer(
-        data_offer, mime_receive, nullptr, false, &data_buf_len);
-    std::string data = data_buf ? std::string(data_buf, data_buf_len) : "";
-    free(const_cast<char *>(data_buf));
+        data_offer, mime_receive, nullptr, nil_terminate, &data_buf_len);
 
-    CLOG_INFO(LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive, data.c_str());
+    CLOG_INFO(LOG, 2, "read_drop_data mime_receive=%s, data_len=%zu", mime_receive, data_buf_len);
 
     wl_data_offer_finish(data_offer->wl.id);
     wl_data_offer_destroy(data_offer->wl.id);
@@ -3283,69 +3285,97 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
     delete data_offer;
     data_offer = nullptr;
 
-    GHOST_SystemWayland *const system = seat->system;
+    /* Don't generate a drop event if the data could not be read,
+     * an error will have been logged. */
+    if (data_buf != nullptr) {
+      GHOST_TDragnDropTypes ghost_dnd_type = GHOST_kDragnDropTypeUnknown;
+      void *ghost_dnd_data = nullptr;
 
-    if (mime_receive == ghost_wl_mime_text_uri) {
-      const char file_proto[] = "file://";
-      /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
-       * So support both, once `\n` is found, strip the preceding `\r` if found. */
-      const char lf = '\n';
+      /* Failure to receive drop data . */
+      if (mime_receive == ghost_wl_mime_text_uri) {
+        const char file_proto[] = "file://";
+        /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
+         * So support both, once `\n` is found, strip the preceding `\r` if found. */
+        const char lf = '\n';
 
-      GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_window);
-      std::vector<std::string> uris;
+        const std::string_view data = std::string_view(data_buf, data_buf_len);
+        std::vector<std::string_view> uris;
 
-      size_t pos = 0;
-      while (pos != std::string::npos) {
-        pos = data.find(file_proto, pos);
-        if (pos == std::string::npos) {
-          break;
+        size_t pos = 0;
+        while (pos != std::string::npos) {
+          pos = data.find(file_proto, pos);
+          if (pos == std::string::npos) {
+            break;
+          }
+          const size_t start = pos + sizeof(file_proto) - 1;
+          pos = data.find(lf, pos);
+
+          size_t end = pos;
+          if (UNLIKELY(end == std::string::npos)) {
+            /* Note that most well behaved file managers will add a trailing newline,
+             * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
+            end = data.size();
+          }
+          /* Account for 'CRLF' case. */
+          if (data[end - 1] == '\r') {
+            end -= 1;
+          }
+
+          std::string_view data_substr = data.substr(start, end - start);
+          uris.push_back(data_substr);
+          CLOG_INFO(LOG,
+                    2,
+                    "read_drop_data pos=%zu, text_uri=\"%.*s\"",
+                    start,
+                    int(data_substr.size()),
+                    data_substr.data());
         }
-        const size_t start = pos + sizeof(file_proto) - 1;
-        pos = data.find(lf, pos);
 
-        size_t end = pos;
-        if (UNLIKELY(end == std::string::npos)) {
-          /* Note that most well behaved file managers will add a trailing newline,
-           * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
-          end = data.size();
+        GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
+            malloc(sizeof(GHOST_TStringArray)));
+        flist->count = int(uris.size());
+        flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
+        for (size_t i = 0; i < uris.size(); i++) {
+          flist->strings[i] = reinterpret_cast<uint8_t *>(
+              GHOST_URL_decode_alloc(uris[i].data(), uris[i].size()));
         }
-        /* Account for 'CRLF' case. */
-        if (data[end - 1] == '\r') {
-          end -= 1;
-        }
-        uris.push_back(data.substr(start, end - start));
-        CLOG_INFO(LOG, 2, "drop_read_uris pos=%zu, text_uri=\"%s\"", start, uris.back().c_str());
+
+        CLOG_INFO(LOG, 2, "read_drop_data file_count=%d", flist->count);
+        ghost_dnd_type = GHOST_kDragnDropTypeFilenames;
+        ghost_dnd_data = flist;
+      }
+      else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
+        ghost_dnd_type = GHOST_kDragnDropTypeString;
+        ghost_dnd_data = (void *)data_buf; /* Move ownership to the event. */
+        data_buf = nullptr;
       }
 
-      GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
-          malloc(sizeof(GHOST_TStringArray)));
-      flist->count = int(uris.size());
-      flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
-      for (size_t i = 0; i < uris.size(); i++) {
-        flist->strings[i] = reinterpret_cast<uint8_t *>(GHOST_URL_decode_alloc(uris[i].c_str()));
+      if (ghost_dnd_type != GHOST_kDragnDropTypeUnknown) {
+        GHOST_SystemWayland *const system = seat->system;
+        GHOST_WindowWayland *win = ghost_wl_surface_user_data(wl_surface_window);
+        const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy)};
+
+        system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(event_ms,
+                                                                 GHOST_kEventDraggingDropDone,
+                                                                 ghost_dnd_type,
+                                                                 win,
+                                                                 UNPACK2(event_xy),
+                                                                 ghost_dnd_data));
+
+        wl_display_roundtrip(system->wl_display_get());
+      }
+      else {
+        CLOG_INFO(LOG, 2, "read_drop_data, unhandled!");
       }
 
-      CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
-      const int event_xy[2] = {WL_FIXED_TO_INT_FOR_WINDOW_V2(win, xy)};
-      system->pushEvent_maybe_pending(new GHOST_EventDragnDrop(event_ms,
-                                                               GHOST_kEventDraggingDropDone,
-                                                               GHOST_kDragnDropTypeFilenames,
-                                                               win,
-                                                               UNPACK2(event_xy),
-                                                               flist));
+      free(const_cast<char *>(data_buf));
     }
-    else if (ELEM(mime_receive, ghost_wl_mime_text_plain, ghost_wl_mime_text_utf8)) {
-      /* TODO: enable use of internal functions 'txt_insert_buf' and
-       * 'text_update_edited' to behave like dropped text was pasted. */
-      CLOG_INFO(LOG, 2, "drop_read_uris_fn (text_plain, text_utf8), unhandled!");
-    }
-    wl_display_roundtrip(system->wl_display_get());
   };
 
   /* Pass in `seat->wl_surface_window_focus_dnd` instead of accessing it from `seat` since the
    * leave callback (#data_device_handle_leave) will clear the value once this function starts. */
   std::thread read_thread(
-      read_uris_fn, seat, data_offer, seat->wl.surface_window_focus_dnd, mime_receive);
+      read_drop_data_fn, seat, data_offer, seat->wl.surface_window_focus_dnd, mime_receive);
   read_thread.detach();
 }
 

@@ -17,6 +17,7 @@
 #include "RNA_types.hh"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 
 struct ID;
 struct IDOverrideLibrary;
@@ -378,16 +379,15 @@ void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const cha
 eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop);
 /**
  * Search candidates for string `prop` by calling `visit_fn` with each string.
- * Typically these strings are collected in `visit_user_data` in a format defined by the caller.
  *
  * See #PropStringSearchFunc for details.
  */
-void RNA_property_string_search(const bContext *C,
-                                PointerRNA *ptr,
-                                PropertyRNA *prop,
-                                const char *edit_text,
-                                StringPropertySearchVisitFunc visit_fn,
-                                void *visit_user_data);
+void RNA_property_string_search(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA *prop,
+    const char *edit_text,
+    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
  * \return the length without `\0` terminator.

@@ -9,7 +9,7 @@
 #include "BLI_hash.h"
 #include "BLI_math_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 
@@ -25,7 +25,6 @@
 #include "UI_resources.hh"
 
 #include "MOD_grease_pencil_util.hh"
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "RNA_access.hh"

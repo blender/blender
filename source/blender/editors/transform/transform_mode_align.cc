@@ -8,14 +8,12 @@
 
 #include <cstdlib>
 
-#include "BKE_context.hh"
-
 #include "ED_screen.hh"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_convert.hh"

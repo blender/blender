@@ -15,7 +15,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
@@ -33,10 +33,7 @@
 
 #include "UI_resources.hh"
 
-extern "C" {
 Global G;
-}
-
 UserDef U;
 
 /* -------------------------------------------------------------------- */
@@ -153,13 +150,6 @@ int CustomData_get_offset(const struct CustomData * /*data*/, eCustomDataType /*
 {
   BLI_assert_unreachable();
   return 0;
-}
-
-int CustomData_get_named_layer_index(const struct CustomData * /*data*/,
-                                     eCustomDataType /*type*/,
-                                     const char * /*name*/)
-{
-  return -1;
 }
 
 int CustomData_get_active_layer_index(const struct CustomData * /*data*/, eCustomDataType /*type*/)

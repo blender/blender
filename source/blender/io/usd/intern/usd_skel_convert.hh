@@ -143,6 +143,6 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
  */
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Vector<std::string> &bone_names);
+                         Span<std::string> bone_names);
 
 }  // namespace blender::io::usd

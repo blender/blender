@@ -16,14 +16,14 @@ Below you have the help message with a list of options you can use.
 
 
 Usage:
-        blender2.5 --background -noaudio --python BlendFileDnaExporter_25.py [-- [options]]
+        blender2.5 --background --python BlendFileDnaExporter_25.py [-- [options]]
 Options:
         --dna-keep-blend:      doesn't delete the produced blend file DNA export to html
         --dna-debug:           sets the logging level to DEBUG (lots of additional info)
         --dna-versioned        saves version information in the html and blend filenames
         --dna-overwrite-css    overwrite dna.css, useful when modifying css in the script
 Examples:
-        default:       % blender2.5 --background -noaudio --python BlendFileDnaExporter_25.py
-        with options:  % blender2.5 --background -noaudio --python BlendFileDnaExporter_25.py -- --dna-keep-blend --dna-debug
+        default:       % blender2.5 --background --python BlendFileDnaExporter_25.py
+        with options:  % blender2.5 --background --python BlendFileDnaExporter_25.py -- --dna-keep-blend --dna-debug
 
 

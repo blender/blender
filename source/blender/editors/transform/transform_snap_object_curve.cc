@@ -12,7 +12,6 @@
 
 #include "BKE_bvhutils.hh"
 #include "BKE_curve.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 
 #include "ED_transform_snap_object_context.hh"

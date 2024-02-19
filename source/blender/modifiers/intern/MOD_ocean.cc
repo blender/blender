@@ -10,7 +10,7 @@
 
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_defaults.h"
@@ -18,16 +18,13 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_ocean.h"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -35,13 +32,10 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "BLO_read_write.hh"
-
 #include "WM_types.hh" /* For UI free bake operator. */
 
 #include "DEG_depsgraph_query.hh"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #ifdef WITH_OCEANSIM

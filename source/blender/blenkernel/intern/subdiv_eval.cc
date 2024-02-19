@@ -10,7 +10,6 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
-#include "BLI_timeit.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.hh"

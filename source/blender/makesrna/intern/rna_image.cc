@@ -58,7 +58,7 @@ static const EnumPropertyItem image_source_items[] = {
 #  include "BLI_math_base.h"
 #  include "BLI_math_vector.h"
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 
 #  include "GPU_texture.h"
 

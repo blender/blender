@@ -18,7 +18,6 @@
 #include "BLI_ghash.h"
 #include "BLI_mempool.h"
 #include "BLI_string.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_moviecache.hh"

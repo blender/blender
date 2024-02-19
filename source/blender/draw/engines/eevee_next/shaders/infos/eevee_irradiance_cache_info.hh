@@ -182,7 +182,7 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
     .push_constant(Type::FLOAT, "dilation_threshold")
     .push_constant(Type::FLOAT, "dilation_radius")
     .push_constant(Type::FLOAT, "grid_intensity_factor")
-    .uniform_buf(0, "IrradianceGridData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")
+    .uniform_buf(0, "VolumeProbeData", "grids_infos_buf[IRRADIANCE_GRID_MAX]")
     .storage_buf(0, Qualifier::READ, "uint", "bricks_infos_buf[]")
     .sampler(0, ImageType::FLOAT_3D, "irradiance_a_tx")
     .sampler(1, ImageType::FLOAT_3D, "irradiance_b_tx")
@@ -200,20 +200,20 @@ GPU_SHADER_CREATE_INFO(eevee_lightprobe_irradiance_load)
 
 GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
     .uniform_buf(IRRADIANCE_GRID_BUF_SLOT,
-                 "IrradianceGridData",
+                 "VolumeProbeData",
                  "grids_infos_buf[IRRADIANCE_GRID_MAX]")
     /* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact type.
      */
     .storage_buf(IRRADIANCE_BRICK_BUF_SLOT, Qualifier::READ, "uint", "bricks_infos_buf[]")
-    .sampler(IRRADIANCE_ATLAS_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx")
+    .sampler(VOLUME_PROBE_TEX_SLOT, ImageType::FLOAT_3D, "irradiance_atlas_tx")
     .define("IRRADIANCE_GRID_SAMPLING");
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
     .additional_info("eevee_reflection_probe_data", "eevee_volume_probe_data");
 
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_planar_data)
-    .define("REFLECTION_PROBE")
-    .uniform_buf(PLANAR_PROBE_BUF_SLOT, "ProbePlanarData", "probe_planar_buf[PLANAR_PROBES_MAX]")
+    .define("SPHERE_PROBE")
+    .uniform_buf(PLANAR_PROBE_BUF_SLOT, "PlanarProbeData", "probe_planar_buf[PLANAR_PROBE_MAX]")
     .sampler(PLANAR_PROBE_RADIANCE_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "planar_radiance_tx")
     .sampler(PLANAR_PROBE_DEPTH_TEX_SLOT, ImageType::DEPTH_2D_ARRAY, "planar_depth_tx");
 

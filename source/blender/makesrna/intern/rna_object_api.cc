@@ -56,7 +56,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_context.hh"
 #  include "BKE_crazyspace.hh"
 #  include "BKE_customdata.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_layer.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mball.hh"
@@ -65,7 +65,7 @@ static const EnumPropertyItem space_items[] = {
 #  include "BKE_modifier.hh"
 #  include "BKE_object.hh"
 #  include "BKE_object_types.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 #  include "BKE_vfont.hh"
 
 #  include "ED_object.hh"

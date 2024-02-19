@@ -8,9 +8,7 @@
 
 #include <cstring>
 
-#include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -22,16 +20,14 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
-#include "BKE_bpath.h"
-#include "BKE_cachefile.h"
+#include "BKE_bpath.hh"
+#include "BKE_cachefile.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_modifier.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -125,6 +121,7 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CF = {
     /*id_code*/ ID_CF,
     /*id_filter*/ FILTER_ID_CF,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_CF,
     /*struct_size*/ sizeof(CacheFile),
     /*name*/ "CacheFile",

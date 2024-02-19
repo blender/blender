@@ -8,8 +8,6 @@
 
 #include "BLI_session_uid.h"
 
-#include "BLI_utildefines.h"
-
 #include "atomic_ops.h"
 
 /* Special value which indicates the UID has not been assigned yet. */

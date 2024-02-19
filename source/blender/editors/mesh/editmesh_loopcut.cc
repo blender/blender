@@ -13,15 +13,13 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
-
-#include "DNA_mesh_types.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_unit.hh"
 
 #include "UI_interface.hh"
@@ -90,7 +88,7 @@ struct RingSelOpData {
 static void ringsel_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
   RingSelOpData *lcd = static_cast<RingSelOpData *>(arg);
-  EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world);
+  EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world().ptr());
 }
 
 static void edgering_select(RingSelOpData *lcd)

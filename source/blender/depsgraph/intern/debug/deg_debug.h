@@ -10,7 +10,7 @@
 
 #include "intern/depsgraph_type.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "DEG_depsgraph_debug.hh"
 

@@ -9,9 +9,7 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_layer.hh"
-#include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -22,11 +20,8 @@
 #include "RNA_prototypes.h"
 
 #include "ED_keyframing.hh"
-#include "ED_scene.hh"
-#include "ED_transform.hh"
 
 #include "ANIM_keyframing.hh"
-#include "ANIM_rna.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

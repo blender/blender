@@ -13,7 +13,6 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_main.hh"
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.hh"
@@ -29,7 +28,6 @@
 #include "ED_clip.hh"
 #include "ED_image.hh"
 #include "ED_mask.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
 #include "ANIM_keyframing.hh"

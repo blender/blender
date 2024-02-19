@@ -32,9 +32,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.h"
-
-#include "ED_screen.hh"
+#include "BLT_translation.hh"
 
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
@@ -193,7 +191,7 @@ void UI_pie_menu_end(bContext *C, uiPieMenu *pie)
 
   menu = ui_popup_block_create(C, nullptr, nullptr, nullptr, ui_block_func_PIE, pie, nullptr);
   menu->popup = true;
-  menu->towardstime = BLI_check_seconds_timer();
+  menu->towardstime = BLI_time_now_seconds();
 
   UI_popup_handlers_add(C, &window->modalhandlers, menu, WM_HANDLER_ACCEPT_DBL_CLICK);
   WM_event_add_mousemove(window);

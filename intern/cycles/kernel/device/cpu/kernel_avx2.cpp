@@ -17,7 +17,7 @@
 #    define __KERNEL_SSE2__
 #    define __KERNEL_SSE3__
 #    define __KERNEL_SSSE3__
-#    define __KERNEL_SSE41__
+#    define __KERNEL_SSE42__
 #    define __KERNEL_AVX__
 #    define __KERNEL_AVX2__
 #  endif

@@ -10,7 +10,7 @@
 #include "BLI_set.hh"
 
 #include "BKE_idprop.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 struct bNodeTree;
 struct bNodeSocket;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BLI_rect.h"
 #include "COM_MultiThreadedOperation.h"
 #include "DNA_image_types.h"

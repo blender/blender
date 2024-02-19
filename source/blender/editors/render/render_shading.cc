@@ -30,7 +30,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -40,7 +40,7 @@
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -52,8 +52,8 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 #include "BKE_vfont.hh"
 #include "BKE_workspace.h"
@@ -1642,6 +1642,8 @@ static int lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
+  G.is_break = false;
+
   blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
 
   /* TODO: abort if selected engine is not eevee. */
@@ -1649,7 +1651,8 @@ static int lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
   /* Do the job. */
   wmJobWorkerStatus worker_status = {};
   EEVEE_NEXT_lightbake_job(rj, &worker_status);
-  /* Free baking data. Result is already stored in the scene data. */
+  /* Move baking data to original object and then free it. */
+  EEVEE_NEXT_lightbake_update(rj);
   EEVEE_NEXT_lightbake_job_data_free(rj);
 
   return OPERATOR_FINISHED;

@@ -24,7 +24,7 @@
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "UI_view2d.hh"
 
@@ -79,7 +79,7 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
     BKE_camera_params_compute_viewplane(&params, rd->xsch, rd->ysch, rd->xasp, rd->yasp);
     BKE_camera_params_compute_matrix(&params);
 
-    float4x4 viewmat = math::invert(float4x4(cam_ob->object_to_world));
+    float4x4 viewmat = math::invert(cam_ob->object_to_world());
 
     persmat_ = float4x4(params.winmat) * viewmat;
   }
@@ -149,7 +149,7 @@ void GpencilIO::create_object_list()
       continue;
     }
 
-    float3 object_position = float3(object->object_to_world[3]);
+    float3 object_position = float3(object->object_to_world().location());
 
     /* Save z-depth from view to sort from back to front. */
     if (is_camera_) {

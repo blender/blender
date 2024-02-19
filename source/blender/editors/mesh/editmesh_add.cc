@@ -7,13 +7,12 @@
  */
 
 #include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 #include "BLI_sys_types.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"

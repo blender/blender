@@ -217,7 +217,7 @@ class VfxModule {
 
     /* TODO(fclem): Replace by draw::View. */
     DRW_view_persmat_get(nullptr, persmat, false);
-    const float w = fabsf(mul_project_m4_v3_zfac(persmat, object->object_to_world[3]));
+    const float w = fabsf(mul_project_m4_v3_zfac(persmat, object->object_to_world().location()));
 
     if (fx.flag & FX_BLUR_DOF_MODE) {
       /* Compute circle of confusion size. */
@@ -232,7 +232,7 @@ class VfxModule {
       const float *vp_size = DRW_viewport_size_get();
 
       float world_pixel_scale = 1.0f / GPENCIL_PIXEL_FACTOR;
-      float scale = mat4_to_scale(object->object_to_world);
+      float scale = mat4_to_scale(object->object_to_world().ptr());
       float distance_factor = world_pixel_scale * scale * winmat[1][1] * vp_size[1] / w;
       blur_size *= distance_factor;
     }

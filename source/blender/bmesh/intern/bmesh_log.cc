@@ -31,7 +31,7 @@
 #include "bmesh_log.hh"
 #include "range_tree.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 struct BMLogEntry {
   BMLogEntry *next, *prev;

@@ -20,8 +20,6 @@
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
-#include "DEG_depsgraph.hh"
-
 #include "WM_api.hh"
 #include "WM_types.hh"
 
