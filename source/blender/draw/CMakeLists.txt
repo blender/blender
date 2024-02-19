@@ -956,6 +956,9 @@ if(WITH_GTESTS)
     endif()
     if(WITH_VULKAN_BACKEND)
       add_definitions(-DWITH_VULKAN_BACKEND)
+      list(APPEND INC_SYS
+        PUBLIC ${VULKAN_INCLUDE_DIRS}
+      )
     endif()
   endif()
 endif()
