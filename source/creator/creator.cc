@@ -12,6 +12,9 @@
 #ifdef WIN32
 #  include "utfconv.hh"
 #  include <windows.h>
+#  ifdef WITH_CPU_CHECK
+#    pragma comment(linker, "/include:cpu_check_win32")
+#  endif
 #endif
 
 #if defined(WITH_TBB_MALLOC) && defined(_MSC_VER) && defined(NDEBUG)
@@ -277,7 +280,6 @@ int main(int argc,
 )
 {
   bContext *C;
-
 #ifndef WITH_PYTHON_MODULE
   bArgs *ba;
 #endif

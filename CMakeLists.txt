@@ -387,6 +387,18 @@ else()
   set(WITH_SYSTEM_EIGEN3 OFF)
 endif()
 
+if((NOT WITH_PYTHON_MODULE) AND (
+      (WIN32 AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")) OR
+      ((UNIX AND NOT APPLE) AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64"))))
+  option(WITH_CPU_CHECK "\
+Report when a CPU is not compatible on startup \
+instead of failing to start with an inscrutable error."
+    ON
+  )
+  mark_as_advanced(WITH_CPU_CHECK)
+else()
+  set(WITH_CPU_CHECK OFF)
+endif()
 
 # Modifiers
 option(WITH_MOD_FLUID "Enable Mantaflow Fluid Simulation Framework" ON)
