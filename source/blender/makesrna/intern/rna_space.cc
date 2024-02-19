@@ -19,7 +19,7 @@
 #include "BKE_image.h"
 #include "BKE_key.hh"
 #include "BKE_movieclip.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_studiolight.h"
 #include "BKE_viewer_path.hh"
 

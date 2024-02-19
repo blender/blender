@@ -740,7 +740,7 @@ const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
 #  include "BKE_layer.hh"
 #  include "BKE_main.hh"
 #  include "BKE_mesh.hh"
-#  include "BKE_node.h"
+#  include "BKE_node.hh"
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.hh"
 #  include "BKE_screen.hh"

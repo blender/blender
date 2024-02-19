@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 extern bNodeTreeType *ntreeType_Geometry;
 

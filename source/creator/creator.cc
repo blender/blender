@@ -44,7 +44,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_particle.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"

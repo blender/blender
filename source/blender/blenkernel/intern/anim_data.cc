@@ -21,7 +21,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_report.hh"
 
 #include "DNA_ID.h"

@@ -57,7 +57,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
 #include "BKE_object.hh"

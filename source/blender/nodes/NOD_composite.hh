@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 namespace blender::realtime_compositor {
 class RenderContext;

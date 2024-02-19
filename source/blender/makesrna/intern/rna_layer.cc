@@ -38,7 +38,7 @@
 #  include "BKE_idprop.h"
 #  include "BKE_layer.hh"
 #  include "BKE_mesh.hh"
-#  include "BKE_node.h"
+#  include "BKE_node.hh"
 #  include "BKE_scene.hh"
 
 #  include "NOD_composite.hh"

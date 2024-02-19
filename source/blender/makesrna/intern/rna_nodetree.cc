@@ -36,7 +36,7 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_image.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_texture.h"

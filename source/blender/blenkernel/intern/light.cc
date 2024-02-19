@@ -26,7 +26,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_light.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 
 #include "BLT_translation.hh"
