@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-12 11:01+0000\n"
-"PO-Revision-Date: 2024-02-07 10:10+0000\n"
+"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"PO-Revision-Date: 2024-02-17 02:33+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -657,6 +657,10 @@ msgstr "モーションパスの設定"
 
 msgid "Motion Path settings for animation visualization"
 msgstr "アニメーション視覚化用モーションパス設定"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "モーションパスのポイントをアクティブカメラのカメラ空間でベイクします．これはそのカメラを通してみた時のみ正しく見えることを意味します．マーカー使用のカメラの切り替えには対応していません"
 
 
 msgid "Bake Location"
@@ -2223,6 +2227,10 @@ msgid "Horizontal dimension of the baking map"
 msgstr "ベイクするマップの横サイズ"
 
 
+msgid "Bézier curve point with two handles"
+msgstr "2つのハンドルがあるベジエカーブの制御点"
+
+
 msgid "Control Point"
 msgstr "制御点"
 
@@ -3515,6 +3523,10 @@ msgstr "イーズイン"
 msgctxt "Armature"
 msgid "Ease Out"
 msgstr "イーズアウト"
+
+
+msgid "Length of second Bézier Handle (for B-Bones only)"
+msgstr "2つめのベジエハンドルの長さ（B ボーン用のみ）"
 
 
 msgid "B-Bone End Handle Type"
@@ -7222,6 +7234,10 @@ msgid "Floor"
 msgstr "床"
 
 
+msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner cannot cross"
+msgstr "ターゲットの位置（とオプションで回転）を，オーナーが通過できない「壁」または「床」の設定に使用します"
+
+
 msgid "Follow Path"
 msgstr "パスに追従"
 
@@ -9333,6 +9349,10 @@ msgid "Handle Type"
 msgstr "ハンドルタイプ"
 
 
+msgid "Curve interpolation at this point: Bézier or vector"
+msgstr "このポイントの曲線の補間：ベジエもしくはベクトル"
+
+
 msgid "Auto Handle"
 msgstr "自動ハンドル"
 
@@ -9451,6 +9471,10 @@ msgstr "新規ストロークに使用するカーブタイプ"
 
 msgid "Poly"
 msgstr "多角形"
+
+
+msgid "Bézier"
+msgstr "ベジエ"
 
 
 msgid "Depth"
@@ -25298,6 +25322,10 @@ msgid "Omnidirectional point Light"
 msgstr "無指向性の点光源"
 
 
+msgid "Apply falloff to avoid sharp edges when the light geometry intersects with other objects"
+msgstr "ライトの形状が他のオブジェクトと交差する時，端がシャープにならないよう減衰を適用します"
+
+
 msgid "Spot Light"
 msgstr "スポットライト"
 
@@ -33704,6 +33732,11 @@ msgid "Straight-line interpolation between A and B (i.e. no ease in/out)"
 msgstr "AとBの間を直線で補間します（要はイーズイン・アウトなし）"
 
 
+msgctxt "Action"
+msgid "Bézier"
+msgstr "ベジエ"
+
+
 msgid "Smooth interpolation between A and B, with some control over curve shape"
 msgstr "AとBの間をコントロール可能なカーブ形状でスムーズに補間します"
 
@@ -34599,6 +34632,10 @@ msgid "Backbone Stretcher"
 msgstr "バックボーン伸縮"
 
 
+msgid "Bézier Curve"
+msgstr "ベジエカーブ"
+
+
 msgid "Blueprint"
 msgstr "設計図"
 
@@ -34721,6 +34758,14 @@ msgstr "バックボーンの長さ"
 
 msgid "Amount of backbone stretching"
 msgstr "バックボーンの伸縮量"
+
+
+msgid "Replace stroke backbone geometry by a Bézier curve approximation of the original backbone geometry"
+msgstr "ストロークのバックボーン形状を，元のバックボーン形状をベジエカーブで近似した物と入れ替えます"
+
+
+msgid "Maximum distance allowed between the new Bézier curve and the original backbone geometry"
+msgstr "新しいベジエカーブと元のバックボーン形状との間で許容される最大距離"
 
 
 msgid "Produce a blueprint using circular, elliptic, and square contour strokes"
@@ -36919,6 +36964,10 @@ msgid "The active modifier in the list"
 msgstr "リスト内のアクティブモディファイアー"
 
 
+msgid "Persistent UID"
+msgstr "不変UID"
+
+
 msgid "On Cage"
 msgstr "ケージで"
 
@@ -39048,6 +39097,10 @@ msgstr "フックの原点．減衰や表示で使用します"
 
 msgid "Vertex Indices"
 msgstr "頂点インデックス数"
+
+
+msgid "Indices of vertices bound to the modifier. For Bézier curves, handles count as additional vertices"
+msgstr "モディファイアーにバインドされた頂点のインデックス数．ベジエカーブでは，ハンドル数が追加の頂点としてカウントされます"
 
 
 msgid "Laplacian Deform Modifier"
@@ -45632,6 +45685,10 @@ msgid "Minimum speed for a pixel to be blurred (used to separate background from
 msgstr "ブラーするピクセルの最小速度（前面から背景を分離するのに使用します）"
 
 
+msgid "Interpolate between frames in a Bézier curve, rather than linearly"
+msgstr "フレーム間の補間にリニア（直線）ではなくベジエ曲線を使用"
+
+
 msgid "Tile Order"
 msgstr "タイルの順序"
 
@@ -46242,6 +46299,10 @@ msgid "Retrieve the curve a control point is part of"
 msgstr "ある制御点が属するカーブを取得します"
 
 
+msgid "Bézier Segment"
+msgstr "ベジエセグメント"
+
+
 msgid "Generate a 2D Bézier spline from the given control points and handles"
 msgstr "与えられた制御点とハンドルで2Dベジエスプラインを生成します"
 
@@ -46330,6 +46391,10 @@ msgid "Create a quadrilateral from four points"
 msgstr "4つのポイントから四角形を作成します"
 
 
+msgid "Quadratic Bézier"
+msgstr "二次ベジエ"
+
+
 msgid "Generate a poly spline in a parabola shape with control points positions"
 msgstr "制御点と位置で放物線状のポリスプラインを生成します"
 
@@ -46404,6 +46469,12 @@ msgstr "入力カーブからポイントを生成する方法"
 
 msgid "Evaluated"
 msgstr "評価済"
+
+
+msgid "Create points from the curve's evaluated points, based on the resolution attribute for NURBS and Bézier splines"
+msgstr ""
+"NURBS やベジエスプラインの解像度属性を元に．\n"
+"カーブの評価済みポイントからポイントを生成します"
 
 
 msgid "Sample each spline by evenly distributing the specified number of points"
@@ -46618,6 +46689,14 @@ msgstr "各制御点毎に円弧を生成し，角丸にします"
 
 msgid "How to choose number of vertices on fillet"
 msgstr "制御点に円弧を作成する方法"
+
+
+msgid "Align Bézier handles to create circular arcs at each control point"
+msgstr "制御点毎に円弧ができるようベジエハンドルを整列します"
+
+
+msgid "Add control points along a circular arc (handle type is vector if Bézier Spline)"
+msgstr "円弧に沿って制御点を追加します（ベジエスプラインの場合，ハンドルタイプはベクトル）"
 
 
 msgid "Flip Faces"
@@ -47295,6 +47374,13 @@ msgstr "入力スプライン毎にポリスプラインを生成します"
 
 msgid "How to specify the amount of samples"
 msgstr "サンプル数を指定する方法"
+
+
+msgid "Output the input spline's evaluated points, based on the resolution attribute for NURBS and Bézier splines. Poly splines are unchanged"
+msgstr ""
+"NURBS やベジエスプラインの resolution 属性を元に，\n"
+"入力スプラインの評価済みポイントを出力します．\n"
+"ポリスプラインは変更しません"
 
 
 msgid "Sample the specified number of points along each spline"
@@ -51679,6 +51765,10 @@ msgid "Choose the interpolation type with which new keys will be added"
 msgstr "新規追加するキーの補間タイプを選択します"
 
 
+msgid "New keys will be Bézier"
+msgstr "新規キーの補間がベジエになります"
+
+
 msgid "New keys will be linear"
 msgstr "新規キーの補間がリニアになります"
 
@@ -55802,6 +55892,15 @@ msgid "Toggle between Vector and Auto handles"
 msgstr "ベクトルと自動ハンドルを切り替えます"
 
 
+msgctxt "Operator"
+msgid "Add Bézier Circle"
+msgstr "ベジエ円を追加"
+
+
+msgid "Construct a Bézier Circle"
+msgstr "ベジエの円を作成します"
+
+
 msgid "The alignment of the new object"
 msgstr "新規オブジェクトの方向"
 
@@ -55836,6 +55935,15 @@ msgstr "新しく追加されたオブジェクトの回転"
 
 msgid "Scale for the newly added object"
 msgstr "新しく追加されたオブジェクトのスケール"
+
+
+msgctxt "Operator"
+msgid "Add Bézier"
+msgstr "ベジエを追加"
+
+
+msgid "Construct a Bézier Curve"
+msgstr "ベジエ曲線を作成します"
 
 
 msgctxt "Operator"
@@ -56071,6 +56179,10 @@ msgstr "アクティブスプラインのタイプを設定します"
 
 msgid "Handles"
 msgstr "ハンドル"
+
+
+msgid "Use handles when converting Bézier curves into polygons"
+msgstr "ベジエカーブをポリゴンに変換する時に使用するハンドル"
 
 
 msgctxt "Operator"
@@ -59399,8 +59511,16 @@ msgid "Animation path"
 msgstr "アニメーションパス"
 
 
+msgid "Smooth Bézier curve"
+msgstr "スムーズベジエカーブ"
+
+
 msgid "Polygon Curve"
 msgstr "ポリゴンカーブ"
+
+
+msgid "Bézier curve with straight-line segments (vector handles)"
+msgstr "セグメントが直線（ベクトルハンドル）のベジエカーブ"
 
 
 msgid "Link Strokes"
@@ -61723,6 +61843,14 @@ msgid "Handle Length"
 msgstr "ハンドルの長さ"
 
 
+msgid "Length to make selected keyframes' Bézier handles"
+msgstr "選択中のキーフレームのベジエハンドルの長さ"
+
+
+msgid "Side of the keyframes' Bézier handles to affect"
+msgstr "キーフレームの左右どちらのベジエハンドルに影響を与えるか"
+
+
 msgid "Equalize selected keyframes' left handles"
 msgstr "選択キーフレームの左のハンドルを均一にします"
 
@@ -62362,6 +62490,15 @@ msgid "Name of the new layer group"
 msgstr "新規レイヤーグループの名前"
 
 
+msgctxt "Operator"
+msgid "Isolate Layers"
+msgstr "レイヤーをソロ化"
+
+
+msgid "Make only active layer visible/editable"
+msgstr "アクティブレイヤーのみ表示/編集できるようにします"
+
+
 msgid "Remove the active Grease Pencil layer"
 msgstr "アクティブグリースペンシルレイヤーを削除します"
 
@@ -62411,6 +62548,23 @@ msgstr "非選択マテリアルをロック"
 
 msgid "Lock and hide any material not used"
 msgstr "未使用のマテリアルをロックして隠します"
+
+
+msgctxt "Operator"
+msgid "Move to Layer"
+msgstr "レイヤーに移動"
+
+
+msgid "New Layer"
+msgstr "新規レイヤー"
+
+
+msgid "Move selection to a new layer"
+msgstr "選択物を新規レイヤーに移動します"
+
+
+msgid "Target Grease Pencil Layer"
+msgstr "ターゲットグリースペンシルレイヤー"
 
 
 msgctxt "Operator"
@@ -62467,8 +62621,28 @@ msgid "Selects random points from the current strokes selection"
 msgstr "現在のストロークの選択からランダムにポイントを選択します"
 
 
+msgid "Separate the selected geometry into a new grease pencil object"
+msgstr "選択中のジオメトリを新しいグリースペンシルオブジェクトに分離します"
+
+
+msgid "Separate selected geometry"
+msgstr "選択中の形状を分離します"
+
+
 msgid "By Material"
 msgstr "マテリアルで"
+
+
+msgid "Separate by material"
+msgstr "マテリアルで分離します"
+
+
+msgid "By Layer"
+msgstr "レイヤーで"
+
+
+msgid "Separate by layer"
+msgstr "レイヤーで分離します"
 
 
 msgctxt "Operator"
@@ -66953,6 +67127,19 @@ msgstr "シャープ辺を維持"
 
 msgid "Do not set sharp edges to face"
 msgstr "シャープ辺を面に設定しません"
+
+
+msgctxt "Operator"
+msgid "Set Sharpness by Angle"
+msgstr "角度でシャープ設定"
+
+
+msgid "Set edge sharpness based on the angle between neighboring faces"
+msgstr "辺を共有する隣り合う面の間の角度を元に，辺のシャープ値を設定します"
+
+
+msgid "Add new sharp edges without clearing existing sharp edges"
+msgstr "既存のシャープ辺をクリアせず，新しいシャープ辺を追加します"
 
 
 msgctxt "Operator"
@@ -75033,6 +75220,20 @@ msgstr "リポジトリとファイルを削除します"
 
 msgid "Delete all associated local files when removing"
 msgstr "削除時に関連するすべてのローカルファイルを削除します"
+
+
+msgctxt "Operator"
+msgid "Check for Updates"
+msgstr "更新をチェック"
+
+
+msgid "Synchronize the active extension repository with its remote URL"
+msgstr "アクティブエクステンションリポジトリを，そのリモート URL で同期します"
+
+
+msgctxt "Operator"
+msgid "Update Repository"
+msgstr "リポジトリを更新"
 
 
 msgctxt "Operator"
@@ -84589,6 +84790,10 @@ msgid "Add or remove an Operator Preset"
 msgstr "オペレータープリセットを追加・削除します"
 
 
+msgid "Remove outdated operator properties from presets that may cause problems"
+msgstr "問題を起こす可能性のあるプリセットから古いオペレータープロパティを削除します"
+
+
 msgid "Disable add-on for workspace"
 msgstr "ワークスペースでアドオンを無効にします"
 
@@ -93547,6 +93752,10 @@ msgid "Prefilter noisy guiding passes before denoising color. Improves quality w
 msgstr "カラーのデノイズ前に，ノイズのあるガイドパスをプリフィルター処理します．ガイドパスにノイズが多い時，処理時間を増加して品質を向上します"
 
 
+msgid "Denoise on GPU"
+msgstr "GPUでデノイズ"
+
+
 msgid "Device"
 msgstr "デバイス"
 
@@ -93928,6 +94137,10 @@ msgstr "デノイズ開始"
 
 msgid "Sample to start denoising the preview at"
 msgstr "プレビューでデノイズを開始するサンプル数"
+
+
+msgid "Denoise Preview on GPU"
+msgstr "GPUでデノイズプレビュー"
 
 
 msgid "Viewport Dicing Rate"
@@ -99090,6 +99303,10 @@ msgid "Type of filter to use for image transformation"
 msgstr "画像のトランスフォームに使用するフィルタータイプ"
 
 
+msgid "Automatically choose filter based on scaling factor"
+msgstr "スケール係数を元にフィルターを自動的に選択します"
+
+
 msgid "Use nearest sample"
 msgstr "ニアレストサンプルを使用"
 
@@ -99725,6 +99942,14 @@ msgstr "現在のフレームでのシェイプキーの値"
 
 msgid "Vertex weight group, to blend with basis shape"
 msgstr "基本シェイプと混合するための，頂点ウェイトグループ"
+
+
+msgid "Shape Key Bézier Point"
+msgstr "シェイプキーベジエ制御点"
+
+
+msgid "Point in a shape key for Bézier curves"
+msgstr "ベジエカーブ用シェイプキーの制御点"
 
 
 msgid "Handle 1 Location"
@@ -100555,6 +100780,10 @@ msgid "Show Handles and Interpolation"
 msgstr "ハンドルと補間を表示"
 
 
+msgid "Display keyframe handle types and non-Bézier interpolation modes"
+msgstr "キーフレームのハンドルタイプと非ベジエ補間モードを表示します"
+
+
 msgid "Show Markers"
 msgstr "マーカーを表示"
 
@@ -100701,6 +100930,10 @@ msgid "Graph Editor space data"
 msgstr "グラフエディタースペースデータ"
 
 
+msgid "Auto-Lock Key Axis"
+msgstr "キーの軸を自動ロック"
+
+
 msgid "Cursor X-Value"
 msgstr "カーソルのX値"
 
@@ -100751,6 +100984,10 @@ msgstr "外挿を表示"
 
 msgid "Show Handles"
 msgstr "ハンドルを表示"
+
+
+msgid "Show handles of Bézier control points"
+msgstr "ベジエの制御点のハンドルを表示します"
 
 
 msgid "Auto Normalization"
@@ -102710,6 +102947,14 @@ msgid "Opacity of UV overlays"
 msgstr "UVオーバーレイの不透明度"
 
 
+msgid "Element of a curve, either NURBS, Bézier or Polyline or a character with text objects"
+msgstr "カーブの成分．NURBS・ベジエ・ポリライン，もしくはテキストオブジェクトの文字"
+
+
+msgid "Collection of points for Bézier curves only"
+msgstr "ベジエカーブ用のみの点の集合"
+
+
 msgid "Character Index"
 msgstr "文字インデックス"
 
@@ -102766,6 +103011,10 @@ msgid "Radius Interpolation"
 msgstr "半径補間"
 
 
+msgid "The type of radius interpolation for Bézier curves"
+msgstr "ベジエカーブの半径の補間タイプ"
+
+
 msgid "Curve or Surface subdivisions per segment"
 msgstr "カーブもしくはサーフェスの節ごとの分割数"
 
@@ -102778,8 +103027,28 @@ msgid "Tilt Interpolation"
 msgstr "傾きの補間"
 
 
+msgid "The type of tilt interpolation for 3D, Bézier curves"
+msgstr "3Dのベジエカーブでの傾きの補間タイプ"
+
+
 msgid "The interpolation type for this curve element"
 msgstr "このカーブ要素の補間タイプ"
+
+
+msgid "Bézier U"
+msgstr "ベジエ U"
+
+
+msgid "Make this nurbs curve or surface act like a Bézier spline in the U direction"
+msgstr "この NURBS カーブまたはサーフェスの挙動を，ベジエスプラインの U 方向と同じにします"
+
+
+msgid "Bézier V"
+msgstr "ベジエ V"
+
+
+msgid "Make this nurbs surface act like a Bézier spline in the V direction"
+msgstr "この NURBS サーフェスの挙動を，ベジエスプラインの V 方向と同じにします"
 
 
 msgid "Make this curve or surface a closed loop in the U direction"
@@ -102808,6 +103077,14 @@ msgstr "この NURBS サーフェスの V 方向の両端をぴったり合わ�
 
 msgid "Smooth the normals of the surface or beveled curve"
 msgstr "サーフェスもしくはベベルしたカーブの法線のスムージング"
+
+
+msgid "Spline Bézier Points"
+msgstr "スプラインベジエ制御点"
+
+
+msgid "Collection of spline Bézier points"
+msgstr "スプラインベジエ制御点の集合"
 
 
 msgid "Spline point without handles"
@@ -103697,6 +103974,10 @@ msgstr "ドープシートサブチャンネル"
 
 msgid "Interpolation Line"
 msgstr "ラインの補間"
+
+
+msgid "Color of lines showing non-Bézier interpolation modes"
+msgstr "非ベジエ補間モードを表示するラインの色"
 
 
 msgid "Color of Keyframe"
@@ -111772,6 +112053,10 @@ msgid "Prefilter"
 msgstr "プレフィルター"
 
 
+msgid "Use GPU"
+msgstr "GPUを使用"
+
+
 msgid "Curve Subdivisions"
 msgstr "カーブの分割数"
 
@@ -112357,6 +112642,18 @@ msgid "Unexpected non-zero user count for the asset, please report this as a bug
 msgstr "非０のユーザー数のある予想外のアセットがあります．バグとして報告してください"
 
 
+msgid "Current editor is not an asset browser"
+msgstr "現在のエディターがアセットブラウザーではありません"
+
+
+msgid "Clipboard is empty"
+msgstr "クリップボードが空です"
+
+
+msgid "Clipboard does not contain an asset"
+msgstr "クリップボードにアセットがありません"
+
+
 msgid "Did not find any assets on clipboard"
 msgstr "クリップボードにアセットがありませんでした"
 
@@ -112369,12 +112666,20 @@ msgid "Selected asset %s is not an Action"
 msgstr "選択中のアセット「%s」はアクションではありません"
 
 
+msgid "Active object has no Action"
+msgstr "アクティブオブジェクトにアクションがありません"
+
+
 msgid "Action %r is not a legacy pose library"
 msgstr "アクション「%r」は旧ポーズライブラリではありません"
 
 
 msgid "Unable to convert to pose assets"
 msgstr "ポーズアセットに変換できません"
+
+
+msgid "Active object has no pose library Action"
+msgstr "アクティブオブジェクトにポーズライブラリアクションがありません"
 
 
 msgid "Selected bones from %s"
@@ -112758,6 +113063,10 @@ msgid "Bone colors were synced; for %d bones this will not be visible due to pos
 msgstr "ボーンカラーを同期しました．%d 個のボーンがポーズボーンカラーオーバーライドにより見えなくなります"
 
 
+msgid "All bone collections are in use"
+msgstr "すべてのボーンコレクションが使用中です"
+
+
 msgid "Go to pose mode to copy pose bone colors"
 msgstr "ポーズボーンカラーのコピーはポーズモードで行ってください"
 
@@ -112772,6 +113081,14 @@ msgstr "シェーダーノードツリー「%s」を使用するマテリアル�
 
 msgid "Could not find scene using Compositor Node Tree - %s"
 msgstr "コンポジターノードツリー「%s」を使用するシーンが見つかりません"
+
+
+msgid "Asset metadata from external asset libraries can't be edited, only assets stored in the current file can"
+msgstr "外部アセットライブラリのアセットメタデータは編集できません．現在のファイル内のアセットのみ可能です"
+
+
+msgid "No asset selected"
+msgstr "アセットが選択されていません"
 
 
 msgid "This asset is stored in the current blend file"
@@ -113064,6 +113381,14 @@ msgstr "シーケンスが未選択です"
 
 msgid "Current frame not within strip framerange"
 msgstr "現在のフレームはストリップのフレーム範囲内ではありません"
+
+
+msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
+msgstr "テキストエディターの引数フォーマットは，プリファレンスの「ファイルパス→アプリケーション」の入力フィールドのツールチップにあります"
+
+
+msgid "Text Editor Args Format must contain $filepath"
+msgstr "テキストエディターの引数フォーマットには「$filepath」が必要です"
 
 
 msgid "Reload Start-Up file to restore settings"
@@ -118772,6 +119097,11 @@ msgstr "モンキー"
 
 
 msgctxt "Operator"
+msgid "Bézier"
+msgstr "ベジエ"
+
+
+msgctxt "Operator"
 msgid "Nurbs Curve"
 msgstr "NURBSカーブ"
 
@@ -121061,6 +121391,14 @@ msgid "Must have more control points than Order"
 msgstr "階数以上の個数の制御点が必要です"
 
 
+msgid "%d more %s row(s) needed for Bézier"
+msgstr "ベジエに %d 個より多い %s が必要です"
+
+
+msgid "%d more point(s) needed for Bézier"
+msgstr "ベジエに %d 個より多い制御点が必要です"
+
+
 msgid "curves"
 msgstr "カーブ"
 
@@ -123166,6 +123504,10 @@ msgid "Cannot duplicate current selection"
 msgstr "現在の選択物を複製できません"
 
 
+msgid "Only Bézier curves are supported"
+msgstr "ベジエカーブのみ対応しています"
+
+
 msgid "Active object is not a selected curve"
 msgstr "アクティブオブジェクトは選択中のカーブではありません"
 
@@ -123176,6 +123518,16 @@ msgstr "%d 個のカーブが分離できませんでした"
 
 msgid "%d curves could not make segments"
 msgstr "%d 個のカーブにセグメントが作成できませんでした"
+
+
+msgctxt "Curve"
+msgid "BézierCurve"
+msgstr "ベジエカーブ"
+
+
+msgctxt "Curve"
+msgid "BézierCircle"
+msgstr "ベジエ円"
 
 
 msgctxt "Curve"
@@ -123756,6 +124108,22 @@ msgid "No valid image format selected"
 msgstr "有効な画像フォーマットを選択してください"
 
 
+msgid "Confirm: Enter/LMB, Cancel: (Esc/RMB) %s"
+msgstr "確定：Enter/左クリック，キャンセル：(Esc/右クリック) %s"
+
+
+msgid ", Translation: (%f, %f)"
+msgstr "，移動：(%f, %f)"
+
+
+msgid ", Rotation: %f"
+msgstr "，回転：%f"
+
+
+msgid ", Scale: %f"
+msgstr "，スケール：%f"
+
+
 msgid "Palette created"
 msgstr "パレットを作成しました"
 
@@ -123798,6 +124166,18 @@ msgstr "肌（影）"
 
 msgid "Material '%s' could not be found"
 msgstr "マテリアル「%s」が見つかりません"
+
+
+msgid "The object has only one material"
+msgstr "オブジェクトにマテリアルが一つしかありません"
+
+
+msgid "The object has only one layer"
+msgstr "オブジェクトにレイヤーが一つしかありません"
+
+
+msgid "There is no layer '%s'"
+msgstr "レイヤー「%s」がありません"
 
 
 msgid "Failed to set value"
@@ -128226,12 +128606,24 @@ msgid "Shear Keys"
 msgstr "キーをせん断"
 
 
+msgid "[D] - Scale From Right End"
+msgstr "[D] - 右端を基準にスケーリング"
+
+
+msgid "[D] - Scale From Left End"
+msgstr "[D] - 左端を基準にスケーリング"
+
+
 msgid "Decimate F-Curves by specifying how much they can deviate from the original curve"
 msgstr "元のカーブから外れることのできる許容量を指定し，F カーブを減量します"
 
 
 msgid "Cannot find keys to operate on"
 msgstr "操作するキーがありません"
+
+
+msgid "Decimate: Skipping non linear/Bézier keyframes!"
+msgstr "デシメート：リニアとベジエキーフレーム以外をスキップ！"
 
 
 msgid "You need at least 2 keys to the right side of the selection"
@@ -129752,6 +130144,10 @@ msgstr "ファイル関連付けの登録解除ができませんでした"
 
 msgid "There is no asset library to remove"
 msgstr "削除するアセットライブラリがありません"
+
+
+msgid "An enabled repository must be selected"
+msgstr "利用可能なリポジトリを選択してください"
 
 
 msgid "There is no extension repository to remove"
@@ -131302,6 +131698,14 @@ msgid "USD Export: couldn't construct relative file path for .vdb file, absolute
 msgstr "USD Export: .vdb ファイルへの相対パスが生成できません．代わりに絶対パスを使用します"
 
 
+msgid "Linked data-blocks cannot be renamed"
+msgstr "リンクデータブロックはリネームできません"
+
+
+msgid "Built-in fonts cannot be renamed"
+msgstr "ビルトインフォントはリネームできません"
+
+
 msgid "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset"
 msgstr "アセットデータはアセットにのみ割り当て可能です．アセットとしてマークするには asset_mark()を使用してください"
 
@@ -131614,6 +132018,14 @@ msgstr "イージング(強さ準拠)"
 msgctxt "Action"
 msgid "Dynamic Effects"
 msgstr "ダイナミックエフェクト"
+
+
+msgid "Bézier spline cannot have points added"
+msgstr "ベジエスプラインに制御点が追加できません"
+
+
+msgid "Only Bézier splines can be added"
+msgstr "ベジエスプラインのみ追加できます"
 
 
 msgid "Curve '%s' does not contain spline given"
@@ -133591,6 +134003,10 @@ msgid "The string to replace each match with"
 msgstr "マッチ毎に置き換える文字列"
 
 
+msgid "Use the \"Rotate Rotation\" node instead"
+msgstr "代わりに「回転を回転」ノードを使用してください"
+
+
 msgid "Decimals"
 msgstr "小数桁数"
 
@@ -133996,6 +134412,10 @@ msgstr "外側のポイントの選択の付いた属性フィールド"
 
 msgid "Curve Index"
 msgstr "カーブインデックス"
+
+
+msgid "Input curves do not have Bézier type"
+msgstr "入力カーブにベジエタイプがありません"
 
 
 msgid "For points, the portion of the spline's total length at the control point. For Splines, the factor of that spline within the entire curve"
@@ -135834,6 +136254,10 @@ msgid "%s: %.*s"
 msgstr "%s: %.*s"
 
 
+msgid "Text '%s'"
+msgstr "テキスト「%s」"
+
+
 msgid "Could not resolve path (%s)"
 msgstr "パスを解決できません（%s）"
 
@@ -137352,6 +137776,10 @@ msgid "Belarusian (беларуску)"
 msgstr "ベラルーシ語（беларуску）"
 
 
+msgid "Danish (Dansk)"
+msgstr "デンマーク語（Dansk）"
+
+
 msgid "Complete"
 msgstr "完了"
 
@@ -137384,10 +137812,6 @@ msgid "Surface UV Coordinate"
 msgstr "サーフェスUV座標"
 
 
-msgid "Surface UV coordinate at the attachment point"
-msgstr "植え付けた場所のサーフェス UV 座標"
-
-
 msgid "Surface Normal"
 msgstr "サーフェス法線"
 
@@ -137396,16 +137820,12 @@ msgid "Surface normal at the attachment point"
 msgstr "植え付けた場所のサーフェス法線"
 
 
-msgid "Surface Geometry to attach hair curves to"
-msgstr "ヘアーカーブを植え付けるサーフェスジオメトリ"
-
-
 msgid "Surface Object to attach to (needs to have matching transforms)"
 msgstr "植え付けるサーフェスオブジェクト（トランスフォームを合わせる必要があります）"
 
 
-msgid "Surface UV map used for attachment "
-msgstr "植え付けに使用するサーフェス UV マップ "
+msgid "Surface UV map used for attachment"
+msgstr "植え付けに使用するサーフェス UV マップ"
 
 
 msgid "Sample Attachment UV"
@@ -137426,10 +137846,6 @@ msgstr "各カーブの根元を一番近いサーフェスの位置にスナッ
 
 msgid "Align to Surface Normal"
 msgstr "サーフェス法線に揃える"
-
-
-msgid "Align the curve to the surface normal (need guide as reference)"
-msgstr "カーブをサーフェス法線に揃えます（ガイドが参照として必要）"
 
 
 msgid "Blend along Curve"
@@ -137522,10 +137938,6 @@ msgstr "新規ガイドマップでの二つのガイド間の最短距離"
 
 msgid "Guide Mask"
 msgstr "ガイドマスク"
-
-
-msgid "Mask for which curve are eligible to be selected as guides"
-msgstr "どのカーブがガイドの選出に適しているのかを示すマスク"
 
 
 msgid "Existing Guide Map"
@@ -137672,16 +138084,8 @@ msgid "Guide Selection"
 msgstr "ガイドの選択"
 
 
-msgid "Guide Curves or Points used for the selection of Guide Curves"
-msgstr "ガイドカーブの選択に使用されるガイドカーブまたはポイント"
-
-
 msgid "Minimum distance between two guides"
 msgstr "二つのガイド間の最短距離"
-
-
-msgid "ID to group together curves for guide map creation"
-msgstr "ガイドマップ作成でカーブをまとめるグループ ID"
 
 
 msgid "Curl Hair Curves"
@@ -137740,28 +138144,8 @@ msgid "Curve ID"
 msgstr "カーブID"
 
 
-msgid "ID of each Curve"
-msgstr "各カーブの ID"
-
-
-msgid "Length of each Curve"
-msgstr "各カーブの長さ"
-
-
-msgid "Direction from root to tip of each Curve"
-msgstr "各カーブの根元から先端への方向"
-
-
-msgid "Random vector for each Curve"
-msgstr "各カーブのランダムベクトル"
-
-
 msgid "Surface UV"
 msgstr "サーフェスUV"
-
-
-msgid "Attachment surface UV coordinate of each Curve"
-msgstr "各カーブの植え付けたサーフェスの UV 座標"
 
 
 msgid "Curve Root"
@@ -137784,24 +138168,12 @@ msgid "Root Position"
 msgstr "根元の位置"
 
 
-msgid "Position of the root point of a Curve"
-msgstr "カーブの根元ポイントの位置"
-
-
 msgid "Root Direction"
 msgstr "根元の方向"
 
 
-msgid "Direction of the root segment of a Curve"
-msgstr "カーブの根元セグメントの方向"
-
-
 msgid "Root Index"
 msgstr "根元インデックス"
-
-
-msgid "Index of the root point of a Curve"
-msgstr "カーブの根元ポイントのインデックス"
 
 
 msgid "Curve Segment"
@@ -137810,10 +138182,6 @@ msgstr "カーブセグメント"
 
 msgid "Reads information each point's previous curve segment"
 msgstr "各ポイントの前のカーブセグメントの情報を読み込みます"
-
-
-msgid "Distance to previous point on Curve"
-msgstr "カーブの前のポイントとの距離"
 
 
 msgid "Segment Direction"
@@ -137852,20 +138220,8 @@ msgid "Tip Position"
 msgstr "先端の位置"
 
 
-msgid "Position of the tip point of a Curve"
-msgstr "カーブの先端のポイントの位置"
-
-
 msgid "Tip Direction"
 msgstr "先端の方向"
-
-
-msgid "Direction of the tip segment of a Curve"
-msgstr "カーブの先端セグメントの方向"
-
-
-msgid "Index of the tip point of a Curve"
-msgstr "カーブの先端ポイントのインデックス"
 
 
 msgid "Displace Hair Curves"
@@ -137972,14 +138328,6 @@ msgid "Normal direction of the surface mesh at the attachment point"
 msgstr "サーフェスメッシュの植え付けた場所での法線方向"
 
 
-msgid "Surface geometry for generation "
-msgstr "生成用のサーフェスジオメトリ "
-
-
-msgid "Surface object for generation (Needs matching transforms)"
-msgstr "生成用のサーフェスオブジェクト（トランスフォームを合わせる必要があります）"
-
-
 msgid "Length of the generated hair curves"
 msgstr "生成するヘアーカーブの長さ"
 
@@ -138000,10 +138348,6 @@ msgid "Poisson Disk Distribution"
 msgstr "ポアソンディスク分布"
 
 
-msgid "Use poisson disk distribution method to keep a minimum distance"
-msgstr "ポアソンディスク分布を最短距離の維持に使用します"
-
-
 msgid "Surface density of generated hair curves"
 msgstr "生成したヘアーカーブのサーフェス密度"
 
@@ -138014,10 +138358,6 @@ msgstr "密度マスク"
 
 msgid "Factor applied on the density for curve distribution"
 msgstr "カーブ分布の密度に適用される係数"
-
-
-msgid "Discard points based on an mask texture after distribution"
-msgstr "配置後、マスクテクスチャを元にポイントを破棄します"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -138036,10 +138376,6 @@ msgid "Attachment UV"
 msgstr "植え付けUV"
 
 
-msgid "Surface attachment UV coordinate stored on each curve"
-msgstr "各カーブに格納された，サーフェスに植え付ける UV 座標"
-
-
 msgid "Attachment is Valid"
 msgstr "植え付けが有効"
 
@@ -138054,10 +138390,6 @@ msgstr "サーフェスジオメトリ"
 
 msgid "Surface geometry of the curve attachment"
 msgstr "カーブを植え付けるサーフェスジオメトリ"
-
-
-msgid "Surface UV map used for attachment"
-msgstr "植え付けに使用するサーフェス UV マップ"
 
 
 msgid "Deforms hair curves using a noise texture"
@@ -138080,24 +138412,12 @@ msgid "Scale along Curve"
 msgstr "カーブに沿ったスケール"
 
 
-msgid "Scale of noise texture along each Curve"
-msgstr "各カーブに沿ったノイズテクスチャのスケール"
-
-
 msgid "Offset per Curve"
 msgstr "カーブ毎のオフセット"
 
 
-msgid "Random offset of noise texture for each Curve"
-msgstr "各カーブのノイズテクスチャのランダムオフセット"
-
-
 msgid "Seed value for randomization"
 msgstr "乱数のシード値"
-
-
-msgid "Preserve the length of the Curves on a segment basis"
-msgstr "セグメントを元にカーブの長さを維持します"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
@@ -138146,10 +138466,6 @@ msgstr "カーブポイント再配置"
 
 msgid "Redistributes existing control points evenly along each curve"
 msgstr "既存の制御点を各カーブに沿って均等に再配置します"
-
-
-msgid "Use simeple feature awareness to keep feature definition"
-msgstr "明確な特徴を維持するのにシンプルな特徴認識を使用します"
 
 
 msgid "Restore Curve Segment Length"
@@ -138260,14 +138576,6 @@ msgid "Factor to influence the rotation angle"
 msgstr "回転角度の影響係数"
 
 
-msgid "Rotation Axis (Default: Tangent at root)"
-msgstr "回転軸（デフォルト：根元のタンジェント）"
-
-
-msgid "Random offset to the rotation angle per Curve"
-msgstr "各カーブの回転角度へのランダムオフセット"
-
-
 msgid "Lock Ends"
 msgstr "端をロック"
 
@@ -138326,10 +138634,6 @@ msgstr "サーフェスの上のポイントとシュリンクラップをブレ
 
 msgid "Smoothing Steps"
 msgstr "スムージングステップ数"
-
-
-msgid "Amount of steps of smoothing applied after shwrinkwrap"
-msgstr "シュリンクラップ後に適用されるスムージングのステップ数"
 
 
 msgid "Lock Roots"
