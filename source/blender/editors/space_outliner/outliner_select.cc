@@ -319,6 +319,7 @@ static void tree_element_object_activate(bContext *C,
   sce = (Scene *)outliner_search_back(te, ID_SCE);
   if (sce && scene != sce) {
     WM_window_set_active_scene(CTX_data_main(C), C, CTX_wm_window(C), sce);
+    view_layer = WM_window_get_active_view_layer(CTX_wm_window(C));
     scene = sce;
   }
 
