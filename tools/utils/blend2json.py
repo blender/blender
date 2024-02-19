@@ -124,7 +124,7 @@ def gen_fake_addresses(args, blend):
             hashes.add(hsh)
             ret[block.addr_old] = hsh
             if (args.raw_bblock):
-                hash_seed +=1
+                hash_seed += 1
         return ret
 
     return {}
@@ -235,6 +235,7 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
     def gen_data_keyval(blend, block, key_filter=None):
         if raw_bblock:
             return []
+
         def _is_pointer(k):
             return blend.structs[block.sdna_index].field_from_path(blend.header, blend.handle, k).dna_name.is_pointer
         if key_filter is not None:
