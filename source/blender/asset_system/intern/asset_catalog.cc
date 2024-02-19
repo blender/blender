@@ -116,16 +116,16 @@ bool AssetCatalogService::is_empty() const
   return catalog_collection_->catalogs_.is_empty();
 }
 
-OwningAssetCatalogMap &AssetCatalogService::get_catalogs()
+OwningAssetCatalogMap &AssetCatalogService::get_catalogs() const
 {
   return catalog_collection_->catalogs_;
 }
-OwningAssetCatalogMap &AssetCatalogService::get_deleted_catalogs()
+OwningAssetCatalogMap &AssetCatalogService::get_deleted_catalogs() const
 {
   return catalog_collection_->deleted_catalogs_;
 }
 
-AssetCatalogDefinitionFile *AssetCatalogService::get_catalog_definition_file()
+AssetCatalogDefinitionFile *AssetCatalogService::get_catalog_definition_file() const
 {
   return catalog_collection_->catalog_definition_file_.get();
 }
@@ -560,7 +560,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
 }
 
 std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_in_memory(
-    const CatalogFilePath &file_path)
+    const CatalogFilePath &file_path) const
 {
   auto cdf = std::make_unique<AssetCatalogDefinitionFile>();
   cdf->file_path = file_path;
@@ -572,12 +572,12 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_i
   return cdf;
 }
 
-AssetCatalogTree *AssetCatalogService::get_catalog_tree()
+AssetCatalogTree *AssetCatalogService::get_catalog_tree() const
 {
   return catalog_tree_.get();
 }
 
-std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree()
+std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree() const
 {
   auto tree = std::make_unique<AssetCatalogTree>();
 

@@ -49,7 +49,7 @@ class TestableAssetCatalogService : public AssetCatalogService {
     return AssetCatalogService::get_catalog_definition_file();
   }
 
-  OwningAssetCatalogMap &get_deleted_catalogs()
+  OwningAssetCatalogMap &get_deleted_catalogs() const
   {
     return AssetCatalogService::get_deleted_catalogs();
   }

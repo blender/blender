@@ -178,7 +178,7 @@ class AssetCatalogService {
    */
   void update_catalog_path(CatalogID catalog_id, const AssetCatalogPath &new_catalog_path);
 
-  AssetCatalogTree *get_catalog_tree();
+  AssetCatalogTree *get_catalog_tree() const;
 
   /** Return true only if there are no catalogs known. */
   bool is_empty() const;
@@ -239,7 +239,7 @@ class AssetCatalogService {
    * Construct an in-memory catalog definition file (CDF) from the currently known catalogs.
    * This object can then be processed further before saving to disk. */
   std::unique_ptr<AssetCatalogDefinitionFile> construct_cdf_in_memory(
-      const CatalogFilePath &file_path);
+      const CatalogFilePath &file_path) const;
 
   /**
    * Find a suitable path to write a CDF to.
@@ -250,7 +250,7 @@ class AssetCatalogService {
   static CatalogFilePath find_suitable_cdf_path_for_writing(
       const CatalogFilePath &blend_file_path);
 
-  std::unique_ptr<AssetCatalogTree> read_into_tree();
+  std::unique_ptr<AssetCatalogTree> read_into_tree() const;
 
   /**
    * For every catalog, ensure that its parent path also has a known catalog.
@@ -263,9 +263,9 @@ class AssetCatalogService {
   void tag_all_catalogs_as_unsaved_changes();
 
   /* For access by subclasses, as those will not be marked as friend by #AssetCatalogCollection. */
-  AssetCatalogDefinitionFile *get_catalog_definition_file();
-  OwningAssetCatalogMap &get_catalogs();
-  OwningAssetCatalogMap &get_deleted_catalogs();
+  AssetCatalogDefinitionFile *get_catalog_definition_file() const;
+  OwningAssetCatalogMap &get_catalogs() const;
+  OwningAssetCatalogMap &get_deleted_catalogs() const;
 };
 
 /**
