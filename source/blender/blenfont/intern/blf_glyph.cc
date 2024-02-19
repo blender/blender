@@ -1277,10 +1277,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   return nullptr;
 }
 
-static GlyphBLF *blf_glyph_ensure_ex(FontBLF *font,
-                                     GlyphCacheBLF *gc,
-                                     const uint charcode,
-                                     uint8_t subpixel)
+GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode, uint8_t subpixel)
 {
   GlyphBLF *g = blf_glyph_cache_find_glyph(gc, charcode, subpixel);
   if (g) {
@@ -1306,11 +1303,6 @@ static GlyphBLF *blf_glyph_ensure_ex(FontBLF *font,
   return g;
 }
 
-GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode)
-{
-  return blf_glyph_ensure_ex(font, gc, charcode, 0);
-}
-
 #ifdef BLF_SUBPIXEL_AA
 GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int32_t pen_x)
 {
@@ -1328,7 +1320,7 @@ GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *
   const uint8_t subpixel = uint8_t(pen_x & ((font->size > 16.0f) ? 32L : 48L));
 
   if (g->subpixel != subpixel) {
-    g = blf_glyph_ensure_ex(font, gc, g->c, subpixel);
+    g = blf_glyph_ensure(font, gc, g->c, subpixel);
   }
   return g;
 }
