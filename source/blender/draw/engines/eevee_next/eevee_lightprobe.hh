@@ -15,6 +15,7 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_map.hh"
 
+#include "eevee_defines.hh"
 #include "eevee_sync.hh"
 
 namespace blender::eevee {
@@ -41,9 +42,9 @@ struct SphereProbeAtlasCoord {
   }
 
   /* Return the area extent in pixel. */
-  int area_extent(int atlas_extent) const
+  int area_extent(int mip_lvl = 0) const
   {
-    return atlas_extent >> subdivision_lvl;
+    return SPHERE_PROBE_ATLAS_RES >> (subdivision_lvl + mip_lvl);
   }
 
   /* Coordinate of the area in [0..area_count_per_dimension[ range. */
@@ -53,51 +54,26 @@ struct SphereProbeAtlasCoord {
     return int2(area_index % area_count_per_dimension, area_index / area_count_per_dimension);
   }
 
-  /* Coordinate of the bottom left corner of the area in [0..atlas_extent[ range. */
-  int2 area_offset(int atlas_extent) const
+  /* Coordinate of the bottom left corner of the area in [0..SPHERE_PROBE_ATLAS_RES[ range. */
+  int2 area_offset(int mip_lvl = 0) const
   {
-    return area_location() * area_extent(atlas_extent);
+    return area_location() * area_extent(mip_lvl);
   }
 
-  SphereProbeUvArea as_sampling_coord(int atlas_extent) const
+  SphereProbeUvArea as_sampling_coord() const
   {
-    /**
-     * We want to cover the last mip exactly at the pixel center to reduce padding texels and
-     * interpolation artifacts.
-     * This is a diagram of a 2px^2 map with `c` being the texels corners and `x` the pixels
-     * centers.
-     *
-     * c-------c-------c
-     * |       |       |
-     * |   x   |   x   | <
-     * |       |       |  |
-     * c-------c-------c  | sampling area
-     * |       |       |  |
-     * |   x   |   x   | <
-     * |       |       |
-     * c-------c-------c
-     *     ^-------^
-     *       sampling area
-     */
-    /* Max level only need half a pixel of padding around the sampling area. */
-    const int mip_max_lvl_padding = 1;
-    const int mip_min_lvl_padding = mip_max_lvl_padding << SPHERE_PROBE_MIPMAP_LEVELS;
-    /* Extent and offset in mip 0 texels. */
-    const int sampling_area_extent = area_extent(atlas_extent) - mip_min_lvl_padding;
-    const int2 sampling_area_offset = area_offset(atlas_extent) + mip_min_lvl_padding / 2;
-    /* Convert to atlas UVs. */
     SphereProbeUvArea coord;
-    coord.scale = sampling_area_extent / float(atlas_extent);
-    coord.offset = float2(sampling_area_offset) / float(atlas_extent);
+    coord.scale = float(area_extent()) / SPHERE_PROBE_ATLAS_RES;
+    coord.offset = float2(area_offset()) / SPHERE_PROBE_ATLAS_RES;
     coord.layer = atlas_layer;
     return coord;
   }
 
-  SphereProbePixelArea as_write_coord(int atlas_extent, int mip_lvl) const
+  SphereProbePixelArea as_write_coord(int mip_lvl) const
   {
     SphereProbePixelArea coord;
-    coord.extent = atlas_extent >> (subdivision_lvl + mip_lvl);
-    coord.offset = area_location() * coord.extent;
+    coord.extent = area_extent(mip_lvl);
+    coord.offset = area_offset();
     coord.layer = atlas_layer;
     return coord;
   }

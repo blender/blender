@@ -125,7 +125,7 @@ void LightProbeModule::sync_sphere(const Object *ob, ObjectHandle &handle)
       cube.atlas_coord = find_empty_atlas_region(subdivision_lvl);
       SphereProbeData &cube_data = *static_cast<SphereProbeData *>(&cube);
       /* Update gpu data sampling coordinates. */
-      cube_data.atlas_coord = cube.atlas_coord.as_sampling_coord(probe_module.max_resolution_);
+      cube_data.atlas_coord = cube.atlas_coord.as_sampling_coord();
       /* Coordinates have changed. Area might contain random data. Do not use for rendering. */
       cube.use_for_render = false;
     }
@@ -204,8 +204,7 @@ void LightProbeModule::sync_world(const ::World *world, bool has_update)
     world_sphere_.atlas_coord.free();
     world_sphere_.atlas_coord = find_empty_atlas_region(subdivision_lvl);
     SphereProbeData &world_data = *static_cast<SphereProbeData *>(&world_sphere_);
-    world_data.atlas_coord = world_sphere_.atlas_coord.as_sampling_coord(
-        sph_module.max_resolution_);
+    world_data.atlas_coord = world_sphere_.atlas_coord.as_sampling_coord();
     has_update = true;
   }
 

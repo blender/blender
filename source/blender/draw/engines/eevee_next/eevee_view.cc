@@ -284,7 +284,7 @@ void CaptureView::render_probes()
       inst_.uniform_data.push_update();
     }
 
-    int2 extent = int2(update_info->resolution);
+    int2 extent = int2(update_info->cube_target_extent);
     inst_.render_buffers.acquire(extent);
 
     inst_.render_buffers.vector_tx.clear(float4(0.0f));
