@@ -16,7 +16,7 @@ namespace blender::asset_system {
 
 AllAssetLibrary::AllAssetLibrary() : AssetLibrary(ASSET_LIBRARY_ALL) {}
 
-void AllAssetLibrary::rebuild(const bool reload_catalogs)
+void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_catalogs)
 {
   /* Start with empty catalog storage. Don't do this directly in #this.catalog_service to avoid
    * race conditions. Rather build into a new service and replace the current one when done. */
@@ -25,7 +25,7 @@ void AllAssetLibrary::rebuild(const bool reload_catalogs)
 
   AssetLibrary::foreach_loaded(
       [&](AssetLibrary &nested) {
-        if (reload_catalogs) {
+        if (reload_nested_catalogs) {
           nested.catalog_service->reload_catalogs();
         }
         new_catalog_service->add_from_existing(*nested.catalog_service);
@@ -37,7 +37,7 @@ void AllAssetLibrary::rebuild(const bool reload_catalogs)
 
 void AllAssetLibrary::refresh_catalogs()
 {
-  rebuild(/*reload_catalogs=*/true);
+  rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/true);
 }
 
 }  // namespace blender::asset_system
