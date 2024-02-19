@@ -695,7 +695,7 @@ int UI_calc_float_precision(int prec, double value)
 
 std::optional<std::string> UI_but_online_manual_id(const uiBut *but)
 {
-  if (but->rnapoin.owner_id && but->rnapoin.data && but->rnaprop) {
+  if (but->rnapoin.data && but->rnaprop) {
     return fmt::format(
         "{}.{}", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
   }
