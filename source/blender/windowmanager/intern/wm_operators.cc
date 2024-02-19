@@ -3940,12 +3940,11 @@ static void WM_OT_previews_clear(wmOperatorType *ot)
 static int doc_view_manual_ui_context_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr_props;
-  char buf[512];
   short retval = OPERATOR_CANCELLED;
 
-  if (UI_but_online_manual_id_from_active(C, buf, sizeof(buf))) {
+  if (std::optional<std::string> manual_id = UI_but_online_manual_id_from_active(C)) {
     WM_operator_properties_create(&ptr_props, "WM_OT_doc_view_manual");
-    RNA_string_set(&ptr_props, "doc_id", buf);
+    RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
 
     retval = WM_operator_name_call_ptr(C,
                                        WM_operatortype_find("WM_OT_doc_view_manual", false),
