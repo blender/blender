@@ -943,4 +943,12 @@
     .mat_rpl = 0, \
   }
   
+#define _DNA_DEFAULT_GreasePencilWeightProximityModifierData \
+  { \
+    .target_vgname = "", \
+    .flag = 0, \
+    .dist_start = 0.0f, \
+    .dist_end = 20.0f, \
+  }
+
 /* clang-format off */
