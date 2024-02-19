@@ -12,6 +12,7 @@
 #include <Python.h>
 
 #include "../BPY_extern.h"
+#include "BLI_utildefines.h"
 
 BPy_ThreadStatePtr BPY_thread_save()
 {

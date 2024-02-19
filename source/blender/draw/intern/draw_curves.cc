@@ -314,7 +314,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
-  DRW_shgroup_uniform_mat4_copy(shgrp, "hairDupliMatrix", object->object_to_world().ptr());
+  DRW_shgroup_uniform_mat4_copy(shgrp, "hairDupliMatrix", object->object_to_world);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadRoot", hair_rad_root);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadTip", hair_rad_tip);
   DRW_shgroup_uniform_bool_copy(shgrp, "hairCloseTip", hair_close_tip);
@@ -540,7 +540,7 @@ GPUBatch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   sub_ps.push_constant("hairStrandsRes", &curves_cache->final[subdiv].strands_res, 1);
   sub_ps.push_constant("hairThicknessRes", thickness_res);
   sub_ps.push_constant("hairRadShape", hair_rad_shape);
-  sub_ps.push_constant("hairDupliMatrix", ob->object_to_world());
+  sub_ps.push_constant("hairDupliMatrix", float4x4(ob->object_to_world));
   sub_ps.push_constant("hairRadRoot", hair_rad_root);
   sub_ps.push_constant("hairRadTip", hair_rad_tip);
   sub_ps.push_constant("hairCloseTip", hair_close_tip);

@@ -16,7 +16,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_color.hh"

@@ -12,7 +12,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_lightprobe.h"
 
 #include "DNA_lightprobe_types.h"
@@ -142,7 +142,7 @@ class LightBake {
     DEG_evaluate_on_framechange(depsgraph_, frame_);
 
     if (delay_ms_ > 0) {
-      BLI_time_sleep_ms(delay_ms_);
+      BLI_sleep_ms(delay_ms_);
     }
 
     context_enable();

@@ -15,6 +15,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
 #include "BKE_curve.hh"
 
 #include "ED_object.hh"
@@ -177,7 +178,7 @@ static void createTransCurveVerts(bContext * /*C*/, TransInfo *t)
                                                 transform_mode_use_local_origins(t));
     float mtx[3][3], smtx[3][3];
 
-    copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
+    copy_m3_m4(mtx, tc->obedit->object_to_world);
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     TransData *td = tc->data;

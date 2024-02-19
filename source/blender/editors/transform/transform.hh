@@ -474,8 +474,8 @@ struct TransDataContainer {
 
   /**
    * Store matrix, this avoids having to have duplicate check all over
-   * Typically: 'obedit->object_to_world().ptr()' or 'poseobj->object_to_world().ptr()', but may be
-   * used elsewhere too.
+   * Typically: 'obedit->object_to_world' or 'poseobj->object_to_world', but may be used elsewhere
+   * too.
    */
   bool use_local_mat;
 

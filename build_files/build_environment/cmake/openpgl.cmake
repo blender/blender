@@ -24,12 +24,7 @@ ExternalProject_Add(external_openpgl
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${OPENPGL_HASH_TYPE}=${OPENPGL_HASH}
   PREFIX ${BUILD_DIR}/openpgl
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openpgl
-    ${DEFAULT_CMAKE_FLAGS}
-    ${OPENPGL_EXTRA_ARGS}
-
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openpgl ${DEFAULT_CMAKE_FLAGS} ${OPENPGL_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/openpgl
 )
 
@@ -41,21 +36,13 @@ add_dependencies(
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_openpgl after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/openpgl
-        ${HARVEST_TARGET}/openpgl
-
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openpgl ${HARVEST_TARGET}/openpgl
       DEPENDEES install
     )
   else()
   ExternalProject_Add_Step(external_openpgl after_install
-      COMMAND ${CMAKE_COMMAND} -E copy $
-        {LIBDIR}/openpgl/lib/openpgl_d.lib
-        ${HARVEST_TARGET}/openpgl/lib/openpgl_d.lib
-      COMMAND ${CMAKE_COMMAND} -E copy $
-        {LIBDIR}/openpgl/lib/cmake/openpgl-${OPENPGL_SHORT_VERSION}/openpgl_Exports-debug.cmake
-        ${HARVEST_TARGET}/openpgl/lib/cmake/openpgl-${OPENPGL_SHORT_VERSION}/openpgl_Exports-debug.cmake
-
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openpgl/lib/openpgl_d.lib ${HARVEST_TARGET}/openpgl/lib/openpgl_d.lib
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openpgl/lib/cmake/openpgl-${OPENPGL_SHORT_VERSION}/openpgl_Exports-debug.cmake ${HARVEST_TARGET}/openpgl/lib/cmake/openpgl-${OPENPGL_SHORT_VERSION}/openpgl_Exports-debug.cmake
       DEPENDEES install
     )
   endif()

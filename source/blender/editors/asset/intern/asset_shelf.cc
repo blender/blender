@@ -19,7 +19,7 @@
 #include "BKE_main.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_screen_types.h"
 

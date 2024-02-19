@@ -98,7 +98,7 @@ template<typename T> class StringSearch : private StringSearchBase {
    * \param weight: Can be used to customize the order when multiple items have the same match
    * score.
    */
-  void add(const StringRef str, T *user_data, const int weight = 0)
+  void add(const StringRefNull str, T *user_data, const int weight = 0)
   {
     this->add_impl(str, (void *)user_data, weight);
   }

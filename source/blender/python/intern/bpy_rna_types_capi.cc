@@ -35,6 +35,7 @@
 
 #include "../generic/py_capi_utils.h"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "MEM_guardedalloc.h"

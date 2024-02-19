@@ -35,7 +35,6 @@ if(WITH_COMPOSITOR_CPU)
   set(SRC
     COM_compositor.hh
     COM_defines.h
-    COM_profile.hh
 
     intern/COM_BufferArea.h
     intern/COM_BufferOperation.cc
@@ -101,7 +100,6 @@ if(WITH_COMPOSITOR_CPU)
     intern/COM_WorkScheduler.cc
     intern/COM_WorkScheduler.h
     intern/COM_compositor.cc
-    intern/COM_profile.cc
 
     operations/COM_QualityStepHelper.cc
     operations/COM_QualityStepHelper.h

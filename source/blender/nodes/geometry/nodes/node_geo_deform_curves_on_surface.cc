@@ -7,11 +7,18 @@
 #include "BKE_editmesh.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
+#include "BKE_type_conversions.hh"
 
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
+#include "NOD_socket_search_link.hh"
 
 #include "GEO_reverse_uv_sampler.hh"
 

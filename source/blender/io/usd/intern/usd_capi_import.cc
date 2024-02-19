@@ -12,18 +12,18 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
-#include "BKE_cachefile.hh"
+#include "BKE_cachefile.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_world.h"
 
 #include "BLI_fileops.h"
@@ -34,7 +34,7 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

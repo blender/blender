@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_string.h"
 
@@ -1535,7 +1535,6 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   /** Generate Compute shader stage. **/
   std::stringstream ss_compute;
-  ss_compute << "#line 1 \"msl_wrapper_code\"\n";
 
   ss_compute << "#define GPU_ARB_shader_draw_parameters 1\n";
   if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&

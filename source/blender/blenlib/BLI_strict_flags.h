@@ -6,12 +6,8 @@
 
 /** \file
  * \ingroup bli
- * Strict compiler flags for areas of code we want
+ * \brief Strict compiler flags for areas of code we want
  * to ensure don't do conversions without us knowing about it.
- *
- * \note Typically this include should be ordered as the last include in a C/C++ file
- * otherwise it can cause warnings in any includes after it which aren't expected
- * to use strict warnings.
  */
 
 #ifdef __GNUC__

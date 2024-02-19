@@ -19,6 +19,7 @@
 #include "BKE_brush.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
@@ -190,8 +191,7 @@ static void do_paint_brush_task(Object *ob,
      * at this point to avoid washing out non-binary masking modes like cavity masking. */
     float automasking = auto_mask::factor_get(
         ss->cache->automasking.get(), ss, vd.vertex, &automask_data);
-    const float alpha = BKE_brush_alpha_get(ss->scene, brush);
-    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], alpha * automasking);
+    mul_v4_v4fl(buffer_color, color_buffer->color[vd.i], brush->alpha * automasking);
 
     float4 col;
     SCULPT_vertex_color_get(ss, vd.vertex, col);

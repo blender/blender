@@ -10,6 +10,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
+
 #include "bmesh.hh"
 
 #include "intern/bmesh_operators_private.hh" /* own include */

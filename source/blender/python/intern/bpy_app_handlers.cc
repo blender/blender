@@ -13,9 +13,11 @@
 #include "BLI_utildefines.h"
 #include <Python.h>
 
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 
 #include "RNA_access.hh"
+#include "RNA_prototypes.h"
+#include "RNA_types.hh"
 
 #include "bpy_app_handlers.h"
 #include "bpy_rna.h"
@@ -39,7 +41,7 @@ static PyTypeObject BlenderAppCbType;
   "the file being loaded, an empty string for the startup-file."
 
 /**
- * See `BKE_callbacks.hh` #eCbEvent declaration for the policy on naming.
+ * See `BKE_callbacks.h` #eCbEvent declaration for the policy on naming.
  */
 static PyStructSequence_Field app_cb_info_fields[] = {
     {"frame_change_pre",

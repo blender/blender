@@ -10,7 +10,7 @@
 #include "abc_hierarchy_iterator.h"
 
 #include "BKE_camera.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "BLI_assert.h"
 

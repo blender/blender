@@ -11,7 +11,7 @@
 
 #include "BLI_listbase.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "../outliner_intern.hh"
 #include "tree_element_seq.hh"

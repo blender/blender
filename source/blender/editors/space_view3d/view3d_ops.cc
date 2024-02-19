@@ -20,7 +20,8 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

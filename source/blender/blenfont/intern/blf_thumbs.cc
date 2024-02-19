@@ -33,7 +33,7 @@
 
 #include "BLF_api.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* Maximum length of text sample in char32_t, including nullptr terminator. */
 #define BLF_SAMPLE_LEN 5

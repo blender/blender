@@ -9,9 +9,10 @@
 #include <climits>
 #include <iostream>
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_outliner_types.h"
 #include "DNA_space_types.h"

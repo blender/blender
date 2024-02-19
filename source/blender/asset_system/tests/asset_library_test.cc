@@ -5,7 +5,7 @@
 #include "AS_asset_catalog.hh"
 #include "AS_asset_library.hh"
 
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 
 #include "asset_library_service.hh"
 

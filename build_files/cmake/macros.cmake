@@ -849,7 +849,7 @@ function(get_blender_version)
   # - BLENDER_VERSION_PATCH
   # - BLENDER_VERSION_CYCLE (alpha, beta, rc, release)
 
-  # So CMAKE depends on `BKE_blender_version.h`, beware of infinite-loops!
+  # So CMAKE depends on `BKE_blender.h`, beware of infinite-loops!
   configure_file(
     ${CMAKE_SOURCE_DIR}/source/blender/blenkernel/BKE_blender_version.h
     ${CMAKE_BINARY_DIR}/source/blender/blenkernel/BKE_blender_version.h.done

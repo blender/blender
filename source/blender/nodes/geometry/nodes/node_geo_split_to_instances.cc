@@ -9,6 +9,7 @@
 
 #include "BKE_curves.hh"
 #include "BKE_instances.hh"
+#include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"

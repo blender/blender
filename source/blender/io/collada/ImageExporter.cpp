@@ -13,7 +13,7 @@
 #include "DNA_texture_types.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"

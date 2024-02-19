@@ -12,7 +12,7 @@
 #include "DNA_listBase.h"
 #include "DNA_outliner_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "../outliner_intern.hh"
 

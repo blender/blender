@@ -14,8 +14,6 @@
 
 #include "RNA_enum_types.hh"
 
-#include "BLI_task.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_sample_nearest_surface_cc {
@@ -31,22 +29,12 @@ static void node_declare(NodeDeclarationBuilder &b)
     const eCustomDataType data_type = eCustomDataType(node->custom1);
     b.add_input(data_type, "Value").hide_value().field_on_all();
   }
-  b.add_input<decl::Int>("Group ID")
-      .hide_value()
-      .field_on_all()
-      .description(
-          "Splits the faces of the input mesh into groups which can be sampled individually");
   b.add_input<decl::Vector>("Sample Position").implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Int>("Sample Group ID").hide_value().supports_field();
 
   if (node != nullptr) {
     const eCustomDataType data_type = eCustomDataType(node->custom1);
-    b.add_output(data_type, "Value").dependent_field({3, 4});
+    b.add_output(data_type, "Value").dependent_field({2});
   }
-  b.add_output<decl::Bool>("Is Valid")
-      .dependent_field({3, 4})
-      .description(
-          "Whether the sampling was successfull. It can fail when the sampled group is empty");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -76,105 +64,46 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
+static void get_closest_mesh_tris(const Mesh &mesh,
+                                  const VArray<float3> &positions,
+                                  const IndexMask &mask,
+                                  const MutableSpan<int> r_tri_indices,
+                                  const MutableSpan<float> r_distances_sq,
+                                  const MutableSpan<float3> r_positions)
+{
+  BLI_assert(mesh.faces_num > 0);
+  BVHTreeFromMesh tree_data;
+  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
+  get_closest_in_bvhtree(tree_data, positions, mask, r_tri_indices, r_distances_sq, r_positions);
+  free_bvhtree_from_mesh(&tree_data);
+}
+
 class SampleNearestSurfaceFunction : public mf::MultiFunction {
- private:
   GeometrySet source_;
-  Array<BVHTreeFromMesh> bvh_trees_;
-  VectorSet<int> group_indices_;
 
  public:
-  SampleNearestSurfaceFunction(GeometrySet geometry, const Field<int> &group_id_field)
-      : source_(std::move(geometry))
+  SampleNearestSurfaceFunction(GeometrySet geometry) : source_(std::move(geometry))
   {
     source_.ensure_owns_direct_data();
     static const mf::Signature signature = []() {
       mf::Signature signature;
       mf::SignatureBuilder builder{"Sample Nearest Surface", signature};
       builder.single_input<float3>("Position");
-      builder.single_input<int>("Sample ID");
       builder.single_output<int>("Triangle Index");
       builder.single_output<float3>("Sample Position");
-      builder.single_output<bool>("Is Valid", mf::ParamFlag::SupportsUnusedOutput);
       return signature;
     }();
     this->set_signature(&signature);
-
-    const Mesh &mesh = *source_.get_mesh();
-
-    /* Compute group ids on mesh. */
-    bke::MeshFieldContext field_context{mesh, bke::AttrDomain::Face};
-    FieldEvaluator field_evaluator{field_context, mesh.faces_num};
-    field_evaluator.add(group_id_field);
-    field_evaluator.evaluate();
-    VArraySpan<int> group_ids_span = field_evaluator.get_evaluated<int>(0);
-
-    /* Compute an #IndexMask for every unique group id. */
-    group_indices_.add_multiple(group_ids_span);
-    const int groups_num = group_indices_.size();
-    IndexMaskMemory memory;
-    Array<IndexMask> group_masks(groups_num);
-    IndexMask::from_groups<int>(
-        IndexMask(mesh.faces_num),
-        memory,
-        [&](const int i) { return group_indices_.index_of(group_ids_span[i]); },
-        group_masks);
-
-    /* Construct BVH tree for each group. */
-    bvh_trees_.reinitialize(groups_num);
-    threading::parallel_for(IndexRange(groups_num), 16, [&](const IndexRange range) {
-      for (const int group_i : range) {
-        const IndexMask &group_mask = group_masks[group_i];
-        BVHTreeFromMesh &bvh = bvh_trees_[group_i];
-        if (group_mask.size() == mesh.faces_num) {
-          BKE_bvhtree_from_mesh_get(&bvh, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
-        }
-        else {
-          BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
-        }
-      }
-    });
-  }
-
-  ~SampleNearestSurfaceFunction()
-  {
-    for (BVHTreeFromMesh &tree : bvh_trees_) {
-      free_bvhtree_from_mesh(&tree);
-    }
   }
 
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
-    const VArray<int> &sample_ids = params.readonly_single_input<int>(1, "Sample ID");
-    MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(2, "Triangle Index");
+    MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(1, "Triangle Index");
     MutableSpan<float3> sample_position = params.uninitialized_single_output<float3>(
-        3, "Sample Position");
-    MutableSpan<bool> is_valid_span = params.uninitialized_single_output_if_required<bool>(
-        4, "Is Valid");
-
-    mask.foreach_index([&](const int i) {
-      const float3 position = positions[i];
-      const int sample_id = sample_ids[i];
-      const int group_index = group_indices_.index_of_try(sample_id);
-      if (group_index == -1) {
-        triangle_index[i] = -1;
-        sample_position[i] = float3(0, 0, 0);
-        if (!is_valid_span.is_empty()) {
-          is_valid_span[i] = false;
-        }
-        return;
-      }
-      const BVHTreeFromMesh &bvh = bvh_trees_[group_index];
-      BVHTreeNearest nearest;
-      nearest.dist_sq = FLT_MAX;
-      BLI_bvhtree_find_nearest(
-          bvh.tree, position, &nearest, bvh.nearest_callback, const_cast<BVHTreeFromMesh *>(&bvh));
-      triangle_index[i] = nearest.index;
-      sample_position[i] = nearest.co;
-      if (!is_valid_span.is_empty()) {
-        is_valid_span[i] = true;
-      }
-    });
+        2, "Sample Position");
+    const Mesh &mesh = *source_.get_mesh();
+    get_closest_mesh_tris(mesh, positions, mask, triangle_index, {}, sample_position);
   }
 
   ExecutionHints get_execution_hints() const override
@@ -204,13 +133,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   auto nearest_op = FieldOperation::Create(
-      std::make_shared<SampleNearestSurfaceFunction>(geometry,
-                                                     params.extract_input<Field<int>>("Group ID")),
-      {params.extract_input<Field<float3>>("Sample Position"),
-       params.extract_input<Field<int>>("Sample Group ID")});
+      std::make_shared<SampleNearestSurfaceFunction>(geometry),
+      {params.extract_input<Field<float3>>("Sample Position")});
   Field<int> triangle_indices(nearest_op, 0);
   Field<float3> nearest_positions(nearest_op, 1);
-  Field<bool> is_valid(nearest_op, 2);
 
   Field<float3> bary_weights = Field<float3>(FieldOperation::Create(
       std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(geometry),
@@ -222,7 +148,6 @@ static void node_geo_exec(GeoNodeExecParams params)
       {triangle_indices, bary_weights});
 
   params.set_output("Value", GField(sample_op));
-  params.set_output("Is Valid", is_valid);
 }
 
 static void node_rna(StructRNA *srna)

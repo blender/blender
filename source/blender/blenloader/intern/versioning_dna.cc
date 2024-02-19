@@ -14,7 +14,7 @@
 #include "DNA_genfile.h"
 #include "DNA_listBase.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 #include "readfile.hh"
 
 void blo_do_versions_dna(SDNA *sdna, const int versionfile, const int subversionfile)

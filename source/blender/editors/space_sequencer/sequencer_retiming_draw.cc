@@ -11,16 +11,26 @@
 #include "BLI_blenlib.h"
 #include "BLI_span.hh"
 
+#include "DNA_anim_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
+#include "BKE_scene.h"
 
 #include "BLF_api.hh"
 
 #include "GPU_batch.h"
+#include "GPU_batch_utils.h"
 #include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
+#include "GPU_select.hh"
 #include "GPU_state.h"
+
+#include "RNA_access.hh"
+#include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -28,9 +38,15 @@
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_screen.hh"
+#include "ED_sequencer.hh"
+#include "ED_view3d.hh"
 
+#include "UI_interface.hh"
+#include "UI_interface_icons.hh"
+#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
+#include "SEQ_iterator.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"

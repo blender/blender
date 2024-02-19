@@ -37,11 +37,11 @@ class NodeGraph {
  public:
   ~NodeGraph();
 
-  Span<Node *> nodes() const
+  const Vector<Node *> &nodes() const
   {
     return nodes_;
   }
-  Span<Link> links() const
+  const Vector<Link> &links() const
   {
     return links_;
   }

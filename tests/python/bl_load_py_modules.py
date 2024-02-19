@@ -5,7 +5,7 @@
 # simple script to enable all addons, and disable
 
 """
-./blender.bin --background --factory-startup --python tests/python/bl_load_py_modules.py
+./blender.bin --background -noaudio --factory-startup --python tests/python/bl_load_py_modules.py
 """
 
 import bpy

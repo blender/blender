@@ -40,6 +40,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_uuid.h"
 
@@ -50,10 +51,12 @@
 #include "BKE_asset.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_idmap.hh"
 #include "BKE_preferences.h"
 #include "BKE_preview_image.hh"
 
@@ -62,6 +65,7 @@
 
 #include "ED_datafiles.h"
 #include "ED_fileselect.hh"
+#include "ED_screen.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

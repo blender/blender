@@ -35,7 +35,7 @@
 
 #include "atomic_ops.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "IMB_imbuf.hh"
 #include "IMB_interp.hh"
@@ -57,7 +57,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
@@ -71,8 +71,8 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -3690,7 +3690,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
   ps->viewDir[1] = 0.0f;
   ps->viewDir[2] = 1.0f;
 
-  copy_m4_m4(ps->obmat, ps->ob->object_to_world().ptr());
+  copy_m4_m4(ps->obmat, ps->ob->object_to_world);
 
   if (symmetry_flag) {
     int i;
@@ -3712,9 +3712,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
     copy_m4_m4(viewmat, ps->rv3d->viewmat);
     copy_m4_m4(viewinv, ps->rv3d->viewinv);
 
-    blender::float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(
-        ps->rv3d, blender::float4x4(ps->obmat));
-    copy_m4_m4(ps->projectMat, projection.ptr());
+    ED_view3d_ob_project_mat_get_from_obmat(ps->rv3d, ps->obmat, ps->projectMat);
 
     ps->is_ortho = ED_view3d_clip_range_get(
         ps->depsgraph, ps->v3d, ps->rv3d, &ps->clip_start, &ps->clip_end, true);
@@ -3750,7 +3748,7 @@ static void proj_paint_state_viewport_init(ProjPaintState *ps, const char symmet
       CameraParams params;
 
       /* viewmat & viewinv */
-      copy_m4_m4(viewinv, cam_ob_eval->object_to_world().ptr());
+      copy_m4_m4(viewinv, cam_ob_eval->object_to_world);
       normalize_m4(viewinv);
       invert_m4_m4(viewmat, viewinv);
 
@@ -4495,7 +4493,7 @@ static void project_paint_begin(const bContext *C,
 
   if (ps->source == PROJ_SRC_VIEW) {
     /* faster clipping lookups */
-    ED_view3d_clipping_local(ps->rv3d, ps->ob->object_to_world().ptr());
+    ED_view3d_clipping_local(ps->rv3d, ps->ob->object_to_world);
   }
 
   ps->do_face_sel = ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) != 0);

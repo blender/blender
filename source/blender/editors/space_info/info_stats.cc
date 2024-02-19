@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
@@ -32,13 +33,15 @@
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_blender_version.h"
+#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
+#include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -48,8 +51,9 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
+#include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_modifier.hh"
 
@@ -484,7 +488,7 @@ static bool format_stats(
   if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
     wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-    if (wm->runtime->is_interface_locked) {
+    if (wm->is_interface_locked) {
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);

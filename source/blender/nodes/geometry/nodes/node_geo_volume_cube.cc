@@ -11,10 +11,13 @@
 
 #include "node_geometry_util.hh"
 
+#include "DNA_mesh_types.h"
+
 #include "BLI_task.hh"
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_mesh.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_openvdb.hh"
 

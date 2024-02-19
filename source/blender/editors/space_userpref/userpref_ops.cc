@@ -19,14 +19,14 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

@@ -38,9 +38,8 @@
 #include "blf_internal_types.hh"
 
 #include "BLI_math_vector.h"
+#include "BLI_strict_flags.h"
 #include "BLI_string_utf8.h"
-
-#include "BLI_strict_flags.h" /* Keep last. */
 
 /**
  * Convert glyph coverage amounts to lightness values. Uses a LUT that perceptually improves
@@ -75,24 +74,28 @@ static float from_16dot16(FT_Fixed value)
 /** \name Glyph Cache
  * \{ */
 
-static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, const float size)
+static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size)
 {
-  for (std::unique_ptr<GlyphCacheBLF> &gc : font->cache) {
+  GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
+  while (gc) {
     if (gc->size == size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
         (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
         (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&
         (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing))
     {
-      return gc.get();
+      return gc;
     }
+    gc = gc->next;
   }
   return nullptr;
 }
 
 static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
-  std::unique_ptr<GlyphCacheBLF> gc = std::make_unique<GlyphCacheBLF>(GlyphCacheBLF{});
+  GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 
+  gc->next = nullptr;
+  gc->prev = nullptr;
   gc->size = font->size;
   gc->bold = ((font->flags & BLF_BOLD) != 0);
   gc->italic = ((font->flags & BLF_ITALIC) != 0);
@@ -121,14 +124,13 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
     gc->fixed_width = 1;
   }
 
-  font->cache.append(std::move(gc));
-
-  return font->cache.last().get();
+  BLI_addhead(&font->cache, gc);
+  return gc;
 }
 
 GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 {
-  font->glyph_cache_mutex.lock();
+  BLI_mutex_lock(&font->glyph_cache_mutex);
 
   GlyphCacheBLF *gc = blf_glyph_cache_find(font, font->size);
 
@@ -141,28 +143,34 @@ GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 
 void blf_glyph_cache_release(FontBLF *font)
 {
-  font->glyph_cache_mutex.unlock();
+  BLI_mutex_unlock(&font->glyph_cache_mutex);
 }
 
-GlyphCacheBLF::~GlyphCacheBLF()
+static void blf_glyph_cache_free(GlyphCacheBLF *gc)
 {
-  for (uint i = 0; i < ARRAY_SIZE(this->bucket); i++) {
-    while (GlyphBLF *g = static_cast<GlyphBLF *>(BLI_pophead(&this->bucket[i]))) {
+  for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
+    while (GlyphBLF *g = static_cast<GlyphBLF *>(BLI_pophead(&gc->bucket[i]))) {
       blf_glyph_free(g);
     }
   }
-  if (this->texture) {
-    GPU_texture_free(this->texture);
+  if (gc->texture) {
+    GPU_texture_free(gc->texture);
   }
-  if (this->bitmap_result) {
-    MEM_freeN(this->bitmap_result);
+  if (gc->bitmap_result) {
+    MEM_freeN(gc->bitmap_result);
   }
+  MEM_freeN(gc);
 }
 
 void blf_glyph_cache_clear(FontBLF *font)
 {
-  std::lock_guard lock{font->glyph_cache_mutex};
-  font->cache.clear_and_shrink();
+  BLI_mutex_lock(&font->glyph_cache_mutex);
+
+  while (GlyphCacheBLF *gc = static_cast<GlyphCacheBLF *>(BLI_pophead(&font->cache))) {
+    blf_glyph_cache_free(gc);
+  }
+
+  BLI_mutex_unlock(&font->glyph_cache_mutex);
 }
 
 /**

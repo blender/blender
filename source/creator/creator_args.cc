@@ -24,30 +24,32 @@
 #  include "BLI_dynstr.h"
 #  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
+#  include "BLI_mempool.h"
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_string_utf8.h"
 #  include "BLI_system.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
-#  ifndef NDEBUG
-#    include "BLI_mempool.h"
-#  endif
 
 #  include "BKE_appdir.hh"
 #  include "BKE_blender_version.h"
 #  include "BKE_blendfile.hh"
 #  include "BKE_context.hh"
 
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_image_format.h"
 #  include "BKE_lib_id.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.hh"
-#  include "BKE_scene.hh"
+#  include "BKE_report.h"
+#  include "BKE_scene.h"
 #  include "BKE_sound.h"
 
 #  include "GPU_context.h"
+
+#  ifdef WITH_FFMPEG
+#    include "IMB_imbuf.hh"
+#  endif
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern_python.h"
@@ -56,6 +58,8 @@
 
 #  include "RE_engine.h"
 #  include "RE_pipeline.h"
+
+#  include "ED_datafiles.h"
 
 #  include "WM_api.hh"
 
@@ -68,6 +72,8 @@
 #  endif
 
 #  include "DEG_depsgraph.hh"
+#  include "DEG_depsgraph_build.hh"
+#  include "DEG_depsgraph_debug.hh"
 
 #  include "WM_types.hh"
 
@@ -890,33 +896,12 @@ static int arg_handle_debug_exit_on_error(int /*argc*/, const char ** /*argv*/, 
 }
 
 static const char arg_handle_background_mode_set_doc[] =
-    "\n"
-    "\tRun in background (often used for UI-less rendering).\n"
-    "\n"
-    "\tThe audio device is disabled in background-mode by default\n"
-    "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
+    "\n\t"
+    "Run in background (often used for UI-less rendering).";
 static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   print_version_short();
   G.background = true;
-
-  /* Background Mode Defaults:
-   *
-   * In general background mode should strive to match the behavior of running
-   * Blender inside a graphical session, any exception to this should have a well
-   * justified reason and be noted in the doc-string. */
-
-  /* NOTE(@ideasman42): While there is no requirement for sound to be disabled in background-mode,
-   * the use case for playing audio in background mode is enough of a special-case
-   * that users who wish to do this can explicitly enable audio in background mode.
-   * While the down sides for connecting to an audio device aren't terrible they include:
-   * - Listing Blender as an active application which may output audio.
-   * - Unnecessary overhead running an operation in background mode or ...
-   * - Having to remember to include `-noaudio` with batch operations.
-   * - A quiet but audible click when Blender starts & configures its audio device.
-   */
-  BKE_sound_force_device("None");
-
   return 0;
 }
 
@@ -1227,7 +1212,7 @@ static int arg_handle_debug_gpu_set(int /*argc*/, const char ** /*argv*/, void *
 
 static const char arg_handle_debug_gpu_compile_shaders_set_doc[] =
     "\n"
-    "\tCompile all statically defined shaders to test platform compatibility.";
+    "\tCompile all staticly defined shaders to test platform compatibility.";
 static int arg_handle_debug_gpu_compile_shaders_set(int /*argc*/,
                                                     const char ** /*argv*/,
                                                     void * /*data*/)
@@ -1571,8 +1556,9 @@ static int arg_handle_audio_disable(int /*argc*/, const char ** /*argv*/, void *
 
 static const char arg_handle_audio_set_doc[] =
     "\n\t"
-    "Force sound system to a specific device.\n"
-    "\t'None' 'Default' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
+    "Force sound system to a specific device."
+    "\n\t"
+    "'None' 'SDL' 'OpenAL' 'CoreAudio' 'JACK' 'PulseAudio' 'WASAPI'.";
 static int arg_handle_audio_set(int argc, const char **argv, void * /*data*/)
 {
   if (argc < 1) {
@@ -1580,13 +1566,7 @@ static int arg_handle_audio_set(int argc, const char **argv, void * /*data*/)
     exit(1);
   }
 
-  const char *device = argv[1];
-  if (STREQ(device, "Default")) {
-    /* Unset any forced device. */
-    device = nullptr;
-  }
-
-  BKE_sound_force_device(device);
+  BKE_sound_force_device(argv[1]);
   return 1;
 }
 

@@ -202,7 +202,7 @@ void GpencilExporterSVG::export_gpencil_layers()
         /* Apply layer thickness change. */
         gps_duplicate->thickness += gpl->line_change;
         /* Apply object scale to thickness. */
-        const float scalef = mat4_to_scale(ob->object_to_world().ptr());
+        const float scalef = mat4_to_scale(ob->object_to_world);
         gps_duplicate->thickness = ceilf(float(gps_duplicate->thickness) * scalef);
         CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 

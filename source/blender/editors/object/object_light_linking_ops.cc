@@ -25,6 +25,8 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
+#include "DEG_depsgraph.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name Create New Light Linking Receiver/Blocker Collection Operators
  * \{ */

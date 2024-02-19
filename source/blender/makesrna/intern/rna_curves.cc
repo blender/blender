@@ -54,7 +54,7 @@ const EnumPropertyItem rna_enum_curve_normal_mode_items[] = {
 
 #  include "BKE_attribute.hh"
 #  include "BKE_curves.hh"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 
 #  include "DEG_depsgraph.hh"
 

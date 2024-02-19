@@ -20,8 +20,9 @@
 
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "ED_asset.hh"
 #include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"

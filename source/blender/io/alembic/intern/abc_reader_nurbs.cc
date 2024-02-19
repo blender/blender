@@ -19,7 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_curve.hh"
 #include "BKE_object.hh"

@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "GPU_compute.h"
 
 #include "draw_debug.hh"

@@ -13,7 +13,7 @@
  * `DrawMultiBuf`. See implementation details at their definition.
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BLI_map.hh"
 #include "DRW_gpu_wrapper.hh"
 

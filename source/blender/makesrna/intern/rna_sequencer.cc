@@ -22,7 +22,7 @@
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -115,10 +115,10 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 #  include "BKE_idprop.h"
 #  include "BKE_movieclip.h"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 
 #  include "WM_api.hh"
 

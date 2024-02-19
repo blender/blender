@@ -135,7 +135,7 @@ void VKFrameBuffer::build_clear_attachments_color(const float (*clear_colors)[4]
 /** \name Clear
  * \{ */
 
-void VKFrameBuffer::clear(const Span<VkClearAttachment> attachments) const
+void VKFrameBuffer::clear(const Vector<VkClearAttachment> &attachments) const
 {
   if (attachments.is_empty()) {
     return;

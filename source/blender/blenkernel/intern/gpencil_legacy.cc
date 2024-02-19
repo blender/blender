@@ -21,7 +21,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "IMB_interp.hh"
 
@@ -35,7 +35,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_colortools.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
@@ -264,7 +264,6 @@ static void greasepencil_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_GD_LEGACY = {
     /*id_code*/ ID_GD_LEGACY,
     /*id_filter*/ FILTER_ID_GD_LEGACY,
-    /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_GD_LEGACY,
     /*struct_size*/ sizeof(bGPdata),
     /*name*/ "GPencil",
@@ -2697,7 +2696,7 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
   /* if not layer parented, try with object parented */
   if (obparent_eval == nullptr) {
     if ((ob_eval != nullptr) && (ob_eval->type == OB_GPENCIL_LEGACY)) {
-      copy_m4_m4(diff_mat, ob_eval->object_to_world().ptr());
+      copy_m4_m4(diff_mat, ob_eval->object_to_world);
       mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
       return;
     }
@@ -2707,8 +2706,8 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
   }
 
   if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-    mul_m4_m4m4(diff_mat, obparent_eval->object_to_world().ptr(), gpl->inverse);
-    add_v3_v3(diff_mat[3], ob_eval->object_to_world().location());
+    mul_m4_m4m4(diff_mat, obparent_eval->object_to_world, gpl->inverse);
+    add_v3_v3(diff_mat[3], ob_eval->object_to_world[3]);
     mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
     return;
   }
@@ -2716,14 +2715,14 @@ void BKE_gpencil_layer_transform_matrix_get(const Depsgraph *depsgraph,
     bPoseChannel *pchan = BKE_pose_channel_find_name(obparent_eval->pose, gpl->parsubstr);
     if (pchan) {
       float tmp_mat[4][4];
-      mul_m4_m4m4(tmp_mat, obparent_eval->object_to_world().ptr(), pchan->pose_mat);
+      mul_m4_m4m4(tmp_mat, obparent_eval->object_to_world, pchan->pose_mat);
       mul_m4_m4m4(diff_mat, tmp_mat, gpl->inverse);
-      add_v3_v3(diff_mat[3], ob_eval->object_to_world().location());
+      add_v3_v3(diff_mat[3], ob_eval->object_to_world[3]);
     }
     else {
       /* if bone not found use object (armature) */
-      mul_m4_m4m4(diff_mat, obparent_eval->object_to_world().ptr(), gpl->inverse);
-      add_v3_v3(diff_mat[3], ob_eval->object_to_world().location());
+      mul_m4_m4m4(diff_mat, obparent_eval->object_to_world, gpl->inverse);
+      add_v3_v3(diff_mat[3], ob_eval->object_to_world[3]);
     }
     mul_m4_m4m4(diff_mat, diff_mat, gpl->layer_mat);
     return;
@@ -2777,15 +2776,12 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
       Object *ob_parent = DEG_get_evaluated_object(depsgraph, gpl->parent);
       /* calculate new matrix */
       if (ELEM(gpl->partype, PAROBJECT, PARSKEL)) {
-        mul_m4_m4m4(cur_mat, ob->world_to_object().ptr(), ob_parent->object_to_world().ptr());
+        mul_m4_m4m4(cur_mat, ob->world_to_object, ob_parent->object_to_world);
       }
       else if (gpl->partype == PARBONE) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob_parent->pose, gpl->parsubstr);
         if (pchan != nullptr) {
-          mul_m4_series(cur_mat,
-                        ob->world_to_object().ptr(),
-                        ob_parent->object_to_world().ptr(),
-                        pchan->pose_mat);
+          mul_m4_series(cur_mat, ob->world_to_object, ob_parent->object_to_world, pchan->pose_mat);
         }
         else {
           unit_m4(cur_mat);

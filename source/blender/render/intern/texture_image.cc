@@ -22,8 +22,10 @@
 #include "IMB_imbuf_types.hh"
 
 #include "DNA_image_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_color.h"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"

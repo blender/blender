@@ -21,7 +21,7 @@
 #include "BKE_mesh_sample.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DNA_brush_enums.h"
 #include "DNA_curves_types.h"
@@ -37,6 +37,8 @@
 
 #include "GEO_add_curves_on_mesh.hh"
 #include "GEO_reverse_uv_sampler.hh"
+
+#include "BLT_translation.h"
 
 namespace blender::ed::sculpt_paint {
 

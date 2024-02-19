@@ -29,7 +29,7 @@
 #  include "BKE_armature.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
-#  include "BKE_collection.hh"
+#  include "BKE_collection.h"
 #  include "BKE_curve.hh"
 #  include "BKE_curves.h"
 #  include "BKE_displist.h"
@@ -47,12 +47,12 @@
 #  include "BKE_mball.hh"
 #  include "BKE_mesh.hh"
 #  include "BKE_movieclip.h"
-#  include "BKE_node.hh"
+#  include "BKE_node.h"
 #  include "BKE_object.hh"
 #  include "BKE_paint.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcloud.hh"
-#  include "BKE_scene.hh"
+#  include "BKE_scene.h"
 #  include "BKE_sound.h"
 #  include "BKE_speaker.h"
 #  include "BKE_text.h"
@@ -94,7 +94,7 @@
 #  include "ED_node.hh"
 #  include "ED_screen.hh"
 
-#  include "BLT_translation.hh"
+#  include "BLT_translation.h"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.h"

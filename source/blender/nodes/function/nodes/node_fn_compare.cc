@@ -9,7 +9,7 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

@@ -21,7 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
@@ -41,14 +41,14 @@
 
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
@@ -62,8 +62,8 @@
 #include "BKE_paint.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_softbody.h"
 #include "BKE_workspace.h"
 

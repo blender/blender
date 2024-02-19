@@ -8,7 +8,7 @@
 
 #include "GEO_uv_pack.hh"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"

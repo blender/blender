@@ -139,7 +139,7 @@ class VKFrameBuffer : public FrameBuffer {
   void build_clear_attachments_color(const float (*clear_colors)[4],
                                      const bool multi_clear_colors,
                                      Vector<VkClearAttachment> &r_attachments) const;
-  void clear(Span<VkClearAttachment> attachments) const;
+  void clear(const Vector<VkClearAttachment> &attachments) const;
 };
 
 static inline VKFrameBuffer *unwrap(FrameBuffer *framebuffer)

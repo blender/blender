@@ -6,92 +6,132 @@
 
 namespace blender::workbench {
 
-ShaderCache *ShaderCache::static_cache = nullptr;
-
-ShaderCache &ShaderCache::get()
+ShaderCache::~ShaderCache()
 {
-  if (!ShaderCache::static_cache) {
-    ShaderCache::static_cache = new ShaderCache();
-  }
-  return *ShaderCache::static_cache;
-}
-
-void ShaderCache::release()
-{
-  if (ShaderCache::static_cache) {
-    delete ShaderCache::static_cache;
-    ShaderCache::static_cache = nullptr;
-  }
-}
-
-ShaderCache::ShaderCache()
-{
-  std::string geometries[] = {"_mesh", "_curves", "_ptcloud"};
-  std::string pipelines[] = {"_opaque", "_transparent"};
-  std::string lightings[] = {"_flat", "_studio", "_matcap"};
-  std::string shaders[] = {"_material", "_texture"};
-  std::string clip[] = {"_no_clip", "_clip"};
-  static_assert(std::size(geometries) == geometry_type_len);
-  static_assert(std::size(pipelines) == pipeline_type_len);
-  static_assert(std::size(lightings) == lighting_type_len);
-  static_assert(std::size(shaders) == shader_type_len);
-
-  for (auto g : IndexRange(geometry_type_len)) {
-    for (auto p : IndexRange(pipeline_type_len)) {
-      for (auto l : IndexRange(lighting_type_len)) {
-        for (auto s : IndexRange(shader_type_len)) {
-          for (auto c : IndexRange(2) /*clip*/) {
-            prepass_[g][p][l][s][c] = {"workbench_prepass" + geometries[g] + pipelines[p] +
-                                       lightings[l] + shaders[s] + clip[c]};
+  for (auto i : IndexRange(pipeline_type_len)) {
+    for (auto j : IndexRange(geometry_type_len)) {
+      for (auto k : IndexRange(shader_type_len)) {
+        for (auto l : IndexRange(lighting_type_len)) {
+          for (auto m : IndexRange(2) /*clip*/) {
+            DRW_SHADER_FREE_SAFE(prepass_shader_cache_[i][j][k][l][m]);
           }
         }
       }
     }
   }
-
-  std::string cavity[] = {"_no_cavity", "_cavity"};
-  std::string curvature[] = {"_no_curvature", "_curvature"};
-  std::string shadow[] = {"_no_shadow", "_shadow"};
-
-  for (auto l : IndexRange(lighting_type_len)) {
-    for (auto ca : IndexRange(2) /*cavity*/) {
-      for (auto cu : IndexRange(2) /*curvature*/) {
-        for (auto s : IndexRange(2) /*shadow*/) {
-          resolve_[l][ca][cu][s] = {"workbench_resolve_opaque" + lightings[l] + cavity[ca] +
-                                    curvature[cu] + shadow[s]};
+  for (auto i : IndexRange(pipeline_type_len)) {
+    for (auto j : IndexRange(lighting_type_len)) {
+      for (auto k : IndexRange(2) /*cavity*/) {
+        for (auto l : IndexRange(2) /*curvature*/) {
+          for (auto m : IndexRange(2) /*shadow*/) {
+            DRW_SHADER_FREE_SAFE(resolve_shader_cache_[i][j][k][l][m]);
+          }
         }
       }
     }
   }
+}
 
-  std::string pass[] = {"_fail", "_pass"};
-  std::string manifold[] = {"_no_manifold", "_manifold"};
-  std::string caps[] = {"_no_caps", "_caps"};
+GPUShader *ShaderCache::prepass_shader_get(ePipelineType pipeline_type,
+                                           eGeometryType geometry_type,
+                                           eShaderType shader_type,
+                                           eLightingType lighting_type,
+                                           bool clip)
+{
+  GPUShader *&shader_ptr = prepass_shader_cache_[int(pipeline_type)][int(geometry_type)][int(
+      shader_type)][int(lighting_type)][clip ? 1 : 0];
 
-  for (auto p : IndexRange(2) /*pass*/) {
-    for (auto m : IndexRange(2) /*manifold*/) {
-      for (auto c : IndexRange(2) /*caps*/) {
-        shadow_[p][m][c] = {"workbench_shadow" + pass[p] + manifold[m] + caps[c] +
-                            (DEBUG_SHADOW_VOLUME ? "_debug" : "")};
-      }
-    }
+  if (shader_ptr != nullptr) {
+    return shader_ptr;
   }
-
-  std::string smoke[] = {"_object", "_smoke"};
-  std::string interpolation[] = {"_linear", "_cubic", "_closest"};
-  std::string coba[] = {"_no_coba", "_coba"};
-  std::string slice[] = {"_no_slice", "_slice"};
-
-  for (auto sm : IndexRange(2) /*smoke*/) {
-    for (auto i : IndexRange(3) /*interpolation*/) {
-      for (auto c : IndexRange(2) /*coba*/) {
-        for (auto sl : IndexRange(2) /*slice*/) {
-          volume_[sm][i][c][sl] = {"workbench_volume" + smoke[sm] + interpolation[i] + coba[c] +
-                                   slice[sl]};
-        }
-      }
-    }
+  std::string info_name = "workbench_prepass_";
+  switch (geometry_type) {
+    case eGeometryType::MESH:
+      info_name += "mesh_";
+      break;
+    case eGeometryType::CURVES:
+      info_name += "curves_";
+      break;
+    case eGeometryType::POINTCLOUD:
+      info_name += "ptcloud_";
+      break;
   }
+  switch (pipeline_type) {
+    case ePipelineType::OPAQUE:
+      info_name += "opaque_";
+      break;
+    case ePipelineType::TRANSPARENT:
+      info_name += "transparent_";
+      break;
+    case ePipelineType::SHADOW:
+      info_name += "shadow_";
+      break;
+  }
+  switch (lighting_type) {
+    case eLightingType::FLAT:
+      info_name += "flat_";
+      break;
+    case eLightingType::STUDIO:
+      info_name += "studio_";
+      break;
+    case eLightingType::MATCAP:
+      info_name += "matcap_";
+      break;
+  }
+  switch (shader_type) {
+    case eShaderType::MATERIAL:
+      info_name += "material";
+      break;
+    case eShaderType::TEXTURE:
+      info_name += "texture";
+      break;
+  }
+  info_name += clip ? "_clip" : "_no_clip";
+  shader_ptr = GPU_shader_create_from_info_name(info_name.c_str());
+  return shader_ptr;
+}
+
+GPUShader *ShaderCache::resolve_shader_get(ePipelineType pipeline_type,
+                                           eLightingType lighting_type,
+                                           bool cavity,
+                                           bool curvature,
+                                           bool shadow)
+{
+  GPUShader *&shader_ptr =
+      resolve_shader_cache_[int(pipeline_type)][int(lighting_type)][cavity][curvature][shadow];
+
+  if (shader_ptr != nullptr) {
+    return shader_ptr;
+  }
+  std::string info_name = "workbench_resolve_";
+  switch (pipeline_type) {
+    case ePipelineType::OPAQUE:
+      info_name += "opaque_";
+      break;
+    case ePipelineType::TRANSPARENT:
+      info_name += "transparent_";
+      break;
+    case ePipelineType::SHADOW:
+      BLI_assert_unreachable();
+      break;
+  }
+  switch (lighting_type) {
+    case eLightingType::FLAT:
+      info_name += "flat";
+      break;
+    case eLightingType::STUDIO:
+      info_name += "studio";
+      break;
+    case eLightingType::MATCAP:
+      info_name += "matcap";
+      break;
+  }
+  info_name += cavity ? "_cavity" : "_no_cavity";
+  info_name += curvature ? "_curvature" : "_no_curvature";
+  info_name += shadow ? "_shadow" : "_no_shadow";
+
+  shader_ptr = GPU_shader_create_from_info_name(info_name.c_str());
+  return shader_ptr;
 }
 
 }  // namespace blender::workbench

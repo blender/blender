@@ -22,7 +22,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},

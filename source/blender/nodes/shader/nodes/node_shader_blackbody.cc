@@ -5,6 +5,7 @@
 #include "FN_multi_function_builder.hh"
 #include "NOD_multi_function.hh"
 #include "node_shader_util.hh"
+#include "node_util.hh"
 
 #include "BLI_color.hh"
 #include "IMB_colormanagement.hh"

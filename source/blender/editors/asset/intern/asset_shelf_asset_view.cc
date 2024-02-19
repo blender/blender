@@ -18,6 +18,7 @@
 
 #include "DNA_asset_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "ED_asset_handle.hh"
 #include "ED_asset_list.hh"
@@ -25,6 +26,7 @@
 
 #include "UI_grid_view.hh"
 #include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

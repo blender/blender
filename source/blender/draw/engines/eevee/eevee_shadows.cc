@@ -163,7 +163,7 @@ void EEVEE_shadows_caster_register(EEVEE_ViewLayerData *sldata, Object *ob)
   for (int i = 0; i < 8; i++) {
     float vec[3];
     copy_v3_v3(vec, bb.vec[i]);
-    mul_m4_v3(ob->object_to_world().ptr(), vec);
+    mul_m4_v3(ob->object_to_world, vec);
     minmax_v3v3_v3(min, max, vec);
   }
 

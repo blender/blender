@@ -15,6 +15,6 @@
 
 namespace blender::gpu {
 
-using DebugStack = Vector<StringRef>;
+typedef Vector<StringRef> DebugStack;
 
 }  // namespace blender::gpu

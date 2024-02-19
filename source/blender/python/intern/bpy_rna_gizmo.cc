@@ -16,6 +16,7 @@
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "bpy_capi_utils.h"
@@ -23,9 +24,12 @@
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
+#include "../generic/python_utildefines.h"
 
 #include "RNA_access.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
+#include "RNA_types.hh"
 
 #include "bpy_rna.h"
 

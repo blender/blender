@@ -14,9 +14,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 
+#include "BKE_context.hh"
 #include "BKE_nla.h"
+#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
@@ -29,6 +32,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "nla_intern.hh" /* own include */

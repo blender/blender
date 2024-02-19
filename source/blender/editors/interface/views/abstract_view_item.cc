@@ -9,6 +9,7 @@
 #include "BKE_context.hh"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "WM_api.hh"
 
@@ -381,6 +382,7 @@ class ViewItemAPIWrapper {
                         ICON_NONE,
                         drag_controller->get_drag_type(),
                         drag_controller->create_drag_data(),
+                        0,
                         WM_DRAG_FREE_DATA);
     drag_controller->on_drag_start();
 

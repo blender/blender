@@ -27,7 +27,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"

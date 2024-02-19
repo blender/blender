@@ -113,7 +113,7 @@ Base **ED_undo_editmode_bases_from_view_layer(const Scene *scene,
  * this is needed for modes which handle undo themselves (bypassing #ED_undo_push).
  *
  * Using global isn't great, this just avoids doing inline,
- * causing 'BKE_global.hh' & 'BKE_main.hh' includes.
+ * causing 'BKE_global.h' & 'BKE_main.hh' includes.
  */
 UndoStack *ED_undo_stack_get();
 

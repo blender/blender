@@ -23,11 +23,11 @@
 #include "BKE_mesh.hh"
 #include "BKE_object_deform.h"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "BLI_string.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

@@ -11,6 +11,7 @@
 #include "MOD_gpencil_legacy_lineart.h"
 #include "MOD_lineart.h"
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -23,18 +24,23 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_camera.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.hh"
+#include "BKE_duplilist.h"
+#include "BKE_editmesh.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
+#include "BKE_pointcache.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -44,6 +50,7 @@
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -2454,7 +2461,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
                                                 Scene *scene,
                                                 Object *ob,
                                                 Object *ref_ob,
-                                                const float use_mat[4][4],
+                                                float use_mat[4][4],
                                                 bool is_render,
                                                 LineartObjectLoadTaskInfo *olti,
                                                 int thread_count,
@@ -2566,7 +2573,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_time_now_seconds();
+    t_start = BLI_check_seconds_timer();
   }
 
   int thread_count = ld->thread_count;
@@ -2616,7 +2623,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
                                           scene,
                                           eval_ob,
                                           eval_ob,
-                                          eval_ob->object_to_world().ptr(),
+                                          eval_ob->object_to_world,
                                           is_render,
                                           olti,
                                           thread_count,
@@ -2676,7 +2683,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_time_now_seconds() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art loading time: %lf\n", t_elapsed);
     printf("Discarded %d object from bound box check\n", bound_box_discard_count);
   }
@@ -3592,11 +3599,11 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     clipping_offset = 0.0001;
   }
 
-  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world().location());
+  copy_v3db_v3fl(ld->conf.camera_pos, camera->object_to_world[3]);
   if (active_camera) {
-    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world().location());
+    copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->object_to_world[3]);
   }
-  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world().ptr());
+  copy_m4_m4(ld->conf.cam_obmat, camera->object_to_world);
   /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and
    * lights. */
   normalize_v3(ld->conf.cam_obmat[0]);
@@ -3628,8 +3635,8 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   if (lmd->light_contour_object) {
     Object *light_obj = lmd->light_contour_object;
-    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world().location());
-    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world().ptr());
+    copy_v3db_v3fl(ld->conf.camera_pos_secondary, light_obj->object_to_world[3]);
+    copy_m4_m4(ld->conf.cam_obmat_secondary, light_obj->object_to_world);
     /* Make sure none of the scaling factor makes in, line art expects no scaling on cameras and
      * lights. */
     normalize_v3(ld->conf.cam_obmat_secondary[0]);
@@ -4711,7 +4718,7 @@ void lineart_main_add_triangles(LineartData *ld)
 {
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_time_now_seconds();
+    t_start = BLI_check_seconds_timer();
   }
 
   /* Initialize per-thread data for thread task scheduling information and storing intersection
@@ -4734,7 +4741,7 @@ void lineart_main_add_triangles(LineartData *ld)
   lineart_destroy_isec_thread(&d);
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_time_now_seconds() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art intersection time: %f\n", t_elapsed);
   }
 }
@@ -5001,7 +5008,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_time_now_seconds();
+    t_start = BLI_check_seconds_timer();
   }
 
   bool use_render_camera_override = false;
@@ -5175,7 +5182,7 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
   if (G.debug_value == 4000) {
     lineart_count_and_print_render_buffer_memory(ld);
 
-    double t_elapsed = BLI_time_now_seconds() - t_start;
+    double t_elapsed = BLI_check_seconds_timer() - t_start;
     printf("Line art total time: %lf\n", t_elapsed);
   }
 
@@ -5458,7 +5465,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
   }
 
   float gp_obmat_inverse[4][4];
-  invert_m4_m4(gp_obmat_inverse, ob->object_to_world().ptr());
+  invert_m4_m4(gp_obmat_inverse, ob->object_to_world);
   lineart_gpencil_generate(cache,
                            depsgraph,
                            ob,

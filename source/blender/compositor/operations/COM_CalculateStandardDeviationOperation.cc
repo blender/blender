@@ -21,14 +21,15 @@ void CalculateStandardDeviationOperation::execute_pixel(float output[4],
 void *CalculateStandardDeviationOperation::initialize_tile_data(rcti *rect)
 {
   lock_mutex();
-  if (!is_calculated_) {
+  if (!iscalculated_) {
     MemoryBuffer *tile = (MemoryBuffer *)image_reader_->initialize_tile_data(rect);
+    CalculateMeanOperation::calculate_mean(tile);
     standard_deviation_ = 0.0f;
     float *buffer = tile->get_buffer();
     int size = tile->get_width() * tile->get_height();
     int pixels = 0;
     float sum = 0.0f;
-    const float mean = this->calculate_mean_tile(tile);
+    float mean = result_;
     for (int i = 0, offset = 0; i < size; i++, offset += 4) {
       if (buffer[offset + 3] > 0) {
         pixels++;
@@ -75,33 +76,45 @@ void *CalculateStandardDeviationOperation::initialize_tile_data(rcti *rect)
       }
     }
     standard_deviation_ = sqrt(sum / float(pixels - 1));
-    is_calculated_ = true;
+    iscalculated_ = true;
   }
   unlock_mutex();
   return nullptr;
 }
 
-float CalculateStandardDeviationOperation::calculate_value(const MemoryBuffer *input) const
+void CalculateStandardDeviationOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                                       const rcti & /*area*/,
+                                                                       Span<MemoryBuffer *> inputs)
 {
-  const float mean = this->calculate_mean(input);
+  if (!iscalculated_) {
+    const MemoryBuffer *input = inputs[0];
+    const float mean = CalculateMeanOperation::calc_mean(input);
 
-  PixelsSum total = {0};
-  exec_system_->execute_work<PixelsSum>(
-      input->get_rect(),
-      [=](const rcti &split) { return this->calc_area_sum(input, split, mean); },
-      total,
-      [](PixelsSum &join, const PixelsSum &chunk) {
-        join.sum += chunk.sum;
-        join.num_pixels += chunk.num_pixels;
-      });
+    PixelsSum total = {0};
+    exec_system_->execute_work<PixelsSum>(
+        input->get_rect(),
+        [=](const rcti &split) { return calc_area_sum(input, split, mean); },
+        total,
+        [](PixelsSum &join, const PixelsSum &chunk) {
+          join.sum += chunk.sum;
+          join.num_pixels += chunk.num_pixels;
+        });
+    standard_deviation_ = total.num_pixels <= 1 ? 0.0f :
+                                                  sqrt(total.sum / float(total.num_pixels - 1));
+    iscalculated_ = true;
+  }
+}
 
-  return total.num_pixels <= 1 ? 0.0f : sqrt(total.sum / float(total.num_pixels - 1));
+void CalculateStandardDeviationOperation::update_memory_buffer_partial(
+    MemoryBuffer *output, const rcti &area, Span<MemoryBuffer *> /*inputs*/)
+{
+  output->fill(area, &standard_deviation_);
 }
 
 using PixelsSum = CalculateMeanOperation::PixelsSum;
 PixelsSum CalculateStandardDeviationOperation::calc_area_sum(const MemoryBuffer *input,
                                                              const rcti &area,
-                                                             const float mean) const
+                                                             const float mean)
 {
   PixelsSum result = {0};
   for (const float *elem : input->get_buffer_area(area)) {

@@ -10,10 +10,12 @@
  * representation of the OpenXR runtime connection within the application.
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
+
+#include "DEG_depsgraph.hh"
 
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -22,14 +24,13 @@
 
 #include "GHOST_C-api.h"
 
-#ifdef WIN32
-#  include "GPU_platform.h"
-#endif
+#include "GPU_platform.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "WM_api.hh"
 
+#include "wm_surface.hh"
 #include "wm_xr_intern.hh"
 
 struct wmXrErrorHandlerData {
@@ -44,7 +45,7 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
   wmWindowManager *wm = handler_data->wm;
   wmWindow *root_win = wm->xr.runtime ? wm->xr.runtime->session_root_win : nullptr;
 
-  BKE_reports_clear(&wm->runtime->reports);
+  BKE_reports_clear(&wm->reports);
   WM_report(RPT_ERROR, error->user_message);
   /* Rely on the fallback when `root_win` is nullptr. */
   WM_report_banner_show(wm, root_win);

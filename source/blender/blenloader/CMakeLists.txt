@@ -49,9 +49,8 @@ set(SRC
   BLO_blend_defs.hh
   BLO_blend_validate.hh
   BLO_read_write.hh
-  BLO_readfile.hh
+  BLO_readfile.h
   BLO_undofile.hh
-  BLO_userdef_default.h
   BLO_writefile.hh
   intern/readfile.hh
   intern/versioning_common.hh
@@ -59,6 +58,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
@@ -117,7 +117,6 @@ if(WITH_GTESTS)
   )
   set(TEST_UTIL_LIB
     ${LIB}
-    PRIVATE bf::blenfont
     bf_blenloader
   )
   blender_add_lib(bf_blenloader_test_util "${TEST_UTIL_SRC}" "${TEST_UTIL_INC}" "${TEST_UTIL_INC_SYS}" "${TEST_UTIL_LIB}")

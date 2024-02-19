@@ -8,12 +8,14 @@
 
 #include "BLI_utildefines.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
+#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "ED_uvedit.hh"

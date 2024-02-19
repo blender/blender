@@ -14,8 +14,8 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_object_types.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
@@ -98,7 +98,7 @@ static void createTransParticleVerts(bContext * /*C*/, TransInfo *t)
 
     unit_m4(mat);
 
-    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
       TransData *head, *tail;

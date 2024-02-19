@@ -70,7 +70,8 @@ class DenoiseParams : public Node {
   bool temporally_stable = false;
 
   /* If true, then allow, if supported, OpenImageDenoise to use GPU device.
-   * If false, then OpenImageDenoise will always use CPU regardless of GPU device presence. */
+   * If false, then OpenImageDenoise will always use CPU regardless of GPU device
+   * precense. */
   bool use_gpu = true;
 
   DenoiserPrefilter prefilter = DENOISER_PREFILTER_FAST;

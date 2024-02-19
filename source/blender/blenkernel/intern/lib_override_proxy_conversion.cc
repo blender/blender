@@ -22,13 +22,13 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 static CLG_LogRef LOG = {"bke.liboverride_proxy_conversion"};
 

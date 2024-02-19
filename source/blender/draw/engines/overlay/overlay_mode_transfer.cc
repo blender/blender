@@ -25,7 +25,7 @@ void OVERLAY_mode_transfer_cache_init(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
 
-  pd->mode_transfer.time = BLI_time_now_seconds();
+  pd->mode_transfer.time = BLI_check_seconds_timer();
 
   for (int i = 0; i < 2; i++) {
     /* Non Meshes Pass (Camera, empties, lights ...) */

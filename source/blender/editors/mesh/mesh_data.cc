@@ -22,21 +22,25 @@
 #include "BKE_key.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 
+#include "RNA_access.hh"
+#include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_paint.hh"
 #include "ED_screen.hh"
+#include "ED_uvedit.hh"
+#include "ED_view3d.hh"
 
 #include "GEO_mesh_split_edges.hh"
 
@@ -270,14 +274,17 @@ int ED_mesh_uv_add(
           CD_PROP_FLOAT2,
           MEM_dupallocN(CustomData_get_layer(&mesh->corner_data, CD_PROP_FLOAT2)),
           mesh->corners_num,
-          unique_name,
+          unique_name.c_str(),
           nullptr);
 
       is_init = true;
     }
     else {
-      CustomData_add_layer_named(
-          &mesh->corner_data, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->corners_num, unique_name);
+      CustomData_add_layer_named(&mesh->corner_data,
+                                 CD_PROP_FLOAT2,
+                                 CD_SET_DEFAULT,
+                                 mesh->corners_num,
+                                 unique_name.c_str());
     }
 
     if (active_set || layernum_dst == 0) {
@@ -334,10 +341,10 @@ const bool *ED_mesh_uv_map_pin_layer_get(const Mesh *mesh, const int uv_index)
 static bool *ensure_corner_boolean_attribute(Mesh &mesh, const blender::StringRefNull name)
 {
   bool *data = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh.corner_data, CD_PROP_BOOL, name, mesh.corners_num));
+      &mesh.corner_data, CD_PROP_BOOL, name.c_str(), mesh.corners_num));
   if (!data) {
     data = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh.corner_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name));
+        &mesh.corner_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh.faces_num, name.c_str()));
   }
   return data;
 }

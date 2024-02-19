@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 /**
  * File indexing for the file/asset browser.

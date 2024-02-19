@@ -25,16 +25,18 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_anim_data.h"
@@ -48,8 +50,11 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_modifier.hh"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -66,6 +71,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 
@@ -2972,8 +2978,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
         float offset_global[3];
         float offset_local[3];
 
-        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world().location());
-        copy_m3_m4(bmat, ob_active->object_to_world().ptr());
+        sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->object_to_world[3]);
+        copy_m3_m4(bmat, ob_active->object_to_world);
 
         /* Inverse transform for all selected curves in this object,
          * See #object_join_exec for detailed comment on why the safe version is used. */

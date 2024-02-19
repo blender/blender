@@ -75,8 +75,7 @@ static bool rna_KeyMapItem_compare(wmKeyMapItem *k1, wmKeyMapItem *k2)
 
 static void rna_KeyMapItem_to_string(wmKeyMapItem *kmi, bool compact, char *result)
 {
-  BLI_strncpy(
-      result, WM_keymap_item_to_string(kmi, compact).value_or("").c_str(), UI_MAX_SHORTCUT_STR);
+  WM_keymap_item_to_string(kmi, compact, result, UI_MAX_SHORTCUT_STR);
 }
 
 static wmKeyMap *rna_keymap_active(wmKeyMap *km, bContext *C)
@@ -123,10 +122,10 @@ static bool rna_event_modal_handler_add(bContext *C, ReportList *reports, wmOper
   return WM_event_add_modal_handler_ex(win, area, region, op) != nullptr;
 }
 
+/* XXX, need a way for python to know event types, 0x0110 is hard coded */
 static wmTimer *rna_event_timer_add(wmWindowManager *wm, float time_step, wmWindow *win)
 {
-  /* NOTE: we need a way for Python to know event types, `TIMER` is hard coded. */
-  return WM_event_timer_add(wm, win, TIMER, time_step);
+  return WM_event_timer_add(wm, win, 0x0110, time_step);
 }
 
 static void rna_event_timer_remove(wmWindowManager *wm, wmTimer *timer)
@@ -241,12 +240,7 @@ static int rna_Operator_props_dialog_popup(bContext *C,
 {
   title = RNA_translate_ui_text(title, text_ctxt, nullptr, nullptr, translate);
   confirm_text = RNA_translate_ui_text(confirm_text, text_ctxt, nullptr, nullptr, translate);
-  return WM_operator_props_dialog_popup(
-      C,
-      op,
-      width,
-      title ? std::make_optional<std::string>(title) : std::nullopt,
-      confirm_text ? std::make_optional<std::string>(confirm_text) : std::nullopt);
+  return WM_operator_props_dialog_popup(C, op, width, title, confirm_text);
 }
 
 static int keymap_item_modifier_flag_from_args(bool any, int shift, int ctrl, int alt, int oskey)
@@ -1032,7 +1026,6 @@ void RNA_api_wm(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
 
   parm = RNA_def_property(srna, "is_interface_locked", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(parm, nullptr, "runtime->is_interface_locked", 0);
   RNA_def_property_ui_text(
       parm,
       "Is Interface Locked",

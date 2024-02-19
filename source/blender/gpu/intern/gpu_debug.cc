@@ -8,7 +8,7 @@
  * Debug features of OpenGL.
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_string.h"
 

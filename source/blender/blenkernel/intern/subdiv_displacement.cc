@@ -8,6 +8,8 @@
 
 #include "BKE_subdiv.hh"
 
+#include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
 
 void BKE_subdiv_displacement_detach(Subdiv *subdiv)

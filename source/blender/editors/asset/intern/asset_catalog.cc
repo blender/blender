@@ -28,7 +28,8 @@ using namespace blender::asset_system;
 
 bool catalogs_read_only(const AssetLibrary &library)
 {
-  asset_system::AssetCatalogService *catalog_service = library.catalog_service.get();
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      &library);
   return catalog_service->is_read_only();
 }
 
@@ -61,11 +62,12 @@ asset_system::AssetCatalog *catalog_add(AssetLibrary *library,
                                         StringRefNull name,
                                         StringRef parent_path)
 {
-  asset_system::AssetCatalogService *catalog_service = library->catalog_service.get();
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     return nullptr;
   }
-  if (catalog_service->is_read_only()) {
+  if (catalogs_read_only(*library)) {
     return nullptr;
   }
 
@@ -85,12 +87,13 @@ asset_system::AssetCatalog *catalog_add(AssetLibrary *library,
 
 void catalog_remove(AssetLibrary *library, const CatalogID &catalog_id)
 {
-  asset_system::AssetCatalogService *catalog_service = library->catalog_service.get();
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
   }
-  if (catalog_service->is_read_only()) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -104,12 +107,13 @@ void catalog_rename(AssetLibrary *library,
                     const CatalogID catalog_id,
                     const StringRefNull new_name)
 {
-  asset_system::AssetCatalogService *catalog_service = library->catalog_service.get();
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
   }
-  if (catalog_service->is_read_only()) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -133,12 +137,13 @@ void catalog_move(AssetLibrary *library,
                   const CatalogID src_catalog_id,
                   const std::optional<CatalogID> dst_parent_catalog_id)
 {
-  asset_system::AssetCatalogService *catalog_service = library->catalog_service.get();
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
   }
-  if (catalog_service->is_read_only()) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 
@@ -176,12 +181,13 @@ void catalog_move(AssetLibrary *library,
 
 void catalogs_save_from_main_path(AssetLibrary *library, const Main *bmain)
 {
-  asset_system::AssetCatalogService *catalog_service = library->catalog_service.get();
+  asset_system::AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
+      library);
   if (!catalog_service) {
     BLI_assert_unreachable();
     return;
   }
-  if (catalog_service->is_read_only()) {
+  if (catalogs_read_only(*library)) {
     return;
   }
 

@@ -6,14 +6,41 @@
  * \ingroup spview3d
  */
 
+#include "DNA_curve_types.h"
+#include "DNA_gpencil_legacy_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.h"
+#include "BLI_rect.h"
+
+#include "BLT_translation.h"
+
+#include "BKE_armature.hh"
+#include "BKE_context.hh"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_layer.hh"
+#include "BKE_object.hh"
+#include "BKE_paint.hh"
+#include "BKE_scene.h"
+#include "BKE_screen.hh"
+#include "BKE_vfont.hh"
+
+#include "DEG_depsgraph_query.hh"
+
+#include "ED_mesh.hh"
+#include "ED_particle.hh"
+#include "ED_screen.hh"
+#include "ED_transform.hh"
 
 #include "WM_api.hh"
+#include "WM_message.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+
+#include "UI_resources.hh"
 
 #include "view3d_intern.h"
 

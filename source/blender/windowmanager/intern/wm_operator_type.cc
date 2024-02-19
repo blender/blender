@@ -18,7 +18,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
@@ -249,12 +249,12 @@ void WM_operatortype_last_properties_clear_all()
   }
 }
 
-void WM_operatortype_idname_visit_for_search(
-    const bContext * /*C*/,
-    PointerRNA * /*ptr*/,
-    PropertyRNA * /*prop*/,
-    const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void WM_operatortype_idname_visit_for_search(const bContext * /*C*/,
+                                             PointerRNA * /*ptr*/,
+                                             PropertyRNA * /*prop*/,
+                                             const char * /*edit_text*/,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, global_ops_hash) {
@@ -263,10 +263,10 @@ void WM_operatortype_idname_visit_for_search(
     char idname_py[OP_MAX_TYPENAME];
     WM_operator_py_idname(idname_py, ot->idname);
 
-    StringPropertySearchVisitParams visit_params{};
+    StringPropertySearchVisitParams visit_params = {nullptr};
     visit_params.text = idname_py;
     visit_params.info = ot->name;
-    visit_fn(visit_params);
+    visit_fn(visit_user_data, &visit_params);
   }
 }
 
@@ -509,8 +509,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname,
   return ot;
 }
 
-void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *ot, void *userdata),
-                                      void *userdata)
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
 {
   wmOperatorType *ot;
 

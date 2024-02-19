@@ -21,11 +21,15 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLF_api.hh"
 
+#include "BLT_translation.h"
+
 #include "UI_interface.hh"
+
+#include "ED_datafiles.h"
 
 #include "interface_intern.hh"
 

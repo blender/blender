@@ -24,7 +24,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -33,7 +33,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 
@@ -287,7 +287,7 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
     Mesh *mesh = reinterpret_cast<Mesh *>(id);
     if (BMEditMesh *em = mesh->edit_mesh) {
       BM_data_layer_add_named(em->bm, customdata, type, uniquename.c_str());
-      const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
+      const int index = CustomData_get_named_layer_index(customdata, type, uniquename.c_str());
       return (index == -1) ? nullptr : &(customdata->layers[index]);
     }
   }
@@ -299,7 +299,7 @@ CustomDataLayer *BKE_id_attribute_new(ID *id,
 
   attributes->add(uniquename, domain, eCustomDataType(type), AttributeInitDefaultValue());
 
-  const int index = CustomData_get_named_layer_index(customdata, type, uniquename);
+  const int index = CustomData_get_named_layer_index(customdata, type, uniquename.c_str());
   if (index == -1) {
     BKE_reportf(reports, RPT_WARNING, "Layer '%s' could not be created", uniquename.c_str());
   }
@@ -417,7 +417,7 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
         if (CustomData *data = info[domain].customdata) {
           const std::string name_copy = name;
-          const int layer_index = CustomData_get_named_layer_index_notype(data, name_copy);
+          const int layer_index = CustomData_get_named_layer_index_notype(data, name_copy.c_str());
           if (layer_index == -1) {
             continue;
           }

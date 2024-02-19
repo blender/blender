@@ -18,7 +18,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
@@ -408,7 +408,7 @@ void ControllerExporter::add_bind_shape_mat(Object *ob)
     bc_add_global_transform(f_obmat, export_settings.get_global_transform());
   }
 
-  // UnitConverter::mat4_to_dae_double(bind_mat, ob->object_to_world().ptr());
+  // UnitConverter::mat4_to_dae_double(bind_mat, ob->object_to_world);
   UnitConverter::mat4_to_dae_double(bind_mat, f_obmat);
   if (this->export_settings.get_limit_precision()) {
     BCMatrix::sanitize(bind_mat, LIMITTED_PRECISION);
@@ -524,7 +524,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm,
       }
 
       /* make world-space matrix (bind_mat is armature-space) */
-      mul_m4_m4m4(world, ob_arm->object_to_world().ptr(), bind_mat);
+      mul_m4_m4m4(world, ob_arm->object_to_world, bind_mat);
 
       if (!has_bindmat) {
         if (export_settings.get_apply_global_orientation()) {

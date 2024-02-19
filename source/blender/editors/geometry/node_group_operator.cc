@@ -34,7 +34,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 
 #include "DNA_object_types.h"
@@ -56,7 +56,7 @@
 #include "ED_mesh.hh"
 #include "ED_sculpt.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "FN_lazy_function_execute.hh"
 

@@ -7,15 +7,22 @@
 #include "BLI_index_mask.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
+#include "DNA_collection_types.h"
+
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 
 #include "attribute_access_intern.hh"
+
+#include "BLI_cpp_type_make.hh"
 
 namespace blender::bke {
 

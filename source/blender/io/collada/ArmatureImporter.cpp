@@ -119,7 +119,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin,
       Object *ob_arm = skin->BKE_armature_from_object();
       if (ob_arm) {
         float invmat[4][4];
-        invert_m4_m4(invmat, ob_arm->object_to_world().ptr());
+        invert_m4_m4(invmat, ob_arm->object_to_world);
         mul_m4_m4m4(mat, invmat, mat);
       }
 
@@ -715,7 +715,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,
 
     copy_m4_m4(mat, obmat);
     float invObmat[4][4];
-    invert_m4_m4(invObmat, ob_arm->object_to_world().ptr());
+    invert_m4_m4(invObmat, ob_arm->object_to_world);
     mul_m4_m4m4(pchan->pose_mat, invObmat, mat);
   }
 

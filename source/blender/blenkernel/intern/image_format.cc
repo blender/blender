@@ -16,6 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_colortools.hh"

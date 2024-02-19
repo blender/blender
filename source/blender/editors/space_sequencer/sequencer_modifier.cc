@@ -6,6 +6,7 @@
  * \ingroup spseq
  */
 
+#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
@@ -20,6 +21,7 @@
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "SEQ_iterator.hh"
 #include "SEQ_modifier.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_select.hh"

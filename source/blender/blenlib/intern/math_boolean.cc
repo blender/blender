@@ -6,6 +6,7 @@
  * \ingroup bli
  */
 
+#include "BLI_hash.hh"
 #include "BLI_math_boolean.hh"
 #include "BLI_math_mpq.hh"
 #include "BLI_math_vector_types.hh"

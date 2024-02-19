@@ -8,6 +8,7 @@
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -22,7 +23,7 @@
 
 #include "BKE_image.h"
 #include "BKE_image_save.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RE_pipeline.h"
 

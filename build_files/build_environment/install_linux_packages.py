@@ -899,7 +899,7 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "level-zero-headers",  # ???
                                   },
             ),
-    Package(name="OpenPGL Library", is_mandatory=False, version="0.6.0", version_short="0.6", version_min="0.5.0", version_mex="0.7",
+    Package(name="OpenPGL Library", is_mandatory=False, version="0.5.0", version_short="0.5", version_min="0.5.0", version_mex="0.6",
             sub_packages=(),
             distro_package_names={DISTRO_ID_DEBIAN: None,
                                   DISTRO_ID_FEDORA: "openpgl-devel",

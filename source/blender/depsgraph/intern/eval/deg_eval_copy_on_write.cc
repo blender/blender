@@ -26,14 +26,14 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_curve.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_update_cache_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_object_types.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

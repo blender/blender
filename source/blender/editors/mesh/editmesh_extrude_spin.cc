@@ -15,7 +15,7 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -79,7 +79,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
                       d,
                       steps,
                       -angle,
-                      obedit->object_to_world().ptr(),
+                      obedit->object_to_world,
                       use_normal_flip,
                       dupli,
                       use_auto_merge))

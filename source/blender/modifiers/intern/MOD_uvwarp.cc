@@ -14,7 +14,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_task.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
@@ -23,17 +23,21 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
+#include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
+
+#include "DEG_depsgraph_query.hh"
 
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
@@ -72,10 +76,10 @@ static void matrix_from_obj_pchan(float mat[4][4], Object *ob, const char *bonen
 {
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
   if (pchan) {
-    mul_m4_m4m4(mat, ob->object_to_world().ptr(), pchan->pose_mat);
+    mul_m4_m4m4(mat, ob->object_to_world, pchan->pose_mat);
   }
   else {
-    copy_m4_m4(mat, ob->object_to_world().ptr());
+    copy_m4_m4(mat, ob->object_to_world);
   }
 }
 

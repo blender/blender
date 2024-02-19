@@ -18,9 +18,9 @@ extern "C" {
 #include "curve_fit_nd.h"
 }
 
-#include <cstring>
+#include "BLI_strict_flags.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include <cstring>
 
 struct Knot {
   Knot *next, *prev;

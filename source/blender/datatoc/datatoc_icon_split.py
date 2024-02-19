@@ -8,7 +8,7 @@ This script dices up PNG into small files to store in version control.
 Example:
 
 ./blender.bin \
-    --background \
+    --background -noaudio \
     --python ./release/datafiles/icon_dice.py -- \
     --image=./release/datafiles/blender_icons16.png \
     --output=./release/datafiles/blender_icons16

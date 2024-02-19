@@ -25,9 +25,7 @@
 #include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
-#ifndef NDEBUG
-#  include "BLI_threads.h"
-#endif
+#include "BLI_threads.h"
 
 #include "BLO_read_write.hh"
 

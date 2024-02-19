@@ -26,7 +26,7 @@
 
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 #include "NOD_shader.h"
 
@@ -747,7 +747,7 @@ void GPU_material_optimization_status_set(GPUMaterial *mat, eGPUMaterialOptimiza
   mat->optimization_status = status;
   if (mat->optimization_status == GPU_MAT_OPTIMIZATION_READY) {
     /* Reset creation timer to delay optimization pass. */
-    mat->creation_time = BLI_time_now_seconds();
+    mat->creation_time = BLI_check_seconds_timer();
   }
 }
 
@@ -761,7 +761,7 @@ bool GPU_material_optimization_ready(GPUMaterial *mat)
    * to do this quickly to avoid build-up and improve runtime performance.
    * The threshold just prevents compilations being queued frame after frame. */
   const double optimization_time_threshold_s = 1.2;
-  return ((BLI_time_now_seconds() - mat->creation_time) >= optimization_time_threshold_s);
+  return ((BLI_check_seconds_timer() - mat->creation_time) >= optimization_time_threshold_s);
 }
 
 void GPU_material_set_default(GPUMaterial *material, GPUMaterial *default_material)

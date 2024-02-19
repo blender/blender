@@ -13,6 +13,7 @@
 
 #include "DNA_brush_types.h"
 
+#include "BKE_context.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 

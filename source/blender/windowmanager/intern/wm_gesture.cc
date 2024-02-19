@@ -20,10 +20,13 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_context.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "wm.hh"
+#include "wm_draw.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

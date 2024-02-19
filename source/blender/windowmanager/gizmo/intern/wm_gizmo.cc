@@ -19,7 +19,7 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.hh"
 
@@ -30,9 +30,14 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+#include "UI_interface.hh"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
+
+/* only for own init/exit calls (wm_gizmotype_init/wm_gizmotype_free) */
+#include "wm.hh"
 
 /* own includes */
 #include "wm_gizmo_intern.hh"

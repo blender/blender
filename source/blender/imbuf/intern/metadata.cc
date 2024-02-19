@@ -17,6 +17,9 @@
 
 #include "DNA_ID.h" /* ID property definitions. */
 
+#include "MEM_guardedalloc.h"
+
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "IMB_metadata.hh"

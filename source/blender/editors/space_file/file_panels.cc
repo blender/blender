@@ -12,7 +12,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -35,6 +35,7 @@
 
 #include "file_intern.hh"
 #include "filelist.hh"
+#include "fsmenu.h"
 
 #include <cstring>
 

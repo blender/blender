@@ -11,7 +11,7 @@
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_spherical_harmonics_lib.glsl)
 
-#ifdef SPHERE_PROBE
+#ifdef REFLECTION_PROBE
 
 struct LightProbeSample {
   SphericalHarmonicL1 volume_irradiance;
@@ -34,7 +34,7 @@ LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 }
 
 /* Return the best parallax corrected ray direction from the probe center. */
-vec3 lightprobe_sphere_parallax(SphereProbeData probe, vec3 P, vec3 L)
+vec3 lightprobe_sphere_parallax(ReflectionProbeData probe, vec3 P, vec3 L)
 {
   bool is_world = (probe.influence_scale == 0.0);
   if (is_world) {
@@ -63,7 +63,7 @@ vec3 lightprobe_sphere_parallax(SphereProbeData probe, vec3 P, vec3 L)
 vec3 lightprobe_spherical_sample_normalized_with_parallax(
     int probe_index, vec3 P, vec3 L, float lod, SphericalHarmonicL1 P_sh)
 {
-  SphereProbeData probe = reflection_probe_buf[probe_index];
+  ReflectionProbeData probe = reflection_probe_buf[probe_index];
   ReflectionProbeLowFreqLight shading_sh = reflection_probes_extract_low_freq(P_sh);
   vec3 normalization_factor = reflection_probes_normalization_eval(
       L, shading_sh, probe.low_freq_light);
@@ -93,7 +93,7 @@ float lightprobe_roughness_to_cube_sh_mix_fac(float roughness)
 float lightprobe_roughness_to_lod(float roughness)
 {
   /* Temporary. Do something better. */
-  return sqrt(roughness) * SPHERE_PROBE_MIPMAP_LEVELS;
+  return sqrt(roughness) * REFLECTION_PROBE_MIPMAP_LEVELS;
 }
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)
@@ -150,4 +150,4 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V
   return mix(radiance_cube, radiance_sh, fac);
 }
 
-#endif /* SPHERE_PROBE */
+#endif /* REFLECTION_PROBE */

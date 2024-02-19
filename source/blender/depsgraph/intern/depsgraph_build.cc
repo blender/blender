@@ -22,9 +22,9 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

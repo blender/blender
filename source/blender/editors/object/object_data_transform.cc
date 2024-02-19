@@ -15,12 +15,15 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
@@ -35,10 +38,15 @@
 #include "BKE_key.hh"
 #include "BKE_lattice.hh"
 #include "BKE_mball.hh"
+#include "BKE_mesh.hh"
+#include "BKE_scene.h"
 
 #include "bmesh.hh"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
+
+#include "WM_types.hh"
 
 #include "ED_armature.hh"
 #include "ED_mesh.hh"

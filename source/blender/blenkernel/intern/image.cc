@@ -60,11 +60,11 @@
 #include "BLI_timecode.h" /* For stamp time-code format. */
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_bpath.hh"
+#include "BKE_bpath.h"
 #include "BKE_colortools.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
@@ -76,8 +76,8 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_packedFile.h"
 #include "BKE_preview_image.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "BLF_api.hh"
@@ -440,7 +440,6 @@ constexpr IDTypeInfo get_type_info()
   IDTypeInfo info{};
   info.id_code = ID_IM;
   info.id_filter = FILTER_ID_IM;
-  info.dependencies_id_types = 0;
   info.main_listbase_index = INDEX_ID_IM;
   info.struct_size = sizeof(Image);
   info.name = "Image";
@@ -1495,7 +1494,7 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
 
 void BKE_image_tag_time(Image *ima)
 {
-  ima->lastused = BLI_time_now_seconds_i();
+  ima->lastused = BLI_check_seconds_timer_i();
 }
 
 static uintptr_t image_mem_size(Image *image)

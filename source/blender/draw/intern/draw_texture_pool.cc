@@ -6,7 +6,7 @@
  * \ingroup draw
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "BLI_string.h"
 #include "BLI_vector.hh"

@@ -6,7 +6,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"

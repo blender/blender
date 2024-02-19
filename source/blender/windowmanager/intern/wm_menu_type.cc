@@ -13,6 +13,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -101,20 +102,20 @@ bool WM_menutype_poll(bContext *C, MenuType *mt)
   return true;
 }
 
-void WM_menutype_idname_visit_for_search(
-    const bContext * /*C*/,
-    PointerRNA * /*ptr*/,
-    PropertyRNA * /*prop*/,
-    const char * /*edit_text*/,
-    blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+void WM_menutype_idname_visit_for_search(const bContext * /*C*/,
+                                         PointerRNA * /*ptr*/,
+                                         PropertyRNA * /*prop*/,
+                                         const char * /*edit_text*/,
+                                         StringPropertySearchVisitFunc visit_fn,
+                                         void *visit_user_data)
 {
   GHashIterator gh_iter;
   GHASH_ITER (gh_iter, menutypes_hash) {
     MenuType *mt = static_cast<MenuType *>(BLI_ghashIterator_getValue(&gh_iter));
 
-    StringPropertySearchVisitParams visit_params{};
+    StringPropertySearchVisitParams visit_params = {nullptr};
     visit_params.text = mt->idname;
     visit_params.info = mt->label;
-    visit_fn(visit_params);
+    visit_fn(visit_user_data, &visit_params);
   }
 }

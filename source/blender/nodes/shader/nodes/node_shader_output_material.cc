@@ -4,6 +4,8 @@
 
 #include "node_shader_util.hh"
 
+#include "BKE_scene.h"
+
 namespace blender::nodes::node_shader_output_material_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -11,7 +13,9 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Shader>("Surface");
   b.add_input<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
   b.add_input<decl::Vector>("Displacement").hide_value();
-  b.add_input<decl::Float>("Thickness").hide_value();
+  b.add_input<decl::Float>("Thickness")
+      .hide_value()
+      .unavailable() /* EEVEE-Next only. Does nothing in 4.1. */;
 }
 
 static int node_shader_gpu_output_material(GPUMaterial *mat,

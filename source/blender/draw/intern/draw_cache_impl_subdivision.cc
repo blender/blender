@@ -14,7 +14,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_subdiv.hh"
 #include "BKE_subdiv_eval.hh"
 #include "BKE_subdiv_foreach.hh"
@@ -2323,7 +2323,7 @@ void DRW_create_subdivision(Object *ob,
 #undef TIME_SUBDIV
 
 #ifdef TIME_SUBDIV
-  const double begin_time = BLI_time_now_seconds();
+  const double begin_time = BLI_check_seconds_timer();
 #endif
 
   if (!draw_subdiv_create_requested_buffers(ob,
@@ -2345,7 +2345,7 @@ void DRW_create_subdivision(Object *ob,
   }
 
 #ifdef TIME_SUBDIV
-  const double end_time = BLI_time_now_seconds();
+  const double end_time = BLI_check_seconds_timer();
   fprintf(stderr, "Time to update subdivision: %f\n", end_time - begin_time);
   fprintf(stderr, "Maximum FPS: %f\n", 1.0 / (end_time - begin_time));
 #endif

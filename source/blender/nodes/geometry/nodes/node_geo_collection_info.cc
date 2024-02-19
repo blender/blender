@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
 #include "DNA_collection_types.h"
@@ -11,7 +12,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_instances.hh"
 
 #include "node_geometry_util.hh"
@@ -96,7 +97,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (!reset_children) {
         transform.location() += float3(child_collection->instance_offset);
         if (use_relative_transform) {
-          transform = self_object->world_to_object() * transform;
+          transform = float4x4(self_object->world_to_object) * transform;
         }
         else {
           transform.location() -= float3(collection->instance_offset);
@@ -110,12 +111,12 @@ static void node_geo_exec(GeoNodeExecParams params)
       float4x4 transform = float4x4::identity();
       if (!reset_children) {
         if (use_relative_transform) {
-          transform = self_object->world_to_object();
+          transform = float4x4(self_object->world_to_object);
         }
         else {
           transform.location() -= float3(collection->instance_offset);
         }
-        transform *= child_object->object_to_world();
+        transform *= float4x4(child_object->object_to_world);
       }
       entries.append({handle, &(child_object->id.name[2]), transform});
     }
@@ -133,7 +134,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     float4x4 transform = float4x4::identity();
     if (use_relative_transform) {
       transform.location() = collection->instance_offset;
-      transform = self_object->world_to_object() * transform;
+      transform = float4x4_view(self_object->world_to_object) * transform;
     }
 
     const int handle = instances->add_reference(*collection);

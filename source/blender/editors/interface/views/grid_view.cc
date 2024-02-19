@@ -417,7 +417,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
   uiBut *but = uiDefBut(block,
                         UI_BTYPE_PREVIEW_TILE,
                         0,
-                        hide_label_ ? "" : label,
+                        hide_label_ ? "" : label.c_str(),
                         0,
                         0,
                         style.tile_width,

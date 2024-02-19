@@ -31,7 +31,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 #  include <fmt/format.h>
 
 #  include "BKE_attribute.hh"
-#  include "BKE_node.hh"
+#  include "BKE_node.h"
 #  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
@@ -39,7 +39,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #  include "BLI_set.hh"
 
-#  include "BLT_translation.hh"
+#  include "BLT_translation.h"
 
 #  include "DNA_material_types.h"
 #  include "ED_node.hh"

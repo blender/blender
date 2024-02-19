@@ -14,8 +14,11 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_array_utils.hh"
+#include "BLI_bitmap.h"
 #include "BLI_index_range.hh"
 #include "BLI_math_geom.h"
 #include "BLI_span.hh"
@@ -23,7 +26,9 @@
 #include "BLI_virtual_array.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
+#include "BKE_multires.hh"
 
 using blender::float3;
 using blender::int2;

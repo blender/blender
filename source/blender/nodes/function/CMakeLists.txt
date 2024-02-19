@@ -31,10 +31,7 @@ set(SRC
   nodes/node_fn_input_special_characters.cc
   nodes/node_fn_input_string.cc
   nodes/node_fn_input_vector.cc
-  nodes/node_fn_invert_matrix.cc
   nodes/node_fn_invert_rotation.cc
-  nodes/node_fn_combine_transform.cc
-  nodes/node_fn_matrix_multiply.cc
   nodes/node_fn_quaternion_to_rotation.cc
   nodes/node_fn_random_value.cc
   nodes/node_fn_replace_string.cc
@@ -45,12 +42,8 @@ set(SRC
   nodes/node_fn_rotation_to_euler.cc
   nodes/node_fn_rotation_to_quaternion.cc
   nodes/node_fn_separate_color.cc
-  nodes/node_fn_separate_transform.cc
   nodes/node_fn_slice_string.cc
   nodes/node_fn_string_length.cc
-  nodes/node_fn_transform_direction.cc
-  nodes/node_fn_transform_point.cc
-  nodes/node_fn_transpose_matrix.cc
   nodes/node_fn_value_to_string.cc
 
   node_function_util.cc

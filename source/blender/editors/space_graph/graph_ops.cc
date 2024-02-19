@@ -11,16 +11,18 @@
 
 #include "DNA_scene_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"
+#include "ED_transform.hh"
 
 #include "graph_intern.h"
 

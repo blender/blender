@@ -24,6 +24,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 
+#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "ED_anim_api.hh"

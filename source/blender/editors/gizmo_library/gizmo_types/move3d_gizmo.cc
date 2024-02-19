@@ -41,6 +41,7 @@
 #include "ED_view3d.hh"
 
 /* own includes */
+#include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
 #define MVAL_MAX_PX_DIST 12.0f

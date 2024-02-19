@@ -20,7 +20,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_base.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
@@ -48,6 +48,8 @@
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
+
+#include "IMB_imbuf.hh"
 
 /* Only for cursor drawing. */
 #include "DRW_engine.hh"
@@ -910,12 +912,10 @@ static void sequencer_buttons_region_listener(const wmRegionListenerParams *para
   }
 }
 
-static void sequencer_id_remap(ScrArea * /*area*/,
-                               SpaceLink *slink,
-                               const blender::bke::id::IDRemapper &mappings)
+static void sequencer_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
-  mappings.apply((ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(mappings, (ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
 }
 
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

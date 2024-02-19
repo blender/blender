@@ -10,7 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 #define KERNEL_FUNCTIONS(name) \
   KERNEL_NAME_EVAL(cpu, name), KERNEL_NAME_EVAL(cpu_sse2, name), \
-      KERNEL_NAME_EVAL(cpu_sse42, name), KERNEL_NAME_EVAL(cpu_avx2, name)
+      KERNEL_NAME_EVAL(cpu_sse41, name), KERNEL_NAME_EVAL(cpu_avx2, name)
 
 #define REGISTER_KERNEL(name) name(KERNEL_FUNCTIONS(name))
 #define REGISTER_KERNEL_FILM_CONVERT(name) \

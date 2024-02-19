@@ -11,6 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_vector.h"
 
@@ -21,8 +22,9 @@
 #include "BKE_context.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -30,6 +32,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "ED_gpencil_legacy.hh"
 #include "ED_screen.hh"
 
 #include "DEG_depsgraph.hh"

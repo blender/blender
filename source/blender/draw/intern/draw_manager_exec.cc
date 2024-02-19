@@ -12,7 +12,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_memblock.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 #include "GPU_compute.h"
 #include "GPU_platform.h"

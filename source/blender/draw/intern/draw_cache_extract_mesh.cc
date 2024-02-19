@@ -692,7 +692,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
   }
 
 #ifdef DEBUG_TIME
-  double rdata_start = BLI_time_now_seconds();
+  double rdata_start = BLI_check_seconds_timer();
 #endif
 
   MeshRenderData *mr = mesh_render_data_create(
@@ -703,7 +703,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
   mr->use_simplify_normals = (scene->r.mode & R_SIMPLIFY) && (scene->r.mode & R_SIMPLIFY_NORMALS);
 
 #ifdef DEBUG_TIME
-  double rdata_end = BLI_time_now_seconds();
+  double rdata_end = BLI_check_seconds_timer();
 #endif
 
   eMRIterType iter_type = extractors.iter_types();
@@ -757,7 +757,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
 
 #ifdef DEBUG_TIME
   BLI_task_graph_work_and_wait(task_graph);
-  double end = BLI_time_now_seconds();
+  double end = BLI_check_seconds_timer();
 
   static double avg = 0;
   static double avg_fps = 0;

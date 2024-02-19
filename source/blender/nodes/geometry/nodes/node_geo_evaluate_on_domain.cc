@@ -9,7 +9,9 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_geometry_fields.hh"
+#include "BKE_grease_pencil.hh"
 
 #include "BLI_task.hh"
 

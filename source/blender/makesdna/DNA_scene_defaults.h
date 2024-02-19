@@ -76,6 +76,7 @@
     .framapto = 100, \
     .images = 100, \
     .framelen = 1.0, \
+    .blurfac = 0.5, \
     .frs_sec = 24, \
     .frs_sec_base = 1, \
  \
@@ -128,8 +129,6 @@
     .unit_line_thickness = 1.0f, \
  \
     .ffcodecdata = _DNA_DEFAULT_FFMpegCodecData, \
- \
-    .motion_blur_shutter = 0.5f, \
   }
 
 #define _DNA_DEFAULT_AudioData \
@@ -227,6 +226,7 @@
     .bloom_radius = 6.5f, \
     .bloom_clamp = 0.0f, \
  \
+    .motion_blur_shutter = 0.5f, \
     .motion_blur_depth_scale = 100.0f, \
     .motion_blur_max = 32, \
     .motion_blur_steps = 1, \

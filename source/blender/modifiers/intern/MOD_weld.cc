@@ -21,7 +21,7 @@
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"

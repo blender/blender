@@ -12,6 +12,7 @@
  */
 
 #include "BLI_array_utils.hh"
+#include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -22,7 +23,7 @@
 
 #include "BKE_mesh.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 namespace blender::bke::mesh {
 

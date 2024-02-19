@@ -132,9 +132,6 @@ static void sort_indices(MutableSpan<int> indices, const Span<T> values, const i
       const float4 value2_quat = float4(value2);
       return value1_quat[component_i] < value2_quat[component_i];
     }
-    if constexpr (std::is_same_v<T, float4x4>) {
-      return value1.base_ptr()[component_i] < value2.base_ptr()[component_i];
-    }
     if constexpr (std::is_same_v<T, int2>) {
       for (int i = 0; i < 2; i++) {
         if (value1[i] != value2[i]) {
@@ -250,10 +247,6 @@ static bool values_different(const T value1,
     const float4 value1_f = float4(value1);
     const float4 value2_f = float4(value2);
     return compare_threshold_relative(value1_f[component_i], value2_f[component_i], threshold);
-  }
-  if constexpr (std::is_same_v<T, float4x4>) {
-    return compare_threshold_relative(
-        value1.base_ptr()[component_i], value2.base_ptr()[component_i], threshold);
   }
   BLI_assert_unreachable();
 }
@@ -581,9 +574,6 @@ static std::optional<MeshMismatch> sort_domain_using_attributes(
       }
       else if constexpr (is_same_any_v<T, math::Quaternion, ColorGeometry4f>) {
         num_loops = 4;
-      }
-      else if constexpr (is_same_any_v<T, float4x4>) {
-        num_loops = 16;
       }
       for (const int component_i : IndexRange(num_loops)) {
         sort_per_set_based_on_attributes(

@@ -488,17 +488,17 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
   friend std::ostream &operator<<(std::ostream &stream, const MatBase &mat)
   {
     stream << "(\n";
-    unroll<NumRow>([&](auto i) {
+    unroll<NumCol>([&](auto i) {
       stream << "(";
-      unroll<NumCol>([&](auto j) {
+      unroll<NumRow>([&](auto j) {
         /** NOTE: j and i are swapped to follow mathematical convention. */
         stream << mat[j][i];
-        if (j < NumCol - 1) {
+        if (j < NumRow - 1) {
           stream << ", ";
         }
       });
       stream << ")";
-      if (i < NumRow - 1) {
+      if (i < NumCol - 1) {
         stream << ",";
       }
       stream << "\n";

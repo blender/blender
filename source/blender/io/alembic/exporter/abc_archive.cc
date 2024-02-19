@@ -6,7 +6,7 @@
 
 #include "BKE_blender_version.h"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph_query.hh"
 

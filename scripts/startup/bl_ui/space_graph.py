@@ -159,7 +159,7 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_sliders")
         layout.prop(st, "use_auto_merge_keyframes")
-        layout.prop(st, "use_auto_lock_translation_axis")
+        layout.prop(st, "autolock_translation_axis")
         layout.separator()
 
         if st.mode != 'DRIVERS':

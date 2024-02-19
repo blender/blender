@@ -11,25 +11,32 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_query.hh"
+#include "BKE_main.hh"
 #include "BKE_modifier.hh"
+#include "BKE_screen.hh"
+
+#include "DEG_depsgraph.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 
+#include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_ui_common.h"
 #include "MOD_gpencil_legacy_util.h"
 

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_curve_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BKE_curve.hh"
 #include "BKE_curve_legacy_convert.hh"
@@ -11,6 +12,7 @@
 #include "BKE_vfont.hh"
 
 #include "BLI_bounds.hh"
+#include "BLI_hash.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"

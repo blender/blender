@@ -14,18 +14,25 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_deform.hh"
+#include "BKE_editmesh.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
+#include "BKE_screen.hh"
 #include "BKE_texture.h"
 
 #include "UI_interface.hh"
@@ -35,6 +42,9 @@
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
+
+#include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RE_texture.h"
 
@@ -85,11 +95,11 @@ static void matrix_from_obj_pchan(float mat[4][4],
   bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, bonename);
   if (pchan) {
     float mat_bone_world[4][4];
-    mul_m4_m4m4(mat_bone_world, ob->object_to_world().ptr(), pchan->pose_mat);
+    mul_m4_m4m4(mat_bone_world, ob->object_to_world, pchan->pose_mat);
     mul_m4_m4m4(mat, obinv, mat_bone_world);
   }
   else {
-    mul_m4_m4m4(mat, obinv, ob->object_to_world().ptr());
+    mul_m4_m4m4(mat, obinv, ob->object_to_world);
   }
 }
 
@@ -205,7 +215,7 @@ static void warpModifier_do(WarpModifierData *wmd,
     BKE_curvemapping_init(wmd->curfalloff);
   }
 
-  invert_m4_m4(obinv, ob->object_to_world().ptr());
+  invert_m4_m4(obinv, ob->object_to_world);
 
   /* Checks that the objects/bones are available. */
   matrix_from_obj_pchan(mat_from, obinv, wmd->object_from, wmd->bone_from);

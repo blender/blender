@@ -29,10 +29,14 @@ enum {
 
 enum {
   FFMPEG_PRESET_NONE = 0,
-  FFMPEG_PRESET_H264 = 1,
-  FFMPEG_PRESET_THEORA = 2,
-  FFMPEG_PRESET_XVID = 3,
-  FFMPEG_PRESET_AV1 = 4,
+  FFMPEG_PRESET_DVD = 1,
+  FFMPEG_PRESET_SVCD = 2,
+  FFMPEG_PRESET_VCD = 3,
+  FFMPEG_PRESET_DV = 4,
+  FFMPEG_PRESET_H264 = 5,
+  FFMPEG_PRESET_THEORA = 6,
+  FFMPEG_PRESET_XVID = 7,
+  FFMPEG_PRESET_AV1 = 8,
 };
 
 struct AVFrame;
@@ -71,18 +75,8 @@ bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd);
 void *BKE_ffmpeg_context_create(void);
 void BKE_ffmpeg_context_free(void *context_v);
 
-void BKE_ffmpeg_exit();
-
-/**
- * Gets a `libswscale` context for given size and format parameters.
- * After you're done using the context, call #BKE_ffmpeg_sws_release_context
- * to release it. Internally the contexts are coming from the context
- * pool/cache.
- */
 SwsContext *BKE_ffmpeg_sws_get_context(
     int width, int height, int av_src_format, int av_dst_format, int sws_flags);
-void BKE_ffmpeg_sws_release_context(SwsContext *ctx);
-
 void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src);
 
 #endif

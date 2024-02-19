@@ -50,18 +50,18 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_effect.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_softbody.h"
 
 #include "DEG_depsgraph.hh"
@@ -2658,7 +2658,7 @@ static void springs_from_mesh(Object *ob)
       bp = ob->soft->bpoint;
       for (a = 0; a < mesh->verts_num; a++, bp++) {
         copy_v3_v3(bp->origS, positions[a]);
-        mul_m4_v3(ob->object_to_world().ptr(), bp->origS);
+        mul_m4_v3(ob->object_to_world, bp->origS);
       }
     }
     /* recalculate spring length for meshes here */
@@ -2821,9 +2821,9 @@ static float globallen(float *v1, float *v2, Object *ob)
 {
   float p1[3], p2[3];
   copy_v3_v3(p1, v1);
-  mul_m4_v3(ob->object_to_world().ptr(), p1);
+  mul_m4_v3(ob->object_to_world, p1);
   copy_v3_v3(p2, v2);
-  mul_m4_v3(ob->object_to_world().ptr(), p2);
+  mul_m4_v3(ob->object_to_world, p2);
   return len_v3v3(p1, p2);
 }
 
@@ -3085,13 +3085,13 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
       SB_estimate_transform(ob, sb->lcom, sb->lrot, sb->lscale);
     }
     /* Inverse matrix is not up to date. */
-    invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+    invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
     for (a = 0; a < numVerts; a++, bp++) {
       copy_v3_v3(vertexCos[a], bp->pos);
       if (local == 0) {
-        /* softbody is in global coords, baked optionally not */
-        mul_m4_v3(ob->world_to_object().ptr(), vertexCos[a]);
+        mul_m4_v3(ob->world_to_object,
+                  vertexCos[a]); /* softbody is in global coords, baked optionally not */
       }
     }
   }
@@ -3238,7 +3238,7 @@ static void softbody_update_positions(Object *ob,
     /* copy the position of the goals at desired end time */
     copy_v3_v3(bp->origE, vertexCos[a]);
     /* vertexCos came from local world, go global */
-    mul_m4_v3(ob->object_to_world().ptr(), bp->origE);
+    mul_m4_v3(ob->object_to_world, bp->origE);
     /* just to be save give bp->origT a defined value
      * will be calculated in interpolate_exciter() */
     copy_v3_v3(bp->origT, bp->origE);
@@ -3295,7 +3295,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 
   for (a = 0, bp = sb->bpoint; a < numVerts; a++, bp++) {
     copy_v3_v3(bp->pos, vertexCos[a]);
-    mul_m4_v3(ob->object_to_world().ptr(), bp->pos); /* Yep, soft-body is global coords. */
+    mul_m4_v3(ob->object_to_world, bp->pos); /* Yep, soft-body is global coords. */
     copy_v3_v3(bp->origS, bp->pos);
     copy_v3_v3(bp->origE, bp->pos);
     copy_v3_v3(bp->origT, bp->pos);
@@ -3357,7 +3357,7 @@ static void softbody_step(
   float forcetime;
   double sct, sst;
 
-  sst = BLI_time_now_seconds();
+  sst = BLI_check_seconds_timer();
   /* Integration back in time is possible in theory, but pretty useless here.
    * So we refuse to do so. Since we do not know anything about 'outside' changes
    * especially colliders we refuse to go more than 10 frames.
@@ -3453,7 +3453,7 @@ static void softbody_step(
       }
       loops++;
       if (sb->solverflags & SBSO_MONITOR) {
-        sct = BLI_time_now_seconds();
+        sct = BLI_check_seconds_timer();
         if (sct - sst > 0.5) {
           printf("%3.0f%% \r", 100.0f * timedone / dtime);
         }
@@ -3494,7 +3494,7 @@ static void softbody_step(
   }
 
   if (sb->solverflags & SBSO_MONITOR) {
-    sct = BLI_time_now_seconds();
+    sct = BLI_check_seconds_timer();
     if ((sct - sst > 0.5) || (G.debug & G_DEBUG)) {
       printf(" solver time %f sec %s\n", sct - sst, ob->id.name);
     }

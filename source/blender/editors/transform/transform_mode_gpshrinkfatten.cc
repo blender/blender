@@ -11,6 +11,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -19,7 +20,7 @@
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"

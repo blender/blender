@@ -237,7 +237,7 @@ int logImageSetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
   int returnValue;
 
   elementData = (float *)imb_alloc_pixels(
-      logImage->width, logImage->height, logImage->depth, sizeof(float), true, __func__);
+      logImage->width, logImage->height, logImage->depth, sizeof(float), __func__);
   if (elementData == nullptr) {
     return 1;
   }
@@ -438,12 +438,8 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
     /* descriptor_Depth and descriptor_Composite are not supported */
     if (!ELEM(logImage->element[i].descriptor, descriptor_Depth, descriptor_Composite)) {
       /* Allocate memory */
-      elementData[i] = static_cast<float *>(imb_alloc_pixels(logImage->width,
-                                                             logImage->height,
-                                                             logImage->element[i].depth,
-                                                             sizeof(float),
-                                                             true,
-                                                             __func__));
+      elementData[i] = static_cast<float *>(imb_alloc_pixels(
+          logImage->width, logImage->height, logImage->element[i].depth, sizeof(float), __func__));
       if (elementData[i] == nullptr) {
         if (verbose) {
           printf("DPX/Cineon: Cannot allocate memory for elementData[%d]\n.", i);
@@ -628,7 +624,7 @@ int logImageGetDataRGBA(LogImageFile *logImage, float *data, int dataIsLinearRGB
     }
 
     mergedData = (float *)imb_alloc_pixels(
-        logImage->width, logImage->height, mergedElement.depth, sizeof(float), true, __func__);
+        logImage->width, logImage->height, mergedElement.depth, sizeof(float), __func__);
     if (mergedData == nullptr) {
       if (verbose) {
         printf("DPX/Cineon: Cannot allocate mergedData.\n");
@@ -1711,7 +1707,7 @@ static int convertRGBAToLogElement(
   if (srcIsLinearRGB != 0) {
     /* we need to convert src to sRGB */
     srgbSrc = (float *)imb_alloc_pixels(
-        logImage->width, logImage->height, 4, sizeof(float), false, __func__);
+        logImage->width, logImage->height, 4, sizeof(float), __func__);
     if (srgbSrc == nullptr) {
       return 1;
     }

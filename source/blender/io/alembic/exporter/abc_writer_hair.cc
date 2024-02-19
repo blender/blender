@@ -127,7 +127,7 @@ void ABCHairWriter::write_hair_sample(const HierarchyContext &context,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(
       &mesh->fdata_legacy, CD_MTFACE, mesh->totface_legacy);
@@ -252,7 +252,7 @@ void ABCHairWriter::write_hair_child_sample(const HierarchyContext &context,
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
 
   const MFace *mface = (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE);
   MTFace *mtface = (MTFace *)CustomData_get_layer_for_write(

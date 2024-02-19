@@ -15,7 +15,7 @@
 
 #ifdef RNA_RUNTIME
 
-#  include "BKE_global.hh"
+#  include "BKE_global.h"
 
 #  include "ED_fileselect.hh"
 #  include "ED_screen.hh"

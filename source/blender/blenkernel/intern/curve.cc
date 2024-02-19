@@ -25,7 +25,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -40,17 +40,23 @@
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_curve.hh"
 #include "BKE_curveprofile.h"
+#include "BKE_displist.h"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_main.hh"
+#include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_vfont.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "CLG_log.h"
 
 #include "BLO_read_write.hh"
 
@@ -271,7 +277,6 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_CU_LEGACY = {
     /*id_code*/ ID_CU_LEGACY,
     /*id_filter*/ FILTER_ID_CU_LEGACY,
-    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_MA | FILTER_ID_VF | FILTER_ID_KE,
     /*main_listbase_index*/ INDEX_ID_CU_LEGACY,
     /*struct_size*/ sizeof(Curve),
     /*name*/ "Curve",

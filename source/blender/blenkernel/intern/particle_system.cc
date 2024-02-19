@@ -15,8 +15,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_boid_types.h"
 #include "DNA_cloth_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -39,6 +41,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
@@ -50,18 +53,25 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh_legacy_convert.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_particle.h"
 
+#include "BKE_bvhutils.hh"
 #include "BKE_cloth.hh"
+#include "BKE_collection.h"
+#include "BKE_lattice.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_physics.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "RE_texture.h"
 
 /* FLUID sim particle import */
 #ifdef WITH_FLUID
@@ -759,10 +769,10 @@ void psys_get_birth_coords(
   /* particles live in global space so    */
   /* let's convert:                       */
   /* -location                            */
-  mul_m4_v3(ob->object_to_world().ptr(), loc);
+  mul_m4_v3(ob->object_to_world, loc);
 
   /* -normal                              */
-  mul_mat3_m4_v3(ob->object_to_world().ptr(), nor);
+  mul_mat3_m4_v3(ob->object_to_world, nor);
   normalize_v3(nor);
 
   /* -tangent                             */
@@ -780,7 +790,7 @@ void psys_get_birth_coords(
     fac = -sinf(float(M_PI) * (part->tanphase + phase));
     madd_v3_v3fl(vtan, utan, fac);
 
-    mul_mat3_m4_v3(ob->object_to_world().ptr(), vtan);
+    mul_mat3_m4_v3(ob->object_to_world, vtan);
 
     copy_v3_v3(utan, nor);
     mul_v3_fl(utan, dot_v3v3(vtan, nor));
@@ -795,7 +805,7 @@ void psys_get_birth_coords(
     r_vel[1] = 2.0f * (psys_frand(psys, p + 11) - 0.5f);
     r_vel[2] = 2.0f * (psys_frand(psys, p + 12) - 0.5f);
 
-    mul_mat3_m4_v3(ob->object_to_world().ptr(), r_vel);
+    mul_mat3_m4_v3(ob->object_to_world, r_vel);
     normalize_v3(r_vel);
   }
 
@@ -805,7 +815,7 @@ void psys_get_birth_coords(
     r_ave[1] = 2.0f * (psys_frand(psys, p + 14) - 0.5f);
     r_ave[2] = 2.0f * (psys_frand(psys, p + 15) - 0.5f);
 
-    mul_mat3_m4_v3(ob->object_to_world().ptr(), r_ave);
+    mul_mat3_m4_v3(ob->object_to_world, r_ave);
     normalize_v3(r_ave);
   }
 
@@ -817,7 +827,7 @@ void psys_get_birth_coords(
     r_rot[3] = 2.0f * (psys_frand(psys, p + 19) - 0.5f);
     normalize_qt(r_rot);
 
-    mat4_to_quat(rot, ob->object_to_world().ptr());
+    mat4_to_quat(rot, ob->object_to_world);
     mul_qt_qtqt(r_rot, r_rot, rot);
   }
 
@@ -831,7 +841,7 @@ void psys_get_birth_coords(
 
     /* boids store direction in ave */
     if (fabsf(nor[2]) == 1.0f) {
-      sub_v3_v3v3(state->ave, loc, ob->object_to_world().location());
+      sub_v3_v3v3(state->ave, loc, ob->object_to_world[3]);
       normalize_v3(state->ave);
     }
     else {
@@ -877,15 +887,15 @@ void psys_get_birth_coords(
 
     /*      *emitter object orientation     */
     if (part->ob_vel[0] != 0.0f) {
-      normalize_v3_v3(vec, ob->object_to_world().ptr()[0]);
+      normalize_v3_v3(vec, ob->object_to_world[0]);
       madd_v3_v3fl(vel, vec, part->ob_vel[0]);
     }
     if (part->ob_vel[1] != 0.0f) {
-      normalize_v3_v3(vec, ob->object_to_world().ptr()[1]);
+      normalize_v3_v3(vec, ob->object_to_world[1]);
       madd_v3_v3fl(vel, vec, part->ob_vel[1]);
     }
     if (part->ob_vel[2] != 0.0f) {
-      normalize_v3_v3(vec, ob->object_to_world().ptr()[2]);
+      normalize_v3_v3(vec, ob->object_to_world[2]);
       madd_v3_v3fl(vel, vec, part->ob_vel[2]);
     }
 
@@ -933,7 +943,7 @@ void psys_get_birth_coords(
         case PART_ROT_OB_X:
         case PART_ROT_OB_Y:
         case PART_ROT_OB_Z:
-          copy_v3_v3(rot_vec, ob->object_to_world().ptr()[part->rotmode - PART_ROT_OB_X]);
+          copy_v3_v3(rot_vec, ob->object_to_world[part->rotmode - PART_ROT_OB_X]);
           use_global_space = false;
           break;
         default:
@@ -960,7 +970,7 @@ void psys_get_birth_coords(
         float q_obmat[4];
         float q_imat[4];
 
-        mat4_to_quat(q_obmat, ob->object_to_world().ptr());
+        mat4_to_quat(q_obmat, ob->object_to_world);
         invert_qt_qt_normalized(q_imat, q_obmat);
 
         if (part->rotmode != PART_ROT_NOR_TAN) {
@@ -3384,7 +3394,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
       use_hair = psys_hair_use_simulation(pa, max_length);
 
       psys_mat_hair_to_object(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
-      mul_m4_m4m4(root_mat, sim->ob->object_to_world().ptr(), hairmat);
+      mul_m4_m4m4(root_mat, sim->ob->object_to_world, hairmat);
       normalize_m4(root_mat);
 
       bending_stiffness = std::clamp(
@@ -3580,7 +3590,7 @@ static void save_hair(ParticleSimulationData *sim, float /*cfra*/)
   HairKey *key, *root;
   PARTICLE_P;
 
-  invert_m4_m4(ob->runtime->world_to_object.ptr(), ob->object_to_world().ptr());
+  invert_m4_m4(ob->world_to_object, ob->object_to_world);
 
   if (psys->totpart == 0) {
     return;
@@ -3603,7 +3613,7 @@ static void save_hair(ParticleSimulationData *sim, float /*cfra*/)
 
     /* convert from global to geometry space */
     copy_v3_v3(key->co, pa->state.co);
-    mul_m4_v3(ob->world_to_object().ptr(), key->co);
+    mul_m4_v3(ob->world_to_object, key->co);
 
     if (pa->totkey) {
       sub_v3_v3(key->co, root->co);
@@ -4414,7 +4424,7 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           mul_v3_v3(pa->state.co, scaleAbs);
 
           /* Match domain scale. */
-          mul_m4_v3(ob->object_to_world().ptr(), pa->state.co);
+          mul_m4_v3(ob->object_to_world, pa->state.co);
 
           /* Add origin offset to particle position. */
           zero_v3(tmp);
@@ -5001,7 +5011,7 @@ void particle_system_update(Depsgraph *depsgraph,
 
   /* Save matrix for duplicators,
    * at render-time the actual dupli-object's matrix is used so don't update! */
-  invert_m4_m4(psys->imat, ob->object_to_world().ptr());
+  invert_m4_m4(psys->imat, ob->object_to_world);
 
   BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 }

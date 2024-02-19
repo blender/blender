@@ -13,6 +13,18 @@ using namespace blender::math;
 /** \name Planar Probe
  * \{ */
 
+void PlanarProbe::sync(const float4x4 &world_to_object,
+                       float clipping_offset,
+                       float influence_distance,
+                       bool viewport_display)
+{
+  this->plane_to_world = float4x4(world_to_object);
+  this->plane_to_world.z_axis() = normalize(this->plane_to_world.z_axis()) * influence_distance;
+  this->world_to_plane = invert(this->plane_to_world);
+  this->clipping_offset = clipping_offset;
+  this->viewport_display = viewport_display;
+}
+
 void PlanarProbe::set_view(const draw::View &view, int layer_id)
 {
   this->viewmat = view.viewmat() * reflection_matrix_get();
@@ -28,6 +40,16 @@ void PlanarProbe::set_view(const draw::View &view, int layer_id)
   this->layer_id = layer_id;
 }
 
+float4x4 PlanarProbe::reflection_matrix_get()
+{
+  return plane_to_world * from_scale<float4x4>(float3(1, 1, -1)) * world_to_plane;
+}
+
+float4 PlanarProbe::reflection_clip_plane_get()
+{
+  return float4(-normal, dot(normal, plane_to_world.location()) - clipping_offset);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -36,33 +58,47 @@ void PlanarProbe::set_view(const draw::View &view, int layer_id)
 
 void PlanarProbeModule::init()
 {
-  /* This triggers the compilation of clipped shader only if we can detect light-probe planes. */
-  if (inst_.is_viewport()) {
-    /* This check needs to happen upfront before sync, so we use the previous sync result. */
-    update_probes_ = !inst_.light_probes.planar_map_.is_empty();
+  update_probes_ = !probes_.is_empty();
+  do_display_draw_ = false;
+}
+
+void PlanarProbeModule::begin_sync()
+{
+  for (PlanarProbe &probe : probes_.values()) {
+    probe.is_probe_used = false;
   }
-  else {
-    /* TODO(jbakker): should we check on the subtype as well? Now it also populates even when
-     * there are other light probes in the scene. */
-    update_probes_ = DEG_id_type_any_exists(inst_.depsgraph, ID_LP);
+}
+
+void PlanarProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
+{
+  const ::LightProbe *light_probe = (::LightProbe *)ob->data;
+  if (light_probe->type != LIGHTPROBE_TYPE_PLANE) {
+    return;
   }
 
-  do_display_draw_ = false;
+  PlanarProbe &probe = find_or_insert(ob_handle);
+  probe.sync(float4x4(ob->object_to_world),
+             light_probe->clipsta,
+             light_probe->distinf,
+             light_probe->flag & LIGHTPROBE_FLAG_SHOW_DATA);
+  probe.is_probe_used = true;
 }
 
 void PlanarProbeModule::end_sync()
 {
+  probes_.remove_if([](const PlanarProbes::Item &item) { return !item.value.is_probe_used; });
+
   /* When first planar probes are enabled it can happen that the first sample is off. */
-  if (!update_probes_ && !inst_.light_probes.planar_map_.is_empty()) {
+  if (!update_probes_ && !probes_.is_empty()) {
     DRW_viewport_request_redraw();
   }
 }
 
 void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_extent)
 {
-  GBuffer &gbuf = inst_.gbuffer;
+  GBuffer &gbuf = instance_.gbuffer;
 
-  const int64_t num_probes = inst_.light_probes.planar_map_.size();
+  const int64_t num_probes = probes_.size();
 
   /* TODO resolution percentage. */
   int2 extent = main_view_extent;
@@ -83,12 +119,12 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
 
   int resource_index = 0;
   int display_index = 0;
-  for (PlanarProbe &probe : inst_.light_probes.planar_map_.values()) {
-    if (resource_index == PLANAR_PROBE_MAX) {
+  for (PlanarProbe &probe : probes_.values()) {
+    if (resource_index == PLANAR_PROBES_MAX) {
       break;
     }
 
-    PlanarResources &res = resources_[resource_index];
+    PlanarProbeResources &res = resources_[resource_index];
 
     /* TODO Cull out of view planars. */
 
@@ -101,8 +137,8 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     world_clip_buf_.push_update();
 
     gbuf.acquire(extent,
-                 inst_.pipelines.deferred.closure_layer_count(),
-                 inst_.pipelines.deferred.normal_layer_count());
+                 instance_.pipelines.deferred.closure_layer_count(),
+                 instance_.pipelines.deferred.normal_layer_count());
 
     res.combined_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                            GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index));
@@ -114,7 +150,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0));
 
-    inst_.pipelines.planar.render(
+    instance_.pipelines.planar.render(
         res.view, depth_tx_.layer_view(resource_index), res.gbuffer_fb, res.combined_fb, extent);
 
     if (do_display_draw_ && probe.viewport_display) {
@@ -126,7 +162,7 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
 
   gbuf.release();
 
-  if (resource_index < PLANAR_PROBE_MAX) {
+  if (resource_index < PLANAR_PROBES_MAX) {
     /* Tag the end of the array. */
     probe_planar_buf_[resource_index].layer_id = -1;
   }
@@ -139,6 +175,12 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
   }
 }
 
+PlanarProbe &PlanarProbeModule::find_or_insert(ObjectHandle &ob_handle)
+{
+  PlanarProbe &planar_probe = probes_.lookup_or_add_default(ob_handle.object_key.hash());
+  return planar_probe;
+}
+
 void PlanarProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)
 {
   if (!do_display_draw_) {
@@ -149,12 +191,12 @@ void PlanarProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)
   viewport_display_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
                                  DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
   viewport_display_ps_.framebuffer_set(&view_fb);
-  viewport_display_ps_.shader_set(inst_.shaders.static_shader_get(DISPLAY_PROBE_PLANAR));
+  viewport_display_ps_.shader_set(instance_.shaders.static_shader_get(DISPLAY_PROBE_PLANAR));
   bind_resources(viewport_display_ps_);
   viewport_display_ps_.bind_ssbo("display_data_buf", display_data_buf_);
   viewport_display_ps_.draw_procedural(GPU_PRIM_TRIS, 1, display_data_buf_.size() * 6);
 
-  inst_.manager->submit(viewport_display_ps_, view);
+  instance_.manager->submit(viewport_display_ps_, view);
 }
 
 /** \} */

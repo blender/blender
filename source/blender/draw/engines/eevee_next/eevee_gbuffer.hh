@@ -11,7 +11,6 @@
 #pragma once
 
 #include "DRW_render.hh"
-#include "GPU_capabilities.h"
 
 #include "eevee_material.hh"
 #include "eevee_shader_shared.hh"
@@ -150,41 +149,6 @@ struct GBuffer {
     /* Ensure layer view for image store. */
     closure_img_tx = closure_tx.layer_range_view(2, data_count - 2);
     normal_img_tx = normal_tx.layer_range_view(1, normal_count - 1);
-  }
-
-  /* Bind the GBuffer frame-buffer correctly using the correct workarounds. */
-  void bind(Framebuffer &gbuffer_fb)
-  {
-    if (/* FIXME(fclem): Vulkan doesn't implement load / store config yet. */
-        GPU_backend_get_type() == GPU_BACKEND_VULKAN ||
-        /* FIXME(fclem): Metal has bug in backend. */
-        GPU_backend_get_type() == GPU_BACKEND_METAL)
-    {
-      header_tx.clear(uint4(0));
-    }
-
-    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-      /* TODO(fclem): Load/store action is broken on Metal. */
-      GPU_framebuffer_bind(gbuffer_fb);
-    }
-    else {
-      if (!GPU_stencil_export_support()) {
-        /* Clearing custom load-store frame-buffers is invalid,
-         * clear the stencil as a regular frame-buffer first. */
-        GPU_framebuffer_bind(gbuffer_fb);
-        GPU_framebuffer_clear_stencil(gbuffer_fb, 0x0u);
-      }
-      GPU_framebuffer_bind_ex(
-          gbuffer_fb,
-          {
-              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Depth */
-              {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE},       /* Combined */
-              {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0}}, /* GBuf Header */
-              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Normal*/
-              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure */
-              {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE},  /* GBuf Closure 2*/
-          });
-    }
   }
 
   void release()

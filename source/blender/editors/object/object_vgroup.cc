@@ -20,6 +20,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_array.hh"
 #include "BLI_bitmap.h"
@@ -36,17 +37,20 @@
 #include "BKE_editmesh.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
 #include "BKE_lattice.hh"
+#include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_armature_types.h"
 #include "RNA_access.hh"

@@ -1129,7 +1129,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
   AVFrame *in_frame = av_frame_alloc();
   AVPacket *packet = av_packet_alloc();
 
-  const double start = BLI_time_now_seconds();
+  const double start = BLI_check_seconds_timer();
   int frames_decoded = 0;
 
   while (av_read_frame(context->iFormatCtx, packet) >= 0) {
@@ -1155,7 +1155,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
       frames_decoded++;
     }
 
-    const double end = BLI_time_now_seconds();
+    const double end = BLI_check_seconds_timer();
 
     if (end > start + time_period) {
       break;

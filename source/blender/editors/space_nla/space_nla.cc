@@ -554,18 +554,17 @@ static void nla_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void nla_id_remap(ScrArea * /*area*/,
-                         SpaceLink *slink,
-                         const blender::bke::id::IDRemapper &mappings)
+static void nla_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(slink);
 
   if (snla->ads == nullptr) {
     return;
   }
-
-  mappings.apply(reinterpret_cast<ID **>(&snla->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
-  mappings.apply(reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(
+      mappings, reinterpret_cast<ID **>(&snla->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(
+      mappings, reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void nla_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

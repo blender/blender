@@ -10,18 +10,21 @@
 
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
+#include "BKE_crazyspace.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "DEG_depsgraph_query.hh"
 
+#include "ED_curves.hh"
 #include "ED_mesh.hh"
 #include "ED_particle.hh"
 #include "ED_screen.hh"
@@ -74,7 +77,7 @@ static void view3d_object_calc_minmax(Depsgraph *depsgraph,
   if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
     /* Use if duplis aren't found. */
     if (only_center) {
-      minmax_v3v3_v3(min, max, ob_eval->object_to_world().location());
+      minmax_v3v3_v3(min, max, ob_eval->object_to_world[3]);
     }
     else {
       BKE_object_minmax(ob_eval, min, max);
@@ -379,8 +382,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
     CTX_DATA_END;
 
     if ((ob_eval) && (ok)) {
-      mul_m4_v3(ob_eval->object_to_world().ptr(), min);
-      mul_m4_v3(ob_eval->object_to_world().ptr(), max);
+      mul_m4_v3(ob_eval->object_to_world, min);
+      mul_m4_v3(ob_eval->object_to_world, max);
     }
   }
   else if (is_face_map) {

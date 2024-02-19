@@ -19,7 +19,6 @@
 #include "COM_MemoryBuffer.h"
 #include "COM_MetaData.h"
 
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "clew.h"
@@ -311,8 +310,6 @@ class NodeOperation {
  private:
   int id_;
   std::string name_;
-  bNodeInstanceKey node_instance_key_{NODE_INSTANCE_KEY_NONE};
-
   Vector<NodeOperationInput> inputs_;
   Vector<NodeOperationOutput> outputs_;
 
@@ -378,15 +375,6 @@ class NodeOperation {
   const int get_id() const
   {
     return id_;
-  }
-
-  const void set_node_instance_key(const bNodeInstanceKey &node_instance_key)
-  {
-    node_instance_key_ = node_instance_key;
-  }
-  const bNodeInstanceKey get_node_instance_key() const
-  {
-    return node_instance_key_;
   }
 
   /** Get constant value when operation is constant, otherwise return default_value. */

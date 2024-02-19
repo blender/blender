@@ -124,7 +124,6 @@ void NodeOperationBuilder::add_operation(NodeOperation *operation)
   operations_.append(operation);
   if (current_node_) {
     operation->set_name(current_node_->get_bnode()->name);
-    operation->set_node_instance_key(current_node_->get_instance_key());
   }
   operation->set_execution_model(context_->get_execution_model());
   operation->set_execution_system(exec_system_);

@@ -21,6 +21,7 @@
 #  include "BLI_hash.hh"
 #  include "BLI_kdopbvh.h"
 #  include "BLI_map.hh"
+#  include "BLI_math_boolean.hh"
 #  include "BLI_math_geom.h"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_mpq.hh"
@@ -34,6 +35,7 @@
 #  include "BLI_task.h"
 #  include "BLI_task.hh"
 #  include "BLI_threads.h"
+#  include "BLI_time.h"
 #  include "BLI_vector.hh"
 #  include "BLI_vector_set.hh"
 
@@ -2954,7 +2956,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
   }
 #  ifdef PERFDEBUG
   perfdata_init();
-  double start_time = BLI_time_now_seconds();
+  double start_time = BLI_check_seconds_timer();
   std::cout << "trimesh_nary_intersect start\n";
 #  endif
   /* Usually can use tm_in but if it has degenerate or illegal triangles,
@@ -2972,17 +2974,17 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
     }
   }
 #  ifdef PERFDEBUG
-  double clean_time = BLI_time_now_seconds();
+  double clean_time = BLI_check_seconds_timer();
   std::cout << "cleaned, time = " << clean_time - start_time << "\n";
 #  endif
   Array<BoundingBox> tri_bb = calc_face_bounding_boxes(*tm_clean);
 #  ifdef PERFDEBUG
-  double bb_calc_time = BLI_time_now_seconds();
+  double bb_calc_time = BLI_check_seconds_timer();
   std::cout << "bbs calculated, time = " << bb_calc_time - clean_time << "\n";
 #  endif
   TriOverlaps tri_ov(*tm_clean, tri_bb, nshapes, shape_fn, use_self);
 #  ifdef PERFDEBUG
-  double overlap_time = BLI_time_now_seconds();
+  double overlap_time = BLI_check_seconds_timer();
   std::cout << "intersect overlaps calculated, time = " << overlap_time - bb_calc_time << "\n";
 #  endif
   Array<IMesh> tri_subdivided(tm_clean->face_size(), NoInitialization());
@@ -2995,7 +2997,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
     }
   });
 #  ifdef PERFDEBUG
-  double plane_populate = BLI_time_now_seconds();
+  double plane_populate = BLI_check_seconds_timer();
   std::cout << "planes populated, time = " << plane_populate - overlap_time << "\n";
 #  endif
   /* itt_map((a,b)) will hold the intersection value resulting from intersecting
@@ -3004,7 +3006,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
   itt_map.reserve(tri_ov.overlap().size());
   calc_overlap_itts(itt_map, *tm_clean, tri_ov, arena);
 #  ifdef PERFDEBUG
-  double itt_time = BLI_time_now_seconds();
+  double itt_time = BLI_check_seconds_timer();
   std::cout << "itts found, time = " << itt_time - plane_populate << "\n";
 #  endif
   CoplanarClusterInfo clinfo = find_clusters(*tm_clean, tri_bb, itt_map);
@@ -3012,7 +3014,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
     std::cout << clinfo;
   }
 #  ifdef PERFDEBUG
-  double find_cluster_time = BLI_time_now_seconds();
+  double find_cluster_time = BLI_check_seconds_timer();
   std::cout << "clusters found, time = " << find_cluster_time - itt_time << "\n";
   doperfmax(0, tm_in.face_size());
   doperfmax(1, clinfo.tot_cluster());
@@ -3020,7 +3022,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
 #  endif
   calc_subdivided_non_cluster_tris(tri_subdivided, *tm_clean, itt_map, clinfo, tri_ov, arena);
 #  ifdef PERFDEBUG
-  double subdivided_tris_time = BLI_time_now_seconds();
+  double subdivided_tris_time = BLI_check_seconds_timer();
   std::cout << "subdivided non-cluster tris found, time = " << subdivided_tris_time - itt_time
             << "\n";
 #  endif
@@ -3029,13 +3031,13 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
     cluster_subdivided[c] = calc_cluster_subdivided(clinfo, c, *tm_clean, tri_ov, itt_map, arena);
   }
 #  ifdef PERFDEBUG
-  double cluster_subdivide_time = BLI_time_now_seconds();
+  double cluster_subdivide_time = BLI_check_seconds_timer();
   std::cout << "subdivided clusters found, time = "
             << cluster_subdivide_time - subdivided_tris_time << "\n";
 #  endif
   calc_cluster_tris(tri_subdivided, *tm_clean, clinfo, cluster_subdivided, arena);
 #  ifdef PERFDEBUG
-  double extract_time = BLI_time_now_seconds();
+  double extract_time = BLI_check_seconds_timer();
   std::cout << "subdivided cluster tris found, time = " << extract_time - cluster_subdivide_time
             << "\n";
 #  endif
@@ -3045,7 +3047,7 @@ IMesh trimesh_nary_intersect(const IMesh &tm_in,
     std::cout << combined;
   }
 #  ifdef PERFDEBUG
-  double end_time = BLI_time_now_seconds();
+  double end_time = BLI_check_seconds_timer();
   std::cout << "triangles combined, time = " << end_time - extract_time << "\n";
   std::cout << "trimesh_nary_intersect done, total time = " << end_time - start_time << "\n";
   dump_perfdata();

@@ -10,10 +10,13 @@
 #include <string>
 #include <string_view>
 
+#include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
 
 #include "UI_resources.hh"
+
+#include "BLT_translation.h"
 
 #include "tree_display.hh"
 #include "tree_element_anim_data.hh"

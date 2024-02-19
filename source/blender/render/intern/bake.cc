@@ -550,8 +550,8 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
                                           const bool is_custom_cage,
                                           const float cage_extrusion,
                                           const float max_ray_distance,
-                                          const float mat_low[4][4],
-                                          const float mat_cage[4][4],
+                                          float mat_low[4][4],
+                                          float mat_cage[4][4],
                                           Mesh *me_cage)
 {
   size_t i;
@@ -855,7 +855,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      float result[],
                                      Mesh *mesh,
                                      const eBakeNormalSwizzle normal_swizzle[3],
-                                     const float mat[4][4])
+                                     float mat[4][4])
 {
   size_t i;
 
@@ -984,7 +984,7 @@ void RE_bake_normal_world_to_object(const BakePixel pixel_array[],
   size_t i;
   float iobmat[4][4];
 
-  invert_m4_m4(iobmat, ob->object_to_world().ptr());
+  invert_m4_m4(iobmat, ob->object_to_world);
 
   for (i = 0; i < pixels_num; i++) {
     size_t offset;

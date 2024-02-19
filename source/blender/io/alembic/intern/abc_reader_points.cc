@@ -15,7 +15,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"

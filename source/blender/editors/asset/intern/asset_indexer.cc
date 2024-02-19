@@ -145,7 +145,7 @@ struct AssetEntryReader {
    */
   DictionaryValue::Lookup lookup;
 
-  StringRef get_name_with_idcode() const
+  StringRefNull get_name_with_idcode() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_NAME)->as_string_value()->value();
   }
@@ -155,13 +155,13 @@ struct AssetEntryReader {
 
   ID_Type get_idcode() const
   {
-    const StringRef name_with_idcode = get_name_with_idcode();
-    return GS(name_with_idcode.data());
+    const StringRefNull name_with_idcode = get_name_with_idcode();
+    return GS(name_with_idcode.c_str());
   }
 
   StringRef get_name() const
   {
-    const StringRef name_with_idcode = get_name_with_idcode();
+    const StringRefNull name_with_idcode = get_name_with_idcode();
     return name_with_idcode.substr(2);
   }
 
@@ -170,7 +170,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_DESCRIPTION);
   }
 
-  StringRef get_description() const
+  StringRefNull get_description() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_DESCRIPTION)->as_string_value()->value();
   }
@@ -180,7 +180,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_AUTHOR);
   }
 
-  StringRef get_author() const
+  StringRefNull get_author() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_AUTHOR)->as_string_value()->value();
   }
@@ -190,7 +190,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_COPYRIGHT);
   }
 
-  StringRef get_copyright() const
+  StringRefNull get_copyright() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_COPYRIGHT)->as_string_value()->value();
   }
@@ -200,7 +200,7 @@ struct AssetEntryReader {
     return lookup.contains(ATTRIBUTE_ENTRIES_LICENSE);
   }
 
-  StringRef get_license() const
+  StringRefNull get_license() const
   {
     return lookup.lookup(ATTRIBUTE_ENTRIES_LICENSE)->as_string_value()->value();
   }
@@ -212,7 +212,7 @@ struct AssetEntryReader {
 
   CatalogID get_catalog_id() const
   {
-    const StringRefNull catalog_id =
+    const std::string &catalog_id =
         lookup.lookup(ATTRIBUTE_ENTRIES_CATALOG_ID)->as_string_value()->value();
     CatalogID catalog_uuid(catalog_id);
     return catalog_uuid;
@@ -401,20 +401,32 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   indexer_entry.datablock_info.free_asset_data = true;
 
   if (entry.has_description()) {
-    const StringRef description = entry.get_description();
-    asset_data->description = BLI_strdupn(description.data(), description.size());
+    const StringRefNull description = entry.get_description();
+    const size_t c_str_size = description.size() + 1;
+    char *description_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(description_c_str, description.c_str(), c_str_size);
+    asset_data->description = description_c_str;
   }
   if (entry.has_author()) {
-    const StringRef author = entry.get_author();
-    asset_data->author = BLI_strdupn(author.data(), author.size());
+    const StringRefNull author = entry.get_author();
+    const size_t c_str_size = author.size() + 1;
+    char *author_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(author_c_str, author.c_str(), c_str_size);
+    asset_data->author = author_c_str;
   }
   if (entry.has_copyright()) {
-    const StringRef copyright = entry.get_copyright();
-    asset_data->copyright = BLI_strdupn(copyright.data(), copyright.size());
+    const StringRefNull copyright = entry.get_copyright();
+    const size_t c_str_size = copyright.size() + 1;
+    char *copyright_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(copyright_c_str, copyright.c_str(), c_str_size);
+    asset_data->copyright = copyright_c_str;
   }
   if (entry.has_license()) {
-    const StringRef license = entry.get_license();
-    asset_data->license = BLI_strdupn(license.data(), license.size());
+    const StringRefNull license = entry.get_license();
+    const size_t c_str_size = license.size() + 1;
+    char *license_c_str = static_cast<char *>(MEM_mallocN(c_str_size, __func__));
+    memcpy(license_c_str, license.c_str(), c_str_size);
+    asset_data->license = license_c_str;
   }
 
   const StringRefNull catalog_name = entry.get_catalog_name();

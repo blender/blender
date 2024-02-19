@@ -6,12 +6,13 @@
  * \ingroup spseq
  */
 
+#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -20,6 +21,8 @@
 
 #include "UI_view2d.hh"
 
+#include "SEQ_iterator.hh"
+#include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"

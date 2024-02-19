@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "DNA_customdata_types.h" /* for eCustomDataType */
 #include "DNA_image_types.h"
 #include "DNA_listBase.h"
@@ -132,14 +130,14 @@ enum eGPUDefaultValue {
 };
 
 struct GPUCodegenOutput {
-  std::string attr_load;
+  char *attr_load;
   /* Node-tree functions calls. */
-  std::string displacement;
-  std::string surface;
-  std::string volume;
-  std::string thickness;
-  std::string composite;
-  std::string material_functions;
+  char *displacement;
+  char *surface;
+  char *volume;
+  char *thickness;
+  char *composite;
+  char *material_functions;
 
   GPUShaderCreateInfo *create_info;
 };

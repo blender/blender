@@ -8,38 +8,50 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
 #include "BLI_easing.h"
 #include "BLI_math_geom.h"
 #include "BLI_stack.hh"
 
+#include "BKE_anim_data.h"
 #include "BKE_context.hh"
+#include "BKE_curve.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
+#include "BKE_screen.hh"
 
 #include "ED_node.hh" /* own include */
 #include "ED_render.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
+#include "ED_util.hh"
 #include "ED_viewer_path.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
+#include "DEG_depsgraph.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+#include "GPU_state.h"
 
 #include "UI_interface_icons.hh"
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
 
 #include "node_intern.hh" /* own include */
@@ -2230,7 +2242,6 @@ static int get_main_socket_priority(const bNodeSocket *socket)
     case SOCK_OBJECT:
     case SOCK_IMAGE:
     case SOCK_ROTATION:
-    case SOCK_MATRIX:
     case SOCK_GEOMETRY:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:

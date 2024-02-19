@@ -13,6 +13,9 @@
 #include "BLI_math_base.h"
 #include "BLI_string.h"
 #include "BLI_system.h"
+#include "BLI_utildefines.h"
+
+#include "MEM_guardedalloc.h"
 
 /* for backtrace and gethostname/GetComputerName */
 #if defined(WIN32)
@@ -141,7 +144,7 @@ char *BLI_cpu_brand_string(void)
   return NULL;
 }
 
-int BLI_cpu_support_sse42(void)
+int BLI_cpu_support_sse41(void)
 {
   int result[4], num;
   __cpuid(result, 0);
@@ -149,7 +152,7 @@ int BLI_cpu_support_sse42(void)
 
   if (num >= 1) {
     __cpuid(result, 0x00000001);
-    return (result[2] & ((int)1 << 20)) != 0;
+    return (result[2] & ((int)1 << 19)) != 0;
   }
   return 0;
 }

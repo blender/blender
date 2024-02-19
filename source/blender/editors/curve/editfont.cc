@@ -33,12 +33,12 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_vfont.hh"
 
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -1956,8 +1956,7 @@ static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const 
 {
   /* Calculate a plane from the text object's orientation. */
   float plane[4];
-  plane_from_point_normal_v3(
-      plane, obedit->object_to_world().location(), obedit->object_to_world().ptr()[2]);
+  plane_from_point_normal_v3(plane, obedit->object_to_world[3], obedit->object_to_world[2]);
 
   /* Convert Mouse location in region to 3D location in world space. */
   float mal_fl[2] = {float(event->mval[0]), float(event->mval[1])};
@@ -1965,7 +1964,7 @@ static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const 
   ED_view3d_win_to_3d_on_plane(CTX_wm_region(C), plane, mal_fl, true, mouse_loc);
 
   /* Convert to object space and scale by font size. */
-  mul_m4_v3(obedit->world_to_object().ptr(), mouse_loc);
+  mul_m4_v3(obedit->world_to_object, mouse_loc);
 
   float curs_loc[2] = {mouse_loc[0], mouse_loc[1]};
   return BKE_vfont_cursor_to_text_index(obedit, curs_loc);

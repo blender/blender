@@ -17,12 +17,13 @@ except ImportError:
 
 ENABLE_REALTIME_COMPOSITOR_SCRIPT = "import bpy; " \
     "bpy.context.preferences.experimental.use_experimental_compositors = True; " \
-    "bpy.data.scenes[0].node_tree.execution_mode = 'GPU'"
+    "bpy.data.scenes[0].node_tree.execution_mode = 'REALTIME'"
 
 
 def get_arguments(filepath, output_filepath):
     return [
         "--background",
+        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",

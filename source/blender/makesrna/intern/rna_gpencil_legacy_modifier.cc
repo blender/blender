@@ -24,7 +24,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_animsys.h"
 
@@ -279,7 +279,7 @@ static const EnumPropertyItem modifier_noise_random_mode_items[] = {
 #  include "DNA_material_types.h"
 #  include "DNA_particle_types.h"
 
-#  include "BKE_cachefile.hh"
+#  include "BKE_cachefile.h"
 #  include "BKE_context.hh"
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_gpencil_modifier_legacy.h"

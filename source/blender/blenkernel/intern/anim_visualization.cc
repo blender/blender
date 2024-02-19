@@ -8,12 +8,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_anim_visualization.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "GPU_batch.h"
 

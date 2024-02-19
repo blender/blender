@@ -16,15 +16,21 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 
+#include "BKE_fcurve.h"
 #include "BKE_movieclip.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_sound_types.h"
 
 #include "IMB_imbuf.hh"
 
+#include "RNA_prototypes.h"
+
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
+#include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"

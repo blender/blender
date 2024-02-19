@@ -11,7 +11,7 @@
 
 #include "BKE_context.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "GPU_immediate.h"
 

@@ -13,7 +13,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_defaults.h"
@@ -25,15 +25,21 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cachefile.hh"
+#include "BKE_cachefile.h"
+#include "BKE_context.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
+#include "BKE_object.hh"
+#include "BKE_scene.h"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
+
+#include "BLO_read_write.hh"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
@@ -44,6 +50,7 @@
 #include "MOD_ui_common.hh"
 
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
+#  include "BKE_global.h"
 #  include "BKE_lib_id.hh"
 #endif
 

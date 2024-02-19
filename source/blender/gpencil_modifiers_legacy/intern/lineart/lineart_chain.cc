@@ -6,6 +6,7 @@
  * \ingroup editors
  */
 
+#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 

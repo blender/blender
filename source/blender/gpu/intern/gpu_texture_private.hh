@@ -17,7 +17,7 @@
 namespace blender {
 namespace gpu {
 
-enum eGPUTextureFormatFlag {
+typedef enum eGPUTextureFormatFlag {
   /* The format has a depth component and can be used as depth attachment. */
   GPU_FORMAT_DEPTH = (1 << 0),
   /* The format has a stencil component and can be used as stencil attachment. */
@@ -36,7 +36,7 @@ enum eGPUTextureFormatFlag {
   GPU_FORMAT_SIGNED = (1 << 7),
 
   GPU_FORMAT_DEPTH_STENCIL = (GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL),
-};
+} eGPUTextureFormatFlag;
 
 ENUM_OPERATORS(eGPUTextureFormatFlag, GPU_FORMAT_SIGNED)
 

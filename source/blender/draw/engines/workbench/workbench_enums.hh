@@ -45,8 +45,9 @@ static inline eGeometryType geometry_type_from_object(Object *ob)
 enum class ePipelineType {
   OPAQUE = 0,
   TRANSPARENT,
+  SHADOW,
 };
-static constexpr int pipeline_type_len = static_cast<int>(ePipelineType::TRANSPARENT) + 1;
+static constexpr int pipeline_type_len = static_cast<int>(ePipelineType::SHADOW) + 1;
 
 enum class eLightingType {
   FLAT = 0,

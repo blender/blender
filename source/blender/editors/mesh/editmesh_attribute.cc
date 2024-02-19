@@ -15,7 +15,7 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_type_conversions.hh"
 
 #include "WM_api.hh"
@@ -32,7 +32,7 @@
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_object_types.h"
 

@@ -37,7 +37,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
@@ -1247,7 +1247,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Span<std::string> bone_names)
+                         const Vector<std::string> &bone_names)
 {
   BLI_assert(mesh);
   BLI_assert(skel_api);
@@ -1311,7 +1311,7 @@ void export_deform_verts(const Mesh *mesh,
         continue;
       }
 
-      int def_nr = int(vert.dw[j].def_nr);
+      int def_nr = static_cast<int>(vert.dw[j].def_nr);
 
       if (def_nr >= joint_index.size()) {
         BLI_assert_unreachable();

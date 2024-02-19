@@ -21,7 +21,9 @@
 #include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
+
+#include "RNA_access.hh"
 
 #include "WM_api.hh"
 

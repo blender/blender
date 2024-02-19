@@ -15,13 +15,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_context.hh"
 #include "BKE_unit.hh"
 
 #include "ED_screen.hh"
 
 #include "UI_interface.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_convert.hh"

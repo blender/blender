@@ -18,16 +18,18 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.hh"
 #include "BKE_nla.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
+#include "ED_markers.hh"
 
 #include "UI_view2d.hh"
 
 #include "transform.hh"
 #include "transform_constraints.hh"
 #include "transform_convert.hh"
+#include "transform_mode.hh"
 #include "transform_snap.hh"
 
 struct TransDataGraph {

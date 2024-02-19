@@ -231,7 +231,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     /* Filter obsolete passes. */
     enabled_passes_ &= ~(EEVEE_RENDER_PASS_UNUSED_8 | EEVEE_RENDER_PASS_BLOOM);
 
-    if (scene.r.mode & R_MBLUR) {
+    if (scene_eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) {
       /* Disable motion vector pass if motion blur is enabled. */
       enabled_passes_ &= ~EEVEE_RENDER_PASS_VECTOR;
     }

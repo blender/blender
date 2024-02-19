@@ -9,7 +9,7 @@
 #include "BLI_string.h"
 
 #include "BKE_appdir.hh"
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 #include "BKE_main.hh"
 
 #include "DNA_asset_types.h"

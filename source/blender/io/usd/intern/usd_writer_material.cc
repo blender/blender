@@ -13,7 +13,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "IMB_colormanagement.hh"
 

@@ -76,7 +76,7 @@ for blend in icons_blend:
     output_dir = os.path.join(BASEDIR, "icons")
     files_old = set(names_and_time_from_path(output_dir))
     cmd = (
-        blender_bin, "--background", "--factory-startup",
+        blender_bin, "--background", "--factory-startup", "-noaudio",
         blend,
         "--python", os.path.join(BASEDIR, "blender_icons_geom.py"),
         "--",

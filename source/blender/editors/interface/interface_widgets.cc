@@ -3357,11 +3357,10 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   UI_draw_roundbox_4fv_ex(&rectf, col2, nullptr, 0.0f, inner1, U.pixelsize, 0.0f);
 }
 
-/** Separator line. */
-static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
+/** Separator for menus. */
+static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 {
-  const bool vertical = but->a1 == 1.0f;
-  const int mid = vertical ? BLI_rcti_cent_x(rect) : BLI_rcti_cent_y(rect);
+  const int y = rect->ymin + BLI_rcti_size_y(rect) / 2;
   const uchar col[4] = {
       wcol->text[0],
       wcol->text[1],
@@ -3378,16 +3377,8 @@ static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti
   GPU_line_width(1.0f);
 
   immBegin(GPU_PRIM_LINES, 2);
-
-  if (vertical) {
-    immVertex2f(pos, mid, rect->ymin);
-    immVertex2f(pos, mid, rect->ymax);
-  }
-  else {
-    immVertex2f(pos, rect->xmin, mid);
-    immVertex2f(pos, rect->xmax, mid);
-  }
-
+  immVertex2f(pos, rect->xmin, y);
+  immVertex2f(pos, rect->xmax, y);
   immEnd();
 
   GPU_blend(GPU_BLEND_NONE);
@@ -4846,9 +4837,7 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
       case UI_BTYPE_SEPR:
         break;
       case UI_BTYPE_SEPR_LINE:
-        /* Add horizontal padding between the line and menu sides. */
-        BLI_rcti_pad(rect, int(-7.0f * UI_SCALE_FAC), 0);
-        ui_draw_separator(&tui->wcol_menu_item, but, rect);
+        ui_draw_separator(rect, &tui->wcol_menu_item);
         break;
       default: {
         const bool use_unpadded = (but->flag & UI_BUT_ICON_PREVIEW) ||
@@ -4900,10 +4889,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
 
       case UI_BTYPE_SEPR:
-      case UI_BTYPE_SEPR_SPACER:
-        break;
       case UI_BTYPE_SEPR_LINE:
-        ui_draw_separator(&tui->wcol_menu_item, but, rect);
+      case UI_BTYPE_SEPR_SPACER:
         break;
 
       case UI_BTYPE_BUT:

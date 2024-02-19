@@ -14,6 +14,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
+#include "BKE_main.hh"
 #include "BKE_movieclip.h"
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"

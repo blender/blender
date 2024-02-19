@@ -60,40 +60,40 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v);
 
 /* ********** Prototypes for #IDTypeInfo callbacks. ********** */
 
-using IDTypeInitDataFunction = void (*)(ID *id);
+typedef void (*IDTypeInitDataFunction)(ID *id);
 
 /** \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more). */
-using IDTypeCopyDataFunction = void (*)(Main *bmain, ID *id_dst, const ID *id_src, int flag);
+typedef void (*IDTypeCopyDataFunction)(Main *bmain, ID *id_dst, const ID *id_src, int flag);
 
-using IDTypeFreeDataFunction = void (*)(ID *id);
+typedef void (*IDTypeFreeDataFunction)(ID *id);
 
 /** \param flags: See BKE_lib_id.hh's LIB_ID_MAKELOCAL_... flags. */
-using IDTypeMakeLocalFunction = void (*)(Main *bmain, ID *id, int flags);
+typedef void (*IDTypeMakeLocalFunction)(Main *bmain, ID *id, int flags);
 
-using IDTypeForeachIDFunction = void (*)(ID *id, LibraryForeachIDData *data);
+typedef void (*IDTypeForeachIDFunction)(ID *id, LibraryForeachIDData *data);
 
-enum eIDTypeInfoCacheCallbackFlags {
+typedef enum eIDTypeInfoCacheCallbackFlags {
   /** Indicates to the callback that cache may be stored in the .blend file,
    * so its pointer should not be cleared at read-time. */
   IDTYPE_CACHE_CB_FLAGS_PERSISTENT = 1 << 0,
-};
-using IDTypeForeachCacheFunctionCallback =
-    void (*)(ID *id, const IDCacheKey *cache_key, void **cache_p, uint flags, void *user_data);
-using IDTypeForeachCacheFunction = void (*)(ID *id,
-                                            IDTypeForeachCacheFunctionCallback function_callback,
-                                            void *user_data);
+} eIDTypeInfoCacheCallbackFlags;
+typedef void (*IDTypeForeachCacheFunctionCallback)(
+    ID *id, const IDCacheKey *cache_key, void **cache_p, uint flags, void *user_data);
+typedef void (*IDTypeForeachCacheFunction)(ID *id,
+                                           IDTypeForeachCacheFunctionCallback function_callback,
+                                           void *user_data);
 
-using IDTypeForeachPathFunction = void (*)(ID *id, BPathForeachPathData *bpath_data);
+typedef void (*IDTypeForeachPathFunction)(ID *id, BPathForeachPathData *bpath_data);
 
-using IDTypeEmbeddedOwnerPointerGetFunction = ID **(*)(ID *id);
+typedef ID **(*IDTypeEmbeddedOwnerPointerGetFunction)(ID *id);
 
-using IDTypeBlendWriteFunction = void (*)(BlendWriter *writer, ID *id, const void *id_address);
-using IDTypeBlendReadDataFunction = void (*)(BlendDataReader *reader, ID *id);
-using IDTypeBlendReadAfterLiblinkFunction = void (*)(BlendLibReader *reader, ID *id);
+typedef void (*IDTypeBlendWriteFunction)(BlendWriter *writer, ID *id, const void *id_address);
+typedef void (*IDTypeBlendReadDataFunction)(BlendDataReader *reader, ID *id);
+typedef void (*IDTypeBlendReadAfterLiblinkFunction)(BlendLibReader *reader, ID *id);
 
-using IDTypeBlendReadUndoPreserve = void (*)(BlendLibReader *reader, ID *id_new, ID *id_old);
+typedef void (*IDTypeBlendReadUndoPreserve)(BlendLibReader *reader, ID *id_new, ID *id_old);
 
-using IDTypeLibOverrideApplyPost = void (*)(ID *id_dst, ID *id_src);
+typedef void (*IDTypeLibOverrideApplyPost)(ID *id_dst, ID *id_src);
 
 struct IDTypeInfo {
   /* ********** General IDType data. ********** */
@@ -108,14 +108,6 @@ struct IDTypeInfo {
    * FILTER_ID_XX enums.
    */
   uint64_t id_filter;
-
-  /**
-   * Known types of ID dependencies.
-   *
-   * Used by #BKE_library_id_can_use_filter_id, together with additional runtime heuristics, to
-   * generate a filter value containing only ID types that given ID could be using.
-   */
-  uint64_t dependencies_id_types;
 
   /**
    * Define the position of this data-block type in the virtual list of all data in a Main that is
@@ -279,7 +271,6 @@ extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 void BKE_idtype_init(void);
 
 /* General helpers. */
-const IDTypeInfo *BKE_idtype_get_info_from_idtype_index(const int idtype_index);
 const IDTypeInfo *BKE_idtype_get_info_from_idcode(short id_code);
 const IDTypeInfo *BKE_idtype_get_info_from_id(const ID *id);
 
@@ -346,31 +337,22 @@ bool BKE_idtype_idcode_append_is_reusable(short idcode);
 short BKE_idtype_idcode_from_name(const char *idtype_name);
 
 /**
- * Convert an \a idcode into an \a idtype_index (e.g. #ID_OB -> #INDEX_ID_OB).
- */
-int BKE_idtype_idcode_to_index(short idcode);
-/**
- * Convert an \a idfilter into an \a idtype_index (e.g. #FILTER_ID_OB -> #INDEX_ID_OB).
- */
-int BKE_idtype_idfilter_to_index(uint64_t idfilter);
-
-/**
- * Convert an \a idtype_index into an \a idcode (e.g. #INDEX_ID_OB -> #ID_OB).
- */
-short BKE_idtype_index_to_idcode(int idtype_index);
-/**
- * Convert an \a idtype_index into an \a idfilter (e.g. #INDEX_ID_OB -> #FILTER_ID_OB).
- */
-uint64_t BKE_idtype_index_to_idfilter(int idtype_index);
-
-/**
  * Convert an \a idcode into an \a idfilter (e.g. #ID_OB -> #FILTER_ID_OB).
  */
 uint64_t BKE_idtype_idcode_to_idfilter(short idcode);
 /**
  * Convert an \a idfilter into an \a idcode (e.g. #FILTER_ID_OB -> #ID_OB).
  */
-short BKE_idtype_idfilter_to_idcode(uint64_t idfilter);
+short BKE_idtype_idcode_from_idfilter(uint64_t idfilter);
+
+/**
+ * Convert an \a idcode into an index (e.g. #ID_OB -> #INDEX_ID_OB).
+ */
+int BKE_idtype_idcode_to_index(short idcode);
+/**
+ * Get an \a idcode from an index (e.g. #INDEX_ID_OB -> #ID_OB).
+ */
+short BKE_idtype_idcode_from_index(int index);
 
 /**
  * Return an ID code and steps the index forward 1.
@@ -378,7 +360,7 @@ short BKE_idtype_idfilter_to_idcode(uint64_t idfilter);
  * \param index: start as 0.
  * \return the code, 0 when all codes have been returned.
  */
-short BKE_idtype_idcode_iter_step(int *idtype_index);
+short BKE_idtype_idcode_iter_step(int *index);
 
 /* Some helpers/wrappers around callbacks defined in #IDTypeInfo, dealing e.g. with embedded IDs.
  * XXX Ideally those would rather belong to #BKE_lib_id, but using callback function pointers makes

@@ -21,7 +21,10 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_anim_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
@@ -33,20 +36,26 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
+#include "BKE_main.hh"
+#include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
+
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -61,7 +70,9 @@
 #include "ANIM_animdata.hh"
 #include "ANIM_keyframing.hh"
 
+#include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_view3d.hh"
 

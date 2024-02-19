@@ -11,14 +11,13 @@
 #include "BLI_math_solvers.h"
 #include "BLI_math_vector.h"
 #include "BLI_simd.h"
+#include "BLI_strict_flags.h"
 
 #ifndef MATH_STANDALONE
 #  include "eigen_capi.h"
 #endif
 
 #include <string.h>
-
-#include "BLI_strict_flags.h" /* Keep last. */
 
 /********************************* Init **************************************/
 

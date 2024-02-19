@@ -12,8 +12,6 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
-#include "BKE_global.hh"
-
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
 #include "GPU_platform.h"
@@ -272,16 +270,7 @@ std::string ShaderCreateInfo::check_error() const
     }
   }
 
-  if ((G.debug & G_DEBUG_GPU) == 0) {
-    return error;
-  }
-
-  /*
-   * The next check has been disabled. 'eevee_legacy_surface_common_iface' is known to fail.
-   * The check was added to validate if shader would be able to compile on Vulkan.
-   * TODO(jbakker): Enable the check after EEVEE is replaced by EEVEE-Next.
-   */
-#if 0
+#ifndef NDEBUG
   if (bool(this->builtins_ &
            (BuiltinBits::BARYCENTRIC_COORD | BuiltinBits::VIEWPORT_INDEX | BuiltinBits::LAYER)))
   {
@@ -293,7 +282,6 @@ std::string ShaderCreateInfo::check_error() const
       }
     }
   }
-#endif
 
   if (!this->is_vulkan_compatible()) {
     error += this->name_ +
@@ -310,6 +298,7 @@ std::string ShaderCreateInfo::check_error() const
       }
     }
   }
+#endif
 
   return error;
 }

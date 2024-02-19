@@ -22,7 +22,7 @@
 #include "mathutils.h"
 #include "mathutils_kdtree.h" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 struct PyKDTree {
   PyObject_HEAD

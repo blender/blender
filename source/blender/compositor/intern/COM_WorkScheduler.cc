@@ -19,7 +19,7 @@
 #include "BLI_threads.h"
 #include "BLI_vector.hh"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 namespace blender::compositor {
 

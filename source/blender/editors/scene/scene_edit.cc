@@ -16,19 +16,20 @@
 #include "DNA_sequence_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_node.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_node.h"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "ED_object.hh"
 #include "ED_render.hh"
 #include "ED_scene.hh"
 #include "ED_screen.hh"
@@ -39,6 +40,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

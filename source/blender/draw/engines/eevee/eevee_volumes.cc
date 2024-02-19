@@ -20,7 +20,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_fluid.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_volume.hh"
@@ -305,7 +305,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   }
 
   float size[3];
-  mat4_to_size(size, ob->object_to_world().ptr());
+  mat4_to_size(size, ob->object_to_world);
   /* Check if any of the axes have 0 length. (see #69070) */
   const float epsilon = 1e-8f;
   if ((size[0] < epsilon) || (size[1] < epsilon) || (size[2] < epsilon)) {

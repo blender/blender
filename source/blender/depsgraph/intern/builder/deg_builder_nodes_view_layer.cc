@@ -143,10 +143,6 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   if (view_layer->mat_override != nullptr) {
     build_material(view_layer->mat_override);
   }
-  /* World override */
-  if (view_layer->world_override != nullptr) {
-    build_world(view_layer->world_override);
-  }
   /* Freestyle linesets. */
   LISTBASE_FOREACH (FreestyleLineSet *, fls, &view_layer->freestyle_config.linesets) {
     build_freestyle_lineset(fls);

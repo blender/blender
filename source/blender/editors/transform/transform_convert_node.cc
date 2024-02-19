@@ -17,9 +17,13 @@
 
 #include "BKE_context.hh"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
+#include "BKE_node_tree_update.hh"
+#include "BKE_report.h"
 
 #include "ED_node.hh"
 
+#include "UI_interface.hh"
 #include "UI_view2d.hh"
 
 #include "transform.hh"

@@ -9,26 +9,30 @@
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
-#include "BKE_bpath.hh"
+#include "BKE_asset.hh"
+#include "BKE_bpath.h"
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
+#include "BLI_fileops.h" /* MSVC needs this for `PATH_MAX` */
 #include "BLI_fnmatch.h"
 #include "BLI_path_util.h"
 #include "BLI_set.hh"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
+#include "ED_util.hh"
 /* XXX needs access to the file list, should all be done via the asset system in future. */
 #include "ED_fileselect.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"
@@ -89,7 +93,7 @@ struct IDVecStats {
  * Helper to report stats about the IDs in context. Operator polls use this, also to report a
  * helpful disabled hint to the user.
  */
-static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Span<PointerRNA> id_pointers)
+static IDVecStats asset_operation_get_id_vec_stats_from_ids(const Vector<PointerRNA> &id_pointers)
 {
   IDVecStats stats;
 
@@ -125,7 +129,7 @@ static const char *asset_operation_unsupported_type_msg(const bool is_single)
 
 class AssetMarkHelper {
  public:
-  void operator()(const bContext &C, Span<PointerRNA> ids);
+  void operator()(const bContext &C, const Vector<PointerRNA> &ids);
 
   void reportResults(ReportList &reports) const;
   bool wasSuccessful() const;
@@ -140,7 +144,7 @@ class AssetMarkHelper {
   Stats stats;
 };
 
-void AssetMarkHelper::operator()(const bContext &C, const Span<PointerRNA> ids)
+void AssetMarkHelper::operator()(const bContext &C, const Vector<PointerRNA> &ids)
 {
   for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
@@ -190,7 +194,7 @@ void AssetMarkHelper::reportResults(ReportList &reports) const
   }
 }
 
-static int asset_mark_exec(const bContext *C, const wmOperator *op, const Span<PointerRNA> ids)
+static int asset_mark_exec(const bContext *C, const wmOperator *op, const Vector<PointerRNA> &ids)
 {
   AssetMarkHelper mark_helper;
   mark_helper(*C, ids);
@@ -206,7 +210,7 @@ static int asset_mark_exec(const bContext *C, const wmOperator *op, const Span<P
   return OPERATOR_FINISHED;
 }
 
-static bool asset_mark_poll(bContext *C, const Span<PointerRNA> ids)
+static bool asset_mark_poll(bContext *C, const Vector<PointerRNA> &ids)
 {
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
@@ -265,7 +269,7 @@ class AssetClearHelper {
  public:
   AssetClearHelper(const bool set_fake_user) : set_fake_user_(set_fake_user) {}
 
-  void operator()(Span<PointerRNA> ids);
+  void operator()(const Vector<PointerRNA> &ids);
 
   void reportResults(const bContext *C, ReportList &reports) const;
   bool wasSuccessful() const;
@@ -279,7 +283,7 @@ class AssetClearHelper {
   Stats stats;
 };
 
-void AssetClearHelper::operator()(const Span<PointerRNA> ids)
+void AssetClearHelper::operator()(const Vector<PointerRNA> &ids)
 {
   for (const PointerRNA &ptr : ids) {
     BLI_assert(RNA_struct_is_ID(ptr.type));
@@ -332,7 +336,7 @@ bool AssetClearHelper::wasSuccessful() const
   return stats.tot_cleared > 0;
 }
 
-static int asset_clear_exec(const bContext *C, const wmOperator *op, const Span<PointerRNA> ids)
+static int asset_clear_exec(const bContext *C, const wmOperator *op, const Vector<PointerRNA> &ids)
 {
   const bool set_fake_user = RNA_boolean_get(op->ptr, "set_fake_user");
   AssetClearHelper clear_helper(set_fake_user);
@@ -349,7 +353,7 @@ static int asset_clear_exec(const bContext *C, const wmOperator *op, const Span<
   return OPERATOR_FINISHED;
 }
 
-static bool asset_clear_poll(bContext *C, const Span<PointerRNA> ids)
+static bool asset_clear_poll(bContext *C, const Vector<PointerRNA> &ids)
 {
   IDVecStats ctx_stats = asset_operation_get_id_vec_stats_from_ids(ids);
 
@@ -587,7 +591,7 @@ static asset_system::AssetCatalogService *get_catalog_service(bContext *C)
   }
 
   asset_system::AssetLibrary *asset_lib = ED_fileselect_active_asset_library_get(sfile);
-  return asset_lib->catalog_service.get();
+  return AS_asset_library_get_catalog_service(asset_lib);
 }
 
 static int asset_catalog_undo_exec(bContext *C, wmOperator * /*op*/)
@@ -789,7 +793,7 @@ static int asset_bundle_install_exec(bContext *C, wmOperator *op)
   }
 
   /* Check file path, copied from #wm_file_write(). */
-  char filepath[FILE_MAX];
+  char filepath[PATH_MAX];
   RNA_string_get(op->ptr, "filepath", filepath);
   const size_t len = strlen(filepath);
 
@@ -921,7 +925,7 @@ static bool set_filepath_for_asset_lib(const Main *bmain, wmOperator *op)
     return false;
   }
 
-  char file_path[FILE_MAX];
+  char file_path[PATH_MAX];
   BLI_path_join(file_path, sizeof(file_path), lib->dirpath, blend_filename);
   RNA_string_set(op->ptr, "filepath", file_path);
 

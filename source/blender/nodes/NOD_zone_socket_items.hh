@@ -51,16 +51,12 @@ struct SimulationItemsAccessor {
   }
   static bool supports_socket_type(const eNodeSocketDatatype socket_type)
   {
-    if (socket_type == SOCK_MATRIX) {
-      return U.experimental.use_new_matrix_socket;
-    }
     return ELEM(socket_type,
                 SOCK_FLOAT,
                 SOCK_VECTOR,
                 SOCK_RGBA,
                 SOCK_BOOLEAN,
                 SOCK_ROTATION,
-                SOCK_MATRIX,
                 SOCK_INT,
                 SOCK_STRING,
                 SOCK_GEOMETRY);
@@ -119,16 +115,12 @@ struct RepeatItemsAccessor {
   }
   static bool supports_socket_type(const eNodeSocketDatatype socket_type)
   {
-    if (socket_type == SOCK_MATRIX) {
-      return U.experimental.use_new_matrix_socket;
-    }
     return ELEM(socket_type,
                 SOCK_FLOAT,
                 SOCK_VECTOR,
                 SOCK_RGBA,
                 SOCK_BOOLEAN,
                 SOCK_ROTATION,
-                SOCK_MATRIX,
                 SOCK_INT,
                 SOCK_STRING,
                 SOCK_GEOMETRY,

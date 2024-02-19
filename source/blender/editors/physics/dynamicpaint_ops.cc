@@ -17,7 +17,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"
@@ -28,11 +28,11 @@
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_dynamicpaint.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
@@ -327,7 +327,7 @@ static void dpaint_bake_endjob(void *customdata)
   if (job->success) {
     /* Show bake info */
     WM_reportf(
-        RPT_INFO, "DynamicPaint: Bake complete! (%.2f)", BLI_time_now_seconds() - job->start);
+        RPT_INFO, "DynamicPaint: Bake complete! (%.2f)", BLI_check_seconds_timer() - job->start);
   }
   else {
     if (strlen(canvas->error)) { /* If an error occurred */
@@ -438,7 +438,7 @@ static void dpaint_bake_startjob(void *customdata, wmJobWorkerStatus *worker_sta
   job->stop = &worker_status->stop;
   job->do_update = &worker_status->do_update;
   job->progress = &worker_status->progress;
-  job->start = BLI_time_now_seconds();
+  job->start = BLI_check_seconds_timer();
   job->success = 1;
 
   G.is_break = false;

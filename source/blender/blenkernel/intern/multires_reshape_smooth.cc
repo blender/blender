@@ -11,6 +11,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
@@ -27,6 +29,7 @@
 
 #include "opensubdiv_converter_capi.hh"
 #include "opensubdiv_evaluator_capi.hh"
+#include "opensubdiv_topology_refiner_capi.hh"
 
 #include "atomic_ops.h"
 #include "subdiv_converter.hh"

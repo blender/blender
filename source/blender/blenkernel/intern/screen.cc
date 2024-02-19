@@ -19,28 +19,38 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_defaults.h"
+#include "DNA_gpencil_legacy_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_mempool.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
+#include "BKE_node.h"
 #include "BKE_preview_image.hh"
 #include "BKE_screen.hh"
+#include "BKE_viewer_path.hh"
+#include "BKE_workspace.h"
 
 #include "BLO_read_write.hh"
 
@@ -159,9 +169,6 @@ static void screen_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 IDTypeInfo IDType_ID_SCR = {
     /*id_code*/ ID_SCR,
     /*id_filter*/ FILTER_ID_SCR,
-    /* NOTE: Can actually link to any ID type through UI (e.g. Outliner Editor). This is handled
-       separately though. */
-    /*dependencies_id_types*/ FILTER_ID_SCE,
     /*main_listbase_index*/ INDEX_ID_SCR,
     /*struct_size*/ sizeof(bScreen),
     /*name*/ "Screen",

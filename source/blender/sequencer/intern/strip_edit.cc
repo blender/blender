@@ -16,11 +16,15 @@
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "BKE_main.hh"
+#include "BKE_movieclip.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
 
 #include "strip_time.hh"
+#include "utils.hh"
 
 #include "SEQ_add.hh"
 #include "SEQ_animation.hh"

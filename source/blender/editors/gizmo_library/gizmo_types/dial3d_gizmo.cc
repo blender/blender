@@ -42,6 +42,7 @@
 #include "ED_view3d.hh"
 
 /* own includes */
+#include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
 // /** To use custom dials exported to `geom_dial_gizmo.cc`. */

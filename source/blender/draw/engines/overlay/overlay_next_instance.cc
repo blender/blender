@@ -269,10 +269,10 @@ BoneInstanceData::BoneInstanceData(Object *ob,
                                    const float color[4])
 {
   /* TODO(fclem): Use C++ math API. */
-  mul_v3_v3fl(this->mat[0], ob->object_to_world().ptr()[0], radius);
-  mul_v3_v3fl(this->mat[1], ob->object_to_world().ptr()[1], radius);
-  mul_v3_v3fl(this->mat[2], ob->object_to_world().ptr()[2], radius);
-  mul_v3_m4v3(this->mat[3], ob->object_to_world().ptr(), pos);
+  mul_v3_v3fl(this->mat[0], ob->object_to_world[0], radius);
+  mul_v3_v3fl(this->mat[1], ob->object_to_world[1], radius);
+  mul_v3_v3fl(this->mat[2], ob->object_to_world[2], radius);
+  mul_v3_m4v3(this->mat[3], ob->object_to_world, pos);
   /* WATCH: Reminder, alpha is wire-size. */
   OVERLAY_bone_instance_data_set_color(this, color);
 }

@@ -676,8 +676,8 @@ void MTLWriter::write_materials(const char *blen_filepath,
     return;
   }
 
-  char blen_filedir[FILE_MAX];
-  BLI_path_split_dir_part(blen_filepath, blen_filedir, sizeof(blen_filedir));
+  char blen_filedir[PATH_MAX];
+  BLI_path_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
   BLI_path_slash_native(blen_filedir);
   BLI_path_normalize(blen_filedir);
 

@@ -4,12 +4,11 @@
 
 #include "BLI_array.hh"
 #include "BLI_generic_virtual_array.hh"
+#include "BLI_strict_flags.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
 #include "BLI_virtual_array.hh"
 #include "testing/testing.h"
-
-#include "BLI_strict_flags.h" /* Keep last. */
 
 namespace blender::tests {
 

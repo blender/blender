@@ -26,7 +26,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_camera_types.h"
 #include "DNA_node_types.h"
@@ -36,23 +36,27 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
+#include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_packedFile.h"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
+
+#include "GPU_state.h"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_moviecache.hh"
+#include "IMB_openexr.hh"
 
 #include "RE_pipeline.h"
 
@@ -66,6 +70,7 @@
 #include "ED_paint.hh"
 #include "ED_render.hh"
 #include "ED_screen.hh"
+#include "ED_space_api.hh"
 #include "ED_undo.hh"
 #include "ED_util.hh"
 #include "ED_util_imbuf.hh"
@@ -536,7 +541,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vpd->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vpd->timer_lastdraw = BLI_time_now_seconds();
+    vpd->timer_lastdraw = BLI_check_seconds_timer();
   }
 
   vpd->sima = sima;
@@ -646,7 +651,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
   }
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
-    double time = BLI_time_now_seconds();
+    double time = BLI_check_seconds_timer();
     float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
     zfac = 1.0f + ((delta / 20.0f) * time_step);

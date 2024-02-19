@@ -13,8 +13,11 @@
 
 #include "BKE_screen.hh"
 
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+
+#include "BLO_readfile.h"
 
 #include "ED_asset.hh"
 #include "ED_screen.hh"
@@ -26,6 +29,7 @@
 
 #include "UI_interface.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "interface_intern.hh"

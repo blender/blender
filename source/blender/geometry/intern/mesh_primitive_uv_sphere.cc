@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_vector.hh"
+
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 

@@ -19,8 +19,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
-#include "BKE_report.hh"
+#include "BKE_global.h"
+#include "BKE_report.h"
 
 #include "GHOST_C-api.h"
 
@@ -34,6 +34,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 #include "wm.hh"
+#include "wm_draw.hh"
 #include "wm_window.hh"
 
 #include "UI_interface.hh"

@@ -15,27 +15,31 @@
 #include "BLI_map.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DEG_depsgraph.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
+#include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_key.hh"
 #include "BKE_nla.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "UI_view2d.hh"
 
@@ -53,6 +57,8 @@
 
 #include "WM_api.hh"
 #include "WM_types.hh"
+
+#include "UI_interface.hh"
 
 #include "action_intern.hh"
 

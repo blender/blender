@@ -31,7 +31,7 @@
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
 #include "BKE_object.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "ED_object.hh"
 
 #include "MEM_guardedalloc.h"

@@ -14,7 +14,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_sound.h"
 
 #include "WM_api.hh"

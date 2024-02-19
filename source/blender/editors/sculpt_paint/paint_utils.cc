@@ -23,7 +23,7 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -33,9 +33,10 @@
 #include "BKE_layer.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -44,9 +45,12 @@
 #include "RNA_define.hh"
 #include "RNA_prototypes.h"
 
+#include "GPU_framebuffer.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+#include "GPU_texture.h"
 
+#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_interp.hh"
 
@@ -133,12 +137,12 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3], flo
   float delta[3], scale, loc[3];
   const float xy_delta[2] = {pixel_radius, 0.0f};
 
-  mul_v3_m4v3(loc, ob->object_to_world().ptr(), center);
+  mul_v3_m4v3(loc, ob->object_to_world, center);
 
   const float zfac = ED_view3d_calc_zfac(vc->rv3d, loc);
   ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
 
-  scale = fabsf(mat4_to_scale(ob->object_to_world().ptr()));
+  scale = fabsf(mat4_to_scale(ob->object_to_world));
   scale = (scale == 0.0f) ? 1.0f : scale;
 
   return len_v3(delta) / scale;
@@ -284,7 +288,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   GPU_matrix_model_view_get(matrix);
   GPU_matrix_projection_get(proj);
   view[0] = view[1] = 0;
-  mul_m4_m4m4(matrix, matrix, ob_eval->object_to_world().ptr());
+  mul_m4_m4m4(matrix, matrix, ob_eval->object_to_world);
   mul_m4_m4m4(matrix, proj, matrix);
 
   minabsw = 1e10;

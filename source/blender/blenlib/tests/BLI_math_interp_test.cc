@@ -13,7 +13,7 @@ using namespace blender::math;
 static constexpr float float_tolerance = 0.00005f;
 static constexpr int image_width = 3;
 static constexpr int image_height = 3;
-static constexpr uchar image_char[image_height][image_width][4] = {
+static constexpr unsigned char image_char[image_height][image_width][4] = {
     {{255, 254, 217, 216}, {230, 230, 230, 230}, {240, 160, 90, 20}},
     {{0, 1, 2, 3}, {62, 72, 82, 92}, {126, 127, 128, 129}},
     {{1, 2, 3, 4}, {73, 108, 153, 251}, {128, 129, 130, 131}},

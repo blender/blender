@@ -9,6 +9,8 @@
 #include <string.h>
 #include <zstd.h>
 
+#include "BLI_blenlib.h"
+#include "BLI_endian_switch.h"
 #include "BLI_filereader.h"
 #include "BLI_math_base.h"
 

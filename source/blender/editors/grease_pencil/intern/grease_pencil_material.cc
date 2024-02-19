@@ -15,6 +15,7 @@
 #include "BKE_material.h"
 
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -271,7 +272,7 @@ static int grease_pencil_material_lock_unselected_exec(bContext *C, wmOperator *
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
 
   Set<int> materials_used;
 

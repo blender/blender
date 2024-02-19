@@ -139,7 +139,7 @@ class ObjectModule {
     }
 
     /* Order rendering using camera Z distance. */
-    float3 position = float3(object->object_to_world().location());
+    float3 position = float3(object->object_to_world[3]);
     float camera_z = math::dot(position, camera_forward_);
 
     PassMain::Sub &object_subpass = main_ps.sub("GPObject", camera_z);
@@ -292,7 +292,7 @@ class ObjectModule {
     const float3 center = midpoint(bounds->min, bounds->max);
 
     /* BBox space to World. */
-    const float4x4 object_to_world = object.object_to_world();
+    const float4x4 object_to_world = float4x4(object.object_to_world);
     float4x4 bbox_mat = object_to_world *
                         from_loc_rot_scale<float4x4>(center, Quaternion::identity(), size);
     float3 plane_normal;

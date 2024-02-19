@@ -22,7 +22,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_main.hh"
 
 #include "RNA_access.hh"

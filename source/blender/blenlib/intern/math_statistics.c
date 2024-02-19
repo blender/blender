@@ -9,11 +9,12 @@
 #include "BLI_math_base.h"
 #include "BLI_math_statistics.h"
 #include "BLI_math_vector.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /********************************** Covariance Matrices *********************************/
 

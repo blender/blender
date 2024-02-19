@@ -14,13 +14,12 @@
  * \param buf_dst: Buffer for decoded URL.
  * \param buf_dst_maxlen: Size of output buffer.
  * \param buf_src: Input encoded buffer to be decoded.
- * \param buf_src_len: The length of `buf_src` to use.
  */
-void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src, int buf_src_len);
+void GHOST_URL_decode(char *buf_dst, int buf_dst_size, const char *buf_src);
 /**
  * A version of #GHOST_URL_decode that allocates the string & returns it.
  *
  * \param buf_src: Input encoded buffer to be decoded.
  * \return The decoded output buffer.
  */
-char *GHOST_URL_decode_alloc(const char *buf_src, int buf_src_len);
+char *GHOST_URL_decode_alloc(const char *buf_src);

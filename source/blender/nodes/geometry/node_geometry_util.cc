@@ -7,7 +7,11 @@
 
 #include "DNA_space_types.h"
 
+#include "BKE_context.hh"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_node.hh"
+#include "BKE_pointcloud.hh"
 
 #include "NOD_rna_define.hh"
 #include "NOD_socket_search_link.hh"
@@ -50,9 +54,6 @@ const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
 
 bool generic_attribute_type_supported(const EnumPropertyItem &item)
 {
-  if (item.value == SOCK_MATRIX) {
-    return U.experimental.use_new_matrix_socket;
-  }
   return ELEM(item.value,
               CD_PROP_FLOAT,
               CD_PROP_FLOAT2,
@@ -61,8 +62,7 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
               CD_PROP_BOOL,
               CD_PROP_INT32,
               CD_PROP_BYTE_COLOR,
-              CD_PROP_QUATERNION,
-              CD_PROP_FLOAT4X4);
+              CD_PROP_QUATERNION);
 }
 
 const EnumPropertyItem *domain_experimental_grease_pencil_version3_fn(bContext * /*C*/,

@@ -7,7 +7,7 @@
 
 #include "BLI_vector.hh"
 
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BKE_node_runtime.hh"
 
 namespace blender::nodes::materialx {

@@ -8,6 +8,7 @@
 
 #include "AS_asset_representation.hh"
 
+#include "BKE_asset.hh"
 #include "BKE_idtype.hh"
 
 #include "BLI_listbase.h"
@@ -18,6 +19,8 @@
 #include "AS_asset_library.hh"
 
 #include "ED_asset_filter.hh"
+#include "ED_asset_handle.hh"
+#include "ED_asset_library.hh"
 #include "ED_asset_list.hh"
 
 namespace blender::ed::asset {

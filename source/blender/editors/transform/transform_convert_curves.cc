@@ -95,8 +95,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     if (tc.data_len == 0) {
       continue;
     }
-    Object *object = tc.obedit;
-    Curves *curves_id = static_cast<Curves *>(object->data);
+    Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
     std::optional<MutableSpan<float>> value_attribute;
@@ -118,7 +117,6 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
 
     curve_populate_trans_data_structs(tc,
                                       curves,
-                                      object->object_to_world(),
                                       value_attribute,
                                       selection_per_object[i],
                                       use_proportional_edit,
@@ -155,10 +153,9 @@ static void recalcData_curves(TransInfo *t)
 
 void curve_populate_trans_data_structs(TransDataContainer &tc,
                                        blender::bke::CurvesGeometry &curves,
-                                       const blender::float4x4 &transform,
                                        std::optional<blender::MutableSpan<float>> value_attribute,
                                        const blender::IndexMask &selected_indices,
-                                       const bool use_proportional_edit,
+                                       bool use_proportional_edit,
                                        const blender::IndexMask &affected_curves,
                                        bool use_connected_only,
                                        int trans_data_offset)
@@ -166,7 +163,7 @@ void curve_populate_trans_data_structs(TransDataContainer &tc,
   using namespace blender;
 
   float mtx[3][3], smtx[3][3];
-  copy_m3_m4(mtx, transform.ptr());
+  copy_m3_m4(mtx, tc.obedit->object_to_world);
   pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
   MutableSpan<float3> positions = curves.positions_for_write();

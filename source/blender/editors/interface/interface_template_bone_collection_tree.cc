@@ -8,7 +8,7 @@
 
 #include "BKE_context.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"

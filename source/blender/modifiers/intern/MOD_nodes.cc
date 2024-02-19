@@ -47,7 +47,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -66,7 +66,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -824,7 +824,7 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
 
     IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, socket->identifier);
     if (property == nullptr) {
-      if (ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX)) {
+      if (type == SOCK_GEOMETRY) {
         geometry_socket_count++;
       }
       else {

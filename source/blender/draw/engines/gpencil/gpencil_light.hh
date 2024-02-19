@@ -78,25 +78,25 @@ class LightModule {
         light.type = GP_LIGHT_TYPE_SPOT;
         light.spot_size = cosf(la->spotsize * 0.5f);
         light.spot_blend = (1.0f - light.spot_size) * la->spotblend;
-        mat = ob->world_to_object();
+        mat = float4x4(ob->world_to_object);
         break;
       case LA_AREA:
         /* Simulate area lights using a spot light. */
         light.type = GP_LIGHT_TYPE_SPOT;
         light.spot_size = cosf(M_PI_2);
         light.spot_blend = (1.0f - light.spot_size) * 1.0f;
-        normalize_m4_m4(mat.ptr(), ob->object_to_world().ptr());
+        normalize_m4_m4(mat.ptr(), ob->object_to_world);
         invert_m4(mat.ptr());
         break;
       case LA_SUN:
-        light.forward = math::normalize(float3(ob->object_to_world().ptr()[2]));
+        light.forward = math::normalize(float3(ob->object_to_world[2]));
         light.type = GP_LIGHT_TYPE_SUN;
         break;
       default:
         light.type = GP_LIGHT_TYPE_POINT;
         break;
     }
-    light.position = float3(object_ref.object->object_to_world().location());
+    light.position = float3(object_ref.object->object_to_world[3]);
     light.color = float3(la->r, la->g, la->b) * (la->energy * light_power);
 
     lights_buf_.append(light);

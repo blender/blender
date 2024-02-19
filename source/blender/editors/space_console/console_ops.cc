@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

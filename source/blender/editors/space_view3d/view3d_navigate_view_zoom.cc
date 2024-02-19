@@ -13,6 +13,8 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "WM_api.hh"
 
 #include "RNA_access.hh"
@@ -160,7 +162,7 @@ static float viewzoom_scale_value(const rcti *winrct,
   float zfac;
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
-    double time = BLI_time_now_seconds();
+    double time = BLI_check_seconds_timer();
     float time_step = float(time - *r_timer_lastdraw);
     float fac;
 
@@ -513,7 +515,7 @@ static int viewzoom_invoke_impl(bContext *C,
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vod->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-    vod->prev.time = BLI_time_now_seconds();
+    vod->prev.time = BLI_check_seconds_timer();
   }
 
   return OPERATOR_RUNNING_MODAL;

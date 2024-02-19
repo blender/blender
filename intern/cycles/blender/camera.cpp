@@ -577,21 +577,6 @@ static void blender_camera_sync(Camera *cam,
 
 /* Sync Render Camera */
 
-static MotionPosition blender_motion_blur_position_type_to_cycles(
-    const BL::RenderSettings::motion_blur_position_enum type)
-{
-  switch (type) {
-    case BL::RenderSettings::motion_blur_position_START:
-      return MOTION_POSITION_START;
-    case BL::RenderSettings::motion_blur_position_CENTER:
-      return MOTION_POSITION_CENTER;
-    case BL::RenderSettings::motion_blur_position_END:
-      return MOTION_POSITION_END;
-  }
-  /* Could happen if loading a newer file that has an unsupported type. */
-  return MOTION_POSITION_CENTER;
-}
-
 void BlenderSync::sync_camera(BL::RenderSettings &b_render,
                               BL::Object &b_override,
                               int width,
@@ -605,13 +590,13 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
   bcam.pixelaspect.x = b_render.pixel_aspect_x();
   bcam.pixelaspect.y = b_render.pixel_aspect_y();
   bcam.shuttertime = b_render.motion_blur_shutter();
-  bcam.motion_position = blender_motion_blur_position_type_to_cycles(
-      b_render.motion_blur_position());
 
   BL::CurveMapping b_shutter_curve(b_render.motion_blur_shutter_curve());
   curvemapping_to_array(b_shutter_curve, bcam.shutter_curve, RAMP_TABLE_SIZE);
 
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+  bcam.motion_position = (MotionPosition)get_enum(
+      cscene, "motion_blur_position", MOTION_NUM_POSITIONS, MOTION_POSITION_CENTER);
   bcam.rolling_shutter_type = (Camera::RollingShutterType)get_enum(
       cscene,
       "rolling_shutter_type",

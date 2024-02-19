@@ -19,13 +19,10 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 
+struct IDRemapper;
 struct Main;
-
-namespace blender::bke::id {
-class IDRemapper;
-}
 
 namespace blender::asset_system {
 
@@ -143,7 +140,7 @@ class AssetLibrary {
    * mapped to null (typically when an ID gets removed), the asset is removed, because we don't
    * support such empty/null assets.
    */
-  void remap_ids_and_remove_invalid(const blender::bke::id::IDRemapper &mappings);
+  void remap_ids_and_remove_invalid(const IDRemapper &mappings);
 
   /**
    * Update `catalog_simple_name` by looking up the asset's catalog by its ID.
@@ -233,6 +230,11 @@ std::string AS_asset_library_find_suitable_root_path_from_path(blender::StringRe
  */
 std::string AS_asset_library_find_suitable_root_path_from_main(const Main *bmain);
 
+blender::asset_system::AssetCatalogService *AS_asset_library_get_catalog_service(
+    const blender::asset_system::AssetLibrary *library);
+blender::asset_system::AssetCatalogTree *AS_asset_library_get_catalog_tree(
+    const blender::asset_system::AssetLibrary *library);
+
 /**
  * Force clearing of all asset library data. After calling this, new asset libraries can be loaded
  * just as usual using #AS_asset_library_load(), no init or other setup is needed.
@@ -251,6 +253,10 @@ void AS_asset_libraries_exit();
 blender::asset_system::AssetLibrary *AS_asset_library_load(const char *name,
                                                            const char *library_dirpath);
 
+/** Look up the asset's catalog and copy its simple name into #asset_data. */
+void AS_asset_library_refresh_catalog_simplename(
+    blender::asset_system::AssetLibrary *asset_library, AssetMetaData *asset_data);
+
 /** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
 bool AS_asset_library_has_any_unsaved_catalogs(void);
 
@@ -258,7 +264,7 @@ bool AS_asset_library_has_any_unsaved_catalogs(void);
  * An asset library can include local IDs (IDs in the current file). Their pointers need to be
  * remapped on change (or assets removed as IDs gets removed).
  */
-void AS_asset_library_remap_ids(const blender::bke::id::IDRemapper &mappings);
+void AS_asset_library_remap_ids(const IDRemapper *mappings);
 
 /**
  * Attempt to resolve a full path to an asset based on the currently available (not necessary

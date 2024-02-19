@@ -15,17 +15,23 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_report.hh"
+#include "BKE_context.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 
 #include "ED_markers.hh"
+#include "ED_time_scrub_ui.hh"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
+#include "SEQ_edit.hh"
+#include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_transform.hh"
+#include "SEQ_utils.hh"
 
 #include "UI_view2d.hh"
 

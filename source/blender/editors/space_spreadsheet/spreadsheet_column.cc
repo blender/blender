@@ -60,9 +60,6 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
   if (type.is<math::Quaternion>()) {
     return SPREADSHEET_VALUE_TYPE_QUATERNION;
   }
-  if (type.is<float4x4>()) {
-    return SPREADSHEET_VALUE_TYPE_FLOAT4X4;
-  }
 
   return SPREADSHEET_VALUE_TYPE_UNKNOWN;
 }

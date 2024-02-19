@@ -28,7 +28,7 @@
 #include "BLI_fileops.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "BKE_node_runtime.hh"
 

@@ -472,7 +472,7 @@ struct Rows {
     return selected_pixels;
   }
 
-  void pack_into(const Span<std::reference_wrapper<Pixel>> selected_pixels,
+  void pack_into(const Vector<std::reference_wrapper<Pixel>> &selected_pixels,
                  CopyPixelTile &copy_tile) const
   {
     std::optional<std::reference_wrapper<CopyPixelGroup>> last_group = std::nullopt;

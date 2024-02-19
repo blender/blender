@@ -11,6 +11,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -19,7 +20,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_movieclip.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"
@@ -33,7 +34,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

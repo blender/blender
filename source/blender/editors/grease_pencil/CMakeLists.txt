@@ -29,7 +29,6 @@ set(SRC
   intern/grease_pencil_material.cc
   intern/grease_pencil_ops.cc
   intern/grease_pencil_select.cc
-  intern/grease_pencil_undo.cc
   intern/grease_pencil_utils.cc
 )
 
@@ -39,7 +38,6 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::intern::clog
   extern_curve_fit_nd
 )
 

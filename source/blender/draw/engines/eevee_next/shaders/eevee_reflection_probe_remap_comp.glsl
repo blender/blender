@@ -7,18 +7,18 @@
 #pragma BLENDER_REQUIRE(eevee_octahedron_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 
-SphereProbeUvArea reinterpret_as_atlas_coord(ivec4 packed_coord)
+ReflectionProbeCoordinate reinterpret_as_atlas_coord(ivec4 packed_coord)
 {
-  SphereProbeUvArea unpacked;
+  ReflectionProbeCoordinate unpacked;
   unpacked.offset = intBitsToFloat(packed_coord.xy);
   unpacked.scale = intBitsToFloat(packed_coord.z);
   unpacked.layer = intBitsToFloat(packed_coord.w);
   return unpacked;
 }
 
-SphereProbePixelArea reinterpret_as_write_coord(ivec4 packed_coord)
+ReflectionProbeWriteCoordinate reinterpret_as_write_coord(ivec4 packed_coord)
 {
-  SphereProbePixelArea unpacked;
+  ReflectionProbeWriteCoordinate unpacked;
   unpacked.offset = packed_coord.xy;
   unpacked.extent = packed_coord.z;
   unpacked.layer = packed_coord.w;
@@ -40,9 +40,9 @@ vec2 mirror_repeat_uv(vec2 uv)
 
 void main()
 {
-  SphereProbeUvArea world_coord = reinterpret_as_atlas_coord(world_coord_packed);
-  SphereProbeUvArea sample_coord = reinterpret_as_atlas_coord(probe_coord_packed);
-  SphereProbePixelArea write_coord = reinterpret_as_write_coord(write_coord_packed);
+  ReflectionProbeCoordinate world_coord = reinterpret_as_atlas_coord(world_coord_packed);
+  ReflectionProbeCoordinate sample_coord = reinterpret_as_atlas_coord(probe_coord_packed);
+  ReflectionProbeWriteCoordinate write_coord = reinterpret_as_write_coord(write_coord_packed);
 
   /* Texel in probe. */
   ivec2 local_texel = ivec2(gl_GlobalInvocationID.xy);
@@ -61,7 +61,7 @@ void main()
   vec2 wrapped_uv = mirror_repeat_uv(sampling_uv);
   /* Direction in world space. */
   vec3 direction = octahedral_uv_to_direction(wrapped_uv);
-  vec4 radiance_and_transmittance = texture(cubemap_tx, direction);
+  vec4 radiance_and_transmittance = textureLod(cubemap_tx, direction, float(mip_level));
   vec3 radiance = radiance_and_transmittance.xyz;
 
   float opacity = 1.0 - radiance_and_transmittance.a;

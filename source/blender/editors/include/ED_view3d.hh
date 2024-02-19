@@ -708,8 +708,9 @@ bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
                                       float r_ray_end[3],
                                       bool do_clip_planes);
 blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const Object *ob);
-blender::float4x4 ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
-                                                          const blender::float4x4 &obmat);
+void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
+                                             const float obmat[4][4],
+                                             float r_pmat[4][4]);
 
 /**
  * Convert between region relative coordinates (x,y) and depth component z and
@@ -826,6 +827,10 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
                                bool use_aspect,
                                float radius);
 
+/**
+ * Back-buffer select and draw support.
+ */
+void ED_view3d_backbuf_depth_validate(ViewContext *vc);
 /**
  * allow for small values [0.5 - 2.5],
  * and large values, FLT_MAX by clamping by the area size

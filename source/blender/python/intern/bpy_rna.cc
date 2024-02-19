@@ -51,14 +51,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh" /* evil G.* */
+#include "BKE_global.h" /* evil G.* */
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 /* Only for types. */
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 #include "DEG_depsgraph_query.hh"
 

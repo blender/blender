@@ -20,6 +20,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
+#include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"
 
 #include "ANIM_keyframing.hh"
@@ -28,10 +29,10 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"

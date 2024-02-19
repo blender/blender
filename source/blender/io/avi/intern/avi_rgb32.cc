@@ -26,7 +26,7 @@ void *avi_converter_from_rgb32(AviMovie *movie, int stream, uchar *buffer, size_
 
   *size = size_t(movie->header->Height) * size_t(movie->header->Width) * 3;
   buf = static_cast<uchar *>(imb_alloc_pixels(
-      movie->header->Height, movie->header->Width, 3, sizeof(uchar), false, "fromrgb32buf"));
+      movie->header->Height, movie->header->Width, 3, sizeof(uchar), "fromrgb32buf"));
   if (!buf) {
     return nullptr;
   }
@@ -56,7 +56,7 @@ void *avi_converter_to_rgb32(AviMovie *movie, int stream, uchar *buffer, size_t 
 
   *size = size_t(movie->header->Height) * size_t(movie->header->Width) * 4;
   buf = static_cast<uchar *>(imb_alloc_pixels(
-      movie->header->Height, movie->header->Width, 4, sizeof(uchar), false, "torgb32buf"));
+      movie->header->Height, movie->header->Width, 4, sizeof(uchar), "torgb32buf"));
   if (!buf) {
     return nullptr;
   }

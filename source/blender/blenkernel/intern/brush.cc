@@ -10,18 +10,21 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_defaults.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_rand.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_bpath.hh"
+#include "BKE_bpath.h"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
+#include "BKE_context.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -409,8 +412,6 @@ static void brush_undo_preserve(BlendLibReader *reader, ID *id_new, ID *id_old)
 IDTypeInfo IDType_ID_BR = {
     /*id_code*/ ID_BR,
     /*id_filter*/ FILTER_ID_BR,
-    /*dependencies_id_types*/
-    (FILTER_ID_BR | FILTER_ID_IM | FILTER_ID_PC | FILTER_ID_TE | FILTER_ID_MA),
     /*main_listbase_index*/ INDEX_ID_BR,
     /*struct_size*/ sizeof(Brush),
     /*name*/ "Brush",

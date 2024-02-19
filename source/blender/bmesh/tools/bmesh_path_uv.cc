@@ -15,6 +15,8 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "bmesh.hh"
 #include "bmesh_path_uv.hh" /* own include */
 #include "intern/bmesh_query.hh"

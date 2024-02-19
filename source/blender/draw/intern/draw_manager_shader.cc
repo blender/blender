@@ -17,7 +17,7 @@
 #include "BLI_time.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_main.hh"
 
 #include "DEG_depsgraph_query.hh"
@@ -270,7 +270,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     DRW_deferred_shader_remove(mat);
     /* Shaders could already be compiling. Have to wait for compilation to finish. */
     while (GPU_material_status(mat) == GPU_MAT_QUEUED) {
-      BLI_time_sleep_ms(20);
+      BLI_sleep_ms(20);
     }
     if (GPU_material_status(mat) == GPU_MAT_CREATED) {
       GPU_material_compile(mat);
@@ -568,7 +568,7 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat)
       DRW_deferred_shader_optimize_remove(mat);
       /* If optimization job had already started, wait for it to complete. */
       while (GPU_material_optimization_status(mat) == GPU_MAT_OPTIMIZATION_QUEUED) {
-        BLI_time_sleep_ms(20);
+        BLI_sleep_ms(20);
       }
     }
     return;

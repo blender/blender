@@ -22,7 +22,7 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_nla.h"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 
 #  include "ED_keyframing.hh"
 

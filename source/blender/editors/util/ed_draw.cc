@@ -13,11 +13,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
@@ -38,6 +39,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "RNA_access.hh"
 #include "WM_api.hh"
 #include "WM_types.hh"
 

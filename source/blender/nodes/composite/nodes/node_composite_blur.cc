@@ -17,6 +17,7 @@
 #include "UI_resources.hh"
 
 #include "GPU_shader.h"
+#include "GPU_state.h"
 #include "GPU_texture.h"
 
 #include "COM_algorithm_symmetric_separable_blur.hh"

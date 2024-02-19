@@ -101,7 +101,7 @@ void ABCPointsWriter::do_write(HierarchyContext &context)
     }
 
     /* location */
-    mul_v3_m4v3(pos, context.object->world_to_object().ptr(), state.co);
+    mul_v3_m4v3(pos, context.object->world_to_object, state.co);
 
     /* velocity */
     sub_v3_v3v3(vel, state.co, psys->particles[p].prev_state.co);

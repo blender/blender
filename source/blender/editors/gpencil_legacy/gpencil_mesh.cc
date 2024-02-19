@@ -9,6 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_rotation.h"
 
@@ -19,13 +20,14 @@
 
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_layer.hh"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -296,7 +298,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
                                angle,
                                thickness,
                                offset,
-                               ob_eval->object_to_world().ptr(),
+                               ob_eval->object_to_world,
                                frame_offset,
                                use_seams,
                                use_faces,

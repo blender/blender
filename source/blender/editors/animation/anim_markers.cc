@@ -16,14 +16,15 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
+#include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
 

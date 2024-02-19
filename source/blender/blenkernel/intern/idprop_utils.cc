@@ -22,7 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* -------------------------------------------------------------------- */
 /** \name IDProp Repr

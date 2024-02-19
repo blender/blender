@@ -12,7 +12,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_sys_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"

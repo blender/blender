@@ -16,24 +16,22 @@ extern "C" {
  * Extract 2D convex hull.
  *
  * \param points: An array of 2D points.
- * \param points_num: The number of points in points.
- * \param r_points: An array of the convex hull vertex indices (max is `points_num`).
- * Vertices are ordered counter clockwise, the polygons cross product is always negative (or zero).
- *
+ * \param n: The number of points in points.
+ * \param r_points: An array of the convex hull vertex indices (max is n).
  * \return The number of indices in r_points.
  *
- * \note Performance is `O(points_num.log(points_num))`, same as `qsort`.
+ * \note Performance is `O(n.log(n))`, same as `qsort`.
  */
-int BLI_convexhull_2d(const float (*points)[2], int points_num, int r_points[/*points_num*/]);
+int BLI_convexhull_2d(const float (*points)[2], int n, int r_points[/*n*/]);
 
 /**
  * \return The best angle for fitting the points to an axis aligned bounding box.
  *
  * \note We could return the index of the best edge too if its needed.
  *
- * \param points: Arbitrary 2D points.
+ * \param points: Arbitrary 2d points.
  */
-float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int points_num);
+float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int n);
 
 #ifdef __cplusplus
 }

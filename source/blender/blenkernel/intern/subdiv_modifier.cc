@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_attribute.hh"
 #include "BKE_subdiv_modifier.hh"
 
 #include "MEM_guardedalloc.h"
@@ -9,6 +10,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_mesh.hh"
@@ -17,6 +19,8 @@
 
 #include "GPU_capabilities.h"
 #include "GPU_context.h"
+
+#include "opensubdiv_capi.hh"
 
 SubdivSettings BKE_subsurf_modifier_settings_init(const SubsurfModifierData *smd,
                                                   const bool use_render_params)

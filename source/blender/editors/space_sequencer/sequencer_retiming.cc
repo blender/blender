@@ -8,14 +8,17 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_set.hh"
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "ED_select_utils.hh"
 #include "ED_sequencer.hh"
@@ -29,10 +32,14 @@
 #include "SEQ_transform.hh"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 
 #include "RNA_define.hh"
 
+#include "UI_interface.hh"
 #include "UI_view2d.hh"
+
+#include "DEG_depsgraph.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"

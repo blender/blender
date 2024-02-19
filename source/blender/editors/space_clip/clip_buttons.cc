@@ -21,7 +21,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_movieclip.h"

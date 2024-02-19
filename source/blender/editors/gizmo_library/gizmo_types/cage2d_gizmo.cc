@@ -38,6 +38,7 @@
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 /* own includes */
 #include "../gizmo_library_intern.h"

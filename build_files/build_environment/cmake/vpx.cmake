@@ -9,11 +9,7 @@ if(WIN32)
   # layer using win32 threads. So all this patch does is make it not find
   # pthead.h
 
-  set(VPX_PATCH
-    ${PATCH_CMD} -p 1 -d
-      ${BUILD_DIR}/vpx/src/external_vpx <
-      ${PATCH_DIR}/vpx_windows.diff
-  )
+  set(VPX_PATCH ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/vpx/src/external_vpx < ${PATCH_DIR}/vpx_windows.diff)
 
   if(MSVC_VERSION GREATER_EQUAL 1920) # 2019
     set(VPX_COMPILER_STRING vs16)
@@ -34,23 +30,10 @@ if(WIN32)
 
   set(VPX_INCLUDE_PATH ${BUILD_DIR}/vpx/src/external_vpx/vpx-vp8-vp9-${VPX_INCL_ARCH}md-${VPX_COMPILER_STRING}-v${VPX_VERSION})
 
-  set(VPX_BUILD_COMMAND
-    ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/vpx/src/external_vpx/ &&
-    make dist &&
-    msbuild /m vpx.sln /p:OutDir=${BUILD_DIR}/vpx/src/external_vpx-build/ /p:Configuration=Release
-  )
-  set(VPX_INSTALL_COMMAND
-    ${CONFIGURE_ENV} &&
-    ${CMAKE_COMMAND} -E copy_directory
-      ${VPX_INCLUDE_PATH}/include
-      ${LIBDIR}/vpx/include &&
-    ${CMAKE_COMMAND} -E copy_directory
-      ${BUILD_DIR}/vpx/src/external_vpx-build/
-      ${LIBDIR}/vpx/lib/ &&
-    ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/vpx/lib/vpxmd.lib
-      ${LIBDIR}/vpx/lib/vpx.lib)
+  set(VPX_BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make dist && msbuild /m vpx.sln /p:OutDir=${BUILD_DIR}/vpx/src/external_vpx-build/ /p:Configuration=Release)
+  set(VPX_INSTALL_COMMAND ${CONFIGURE_ENV} && ${CMAKE_COMMAND} -E copy_directory ${VPX_INCLUDE_PATH}/include ${LIBDIR}/vpx/include &&
+                          ${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/vpx/src/external_vpx-build/ ${LIBDIR}/vpx/lib/ &&
+                          ${CMAKE_COMMAND} -E copy ${LIBDIR}/vpx/lib/vpxmd.lib ${LIBDIR}/vpx/lib/vpx.lib)
 else()
   if(APPLE)
     if("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
@@ -64,14 +47,8 @@ else()
 
   set(VPX_CONFIGURE_COMMAND ${CONFIGURE_ENV})
 
-  set(VPX_BUILD_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/vpx/src/external_vpx/ &&
-    make -j${MAKE_THREADS}
-  )
-  set(VPX_INSTALL_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/vpx/src/external_vpx/ &&
-    make install
-  )
+  set(VPX_BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make -j${MAKE_THREADS})
+  set(VPX_INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/vpx/src/external_vpx/ && make install)
 endif()
 
 if(NOT BLENDER_PLATFORM_ARM)
@@ -89,7 +66,6 @@ ExternalProject_Add(external_vpx
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${VPX_HASH_TYPE}=${VPX_HASH}
   PREFIX ${BUILD_DIR}/vpx
-
   CONFIGURE_COMMAND ${VPX_CONFIGURE_COMMAND} &&
     cd ${BUILD_DIR}/vpx/src/external_vpx/ &&
     ${CONFIGURE_COMMAND_NO_TARGET} --prefix=${LIBDIR}/vpx
@@ -102,7 +78,6 @@ ExternalProject_Add(external_vpx
       --enable-vp8
       --enable-vp9
       ${VPX_EXTRA_FLAGS}
-
   BUILD_COMMAND ${VPX_BUILD_COMMAND}
   INSTALL_COMMAND ${VPX_INSTALL_COMMAND}
   PATCH_COMMAND ${VPX_PATCH}

@@ -36,8 +36,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
+
+#include "ED_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -45,6 +47,7 @@
 #include "UI_interface.hh"
 
 #include "interface_intern.hh"
+#include "interface_regions_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Popup Menu with Callback or String

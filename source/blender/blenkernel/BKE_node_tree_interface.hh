@@ -7,7 +7,7 @@
 #include "DNA_node_tree_interface_types.h"
 #include "DNA_node_types.h"
 
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 #include <queue>
 #include <type_traits>
@@ -130,7 +130,6 @@ static const bNodeSocketStaticTypeInfo node_socket_subtypes[] = {
     {"NodeSocketIntFactor", "NodeTreeInterfaceSocketIntFactor", SOCK_INT, PROP_FACTOR},
     {"NodeSocketBool", "NodeTreeInterfaceSocketBool", SOCK_BOOLEAN, PROP_NONE},
     {"NodeSocketRotation", "NodeTreeInterfaceSocketRotation", SOCK_ROTATION, PROP_NONE},
-    {"NodeSocketMatrix", "NodeTreeInterfaceSocketMatrix", SOCK_MATRIX, PROP_NONE},
     {"NodeSocketVector", "NodeTreeInterfaceSocketVector", SOCK_VECTOR, PROP_NONE},
     {"NodeSocketVectorTranslation",
      "NodeTreeInterfaceSocketVectorTranslation",
@@ -207,7 +206,6 @@ template<typename Fn> bool socket_data_to_static_type(const eNodeSocketDatatype 
 
     case SOCK_CUSTOM:
     case SOCK_SHADER:
-    case SOCK_MATRIX:
     case SOCK_GEOMETRY:
       return true;
   }

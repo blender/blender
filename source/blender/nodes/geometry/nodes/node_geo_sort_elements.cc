@@ -5,11 +5,14 @@
 #include <atomic>
 
 #include "BKE_attribute.hh"
+#include "BKE_mesh.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
+
+#include "DNA_mesh_types.h"
 
 #include "GEO_reorder.hh"
 

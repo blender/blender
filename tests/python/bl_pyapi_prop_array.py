@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ./blender.bin --background --python tests/python/bl_pyapi_prop_array.py -- --verbose
+# ./blender.bin --background -noaudio --python tests/python/bl_pyapi_prop_array.py -- --verbose
 import bpy
 from bpy.props import (
     BoolVectorProperty,

@@ -8,8 +8,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
+
 #include "BLI_utildefines.h"
 
+#include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_subdiv.hh"

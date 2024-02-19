@@ -100,7 +100,7 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_normal")
         col.prop(view_layer, "use_pass_position")
         sub = col.column()
-        sub.active = not scene.render.use_motion_blur
+        sub.active = not scene.eevee.use_motion_blur
         sub.prop(view_layer, "use_pass_vector")
 
 
@@ -342,7 +342,7 @@ class VIEWLAYER_PT_filter(ViewLayerButtonsPanel, Panel):
         col = layout.column(heading="Use")
         sub = col.row()
         sub.prop(view_layer, "use_motion_blur", text="Motion Blur")
-        sub.active = scene.render.use_motion_blur
+        sub.active = scene.eevee.use_motion_blur
 
 
 class VIEWLAYER_PT_layer_custom_props(PropertyPanel, Panel):

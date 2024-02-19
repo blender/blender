@@ -41,7 +41,6 @@
 #include <iosfwd>
 
 #include "BLI_assert.h"
-#include "BLI_random_access_iterator_mixin.hh"
 
 namespace blender {
 
@@ -66,11 +65,13 @@ class IndexRange {
     BLI_assert(size >= 0);
   }
 
-  class Iterator : public iterator::RandomAccessIteratorMixin<Iterator> {
+  class Iterator {
    public:
+    using iterator_category = std::forward_iterator_tag;
     using value_type = int64_t;
     using pointer = const int64_t *;
-    using reference = int64_t;
+    using reference = const int64_t &;
+    using difference_type = std::ptrdiff_t;
 
    private:
     int64_t current_;
@@ -78,12 +79,35 @@ class IndexRange {
    public:
     constexpr explicit Iterator(int64_t current) : current_(current) {}
 
-    constexpr int64_t operator*() const
+    constexpr Iterator &operator++()
     {
-      return current_;
+      current_++;
+      return *this;
     }
 
-    const int64_t &iter_prop() const
+    constexpr Iterator operator++(int)
+    {
+      Iterator copied_iterator = *this;
+      ++(*this);
+      return copied_iterator;
+    }
+
+    constexpr friend bool operator!=(const Iterator &a, const Iterator &b)
+    {
+      return a.current_ != b.current_;
+    }
+
+    constexpr friend bool operator==(const Iterator &a, const Iterator &b)
+    {
+      return a.current_ == b.current_;
+    }
+
+    constexpr friend int64_t operator-(const Iterator &a, const Iterator &b)
+    {
+      return a.current_ - b.current_;
+    }
+
+    constexpr int64_t operator*() const
     {
       return current_;
     }

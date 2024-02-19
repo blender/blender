@@ -55,7 +55,8 @@ class Empties {
     CallBuffers &call_bufs = call_buffers_[int((ob_ref.object->dtx & OB_DRAW_IN_FRONT) != 0)];
 
     float4 color = res.object_wire_color(ob_ref, state);
-    ExtraInstanceData data(ob_ref.object->object_to_world(), color, ob_ref.object->empty_drawsize);
+    ExtraInstanceData data(
+        float4x4(ob_ref.object->object_to_world), color, ob_ref.object->empty_drawsize);
 
     const select::ID select_id = res.select_id(ob_ref);
 

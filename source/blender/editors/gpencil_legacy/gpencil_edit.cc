@@ -15,6 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_matrix.h"
@@ -22,9 +23,10 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -36,16 +38,20 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
+#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
+#include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_workspace.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -57,13 +63,17 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_enum_types.hh"
 
 #include "UI_view2d.hh"
 
+#include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
+#include "ED_select_utils.hh"
+#include "ED_space_api.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
@@ -4184,7 +4194,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
       Scene *scene = CTX_data_scene(C);
       Object *cam_ob = scene->camera;
       if (cam_ob != nullptr) {
-        invert_m4_m4(viewmat, cam_ob->object_to_world().ptr());
+        invert_m4_m4(viewmat, cam_ob->object_to_world);
       }
       break;
     }
@@ -4252,7 +4262,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           /* Apply layer thickness change. */
           gps_duplicate->thickness += gpl->line_change;
           /* Apply object scale to thickness. */
-          gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world().ptr());
+          gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
           CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
           /* Stroke. */

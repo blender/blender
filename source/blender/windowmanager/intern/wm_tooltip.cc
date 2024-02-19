@@ -16,6 +16,8 @@
 
 #include "BKE_context.hh"
 
+#include "ED_screen.hh"
+
 #include "UI_interface.hh"
 
 #include "WM_api.hh"
@@ -86,7 +88,7 @@ void WM_tooltip_clear(bContext *C, wmWindow *win)
     if (screen->tool_tip->region) {
       UI_tooltip_free(C, screen, screen->tool_tip->region);
       screen->tool_tip->region = nullptr;
-      g_tooltip_time_closed = BLI_time_now_seconds();
+      g_tooltip_time_closed = BLI_check_seconds_timer();
     }
     MEM_freeN(screen->tool_tip);
     screen->tool_tip = nullptr;

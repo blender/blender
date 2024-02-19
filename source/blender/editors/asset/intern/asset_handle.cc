@@ -8,11 +8,19 @@
 
 #include <string>
 
+#include "AS_asset_representation.hh"
+
+#include "BKE_blendfile.hh"
+
+#include "BLI_string.h"
+
 #include "DNA_space_types.h"
 
 #include "DNA_space_types.h"
 
 #include "ED_fileselect.hh"
+
+#include "RNA_prototypes.h"
 
 #include "ED_asset_handle.hh"
 

@@ -14,7 +14,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"

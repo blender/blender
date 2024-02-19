@@ -18,18 +18,21 @@
 #include "BLI_math_vector.h"
 #include "BLI_span.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
+#include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
+#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -38,15 +41,16 @@
 #include "RNA_prototypes.h"
 
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
-#include "GEO_mesh_merge_by_distance.hh"
+#include "BLI_strict_flags.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "GEO_mesh_merge_by_distance.hh"
 
 using namespace blender;
 
@@ -286,8 +290,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   if (ob_axis != nullptr) {
     /* Calculate the matrix relative to the axis object. */
-    invert_m4_m4(mtx_tmp_a, ctx->object->object_to_world().ptr());
-    copy_m4_m4(mtx_tx_inv, ob_axis->object_to_world().ptr());
+    invert_m4_m4(mtx_tmp_a, ctx->object->object_to_world);
+    copy_m4_m4(mtx_tx_inv, ob_axis->object_to_world);
     mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 
     /* Calculate the axis vector. */

@@ -30,7 +30,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph_query.hh"
 

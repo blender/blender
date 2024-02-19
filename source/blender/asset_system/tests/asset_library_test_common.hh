@@ -13,7 +13,7 @@
 #include "asset_library_service.hh"
 
 #include "BKE_appdir.hh"
-#include "BKE_callbacks.hh"
+#include "BKE_callbacks.h"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"

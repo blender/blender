@@ -106,11 +106,6 @@ enum eImBufFlags {
   IB_multilayer = 1 << 7,
   IB_metadata = 1 << 8,
   IB_animdeinterlace = 1 << 9,
-  /** Do not clear image pixel buffer to zero. Without this flag, allocating
-   * a new ImBuf does clear the pixel data to zero (transparent black). If
-   * whole pixel data is overwritten after allocation, then this flag can be
-   * faster since it avoids a memory clear. */
-  IB_uninitialized_pixels = 1 << 10,
 
   /** indicates whether image on disk have premul alpha */
   IB_alphamode_premul = 1 << 12,

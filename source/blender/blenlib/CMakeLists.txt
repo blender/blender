@@ -56,7 +56,7 @@ set(SRC
   intern/buffer.c
   intern/cache_mutex.cc
   intern/compute_context.cc
-  intern/convexhull_2d.cc
+  intern/convexhull_2d.c
   intern/cpp_type.cc
   intern/cpp_types.cc
   intern/delaunay_2d.cc
@@ -155,7 +155,7 @@ set(SRC
   intern/timecode.c
   intern/timeit.cc
   intern/uuid.cc
-  intern/uvproject.cc
+  intern/uvproject.c
   intern/vector.cc
   intern/virtual_array.cc
   intern/voxel.c
@@ -330,7 +330,6 @@ set(SRC
   BLI_quadric.h
   BLI_rand.h
   BLI_rand.hh
-  BLI_random_access_iterator_mixin.hh
   BLI_range.h
   BLI_rect.h
   BLI_resource_scope.hh
@@ -499,7 +498,6 @@ if(WITH_GTESTS)
     tests/BLI_bitmap_test.cc
     tests/BLI_bounds_test.cc
     tests/BLI_color_test.cc
-    tests/BLI_convexhull_2d_test.cc
     tests/BLI_cpp_type_test.cc
     tests/BLI_delaunay_2d_test.cc
     tests/BLI_disjoint_set_test.cc
@@ -546,7 +544,6 @@ if(WITH_GTESTS)
     tests/BLI_path_util_test.cc
     tests/BLI_polyfill_2d_test.cc
     tests/BLI_pool_test.cc
-    tests/BLI_random_access_iterator_mixin_test.cc
     tests/BLI_ressource_strings.h
     tests/BLI_serialize_test.cc
     tests/BLI_session_uid_test.cc

@@ -17,6 +17,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
+#include "BLI_listbase.h"
 #include "BLI_path_util.h" /* Only for assertions. */
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -30,7 +31,8 @@
 #include "BKE_preview_image.hh"
 
 #include "BLO_blend_defs.hh"
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
+#include "BLO_undofile.hh"
 
 #include "readfile.hh"
 

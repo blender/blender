@@ -15,24 +15,20 @@ CalculateMeanOperation::CalculateMeanOperation()
   this->add_input_socket(DataType::Color, ResizeMode::Align);
   this->add_output_socket(DataType::Value);
   image_reader_ = nullptr;
-  is_calculated_ = false;
+  iscalculated_ = false;
   setting_ = 1;
   flags_.complex = true;
-  flags_.is_constant_operation = true;
-
-  needs_canvas_to_get_constant_ = true;
 }
-
 void CalculateMeanOperation::init_execution()
 {
   image_reader_ = this->get_input_socket_reader(0);
-  is_calculated_ = false;
+  iscalculated_ = false;
   NodeOperation::init_mutex();
 }
 
 void CalculateMeanOperation::execute_pixel(float output[4], int /*x*/, int /*y*/, void * /*data*/)
 {
-  output[0] = constant_value_;
+  output[0] = result_;
 }
 
 void CalculateMeanOperation::deinit_execution()
@@ -45,7 +41,7 @@ bool CalculateMeanOperation::determine_depending_area_of_interest(
     rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
 {
   rcti image_input;
-  if (is_calculated_) {
+  if (iscalculated_) {
     return false;
   }
   NodeOperation *operation = get_input_operation(0);
@@ -62,17 +58,18 @@ bool CalculateMeanOperation::determine_depending_area_of_interest(
 void *CalculateMeanOperation::initialize_tile_data(rcti *rect)
 {
   lock_mutex();
-  if (!is_calculated_) {
+  if (!iscalculated_) {
     MemoryBuffer *tile = (MemoryBuffer *)image_reader_->initialize_tile_data(rect);
-    constant_value_ = calculate_mean_tile(tile);
-    is_calculated_ = true;
+    calculate_mean(tile);
+    iscalculated_ = true;
   }
   unlock_mutex();
   return nullptr;
 }
 
-float CalculateMeanOperation::calculate_mean_tile(MemoryBuffer *tile) const
+void CalculateMeanOperation::calculate_mean(MemoryBuffer *tile)
 {
+  result_ = 0.0f;
   float *buffer = tile->get_buffer();
   int size = tile->get_width() * tile->get_height();
   int pixels = 0;
@@ -113,7 +110,7 @@ float CalculateMeanOperation::calculate_mean_tile(MemoryBuffer *tile) const
       }
     }
   }
-  return sum / pixels;
+  result_ = sum / pixels;
 }
 
 void CalculateMeanOperation::set_setting(int setting)
@@ -155,41 +152,25 @@ void CalculateMeanOperation::get_area_of_interest(int input_idx,
   r_input_area = get_input_operation(input_idx)->get_canvas();
 }
 
-void CalculateMeanOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
+void CalculateMeanOperation::update_memory_buffer_started(MemoryBuffer * /*output*/,
+                                                          const rcti & /*area*/,
+                                                          Span<MemoryBuffer *> inputs)
 {
-  ConstantOperation::determine_canvas(preferred_area, r_area);
-  r_area = preferred_area;
-}
-
-const float *CalculateMeanOperation::get_constant_elem()
-{
-  /* Node de-duplication uses the constant value as part of a hash for constant operations.
-   * The constant is not known in advance here, but need to return something. The value does
-   * not really matter, because if two CalculateMean operations are connected to different
-   * inputs it will be handled via hash of the input subtree. */
-  static float f = 0;
-  return &f;
-}
-
-void CalculateMeanOperation::update_memory_buffer(MemoryBuffer *output,
-                                                  const rcti &area,
-                                                  Span<MemoryBuffer *> inputs)
-{
-  if (!is_calculated_) {
+  if (!iscalculated_) {
     MemoryBuffer *input = inputs[0];
-    constant_value_ = calculate_value(input);
-    is_calculated_ = true;
+    result_ = calc_mean(input);
+    iscalculated_ = true;
   }
-
-  output->fill(area, &constant_value_);
 }
 
-float CalculateMeanOperation::calculate_value(const MemoryBuffer *input) const
+void CalculateMeanOperation::update_memory_buffer_partial(MemoryBuffer *output,
+                                                          const rcti &area,
+                                                          Span<MemoryBuffer *> /*inputs*/)
 {
-  return calculate_mean(input);
+  output->fill(area, &result_);
 }
 
-float CalculateMeanOperation::calculate_mean(const MemoryBuffer *input) const
+float CalculateMeanOperation::calc_mean(const MemoryBuffer *input)
 {
   PixelsSum total = {0};
   exec_system_->execute_work<PixelsSum>(
@@ -204,7 +185,7 @@ float CalculateMeanOperation::calculate_mean(const MemoryBuffer *input) const
 }
 
 using PixelsSum = CalculateMeanOperation::PixelsSum;
-PixelsSum CalculateMeanOperation::calc_area_sum(const MemoryBuffer *input, const rcti &area) const
+PixelsSum CalculateMeanOperation::calc_area_sum(const MemoryBuffer *input, const rcti &area)
 {
   PixelsSum result = {0};
   for (const float *elem : input->get_buffer_area(area)) {

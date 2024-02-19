@@ -25,15 +25,16 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
+#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

@@ -17,7 +17,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include <fmt/format.h>
 

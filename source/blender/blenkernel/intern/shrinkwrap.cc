@@ -15,6 +15,7 @@
 
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
@@ -26,13 +27,17 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.hh"
+#include "BKE_attribute.hh"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_lattice.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_shrinkwrap.hh"
 
 #include "BKE_deform.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh" /* for OMP limits. */
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_subsurf.hh"
 
@@ -40,7 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* for timing... */
 #if 0

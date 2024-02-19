@@ -8,6 +8,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "GEO_randomize.hh"

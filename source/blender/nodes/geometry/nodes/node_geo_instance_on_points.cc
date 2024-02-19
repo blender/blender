@@ -2,10 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_collection_types.h"
+
 #include "BLI_array_utils.hh"
+#include "BLI_hash.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
+
+#include "UI_interface.hh"
+#include "UI_resources.hh"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"

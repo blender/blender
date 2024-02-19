@@ -1217,19 +1217,6 @@ template<typename T> class SingleAsSpan {
   }
 };
 
-template<typename T> class VArrayRef {
- private:
-  const VArray<T> &ref_;
-
- public:
-  VArrayRef(const VArray<T> &ref) : ref_(ref) {}
-
-  const T operator[](const int64_t index) const
-  {
-    return ref_[index];
-  }
-};
-
 /** To be used with #call_with_devirtualized_parameters. */
 template<typename T, bool UseSingle, bool UseSpan> struct VArrayDevirtualizer {
   const VArray<T> &varray;
@@ -1270,7 +1257,7 @@ inline void devirtualize_varray(const VArray<T> &varray, const Func &func, bool 
       return;
     }
   }
-  func(VArrayRef<T>(varray));
+  func(varray);
 }
 
 /**
@@ -1293,7 +1280,7 @@ inline void devirtualize_varray2(const VArray<T1> &varray1,
       return;
     }
   }
-  func(VArrayRef<T1>(varray1), VArrayRef<T2>(varray2));
+  func(varray1, varray2);
 }
 
 }  // namespace blender

@@ -6,12 +6,16 @@
  * \ingroup edtransform
  */
 
+#include "DNA_anim_types.h"
+
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.h"
 
+#include "BKE_context.hh"
 #include "BKE_nla.h"
 
 #include "ED_markers.hh"
+#include "ED_screen.hh"
 
 #include "transform.hh"
 #include "transform_snap.hh"

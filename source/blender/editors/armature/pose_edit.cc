@@ -12,22 +12,28 @@
 #include "BLI_blenlib.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_action.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
+#include "BKE_deform.hh"
+#include "BKE_global.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -42,14 +48,18 @@
 #include "ED_keyframing.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
+
+#include "UI_interface.hh"
 
 #include "armature_intern.hh"
 
 #undef DEBUG_TIME
 
+#include "BLI_time.h"
 #ifdef DEBUG_TIME
 #  include "BLI_time_utildefines.h"
 #endif

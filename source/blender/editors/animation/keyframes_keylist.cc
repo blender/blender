@@ -19,6 +19,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
+#include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_range.h"
 #include "BLI_utildefines.h"

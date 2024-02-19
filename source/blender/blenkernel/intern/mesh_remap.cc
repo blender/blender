@@ -34,7 +34,7 @@
 #include "BKE_mesh_remap.hh" /* own include */
 #include "BKE_mesh_runtime.hh"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 static CLG_LogRef LOG = {"bke.mesh"};
 

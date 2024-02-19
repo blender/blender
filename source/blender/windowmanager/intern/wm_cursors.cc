@@ -15,11 +15,14 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_sys_types.h"
+
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_global.hh"
+#include "BKE_context.hh"
+#include "BKE_global.h"
 #include "BKE_main.hh"
 
 #include "WM_api.hh"

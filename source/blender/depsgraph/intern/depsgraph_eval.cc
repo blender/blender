@@ -13,7 +13,7 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"

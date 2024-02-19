@@ -25,13 +25,13 @@ struct Scene;
 /**
  * Shape resolution level of detail.
  */
-enum eDRWLevelOfDetail {
+typedef enum eDRWLevelOfDetail {
   DRW_LOD_LOW = 0,
   DRW_LOD_MEDIUM = 1,
   DRW_LOD_HIGH = 2,
 
   DRW_LOD_MAX, /* Max number of level of detail */
-};
+} eDRWLevelOfDetail;
 
 void DRW_shape_cache_free();
 

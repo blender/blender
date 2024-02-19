@@ -10,6 +10,7 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
+#include "AS_asset_library.hh"
 
 #include "BLI_string.h"
 
@@ -18,7 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ED_asset_filter.hh"
 #include "ED_asset_list.hh"

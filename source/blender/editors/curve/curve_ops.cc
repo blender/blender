@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdlib>
 
+#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"

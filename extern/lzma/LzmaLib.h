@@ -1,14 +1,20 @@
 /* LzmaLib.h -- LZMA library interface
-2023-04-02 : Igor Pavlov : Public domain */
+2008-08-05
+Igor Pavlov
+Public domain */
 
-#ifndef ZIP7_INC_LZMA_LIB_H
-#define ZIP7_INC_LZMA_LIB_H
+#ifndef __LZMALIB_H
+#define __LZMALIB_H
 
-#include "7zTypes.h"
+#include "Types.h"
 
-EXTERN_C_BEGIN
+#ifdef __cplusplus
+  #define MY_EXTERN_C extern "C"
+#else
+  #define MY_EXTERN_C extern
+#endif
 
-#define Z7_STDAPI int Z7_STDCALL
+#define MY_STDAPI MY_EXTERN_C int MY_STD_CALL
 
 #define LZMA_PROPS_SIZE 5
 
@@ -40,16 +46,14 @@ outPropsSize -
 level - compression level: 0 <= level <= 9;
 
   level dictSize algo  fb
-    0:    64 KB   0    32
-    1:   256 KB   0    32
-    2:     1 MB   0    32
-    3:     4 MB   0    32
-    4:    16 MB   0    32
+    0:    16 KB   0    32
+    1:    64 KB   0    32
+    2:   256 KB   0    32
+    3:     1 MB   0    32
+    4:     4 MB   0    32
     5:    16 MB   1    32
     6:    32 MB   1    32
-    7:    32 MB   1    64
-    8:    64 MB   1    64
-    9:    64 MB   1    64
+    7+:   64 MB   1    64
  
   The default value for "level" is 5.
 
@@ -85,11 +89,6 @@ fb - Word size (the number of fast bytes).
 numThreads - The number of thereads. 1 or 2. The default value is 2.
      Fast mode (algo = 0) can use only 1 thread.
 
-In:
-  dest     - output data buffer
-  destLen  - output data buffer size
-  src      - input data
-  srcLen   - input data size
 Out:
   destLen  - processed output size
 Returns:
@@ -100,7 +99,7 @@ Returns:
   SZ_ERROR_THREAD     - errors in multithreading functions (only for Mt version)
 */
 
-Z7_STDAPI LzmaCompress(unsigned char *dest, size_t *destLen, const unsigned char *src, size_t srcLen,
+MY_STDAPI LzmaCompress(unsigned char *dest, size_t *destLen, const unsigned char *src, size_t srcLen,
   unsigned char *outProps, size_t *outPropsSize, /* *outPropsSize must be = 5 */
   int level,      /* 0 <= level <= 9, default = 5 */
   unsigned dictSize,  /* default = (1 << 24) */
@@ -115,8 +114,8 @@ Z7_STDAPI LzmaCompress(unsigned char *dest, size_t *destLen, const unsigned char
 LzmaUncompress
 --------------
 In:
-  dest     - output data buffer
-  destLen  - output data buffer size
+  dest     - output data
+  destLen  - output data size
   src      - input data
   srcLen   - input data size
 Out:
@@ -130,9 +129,7 @@ Returns:
   SZ_ERROR_INPUT_EOF   - it needs more bytes in input buffer (src)
 */
 
-Z7_STDAPI LzmaUncompress(unsigned char *dest, size_t *destLen, const unsigned char *src, SizeT *srcLen,
+MY_STDAPI LzmaUncompress(unsigned char *dest, size_t *destLen, const unsigned char *src, SizeT *srcLen,
   const unsigned char *props, size_t propsSize);
-
-EXTERN_C_END
 
 #endif

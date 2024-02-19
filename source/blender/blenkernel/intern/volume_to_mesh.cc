@@ -8,7 +8,10 @@
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
+#include "DNA_volume_types.h"
+
 #include "BKE_mesh.hh"
+#include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_openvdb.hh"
 

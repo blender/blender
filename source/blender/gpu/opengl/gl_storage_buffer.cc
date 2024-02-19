@@ -33,25 +33,6 @@ GLStorageBuf::GLStorageBuf(size_t size, GPUUsageType usage, const char *name)
 
 GLStorageBuf::~GLStorageBuf()
 {
-  if (read_fence_) {
-    glDeleteSync(read_fence_);
-  }
-
-  if (persistent_ptr_) {
-    if (GLContext::direct_state_access_support) {
-      glUnmapNamedBuffer(read_ssbo_id_);
-    }
-    else {
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER, read_ssbo_id_);
-      glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-    }
-  }
-
-  if (read_ssbo_id_) {
-    GLContext::buf_free(read_ssbo_id_);
-  }
-
   GLContext::buf_free(ssbo_id_);
 }
 
@@ -77,7 +58,6 @@ void GLStorageBuf::update(const void *data)
   if (ssbo_id_ == 0) {
     this->init();
   }
-
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
   glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, size_in_bytes_, data);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -183,59 +163,24 @@ void GLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uin
 
 void GLStorageBuf::async_flush_to_host()
 {
-  if (ssbo_id_ == 0) {
-    this->init();
-  }
-
-  if (read_ssbo_id_ == 0) {
-    glGenBuffers(1, &read_ssbo_id_);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, read_ssbo_id_);
-    glBufferStorage(GL_SHADER_STORAGE_BUFFER,
-                    size_in_bytes_,
-                    nullptr,
-                    GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT);
-    persistent_ptr_ = glMapBufferRange(
-        GL_SHADER_STORAGE_BUFFER, 0, size_in_bytes_, GL_MAP_PERSISTENT_BIT | GL_MAP_READ_BIT);
-    BLI_assert(persistent_ptr_);
-    debug::object_label(GL_SHADER_STORAGE_BUFFER, read_ssbo_id_, name_);
-  }
-
-  if (GLContext::direct_state_access_support) {
-    glCopyNamedBufferSubData(ssbo_id_, read_ssbo_id_, 0, 0, size_in_bytes_);
-  }
-  else {
-    glBindBuffer(GL_COPY_READ_BUFFER, ssbo_id_);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, read_ssbo_id_);
-    glCopyBufferSubData(GL_SHADER_STORAGE_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, size_in_bytes_);
-    glBindBuffer(GL_COPY_READ_BUFFER, 0);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-  }
-
-  glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
-
-  if (read_fence_) {
-    glDeleteSync(read_fence_);
-  }
-  read_fence_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 }
 
 void GLStorageBuf::read(void *data)
 {
-  if (data == nullptr) {
-    return;
+  if (ssbo_id_ == 0) {
+    this->init();
   }
 
-  if (!persistent_ptr_ || !read_fence_) {
-    this->async_flush_to_host();
+  if (GLContext::direct_state_access_support) {
+    glGetNamedBufferSubData(ssbo_id_, 0, size_in_bytes_, data);
   }
-
-  while (glClientWaitSync(read_fence_, GL_SYNC_FLUSH_COMMANDS_BIT, 1000) == GL_TIMEOUT_EXPIRED) {
-    /* Repeat until the data is ready.*/
+  else {
+    /* This binds the buffer to GL_ARRAY_BUFFER and upload the data if any. */
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_id_);
+    glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, size_in_bytes_, data);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
   }
-  glDeleteSync(read_fence_);
-  read_fence_ = 0;
-
-  memcpy(data, persistent_ptr_, size_in_bytes_);
 }
 
 void GLStorageBuf::sync_as_indirect_buffer()

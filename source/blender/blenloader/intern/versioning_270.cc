@@ -33,11 +33,13 @@
 #include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_pointcache_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -54,9 +56,10 @@
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
-#include "BKE_scene.hh"
+#include "BKE_node.h"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
+#include "BKE_tracking.h"
 #include "DNA_material_types.h"
 
 #include "SEQ_effects.hh"
@@ -69,10 +72,11 @@
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
+#include "NOD_common.h"
 #include "NOD_composite.hh"
 #include "NOD_socket.hh"
 

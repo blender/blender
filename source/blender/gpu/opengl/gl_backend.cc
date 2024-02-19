@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #if defined(WIN32)
 #  include "BLI_winstuff.h"
 #endif

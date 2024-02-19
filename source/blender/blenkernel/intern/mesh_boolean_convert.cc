@@ -8,8 +8,11 @@
 
 #include <iostream>
 
+#include "DNA_object_types.h"
+
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_boolean_convert.hh"
 

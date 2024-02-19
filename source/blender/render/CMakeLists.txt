@@ -8,7 +8,6 @@ set(INC
   intern
   ../blenkernel
   ../blentranslation
-  ../compositor
   ../compositor/realtime_compositor
   ../compositor/realtime_compositor/cached_resources
   ../draw

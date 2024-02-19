@@ -16,29 +16,14 @@ if(WIN32)
   else()
     list(APPEND BOOST_BUILD_OPTIONS variant=release)
   endif()
-  set(BOOST_HARVEST_CMD
-    ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/boost/lib/
-      ${HARVEST_TARGET}/boost/lib/
-    )
+  set(BOOST_HARVEST_CMD ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/lib/ ${HARVEST_TARGET}/boost/lib/)
   if(BUILD_MODE STREQUAL Release)
-    set(BOOST_HARVEST_CMD
-      ${BOOST_HARVEST_CMD} &&
-      ${CMAKE_COMMAND} -E copy_directory
-        ${LIBDIR}/boost/include/boost-${BOOST_VERSION_NODOTS_SHORT}/
-        ${HARVEST_TARGET}/boost/include/
-    )
+    set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-${BOOST_VERSION_NODOTS_SHORT}/ ${HARVEST_TARGET}/boost/include/)
   endif()
 elseif(APPLE)
   set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
   set(BOOST_BUILD_COMMAND ./b2)
-  set(BOOST_BUILD_OPTIONS
-    toolset=clang-darwin
-    cxxflags=${PLATFORM_CXXFLAGS}
-    linkflags=${PLATFORM_LDFLAGS}
-    visibility=global
-    --disable-icu boost.locale.icu=off
-  )
+  set(BOOST_BUILD_OPTIONS toolset=clang-darwin cxxflags=${PLATFORM_CXXFLAGS} linkflags=${PLATFORM_LDFLAGS} visibility=global --disable-icu boost.locale.icu=off)
   set(BOOST_HARVEST_CMD echo .)
 else()
   set(BOOST_HARVEST_CMD echo .)
@@ -87,25 +72,9 @@ ExternalProject_Add(external_boost
   URL_HASH ${BOOST_HASH_TYPE}=${BOOST_HASH}
   PREFIX ${BUILD_DIR}/boost
   UPDATE_COMMAND  ""
-
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/boost/src/external_boost <
-    ${PATCH_DIR}/boost.diff
-
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/boost/src/external_boost < ${PATCH_DIR}/boost.diff
   CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
-
-  BUILD_COMMAND
-    ${BOOST_BUILD_COMMAND}
-      ${BOOST_BUILD_OPTIONS}
-      -j${MAKE_THREADS}
-      architecture=${BOOST_ARCHITECTURE}
-      address-model=${BOOST_ADDRESS_MODEL}
-      link=shared
-      threading=multi
-      ${BOOST_OPTIONS}
-      --prefix=${LIBDIR}/boost
-      install
-
+  BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=${BOOST_ARCHITECTURE} address-model=${BOOST_ADDRESS_MODEL} link=shared threading=multi ${BOOST_OPTIONS}    --prefix=${LIBDIR}/boost install
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND "${BOOST_HARVEST_CMD}"
 )

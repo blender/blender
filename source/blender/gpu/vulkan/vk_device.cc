@@ -316,7 +316,7 @@ void VKDevice::context_unregister(VKContext &context)
 {
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
 }
-Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const
+const Vector<std::reference_wrapper<VKContext>> &VKDevice::contexts_get() const
 {
   return contexts_;
 };

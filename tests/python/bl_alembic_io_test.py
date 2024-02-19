@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-./blender.bin --background --factory-startup --python tests/python/bl_alembic_io_test.py -- --testdir /path/to/lib/tests/alembic
+./blender.bin --background -noaudio --factory-startup --python tests/python/bl_alembic_io_test.py -- --testdir /path/to/lib/tests/alembic
 """
 
 import math

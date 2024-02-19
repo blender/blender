@@ -12,6 +12,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_screen.hh"

@@ -26,7 +26,7 @@
 #include "BKE_context.hh"
 #include "BKE_image.h"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 

@@ -294,7 +294,6 @@ SDNA_DEFAULT_DECL_STRUCT(WeldModifierData);
 SDNA_DEFAULT_DECL_STRUCT(WireframeModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilSubdivModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilNoiseModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilLengthModifierData);
 
 /* Grease Pencil 3.0 modifiers. */
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilSmoothModifierData);
@@ -334,13 +333,6 @@ SDNA_DEFAULT_DECL_STRUCT(GreasePencilTintModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilOffsetModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilMirrorModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilThickModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilLatticeModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilDashModifierSegment);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilDashModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilMultiModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilWeightAngleModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilArrayModifierData);
-SDNA_DEFAULT_DECL_STRUCT(GreasePencilWeightProximityModifierData);
 
 #undef SDNA_DEFAULT_DECL_STRUCT
 
@@ -557,8 +549,6 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(WireframeModifierData),
     SDNA_DEFAULT_DECL(GreasePencilSubdivModifierData),
     SDNA_DEFAULT_DECL(GreasePencilNoiseModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilLengthModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilWeightAngleModifierData),
 
     /* Grease Pencil 3.0 defaults. */
     SDNA_DEFAULT_DECL(GreasePencilSmoothModifierData),
@@ -598,12 +588,6 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(GreasePencilOffsetModifierData),
     SDNA_DEFAULT_DECL(GreasePencilMirrorModifierData),
     SDNA_DEFAULT_DECL(GreasePencilThickModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilLatticeModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilDashModifierSegment),
-    SDNA_DEFAULT_DECL(GreasePencilDashModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilMultiModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilArrayModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilWeightProximityModifierData),
 };
 #undef SDNA_DEFAULT_DECL
 #undef SDNA_DEFAULT_DECL_EX

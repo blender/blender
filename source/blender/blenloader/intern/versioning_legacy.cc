@@ -27,6 +27,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -63,7 +64,7 @@
 #include "BKE_mesh.hh" /* for ME_ defines (patching) */
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_modifier.hh"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -71,7 +72,7 @@
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "readfile.hh"
 
@@ -617,8 +618,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 153) {
     Scene *sce = static_cast<Scene *>(bmain->scenes.first);
     while (sce) {
-      if (sce->r.motion_blur_shutter == 0.0f) {
-        sce->r.motion_blur_shutter = 1.0f;
+      if (sce->r.blurfac == 0.0f) {
+        sce->r.blurfac = 1.0f;
       }
       sce = static_cast<Scene *>(sce->id.next);
     }
@@ -2592,7 +2593,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          ob = static_cast<Object *>(ob->id.next))
     {
       if (ob->pd) {
-        ob->pd->seed = (uint(ceil(BLI_time_now_seconds())) + 1) % 128;
+        ob->pd->seed = (uint(ceil(BLI_check_seconds_timer())) + 1) % 128;
       }
     }
   }

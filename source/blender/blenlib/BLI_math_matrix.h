@@ -621,8 +621,7 @@ void BLI_space_transform_apply_normal(const struct SpaceTransform *data, float n
 void BLI_space_transform_invert_normal(const struct SpaceTransform *data, float no[3]);
 
 #define BLI_SPACE_TRANSFORM_SETUP(data, local, target) \
-  BLI_space_transform_from_matrices( \
-      (data), (local)->object_to_world().ptr(), (target)->object_to_world().ptr())
+  BLI_space_transform_from_matrices((data), (local)->object_to_world, (target)->object_to_world)
 
 /** \} */
 

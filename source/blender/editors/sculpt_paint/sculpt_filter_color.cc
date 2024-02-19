@@ -13,7 +13,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_userdef_types.h"
 
@@ -23,6 +23,8 @@
 #include "BKE_pbvh_api.hh"
 
 #include "IMB_colormanagement.hh"
+
+#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"

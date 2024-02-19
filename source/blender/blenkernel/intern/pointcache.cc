@@ -43,21 +43,21 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_cloth.hh"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_fluid.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_softbody.h"
 
 #include "BLO_read_write.hh"
@@ -3297,7 +3297,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   char run[32], cur[32], etd[32];
   int cancel = 0;
 
-  stime = ptime = BLI_time_now_seconds();
+  stime = ptime = BLI_check_seconds_timer();
 
   for (int fr = scene->r.cfra; fr <= endframe; fr += baker->quick_step, scene->r.cfra = fr) {
     BKE_scene_graph_update_for_newframe(depsgraph);
@@ -3311,7 +3311,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       printf("bake: frame %d :: %d\n", scene->r.cfra, endframe);
     }
     else {
-      ctime = BLI_time_now_seconds();
+      ctime = BLI_check_seconds_timer();
 
       fetd = (ctime - ptime) * (endframe - scene->r.cfra) / baker->quick_step;
 
@@ -3343,7 +3343,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
   if (use_timer) {
     /* start with newline because of \r above */
-    ptcache_dt_to_str(run, sizeof(run), BLI_time_now_seconds() - stime);
+    ptcache_dt_to_str(run, sizeof(run), BLI_check_seconds_timer() - stime);
     printf("\nBake %s %s (%i frames simulated).\n",
            (cancel ? "canceled after" : "finished in"),
            run,

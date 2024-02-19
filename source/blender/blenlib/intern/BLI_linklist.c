@@ -19,7 +19,7 @@
 #include "BLI_mempool.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 int BLI_linklist_count(const LinkNode *list)
 {

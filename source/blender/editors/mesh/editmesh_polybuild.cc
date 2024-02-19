@@ -18,7 +18,8 @@
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
-#include "BKE_object_types.hh"
+#include "BKE_mesh.hh"
+#include "BKE_report.h"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -28,6 +29,8 @@
 
 #include "ED_mesh.hh"
 #include "ED_object.hh"
+#include "ED_scene.hh"
+#include "ED_screen.hh"
 #include "ED_transform.hh"
 #include "ED_view3d.hh"
 
@@ -124,7 +127,7 @@ static int edbm_polybuild_transform_at_cursor_invoke(bContext *C,
   BMEditMesh *em = vc.em;
   BMesh *bm = em->bm;
 
-  invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
+  invert_m4_m4(vc.obedit->world_to_object, vc.obedit->object_to_world);
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   if (!ele_act) {
@@ -189,7 +192,7 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
   BMEditMesh *em = vc.em;
   BMesh *bm = em->bm;
 
-  invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
+  invert_m4_m4(vc.obedit->world_to_object, vc.obedit->object_to_world);
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   if (!ele_act) {
@@ -282,7 +285,7 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
   BMEditMesh *em = vc.em;
   BMesh *bm = em->bm;
 
-  invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
+  invert_m4_m4(vc.obedit->world_to_object, vc.obedit->object_to_world);
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
@@ -290,9 +293,9 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
   if (ele_act == nullptr || ele_act->head.htype == BM_FACE) {
     /* Just add vert */
     copy_v3_v3(center, vc.scene->cursor.location);
-    mul_v3_m4v3(center, vc.obedit->object_to_world().ptr(), center);
+    mul_v3_m4v3(center, vc.obedit->object_to_world, center);
     ED_view3d_win_to_3d_int(vc.v3d, vc.region, center, event->mval, center);
-    mul_m4_v3(vc.obedit->world_to_object().ptr(), center);
+    mul_m4_v3(vc.obedit->world_to_object, center);
 
     BMVert *v_new = BM_vert_create(bm, center, nullptr, BM_CREATE_NOP);
     edbm_flag_disable_all_multi(vc.scene, vc.view_layer, vc.v3d, BM_ELEM_SELECT);
@@ -305,9 +308,9 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
     BMFace *f_reference = e_act->l ? e_act->l->f : nullptr;
 
     mid_v3_v3v3(center, e_act->v1->co, e_act->v2->co);
-    mul_m4_v3(vc.obedit->object_to_world().ptr(), center);
+    mul_m4_v3(vc.obedit->object_to_world, center);
     ED_view3d_win_to_3d_int(vc.v3d, vc.region, center, event->mval, center);
-    mul_m4_v3(vc.obedit->world_to_object().ptr(), center);
+    mul_m4_v3(vc.obedit->world_to_object, center);
     if (f_reference->len == 3 && RNA_boolean_get(op->ptr, "create_quads")) {
       const float fac = line_point_factor_v3(center, e_act->v1->co, e_act->v2->co);
       BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, nullptr, std::clamp(fac, 0.0f, 1.0f));
@@ -361,9 +364,9 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
 
       BMFace *f_reference = e_pair[0]->l ? e_pair[0]->l->f : nullptr;
 
-      mul_v3_m4v3(center, vc.obedit->object_to_world().ptr(), v_act->co);
+      mul_v3_m4v3(center, vc.obedit->object_to_world, v_act->co);
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, center, event->mval, center);
-      mul_m4_v3(vc.obedit->world_to_object().ptr(), center);
+      mul_m4_v3(vc.obedit->world_to_object, center);
 
       BMVert *v_quad[4];
       v_quad[0] = v_act;
@@ -383,9 +386,9 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
     }
     else {
       /* Just add edge */
-      mul_m4_v3(vc.obedit->object_to_world().ptr(), center);
+      mul_m4_v3(vc.obedit->object_to_world, center);
       ED_view3d_win_to_3d_int(vc.v3d, vc.region, v_act->co, event->mval, center);
-      mul_m4_v3(vc.obedit->world_to_object().ptr(), center);
+      mul_m4_v3(vc.obedit->world_to_object, center);
 
       BMVert *v_new = BM_vert_create(bm, center, nullptr, BM_CREATE_NOP);
 
@@ -459,7 +462,7 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
   BMEditMesh *em = vc.em;
   BMesh *bm = em->bm;
 
-  invert_m4_m4(vc.obedit->runtime->world_to_object.ptr(), vc.obedit->object_to_world().ptr());
+  invert_m4_m4(vc.obedit->world_to_object, vc.obedit->object_to_world);
   ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
   edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
@@ -470,9 +473,9 @@ static int edbm_polybuild_split_at_cursor_invoke(bContext *C,
   if (ele_act->head.htype == BM_EDGE) {
     BMEdge *e_act = (BMEdge *)ele_act;
     mid_v3_v3v3(center, e_act->v1->co, e_act->v2->co);
-    mul_m4_v3(vc.obedit->object_to_world().ptr(), center);
+    mul_m4_v3(vc.obedit->object_to_world, center);
     ED_view3d_win_to_3d_int(vc.v3d, vc.region, center, event->mval, center);
-    mul_m4_v3(vc.obedit->world_to_object().ptr(), center);
+    mul_m4_v3(vc.obedit->world_to_object, center);
 
     const float fac = line_point_factor_v3(center, e_act->v1->co, e_act->v2->co);
     BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, nullptr, std::clamp(fac, 0.0f, 1.0f));

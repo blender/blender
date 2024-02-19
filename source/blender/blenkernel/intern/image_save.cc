@@ -15,7 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_image_types.h"
 
@@ -27,13 +27,13 @@
 #include "IMB_openexr.hh"
 
 #include "BKE_colortools.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_main.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "RE_pipeline.h"
 

@@ -26,7 +26,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -49,7 +49,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_bvhutils.hh"
-#include "BKE_cachefile.hh"
+#include "BKE_cachefile.h"
 #include "BKE_camera.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.hh"
@@ -57,7 +57,7 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -66,7 +66,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_shrinkwrap.hh"
 #include "BKE_tracking.h"
 
@@ -155,7 +155,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           /* Quaternion/Axis-Angle, so Eulers should just use default order. */
           cob->rotOrder = EULER_ORDER_DEFAULT;
         }
-        copy_m4_m4(cob->matrix, ob->object_to_world().ptr());
+        copy_m4_m4(cob->matrix, ob->object_to_world);
       }
       else {
         unit_m4(cob->matrix);
@@ -181,7 +181,7 @@ bConstraintOb *BKE_constraints_make_evalob(
         }
 
         /* matrix in world-space */
-        mul_m4_m4m4(cob->matrix, ob->object_to_world().ptr(), cob->pchan->pose_mat);
+        mul_m4_m4m4(cob->matrix, ob->object_to_world, cob->pchan->pose_mat);
       }
       else {
         unit_m4(cob->matrix);
@@ -222,7 +222,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
       /* cob->ob might not exist! */
       if (cob->ob) {
         /* copy new ob-matrix back to owner */
-        copy_m4_m4(cob->ob->runtime->object_to_world.ptr(), cob->matrix);
+        copy_m4_m4(cob->ob->object_to_world, cob->matrix);
 
         /* copy inverse of delta back to owner */
         invert_m4_m4(cob->ob->constinv, delta);
@@ -233,7 +233,7 @@ void BKE_constraints_clear_evalob(bConstraintOb *cob)
       /* cob->ob or cob->pchan might not exist */
       if (cob->ob && cob->pchan) {
         /* copy new pose-matrix back to owner */
-        mul_m4_m4m4(cob->pchan->pose_mat, cob->ob->world_to_object().ptr(), cob->matrix);
+        mul_m4_m4m4(cob->pchan->pose_mat, cob->ob->world_to_object, cob->matrix);
 
         /* copy inverse of delta back to owner */
         invert_m4_m4(cob->pchan->constinv, delta);
@@ -282,7 +282,7 @@ void BKE_constraint_mat_convertspace(Object *ob,
         }
         else {
           /* World to pose. */
-          invert_m4_m4(imat, ob->object_to_world().ptr());
+          invert_m4_m4(imat, ob->object_to_world);
           mul_m4_m4m4(mat, imat, mat);
 
           /* Use pose-space as stepping stone for other spaces. */
@@ -326,7 +326,7 @@ void BKE_constraint_mat_convertspace(Object *ob,
         }
         else {
           /* Pose to world. */
-          mul_m4_m4m4(mat, ob->object_to_world().ptr(), mat);
+          mul_m4_m4m4(mat, ob->object_to_world, mat);
           /* Use world-space as stepping stone for other spaces. */
           if (to != CONSTRAINT_SPACE_WORLD) {
             /* Call self with slightly different values. */
@@ -436,7 +436,7 @@ void BKE_constraint_mat_convertspace(Object *ob,
         /* Check if object has a parent. */
         if (ob->parent) {
           /* 'subtract' parent's effects from owner. */
-          mul_m4_m4m4(diff_mat, ob->parent->object_to_world().ptr(), ob->parentinv);
+          mul_m4_m4m4(diff_mat, ob->parent->object_to_world, ob->parentinv);
           invert_m4_m4_safe(imat, diff_mat);
           mul_m4_m4m4(mat, imat, mat);
         }
@@ -472,7 +472,7 @@ void BKE_constraint_mat_convertspace(Object *ob,
       /* check that object has a parent - otherwise this won't work */
       if (ob->parent) {
         /* 'add' parent's effect back to owner */
-        mul_m4_m4m4(diff_mat, ob->parent->object_to_world().ptr(), ob->parentinv);
+        mul_m4_m4m4(diff_mat, ob->parent->object_to_world, ob->parentinv);
         mul_m4_m4m4(mat, diff_mat, mat);
       }
       else {
@@ -525,7 +525,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   const int defgroup = BKE_object_defgroup_name_index(ob, substring);
 
   /* initialize target matrix using target matrix */
-  copy_m4_m4(mat, ob->object_to_world().ptr());
+  copy_m4_m4(mat, ob->object_to_world);
 
   /* get index of vertex group */
   if (defgroup == -1) {
@@ -591,7 +591,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
    *   calc_gizmo_stats, V3D_ORIENT_NORMAL case */
 
   /* We need the transpose of the inverse for a normal. */
-  copy_m3_m4(imat, ob->object_to_world().ptr());
+  copy_m3_m4(imat, ob->object_to_world);
 
   invert_m3_m3(tmat, imat);
   transpose_m3(tmat);
@@ -612,7 +612,7 @@ static void contarget_get_mesh_mat(Object *ob, const char *substring, float mat[
   normalize_m4(mat);
 
   /* apply the average coordinate as the new location */
-  mul_v3_m4v3(mat[3], ob->object_to_world().ptr(), vec);
+  mul_v3_m4v3(mat[3], ob->object_to_world, vec);
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */
@@ -634,7 +634,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
   const int defgroup = BKE_object_defgroup_name_index(ob, substring);
 
   /* initialize target matrix using target matrix */
-  copy_m4_m4(mat, ob->object_to_world().ptr());
+  copy_m4_m4(mat, ob->object_to_world);
 
   /* get index of vertex group */
   if (defgroup == -1) {
@@ -668,12 +668,11 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
     }
   }
 
-  /* find average location, then multiply by ob->object_to_world().ptr() to find world-space
-   * location */
+  /* find average location, then multiply by ob->object_to_world to find world-space location */
   if (grouped) {
     mul_v3_fl(vec, 1.0f / grouped);
   }
-  mul_v3_m4v3(tvec, ob->object_to_world().ptr(), vec);
+  mul_v3_m4v3(tvec, ob->object_to_world, vec);
 
   /* copy new location to matrix */
   copy_v3_v3(mat[3], tvec);
@@ -692,7 +691,7 @@ static void constraint_target_to_mat4(Object *ob,
 {
   /* Case OBJECT */
   if (substring[0] == '\0') {
-    copy_m4_m4(mat, ob->object_to_world().ptr());
+    copy_m4_m4(mat, ob->object_to_world);
     BKE_constraint_mat_convertspace(ob, nullptr, cob, mat, from, to, false);
   }
   /* Case VERTEXGROUP */
@@ -727,7 +726,7 @@ static void constraint_target_to_mat4(Object *ob,
 
       if (headtail < 0.000001f && !(is_bbone && full_bbone)) {
         /* skip length interpolation if set to head */
-        mul_m4_m4m4(mat, ob->object_to_world().ptr(), pchan->pose_mat);
+        mul_m4_m4m4(mat, ob->object_to_world, pchan->pose_mat);
       }
       else if (is_bbone && pchan->bone->segments == pchan->runtime.bbone_segments) {
         /* use point along bbone */
@@ -753,7 +752,7 @@ static void constraint_target_to_mat4(Object *ob,
           mul_v3_m4v3(tempmat[3], pchan->pose_mat, loc);
         }
 
-        mul_m4_m4m4(mat, ob->object_to_world().ptr(), tempmat);
+        mul_m4_m4m4(mat, ob->object_to_world, tempmat);
       }
       else {
         float tempmat[4][4], loc[3];
@@ -765,11 +764,11 @@ static void constraint_target_to_mat4(Object *ob,
         copy_m4_m4(tempmat, pchan->pose_mat);
         copy_v3_v3(tempmat[3], loc);
 
-        mul_m4_m4m4(mat, ob->object_to_world().ptr(), tempmat);
+        mul_m4_m4m4(mat, ob->object_to_world, tempmat);
       }
     }
     else {
-      copy_m4_m4(mat, ob->object_to_world().ptr());
+      copy_m4_m4(mat, ob->object_to_world);
     }
 
     /* convert matrix space as required */
@@ -1079,7 +1078,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
   if (data->flag & CHILDOF_SET_INVERSE) {
     invert_m4_m4(data->invmat, parmat);
     if (cob->pchan != nullptr) {
-      mul_m4_series(data->invmat, data->invmat, cob->ob->object_to_world().ptr());
+      mul_m4_series(data->invmat, data->invmat, cob->ob->object_to_world);
     }
 
     copy_m4_m4(inverse_matrix, data->invmat);
@@ -1399,8 +1398,8 @@ static void kinematic_get_tarmat(Depsgraph * /*depsgraph*/,
       else {
         float vec[3];
         /* move grabtarget into world space */
-        mul_v3_m4v3(vec, ob->object_to_world().ptr(), data->grabtarget);
-        copy_m4_m4(ct->matrix, ob->object_to_world().ptr());
+        mul_v3_m4v3(vec, ob->object_to_world, data->grabtarget);
+        copy_m4_m4(ct->matrix, ob->object_to_world);
         copy_v3_v3(ct->matrix[3], vec);
       }
     }
@@ -1540,7 +1539,7 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
 
         copy_v3_v3(totmat[3], vec);
 
-        mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), totmat);
+        mul_m4_m4m4(ct->matrix, ct->tar->object_to_world, totmat);
       }
     }
   }
@@ -2570,7 +2569,7 @@ static void armdef_get_tarmat(Depsgraph * /*depsgraph*/,
       bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
 
       if (pchan != nullptr) {
-        mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), pchan->pose_mat);
+        mul_m4_m4m4(ct->matrix, ct->tar->object_to_world, pchan->pose_mat);
         return;
       }
     }
@@ -2627,7 +2626,7 @@ static void armdef_accumulate_bone(const bConstraintTarget *ct,
   float weight = ct->weight;
 
   /* Our object's location in target pose space. */
-  invert_m4_m4(iobmat, ct->tar->object_to_world().ptr());
+  invert_m4_m4(iobmat, ct->tar->object_to_world);
   mul_v3_m4v3(co, iobmat, wco);
 
   /* Multiply by the envelope weight when appropriate. */
@@ -2652,7 +2651,7 @@ static void armdef_accumulate_bone(const bConstraintTarget *ct,
       mul_m4_m4m4(basemat, bone->arm_mat, b_bone_rest_mats[index].mat);
     }
 
-    armdef_accumulate_matrix(ct->tar->object_to_world().ptr(),
+    armdef_accumulate_matrix(ct->tar->object_to_world,
                              iobmat,
                              basemat,
                              b_bone_mats[index + 1].mat,
@@ -2666,7 +2665,7 @@ static void armdef_accumulate_bone(const bConstraintTarget *ct,
       mul_m4_m4m4(basemat, bone->arm_mat, b_bone_rest_mats[index + 1].mat);
     }
 
-    armdef_accumulate_matrix(ct->tar->object_to_world().ptr(),
+    armdef_accumulate_matrix(ct->tar->object_to_world,
                              iobmat,
                              basemat,
                              b_bone_mats[index + 2].mat,
@@ -2677,7 +2676,7 @@ static void armdef_accumulate_bone(const bConstraintTarget *ct,
   }
   else {
     /* Simple bone. This requires DEG_OPCODE_BONE_DONE dependency due to chan_mat. */
-    armdef_accumulate_matrix(ct->tar->object_to_world().ptr(),
+    armdef_accumulate_matrix(ct->tar->object_to_world,
                              iobmat,
                              bone->arm_mat,
                              pchan->chan_mat,
@@ -2710,7 +2709,7 @@ static void armdef_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targ
     /* For constraints on bones, use the rest position to bind b-bone segments
      * and envelopes, to allow safely changing the bone location as if parented. */
     copy_v3_v3(input_co, cob->pchan->bone->arm_head);
-    mul_m4_v3(cob->ob->object_to_world().ptr(), input_co);
+    mul_m4_v3(cob->ob->object_to_world, input_co);
   }
   else {
     copy_v3_v3(input_co, cob->matrix[3]);
@@ -3942,7 +3941,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
         unit_m4(totmat);
         copy_v3_v3(totmat[3], vec);
 
-        mul_m4_m4m4(targetMatrix, ct->tar->object_to_world().ptr(), totmat);
+        mul_m4_m4m4(targetMatrix, ct->tar->object_to_world, totmat);
       }
     }
 
@@ -4243,7 +4242,7 @@ static void shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
     if (BKE_shrinkwrap_init_tree(
             &tree, target_eval, scon->shrinkType, scon->shrinkMode, do_track_normal))
     {
-      BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->object_to_world().ptr());
+      BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->object_to_world);
 
       switch (scon->shrinkType) {
         case MOD_SHRINKWRAP_NEAREST_SURFACE:
@@ -4917,7 +4916,7 @@ static void followtrack_evaluate_using_3d_position_object(FollowTrackContext *co
 
   /* Object matrix of the camera. */
   float camera_obmat[4][4];
-  copy_m4_m4(camera_obmat, camera_object->object_to_world().ptr());
+  copy_m4_m4(camera_obmat, camera_object->object_to_world);
 
   /* Calculate inverted matrix of the solved camera at the current time. */
   float reconstructed_camera_mat[4][4];
@@ -5069,11 +5068,10 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   }
 
   float depth_object_mat_inv[4][4];
-  invert_m4_m4(depth_object_mat_inv, depth_object->object_to_world().ptr());
+  invert_m4_m4(depth_object_mat_inv, depth_object->object_to_world);
 
   float ray_start[3], ray_end[3];
-  mul_v3_m4v3(
-      ray_start, depth_object_mat_inv, context->camera_object->object_to_world().location());
+  mul_v3_m4v3(ray_start, depth_object_mat_inv, context->camera_object->object_to_world[3]);
   mul_v3_m4v3(ray_end, depth_object_mat_inv, cob->matrix[3]);
 
   float ray_direction[3];
@@ -5096,7 +5094,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
                                           &tree_data);
 
   if (result != -1) {
-    mul_v3_m4v3(cob->matrix[3], depth_object->object_to_world().ptr(), hit.co);
+    mul_v3_m4v3(cob->matrix[3], depth_object->object_to_world, hit.co);
   }
 
   free_bvhtree_from_mesh(&tree_data);
@@ -5144,9 +5142,9 @@ static void followtrack_evaluate_using_2d_position(FollowTrackContext *context, 
     }
 
     float disp[3];
-    mul_v3_m4v3(disp, camera_object->object_to_world().ptr(), vec);
+    mul_v3_m4v3(disp, camera_object->object_to_world, vec);
 
-    copy_m4_m4(rmat, camera_object->object_to_world().ptr());
+    copy_m4_m4(rmat, camera_object->object_to_world);
     zero_v3(rmat[3]);
     mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
@@ -5168,10 +5166,10 @@ static void followtrack_evaluate_using_2d_position(FollowTrackContext *context, 
     }
 
     float disp[3];
-    mul_v3_m4v3(disp, camera_object->object_to_world().ptr(), vec);
+    mul_v3_m4v3(disp, camera_object->object_to_world, vec);
 
     /* apply camera rotation so Z-axis would be co-linear */
-    copy_m4_m4(rmat, camera_object->object_to_world().ptr());
+    copy_m4_m4(rmat, camera_object->object_to_world);
     zero_v3(rmat[3]);
     mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
@@ -5317,7 +5315,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
   BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, mat);
 
   invert_m4_m4(imat, mat);
-  mul_m4_m4m4(parmat, camob->object_to_world().ptr(), imat);
+  mul_m4_m4m4(parmat, camob->object_to_world, imat);
 
   copy_m4_m4(obmat, cob->matrix);
 
@@ -5670,7 +5668,7 @@ bool BKE_constraint_apply_for_object(Depsgraph *depsgraph,
   BLI_freelinkN(&single_con, new_con);
 
   /* Apply transform from matrix. */
-  BKE_object_apply_mat4(ob, ob_eval->object_to_world().ptr(), true, true);
+  BKE_object_apply_mat4(ob, ob_eval->object_to_world, true, true);
 
   return true;
 }
@@ -6263,7 +6261,7 @@ void BKE_constraint_target_matrix_get(Depsgraph *depsgraph,
         cob->ob = (Object *)ownerdata;
         cob->pchan = nullptr;
         if (cob->ob) {
-          copy_m4_m4(cob->matrix, cob->ob->object_to_world().ptr());
+          copy_m4_m4(cob->matrix, cob->ob->object_to_world);
           copy_m4_m4(cob->startmat, cob->matrix);
         }
         else {

@@ -27,10 +27,12 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
+#include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_screen.hh"
 
@@ -1094,13 +1096,15 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          nullptr);
   }
   else if ((flag & UI_ITEM_R_FULL_EVENT) && is_keymapitem_ptr) {
-    std::string kmi_str =
-        WM_keymap_item_to_string(static_cast<const wmKeyMapItem *>(ptr->data), false).value_or("");
+    char buf[128];
+
+    WM_keymap_item_to_string(
+        static_cast<const wmKeyMapItem *>(ptr->data), false, buf, sizeof(buf));
 
     but = uiDefButR_prop(block,
                          UI_BTYPE_HOTKEY_EVENT,
                          0,
-                         kmi_str.c_str(),
+                         buf,
                          x,
                          y,
                          prop_but_width,
@@ -3438,45 +3442,29 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
   }
 }
 
-void uiItemS_ex(uiLayout *layout, float factor, const LayoutSeparatorType type)
+void uiItemS_ex(uiLayout *layout, float factor)
 {
   uiBlock *block = layout->root->block;
   const bool is_menu = ui_block_is_menu(block);
   if (is_menu && !UI_block_can_add_separator(block)) {
     return;
   }
-
   int space = (is_menu) ? int(0.35f * UI_UNIT_X) : int(0.3f * UI_UNIT_X);
   space *= factor;
 
-  eButType but_type;
-
-  switch (type) {
-    case LayoutSeparatorType::Line:
-      but_type = UI_BTYPE_SEPR_LINE;
-      break;
-    case LayoutSeparatorType::Auto:
-      but_type = is_menu ? UI_BTYPE_SEPR_LINE : UI_BTYPE_SEPR;
-      break;
-    default:
-      but_type = UI_BTYPE_SEPR;
-  }
-
-  bool is_vertical_bar = (layout->w == 0) && but_type == UI_BTYPE_SEPR_LINE;
-
   UI_block_layout_set_current(block, layout);
   uiDefBut(block,
-           but_type,
+           (is_menu) ? UI_BTYPE_SEPR_LINE : UI_BTYPE_SEPR,
            0,
            "",
            0,
            0,
            space,
-           is_vertical_bar ? UI_UNIT_Y : space,
+           space,
            nullptr,
            0.0,
            0.0,
-           is_vertical_bar ? 1.0f : 0.0f,
+           0,
            0,
            "");
 }
@@ -3679,10 +3667,11 @@ void uiItemMenuEnumFullO_ptr(uiLayout *layout,
 
   /* add hotkey here, lower UI code can't detect it */
   if ((layout->root->block->flag & UI_BLOCK_LOOP) && (ot->prop && ot->invoke)) {
-    if (std::optional<std::string> shortcut_str = WM_key_event_operator_string(
-            C, ot->idname, layout->root->opcontext, nullptr, false))
+    char keybuf[128];
+    if (WM_key_event_operator_string(
+            C, ot->idname, layout->root->opcontext, nullptr, false, keybuf, sizeof(keybuf)))
     {
-      ui_but_add_shortcut(but, shortcut_str->c_str(), false);
+      ui_but_add_shortcut(but, keybuf, false);
     }
   }
 }

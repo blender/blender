@@ -5,7 +5,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_file_handler.hh"
 

@@ -24,8 +24,8 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_bpath.hh"
-#include "BKE_global.hh"
+#include "BKE_bpath.h"
+#include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -33,12 +33,10 @@
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-
-using namespace blender::bke;
 
 static CLG_LogRef LOG = {"bke.main"};
 
@@ -260,7 +258,7 @@ static bool are_ids_from_different_mains_matching(Main *bmain_1, ID *id_1, Main 
 static void main_merge_add_id_to_move(Main *bmain_dst,
                                       blender::Map<std::string, blender::Vector<ID *>> &id_map_dst,
                                       ID *id_src,
-                                      id::IDRemapper &id_remapper,
+                                      IDRemapper *id_remapper,
                                       blender::Vector<ID *> &ids_to_move,
                                       const bool is_library,
                                       MainMergeReport &reports)
@@ -289,7 +287,7 @@ static void main_merge_add_id_to_move(Main *bmain_dst,
               "found in given destination Main",
               id_src->name,
               bmain_dst->filepath);
-    id_remapper.add(id_src, nullptr);
+    BKE_id_remapper_add(id_remapper, id_src, nullptr);
     reports.num_unknown_ids++;
   }
   else {
@@ -323,8 +321,8 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
   /* A dedicated remapper for libraries is needed because these need to be remapped _before_ IDs
    * are moved from `bmain_src` to `bmain_dst`, to avoid having to fix naming and ordering of IDs
    * afterwards (especially in case some source linked IDs become local in `bmain_dst`). */
-  id::IDRemapper id_remapper;
-  id::IDRemapper id_remapper_libraries;
+  IDRemapper *id_remapper = BKE_id_remapper_create();
+  IDRemapper *id_remapper_libraries = BKE_id_remapper_create();
   blender::Vector<ID *> ids_to_move;
 
   FOREACH_MAIN_ID_BEGIN (bmain_src, id_iter_src) {
@@ -349,11 +347,11 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
         BLI_assert(!src_has_match_in_dst);
         if (!src_has_match_in_dst) {
           if (is_library) {
-            id_remapper_libraries.add(id_iter_src, id_iter_dst);
+            BKE_id_remapper_add(id_remapper_libraries, id_iter_src, id_iter_dst);
             reports.num_remapped_libraries++;
           }
           else {
-            id_remapper.add(id_iter_src, id_iter_dst);
+            BKE_id_remapper_add(id_remapper, id_iter_src, id_iter_dst);
             reports.num_remapped_ids++;
           }
           src_has_match_in_dst = true;
@@ -428,6 +426,8 @@ void BKE_main_merge(Main *bmain_dst, Main **r_bmain_src, MainMergeReport &report
 
   BLI_assert(BKE_main_namemap_validate(bmain_dst));
 
+  BKE_id_remapper_free(id_remapper);
+  BKE_id_remapper_free(id_remapper_libraries);
   BKE_main_free(bmain_src);
   *r_bmain_src = nullptr;
 }

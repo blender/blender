@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_defaults.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
@@ -29,14 +30,14 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
 #include "BKE_movieclip.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_sequencer_offscreen.h"
 
 #include "DEG_depsgraph.hh"
@@ -47,6 +48,7 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
+#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "RE_engine.h"
@@ -70,6 +72,7 @@
 #include "prefetch.hh"
 #include "proxy.hh"
 #include "render.hh"
+#include "strip_time.hh"
 #include "utils.hh"
 
 #include <algorithm>
@@ -139,7 +142,7 @@ void seq_imbuf_to_sequencer_space(const Scene *scene, ImBuf *ibuf, bool make_flo
       /* We perform conversion to a float buffer so we don't worry about
        * precision loss.
        */
-      imb_addrectfloatImBuf(ibuf, 4, false);
+      imb_addrectfloatImBuf(ibuf, 4);
       IMB_colormanagement_transform_from_byte_threaded(ibuf->float_buffer.data,
                                                        ibuf->byte_buffer.data,
                                                        ibuf->x,
@@ -1342,8 +1345,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     const float *fp_src;
     float *fp_dst;
 
-    ibuf = IMB_allocImBuf(
-        context->rectx, context->recty, 32, IB_rectfloat | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rectfloat);
 
     fp_src = maskbuf;
     fp_dst = ibuf->float_buffer.data;
@@ -1361,7 +1363,7 @@ ImBuf *seq_render_mask(const SeqRenderData *context,
     const float *fp_src;
     uchar *ub_dst;
 
-    ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
 
     fp_src = maskbuf;
     ub_dst = ibuf->byte_buffer.data;

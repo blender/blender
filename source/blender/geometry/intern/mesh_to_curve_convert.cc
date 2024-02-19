@@ -10,6 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_to_curve.hh"

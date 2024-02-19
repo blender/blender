@@ -14,8 +14,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_object_types.hh"
-
 #include "DNA_object_types.h"
 
 namespace blender::io::alembic {
@@ -141,16 +139,15 @@ void create_transform_matrix(Object *obj,
   if (mode == ABC_MATRIX_LOCAL && obj->parent) {
     /* Note that this produces another matrix than the local matrix, due to
      * constraints and modifiers as well as the obj->parentinv matrix. */
-    invert_m4_m4(obj->parent->runtime->world_to_object.ptr(),
-                 obj->parent->object_to_world().ptr());
-    mul_m4_m4m4(zup_mat, obj->parent->world_to_object().ptr(), obj->object_to_world().ptr());
+    invert_m4_m4(obj->parent->world_to_object, obj->parent->object_to_world);
+    mul_m4_m4m4(zup_mat, obj->parent->world_to_object, obj->object_to_world);
   }
   else {
-    copy_m4_m4(zup_mat, obj->object_to_world().ptr());
+    copy_m4_m4(zup_mat, obj->object_to_world);
   }
 
   if (proxy_from) {
-    mul_m4_m4m4(zup_mat, proxy_from->object_to_world().ptr(), zup_mat);
+    mul_m4_m4m4(zup_mat, proxy_from->object_to_world, zup_mat);
   }
 
   copy_m44_axis_swap(r_yup_mat, zup_mat, ABC_YUP_FROM_ZUP);

@@ -44,6 +44,8 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+#include "UI_interface.hh"
+
 /* own includes */
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
@@ -363,11 +365,14 @@ static int gizmo_arrow_modal(bContext *C,
 
     float arrow_no_proj[3];
     project_plane_v3_v3v3(arrow_no_proj, arrow_no, proj[j].ray_direction);
+
     normalize_v3(arrow_no_proj);
 
+    float plane[4];
+    plane_from_point_normal_v3(plane, proj[j].ray_origin, arrow_no_proj);
+
     float lambda;
-    if (isect_ray_plane_v3_factor(arrow_co, arrow_no, proj[j].ray_origin, arrow_no_proj, &lambda))
-    {
+    if (isect_ray_plane_v3(arrow_co, arrow_no, plane, &lambda, false)) {
       madd_v3_v3v3fl(proj[j].location, arrow_co, arrow_no, lambda);
       ok++;
     }

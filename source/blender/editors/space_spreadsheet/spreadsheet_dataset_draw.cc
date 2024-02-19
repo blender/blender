@@ -20,9 +20,10 @@
 
 #include "WM_types.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "spreadsheet_dataset_draw.hh"
+#include "spreadsheet_draw.hh"
 #include "spreadsheet_intern.hh"
 
 namespace blender::ed::spreadsheet {

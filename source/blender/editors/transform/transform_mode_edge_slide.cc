@@ -15,6 +15,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines_stack.h"
 
+#include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_unit.hh"
@@ -34,7 +35,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "transform.hh"
 #include "transform_constraints.hh"
@@ -1134,7 +1135,7 @@ static void drawEdgeSlide(TransInfo *t)
   GPU_blend(GPU_BLEND_ALPHA);
 
   GPU_matrix_push();
-  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr());
+  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world);
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 

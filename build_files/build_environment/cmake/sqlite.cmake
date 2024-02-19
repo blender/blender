@@ -32,11 +32,7 @@ if(UNIX)
 -DSQLITE_MAX_VARIABLE_NUMBER=250000 \
 -fPIC"
   )
-  set(SQLITE_CONFIGURE_ENV
-    ${SQLITE_CONFIGURE_ENV} &&
-    export LDFLAGS=${SQLITE_LDFLAGS} &&
-    export CFLAGS=${SQLITE_CFLAGS}
-  )
+  set(SQLITE_CONFIGURE_ENV ${SQLITE_CONFIGURE_ENV} && export LDFLAGS=${SQLITE_LDFLAGS} && export CFLAGS=${SQLITE_CFLAGS})
   set(SQLITE_CONFIGURATION_ARGS
     ${SQLITE_CONFIGURATION_ARGS}
     --enable-threadsafe
@@ -59,18 +55,8 @@ ExternalProject_Add(external_sqlite
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${SQLITE_HASH_TYPE}=${SQLITE_HASH}
   PREFIX ${BUILD_DIR}/sqlite
-
-  CONFIGURE_COMMAND ${SQLITE_CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/sqlite/src/external_sqlite/ &&
-    ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/sqlite ${SQLITE_CONFIGURATION_ARGS}
-
-  BUILD_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/sqlite/src/external_sqlite/ &&
-    make -j${MAKE_THREADS}
-
-  INSTALL_COMMAND ${CONFIGURE_ENV} &&
-    cd ${BUILD_DIR}/sqlite/src/external_sqlite/ &&
-    make install
-
+  CONFIGURE_COMMAND ${SQLITE_CONFIGURE_ENV} && cd ${BUILD_DIR}/sqlite/src/external_sqlite/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/sqlite ${SQLITE_CONFIGURATION_ARGS}
+  BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sqlite/src/external_sqlite/ && make -j${MAKE_THREADS}
+  INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/sqlite/src/external_sqlite/ && make install
   INSTALL_DIR ${LIBDIR}/sqlite
 )

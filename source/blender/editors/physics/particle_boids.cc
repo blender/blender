@@ -17,6 +17,7 @@
 
 #include "BKE_boids.h"
 #include "BKE_context.hh"
+#include "BKE_main.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"

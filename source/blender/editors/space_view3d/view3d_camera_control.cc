@@ -152,7 +152,7 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
     vctrl->obtfm = BKE_object_tfm_backup(ob_back);
 
     BKE_object_where_is_calc(depsgraph, scene, v3d->camera);
-    negate_v3_v3(rv3d->ofs, v3d->camera->object_to_world().location());
+    negate_v3_v3(rv3d->ofs, v3d->camera->object_to_world[3]);
 
     rv3d->dist = 0.0;
   }
@@ -260,7 +260,7 @@ void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl, /* args for keyf
 
     invert_m4_m4(prev_view_imat, vctrl->view_mat_prev);
     mul_m4_m4m4(diff_mat, view_mat, prev_view_imat);
-    mul_m4_m4m4(parent_mat, diff_mat, vctrl->root_parent->object_to_world().ptr());
+    mul_m4_m4m4(parent_mat, diff_mat, vctrl->root_parent->object_to_world);
 
     if (object_apply_mat4_with_protect(vctrl->root_parent, parent_mat, false, rv3d, view_mat)) {
       /* Calculate again since the view locking changes the matrix. */

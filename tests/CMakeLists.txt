@@ -53,7 +53,7 @@ endif()
 
 # Standard Blender arguments for running tests.
 # Specify exit code so that if a Python script error happens, the test fails.
-set(TEST_BLENDER_EXE_PARAMS --background --factory-startup --debug-memory --debug-exit-on-error --python-exit-code 1)
+set(TEST_BLENDER_EXE_PARAMS --background -noaudio --factory-startup --debug-memory --debug-exit-on-error --python-exit-code 1)
 
 # Python CTests
 if(WITH_BLENDER AND WITH_PYTHON AND NOT WITH_PYTHON_MODULE)

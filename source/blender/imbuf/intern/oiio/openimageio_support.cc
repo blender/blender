@@ -100,7 +100,7 @@ static ImBuf *load_pixels(
 {
   /* Allocate the ImBuf for the image. */
   constexpr bool is_float = sizeof(T) > 1;
-  const uint format_flag = (is_float ? IB_rectfloat : IB_rect) | IB_uninitialized_pixels;
+  const uint format_flag = is_float ? IB_rectfloat : IB_rect;
   const uint ibuf_flags = (flags & IB_test) ? 0 : format_flag;
   const int planes = use_all_planes ? 32 : 8 * channels;
   ImBuf *ibuf = IMB_allocImBuf(width, height, planes, ibuf_flags);

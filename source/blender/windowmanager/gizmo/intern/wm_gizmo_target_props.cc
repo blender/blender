@@ -14,14 +14,21 @@
 
 #include "RNA_access.hh"
 
+#include "WM_api.hh"
 #include "WM_message.hh"
 #include "WM_types.hh"
 
+#include "wm.hh"
+
+#include "ED_keyframing.hh"
 #include "ED_screen.hh"
+#include "ED_view3d.hh"
 
 #include "ANIM_keyframing.hh"
 
 /* own includes */
+#include "wm_gizmo_intern.hh"
+#include "wm_gizmo_wmapi.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Property Definition

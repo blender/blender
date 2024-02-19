@@ -40,11 +40,11 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -54,8 +54,8 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
@@ -77,7 +77,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "../../blender/blenloader/BLO_readfile.hh"
+#include "../../blender/blenloader/BLO_readfile.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

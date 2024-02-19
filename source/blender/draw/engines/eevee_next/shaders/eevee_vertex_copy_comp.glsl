@@ -5,7 +5,7 @@
 void main()
 {
   uint vertex_id = gl_GlobalInvocationID.x;
-  if (vertex_id >= uint(vertex_count)) {
+  if (vertex_id >= vertex_count) {
     return;
   }
   out_buf[start_offset + vertex_id] = vec4(in_buf[vertex_id * vertex_stride + 0],

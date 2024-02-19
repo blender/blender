@@ -32,9 +32,10 @@
 
 #include "BLI_array.hh"
 #include "BLI_blenlib.h"
+#include "BLI_dlrbTree.h"
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -47,12 +48,15 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.hh"
-#include "BKE_scene.hh"
+#include "BKE_object.hh"
+#include "BKE_report.h"
+#include "BKE_scene.h"
+#include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"
@@ -61,16 +65,25 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "ED_armature.hh"
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_markers.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
+#include "ED_space_api.hh"
 #include "ED_util.hh"
 
 #include "ANIM_fcurve.hh"
 
+#include "GPU_immediate.h"
+#include "GPU_immediate_util.h"
+#include "GPU_matrix.h"
+#include "GPU_state.h"
+
 #include "armature_intern.hh"
+
+#include "BLF_api.hh"
 
 using blender::Vector;
 

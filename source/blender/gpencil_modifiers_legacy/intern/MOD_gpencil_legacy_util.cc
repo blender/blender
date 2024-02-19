@@ -9,6 +9,7 @@
 #include <cstdio>
 
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_gpencil_legacy_types.h"
@@ -21,7 +22,7 @@
 #include "BKE_deform.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_material.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "MOD_gpencil_legacy_modifiertypes.h"
 #include "MOD_gpencil_legacy_util.h"

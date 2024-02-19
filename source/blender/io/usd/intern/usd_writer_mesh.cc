@@ -37,7 +37,7 @@
 #include "BKE_mesh_wrapper.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 

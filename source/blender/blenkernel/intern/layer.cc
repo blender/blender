@@ -19,10 +19,10 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 #include "BLI_threads.h"
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_animsys.h"
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_freestyle.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"

@@ -428,7 +428,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
   }
   copy_v3_v3(rootmat[3], pchan->pose_head);
 
-  mul_m4_m4m4(imat, ob->object_to_world().ptr(), rootmat);
+  mul_m4_m4m4(imat, ob->object_to_world, rootmat);
   invert_m4_m4(goalinv, imat);
 
   LISTBASE_FOREACH (PoseTarget *, target, &tree->targets) {
@@ -487,7 +487,7 @@ static void execute_posetree(Depsgraph *depsgraph, Scene *scene, Object *ob, Pos
       /* end effector in world space */
       copy_m4_m4(end_pose, pchan->pose_mat);
       copy_v3_v3(end_pose[3], pchan->pose_tail);
-      mul_m4_series(world_pose, goalinv, ob->object_to_world().ptr(), end_pose);
+      mul_m4_series(world_pose, goalinv, ob->object_to_world, end_pose);
 
       /* blend position */
       goalpos[0] = fac * goalpos[0] + mfac * world_pose[3][0];

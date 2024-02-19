@@ -25,6 +25,7 @@
 
 #include "DNA_defaults.h"
 
+#include "DNA_constraint_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_node_types.h"
@@ -41,16 +42,19 @@
 #include "BLI_math_vector.h"
 #include "BLI_threads.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
-#include "BKE_bpath.hh"
+#include "BKE_anim_data.h"
+#include "BKE_bpath.h"
 #include "BKE_colortools.hh"
+#include "BKE_global.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h" /* openanim */
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_movieclip.h"
+#include "BKE_node.h"
 #include "BKE_node_tree_update.hh"
 #include "BKE_tracking.h"
 
@@ -67,6 +71,8 @@
 #include "GPU_texture.h"
 
 #include "BLO_read_write.hh"
+
+#include "tracking_private.h"
 
 static void free_buffers(MovieClip *clip);
 
@@ -279,7 +285,6 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_MC = {
     /*id_code*/ ID_MC,
     /*id_filter*/ FILTER_ID_MC,
-    /*dependencies_id_types*/ FILTER_ID_GD_LEGACY | FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_MC,
     /*struct_size*/ sizeof(MovieClip),
     /*name*/ "MovieClip",

@@ -105,6 +105,7 @@ class WM_OT_previews_batch_generate(Operator):
                 bpy.app.binary_path,
                 "--background",
                 "--factory-startup",
+                "-noaudio",
             ]
             if self.use_trusted:
                 cmd.append("--enable-autoexec")
@@ -214,6 +215,7 @@ class WM_OT_previews_batch_clear(Operator):
                 bpy.app.binary_path,
                 "--background",
                 "--factory-startup",
+                "-noaudio",
             ]
             if self.use_trusted:
                 cmd.append("--enable-autoexec")

@@ -25,7 +25,7 @@
 
 #include "gpu_select_private.h"
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h"
 
 /* #define DEBUG_PRINT */
 

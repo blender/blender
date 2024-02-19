@@ -26,13 +26,16 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
+#include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -42,7 +45,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "UI_interface.hh"
 

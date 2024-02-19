@@ -12,7 +12,9 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLT_translation.hh"
+#include "BLI_stack.hh"
+#include "BLI_string.h"
+#include "BLT_translation.h"
 
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
@@ -23,7 +25,7 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -34,6 +36,7 @@
 #include "ED_curves.hh"
 #include "ED_grease_pencil.hh"
 #include "ED_object.hh"
+#include "ED_screen.hh"
 
 #include "GEO_join_geometries.hh"
 #include "GEO_reorder.hh"
@@ -69,7 +72,7 @@ static int grease_pencil_stroke_smooth_exec(bContext *C, wmOperator *op)
   }
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     if (curves.points_num() == 0) {
@@ -231,7 +234,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
   const float epsilon = RNA_float_get(op->ptr, "factor");
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     if (curves.points_num() == 0) {
@@ -444,7 +447,7 @@ static int grease_pencil_delete_exec(bContext *C, wmOperator * /*op*/)
       scene->toolsettings);
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask elements = ed::greasepencil::retrieve_editable_and_selected_elements(
@@ -587,7 +590,7 @@ static int grease_pencil_dissolve_exec(bContext *C, wmOperator *op)
   const DissolveMode mode = DissolveMode(RNA_enum_get(op->ptr, "type"));
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     if (curves.points_num() == 0) {
@@ -760,7 +763,7 @@ static int grease_pencil_stroke_material_set_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
@@ -829,7 +832,7 @@ static int grease_pencil_cyclical_set_exec(bContext *C, wmOperator *op)
   const CyclicalMode mode = CyclicalMode(RNA_enum_get(op->ptr, "type"));
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     if (mode == CyclicalMode::OPEN && !curves.attributes().contains("cyclic")) {
@@ -910,7 +913,7 @@ static int grease_pencil_set_active_material_exec(bContext *C, wmOperator * /*op
     return OPERATOR_CANCELLED;
   }
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   for (const MutableDrawingInfo &info : drawings) {
     IndexMaskMemory memory;
     const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
@@ -958,7 +961,7 @@ static int grease_pencil_set_uniform_thickness_exec(bContext *C, wmOperator *op)
   const float radius = RNA_float_get(op->ptr, "thickness") * 0.5f;
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
@@ -1015,7 +1018,7 @@ static int grease_pencil_set_uniform_opacity_exec(bContext *C, wmOperator *op)
   const float opacity = RNA_float_get(op->ptr, "opacity");
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
@@ -1070,7 +1073,7 @@ static int grease_pencil_stroke_switch_direction_exec(bContext *C, wmOperator * 
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
@@ -1146,7 +1149,7 @@ static int grease_pencil_caps_set_exec(bContext *C, wmOperator *op)
   const CapsMode mode = CapsMode(RNA_enum_get(op->ptr, "type"));
 
   bool changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     IndexMaskMemory memory;
@@ -1322,7 +1325,7 @@ static int grease_pencil_duplicate_exec(bContext *C, wmOperator * /*op*/)
       scene->toolsettings);
 
   std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask elements = retrieve_editable_and_selected_elements(
@@ -1370,9 +1373,9 @@ static int grease_pencil_clean_loose_exec(bContext *C, wmOperator *op)
   const int limit = RNA_int_get(op->ptr, "limit");
 
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
+  Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(scene, grease_pencil);
 
-  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+  threading::parallel_for_each(drawings, [&](MutableDrawingInfo &info) {
     bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
@@ -1436,7 +1439,7 @@ static int gpencil_stroke_subdivide_exec(bContext *C, wmOperator *op)
   const bke::AttrDomain selection_domain = ED_grease_pencil_selection_domain_get(
       scene->toolsettings);
 
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
 
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
@@ -1633,7 +1636,7 @@ static int grease_pencil_stroke_reorder_exec(bContext *C, wmOperator *op)
   const ReorderDirection direction = ReorderDirection(RNA_enum_get(op->ptr, "direction"));
 
   std::atomic<bool> changed = false;
-  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
   threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
     IndexMaskMemory memory;
     const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
@@ -1736,8 +1739,7 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
   }
 
   /* Iterate through all the drawings at current scene frame. */
-  const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(*scene,
-                                                                             grease_pencil);
+  const Array<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(*scene, grease_pencil);
   for (const MutableDrawingInfo &info : drawings_src) {
     bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
     IndexMaskMemory memory;
@@ -1904,8 +1906,8 @@ static bool grease_pencil_separate_selected(bContext &C,
   GreasePencil &grease_pencil_dst = *static_cast<GreasePencil *>(object_dst->data);
 
   /* Iterate through all the drawings at current scene frame. */
-  const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(scene,
-                                                                             grease_pencil_src);
+  const Array<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(scene,
+                                                                            grease_pencil_src);
   for (const MutableDrawingInfo &info : drawings_src) {
     bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
     IndexMaskMemory memory;
@@ -1974,7 +1976,7 @@ static bool grease_pencil_separate_layer(bContext &C,
         grease_pencil_src.layers().first_index(layer_src), grease_pencil_src, grease_pencil_dst);
 
     /* Iterate through all the drawings at current frame. */
-    const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings_from_layer(
+    const Array<MutableDrawingInfo> drawings_src = retrieve_editable_drawings_from_layer(
         scene, grease_pencil_src, *layer_src);
     for (const MutableDrawingInfo &info : drawings_src) {
       bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
@@ -2042,8 +2044,8 @@ static bool grease_pencil_separate_material(bContext &C,
                                      false);
 
     /* Iterate through all the drawings at current scene frame. */
-    const Vector<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(scene,
-                                                                               grease_pencil_src);
+    const Array<MutableDrawingInfo> drawings_src = retrieve_editable_drawings(scene,
+                                                                              grease_pencil_src);
     for (const MutableDrawingInfo &info : drawings_src) {
       bke::CurvesGeometry &curves_src = info.drawing.strokes_for_write();
       IndexMaskMemory memory;
@@ -2102,8 +2104,8 @@ static int grease_pencil_separate_exec(bContext *C, wmOperator *op)
   switch (mode) {
     case SeparateMode::SELECTED: {
       /* Cancel if nothing selected. */
-      const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene,
-                                                                             grease_pencil_src);
+      const Array<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene,
+                                                                            grease_pencil_src);
       const bool has_selection = std::any_of(
           drawings.begin(), drawings.end(), [&](const MutableDrawingInfo &info) {
             return ed::curves::has_anything_selected(info.drawing.strokes());

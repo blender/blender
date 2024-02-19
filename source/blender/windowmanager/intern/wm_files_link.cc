@@ -34,13 +34,13 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "BKE_armature.hh"
 #include "BKE_blendfile.hh"
 #include "BKE_blendfile_link_append.hh"
 #include "BKE_context.hh"
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -50,9 +50,9 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "BKE_idtype.hh"
 

@@ -35,7 +35,7 @@
 #include "UI_interface_icons.hh"
 #include "UI_view2d.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "ED_screen.hh"
 

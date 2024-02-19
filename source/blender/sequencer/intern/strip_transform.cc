@@ -17,6 +17,10 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_main.hh"
+#include "BKE_scene.h"
+#include "BKE_sound.h"
+
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_edit.hh"
@@ -29,6 +33,8 @@
 
 #include "sequencer.hh"
 #include "strip_time.hh"
+
+#include "CLG_log.h"
 
 bool SEQ_transform_single_image_check(Sequence *seq)
 {

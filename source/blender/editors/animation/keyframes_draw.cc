@@ -14,6 +14,7 @@
 
 #include "BKE_grease_pencil.hh"
 
+#include "BLI_dlrbTree.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 
@@ -21,6 +22,8 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "GPU_immediate.h"
 #include "GPU_shader_shared.h"
@@ -30,6 +33,7 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
+#include "ED_anim_api.hh"
 #include "ED_keyframes_draw.hh"
 #include "ED_keyframes_keylist.hh"
 

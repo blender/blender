@@ -13,7 +13,7 @@
 #include "BLI_ghash.h"
 #include "BLI_memblock.h"
 
-#include "BKE_duplilist.hh"
+#include "BKE_duplilist.h"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 

@@ -17,6 +17,7 @@
 
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
+#include "../generic/python_utildefines.h"
 
 #include "gpu_py.h"
 #include "gpu_py_element.h" /* own include */

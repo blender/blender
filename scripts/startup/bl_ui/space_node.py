@@ -818,9 +818,12 @@ class NODE_PT_quality(bpy.types.Panel):
         col.active = not use_realtime
         col.prop(tree, "render_quality", text="Render")
         col.prop(tree, "edit_quality", text="Edit")
+        col.prop(tree, "chunk_size")
 
         col = layout.column()
         col.active = not use_realtime
+        col.prop(tree, "use_opencl")
+        col.prop(tree, "use_groupnode_buffer")
         col.prop(tree, "use_two_pass")
         col.prop(tree, "use_viewer_border")
 
@@ -863,9 +866,6 @@ class NODE_PT_overlay(Panel):
             col.separator()
             col.prop(overlay, "show_timing", text="Timings")
             col.prop(overlay, "show_named_attributes", text="Named Attributes")
-
-        if snode.tree_type == 'CompositorNodeTree':
-            col.prop(overlay, "show_timing", text="Timings")
 
 
 class NODE_MT_node_tree_interface_context_menu(Menu):

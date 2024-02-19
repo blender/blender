@@ -60,18 +60,8 @@ ExternalProject_Add(external_ispc
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${ISPC_HASH_TYPE}=${ISPC_HASH}
   PREFIX ${BUILD_DIR}/ispc
-
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/ispc/src/external_ispc <
-    ${PATCH_DIR}/ispc.diff
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ispc
-    -Wno-dev
-    ${DEFAULT_CMAKE_FLAGS}
-    ${ISPC_EXTRA_ARGS}
-    ${BUILD_DIR}/ispc/src/external_ispc
-
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/ispc/src/external_ispc < ${PATCH_DIR}/ispc.diff
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ispc -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${ISPC_EXTRA_ARGS} ${BUILD_DIR}/ispc/src/external_ispc
   INSTALL_DIR ${LIBDIR}/ispc
 )
 

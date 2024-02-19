@@ -12,15 +12,21 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_set.hh"
+
+#include "BKE_scene.h"
 
 #include "SEQ_effects.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
 #include "SEQ_time.hh"
+#include "render.hh"
 
 using blender::VectorSet;
 

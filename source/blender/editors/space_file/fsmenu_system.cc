@@ -18,17 +18,18 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_userdef_types.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
+
+#include "BKE_appdir.hh"
 
 #include "ED_fileselect.hh"
 
 #ifdef WIN32
-#  include "BLI_string_utf8.h" /* For `BLI_strncpy_wchar_as_utf8`. */
-
 /* Need to include windows.h so _WIN32_IE is defined. */
 #  include <windows.h>
 /* For SHGetSpecialFolderPath, has to be done before BLI_winstuff

@@ -13,20 +13,24 @@
 extern "C" {
 #endif
 
-/**
- * Return an indication of time, expressed as seconds since some fixed point.
- * Successive calls are guaranteed to generate values greater than or equal to the last call.
- */
-extern double BLI_time_now_seconds(void);
+extern
+    /** Return an indication of time, expressed as
+     * seconds since some fixed point. Successive calls
+     * are guaranteed to generate values greater than or
+     * equal to the last call. */
+    double
+    BLI_check_seconds_timer(void);
 
-/** `int` version of #BLI_time_now_seconds. */
-extern long int BLI_time_now_seconds_i(void);
+extern
+    /** `int` version of #BLI_check_seconds_timer. */
+    long int
+    BLI_check_seconds_timer_i(void);
 
 /**
  * Platform-independent sleep function.
  * \param ms: Number of milliseconds to sleep
  */
-void BLI_time_sleep_ms(int ms);
+void BLI_sleep_ms(int ms);
 
 #ifdef __cplusplus
 }

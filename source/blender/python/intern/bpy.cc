@@ -21,12 +21,13 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
-#include "BKE_bpath.hh"
-#include "BKE_global.hh" /* XXX, G_MAIN only */
+#include "BKE_bpath.h"
+#include "BKE_global.h" /* XXX, G_MAIN only */
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
+#include "RNA_types.hh"
 
 #include "GPU_state.h"
 
@@ -34,6 +35,7 @@
 
 #include "bpy.h"
 #include "bpy_app.h"
+#include "bpy_capi_utils.h"
 #include "bpy_driver.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
@@ -41,6 +43,7 @@
 #include "bpy_rna.h"
 #include "bpy_rna_data.h"
 #include "bpy_rna_gizmo.h"
+#include "bpy_rna_id_collection.h"
 #include "bpy_rna_types_capi.h"
 #include "bpy_utils_previews.h"
 #include "bpy_utils_units.h"
@@ -75,11 +78,11 @@ static PyObject *bpy_script_paths(PyObject * /*self*/)
   PyObject *item;
 
   std::optional<std::string> path = BKE_appdir_folder_id(BLENDER_SYSTEM_SCRIPTS, nullptr);
-  item = PyC_UnicodeFromStdStr(path.value_or(""));
+  item = PyC_UnicodeFromStdStr(path.has_value() ? path.value() : "");
   BLI_assert(item != nullptr);
   PyTuple_SET_ITEM(ret, 0, item);
   path = BKE_appdir_folder_id(BLENDER_USER_SCRIPTS, nullptr);
-  item = PyC_UnicodeFromStdStr(path.value_or(""));
+  item = PyC_UnicodeFromStdStr(path.has_value() ? path.value() : "");
   BLI_assert(item != nullptr);
   PyTuple_SET_ITEM(ret, 1, item);
 
@@ -255,7 +258,7 @@ static PyObject *bpy_user_resource(PyObject * /*self*/, PyObject *args, PyObject
                                                                            subdir_data.value);
   Py_XDECREF(subdir_data.value_coerce);
 
-  return PyC_UnicodeFromStdStr(path.value_or(""));
+  return PyC_UnicodeFromStdStr(path.has_value() ? path.value() : "");
 }
 
 PyDoc_STRVAR(
@@ -305,7 +308,7 @@ static PyObject *bpy_system_resource(PyObject * /*self*/, PyObject *args, PyObje
   std::optional<std::string> path = BKE_appdir_folder_id(type.value_found, subdir_data.value);
   Py_XDECREF(subdir_data.value_coerce);
 
-  return PyC_UnicodeFromStdStr(path.value_or(""));
+  return PyC_UnicodeFromStdStr(path.has_value() ? path.value() : "");
 }
 
 PyDoc_STRVAR(
@@ -355,7 +358,7 @@ static PyObject *bpy_resource_path(PyObject * /*self*/, PyObject *args, PyObject
   const std::optional<std::string> path = BKE_appdir_resource_path_id_with_version(
       type.value_found, false, (major * 100) + minor);
 
-  return PyC_UnicodeFromStdStr(path.value_or(""));
+  return PyC_UnicodeFromStdStr(path.has_value() ? path.value() : "");
 }
 
 /* This is only exposed for tests, see: `tests/python/bl_pyapi_bpy_driver_secure_eval.py`. */

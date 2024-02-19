@@ -6,7 +6,7 @@
 #include "BLI_map.hh"
 #include "BLI_task.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"

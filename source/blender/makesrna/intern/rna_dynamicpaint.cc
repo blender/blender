@@ -14,7 +14,7 @@
 
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_modifier_types.h"

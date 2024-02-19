@@ -22,7 +22,7 @@ static int guiding_device_type()
   if (system_cpu_support_avx2()) {
     return 8;
   }
-  if (system_cpu_support_sse42()) {
+  if (system_cpu_support_sse41()) {
     return 4;
   }
   return 0;

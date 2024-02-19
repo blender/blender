@@ -11,7 +11,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 
 namespace Freestyle {
 

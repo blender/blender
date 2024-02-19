@@ -16,7 +16,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #ifdef WITH_AVI
 #  include "BLI_blenlib.h"
 

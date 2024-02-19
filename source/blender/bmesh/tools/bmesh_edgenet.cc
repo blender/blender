@@ -20,7 +20,7 @@
 #include "bmesh.hh"
 #include "bmesh_edgenet.hh" /* own include */
 
-#include "BLI_strict_flags.h" /* Keep last. */
+#include "BLI_strict_flags.h" /* keep last */
 
 /* Struct for storing a path of verts walked over */
 struct VertNetInfo {

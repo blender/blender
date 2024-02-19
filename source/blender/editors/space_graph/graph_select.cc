@@ -13,6 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
@@ -25,6 +26,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
+#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 

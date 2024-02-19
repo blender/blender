@@ -20,7 +20,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
@@ -390,9 +390,6 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       }
       else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
         item.socket_type = SOCK_ROTATION;
-      }
-      else if (dynamic_cast<const decl::Matrix *>(&socket_decl)) {
-        item.socket_type = SOCK_MATRIX;
       }
       else if (dynamic_cast<const decl::String *>(&socket_decl)) {
         item.socket_type = SOCK_STRING;

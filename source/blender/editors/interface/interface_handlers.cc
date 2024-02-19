@@ -42,7 +42,7 @@
 #include "BKE_curveprofile.h"
 #include "BKE_movieclip.h"
 #include "BKE_paint.hh"
-#include "BKE_report.hh"
+#include "BKE_report.h"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "BKE_unit.hh"
@@ -56,6 +56,7 @@
 
 #include "UI_interface.hh"
 #include "UI_string_search.hh"
+#include "UI_view2d.hh"
 
 #include "BLF_api.hh"
 
@@ -69,6 +70,8 @@
 #include "wm_event_system.hh"
 
 #ifdef WITH_INPUT_IME
+#  include "BLT_lang.h"
+#  include "BLT_translation.h"
 #  include "wm_window.hh"
 #endif
 
@@ -414,6 +417,8 @@ struct uiHandleButtonData {
   /* coords are Window/uiBlock relative (depends on the button) */
   int draglastx, draglasty;
   int dragstartx, dragstarty;
+  int draglastvalue;
+  int dragstartvalue;
   bool dragchange, draglock;
   int dragsel;
   float dragf, dragfstart;
@@ -433,6 +438,7 @@ struct uiHandleButtonData {
 
   /* Menu open, see: #UI_screen_free_active_but_highlight. */
   uiPopupBlockHandle *menu;
+  int menuretval;
 
   /* Search box see: #UI_screen_free_active_but_highlight. */
   ARegion *searchbox;
@@ -2171,7 +2177,7 @@ static bool ui_but_drag_init(bContext *C,
       }
 
       if (valid) {
-        WM_event_start_drag(C, ICON_COLOR, WM_DRAG_COLOR, drag_info, WM_DRAG_FREE_DATA);
+        WM_event_start_drag(C, ICON_COLOR, WM_DRAG_COLOR, drag_info, 0.0, WM_DRAG_FREE_DATA);
       }
       else {
         MEM_freeN(drag_info);
@@ -4394,7 +4400,7 @@ static void ui_block_open_end(bContext *C, uiBut *but, uiHandleButtonData *data)
     but->editval = nullptr;
     but->editvec = nullptr;
 
-    but->block->auto_open_last = BLI_time_now_seconds();
+    but->block->auto_open_last = BLI_check_seconds_timer();
   }
 
   if (data->menu) {
@@ -8646,7 +8652,7 @@ static void button_activate_init(bContext *C,
    * want to allow auto opening adjacent menus even if no button is activated
    * in between going over to the other button, but only for a short while */
   if (type == BUTTON_ACTIVATE_OVER && but->block->auto_open == true) {
-    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_time_now_seconds()) {
+    if (but->block->auto_open_last + BUTTON_AUTO_OPEN_THRESH < BLI_check_seconds_timer()) {
       but->block->auto_open = false;
     }
   }
@@ -8692,7 +8698,7 @@ static void button_activate_init(bContext *C,
   if (UI_but_has_tooltip_label(but)) {
     /* Show a label for this button. */
     bScreen *screen = WM_window_get_active_screen(data->window);
-    if ((BLI_time_now_seconds() - WM_tooltip_time_closed()) < 0.1) {
+    if ((BLI_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
       WM_tooltip_immediate_init(C, CTX_wm_window(C), data->area, region, ui_but_tooltip_init);
       if (screen->tool_tip) {
         screen->tool_tip->pass = 1;
@@ -9973,7 +9979,7 @@ static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu,
       menu->towardstime = DBL_MAX; /* unlimited time */
     }
     else {
-      menu->towardstime = BLI_time_now_seconds();
+      menu->towardstime = BLI_check_seconds_timer();
     }
   }
 }
@@ -10053,7 +10059,7 @@ static bool ui_mouse_motion_towards_check(uiBlock *block,
   }
 
   /* 1 second timer */
-  if (BLI_time_now_seconds() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
+  if (BLI_check_seconds_timer() - menu->towardstime > BUTTON_MOUSE_TOWARDS_THRESH) {
     menu->dotowards = false;
   }
 

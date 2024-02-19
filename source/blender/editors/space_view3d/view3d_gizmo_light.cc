@@ -13,6 +13,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
+#include "BKE_object.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -20,6 +21,7 @@
 #include "DNA_object_types.h"
 
 #include "ED_gizmo_library.hh"
+#include "ED_screen.hh"
 
 #include "UI_resources.hh"
 
@@ -231,9 +233,9 @@ static void WIDGETGROUP_light_spot_refresh(const bContext *C, wmGizmoGroup *gzgr
 
     wmGizmo *gz = ls_gzgroup->spot_angle;
     float dir[3];
-    negate_v3_v3(dir, ob->object_to_world().ptr()[2]);
+    negate_v3_v3(dir, ob->object_to_world[2]);
     WM_gizmo_set_matrix_rotation_from_z_axis(gz, dir);
-    WM_gizmo_set_matrix_location(gz, ob->object_to_world().location());
+    WM_gizmo_set_matrix_location(gz, ob->object_to_world[3]);
 
     const char *propname = "spot_size";
     WM_gizmo_target_property_def_rna(gz, "offset", &lamp_ptr, propname, -1);
@@ -243,11 +245,11 @@ static void WIDGETGROUP_light_spot_refresh(const bContext *C, wmGizmoGroup *gzgr
   {
     wmGizmo *gz = ls_gzgroup->spot_blend;
 
-    copy_m4_m4(gz->matrix_basis, ob->object_to_world().ptr());
+    copy_m4_m4(gz->matrix_basis, ob->object_to_world);
 
     /* Move center to the cone base plane. */
     float dir[3];
-    negate_v3_v3(dir, ob->object_to_world().ptr()[2]);
+    negate_v3_v3(dir, ob->object_to_world[2]);
     mul_v3_fl(dir, CONE_SCALE * cosf(0.5f * la->spotsize));
     add_v3_v3(gz->matrix_basis[3], dir);
   }
@@ -267,7 +269,7 @@ static void WIDGETGROUP_light_spot_draw_prepare(const bContext *C, wmGizmoGroup 
   RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region(C)->regiondata);
   WM_gizmo_set_matrix_rotation_from_z_axis(gz, rv3d->viewinv[2]);
 
-  WM_gizmo_set_matrix_location(gz, ob->object_to_world().location());
+  WM_gizmo_set_matrix_location(gz, ob->object_to_world[3]);
 }
 
 void VIEW3D_GGT_light_spot(wmGizmoGroupType *gzgt)
@@ -353,7 +355,7 @@ static void WIDGETGROUP_light_point_draw_prepare(const bContext *C, wmGizmoGroup
   const RegionView3D *rv3d = static_cast<const RegionView3D *>(CTX_wm_region(C)->regiondata);
   WM_gizmo_set_matrix_rotation_from_z_axis(gz, rv3d->viewinv[2]);
 
-  WM_gizmo_set_matrix_location(gz, ob->object_to_world().location());
+  WM_gizmo_set_matrix_location(gz, ob->object_to_world[3]);
 }
 
 void VIEW3D_GGT_light_point(wmGizmoGroupType *gzgt)
@@ -459,7 +461,7 @@ static void WIDGETGROUP_light_area_refresh(const bContext *C, wmGizmoGroup *gzgr
   Light *la = static_cast<Light *>(ob->data);
   wmGizmo *gz = wwrapper->gizmo;
 
-  copy_m4_m4(gz->matrix_basis, ob->object_to_world().ptr());
+  copy_m4_m4(gz->matrix_basis, ob->object_to_world);
 
   int flag = ED_GIZMO_CAGE_XFORM_FLAG_SCALE;
   if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_DISK)) {
@@ -555,7 +557,7 @@ static void WIDGETGROUP_light_target_draw_prepare(const bContext *C, wmGizmoGrou
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   wmGizmo *gz = wwrapper->gizmo;
 
-  normalize_m4_m4(gz->matrix_basis, ob->object_to_world().ptr());
+  normalize_m4_m4(gz->matrix_basis, ob->object_to_world);
   unit_m4(gz->matrix_offset);
 
   if (ob->type == OB_LAMP) {

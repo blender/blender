@@ -10,11 +10,14 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_context.hh"
+
 #include "ED_gizmo_utils.hh"
 #include "ED_screen.hh"
 
 #include "UI_resources.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "view3d_intern.h" /* own include */

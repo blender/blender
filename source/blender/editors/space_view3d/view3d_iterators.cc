@@ -26,7 +26,9 @@
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.hh"
+#include "BKE_mesh_runtime.hh"
 #include "BKE_mesh_wrapper.hh"
+#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 
@@ -308,7 +310,7 @@ void meshobject_foreachScreenVert(ViewContext *vc,
   data.hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
-    ED_view3d_clipping_local(vc->rv3d, vc->obact->object_to_world().ptr());
+    ED_view3d_clipping_local(vc->rv3d, vc->obact->object_to_world);
   }
 
   BKE_mesh_foreach_mapped_vert(
@@ -357,7 +359,7 @@ void mesh_foreachScreenVert(
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
     ED_view3d_clipping_local(vc->rv3d,
-                             vc->obedit->object_to_world().ptr()); /* for local clipping lookups */
+                             vc->obedit->object_to_world); /* for local clipping lookups */
   }
 
   BM_mesh_elem_table_ensure(vc->em->bm, BM_VERT);
@@ -428,7 +430,7 @@ void mesh_foreachScreenEdge(ViewContext *vc,
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
     ED_view3d_clipping_local(vc->rv3d,
-                             vc->obedit->object_to_world().ptr()); /* for local clipping lookups */
+                             vc->obedit->object_to_world); /* for local clipping lookups */
   }
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) {
@@ -527,8 +529,8 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
   BM_mesh_elem_table_ensure(vc->em->bm, BM_EDGE);
 
   if ((clip_flag & V3D_PROJ_TEST_CLIP_BB) && (vc->rv3d->clipbb != nullptr)) {
-    ED_view3d_clipping_local(
-        vc->rv3d, vc->obedit->object_to_world().ptr()); /* for local clipping lookups. */
+    ED_view3d_clipping_local(vc->rv3d,
+                             vc->obedit->object_to_world); /* for local clipping lookups. */
     BKE_mesh_foreach_mapped_edge(
         mesh, vc->em->bm->totedge, mesh_foreachScreenEdge_clip_bb_segment__mapFunc, &data);
   }
@@ -624,7 +626,7 @@ void nurbs_foreachScreenVert(ViewContext *vc,
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
     ED_view3d_clipping_local(vc->rv3d,
-                             vc->obedit->object_to_world().ptr()); /* for local clipping lookups */
+                             vc->obedit->object_to_world); /* for local clipping lookups */
   }
 
   LISTBASE_FOREACH (Nurb *, nu, nurbs) {
@@ -746,8 +748,7 @@ void lattice_foreachScreenVert(ViewContext *vc,
   ED_view3d_check_mats_rv3d(vc->rv3d);
 
   if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
-    ED_view3d_clipping_local(vc->rv3d,
-                             obedit->object_to_world().ptr()); /* for local clipping lookups */
+    ED_view3d_clipping_local(vc->rv3d, obedit->object_to_world); /* for local clipping lookups */
   }
 
   for (i = 0; i < N; i++, bp++, co += 3) {

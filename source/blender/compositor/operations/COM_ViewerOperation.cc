@@ -4,7 +4,7 @@
 
 #include "COM_ViewerOperation.h"
 #include "BKE_image.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "COM_ExecutionSystem.h"
 
 #include "IMB_colormanagement.hh"

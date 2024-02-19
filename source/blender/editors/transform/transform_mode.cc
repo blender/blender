@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -21,8 +22,13 @@
 
 #include "BKE_constraint.h"
 #include "BKE_context.hh"
+#include "BKE_nla.h"
 
-#include "BLT_translation.hh"
+#include "RNA_access.hh"
+
+#include "UI_interface.hh"
+
+#include "BLT_translation.h"
 
 #include "ED_sequencer.hh"
 
@@ -1064,7 +1070,7 @@ void ElementResize(const TransInfo *t,
     if (t->options & CTX_POSE_BONE) {
       /* Without this, the resulting location of scaled bones aren't correct,
        * especially noticeable scaling root or disconnected bones around the cursor, see #92515. */
-      mul_mat3_m4_v3(tc->poseobj->object_to_world().ptr(), vec);
+      mul_mat3_m4_v3(tc->poseobj->object_to_world, vec);
     }
     mul_m3_v3(td->smtx, vec);
   }

@@ -22,7 +22,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "BKE_image.h"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -88,7 +88,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 
 #  include "BKE_appdir.hh"
 #  include "BKE_context.hh"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 
 #  include "GPU_capabilities.h"
 #  include "GPU_shader.h"

@@ -17,6 +17,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -25,12 +26,13 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.hh"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.hh"
+#include "BKE_scene.h"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 
@@ -39,6 +41,8 @@
 #include "CCGSubSurf.h"
 
 #include "DEG_depsgraph_query.hh"
+
+#include "multires_reshape.hh"
 
 #include <cmath>
 #include <cstring>

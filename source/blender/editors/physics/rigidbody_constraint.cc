@@ -15,11 +15,12 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_collection.hh"
+#include "BKE_collection.h"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_report.hh"
+#include "BKE_main.hh"
+#include "BKE_report.h"
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.hh"

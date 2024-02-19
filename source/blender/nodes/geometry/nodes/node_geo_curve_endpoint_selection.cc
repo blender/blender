@@ -6,6 +6,7 @@
 
 #include "BKE_curves.hh"
 
+#include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "node_geometry_util.hh"
@@ -64,7 +65,7 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     Array<bool> selection(curves.points_num(), false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();
     const OffsetIndices points_by_curve = curves.points_by_curve();
-    devirtualize_varray2(start_size, end_size, [&](const auto start_size, const auto end_size) {
+    devirtualize_varray2(start_size, end_size, [&](const auto &start_size, const auto &end_size) {
       threading::parallel_for(curves.curves_range(), 1024, [&](IndexRange curves_range) {
         for (const int i : curves_range) {
           const IndexRange points = points_by_curve[i];

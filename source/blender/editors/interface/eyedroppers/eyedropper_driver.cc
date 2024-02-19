@@ -14,8 +14,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.hh"
 
 #include "DEG_depsgraph.hh"

@@ -15,17 +15,9 @@ ExternalProject_Add(external_ocloc
   URL_HASH ${OCLOC_HASH_TYPE}=${OCLOC_HASH}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   PREFIX ${BUILD_DIR}/ocloc
-
-  CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ocloc
-    ${DEFAULT_CMAKE_FLAGS}
-    ${OCLOC_EXTRA_ARGS}
-
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ocloc ${DEFAULT_CMAKE_FLAGS} ${OCLOC_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/ocloc
-
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/ocloc/src/external_ocloc/ <
-    ${PATCH_DIR}/ocloc.diff
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/ocloc/src/external_ocloc/ < ${PATCH_DIR}/ocloc.diff
 )
 
 add_dependencies(

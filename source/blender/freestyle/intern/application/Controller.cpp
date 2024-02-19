@@ -49,7 +49,7 @@ extern "C" {
 #include "../blender_interface/BlenderStrokeRenderer.h"
 #include "../blender_interface/BlenderStyleModule.h"
 
-#include "BKE_global.hh"
+#include "BKE_global.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 

@@ -62,6 +62,7 @@
 #include "IMB_metadata.hh"
 
 #ifdef WITH_FFMPEG
+#  include "BKE_global.h" /* ENDIAN_ORDER */
 #  include "BKE_writeffmpeg.hh"
 
 extern "C" {
@@ -413,7 +414,7 @@ static ImBuf *avi_fetchibuf(ImBufAnim *anim, int position)
   else
 #  endif
   {
-    ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect | IB_uninitialized_pixels);
+    ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect);
 
     tmp = static_cast<int *>(AVI_read_frame(
         anim->avi, AVI_FORMAT_RGB32, position, AVI_get_stream(anim->avi, AVIST_VIDEO, 0)));
@@ -1469,7 +1470,8 @@ static void free_anim_ffmpeg(ImBufAnim *anim)
     av_frame_free(&anim->pFrame_backup);
     av_frame_free(&anim->pFrameRGB);
     av_frame_free(&anim->pFrameDeinterlaced);
-    BKE_ffmpeg_sws_release_context(anim->img_convert_ctx);
+
+    sws_freeContext(anim->img_convert_ctx);
   }
   anim->duration_in_frames = 0;
 }

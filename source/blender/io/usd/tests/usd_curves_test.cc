@@ -27,11 +27,11 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh.hh"
-#include "BKE_node.hh"
+#include "BKE_node.h"
 #include "BLI_fileops.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
-#include "BLO_readfile.hh"
+#include "BLO_readfile.h"
 
 #include "BKE_node_runtime.hh"
 

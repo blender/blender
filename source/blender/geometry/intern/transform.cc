@@ -10,12 +10,14 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
+#include "DNA_volume_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"

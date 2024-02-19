@@ -10,7 +10,7 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
-#  include "BKE_report.hh"
+#  include "BKE_report.h"
 
 #  include "BLI_string.h"
 
@@ -25,7 +25,7 @@
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
 
-#  include "BLT_translation.hh"
+#  include "BLT_translation.h"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"

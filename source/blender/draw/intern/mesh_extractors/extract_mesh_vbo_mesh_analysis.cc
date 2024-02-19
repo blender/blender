@@ -456,13 +456,14 @@ static void statvis_calc_distort(const MeshRenderData &mr, float *r_distort)
         const float *f_no = mr.face_normals[face_index];
         fac = 0.0f;
 
-        for (const int corner : face.drop_front(1)) {
-          const int corner_prev = bke::mesh::face_corner_prev(face, corner);
-          const int corner_next = bke::mesh::face_corner_next(face, corner);
+        for (int i = 1; i <= face.size(); i++) {
+          const int corner_prev = face.start() + (i - 1) % face.size();
+          const int corner_curr = face.start() + (i + 0) % face.size();
+          const int corner_next = face.start() + (i + 1) % face.size();
           float no_corner[3];
           normal_tri_v3(no_corner,
                         mr.vert_positions[mr.corner_verts[corner_prev]],
-                        mr.vert_positions[mr.corner_verts[corner]],
+                        mr.vert_positions[mr.corner_verts[corner_curr]],
                         mr.vert_positions[mr.corner_verts[corner_next]]);
           /* simple way to detect (what is most likely) concave */
           if (dot_v3v3(f_no, no_corner) < 0.0f) {
@@ -539,9 +540,9 @@ static void statvis_calc_sharp(const MeshRenderData &mr, float *r_sharp)
 
     for (int face_index = 0; face_index < mr.face_len; face_index++) {
       const IndexRange face = mr.faces[face_index];
-      for (const int corner : face) {
-        const int vert_curr = mr.corner_verts[corner];
-        const int vert_next = mr.corner_verts[bke::mesh::face_corner_next(face, corner)];
+      for (int i = 0; i < face.size(); i++) {
+        const int vert_curr = mr.corner_verts[face.start() + (i + 0) % face.size()];
+        const int vert_next = mr.corner_verts[face.start() + (i + 1) % face.size()];
         float angle;
         eh.add_or_modify(
             {vert_curr, vert_next},

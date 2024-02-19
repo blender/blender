@@ -18,7 +18,7 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -55,9 +55,11 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_main.hh"
 #include "BKE_nla.h"
 
 #include "GPU_immediate.h"

@@ -117,7 +117,7 @@ struct MeshBufferList {
     /* no loose edges. */
     GPUIndexBuf *lines_paint_mask;
     GPUIndexBuf *lines_adjacency;
-    /** UV overlays. (visibility can differ from 3D view). */
+    /* Uv overlays. (visibility can differ from 3D view) */
     GPUIndexBuf *edituv_tris;
     GPUIndexBuf *edituv_lines;
     GPUIndexBuf *edituv_points;

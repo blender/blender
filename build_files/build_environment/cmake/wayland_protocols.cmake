@@ -8,16 +8,8 @@ ExternalProject_Add(external_wayland_protocols
   URL_HASH ${WL_PROTOCOLS_HASH_TYPE}=${WL_PROTOCOLS_HASH}
   PREFIX ${BUILD_DIR}/wayland-protocols
   # Use `-E` so the `PKG_CONFIG_PATH` can be defined to link against our own WAYLAND.
-
-  CONFIGURE_COMMAND ${CMAKE_COMMAND} -E
-    env PKG_CONFIG_PATH=${LIBDIR}/wayland/lib64/pkgconfig:$PKG_CONFIG_PATH
-    ${MESON}
-      --prefix ${LIBDIR}/wayland-protocols
-      ${MESON_BUILD_TYPE}
-      .
-      ../external_wayland_protocols
-      -Dtests=false
-
+  CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env PKG_CONFIG_PATH=${LIBDIR}/wayland/lib64/pkgconfig:$PKG_CONFIG_PATH
+                    ${MESON} --prefix ${LIBDIR}/wayland-protocols ${MESON_BUILD_TYPE} . ../external_wayland_protocols -Dtests=false
   BUILD_COMMAND ninja
   INSTALL_COMMAND ninja install
 )

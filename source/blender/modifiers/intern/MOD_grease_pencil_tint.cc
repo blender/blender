@@ -31,7 +31,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.hh"
+#include "BLT_translation.h"
 
 #include "WM_types.hh"
 
@@ -217,7 +217,8 @@ static void modify_stroke_color(Object &ob,
       const OffsetIndices<int> points_by_curve = curves.points_by_curve();
       const Span<float3> positions = curves.positions();
       /* Transforms points to the gradient object space. */
-      const float4x4 matrix = tmd.object->world_to_object() * ob.object_to_world();
+      const float4x4 matrix = float4x4_view(tmd.object->world_to_object) *
+                              float4x4_view(ob.object_to_world);
 
       curves_mask.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
         const ColorGeometry4f material_color = get_material_color(curve_i);
@@ -296,7 +297,8 @@ static void modify_fill_color(Object &ob,
       const OffsetIndices<int> points_by_curve = curves.points_by_curve();
       const Span<float3> positions = curves.positions();
       /* Transforms points to the gradient object space. */
-      const float4x4 matrix = tmd.object->world_to_object() * ob.object_to_world();
+      const float4x4 matrix = float4x4_view(tmd.object->world_to_object) *
+                              float4x4_view(ob.object_to_world);
 
       curves_mask.foreach_index(GrainSize(512), [&](int64_t curve_i) {
         const ColorGeometry4f material_color = get_material_color(curve_i);
