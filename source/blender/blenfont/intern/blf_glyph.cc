@@ -75,28 +75,24 @@ static float from_16dot16(FT_Fixed value)
 /** \name Glyph Cache
  * \{ */
 
-static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size)
+static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, const float size)
 {
-  GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
-  while (gc) {
+  for (std::unique_ptr<GlyphCacheBLF> &gc : font->cache) {
     if (gc->size == size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
         (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
         (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&
         (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing))
     {
-      return gc;
+      return gc.get();
     }
-    gc = gc->next;
   }
   return nullptr;
 }
 
 static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
-  GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
+  std::unique_ptr<GlyphCacheBLF> gc = std::make_unique<GlyphCacheBLF>(GlyphCacheBLF{});
 
-  gc->next = nullptr;
-  gc->prev = nullptr;
   gc->size = font->size;
   gc->bold = ((font->flags & BLF_BOLD) != 0);
   gc->italic = ((font->flags & BLF_ITALIC) != 0);
@@ -125,13 +121,14 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
     gc->fixed_width = 1;
   }
 
-  BLI_addhead(&font->cache, gc);
-  return gc;
+  font->cache.append(std::move(gc));
+
+  return font->cache.last().get();
 }
 
 GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 {
-  BLI_mutex_lock(&font->glyph_cache_mutex);
+  font->glyph_cache_mutex.lock();
 
   GlyphCacheBLF *gc = blf_glyph_cache_find(font, font->size);
 
@@ -144,34 +141,28 @@ GlyphCacheBLF *blf_glyph_cache_acquire(FontBLF *font)
 
 void blf_glyph_cache_release(FontBLF *font)
 {
-  BLI_mutex_unlock(&font->glyph_cache_mutex);
+  font->glyph_cache_mutex.unlock();
 }
 
-static void blf_glyph_cache_free(GlyphCacheBLF *gc)
+GlyphCacheBLF::~GlyphCacheBLF()
 {
-  for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
-    while (GlyphBLF *g = static_cast<GlyphBLF *>(BLI_pophead(&gc->bucket[i]))) {
+  for (uint i = 0; i < ARRAY_SIZE(this->bucket); i++) {
+    while (GlyphBLF *g = static_cast<GlyphBLF *>(BLI_pophead(&this->bucket[i]))) {
       blf_glyph_free(g);
     }
   }
-  if (gc->texture) {
-    GPU_texture_free(gc->texture);
+  if (this->texture) {
+    GPU_texture_free(this->texture);
   }
-  if (gc->bitmap_result) {
-    MEM_freeN(gc->bitmap_result);
+  if (this->bitmap_result) {
+    MEM_freeN(this->bitmap_result);
   }
-  MEM_freeN(gc);
 }
 
 void blf_glyph_cache_clear(FontBLF *font)
 {
-  BLI_mutex_lock(&font->glyph_cache_mutex);
-
-  while (GlyphCacheBLF *gc = static_cast<GlyphCacheBLF *>(BLI_pophead(&font->cache))) {
-    blf_glyph_cache_free(gc);
-  }
-
-  BLI_mutex_unlock(&font->glyph_cache_mutex);
+  std::lock_guard lock{font->glyph_cache_mutex};
+  font->cache.clear_and_shrink();
 }
 
 /**

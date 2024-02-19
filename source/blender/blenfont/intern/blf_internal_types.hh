@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <mutex>
+
+#include "BLI_vector.hh"
+
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
@@ -113,9 +117,6 @@ struct KerningCacheBLF {
 };
 
 struct GlyphCacheBLF {
-  GlyphCacheBLF *next;
-  GlyphCacheBLF *prev;
-
   /** Font size. */
   float size;
 
@@ -139,6 +140,8 @@ struct GlyphCacheBLF {
   int bitmap_len;
   int bitmap_len_landed;
   int bitmap_len_alloc;
+
+  ~GlyphCacheBLF();
 };
 
 struct GlyphBLF {
@@ -361,7 +364,7 @@ struct FontBLF {
    * List of glyph caches (#GlyphCacheBLF) for this font for size, DPI, bold, italic.
    * Use blf_glyph_cache_acquire(font) and blf_glyph_cache_release(font) to access cache!
    */
-  ListBase cache;
+  blender::Vector<std::unique_ptr<GlyphCacheBLF>> cache;
 
   /** Cache of unscaled kerning values. Will be NULL if font does not have kerning. */
   KerningCacheBLF *kerning_cache;
@@ -385,5 +388,5 @@ struct FontBLF {
   FontBufInfoBLF buf_info;
 
   /** Mutex lock for glyph cache. */
-  ThreadMutex glyph_cache_mutex;
+  std::mutex glyph_cache_mutex;
 };
