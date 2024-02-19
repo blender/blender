@@ -2759,9 +2759,64 @@ static void clip_to_ortho_planes(float v1[3], float v2[3], const float center[3]
   madd_v3_v3v3fl(v2, closest, dir, -d);
 }
 
-static void set_linehit_depth(KnifeTool_OpData *kcd, KnifeLineHit *lh)
+static void knife_linehit_set(KnifeTool_OpData *kcd,
+                              float s1[2],
+                              float s2[2],
+                              float sco[2],
+                              float cage[3],
+                              int ob_index,
+                              KnifeVert *v,
+                              KnifeEdge *kfe,
+                              KnifeLineHit *r_hit)
 {
-  lh->m = dot_m4_v3_row_z(kcd->vc.rv3d->persmatob, lh->cagehit);
+  memset(r_hit, 0, sizeof(*r_hit));
+  copy_v3_v3(r_hit->cagehit, cage);
+  copy_v2_v2(r_hit->schit, sco);
+  r_hit->ob_index = ob_index;
+
+  /* Find position along screen line, used for sorting. */
+  r_hit->l = len_v2v2(sco, s1) / len_v2v2(s2, s1);
+
+  r_hit->m = dot_m4_v3_row_z(kcd->vc.rv3d->persmatob, cage);
+
+  r_hit->v = v;
+
+  /* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
+   * Knowing if the hit comes from an edge is important for edge-in-face checks later on.
+   * See: #knife_add_single_cut -> #knife_verts_edge_in_face, #42611. */
+  r_hit->kfe = kfe;
+
+  if (v) {
+    copy_v3_v3(r_hit->hit, v->co);
+  }
+  else if (kfe) {
+    transform_point_by_seg_v3(
+        r_hit->hit, cage, kfe->v1->co, kfe->v2->co, kfe->v1->cageco, kfe->v2->cageco);
+  }
+}
+
+static bool knife_linehit_face_test(KnifeTool_OpData *kcd,
+                                    float s1[2],
+                                    float s2[2],
+                                    float sco[2],
+                                    float ray_start[3],
+                                    float ray_end[3],
+                                    int ob_index,
+                                    BMFace *f,
+                                    float face_tol_sq,
+                                    KnifeLineHit *r_hit)
+{
+  float3 p, cage;
+  if (!knife_ray_intersect_face(kcd, sco, ray_start, ray_end, ob_index, f, face_tol_sq, p, cage)) {
+    return false;
+  }
+  if (!point_is_visible(kcd, cage, sco, (BMElem *)f)) {
+    return false;
+  }
+  knife_linehit_set(kcd, s1, s2, sco, cage, ob_index, nullptr, nullptr, r_hit);
+  copy_v3_v3(r_hit->hit, p);
+  r_hit->f = f;
+  return true;
 }
 
 /* Finds visible (or all, if cutting through) edges that intersects the current screen drag line.
@@ -2941,21 +2996,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     }
 
     if (kfv_is_in_cut) {
-      memset(&hit, 0, sizeof(hit));
-      hit.v = v;
-
-      /* If this isn't from an existing BMVert, it may have been added to a BMEdge originally.
-       * Knowing if the hit comes from an edge is important for edge-in-face checks later on.
-       * See: #knife_add_single_cut -> #knife_verts_edge_in_face, #42611. */
-      if (kfe_hit) {
-        hit.kfe = kfe_hit;
-      }
-
-      hit.ob_index = v->ob_index;
-      copy_v3_v3(hit.hit, v->co);
-      copy_v3_v3(hit.cagehit, v->cageco);
-      copy_v2_v2(hit.schit, s);
-      set_linehit_depth(kcd, &hit);
+      knife_linehit_set(kcd, s1, s2, s, v->cageco, v->ob_index, v, kfe_hit, &hit);
       BLI_array_append(linehits, hit);
     }
     else {
@@ -3014,19 +3055,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
         isect_kind = isect_line_line_v3(
             kfe->v1->cageco, kfe->v2->cageco, r1, r2, p_cage, p_cage_tmp);
         if (isect_kind >= 1 && point_is_visible(kcd, p_cage, sint, bm_elem_from_knife_edge(kfe))) {
-          memset(&hit, 0, sizeof(hit));
           if (kcd->snap_midpoints) {
             /* Choose intermediate point snap too. */
             mid_v3_v3v3(p_cage, kfe->v1->cageco, kfe->v2->cageco);
             mid_v2_v2v2(sint, se1, se2);
           }
-          hit.kfe = kfe;
-          transform_point_by_seg_v3(
-              hit.hit, p_cage, kfe->v1->co, kfe->v2->co, kfe->v1->cageco, kfe->v2->cageco);
-          hit.ob_index = kfe->v1->ob_index;
-          copy_v3_v3(hit.cagehit, p_cage);
-          copy_v2_v2(hit.schit, sint);
-          set_linehit_depth(kcd, &hit);
+          knife_linehit_set(kcd, s1, s2, sint, p_cage, kfe->v1->ob_index, nullptr, kfe, &hit);
           BLI_array_append(linehits, hit);
         }
       }
@@ -3039,52 +3073,23 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
                             !kcd->is_drag_hold;
   if (use_hit_prev || use_hit_curr) {
     for (BMFace *f : faces) {
-      float p[3], p_cage[3];
-
       int ob_index = fobs.lookup(f);
-      ob = kcd->objects[ob_index];
-
       if (use_hit_prev &&
-          knife_ray_intersect_face(kcd, s1, v1, v3, ob_index, f, face_tol_sq, p, p_cage))
+          knife_linehit_face_test(kcd, s1, s2, s1, v1, v3, ob_index, f, face_tol_sq, &hit))
       {
-        if (point_is_visible(kcd, p_cage, s1, (BMElem *)f)) {
-          memset(&hit, 0, sizeof(hit));
-          hit.f = f;
-          hit.ob_index = ob_index;
-          copy_v3_v3(hit.hit, p);
-          copy_v3_v3(hit.cagehit, p_cage);
-          copy_v2_v2(hit.schit, s1);
-          set_linehit_depth(kcd, &hit);
-          BLI_array_append(linehits, hit);
-        }
+        BLI_array_append(linehits, hit);
       }
 
       if (use_hit_curr &&
-          knife_ray_intersect_face(kcd, s2, v2, v4, ob_index, f, face_tol_sq, p, p_cage))
+          knife_linehit_face_test(kcd, s1, s2, s2, v2, v4, ob_index, f, face_tol_sq, &hit))
       {
-        if (point_is_visible(kcd, p_cage, s2, (BMElem *)f)) {
-          memset(&hit, 0, sizeof(hit));
-          hit.f = f;
-          hit.ob_index = ob_index;
-          copy_v3_v3(hit.hit, p);
-          copy_v3_v3(hit.cagehit, p_cage);
-          copy_v2_v2(hit.schit, s2);
-          set_linehit_depth(kcd, &hit);
-          BLI_array_append(linehits, hit);
-        }
+        BLI_array_append(linehits, hit);
       }
     }
   }
 
   kcd->linehits = linehits;
   kcd->totlinehit = BLI_array_len(linehits);
-
-  /* Find position along screen line, used for sorting. */
-  for (i = 0; i < kcd->totlinehit; i++) {
-    KnifeLineHit *lh = kcd->linehits + i;
-
-    lh->l = len_v2v2(lh->schit, s1) / len_v2v2(s2, s1);
-  }
 
   MEM_freeN(results);
 }
