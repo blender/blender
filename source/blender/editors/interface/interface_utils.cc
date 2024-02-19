@@ -725,7 +725,7 @@ int UI_calc_float_precision(int prec, double value)
 
 bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t str_maxncpy)
 {
-  if (but->rnapoin.owner_id && but->rnapoin.data && but->rnaprop) {
+  if (but->rnapoin.data && but->rnaprop) {
     BLI_snprintf(r_str,
                  str_maxncpy,
                  "%s.%s",
