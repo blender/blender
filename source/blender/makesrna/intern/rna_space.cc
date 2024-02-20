@@ -3720,6 +3720,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "UV Opacity", "Opacity of UV overlays");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
+  prop = RNA_def_property(srna, "stretch_opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "stretch_opacity");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_text(prop, "Stretch Opacity", "Opacity of the UV Stretch overlay");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+
   prop = RNA_def_property(srna, "pixel_round_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, pixel_round_mode_items);
   RNA_def_property_ui_text(prop, "Round to Pixels", "Round UVs to pixels while editing");
