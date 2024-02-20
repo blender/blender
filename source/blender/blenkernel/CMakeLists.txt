@@ -644,13 +644,6 @@ if(WITH_IMAGE_WEBP)
   add_definitions(-DWITH_WEBP)
 endif()
 
-if(WITH_CODEC_AVI)
-  list(APPEND INC
-    ../io/avi
-  )
-  add_definitions(-DWITH_AVI)
-endif()
-
 if(WITH_CODEC_FFMPEG)
   list(APPEND SRC
     intern/writeffmpeg.cc

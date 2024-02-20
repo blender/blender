@@ -124,16 +124,6 @@ if(WITH_IMAGE_OPENJPEG)
   add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
 endif()
 
-if(WITH_CODEC_AVI)
-  list(APPEND INC
-    ../io/avi
-  )
-  list(APPEND LIB
-    bf_avi
-  )
-  add_definitions(-DWITH_AVI)
-endif()
-
 if(WITH_CODEC_FFMPEG)
   list(APPEND INC
     ../../../intern/ffmpeg

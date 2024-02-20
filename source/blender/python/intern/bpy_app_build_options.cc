@@ -89,11 +89,8 @@ static PyObject *make_builtopts_info()
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_AVI
-  SetObjIncref(Py_True);
-#else
+  /* AVI */
   SetObjIncref(Py_False);
-#endif
 
 #ifdef WITH_FFMPEG
   SetObjIncref(Py_True);

@@ -384,18 +384,8 @@ const EnumPropertyItem rna_enum_image_type_items[] = {
     IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
         RNA_ENUM_ITEM_HEADING(N_("Movie"), nullptr),
-    {R_IMF_IMTYPE_AVIJPEG,
-     "AVI_JPEG",
-     ICON_FILE_MOVIE,
-     "AVI JPEG",
-     "Output video in AVI JPEG format"},
-    {R_IMF_IMTYPE_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", "Output video in AVI Raw format"},
 #ifdef WITH_FFMPEG
-    {R_IMF_IMTYPE_FFMPEG,
-     "FFMPEG",
-     ICON_FILE_MOVIE,
-     "FFmpeg Video",
-     "The most versatile way to output video files"},
+    {R_IMF_IMTYPE_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFmpeg Video", ""},
 #endif
     {0, nullptr, 0, nullptr, nullptr},
 };

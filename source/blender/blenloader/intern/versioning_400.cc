@@ -1939,6 +1939,13 @@ static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
+static void image_settings_avi_to_ffmpeg(Scene *sce)
+{
+  if (ELEM(sce->r.im_format.imtype, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG)) {
+    sce->r.im_format.imtype = R_IMF_IMTYPE_FFMPEG;
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -2950,6 +2957,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           }
         }
       }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 5)) {
+    LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
+      image_settings_avi_to_ffmpeg(sce);
     }
   }
 

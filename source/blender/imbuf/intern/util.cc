@@ -171,16 +171,6 @@ bool IMB_ispic(const char *filepath)
   return (IMB_ispic_type(filepath) != IMB_FTYPE_NONE);
 }
 
-static bool isavi(const char *filepath)
-{
-#ifdef WITH_AVI
-  return AVI_is_avi(filepath);
-#else
-  (void)filepath;
-  return false;
-#endif
-}
-
 #ifdef WITH_FFMPEG
 
 /* BLI_vsnprintf in ffmpeg_log_callback() causes invalid warning */
@@ -309,7 +299,7 @@ static int isffmpeg(const char *filepath)
 }
 #endif
 
-int imb_get_anim_type(const char *filepath)
+ImbAnimType imb_get_anim_type(const char *filepath)
 {
   BLI_stat_t st;
 
@@ -323,58 +313,48 @@ int imb_get_anim_type(const char *filepath)
 #  ifdef WITH_FFMPEG
   /* stat test below fails on large files > 4GB */
   if (isffmpeg(filepath)) {
-    return ANIM_FFMPEG;
+    return ImbAnimType::Ffmpeg;
   }
 #  endif
   if (BLI_stat(filepath, &st) == -1) {
-    return 0;
+    return ImbAnimType::NotAnim;
   }
   if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return 0;
-  }
-
-  if (isavi(filepath)) {
-    return ANIM_AVI;
+    return ImbAnimType::NotAnim;
   }
 
   if (ismovie(filepath)) {
-    return ANIM_MOVIE;
+    return ImbAnimType::Movie;
   }
 #else /* !_WIN32 */
   if (BLI_stat(filepath, &st) == -1) {
-    return 0;
+    return ImbAnimType::NotAnim;
   }
   if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return 0;
+    return ImbAnimType::NotAnim;
   }
 
   if (ismovie(filepath)) {
-    return ANIM_MOVIE;
+    return ImbAnimType::Movie;
   }
 #  ifdef WITH_FFMPEG
   if (isffmpeg(filepath)) {
-    return ANIM_FFMPEG;
+    return ImbAnimType::Ffmpeg;
   }
 #  endif
 
-  if (isavi(filepath)) {
-    return ANIM_AVI;
-  }
 #endif /* !_WIN32 */
 
   /* Assume a single image is part of an image sequence. */
   if (IMB_ispic(filepath)) {
-    return ANIM_SEQUENCE;
+    return ImbAnimType::Sequence;
   }
 
-  return ANIM_NONE;
+  return ImbAnimType::NotAnim;
 }
 
 bool IMB_isanim(const char *filepath)
 {
-  int type;
-
-  type = imb_get_anim_type(filepath);
-
-  return (type && type != ANIM_SEQUENCE);
+  ImbAnimType type = imb_get_anim_type(filepath);
+  return (type != ImbAnimType::NotAnim && type != ImbAnimType::Sequence);
 }
