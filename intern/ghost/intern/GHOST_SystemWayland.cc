@@ -1780,6 +1780,8 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
     __attribute__((format(printf, 1, 0)));
 #endif
 
+static bool ghost_wayland_log_handler_is_background = false;
+
 /**
  * Callback for WAYLAND to run when there is an error.
  *
@@ -1788,6 +1790,15 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
  */
 static void ghost_wayland_log_handler(const char *msg, va_list arg)
 {
+  /* This is fine in background mode, we will try to fall back to headless GPU context.
+   * Happens when render farm process runs without user login session. */
+  if (ghost_wayland_log_handler_is_background &&
+      (strstr(msg, "error: XDG_RUNTIME_DIR not set in the environment") ||
+       strstr(msg, "error: XDG_RUNTIME_DIR is invalid or not set in the environment")))
+  {
+    return;
+  }
+
   fprintf(stderr, "GHOST/Wayland: ");
   vfprintf(stderr, msg, arg); /* Includes newline. */
 
@@ -6872,6 +6883,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 #endif
       display_(new GWL_Display)
 {
+  ghost_wayland_log_handler_is_background = background;
   wl_log_set_handler_client(ghost_wayland_log_handler);
 
   display_->system = this;
