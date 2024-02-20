@@ -91,7 +91,7 @@ def keyval_to_json(kvs, indent, indent_step, compact_output=False):
     else:
         return ('{%s' % indent_step[:-1] +
                 (',\n%s%s' % (indent, indent_step)).join(
-                    ('"%s":\n%s%s%s' % (k, indent, indent_step, v) if (v[0] in {'[', '{'}) else
+                    ('"%s":\n%s%s%s' % (k, indent, indent_step, v) if (v and v[0] in {'[', '{'}) else
                      '"%s": %s' % (k, v)) for k, v in kvs) +
                 '\n%s}' % indent)
 
@@ -114,14 +114,17 @@ def gen_fake_addresses(args, blend):
     if args.use_fake_address:
         hashes = set()
         ret = {}
+        hash_seed = 1
         for block in blend.blocks:
             if not block.addr_old:
                 continue
-            hsh = block.get_data_hash()
+            hsh = block.get_data_hash(hash_seed)
             while hsh in hashes:
                 hsh += 1
             hashes.add(hsh)
             ret[block.addr_old] = hsh
+            if (args.raw_bblock):
+                hash_seed += 1
         return ret
 
     return {}
@@ -209,6 +212,7 @@ def do_bblock_filter(filters, blend, block, meta_keyval, data_keyval):
 
 
 def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
+    raw_bblock = args.raw_bblock
     no_address = args.no_address
     full_data = args.full_data
     filter_data = args.filter_data
@@ -217,16 +221,21 @@ def bblocks_to_json(args, fw, blend, address_map, indent, indent_step):
         keyval = [
             ("code", json_dumps(block.code)),
             ("size", json_dumps(block.size)),
+            ("file_offset", json_dumps(block.file_offset)),
         ]
         if not no_address:
             keyval += [("addr_old", json_dumps(address_map.get(block.addr_old, block.addr_old)))]
-        keyval += [
-            ("dna_type_id", json_dumps(blend.structs[block.sdna_index].dna_type_id)),
-            ("count", json_dumps(block.count)),
-        ]
+        if raw_bblock:
+            keyval += [("dna_index", json_dumps(block.sdna_index))]
+        else:
+            keyval += [("dna_type_id", json_dumps(blend.structs[block.sdna_index].dna_type_id))]
+        keyval += [("count", json_dumps(block.count))]
         return keyval
 
     def gen_data_keyval(blend, block, key_filter=None):
+        if raw_bblock:
+            return []
+
         def _is_pointer(k):
             return blend.structs[block.sdna_index].field_from_path(blend.header, blend.handle, k).dna_name.is_pointer
         if key_filter is not None:
@@ -306,8 +315,9 @@ def blend_to_json(args, f, blend, address_map):
     bheader_to_json(args, fw, blend, indent, indent_step)
     fw(',\n')
     bblocks_to_json(args, fw, blend, address_map, indent, indent_step)
-    fw(',\n')
-    bdna_to_json(args, fw, blend, indent, indent_step)
+    if not args.raw_bblock:
+        fw(',\n')
+        bdna_to_json(args, fw, blend, indent, indent_step)
     fw('\n}\n')
 
 
@@ -373,6 +383,12 @@ def argparse_create():
         "--full-dna", dest="full_dna", default=False, action='store_true', required=False,
         help=("Also put in JSon file dna properties description (ignored when --compact-output is used)"))
 
+    parser.add_argument(
+        "--raw-bblock", dest="raw_bblock",
+        default=False, action='store_true', required=False,
+        help=("Do not attempt to open and parse the Blendfile at a high level, but only handles its basic data layout "
+              "(usable when the given files are not valid blendfiles - e.g. corrupted ones)"))
+
     group = parser.add_argument_group("Filters", FILTER_DOC)
     group.add_argument(
         "--filter-block", dest="block_filters", nargs=3, action='append',
@@ -406,6 +422,15 @@ def main():
             args.filter_data = {n.encode() for n in args.filter_data.split(',')}
 
     for infile, outfile in zip(args.input, args.output):
+        if args.raw_bblock:
+            with blendfile.open_blend(infile, wrapper_type=blendfile.BlendFileRaw) as blend:
+                address_map = gen_fake_addresses(args, blend)
+
+                if outfile:
+                    with open(outfile, 'w', encoding="ascii", errors='xmlcharrefreplace') as f:
+                        blend_to_json(args, f, blend, address_map)
+            continue
+
         with blendfile.open_blend(infile) as blend:
             address_map = gen_fake_addresses(args, blend)
 

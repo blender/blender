@@ -19,7 +19,7 @@
 #include "COM_MemoryBuffer.h"
 #include "COM_MetaData.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "clew.h"

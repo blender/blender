@@ -44,7 +44,7 @@ static const ID *get_original_id(const ID *id)
   if (id->orig_id == nullptr) {
     return id;
   }
-  BLI_assert((id->tag & LIB_TAG_COPIED_ON_WRITE) != 0);
+  BLI_assert((id->tag & LIB_TAG_COPIED_ON_EVAL) != 0);
   return (ID *)id->orig_id;
 }
 
@@ -189,7 +189,7 @@ Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
   Scene *scene_cow = deg_graph->scene_cow;
   /* TODO(sergey): Shall we expand data-block here? Or is it OK to assume
    * that caller is OK with just a pointer in case scene is not updated yet? */
-  BLI_assert(scene_cow != nullptr && deg::deg_copy_on_write_is_expanded(&scene_cow->id));
+  BLI_assert(scene_cow != nullptr && deg::deg_eval_copy_is_expanded(&scene_cow->id));
   return scene_cow;
 }
 
@@ -250,16 +250,16 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph,
   }
   else {
     /* For everything else, try to get RNA Path of the BMain-pointer,
-     * then use that to look up what the COW-domain one should be
-     * given the COW ID pointer as the new lookup point */
+     * then use that to look up what the evaluated one should be
+     * given the evaluated ID pointer as the new lookup point */
     /* TODO: Find a faster alternative, or implement support for other
      * common types too above (e.g. modifiers) */
     if (const std::optional<std::string> path = RNA_path_from_ID_to_struct(ptr)) {
       PointerRNA cow_id_ptr = RNA_id_pointer_create(cow_id);
       if (!RNA_path_resolve(&cow_id_ptr, path->c_str(), r_ptr_eval, nullptr)) {
-        /* Couldn't find COW copy of data */
+        /* Couldn't find evaluated copy of data */
         fprintf(stderr,
-                "%s: Couldn't resolve RNA path ('%s') relative to COW ID (%p) for '%s'\n",
+                "%s: Couldn't resolve RNA path ('%s') relative to evaluated ID (%p) for '%s'\n",
                 __func__,
                 path->c_str(),
                 (void *)cow_id,
@@ -294,19 +294,18 @@ bool DEG_is_original_id(const ID *id)
    * What we want here is to be able to tell whether given ID is a result of dependency graph
    * evaluation or not.
    *
-   * All the data-blocks which are created by copy-on-write mechanism will have will be tagged with
-   * LIB_TAG_COPIED_ON_WRITE tag. Those data-blocks can not be original.
+   * All the data-blocks which are created by copy-on-evaluation mechanism will have will be tagged
+   * with LIB_TAG_COPIED_ON_EVAL tag. Those data-blocks can not be original.
    *
    * Modifier stack evaluation might create special data-blocks which have all the modifiers
-   * applied, and those will be tagged with LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT. Such data-blocks
+   * applied, and those will be tagged with LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT. Such data-blocks
    * can not be original as well.
    *
    * Localization is usually happening from evaluated data-block, or will have some special pointer
    * magic which will make them to act as evaluated.
    *
    * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them. */
-  if (id->tag &
-      (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_LOCALIZED))
+  if (id->tag & (LIB_TAG_COPIED_ON_EVAL | LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT | LIB_TAG_LOCALIZED))
   {
     return false;
   }

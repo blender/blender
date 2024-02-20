@@ -284,7 +284,7 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
     if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
       if (ob) {
         ptr = RNA_id_pointer_create(&ob_iter->id);
-        DEG_id_tag_update(&ob_iter->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&ob_iter->id, ID_RECALC_SYNC_TO_EVAL);
       }
       else {
         BKE_view_layer_synced_ensure(scene, view_layer);
@@ -385,7 +385,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
 
       if (collection) {
-        DEG_id_tag_update(&cob->ob->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&cob->ob->id, ID_RECALC_SYNC_TO_EVAL);
       }
     }
   }
@@ -407,7 +407,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   }
 
   if (collection) {
-    DEG_id_tag_update(&collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&collection->id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 
@@ -737,7 +737,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         }
       }
 
-      DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
     }
     else {
       switch (tselem->type) {
@@ -746,7 +746,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           bDeformGroup *vg = static_cast<bDeformGroup *>(te->directdata);
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_NLA_ACTION: {
@@ -754,7 +754,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_main_namemap_remove_name(bmain, &act->id, oldname);
           BKE_libblock_ensure_unique_name(bmain, &act->id);
           WM_msg_publish_rna_prop(mbus, &act->id, &act->id, ID, name);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_NLA_TRACK: {
@@ -773,7 +773,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
             ED_armature_bone_rename(bmain, arm, oldname, newname);
             WM_msg_publish_rna_prop(mbus, &arm->id, ebone, EditBone, name);
             WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
-            DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+            DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           }
           break;
         }
@@ -795,7 +795,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ED_armature_bone_rename(bmain, arm, oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_POSE_CHANNEL: {
@@ -818,8 +818,8 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ED_armature_bone_rename(bmain, static_cast<bArmature *>(ob->data), oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
-          DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
+          DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_GP_LAYER: {
@@ -836,7 +836,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           WM_msg_publish_rna_prop(mbus, &gpd->id, gpl, GPencilLayer, info);
           DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
           WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_GREASE_PENCIL_NODE: {
@@ -850,7 +850,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           std::string new_name(node.name());
           node.set_name(oldname);
           grease_pencil.rename_node(node, new_name);
-          DEG_id_tag_update(&grease_pencil.id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&grease_pencil.id, ID_RECALC_SYNC_TO_EVAL);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
           break;
         }
@@ -867,7 +867,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_view_layer_rename(bmain, scene, view_layer, newname);
           WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, ViewLayer, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
         case TSE_LAYER_COLLECTION: {
@@ -877,7 +877,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           BKE_libblock_ensure_unique_name(bmain, &collection->id);
           WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);
-          DEG_id_tag_update(tselem->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(tselem->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
 
@@ -888,7 +888,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           ANIM_armature_bonecoll_name_set(arm, bcoll, bcoll->name);
           WM_msg_publish_rna_prop(mbus, &arm->id, bcoll, BoneCollection, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, arm);
-          DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
           break;
         }
       }

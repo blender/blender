@@ -31,7 +31,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 #  include <fmt/format.h>
 
 #  include "BKE_attribute.hh"
-#  include "BKE_node.h"
+#  include "BKE_node.hh"
 #  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
 #  include "BKE_node_tree_interface.hh"
@@ -904,6 +904,12 @@ const EnumPropertyItem *RNA_node_tree_interface_socket_menu_itemf(bContext * /*C
   return RNA_node_enum_definition_itemf(*data->enum_items, r_free);
 }
 
+static void rna_NodeTreeInterfaceSocket_idname_set(PointerRNA *ptr, const char *value)
+{
+  bNodeTreeInterfaceSocket &socket = *static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  socket.set_socket_type(value);
+}
+
 #else
 
 static void rna_def_node_interface_item(BlenderRNA *brna)
@@ -1057,6 +1063,8 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, nullptr, "socket_type");
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "Socket Type Name", "Name of the socket type");
+  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_NodeTreeInterfaceSocket_idname_set");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   func = RNA_def_function(srna, "draw", nullptr);
   RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);

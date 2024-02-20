@@ -1535,6 +1535,7 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
 
   /** Generate Compute shader stage. **/
   std::stringstream ss_compute;
+  ss_compute << "#line 1 \"msl_wrapper_code\"\n";
 
   ss_compute << "#define GPU_ARB_shader_draw_parameters 1\n";
   if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
@@ -2793,9 +2794,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
      * by ensuring that vertex position is consistently calculated between subsequent passes
      * with maximum precision. */
     out << "\tfloat4 _default_position_ [[position]]";
-    if (@available(macos 11.0, *)) {
-      out << " [[invariant]]";
-    }
+    out << " [[invariant]]";
     out << ";" << std::endl;
   }
   else {
@@ -2806,9 +2805,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
 
       /* Use invariance if available. See above for detail. */
       out << "\tfloat4 " << this->vertex_output_varyings[0].name << " [[position]];";
-      if (@available(macos 11.0, *)) {
-        out << " [[invariant]]";
-      }
+      out << " [[invariant]]";
       out << ";" << std::endl;
       first_attr_is_position = true;
     }

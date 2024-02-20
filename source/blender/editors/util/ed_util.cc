@@ -112,7 +112,7 @@ void ED_editors_init(bContext *C)
                        GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE |
                        GP_DATA_STROKE_VERTEXMODE);
         ob->mode = OB_MODE_OBJECT;
-        DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
       }
       else if (mode & OB_MODE_ALL_PAINT_GPENCIL) {
         ED_gpencil_toggle_brush_cursor(C, true, nullptr);
@@ -124,7 +124,7 @@ void ED_editors_init(bContext *C)
      * previous mode if possible, re-creating its mode data, etc. */
     ID *ob_data = static_cast<ID *>(ob->data);
     ob->mode = OB_MODE_OBJECT;
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 
     /* Object mode is enforced if there is no active object, or if the active object's type is
      * different. */

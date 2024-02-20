@@ -930,8 +930,8 @@ static void seq_update_sound_modifiers(Sequence *seq)
 
 static bool must_update_strip_sound(Scene *scene, Sequence *seq)
 {
-  return (scene->id.recalc & (ID_RECALC_AUDIO | ID_RECALC_COPY_ON_WRITE)) != 0 ||
-         (seq->sound->id.recalc & (ID_RECALC_AUDIO | ID_RECALC_COPY_ON_WRITE)) != 0;
+  return (scene->id.recalc & (ID_RECALC_AUDIO | ID_RECALC_SYNC_TO_EVAL)) != 0 ||
+         (seq->sound->id.recalc & (ID_RECALC_AUDIO | ID_RECALC_SYNC_TO_EVAL)) != 0;
 }
 
 static void seq_update_sound_strips(Scene *scene, Sequence *seq)

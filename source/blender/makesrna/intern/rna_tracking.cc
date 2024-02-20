@@ -37,7 +37,7 @@
 
 #  include "BKE_anim_data.h"
 #  include "BKE_animsys.h"
-#  include "BKE_node.h"
+#  include "BKE_node.hh"
 #  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"

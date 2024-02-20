@@ -737,7 +737,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
     if (cos_mi3 > 0.0f) {
       const Spectrum A_tr = exp(mu_a / cos_theta(wtr) *
                                 -(is_circular ?
-                                      2.0f * fabsf(cos(phi_tr - gamma_mt)) :
+                                      2.0f * fabsf(cosf(phi_tr - gamma_mt)) :
                                       len(to_point(gamma_mt, b) - to_point(gamma_mtr, b))));
 
       const Spectrum TR = T1 * R2 * scale2 * A_t * A_tr *

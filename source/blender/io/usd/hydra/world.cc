@@ -18,7 +18,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_path_util.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_studiolight.h"
 

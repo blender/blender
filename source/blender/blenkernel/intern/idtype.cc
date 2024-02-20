@@ -24,7 +24,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_main.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "BKE_idtype.hh"
 

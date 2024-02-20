@@ -89,7 +89,7 @@ static void RB_constraint_delete(void * /*con*/) {}
 
 void BKE_rigidbody_free_world(Scene *scene)
 {
-  bool is_orig = (scene->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
+  bool is_orig = (scene->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0;
   RigidBodyWorld *rbw = scene->rigidbody_world;
   scene->rigidbody_world = nullptr;
 
@@ -146,7 +146,7 @@ void BKE_rigidbody_free_world(Scene *scene)
 
 void BKE_rigidbody_free_object(Object *ob, RigidBodyWorld *rbw)
 {
-  bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0;
+  bool is_orig = (ob->id.tag & LIB_TAG_COPIED_ON_EVAL) == 0;
   RigidBodyOb *rbo = ob->rigidbody_object;
 
   /* sanity check */
@@ -253,7 +253,7 @@ static RigidBodyOb *rigidbody_copy_object(const Object *ob, const int flag)
     rboN = static_cast<RigidBodyOb *>(MEM_dupallocN(ob->rigidbody_object));
 
     if (is_orig) {
-      /* This is a regular copy, and not a CoW copy for depsgraph evaluation */
+      /* This is a regular copy, and not an evaluated copy for depsgraph evaluation */
       rboN->shared = static_cast<RigidBodyOb_Shared *>(
           MEM_callocN(sizeof(*rboN->shared), "RigidBodyOb_Shared"));
     }
@@ -323,10 +323,10 @@ void BKE_rigidbody_object_copy(Main *bmain, Object *ob_dst, const Object *ob_src
 
         DEG_relations_tag_update(bmain);
         if (need_objects_update) {
-          DEG_id_tag_update(&rigidbody_world->group->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&rigidbody_world->group->id, ID_RECALC_SYNC_TO_EVAL);
         }
         if (need_constraints_update) {
-          DEG_id_tag_update(&rigidbody_world->constraints->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(&rigidbody_world->constraints->id, ID_RECALC_SYNC_TO_EVAL);
         }
         DEG_id_tag_update(&ob_dst->id, ID_RECALC_TRANSFORM);
       }
@@ -349,7 +349,7 @@ static Mesh *rigidbody_get_mesh(Object *ob)
       return BKE_object_get_evaluated_mesh(ob);
     case RBO_MESH_BASE:
       /* This mesh may be used for computing corner_tris, which should be done
-       * on the original; otherwise every time the CoW is recreated it will
+       * on the original; otherwise every time the evaluated copy is recreated it will
        * have to be recomputed. */
       BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
       return (Mesh *)ob->runtime->data_orig;
@@ -1257,7 +1257,7 @@ RigidBodyWorld *BKE_rigidbody_world_copy(RigidBodyWorld *rbw, const int flag)
   }
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) == 0) {
-    /* This is a regular copy, and not a CoW copy for depsgraph evaluation. */
+    /* This is a regular copy, and not an evaluated copy for depsgraph evaluation. */
     rbw_copy->shared = static_cast<RigidBodyWorld_Shared *>(
         MEM_callocN(sizeof(*rbw_copy->shared), "RigidBodyWorld_Shared"));
     BKE_ptcache_copy_list(&rbw_copy->shared->ptcaches, &rbw->shared->ptcaches, LIB_ID_COPY_CACHES);
@@ -1513,7 +1513,7 @@ static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
   BKE_rigidbody_cache_reset(rbw);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&rbw->group->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&rbw->group->id, ID_RECALC_SYNC_TO_EVAL);
 
   return true;
 }
@@ -1542,7 +1542,7 @@ static bool rigidbody_add_constraint_to_scene(Main *bmain, Scene *scene, Object 
   BKE_rigidbody_cache_reset(rbw);
 
   DEG_relations_tag_update(bmain);
-  DEG_id_tag_update(&rbw->constraints->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&rbw->constraints->id, ID_RECALC_SYNC_TO_EVAL);
 
   return true;
 }
@@ -1622,11 +1622,11 @@ void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bo
           rbc = obt->rigidbody_constraint;
           if (rbc->ob1 == ob) {
             rbc->ob1 = nullptr;
-            DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
+            DEG_id_tag_update(&obt->id, ID_RECALC_SYNC_TO_EVAL);
           }
           if (rbc->ob2 == ob) {
             rbc->ob2 = nullptr;
-            DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
+            DEG_id_tag_update(&obt->id, ID_RECALC_SYNC_TO_EVAL);
           }
         }
       }
@@ -1668,7 +1668,7 @@ void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, cons
     /* Remove from RBW constraints collection. */
     if (rbw->constraints != nullptr) {
       BKE_collection_object_remove(bmain, rbw->constraints, ob, free_us);
-      DEG_id_tag_update(&rbw->constraints->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&rbw->constraints->id, ID_RECALC_SYNC_TO_EVAL);
     }
 
     /* remove from rigidbody world, free object won't do this */
@@ -1856,10 +1856,10 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
       RigidBodyOb *rbo = ob->rigidbody_object;
 
       /* TODO: remove this whole block once we are sure we never get nullptr rbo here anymore. */
-      /* This cannot be done in CoW evaluation context anymore... */
+      /* This cannot be done in copy-on-eval evaluation context anymore... */
       if (rbo == nullptr) {
         BLI_assert_msg(0,
-                       "CoW object part of RBW object collection without RB object data, "
+                       "Evaluated object part of RBW object collection without RB object data, "
                        "should not happen.\n");
         /* Since this object is included in the sim group but doesn't have
          * rigid body settings (perhaps it was added manually), add!
@@ -1916,11 +1916,12 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
     RigidBodyCon *rbc = ob->rigidbody_constraint;
 
     /* TODO: remove this whole block once we are sure we never get nullptr rbo here anymore. */
-    /* This cannot be done in CoW evaluation context anymore... */
+    /* This cannot be done in copy-on-eval evaluation context anymore... */
     if (rbc == nullptr) {
-      BLI_assert_msg(0,
-                     "CoW object part of RBW constraints collection without RB constraint data, "
-                     "should not happen.\n");
+      BLI_assert_msg(
+          0,
+          "Evaluated object part of RBW constraints collection without RB constraint data, "
+          "should not happen.\n");
       /* Since this object is included in the group but doesn't have
        * constraint settings (perhaps it was added manually), add!
        */

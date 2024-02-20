@@ -306,8 +306,6 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               &props);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
-  char catalog_id_str_buffer[UUID_STRING_SIZE] = "";
-  BLI_uuid_format(catalog_id_str_buffer, catalog_item_.get_catalog_id());
   uiItemFullO(&column,
               "ASSET_OT_catalog_delete",
               IFACE_("Delete Catalog"),
@@ -316,7 +314,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
               &props);
-  RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
+  RNA_string_set(&props, "catalog_id", catalog_item_.get_catalog_id().str().c_str());
   uiItemO(&column, IFACE_("Rename"), ICON_NONE, "UI_OT_view_item_rename");
 
   /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done

@@ -41,7 +41,7 @@ static int grease_pencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
     if (Material *ma = BKE_gpencil_material(object, i + 1)) {
       MaterialGPencilStyle &gp_style = *ma->gp_style;
       gp_style.flag &= ~GP_MATERIAL_HIDE;
-      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
       changed = true;
     }
   }
@@ -93,7 +93,7 @@ static int grease_pencil_material_hide_exec(bContext *C, wmOperator *op)
     if (Material *ma = BKE_object_material_get(object, i + 1)) {
       MaterialGPencilStyle &gp_style = *ma->gp_style;
       gp_style.flag |= GP_MATERIAL_HIDE;
-      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
       changed = true;
     }
   }
@@ -140,7 +140,7 @@ static int grease_pencil_material_lock_all_exec(bContext *C, wmOperator * /*op*/
     if (Material *ma = BKE_object_material_get(object, i + 1)) {
       MaterialGPencilStyle &gp_style = *ma->gp_style;
       gp_style.flag |= GP_MATERIAL_LOCKED;
-      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
       changed = true;
     }
   }
@@ -184,7 +184,7 @@ static int grease_pencil_material_unlock_all_exec(bContext *C, wmOperator * /*op
     if (Material *ma = BKE_object_material_get(object, i + 1)) {
       MaterialGPencilStyle &gp_style = *ma->gp_style;
       gp_style.flag &= ~GP_MATERIAL_LOCKED;
-      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
       changed = true;
     }
   }
@@ -228,7 +228,7 @@ static int grease_pencil_material_lock_unused_exec(bContext *C, wmOperator * /*o
       if (Material *ma = BKE_object_material_get(object, material_index + 1)) {
         MaterialGPencilStyle &gp_style = *ma->gp_style;
         gp_style.flag |= GP_MATERIAL_HIDE | GP_MATERIAL_LOCKED;
-        DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
         changed = true;
       }
     }
@@ -303,7 +303,7 @@ static int grease_pencil_material_lock_unselected_exec(bContext *C, wmOperator *
       if (Material *ma = BKE_object_material_get(object, i + 1)) {
         MaterialGPencilStyle &gp_style = *ma->gp_style;
         gp_style.flag |= GP_MATERIAL_LOCKED;
-        DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
         changed = true;
       }
     }
@@ -368,7 +368,7 @@ static int grease_pencil_material_copy_to_object_exec(bContext *C, wmOperator *o
       BKE_object_material_ensure(bmain, ob, ma_src);
     }
 
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   }
   CTX_DATA_END;
 

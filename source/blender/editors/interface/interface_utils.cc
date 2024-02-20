@@ -693,35 +693,27 @@ int UI_calc_float_precision(int prec, double value)
   return prec;
 }
 
-bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t str_maxncpy)
+std::optional<std::string> UI_but_online_manual_id(const uiBut *but)
 {
-  if (but->rnapoin.owner_id && but->rnapoin.data && but->rnaprop) {
-    BLI_snprintf(r_str,
-                 str_maxncpy,
-                 "%s.%s",
-                 RNA_struct_identifier(but->rnapoin.type),
-                 RNA_property_identifier(but->rnaprop));
-    return true;
+  if (but->rnapoin.data && but->rnaprop) {
+    return fmt::format(
+        "{}.{}", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
   }
   if (but->optype) {
-    WM_operator_py_idname(r_str, but->optype->idname);
-    return true;
+    char idname[OP_MAX_TYPENAME];
+    const size_t idname_len = WM_operator_py_idname(idname, but->optype->idname);
+    return std::string(idname, idname_len);
   }
 
-  *r_str = '\0';
-  return false;
+  return std::nullopt;
 }
 
-bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t str_maxncpy)
+std::optional<std::string> UI_but_online_manual_id_from_active(const bContext *C)
 {
-  uiBut *but = UI_context_active_but_get(C);
-
-  if (but) {
-    return UI_but_online_manual_id(but, r_str, str_maxncpy);
+  if (uiBut *but = UI_context_active_but_get(C)) {
+    return UI_but_online_manual_id(but);
   }
-
-  *r_str = '\0';
-  return false;
+  return std::nullopt;
 }
 
 /* -------------------------------------------------------------------- */

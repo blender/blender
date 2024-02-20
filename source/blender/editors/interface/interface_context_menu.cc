@@ -1265,9 +1265,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   { /* Docs */
-    char buf[512];
-
-    if (UI_but_online_manual_id(but, buf, sizeof(buf))) {
+    if (std::optional<std::string> manual_id = UI_but_online_manual_id(but)) {
       PointerRNA ptr_props;
       uiItemO(layout,
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
@@ -1283,7 +1281,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                     WM_OP_EXEC_DEFAULT,
                     UI_ITEM_NONE,
                     &ptr_props);
-        RNA_string_set(&ptr_props, "doc_id", buf);
+        RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
       }
     }
   }

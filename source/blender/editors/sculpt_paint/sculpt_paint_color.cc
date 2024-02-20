@@ -374,8 +374,6 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
 
     float current_disp[3];
     float current_disp_norm[3];
-    float interp_color[4];
-    copy_v4_v4(interp_color, ss->cache->prev_colors[vd.index]);
 
     float no[3];
     SCULPT_vertex_normal_get(ss, vd.vertex, no);
@@ -468,11 +466,9 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
       mul_v4_fl(accum, 1.0f / totw);
     }
 
-    blend_color_mix_float(interp_color, interp_color, accum);
-
     float col[4];
     SCULPT_vertex_color_get(ss, vd.vertex, col);
-    blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], interp_color, fade);
+    blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], accum, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
   }
   BKE_pbvh_vertex_iter_end;

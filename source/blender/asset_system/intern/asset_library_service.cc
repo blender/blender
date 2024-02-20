@@ -190,7 +190,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
 void AssetLibraryService::rebuild_all_library()
 {
   if (all_library_) {
-    all_library_->rebuild(false);
+    all_library_->rebuild_catalogs_from_nested(false);
   }
 }
 
@@ -217,7 +217,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   all_library_ = std::make_unique<AllAssetLibrary>();
 
   /* Don't reload catalogs on this initial read, they've just been loaded above. */
-  all_library_->rebuild(/*reload_catalogs=*/false);
+  all_library_->rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/false);
 
   return all_library_.get();
 }

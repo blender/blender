@@ -8,19 +8,6 @@
 
 #pragma once
 
-#ifdef _WIN32
-#  define INC_OLE2
-#  include <commdlg.h>
-#  include <memory.h>
-#  include <mmsystem.h>
-#  include <vfw.h>
-#  include <windows.h>
-#  include <windowsx.h>
-
-#  undef AVIIF_KEYFRAME /* redefined in AVI_avi.h */
-#  undef AVIIF_LIST     /* redefined in AVI_avi.h */
-#endif                  /* _WIN32 */
-
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,10 +21,6 @@
 
 #include "imbuf.hh"
 
-#ifdef WITH_AVI
-#  include "AVI_avi.h"
-#endif
-
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
@@ -49,29 +32,12 @@ extern "C" {
 }
 #endif
 
-/* more endianness... should move to a separate file... */
-#ifdef __BIG_ENDIAN__
-#  define LITTLE_LONG SWAP_LONG
-#else
-#  define LITTLE_LONG ENDIAN_NOP
-#endif
-
-/** #ImBufAnim::curtype, runtime only. */
-#define ANIM_NONE 0
-#define ANIM_SEQUENCE (1 << 0)
-#define ANIM_MOVIE (1 << 4)
-#define ANIM_AVI (1 << 6)
-#define ANIM_FFMPEG (1 << 8)
-
-#define MAXNUMSTREAMS 50
-
 struct IDProperty;
-struct _AviMovie;
 struct ImBufAnimIndex;
 
 struct ImBufAnim {
   int ib_flags;
-  int curtype;
+  ImbAnimType curtype;
   int cur_position; /* index  0 = 1e,  1 = 2e, enz. */
   int duration_in_frames;
   int frs_sec;
@@ -92,19 +58,6 @@ struct ImBufAnim {
   size_t framesize;
   int interlacing;
   int streamindex;
-
-  /* avi */
-  struct _AviMovie *avi;
-
-#if defined(_WIN32)
-  /* windows avi */
-  int avistreams;
-  int firstvideo;
-  int pfileopen;
-  PAVIFILE pfile;
-  PAVISTREAM pavi[MAXNUMSTREAMS]; /* the current streams */
-  PGETFRAME pgf;
-#endif
 
 #ifdef WITH_FFMPEG
   AVFormatContext *pFormatCtx;

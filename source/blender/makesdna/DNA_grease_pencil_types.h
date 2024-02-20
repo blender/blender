@@ -334,6 +334,7 @@ typedef struct GreasePencilLayerTreeGroup {
  */
 typedef enum GreasePencilFlag {
   GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
+  GREASE_PENCIL_AUTOLOCK_LAYERS = (1 << 1),
 } GreasePencilFlag;
 
 /**
@@ -488,6 +489,7 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Layer *get_active_layer();
   void set_active_layer(const blender::bke::greasepencil::Layer *layer);
   bool is_layer_active(const blender::bke::greasepencil::Layer *layer) const;
+  void autolock_inactive_layers();
 
   /* Adding layers and layer groups. */
   /** Adds a new layer with the given name to the top of root group. */

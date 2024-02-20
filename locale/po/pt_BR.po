@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-02-12 11:01+0000\n"
-"PO-Revision-Date: 2024-01-18 19:12+0000\n"
-"Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
+"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"PO-Revision-Date: 2024-02-19 09:39+0000\n"
+"Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
@@ -408,6 +408,14 @@ msgid "Display glTF UI to manage animations"
 msgstr "Exibe a interface de usuario do glTF para gerenciar animações"
 
 
+msgid "glTFpack file path"
+msgstr "Caminho do arquivo glTFpack"
+
+
+msgid "Path to gltfpack binary"
+msgstr "Caminho para o executável glTFpack"
+
+
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Exibe o nó de saída de material glTF no Editor de Sombreamento (menu Adicionar > Saída)"
 
@@ -504,6 +512,10 @@ msgid "Replace"
 msgstr "Substituir"
 
 
+msgid "The strip values replace the accumulated results by amount specified by influence"
+msgstr "O resultado da faixa substitui os resultados acumulados pela quantidade especificada pela influência"
+
+
 msgid "Combine"
 msgstr "Combinar"
 
@@ -524,12 +536,24 @@ msgid "Subtract"
 msgstr "Subtrair"
 
 
+msgid "Weighted result of strip is removed from the accumulated results"
+msgstr "O resultado após a aplicação do peso da faixa é removido dos resultados acumulados"
+
+
 msgid "Multiply"
 msgstr "Multiplicar"
 
 
+msgid "Weighted result of strip is multiplied with the accumulated results"
+msgstr "O resultado ponderado é multiplicado com os resultados acumulados"
+
+
 msgid "Action Extrapolation"
 msgstr "Extrapolação de ação"
+
+
+msgid "Action to take for gaps past the Active Action's range (when evaluating with NLA)"
+msgstr "Ação a ser tomada para lacunas além do intervalo da Ação Ativa (ao evaluar com o Editor de Animação Não Linear)"
 
 
 msgid "Nothing"
@@ -576,6 +600,10 @@ msgid "NLA Tracks"
 msgstr "Trilhas de animação não linear"
 
 
+msgid "NLA Tracks (i.e. Animation Layers)"
+msgstr "Trilhas de Animação Não Linear (ex: Camadas de Animação)"
+
+
 msgid "NLA Evaluation Enabled"
 msgstr "Avaliação de animação não linear habilitada"
 
@@ -620,6 +648,14 @@ msgid "Motion Path settings for animation visualization"
 msgstr "As definições de caminhos de movimento para a visualização de animação"
 
 
+msgid "Bake to active Camera"
+msgstr "Gravar à Câmera Ativa"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "Pontos de caminho de movimento serão pré-calculados para o espaço de câmera da câmera ativa. Isso significa que eles só irão aparecer corretos se vistos por aquela câmera. A troca de câmeras usando marcadores não é suportada"
+
+
 msgid "Bake Location"
 msgstr "Gerar e gravar posição"
 
@@ -638,6 +674,10 @@ msgstr "Calcula o caminho dos ossos a partir das cabeças"
 
 msgid "Tails"
 msgstr "Bases"
+
+
+msgid "Calculate bone paths from tails"
+msgstr "Calcular o caminho dos ossos a partir das caudas"
 
 
 msgid "After Current"
@@ -696,6 +736,10 @@ msgid "Type of range to calculate for Motion Paths"
 msgstr "Tipo de intervalo a exibir para os caminhos de movimento"
 
 
+msgid "All Keys"
+msgstr "Todas as teclas"
+
+
 msgid "From the first keyframe to the last"
 msgstr "Do primeiro quadro ao último"
 
@@ -708,8 +752,16 @@ msgid "From the first selected keyframe to the last"
 msgstr "Do primeiro quadro-chave selecionado ao último"
 
 
+msgid "Scene Frame Range"
+msgstr "Intervalo de Quadros da Cena"
+
+
 msgid "The entire Scene / Preview range"
 msgstr "Toda a faixa de cena/visualização"
+
+
+msgid "Manual Range"
+msgstr "Intervalo Manual"
 
 
 msgid "Manually determined frame range"
@@ -920,6 +972,10 @@ msgid "Top Bar"
 msgstr "Barra Superior"
 
 
+msgid "Global bar at the top of the screen for global per-window settings"
+msgstr "Barra global no topo da tela para configurações globais por janela"
+
+
 msgid "Status Bar"
 msgstr "Barra de Status"
 
@@ -1024,40 +1080,52 @@ msgid "Armature's active bone"
 msgstr "Osso ativo da armação"
 
 
+msgid "Armature Deform Constraint Targets"
+msgstr "Alvos de Restrição de Deformação da Armação"
+
+
+msgid "Collection of target bones and weights"
+msgstr "Coleção de ossos e pesos alvo"
+
+
 msgid "Armature EditBones"
-msgstr "Ossos de edição nas armações"
+msgstr "Ossos Editáveis da Armação"
 
 
 msgid "Collection of armature edit bones"
-msgstr "Coleção de ossos de edição nas armações"
+msgstr "Coleção de ossos de edição da armação"
 
 
 msgid "Active EditBone"
-msgstr "Osso de edição ativo"
+msgstr "Osso de Edição Ativo"
 
 
 msgid "Armatures active edit bone"
-msgstr "Osso ativo na edição da armação de ossos"
+msgstr "Osso de edição ativo na armação"
 
 
 msgid "Catalog Path"
-msgstr "Caminho do catálogo"
+msgstr "Caminho do Catálogo"
+
+
+msgid "User Asset Libraries"
+msgstr "Bibliotecas de Ativos do Usuário"
 
 
 msgid "Asset Library Reference"
-msgstr "Referência da Biblioteca de Ativos"
+msgstr "Referência da Biblioteca de Itens"
 
 
 msgid "Identifier to refer to the asset library"
-msgstr "Identificador para se referir à biblioteca de ativos"
+msgstr "Identificador para se referir à Biblioteca de Itens"
 
 
 msgid "Asset Data"
-msgstr "Dados de ativos"
+msgstr "Dados de Itens"
 
 
 msgid "Additional data stored for an asset data-block"
-msgstr "Dados adicionais armazenados para um bloco de dados de ativos"
+msgstr "Dados adicionais armazenados para um bloco de dados de item"
 
 
 msgid "Active Tag"
@@ -1329,6 +1397,14 @@ msgid "World"
 msgstr "Ambiente"
 
 
+msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
+msgstr "O bloco de dados local que este item representa; válido apenas se for um bloco de dados neste arquivo"
+
+
+msgid "Asset Metadata"
+msgstr "Meta-Dados de Item"
+
+
 msgid "Additional information about the asset"
 msgstr "Informações adicionais sobre o ativo"
 
@@ -1353,6 +1429,22 @@ msgid "All"
 msgstr "Todos"
 
 
+msgid "Show assets from all of the listed asset libraries"
+msgstr "Mostrar itens de todas as bibliotecas listadas"
+
+
+msgid "Show the assets currently available in this Blender session"
+msgstr "Mostrar os itens atualmente disponíveis nesta sessão do Blender"
+
+
+msgid "Essentials"
+msgstr "Essenciais"
+
+
+msgid "Show the basic building blocks and utilities coming with Blender"
+msgstr "Mostre os blocos de construção básicos e utilidades que vêm com o Blender"
+
+
 msgid "Custom"
 msgstr "Personalizar"
 
@@ -1371,6 +1463,10 @@ msgstr "Opções para este tipo de prateleira de ativos"
 
 msgid "No Asset Dragging"
 msgstr "Sem arrastar ativos"
+
+
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
+msgstr "Desativar o arrastar de itens padrão. Útil para implementar o arrasto personalizado por meio de mapa de teclas personalizados"
 
 
 msgid "Space Type"
@@ -1463,6 +1559,10 @@ msgstr "Vetor 3D com valores do tipo ponto flutuante"
 
 msgid "RGBA color with 32-bit floating-point values"
 msgstr "Cor RGBA com valores de ponto flutuante de 32 bits"
+
+
+msgid "RGBA color with 8-bit positive integer values"
+msgstr "Cor RGBA com valores inteiros positivos de 8 bits"
 
 
 msgid "String"

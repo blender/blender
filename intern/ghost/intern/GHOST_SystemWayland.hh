@@ -194,6 +194,8 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TCapabilityFlag getCapabilities() const override;
 
+  void setMultitouchGestures(const bool use) override;
+
   /* WAYLAND utility functions (share window/system logic). */
 
   GHOST_TSuccess cursor_shape_set(GHOST_TStandardCursor shape);

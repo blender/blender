@@ -2715,7 +2715,7 @@ static int vertex_group_select_exec(bContext *C, wmOperator * /*op*/)
   }
 
   vgroup_select_verts(ob, 1);
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
   return OPERATOR_FINISHED;
@@ -2747,7 +2747,7 @@ static int vertex_group_deselect_exec(bContext *C, wmOperator * /*op*/)
   Object *ob = ED_object_context(C);
 
   vgroup_select_verts(ob, 0);
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 
   return OPERATOR_FINISHED;

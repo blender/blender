@@ -1380,7 +1380,7 @@ void EEVEE_lightbake_update(void *custom_data)
 
   EEVEE_lightcache_info_update(&lbake->scene->eevee);
 
-  DEG_id_tag_update(&scene_orig->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene_orig->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static bool lightbake_do_sample(EEVEE_LightBake *lbake,

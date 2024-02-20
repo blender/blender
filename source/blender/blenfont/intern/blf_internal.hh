@@ -173,7 +173,10 @@ void blf_glyph_cache_clear(struct FontBLF *font);
 /**
  * Create (or load from cache) a fully-rendered bitmap glyph.
  */
-struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font, struct GlyphCacheBLF *gc, uint charcode);
+struct GlyphBLF *blf_glyph_ensure(struct FontBLF *font,
+                                  struct GlyphCacheBLF *gc,
+                                  uint charcode,
+                                  uint8_t subpixel = 0);
 
 #ifdef BLF_SUBPIXEL_AA
 struct GlyphBLF *blf_glyph_ensure_subpixel(struct FontBLF *font,

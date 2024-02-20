@@ -2373,9 +2373,6 @@ static uint *getClipboardImageDibV5(int *r_width, int *r_height)
 
   int offset = bitmapV5Header->bV5Size + bitmapV5Header->bV5ClrUsed * sizeof(RGBQUAD);
 
-  if (bitmapV5Header->bV5Compression == BI_BITFIELDS) {
-    offset += 12;
-  }
   BYTE *buffer = (BYTE *)bitmapV5Header + offset;
   int bitcount = bitmapV5Header->bV5BitCount;
   int width = bitmapV5Header->bV5Width;
@@ -2524,8 +2521,7 @@ static bool putClipboardImageDibV5(uint *rgba, int width, int height)
 
   DWORD size_pixels = width * height * 4;
 
-  /* Pixel data is 12 bytes after the header. */
-  HGLOBAL hMem = GlobalAlloc(GHND, sizeof(BITMAPV5HEADER) + 12 + size_pixels);
+  HGLOBAL hMem = GlobalAlloc(GHND, sizeof(BITMAPV5HEADER) + size_pixels);
   if (!hMem) {
     return false;
   }
@@ -2551,7 +2547,7 @@ static bool putClipboardImageDibV5(uint *rgba, int width, int height)
   hdr->bV5Intent = LCS_GM_IMAGES;
   hdr->bV5ClrUsed = 0;
 
-  memcpy((char *)hdr + sizeof(BITMAPV5HEADER) + 12, rgba, size_pixels);
+  memcpy((char *)hdr + sizeof(BITMAPV5HEADER), rgba, size_pixels);
 
   GlobalUnlock(hMem);
 

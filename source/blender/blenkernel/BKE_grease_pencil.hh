@@ -724,16 +724,6 @@ inline LayerGroup &Layer::parent_group() const
 
 TREENODE_COMMON_METHODS_FORWARD_IMPL(LayerGroup);
 
-namespace convert {
-
-void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
-                                                   const ListBase &vertex_group_names,
-                                                   GreasePencilDrawing &r_drawing);
-void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, bGPdata &gpd);
-
-void legacy_gpencil_object(Main &bmain, Object &object);
-
-}  // namespace convert
 }  // namespace greasepencil
 
 class GreasePencilRuntime {

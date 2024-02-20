@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #ifdef __cplusplus
 extern "C" {

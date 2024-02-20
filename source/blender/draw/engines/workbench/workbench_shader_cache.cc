@@ -77,7 +77,7 @@ ShaderCache::ShaderCache()
     }
   }
 
-  std::string smoke[] = {"_smoke", "_object"};
+  std::string smoke[] = {"_object", "_smoke"};
   std::string interpolation[] = {"_linear", "_cubic", "_closest"};
   std::string coba[] = {"_no_coba", "_coba"};
   std::string slice[] = {"_no_slice", "_slice"};

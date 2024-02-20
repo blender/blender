@@ -2264,7 +2264,8 @@ static void rna_property_update(
 
 #if 1
     /* TODO(@ideasman42): Should eventually be replaced entirely by message bus (below)
-     * for now keep since COW, bugs are hard to track when we have other missing updates. */
+     * for now keep since copy-on-eval, bugs are hard to track when we have other missing updates.
+     */
     if (prop->noteflag) {
       WM_main_add_notifier(prop->noteflag, ptr->owner_id);
     }
@@ -2279,12 +2280,12 @@ static void rna_property_update(
     }
     if (ptr->owner_id != nullptr && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
       const short id_type = GS(ptr->owner_id->name);
-      if (ID_TYPE_IS_COW(id_type)) {
+      if (ID_TYPE_USE_COPY_ON_EVAL(id_type)) {
         if (prop->flag & PROP_DEG_SYNC_ONLY) {
-          DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL);
         }
         else {
-          DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_PARAMETERS);
+          DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_PARAMETERS);
         }
       }
     }

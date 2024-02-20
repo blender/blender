@@ -398,7 +398,7 @@ void HydraSceneDelegate::check_updates()
         break;
       }
       case ID_SCE: {
-        if ((id->recalc & ID_RECALC_COPY_ON_WRITE && !(id->recalc & ID_RECALC_SELECT)) ||
+        if ((id->recalc & ID_RECALC_SYNC_TO_EVAL && !(id->recalc & ID_RECALC_SELECT)) ||
             id->recalc & (ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_BASE_FLAGS))
         {
           do_update_collection = true;

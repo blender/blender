@@ -387,6 +387,18 @@ else()
   set(WITH_SYSTEM_EIGEN3 OFF)
 endif()
 
+if((NOT WITH_PYTHON_MODULE) AND (
+      (WIN32 AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")) OR
+      ((UNIX AND NOT APPLE) AND (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64"))))
+  option(WITH_CPU_CHECK "\
+Report when a CPU is not compatible on startup \
+instead of failing to start with an inscrutable error."
+    ON
+  )
+  mark_as_advanced(WITH_CPU_CHECK)
+else()
+  set(WITH_CPU_CHECK OFF)
+endif()
 
 # Modifiers
 option(WITH_MOD_FLUID "Enable Mantaflow Fluid Simulation Framework" ON)
@@ -400,7 +412,6 @@ option(WITH_IMAGE_CINEON "Enable CINEON and DPX Image Support" ON)
 option(WITH_IMAGE_WEBP "Enable WebP Image Support" ON)
 
 # Audio/Video format support
-option(WITH_CODEC_AVI "Enable Blenders own AVI file support (raw/jpeg)" ON)
 option(WITH_CODEC_FFMPEG "Enable FFMPeg Support (http://ffmpeg.org)" ON)
 option(WITH_CODEC_SNDFILE "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" ON)
 
@@ -2378,7 +2389,6 @@ if(FIRST_RUN)
   info_cfg_option(WITH_IMAGE_OPENJPEG)
 
   info_cfg_text("Audio:")
-  info_cfg_option(WITH_CODEC_AVI)
   info_cfg_option(WITH_CODEC_FFMPEG)
   info_cfg_option(WITH_CODEC_SNDFILE)
   info_cfg_option(WITH_COREAUDIO)

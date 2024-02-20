@@ -967,12 +967,9 @@ bool UI_block_active_only_flagged_buttons(const bContext *C, ARegion *region, ui
  */
 void UI_but_execute(const bContext *C, ARegion *region, uiBut *but);
 
-bool UI_but_online_manual_id(const uiBut *but,
-                             char *r_str,
-                             size_t str_maxncpy) ATTR_WARN_UNUSED_RESULT;
-bool UI_but_online_manual_id_from_active(const bContext *C,
-                                         char *r_str,
-                                         size_t str_maxncpy) ATTR_WARN_UNUSED_RESULT;
+std::optional<std::string> UI_but_online_manual_id(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+std::optional<std::string> UI_but_online_manual_id_from_active(const bContext *C)
+    ATTR_WARN_UNUSED_RESULT;
 bool UI_but_is_userdef(const uiBut *but);
 
 /* Buttons

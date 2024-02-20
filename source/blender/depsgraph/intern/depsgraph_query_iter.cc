@@ -184,7 +184,7 @@ bool deg_iterator_duplis_step(DEGObjectIterData *data)
     invert_m4_m4(data->temp_dupli_object.runtime->world_to_object.ptr(),
                  data->temp_dupli_object.object_to_world().ptr());
     data->next_object = &data->temp_dupli_object;
-    BLI_assert(deg::deg_validate_copy_on_write_datablock(&data->temp_dupli_object.id));
+    BLI_assert(deg::deg_validate_eval_copy_datablock(&data->temp_dupli_object.id));
     return true;
   }
 
@@ -238,7 +238,7 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
     Object *object = (Object *)id_node->id_cow;
     Object *object_orig = DEG_get_original_object(object);
-    BLI_assert(deg::deg_validate_copy_on_write_datablock(&object->id));
+    BLI_assert(deg::deg_validate_eval_copy_datablock(&object->id));
     object->runtime->select_id = object_orig->runtime->select_id;
 
     const bool use_preview = object_orig == data->object_orig_with_preview;

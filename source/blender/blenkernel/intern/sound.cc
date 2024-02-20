@@ -230,11 +230,11 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
    * We don't want audio system handles to be allocated on an original data-blocks, and only want
    * them to be allocated on a data-blocks which are result of dependency graph evaluation.
    *
-   * Data-blocks which are covered by a copy-on-write system of dependency graph will have
-   * LIB_TAG_COPIED_ON_WRITE tag set on them. But if some of data-blocks during its evaluation
+   * Data-blocks which are covered by a copy-on-evaluation system of dependency graph will have
+   * LIB_TAG_COPIED_ON_EVAL tag set on them. But if some of data-blocks during its evaluation
    * decides to re-allocate its nested one (for example, object evaluation could re-allocate mesh
    * when evaluating modifier stack). Such data-blocks will have
-   * LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT tag set on them.
+   * LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT tag set on them.
    *
    * Additionally, we also allow data-blocks outside of main database. Those can not be "original"
    * and could be used as a temporary evaluated result during operations like baking.
@@ -242,7 +242,7 @@ BLI_INLINE void sound_verify_evaluated_id(const ID *id)
    * NOTE: We consider ID evaluated if ANY of those flags is set. We do NOT require ALL of them.
    */
   BLI_assert(id->tag &
-             (LIB_TAG_COPIED_ON_WRITE | LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT | LIB_TAG_NO_MAIN));
+             (LIB_TAG_COPIED_ON_EVAL | LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT | LIB_TAG_NO_MAIN));
 }
 
 bSound *BKE_sound_new_file(Main *bmain, const char *filepath)

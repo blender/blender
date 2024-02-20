@@ -80,7 +80,7 @@
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"

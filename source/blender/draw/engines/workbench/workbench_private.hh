@@ -56,7 +56,7 @@ class ShaderCache {
 
   StaticShader shadow_[2 /*depth_pass*/][2 /*manifold*/][2 /*cap*/];
 
-  StaticShader volume_[2 /*smoke*/][3 /*interpolation*/][2 /*slice*/][2 /*coba*/];
+  StaticShader volume_[2 /*smoke*/][3 /*interpolation*/][2 /*coba*/][2 /*slice*/];
 
  public:
   static ShaderCache &get();

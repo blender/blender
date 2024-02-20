@@ -121,7 +121,8 @@ class TestConfig:
         config = TestConfig._read_config_module(self.base_dir)
         self.tests = TestCollection(env,
                                     getattr(config, 'tests', ['*']),
-                                    getattr(config, 'categories', ['*']))
+                                    getattr(config, 'categories', ['*']),
+                                    getattr(config, 'background', False))
         self.revisions = getattr(config, 'revisions', {})
         self.builds = getattr(config, 'builds', {})
         self.queue = TestQueue(self.base_dir / 'results.json')
@@ -243,6 +244,9 @@ class TestConfig:
             test_category = test.category()
 
             for device in self.devices:
+                if not (test.use_device() or device.type == "CPU"):
+                    continue
+
                 entry = self.queue.find(revision_name, test_name, test_category, device.id)
                 if entry:
                     # Test if revision hash or executable changed.

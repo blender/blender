@@ -1738,7 +1738,15 @@ class USERPREF_PT_input_touchpad(InputPanel, CenterAlignMixIn, Panel):
     @classmethod
     def poll(cls, context):
         import sys
-        return sys.platform[:3] == "win" or sys.platform == "darwin"
+        if sys.platform[:3] == "win" or sys.platform == "darwin":
+            return True
+
+        # WAYLAND supports multi-touch, X11 and SDL don't.
+        from _bpy import _ghost_backend
+        if _ghost_backend() == 'WAYLAND':
+            return True
+
+        return False
 
     def draw_centered(self, context, layout):
         prefs = context.preferences
@@ -2018,7 +2026,7 @@ class USERPREF_PT_extensions_repos(Panel):
     bl_region_type = 'HEADER'
 
     # Show wider than most panels so the URL & directory aren't overly clipped.
-    bl_ui_units_x = 24
+    bl_ui_units_x = 16
 
     # NOTE: ideally `if panel := layout.panel("extensions_repo_advanced", default_closed=True):`
     # would be used but it isn't supported here, use a kludge to achieve a similar UI.
@@ -2075,8 +2083,6 @@ class USERPREF_PT_extensions_repos(Panel):
         if active_repo is None:
             return
 
-        layout.separator()
-
         # NOTE: changing repositories from remote to local & vice versa could be supported but is obscure enough
         # that it can be hidden entirely. If there is a some justification to show this, it can be exposed.
         # For now it can be accessed from Python if someone is.
@@ -2084,9 +2090,11 @@ class USERPREF_PT_extensions_repos(Panel):
 
         if active_repo.use_remote_path:
             row = layout.row()
+            split = row.split(factor=0.936)
             if active_repo.remote_path == "":
-                row.alert = True
-            row.prop(active_repo, "remote_path", text="URL")
+                split.alert = True
+            split.prop(active_repo, "remote_path", text="URL")
+            split = row.split()
 
         if layout_panel := self._panel_layout_kludge(layout, text="Advanced"):
 
@@ -2664,7 +2672,7 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
                 ({"property": "use_grease_pencil_version3"}, ("blender/blender/projects/6", "Grease Pencil 3.0")),
                 ({"property": "use_new_matrix_socket"}, ("blender/blender/issues/116067", "Matrix Socket")),
                 ({"property": "enable_overlay_next"}, ("blender/blender/issues/102179", "#102179")),
-                ({"property": "use_extension_repos"}, ("/blender/blender/issues/106254", "#106254")),
+                ({"property": "use_extension_repos"}, ("/blender/blender/issues/117286", "#117286")),
             ),
         )
 

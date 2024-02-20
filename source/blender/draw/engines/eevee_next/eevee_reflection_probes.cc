@@ -53,12 +53,15 @@ void SphereProbeModule::begin_sync()
     PassSimple &pass = convolve_ps_;
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(SPHERE_PROBE_CONVOLVE));
-    pass.bind_image("in_atlas_mip_img", &convolve_input_);
+    pass.bind_texture("cubemap_tx", &cubemap_tx_);
+    pass.bind_texture("in_atlas_mip_tx", &convolve_input_);
     pass.bind_image("out_atlas_mip_img", &convolve_output_);
+    pass.push_constant("probe_coord_packed", reinterpret_cast<int4 *>(&probe_sampling_coord_));
     pass.push_constant("write_coord_packed", reinterpret_cast<int4 *>(&probe_write_coord_));
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    pass.push_constant("read_coord_packed", reinterpret_cast<int4 *>(&probe_read_coord_));
+    pass.push_constant("read_lod", &convolve_lod_);
+    pass.barrier(GPU_BARRIER_TEXTURE_FETCH);
     pass.dispatch(&dispatch_probe_convolve_);
-    pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
   {
     PassSimple &pass = update_irradiance_ps_;
@@ -89,7 +92,7 @@ bool SphereProbeModule::ensure_atlas()
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ;
 
   if (probes_tx_.ensure_2d_array(GPU_RGBA16F,
-                                 int2(max_resolution_),
+                                 int2(SPHERE_PROBE_ATLAS_RES),
                                  instance_.light_probes.sphere_layer_count(),
                                  usage,
                                  nullptr,
@@ -98,10 +101,12 @@ bool SphereProbeModule::ensure_atlas()
     probes_tx_.ensure_mip_views();
     /* TODO(fclem): Clearing means that we need to render all probes again.
      * If existing data exists, copy it using `CopyImageSubData`. */
-    probes_tx_.clear(float4(0.0f));
+    for (auto i : IndexRange(SPHERE_PROBE_MIPMAP_LEVELS)) {
+      /* Avoid undefined pixel data. Clear all mips. */
+      float4 data(0.0f);
+      GPU_texture_clear(probes_tx_.mip_view(i), GPU_DATA_FLOAT, &data);
+    }
     GPU_texture_mipmap_mode(probes_tx_, true, true);
-    /* Avoid undefined pixel data. Update all mips. */
-    GPU_texture_update_mipmap_chain(probes_tx_);
     return true;
   }
   return false;
@@ -140,11 +145,9 @@ void SphereProbeModule::ensure_cubemap_render_target(int resolution)
 
 SphereProbeModule::UpdateInfo SphereProbeModule::update_info_from_probe(const SphereProbe &probe)
 {
-  const int max_shift = int(log2(max_resolution_));
-
   SphereProbeModule::UpdateInfo info = {};
   info.atlas_coord = probe.atlas_coord;
-  info.resolution = 1 << (max_shift - probe.atlas_coord.subdivision_lvl - 1);
+  info.cube_target_extent = probe.atlas_coord.area_extent() / 2;
   info.clipping_distances = probe.clipping_distances;
   info.probe_pos = probe.location;
   info.do_render = probe.do_render;
@@ -162,7 +165,7 @@ std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::world_update_inf
   info.do_world_irradiance_update = do_world_irradiance_update;
   world_probe.do_render = false;
   do_world_irradiance_update = false;
-  ensure_cubemap_render_target(info.resolution);
+  ensure_cubemap_render_target(info.cube_target_extent);
   return info;
 }
 
@@ -180,7 +183,7 @@ std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::probe_update_inf
     SphereProbeModule::UpdateInfo info = update_info_from_probe(probe);
     probe.do_render = false;
     probe.use_for_render = true;
-    ensure_cubemap_render_target(info.resolution);
+    ensure_cubemap_render_target(info.cube_target_extent);
     return info;
   }
 
@@ -189,19 +192,21 @@ std::optional<SphereProbeModule::UpdateInfo> SphereProbeModule::probe_update_inf
 
 void SphereProbeModule::remap_to_octahedral_projection(const SphereProbeAtlasCoord &atlas_coord)
 {
-  int resolution = max_resolution_ >> atlas_coord.subdivision_lvl;
   /* Update shader parameters that change per dispatch. */
-  probe_sampling_coord_ = atlas_coord.as_sampling_coord(max_resolution_);
-  probe_write_coord_ = atlas_coord.as_write_coord(max_resolution_, 0);
+  probe_sampling_coord_ = atlas_coord.as_sampling_coord();
+  probe_write_coord_ = atlas_coord.as_write_coord(0);
+  int resolution = probe_write_coord_.extent;
   dispatch_probe_pack_ = int3(int2(ceil_division(resolution, SPHERE_PROBE_GROUP_SIZE)), 1);
   instance_.manager->submit(remap_ps_);
 
   /* Populate the mip levels */
   for (auto i : IndexRange(SPHERE_PROBE_MIPMAP_LEVELS - 1)) {
+    convolve_lod_ = i;
     convolve_input_ = probes_tx_.mip_view(i);
     convolve_output_ = probes_tx_.mip_view(i + 1);
-    probe_write_coord_ = atlas_coord.as_write_coord(max_resolution_, i + 1);
-    int out_mip_res = resolution >> (i + 1);
+    probe_read_coord_ = atlas_coord.as_write_coord(i);
+    probe_write_coord_ = atlas_coord.as_write_coord(i + 1);
+    int out_mip_res = probe_write_coord_.extent;
     dispatch_probe_convolve_ = int3(int2(ceil_division(out_mip_res, SPHERE_PROBE_GROUP_SIZE)), 1);
     instance_.manager->submit(convolve_ps_);
   }

@@ -26,7 +26,7 @@
 
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "NOD_shader.h"
 

@@ -18,7 +18,14 @@ class AllAssetLibrary : public AssetLibrary {
 
   void refresh_catalogs() override;
 
-  void rebuild(const bool reload_catalogs);
+  /**
+   * Update the available catalogs and catalog tree from the nested asset libraries. Completely
+   * recreates the catalog service (invalidating pointers to the previous one).
+   *
+   * \param reload_nested_catalogs: Re-read catalog definitions of nested libraries from disk and
+   * merge them into the in-memory representations.
+   */
+  void rebuild_catalogs_from_nested(bool reload_nested_catalogs);
 };
 
 }  // namespace blender::asset_system

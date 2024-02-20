@@ -300,7 +300,7 @@ static int gpencil_selectmode_toggle_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
   return OPERATOR_FINISHED;
 }
@@ -1326,9 +1326,8 @@ static int gpencil_extrude_exec(bContext *C, wmOperator *op)
 
   if (changed) {
     /* updates */
-    DEG_id_tag_update(&gpd->id,
-                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
-    DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&obact->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
@@ -2941,7 +2940,7 @@ static int gpencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
 
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&obact->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
@@ -3043,7 +3042,7 @@ static int gpencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
 
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&obact->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
@@ -3172,7 +3171,7 @@ static int gpencil_snap_cursor_to_sel_exec(bContext *C, wmOperator *op)
       }
     }
 
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
   }
 
@@ -5711,7 +5710,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
 
   /* updates */
   if (changed) {
-    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, nullptr);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
   }
@@ -5796,8 +5795,8 @@ bool ED_object_gpencil_exit(Main *bmain, Object *ob)
                   OB_MODE_SCULPT_GPENCIL_LEGACY | OB_MODE_WEIGHT_GPENCIL_LEGACY |
                   OB_MODE_VERTEX_GPENCIL_LEGACY);
 
-    /* Inform all CoW versions that we changed the mode. */
-    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+    /* Inform all evaluated versions that we changed the mode. */
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
     ok = true;
   }
   return ok;

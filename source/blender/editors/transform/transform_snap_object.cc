@@ -1244,10 +1244,15 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
 {
   eSnapMode retval = SCE_SNAP_TO_NONE;
   float ray_depth_max = BVH_RAYCAST_DIST_MAX;
+  bool use_occlusion_plane = false;
 
-  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
+  /* It is required `mval` to calculate the occlusion plane. */
+  if (mval) {
+    const bool is_allways_occluded = !params->use_occlusion_test;
+    use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
+  }
 
-  if (use_occlusion_test || (snap_to_flag & SCE_SNAP_TO_FACE)) {
+  if (use_occlusion_plane || (snap_to_flag & SCE_SNAP_TO_FACE)) {
     const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
     float3 ray_end;
     ED_view3d_win_to_ray_clipped_ex(depsgraph,
@@ -1268,7 +1273,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       }
       else {
         snap_to_flag &= ~SCE_SNAP_TO_FACE;
-        use_occlusion_test = false;
+        use_occlusion_plane = false;
       }
     }
   }
@@ -1287,7 +1292,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         prev_co,
                                         dist_px ? square_f(*dist_px) : FLT_MAX,
                                         nullptr,
-                                        use_occlusion_test))
+                                        use_occlusion_plane))
   {
     return retval;
   }
@@ -1326,7 +1331,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     }
   }
 
-  if (use_occlusion_test || (snap_to_flag & SCE_SNAP_TO_FACE)) {
+  if (use_occlusion_plane || (snap_to_flag & SCE_SNAP_TO_FACE)) {
     has_hit = raycastObjects(sctx);
 
     if (has_hit) {
@@ -1360,7 +1365,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     /* Remove what has already been computed. */
     sctx->runtime.snap_to_flag &= ~(SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST);
 
-    if (use_occlusion_test && has_hit &&
+    if (use_occlusion_plane && has_hit &&
         /* By convention we only snap to the original elements of a curve. */
         sctx->ret.ob->type != OB_CURVES_LEGACY)
     {

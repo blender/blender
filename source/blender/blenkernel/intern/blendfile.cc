@@ -1109,7 +1109,7 @@ static void setup_app_data(bContext *C,
     }
   }
 
-  /* Setting scene might require having a dependency graph, with copy on write
+  /* Setting scene might require having a dependency graph, with copy-on-eval
    * we need to make sure we ensure scene has correct color management before
    * constructing dependency graph.
    */
