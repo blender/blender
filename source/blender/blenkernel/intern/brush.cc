@@ -526,15 +526,13 @@ static void brush_defaults(Brush *brush)
 #undef FROM_DEFAULT_PTR
 }
 
-Brush *BKE_brush_asset_runtime_ensure(Main *bmain, const AssetWeakReference *brush_asset_reference)
+Brush *BKE_brush_asset_runtime_ensure(Main *bmain, const AssetWeakReference &brush_asset_reference)
 {
-  BLI_assert(brush_asset_reference != nullptr);
-
   char asset_full_path_buffer[FILE_MAX_LIBEXTRA];
   char *asset_lib_path, *asset_group, *asset_name;
 
   AS_asset_full_path_explode_from_weak_ref(
-      brush_asset_reference, asset_full_path_buffer, &asset_lib_path, &asset_group, &asset_name);
+      &brush_asset_reference, asset_full_path_buffer, &asset_lib_path, &asset_group, &asset_name);
 
   if (asset_lib_path == nullptr && asset_group == nullptr && asset_name == nullptr) {
     return nullptr;

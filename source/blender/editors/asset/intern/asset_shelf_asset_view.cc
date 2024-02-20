@@ -102,7 +102,7 @@ AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf 
 
 AssetView::~AssetView()
 {
-  BKE_asset_weak_reference_free(&active_asset_);
+  MEM_delete(active_asset_);
 }
 
 void AssetView::build_items()
@@ -235,10 +235,9 @@ std::optional<bool> AssetViewItem::should_be_active() const
     return false;
   }
   const asset_system::AssetRepresentation *asset = handle_get_representation(&asset_);
-  AssetWeakReference *weak_ref = asset->make_weak_reference();
-  const bool matches = *asset_view.active_asset_ == *weak_ref;
+  AssetWeakReference weak_ref = asset->make_weak_reference();
+  const bool matches = *asset_view.active_asset_ == weak_ref;
 
-  BKE_asset_weak_reference_free(&weak_ref);
   return matches;
 }
 

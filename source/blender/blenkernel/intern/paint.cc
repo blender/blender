@@ -685,30 +685,26 @@ bool BKE_paint_brush_is_valid_asset(const Brush *brush)
 
 static void paint_brush_asset_update(Paint &paint,
                                      Brush *brush,
-                                     AssetWeakReference *brush_asset_reference)
+                                     const AssetWeakReference &brush_asset_reference)
 {
-  if (paint.brush_asset_reference != nullptr) {
-    BKE_asset_weak_reference_free(&paint.brush_asset_reference);
-  }
+  MEM_delete(paint.brush_asset_reference);
 
   if (brush == nullptr || brush != paint.brush || !ID_IS_OVERRIDE_LIBRARY_REAL(paint.brush) ||
       !(ID_IS_ASSET(paint.brush) || ID_IS_ASSET(paint.brush->id.override_library->reference)))
   {
-    BKE_asset_weak_reference_free(&brush_asset_reference);
     return;
   }
 
-  paint.brush_asset_reference = brush_asset_reference;
+  paint.brush_asset_reference = MEM_new<AssetWeakReference>(__func__, brush_asset_reference);
 }
 
 bool BKE_paint_brush_asset_set(Paint *paint,
                                Brush *brush,
-                               AssetWeakReference *weak_asset_reference)
+                               const AssetWeakReference &weak_asset_reference)
 {
   /* Should not happen for users if brush assets are properly filtered by mode, but still protect
    * against it in case of invalid API usage. */
   if (brush && paint->runtime.ob_mode != brush->ob_mode) {
-    BKE_asset_weak_reference_free(&weak_asset_reference);
     return false;
   }
 
@@ -742,14 +738,14 @@ void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)
     return;
   }
 
-  AssetWeakReference *brush_asset_reference = paint->brush_asset_reference;
-  paint->brush_asset_reference = nullptr;
+  AssetWeakReference weak_ref = std::move(*paint->brush_asset_reference);
+  MEM_delete(paint->brush_asset_reference);
 
-  Brush *brush_asset = BKE_brush_asset_runtime_ensure(bmain, brush_asset_reference);
+  Brush *brush_asset = BKE_brush_asset_runtime_ensure(bmain, weak_ref);
 
   /* Will either re-assign the brush_asset_reference to `paint`, or free it if loading a brush ID
    * from it failed. */
-  BKE_paint_brush_asset_set(paint, brush_asset, brush_asset_reference);
+  BKE_paint_brush_asset_set(paint, brush_asset, weak_ref);
 }
 
 void BKE_paint_runtime_init(const ToolSettings *ts, Paint *paint)
@@ -1290,9 +1286,7 @@ void BKE_paint_free(Paint *paint)
 {
   BKE_curvemapping_free(paint->cavity_curve);
   MEM_SAFE_FREE(paint->tool_slots);
-  if (paint->brush_asset_reference != nullptr) {
-    BKE_asset_weak_reference_free(&paint->brush_asset_reference);
-  }
+  MEM_delete(paint->brush_asset_reference);
 }
 
 void BKE_paint_copy(const Paint *src, Paint *tar, const int flag)

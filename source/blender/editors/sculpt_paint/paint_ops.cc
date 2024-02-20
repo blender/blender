@@ -1002,7 +1002,7 @@ static int brush_asset_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  AssetWeakReference *brush_asset_reference = asset->make_weak_reference();
+  AssetWeakReference brush_asset_reference = asset->make_weak_reference();
   Brush *brush = BKE_brush_asset_runtime_ensure(CTX_data_main(C), brush_asset_reference);
 
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -1034,18 +1034,19 @@ static void BRUSH_OT_asset_select(wmOperatorType *ot)
 /* FIXME Quick dirty hack to generate a weak ref from 'raw' paths.
  * This needs to be properly implemented in assetlib code.
  */
-static AssetWeakReference *brush_asset_create_weakref_hack(const bUserAssetLibrary *user_asset_lib,
-                                                           std::string &file_path)
+static AssetWeakReference brush_asset_create_weakref_hack(const bUserAssetLibrary *user_asset_lib,
+                                                          std::string &file_path)
 {
-  AssetWeakReference *asset_weak_ref = MEM_new<AssetWeakReference>(__func__);
+  AssetWeakReference asset_weak_ref{};
 
   StringRef asset_root_path = user_asset_lib->dirpath;
   BLI_assert(file_path.find(asset_root_path) == 0);
   std::string relative_asset_path = file_path.substr(size_t(asset_root_path.size()) + 1);
 
-  asset_weak_ref->asset_library_type = ASSET_LIBRARY_CUSTOM;
-  asset_weak_ref->asset_library_identifier = BLI_strdup(user_asset_lib->name);
-  asset_weak_ref->relative_asset_identifier = BLI_strdup(relative_asset_path.c_str());
+  asset_weak_ref.asset_library_type = ASSET_LIBRARY_CUSTOM;
+  asset_weak_ref.asset_library_identifier = BLI_strdup(user_asset_lib->name);
+  asset_weak_ref.relative_asset_identifier = BLI_strdupn(relative_asset_path.c_str(),
+                                                         relative_asset_path.size());
 
   return asset_weak_ref;
 }
@@ -1302,7 +1303,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  AssetWeakReference *new_brush_weak_ref = brush_asset_create_weakref_hack(
+  AssetWeakReference new_brush_weak_ref = brush_asset_create_weakref_hack(
       user_library, final_full_asset_filepath);
 
   /* TODO: maybe not needed, even less so if there is more visual confirmation of change. */

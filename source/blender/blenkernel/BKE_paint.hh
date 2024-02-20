@@ -218,7 +218,7 @@ bool BKE_paint_brush_is_valid_asset(const Brush *brush);
  */
 bool BKE_paint_brush_asset_set(Paint *paint,
                                Brush *brush,
-                               AssetWeakReference *weak_asset_reference);
+                               const AssetWeakReference &weak_asset_reference);
 
 /**
  * Get the active brush of given paint struct, together with its weak asset reference.
