@@ -123,10 +123,24 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureReflection reflection, vec3 P
   return mix(radiance_cube, radiance_sh, fac);
 }
 
+/* Return the equivalent reflective roughness resulting in a similar lobe. */
+float lightprobe_refraction_roughness_remapping(float roughness, float ior)
+{
+  /* This is a very rough mapping used by manually curve fitting the apparent roughness
+   * (blurriness) of GGX reflections and GGX refraction.
+   * A better fit is desirable if it is in the same order of complexity.  */
+  if (ior > 1.0) {
+    return roughness * sqrt_fast(1.0 - 1.0 / ior);
+  }
+  else {
+    return roughness * sqrt_fast(saturate(1.0 - ior)) * 0.8;
+  }
+}
+
 vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughness)
 {
-  /* Reusing same thing as lightprobe_reflection_dominant_dir for now.
-   * TODO(fclem): Find something better that take IOR and roughness into account. */
+  /* Reusing same thing as lightprobe_reflection_dominant_dir for now with the roughness mapped to
+   * reflection roughness. */
   float m = square(roughness);
   vec3 R = refract(-V, N, 1.0 / ior);
   float smoothness = 1.0 - m;
@@ -136,13 +150,15 @@ vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughne
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V)
 {
-  vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, cl.roughness);
+  float effective_roughness = lightprobe_refraction_roughness_remapping(cl.roughness, cl.ior);
 
-  float lod = sphere_probe_roughness_to_lod(cl.roughness);
+  vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, effective_roughness);
+
+  float lod = sphere_probe_roughness_to_lod(effective_roughness);
   vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
       samp.spherical_id, P, L, lod, samp.volume_irradiance);
 
-  float fac = sphere_probe_roughness_to_mix_fac(cl.roughness);
+  float fac = sphere_probe_roughness_to_mix_fac(effective_roughness);
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
   return mix(radiance_cube, radiance_sh, fac);
 }
