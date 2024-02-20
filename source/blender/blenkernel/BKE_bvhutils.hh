@@ -123,6 +123,20 @@ void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
                                      BVHTreeFromMesh &r_data);
 
 /**
+ * Build a bvh tree containing the given edges.
+ */
+void BKE_bvhtree_from_mesh_edges_init(const Mesh &mesh,
+                                      const blender::IndexMask &edges_mask,
+                                      BVHTreeFromMesh &r_data);
+
+/**
+ * Build a bvh tree containing the given vertices.
+ */
+void BKE_bvhtree_from_mesh_verts_init(const Mesh &mesh,
+                                      const blender::IndexMask &verts_mask,
+                                      BVHTreeFromMesh &r_data);
+
+/**
  * Frees data allocated by a call to `bvhtree_from_mesh_*`.
  */
 void free_bvhtree_from_mesh(BVHTreeFromMesh *data);
@@ -147,9 +161,9 @@ struct BVHTreeFromPointCloud {
   const float (*coords)[3];
 };
 
-[[nodiscard]] BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
-                                                       const PointCloud *pointcloud,
-                                                       int tree_type);
+void BKE_bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
+                                     const blender::IndexMask &points_mask,
+                                     BVHTreeFromPointCloud &r_data);
 
 void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data);
 

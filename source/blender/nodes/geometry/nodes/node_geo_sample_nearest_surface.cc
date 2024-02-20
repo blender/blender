@@ -120,12 +120,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
       for (const int group_i : range) {
         const IndexMask &group_mask = group_masks[group_i];
         BVHTreeFromMesh &bvh = bvh_trees_[group_i];
-        if (group_mask.size() == mesh.faces_num) {
-          BKE_bvhtree_from_mesh_get(&bvh, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
-        }
-        else {
-          BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
-        }
+        BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
       }
     });
   }
