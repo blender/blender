@@ -7,6 +7,7 @@
  */
 
 #include "BKE_attribute.hh"
+#include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"
@@ -620,9 +621,71 @@ static ModifierData &legacy_object_modifier_common(Object &object,
   return new_md;
 }
 
-static void legacy_object_modifier_noise(GreasePencilNoiseModifierData &gp_md_noise,
-                                         NoiseGpencilModifierData &legacy_md_noise)
+static void legacy_object_modifier_influence(GreasePencilModifierInfluenceData &influence,
+                                             StringRef layername,
+                                             const int layer_pass,
+                                             const bool invert_layer,
+                                             const bool invert_layer_pass,
+                                             Material **material,
+                                             const int material_pass,
+                                             const bool invert_material,
+                                             const bool invert_material_pass,
+                                             StringRef vertex_group_name,
+                                             const bool invert_vertex_group,
+                                             CurveMapping **custom_curve,
+                                             const bool use_custom_curve)
 {
+  STRNCPY(influence.layer_name, layername.data());
+  if (invert_layer) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_FILTER;
+  }
+  influence.layer_pass = layer_pass;
+  if (layer_pass > 0) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_USE_LAYER_PASS_FILTER;
+  }
+  if (invert_layer_pass) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_PASS_FILTER;
+  }
+
+  if (material) {
+    influence.material = *material;
+    *material = nullptr;
+  }
+  if (invert_material) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_FILTER;
+  }
+  influence.material_pass = material_pass;
+  if (material_pass > 0) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_USE_MATERIAL_PASS_FILTER;
+  }
+  if (invert_material_pass) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_PASS_FILTER;
+  }
+
+  STRNCPY(influence.vertex_group_name, vertex_group_name.data());
+  if (invert_vertex_group) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP;
+  }
+
+  if (custom_curve) {
+    if (influence.custom_curve) {
+      BKE_curvemapping_free(influence.custom_curve);
+    }
+    influence.custom_curve = *custom_curve;
+    *custom_curve = nullptr;
+  }
+  if (use_custom_curve) {
+    influence.flag |= GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE;
+  }
+}
+
+static void legacy_object_modifier_noise(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilNoise, legacy_md);
+  auto &gp_md_noise = reinterpret_cast<GreasePencilNoiseModifierData &>(md);
+  auto &legacy_md_noise = reinterpret_cast<NoiseGpencilModifierData &>(legacy_md);
+
   gp_md_noise.flag = legacy_md_noise.flag;
   gp_md_noise.factor = legacy_md_noise.factor;
   gp_md_noise.factor_strength = legacy_md_noise.factor_strength;
@@ -634,50 +697,80 @@ static void legacy_object_modifier_noise(GreasePencilNoiseModifierData &gp_md_no
   gp_md_noise.step = legacy_md_noise.step;
   gp_md_noise.seed = legacy_md_noise.seed;
 
-  STRNCPY(gp_md_noise.influence.layer_name, legacy_md_noise.layername);
-  if (legacy_md_noise.flag & GP_NOISE_INVERT_LAYER) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_FILTER;
-  }
-  gp_md_noise.influence.layer_pass = legacy_md_noise.layer_pass;
-  if (gp_md_noise.influence.layer_pass > 0) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_USE_LAYER_PASS_FILTER;
-  }
-  if (legacy_md_noise.flag & GP_NOISE_INVERT_LAYERPASS) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_LAYER_PASS_FILTER;
-  }
+  legacy_object_modifier_influence(gp_md_noise.influence,
+                                   legacy_md_noise.layername,
+                                   legacy_md_noise.layer_pass,
+                                   legacy_md_noise.flag & GP_NOISE_INVERT_LAYER,
+                                   legacy_md_noise.flag & GP_NOISE_INVERT_LAYERPASS,
+                                   &legacy_md_noise.material,
+                                   legacy_md_noise.pass_index,
+                                   legacy_md_noise.flag & GP_NOISE_INVERT_MATERIAL,
+                                   legacy_md_noise.flag & GP_NOISE_INVERT_PASS,
+                                   legacy_md_noise.vgname,
+                                   legacy_md_noise.flag & GP_NOISE_INVERT_VGROUP,
+                                   &legacy_md_noise.curve_intensity,
+                                   legacy_md_noise.flag & GP_NOISE_CUSTOM_CURVE);
+}
 
-  if (legacy_md_noise.material) {
-    gp_md_noise.influence.material = legacy_md_noise.material;
-    legacy_md_noise.material = nullptr;
+static GreasePencilModifierColorMode convert_color_mode(eGp_Vertex_Mode legacy_mode)
+{
+  switch (legacy_mode) {
+    case GPPAINT_MODE_BOTH:
+      return MOD_GREASE_PENCIL_COLOR_BOTH;
+    case GPPAINT_MODE_STROKE:
+      return MOD_GREASE_PENCIL_COLOR_STROKE;
+    case GPPAINT_MODE_FILL:
+      return MOD_GREASE_PENCIL_COLOR_FILL;
   }
-  if (legacy_md_noise.flag & GP_NOISE_INVERT_MATERIAL) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_FILTER;
-  }
-  gp_md_noise.influence.material_pass = legacy_md_noise.pass_index;
-  if (gp_md_noise.influence.material_pass > 0) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_USE_MATERIAL_PASS_FILTER;
-  }
-  if (legacy_md_noise.flag & GP_NOISE_INVERT_PASS) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_PASS_FILTER;
-  }
+  return MOD_GREASE_PENCIL_COLOR_BOTH;
+}
 
-  if (legacy_md_noise.vgname[0] != '\0') {
-    STRNCPY(gp_md_noise.influence.vertex_group_name, legacy_md_noise.vgname);
+static GreasePencilTintModifierMode convert_tint_mode(eTintGpencil_Type legacy_mode)
+{
+  switch (legacy_mode) {
+    case GP_TINT_UNIFORM:
+      return MOD_GREASE_PENCIL_TINT_UNIFORM;
+    case GP_TINT_GRADIENT:
+      return MOD_GREASE_PENCIL_TINT_GRADIENT;
   }
-  if (legacy_md_noise.flag & GP_NOISE_INVERT_VGROUP) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP;
-  }
+  return MOD_GREASE_PENCIL_TINT_UNIFORM;
+}
 
-  if (legacy_md_noise.curve_intensity) {
-    if (gp_md_noise.influence.custom_curve) {
-      BKE_curvemapping_free(gp_md_noise.influence.custom_curve);
-    }
-    gp_md_noise.influence.custom_curve = legacy_md_noise.curve_intensity;
-    legacy_md_noise.curve_intensity = nullptr;
+static void legacy_object_modifier_tint(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilTint, legacy_md);
+  auto &md_tint = reinterpret_cast<GreasePencilTintModifierData &>(md);
+  auto &legacy_md_tint = reinterpret_cast<TintGpencilModifierData &>(legacy_md);
+
+  md_tint.flag = 0;
+  if (legacy_md_tint.flag & GP_TINT_WEIGHT_FACTOR) {
+    md_tint.flag |= MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR;
   }
-  if (legacy_md_noise.flag & GP_NOISE_CUSTOM_CURVE) {
-    gp_md_noise.influence.flag |= GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE;
-  }
+  md_tint.color_mode = convert_color_mode(eGp_Vertex_Mode(legacy_md_tint.mode));
+  md_tint.tint_mode = convert_tint_mode(eTintGpencil_Type(legacy_md_tint.type));
+  md_tint.factor = legacy_md_tint.factor;
+  md_tint.radius = legacy_md_tint.radius;
+  copy_v3_v3(md_tint.color, legacy_md_tint.rgb);
+  md_tint.object = legacy_md_tint.object;
+  legacy_md_tint.object = nullptr;
+  MEM_SAFE_FREE(md_tint.color_ramp);
+  md_tint.color_ramp = legacy_md_tint.colorband;
+  legacy_md_tint.colorband = nullptr;
+
+  legacy_object_modifier_influence(md_tint.influence,
+                                   legacy_md_tint.layername,
+                                   legacy_md_tint.layer_pass,
+                                   legacy_md_tint.flag & GP_TINT_INVERT_LAYER,
+                                   legacy_md_tint.flag & GP_TINT_INVERT_LAYERPASS,
+                                   &legacy_md_tint.material,
+                                   legacy_md_tint.pass_index,
+                                   legacy_md_tint.flag & GP_TINT_INVERT_MATERIAL,
+                                   legacy_md_tint.flag & GP_TINT_INVERT_PASS,
+                                   legacy_md_tint.vgname,
+                                   legacy_md_tint.flag & GP_TINT_INVERT_VGROUP,
+                                   &legacy_md_tint.curve_intensity,
+                                   legacy_md_tint.flag & GP_TINT_CUSTOM_CURVE);
 }
 
 static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
@@ -692,17 +785,14 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
         /* Unknown type, just ignore. */
         break;
       case eGpencilModifierType_Noise: {
-        NoiseGpencilModifierData &legacy_md_noise = *reinterpret_cast<NoiseGpencilModifierData *>(
-            gpd_md);
-        GreasePencilNoiseModifierData &gp_md_noise =
-            reinterpret_cast<GreasePencilNoiseModifierData &>(
-                legacy_object_modifier_common(object, eModifierType_GreasePencilNoise, *gpd_md));
-        legacy_object_modifier_noise(gp_md_noise, legacy_md_noise);
+        legacy_object_modifier_noise(object, *gpd_md);
         break;
       }
       case eGpencilModifierType_Subdiv:
       case eGpencilModifierType_Thick:
       case eGpencilModifierType_Tint:
+        legacy_object_modifier_tint(object, *gpd_md);
+        break;
       case eGpencilModifierType_Array:
       case eGpencilModifierType_Build:
       case eGpencilModifierType_Opacity:
