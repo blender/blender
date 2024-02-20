@@ -515,6 +515,14 @@ class RealtimeCompositor {
      * spontaneous invalid colors in the composite output. The Windows has not been extensively
      * tested yet. */
 #if defined(__linux__)
+    if (G.background) {
+      /* In the background mode the system context of the render engine might be nullptr, which
+       * forces some code paths which more tightly couple it with the draw manager.
+       * For the compositor we want to have the least amount of coupling with the draw manager, so
+       * ensure that the render engine has its own system GPU context. */
+      RE_system_gpu_context_ensure(&render_);
+    }
+
     void *re_system_gpu_context = RE_system_gpu_context_get(&render_);
     void *re_blender_gpu_context = RE_blender_gpu_context_ensure(&render_);
 
