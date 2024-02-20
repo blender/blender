@@ -539,11 +539,12 @@ class BlendFileBlock:
 
 
 ########################################################################################################################
-# Way more basic access to blendfile data, without any DNA handling.
+# Way more basic access to blend-file data, without any DNA handling.
 
 class BlendFileRaw:
     """
-    Blend file, at a very low-level (only a collection of blocks). Can survive opening e.g. blendfiles withou DNA info.
+    Blend file, at a very low-level (only a collection of blocks).
+    Can survive opening e.g. blend-files without DNA info.
     """
     __slots__ = (
         # file (result of open())
@@ -642,7 +643,7 @@ class BlendFileRaw:
 
 class BlendFileBlockRaw:
     """
-    Instance of a raw blendfile block (only contains its header currently).
+    Instance of a raw blend-file block (only contains its header currently).
     """
     __slots__ = (
         # BlendFile

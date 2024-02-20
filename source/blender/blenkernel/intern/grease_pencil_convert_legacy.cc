@@ -610,7 +610,7 @@ static ModifierData &legacy_object_modifier_common(Object &object,
   }
   BKE_modifier_unique_name(&object.modifiers, &new_md);
 
-  /* Handle commom modifier data. */
+  /* Handle common modifier data. */
   new_md.mode = legacy_md.mode;
   new_md.flag |= legacy_md.flag & (eModifierFlag_OverrideLibrary_Local | eModifierFlag_Active);
 
@@ -750,7 +750,7 @@ void legacy_gpencil_object(Main &bmain, Object &object)
 
   legacy_object_modifiers(bmain, object);
 
-  /* Layer adjusments should be added after all other modifiers. */
+  /* Layer adjustments should be added after all other modifiers. */
   layer_adjustments_to_modifiers(bmain, *gpd, object);
   /* Thickness factor is applied after all other changes to the radii. */
   thickness_factor_to_modifier(*gpd, object);
