@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "DEG_depsgraph.hh"
 
 #include "RNA_types.hh"
