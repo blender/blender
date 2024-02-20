@@ -4,7 +4,7 @@
 
 import bpy
 from bpy.types import Panel
-from rna_prop_ui import PropertyPanel
+import rna_prop_ui
 
 from bpy.app.translations import contexts as i18n_contexts
 
@@ -530,7 +530,7 @@ class BONE_PT_deform(BoneButtonsPanel, Panel):
         col.prop(bone, "tail_radius", text="Tail")
 
 
-class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
+class BONE_PT_custom_props(BoneButtonsPanel, rna_prop_ui.PropertyPanel, Panel):
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
         'BLENDER_EEVEE',
@@ -539,13 +539,44 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
     }
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 
-    @property
-    def _context_path(self):
-        obj = bpy.context.object
-        if obj and obj.mode == 'POSE':
-            return "active_pose_bone"
-        else:
+    @classmethod
+    def _poll(cls, context):
+        context_path = cls._get_context_path(context)
+        rna_item, _context_member = rna_prop_ui.rna_idprop_context_value(
+            context, context_path, cls._property_type)
+        return bool(rna_item)
+
+    def draw(self, context):
+        context_path = self._get_context_path(context)
+        rna_prop_ui.draw(self.layout, context, context_path, self._property_type)
+
+    @classmethod
+    def _get_context_path(self, context):
+        obj = context.object
+        if not obj:
+            # We have to return _something_. If there is some bone by some
+            # miracle, just use it.
+            return "bone"
+
+        if obj.mode != 'POSE':
+            # Outside of pose mode, active_bone is the one to use. It's either a
+            # Bone or an EditBone, depending on the mode.
             return "active_bone"
+
+        if context.active_pose_bone is not None:
+            # There is an active pose bone, so use it.
+            return "active_pose_bone"
+
+        # When the active bone is hidden, `context.active_pose_bone` is None, but
+        # `context.bone` still points to it. Use that to still get the pose bone.
+        if context.bone is None:
+            # If there is no active bone, let the rest of the code refer to the
+            # also-None active pose bone, as that's more appropriate given we're
+            # currently in pose mode.
+            return "active_pose_bone"
+
+        bone_path = obj.pose.bones[context.bone.name].path_from_id()
+        return f"object.{bone_path}"
 
 
 classes = (
