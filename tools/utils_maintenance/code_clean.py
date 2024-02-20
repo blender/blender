@@ -327,7 +327,7 @@ def process_commands(cmake_dir: str, data: Sequence[str]) -> Optional[ProcessedC
         return None
 
     # Check for unsupported configurations.
-    for arg in ("WITH_UNITY_BUILD", "WITH_COMPILER_CCACHE"):
+    for arg in ("WITH_UNITY_BUILD", "WITH_COMPILER_CCACHE", "WITH_COMPILER_PRECOMPILED_HEADERS"):
         if cmake_cache_var_is_true(cmake_cache_var(cmake_dir, arg)):
             sys.stderr.write("The option '%s' must be disabled for proper functionality\n" % arg)
             return None
