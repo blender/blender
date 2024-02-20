@@ -344,9 +344,12 @@ void AssetCatalogService::load_from_disk(const CatalogFilePath &file_or_director
   this->rebuild_tree();
 }
 
-void AssetCatalogService::add_from_existing(const AssetCatalogService &other_service)
+void AssetCatalogService::add_from_existing(
+    const AssetCatalogService &other_service,
+    AssetCatalogCollection::OnDuplicateCatalogIdFn on_duplicate_items)
 {
-  catalog_collection_->add_catalogs_from_existing(*other_service.catalog_collection_);
+  catalog_collection_->add_catalogs_from_existing(*other_service.catalog_collection_,
+                                                  on_duplicate_items);
 }
 
 void AssetCatalogService::load_directory_recursive(const CatalogFilePath &directory_path)
@@ -692,24 +695,40 @@ std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() cons
   return copy;
 }
 
-static void copy_catalog_map_into_existing(const OwningAssetCatalogMap &source,
-                                           OwningAssetCatalogMap &dest)
+static void copy_catalog_map_into_existing(
+    const OwningAssetCatalogMap &source,
+    OwningAssetCatalogMap &dest,
+    AssetCatalogCollection::OnDuplicateCatalogIdFn on_duplicate_items)
 {
   for (const auto &orig_catalog_uptr : source.values()) {
+    if (dest.contains(orig_catalog_uptr->catalog_id)) {
+      if (on_duplicate_items) {
+        on_duplicate_items(*dest.lookup(orig_catalog_uptr->catalog_id), *orig_catalog_uptr);
+      }
+      continue;
+    }
+
     auto copy_catalog_uptr = std::make_unique<AssetCatalog>(*orig_catalog_uptr);
     dest.add_new(copy_catalog_uptr->catalog_id, std::move(copy_catalog_uptr));
   }
 }
 
-void AssetCatalogCollection::add_catalogs_from_existing(const AssetCatalogCollection &other)
+void AssetCatalogCollection::add_catalogs_from_existing(
+    const AssetCatalogCollection &other,
+    AssetCatalogCollection::OnDuplicateCatalogIdFn on_duplicate_items)
 {
-  copy_catalog_map_into_existing(other.catalogs_, catalogs_);
+  copy_catalog_map_into_existing(other.catalogs_, catalogs_, on_duplicate_items);
 }
 
 OwningAssetCatalogMap AssetCatalogCollection::copy_catalog_map(const OwningAssetCatalogMap &orig)
 {
   OwningAssetCatalogMap copy;
-  copy_catalog_map_into_existing(orig, copy);
+  copy_catalog_map_into_existing(
+      orig, copy, /*on_duplicate_items=*/[](const AssetCatalog &, const AssetCatalog &) {
+        /* `copy` was empty before. If this happens it means there was a duplicate in the `orig`
+         * catalog map which should've been caught already. */
+        BLI_assert_unreachable();
+      });
   return copy;
 }
 

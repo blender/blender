@@ -84,8 +84,13 @@ class AssetCatalogService {
   /**
    * Duplicate the catalogs from \a other_service into this one. Does not rebuild the tree, this
    * needs to be done by the caller (call #rebuild_tree()!).
+   *
+   * \note If a catalog from \a other already exists in this collection (identified by catalog ID),
+   * it will be skipped and \a on_duplicate_items will be called.
    */
-  void add_from_existing(const AssetCatalogService &other_service);
+  void add_from_existing(const AssetCatalogService &other_service,
+                         FunctionRef<void(const AssetCatalog &existing,
+                                          const AssetCatalog &to_be_ignored)> on_duplicate_items);
 
   /**
    * Write the catalog definitions to disk.
@@ -298,11 +303,17 @@ class AssetCatalogCollection {
   AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
 
   std::unique_ptr<AssetCatalogCollection> deep_copy() const;
+  using OnDuplicateCatalogIdFn =
+      FunctionRef<void(const AssetCatalog &existing, const AssetCatalog &to_be_ignored)>;
   /**
    * Copy the catalogs from \a other and append them to this collection. Copies no other data
    * otherwise.
+   *
+   * \note If a catalog from \a other already exists in this collection (identified by catalog ID),
+   * it will be skipped and \a on_duplicate_items will be called.
    */
-  void add_catalogs_from_existing(const AssetCatalogCollection &other);
+  void add_catalogs_from_existing(const AssetCatalogCollection &other,
+                                  OnDuplicateCatalogIdFn on_duplicate_items);
 
  protected:
   static OwningAssetCatalogMap copy_catalog_map(const OwningAssetCatalogMap &orig);
