@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * Functions for writing AVI-format files.
- * Added interface for generic movie support (ton)
+ * Functions for writing movie files.
  * \ingroup bke
  */
 
@@ -22,7 +21,7 @@
 #  include "BKE_writeffmpeg.hh"
 #endif
 
-#include "BKE_writeavi.h"
+#include "BKE_writemovie.hh"
 
 static int start_stub(void * /*context_v*/,
                       const Scene * /*scene*/,

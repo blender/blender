@@ -59,7 +59,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_sound.h"
-#include "BKE_writeavi.h" /* <------ should be replaced once with generic movie module */
+#include "BKE_writemovie.hh"
 
 #include "NOD_composite.hh"
 
