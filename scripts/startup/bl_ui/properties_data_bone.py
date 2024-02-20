@@ -260,6 +260,16 @@ class BONE_PT_collections(BoneButtonsPanel, Panel):
         layout.use_property_split = False
 
         bone = context.bone or context.edit_bone
+        object = context.pose_object or context.edit_object or context.object
+        if not object:
+            layout.active = False
+            sub = layout.column(align=True)
+            sub.label(text="Cannot figure out which object this bone belongs to.")
+            sub.label(text="Please file a bug report.")
+            return
+
+        armature = object.data
+        is_solo_active = armature.collections.is_solo_active
 
         if not bone.collections:
             layout.active = False
@@ -275,8 +285,15 @@ class BONE_PT_collections(BoneButtonsPanel, Panel):
             # Name & visibility of bcoll. Safe things, so aligned together.
             row = bcoll_row.row(align=True)
             row.label(text=bcoll.name)
-            row.prop(bcoll, "is_visible", text="",
-                     icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
+
+            # Sub-layout that's dimmed when the bone collection's own visibility flag doesn't matter.
+            sub_visible = row.row(align=True)
+            sub_visible.active = (not is_solo_active) and bcoll.is_visible_ancestors
+            sub_visible.prop(bcoll, "is_visible", text="",
+                             icon='HIDE_OFF' if bcoll.is_visible else 'HIDE_ON')
+
+            row.prop(bcoll, "is_solo", text="",
+                     icon='SOLO_ON' if bcoll.is_solo else 'SOLO_OFF')
 
             # Unassignment operator, less safe so with a bit of spacing.
             props = bcoll_row.operator("armature.collection_unassign_named",
