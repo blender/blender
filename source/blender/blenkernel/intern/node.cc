@@ -4428,6 +4428,9 @@ const CPPType *socket_type_to_geo_nodes_base_cpp_type(const eNodeSocketDatatype 
     case SOCK_ROTATION:
       cpp_type = &CPPType::get<math::Quaternion>();
       break;
+    case SOCK_MATRIX:
+      cpp_type = &CPPType::get<float4x4>();
+      break;
     default:
       cpp_type = slow_socket_type_to_geo_nodes_base_cpp_type(type);
       break;
