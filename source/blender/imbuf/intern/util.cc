@@ -356,5 +356,5 @@ ImbAnimType imb_get_anim_type(const char *filepath)
 bool IMB_isanim(const char *filepath)
 {
   ImbAnimType type = imb_get_anim_type(filepath);
-  return (type != ImbAnimType::NotAnim && type != ImbAnimType::Sequence);
+  return !ELEM(type, ImbAnimType::NotAnim, ImbAnimType::Sequence);
 }

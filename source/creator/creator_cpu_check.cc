@@ -31,7 +31,7 @@ static void __cpuid(
 }
 #endif
 
-static int cpu_supports_sse42(void)
+static int cpu_supports_sse42()
 {
   int result[4], num;
   __cpuid(result, 0);
@@ -39,17 +39,17 @@ static int cpu_supports_sse42(void)
 
   if (num >= 1) {
     __cpuid(result, 0x00000001);
-    return (result[2] & ((int)1 << 20)) != 0;
+    return (result[2] & (int(1) << 20)) != 0;
   }
   return 0;
 }
 
-static const char *cpu_brand_string(void)
+static const char *cpu_brand_string()
 {
   static char buf[49] = {0};
   int result[4] = {0};
   __cpuid(result, 0x80000000);
-  if (result[0] >= (int)0x80000004) {
+  if (result[0] >= int(0x80000004)) {
     __cpuid((int *)(buf + 0), 0x80000002);
     __cpuid((int *)(buf + 16), 0x80000003);
     __cpuid((int *)(buf + 32), 0x80000004);
@@ -60,7 +60,7 @@ static const char *cpu_brand_string(void)
     }
     return buf_ptr;
   }
-  return NULL;
+  return nullptr;
 }
 
 #ifdef _MSC_VER
@@ -91,7 +91,7 @@ BOOL WINAPI DllMain(HINSTANCE /* hinstDLL */, DWORD fdwReason, LPVOID /* lpvRese
 #  include <cstdio>
 #  include <cstdlib>
 
-static __attribute__((constructor)) void cpu_check(void)
+static __attribute__((constructor)) void cpu_check()
 {
 #  ifdef __x86_64
   if (!cpu_supports_sse42()) {

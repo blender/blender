@@ -538,7 +538,7 @@ void layer_adjustments_to_modifiers(Main &bmain,
       STRNCPY(tmd->influence.layer_name, gpl->info);
 
       char modifier_name[64];
-      BLI_snprintf(modifier_name, 64, "Tint %s", gpl->info);
+      SNPRINTF(modifier_name, "Tint %s", gpl->info);
       STRNCPY(md->name, modifier_name);
       BKE_modifier_unique_name(&dst_object.modifiers, md);
 
@@ -558,7 +558,7 @@ void layer_adjustments_to_modifiers(Main &bmain,
       auto *md = reinterpret_cast<NodesModifierData *>(BKE_modifier_new(eModifierType_Nodes));
 
       char modifier_name[64];
-      BLI_snprintf(modifier_name, 64, "Thickness %s", gpl->info);
+      SNPRINTF(modifier_name, "Thickness %s", gpl->info);
       STRNCPY(md->modifier.name, modifier_name);
       BKE_modifier_unique_name(&dst_object.modifiers, &md->modifier);
       md->node_group = offset_radius_node_tree;
