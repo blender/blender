@@ -842,7 +842,7 @@
     .offset_mode = MOD_GREASE_PENCIL_OFFSET_RANDOM, \
     .loc = {0.0f, 0.0f, 0.0f}, \
     .rot = {0.0f, 0.0f, 0.0f}, \
-    .scale = {1.0f, 1.0f, 1.0f}, \
+    .scale = {0.0f, 0.0f, 0.0f}, \
     .stroke_step = 1, \
     .stroke_start_offset = 0, \
   }
