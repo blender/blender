@@ -83,6 +83,9 @@ class bUUID : public ::bUUID {
   /** Initialize by parsing the string; undefined behavior when the string is invalid. */
   explicit bUUID(const StringRefNull string_formatted_uuid);
 
+  /** Return the UUID as formatted ASCII string, see #BLI_uuid_format(). */
+  std::string str() const;
+
   uint64_t hash() const;
 };  // namespace blender
 

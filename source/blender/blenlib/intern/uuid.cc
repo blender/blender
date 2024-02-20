@@ -168,6 +168,13 @@ bUUID::bUUID(const ::bUUID &struct_uuid)
   *(static_cast<::bUUID *>(this)) = struct_uuid;
 }
 
+std::string bUUID::str() const
+{
+  std::string string(36, '\0');
+  BLI_uuid_format(string.data(), *this);
+  return string;
+}
+
 uint64_t bUUID::hash() const
 {
   /* Convert the struct into two 64-bit numbers, and XOR them to get the hash. */
