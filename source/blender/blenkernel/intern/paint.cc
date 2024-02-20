@@ -740,6 +740,7 @@ void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)
 
   AssetWeakReference weak_ref = std::move(*paint->brush_asset_reference);
   MEM_delete(paint->brush_asset_reference);
+  paint->brush_asset_reference = nullptr;
 
   Brush *brush_asset = BKE_brush_asset_runtime_ensure(bmain, weak_ref);
 

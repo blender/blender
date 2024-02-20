@@ -178,10 +178,10 @@ typedef struct AssetWeakReference {
 
 #ifdef __cplusplus
   AssetWeakReference();
+  AssetWeakReference(const AssetWeakReference &);
   AssetWeakReference(AssetWeakReference &&);
-  AssetWeakReference(const AssetWeakReference &) = delete;
-  ~AssetWeakReference();
   AssetWeakReference &operator=(AssetWeakReference &&);
+  ~AssetWeakReference();
 
   bool operator==(const AssetWeakReference &other) const;
   bool operator!=(const AssetWeakReference &other) const;

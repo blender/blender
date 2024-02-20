@@ -30,6 +30,13 @@ AssetWeakReference::AssetWeakReference()
 {
 }
 
+AssetWeakReference::AssetWeakReference(const AssetWeakReference &other)
+    : asset_library_type(other.asset_library_type),
+      asset_library_identifier(BLI_strdup_null(other.asset_library_identifier)),
+      relative_asset_identifier(BLI_strdup_null(other.relative_asset_identifier))
+{
+}
+
 AssetWeakReference::AssetWeakReference(AssetWeakReference &&other)
     : asset_library_type(other.asset_library_type),
       asset_library_identifier(other.asset_library_identifier),
