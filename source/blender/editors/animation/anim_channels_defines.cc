@@ -4566,7 +4566,7 @@ static bool achannel_is_broken(const bAnimListElem *ale)
       const FCurve *fcu = static_cast<const FCurve *>(ale->data);
 
       /* The channel is disabled (has a bad rna path), or it's a driver that failed to evaluate. */
-      return (ale->flag & FCURVE_DISABLED) ||
+      return (fcu->flag & FCURVE_DISABLED) ||
              (fcu->driver != nullptr && (fcu->driver->flag & DRIVER_FLAG_INVALID));
     }
     default:
