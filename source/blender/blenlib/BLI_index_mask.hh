@@ -17,6 +17,7 @@
 #include "BLI_task.hh"
 #include "BLI_unique_sorted_indices.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 #include "BLI_virtual_array_fwd.hh"
 
 namespace blender::index_mask {
@@ -231,6 +232,15 @@ class IndexMask : private IndexMaskData {
                           IndexMaskMemory &memory,
                           Fn &&get_group_index,
                           MutableSpan<IndexMask> r_masks);
+
+  /** Creates an index mask for every unique group id. */
+  static Vector<IndexMask, 4> from_group_ids(const VArray<int> &group_ids,
+                                             IndexMaskMemory &memory,
+                                             VectorSet<int> &r_index_by_group_id);
+  static Vector<IndexMask, 4> from_group_ids(const IndexMask &universe,
+                                             const VArray<int> &group_ids,
+                                             IndexMaskMemory &memory,
+                                             VectorSet<int> &r_index_by_group_id);
 
   int64_t size() const;
   bool is_empty() const;

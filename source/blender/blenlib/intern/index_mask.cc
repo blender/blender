@@ -1106,6 +1106,45 @@ bool operator==(const IndexMask &a, const IndexMask &b)
   return equals;
 }
 
+Vector<IndexMask, 4> IndexMask::from_group_ids(const IndexMask &universe,
+                                               const VArray<int> &group_ids,
+                                               IndexMaskMemory &memory,
+                                               VectorSet<int> &r_index_by_group_id)
+{
+  BLI_assert(group_ids.size() >= universe.min_array_size());
+  Vector<IndexMask, 4> result_masks;
+  if (const std::optional<int> single_group_id = group_ids.get_if_single()) {
+    /* Optimize for the case when all group ids are the same. */
+    const int64_t group_index = r_index_by_group_id.index_of_or_add(*single_group_id);
+    const int64_t groups_num = r_index_by_group_id.size();
+    result_masks.resize(groups_num);
+    result_masks[group_index] = universe;
+    return result_masks;
+  }
+
+  const VArraySpan<int> group_ids_span{group_ids};
+  universe.foreach_index([&](const int64_t i) { r_index_by_group_id.add(group_ids_span[i]); });
+  const int64_t groups_num = r_index_by_group_id.size();
+  result_masks.resize(groups_num);
+  IndexMask::from_groups<int>(
+      universe,
+      memory,
+      [&](const int64_t i) {
+        const int group_id = group_ids_span[i];
+        return r_index_by_group_id.index_of(group_id);
+      },
+      result_masks);
+  return result_masks;
+}
+
+Vector<IndexMask, 4> IndexMask::from_group_ids(const VArray<int> &group_ids,
+                                               IndexMaskMemory &memory,
+                                               VectorSet<int> &r_index_by_group_id)
+{
+  return IndexMask::from_group_ids(
+      IndexMask(group_ids.size()), group_ids, memory, r_index_by_group_id);
+}
+
 template IndexMask IndexMask::from_indices(Span<int32_t>, IndexMaskMemory &);
 template IndexMask IndexMask::from_indices(Span<int64_t>, IndexMaskMemory &);
 template void IndexMask::to_indices(MutableSpan<int32_t>) const;
