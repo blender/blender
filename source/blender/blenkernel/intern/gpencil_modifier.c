@@ -928,6 +928,7 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb)
       BLO_read_data_address(reader, &hmd->curfalloff);
       if (hmd->curfalloff) {
         BKE_curvemapping_blend_read(reader, hmd->curfalloff);
+        BKE_curvemapping_init(hmd->curfalloff);
       }
     }
     else if (md->type == eGpencilModifierType_Noise) {
