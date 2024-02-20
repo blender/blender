@@ -1614,6 +1614,24 @@ class USERPREF_UL_extension_repos(UIList):
 
         layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
 
+    def filter_items(self, _context, data, propname):
+        # Repositories has no index, converting to a list.
+        items = list(getattr(data, propname))
+
+        flags = [self.bitflag_filter_item] * len(items)
+
+        indices = [None] * len(items)
+        for index, orig_index in enumerate(sorted(
+            range(len(items)),
+            key=lambda i: (
+                items[i].use_remote_path is False,
+                items[i].name.lower(),
+            )
+        )):
+            indices[orig_index] = index
+
+        return flags, indices
+
 
 # -----------------------------------------------------------------------------
 # Save/Load Panels
