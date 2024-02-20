@@ -34,6 +34,71 @@ TEST(string_ref_null, CStringLengthConstructor)
   EXPECT_EQ(ref.data(), str);
 }
 
+TEST(string_ref_null, CompareEqual)
+{
+  StringRefNull ref1("test");
+  StringRefNull ref2("test");
+  StringRefNull ref3("other");
+  EXPECT_TRUE(ref1 == ref2);
+  EXPECT_FALSE(ref1 == ref3);
+  EXPECT_TRUE(ref1 != ref3);
+  EXPECT_FALSE(ref1 != ref2);
+}
+
+TEST(string_ref_null, CompareEqualCharPtr1)
+{
+  StringRefNull ref("test");
+  EXPECT_TRUE(ref == "test");
+  EXPECT_FALSE(ref == "other");
+  EXPECT_TRUE(ref != "other");
+  EXPECT_FALSE(ref != "test");
+}
+
+TEST(string_ref_null, CompareEqualCharPtr2)
+{
+  StringRefNull ref("test");
+  EXPECT_TRUE("test" == ref);
+  EXPECT_FALSE("other" == ref);
+  EXPECT_TRUE(ref != "other");
+  EXPECT_FALSE(ref != "test");
+}
+
+TEST(string_ref_null, CompareEqualString1)
+{
+  StringRefNull ref("test");
+  EXPECT_TRUE(ref == std::string("test"));
+  EXPECT_FALSE(ref == std::string("other"));
+  EXPECT_TRUE(ref != std::string("other"));
+  EXPECT_FALSE(ref != std::string("test"));
+}
+
+TEST(string_ref_null, CompareEqualString2)
+{
+  StringRefNull ref("test");
+  EXPECT_TRUE(std::string("test") == ref);
+  EXPECT_FALSE(std::string("other") == ref);
+  EXPECT_TRUE(std::string("other") != ref);
+  EXPECT_FALSE(std::string("test") != ref);
+}
+
+TEST(string_ref_null, CompareEqualStringRef1)
+{
+  StringRefNull ref("test");
+  EXPECT_TRUE(ref == StringRef("test"));
+  EXPECT_FALSE(ref == StringRef("other"));
+  EXPECT_TRUE(ref != StringRef("other"));
+  EXPECT_FALSE(ref != StringRef("test"));
+}
+
+TEST(string_ref_null, CompareEqualStringRef2)
+{
+  StringRefNull ref("test");
+  EXPECT_TRUE(StringRef("test") == ref);
+  EXPECT_FALSE(StringRef("other") == ref);
+  EXPECT_TRUE(StringRef("other") != ref);
+  EXPECT_FALSE(StringRef("test") != ref);
+}
+
 TEST(string_ref, DefaultConstructor)
 {
   StringRef ref;
