@@ -62,7 +62,7 @@ struct SplitGroups {
   VectorSet<int> group_ids;
 
   IndexMaskMemory memory;
-  Array<IndexMask> group_masks;
+  Vector<IndexMask> group_masks;
 };
 
 /**
@@ -90,24 +90,8 @@ struct SplitGroups {
     return true;
   }
 
-  const VArray<int> group_ids_varray = field_evaluator.get_evaluated<int>(0);
-  if (selection.size() == domain_size && group_ids_varray.is_single()) {
-    const int group_id = group_ids_varray.get_internal_single();
-    ensure_group_geometries(geometry_by_group_id, {group_id});
-    geometry_by_group_id.lookup(group_id)->add(src_component);
-    return true;
-  }
-
-  const VArraySpan<int> group_ids = group_ids_varray;
-  selection.foreach_index_optimized<int>(
-      [&](const int i) { r_groups.group_ids.add(group_ids[i]); });
-
-  r_groups.group_masks.reinitialize(r_groups.group_ids.size());
-  IndexMask::from_groups<int>(
-      selection,
-      r_groups.memory,
-      [&](const int i) { return r_groups.group_ids.index_of(group_ids[i]); },
-      r_groups.group_masks);
+  r_groups.group_masks = IndexMask::from_group_ids(
+      selection, field_evaluator.get_evaluated<int>(0), r_groups.memory, r_groups.group_ids);
 
   ensure_group_geometries(geometry_by_group_id, r_groups.group_ids);
   return false;
