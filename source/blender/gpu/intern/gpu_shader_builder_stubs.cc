@@ -178,13 +178,13 @@ extern "C" void ntreeGPUMaterialNodes(struct bNodeTree * /*localtree*/,
   BLI_assert_unreachable();
 }
 
-extern "C" struct bNodeTree *ntreeLocalize(struct bNodeTree * /*ntree*/)
+struct bNodeTree *ntreeLocalize(struct bNodeTree * /*ntree*/)
 {
   BLI_assert_unreachable();
   return nullptr;
 }
 
-extern "C" void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
+void ntreeFreeLocalTree(struct bNodeTree * /*ntree*/)
 {
   BLI_assert_unreachable();
 }
