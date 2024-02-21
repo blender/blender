@@ -84,20 +84,6 @@ bool AssetWeakReference::operator!=(const AssetWeakReference &other) const
   return !(*this == other);
 }
 
-AssetWeakReference *BKE_asset_weak_reference_copy(const AssetWeakReference *weak_ref)
-{
-  if (weak_ref == nullptr) {
-    return nullptr;
-  }
-
-  AssetWeakReference *weak_ref_copy = MEM_new<AssetWeakReference>(__func__);
-  weak_ref_copy->asset_library_type = weak_ref->asset_library_type;
-  weak_ref_copy->asset_library_identifier = BLI_strdup_null(weak_ref->asset_library_identifier);
-  weak_ref_copy->relative_asset_identifier = BLI_strdup_null(weak_ref->relative_asset_identifier);
-
-  return weak_ref_copy;
-}
-
 AssetWeakReference AssetWeakReference::make_reference(
     const asset_system::AssetLibrary &library,
     const asset_system::AssetIdentifier &asset_identifier)

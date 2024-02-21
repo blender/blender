@@ -1290,20 +1290,23 @@ void BKE_paint_free(Paint *paint)
   MEM_delete(paint->brush_asset_reference);
 }
 
-void BKE_paint_copy(const Paint *src, Paint *tar, const int flag)
+void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
 {
-  tar->brush = src->brush;
-  tar->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
-  tar->tool_slots = static_cast<PaintToolSlot *>(MEM_dupallocN(src->tool_slots));
+  dst->brush = src->brush;
+  dst->cavity_curve = BKE_curvemapping_copy(src->cavity_curve);
+  dst->tool_slots = static_cast<PaintToolSlot *>(MEM_dupallocN(src->tool_slots));
 
-  tar->brush_asset_reference = BKE_asset_weak_reference_copy(src->brush_asset_reference);
+  if (src->brush_asset_reference) {
+    dst->brush_asset_reference = MEM_new<AssetWeakReference>(__func__,
+                                                             *src->brush_asset_reference);
+  }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus((ID *)tar->brush);
-    id_us_plus((ID *)tar->palette);
+    id_us_plus((ID *)dst->brush);
+    id_us_plus((ID *)dst->palette);
     if (src->tool_slots != nullptr) {
-      for (int i = 0; i < tar->tool_slots_len; i++) {
-        id_us_plus((ID *)tar->tool_slots[i].brush);
+      for (int i = 0; i < dst->tool_slots_len; i++) {
+        id_us_plus((ID *)dst->tool_slots[i].brush);
       }
     }
   }

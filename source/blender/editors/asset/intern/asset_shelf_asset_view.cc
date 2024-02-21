@@ -40,7 +40,7 @@ namespace blender::ed::asset::shelf {
 class AssetView : public ui::AbstractGridView {
   const AssetLibraryReference library_ref_;
   const AssetShelf &shelf_;
-  AssetWeakReference *active_asset_ = nullptr;
+  std::optional<AssetWeakReference> active_asset_;
   /** Copy of the filter string from #AssetShelfSettings, with extra '*' added to the beginning and
    * end of the string, for `fnmatch()` to work. */
   char search_string[sizeof(AssetShelfSettings::search_string) + 2] = "";
@@ -96,14 +96,16 @@ AssetView::AssetView(const AssetLibraryReference &library_ref, const AssetShelf 
         search_string, shelf.settings.search_string, '*', sizeof(search_string));
   }
   if (shelf.type->get_active_asset) {
-    active_asset_ = BKE_asset_weak_reference_copy(shelf.type->get_active_asset(shelf.type));
+    if (const AssetWeakReference *weak_ref = shelf.type->get_active_asset(shelf.type)) {
+      active_asset_ = *weak_ref;
+    }
+    else {
+      active_asset_.reset();
+    }
   }
 }
 
-AssetView::~AssetView()
-{
-  MEM_delete(active_asset_);
-}
+AssetView::~AssetView() {}
 
 void AssetView::build_items()
 {
