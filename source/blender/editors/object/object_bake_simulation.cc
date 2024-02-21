@@ -19,6 +19,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_object.hh"
 #include "ED_screen.hh"
 
 #include "DNA_array_utils.hh"
@@ -214,6 +215,12 @@ static bool bake_simulation_poll(bContext *C)
   const StringRefNull path = BKE_main_blendfile_path(bmain);
   if (path.is_empty()) {
     CTX_wm_operator_poll_msg_set(C, "File must be saved before baking");
+    return false;
+  }
+  Object *ob = ED_object_active_context(C);
+  const bool use_frame_cache = ob->flag & OB_FLAG_USE_SIMULATION_CACHE;
+  if (!use_frame_cache) {
+    CTX_wm_operator_poll_msg_set(C, "Cache has to be enabled");
     return false;
   }
   return true;
