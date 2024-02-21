@@ -785,6 +785,7 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const Object &
     return true;
   };
   const AssetLibraryReference library = asset_system::all_library_reference();
+  asset_system::all_library_reload_catalogs_if_dirty();
   return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
 }
 

@@ -187,10 +187,17 @@ AssetLibrary *AssetLibraryService::get_asset_library_current_file()
   return lib;
 }
 
-void AssetLibraryService::rebuild_all_library()
+void AssetLibraryService::tag_all_library_catalogs_dirty()
 {
   if (all_library_) {
-    all_library_->rebuild_catalogs_from_nested(false);
+    all_library_->tag_catalogs_dirty();
+  }
+}
+
+void AssetLibraryService::reload_all_library_catalogs_if_dirty()
+{
+  if (all_library_ && all_library_->is_catalogs_dirty()) {
+    all_library_->refresh_catalogs();
   }
 }
 

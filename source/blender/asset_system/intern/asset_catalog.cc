@@ -238,7 +238,7 @@ void AssetCatalogService::prune_catalogs_by_path(const AssetCatalogPath &path)
   }
 
   this->rebuild_tree();
-  AssetLibraryService::get()->rebuild_all_library();
+  AssetLibraryService::get()->tag_all_library_catalogs_dirty();
 }
 
 void AssetCatalogService::prune_catalogs_by_id(const CatalogID catalog_id)
@@ -273,7 +273,7 @@ void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
   }
 
   this->rebuild_tree();
-  AssetLibraryService::get()->rebuild_all_library();
+  AssetLibraryService::get()->tag_all_library_catalogs_dirty();
 }
 
 AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalog_path)
@@ -299,8 +299,7 @@ AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalo
 
   BLI_assert_msg(catalog_tree_, "An Asset Catalog tree should always exist.");
   catalog_tree_->insert_item(*catalog_ptr);
-
-  AssetLibraryService::get()->rebuild_all_library();
+  AssetLibraryService::get()->tag_all_library_catalogs_dirty();
 
   return catalog_ptr;
 }
@@ -655,7 +654,7 @@ void AssetCatalogService::undo()
   redo_snapshots_.append(std::move(catalog_collection_));
   catalog_collection_ = undo_snapshots_.pop_last();
   this->rebuild_tree();
-  AssetLibraryService::get()->rebuild_all_library();
+  AssetLibraryService::get()->tag_all_library_catalogs_dirty();
 }
 
 void AssetCatalogService::redo()
@@ -666,7 +665,7 @@ void AssetCatalogService::redo()
   undo_snapshots_.append(std::move(catalog_collection_));
   catalog_collection_ = redo_snapshots_.pop_last();
   this->rebuild_tree();
-  AssetLibraryService::get()->rebuild_all_library();
+  AssetLibraryService::get()->tag_all_library_catalogs_dirty();
 }
 
 void AssetCatalogService::undo_push()
