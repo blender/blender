@@ -50,7 +50,7 @@ static bool all_loading_finished()
 
 static asset::AssetItemTree build_catalog_tree(const bContext &C)
 {
-  AssetFilterSettings type_filter{};
+  asset::AssetFilterSettings type_filter{};
   type_filter.id_types = FILTER_ID_NT;
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");

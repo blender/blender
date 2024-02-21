@@ -23,7 +23,6 @@
 /* Struct Declarations */
 
 struct ARegion;
-struct AssetFilterSettings;
 struct AutoComplete;
 struct EnumPropertyItem;
 struct FileSelectParams;
@@ -68,6 +67,9 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmRegionListenerParams;
 struct wmWindow;
+namespace blender::ed::asset {
+struct AssetFilterSettings;
+}
 
 struct uiBlock;
 struct uiBut;
@@ -2690,7 +2692,7 @@ void uiTemplateAssetView(uiLayout *layout,
                          const char *assets_propname,
                          PointerRNA *active_dataptr,
                          const char *active_propname,
-                         const AssetFilterSettings *filter_settings,
+                         const blender::ed::asset::AssetFilterSettings *filter_settings,
                          int display_flags,
                          const char *activate_opname,
                          PointerRNA *r_activate_op_properties,
