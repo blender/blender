@@ -10,6 +10,7 @@
 
 #include "DNA_anim_types.h"
 
+#include "BLI_function_ref.hh"
 #include "BLI_ghash.h"
 #include "BLI_linklist_stack.h"
 #include "BLI_listbase.h"
@@ -600,7 +601,7 @@ void BKE_library_ID_test_usages(Main *bmain,
  * user feedback ('what would be the amounts of IDs detected as unused if this option was
  * enabled').
  */
-struct UnusedIdsData {
+struct UnusedIDsData {
   Main *bmain;
 
   const int id_tag;
@@ -609,11 +610,25 @@ struct UnusedIdsData {
   bool do_linked_ids;
   bool do_recursive;
 
+  blender::FunctionRef<bool(ID *id)> filter_fn;
+
   std::array<int, INDEX_ID_MAX> *num_total;
   std::array<int, INDEX_ID_MAX> *num_local;
   std::array<int, INDEX_ID_MAX> *num_linked;
 
   blender::Set<ID *> unused_ids{};
+
+  UnusedIDsData(Main *bmain, const int id_tag, LibQueryUnusedIDsData &parameters)
+      : bmain(bmain),
+        id_tag(id_tag),
+        do_local_ids(parameters.do_local_ids),
+        do_linked_ids(parameters.do_linked_ids),
+        do_recursive(parameters.do_recursive),
+        num_total(&parameters.num_total),
+        num_local(&parameters.num_local),
+        num_linked(&parameters.num_linked)
+  {
+  }
 
   void reset(const bool do_local_ids,
              const bool do_linked_ids,
@@ -632,8 +647,11 @@ struct UnusedIdsData {
   }
 };
 
-static void lib_query_unused_ids_tag_id(ID *id, UnusedIdsData &data)
+static void lib_query_unused_ids_tag_id(ID *id, UnusedIDsData &data)
 {
+  if (data.filter_fn && !data.filter_fn(id)) {
+    return;
+  }
   id->tag |= data.id_tag;
   data.unused_ids.add(id);
 
@@ -652,7 +670,7 @@ static void lib_query_unused_ids_tag_id(ID *id, UnusedIdsData &data)
 
 /* Returns `true` if given ID is detected as part of at least one dependency loop, false otherwise.
  */
-static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIdsData &data)
+static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIDsData &data)
 {
   /* We should never deal with embedded, not-in-main IDs here. */
   BLI_assert((id->flag & LIB_EMBEDDED_DATA) == 0);
@@ -764,7 +782,7 @@ static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIdsData &data)
   return is_part_of_dependency_loop;
 }
 
-static void lib_query_unused_ids_tag(UnusedIdsData &data)
+static void lib_query_unused_ids_tag(UnusedIDsData &data)
 {
   BKE_main_relations_tag_set(data.bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
 
@@ -851,15 +869,14 @@ void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parame
    * this call.
    */
 
-  UnusedIdsData data{
-      bmain,
-      0,
-      true,
-      parameters.do_linked_ids,
-      parameters.do_recursive,
-      parameters.do_local_ids ? &parameters.num_total : &num_dummy,
-      &parameters.num_local,
-      (parameters.do_local_ids && parameters.do_linked_ids) ? &parameters.num_linked : &num_dummy};
+  UnusedIDsData data(bmain, 0, parameters);
+  data.do_local_ids = true;
+  if (!parameters.do_local_ids) {
+    data.num_total = &num_dummy;
+  }
+  if (!(parameters.do_local_ids && parameters.do_linked_ids)) {
+    data.num_linked = &num_dummy;
+  }
   lib_query_unused_ids_tag(data);
 
   if (!(parameters.do_local_ids && parameters.do_linked_ids)) {
@@ -887,14 +904,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain, const int tag, LibQueryUnusedIDsD
   parameters.num_local.fill(0);
   parameters.num_linked.fill(0);
 
-  UnusedIdsData data{bmain,
-                     tag,
-                     parameters.do_local_ids,
-                     parameters.do_linked_ids,
-                     parameters.do_recursive,
-                     &parameters.num_total,
-                     &parameters.num_local,
-                     &parameters.num_linked};
+  UnusedIDsData data(bmain, tag, parameters);
 
   if (parameters.do_recursive) {
     BKE_main_relations_create(bmain, 0);
