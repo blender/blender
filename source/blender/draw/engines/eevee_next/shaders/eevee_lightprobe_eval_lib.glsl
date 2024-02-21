@@ -74,7 +74,7 @@ vec3 lightprobe_spherical_sample_normalized_with_parallax(
 
 float pdf_to_lod(float pdf)
 {
-  return 1.0; /* TODO */
+  return 0.0; /* TODO */
 }
 
 vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float pdf)
