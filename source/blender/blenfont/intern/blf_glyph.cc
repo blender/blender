@@ -91,7 +91,7 @@ static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font)
 
 static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
-  std::unique_ptr<GlyphCacheBLF> gc = std::make_unique<GlyphCacheBLF>(GlyphCacheBLF{});
+  std::unique_ptr<GlyphCacheBLF> gc = std::make_unique<GlyphCacheBLF>();
 
   gc->size = font->size;
   gc->bold = ((font->flags & BLF_BOLD) != 0);
@@ -100,8 +100,6 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   gc->char_slant = font->char_slant;
   gc->char_width = font->char_width;
   gc->char_spacing = font->char_spacing;
-
-  memset(gc->bucket, 0, sizeof(gc->bucket));
 
   blf_ensure_size(font);
 
@@ -146,11 +144,7 @@ void blf_glyph_cache_release(FontBLF *font)
 
 GlyphCacheBLF::~GlyphCacheBLF()
 {
-  for (uint i = 0; i < ARRAY_SIZE(this->bucket); i++) {
-    while (GlyphBLF *g = static_cast<GlyphBLF *>(BLI_pophead(&this->bucket[i]))) {
-      blf_glyph_free(g);
-    }
-  }
+  this->glyphs.clear_and_shrink();
   if (this->texture) {
     GPU_texture_free(this->texture);
   }
@@ -174,12 +168,10 @@ static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc,
                                             uint charcode,
                                             uint8_t subpixel)
 {
-  GlyphBLF *g = static_cast<GlyphBLF *>(gc->bucket[blf_hash(charcode << 6 | subpixel)].first);
-  while (g) {
-    if (g->c == charcode && g->subpixel == subpixel) {
-      return g;
-    }
-    g = g->next;
+  const std::unique_ptr<GlyphBLF> *ptr = gc->glyphs.lookup_ptr_as(
+      GlyphCacheKey{charcode, subpixel});
+  if (ptr != nullptr) {
+    return ptr->get();
   }
   return nullptr;
 }
@@ -231,7 +223,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(FontBLF *font,
                                            FT_UInt glyph_index,
                                            uint8_t subpixel)
 {
-  GlyphBLF *g = (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_get");
+  std::unique_ptr<GlyphBLF> g = std::make_unique<GlyphBLF>();
   g->c = charcode;
   g->idx = glyph_index;
   g->advance_x = (ft_pix)glyph->advance.x;
@@ -344,9 +336,9 @@ static GlyphBLF *blf_glyph_cache_add_glyph(FontBLF *font,
     }
   }
 
-  BLI_addhead(&(gc->bucket[blf_hash(g->c << 6 | subpixel)]), g);
-
-  return g;
+  GlyphCacheKey key = {charcode, subpixel};
+  gc->glyphs.add(key, std::move(g));
+  return gc->glyphs.lookup(key).get();
 }
 
 /** \} */
@@ -1326,12 +1318,11 @@ GlyphBLF *blf_glyph_ensure_subpixel(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *
 }
 #endif
 
-void blf_glyph_free(GlyphBLF *g)
+GlyphBLF::~GlyphBLF()
 {
-  if (g->bitmap) {
-    MEM_freeN(g->bitmap);
+  if (this->bitmap) {
+    MEM_freeN(this->bitmap);
   }
-  MEM_freeN(g);
 }
 
 /** \} */

@@ -54,8 +54,6 @@ extern struct FontBLF *global_font[BLF_MAX_FONT];
 void blf_batch_draw_begin(struct FontBLF *font);
 void blf_batch_draw(void);
 
-unsigned int blf_next_p2(unsigned int x);
-unsigned int blf_hash(unsigned int val);
 /**
  * Some font have additional file with metrics information,
  * in general, the extension of the file is: `.afm` or `.pfm`
@@ -200,7 +198,6 @@ float blf_character_to_curves(FontBLF *font,
                               struct ListBase *nurbsbase,
                               const float scale);
 
-void blf_glyph_free(struct GlyphBLF *g);
 void blf_glyph_draw(
     struct FontBLF *font, struct GlyphCacheBLF *gc, struct GlyphBLF *g, int x, int y);
 
