@@ -20,6 +20,7 @@ ccl_device float fresnel_dielectric(float cos_theta_i, float eta, ccl_private fl
   const float eta_cos_theta_t_sq = sqr(eta) - (1.0f - sqr(cos_theta_i));
   if (eta_cos_theta_t_sq <= 0) {
     /* Total internal reflection. */
+    *r_cos_theta_t = 0.0f;
     return 1.0f;
   }
 
