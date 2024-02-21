@@ -1894,7 +1894,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     if (lib->id.tag & LIB_TAG_DOIT) {
       id_us_clear_real(&lib->id);
       if (lib->id.us == 0) {
-        BKE_id_free(bmain, (ID *)lib);
+        BKE_id_delete(bmain, lib);
       }
     }
   }
