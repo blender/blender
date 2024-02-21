@@ -279,7 +279,7 @@ eSnapMode SnapData::snap_edge_points_impl(SnapObjectContext *sctx,
       if (lambda < (range) || (1.0f - range) < lambda) {
         int v_id = lambda < 0.5f ? 0 : 1;
 
-        if (this->snap_point(v_pair[v_id], v_id)) {
+        if (this->snap_point(v_pair[v_id], vindex[v_id])) {
           elem = SCE_SNAP_TO_EDGE_ENDPOINT;
           this->copy_vert_no(vindex[v_id], this->nearest_point.no);
         }
