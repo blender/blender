@@ -85,6 +85,8 @@ bUserExtensionRepo *BKE_preferences_extension_repo_add(UserDef *userdef,
                                                        const char *module,
                                                        const char *custom_dirpath);
 void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo *repo);
+bUserExtensionRepo *BKE_preferences_extension_repo_add_default(UserDef *userdef);
+bUserExtensionRepo *BKE_preferences_extension_repo_add_default_user(UserDef *userdef);
 
 void BKE_preferences_extension_repo_name_set(UserDef *userdef,
                                              bUserExtensionRepo *repo,

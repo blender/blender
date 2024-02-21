@@ -935,6 +935,17 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len)
   BLF_draw_buffer_ex(fontid, str, str_len, nullptr);
 }
 
+blender::Vector<blender::StringRef> BLF_string_wrap(int fontid,
+                                                    blender::StringRef str,
+                                                    const int max_pixel_width)
+{
+  FontBLF *font = blf_get(fontid);
+  if (!font) {
+    return {};
+  }
+  return blf_font_string_wrap(font, str, max_pixel_width);
+}
+
 char *BLF_display_name_from_file(const char *filepath)
 {
   /* While listing font directories this function can be called simultaneously from a greater

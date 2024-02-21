@@ -32,16 +32,19 @@ void HueSaturationValueCorrectOperation::execute_pixel_sampled(float output[4],
 
   input_program_->read_sampled(hsv, x, y, sampler);
 
+  /* We parametrize the curve using the hue value. */
+  const float parameter = hsv[0];
+
   /* adjust hue, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(curve_mapping_, 0, hsv[0]);
+  f = BKE_curvemapping_evaluateF(curve_mapping_, 0, parameter);
   hsv[0] += f - 0.5f;
 
   /* adjust saturation, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(curve_mapping_, 1, hsv[0]);
+  f = BKE_curvemapping_evaluateF(curve_mapping_, 1, parameter);
   hsv[1] *= (f * 2.0f);
 
   /* adjust value, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(curve_mapping_, 2, hsv[0]);
+  f = BKE_curvemapping_evaluateF(curve_mapping_, 2, parameter);
   hsv[2] *= (f * 2.0f);
 
   hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */
@@ -67,16 +70,19 @@ void HueSaturationValueCorrectOperation::update_memory_buffer_partial(MemoryBuff
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     copy_v4_v4(hsv, it.in(0));
 
+    /* We parametrize the curve using the hue value. */
+    const float parameter = hsv[0];
+
     /* Adjust hue, scaling returned default 0.5 up to 1. */
-    float f = BKE_curvemapping_evaluateF(curve_mapping_, 0, hsv[0]);
+    float f = BKE_curvemapping_evaluateF(curve_mapping_, 0, parameter);
     hsv[0] += f - 0.5f;
 
     /* Adjust saturation, scaling returned default 0.5 up to 1. */
-    f = BKE_curvemapping_evaluateF(curve_mapping_, 1, hsv[0]);
+    f = BKE_curvemapping_evaluateF(curve_mapping_, 1, parameter);
     hsv[1] *= (f * 2.0f);
 
     /* Adjust value, scaling returned default 0.5 up to 1. */
-    f = BKE_curvemapping_evaluateF(curve_mapping_, 2, hsv[0]);
+    f = BKE_curvemapping_evaluateF(curve_mapping_, 2, parameter);
     hsv[2] *= (f * 2.0f);
 
     hsv[0] = hsv[0] - floorf(hsv[0]); /* Mod 1.0. */

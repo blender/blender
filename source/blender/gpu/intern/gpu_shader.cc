@@ -596,7 +596,7 @@ void GPU_shader_constant_bool_ex(GPUShader *sh, int location, bool value)
   Shader &shader = *unwrap(sh);
   BLI_assert(shader.constants.types[location] == gpu::shader::Type::BOOL);
   shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].u,
-                                                   static_cast<uint32_t>(value));
+                                                   uint32_t(value));
 }
 
 void GPU_shader_constant_int(GPUShader *sh, const char *name, int value)

@@ -25,7 +25,12 @@ if EXIST %PYTHON% (
 )
 
 if NOT EXIST %PYTHON% (
-    echo Warning: Python not found, there is likely an issue with the library folder
+    REM Only emit this warning when the library folder exists but the
+    REM python folder does not. As we don't want to concern people that
+    REM run make update for the first time. 
+    if EXIST %BLENDER_DIR%\..\lib\win64_vc15 (
+      echo Warning: Python not found, there is likely an issue with the library folder
+    )
     set PYTHON=""
 )
 
