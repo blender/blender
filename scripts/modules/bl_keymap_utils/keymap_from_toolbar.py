@@ -107,10 +107,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
         kmi_hack_properties = kmi_hack.properties
         kmi_hack.active = False
 
-        kmi_hack_brush_select = keymap.keymap_items.new("paint.brush_select", 'NONE', 'PRESS')
-        kmi_hack_brush_select_properties = kmi_hack_brush_select.properties
-        kmi_hack_brush_select.active = False
-
     if use_release_confirm or use_tap_reset:
         kmi_toolbar = wm.keyconfigs.find_item_from_operator(
             idname="wm.toolbar",
@@ -168,46 +164,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
                 properties=kmi_hack_properties,
                 include={'KEYBOARD'},
             )[1]
-
-            if kmi_found is None:
-                if item.data_block:
-                    # PAINT_OT_brush_select
-                    mode = context.active_object.mode
-                    # See: BKE_paint_get_tool_prop_id_from_paintmode
-                    if space_type == 'IMAGE_EDITOR':
-                        if context.space_data.mode == 'PAINT':
-                            attr = "image_tool"
-                        else:
-                            attr = None
-                    elif space_type == 'VIEW_3D':
-                        attr = {
-                            'SCULPT': "sculpt_tool",
-                            'VERTEX_PAINT': "vertex_tool",
-                            'WEIGHT_PAINT': "weight_tool",
-                            'TEXTURE_PAINT': "image_tool",
-                            'PAINT_GPENCIL': "gpencil_tool",
-                            'VERTEX_GPENCIL': "gpencil_vertex_tool",
-                            'SCULPT_GPENCIL': "gpencil_sculpt_tool",
-                            'WEIGHT_GPENCIL': "gpencil_weight_tool",
-                            'SCULPT_CURVES': "curves_sculpt_tool",
-                        }.get(mode, None)
-                    else:
-                        attr = None
-
-                    if attr is not None:
-                        setattr(kmi_hack_brush_select_properties, attr, item.data_block)
-                        kmi_found = wm.keyconfigs.find_item_from_operator(
-                            idname="paint.brush_select",
-                            context='INVOKE_REGION_WIN',
-                            properties=kmi_hack_brush_select_properties,
-                            include={'KEYBOARD'},
-                        )[1]
-                    elif mode in {'EDIT', 'PARTICLE_EDIT', 'SCULPT_GPENCIL'}:
-                        # Doesn't use brushes
-                        pass
-                    else:
-                        print("Unsupported mode:", mode)
-                    del mode, attr
 
         else:
             kmi_found = None

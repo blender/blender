@@ -559,43 +559,12 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
     /* There are different kinds of shortcuts:
      *
      * - Direct access to the tool (as if the toolbar button is pressed).
-     * - The key is bound to a brush type (not the exact brush name).
      * - The key is assigned to the operator itself
      *   (bypassing the tool, executing the operator).
      *
      * Either way case it's useful to show the shortcut.
      */
     std::string shortcut = UI_but_string_get_operator_keymap(*C, *but);
-
-    if (shortcut.empty()) {
-      const PaintMode paint_mode = BKE_paintmode_get_active_from_context(C);
-      const char *tool_attr = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
-      if (tool_attr != nullptr) {
-        const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-        const char *tool_id_lstrip = strrchr(tool_id, '.');
-        const int tool_id_offset = tool_id_lstrip ? ((tool_id_lstrip - tool_id) + 1) : 0;
-        const int i = RNA_enum_from_name(items, tool_id + tool_id_offset);
-
-        if (i != -1) {
-          wmOperatorType *ot = WM_operatortype_find("paint.brush_select", true);
-          PointerRNA op_props;
-          WM_operator_properties_create_ptr(&op_props, ot);
-          RNA_enum_set(&op_props, tool_attr, items[i].value);
-
-          /* Check for direct access to the tool. */
-          if (std::optional<std::string> shortcut_brush = WM_key_event_operator_string(
-                  C,
-                  ot->idname,
-                  WM_OP_INVOKE_REGION_WIN,
-                  static_cast<IDProperty *>(op_props.data),
-                  true))
-          {
-            shortcut = *shortcut_brush;
-          }
-          WM_operator_properties_free(&op_props);
-        }
-      }
-    }
 
     if (shortcut.empty()) {
       /* Check for direct access to the tool. */
