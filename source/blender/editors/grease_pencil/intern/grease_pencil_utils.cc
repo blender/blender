@@ -234,14 +234,24 @@ static Array<int> get_frame_numbers_for_layer(const bke::greasepencil::Layer &la
                                               const int current_frame,
                                               const bool use_multi_frame_editing)
 {
-  Vector<int> frame_numbers({current_frame});
+  Vector<int> frame_numbers;
   if (use_multi_frame_editing) {
+    bool current_frame_is_covered = false;
+    const int drawing_index_at_current_frame = layer.drawing_index_at(current_frame);
     for (const auto [frame_number, frame] : layer.frames().items()) {
-      if (frame_number != current_frame && frame.is_selected()) {
-        frame_numbers.append_unchecked(frame_number);
+      if (!frame.is_selected()) {
+        continue;
       }
+      frame_numbers.append(frame_number);
+      current_frame_is_covered |= (frame.drawing_index == drawing_index_at_current_frame);
+    }
+    if (current_frame_is_covered) {
+      return frame_numbers.as_span();
     }
   }
+
+  frame_numbers.append(current_frame);
+
   return frame_numbers.as_span();
 }
 

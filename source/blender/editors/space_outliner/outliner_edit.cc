@@ -2163,7 +2163,10 @@ static int unused_message_popup_width_compute(bContext *C)
   /* Computation of unused data amounts, with all options ON.
    * Used to estimate the maximum required width for the dialog. */
   Main *bmain = CTX_data_main(C);
-  LibQueryUnusedIDsData data = {true, true, true, {}, {}, {}};
+  LibQueryUnusedIDsData data;
+  data.do_local_ids = true;
+  data.do_linked_ids = true;
+  data.do_recursive = true;
   BKE_lib_query_unused_ids_amounts(bmain, data);
 
   std::string unused_message = "";
