@@ -4498,13 +4498,13 @@ static void read_library_linked_id(
     read_libblock(fd, mainvar, bhead, id->tag, false, r_id);
   }
   else {
-    BLO_reportf_wrap(basefd->reports,
-                     RPT_INFO,
-                     RPT_("LIB: %s: '%s' missing from '%s', parent '%s'"),
-                     BKE_idtype_idcode_to_name(GS(id->name)),
-                     id->name + 2,
-                     mainvar->curlib->filepath_abs,
-                     library_parent_filepath(mainvar->curlib));
+    CLOG_INFO(&LOG,
+              3,
+              "LIB: %s: '%s' missing from '%s', parent '%s'",
+              BKE_idtype_idcode_to_name(GS(id->name)),
+              id->name + 2,
+              mainvar->curlib->filepath_abs,
+              library_parent_filepath(mainvar->curlib));
     basefd->reports->count.missing_linked_id++;
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */
