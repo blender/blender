@@ -2666,6 +2666,56 @@ static bool lib_override_library_resync(Main *bmain,
   return success;
 }
 
+/** Clenup: Remove unused 'place holder' linked IDs. */
+static void lib_override_cleanup_after_resync(Main *bmain)
+{
+  LibQueryUnusedIDsData parameters;
+  parameters.do_local_ids = true;
+  parameters.do_linked_ids = true;
+  parameters.do_recursive = true;
+  parameters.filter_fn = [](const ID *id) -> bool {
+    if (ID_IS_LINKED(id) && (id->tag & LIB_TAG_MISSING) != 0) {
+      return true;
+    }
+    /* This is a fairly complex case.
+     *
+     * LibOverride resync process takes care of removing 'no more valid' liboverrides (see at the
+     * end of #lib_override_library_main_resync_on_library_indirect_level). However, since it does
+     * not resync data which linked reference is missing (see
+     * #lib_override_library_main_resync_id_skip_check), these are kept 'as is'. Indeed,
+     * liboverride resync code cannot know if a specific liboverride data is only part of its
+     * hierarchy, or if it is also used by some other data (in which case it should be preserved if
+     * the linked reference goes missing).
+     *
+     * So instead, we consider these cases as also valid candidates for deletion here, since the
+     * whole recursive process in `BKE_lib_query_unused_ids_tag` will ensure that if there is still
+     * any valid user of these, they won't get tagged for deletion.
+     *
+     * Also, do not delete 'orphaned' liboverrides if it's a hierarchy root, or if its hierarchy
+     * root's reference is missing, since this is much more likely a case of actual missing data,
+     * rather than changes in the liboverride's hierarchy in the linked data.
+     */
+    if (ID_IS_OVERRIDE_LIBRARY(id)) {
+      const IDOverrideLibrary *override_library = BKE_lib_override_library_get(
+          nullptr, id, nullptr, nullptr);
+      const ID *root = override_library->hierarchy_root;
+      if (root == id || (root->override_library->reference->tag & LIB_TAG_MISSING) != 0) {
+        return false;
+      }
+      return ((override_library->reference->tag & LIB_TAG_MISSING) != 0);
+    }
+    return false;
+  };
+  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, parameters);
+  CLOG_INFO(&LOG_RESYNC,
+            2,
+            "Deleting %d unused linked missing IDs and their unused liboverrides (including %d "
+            "local ones)\n",
+            parameters.num_total[INDEX_ID_NULL],
+            parameters.num_local[INDEX_ID_NULL]);
+  BKE_id_multi_tagged_delete(bmain);
+}
+
 bool BKE_lib_override_library_resync(Main *bmain,
                                      Scene *scene,
                                      ViewLayer *view_layer,
@@ -2697,6 +2747,8 @@ bool BKE_lib_override_library_resync(Main *bmain,
   /* Cleanup global namemap, to avoid extra processing with regular ID name management. Better to
    * re-create the global namemap on demand. */
   BKE_main_namemap_destroy(&bmain->name_map_global);
+
+  lib_override_cleanup_after_resync(bmain);
 
   return success;
 }
@@ -3664,6 +3716,8 @@ void BKE_lib_override_library_main_resync(Main *bmain,
   /* Cleanup global namemap, to avoid extra processing with regular ID name management. Better to
    * re-create the global namemap on demand. */
   BKE_main_namemap_destroy(&bmain->name_map_global);
+
+  lib_override_cleanup_after_resync(bmain);
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 }
