@@ -717,7 +717,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
 
     wtt = refract_angle(-wt, wh2, cos_theta_t2, bsdf->eta);
 
-    if (dot(wmt, -wtt) > 0.0f && cos_theta_t2 != 0.0f && microfacet_visible(-wtt, wmt_, wh2)) {
+    if (dot(wmt, -wtt) > 0.0f && T2 > 0.0f && microfacet_visible(-wtt, wmt_, wh2)) {
       TT = bsdf->extra->TT * T1 * A_t * T2 * scale2 * bsdf_Go(roughness2, cos_mi2, dot(wmt, -wtt));
     }
 
@@ -746,9 +746,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
 
       const float T3 = 1.0f - R3;
 
-      if (cos_theta_t3 != 0.0f &&
-          microfacet_visible(wtr, -wtrt, make_float3(wmtr.x, 0.0f, wmtr.z), wh3))
-      {
+      if (T3 > 0.0f && microfacet_visible(wtr, -wtrt, make_float3(wmtr.x, 0.0f, wmtr.z), wh3)) {
         TRT = bsdf->extra->TRT * TR * make_spectrum(T3) *
               bsdf_Go(roughness2, cos_mi3, dot(wmtr, -wtrt));
       }
