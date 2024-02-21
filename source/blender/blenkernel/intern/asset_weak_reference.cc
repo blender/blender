@@ -78,10 +78,10 @@ bool operator==(const AssetWeakReference &a, const AssetWeakReference &b)
   if (a.asset_library_type != b.asset_library_type) {
     return false;
   }
-  if (!STREQ(a.asset_library_identifier, b.asset_library_identifier)) {
+  if (StringRef(a.asset_library_identifier) != StringRef(b.asset_library_identifier)) {
     return false;
   }
-  if (!STREQ(a.relative_asset_identifier, b.relative_asset_identifier)) {
+  if (StringRef(a.relative_asset_identifier) != StringRef(b.relative_asset_identifier)) {
     return false;
   }
   return true;
