@@ -1225,6 +1225,9 @@ UserDef *BKE_blendfile_userdef_from_defaults()
 
   BKE_preferences_asset_library_default_add(userdef);
 
+  BKE_preferences_extension_repo_add_default(userdef);
+  BKE_preferences_extension_repo_add_default_user(userdef);
+
   return userdef;
 }
 
