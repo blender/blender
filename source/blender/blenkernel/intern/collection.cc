@@ -238,7 +238,6 @@ static ID **collection_owner_pointer_get(ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
   }
-  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
