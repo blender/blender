@@ -67,21 +67,18 @@ AssetWeakReference &AssetWeakReference::operator=(AssetWeakReference &&other)
   return *this;
 }
 
-bool AssetWeakReference::operator==(const AssetWeakReference &other) const
+bool operator==(const AssetWeakReference &a, const AssetWeakReference &b)
 {
-  if (asset_library_type != other.asset_library_type) {
+  if (a.asset_library_type != b.asset_library_type) {
     return false;
   }
-  if (StringRef(asset_library_identifier) != StringRef(other.asset_library_identifier)) {
+  if (!STREQ(a.asset_library_identifier, b.asset_library_identifier)) {
     return false;
   }
-
-  return StringRef(relative_asset_identifier) == StringRef(other.relative_asset_identifier);
-}
-
-bool AssetWeakReference::operator!=(const AssetWeakReference &other) const
-{
-  return !(*this == other);
+  if (!STREQ(a.relative_asset_identifier, b.relative_asset_identifier)) {
+    return false;
+  }
+  return true;
 }
 
 AssetWeakReference AssetWeakReference::make_reference(
