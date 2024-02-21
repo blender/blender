@@ -174,43 +174,6 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
         }
       }
     }
-    else {
-      const PaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
-      BLI_assert(paint_mode != PaintMode::Invalid);
-      const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-      BLI_assert(items != nullptr);
-
-      const int i = items ? RNA_enum_from_identifier(items, tref_rt->data_block) : -1;
-      if (i != -1) {
-        const int slot_index = items[i].value;
-        wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
-        LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-          if (workspace == WM_window_get_active_workspace(win)) {
-            Scene *scene = WM_window_get_active_scene(win);
-            BKE_paint_ensure_from_paintmode(bmain, scene, paint_mode);
-            Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-            Brush *brush = BKE_paint_toolslots_brush_get(paint, slot_index);
-            if (brush == nullptr) {
-              /* Could make into a function. */
-              brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, items[i].name);
-              if (brush && slot_index == BKE_brush_tool_get(brush, paint)) {
-                /* pass */
-              }
-              else {
-                brush = BKE_brush_add(bmain, items[i].name, eObjectMode(paint->runtime.ob_mode));
-
-                BKE_brush_tool_set(brush, paint, slot_index);
-
-                if (paint_mode == PaintMode::Sculpt) {
-                  BKE_brush_sculpt_reset(brush);
-                }
-              }
-            }
-            BKE_paint_brush_set(paint, brush);
-          }
-        }
-      }
-    }
   }
 }
 
