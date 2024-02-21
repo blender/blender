@@ -2579,7 +2579,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_brush_uv_sculpt_tool_items);
-  RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+  RNA_def_property_ui_text(prop, "UV Sculpt Tool", "");
   RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
 
   prop = RNA_def_property(srna, "vertex_tool", PROP_ENUM, PROP_NONE);
