@@ -774,7 +774,7 @@ static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Drag & Drop
+/** \name Drag & Drop URL
  * \{ */
 
 static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
@@ -813,6 +813,39 @@ static void drop_extension_url_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *d
   RNA_string_set(drop->ptr, "url", str.c_str());
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drag & Drop Paths
+ * \{ */
+
+static bool drop_extension_path_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  if (!U.experimental.use_extension_repos) {
+    return false;
+  }
+  if (drag->type != WM_DRAG_PATH) {
+    return false;
+  }
+
+  const char *cstr = WM_drag_get_single_path(drag);
+  const char *cstr_ext = BLI_path_extension(cstr);
+  if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip"))) {
+    return false;
+  }
+
+  return true;
+}
+
+static void drop_extension_path_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  /* Copy drag URL to properties. */
+  const char *cstr = WM_drag_get_single_path(drag);
+  RNA_string_set(drop->ptr, "url", cstr);
+}
+
+/** \} */
+
 static void ED_dropbox_drop_extension()
 {
   ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
@@ -822,9 +855,13 @@ static void ED_dropbox_drop_extension()
                  drop_extension_url_copy,
                  nullptr,
                  nullptr);
+  WM_dropbox_add(lb,
+                 "PREFERENCES_OT_extension_url_drop",
+                 drop_extension_path_poll,
+                 drop_extension_path_copy,
+                 nullptr,
+                 nullptr);
 }
-
-/** \} */
 
 void ED_operatortypes_userpref()
 {
