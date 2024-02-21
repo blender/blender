@@ -1254,20 +1254,6 @@ void BKE_paint_init(Main *bmain, Scene *sce, PaintMode mode, const uchar col[3])
 
   BKE_paint_ensure_from_paintmode(bmain, sce, mode);
 
-  /* If there's no brush, create one */
-  if (PAINT_MODE_HAS_BRUSH(mode)) {
-    Brush *brush = BKE_paint_brush(paint);
-    if (brush == nullptr) {
-      eObjectMode ob_mode = BKE_paint_object_mode_from_paintmode(mode);
-      brush = BKE_brush_first_search(bmain, ob_mode);
-      if (!brush) {
-        brush = BKE_brush_add(bmain, "Brush", ob_mode);
-        id_us_min(&brush->id); /* Fake user only. */
-      }
-      BKE_paint_brush_set(paint, brush);
-    }
-  }
-
   copy_v3_v3_uchar(paint->paint_cursor_col, col);
   paint->paint_cursor_col[3] = 128;
   ups->last_stroke_valid = false;
