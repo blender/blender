@@ -3271,6 +3271,9 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   float *hsv = cpicker->hsv_perceptual;
   float hsv_n[3];
 
+  /* Is this the larger color canvas or narrow color slider? */
+  bool is_canvas = ELEM(hsv_but->gradient_type, UI_GRAD_SV, UI_GRAD_HV, UI_GRAD_HS);
+
   /* Initialize for compatibility. */
   copy_v3_v3(hsv_n, hsv);
 
@@ -3292,15 +3295,15 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
   immUnbindProgram();
 
-  if (BLI_rcti_size_x(rect) / BLI_rcti_size_y(rect) < 3) {
-    /* This is for the full square HSV cube. */
+  if (is_canvas) {
+    /* Round cursor in the large square area. */
     float margin = (4.0f * UI_SCALE_FAC);
     CLAMP(x, rect->xmin + margin, rect->xmax - margin);
     CLAMP(y, rect->ymin + margin, rect->ymax - margin);
     ui_hsv_cursor(x, y, zoom, rgb, hsv, but->flag & UI_SELECT);
   }
   else {
-    /* This is for the narrow horizontal gradient. */
+    /* Square indicator in the narrow area. */
     rctf rectf;
     BLI_rctf_rcti_copy(&rectf, rect);
     const float margin = (2.0f * UI_SCALE_FAC);
