@@ -76,6 +76,5 @@ PreviewImage *BKE_asset_metadata_preview_get_from_id(const AssetMetaData *asset_
 void BKE_asset_metadata_write(BlendWriter *writer, AssetMetaData *asset_data);
 void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data);
 
-AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref);
