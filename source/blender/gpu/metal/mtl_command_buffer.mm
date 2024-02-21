@@ -662,6 +662,7 @@ void MTLCommandBufferManager::encode_signal_event(id<MTLEvent> event, uint64_t s
   BLI_assert(cmd_buf);
   this->end_active_command_encoder();
   [cmd_buf encodeSignalEvent:event value:signal_value];
+  register_encoder_counters();
 }
 
 void MTLCommandBufferManager::encode_wait_for_event(id<MTLEvent> event, uint64_t signal_value)
@@ -671,6 +672,7 @@ void MTLCommandBufferManager::encode_wait_for_event(id<MTLEvent> event, uint64_t
   BLI_assert(cmd_buf);
   this->end_active_command_encoder();
   [cmd_buf encodeWaitForEvent:event value:signal_value];
+  register_encoder_counters();
 }
 
 /** \} */
