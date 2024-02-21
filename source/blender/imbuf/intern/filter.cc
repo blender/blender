@@ -19,44 +19,6 @@
 
 #include "imbuf.hh"
 
-static void filtrow(uchar *point, int x)
-{
-  uint c1, c2, c3, error;
-
-  if (x > 1) {
-    c1 = c2 = *point;
-    error = 2;
-    for (x--; x > 0; x--) {
-      c3 = point[4];
-      c1 += (c2 << 1) + c3 + error;
-      error = c1 & 3;
-      *point = c1 >> 2;
-      point += 4;
-      c1 = c2;
-      c2 = c3;
-    }
-    *point = (c1 + (c2 << 1) + c2 + error) >> 2;
-  }
-}
-
-static void filtrowf(float *point, int x)
-{
-  float c1, c2, c3;
-
-  if (x > 1) {
-    c1 = c2 = *point;
-    for (x--; x > 0; x--) {
-      c3 = point[4];
-      c1 += (c2 * 2) + c3;
-      *point = 0.25f * c1;
-      point += 4;
-      c1 = c2;
-      c2 = c3;
-    }
-    *point = 0.25f * (c1 + (c2 * 2) + c2);
-  }
-}
-
 static void filtcolum(uchar *point, int y, int skip)
 {
   uint c1, c2, c3, error;
@@ -133,43 +95,6 @@ void IMB_filtery(ImBuf *ibuf)
       pointf++;
       filtcolumf(pointf, y, skip);
       pointf++;
-    }
-  }
-}
-
-void imb_filterx(ImBuf *ibuf)
-{
-  uchar *point = ibuf->byte_buffer.data;
-  float *pointf = ibuf->float_buffer.data;
-
-  int x = ibuf->x;
-  int y = ibuf->y;
-  int skip = (x << 2) - 3;
-
-  for (; y > 0; y--) {
-    if (point) {
-      if (ibuf->planes > 24) {
-        filtrow(point, x);
-      }
-      point++;
-      filtrow(point, x);
-      point++;
-      filtrow(point, x);
-      point++;
-      filtrow(point, x);
-      point += skip;
-    }
-    if (pointf) {
-      if (ibuf->planes > 24) {
-        filtrowf(pointf, x);
-      }
-      pointf++;
-      filtrowf(pointf, x);
-      pointf++;
-      filtrowf(pointf, x);
-      pointf++;
-      filtrowf(pointf, x);
-      pointf += skip;
     }
   }
 }
@@ -289,12 +214,6 @@ static void imb_filterN(ImBuf *out, ImBuf *in)
       }
     }
   }
-}
-
-void IMB_filter(ImBuf *ibuf)
-{
-  IMB_filtery(ibuf);
-  imb_filterx(ibuf);
 }
 
 void IMB_mask_filter_extend(char *mask, int width, int height)
