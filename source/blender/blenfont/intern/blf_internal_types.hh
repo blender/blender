@@ -10,6 +10,7 @@
 
 #include <mutex>
 
+#include "BLI_map.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_texture.h"
@@ -116,6 +117,19 @@ struct KerningCacheBLF {
   int ascii_table[KERNING_CACHE_TABLE_SIZE][KERNING_CACHE_TABLE_SIZE];
 };
 
+struct GlyphCacheKey {
+  uint charcode;
+  uint8_t subpixel;
+  friend bool operator==(const GlyphCacheKey &a, const GlyphCacheKey &b)
+  {
+    return a.charcode == b.charcode && a.subpixel == b.subpixel;
+  }
+  uint64_t hash() const
+  {
+    return blender::get_default_hash(charcode, subpixel);
+  }
+};
+
 struct GlyphCacheBLF {
   /** Font size. */
   float size;
@@ -132,7 +146,7 @@ struct GlyphCacheBLF {
   int fixed_width;
 
   /** The glyphs. */
-  ListBase bucket[257];
+  blender::Map<GlyphCacheKey, std::unique_ptr<GlyphBLF>> glyphs;
 
   /** Texture array, to draw the glyphs. */
   GPUTexture *texture;
@@ -145,9 +159,6 @@ struct GlyphCacheBLF {
 };
 
 struct GlyphBLF {
-  GlyphBLF *next;
-  GlyphBLF *prev;
-
   /** The character, as UTF-32. */
   unsigned int c;
 
@@ -192,6 +203,8 @@ struct GlyphBLF {
   int pos[2];
 
   GlyphCacheBLF *glyph_cache;
+
+  ~GlyphBLF();
 };
 
 struct FontBufInfoBLF {
