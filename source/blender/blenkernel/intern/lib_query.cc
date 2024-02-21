@@ -624,6 +624,7 @@ struct UnusedIDsData {
         do_local_ids(parameters.do_local_ids),
         do_linked_ids(parameters.do_linked_ids),
         do_recursive(parameters.do_recursive),
+        filter_fn(parameters.filter_fn),
         num_total(&parameters.num_total),
         num_local(&parameters.num_local),
         num_linked(&parameters.num_linked)
