@@ -522,11 +522,7 @@ void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float b
 ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 ImBuf *IMB_half_x(ImBuf *ibuf1);
-ImBuf *IMB_double_fast_x(ImBuf *ibuf1);
-ImBuf *IMB_double_x(ImBuf *ibuf1);
 ImBuf *IMB_half_y(ImBuf *ibuf1);
-ImBuf *IMB_double_fast_y(ImBuf *ibuf1);
-ImBuf *IMB_double_y(ImBuf *ibuf1);
 
 void IMB_flipx(ImBuf *ibuf);
 void IMB_flipy(ImBuf *ibuf);

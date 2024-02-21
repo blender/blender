@@ -340,4 +340,10 @@ AssetLibraryReference all_library_reference()
   return all_library_ref;
 }
 
+void all_library_reload_catalogs_if_dirty()
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  service->reload_all_library_catalogs_if_dirty();
+}
+
 }  // namespace blender::asset_system

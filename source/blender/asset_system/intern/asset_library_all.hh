@@ -13,6 +13,8 @@
 namespace blender::asset_system {
 
 class AllAssetLibrary : public AssetLibrary {
+  bool catalogs_dirty_ = true;
+
  public:
   AllAssetLibrary();
 
@@ -26,6 +28,9 @@ class AllAssetLibrary : public AssetLibrary {
    * merge them into the in-memory representations.
    */
   void rebuild_catalogs_from_nested(bool reload_nested_catalogs);
+
+  void tag_catalogs_dirty();
+  bool is_catalogs_dirty();
 };
 
 }  // namespace blender::asset_system
