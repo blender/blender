@@ -2521,7 +2521,7 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
   layer.parent_group().unlink_node(layer.as_node());
 
   /* Remove drawings. */
-  for (GreasePencilFrame frame : layer.frames_for_write().values()) {
+  for (const GreasePencilFrame frame : layer.frames().values()) {
     GreasePencilDrawingBase *drawing_base = this->drawing(frame.drawing_index);
     if (drawing_base->type != GP_DRAWING) {
       continue;
