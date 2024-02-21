@@ -781,8 +781,10 @@ if(WIN32)
   option(WITH_TBB_MALLOC_PROXY "Enable the TBB malloc replacement" ON)
 endif()
 
+option(WITH_EXPERIMENTAL_FEATURES "Enable experimental features" ON)
+
 # This should be turned off when Blender enter beta/rc/release
-if("${BLENDER_VERSION_CYCLE}" STREQUAL "alpha")
+if("${BLENDER_VERSION_CYCLE}" STREQUAL "alpha" AND WITH_EXPERIMENTAL_FEATURES)
   set(WITH_EXPERIMENTAL_FEATURES ON)
 else()
   set(WITH_EXPERIMENTAL_FEATURES OFF)
