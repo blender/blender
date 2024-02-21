@@ -88,7 +88,9 @@ struct RingSelOpData {
 static void ringsel_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
   RingSelOpData *lcd = static_cast<RingSelOpData *>(arg);
-  EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world().ptr());
+  if (lcd->ob != nullptr) {
+    EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world().ptr());
+  }
 }
 
 static void edgering_select(RingSelOpData *lcd)
