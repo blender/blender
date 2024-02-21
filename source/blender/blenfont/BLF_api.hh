@@ -9,7 +9,9 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
+#include "BLI_vector.hh"
 
 /* Name of sub-directory inside #BLENDER_DATAFILES that contains font files. */
 #define BLF_DATAFILES_FONTS_DIR "fonts"
@@ -253,6 +255,10 @@ float BLF_fixed_width(int fontid) ATTR_WARN_UNUSED_RESULT;
 void BLF_rotation(int fontid, float angle);
 void BLF_clipping(int fontid, int xmin, int ymin, int xmax, int ymax);
 void BLF_wordwrap(int fontid, int wrap_width);
+
+blender::Vector<blender::StringRef> BLF_string_wrap(int fontid,
+                                                    blender::StringRef str,
+                                                    const int max_pixel_width);
 
 #if BLF_BLUR_ENABLE
 void BLF_blur(int fontid, int size);
