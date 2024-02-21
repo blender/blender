@@ -53,17 +53,23 @@ AssetWeakReference::~AssetWeakReference()
   MEM_delete(relative_asset_identifier);
 }
 
-AssetWeakReference &AssetWeakReference::operator=(AssetWeakReference &&other)
+AssetWeakReference &AssetWeakReference::operator=(const AssetWeakReference &other)
 {
-  if (&other == this) {
+  if (this == &other) {
     return *this;
   }
-  asset_library_type = other.asset_library_type;
-  asset_library_identifier = other.asset_library_identifier;
-  relative_asset_identifier = other.relative_asset_identifier;
-  other.asset_library_type = 0; /* Not a valid type. */
-  other.asset_library_identifier = nullptr;
-  other.relative_asset_identifier = nullptr;
+  std::destroy_at(this);
+  new (this) AssetWeakReference(other);
+  return *this;
+}
+
+AssetWeakReference &AssetWeakReference::operator=(AssetWeakReference &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) AssetWeakReference(std::move(other));
   return *this;
 }
 

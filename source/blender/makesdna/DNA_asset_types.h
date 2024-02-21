@@ -171,6 +171,7 @@ typedef struct AssetWeakReference {
   AssetWeakReference();
   AssetWeakReference(const AssetWeakReference &);
   AssetWeakReference(AssetWeakReference &&);
+  AssetWeakReference &operator=(const AssetWeakReference &);
   AssetWeakReference &operator=(AssetWeakReference &&);
   ~AssetWeakReference();
 
