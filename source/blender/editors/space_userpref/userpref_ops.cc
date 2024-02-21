@@ -631,6 +631,33 @@ static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Drop Extension Operator
+ * \{ */
+
+static int preferences_extension_url_drop_exec(bContext *C, wmOperator *op)
+{
+  char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
+  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_EXTENSION_DROP_URL, url);
+  MEM_freeN(url);
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_url_drop(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Drop Extension URL";
+  ot->description = "Handle dropping an extension URL";
+  ot->idname = "PREFERENCES_OT_extension_url_drop";
+
+  /* api callbacks */
+  ot->exec = preferences_extension_url_drop_exec;
+
+  RNA_def_string(ot->srna, "url", nullptr, 0, "URL", "Location of the extension to install");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Associate File Type Operator (Windows only)
  * \{ */
 
@@ -746,6 +773,59 @@ static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Drag & Drop
+ * \{ */
+
+static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  if (!U.experimental.use_extension_repos) {
+    return false;
+  }
+  if (drag->type != WM_DRAG_STRING) {
+    return false;
+  }
+
+  const std::string &str = WM_drag_get_string(drag);
+
+  /* Only URL formatted text. */
+  const char *cstr = str.c_str();
+  if (!(STRPREFIX(cstr, "http://") || STRPREFIX(cstr, "https://") || STRPREFIX(cstr, "file://"))) {
+    return false;
+  }
+
+  /* Only single line strings. */
+  if (str.find('\n') != std::string::npos) {
+    return false;
+  }
+  const char *cstr_ext = BLI_path_extension(cstr);
+  if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip"))) {
+    return false;
+  }
+
+  return true;
+}
+
+static void drop_extension_url_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  /* Copy drag URL to properties. */
+  const std::string &str = WM_drag_get_string(drag);
+  RNA_string_set(drop->ptr, "url", str.c_str());
+}
+
+static void ED_dropbox_drop_extension()
+{
+  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  WM_dropbox_add(lb,
+                 "PREFERENCES_OT_extension_url_drop",
+                 drop_extension_url_poll,
+                 drop_extension_url_copy,
+                 nullptr,
+                 nullptr);
+}
+
+/** \} */
+
 void ED_operatortypes_userpref()
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
@@ -760,7 +840,10 @@ void ED_operatortypes_userpref()
   WM_operatortype_append(PREFERENCES_OT_extension_repo_remove);
   WM_operatortype_append(PREFERENCES_OT_extension_repo_sync);
   WM_operatortype_append(PREFERENCES_OT_extension_repo_upgrade);
+  WM_operatortype_append(PREFERENCES_OT_extension_url_drop);
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);
   WM_operatortype_append(PREFERENCES_OT_unassociate_blend);
+
+  ED_dropbox_drop_extension();
 }
