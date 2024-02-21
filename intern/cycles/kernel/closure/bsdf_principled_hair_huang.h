@@ -470,7 +470,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
 
     const float3 wh1 = sample_wh(kg, roughness, wi, wmi, sample1);
     const float cos_hi1 = dot(wi, wh1);
-    if (!(cos_hi1 > 0)) {
+    if (!(cos_hi1 > 0.0f)) {
       continue;
     }
 
@@ -535,7 +535,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
                                          lcg_step_float(&rng_quadrature));
       const float3 wh2 = sample_wh(kg, roughness, -wt, wmt, sample2);
       const float cos_hi2 = dot(-wt, wh2);
-      if (!(cos_hi2 > 0)) {
+      if (!(cos_hi2 > 0.0f)) {
         continue;
       }
       const float R2 = fresnel_dielectric_cos(cos_hi2, inv_eta);
