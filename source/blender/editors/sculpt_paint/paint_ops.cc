@@ -58,6 +58,7 @@
 
 #include "BLT_translation.hh"
 
+#include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
 
@@ -1129,6 +1130,8 @@ static bool brush_asset_write_in_library(Main *bmain,
                                          Brush *brush,
                                          const char *name,
                                          const StringRefNull filepath,
+                                         const std::optional<asset_system::CatalogID> catalog,
+                                         const std::optional<StringRefNull> catalog_simple_name,
                                          std::string &final_full_file_path,
                                          ReportList *reports)
 {
@@ -1170,6 +1173,13 @@ static bool brush_asset_write_in_library(Main *bmain,
     brush->id.asset_data = brush->id.override_library->reference->asset_data;
   }
   brush->id.override_library = nullptr;
+
+  if (catalog) {
+    brush->id.asset_data->catalog_id = *catalog;
+  }
+  if (catalog_simple_name) {
+    STRNCPY(brush->id.asset_data->catalog_simple_name, catalog_simple_name->c_str());
+  }
 
   BKE_blendfile_write_partial_tag_ID(&brush->id, true);
 
@@ -1250,6 +1260,28 @@ static const bUserAssetLibrary *get_asset_library_from_prop(PointerRNA &ptr)
   return BKE_preferences_asset_library_find_index(&U, lib_ref.custom_library_index);
 }
 
+static asset_system::AssetCatalog &asset_library_ensure_catalog(
+    asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
+{
+  if (asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(path)) {
+    return *catalog;
+  }
+  return *library.catalog_service->create_catalog(path);
+}
+
+static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
+    asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
+{
+  /* Adding multiple catalogs in a path at a time with #AssetCatalogService::create_catalog()
+   * doesn't work; add each potentially new catalog in the hierarchy manually here. */
+  asset_system::AssetCatalogPath parent = "";
+  path.iterate_components([&](StringRef component_name, bool /*is_last_component*/) {
+    asset_library_ensure_catalog(library, parent / component_name);
+    parent = parent / component_name;
+  });
+  return *library.catalog_service->find_catalog_by_path(path);
+}
+
 static AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_library)
 {
   AssetLibraryReference library_ref{};
@@ -1293,10 +1325,33 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   }
   BLI_assert(BKE_paint_brush_is_valid_asset(brush));
 
+  asset_system::AssetLibrary *library = AS_asset_library_load(
+      CTX_data_main(C), user_library_to_library_ref(*user_library));
+  if (!library) {
+    BKE_report(op->reports, RPT_ERROR, "Failed to load asset library");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Add asset to catalog. */
+  char catalog_path[MAX_NAME];
+  RNA_string_get(op->ptr, "catalog_path", catalog_path);
+  const asset_system::AssetCatalog &catalog = asset_library_ensure_catalogs_in_path(*library,
+                                                                                    catalog_path);
+  const asset_system::CatalogID catalog_id = catalog.catalog_id;
+  const std::string catalog_simple_name = catalog.simple_name;
+
+  library->catalog_service->write_to_disk(filepath);
+
   /* Save to asset library. */
   std::string final_full_asset_filepath;
-  const bool sucess = brush_asset_write_in_library(
-      CTX_data_main(C), brush, name, filepath, final_full_asset_filepath, op->reports);
+  const bool sucess = brush_asset_write_in_library(CTX_data_main(C),
+                                                   brush,
+                                                   name,
+                                                   filepath,
+                                                   catalog_id,
+                                                   catalog_simple_name,
+                                                   final_full_asset_filepath,
+                                                   op->reports);
 
   if (!sucess) {
     BKE_report(op->reports, RPT_ERROR, "Failed to write to asset library");
@@ -1355,6 +1410,30 @@ static const EnumPropertyItem *rna_asset_library_reference_itemf(bContext * /*C*
   return items;
 }
 
+static void visit_asset_catalog_for_search_fn(
+    const bContext *C,
+    PointerRNA *ptr,
+    PropertyRNA * /*prop*/,
+    const char * /*edit_text*/,
+    FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
+{
+  const bUserAssetLibrary *user_library = get_asset_library_from_prop(*ptr);
+  if (!user_library) {
+    return;
+  }
+
+  asset_system::AssetLibrary *library = AS_asset_library_load(
+      CTX_data_main(C), user_library_to_library_ref(*user_library));
+  if (!library) {
+    return;
+  }
+
+  asset_system::AssetCatalogTree &full_tree = *library->catalog_service->get_catalog_tree();
+  full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
+    visit_fn(StringPropertySearchVisitParams{item.catalog_path().str(), std::nullopt});
+  });
+}
+
 static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
 {
   ot->name = "Save as Brush Asset";
@@ -1373,6 +1452,11 @@ static void BRUSH_OT_asset_save_as(wmOperatorType *ot)
   PropertyRNA *prop = RNA_def_property(ot->srna, "asset_library_reference", PROP_ENUM, PROP_NONE);
   RNA_def_enum_funcs(prop, rna_asset_library_reference_itemf);
   RNA_def_property_ui_text(prop, "Library", "Asset library used to store the new brush");
+
+  prop = RNA_def_string(
+      ot->srna, "catalog_path", nullptr, MAX_NAME, "Catalog", "Catalog to use for the new asset");
+  RNA_def_property_string_search_func_runtime(
+      prop, visit_asset_catalog_for_search_fn, PROP_STRING_SEARCH_SUGGESTION);
 }
 
 static bool brush_asset_delete_poll(bContext *C)
@@ -1487,6 +1571,8 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
                                brush,
                                brush->id.name + 2,
                                filepath,
+                               std::nullopt,
+                               std::nullopt,
                                final_full_asset_filepath,
                                op->reports);
 
