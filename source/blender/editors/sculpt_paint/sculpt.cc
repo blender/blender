@@ -91,10 +91,11 @@ using blender::Vector;
 
 static CLG_LogRef LOG = {"ed.sculpt_paint"};
 
-static float sculpt_calc_radius(ViewContext *vc,
-                                const Brush *brush,
-                                const Scene *scene,
-                                const float3 location)
+namespace blender::ed::sculpt_paint {
+float sculpt_calc_radius(ViewContext *vc,
+                         const Brush *brush,
+                         const Scene *scene,
+                         const float3 location)
 {
   if (!BKE_brush_use_locked_size(scene, brush)) {
     return paint_calc_object_space_radius(vc, location, BKE_brush_size_get(scene, brush));
@@ -103,6 +104,7 @@ static float sculpt_calc_radius(ViewContext *vc,
     return BKE_brush_unprojected_radius_get(scene, brush);
   }
 }
+}  // namespace blender::ed::sculpt_paint
 
 bool ED_sculpt_report_if_shape_key_is_locked(const Object *ob, ReportList *reports)
 {
