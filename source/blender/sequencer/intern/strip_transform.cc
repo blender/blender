@@ -676,7 +676,7 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
 
   float quad_temp[4][3];
   for (int i = 0; i < 4; i++) {
-    zero_v2(quad_temp[i]);
+    zero_v3(quad_temp[i]);
   }
 
   quad_temp[0][0] = (image_size[0] / 2) - crop->right;
