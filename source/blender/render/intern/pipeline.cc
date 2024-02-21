@@ -2092,9 +2092,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                             rd,
                             preview ? scene->r.psfra : scene->r.sfra,
                             scene->r.cfra,
-                            (int *)ibuf->byte_buffer.data,
-                            ibuf->x,
-                            ibuf->y,
+                            ibuf,
                             suffix,
                             reports))
       {
@@ -2126,9 +2124,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                           rd,
                           preview ? scene->r.psfra : scene->r.sfra,
                           scene->r.cfra,
-                          (int *)ibuf_arr[2]->byte_buffer.data,
-                          ibuf_arr[2]->x,
-                          ibuf_arr[2]->y,
+                          ibuf_arr[2],
                           "",
                           reports))
     {

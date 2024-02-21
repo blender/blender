@@ -23,31 +23,29 @@
 
 #include "BKE_writemovie.hh"
 
-static int start_stub(void * /*context_v*/,
-                      const Scene * /*scene*/,
-                      RenderData * /*rd*/,
-                      int /*rectx*/,
-                      int /*recty*/,
-                      ReportList * /*reports*/,
-                      bool /*preview*/,
-                      const char * /*suffix*/)
+static bool start_stub(void * /*context_v*/,
+                       const Scene * /*scene*/,
+                       RenderData * /*rd*/,
+                       int /*rectx*/,
+                       int /*recty*/,
+                       ReportList * /*reports*/,
+                       bool /*preview*/,
+                       const char * /*suffix*/)
 {
-  return 0;
+  return false;
 }
 
 static void end_stub(void * /*context_v*/) {}
 
-static int append_stub(void * /*context_v*/,
-                       RenderData * /*rd*/,
-                       int /*start_frame*/,
-                       int /*frame*/,
-                       int * /*pixels*/,
-                       int /*rectx*/,
-                       int /*recty*/,
-                       const char * /*suffix*/,
-                       ReportList * /*reports*/)
+static bool append_stub(void * /*context_v*/,
+                        RenderData * /*rd*/,
+                        int /*start_frame*/,
+                        int /*frame*/,
+                        const ImBuf * /*image*/,
+                        const char * /*suffix*/,
+                        ReportList * /*reports*/)
 {
-  return 0;
+  return false;
 }
 
 static void *context_create_stub()
