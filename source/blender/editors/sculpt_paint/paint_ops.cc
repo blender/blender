@@ -67,42 +67,6 @@
 #include "paint_intern.hh"
 #include "sculpt_intern.hh"
 
-/* Brush operators */
-static int brush_add_exec(bContext *C, wmOperator * /*op*/)
-{
-  // int type = RNA_enum_get(op->ptr, "type");
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Brush *br = BKE_paint_brush(paint);
-  Main *bmain = CTX_data_main(C);  // TODO: add to asset main?
-  PaintMode mode = BKE_paintmode_get_active_from_context(C);
-
-  if (br) {
-    br = (Brush *)BKE_id_copy(bmain, &br->id);
-  }
-  else {
-    br = BKE_brush_add(bmain, "Brush", BKE_paint_object_mode_from_paintmode(mode));
-  }
-  id_us_min(&br->id); /* fake user only */
-
-  BKE_paint_brush_set(paint, br);
-
-  return OPERATOR_FINISHED;
-}
-
-static void BRUSH_OT_add(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Add Brush";
-  ot->description = "Add brush by mode type";
-  ot->idname = "BRUSH_OT_add";
-
-  /* api callbacks */
-  ot->exec = brush_add_exec;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 static eGPBrush_Presets gpencil_get_brush_preset_from_tool(bToolRef *tool,
                                                            enum eContextObjectMode mode)
 {
@@ -2100,7 +2064,6 @@ void ED_operatortypes_paint()
   WM_operatortype_append(PAINTCURVE_OT_cursor);
 
   /* brush */
-  WM_operatortype_append(BRUSH_OT_add);
   WM_operatortype_append(BRUSH_OT_add_gpencil);
   WM_operatortype_append(BRUSH_OT_scale_size);
   WM_operatortype_append(BRUSH_OT_curve_preset);

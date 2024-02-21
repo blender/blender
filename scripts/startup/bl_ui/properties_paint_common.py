@@ -149,7 +149,7 @@ class BrushSelectPanel(BrushPanel):
         row = layout.row()
         # TODO: hide buttons since they are confusing with menu entries.
         # But some of this functionality may still be needed.
-        row.column().template_ID_preview(settings, "brush", new="brush.add", rows=3, cols=8, hide_buttons=True)
+        row.column().template_ID_preview(settings, "brush", rows=3, cols=8, hide_buttons=True)
 
         if brush is None:
             return
