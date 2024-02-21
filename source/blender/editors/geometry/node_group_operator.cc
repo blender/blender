@@ -769,7 +769,7 @@ void clear_operator_asset_trees()
 
 static asset::AssetItemTree build_catalog_tree(const bContext &C, const Object &active_object)
 {
-  AssetFilterSettings type_filter{};
+  asset::AssetFilterSettings type_filter{};
   type_filter.id_types = FILTER_ID_NT;
   const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(active_object);
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {

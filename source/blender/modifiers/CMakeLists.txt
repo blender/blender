@@ -47,6 +47,7 @@ set(SRC
   intern/MOD_grease_pencil_array.cc
   intern/MOD_grease_pencil_color.cc
   intern/MOD_grease_pencil_dash.cc
+  intern/MOD_grease_pencil_hook.cc
   intern/MOD_grease_pencil_lattice.cc
   intern/MOD_grease_pencil_length.cc
   intern/MOD_grease_pencil_mirror.cc

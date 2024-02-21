@@ -41,7 +41,7 @@ static void align_rotations_auto_pivot(const IndexMask &mask,
 {
   mask.foreach_index([&](const int64_t i) {
     const float3 vector = vectors[i];
-    if (is_zero_v3(vector)) {
+    if (math::is_zero(vector)) {
       output_rotations[i] = input_rotations[i];
       return;
     }
@@ -53,10 +53,10 @@ static void align_rotations_auto_pivot(const IndexMask &mask,
 
     const float3 new_axis = math::normalize(vector);
     float3 rotation_axis = math::cross_high_precision(old_axis, new_axis);
-    if (is_zero_v3(rotation_axis)) {
+    if (math::is_zero(rotation_axis)) {
       /* The vectors are linearly dependent, so we fall back to another axis. */
       rotation_axis = math::cross_high_precision(old_axis, float3(1, 0, 0));
-      if (is_zero_v3(rotation_axis)) {
+      if (math::is_zero(rotation_axis)) {
         /* This is now guaranteed to not be zero. */
         rotation_axis = math::cross_high_precision(old_axis, float3(0, 1, 0));
       }
@@ -94,7 +94,7 @@ static void align_rotations_fixed_pivot(const IndexMask &mask,
     }
 
     const float3 vector = vectors[i];
-    if (is_zero_v3(vector)) {
+    if (math::is_zero(vector)) {
       output_rotations[i] = input_rotations[i];
       return;
     }

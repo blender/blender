@@ -17,7 +17,6 @@
 #include "AS_asset_catalog_path.hh"
 #include "AS_asset_catalog_tree.hh"
 
-struct AssetFilterSettings;
 struct AssetLibraryReference;
 struct bContext;
 
@@ -27,6 +26,13 @@ class AssetRepresentation;
 }  // namespace blender::asset_system
 
 namespace blender::ed::asset {
+
+struct AssetFilterSettings {
+  /** Tags to match against. These are newly allocated, and compared against the
+   * #AssetMetaData.tags. */
+  ListBase tags;     /* AssetTag */
+  uint64_t id_types; /* rna_enum_id_type_filter_items */
+};
 
 /**
  * Compare \a asset against the settings of \a filter.
