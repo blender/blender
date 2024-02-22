@@ -126,18 +126,7 @@ def get_submodule_directories(args: argparse.Namespace):
 
 
 def ensure_git_lfs_hooks(args: argparse.Namespace) -> None:
-    if call((args.git_command, "lfs", "--version"), exit_on_error=False) != 0:
-        print("Blender update requires Git LFS. Ensure the Git LFS package is installed")
-        sys.exit(1)
-
-    # Attempt to install hooks, but do not exit if it fails.
-    # It is possible that the hooks are already installed, or developer setup is more complicated
-    # and the automatic hooks install is not possible. For those cases assume developer know what
-    # they are doing and do not try to be smart.
-    #
-    # TODO: It feels that there must be a way to detect whether LFS hooks are installed, but it
-    # is not clear what reliable way for it would be.
-    call((args.git_command, "lfs", "install"), exit_on_error=False)
+    call((args.git_command, "lfs", "install", "--skip-repo"), exit_on_error=True)
 
 
 def update_precompiled_libraries(args: argparse.Namespace) -> None:
