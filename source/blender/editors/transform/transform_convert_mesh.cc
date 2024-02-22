@@ -2162,81 +2162,67 @@ static void special_aftertrans_update__mesh(bContext * /*C*/, TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name API for Edge Slide
+/** \name API for Vert Slide
  * \{ */
 
-TransDataVertSlideVert *transform_mesh_vert_slide_data_create(const TransDataContainer *tc,
-                                                              int *r_sv_len)
+Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
+    const TransDataContainer *tc, Vector<float3> &r_loc_dst_buffer)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
-  BMIter iter;
-  BMIter eiter;
-  BMEdge *e;
-  BMVert *v;
-  TransDataVertSlideVert *sv_array;
-  int j;
-
-  j = 0;
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    bool ok = false;
-    if (BM_elem_flag_test(v, BM_ELEM_SELECT) && v->e) {
-      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          ok = true;
-          break;
-        }
-      }
+  int td_selected_len = 0;
+  TransData *td = tc->data;
+  for (int i = 0; i < tc->data_len; i++, td++) {
+    if (!(td->flag & TD_SELECTED)) {
+      /* The selected ones are sorted at the beginning. */
+      break;
     }
+    td_selected_len++;
+  }
 
-    if (ok) {
-      BM_elem_flag_enable(v, BM_ELEM_TAG);
-      j += 1;
+  Array<TransDataVertSlideVert> r_sv(td_selected_len);
+
+  r_loc_dst_buffer.reserve(r_sv.size() * 4);
+  td = tc->data;
+  for (int i = 0; i < tc->data_len; i++, td++) {
+    if (!(td->flag & TD_SELECTED)) {
+      /* The selected ones are sorted at the beginning. */
+      break;
+    }
+    const int size_prev = r_loc_dst_buffer.size();
+
+    BMVert *v = static_cast<BMVert *>(td->extra);
+    if (!v->e) {
+      r_loc_dst_buffer.append(td->iloc);
     }
     else {
-      BM_elem_flag_disable(v, BM_ELEM_TAG);
-    }
-  }
-
-  if (!j) {
-    return nullptr;
-  }
-
-  sv_array = static_cast<TransDataVertSlideVert *>(
-      MEM_callocN(sizeof(TransDataVertSlideVert) * j, "sv_array"));
-
-  j = 0;
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-      int k;
-      sv_array[j].v = v;
-      copy_v3_v3(sv_array[j].co_orig_3d, v->co);
-
-      k = 0;
+      BMIter eiter;
+      BMEdge *e;
       BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          k++;
+        if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+          continue;
         }
+        BMVert *v_other = BM_edge_other_vert(e, v);
+        r_loc_dst_buffer.append(v_other->co);
       }
-
-      sv_array[j].co_link_orig_3d = static_cast<float3(*)>(
-          MEM_mallocN(sizeof(*sv_array[j].co_link_orig_3d) * k, __func__));
-      sv_array[j].co_link_tot = k;
-
-      k = 0;
-      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          BMVert *v_other = BM_edge_other_vert(e, v);
-          copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
-          k++;
-        }
-      }
-      j++;
     }
+
+    TransDataVertSlideVert &sv = r_sv[i];
+    sv.td = &tc->data[i];
+    /* The buffer address may change as the vector is resized. Avoid setting #Span. */
+    // sv.targets = r_loc_dst_buffer.as_span().drop_front(size_prev);
+
+    /* Store the buffer size temporarily in `target_curr`. */
+    sv.co_link_curr = r_loc_dst_buffer.size() - size_prev;
   }
 
-  *r_sv_len = j;
-  return sv_array;
+  int start = 0;
+  for (TransDataVertSlideVert &sv : r_sv) {
+    int size = sv.co_link_curr;
+    sv.co_link_orig_3d = r_loc_dst_buffer.as_span().slice(start, size);
+    sv.co_link_curr = 0;
+    start += size;
+  }
+
+  return r_sv;
 }
 
 /** \} */
