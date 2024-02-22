@@ -450,7 +450,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ** AutoPackage; version 1.0 -- http://autopackage.org
 BinReloc - a library for creating relocatable executables
 Written by: Hongli Lai <h.lai@chello.nl>
-** LZMA SDK; version 5.2.5 -- https://www.7-zip.org/sdk.html
+** LZMA SDK; version 23.01 -- https://www.7-zip.org/sdk.html
 LZMA SDK: Public Domain
 
 Creative Commons Legal Code
@@ -3462,7 +3462,7 @@ SOFTWARE.
 
 ------
 
-** {fmt}; version 10.0.0 -- https://github.com/fmtlib/fmt
+** {fmt}; version 10.1.1 -- https://github.com/fmtlib/fmt
 Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 ** Brotli; version 1.0.9 -- https://github.com/google/brotli
 Copyright (c) 2009, 2010, 2013-2016 by the Brotli Authors.
