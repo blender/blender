@@ -125,6 +125,21 @@ def get_submodule_directories(args: argparse.Namespace):
     return (Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines())
 
 
+def ensure_git_lfs_hooks(args: argparse.Namespace) -> None:
+    if call((args.git_command, "lfs", "--version"), exit_on_error=False) != 0:
+        print("Blender update requires Git LFS. Ensure the Git LFS package is installed")
+        sys.exit(1)
+
+    # Attempt to install hooks, but do not exit if it fails.
+    # It is possible that the hooks are already installed, or developer setup is more complicated
+    # and the automatic hooks install is not possible. For those cases assume developer know what
+    # they are doing and do not try to be smart.
+    #
+    # TODO: It feels that there must be a way to detect whether LFS hooks are installed, but it
+    # is not clear what reliable way for it would be.
+    call((args.git_command, "lfs", "install"), exit_on_error=False)
+
+
 def update_precompiled_libraries(args: argparse.Namespace) -> None:
     """
     Configure and update submodule for precompiled libraries
@@ -571,7 +586,7 @@ if __name__ == "__main__":
         branch = 'main'
 
     # Submodules and precompiled libraries require Git LFS.
-    call((args.git_command, "lfs", "install"))
+    ensure_git_lfs_hooks(args)
 
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
