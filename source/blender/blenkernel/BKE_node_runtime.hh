@@ -479,6 +479,11 @@ inline const bNode *bNodeTree::group_output_node() const
   return this->runtime->group_output_node;
 }
 
+inline blender::Span<bNode *> bNodeTree::group_input_nodes()
+{
+  return this->nodes_by_type("NodeGroupInput");
+}
+
 inline blender::Span<const bNode *> bNodeTree::group_input_nodes() const
 {
   return this->nodes_by_type("NodeGroupInput");
