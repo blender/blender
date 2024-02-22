@@ -1323,7 +1323,7 @@ void IMB_anim_index_rebuild(IndexBuildContext *context,
     }
   }
 #endif
-  UNUSED_VARS(stop, do_update, progress);
+  UNUSED_VARS(context, stop, do_update, progress);
 }
 
 void IMB_anim_index_rebuild_finish(IndexBuildContext *context, const bool stop)
@@ -1334,7 +1334,7 @@ void IMB_anim_index_rebuild_finish(IndexBuildContext *context, const bool stop)
   }
 #endif
   /* static defined at top of the file */
-  UNUSED_VARS(stop, proxy_sizes);
+  UNUSED_VARS(context, stop, proxy_sizes);
 }
 
 void IMB_free_indices(ImBufAnim *anim)
