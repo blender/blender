@@ -101,7 +101,7 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
         architecture = platform.machine().lower()
 
     # Normalize the architecture name.
-    if architecture == 'x86_64':
+    if architecture in ("x86_64", "amd64"):
         architecture = "x64"
 
     assert (architecture in ("x64", "arm64"))
