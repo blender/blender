@@ -75,7 +75,7 @@ def argparse_create():
 
     # When --help or no args are given, print this help
     description = ("Test basic versioning code by opening all blend files "
-                   "in `lib/tests` directory.")
+                   "in `tests/data` directory.")
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--src-test-dir",

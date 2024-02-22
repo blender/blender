@@ -9,7 +9,7 @@ import sys
 from math import radians
 
 """
-blender -b -noaudio --factory-startup --python tests/python/bl_animation_keyframing.py -- --testdir /path/to/lib/tests/animation
+blender -b -noaudio --factory-startup --python tests/python/bl_animation_keyframing.py -- --testdir /path/to/tests/data/animation
 """
 
 
