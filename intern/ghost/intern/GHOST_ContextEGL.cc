@@ -131,11 +131,9 @@ static bool egl_chk(bool result,
 {
   if (!result) {
     const EGLint error = eglGetError();
-
+#ifndef NDEBUG
     const char *code = get_egl_error_enum_string(error);
     const char *msg = get_egl_error_message_string(error);
-
-#ifndef NDEBUG
     fprintf(stderr,
             "%s:%d: [%s] -> EGL Error (0x%04X): %s: %s\n",
             file,
