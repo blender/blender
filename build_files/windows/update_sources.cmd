@@ -5,6 +5,6 @@ if NOT EXIST %PYTHON% (
 :detect_python_done
 
 REM Use -B to avoid writing __pycache__ in lib directory and causing update conflicts.
-%PYTHON% -B %BLENDER_DIR%\build_files\utils\make_update.py --git-command "%GIT%" --svn-command "%SVN%" %BUILD_UPDATE_ARGS%
+%PYTHON% -B %BLENDER_DIR%\build_files\utils\make_update.py --git-command "%GIT%" %BUILD_UPDATE_ARGS%
 
 :EOF

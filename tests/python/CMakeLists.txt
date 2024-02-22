@@ -8,7 +8,7 @@
 # and don't give deterministic results
 set(USE_EXPERIMENTAL_TESTS FALSE)
 
-set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests)
+set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/tests/data)
 set(TEST_PYTHON_DIR ${CMAKE_SOURCE_DIR}/tests/python)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 
