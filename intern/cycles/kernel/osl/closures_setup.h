@@ -988,6 +988,21 @@ ccl_device void osl_closure_hair_huang_setup(KernelGlobals kg,
   bsdf->extra->TT = closure->tt_lobe;
   bsdf->extra->TRT = closure->trt_lobe;
 
+  bsdf->extra->pixel_coverage = 1.0f;
+
+  /* For camera ray, check if the hair covers more than one pixel, in which case a nearfield model
+   * is needed to prevent ribbon-like appearance. */
+  if ((path_flag & PATH_RAY_CAMERA) && (sd->type & PRIMITIVE_CURVE)) {
+    /* Interpolate radius between curve keys. */
+    const KernelCurve kcurve = kernel_data_fetch(curves, sd->prim);
+    const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+    const int k1 = k0 + 1;
+    const float radius = mix(
+        kernel_data_fetch(curve_keys, k0).w, kernel_data_fetch(curve_keys, k1).w, sd->u);
+
+    bsdf->extra->pixel_coverage = 0.5f * sd->dP / radius;
+  }
+
   sd->flag |= bsdf_hair_huang_setup(sd, bsdf, path_flag);
 #endif
 }

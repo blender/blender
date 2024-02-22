@@ -716,14 +716,6 @@ static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_g
     instances->add_reference(std::move(reference_geometry));
   }
 
-  const auto *io_transforms = io_instances->lookup_dict("transforms");
-  if (!io_transforms) {
-    return {};
-  }
-  if (!read_blob_simple_gspan(blob_reader, *io_transforms, instances->transforms())) {
-    return {};
-  }
-
   MutableAttributeAccessor attributes = instances->attributes_for_write();
   if (!load_attributes(*io_attributes, attributes, blob_reader, blob_sharing)) {
     return {};
@@ -739,6 +731,18 @@ static std::unique_ptr<Instances> try_load_instances(const DictionaryValue &io_g
     if (!read_blob_simple_gspan(
             blob_reader, *io_handles, instances->reference_handles_for_write()))
     {
+      return {};
+    }
+  }
+
+  if (!attributes.contains("instance_transform")) {
+    /* Try reading the transform attribute from the old bake format from before it was an
+     * attribute. */
+    const auto *io_handles = io_instances->lookup_dict("transforms");
+    if (!io_handles) {
+      return {};
+    }
+    if (!read_blob_simple_gspan(blob_reader, *io_handles, instances->transforms_for_write())) {
       return {};
     }
   }
@@ -973,11 +977,8 @@ static std::shared_ptr<DictionaryValue> serialize_geometry_set(const GeometrySet
           serialize_geometry_set(reference.geometry_set(), blob_writer, blob_sharing));
     }
 
-    io_instances->append(
-        "transforms", write_blob_simple_gspan(blob_writer, blob_sharing, instances.transforms()));
-
     auto io_attributes = serialize_attributes(
-        instances.attributes(), blob_writer, blob_sharing, {"position"});
+        instances.attributes(), blob_writer, blob_sharing, {});
     io_instances->append("attributes", io_attributes);
   }
   return io_geometry;

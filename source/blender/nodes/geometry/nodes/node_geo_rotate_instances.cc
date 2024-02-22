@@ -39,7 +39,7 @@ static void rotate_instances(GeoNodeExecParams &params, bke::Instances &instance
   const VArray<float3> pivots = evaluator.get_evaluated<float3>(1);
   const VArray<bool> local_spaces = evaluator.get_evaluated<bool>(2);
 
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<float4x4> transforms = instances.transforms_for_write();
 
   selection.foreach_index(GrainSize(512), [&](const int64_t i) {
     const float3 pivot = pivots[i];

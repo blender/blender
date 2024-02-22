@@ -4120,9 +4120,9 @@ static const EnumPropertyItem node_principled_hair_model_items[] = {
      "HUANG",
      0,
      "Huang",
-     "Far-field hair scattering model by Huang et al. 2022, suitable for viewing from a distance, "
-     "supports elliptical cross-sections and has more precise highlight in forward scattering "
-     "directions"},
+     "Multi-scale hair scattering model by Huang et al. 2022, suitable for viewing both up close "
+     "and from a distance, supports elliptical cross-sections and has more precise highlight in "
+     "forward scattering directions"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

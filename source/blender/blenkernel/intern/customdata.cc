@@ -4593,7 +4593,7 @@ void CustomData_validate_layer_name(const CustomData *data,
   int index = -1;
 
   /* if a layer name was given, try to find that layer */
-  if (name[0]) {
+  if (!name.is_empty()) {
     index = CustomData_get_named_layer_index(data, type, name);
   }
 
@@ -5537,6 +5537,22 @@ std::optional<VolumeGridType> custom_data_type_to_volume_grid_type(const eCustom
       return VOLUME_GRID_INT;
     case CD_PROP_BOOL:
       return VOLUME_GRID_BOOLEAN;
+    default:
+      return std::nullopt;
+  }
+}
+
+std::optional<eCustomDataType> volume_grid_type_to_custom_data_type(const VolumeGridType type)
+{
+  switch (type) {
+    case VOLUME_GRID_FLOAT:
+      return CD_PROP_FLOAT;
+    case VOLUME_GRID_VECTOR_FLOAT:
+      return CD_PROP_FLOAT3;
+    case VOLUME_GRID_INT:
+      return CD_PROP_INT32;
+    case VOLUME_GRID_BOOLEAN:
+      return CD_PROP_BOOL;
     default:
       return std::nullopt;
   }
