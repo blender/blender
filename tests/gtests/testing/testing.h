@@ -14,7 +14,7 @@ namespace blender::tests {
 
 /* These strings are passed on the CLI with the --test-asset-dir and --test-release-dir arguments.
  * The arguments are added automatically when invoking tests via `ctest`. */
-const std::string &flags_test_asset_dir();   /* ../lib/tests in the SVN directory. */
+const std::string &flags_test_asset_dir();   /* tests/data in the Blender repository. */
 const std::string &flags_test_release_dir(); /* bin/{blender version} in the build directory. */
 
 }  // namespace blender::tests

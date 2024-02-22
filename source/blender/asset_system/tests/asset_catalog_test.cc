@@ -19,7 +19,7 @@
 
 namespace blender::asset_system::tests {
 
-/* UUIDs from lib/tests/asset_library/blender_assets.cats.txt */
+/* UUIDs from tests/data/asset_library/blender_assets.cats.txt */
 const bUUID UUID_ID_WITHOUT_PATH("e34dd2c5-5d2e-4668-9794-1db5de2a4f71");
 const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
 const bUUID UUID_POSES_ELLIE_WHITESPACE("b06132f6-5687-4751-a6dd-392740eb3c46");
@@ -31,7 +31,7 @@ const bUUID UUID_POSES_RUZENA_FACE("82162c1f-06cc-4d91-a9bf-4f72c104e348");
 const bUUID UUID_WITHOUT_SIMPLENAME("d7916a31-6ca9-4909-955f-182ca2b81fa3");
 const bUUID UUID_ANOTHER_RUZENA("00000000-d9fa-4b91-b704-e6af1f1339ef");
 
-/* UUIDs from lib/tests/asset_library/modified_assets.cats.txt */
+/* UUIDs from tests/data/asset_library/modified_assets.cats.txt */
 const bUUID UUID_AGENT_47("c5744ba5-43f5-4f73-8e52-010ad4a61b34");
 
 /* Subclass that adds accessors such that protected fields can be used in tests. */
