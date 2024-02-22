@@ -235,7 +235,7 @@ static void consolidate_segments(Vector<IndexMaskSegment, 16> &segments,
       return;
     }
     /* Join multiple ranges together into a bigger range. */
-    const IndexRange range{group_first, group_last + 1 - group_first};
+    const IndexRange range = IndexRange::from_begin_end_inclusive(group_first, group_last);
     segments[group_start_segment_i] = IndexMaskSegment(range[0],
                                                        static_indices.take_front(range.size()));
     for (int64_t i = group_start_segment_i + 1; i <= last_segment_i; i++) {
@@ -500,16 +500,12 @@ IndexMask IndexMask::complement(const IndexRange universe, IndexMaskMemory &memo
     if (first_in_range) {
       /* This mask is a range that contains the start of the universe.
        * The complement is a range that contains the end of the universe. */
-      const int64_t complement_start = this_range->one_after_last();
-      const int64_t complement_size = universe.one_after_last() - complement_start;
-      return IndexRange(complement_start, complement_size);
+      return IndexRange::from_begin_end(this_range->one_after_last(), universe.one_after_last());
     }
     if (last_in_range) {
       /* This mask is a range that contains the end of the universe.
        * The complement is a range that contains the start of the universe. */
-      const int64_t complement_start = universe.first();
-      const int64_t complement_size = this_range->first() - complement_start;
-      return IndexRange(complement_start, complement_size);
+      return IndexRange::from_begin_end(universe.first(), this_range->first());
     }
   }
 

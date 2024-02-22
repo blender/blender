@@ -52,25 +52,6 @@ extern "C" {
 
 #endif /* WITH_FFMPEG */
 
-int ismovie(const char * /*filepath*/)
-{
-  return 0;
-}
-
-/* never called, just keep the linker happy */
-static int startmovie(ImBufAnim * /*anim*/)
-{
-  return 1;
-}
-static ImBuf *movie_fetchibuf(ImBufAnim * /*anim*/, int /*position*/)
-{
-  return nullptr;
-}
-static void free_anim_movie(ImBufAnim * /*anim*/)
-{
-  /* pass */
-}
-
 #ifdef WITH_FFMPEG
 static void free_anim_ffmpeg(ImBufAnim *anim);
 #endif
@@ -81,8 +62,6 @@ void IMB_free_anim(ImBufAnim *anim)
     printf("free anim, anim == nullptr\n");
     return;
   }
-
-  free_anim_movie(anim);
 
 #ifdef WITH_FFMPEG
   free_anim_ffmpeg(anim);
@@ -113,34 +92,23 @@ void IMB_close_anim_proxies(ImBufAnim *anim)
 
 IDProperty *IMB_anim_load_metadata(ImBufAnim *anim)
 {
-  switch (anim->curtype) {
-    case ImbAnimType::Ffmpeg: {
+  if (anim->state == ImBufAnim::State::Valid) {
 #ifdef WITH_FFMPEG
-      AVDictionaryEntry *entry = nullptr;
+    BLI_assert(anim->pFormatCtx != nullptr);
+    av_log(anim->pFormatCtx, AV_LOG_DEBUG, "METADATA FETCH\n");
 
-      BLI_assert(anim->pFormatCtx != nullptr);
-      av_log(anim->pFormatCtx, AV_LOG_DEBUG, "METADATA FETCH\n");
-
-      while (true) {
-        entry = av_dict_get(anim->pFormatCtx->metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
-        if (entry == nullptr) {
-          break;
-        }
-
-        /* Delay creation of the property group until there is actual metadata to put in there. */
-        IMB_metadata_ensure(&anim->metadata);
-        IMB_metadata_set_field(anim->metadata, entry->key, entry->value);
+    AVDictionaryEntry *entry = nullptr;
+    while (true) {
+      entry = av_dict_get(anim->pFormatCtx->metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
+      if (entry == nullptr) {
+        break;
       }
-#endif
-      break;
+
+      /* Delay creation of the property group until there is actual metadata to put in there. */
+      IMB_metadata_ensure(&anim->metadata);
+      IMB_metadata_set_field(anim->metadata, entry->key, entry->value);
     }
-    case ImbAnimType::Sequence:
-    case ImbAnimType::Movie:
-      /* TODO */
-      break;
-    case ImbAnimType::NotAnim:
-    default:
-      break;
+#endif
   }
   return anim->metadata;
 }
@@ -376,8 +344,6 @@ static int startffmpeg(ImBufAnim *anim)
    * starts. */
   anim->start_offset = video_start;
 
-  anim->params = nullptr;
-
   anim->x = pCodecCtx->width;
   anim->y = pCodecCtx->height;
 
@@ -385,10 +351,6 @@ static int startffmpeg(ImBufAnim *anim)
   anim->pCodecCtx = pCodecCtx;
   anim->pCodec = pCodec;
   anim->videoStream = video_stream_index;
-
-  anim->interlacing = 0;
-  anim->orientation = 0;
-  anim->framesize = anim->x * anim->y * 4;
 
   anim->cur_position = 0;
   anim->cur_pts = -1;
@@ -1234,48 +1196,21 @@ static void free_anim_ffmpeg(ImBufAnim *anim)
  */
 static bool anim_getnew(ImBufAnim *anim)
 {
-  BLI_assert(anim->curtype == ImbAnimType::NotAnim);
   if (anim == nullptr) {
     /* Nothing to initialize. */
     return false;
   }
 
-  free_anim_movie(anim);
+  BLI_assert(anim->state == ImBufAnim::State::Uninitialized);
 
 #ifdef WITH_FFMPEG
   free_anim_ffmpeg(anim);
-#endif
-
-  anim->curtype = imb_get_anim_type(anim->filepath);
-
-  switch (anim->curtype) {
-    case ImbAnimType::Sequence: {
-      ImBuf *ibuf = IMB_loadiffname(anim->filepath, anim->ib_flags, anim->colorspace);
-      if (ibuf) {
-        STRNCPY(anim->filepath_first, anim->filepath);
-        anim->duration_in_frames = 1;
-        IMB_freeImBuf(ibuf);
-      }
-      else {
-        return false;
-      }
-      break;
-    }
-    case ImbAnimType::Movie:
-      if (startmovie(anim)) {
-        return false;
-      }
-      break;
-#ifdef WITH_FFMPEG
-    case ImbAnimType::Ffmpeg:
-      if (startffmpeg(anim)) {
-        return false;
-      }
-      break;
-#endif
-    default:
-      break;
+  if (startffmpeg(anim)) {
+    anim->state = ImBufAnim::State::Failed;
+    return false;
   }
+#endif
+  anim->state = ImBufAnim::State::Valid;
   return true;
 }
 
@@ -1300,7 +1235,7 @@ ImBuf *IMB_anim_previewframe(ImBufAnim *anim)
     IMB_metadata_set_field(ibuf->metadata, "Thumb::Video::Frames", value);
 
 #ifdef WITH_FFMPEG
-    if (anim->pFormatCtx && anim->curtype == ImbAnimType::Ffmpeg) {
+    if (anim->pFormatCtx) {
       AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
       AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, nullptr);
       if (frame_rate.num != 0) {
@@ -1323,15 +1258,12 @@ ImBuf *IMB_anim_absolute(ImBufAnim *anim,
                          IMB_Proxy_Size preview_size)
 {
   ImBuf *ibuf = nullptr;
-  int filter_y;
   if (anim == nullptr) {
     return nullptr;
   }
 
-  filter_y = (anim->ib_flags & IB_animdeinterlace);
-
   if (preview_size == IMB_PROXY_NONE) {
-    if (anim->curtype == ImbAnimType::NotAnim) {
+    if (anim->state == ImBufAnim::State::Uninitialized) {
       if (!anim_getnew(anim)) {
         return nullptr;
       }
@@ -1354,45 +1286,16 @@ ImBuf *IMB_anim_absolute(ImBufAnim *anim,
     }
   }
 
-  switch (anim->curtype) {
-    case ImbAnimType::Sequence: {
-      constexpr size_t filepath_size = BOUNDED_ARRAY_TYPE_SIZE<decltype(anim->filepath_first)>();
-      char head[filepath_size], tail[filepath_size];
-      ushort digits;
-      const int pic = BLI_path_sequence_decode(
-                          anim->filepath_first, head, sizeof(head), tail, sizeof(tail), &digits) +
-                      position;
-      BLI_path_sequence_encode(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
-      ibuf = IMB_loadiffname(anim->filepath, IB_rect, anim->colorspace);
-      if (ibuf) {
-        anim->cur_position = position;
-      }
-      break;
-    }
-    case ImbAnimType::Movie:
-      ibuf = movie_fetchibuf(anim, position);
-      if (ibuf) {
-        anim->cur_position = position;
-        IMB_convert_rgba_to_abgr(ibuf);
-      }
-      break;
 #ifdef WITH_FFMPEG
-    case ImbAnimType::Ffmpeg:
-      ibuf = ffmpeg_fetchibuf(anim, position, tc);
-      if (ibuf) {
-        anim->cur_position = position;
-      }
-      filter_y = 0; /* done internally */
-      break;
-#endif
-    default:
-      break;
+  if (anim->state == ImBufAnim::State::Valid) {
+    ibuf = ffmpeg_fetchibuf(anim, position, tc);
+    if (ibuf) {
+      anim->cur_position = position;
+    }
   }
+#endif
 
   if (ibuf) {
-    if (filter_y) {
-      IMB_filtery(ibuf);
-    }
     SNPRINTF(ibuf->filepath, "%s.%04d", anim->filepath, anim->cur_position + 1);
   }
   return ibuf;

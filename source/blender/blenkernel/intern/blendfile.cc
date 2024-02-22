@@ -512,7 +512,7 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
 
   std::swap(*new_lb, *old_lb);
 
-  /* TODO: Could add per-IDType control over namemaps clearing, if this becomes a performances
+  /* TODO: Could add per-IDType control over name-maps clearing, if this becomes a performances
    * concern. */
   BKE_main_namemap_clear(old_bmain);
   BKE_main_namemap_clear(new_bmain);

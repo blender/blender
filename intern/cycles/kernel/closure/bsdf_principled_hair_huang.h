@@ -470,7 +470,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
 
     const float3 wh1 = sample_wh(kg, roughness, wi, wmi, sample1);
     const float cos_hi1 = dot(wi, wh1);
-    if (!(cos_hi1 > 0)) {
+    if (!(cos_hi1 > 0.0f)) {
       continue;
     }
 
@@ -535,7 +535,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
                                          lcg_step_float(&rng_quadrature));
       const float3 wh2 = sample_wh(kg, roughness, -wt, wmt, sample2);
       const float cos_hi2 = dot(-wt, wh2);
-      if (!(cos_hi2 > 0)) {
+      if (!(cos_hi2 > 0.0f)) {
         continue;
       }
       const float R2 = fresnel_dielectric_cos(cos_hi2, inv_eta);
@@ -717,7 +717,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
 
     wtt = refract_angle(-wt, wh2, cos_theta_t2, bsdf->eta);
 
-    if (dot(wmt, -wtt) > 0.0f && cos_theta_t2 != 0.0f && microfacet_visible(-wtt, wmt_, wh2)) {
+    if (dot(wmt, -wtt) > 0.0f && T2 > 0.0f && microfacet_visible(-wtt, wmt_, wh2)) {
       TT = bsdf->extra->TT * T1 * A_t * T2 * scale2 * bsdf_Go(roughness2, cos_mi2, dot(wmt, -wtt));
     }
 
@@ -746,9 +746,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
 
       const float T3 = 1.0f - R3;
 
-      if (cos_theta_t3 != 0.0f &&
-          microfacet_visible(wtr, -wtrt, make_float3(wmtr.x, 0.0f, wmtr.z), wh3))
-      {
+      if (T3 > 0.0f && microfacet_visible(wtr, -wtrt, make_float3(wmtr.x, 0.0f, wmtr.z), wh3)) {
         TRT = bsdf->extra->TRT * TR * make_spectrum(T3) *
               bsdf_Go(roughness2, cos_mi3, dot(wmtr, -wtrt));
       }
@@ -760,8 +758,8 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
       /* Sample `theta_o`. */
       const float rand_theta = max(lcg_step_float(&sd->lcg_state), 1e-5f);
       const float fac = 1.0f +
-                        bsdf->roughness *
-                            logf(rand_theta + (1.0f - rand_theta) * expf(-2.0f / bsdf->roughness));
+                        4.0f * bsdf->roughness *
+                            logf(rand_theta + (1.0f - rand_theta) * expf(-0.5f / bsdf->roughness));
       const float sin_theta_o = -fac * sin_theta(wi) +
                                 cos_from_sin(fac) *
                                     cosf(M_2PI_F * lcg_step_float(&sd->lcg_state)) * cos_theta(wi);

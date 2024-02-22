@@ -3044,9 +3044,9 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
         if (!(d1 <= line_tol || d2 <= line_tol || fabsf(d1 - d2) <= line_tol)) {
           float3 r1, r2;
           float3 p_cage_dummy;
-          /* Can't just interpolate between ends of kfe because
+          /* Can't just interpolate between ends of `kfe` because
            * that doesn't work with perspective transformation.
-           * Need to find 3d intersection of ray through sint. */
+           * Need to find 3d intersection of ray through `p_cage_ss`. */
           knife_input_ray_segment(kcd, p_cage_ss, r1, r2);
 
           isect_kind = isect_line_line_v3(

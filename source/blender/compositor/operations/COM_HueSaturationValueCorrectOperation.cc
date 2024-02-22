@@ -32,7 +32,7 @@ void HueSaturationValueCorrectOperation::execute_pixel_sampled(float output[4],
 
   input_program_->read_sampled(hsv, x, y, sampler);
 
-  /* We parametrize the curve using the hue value. */
+  /* We parameterize the curve using the hue value. */
   const float parameter = hsv[0];
 
   /* adjust hue, scaling returned default 0.5 up to 1 */
@@ -70,7 +70,7 @@ void HueSaturationValueCorrectOperation::update_memory_buffer_partial(MemoryBuff
   for (BuffersIterator<float> it = output->iterate_with(inputs, area); !it.is_end(); ++it) {
     copy_v4_v4(hsv, it.in(0));
 
-    /* We parametrize the curve using the hue value. */
+    /* We parameterize the curve using the hue value. */
     const float parameter = hsv[0];
 
     /* Adjust hue, scaling returned default 0.5 up to 1. */

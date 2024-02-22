@@ -143,6 +143,11 @@ class DATA_PT_grease_pencil_layer_relations(LayerDataButtonsPanel, Panel):
             row = layout.row(align=True)
             row.prop_search(layer, "parent_bone", layer.parent.data, "bones", text="Bone")
 
+        layout.separator()
+
+        col = layout.row(align=True)
+        col.prop(layer, "pass_index")
+
 
 classes = (
     DATA_PT_context_grease_pencil,

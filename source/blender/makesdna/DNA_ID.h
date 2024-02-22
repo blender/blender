@@ -1112,7 +1112,7 @@ typedef enum IDRecalcFlag {
    * have to be copied on every update. */
   ID_RECALC_PARAMETERS = (1 << 21),
 
-  /* Input has changed and datablock is to be reload from disk.
+  /* Input has changed and data-block is to be reload from disk.
    * Applies to movie clips to inform that copy-on-written version is to be refreshed for the new
    * input file or for color space changes. */
   ID_RECALC_SOURCE = (1 << 23),

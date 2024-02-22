@@ -1,5 +1,5 @@
-if EXIST %BLENDER_DIR%\..\lib\win64_vc15\llvm\bin\clang-format.exe (
-    set CF_PATH=..\lib\win64_vc15\llvm\bin
+if EXIST %BLENDER_DIR%\lib\windows_x64\llvm\bin\clang-format.exe (
+    set CF_PATH=lib\windows_x64\llvm\bin
     goto detect_done
 )
 

@@ -103,6 +103,16 @@ void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index);
 bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef *userdef,
                                                                   const char *module);
+/**
+ * Using a full URL/remote path to find a repository that shares its prefix.
+ */
+bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
+    const UserDef *userdef, const char *remote_path_full, const bool only_enabled);
+/**
+ * Skip the `https` or `http` part of a URL `https://`, return zero if none is found.
+ */
+int BKE_preferences_extension_repo_remote_scheme_end(const char *url);
+
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
                                              const bUserExtensionRepo *repo);
 

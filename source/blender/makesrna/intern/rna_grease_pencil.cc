@@ -22,6 +22,7 @@
 
 #  include <fmt/format.h>
 
+#  include "BKE_attribute.hh"
 #  include "BKE_grease_pencil.hh"
 
 #  include "BLI_span.hh"
@@ -133,6 +134,34 @@ static void rna_GreasePencilLayer_name_set(PointerRNA *ptr, const char *value)
   GreasePencilLayer *layer = static_cast<GreasePencilLayer *>(ptr->data);
 
   grease_pencil->rename_node(layer->wrap().as_node(), value);
+}
+
+static int rna_GreasePencilLayer_pass_index_get(PointerRNA *ptr)
+{
+  using namespace blender;
+  const GreasePencil &grease_pencil = *rna_grease_pencil(ptr);
+  const bke::greasepencil::Layer &layer =
+      static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
+  const int layer_idx = *grease_pencil.get_layer_index(layer);
+
+  const VArray layer_passes = *grease_pencil.attributes().lookup_or_default<int>(
+      "pass_index", bke::AttrDomain::Layer, 0);
+  return layer_passes[layer_idx];
+}
+
+static void rna_GreasePencilLayer_pass_index_set(PointerRNA *ptr, int value)
+{
+  using namespace blender;
+  GreasePencil &grease_pencil = *rna_grease_pencil(ptr);
+  const bke::greasepencil::Layer &layer =
+      static_cast<const GreasePencilLayer *>(ptr->data)->wrap();
+  const int layer_idx = *grease_pencil.get_layer_index(layer);
+
+  bke::SpanAttributeWriter<int> layer_passes =
+      grease_pencil.attributes_for_write().lookup_or_add_for_write_span<int>(
+          "pass_index", bke::AttrDomain::Layer);
+  layer_passes.span[layer_idx] = std::max(0, value);
+  layer_passes.finish();
 }
 
 static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
@@ -251,6 +280,15 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
       prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_USE_ONION_SKINNING);
   RNA_def_property_ui_text(
       prop, "Onion Skinning", "Display onion skins before and after the current frame");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* pass index for compositing and modifiers */
+  prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Layer Index\" pass");
+  RNA_def_property_int_funcs(prop,
+                             "rna_GreasePencilLayer_pass_index_get",
+                             "rna_GreasePencilLayer_pass_index_set",
+                             nullptr);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
   prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);

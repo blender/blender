@@ -116,7 +116,19 @@ class IndexMaskMemory : public LinearAllocator<> {
   }
 };
 
-using IndexMaskSegment = OffsetSpan<int64_t, int16_t>;
+/**
+ * A sequence of unique and ordered indices in one segment of an IndexMask. The segment as a whole
+ * has an `int64_t` index offset that is added to each referenced `int16_t` index.
+ */
+class IndexMaskSegment : public OffsetSpan<int64_t, int16_t> {
+ public:
+  using OffsetSpan<int64_t, int16_t>::OffsetSpan;
+
+  explicit IndexMaskSegment(const OffsetSpan<int64_t, int16_t> span);
+
+  IndexMaskSegment slice(const IndexRange &range) const;
+  IndexMaskSegment slice(const int64_t start, const int64_t size) const;
+};
 
 /**
  * An #IndexMask is a sequence of unique and sorted indices (`BLI_unique_sorted_indices.hh`).
@@ -537,6 +549,26 @@ inline bool operator==(const RawMaskIterator &a, const RawMaskIterator &b)
 }
 
 /* -------------------------------------------------------------------- */
+/** \name #IndexMaskSegment Inline Methods
+ * \{ */
+
+inline IndexMaskSegment::IndexMaskSegment(const OffsetSpan<int64_t, int16_t> span)
+    : OffsetSpan<int64_t, int16_t>(span)
+{
+}
+
+inline IndexMaskSegment IndexMaskSegment::slice(const IndexRange &range) const
+{
+  return IndexMaskSegment(static_cast<const OffsetSpan<int64_t, int16_t> *>(this)->slice(range));
+}
+
+inline IndexMaskSegment IndexMaskSegment::slice(const int64_t start, const int64_t size) const
+{
+  return IndexMaskSegment(
+      static_cast<const OffsetSpan<int64_t, int16_t> *>(this)->slice(start, size));
+}
+
+/* -------------------------------------------------------------------- */
 /** \name #IndexMask Inline Methods
  * \{ */
 
@@ -612,8 +644,7 @@ inline IndexRange IndexMask::bounds() const
   }
   const int64_t first = this->first();
   const int64_t last = this->last();
-  const int64_t range = last - first + 1;
-  return IndexRange(first, range);
+  return IndexRange::from_begin_end_inclusive(first, last);
 }
 
 inline int64_t IndexMask::first() const

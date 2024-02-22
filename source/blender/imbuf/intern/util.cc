@@ -299,62 +299,19 @@ static int isffmpeg(const char *filepath)
 }
 #endif
 
-ImbAnimType imb_get_anim_type(const char *filepath)
+bool IMB_isanim(const char *filepath)
 {
-  BLI_stat_t st;
-
   BLI_assert(!BLI_path_is_rel(filepath));
 
   if (UTIL_DEBUG) {
     printf("%s: %s\n", __func__, filepath);
   }
 
-#ifndef _WIN32
-#  ifdef WITH_FFMPEG
-  /* stat test below fails on large files > 4GB */
+#ifdef WITH_FFMPEG
   if (isffmpeg(filepath)) {
-    return ImbAnimType::Ffmpeg;
+    return true;
   }
-#  endif
-  if (BLI_stat(filepath, &st) == -1) {
-    return ImbAnimType::NotAnim;
-  }
-  if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return ImbAnimType::NotAnim;
-  }
+#endif
 
-  if (ismovie(filepath)) {
-    return ImbAnimType::Movie;
-  }
-#else /* !_WIN32 */
-  if (BLI_stat(filepath, &st) == -1) {
-    return ImbAnimType::NotAnim;
-  }
-  if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return ImbAnimType::NotAnim;
-  }
-
-  if (ismovie(filepath)) {
-    return ImbAnimType::Movie;
-  }
-#  ifdef WITH_FFMPEG
-  if (isffmpeg(filepath)) {
-    return ImbAnimType::Ffmpeg;
-  }
-#  endif
-
-#endif /* !_WIN32 */
-
-  /* Assume a single image is part of an image sequence. */
-  if (IMB_ispic(filepath)) {
-    return ImbAnimType::Sequence;
-  }
-
-  return ImbAnimType::NotAnim;
-}
-
-bool IMB_isanim(const char *filepath)
-{
-  ImbAnimType type = imb_get_anim_type(filepath);
-  return !ELEM(type, ImbAnimType::NotAnim, ImbAnimType::Sequence);
+  return false;
 }
