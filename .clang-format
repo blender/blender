@@ -278,3 +278,7 @@ StatementMacros:
 
 MacroBlockBegin: "^OSL_CLOSURE_STRUCT_BEGIN$"
 MacroBlockEnd: "^OSL_CLOSURE_STRUCT_END$"
+
+# Ensure single new line at the end of source files.
+InsertNewlineAtEOF: True
+KeepEmptyLinesAtEOF: False
