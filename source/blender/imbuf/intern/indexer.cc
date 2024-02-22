@@ -458,9 +458,7 @@ static void get_tc_filepath(ImBufAnim *anim, IMB_Timecode_Type tc, char *filepat
  * - common rebuilder structures
  * ---------------------------------------------------------------------- */
 
-struct IndexBuildContext {
-  ImbAnimType anim_type;
-};
+struct IndexBuildContext {};
 
 /* ----------------------------------------------------------------------
  * - ffmpeg rebuilder
@@ -786,8 +784,7 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
   MEM_freeN(ctx);
 }
 
-struct FFmpegIndexBuilderContext {
-  int anim_type;
+struct FFmpegIndexBuilderContext : public IndexBuildContext {
 
   AVFormatContext *iFormatCtx;
   AVCodecContext *iCodecCtx;
@@ -1248,7 +1245,6 @@ IndexBuildContext *IMB_anim_index_rebuild_context(ImBufAnim *anim,
                                                   GSet *file_list,
                                                   bool build_only_on_bad_performance)
 {
-  IndexBuildContext *context = nullptr;
   int proxy_sizes_to_build = proxy_sizes_in_use;
   int i;
 
@@ -1297,23 +1293,15 @@ IndexBuildContext *IMB_anim_index_rebuild_context(ImBufAnim *anim,
     return nullptr;
   }
 
-  switch (anim->curtype) {
+  IndexBuildContext *context = nullptr;
 #ifdef WITH_FFMPEG
-    case ImbAnimType::Ffmpeg:
-      context = index_ffmpeg_create_context(
-          anim, tcs_in_use, proxy_sizes_to_build, quality, build_only_on_bad_performance);
-      break;
+  if (anim->state == ImBufAnim::State::Valid) {
+    context = index_ffmpeg_create_context(
+        anim, tcs_in_use, proxy_sizes_to_build, quality, build_only_on_bad_performance);
+  }
 #else
-    UNUSED_VARS(build_only_on_bad_performance);
+  UNUSED_VARS(build_only_on_bad_performance);
 #endif
-
-    default:
-      break;
-  }
-
-  if (context) {
-    context->anim_type = anim->curtype;
-  }
 
   return context;
 
@@ -1328,33 +1316,23 @@ void IMB_anim_index_rebuild(IndexBuildContext *context,
                             /* NOLINTNEXTLINE: readability-non-const-parameter. */
                             float *progress)
 {
-  switch (context->anim_type) {
 #ifdef WITH_FFMPEG
-    case ImbAnimType::Ffmpeg:
-      if (indexer_need_to_build_proxy((FFmpegIndexBuilderContext *)context)) {
-        index_rebuild_ffmpeg((FFmpegIndexBuilderContext *)context, stop, do_update, progress);
-      }
-      break;
-#endif
-    default:
-      break;
+  if (context != nullptr) {
+    if (indexer_need_to_build_proxy((FFmpegIndexBuilderContext *)context)) {
+      index_rebuild_ffmpeg((FFmpegIndexBuilderContext *)context, stop, do_update, progress);
+    }
   }
-
+#endif
   UNUSED_VARS(stop, do_update, progress);
 }
 
 void IMB_anim_index_rebuild_finish(IndexBuildContext *context, const bool stop)
 {
-  switch (context->anim_type) {
 #ifdef WITH_FFMPEG
-    case ImbAnimType::Ffmpeg:
-      index_rebuild_ffmpeg_finish((FFmpegIndexBuilderContext *)context, stop);
-      break;
-#endif
-    default:
-      break;
+  if (context != nullptr) {
+    index_rebuild_ffmpeg_finish((FFmpegIndexBuilderContext *)context, stop);
   }
-
+#endif
   /* static defined at top of the file */
   UNUSED_VARS(stop, proxy_sizes);
 }

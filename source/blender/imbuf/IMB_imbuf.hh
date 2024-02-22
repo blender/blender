@@ -333,7 +333,6 @@ void IMB_close_anim(ImBufAnim *anim);
 void IMB_close_anim_proxies(ImBufAnim *anim);
 bool IMB_anim_can_produce_frames(const ImBufAnim *anim);
 
-int ismovie(const char *filepath);
 int IMB_anim_get_image_width(ImBufAnim *anim);
 int IMB_anim_get_image_height(ImBufAnim *anim);
 bool IMB_get_gop_decode_time(ImBufAnim *anim);
@@ -397,11 +396,11 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype);
 int IMB_ispic_type_from_memory(const unsigned char *buf, size_t buf_size);
 int IMB_ispic_type(const char *filepath);
 
-enum class ImbAnimType { NotAnim, Sequence, Movie, Ffmpeg };
-
+/**
+ * Test if the file is a video file (known format, has a video stream and
+ * supported video codec).
+ */
 bool IMB_isanim(const char *filepath);
-
-ImbAnimType imb_get_anim_type(const char *filepath);
 
 /**
  * Test if color-space conversions of pixels in buffer need to take into account alpha.
