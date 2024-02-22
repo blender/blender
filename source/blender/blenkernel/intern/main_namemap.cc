@@ -597,7 +597,7 @@ static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
     return is_valid;
   }
 
-  /* Clear all existing namemaps. */
+  /* Clear all existing name-maps. */
   BKE_main_namemap_clear(bmain);
 
   return is_valid;

@@ -50,8 +50,8 @@ namespace blender::bke::greasepencil::convert {
 /* -------------------------------------------------------------------- */
 /** \name Animation conversion helpers.
  *
- * These utils will call given callback over all relavant fcurves (also includes drivers, and
- * actions linked through the NLA).
+ * These utilities will call given callback over all relevant F-curves
+ * (also includes drivers, and actions linked through the NLA).
  * \{ */
 
 static bool legacy_fcurves_process(ListBase &fcurves,
