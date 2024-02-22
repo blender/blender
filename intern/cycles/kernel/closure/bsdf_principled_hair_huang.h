@@ -760,8 +760,8 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
       /* Sample `theta_o`. */
       const float rand_theta = max(lcg_step_float(&sd->lcg_state), 1e-5f);
       const float fac = 1.0f +
-                        bsdf->roughness *
-                            logf(rand_theta + (1.0f - rand_theta) * expf(-2.0f / bsdf->roughness));
+                        4.0f * bsdf->roughness *
+                            logf(rand_theta + (1.0f - rand_theta) * expf(-0.5f / bsdf->roughness));
       const float sin_theta_o = -fac * sin_theta(wi) +
                                 cos_from_sin(fac) *
                                     cosf(M_2PI_F * lcg_step_float(&sd->lcg_state)) * cos_theta(wi);
