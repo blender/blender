@@ -204,7 +204,7 @@ static IndexMask get_filtered_layer_mask(const GreasePencil &grease_pencil,
   bke::AttributeAccessor layer_attributes = grease_pencil.attributes();
   const Span<const Layer *> layers = grease_pencil.layers();
   const VArray<int> layer_passes =
-      layer_attributes.lookup_or_default<int>("pass", bke::AttrDomain::Layer, 0).varray;
+      layer_attributes.lookup_or_default<int>("pass_index", bke::AttrDomain::Layer, 0).varray;
 
   IndexMask result = IndexMask::from_predicate(
       full_mask, GrainSize(4096), memory, [&](const int64_t layer_i) {
