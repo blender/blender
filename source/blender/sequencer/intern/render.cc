@@ -1245,7 +1245,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
       SeqRenderData localcontext = *context;
       localcontext.view_id = view_id;
 
-      if (view_id != context->view_id) {
+      if (view_id != context->view_id && ibuf_arr[view_id]) {
         ibuf_arr[view_id] = seq_render_preprocess_ibuf(
             &localcontext, seq, ibuf_arr[view_id], timeline_frame, true, false);
       }
