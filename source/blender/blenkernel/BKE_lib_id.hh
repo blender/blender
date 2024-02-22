@@ -31,9 +31,9 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
-
 #include "BLI_set.hh"
+#include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_userdef_enums.h"
 
@@ -662,9 +662,8 @@ bool BKE_id_is_editable(const Main *bmain, const ID *id);
 
 /**
  * Returns ordered list of data-blocks for display in the UI.
- * Result is list of #LinkData of IDs that must be freed.
  */
-void BKE_id_ordered_list(ListBase *ordered_lb, const ListBase *lb);
+blender::Vector<ID *> BKE_id_ordered_list(const ListBase *lb);
 /**
  * Reorder ID in the list, before or after the "relative" ID.
  */

@@ -97,6 +97,8 @@
 #include "UI_string_search.hh"
 #include "interface_intern.hh"
 
+using blender::Vector;
+
 /* we may want to make this optional, disable for now. */
 // #define USE_OP_RESET_BUT
 
@@ -1659,11 +1661,7 @@ static void template_ID_tabs(const bContext *C,
   uiBlock *block = uiLayoutGetBlock(layout);
   const uiStyle *style = UI_style_get_dpi();
 
-  ListBase ordered;
-  BKE_id_ordered_list(&ordered, template_id->idlb);
-
-  LISTBASE_FOREACH (LinkData *, link, &ordered) {
-    ID *id = static_cast<ID *>(link->data);
+  for (ID *id : BKE_id_ordered_list(template_id->idlb)) {
     const int name_width = UI_fontstyle_string_width(&style->widget, id->name + 2);
     const int but_width = name_width + UI_UNIT_X;
 
@@ -1688,8 +1686,6 @@ static void template_ID_tabs(const bContext *C,
 
     UI_but_drawflag_enable(tab, but_align);
   }
-
-  BLI_freelistN(&ordered);
 
   if (flag & UI_ID_ADD_NEW) {
     const bool editable = RNA_property_editable(&template_id->ptr, template_id->prop);
