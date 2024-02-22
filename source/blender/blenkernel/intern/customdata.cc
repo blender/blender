@@ -5542,6 +5542,22 @@ std::optional<VolumeGridType> custom_data_type_to_volume_grid_type(const eCustom
   }
 }
 
+std::optional<eCustomDataType> volume_grid_type_to_custom_data_type(const VolumeGridType type)
+{
+  switch (type) {
+    case VOLUME_GRID_FLOAT:
+      return CD_PROP_FLOAT;
+    case VOLUME_GRID_VECTOR_FLOAT:
+      return CD_PROP_FLOAT3;
+    case VOLUME_GRID_INT:
+      return CD_PROP_INT32;
+    case VOLUME_GRID_BOOLEAN:
+      return CD_PROP_BOOL;
+    default:
+      return std::nullopt;
+  }
+}
+
 /** \} */
 
 }  // namespace blender::bke
