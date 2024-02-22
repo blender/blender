@@ -4593,7 +4593,7 @@ void CustomData_validate_layer_name(const CustomData *data,
   int index = -1;
 
   /* if a layer name was given, try to find that layer */
-  if (name[0]) {
+  if (!name.is_empty()) {
     index = CustomData_get_named_layer_index(data, type, name);
   }
 
