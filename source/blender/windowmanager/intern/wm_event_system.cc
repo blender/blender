@@ -2503,6 +2503,7 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
         else {
           /* Not very common, but modal operators may report before finishing. */
           if (!BLI_listbase_is_empty(&op->reports->list)) {
+            WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, nullptr);
             WM_reports_from_reports_move(wm, op->reports);
           }
         }
