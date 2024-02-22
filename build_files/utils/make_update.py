@@ -543,8 +543,6 @@ def submodules_update(args: argparse.Namespace, branch: Optional[str]) -> str:
 
     msg = ""
 
-    call((args.git_command, "lfs", "install"))
-
     msg += scripts_submodules_update(args, branch)
 
     msg += floating_libraries_update(args, branch)
@@ -572,10 +570,8 @@ if __name__ == "__main__":
     else:
         branch = 'main'
 
-    if not args.no_libraries:
-        update_precompiled_libraries(args)
-        if args.use_tests:
-            update_tests_data_files(args)
+    # Submodules and precompiled libraries require Git LFS.
+    call((args.git_command, "lfs", "install"))
 
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
@@ -583,6 +579,11 @@ if __name__ == "__main__":
             blender_skip_msg = blender_update(args)
         if blender_skip_msg:
             blender_skip_msg = "Blender repository skipped: " + blender_skip_msg + "\n"
+
+    if not args.no_libraries:
+        update_precompiled_libraries(args)
+        if args.use_tests:
+            update_tests_data_files(args)
 
     if not args.no_submodules:
         submodules_skip_msg = submodules_update(args, branch)
