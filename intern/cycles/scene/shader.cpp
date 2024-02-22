@@ -264,7 +264,7 @@ void Shader::estimate_emission()
   }
 
   ShaderInput *surf = graph->output()->input("Surface");
-  emission_estimate = fabs(output_estimate_emission(surf->link, emission_is_constant));
+  emission_estimate = output_estimate_emission(surf->link, emission_is_constant);
 
   if (is_zero(emission_estimate)) {
     emission_sampling = EMISSION_SAMPLING_NONE;
@@ -274,8 +274,9 @@ void Shader::estimate_emission()
      * using a lot of memory in the light tree and potentially wasting samples
      * where indirect light samples are sufficient.
      * Possible optimization: estimate front and back emission separately. */
-    emission_sampling = (reduce_max(emission_estimate) > 0.5f) ? EMISSION_SAMPLING_FRONT_BACK :
-                                                                 EMISSION_SAMPLING_NONE;
+    emission_sampling = (reduce_max(fabs(emission_estimate)) > 0.5f) ?
+                            EMISSION_SAMPLING_FRONT_BACK :
+                            EMISSION_SAMPLING_NONE;
   }
   else {
     emission_sampling = emission_sampling_method;
