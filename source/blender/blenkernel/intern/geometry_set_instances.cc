@@ -127,13 +127,21 @@ void Instances::ensure_geometry_instances()
          * collection as instances. */
         std::unique_ptr<Instances> instances = std::make_unique<Instances>();
         Collection &collection = reference.collection();
+
+        Vector<Object *, 8> objects;
         FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (&collection, object) {
-          const int handle = instances->add_reference(*object);
-          instances->add_instance(handle, object->object_to_world());
-          float4x4 &transform = instances->transforms().last();
-          transform.location() -= collection.instance_offset;
+          objects.append(object);
         }
         FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+
+        instances->resize(objects.size());
+        MutableSpan<int> handles = instances->reference_handles_for_write();
+        MutableSpan<float4x4> transforms = instances->transforms_for_write();
+        for (const int i : objects.index_range()) {
+          handles[i] = instances->add_reference(*objects[i]);
+          transforms[i] = objects[i]->object_to_world();
+          transforms[i].location() -= collection.instance_offset;
+        }
         instances->ensure_geometry_instances();
         new_references.append(GeometrySet::from_instances(instances.release()));
         break;

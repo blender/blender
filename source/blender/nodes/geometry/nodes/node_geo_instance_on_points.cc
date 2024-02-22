@@ -81,7 +81,8 @@ static void add_instances_from_component(
 
   MutableSpan<int> dst_handles = dst_component.reference_handles_for_write().slice(start_len,
                                                                                    select_len);
-  MutableSpan<float4x4> dst_transforms = dst_component.transforms().slice(start_len, select_len);
+  MutableSpan<float4x4> dst_transforms = dst_component.transforms_for_write().slice(start_len,
+                                                                                    select_len);
 
   const VArraySpan positions = *src_attributes.lookup<float3>("position");
 
