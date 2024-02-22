@@ -31,6 +31,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 
@@ -213,9 +214,15 @@ void BKE_id_free_us(Main *bmain, void *idv) /* test users */
   }
 
   if (id->us == 0) {
+    const bool is_lib = GS(id->name) == ID_LI;
+
     BKE_libblock_unlink(bmain, id, false, false);
 
     BKE_id_free(bmain, id);
+
+    if (is_lib) {
+      BKE_library_main_rebuild_hierarchy(bmain);
+    }
   }
 }
 
@@ -226,6 +233,7 @@ static size_t id_delete(Main *bmain,
   const int tag = LIB_TAG_DOIT;
   ListBase *lbarray[INDEX_ID_MAX];
   int base_count, i;
+  bool has_deleted_library = false;
 
   /* Used by batch tagged deletion, when we call BKE_id_free then, id is no more in Main database,
    * and has already properly unlinked its other IDs usages.
@@ -400,6 +408,9 @@ static size_t id_delete(Main *bmain,
                      ID_REAL_USERS(id),
                      (id->tag & LIB_TAG_EXTRAUSER_SET) != 0 ? 1 : 0);
         }
+        if (!has_deleted_library && GS(id->name) == ID_LI) {
+          has_deleted_library = true;
+        }
         id_free(bmain, id, free_flag, !do_tagged_deletion);
         ++num_datablocks_deleted;
       }
@@ -408,6 +419,10 @@ static size_t id_delete(Main *bmain,
 
   BKE_layer_collection_resync_allow();
   BKE_main_collection_sync_remap(bmain);
+
+  if (has_deleted_library) {
+    BKE_library_main_rebuild_hierarchy(bmain);
+  }
 
   bmain->is_memfile_undo_written = false;
   return num_datablocks_deleted;
