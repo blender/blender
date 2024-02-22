@@ -77,6 +77,8 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
+using blender::Vector;
+
 using namespace blender::bke::id;
 
 static CLG_LogRef LOG = {"bke.lib_id"};
@@ -2165,43 +2167,40 @@ static int *id_order_get(ID *id)
   }
 }
 
-static int id_order_compare(const void *a, const void *b)
+static bool id_order_compare(ID *a, ID *b)
 {
-  ID *id_a = static_cast<ID *>(((LinkData *)a)->data);
-  ID *id_b = static_cast<ID *>(((LinkData *)b)->data);
-
-  int *order_a = id_order_get(id_a);
-  int *order_b = id_order_get(id_b);
+  int *order_a = id_order_get(a);
+  int *order_b = id_order_get(b);
 
   if (order_a && order_b) {
     if (*order_a < *order_b) {
-      return -1;
+      return true;
     }
     if (*order_a > *order_b) {
-      return 1;
+      return false;
     }
   }
 
-  return strcmp(id_a->name, id_b->name);
+  return strcmp(a->name, b->name) <= 0;
 }
 
-void BKE_id_ordered_list(ListBase *ordered_lb, const ListBase *lb)
+Vector<ID *> BKE_id_ordered_list(const ListBase *lb)
 {
-  BLI_listbase_clear(ordered_lb);
+  Vector<ID *> ordered;
 
   LISTBASE_FOREACH (ID *, id, lb) {
-    BLI_addtail(ordered_lb, BLI_genericNodeN(id));
+    ordered.append(id);
   }
 
-  BLI_listbase_sort(ordered_lb, id_order_compare);
+  std::sort(ordered.begin(), ordered.end(), id_order_compare);
 
-  int num = 0;
-  LISTBASE_FOREACH (LinkData *, link, ordered_lb) {
-    int *order = id_order_get(static_cast<ID *>(link->data));
-    if (order) {
-      *order = num++;
+  for (const int i : ordered.index_range()) {
+    if (int *order = id_order_get(ordered[i])) {
+      *order = i;
     }
   }
+
+  return ordered;
 }
 
 void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
