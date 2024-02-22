@@ -644,8 +644,7 @@ inline IndexRange IndexMask::bounds() const
   }
   const int64_t first = this->first();
   const int64_t last = this->last();
-  const int64_t range = last - first + 1;
-  return IndexRange(first, range);
+  return IndexRange::from_begin_end_inclusive(first, last);
 }
 
 inline int64_t IndexMask::first() const

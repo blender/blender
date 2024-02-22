@@ -45,7 +45,7 @@ IndexRange NodeBakeCache::frame_range() const
   }
   const int start_frame = this->frames.first()->frame.frame();
   const int end_frame = this->frames.last()->frame.frame();
-  return {start_frame, end_frame - start_frame + 1};
+  return IndexRange::from_begin_end_inclusive(start_frame, end_frame);
 }
 
 SimulationNodeCache *ModifierCache::get_simulation_node_cache(const int id)
