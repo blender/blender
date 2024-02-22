@@ -135,26 +135,32 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
   const float3 e1 = V[2] - V[0];
   const float3 e2 = V[2] - V[1];
   const float longest_edge_squared = max(len_squared(e0), max(len_squared(e1), len_squared(e2)));
-  const float3 N0 = cross(e0, e1);
+  float3 N0 = cross(e0, e1);
+  /* Flip normal if necessary. */
+  const int object_flag = kernel_data_fetch(object_flag, object);
+  if (object_flag & SD_OBJECT_NEGATIVE_SCALE) {
+    N0 = -N0;
+  }
+
+  /* Do not draw samples from the side without MIS. */
+  ls->shader = kernel_data_fetch(tri_shader, prim);
+  const float distance_to_plane = dot(N0, V[0] - P) / dot(N0, N0);
+  const int ls_shader_flag = kernel_data_fetch(shaders, ls->shader & SHADER_MASK).flags;
+  if (!(ls_shader_flag & (distance_to_plane > 0 ? SD_MIS_BACK : SD_MIS_FRONT))) {
+    return false;
+  }
+
   float Nl = 0.0f;
   ls->Ng = safe_normalize_len(N0, &Nl);
   const float area = 0.5f * Nl;
 
-  /* flip normal if necessary */
-  const int object_flag = kernel_data_fetch(object_flag, object);
-  if (object_flag & SD_OBJECT_NEGATIVE_SCALE) {
-    ls->Ng = -ls->Ng;
-  }
   ls->eval_fac = 1.0f;
-  ls->shader = kernel_data_fetch(tri_shader, prim);
   ls->object = object;
   ls->prim = prim;
   ls->lamp = LAMP_NONE;
   ls->shader |= SHADER_USE_MIS;
   ls->type = LIGHT_TRIANGLE;
   ls->group = object_lightgroup(kg, object);
-
-  float distance_to_plane = fabsf(dot(N0, V[0] - P) / dot(N0, N0));
 
   if (!in_volume_segment && (longest_edge_squared > distance_to_plane * distance_to_plane)) {
     /* A modified version of James Arvo, "Stratified Sampling of Spherical Triangles"
