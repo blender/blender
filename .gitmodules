@@ -1,0 +1,29 @@
+[submodule "lib/linux_x64"]
+	update = none
+	path = lib/linux_x64
+	url = https://projects.blender.org/blender/lib-linux_x64.git
+	branch = blender-v3.6-release
+[submodule "lib/macos_arm64"]
+	update = none
+	path = lib/macos_arm64
+	url = https://projects.blender.org/blender/lib-macos_arm64.git
+	branch = blender-v3.6-release
+[submodule "lib/macos_x64"]
+	update = none
+	path = lib/macos_x64
+	url = https://projects.blender.org/blender/lib-macos_x64.git
+	branch = blender-v3.6-release
+[submodule "lib/windows_x64"]
+	update = none
+	path = lib/windows_x64
+	url = https://projects.blender.org/blender/lib-windows_x64.git
+	branch = blender-v3.6-release
+[submodule "release/datafiles/assets"]
+	path = release/datafiles/assets
+	url = https://projects.blender.org/blender/blender-assets.git
+	branch = blender-v3.6-release
+[submodule "tests/data"]
+	update = none
+	path = tests/data
+	url = https://projects.blender.org/blender/blender-test-data.git
+	branch = blender-v3.6-release

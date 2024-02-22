@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# This Makefile does an out-of-source CMake build in ../build_`OS`_`CPU`
+# This Makefile does an out-of-source CMake build in ../build_`OS`
 # eg:
 #   ../build_linux_i386
 # This is for users who like to configure & build blender with a single command.
@@ -33,7 +33,7 @@ Other Convenience Targets
    * deps:          Build library dependencies (intended only for platform maintainers).
 
                     The existence of locally build dependencies overrides the pre-built dependencies from subversion.
-                    These must be manually removed from '../lib/' to go back to using the pre-compiled libraries.
+                    These must be manually removed from 'lib/' to go back to using the pre-compiled libraries.
 
 Project Files
    Generate project files for development environments.
@@ -162,6 +162,16 @@ OS:=$(shell uname -s)
 OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 CPU:=$(shell uname -m)
 
+# Use our OS and CPU architecture naming conventions.
+ifeq ($(CPU),x86_64)
+	CPU:=x64
+endif
+ifeq ($(OS_NCASE),darwin)
+	OS_LIBDIR:=macos
+else
+	OS_LIBDIR:=$(OS_NCASE)
+endif
+
 
 # Source and Build DIR's
 BLENDER_DIR:=$(shell pwd -P)
@@ -183,26 +193,13 @@ ifndef DEPS_BUILD_DIR
 endif
 
 ifndef DEPS_INSTALL_DIR
-	DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_NCASE)
-
-	# Add processor type to directory name, except for darwin x86_64
-	# which by convention does not have it.
-	ifeq ($(OS_NCASE),darwin)
-		ifneq ($(CPU),x86_64)
-			DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
-		endif
-	else
-		DEPS_INSTALL_DIR:=$(DEPS_INSTALL_DIR)_$(CPU)
-	endif
+	DEPS_INSTALL_DIR:=$(shell dirname "$(BLENDER_DIR)")/lib/$(OS_LIBDIR)_$(CPU)
 endif
 
 # Set the LIBDIR, an empty string when not found.
-LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU})
+LIBDIR:=$(wildcard $(BLENDER_DIR)/lib/${OS_LIBDIR}_${CPU})
 ifeq (, $(LIBDIR))
-	LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU}_glibc_228)
-endif
-ifeq (, $(LIBDIR))
-	LIBDIR:=$(wildcard ../lib/${OS_NCASE})
+	LIBDIR:=$(wildcard $(BLENDER_DIR)/lib/${OS_LIBDIR})
 endif
 
 # Find the newest Python version bundled in `LIBDIR`.

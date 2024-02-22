@@ -6,8 +6,6 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 
 message(STATUS "Building in Rocky 8 Linux 64bit environment")
 
-set(LIBDIR_NAME "linux_x86_64_glibc_228")
-
 # ######## Linux-specific build options ########
 # Options which are specific to Linux-only platforms
 
@@ -21,8 +19,6 @@ set(WITH_PULSEAUDIO_DYNLOAD  ON  CACHE BOOL "" FORCE)
 set(WITH_SDL_DYNLOAD         ON  CACHE BOOL "" FORCE)
 
 # ######## Release environment specific settings ########
-
-set(LIBDIR "${CMAKE_CURRENT_LIST_DIR}/../../../../lib/${LIBDIR_NAME}" CACHE STRING "" FORCE)
 
 # Platform specific configuration, to ensure static linking against everything.
 

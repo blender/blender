@@ -56,6 +56,7 @@ waveletNoiseTile.bin
 # External repositories.
 /scripts/addons/
 /scripts/addons_contrib/
+/tests/benchmarks/
 
 # Ignore old submodules directories.
 # Eventually need to get rid of those, but for the first time of transition
