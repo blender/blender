@@ -535,12 +535,13 @@ def add_submodule_push_url(args: argparse.Namespace):
 
         push_url = check_output((args.git_command, "config", "--file", str(config),
                                 "--get", "remote.origin.pushURL"), exit_on_error=False)
-        if push_url:
+        if push_url and push_url != "https://projects.blender.org/blender/lib-darwin_arm64.git":
             # Ignore modules which have pushURL configured.
+            # Keep special exception, as some debug code sneaked into the production for a short
+            # while.
             continue
 
         url = make_utils.git_get_config(args.git_command, "remote.origin.url", str(config))
-        url = "https://projects.blender.org/blender/lib-darwin_arm64.git"  # XXX
         if not url.startswith("https:"):
             # Ignore non-URL URLs.
             continue
