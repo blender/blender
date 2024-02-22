@@ -24,7 +24,9 @@ if EXIST %PYTHON% (
 )
 
 if NOT EXIST %PYTHON% (
-    echo Warning: Python not found, there is likely an issue with the library folder
+    if EXIST %BLENDER_DIR%\lib\windows_x64\ (
+      echo Warning: Python not found, there is likely an issue with the library folder
+    )
     set PYTHON=""
 )
 
