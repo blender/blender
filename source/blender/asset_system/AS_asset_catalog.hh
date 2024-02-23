@@ -183,7 +183,7 @@ class AssetCatalogService {
    */
   void update_catalog_path(CatalogID catalog_id, const AssetCatalogPath &new_catalog_path);
 
-  AssetCatalogTree *get_catalog_tree() const;
+  const AssetCatalogTree *get_catalog_tree() const;
 
   /** Return true only if there are no catalogs known. */
   bool is_empty() const;

@@ -574,7 +574,7 @@ std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_i
   return cdf;
 }
 
-AssetCatalogTree *AssetCatalogService::get_catalog_tree() const
+const AssetCatalogTree *AssetCatalogService::get_catalog_tree() const
 {
   return catalog_tree_.get();
 }
