@@ -75,7 +75,7 @@ void VolumeProbeModule::init()
   }
 
   if (irradiance_atlas_tx_.is_valid() == false) {
-    inst_.info = "Irradiance Atlas texture could not be created";
+    inst_.info += "Irradiance Atlas texture could not be created\n";
   }
 }
 
@@ -127,7 +127,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
 
     int3 grid_size = int3(cache->size);
     if (grid_size.x <= 0 || grid_size.y <= 0 || grid_size.z <= 0) {
-      inst_.info = "Error: Malformed irradiance grid data";
+      inst_.info += "Error: Malformed irradiance grid data\n";
       continue;
     }
 
@@ -135,9 +135,9 @@ void VolumeProbeModule::set_view(View & /*view*/)
 
     /* Note that we reserve 1 slot for the world irradiance. */
     if (grid_loaded.size() >= IRRADIANCE_GRID_MAX - 1) {
-      inst_.info = "Error: Too many irradiance grids in the scene";
+      inst_.info += "Error: Too many irradiance grids in the scene\n";
       /* TODO frustum cull and only load visible grids. */
-      // inst_.info = "Error: Too many grid visible";
+      // inst_.info += "Error: Too many grid visible\n";
       continue;
     }
 
@@ -148,7 +148,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
       grid.bricks = bricks_alloc(brick_len);
 
       if (grid.bricks.is_empty()) {
-        inst_.info = "Error: Irradiance grid allocation failed";
+        inst_.info += "Error: Irradiance grid allocation failed\n";
         continue;
       }
       grid.do_update = true;
@@ -165,7 +165,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
     bricks_infos_buf_.extend(grid.bricks);
 
     if (grid_size.x <= 0 || grid_size.y <= 0 || grid_size.z <= 0) {
-      inst_.info = "Error: Malformed irradiance grid data";
+      inst_.info += "Error: Malformed irradiance grid data\n";
       continue;
     }
 
@@ -307,7 +307,7 @@ void VolumeProbeModule::set_view(View & /*view*/)
     }
 
     if (irradiance_a_tx.is_valid() == false) {
-      inst_.info = "Error: Could not allocate irradiance staging texture";
+      inst_.info += "Error: Could not allocate irradiance staging texture\n";
       /* Avoid undefined behavior with uninitialized values. Still load a clear texture. */
       float4 zero(0.0f);
       irradiance_a_tx.ensure_3d(GPU_RGB16F, int3(1), usage, zero);
@@ -402,22 +402,22 @@ void VolumeProbeModule::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
 {
   switch (inst_.debug_mode) {
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_NORMAL:
-      inst_.info = "Debug Mode: Surfels Normal";
+      inst_.info += "Debug Mode: Surfels Normal\n";
       break;
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_CLUSTER:
-      inst_.info = "Debug Mode: Surfels Cluster";
+      inst_.info += "Debug Mode: Surfels Cluster\n";
       break;
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_IRRADIANCE:
-      inst_.info = "Debug Mode: Surfels Irradiance";
+      inst_.info += "Debug Mode: Surfels Irradiance\n";
       break;
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_SURFELS_VISIBILITY:
-      inst_.info = "Debug Mode: Surfels Visibility";
+      inst_.info += "Debug Mode: Surfels Visibility\n";
       break;
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_VALIDITY:
-      inst_.info = "Debug Mode: Irradiance Validity";
+      inst_.info += "Debug Mode: Irradiance Validity\n";
       break;
     case eDebugMode::DEBUG_IRRADIANCE_CACHE_VIRTUAL_OFFSET:
-      inst_.info = "Debug Mode: Virtual Offset";
+      inst_.info += "Debug Mode: Virtual Offset\n";
       break;
     default:
       /* Nothing to display. */
@@ -866,7 +866,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
       !irradiance_L1_b_tx_.is_valid() || !irradiance_L1_c_tx_.is_valid() ||
       !validity_tx_.is_valid() || !virtual_offset_tx_.is_valid())
   {
-    inst_.info = "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".";
+    inst_.info += "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".\n";
     do_break_ = true;
     return;
   }
@@ -972,7 +972,8 @@ void IrradianceBake::surfels_create(const Object &probe_object)
     if (required_mem > max_size) {
       capture_info_buf_.surfel_len = 0u;
       capture_info_buf_.push_update();
-      inst_.info = "Error: Not enough memory to bake " + std::string(probe_object.id.name) + ".";
+      inst_.info += "Error: Not enough memory to bake " + std::string(probe_object.id.name) +
+                    ".\n";
       do_break_ = true;
       return;
     }
