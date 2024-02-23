@@ -33,6 +33,14 @@ void Renderdoc::end_frame_capture(RENDERDOC_DevicePointer device_handle,
   renderdoc_api_->EndFrameCapture(device_handle, window_handle);
 }
 
+void Renderdoc::set_frame_capture_title(const char *title)
+{
+  if (!check_loaded()) {
+    return;
+  }
+  renderdoc_api_->SetCaptureTitle(title);
+}
+
 bool Renderdoc::check_loaded()
 {
   switch (state_) {

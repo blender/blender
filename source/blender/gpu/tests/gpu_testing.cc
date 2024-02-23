@@ -37,7 +37,7 @@ void GPUTest::SetUp()
 
   GPU_render_begin();
   GPU_context_begin_frame(context);
-  GPU_debug_capture_begin();
+  GPU_debug_capture_begin(nullptr);
 }
 
 void GPUTest::TearDown()
