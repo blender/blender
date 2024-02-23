@@ -196,7 +196,7 @@ void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo 
 bUserExtensionRepo *BKE_preferences_extension_repo_add_default(UserDef *userdef)
 {
   bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
-      userdef, "Blender Official", "blender_official", "");
+      userdef, "extensions.blender.org", "blender_org", "");
   STRNCPY(repo->remote_path, "https://extensions.blender.org");
   repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
   return repo;
@@ -277,6 +277,22 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef 
       BLI_findstring(&userdef->extension_repos, module, offsetof(bUserExtensionRepo, module)));
 }
 
+static bool url_char_is_delimiter(const char ch)
+{
+  /* Punctuation (space to comma). */
+  if (ch >= 32 && ch <= 44) {
+    return true;
+  }
+  /* Other characters (colon to at-sign). */
+  if (ch >= 58 && ch <= 64) {
+    return true;
+  }
+  if (ELEM(ch, '/', '\\')) {
+    return true;
+  }
+  return false;
+}
+
 bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
     const UserDef *userdef, const char *path_full, const bool only_enabled)
 {
@@ -327,7 +343,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
 
     /* A delimiter must follow to ensure `path_test` doesn't reference a longer host-name.
      * Will typically be a `/` or a `:`. */
-    if (!ELEM(path_test[path_repo_len], '/', '\\', ':', '&', '?')) {
+    if (!url_char_is_delimiter(path_test[path_repo_len])) {
       continue;
     }
     return repo;
@@ -351,6 +367,31 @@ int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
     }
   }
   return 0;
+}
+
+void BKE_preferences_extension_remote_to_name(const char *remote_path,
+                                              char name[sizeof(bUserExtensionRepo::name)])
+{
+  name[0] = '\0';
+  if (int offset = BKE_preferences_extension_repo_remote_scheme_end(remote_path)) {
+    remote_path += (offset + 3);
+  }
+  if (UNLIKELY(remote_path[0] == '\0')) {
+    return;
+  }
+
+  const char *c = remote_path;
+  /* Skip any delimiters (likely forward slashes for `file:///` on UNIX). */
+  while (*c && url_char_is_delimiter(*c)) {
+    c++;
+  }
+  /* Skip the domain name typically. */
+  while (*c && !url_char_is_delimiter(*c)) {
+    c++;
+  }
+
+  BLI_strncpy_utf8(
+      name, remote_path, std::min(size_t(c - remote_path) + 1, sizeof(bUserExtensionRepo::name)));
 }
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,

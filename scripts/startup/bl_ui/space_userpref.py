@@ -2121,9 +2121,13 @@ class USERPREF_PT_extensions_repos(Panel):
             if active_repo.use_custom_directory:
                 if active_repo.custom_directory == "":
                     row.alert = True
+                row.prop(active_repo, "custom_directory", text="")
             else:
-                row.active = False
-            row.prop(active_repo, "custom_directory", text="")
+                # Show the read-only directory property.
+                # Apart from being consistent with the custom directory UI,
+                # prefer a read-only property over a label because this is not necessarily
+                # valid UTF-8 which will raise a Python exception when passed in as text.
+                row.prop(active_repo, "directory")
 
             layout_panel.separator()
 

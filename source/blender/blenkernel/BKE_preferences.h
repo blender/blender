@@ -112,6 +112,7 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
  * Skip the `https` or `http` part of a URL `https://`, return zero if none is found.
  */
 int BKE_preferences_extension_repo_remote_scheme_end(const char *url);
+void BKE_preferences_extension_remote_to_name(const char *remote_path, char name[64]);
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,
                                              const bUserExtensionRepo *repo);
