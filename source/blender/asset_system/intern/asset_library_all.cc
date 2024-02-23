@@ -67,7 +67,7 @@ void AllAssetLibrary::tag_catalogs_dirty()
   catalogs_dirty_ = true;
 }
 
-bool AllAssetLibrary::is_catalogs_dirty()
+bool AllAssetLibrary::is_catalogs_dirty() const
 {
   return catalogs_dirty_;
 }
