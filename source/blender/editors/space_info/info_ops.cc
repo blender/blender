@@ -87,8 +87,13 @@ static int unpack_libraries_exec(bContext *C, wmOperator *op)
 
 static int unpack_libraries_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return WM_operator_confirm_message(
-      C, op, "Unpack Linked Libraries - creates directories, all new paths should work");
+  return WM_operator_confirm_ex(C,
+                                op,
+                                IFACE_("Restore Packed Linked Data to Their Original Locations"),
+                                IFACE_("Will create directories so that all paths are valid."),
+                                IFACE_("Unpack"),
+                                ALERT_ICON_INFO,
+                                false);
 }
 
 void FILE_OT_unpack_libraries(wmOperatorType *ot)
