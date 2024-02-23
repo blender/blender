@@ -163,4 +163,30 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V
   return mix(radiance_cube, radiance_sh, fac);
 }
 
+void lightprobe_eval(
+    LightProbeSample samp, ClosureUndetermined cl, vec3 P, vec3 V, inout vec3 radiance)
+{
+  switch (cl.type) {
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+      /* TODO: Support in ray tracing first. Otherwise we have a discrepancy. */
+      radiance += lightprobe_eval(samp, to_closure_translucent(cl), P, V);
+      break;
+    case CLOSURE_BSSRDF_BURLEY_ID:
+      /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
+    case CLOSURE_BSDF_DIFFUSE_ID:
+      radiance += lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
+      break;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      radiance += lightprobe_eval(samp, to_closure_reflection(cl), P, V);
+      break;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
+      radiance = lightprobe_eval(samp, to_closure_refraction(cl), P, V);
+      break;
+    case CLOSURE_NONE_ID:
+      /* TODO(fclem): Assert. */
+      break;
+  }
+}
+
 #endif /* SPHERE_PROBE */
