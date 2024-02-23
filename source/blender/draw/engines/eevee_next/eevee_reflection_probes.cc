@@ -114,8 +114,11 @@ bool SphereProbeModule::ensure_atlas()
 
 void SphereProbeModule::end_sync()
 {
-  const bool world_updated = instance_.light_probes.world_sphere_.do_render;
   const bool atlas_resized = ensure_atlas();
+  if (atlas_resized) {
+    instance_.light_probes.world_sphere_.do_render = true;
+  }
+  const bool world_updated = instance_.light_probes.world_sphere_.do_render;
   /* Detect if we need to render probe objects. */
   update_probes_next_sample_ = false;
   for (SphereProbe &probe : instance_.light_probes.sphere_map_.values()) {
