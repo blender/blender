@@ -26,6 +26,9 @@
  *
  * Magic numbers should be replaced with flags before committing.
  *
+ * \note Defaults must be registered by adding the #SDNA_DEFAULT_DECL_STRUCT and
+ * #SDNA_DEFAULT_DECL macro calls to the lists below.
+ *
  * Public API
  * ----------
  *
