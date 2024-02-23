@@ -85,7 +85,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
   void update_shelf_settings_from_enabled_catalogs();
 
   class Item : public ui::BasicTreeViewItem {
-    asset_system::AssetCatalogTreeItem catalog_item_;
+    asset_system::AssetCatalogTreeItem &catalog_item_;
     /* Is the catalog path enabled in this redraw? Set on construction, updated by the UI (which
      * gets a pointer to it). The UI needs it as char. */
     char catalog_path_enabled_ = false;
