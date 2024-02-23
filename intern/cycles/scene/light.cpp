@@ -1091,8 +1091,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
       dir = safe_normalize(dir);
 
-      if (light->use_mis && area != 0.0f)
+      if (light->use_mis && area != 0.0f && light->spread > 0.0f) {
         shader_id |= SHADER_USE_MIS;
+      }
 
       klights[light_index].co = co;
       klights[light_index].area.axis_u = axis_u;
