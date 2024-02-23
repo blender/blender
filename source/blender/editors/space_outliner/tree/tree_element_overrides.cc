@@ -321,6 +321,7 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
 
   const char *elem_path = nullptr;
   TreeElement *te_to_expand = &parent;
+  char name_buf[128], *name;
 
   LISTBASE_FOREACH (PropertyElemRNA *, elem, &path_elems) {
     if (!elem->next) {
@@ -339,8 +340,9 @@ void OverrideRNAPathTreeBuilder::build_path(TreeElement &parent,
     if (RNA_property_type(elem->prop) == PROP_COLLECTION) {
       const int coll_item_idx = RNA_property_collection_lookup_index(
           &elem->ptr, elem->prop, &elem->next->ptr);
+      name = RNA_struct_name_get_alloc(&elem->next->ptr, name_buf, sizeof(name_buf), nullptr);
       const char *coll_item_path = RNA_path_append(
-          previous_path, &elem->ptr, elem->prop, coll_item_idx, nullptr);
+          previous_path, &elem->ptr, elem->prop, coll_item_idx, name);
 
       te_to_expand = &ensure_label_element_for_ptr(
           *te_to_expand, coll_item_path, elem->next->ptr, index);
@@ -398,12 +400,14 @@ void OverrideRNAPathTreeBuilder::ensure_entire_collection(
 
   TreeElement *previous_te = nullptr;
   int item_idx = 0;
+  char name_buf[128], *name;
   RNA_PROP_BEGIN (&override_data.override_rna_ptr, itemptr, &override_data.override_rna_prop) {
+    name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
     const char *coll_item_path = RNA_path_append(coll_prop_path,
                                                  &override_data.override_rna_ptr,
                                                  &override_data.override_rna_prop,
                                                  item_idx,
-                                                 nullptr);
+                                                 name);
     IDOverrideLibraryPropertyOperation *item_operation =
         BKE_lib_override_library_property_operation_find(&override_data.override_property,
                                                          nullptr,
