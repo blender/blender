@@ -301,6 +301,20 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
+  {
+    const char *info;
+    if (!RNA_property_editable_info(&ptr, prop, &info)) {
+      if (info[0]) {
+        BKE_reportf(op->reports, RPT_ERROR, "Property is not editable: %s", info);
+      }
+      else {
+        BKE_report(op->reports, RPT_ERROR, "Property is not editable");
+      }
+      MEM_freeN(path);
+      return OPERATOR_CANCELLED;
+    }
+  }
+
   PropertyRNA *prop_relpath;
   const char *path_prop = RNA_struct_find_property(op->ptr, "directory") ? "directory" :
                                                                            "filepath";
