@@ -133,6 +133,15 @@ void SphereProbeModule::end_sync()
       update_probes_next_sample_ = true;
     }
   }
+
+  /* When reflection probes are synced the sampling must be reset.
+   *
+   * This fixes issues when using a single non-projected sample. Without resetting the
+   * previous rendered viewport will be drawn and reflection probes will not be updated.
+   * #Instance::render_sample */
+  if (instance_.do_reflection_probe_sync()) {
+    instance_.sampling.reset();
+  }
   /* If we cannot render probes this redraw make sure we request another redraw. */
   if (update_probes_next_sample_ && (instance_.do_reflection_probe_sync() == false)) {
     DRW_viewport_request_redraw();
