@@ -2684,13 +2684,12 @@ typedef struct GreasePencilSmoothModifierData {
 } GreasePencilSmoothModifierData;
 
 typedef enum eGreasePencilSmooth_Flag {
-  MOD_GREASE_PENCIL_SMOOTH_OPEN_INFLUENCE_PANEL = (1 << 0),
-  MOD_GREASE_PENCIL_SMOOTH_MOD_LOCATION = (1 << 1),
-  MOD_GREASE_PENCIL_SMOOTH_MOD_STRENGTH = (1 << 2),
-  MOD_GREASE_PENCIL_SMOOTH_MOD_THICKNESS = (1 << 3),
-  MOD_GREASE_PENCIL_SMOOTH_MOD_UV = (1 << 4),
-  MOD_GREASE_PENCIL_SMOOTH_KEEP_SHAPE = (1 << 5),
-  MOD_GREASE_PENCIL_SMOOTH_SMOOTH_ENDS = (1 << 6),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_LOCATION = (1 << 0),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_STRENGTH = (1 << 1),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_THICKNESS = (1 << 2),
+  MOD_GREASE_PENCIL_SMOOTH_MOD_UV = (1 << 3),
+  MOD_GREASE_PENCIL_SMOOTH_KEEP_SHAPE = (1 << 4),
+  MOD_GREASE_PENCIL_SMOOTH_SMOOTH_ENDS = (1 << 5),
 } eGreasePencilSmooth_Flag;
 
 typedef struct GreasePencilOffsetModifierData {
@@ -2973,7 +2972,7 @@ typedef struct GreasePencilHookModifierData {
 } GreasePencilHookModifierData;
 
 typedef enum GreasePencilHookFlag {
-  MOD_GRAESE_PENCIL_HOOK_UNIFORM_SPACE = (1 << 0),
+  MOD_GREASE_PENCIL_HOOK_UNIFORM_SPACE = (1 << 0),
 } GreasePencilHookFlag;
 
 typedef enum GreasePencilHookFalloff {
