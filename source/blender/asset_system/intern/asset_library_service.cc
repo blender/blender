@@ -207,6 +207,12 @@ void AssetLibraryService::reload_all_library_catalogs_if_dirty()
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
 {
+  if (all_library_) {
+    CLOG_INFO(&LOG, 2, "get all lib (cached)");
+    all_library_->refresh_catalogs();
+    return all_library_.get();
+  }
+
   /* (Re-)load all other asset libraries. */
   for (AssetLibraryReference &library_ref : all_valid_asset_library_refs()) {
     /* Skip self :) */
@@ -216,12 +222,6 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
 
     /* Ensure all asset libraries are loaded. */
     this->get_asset_library(bmain, library_ref);
-  }
-
-  if (all_library_) {
-    CLOG_INFO(&LOG, 2, "get all lib (cached)");
-    all_library_->refresh_catalogs();
-    return all_library_.get();
   }
 
   CLOG_INFO(&LOG, 2, "get all lib (loaded)");
