@@ -131,7 +131,7 @@ BUILD_MANDATORY_SUBPACKAGES = (
                                   DISTRO_ID_ARCH: "base-devel",
                                   },
             ),
-    Package(name="Git",
+    Package(name="Git", is_group=True,
             sub_packages=(
                 Package(name="Git LFS",
                         distro_package_names={DISTRO_ID_DEBIAN: "git-lfs",
