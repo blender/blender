@@ -9,8 +9,6 @@
 
 #include <cstring>
 
-#include "BLI_string.h"
-
 #include "ANIM_bone_collections.hh"
 
 #include "DNA_ID.h"
@@ -18,17 +16,15 @@
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_layer.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -36,7 +32,6 @@
 #include "ED_armature.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
-#include "ED_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -306,7 +301,7 @@ static void bone_collection_assign_editbones(bContext *C,
 
   ED_armature_edit_sync_selection(arm->edbo);
   WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /**
@@ -385,7 +380,7 @@ static bool bone_collection_assign_named_mode_specific(bContext *C,
 
       ED_armature_edit_sync_selection(arm->edbo);
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
-      DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
       return true;
     }
 

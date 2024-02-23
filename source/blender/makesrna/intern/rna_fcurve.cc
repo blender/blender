@@ -15,7 +15,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 
@@ -714,7 +714,7 @@ static void rna_FCurve_update_data_relations(Main *bmain, Scene * /*scene*/, Poi
   DEG_relations_tag_update(bmain);
 }
 
-/* RNA update callback for F-Curves to indicate that there are copy-on-write tagging/flushing
+/* RNA update callback for F-Curves to indicate that there are copy-on-evaluation tagging/flushing
  * needed (e.g. for properties that affect how animation gets evaluated).
  */
 static void rna_FCurve_update_eval(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)

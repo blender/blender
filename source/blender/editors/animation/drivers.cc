@@ -12,20 +12,17 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_anim_data.h"
-#include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -811,7 +808,7 @@ void ANIM_copy_as_driver(ID *target_id, const char *target_path, const char *var
 
   target->idtype = GS(target_id->name);
   target->id = target_id;
-  target->rna_path = static_cast<char *>(MEM_dupallocN(target_path));
+  target->rna_path = BLI_strdup(target_path);
 
   /* Set the variable name. */
   if (var_name) {
@@ -1057,7 +1054,7 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
     if (changed) {
       /* send updates */
       UI_context_update_anim_flag(C);
-      DEG_id_tag_update(ptr.owner_id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(ptr.owner_id, ID_RECALC_SYNC_TO_EVAL);
       DEG_relations_tag_update(CTX_data_main(C));
       WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, nullptr);
     }

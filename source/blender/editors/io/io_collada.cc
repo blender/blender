@@ -8,7 +8,7 @@
 #ifdef WITH_COLLADA
 #  include "DNA_space_types.h"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "BLI_blenlib.h"
 #  include "BLI_string.h"
@@ -16,9 +16,7 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
-#  include "BKE_main.hh"
-#  include "BKE_object.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "DEG_depsgraph.hh"
 

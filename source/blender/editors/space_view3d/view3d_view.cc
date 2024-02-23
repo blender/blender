@@ -17,7 +17,7 @@
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
@@ -25,8 +25,8 @@
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -241,7 +241,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
     v3d->camera = ob;
     if (v3d->scenelock && scene->camera != ob) {
       scene->camera = ob;
-      DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       DEG_relations_tag_update(CTX_data_main(C));
     }
 
@@ -370,7 +370,7 @@ static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
 
   rv3d->view = RV3D_VIEW_USER; /* don't show the grid */
 
-  normalize_m4_m4(bmat, ob->object_to_world);
+  normalize_m4_m4(bmat, ob->object_to_world().ptr());
   invert_m4_m4(rv3d->viewmat, bmat);
 
   /* view quat calculation, needed for add object */
@@ -409,12 +409,12 @@ void view3d_viewmatrix_set(Depsgraph *depsgraph,
       Object *ob_eval = DEG_get_evaluated_object(depsgraph, v3d->ob_center);
       float vec[3];
 
-      copy_v3_v3(vec, ob_eval->object_to_world[3]);
+      copy_v3_v3(vec, ob_eval->object_to_world().location());
       if (ob_eval->type == OB_ARMATURE && v3d->ob_center_bone[0]) {
         bPoseChannel *pchan = BKE_pose_channel_find_name(ob_eval->pose, v3d->ob_center_bone);
         if (pchan) {
           copy_v3_v3(vec, pchan->pose_mat[3]);
-          mul_m4_v3(ob_eval->object_to_world, vec);
+          mul_m4_v3(ob_eval->object_to_world().ptr(), vec);
         }
       }
       translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);

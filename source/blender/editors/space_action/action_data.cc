@@ -13,37 +13,26 @@
 
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
 #include "BKE_action.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_nla.h"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-
-#include "UI_view2d.hh"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "ED_anim_api.hh"
-#include "ED_gpencil_legacy.hh"
-#include "ED_keyframes_edit.hh"
-#include "ED_keyframing.hh"
-#include "ED_markers.hh"
-#include "ED_mask.hh"
 #include "ED_screen.hh"
 
 #include "DEG_depsgraph.hh"

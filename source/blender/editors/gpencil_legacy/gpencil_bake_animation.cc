@@ -11,26 +11,20 @@
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_vector.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_layer.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -222,7 +216,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   ushort local_view_bits = (v3d && v3d->localvd) ? v3d->local_view_uid : 0;
   ob_gpencil = ED_gpencil_add_object(C, scene->cursor.location, local_view_bits);
   float invmat[4][4];
-  invert_m4_m4(invmat, ob_gpencil->object_to_world);
+  invert_m4_m4(invmat, ob_gpencil->object_to_world().ptr());
 
   bGPdata *gpd_dst = (bGPdata *)ob_gpencil->data;
   gpd_dst->draw_mode = GP_DRAWMODE_2D;
@@ -323,7 +317,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
             bGPDspoint *pt = &gps->points[j];
             pt->runtime.idx_orig = 0;
             pt->runtime.pt_orig = nullptr;
-            mul_m4_v3(ob_eval->object_to_world, &pt->x);
+            mul_m4_v3(ob_eval->object_to_world().ptr(), &pt->x);
             mul_m4_v3(invmat, &pt->x);
           }
 
@@ -356,7 +350,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   /* Notifiers. */
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  DEG_id_tag_update(&gpd_dst->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&gpd_dst->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, nullptr);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

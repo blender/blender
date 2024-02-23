@@ -1,49 +1,27 @@
-diff -Naur oidn-2.0.1/core/CMakeLists.txt external_openimagedenoise/core/CMakeLists.txt
---- oidn-2.0.1/core/CMakeLists.txt      2023-06-26 09:06:31.000000000 -0600
-+++ external_openimagedenoise/core/CMakeLists.txt       2023-07-01 10:54:06.347161100 -0600
-@@ -76,7 +76,7 @@
-
- add_library(OpenImageDenoise_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE_FILE})
+diff -Naur oidn-2.2.0/core/CMakeLists.txt external_openimagedenoise/core/CMakeLists.txt
+--- oidn-2.2.0/core/CMakeLists.txt	2024-02-01 17:52:16 -0700
++++ external_openimagedenoise/core/CMakeLists.txt	2024-02-03 12:41:34 -0700
+@@ -87,7 +87,7 @@
+ 
+ add_library(OpenImageDenoise_core ${OIDN_CORE_LIB_TYPE} ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE_FILE})
  set_property(TARGET OpenImageDenoise_core PROPERTY VERSION ${PROJECT_VERSION})
 -
 +target_compile_definitions(OpenImageDenoise_core PRIVATE SHARED_POSTFIX=\"$<$<CONFIG:Debug>:$<TARGET_PROPERTY:OpenImageDenoise_core,DEBUG_POSTFIX>>\")
  target_link_libraries(OpenImageDenoise_core
    PUBLIC
      OpenImageDenoise_common
-diff -Naur oidn-2.0.1/core/module.cpp external_openimagedenoise/core/module.cpp
---- oidn-2.0.1/core/module.cpp  2023-06-26 09:06:31.000000000 -0600
-+++ external_openimagedenoise/core/module.cpp   2023-07-01 10:49:59.924876500 -0600
+diff -Naur oidn-2.2.0/core/module.cpp external_openimagedenoise/core/module.cpp
+--- oidn-2.2.0/core/module.cpp	2024-02-01 17:52:16 -0700
++++ external_openimagedenoise/core/module.cpp	2024-02-03 12:41:34 -0700
 @@ -29,7 +29,7 @@
        return true; // module already loaded
-
+ 
      // Get the path of the module to load
 -    std::string filename = "OpenImageDenoise_" + name;
 +    std::string filename = "OpenImageDenoise_" + name + SHARED_POSTFIX;
    #if defined(_WIN32)
      filename += ".dll";
    #else
-diff -Naur oidn-2.1.0/devices/CMakeLists.txt external_openimagedenoise/devices/CMakeLists.txt
---- oidn-2.1.0/devices/CMakeLists.txt	2023-10-11 14:04:08 -0600
-+++ external_openimagedenoise/devices/CMakeLists.txt	2023-12-23 09:34:17 -0700
-@@ -59,6 +59,8 @@
-       -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
-       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
-       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
-+      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
-+      -DCMAKE_DEBUG_POSTFIX:STRING=${CMAKE_DEBUG_POSTFIX}
-     BUILD_ALWAYS TRUE
-     DEPENDS
-       OpenImageDenoise_core
-@@ -149,6 +151,7 @@
-       -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
-       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
-       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
-+      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
-     BUILD_ALWAYS TRUE
-     DEPENDS
-       OpenImageDenoise_core
---- a/core/module.cpp	2023-11-16 19:07:32
-+++ b/core/module.cpp	2023-11-16 19:08:01
 @@ -37,7 +37,8 @@
                                     "." + toString(OIDN_VERSION_MINOR) +
                                     "." + toString(OIDN_VERSION_PATCH);
@@ -54,3 +32,23 @@ diff -Naur oidn-2.1.0/devices/CMakeLists.txt external_openimagedenoise/devices/C
    #else
      filename = "lib" + filename + ".so" + versionStr;
    #endif
+diff -Naur oidn-2.2.0/devices/CMakeLists.txt external_openimagedenoise/devices/CMakeLists.txt
+--- oidn-2.2.0/devices/CMakeLists.txt	2024-02-01 17:52:16 -0700
++++ external_openimagedenoise/devices/CMakeLists.txt	2024-02-03 13:10:31 -0700
+@@ -65,6 +65,7 @@
+       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
+       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
+       -DOIDN_DEVICE_CUDA_API:STRING=${OIDN_DEVICE_CUDA_API}
++      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
+     BUILD_ALWAYS TRUE
+     DEPENDS
+       OpenImageDenoise_core
+@@ -155,6 +156,8 @@
+       -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
+       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
+       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
++      -DPython_EXECUTABLE:STRING=${Python_EXECUTABLE}
++      -DCMAKE_DEBUG_POSTFIX:STRING=${CMAKE_DEBUG_POSTFIX}
+     BUILD_ALWAYS TRUE
+     DEPENDS
+       OpenImageDenoise_core

@@ -23,17 +23,15 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_main.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_world.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DRW_engine.hh"
 
@@ -179,6 +177,7 @@ static void world_blend_read_data(BlendDataReader *reader, ID *id)
 IDTypeInfo IDType_ID_WO = {
     /*id_code*/ ID_WO,
     /*id_filter*/ FILTER_ID_WO,
+    /*dependencies_id_types*/ FILTER_ID_TE,
     /*main_listbase_index*/ INDEX_ID_WO,
     /*struct_size*/ sizeof(World),
     /*name*/ "World",

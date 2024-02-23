@@ -198,6 +198,7 @@ struct uiBut {
    * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
    * - UI_BTYPE_SCROLL:       Use as scroll size.
    * - UI_BTYPE_SEARCH_MENU:  Use as number or rows.
+   * - UI_BTYPE_SEPR_LINE:    1.0 = vertical
    */
   float a1 = 0;
 

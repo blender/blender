@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ./blender.bin --background -noaudio --python tests/python/bl_blendfile_versioning.py ..
+# ./blender.bin --background --python tests/python/bl_blendfile_versioning.py ..
 import bpy
 import os
 import sys
@@ -75,7 +75,7 @@ def argparse_create():
 
     # When --help or no args are given, print this help
     description = ("Test basic versioning code by opening all blend files "
-                   "in `lib/tests` directory.")
+                   "in `tests/data` directory.")
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--src-test-dir",

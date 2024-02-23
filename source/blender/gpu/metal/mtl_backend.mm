@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "gpu_backend.hh"
 #include "mtl_backend.hh"
@@ -306,66 +306,50 @@ bool MTLBackend::metal_is_supported()
     return false;
   }
 
-  if (@available(macOS 10.15, *)) {
-    id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+  id<MTLDevice> device = MTLCreateSystemDefaultDevice();
 
-    /* Debug: Enable low power GPU with Environment Var: METAL_FORCE_INTEL. */
-    static const char *forceIntelStr = getenv("METAL_FORCE_INTEL");
-    bool forceIntel = forceIntelStr ? (atoi(forceIntelStr) != 0) : false;
+  /* Debug: Enable low power GPU with Environment Var: METAL_FORCE_INTEL. */
+  static const char *forceIntelStr = getenv("METAL_FORCE_INTEL");
+  bool forceIntel = forceIntelStr ? (atoi(forceIntelStr) != 0) : false;
 
-    if (forceIntel) {
-      NSArray<id<MTLDevice>> *allDevices = MTLCopyAllDevices();
-      for (id<MTLDevice> _device in allDevices) {
-        if (_device.lowPower) {
-          device = _device;
-        }
+  if (forceIntel) {
+    NSArray<id<MTLDevice>> *allDevices = MTLCopyAllDevices();
+    for (id<MTLDevice> _device in allDevices) {
+      if (_device.lowPower) {
+        device = _device;
       }
     }
-
-    /* If Intel, we must be on macOS 11.2+ for full Metal backend support. */
-    NSString *gpu_name = [device name];
-    const char *vendor = [gpu_name UTF8String];
-    if ((strstr(vendor, "Intel") || strstr(vendor, "INTEL"))) {
-      if (@available(macOS 11.2, *)) {
-        /* Intel device supported -- Carry on.
-         * NOTE: @available syntax cannot be negated. */
-      }
-      else {
-        return false;
-      }
-    }
-
-    /* Metal Viewport requires argument buffer tier-2 support and Barycentric Coordinates.
-     * These are available on most hardware configurations supporting Metal 2.2. */
-    bool supports_argument_buffers_tier2 = ([device argumentBuffersSupport] ==
-                                            MTLArgumentBuffersTier2);
-    bool supports_barycentrics = [device supportsShaderBarycentricCoordinates] ||
-                                 supports_barycentric_whitelist(device);
-    bool supported_metal_version = [device supportsFamily:MTLGPUFamilyMac2];
-
-    bool result = supports_argument_buffers_tier2 && supports_barycentrics &&
-                  supported_os_version && supported_metal_version;
-
-    if (G.debug & G_DEBUG_GPU) {
-      if (!supports_argument_buffers_tier2) {
-        printf("[Metal] Device does not support argument buffers tier 2\n");
-      }
-      if (!supports_barycentrics) {
-        printf("[Metal] Device does not support barycentrics coordinates\n");
-      }
-      if (!supported_metal_version) {
-        printf("[Metal] Device does not support metal 2.2 or higher\n");
-      }
-
-      if (result) {
-        printf("Device with name %s supports metal minimum requirements\n",
-               [[device name] UTF8String]);
-      }
-    }
-
-    return result;
   }
-  return false;
+
+  /* Metal Viewport requires argument buffer tier-2 support and Barycentric Coordinates.
+   * These are available on most hardware configurations supporting Metal 2.2. */
+  bool supports_argument_buffers_tier2 = ([device argumentBuffersSupport] ==
+                                          MTLArgumentBuffersTier2);
+  bool supports_barycentrics = [device supportsShaderBarycentricCoordinates] ||
+                               supports_barycentric_whitelist(device);
+  bool supported_metal_version = [device supportsFamily:MTLGPUFamilyMac2];
+
+  bool result = supports_argument_buffers_tier2 && supports_barycentrics && supported_os_version &&
+                supported_metal_version;
+
+  if (G.debug & G_DEBUG_GPU) {
+    if (!supports_argument_buffers_tier2) {
+      printf("[Metal] Device does not support argument buffers tier 2\n");
+    }
+    if (!supports_barycentrics) {
+      printf("[Metal] Device does not support barycentrics coordinates\n");
+    }
+    if (!supported_metal_version) {
+      printf("[Metal] Device does not support metal 2.2 or higher\n");
+    }
+
+    if (result) {
+      printf("Device with name %s supports metal minimum requirements\n",
+             [[device name] UTF8String]);
+    }
+  }
+
+  return result;
 }
 
 void MTLBackend::capabilities_init(MTLContext *ctx)

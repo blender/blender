@@ -296,7 +296,7 @@ static void curves_sculptmode_enter(bContext *C)
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
 }
@@ -330,7 +330,7 @@ static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   WM_toolsystem_update_from_context_view3d(C);
 
   /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
   return OPERATOR_FINISHED;
@@ -679,7 +679,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = float4x4(curves_ob.object_to_world);
+  float4x4 curves_to_world_mat = curves_ob.object_to_world();
   float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
   const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &curves_ob);

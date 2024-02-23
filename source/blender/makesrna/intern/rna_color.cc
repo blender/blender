@@ -55,7 +55,7 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_image.h"
 #  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
-#  include "BKE_node.h"
+#  include "BKE_node.hh"
 
 #  include "DEG_depsgraph.hh"
 
@@ -441,7 +441,7 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
     for (Material *ma = static_cast<Material *>(bmain->materials.first); ma;
          ma = static_cast<Material *>(ma->id.next))
     {
-      DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 }
@@ -1144,6 +1144,12 @@ static void rna_def_scopes(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem prop_vecscope_mode_items[] = {
+      {SCOPES_VECSCOPE_LUMA, "LUMA", ICON_COLOR, "Luma", ""},
+      {SCOPES_VECSCOPE_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   srna = RNA_def_struct(brna, "Scopes", nullptr);
   RNA_def_struct_ui_text(srna, "Scopes", "Scopes for statistical view of an image");
 
@@ -1176,10 +1182,17 @@ static void rna_def_scopes(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 1);
   RNA_def_property_ui_text(prop, "Waveform Opacity", "Opacity of the points");
 
+  prop = RNA_def_property(srna, "vectorscope_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, "Scopes", "vecscope_mode");
+  RNA_def_property_enum_items(prop, prop_vecscope_mode_items);
+  RNA_def_property_ui_text(prop, "Vectorscope Mode", "");
+  RNA_def_property_update(prop, 0, "rna_Scopes_update");
+
   prop = RNA_def_property(srna, "vectorscope_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, "Scopes", "vecscope_alpha");
   RNA_def_property_range(prop, 0, 1);
   RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
+  RNA_def_property_update(prop, 0, "rna_Scopes_update");
 }
 
 static void rna_def_colormanage(BlenderRNA *brna)

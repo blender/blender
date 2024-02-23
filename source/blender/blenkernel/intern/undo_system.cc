@@ -18,13 +18,13 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_listBase.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 #include "BKE_undo_system.hh"

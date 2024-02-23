@@ -2,13 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_writer_material.h"
+#include "usd_writer_material.hh"
 
+<<<<<<< HEAD
 #include "usd.h"
 #include "usd_asset_utils.h"
 #include "usd_exporter_context.h"
 #include "usd_hook.h"
 #include "usd_umm.h"
+=======
+#include "usd.hh"
+#include "usd_exporter_context.hh"
+#include "usd_hook.hh"
+>>>>>>> main
 
 #include "BKE_appdir.hh"
 #include "BKE_colorband.hh"
@@ -20,8 +26,12 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+<<<<<<< HEAD
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.h"
+=======
+#include "BKE_report.hh"
+>>>>>>> main
 
 #include "IMB_colormanagement.hh"
 
@@ -244,9 +254,25 @@ static void create_usd_preview_surface_material(const USDExporterContext &usd_ex
       /* Create the UsdUVTexture node output attribute that should be connected to this input. */
       pxr::TfToken source_name;
       if (input_spec.input_type == pxr::SdfValueTypeNames->Float) {
-        /* If the input is a float, we connect it to either the texture alpha or red channels. */
-        source_name = STREQ(input_link->fromsock->identifier, "Alpha") ? usdtokens::a :
-                                                                         usdtokens::r;
+        /* If the input is a float, we check if there is also a Separate Color node in between, if
+         * there is use the output channel from that, otherwise connect either the texture alpha or
+         * red channels. */
+        bNodeLink *input_link_sep_color = traverse_channel(sock, SH_NODE_SEPARATE_COLOR);
+        if (input_link_sep_color) {
+          if (STREQ(input_link_sep_color->fromsock->identifier, "Red")) {
+            source_name = usdtokens::r;
+          }
+          if (STREQ(input_link_sep_color->fromsock->identifier, "Green")) {
+            source_name = usdtokens::g;
+          }
+          if (STREQ(input_link_sep_color->fromsock->identifier, "Blue")) {
+            source_name = usdtokens::b;
+          }
+        }
+        else {
+          source_name = STREQ(input_link->fromsock->identifier, "Alpha") ? usdtokens::a :
+                                                                           usdtokens::r;
+        }
         usd_shader.CreateOutput(source_name, pxr::SdfValueTypeNames->Float);
       }
       else {

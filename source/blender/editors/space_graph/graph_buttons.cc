@@ -23,15 +23,14 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
-#include "BKE_main.hh"
+#include "BKE_global.hh"
 #include "BKE_screen.hh"
 #include "BKE_unit.hh"
 
@@ -46,7 +45,6 @@
 #include "RNA_prototypes.h"
 
 #include "ED_anim_api.hh"
-#include "ED_keyframing.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
 
@@ -431,8 +429,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      0,
-                      0,
                       nullptr);
       UI_but_func_set(but, graphedit_activekey_update_cb, fcu, bezt);
 
@@ -448,8 +444,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       &bezt_ptr,
                       "co_ui",
                       1,
-                      0,
-                      0,
                       0,
                       0,
                       nullptr);
@@ -475,8 +469,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
                       "Type of left handle");
       UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
@@ -491,8 +483,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_left",
-                      0,
-                      0,
                       0,
                       0,
                       0,
@@ -511,8 +501,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       &bezt_ptr,
                       "handle_left",
                       1,
-                      0,
-                      0,
                       0,
                       0,
                       nullptr);
@@ -539,8 +527,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       0,
                       0,
                       0,
-                      -1,
-                      -1,
                       "Type of right handle");
       UI_but_func_set(but, graphedit_activekey_handles_cb, fcu, bezt);
 
@@ -555,8 +541,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       UI_UNIT_Y,
                       &bezt_ptr,
                       "handle_right",
-                      0,
-                      0,
                       0,
                       0,
                       0,
@@ -575,8 +559,6 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
                       &bezt_ptr,
                       "handle_right",
                       1,
-                      0,
-                      0,
                       0,
                       0,
                       nullptr);
@@ -635,15 +617,15 @@ static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
       ID *id = static_cast<ID *>(id_v);
       AnimData *adt = BKE_animdata_from_id(id);
 
-      /* Rebuild depsgraph for the new dependencies, and ensure COW copies get flushed. */
+      /* Rebuild depsgraph for the new dependencies, and ensure evaluated copies get flushed. */
       DEG_relations_tag_update(bmain);
-      DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update_ex(bmain, id, ID_RECALC_SYNC_TO_EVAL);
       if (adt != nullptr) {
         if (adt->action != nullptr) {
-          DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update_ex(bmain, &adt->action->id, ID_RECALC_SYNC_TO_EVAL);
         }
         if (adt->tmpact != nullptr) {
-          DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update_ex(bmain, &adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
         }
       }
 
@@ -955,8 +937,6 @@ static void graph_draw_driven_property_enabled_btn(uiLayout *layout,
             UI_UNIT_Y,
             &fcurve_ptr,
             "mute",
-            0,
-            0,
             0,
             0,
             0,

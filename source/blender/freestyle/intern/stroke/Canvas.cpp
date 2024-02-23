@@ -26,7 +26,7 @@
 
 #include "BLI_sys_types.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 // soc #include <qimage.h>
 // soc #include <QString>

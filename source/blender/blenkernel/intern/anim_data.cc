@@ -15,14 +15,14 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.h"
-#include "BKE_node.h"
-#include "BKE_report.h"
+#include "BKE_node.hh"
+#include "BKE_report.hh"
 
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
@@ -689,7 +689,7 @@ void BKE_animdata_transfer_by_basepath(Main *bmain, ID *srcID, ID *dstID, ListBa
     }
   }
   /* Tag source action because list of fcurves changed. */
-  DEG_id_tag_update(&srcAdt->action->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&srcAdt->action->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /* Path Validation -------------------------------------------- */
@@ -1025,14 +1025,14 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
     if (fcurves_path_rename_fix(
             owner_id, prefix, oldName, newName, oldN, newN, &adt->action->curves, verify_paths))
     {
-      DEG_id_tag_update(&adt->action->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&adt->action->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
   if (adt->tmpact) {
     if (fcurves_path_rename_fix(
             owner_id, prefix, oldName, newName, oldN, newN, &adt->tmpact->curves, verify_paths))
     {
-      DEG_id_tag_update(&adt->tmpact->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&adt->tmpact->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
   /* Drivers - Drivers are really F-Curves */
@@ -1045,7 +1045,7 @@ void BKE_animdata_fix_paths_rename(ID *owner_id,
   }
   /* Tag owner ID if it */
   if (is_self_changed) {
-    DEG_id_tag_update(owner_id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(owner_id, ID_RECALC_SYNC_TO_EVAL);
   }
   /* free the temp names */
   MEM_freeN(oldN);

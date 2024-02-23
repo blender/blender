@@ -9,7 +9,10 @@
  */
 
 #include "BLI_assert.h" /* Own include. */
-#include "BLI_system.h"
+
+#ifndef NDEBUG
+#  include "BLI_system.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

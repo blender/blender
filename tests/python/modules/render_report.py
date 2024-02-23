@@ -429,7 +429,7 @@ class Report:
             "-o", diff_color_img,
         )
         try:
-            subprocess.check_output(command)
+            subprocess.check_output(command, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             if self.verbose:
                 print_message(e.output.decode("utf-8", 'ignore'))
@@ -447,10 +447,14 @@ class Report:
             "-o", diff_alpha_img,
         )
         try:
-            subprocess.check_output(command)
+            subprocess.check_output(command, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as e:
             if self.verbose:
-                print_message(e.output.decode("utf-8", 'ignore'))
+                msg = e.output.decode("utf-8", 'ignore')
+                for line in msg.splitlines():
+                    # Ignore warnings for images without alpha channel.
+                    if "--ch: Unknown channel name" not in line:
+                        print_message(line)
 
         return not failed
 

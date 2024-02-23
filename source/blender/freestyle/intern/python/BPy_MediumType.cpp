@@ -75,16 +75,6 @@ PyTypeObject MediumType_Type = {
 
 /*-----------------------BPy_IntegrationType instance definitions -------------------------*/
 
-PyLongObject _BPy_MediumType_DRY_MEDIUM = {
-    PyVarObject_HEAD_INIT(&MediumType_Type, 1){Stroke::DRY_MEDIUM},
-};
-PyLongObject _BPy_MediumType_HUMID_MEDIUM = {
-    PyVarObject_HEAD_INIT(&MediumType_Type, 1){Stroke::HUMID_MEDIUM},
-};
-PyLongObject _BPy_MediumType_OPAQUE_MEDIUM = {
-    PyVarObject_HEAD_INIT(&MediumType_Type, 1){Stroke::OPAQUE_MEDIUM},
-};
-
 //-------------------MODULE INITIALIZATION--------------------------------
 
 int MediumType_Init(PyObject *module)

@@ -4,7 +4,7 @@
 
 # run this script in the game engine.
 # or on the command line with...
-#  ./blender.bin --background -noaudio --python tests/python/bl_rst_completeness.py
+#  ./blender.bin --background --python tests/python/bl_rst_completeness.py
 '''
 filepath = "/src/blender/tests/python/bl_rst_completeness.py"
 exec(compile(open(filepath).read(), filepath, 'exec'))

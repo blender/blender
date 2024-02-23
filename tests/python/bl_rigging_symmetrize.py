@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-blender -b -noaudio --factory-startup --python tests/python/bl_rigging_symmetrize.py -- --testdir /path/to/lib/tests/animation
+blender -b --factory-startup --python tests/python/bl_rigging_symmetrize.py -- --testdir /path/to/tests/data/animation
 """
 
 import pathlib

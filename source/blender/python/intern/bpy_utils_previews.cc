@@ -18,9 +18,7 @@
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
-#include "BPY_extern.h"
 #include "bpy_rna.h"
 #include "bpy_utils_previews.h"
 
@@ -28,15 +26,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf.hh"
-#include "IMB_imbuf_types.hh"
 #include "IMB_thumbs.hh"
 
 #include "BKE_preview_image.hh"
-
-#include "DNA_ID.h"
-
-#include "../generic/python_utildefines.h"
 
 #define STR_SOURCE_TYPES "'IMAGE', 'MOVIE', 'BLEND', 'FONT'"
 

@@ -62,8 +62,8 @@ const char *nodeTypeAsString(NodeType type)
       return "SEQUENCER";
     case NodeType::LAYER_COLLECTIONS:
       return "LAYER_COLLECTIONS";
-    case NodeType::COPY_ON_WRITE:
-      return "COPY_ON_WRITE";
+    case NodeType::COPY_ON_EVAL:
+      return "COPY_ON_EVAL";
     case NodeType::OBJECT_FROM_LAYER:
       return "OBJECT_FROM_LAYER";
     case NodeType::HIERARCHY:
@@ -141,7 +141,7 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::TIMESOURCE:
     case NodeType::ID_REF:
     case NodeType::LAYER_COLLECTIONS:
-    case NodeType::COPY_ON_WRITE:
+    case NodeType::COPY_ON_EVAL:
     case NodeType::OBJECT_FROM_LAYER:
     case NodeType::HIERARCHY:
     case NodeType::AUDIO:
@@ -225,7 +225,7 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::ID_REF:
     case NodeType::SEQUENCER:
     case NodeType::LAYER_COLLECTIONS:
-    case NodeType::COPY_ON_WRITE:
+    case NodeType::COPY_ON_EVAL:
     case NodeType::OBJECT_FROM_LAYER:
     case NodeType::HIERARCHY:
     case NodeType::AUDIO:

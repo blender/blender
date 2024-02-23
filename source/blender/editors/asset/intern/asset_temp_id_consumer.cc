@@ -14,11 +14,11 @@
 
 #include "AS_asset_representation.hh"
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_utility_mixins.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "MEM_guardedalloc.h"
 

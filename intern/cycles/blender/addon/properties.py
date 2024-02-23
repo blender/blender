@@ -352,6 +352,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         items=enum_denoising_input_passes,
         default='RGB_ALBEDO_NORMAL',
     )
+    denoising_use_gpu: BoolProperty(
+        name="Denoise on GPU",
+        description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
+        default=False,
+    )
 
     use_preview_denoising: BoolProperty(
         name="Use Viewport Denoising",
@@ -381,6 +386,11 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         description="Sample to start denoising the preview at",
         min=0, max=(1 << 24),
         default=1,
+    )
+    preview_denoising_use_gpu: BoolProperty(
+        name="Denoise Preview on GPU",
+        description="Perform denoising on GPU devices, if available. This is significantly faster than on CPU, but requires additional GPU memory. When large scenes need more GPU memory, this option can be disabled",
+        default=True,
     )
 
     samples: IntProperty(
@@ -878,17 +888,6 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         unit='LENGTH'
     )
 
-    motion_blur_position: EnumProperty(
-        name="Motion Blur Position",
-        default='CENTER',
-        description="Offset for the shutter's time interval, allows to change the motion blur trails",
-        items=(
-            ('START', "Start on Frame", "The shutter opens at the current frame"),
-            ('CENTER', "Center on Frame", "The shutter is open during the current frame"),
-            ('END', "End on Frame", "The shutter closes at the current frame"),
-        ),
-    )
-
     rolling_shutter_type: EnumProperty(
         name="Shutter Type",
         default='NONE',
@@ -970,7 +969,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         return _cycles.debug_flags_update(scene)
 
     debug_use_cpu_avx2: BoolProperty(name="AVX2", default=True)
-    debug_use_cpu_sse41: BoolProperty(name="SSE41", default=True)
+    debug_use_cpu_sse42: BoolProperty(name="SSE42", default=True)
     debug_use_cpu_sse2: BoolProperty(name="SSE2", default=True)
     debug_bvh_layout: EnumProperty(
         name="BVH Layout",
@@ -1591,6 +1590,22 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     def has_active_device(self):
         return self.get_num_gpu_devices() > 0
 
+    def has_oidn_gpu_devices(self):
+        import _cycles
+        compute_device_type = self.get_compute_device_type()
+
+        # We need non-CPU devices, used for rendering and supporting OIDN GPU denoising
+        for device in _cycles.available_devices(compute_device_type):
+            device_type = device[1]
+            if device_type == 'CPU':
+                continue
+
+            has_device_oidn_support = device[5]
+            if has_device_oidn_support and self.find_existing_device_entry(device).use:
+                return True
+
+        return False
+
     def _draw_devices(self, layout, device_type, devices):
         box = layout.box()
 
@@ -1685,12 +1700,13 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
         import _cycles
         has_peer_memory = 0
-        has_rt_api_support = False
+        has_rt_api_support = {'METAL': False, 'HIP': False, 'ONEAPI': False}
         for device in _cycles.available_devices(compute_device_type):
             if device[3] and self.find_existing_device_entry(device).use:
                 has_peer_memory += 1
             if device[4] and self.find_existing_device_entry(device).use:
-                has_rt_api_support = True
+                device_type = device[1]
+                has_rt_api_support[device_type] = True
 
         if has_peer_memory > 1:
             row = layout.row()
@@ -1708,25 +1724,25 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
             # MetalRT only works on Apple Silicon and Navi2.
             is_arm64 = platform.machine() == 'arm64'
-            if is_arm64 or (is_navi_2 and has_rt_api_support):
+            if is_arm64 or (is_navi_2 and has_rt_api_support['METAL']):
                 col = layout.column()
                 col.use_property_split = True
                 # Kernel specialization is only supported on Apple Silicon
                 if is_arm64:
                     col.prop(self, "kernel_optimization_level")
-                if has_rt_api_support:
+                if has_rt_api_support['METAL']:
                     col.prop(self, "metalrt")
 
         if compute_device_type == 'HIP':
             import platform
             if platform.system() == "Windows":  # HIP-RT is currently only supported on Windows
-                has_cuda, has_optix, has_hip, has_metal, has_oneapi, has_hiprt = _cycles.get_device_types()
                 row = layout.row()
-                row.enabled = has_hiprt
+                row.active = has_rt_api_support['HIP']
                 row.prop(self, "use_hiprt")
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()
+            row.active = has_rt_api_support['ONEAPI']
             row.prop(self, "use_oneapirt")
 
     def draw(self, context):

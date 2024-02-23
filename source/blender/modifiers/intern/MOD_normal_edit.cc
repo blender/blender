@@ -16,30 +16,25 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "MOD_ui_common.hh"
 #include "MOD_util.hh"
@@ -100,8 +95,8 @@ static void generate_vert_coordinates(Mesh *mesh,
     /* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
     /* Get ob_center (world) coordinates in ob local coordinates.
      * No need to take into account ob_center's space here, see #44027. */
-    invert_m4_m4(inv_obmat, ob->object_to_world);
-    mul_v3_m4v3(diff, inv_obmat, ob_center->object_to_world[3]);
+    invert_m4_m4(inv_obmat, ob->object_to_world().ptr());
+    mul_v3_m4v3(diff, inv_obmat, ob_center->object_to_world().location());
     negate_v3(diff);
 
     do_diff = true;
@@ -374,8 +369,8 @@ static void normalEditModifier_do_directional(NormalEditModifierData *enmd,
   /* Get target's center coordinates in ob local coordinates. */
   float mat[4][4];
 
-  invert_m4_m4(mat, ob->object_to_world);
-  mul_m4_m4m4(mat, mat, ob_target->object_to_world);
+  invert_m4_m4(mat, ob->object_to_world().ptr());
+  mul_m4_m4m4(mat, mat, ob_target->object_to_world().ptr());
   copy_v3_v3(target_co, mat[3]);
 
   if (use_parallel_normals) {

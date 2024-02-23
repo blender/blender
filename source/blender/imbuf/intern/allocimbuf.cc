@@ -87,11 +87,15 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
  * Returns true of allocation succeeded, false otherwise. */
 template<class BufferType>
-bool imb_alloc_buffer(
-    BufferType &buffer, const uint x, const uint y, const uint channels, const size_t type_size)
+bool imb_alloc_buffer(BufferType &buffer,
+                      const uint x,
+                      const uint y,
+                      const uint channels,
+                      const size_t type_size,
+                      bool initialize_pixels)
 {
   buffer.data = static_cast<decltype(BufferType::data)>(
-      imb_alloc_pixels(x, y, channels, type_size, __func__));
+      imb_alloc_pixels(x, y, channels, type_size, initialize_pixels, __func__));
   if (!buffer.data) {
     return false;
   }
@@ -297,7 +301,9 @@ bool imb_addencodedbufferImBuf(ImBuf *ibuf)
 
   ibuf->encoded_size = 0;
 
-  if (!imb_alloc_buffer(ibuf->encoded_buffer, ibuf->encoded_buffer_size, 1, 1, sizeof(uint8_t))) {
+  if (!imb_alloc_buffer(
+          ibuf->encoded_buffer, ibuf->encoded_buffer_size, 1, 1, sizeof(uint8_t), true))
+  {
     return false;
   }
 
@@ -323,7 +329,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
   }
 
   ImBufByteBuffer new_buffer;
-  if (!imb_alloc_buffer(new_buffer, newsize, 1, 1, sizeof(uint8_t))) {
+  if (!imb_alloc_buffer(new_buffer, newsize, 1, 1, sizeof(uint8_t), true)) {
     return false;
   }
 
@@ -343,7 +349,8 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
   return true;
 }
 
-void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const char *alloc_name)
+void *imb_alloc_pixels(
+    uint x, uint y, uint channels, size_t typesize, bool initialize_pixels, const char *alloc_name)
 {
   /* Protect against buffer overflow vulnerabilities from files specifying
    * a width and height that overflow and alloc too little memory. */
@@ -352,10 +359,10 @@ void *imb_alloc_pixels(uint x, uint y, uint channels, size_t typesize, const cha
   }
 
   size_t size = size_t(x) * size_t(y) * size_t(channels) * typesize;
-  return MEM_callocN(size, alloc_name);
+  return initialize_pixels ? MEM_callocN(size, alloc_name) : MEM_mallocN(size, alloc_name);
 }
 
-bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels)
+bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels, bool initialize_pixels)
 {
   if (ibuf == nullptr) {
     return false;
@@ -368,7 +375,9 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels)
     imb_freerectfloatImBuf(ibuf); /* frees mipmap too, hrm */
   }
 
-  if (!imb_alloc_buffer(ibuf->float_buffer, ibuf->x, ibuf->y, channels, sizeof(float))) {
+  if (!imb_alloc_buffer(
+          ibuf->float_buffer, ibuf->x, ibuf->y, channels, sizeof(float), initialize_pixels))
+  {
     return false;
   }
 
@@ -378,7 +387,7 @@ bool imb_addrectfloatImBuf(ImBuf *ibuf, const uint channels)
   return true;
 }
 
-bool imb_addrectImBuf(ImBuf *ibuf)
+bool imb_addrectImBuf(ImBuf *ibuf, bool initialize_pixels)
 {
   /* Question; why also add ZBUF (when `planes > 32`)? */
 
@@ -390,7 +399,9 @@ bool imb_addrectImBuf(ImBuf *ibuf)
    * this call is used only too give float buffers display. */
   imb_free_buffer(ibuf->byte_buffer);
 
-  if (!imb_alloc_buffer(ibuf->byte_buffer, ibuf->x, ibuf->y, 4, sizeof(uint8_t))) {
+  if (!imb_alloc_buffer(
+          ibuf->byte_buffer, ibuf->x, ibuf->y, 4, sizeof(uint8_t), initialize_pixels))
+  {
     return false;
   }
 
@@ -505,13 +516,13 @@ ImBuf *IMB_allocFromBuffer(
   if (float_buffer) {
     /* TODO(sergey): The 4 channels is the historical code. Should probably be `channels`, but
      * needs a dedicated investigation. */
-    imb_alloc_buffer(ibuf->float_buffer, w, h, 4, sizeof(float));
+    imb_alloc_buffer(ibuf->float_buffer, w, h, 4, sizeof(float), false);
 
     memcpy(ibuf->float_buffer.data, float_buffer, sizeof(float[4]) * w * h);
   }
 
   if (byte_buffer) {
-    imb_alloc_buffer(ibuf->byte_buffer, w, h, 4, sizeof(uint8_t));
+    imb_alloc_buffer(ibuf->byte_buffer, w, h, 4, sizeof(uint8_t), false);
 
     memcpy(ibuf->byte_buffer.data, byte_buffer, sizeof(uint8_t[4]) * w * h);
   }
@@ -548,14 +559,16 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
   /* IMB_DPI_DEFAULT -> pixels-per-meter. */
   ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254;
 
+  const bool init_pixels = (flags & IB_uninitialized_pixels) == 0;
+
   if (flags & IB_rect) {
-    if (imb_addrectImBuf(ibuf) == false) {
+    if (imb_addrectImBuf(ibuf, init_pixels) == false) {
       return false;
     }
   }
 
   if (flags & IB_rectfloat) {
-    if (imb_addrectfloatImBuf(ibuf, ibuf->channels) == false) {
+    if (imb_addrectfloatImBuf(ibuf, ibuf->channels, init_pixels) == false) {
       return false;
     }
   }
@@ -569,7 +582,7 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
 ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 {
   ImBuf *ibuf2, tbuf;
-  int flags = 0;
+  int flags = IB_uninitialized_pixels;
   int a, x, y;
 
   if (ibuf1 == nullptr) {

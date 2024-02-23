@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "IO_types.hh"
+<<<<<<< HEAD
 #include "usd.h"
 #include "usd_hierarchy_iterator.h"
 #include "usd_hook.h"
@@ -12,6 +13,14 @@
 #include "usd_reader_instance.h"
 #include "usd_reader_prim.h"
 #include "usd_reader_stage.h"
+=======
+#include "usd.hh"
+#include "usd_hierarchy_iterator.hh"
+#include "usd_hook.hh"
+#include "usd_reader_geom.hh"
+#include "usd_reader_prim.hh"
+#include "usd_reader_stage.hh"
+>>>>>>> main
 
 #include <pxr/base/plug/registry.h>
 
@@ -43,18 +52,18 @@
 #include "BKE_appdir.hh"
 
 #include "BKE_blender_version.h"
-#include "BKE_cachefile.h"
+#include "BKE_cachefile.hh"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_world.h"
 
 #include "BLI_fileops.h"
@@ -65,7 +74,7 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -309,7 +318,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
         data->bmain, data->scene->master_collection, display_name);
     id_fake_user_set(&import_collection->id);
 
-    DEG_id_tag_update(&import_collection->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&import_collection->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(data->bmain);
 
     BKE_view_layer_synced_ensure(data->scene, data->view_layer);
@@ -558,7 +567,7 @@ static void import_endjob(void *customdata)
       /* TODO: is setting active needed? */
       BKE_view_layer_base_select_and_set_active(view_layer, base);
 
-      DEG_id_tag_update(&lc->collection->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&lc->collection->id, ID_RECALC_SYNC_TO_EVAL);
       DEG_id_tag_update_ex(data->bmain,
                            &ob->id,
                            ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION |
@@ -608,10 +617,6 @@ static void import_freejob(void *user_data)
   delete data->archive;
   delete data;
 }
-
-}  // namespace blender::io::usd
-
-using namespace blender::io::usd;
 
 bool USD_import(bContext *C,
                 const char *filepath,
@@ -845,3 +850,5 @@ void USD_get_transform(CacheReader *reader, float r_mat_world[4][4], float time,
   mul_m4_m4m4(r_mat_world, mat_parent, object->parentinv);
   mul_m4_m4m4(r_mat_world, r_mat_world, mat_local);
 }
+
+}  // namespace blender::io::usd

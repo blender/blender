@@ -1883,6 +1883,12 @@ void MTLContext::ensure_texture_bindings(
              * shader. */
             id<MTLTexture> tex = bound_texture->get_metal_handle();
 
+            /* If texture resource is an image binding and has a non-default swizzle mask, we need
+             * to bind the source texture resource to retain image write access. */
+            if (!is_resource_sampler && bound_texture->has_custom_swizzle()) {
+              tex = bound_texture->get_metal_handle_base();
+            }
+
             if (bool(shader_texture_info.stage_mask & ShaderStage::COMPUTE)) {
               cs.bind_compute_texture(tex, slot);
               cs.bind_compute_sampler(bound_sampler, use_argument_buffer_for_samplers, slot);
@@ -2678,7 +2684,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
   }
 
   while (MTLContext::max_drawables_in_flight > min_ii(perf_max_drawables, MTL_MAX_DRAWABLES)) {
-    BLI_sleep_ms(1);
+    BLI_time_sleep_ms(1);
   }
 
   /* Present is submitted in its own CMD Buffer to ensure drawable reference released as early as

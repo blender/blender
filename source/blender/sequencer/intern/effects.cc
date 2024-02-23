@@ -15,7 +15,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -26,7 +25,6 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -45,7 +43,6 @@
 
 #include "BLI_math_color_blend.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "RE_pipeline.h"
@@ -62,8 +59,6 @@
 
 #include "effects.hh"
 #include "render.hh"
-#include "strip_time.hh"
-#include "utils.hh"
 
 using namespace blender;
 
@@ -170,26 +165,28 @@ static void store_opaque_black_pixel(float *dst)
 static ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
                                     ImBuf *ibuf1,
                                     ImBuf *ibuf2,
-                                    ImBuf *ibuf3)
+                                    ImBuf *ibuf3,
+                                    bool uninitialized_pixels = true)
 {
   ImBuf *out;
   Scene *scene = context->scene;
   int x = context->rectx;
   int y = context->recty;
+  int base_flags = uninitialized_pixels ? IB_uninitialized_pixels : 0;
 
   if (!ibuf1 && !ibuf2 && !ibuf3) {
     /* hmmm, global float option ? */
-    out = IMB_allocImBuf(x, y, 32, IB_rect);
+    out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
   }
   else if ((ibuf1 && ibuf1->float_buffer.data) || (ibuf2 && ibuf2->float_buffer.data) ||
            (ibuf3 && ibuf3->float_buffer.data))
   {
     /* if any inputs are rectfloat, output is float too */
 
-    out = IMB_allocImBuf(x, y, 32, IB_rectfloat);
+    out = IMB_allocImBuf(x, y, 32, IB_rectfloat | base_flags);
   }
   else {
-    out = IMB_allocImBuf(x, y, 32, IB_rect);
+    out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
   }
 
   if (out->float_buffer.data) {
@@ -2650,11 +2647,11 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
       /* FIXME: This is a band-aid fix. A proper solution has to be worked on by the VSE team.
        *
        * This code can be called from non-main thread, e.g. when copying sequences as part of
-       * depsgraph CoW copy of the evaluated scene. Just skip font loading in that case, BLF code
-       * is not thread-safe, and if this happens from threaded context, it almost certainly means
-       * that a previous attempt to load the font already failed, e.g. because font file-path is
-       * invalid. Proposer fix would likely be to not attempt to reload a failed-to-load font every
-       * time. */
+       * depsgraph evaluated copy of the evaluated scene. Just skip font loading in that case, BLF
+       * code is not thread-safe, and if this happens from threaded context, it almost certainly
+       * means that a previous attempt to load the font already failed, e.g. because font file-path
+       * is invalid. Proposer fix would likely be to not attempt to reload a failed-to-load font
+       * every time. */
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
       data->text_blf_id = BLF_load(filepath);
@@ -2713,7 +2710,9 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
                              ImBuf *ibuf2,
                              ImBuf *ibuf3)
 {
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
+  /* Note: text rasterization only fills in part of output image,
+   * need to clear it. */
+  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3, false);
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   int width = out->x;
   int height = out->y;
@@ -2899,6 +2898,7 @@ static void get_default_fac_fade(const Scene *scene,
 {
   *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
   *fac /= SEQ_time_strip_length_get(scene, seq);
+  *fac = blender::math::clamp(*fac, 0.0f, 1.0f);
 }
 
 static ImBuf *init_execution(const SeqRenderData *context,

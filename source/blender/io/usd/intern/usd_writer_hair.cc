@@ -1,8 +1,8 @@
 /* SPDX-FileCopyrightText: 2019 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
-#include "usd_writer_hair.h"
-#include "usd_hierarchy_iterator.h"
+#include "usd_writer_hair.hh"
+#include "usd_hierarchy_iterator.hh"
 
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdShade/material.h>

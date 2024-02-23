@@ -11,10 +11,8 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
@@ -27,11 +25,9 @@
 #include "BKE_lattice.hh"
 #include "BKE_layer.hh"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
-
-#include "WM_types.hh"
 
 #include "ED_curve.hh"
 #include "ED_object.hh" /* own include */
@@ -117,20 +113,20 @@ bool ED_object_calc_active_center(Object *ob, const bool select_only, float r_ce
 {
   if (ob->mode & OB_MODE_EDIT) {
     if (ED_object_calc_active_center_for_editmode(ob, select_only, r_center)) {
-      mul_m4_v3(ob->object_to_world, r_center);
+      mul_m4_v3(ob->object_to_world().ptr(), r_center);
       return true;
     }
     return false;
   }
   if (ob->mode & OB_MODE_POSE) {
     if (ED_object_calc_active_center_for_posemode(ob, select_only, r_center)) {
-      mul_m4_v3(ob->object_to_world, r_center);
+      mul_m4_v3(ob->object_to_world().ptr(), r_center);
       return true;
     }
     return false;
   }
   if (!select_only || (ob->base_flag & BASE_SELECTED)) {
-    copy_v3_v3(r_center, ob->object_to_world[3]);
+    copy_v3_v3(r_center, ob->object_to_world().location());
     return true;
   }
   return false;
@@ -250,11 +246,11 @@ void ED_object_xform_skip_child_container_item_ensure(XFormObjectSkipChild_Conta
     XFormObjectSkipChild *xf = static_cast<XFormObjectSkipChild *>(
         MEM_mallocN(sizeof(*xf), __func__));
     copy_m4_m4(xf->parentinv_orig, ob->parentinv);
-    copy_m4_m4(xf->obmat_orig, ob->object_to_world);
-    copy_m4_m4(xf->parent_obmat_orig, ob->parent->object_to_world);
-    invert_m4_m4(xf->parent_obmat_inv_orig, ob->parent->object_to_world);
+    copy_m4_m4(xf->obmat_orig, ob->object_to_world().ptr());
+    copy_m4_m4(xf->parent_obmat_orig, ob->parent->object_to_world().ptr());
+    invert_m4_m4(xf->parent_obmat_inv_orig, ob->parent->object_to_world().ptr());
     if (ob_parent_recurse) {
-      copy_m4_m4(xf->parent_recurse_obmat_orig, ob_parent_recurse->object_to_world);
+      copy_m4_m4(xf->parent_recurse_obmat_orig, ob_parent_recurse->object_to_world().ptr());
     }
     xf->mode = mode;
     xf->ob_parent_recurse = ob_parent_recurse;
@@ -280,14 +276,14 @@ void ED_object_xform_skip_child_container_update_all(XFormObjectSkipChild_Contai
     if (xf->mode == XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM) {
       /* Parent is transformed, this isn't so compensate. */
       Object *ob_parent_eval = DEG_get_evaluated_object(depsgraph, ob->parent);
-      mul_m4_m4m4(dmat, xf->parent_obmat_inv_orig, ob_parent_eval->object_to_world);
+      mul_m4_m4m4(dmat, xf->parent_obmat_inv_orig, ob_parent_eval->object_to_world().ptr());
       invert_m4(dmat);
     }
     else if (xf->mode == XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT) {
       /* Calculate parent matrix (from the root transform). */
       Object *ob_parent_recurse_eval = DEG_get_evaluated_object(depsgraph, xf->ob_parent_recurse);
       float parent_recurse_obmat_inv[4][4];
-      invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->object_to_world);
+      invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->object_to_world().ptr());
       mul_m4_m4m4(dmat, xf->parent_recurse_obmat_orig, parent_recurse_obmat_inv);
       invert_m4(dmat);
       float parent_obmat_calc[4][4];
@@ -302,7 +298,7 @@ void ED_object_xform_skip_child_container_update_all(XFormObjectSkipChild_Contai
       /* Transform this - without transform data. */
       Object *ob_parent_recurse_eval = DEG_get_evaluated_object(depsgraph, xf->ob_parent_recurse);
       float parent_recurse_obmat_inv[4][4];
-      invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->object_to_world);
+      invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->object_to_world().ptr());
       mul_m4_m4m4(dmat, xf->parent_recurse_obmat_orig, parent_recurse_obmat_inv);
       invert_m4(dmat);
       float obmat_calc[4][4];
@@ -357,7 +353,7 @@ void ED_object_data_xform_container_item_ensure(XFormObjectData_Container *xds, 
   if (!BLI_ghash_ensure_p(xds->obdata_in_obmode_map, ob->data, &xf_p)) {
     XFormObjectData_Extra *xf = static_cast<XFormObjectData_Extra *>(
         MEM_mallocN(sizeof(*xf), __func__));
-    copy_m4_m4(xf->obmat_orig, ob->object_to_world);
+    copy_m4_m4(xf->obmat_orig, ob->object_to_world().ptr());
     xf->ob = ob;
     /* Result may be nullptr, that's OK. */
     xf->xod = ED_object_data_xform_create(static_cast<ID *>(ob->data));
@@ -386,7 +382,7 @@ void ED_object_data_xform_container_update_all(XFormObjectData_Container *xds,
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, xf->ob);
     float imat[4][4], dmat[4][4];
     invert_m4_m4(imat, xf->obmat_orig);
-    mul_m4_m4m4(dmat, imat, ob_eval->object_to_world);
+    mul_m4_m4m4(dmat, imat, ob_eval->object_to_world().ptr());
     invert_m4(dmat);
 
     ED_object_data_xform_by_mat4(xf->xod, dmat);

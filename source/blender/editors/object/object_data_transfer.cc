@@ -9,9 +9,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -22,14 +20,13 @@
 #include "BKE_deform.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
-#include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"

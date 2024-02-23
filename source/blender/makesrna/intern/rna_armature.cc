@@ -11,7 +11,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -65,7 +65,7 @@ constexpr int COLOR_SETS_MAX_THEMED_INDEX = 20;
 
 #  include "BKE_action.h"
 #  include "BKE_context.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_idprop.h"
 #  include "BKE_main.hh"
 
@@ -85,7 +85,7 @@ static void rna_Armature_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA 
 {
   ID *id = ptr->owner_id;
 
-  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static void rna_Armature_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -662,7 +662,7 @@ void rna_BoneColor_palette_index_set(PointerRNA *ptr, const int new_palette_inde
   bcolor->palette_index = new_palette_index;
 
   ID *id = ptr->owner_id;
-  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -687,7 +687,7 @@ static void rna_Armature_redraw_data(Main * /*bmain*/, Scene * /*scene*/, Pointe
 {
   ID *id = ptr->owner_id;
 
-  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -702,7 +702,7 @@ static void rna_Bone_hide_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
   }
 
   WM_main_add_notifier(NC_OBJECT | ND_POSE, arm);
-  DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /* called whenever a bone is renamed */
@@ -723,7 +723,7 @@ static void rna_Bone_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
 
   /* 1) special updates for cases where rigs try to hook into armature drawing stuff
    *    e.g. Mask Modifier - 'Armature' option
-   * 2) tag armature for copy-on-write, so that selection status (set by addons)
+   * 2) tag armature for copy-on-evaluation, so that selection status (set by addons)
    *    will update properly, like standard tools do already
    */
   if (id) {
@@ -734,7 +734,7 @@ static void rna_Bone_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
         DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
       }
 
-      DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
     }
     else if (GS(id->name) == ID_OB) {
       Object *ob = (Object *)id;
@@ -744,7 +744,7 @@ static void rna_Bone_select_update(Main * /*bmain*/, Scene * /*scene*/, PointerR
         DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
       }
 
-      DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 
@@ -934,7 +934,7 @@ static void rna_Bone_bbone_handle_update(Main *bmain, Scene *scene, PointerRNA *
 
       if (pchan && pchan->bone == bone) {
         BKE_pchan_rebuild_bbone_handles(obt->pose, pchan);
-        DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&obt->id, ID_RECALC_SYNC_TO_EVAL);
       }
     }
   }

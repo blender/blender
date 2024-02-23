@@ -32,7 +32,7 @@
 
 #  include "BKE_main.hh"
 #  include "BKE_mball.hh"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 
 #  include "DEG_depsgraph.hh"
 
@@ -81,7 +81,7 @@ static void rna_MetaBall_redraw_data(Main * /*bmain*/, Scene * /*scene*/, Pointe
 {
   ID *id = ptr->owner_id;
 
-  DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 

@@ -24,10 +24,10 @@
 #include "BLI_string.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_layer.hh"
@@ -35,12 +35,11 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
@@ -1579,10 +1578,10 @@ static int bake(const BakeAPIRender *bkr,
       highpoly[i].mesh = BKE_mesh_new_from_object(nullptr, highpoly[i].ob_eval, false, false);
 
       /* Low-poly to high-poly transformation matrix. */
-      copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->object_to_world);
+      copy_m4_m4(highpoly[i].obmat, highpoly[i].ob->object_to_world().ptr());
       invert_m4_m4(highpoly[i].imat, highpoly[i].obmat);
 
-      highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->object_to_world);
+      highpoly[i].is_flip_object = is_negative_m4(highpoly[i].ob->object_to_world().ptr());
 
       i++;
     }
@@ -1611,8 +1610,8 @@ static int bake(const BakeAPIRender *bkr,
             ob_cage != nullptr,
             bkr->cage_extrusion,
             bkr->max_ray_distance,
-            ob_low_eval->object_to_world,
-            (ob_cage ? ob_cage->object_to_world : ob_low_eval->object_to_world),
+            ob_low_eval->object_to_world().ptr(),
+            (ob_cage ? ob_cage->object_to_world().ptr() : ob_low_eval->object_to_world().ptr()),
             me_cage_eval))
     {
       BKE_report(reports, RPT_ERROR, "Error handling selected objects");
@@ -1693,7 +1692,7 @@ static int bake(const BakeAPIRender *bkr,
                                           targets.result,
                                           me_low_eval,
                                           bkr->normal_swizzle,
-                                          ob_low_eval->object_to_world);
+                                          ob_low_eval->object_to_world().ptr());
         }
         else {
           /* From multi-resolution. */
@@ -1719,7 +1718,7 @@ static int bake(const BakeAPIRender *bkr,
                                           targets.result,
                                           (me_nores) ? me_nores : me_low_eval,
                                           bkr->normal_swizzle,
-                                          ob_low_eval->object_to_world);
+                                          ob_low_eval->object_to_world().ptr());
 
           if (md) {
             BKE_id_free(nullptr, &me_nores->id);

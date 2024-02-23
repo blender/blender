@@ -34,6 +34,10 @@ struct SearchItem {
    * number is not based on an actual clock.
    */
   int recent_time;
+  /**
+   * Deprecated items can still be found via search, but are at the bottom of the list.
+   */
+  bool is_deprecated;
 };
 
 struct RecentCache {
@@ -94,7 +98,7 @@ template<typename T> class StringSearch : private StringSearchBase {
    * \param weight: Can be used to customize the order when multiple items have the same match
    * score.
    */
-  void add(const StringRefNull str, T *user_data, const int weight = 0)
+  void add(const StringRef str, T *user_data, const int weight = 0)
   {
     this->add_impl(str, (void *)user_data, weight);
   }

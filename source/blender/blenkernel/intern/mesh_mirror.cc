@@ -17,7 +17,6 @@
 #include "BKE_attribute.hh"
 #include "BKE_deform.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.hh"
 #include "BKE_modifier.hh"
@@ -26,8 +25,6 @@
 #include "bmesh_tools.hh"
 
 #include "MEM_guardedalloc.h"
-
-#include "MOD_modifiertypes.hh"
 
 Mesh *BKE_mesh_mirror_bisect_on_mirror_plane_for_modifier(MirrorModifierData *mmd,
                                                           const Mesh *mesh,
@@ -148,8 +145,8 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
     /* tmp is a transform from coords relative to the object's own origin,
      * to coords relative to the mirror object origin */
-    invert_m4_m4(tmp, mirror_ob->object_to_world);
-    mul_m4_m4m4(tmp, tmp, ob->object_to_world);
+    invert_m4_m4(tmp, mirror_ob->object_to_world().ptr());
+    mul_m4_m4m4(tmp, tmp, ob->object_to_world().ptr());
 
     /* itmp is the reverse transform back to origin-relative coordinates */
     invert_m4_m4(itmp, tmp);
@@ -165,9 +162,9 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
 
       /* Account for non-uniform scale in `ob`, see: #87592. */
       float ob_scale[3] = {
-          len_squared_v3(ob->object_to_world[0]),
-          len_squared_v3(ob->object_to_world[1]),
-          len_squared_v3(ob->object_to_world[2]),
+          len_squared_v3(ob->object_to_world().ptr()[0]),
+          len_squared_v3(ob->object_to_world().ptr()[1]),
+          len_squared_v3(ob->object_to_world().ptr()[2]),
       };
       /* Scale to avoid precision loss with extreme values. */
       const float ob_scale_max = max_fff(UNPACK3(ob_scale));

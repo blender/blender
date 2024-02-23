@@ -19,11 +19,8 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
-#include "BKE_main.hh"
 #include "BKE_preview_image.hh"
-#include "BKE_report.h"
-
-#include "BLT_translation.h"
+#include "BKE_report.hh"
 
 #include "ED_asset.hh"
 #include "ED_render.hh"

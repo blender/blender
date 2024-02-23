@@ -37,6 +37,7 @@
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
+#include "BLI_vector.hh"
 
 #include "BLF_api.hh"
 
@@ -46,7 +47,7 @@
 #include "blf_internal.hh"
 #include "blf_internal_types.hh"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 #ifdef WIN32
 #  define FT_New_Face FT_New_Face__win32_compat
@@ -1085,6 +1086,7 @@ void blf_str_offset_to_glyph_bounds(FontBLF *font,
 static void blf_font_wrap_apply(FontBLF *font,
                                 const char *str,
                                 const size_t str_len,
+                                const int max_pixel_width,
                                 ResultBLF *r_info,
                                 void (*callback)(FontBLF *font,
                                                  GlyphCacheBLF *gc,
@@ -1109,7 +1111,7 @@ static void blf_font_wrap_apply(FontBLF *font,
   struct WordWrapVars {
     ft_pix wrap_width;
     size_t start, last[2];
-  } wrap = {font->wrap_width != -1 ? ft_pix_from_int(font->wrap_width) : INT_MAX, 0, {0, 0}};
+  } wrap = {max_pixel_width != -1 ? ft_pix_from_int(max_pixel_width) : INT_MAX, 0, {0, 0}};
 
   // printf("%s wrapping (%d, %d) `%s`:\n", __func__, str_len, strlen(str), str);
   while ((i < str_len) && str[i]) {
@@ -1198,7 +1200,8 @@ static void blf_font_draw__wrap_cb(FontBLF *font,
 }
 void blf_font_draw__wrap(FontBLF *font, const char *str, const size_t str_len, ResultBLF *r_info)
 {
-  blf_font_wrap_apply(font, str, str_len, r_info, blf_font_draw__wrap_cb, nullptr);
+  blf_font_wrap_apply(
+      font, str, str_len, font->wrap_width, r_info, blf_font_draw__wrap_cb, nullptr);
 }
 
 /** Utility for #blf_font_boundbox__wrap. */
@@ -1223,7 +1226,8 @@ void blf_font_boundbox__wrap(
   box->ymin = 32000;
   box->ymax = -32000;
 
-  blf_font_wrap_apply(font, str, str_len, r_info, blf_font_boundbox_wrap_cb, box);
+  blf_font_wrap_apply(
+      font, str, str_len, font->wrap_width, r_info, blf_font_boundbox_wrap_cb, box);
 }
 
 /** Utility for  #blf_font_draw_buffer__wrap. */
@@ -1241,7 +1245,37 @@ void blf_font_draw_buffer__wrap(FontBLF *font,
                                 const size_t str_len,
                                 ResultBLF *r_info)
 {
-  blf_font_wrap_apply(font, str, str_len, r_info, blf_font_draw_buffer__wrap_cb, nullptr);
+  blf_font_wrap_apply(
+      font, str, str_len, font->wrap_width, r_info, blf_font_draw_buffer__wrap_cb, nullptr);
+}
+
+/** Wrap a blender::StringRef. */
+static void blf_font_string_wrap_cb(FontBLF * /*font*/,
+                                    GlyphCacheBLF * /*gc*/,
+                                    const char *str,
+                                    const size_t str_len,
+                                    ft_pix /*pen_y*/,
+                                    void *str_list_ptr)
+{
+  blender::Vector<blender::StringRef> *list = static_cast<blender::Vector<blender::StringRef> *>(
+      str_list_ptr);
+  blender::StringRef line(str, str + str_len);
+  list->append(line);
+}
+
+blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
+                                                         blender::StringRef str,
+                                                         int max_pixel_width)
+{
+  blender::Vector<blender::StringRef> list;
+  blf_font_wrap_apply(font,
+                      str.data(),
+                      size_t(str.size()),
+                      max_pixel_width,
+                      nullptr,
+                      blf_font_string_wrap_cb,
+                      &list);
+  return list;
 }
 
 /** \} */
@@ -1376,7 +1410,6 @@ static void blf_font_fill(FontBLF *font)
   font->char_width = 1.0f;
   font->char_spacing = 0.0f;
 
-  BLI_listbase_clear(&font->cache);
   font->kerning_cache = nullptr;
 #if BLF_BLUR_ENABLE
   font->blur = 0;
@@ -1736,7 +1769,7 @@ static FontBLF *blf_font_new_impl(const char *filepath,
                                   const size_t mem_size,
                                   void *ft_library)
 {
-  FontBLF *font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
+  FontBLF *font = MEM_new<FontBLF>(__func__);
 
   font->mem_name = mem_name ? BLI_strdup(mem_name) : nullptr;
   font->filepath = filepath ? BLI_strdup(filepath) : nullptr;
@@ -1755,8 +1788,6 @@ static FontBLF *blf_font_new_impl(const char *filepath,
   }
 
   font->ft_lib = ft_library ? (FT_Library)ft_library : ft_lib;
-
-  BLI_mutex_init(&font->glyph_cache_mutex);
 
   /* If we have static details about this font file, we don't have to load the Face yet. */
   bool face_needed = true;
@@ -1854,9 +1885,7 @@ void blf_font_free(FontBLF *font)
     MEM_freeN(font->mem_name);
   }
 
-  BLI_mutex_end(&font->glyph_cache_mutex);
-
-  MEM_freeN(font);
+  MEM_delete(font);
 }
 
 /** \} */

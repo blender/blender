@@ -28,7 +28,7 @@
 #include "BLI_fileops.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_util.h"
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 #include "BKE_node_runtime.hh"
 
@@ -36,8 +36,8 @@
 
 #include "WM_api.hh"
 
-#include "usd.h"
-#include "usd_writer_material.h"
+#include "usd.hh"
+#include "usd_writer_material.hh"
 
 namespace blender::io::usd {
 

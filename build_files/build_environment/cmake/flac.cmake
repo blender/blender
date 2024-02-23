@@ -8,9 +8,19 @@ if(NOT WIN32)
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${FLAC_HASH_TYPE}=${FLAC_HASH}
     PREFIX ${BUILD_DIR}/flac
-    CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flac/src/external_flac/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flac --disable-shared --enable-static
-    BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flac/src/external_flac/ && make -j${MAKE_THREADS}
-    INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/flac/src/external_flac/ && make install
+
+    CONFIGURE_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/flac/src/external_flac/ &&
+      ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/flac --disable-shared --enable-static
+
+    BUILD_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/flac/src/external_flac/ &&
+      make -j${MAKE_THREADS}
+
+    INSTALL_COMMAND ${CONFIGURE_ENV} &&
+      cd ${BUILD_DIR}/flac/src/external_flac/ &&
+      make install
+
     INSTALL_DIR ${LIBDIR}/flac
   )
 else()
@@ -34,7 +44,12 @@ else()
     URL_HASH ${FLAC_HASH_TYPE}=${FLAC_HASH}
     PREFIX ${BUILD_DIR}/flac
     CMAKE_GENERATOR "Ninja"
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/flac ${DEFAULT_CMAKE_FLAGS} ${FLAC_EXTRA_ARGS}
+
+    CMAKE_ARGS
+      -DCMAKE_INSTALL_PREFIX=${LIBDIR}/flac
+      ${DEFAULT_CMAKE_FLAGS}
+      ${FLAC_EXTRA_ARGS}
+
     INSTALL_DIR ${LIBDIR}/flac
   )
 endif()

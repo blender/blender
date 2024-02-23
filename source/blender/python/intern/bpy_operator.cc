@@ -43,7 +43,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 /* so operators called can spawn threads which acquire the GIL */
 #define BPY_RELEASE_GIL

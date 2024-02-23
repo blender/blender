@@ -164,7 +164,7 @@ METAL_ATTR ScreenTraceHitData raytrace_screen(RayTraceData rt_data,
 
 ScreenTraceHitData raytrace_planar(RayTraceData rt_data,
                                    depth2DArray planar_depth_tx,
-                                   ProbePlanarData planar,
+                                   PlanarProbeData planar,
                                    float stride_rand,
                                    Ray ray)
 {

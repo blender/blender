@@ -13,7 +13,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "NOD_node_declaration.hh"
 
@@ -43,7 +43,9 @@ static void draw_node_input(bContext *C,
 {
   BLI_assert(socket.typeinfo != nullptr);
   /* Ignore disabled sockets and linked sockets and sockets without a `draw` callback. */
-  if (!socket.is_available() || (socket.flag & SOCK_IS_LINKED) || socket.typeinfo->draw == nullptr)
+  if (!socket.is_available() || (socket.flag & (SOCK_IS_LINKED | SOCK_HIDE_VALUE)) ||
+      socket.typeinfo->draw == nullptr ||
+      ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER))
   {
     return;
   }

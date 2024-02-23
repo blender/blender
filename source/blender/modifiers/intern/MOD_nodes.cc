@@ -47,7 +47,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -66,7 +66,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -407,6 +407,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
       new_bake.id = id;
       new_bake.frame_start = 1;
       new_bake.frame_end = 100;
+      new_bake.bake_mode = NODES_MODIFIER_BAKE_MODE_STILL;
     }
   }
 
@@ -823,7 +824,7 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
 
     IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, socket->identifier);
     if (property == nullptr) {
-      if (type == SOCK_GEOMETRY) {
+      if (ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX)) {
         geometry_socket_count++;
       }
       else {
@@ -1918,8 +1919,6 @@ static void add_attribute_search_button(const bContext &C,
                                  0,
                                  0.0f,
                                  0.0f,
-                                 0.0f,
-                                 0.0f,
                                  socket.description);
 
   const Object *object = ED_object_context(&C);
@@ -2294,16 +2293,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropDecorate(layout, false);
 
   if (!(nmd->flag & NODES_MODIFIER_HIDE_DATABLOCK_SELECTOR)) {
-    uiTemplateID(layout,
-                 C,
-                 ptr,
-                 "node_group",
-                 "node.new_geometry_node_group_assign",
-                 nullptr,
-                 nullptr,
-                 0,
-                 false,
-                 nullptr);
+    const char *newop = (nmd->node_group == nullptr) ? "node.new_geometry_node_group_assign" :
+                                                       "object.geometry_node_tree_copy_assign";
+    uiTemplateID(layout, C, ptr, "node_group", newop, nullptr, nullptr, 0, false, nullptr);
   }
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {

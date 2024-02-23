@@ -10,8 +10,7 @@
 
 #include "BKE_context.hh"
 
-#include "BLI_string.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_material_types.h"
 #include "DNA_space_types.h"
@@ -57,6 +56,10 @@ static std::string ui_view_drop_tooltip(bContext *C,
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
   std::unique_ptr<DropTargetInterface> drop_target = region_views_find_drop_target_at(region, xy);
+
+  if (drop_target == nullptr) {
+    return {};
+  }
 
   return drop_target_tooltip(*region, *drop_target, *drag, *win->eventstate);
 }

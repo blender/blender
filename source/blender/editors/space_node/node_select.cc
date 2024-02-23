@@ -530,7 +530,7 @@ void node_select_single(bContext &C, bNode &node)
 
   tree_draw_order_update(node_tree);
   if (active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) {
-    DEG_id_tag_update(&node_tree.id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&node_tree.id, ID_RECALC_SYNC_TO_EVAL);
   }
 
   WM_event_add_notifier(&C, NC_NODE | NA_SELECTED, nullptr);
@@ -690,7 +690,7 @@ static bool node_mouse_select(bContext *C,
   if ((active_texture_changed && has_workbench_in_texture_color(wm, scene, ob)) ||
       viewer_node_changed)
   {
-    DEG_id_tag_update(&snode.edittree->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&snode.edittree->id, ID_RECALC_SYNC_TO_EVAL);
   }
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);

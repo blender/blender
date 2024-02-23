@@ -11,7 +11,7 @@
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "BLI_string.h"
 
@@ -26,17 +26,14 @@
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "MEM_guardedalloc.h"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"
 
-#  include "DEG_depsgraph.hh"
-
 #  include "IO_orientation.hh"
-#  include "IO_path_util_types.hh"
 
 #  include "IO_ply.hh"
 #  include "io_ply_ops.hh"
@@ -251,30 +248,16 @@ static int wm_ply_import_exec(bContext *C, wmOperator *op)
   params.import_attributes = RNA_boolean_get(op->ptr, "import_attributes");
   params.vertex_colors = ePLYVertexColorMode(RNA_enum_get(op->ptr, "import_colors"));
 
-  int files_len = RNA_collection_length(op->ptr, "files");
+  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
-  if (files_len) {
-    PointerRNA fileptr;
-    PropertyRNA *prop;
-    char dir_only[FILE_MAX], file_only[FILE_MAX];
-
-    RNA_string_get(op->ptr, "directory", dir_only);
-    prop = RNA_struct_find_property(op->ptr, "files");
-    for (int i = 0; i < files_len; i++) {
-      RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
-      RNA_string_get(&fileptr, "name", file_only);
-      BLI_path_join(params.filepath, sizeof(params.filepath), dir_only, file_only);
-      PLY_import(C, &params, op);
-    }
-  }
-  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    RNA_string_get(op->ptr, "filepath", params.filepath);
-    PLY_import(C, &params, op);
-  }
-  else {
+  if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
+  for (const auto &path : paths) {
+    STRNCPY(params.filepath, path.c_str());
+    PLY_import(C, &params, op);
+  };
 
   Scene *scene = CTX_data_scene(C);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

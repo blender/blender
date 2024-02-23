@@ -34,7 +34,7 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_object.hh"
 #include "BKE_pointcloud.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "DNA_object_types.h"
@@ -56,7 +56,7 @@
 #include "ED_mesh.hh"
 #include "ED_sculpt.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "FN_lazy_function_execute.hh"
 
@@ -769,7 +769,7 @@ void clear_operator_asset_trees()
 
 static asset::AssetItemTree build_catalog_tree(const bContext &C, const Object &active_object)
 {
-  AssetFilterSettings type_filter{};
+  asset::AssetFilterSettings type_filter{};
   type_filter.id_types = FILTER_ID_NT;
   const GeometryNodeAssetTraitFlag flag = asset_flag_for_context(active_object);
   auto meta_data_filter = [&](const AssetMetaData &meta_data) {
@@ -785,6 +785,7 @@ static asset::AssetItemTree build_catalog_tree(const bContext &C, const Object &
     return true;
   };
   const AssetLibraryReference library = asset_system::all_library_reference();
+  asset_system::all_library_reload_catalogs_if_dirty();
   return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
 }
 

@@ -10,19 +10,14 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLT_translation.h"
-
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
-#include "BKE_screen.hh"
 #include "BKE_shrinkwrap.hh"
 
 #include "BLI_math_vector.h"
@@ -36,12 +31,10 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ED_mesh.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_sculpt.hh"
 #include "ED_undo.hh"
-#include "ED_view3d.hh"
 
 #include "bmesh_tools.hh"
 
@@ -191,6 +184,13 @@ static int geometry_extract_apply(bContext *C,
   bm_to_mesh_params.calc_object_remap = false;
   new_mesh = BKE_mesh_from_bmesh_nomain(bm, &bm_to_mesh_params, mesh);
 
+  /* Remove the Face Sets as they need to be recreated when entering Sculpt Mode in the new object.
+   * TODO(pablodobarro): In the future we can try to preserve them from the original mesh. */
+  new_mesh->attributes_for_write().remove(".sculpt_face_set");
+
+  /* Remove the mask from the new object so it can be sculpted directly after extracting. */
+  new_mesh->attributes_for_write().remove(".sculpt_mask");
+
   BKE_editmesh_free_data(em);
   MEM_freeN(em);
 
@@ -206,17 +206,6 @@ static int geometry_extract_apply(bContext *C,
   Object *new_ob = ED_object_add_type(
       C, OB_MESH, nullptr, ob->loc, ob->rot, false, local_view_bits);
   BKE_mesh_nomain_to_mesh(new_mesh, static_cast<Mesh *>(new_ob->data), new_ob);
-
-  Mesh *new_ob_mesh = static_cast<Mesh *>(new_ob->data);
-
-  /* Remove the Face Sets as they need to be recreated when entering Sculpt Mode in the new object.
-   * TODO(pablodobarro): In the future we can try to preserve them from the original mesh. */
-  new_ob_mesh->attributes_for_write().remove(".sculpt_face_set");
-
-  /* Remove the mask from the new object so it can be sculpted directly after extracting. */
-  new_ob_mesh->attributes_for_write().remove(".sculpt_mask");
-
-  BKE_mesh_copy_parameters_for_eval(new_ob_mesh, mesh);
 
   if (params->apply_shrinkwrap) {
     BKE_shrinkwrap_mesh_nearest_surface_deform(CTX_data_depsgraph_pointer(C), scene, new_ob, ob);

@@ -16,7 +16,7 @@
 
 #include "BLI_string_ref.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_asset.hh"
 #include "ED_fileselect.hh"
@@ -181,11 +181,14 @@ class AssetCatalogTreeViewUnassignedItem : public ui::BasicTreeViewItem {
 AssetCatalogTreeView::AssetCatalogTreeView(asset_system::AssetLibrary *library,
                                            FileAssetSelectParams *params,
                                            SpaceFile &space_file)
-    : asset_library_(library),
-      catalog_tree_(AS_asset_library_get_catalog_tree(library)),
-      params_(params),
-      space_file_(space_file)
+    : asset_library_(library), params_(params), space_file_(space_file)
 {
+  if (library && library->catalog_service) {
+    catalog_tree_ = library->catalog_service->get_catalog_tree();
+  }
+  else {
+    catalog_tree_ = nullptr;
+  }
 }
 
 void AssetCatalogTreeView::build_tree()
@@ -275,7 +278,7 @@ void AssetCatalogTreeViewItem::on_activate(bContext & /*C*/)
 void AssetCatalogTreeViewItem::build_row(uiLayout &row)
 {
   const std::string label_override = catalog_item_.has_unsaved_changes() ? (label_ + "*") : label_;
-  add_label(row, label_override);
+  this->add_label(row, label_override);
 
   if (!is_hovered()) {
     return;
@@ -303,8 +306,6 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               &props);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
-  char catalog_id_str_buffer[UUID_STRING_SIZE] = "";
-  BLI_uuid_format(catalog_id_str_buffer, catalog_item_.get_catalog_id());
   uiItemFullO(&column,
               "ASSET_OT_catalog_delete",
               IFACE_("Delete Catalog"),
@@ -313,7 +314,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
               &props);
-  RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
+  RNA_string_set(&props, "catalog_id", catalog_item_.get_catalog_id().str().c_str());
   uiItemO(&column, IFACE_("Rename"), ICON_NONE, "UI_OT_view_item_rename");
 
   /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done
@@ -329,7 +330,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
 bool AssetCatalogTreeViewItem::supports_renaming() const
 {
   const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
-      get_tree_view());
+      this->get_tree_view());
   return !asset::catalogs_read_only(*tree_view.asset_library_);
 }
 
@@ -339,7 +340,7 @@ bool AssetCatalogTreeViewItem::rename(const bContext &C, StringRefNull new_name)
   BasicTreeViewItem::rename(C, new_name);
 
   const AssetCatalogTreeView &tree_view = static_cast<const AssetCatalogTreeView &>(
-      get_tree_view());
+      this->get_tree_view());
   asset::catalog_rename(tree_view.asset_library_, catalog_item_.get_catalog_id(), new_name);
   return true;
 }
@@ -353,7 +354,7 @@ std::unique_ptr<ui::AbstractViewItemDragController> AssetCatalogTreeViewItem::
     create_drag_controller() const
 {
   return std::make_unique<AssetCatalogDragController>(
-      static_cast<AssetCatalogTreeView &>(get_tree_view()), catalog_item_);
+      static_cast<AssetCatalogTreeView &>(this->get_tree_view()), catalog_item_);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -368,11 +369,11 @@ bool AssetCatalogDropTarget::can_drop(const wmDrag &drag, const char **r_disable
 {
   if (drag.type == WM_DRAG_ASSET_CATALOG) {
     const asset_system::AssetLibrary &library = get_asset_library();
-    if (!can_modify_catalogs(library, r_disabled_hint)) {
+    if (!this->can_modify_catalogs(library, r_disabled_hint)) {
       return false;
     }
 
-    const AssetCatalog *drag_catalog = get_drag_catalog(drag, library);
+    const AssetCatalog *drag_catalog = this->get_drag_catalog(drag, library);
     /* NOTE: Technically it's not an issue to allow this (the catalog will just receive a new
      * path and the catalog system will generate missing parents from the path). But it does
      * appear broken to users, so disabling entirely. */
@@ -396,15 +397,15 @@ bool AssetCatalogDropTarget::can_drop(const wmDrag &drag, const char **r_disable
 std::string AssetCatalogDropTarget::drop_tooltip(const ui::DragInfo &drag_info) const
 {
   if (drag_info.drag_data.type == WM_DRAG_ASSET_CATALOG) {
-    return drop_tooltip_asset_catalog(drag_info.drag_data);
+    return this->drop_tooltip_asset_catalog(drag_info.drag_data);
   }
-  return drop_tooltip_asset_list(drag_info.drag_data);
+  return this->drop_tooltip_asset_list(drag_info.drag_data);
 }
 
 std::string AssetCatalogDropTarget::drop_tooltip_asset_catalog(const wmDrag &drag) const
 {
   BLI_assert(drag.type == WM_DRAG_ASSET_CATALOG);
-  const AssetCatalog *src_catalog = get_drag_catalog(drag, get_asset_library());
+  const AssetCatalog *src_catalog = this->get_drag_catalog(drag, get_asset_library());
 
   return fmt::format(
       TIP_("Move catalog {} into {}"), src_catalog->path.name(), catalog_item_.get_name());
@@ -436,14 +437,14 @@ std::string AssetCatalogDropTarget::drop_tooltip_asset_list(const wmDrag &drag) 
 bool AssetCatalogDropTarget::on_drop(bContext *C, const ui::DragInfo &drag) const
 {
   if (drag.drag_data.type == WM_DRAG_ASSET_CATALOG) {
-    return drop_asset_catalog_into_catalog(
-        drag.drag_data, get_view<AssetCatalogTreeView>(), catalog_item_.get_catalog_id());
+    return this->drop_asset_catalog_into_catalog(
+        drag.drag_data, this->get_view<AssetCatalogTreeView>(), catalog_item_.get_catalog_id());
   }
-  return drop_assets_into_catalog(C,
-                                  get_view<AssetCatalogTreeView>(),
-                                  drag.drag_data,
-                                  catalog_item_.get_catalog_id(),
-                                  catalog_item_.get_simple_name());
+  return this->drop_assets_into_catalog(C,
+                                        this->get_view<AssetCatalogTreeView>(),
+                                        drag.drag_data,
+                                        catalog_item_.get_catalog_id(),
+                                        catalog_item_.get_simple_name());
 }
 
 bool AssetCatalogDropTarget::drop_asset_catalog_into_catalog(
@@ -502,8 +503,7 @@ AssetCatalog *AssetCatalogDropTarget::get_drag_catalog(
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return nullptr;
   }
-  const AssetCatalogService *catalog_service = AS_asset_library_get_catalog_service(
-      &asset_library);
+  const AssetCatalogService *catalog_service = asset_library.catalog_service.get();
   const wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
 
   return catalog_service->find_catalog(catalog_drag->drag_catalog_id);
@@ -537,7 +537,7 @@ bool AssetCatalogDropTarget::can_modify_catalogs(const asset_system::AssetLibrar
 
 asset_system::AssetLibrary &AssetCatalogDropTarget::get_asset_library() const
 {
-  return *get_view<AssetCatalogTreeView>().asset_library_;
+  return *this->get_view<AssetCatalogTreeView>().asset_library_;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -563,7 +563,7 @@ void *AssetCatalogDragController::create_drag_data() const
 
 void AssetCatalogDragController::on_drag_start()
 {
-  AssetCatalogTreeView &tree_view_ = get_view<AssetCatalogTreeView>();
+  AssetCatalogTreeView &tree_view_ = this->get_view<AssetCatalogTreeView>();
   tree_view_.activate_catalog_by_id(catalog_item_.get_catalog_id());
 }
 
@@ -575,11 +575,15 @@ void AssetCatalogTreeViewAllItem::build_row(uiLayout &row)
 
   PointerRNA *props;
 
-  UI_but_extra_operator_icon_add(
-      (uiBut *)view_item_button(), "ASSET_OT_catalogs_save", WM_OP_INVOKE_DEFAULT, ICON_FILE_TICK);
+  UI_but_extra_operator_icon_add(reinterpret_cast<uiBut *>(this->view_item_button()),
+                                 "ASSET_OT_catalogs_save",
+                                 WM_OP_INVOKE_DEFAULT,
+                                 ICON_FILE_TICK);
 
-  props = UI_but_extra_operator_icon_add(
-      (uiBut *)view_item_button(), "ASSET_OT_catalog_new", WM_OP_INVOKE_DEFAULT, ICON_ADD);
+  props = UI_but_extra_operator_icon_add(reinterpret_cast<uiBut *>(this->view_item_button()),
+                                         "ASSET_OT_catalog_new",
+                                         WM_OP_INVOKE_DEFAULT,
+                                         ICON_ADD);
   /* No parent path to use the root level. */
   RNA_string_set(props, "parent_path", nullptr);
 }
@@ -600,7 +604,7 @@ bool AssetCatalogTreeViewAllItem::DropTarget::can_drop(const wmDrag &drag,
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return false;
   }
-  asset_system::AssetLibrary &library = *get_view<AssetCatalogTreeView>().asset_library_;
+  asset_system::AssetLibrary &library = *this->get_view<AssetCatalogTreeView>().asset_library_;
   if (!AssetCatalogDropTarget::can_modify_catalogs(library, r_disabled_hint)) {
     return false;
   }
@@ -619,7 +623,7 @@ std::string AssetCatalogTreeViewAllItem::DropTarget::drop_tooltip(
 {
   BLI_assert(drag_info.drag_data.type == WM_DRAG_ASSET_CATALOG);
   const AssetCatalog *drag_catalog = AssetCatalogDropTarget::get_drag_catalog(
-      drag_info.drag_data, *get_view<AssetCatalogTreeView>().asset_library_);
+      drag_info.drag_data, *this->get_view<AssetCatalogTreeView>().asset_library_);
 
   return fmt::format(TIP_("Move catalog {} to the top level of the tree"),
                      drag_catalog->path.name());
@@ -631,7 +635,7 @@ bool AssetCatalogTreeViewAllItem::DropTarget::on_drop(bContext * /*C*/,
   BLI_assert(drag.drag_data.type == WM_DRAG_ASSET_CATALOG);
   return AssetCatalogDropTarget::drop_asset_catalog_into_catalog(
       drag.drag_data,
-      get_view<AssetCatalogTreeView>(),
+      this->get_view<AssetCatalogTreeView>(),
       /* No value to drop into the root level. */
       std::nullopt);
 }
@@ -674,7 +678,7 @@ bool AssetCatalogTreeViewUnassignedItem::DropTarget::on_drop(bContext *C,
 {
   /* Assign to nil catalog ID. */
   return AssetCatalogDropTarget::drop_assets_into_catalog(
-      C, get_view<AssetCatalogTreeView>(), drag.drag_data, CatalogID{});
+      C, this->get_view<AssetCatalogTreeView>(), drag.drag_data, CatalogID{});
 }
 
 }  // namespace blender::ed::asset_browser

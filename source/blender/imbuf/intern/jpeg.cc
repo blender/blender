@@ -27,7 +27,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
-#include "imbuf.hh"
 
 #include <cstring>
 #include <jerror.h>
@@ -293,7 +292,9 @@ static ImBuf *ibJpegImageFromCinfo(
       jpeg_abort_decompress(cinfo);
       ibuf = IMB_allocImBuf(x, y, 8 * depth, 0);
     }
-    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect)) == nullptr) {
+    else if ((ibuf = IMB_allocImBuf(x, y, 8 * depth, IB_rect | IB_uninitialized_pixels)) ==
+             nullptr)
+    {
       jpeg_abort_decompress(cinfo);
     }
     else {

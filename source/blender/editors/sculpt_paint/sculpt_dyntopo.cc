@@ -11,13 +11,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_modifier_types.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
-#include "BKE_main.hh"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -25,7 +24,7 @@
 #include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
 #include "BKE_pointcache.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_index_range.hh"
 

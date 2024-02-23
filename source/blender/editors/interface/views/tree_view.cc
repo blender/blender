@@ -11,7 +11,7 @@
 
 #include "BKE_context.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GPU_immediate.h"
 
@@ -178,7 +178,10 @@ void AbstractTreeView::draw_hierarchy_lines_recursive(const ARegion &region,
 
 void AbstractTreeView::draw_hierarchy_lines(const ARegion &region) const
 {
-  const float aspect = BLI_rctf_size_y(&region.v2d.cur) / (BLI_rcti_size_y(&region.v2d.mask) + 1);
+  const float aspect = (region.v2d.flag & V2D_IS_INIT) ?
+                           BLI_rctf_size_y(&region.v2d.cur) /
+                               (BLI_rcti_size_y(&region.v2d.mask) + 1) :
+                           1.0f;
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -730,11 +733,6 @@ void BasicTreeViewItem::build_row(uiLayout &row)
 void BasicTreeViewItem::add_label(uiLayout &layout, StringRefNull label_override)
 {
   const StringRefNull label = label_override.is_empty() ? StringRefNull(label_) : label_override;
-
-  /* Some padding for labels without collapse chevron and no icon. Looks weird without. */
-  if (icon == ICON_NONE && !is_collapsible()) {
-    uiItemS_ex(&layout, 0.8f);
-  }
   uiItemL(&layout, IFACE_(label.c_str()), icon);
 }
 

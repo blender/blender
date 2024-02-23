@@ -19,17 +19,18 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_main.hh"
 #include "BKE_preferences.h"
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+#include "RNA_prototypes.h"
 #include "RNA_types.hh"
 
 #include "UI_interface.hh"
@@ -285,6 +286,8 @@ static int preferences_extension_repo_add_exec(bContext *C, wmOperator *op)
 
   BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPDATE_POST);
 
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+
   /* There's no dedicated notifier for the Preferences. */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
@@ -351,7 +354,7 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
   static const EnumPropertyItem repo_type_items[] = {
       {int(bUserExtensionRepoAddType::Remote),
        "REMOTE",
-       ICON_WORLD,
+       ICON_NETWORK_DRIVE,
        "Add Remote Repository",
        "Add a repository referencing an remote repository "
        "with support for listing and updating extensions"},
@@ -363,31 +366,86 @@ static void PREFERENCES_OT_extension_repo_add(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  PropertyRNA *prop;
+  /* After creating a new repository some settings can't be easily changed
+   * (especially the custom directory). To avoid showing a partially initialized repository,
+   * set these values upon creation instead of having the user create the repository and change
+   * them afterwards.
+   *
+   * An alternative solution could be implemented by creating an "uninitialized" repository,
+   * setting up all it's properties then running an "initialize" operator however this seems
+   * unnecessarily confusing as in most cases a user can do this in one step by naming and
+   * setting the repositories URL (optionally the custom-directory). */
 
-  prop = RNA_def_string(ot->srna, "name", nullptr, sizeof(bUserExtensionRepo::name), "Name", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  /* Copy the RNA values are copied into the operator to avoid repetition. */
+  StructRNA *type_ref = &RNA_UserExtensionRepo;
 
-  prop = RNA_def_string(
-      ot->srna, "remote_path", nullptr, sizeof(bUserExtensionRepo::remote_path), "URL", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Name. */
+    const char *prop_id = "name";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       sizeof(bUserExtensionRepo::name),
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 
-  prop = RNA_def_boolean(ot->srna, "use_custom_directory", false, "Custom Directory", "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Remote Path. */
+    const char *prop_id = "remote_path";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string(ot->srna,
+                                       prop_id,
+                                       nullptr,
+                                       sizeof(bUserExtensionRepo::remote_path),
+                                       RNA_property_ui_name_raw(prop_ref),
+                                       RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 
-  /* WARNING: `RNA_def_string_dir_path` should be used but the file selector crashes from
-   * #WM_operator_props_popup_confirm as it closes the popup before showing the file-selector. */
-  prop = RNA_def_string(ot->srna,
-                        "custom_directory",
-                        nullptr,
-                        sizeof(bUserExtensionRepo::remote_path),
-                        "Directory",
-                        "");
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  { /* Use Custom Directory. */
+    const char *prop_id = "use_custom_directory";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_boolean(ot->srna,
+                                        prop_id,
+                                        false,
+                                        RNA_property_ui_name_raw(prop_ref),
+                                        RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
+
+  { /* Custom Directory. */
+    const char *prop_id = "custom_directory";
+    PropertyRNA *prop_ref = RNA_struct_type_find_property(type_ref, prop_id);
+    PropertyRNA *prop = RNA_def_string_dir_path(ot->srna,
+                                                prop_id,
+                                                nullptr,
+                                                sizeof(bUserExtensionRepo::remote_path),
+                                                RNA_property_ui_name_raw(prop_ref),
+                                                RNA_property_ui_description_raw(prop_ref));
+    RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  }
 
   ot->prop = RNA_def_enum(
       ot->srna, "type", repo_type_items, 0, "Type", "The kind of repository to add");
   RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Extension Repository Utilities
+ * \{ */
+
+static bool preferences_extension_repo_active_enabled_poll(bContext *C)
+{
+  const bUserExtensionRepo *repo = BKE_preferences_extension_repo_find_index(
+      &U, U.active_extension_repo);
+  if (repo == nullptr || (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
+    CTX_wm_operator_poll_msg_set(C, "An enabled repository must be selected");
+    return false;
+  }
+  return true;
 }
 
 /** \} */
@@ -521,6 +579,85 @@ static void PREFERENCES_OT_extension_repo_remove(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Check for Extension Repository Updates Operator
+ * \{ */
+
+static int preferences_extension_repo_sync_exec(bContext *C, wmOperator * /*op*/)
+{
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_SYNC);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_repo_sync(wmOperatorType *ot)
+{
+  ot->name = "Check for Updates";
+  ot->idname = "PREFERENCES_OT_extension_repo_sync";
+  ot->description = "Synchronize the active extension repository with its remote URL";
+
+  ot->exec = preferences_extension_repo_sync_exec;
+  ot->poll = preferences_extension_repo_active_enabled_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Update Extension Repository Operator
+ * \{ */
+
+static int preferences_extension_repo_upgrade_exec(bContext *C, wmOperator * /*op*/)
+{
+  Main *bmain = CTX_data_main(C);
+  BKE_callback_exec_null(bmain, BKE_CB_EVT_EXTENSION_REPOS_UPGRADE);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_repo_upgrade(wmOperatorType *ot)
+{
+  ot->name = "Update Repository";
+  ot->idname = "PREFERENCES_OT_extension_repo_upgrade";
+  ot->description = "Update any outdated extensions for the active extension repository";
+
+  ot->exec = preferences_extension_repo_upgrade_exec;
+  ot->poll = preferences_extension_repo_active_enabled_poll;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drop Extension Operator
+ * \{ */
+
+static int preferences_extension_url_drop_exec(bContext *C, wmOperator *op)
+{
+  char *url = RNA_string_get_alloc(op->ptr, "url", nullptr, 0, nullptr);
+  BKE_callback_exec_string(CTX_data_main(C), BKE_CB_EVT_EXTENSION_DROP_URL, url);
+  MEM_freeN(url);
+  return OPERATOR_FINISHED;
+}
+
+static void PREFERENCES_OT_extension_url_drop(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Drop Extension URL";
+  ot->description = "Handle dropping an extension URL";
+  ot->idname = "PREFERENCES_OT_extension_url_drop";
+
+  /* api callbacks */
+  ot->exec = preferences_extension_url_drop_exec;
+
+  RNA_def_string(ot->srna, "url", nullptr, 0, "URL", "Location of the extension to install");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Associate File Type Operator (Windows only)
  * \{ */
 
@@ -636,6 +773,106 @@ static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Drag & Drop URL
+ * \{ */
+
+static bool drop_extension_url_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  if (!U.experimental.use_extension_repos) {
+    return false;
+  }
+  if (drag->type != WM_DRAG_STRING) {
+    return false;
+  }
+
+  /* NOTE(@ideasman42): it should be possible to drag a URL into the text editor or Python console.
+   * In the future we may support dragging images into Blender by URL, so treating any single-line
+   * URL as an extension could back-fire. Avoid problems in the future by limiting the text which
+   * is accepted as an extension to ZIP's or URL's that reference known repositories. */
+
+  const std::string &str = WM_drag_get_string(drag);
+
+  /* Only URL formatted text. */
+  const char *cstr = str.c_str();
+  if (BKE_preferences_extension_repo_remote_scheme_end(cstr) == 0) {
+    return false;
+  }
+
+  /* Only single line strings. */
+  if (str.find('\n') != std::string::npos) {
+    return false;
+  }
+
+  const char *cstr_ext = BLI_path_extension(cstr);
+  /* Check the URL has a `.zip` suffix OR has a known repository as a prefix.
+   * This is needed to support redirects which don't contain an extension. */
+  if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip")) &&
+      !(BKE_preferences_extension_repo_find_by_remote_path_prefix(&U, cstr, true)))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+static void drop_extension_url_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  /* Copy drag URL to properties. */
+  const std::string &str = WM_drag_get_string(drag);
+  RNA_string_set(drop->ptr, "url", str.c_str());
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Drag & Drop Paths
+ * \{ */
+
+static bool drop_extension_path_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
+{
+  if (!U.experimental.use_extension_repos) {
+    return false;
+  }
+  if (drag->type != WM_DRAG_PATH) {
+    return false;
+  }
+
+  const char *cstr = WM_drag_get_single_path(drag);
+  const char *cstr_ext = BLI_path_extension(cstr);
+  if (!(cstr_ext && STRCASEEQ(cstr_ext, ".zip"))) {
+    return false;
+  }
+
+  return true;
+}
+
+static void drop_extension_path_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
+{
+  /* Copy drag URL to properties. */
+  const char *cstr = WM_drag_get_single_path(drag);
+  RNA_string_set(drop->ptr, "url", cstr);
+}
+
+/** \} */
+
+static void ED_dropbox_drop_extension()
+{
+  ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
+  WM_dropbox_add(lb,
+                 "PREFERENCES_OT_extension_url_drop",
+                 drop_extension_url_poll,
+                 drop_extension_url_copy,
+                 nullptr,
+                 nullptr);
+  WM_dropbox_add(lb,
+                 "PREFERENCES_OT_extension_url_drop",
+                 drop_extension_path_poll,
+                 drop_extension_path_copy,
+                 nullptr,
+                 nullptr);
+}
+
 void ED_operatortypes_userpref()
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
@@ -648,7 +885,12 @@ void ED_operatortypes_userpref()
 
   WM_operatortype_append(PREFERENCES_OT_extension_repo_add);
   WM_operatortype_append(PREFERENCES_OT_extension_repo_remove);
+  WM_operatortype_append(PREFERENCES_OT_extension_repo_sync);
+  WM_operatortype_append(PREFERENCES_OT_extension_repo_upgrade);
+  WM_operatortype_append(PREFERENCES_OT_extension_url_drop);
 
   WM_operatortype_append(PREFERENCES_OT_associate_blend);
   WM_operatortype_append(PREFERENCES_OT_unassociate_blend);
+
+  ED_dropbox_drop_extension();
 }

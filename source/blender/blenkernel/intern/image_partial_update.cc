@@ -54,7 +54,6 @@
 
 #include "DNA_image_types.h"
 
-#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "BLI_listbase.h"

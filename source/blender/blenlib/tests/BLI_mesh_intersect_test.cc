@@ -980,7 +980,7 @@ static void spheresphere_test(int nrings, double y_offset, bool use_self)
     return;
   }
   BLI_task_scheduler_init(); /* Without this, no parallelism. */
-  double time_start = BLI_check_seconds_timer();
+  double time_start = BLI_time_now_seconds();
   IMeshArena arena;
   int nsegs = 2 * nrings;
   int sphere_verts_num;
@@ -1009,7 +1009,7 @@ static void spheresphere_test(int nrings, double y_offset, bool use_self)
                    sphere_verts_num,
                    &arena);
   IMesh mesh(tris);
-  double time_create = BLI_check_seconds_timer();
+  double time_create = BLI_time_now_seconds();
   // write_obj_mesh(mesh, "spheresphere_in");
   IMesh out;
   if (use_self) {
@@ -1020,7 +1020,7 @@ static void spheresphere_test(int nrings, double y_offset, bool use_self)
     out = trimesh_nary_intersect(
         mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
   }
-  double time_intersect = BLI_check_seconds_timer();
+  double time_intersect = BLI_time_now_seconds();
   std::cout << "Create time: " << time_create - time_start << "\n";
   std::cout << "Intersect time: " << time_intersect - time_create << "\n";
   std::cout << "Total time: " << time_intersect - time_start << "\n";
@@ -1120,7 +1120,7 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
     return;
   }
   BLI_task_scheduler_init(); /* Without this, no parallelism. */
-  double time_start = BLI_check_seconds_timer();
+  double time_start = BLI_time_now_seconds();
   IMeshArena arena;
   int sphere_verts_num;
   int sphere_tris_num;
@@ -1154,7 +1154,7 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
                  sphere_tris_num,
                  &arena);
   IMesh mesh(tris);
-  double time_create = BLI_check_seconds_timer();
+  double time_create = BLI_time_now_seconds();
   // write_obj_mesh(mesh, "spheregrid_in");
   IMesh out;
   if (use_self) {
@@ -1165,7 +1165,7 @@ static void spheregrid_test(int nrings, int grid_level, double z_offset, bool us
     out = trimesh_nary_intersect(
         mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
   }
-  double time_intersect = BLI_check_seconds_timer();
+  double time_intersect = BLI_time_now_seconds();
   std::cout << "Create time: " << time_create - time_start << "\n";
   std::cout << "Intersect time: " << time_intersect - time_create << "\n";
   std::cout << "Total time: " << time_intersect - time_start << "\n";
@@ -1187,7 +1187,7 @@ static void gridgrid_test(int x_level_1,
   /* Make two grids, each 4x4, with given subdivision levels in x and y,
    * and the second offset from the first by x_off, y_off, and rotated by rot_deg degrees. */
   BLI_task_scheduler_init(); /* Without this, no parallelism. */
-  double time_start = BLI_check_seconds_timer();
+  double time_start = BLI_time_now_seconds();
   IMeshArena arena;
   int x_subdivs_1 = 1 << x_level_1;
   int y_subdivs_1 = 1 << y_level_1;
@@ -1223,7 +1223,7 @@ static void gridgrid_test(int x_level_1,
                  grid_tris_1_num,
                  &arena);
   IMesh mesh(tris);
-  double time_create = BLI_check_seconds_timer();
+  double time_create = BLI_time_now_seconds();
   // write_obj_mesh(mesh, "gridgrid_in");
   IMesh out;
   if (use_self) {
@@ -1234,7 +1234,7 @@ static void gridgrid_test(int x_level_1,
     out = trimesh_nary_intersect(
         mesh, 2, [nf](int t) { return t < nf ? 0 : 1; }, false, &arena);
   }
-  double time_intersect = BLI_check_seconds_timer();
+  double time_intersect = BLI_time_now_seconds();
   std::cout << "Create time: " << time_create - time_start << "\n";
   std::cout << "Intersect time: " << time_intersect - time_create << "\n";
   std::cout << "Total time: " << time_intersect - time_start << "\n";

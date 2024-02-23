@@ -34,7 +34,7 @@ static void translate_instances(GeoNodeExecParams &params, bke::Instances &insta
   const VArray<float3> translations = evaluator.get_evaluated<float3>(0);
   const VArray<bool> local_spaces = evaluator.get_evaluated<bool>(1);
 
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<float4x4> transforms = instances.transforms_for_write();
 
   selection.foreach_index(GrainSize(1024), [&](const int64_t i) {
     if (local_spaces[i]) {

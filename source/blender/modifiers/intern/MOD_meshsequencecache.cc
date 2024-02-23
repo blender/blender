@@ -13,7 +13,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_cachefile_types.h"
 #include "DNA_defaults.h"
@@ -25,21 +25,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cachefile.h"
-#include "BKE_context.hh"
+#include "BKE_cachefile.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
-#include "BKE_object.hh"
-#include "BKE_scene.h"
-#include "BKE_screen.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-
-#include "BLO_read_write.hh"
 
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
@@ -50,7 +44,6 @@
 #include "MOD_ui_common.hh"
 
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
-#  include "BKE_global.h"
 #  include "BKE_lib_id.hh"
 #endif
 
@@ -59,7 +52,7 @@
 #endif
 
 #ifdef WITH_USD
-#  include "usd.h"
+#  include "usd.hh"
 #endif
 
 using blender::float3;
@@ -136,7 +129,9 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
       break;
     case CACHEFILE_TYPE_USD:
 #  ifdef WITH_USD
-      if (!USD_mesh_topology_changed(mcmd->reader, ctx->object, mesh, time, err_str)) {
+      if (!blender::io::usd::USD_mesh_topology_changed(
+              mcmd->reader, ctx->object, mesh, time, err_str))
+      {
         return true;
       }
 #  endif
@@ -216,7 +211,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.
-     * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
+     * XXX(Hans): This probably isn't true anymore with various copy-on-eval improvements, etc. */
     if ((me_positions.data() == mesh_positions.data()) || (me_edges.data() == mesh_edges.data()) ||
         (me_faces.data() == mesh_faces.data()))
     {
@@ -254,8 +249,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
     }
     case CACHEFILE_TYPE_USD: {
 #  ifdef WITH_USD
-      const USDMeshReadParams params = create_mesh_read_params(time * FPS, mcmd->read_flag);
-      result = USD_read_mesh(mcmd->reader, ctx->object, mesh, params, &err_str);
+      const blender::io::usd::USDMeshReadParams params = blender::io::usd::create_mesh_read_params(
+          time * FPS, mcmd->read_flag);
+      result = blender::io::usd::USD_read_mesh(mcmd->reader, ctx->object, mesh, params, &err_str);
 #  endif
       break;
     }

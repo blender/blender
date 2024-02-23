@@ -11,7 +11,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"

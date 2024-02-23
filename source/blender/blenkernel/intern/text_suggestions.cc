@@ -16,7 +16,6 @@
 #include "BLI_string.h"
 
 #include "BKE_text_suggestions.h" /* Own include. */
-#include "DNA_text_types.h"
 
 /**********************/
 /* Static definitions */

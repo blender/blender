@@ -140,6 +140,9 @@ void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
 {
   device_format_ensure();
   if (vertex_format_converter.needs_conversion()) {
+    if (G.debug & G_DEBUG_GPU) {
+      std::cout << "PERFORMANCE: Vertex buffer requires conversion.\n";
+    }
     vertex_format_converter.convert(host_buffer.mapped_memory_get(), data, vertex_len);
     host_buffer.flush();
   }

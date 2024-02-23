@@ -25,7 +25,6 @@
 #include "BKE_anim_path.h"
 #include "BKE_curve.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_lattice.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
 
@@ -48,8 +47,8 @@ struct CurveDeform {
 static void init_curve_deform(const Object *ob_curve, const Object *ob_target, CurveDeform *cd)
 {
   float imat[4][4];
-  invert_m4_m4(imat, ob_target->object_to_world);
-  mul_m4_m4m4(cd->objectspace, imat, ob_curve->object_to_world);
+  invert_m4_m4(imat, ob_target->object_to_world().ptr());
+  mul_m4_m4m4(cd->objectspace, imat, ob_curve->object_to_world().ptr());
   invert_m4_m4(cd->curvespace, cd->objectspace);
   copy_m3_m4(cd->objectspace3, cd->objectspace);
   cd->no_rot_axis = 0;

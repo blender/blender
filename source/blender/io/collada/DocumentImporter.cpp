@@ -40,15 +40,15 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_camera.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_light.h"
 #include "BKE_material.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BLI_path_util.h"
 
@@ -256,7 +256,7 @@ void DocumentImporter::finish()
   delete objects_to_scale;
 
   /* update scene */
-  DEG_id_tag_update(&sce->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&sce->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, nullptr);
 }
@@ -412,8 +412,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob,
         }
       }
       /* calc new matrix and apply */
-      mul_m4_m4m4(obn->object_to_world, obn->object_to_world, mat);
-      BKE_object_apply_mat4(obn, obn->object_to_world, false, false);
+      mul_m4_m4m4(obn->runtime->object_to_world.ptr(), obn->object_to_world().ptr(), mat);
+      BKE_object_apply_mat4(obn, obn->object_to_world().ptr(), false, false);
     }
   }
   else {

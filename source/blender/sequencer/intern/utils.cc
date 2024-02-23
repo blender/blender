@@ -14,21 +14,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_vector_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_animsys.h"
 #include "BKE_image.h"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
-#include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
 #include "SEQ_edit.hh"
 #include "SEQ_iterator.hh"
@@ -204,134 +202,125 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, in
   return seqbase;
 }
 
+static void open_anim_filepath(Sequence *seq,
+                               StripAnim *sanim,
+                               const char *filepath,
+                               bool openfile)
+{
+  if (openfile) {
+    sanim->anim = openanim(filepath,
+                           IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+                           seq->streamindex,
+                           seq->strip->colorspace_settings.name);
+  }
+  else {
+    sanim->anim = openanim_noload(filepath,
+                                  IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
+                                  seq->streamindex,
+                                  seq->strip->colorspace_settings.name);
+  }
+}
+
+static bool use_proxy(Editing *ed, Sequence *seq)
+{
+  StripProxy *proxy = seq->strip->proxy;
+  return proxy && ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) != 0 ||
+                   (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE));
+}
+
+static void proxy_dir_get(Editing *ed, Sequence *seq, size_t str_len, char *r_proxy_dirpath)
+{
+  if (use_proxy(ed, seq)) {
+    if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
+      if (ed->proxy_dir[0] == 0) {
+        BLI_strncpy(r_proxy_dirpath, "//BL_proxy", str_len);
+      }
+      else {
+        BLI_strncpy(r_proxy_dirpath, ed->proxy_dir, str_len);
+      }
+    }
+    else {
+      BLI_strncpy(r_proxy_dirpath, seq->strip->proxy->dirpath, str_len);
+    }
+    BLI_path_abs(r_proxy_dirpath, BKE_main_blendfile_path_from_global());
+  }
+}
+
+static void index_dir_set(Editing *ed, Sequence *seq, StripAnim *sanim)
+{
+  if (sanim->anim == nullptr || !use_proxy(ed, seq)) {
+    return;
+  }
+
+  char proxy_dirpath[FILE_MAX];
+  proxy_dir_get(ed, seq, sizeof(proxy_dirpath), proxy_dirpath);
+  seq_proxy_index_dir_set(sanim->anim, proxy_dirpath);
+}
+
+static bool open_anim_file_multiview(Scene *scene, Sequence *seq, char *filepath, bool openfile)
+{
+  char prefix[FILE_MAX];
+  const char *ext = nullptr;
+  BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
+
+  if (seq->views_format != R_IMF_VIEWS_INDIVIDUAL || prefix[0] == '\0') {
+    return false;
+  }
+
+  Editing *ed = scene->ed;
+  bool is_multiview_loaded = false;
+  int totfiles = seq_num_files(scene, seq->views_format, true);
+
+  for (int i = 0; i < totfiles; i++) {
+    const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
+    char filepath_view[FILE_MAX];
+    SNPRINTF(filepath_view, "%s%s%s", prefix, suffix, ext);
+
+    StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
+    open_anim_filepath(seq, sanim, filepath_view, openfile);
+
+    if (sanim->anim == nullptr) {
+      MEM_freeN(sanim);
+      return false; /* Multiview render failed. */
+    }
+
+    index_dir_set(ed, seq, sanim);
+    BLI_addtail(&seq->anims, sanim);
+    IMB_suffix_anim(sanim->anim, suffix);
+    is_multiview_loaded = true;
+  }
+
+  return is_multiview_loaded;
+}
+
 void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 {
-  char dirpath[FILE_MAX];
-  char filepath[FILE_MAX];
-  StripProxy *proxy;
-  bool use_proxy;
-  bool is_multiview_loaded = false;
-  Editing *ed = scene->ed;
-  const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
-                            (scene->r.scemode & R_MULTIVIEW) != 0;
-
   if ((seq->anims.first != nullptr) && (((StripAnim *)seq->anims.first)->anim != nullptr) &&
       !openfile)
   {
     return;
   }
 
-  /* reset all the previously created anims */
+  /* Reset all the previously created anims. */
   SEQ_relations_sequence_free_anim(seq);
 
+  Editing *ed = scene->ed;
+  char filepath[FILE_MAX];
   BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
 
-  proxy = seq->strip->proxy;
+  bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 && (scene->r.scemode & R_MULTIVIEW) != 0;
+  bool multiview_is_loaded = false;
 
-  use_proxy = proxy && ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) != 0 ||
-                        (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE));
-
-  if (use_proxy) {
-    if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
-      if (ed->proxy_dir[0] == 0) {
-        STRNCPY(dirpath, "//BL_proxy");
-      }
-      else {
-        STRNCPY(dirpath, ed->proxy_dir);
-      }
-    }
-    else {
-      STRNCPY(dirpath, seq->strip->proxy->dirpath);
-    }
-    BLI_path_abs(dirpath, BKE_main_blendfile_path_from_global());
+  if (is_multiview) {
+    multiview_is_loaded = open_anim_file_multiview(scene, seq, filepath, openfile);
   }
 
-  if (is_multiview && seq->views_format == R_IMF_VIEWS_INDIVIDUAL) {
-    int totfiles = seq_num_files(scene, seq->views_format, true);
-    char prefix[FILE_MAX];
-    const char *ext = nullptr;
-    int i;
-
-    BKE_scene_multiview_view_prefix_get(scene, filepath, prefix, &ext);
-
-    if (prefix[0] != '\0') {
-      for (i = 0; i < totfiles; i++) {
-        const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
-        char filepath_view[FILE_MAX];
-        StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
-
-        BLI_addtail(&seq->anims, sanim);
-
-        SNPRINTF(filepath_view, "%s%s%s", prefix, suffix, ext);
-
-        if (openfile) {
-          sanim->anim = openanim(filepath_view,
-                                 IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                 seq->streamindex,
-                                 seq->strip->colorspace_settings.name);
-        }
-        else {
-          sanim->anim = openanim_noload(filepath_view,
-                                        IB_rect |
-                                            ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                        seq->streamindex,
-                                        seq->strip->colorspace_settings.name);
-        }
-
-        if (sanim->anim) {
-          /* we already have the suffix */
-          IMB_suffix_anim(sanim->anim, suffix);
-        }
-        else {
-          if (openfile) {
-            sanim->anim = openanim(filepath,
-                                   IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                   seq->streamindex,
-                                   seq->strip->colorspace_settings.name);
-          }
-          else {
-            sanim->anim = openanim_noload(filepath,
-                                          IB_rect |
-                                              ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                          seq->streamindex,
-                                          seq->strip->colorspace_settings.name);
-          }
-
-          /* No individual view files - monoscopic, stereo 3d or EXR multi-view. */
-          totfiles = 1;
-        }
-
-        if (sanim->anim && use_proxy) {
-          seq_proxy_index_dir_set(sanim->anim, dirpath);
-        }
-      }
-      is_multiview_loaded = true;
-    }
-  }
-
-  if (is_multiview_loaded == false) {
-    StripAnim *sanim;
-
-    sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
+  if (!is_multiview || !multiview_is_loaded) {
+    StripAnim *sanim = static_cast<StripAnim *>(MEM_mallocN(sizeof(StripAnim), "Strip Anim"));
     BLI_addtail(&seq->anims, sanim);
-
-    if (openfile) {
-      sanim->anim = openanim(filepath,
-                             IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                             seq->streamindex,
-                             seq->strip->colorspace_settings.name);
-    }
-    else {
-      sanim->anim = openanim_noload(filepath,
-                                    IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0),
-                                    seq->streamindex,
-                                    seq->strip->colorspace_settings.name);
-    }
-
-    if (sanim->anim && use_proxy) {
-      seq_proxy_index_dir_set(sanim->anim, dirpath);
-    }
+    open_anim_filepath(seq, sanim, filepath, openfile);
+    index_dir_set(ed, seq, sanim);
   }
 }
 

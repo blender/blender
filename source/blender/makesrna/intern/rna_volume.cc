@@ -22,7 +22,7 @@
 #include "BLI_math_base.h"
 #include "BLI_string_utf8_symbols.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},
@@ -81,7 +81,7 @@ static void rna_Volume_update_filepath(Main * /*bmain*/, Scene * /*scene*/, Poin
 {
   Volume *volume = (Volume *)ptr->owner_id;
   BKE_volume_unload(volume);
-  DEG_id_tag_update(&volume->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&volume->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
 }
 

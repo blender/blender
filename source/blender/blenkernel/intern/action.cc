@@ -32,7 +32,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -268,6 +268,7 @@ static AssetTypeInfo AssetType_AC = {
 IDTypeInfo IDType_ID_AC = {
     /*id_code*/ ID_AC,
     /*id_filter*/ FILTER_ID_AC,
+    /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_AC,
     /*struct_size*/ sizeof(bAction),
     /*name*/ "Action",
@@ -1711,7 +1712,7 @@ void what_does_obaction(Object *ob,
   workob->runtime = &workob_runtime;
 
   /* init workob */
-  copy_m4_m4(workob->object_to_world, ob->object_to_world);
+  copy_m4_m4(workob->runtime->object_to_world.ptr(), ob->object_to_world().ptr());
   copy_m4_m4(workob->parentinv, ob->parentinv);
   copy_m4_m4(workob->constinv, ob->constinv);
   workob->parent = ob->parent;

@@ -18,7 +18,6 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
 
 #include "BKE_camera.h"
 #include "BKE_screen.hh"
@@ -84,7 +83,7 @@ void ED_view3d_project_float_v3_m4(const ARegion *region,
 eV3DProjStatus ED_view3d_project_base(const ARegion *region, Base *base, float r_co[2])
 {
   eV3DProjStatus ret = ED_view3d_project_float_global(
-      region, base->object->object_to_world[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
+      region, base->object->object_to_world().location(), r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
 
   /* Prevent uninitialized values when projection fails,
    * although the callers should check the return value. */
@@ -493,17 +492,14 @@ void ED_view3d_win_to_3d(const View3D *v3d,
   float lambda;
 
   if (rv3d->is_persp) {
-    float plane[4];
-
     copy_v3_v3(ray_origin, rv3d->viewinv[3]);
     ED_view3d_win_to_vector(region, mval, ray_direction);
 
     /* NOTE: we could use #isect_line_plane_v3()
      * however we want the intersection to be in front of the view no matter what,
      * so apply the unsigned factor instead. */
-    plane_from_point_normal_v3(plane, depth_pt, rv3d->viewinv[2]);
+    isect_ray_plane_v3_factor(ray_origin, ray_direction, depth_pt, rv3d->viewinv[2], &lambda);
 
-    isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, false);
     lambda = fabsf(lambda);
   }
   else {
@@ -705,19 +701,15 @@ blender::float4x4 ED_view3d_ob_project_mat_get(const RegionView3D *rv3d, const O
   float vmat[4][4];
   blender::float4x4 r_pmat;
 
-  mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world);
+  mul_m4_m4m4(vmat, rv3d->viewmat, ob->object_to_world().ptr());
   mul_m4_m4m4(r_pmat.ptr(), rv3d->winmat, vmat);
   return r_pmat;
 }
 
-void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
-                                             const float obmat[4][4],
-                                             float r_pmat[4][4])
+blender::float4x4 ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
+                                                          const blender::float4x4 &obmat)
 {
-  float vmat[4][4];
-
-  mul_m4_m4m4(vmat, rv3d->viewmat, obmat);
-  mul_m4_m4m4(r_pmat, rv3d->winmat, vmat);
+  return blender::float4x4_view(rv3d->winmat) * blender::float4x4_view(rv3d->viewmat) * obmat;
 }
 
 void ED_view3d_project_v3(const ARegion *region, const float world[3], float r_region_co[3])

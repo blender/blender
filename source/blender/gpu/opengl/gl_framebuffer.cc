@@ -8,7 +8,7 @@
 
 #include "BLI_string.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "gl_backend.hh"
 #include "gl_debug.hh"

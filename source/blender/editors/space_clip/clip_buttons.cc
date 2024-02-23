@@ -21,7 +21,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_movieclip.h"
@@ -518,8 +518,6 @@ void uiTemplateMarker(uiLayout *layout,
                  7.25 * UI_UNIT_X,
                  UI_UNIT_Y,
                  &cb->marker_flag,
-                 0,
-                 0,
                  0,
                  0,
                  tip);

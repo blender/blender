@@ -16,7 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_tracking.h"
 
 #include "DEG_depsgraph.hh"
@@ -59,7 +59,7 @@ static int create_plane_track_tracks_exec(bContext *C, wmOperator *op)
    */
   BKE_tracking_track_plane_from_existing_motion(plane_track, framenr);
 
-  DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&clip->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
   return OPERATOR_FINISHED;
@@ -292,7 +292,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
       data->previous_mval[1] = event->mval[1];
       copy_v2_v2(data->previous_corner, data->corner);
 
-      DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&clip->id, ID_RECALC_SYNC_TO_EVAL);
       WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, nullptr);
 
       break;
@@ -309,7 +309,7 @@ static int slide_plane_marker_modal(bContext *C, wmOperator *op, const wmEvent *
 
         clip_tracking_show_cursor(C);
 
-        DEG_id_tag_update(&clip->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update(&clip->id, ID_RECALC_SYNC_TO_EVAL);
         WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
         return OPERATOR_FINISHED;

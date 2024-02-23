@@ -19,7 +19,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -109,6 +109,7 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
     case SPREADSHEET_VALUE_TYPE_STRING:
       return row_filter.value_string;
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
+    case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       return "";
   }
@@ -253,6 +254,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
       break;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
+    case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
       uiItemL(layout, IFACE_("Unsupported column type"), ICON_ERROR);
       break;
   }

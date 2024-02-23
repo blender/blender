@@ -5,8 +5,8 @@
 #include <iostream>
 
 #include "IO_subdiv_disabler.hh"
-#include "usd.h"
 #include "usd.hh"
+<<<<<<< HEAD
 
 #include "usd_asset_utils.h"
 #include "usd_hierarchy_iterator.h"
@@ -15,6 +15,11 @@
 #include "usd_modifier_disabler.h"
 #include "usd_umm.h"
 #include "usd_writer_material.h"
+=======
+#include "usd_hierarchy_iterator.hh"
+#include "usd_hook.hh"
+#include "usd_private.hh"
+>>>>>>> main
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
@@ -42,6 +47,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
+<<<<<<< HEAD
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
@@ -50,6 +56,11 @@
 #include "BKE_main.hh"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+=======
+#include "BKE_global.hh"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
+>>>>>>> main
 
 #include "BLI_fileops.h"
 #include "BLI_math_matrix.h"
@@ -789,8 +800,6 @@ static void export_endjob(void *customdata)
   report_job_duration(data);
 }
 
-}  // namespace blender::io::usd
-
 /* To create a usdz file, we must first create a .usd/a/c file and then covert it to .usdz. The
  * temporary files will be created in Blender's temporary session storage. The .usdz file will then
  * be copied to job->usdz_filepath. */
@@ -906,6 +915,7 @@ int USD_get_version()
   return PXR_VERSION;
 }
 
+<<<<<<< HEAD
 bool USD_umm_module_loaded(void)
 {
 #ifdef WITH_PYTHON
@@ -914,3 +924,6 @@ bool USD_umm_module_loaded(void)
   return false;
 #endif
 }
+=======
+}  // namespace blender::io::usd
+>>>>>>> main

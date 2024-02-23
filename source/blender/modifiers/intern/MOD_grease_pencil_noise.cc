@@ -9,7 +9,7 @@
 #include "BLI_hash.h"
 #include "BLI_math_vector.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLO_read_write.hh"
 
@@ -25,7 +25,6 @@
 #include "UI_resources.hh"
 
 #include "MOD_grease_pencil_util.hh"
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "RNA_access.hh"
@@ -118,8 +117,6 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     return;
   }
 
-  const OffsetIndices<int> points_by_curve = strokes.points_by_curve();
-
   int seed = mmd.seed;
   /* Make sure different modifiers get different seeds. */
   seed += BLI_hash_string(ob.id.name + 2);
@@ -134,12 +131,17 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     }
   }
 
+  const OffsetIndices<int> points_by_curve = strokes.points_by_curve();
+  const VArray<float> vgroup_weights = modifier::greasepencil::get_influence_vertex_weights(
+      strokes, mmd.influence);
+
   auto get_weight = [&](const IndexRange points, const int point_i) {
+    const float vertex_weight = vgroup_weights[points[point_i]];
     if (!use_curve) {
-      return 1.0f;
+      return vertex_weight;
     }
     const float value = float(point_i) / float(points.size() - 1);
-    return BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
+    return vertex_weight * BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
   };
 
   auto get_noise = [](const Array<float> &noise_table, const float value) {

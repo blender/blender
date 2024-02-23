@@ -11,26 +11,16 @@
 
 #include "lineart_intern.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_modifier_legacy.h"
-#include "BKE_lib_id.hh"
-#include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_scene.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_task.h"
 #include "BLI_time.h"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "DNA_collection_types.h"
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
-#include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1151,7 +1141,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
 
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_check_seconds_timer();
+    t_start = BLI_time_now_seconds();
   }
 
   bool is_persp = true;
@@ -1185,7 +1175,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   copy_v3_v3_db(ld->conf.camera_pos_secondary, ld->conf.camera_pos);
   copy_m4_m4(ld->conf.cam_obmat_secondary, ld->conf.cam_obmat);
 
-  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world);
+  copy_m4_m4(ld->conf.cam_obmat, lmd->light_contour_object->object_to_world().ptr());
   copy_v3db_v3fl(ld->conf.camera_pos, ld->conf.cam_obmat[3]);
   ld->conf.cam_is_persp_secondary = ld->conf.cam_is_persp;
   ld->conf.cam_is_persp = is_persp;
@@ -1283,7 +1273,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_time_now_seconds() - t_start;
     printf("Line art shadow stage 1 time: %f\n", t_elapsed);
   }
 
@@ -1367,7 +1357,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
 {
   double t_start;
   if (G.debug_value == 4000) {
-    t_start = BLI_check_seconds_timer();
+    t_start = BLI_time_now_seconds();
   }
 
   if (shadow_ld || ld->conf.shadow_use_silhouette) {
@@ -1378,7 +1368,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
   }
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_time_now_seconds() - t_start;
     printf("Line art shadow stage 2 cast and silhouette time: %f\n", t_elapsed);
   }
 
@@ -1427,7 +1417,7 @@ void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
   lineart_shadow_register_enclosed_shapes(ld, shadow_ld);
 
   if (G.debug_value == 4000) {
-    double t_elapsed = BLI_check_seconds_timer() - t_start;
+    double t_elapsed = BLI_time_now_seconds() - t_start;
     printf("Line art shadow stage 2 total time: %f\n", t_elapsed);
   }
 }

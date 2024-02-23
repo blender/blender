@@ -34,7 +34,7 @@
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
@@ -43,7 +43,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -2975,13 +2975,13 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
       scene, objects, pick ? &hit : nullptr, extend, deselect, false, select_faces);
 
   if (pick) {
-    DEG_id_tag_update(static_cast<ID *>(hit.ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(hit.ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, hit.ob->data);
   }
   else {
     for (Object *obedit : objects) {
       DEG_id_tag_update(static_cast<ID *>(obedit->data),
-                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
     }
   }
@@ -4712,7 +4712,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->object_to_world);
+    copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     BMFace *face;
     BMIter iter;
@@ -4748,7 +4748,7 @@ static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->object_to_world);
+    copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     BMFace *face;
     BMIter iter;
@@ -4819,7 +4819,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->object_to_world);
+    copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     BMFace *face;
     BMIter iter;
@@ -4857,7 +4857,7 @@ static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
     bool changed = false;
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->object_to_world);
+    copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     BMFace *face;
     BMIter iter;
@@ -4919,7 +4919,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
 
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->object_to_world);
+    copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
 
@@ -4954,7 +4954,7 @@ static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
     const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
 
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, ob->object_to_world);
+    copy_m3_m4(ob_m3, ob->object_to_world().ptr());
 
     BMFace *face;
     BMIter iter;
@@ -5037,7 +5037,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
     }
 
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, obedit->object_to_world);
+    copy_m3_m4(ob_m3, obedit->object_to_world().ptr());
 
     int index;
     LISTBASE_FOREACH_INDEX (FaceIsland *, island, &island_list_ptr[ob_index], index) {
@@ -5066,7 +5066,7 @@ static int uv_select_similar_island_exec(bContext *C, wmOperator *op)
       continue;
     }
     float ob_m3[3][3];
-    copy_m3_m4(ob_m3, obedit->object_to_world);
+    copy_m3_m4(ob_m3, obedit->object_to_world().ptr());
 
     bool changed = false;
     int index;
@@ -5540,7 +5540,7 @@ static int uv_select_mode_exec(bContext *C, wmOperator *op)
   /* Handle UV selection states according to new select mode and sticky mode. */
   ED_uvedit_selectmode_clean_multi(C);
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   return OPERATOR_FINISHED;

@@ -10,14 +10,12 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_rotation.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 
 #include "DNA_grease_pencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
-#include "DNA_volume_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -113,7 +111,7 @@ static void transform_greasepencil(GreasePencil &grease_pencil, const float4x4 &
 
 static void translate_instances(bke::Instances &instances, const float3 translation)
 {
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<float4x4> transforms = instances.transforms_for_write();
   threading::parallel_for(transforms.index_range(), 1024, [&](const IndexRange range) {
     for (float4x4 &instance_transform : transforms.slice(range)) {
       add_v3_v3(instance_transform.ptr()[3], translation);
@@ -123,7 +121,7 @@ static void translate_instances(bke::Instances &instances, const float3 translat
 
 static void transform_instances(bke::Instances &instances, const float4x4 &transform)
 {
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<float4x4> transforms = instances.transforms_for_write();
   threading::parallel_for(transforms.index_range(), 1024, [&](const IndexRange range) {
     for (float4x4 &instance_transform : transforms.slice(range)) {
       instance_transform = transform * instance_transform;

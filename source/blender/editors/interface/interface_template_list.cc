@@ -20,9 +20,8 @@
 
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "ED_asset.hh"
 #include "ED_screen.hh"
 
 #include "MEM_guardedalloc.h"
@@ -780,8 +779,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               0,
-                               0,
                                editable ? TIP_("Double click to rename") : "");
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr,
                                                              input_data->item_dyntip_propname)))
@@ -889,8 +886,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                                    0,
                                    0,
                                    0,
-                                   0,
-                                   0,
                                    "");
       if (dyn_data->items_shown == 0) {
         UI_but_flag_enable(but, UI_BUT_DISABLED);
@@ -939,8 +934,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               0,
-                               0,
                                nullptr);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 
@@ -1041,8 +1034,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                                0,
                                0,
                                org_i,
-                               0,
-                               0,
                                nullptr);
           UI_but_drawflag_enable(but, UI_BUT_NO_TOOLTIP);
 

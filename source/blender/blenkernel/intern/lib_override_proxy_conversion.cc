@@ -22,13 +22,13 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
 static CLG_LogRef LOG = {"bke.liboverride_proxy_conversion"};
 
@@ -69,7 +69,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   ob_proxy->proxy->proxy_from = nullptr;
   ob_proxy->proxy = ob_proxy->proxy_group = nullptr;
 
-  DEG_id_tag_update(&ob_proxy->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob_proxy->id, ID_RECALC_SYNC_TO_EVAL);
 
   /* In case of proxy conversion, remap all local ID usages to linked IDs to their newly created
    * overrides. Also do that for the IDs from the same lib as the proxy in case it is linked.

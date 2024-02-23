@@ -5,20 +5,16 @@
 #include <sstream>
 
 #include "BKE_bake_geometry_nodes_modifier.hh"
-#include "BKE_collection.h"
-#include "BKE_curves.hh"
+#include "BKE_collection.hh"
 #include "BKE_main.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
-#include "DNA_pointcloud_types.h"
 
 #include "BLI_binary_search.hh"
 #include "BLI_fileops.hh"
-#include "BLI_hash_md5.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.hh"
 
 #include "MOD_nodes.hh"
 
@@ -49,7 +45,7 @@ IndexRange NodeBakeCache::frame_range() const
   }
   const int start_frame = this->frames.first()->frame.frame();
   const int end_frame = this->frames.last()->frame.frame();
-  return {start_frame, end_frame - start_frame + 1};
+  return IndexRange::from_begin_end_inclusive(start_frame, end_frame);
 }
 
 SimulationNodeCache *ModifierCache::get_simulation_node_cache(const int id)

@@ -15,7 +15,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
 
@@ -72,9 +72,9 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "BKE_grease_pencil.hh"
 #  include "BKE_main.hh"
 #  include "BKE_material.h"
-#  include "BKE_node.h"
+#  include "BKE_node.hh"
 #  include "BKE_paint.hh"
-#  include "BKE_scene.h"
+#  include "BKE_scene.hh"
 #  include "BKE_texture.h"
 #  include "BKE_workspace.h"
 
@@ -200,7 +200,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
     ED_node_shader_default(C, &ma->id);
   }
 
-  DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_relations_tag_update(bmain);
   rna_Material_draw_update(bmain, CTX_data_scene(C), ptr);
 }

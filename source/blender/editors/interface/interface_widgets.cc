@@ -1900,13 +1900,17 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
       if (ime_data && ime_data->composite_len) {
         /* insert composite string into cursor pos */
-        BLI_snprintf((char *)drawstr,
-                     UI_MAX_DRAW_STR,
+        char tmp_drawstr[UI_MAX_DRAW_STR];
+        STRNCPY(tmp_drawstr, drawstr);
+        BLI_snprintf(tmp_drawstr,
+                     sizeof(tmp_drawstr),
                      "%.*s%s%s",
                      but->pos,
                      but->editstr,
                      ime_data->str_composite,
                      but->editstr + but->pos);
+        but->drawstr = tmp_drawstr;
+        drawstr = but->drawstr.c_str();
       }
       else
 #endif
@@ -2634,6 +2638,32 @@ static float widget_radius_from_rcti(const rcti *rect, const uiWidgetColors *wco
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Widget Emboss Helper
+ *
+ * Emboss is an (optional) shadow shown under the bottom edge of buttons. For
+ * vertically-aligned stacks of buttons it should only be shown under the bottom one.
+ * \{ */
+
+static bool draw_emboss(const uiBut *but)
+{
+  if (but->drawflag & UI_BUT_ALIGN_DOWN) {
+    return false;
+  }
+
+  if (but->type == UI_BTYPE_TAB &&
+      (BLI_rctf_size_y(&but->block->rect) > BLI_rctf_size_x(&but->block->rect)) &&
+      !(but->next == nullptr || but->next->type == UI_BTYPE_SEPR))
+  {
+    /* Vertical tabs, emboss at end and before separators. */
+    return false;
+  }
+
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Widget Types
  * \{ */
 
@@ -3241,6 +3271,9 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   float *hsv = cpicker->hsv_perceptual;
   float hsv_n[3];
 
+  /* Is this the larger color canvas or narrow color slider? */
+  bool is_canvas = ELEM(hsv_but->gradient_type, UI_GRAD_SV, UI_GRAD_HV, UI_GRAD_HS);
+
   /* Initialize for compatibility. */
   copy_v3_v3(hsv_n, hsv);
 
@@ -3262,15 +3295,15 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
   imm_draw_box_wire_2d(pos, (rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
   immUnbindProgram();
 
-  if (BLI_rcti_size_x(rect) / BLI_rcti_size_y(rect) < 3) {
-    /* This is for the full square HSV cube. */
+  if (is_canvas) {
+    /* Round cursor in the large square area. */
     float margin = (4.0f * UI_SCALE_FAC);
     CLAMP(x, rect->xmin + margin, rect->xmax - margin);
     CLAMP(y, rect->ymin + margin, rect->ymax - margin);
     ui_hsv_cursor(x, y, zoom, rgb, hsv, but->flag & UI_SELECT);
   }
   else {
-    /* This is for the narrow horizontal gradient. */
+    /* Square indicator in the narrow area. */
     rctf rectf;
     BLI_rctf_rcti_copy(&rectf, rect);
     const float margin = (2.0f * UI_SCALE_FAC);
@@ -3353,10 +3386,11 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
   UI_draw_roundbox_4fv_ex(&rectf, col2, nullptr, 0.0f, inner1, U.pixelsize, 0.0f);
 }
 
-/** Separator for menus. */
-static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
+/** Separator line. */
+static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
 {
-  const int y = rect->ymin + BLI_rcti_size_y(rect) / 2;
+  const bool vertical = but->a1 == 1.0f;
+  const int mid = vertical ? BLI_rcti_cent_x(rect) : BLI_rcti_cent_y(rect);
   const uchar col[4] = {
       wcol->text[0],
       wcol->text[1],
@@ -3373,8 +3407,16 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
   GPU_line_width(1.0f);
 
   immBegin(GPU_PRIM_LINES, 2);
-  immVertex2f(pos, rect->xmin, y);
-  immVertex2f(pos, rect->xmax, y);
+
+  if (vertical) {
+    immVertex2f(pos, mid, rect->ymin);
+    immVertex2f(pos, mid, rect->ymax);
+  }
+  else {
+    immVertex2f(pos, rect->xmin, mid);
+    immVertex2f(pos, rect->xmax, mid);
+  }
+
   immEnd();
 
   GPU_blend(GPU_BLEND_NONE);
@@ -3390,7 +3432,8 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 
 #define NUM_BUT_PADDING_FACTOR 0.425f
 
-static void widget_numbut_draw(uiWidgetColors *wcol,
+static void widget_numbut_draw(const uiBut *but,
+                               uiWidgetColors *wcol,
                                rcti *rect,
                                const float zoom,
                                const uiWidgetStateInfo *state,
@@ -3480,12 +3523,12 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
 
     /* outline */
     wtb.draw_inner = false;
-    wtb.draw_emboss = roundboxalign & (UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+    wtb.draw_emboss = draw_emboss(but);
     widgetbase_draw(&wtb, wcol);
   }
   else {
     /* inner and outline */
-    wtb.draw_emboss = roundboxalign & (UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+    wtb.draw_emboss = draw_emboss(but);
     widgetbase_draw(&wtb, wcol);
   }
 
@@ -3497,13 +3540,14 @@ static void widget_numbut_draw(uiWidgetColors *wcol,
   }
 }
 
-static void widget_numbut(uiWidgetColors *wcol,
+static void widget_numbut(uiBut *but,
+                          uiWidgetColors *wcol,
                           rcti *rect,
                           const uiWidgetStateInfo *state,
                           int roundboxalign,
                           const float zoom)
 {
-  widget_numbut_draw(wcol, rect, zoom, state, roundboxalign, false);
+  widget_numbut_draw(but, wcol, rect, zoom, state, roundboxalign, false);
 }
 
 static void widget_menubut(uiWidgetColors *wcol,
@@ -3554,14 +3598,14 @@ static void widget_menubut_embossn(const uiBut * /*but*/,
 /**
  * Draw number buttons still with triangles when field is not embossed
  */
-static void widget_numbut_embossn(const uiBut * /*but*/,
+static void widget_numbut_embossn(const uiBut *but,
                                   uiWidgetColors *wcol,
                                   rcti *rect,
                                   const uiWidgetStateInfo *state,
                                   int roundboxalign,
                                   const float zoom)
 {
-  widget_numbut_draw(wcol, rect, zoom, state, roundboxalign, true);
+  widget_numbut_draw(but, wcol, rect, zoom, state, roundboxalign, true);
 }
 
 void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *slider, int state)
@@ -4401,8 +4445,7 @@ static void widget_box(uiBut *but,
 
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, roundboxalign, rect, rad);
-
-  wtb.draw_emboss = roundboxalign & (UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+  wtb.draw_emboss = draw_emboss(but);
   widgetbase_draw(&wtb, wcol);
 
   copy_v3_v3_uchar(wcol->inner, old_col);
@@ -4438,7 +4481,8 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int /*state*/ int 
 }
 #endif
 
-static void widget_roundbut_exec(uiWidgetColors *wcol,
+static void widget_roundbut_exec(uiBut *but,
+                                 uiWidgetColors *wcol,
                                  rcti *rect,
                                  const uiWidgetStateInfo *state,
                                  int roundboxalign,
@@ -4456,12 +4500,12 @@ static void widget_roundbut_exec(uiWidgetColors *wcol,
 
   /* half rounded */
   round_box_edges(&wtb, roundboxalign, rect, rad);
-
-  wtb.draw_emboss = roundboxalign & (UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT);
+  wtb.draw_emboss = draw_emboss(but);
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_tab(uiWidgetColors *wcol,
+static void widget_tab(uiBut *but,
+                       uiWidgetColors *wcol,
                        rcti *rect,
                        const uiWidgetStateInfo *state,
                        int roundboxalign,
@@ -4496,6 +4540,7 @@ static void widget_tab(uiWidgetColors *wcol,
 #ifdef USE_TAB_SHADED_HIGHLIGHT
   wtb.draw_outline = 0;
 #endif
+  wtb.draw_emboss = draw_emboss(but);
   widgetbase_draw(&wtb, wcol);
 
   /* We are drawing on top of widget bases. Flush cache. */
@@ -4590,7 +4635,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
     case UI_WTYPE_NUMBER:
       wt.wcol_theme = &btheme->tui.wcol_num;
-      wt.draw = widget_numbut;
+      wt.custom = widget_numbut;
       break;
 
     case UI_WTYPE_SLIDER:
@@ -4601,17 +4646,17 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
     case UI_WTYPE_EXEC:
       wt.wcol_theme = &btheme->tui.wcol_tool;
-      wt.draw = widget_roundbut_exec;
+      wt.custom = widget_roundbut_exec;
       break;
 
     case UI_WTYPE_TOOLBAR_ITEM:
       wt.wcol_theme = &btheme->tui.wcol_toolbar_item;
-      wt.draw = widget_roundbut_exec;
+      wt.custom = widget_roundbut_exec;
       break;
 
     case UI_WTYPE_TAB:
       wt.wcol_theme = &btheme->tui.wcol_tab;
-      wt.draw = widget_tab;
+      wt.custom = widget_tab;
       break;
 
     case UI_WTYPE_TOOLTIP:
@@ -4833,7 +4878,9 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
       case UI_BTYPE_SEPR:
         break;
       case UI_BTYPE_SEPR_LINE:
-        ui_draw_separator(rect, &tui->wcol_menu_item);
+        /* Add horizontal padding between the line and menu sides. */
+        BLI_rcti_pad(rect, int(-7.0f * UI_SCALE_FAC), 0);
+        ui_draw_separator(&tui->wcol_menu_item, but, rect);
         break;
       default: {
         const bool use_unpadded = (but->flag & UI_BUT_ICON_PREVIEW) ||
@@ -4885,8 +4932,10 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         break;
 
       case UI_BTYPE_SEPR:
-      case UI_BTYPE_SEPR_LINE:
       case UI_BTYPE_SEPR_SPACER:
+        break;
+      case UI_BTYPE_SEPR_LINE:
+        ui_draw_separator(&tui->wcol_menu_item, but, rect);
         break;
 
       case UI_BTYPE_BUT:

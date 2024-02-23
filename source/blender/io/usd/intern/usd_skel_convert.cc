@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "usd_skel_convert.h"
+#include "usd_skel_convert.hh"
 
-#include "usd.h"
-#include "usd_armature_utils.h"
-#include "usd_blend_shape_utils.h"
-#include "usd_hash_types.h"
+#include "usd.hh"
+#include "usd_armature_utils.hh"
+#include "usd_blend_shape_utils.hh"
+#include "usd_hash_types.hh"
 
 #include <pxr/usd/sdf/namespaceEdit.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
@@ -37,7 +37,7 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_map.hh"
 #include "BLI_math_vector.h"
@@ -1080,6 +1080,7 @@ void import_mesh_skel_bindings(Main *bmain,
   if (!BKE_modifiers_findby_type(mesh_obj, eModifierType_Armature)) {
     ModifierData *md = BKE_modifier_new(eModifierType_Armature);
     BLI_addtail(&mesh_obj->modifiers, md);
+    BKE_modifiers_persistent_uid_init(*mesh_obj, *md);
   }
 
   /* Create a deform group per joint. */
@@ -1245,7 +1246,7 @@ void shape_key_export_chaser(pxr::UsdStageRefPtr stage,
 
 void export_deform_verts(const Mesh *mesh,
                          const pxr::UsdSkelBindingAPI &skel_api,
-                         const Vector<std::string> &bone_names)
+                         const Span<std::string> bone_names)
 {
   BLI_assert(mesh);
   BLI_assert(skel_api);
@@ -1309,7 +1310,7 @@ void export_deform_verts(const Mesh *mesh,
         continue;
       }
 
-      int def_nr = static_cast<int>(vert.dw[j].def_nr);
+      int def_nr = int(vert.dw[j].def_nr);
 
       if (def_nr >= joint_index.size()) {
         BLI_assert_unreachable();

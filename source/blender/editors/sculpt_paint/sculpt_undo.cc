@@ -49,7 +49,7 @@
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
@@ -57,7 +57,7 @@
 #include "BKE_multires.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
 #include "BKE_undo_system.hh"
@@ -595,7 +595,8 @@ static bool restore_color(Object *ob, Node &unode, MutableSpan<bool> modified_ve
   /* NOTE: even with loop colors we still store derived
    * vertex colors for original data lookup. */
   if (!unode.col.is_empty() && unode.loop_col.is_empty()) {
-    BKE_pbvh_swap_colors(ss->pbvh, unode.vert_indices, unode.col);
+    BKE_pbvh_swap_colors(
+        ss->pbvh, unode.vert_indices.as_span().take_front(unode.unique_verts_num), unode.col);
     modified = true;
   }
 
@@ -1404,7 +1405,8 @@ static void store_color(Object *ob, Node *unode)
 
   /* NOTE: even with loop colors we still store (derived)
    * vertex colors for original data lookup. */
-  BKE_pbvh_store_colors_vertex(ss->pbvh, unode->vert_indices, unode->col);
+  BKE_pbvh_store_colors_vertex(
+      ss->pbvh, unode->vert_indices.as_span().take_front(unode->unique_verts_num), unode->col);
 
   if (!unode->loop_col.is_empty() && !unode->corner_indices.is_empty()) {
     BKE_pbvh_store_colors(ss->pbvh, unode->corner_indices, unode->loop_col);

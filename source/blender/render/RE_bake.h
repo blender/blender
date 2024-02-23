@@ -94,8 +94,8 @@ bool RE_bake_pixels_populate_from_objects(struct Mesh *me_low,
                                           bool is_custom_cage,
                                           float cage_extrusion,
                                           float max_ray_distance,
-                                          float mat_low[4][4],
-                                          float mat_cage[4][4],
+                                          const float mat_low[4][4],
+                                          const float mat_cage[4][4],
                                           struct Mesh *me_cage);
 
 void RE_bake_pixels_populate(struct Mesh *mesh,
@@ -130,7 +130,7 @@ void RE_bake_normal_world_to_tangent(const BakePixel pixel_array[],
                                      float result[],
                                      struct Mesh *mesh,
                                      const eBakeNormalSwizzle normal_swizzle[3],
-                                     float mat[4][4]);
+                                     const float mat[4][4]);
 void RE_bake_normal_world_to_world(const BakePixel pixel_array[],
                                    size_t pixels_num,
                                    int depth,

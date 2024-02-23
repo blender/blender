@@ -12,7 +12,7 @@
 
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
@@ -3276,6 +3276,7 @@ static void rna_def_constraint_follow_track(BlenderRNA *brna)
   prop = RNA_def_property(srna, "track", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "track");
   RNA_def_property_ui_text(prop, "Track", "Movie tracking track to follow");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
   /* use default clip */

@@ -4,11 +4,11 @@
 
 #include "BLI_threads.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "COM_ExecutionSystem.h"
 #include "COM_WorkScheduler.h"
@@ -55,7 +55,8 @@ void COM_execute(Render *render,
                  bNodeTree *node_tree,
                  bool rendering,
                  const char *view_name,
-                 blender::realtime_compositor::RenderContext *render_context)
+                 blender::realtime_compositor::RenderContext *render_context,
+                 blender::compositor::ProfilerData &profiler_data)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other
@@ -78,25 +79,29 @@ void COM_execute(Render *render,
   compositor_reset_node_tree_status(node_tree);
 
   if (U.experimental.use_full_frame_compositor &&
-      node_tree->execution_mode == NTREE_EXECUTION_MODE_REALTIME)
+      node_tree->execution_mode == NTREE_EXECUTION_MODE_GPU)
   {
-    /* Realtime GPU compositor. */
+    /* GPU compositor. */
     RE_compositor_execute(
         *render, *scene, *render_data, *node_tree, rendering, view_name, render_context);
   }
   else {
-    /* Tiled and Full Frame compositors. */
+    /* CPU compositor. */
 
     /* Initialize workscheduler. */
-    const bool use_opencl = (node_tree->flag & NTREE_COM_OPENCL) != 0;
-    blender::compositor::WorkScheduler::initialize(use_opencl,
-                                                   BKE_render_num_threads(render_data));
+    blender::compositor::WorkScheduler::initialize(false, BKE_render_num_threads(render_data));
 
     /* Execute. */
     const bool twopass = (node_tree->flag & NTREE_TWO_PASS) && !rendering;
     if (twopass) {
-      blender::compositor::ExecutionSystem fast_pass(
-          render_data, scene, node_tree, rendering, true, view_name, render_context);
+      blender::compositor::ExecutionSystem fast_pass(render_data,
+                                                     scene,
+                                                     node_tree,
+                                                     rendering,
+                                                     true,
+                                                     view_name,
+                                                     render_context,
+                                                     profiler_data);
       fast_pass.execute();
 
       if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
@@ -106,7 +111,7 @@ void COM_execute(Render *render,
     }
 
     blender::compositor::ExecutionSystem system(
-        render_data, scene, node_tree, rendering, false, view_name, render_context);
+        render_data, scene, node_tree, rendering, false, view_name, render_context, profiler_data);
     system.execute();
   }
 

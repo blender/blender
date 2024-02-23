@@ -26,7 +26,11 @@ extern "C" {
 
 /* you can set this to either 2 (which support 0 and 1 as well) or 3 */
 /* #define XDND_VERSION 2 */
-#define XDND_VERSION 3
+
+/* NOTE(@ideasman42): Use version 5 otherwise the chrome browser can't drop URL or text data.
+ * Ideally all aspects of the updated specification would also be supported although none seem
+ * essential for use in Blender, see: https://www.freedesktop.org/wiki/Specifications/XDND/ */
+#define XDND_VERSION 5
 
 
 /* XdndEnter */

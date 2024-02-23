@@ -28,14 +28,23 @@ ExternalProject_Add(external_webp
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${WEBP_HASH_TYPE}=${WEBP_HASH}
   PREFIX ${BUILD_DIR}/webp
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/webp -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${WEBP_EXTRA_ARGS}
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/webp
+    -Wno-dev
+    ${DEFAULT_CMAKE_FLAGS}
+    ${WEBP_EXTRA_ARGS}
+
   INSTALL_DIR ${LIBDIR}/webp
 )
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_webp after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/webp ${HARVEST_TARGET}/webp
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/webp
+        ${HARVEST_TARGET}/webp
+
       DEPENDEES install
     )
   endif()

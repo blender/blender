@@ -4,8 +4,6 @@
 
 #include "node_function_util.hh"
 
-#include "BLI_hash.h"
-
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 

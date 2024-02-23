@@ -15,11 +15,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -742,6 +742,11 @@ class RenderLayerOperation : public NodeOperation {
       /* Pass not rendered yet, or not supported by viewport. */
       result.allocate_invalid();
       context().set_info_message("Viewport compositor setup not fully supported");
+      return;
+    }
+
+    if (!context().is_valid_compositing_region()) {
+      result.allocate_invalid();
       return;
     }
 

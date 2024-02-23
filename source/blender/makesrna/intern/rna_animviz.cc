@@ -313,6 +313,16 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Has Motion Paths", "Are there any bone paths that will need updating (read-only)");
 
+  /* If enabled, bakes the motion paths into camera space. */
+  prop = RNA_def_property(srna, "use_camera_space_bake", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "path_bakeflag", MOTIONPATH_BAKE_CAMERA_SPACE);
+  RNA_def_property_ui_text(
+      prop,
+      "Bake to active Camera",
+      "Motion path points will be baked into the camera space of the active camera. This means "
+      "they will only look right when looking through that camera. Switching cameras using "
+      "markers is not supported");
+
   RNA_define_lib_overridable(false);
 }
 

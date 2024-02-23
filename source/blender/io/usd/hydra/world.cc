@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "world.h"
+#include "world.hh"
 
 #include <pxr/base/gf/rotation.h>
 #include <pxr/base/gf/vec2f.h>
@@ -18,14 +18,14 @@
 #include "BLI_math_rotation.h"
 #include "BLI_path_util.h"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_studiolight.h"
 
 #include "NOD_shader.h"
 
-#include "hydra_scene_delegate.h"
-#include "image.h"
+#include "hydra_scene_delegate.hh"
+#include "image.hh"
 
 /* TODO: add custom `tftoken` "transparency"? */
 

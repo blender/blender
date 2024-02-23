@@ -7,22 +7,15 @@
 #include "BLI_index_mask.hh"
 #include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
-#include "BLI_rand.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_collection_types.h"
-
-#include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 
 #include "attribute_access_intern.hh"
-
-#include "BLI_cpp_type_make.hh"
 
 namespace blender::bke {
 
@@ -109,68 +102,14 @@ void InstancesComponent::replace(Instances *instances, GeometryOwnershipType own
   ownership_ = ownership;
 }
 
-static float3 get_transform_position(const float4x4 &transform)
+static void tag_component_reference_index_changed(void *owner)
 {
-  return transform.location();
+  Instances &instances = *static_cast<Instances *>(owner);
+  instances.tag_reference_handles_changed();
 }
-
-static void set_transform_position(float4x4 &transform, const float3 position)
-{
-  transform.location() = position;
-}
-
-class InstancePositionAttributeProvider final : public BuiltinAttributeProvider {
- public:
-  InstancePositionAttributeProvider()
-      : BuiltinAttributeProvider(
-            "position", AttrDomain::Instance, CD_PROP_FLOAT3, NonCreatable, NonDeletable)
-  {
-  }
-
-  GAttributeReader try_get_for_read(const void *owner) const final
-  {
-    const Instances *instances = static_cast<const Instances *>(owner);
-    if (instances == nullptr) {
-      return {};
-    }
-    Span<float4x4> transforms = instances->transforms();
-    return {VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(transforms),
-            domain_,
-            nullptr};
-  }
-
-  GAttributeWriter try_get_for_write(void *owner) const final
-  {
-    Instances *instances = static_cast<Instances *>(owner);
-    if (instances == nullptr) {
-      return {};
-    }
-    MutableSpan<float4x4> transforms = instances->transforms();
-    return {VMutableArray<float3>::ForDerivedSpan<float4x4,
-                                                  get_transform_position,
-                                                  set_transform_position>(transforms),
-            domain_};
-  }
-
-  bool try_delete(void * /*owner*/) const final
-  {
-    return false;
-  }
-
-  bool try_create(void * /*owner*/, const AttributeInit & /*initializer*/) const final
-  {
-    return false;
-  }
-
-  bool exists(const void * /*owner*/) const final
-  {
-    return true;
-  }
-};
 
 static ComponentAttributeProviders create_attribute_providers_for_instances()
 {
-  static InstancePositionAttributeProvider position;
   static CustomDataAccessInfo instance_custom_data_access = {
       [](void *owner) -> CustomData * {
         Instances *instances = static_cast<Instances *>(owner);
@@ -200,10 +139,30 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
                                            instance_custom_data_access,
                                            nullptr);
 
+  static BuiltinCustomDataLayerProvider instance_transform("instance_transform",
+                                                           AttrDomain::Instance,
+                                                           CD_PROP_FLOAT4X4,
+                                                           CD_PROP_FLOAT4X4,
+                                                           BuiltinAttributeProvider::Creatable,
+                                                           BuiltinAttributeProvider::NonDeletable,
+                                                           instance_custom_data_access,
+                                                           nullptr);
+
+  /** Indices into `Instances::references_`. Determines what data is instanced. */
+  static BuiltinCustomDataLayerProvider reference_index(".reference_index",
+                                                        AttrDomain::Instance,
+                                                        CD_PROP_INT32,
+                                                        CD_PROP_INT32,
+                                                        BuiltinAttributeProvider::Creatable,
+                                                        BuiltinAttributeProvider::NonDeletable,
+                                                        instance_custom_data_access,
+                                                        tag_component_reference_index_changed);
+
   static CustomDataAttributeProvider instance_custom_data(AttrDomain::Instance,
                                                           instance_custom_data_access);
 
-  return ComponentAttributeProviders({&position, &id}, {&instance_custom_data});
+  return ComponentAttributeProviders({&instance_transform, &id, &reference_index},
+                                     {&instance_custom_data});
 }
 
 static AttributeAccessorFunctions get_instances_accessor_functions()

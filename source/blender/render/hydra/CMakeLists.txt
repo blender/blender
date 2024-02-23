@@ -83,14 +83,14 @@ set(SRC
   render_task_delegate.cc
   viewport_engine.cc
 
-  camera.h
-  engine.h
-  final_engine.h
-  light_tasks_delegate.h
-  preview_engine.h
-  render_task_delegate.h
-  settings.h
-  viewport_engine.h
+  camera.hh
+  engine.hh
+  final_engine.hh
+  light_tasks_delegate.hh
+  preview_engine.hh
+  render_task_delegate.hh
+  settings.hh
+  viewport_engine.hh
 )
 
 blender_add_lib(bf_render_hydra "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -23,14 +23,14 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mesh_mapping.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -271,7 +271,7 @@ static void stitch_preview_delete(StitchPreviewer *stitch_preview)
 /* This function updates the header of the UV editor when the stitch tool updates its settings */
 static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
 {
-  const char *str = RPT_(
+  const char *str = IFACE_(
       "Mode(TAB) %s, "
       "(S)nap %s, "
       "(M)idpoints %s, "
@@ -285,7 +285,7 @@ static void stitch_update_header(StitchStateContainer *ssc, bContext *C)
   if (area) {
     SNPRINTF(msg,
              str,
-             ssc->mode == STITCH_VERT ? RPT_("Vertex") : RPT_("Edge"),
+             ssc->mode == STITCH_VERT ? IFACE_("Vertex") : IFACE_("Edge"),
              WM_bool_as_string(ssc->snap_islands),
              WM_bool_as_string(ssc->midpoints),
              ssc->limit_dist,

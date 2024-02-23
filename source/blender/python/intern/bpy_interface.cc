@@ -29,6 +29,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "RNA_types.hh"
 
 #include "bpy.h"
@@ -45,7 +47,7 @@
 
 #include "BKE_appdir.hh"
 #include "BKE_context.hh"
-#include "BKE_global.h" /* Only for script checking. */
+#include "BKE_global.hh" /* Only for script checking. */
 #include "BKE_main.hh"
 #include "BKE_text.h"
 
@@ -126,10 +128,10 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 #ifdef TIME_PY_RUN
     if (bpy_timer_count == 0) {
       /* Record time from the beginning. */
-      bpy_timer = BLI_check_seconds_timer();
+      bpy_timer = BLI_time_now_seconds();
       bpy_timer_run = bpy_timer_run_tot = 0.0;
     }
-    bpy_timer_run = BLI_check_seconds_timer();
+    bpy_timer_run = BLI_time_now_seconds();
 
     bpy_timer_count++;
 #endif
@@ -155,7 +157,7 @@ void bpy_context_clear(bContext * /*C*/, const PyGILState_STATE *gilstate)
 #endif
 
 #ifdef TIME_PY_RUN
-    bpy_timer_run_tot += BLI_check_seconds_timer() - bpy_timer_run;
+    bpy_timer_run_tot += BLI_time_now_seconds() - bpy_timer_run;
     bpy_timer_count++;
 #endif
   }
@@ -591,7 +593,7 @@ void BPY_python_end(const bool do_python_exit)
 
 #ifdef TIME_PY_RUN
   /* Measure time since Python started. */
-  bpy_timer = BLI_check_seconds_timer() - bpy_timer;
+  bpy_timer = BLI_time_now_seconds() - bpy_timer;
 
   printf("*bpy stats* - ");
   printf("tot exec: %d,  ", bpy_timer_count);
@@ -689,7 +691,7 @@ void BPY_modules_load_user(bContext *C)
       if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-          SNPRINTF(G.autoexec_fail, "Text '%s'", text->id.name + 2);
+          SNPRINTF(G.autoexec_fail, RPT_("Text '%s'"), text->id.name + 2);
 
           printf("scripts disabled for \"%s\", skipping '%s'\n",
                  BKE_main_blendfile_path(bmain),

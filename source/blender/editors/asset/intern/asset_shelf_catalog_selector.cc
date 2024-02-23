@@ -10,7 +10,6 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
-#include "AS_asset_library.hh"
 
 #include "BLI_string.h"
 
@@ -19,7 +18,7 @@
 #include "BKE_context.hh"
 #include "BKE_screen.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "ED_asset_filter.hh"
 #include "ED_asset_list.hh"
@@ -152,8 +151,6 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
                                     UI_UNIT_X,
                                     UI_UNIT_Y,
                                     (char *)&catalog_path_enabled_,
-                                    0,
-                                    0,
                                     0,
                                     0,
                                     TIP_("Toggle catalog visibility in the asset shelf"));

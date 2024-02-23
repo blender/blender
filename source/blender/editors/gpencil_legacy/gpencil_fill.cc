@@ -16,7 +16,7 @@
 #include "BLI_stack.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -26,17 +26,15 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "ED_gpencil_legacy.hh"
@@ -63,7 +61,6 @@
 #include "WM_types.hh"
 
 #include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "gpencil_intern.h"
 
@@ -2298,11 +2295,11 @@ static void gpencil_fill_status_indicators(tGPDfill *tgpf)
 
   char status_str[UI_MAX_DRAW_STR];
   SNPRINTF(status_str,
-           RPT_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
-                "Switch Mode, D: "
-                "Stroke Collision | %s %s (%.3f)"),
-           (is_extend) ? RPT_("Extend") : RPT_("Radius"),
-           (is_extend && use_stroke_collide) ? RPT_("Stroke: ON") : RPT_("Stroke: OFF"),
+           IFACE_("Fill: ESC/RMB cancel, LMB Fill, Shift Draw on Back, MMB Adjust Extend, S: "
+                  "Switch Mode, D: "
+                  "Stroke Collision | %s %s (%.3f)"),
+           (is_extend) ? IFACE_("Extend") : IFACE_("Radius"),
+           (is_extend && use_stroke_collide) ? IFACE_("Stroke: ON") : IFACE_("Stroke: OFF"),
            tgpf->fill_extend_fac);
 
   ED_workspace_status_text(tgpf->C, status_str);

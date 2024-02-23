@@ -6,7 +6,6 @@
  * \ingroup spoutliner
  */
 
-#include "DNA_key_types.h"
 #include "DNA_space_types.h"
 
 #include "BLI_function_ref.hh"
@@ -15,7 +14,7 @@
 
 #include "BLI_set.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"

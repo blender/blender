@@ -107,7 +107,7 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
   if (is_directional) {
     return 1.0;
   }
-  if (light.type == LIGHT_SPOT) {
+  if (is_spot_light(light.type)) {
     return light_spot_attenuation(light, L);
   }
   if (is_area_light(light.type)) {
@@ -118,24 +118,39 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
 
 /**
  * Fade light influence when surface is not facing the light.
+ * This is needed because LTC leaks light at roughness not 0 or 1
+ * when the light is below the horizon.
  * L is normalized vector to light shape center.
  * Ng is ideally the geometric normal.
  */
-float light_attenuation_facing(LightData light, vec3 L, vec3 Ng, bool use_subsurface)
+float light_attenuation_facing(
+    LightData light, vec3 L, float distance_to_light, vec3 Ng, bool use_subsurface)
 {
   if (use_subsurface) {
     return 1.0;
   }
-  /* TODO(fclem): Take into consideration the light radius. */
-  return float(dot(L, Ng) > 0.0);
+
+  float radius;
+  if (is_area_light(light.type)) {
+    radius = length(vec2(light._area_size_x, light._area_size_y));
+  }
+  else {
+    radius = light._radius;
+  }
+  /* Sine of angle between light center and light edge. */
+  float sin_solid_angle = radius / distance_to_light;
+  /* Sine of angle between light center and shading plane. */
+  float sin_light_angle = dot(L, Ng);
+  /* Do attenuation after the horizon line to avoid harsh cut
+   * or biasing of surfaces without light bleeding. */
+  return saturate((sin_light_angle + sin_solid_angle + 0.1) * 10.0);
 }
 
 float light_attenuation_surface(
     LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
 {
-  /* TODO(fclem): add cutoff attenuation when back-facing. For now do nothing with Ng. */
   return light_attenuation_common(light, is_directional, lv.L) *
-         light_attenuation_facing(light, lv.L, Ng, use_subsurface) *
+         light_attenuation_facing(light, lv.L, lv.dist, Ng, use_subsurface) *
          light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
 }
 
@@ -183,7 +198,7 @@ float light_sphere_disk_radius(float sphere_radius, float distance_to_sphere)
 float light_ltc(
     sampler2DArray utility_tx, LightData light, vec3 N, vec3 V, LightVector lv, vec4 ltc_mat)
 {
-  if (light.type == LIGHT_POINT && lv.dist < light._radius) {
+  if (is_sphere_light(light.type) && lv.dist < light._radius) {
     /* Inside the sphere light, integrate over the hemisphere. */
     return 1.0;
   }
@@ -213,12 +228,20 @@ float light_ltc(
       make_orthonormal_basis(lv.L, Px, Py);
     }
 
-    vec2 size = vec2(light._area_size_x, light._area_size_y);
-    if (light.type == LIGHT_POINT) {
-      /* The sine of the half-angle spanned by a sphere light is equal to the tangent of the
-       * half-angle spanned by a disk light with the same radius. */
+    vec2 size;
+    if (is_sphere_light(light.type)) {
+      /* Spherical omni or spot light. */
       size = vec2(light_sphere_disk_radius(light._radius, lv.dist));
     }
+    else if (light.type == LIGHT_OMNI_DISK || light.type == LIGHT_SPOT_DISK) {
+      /* View direction-aligned disk. */
+      size = vec2(light._radius);
+    }
+    else {
+      /* Sun light and elliptical area light. */
+      size = vec2(light._area_size_x, light._area_size_y);
+    }
+
     vec3 points[3];
     points[0] = Px * -size.x + Py * -size.y;
     points[1] = Px * size.x + Py * -size.y;

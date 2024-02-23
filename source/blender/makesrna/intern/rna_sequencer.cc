@@ -22,7 +22,7 @@
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_string_utils.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
@@ -115,10 +115,10 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include <fmt/format.h>
 
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BKE_idprop.h"
 #  include "BKE_movieclip.h"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "WM_api.hh"
 
@@ -205,13 +205,13 @@ static void rna_Sequence_use_sequence(Main *bmain, Scene *scene, PointerRNA *ptr
 {
   /* General update callback. */
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
-  /* Changing recursion changes set of IDs which needs to be remapped by the copy-on-write.
-   * the only way for this currently is to tag the ID for ID_RECALC_COPY_ON_WRITE. */
+  /* Changing recursion changes set of IDs which needs to be remapped by the copy-on-evaluation.
+   * the only way for this currently is to tag the ID for ID_RECALC_SYNC_TO_EVAL. */
   Editing *ed = SEQ_editing_get(scene);
   if (ed) {
     Sequence *seq = (Sequence *)ptr->data;
     if (seq->scene != nullptr) {
-      DEG_id_tag_update(&seq->scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&seq->scene->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
   /* The sequencer scene is to be updated as well, including new relations from the nested
@@ -1696,6 +1696,11 @@ static void rna_def_strip_crop(BlenderRNA *brna)
 }
 
 static const EnumPropertyItem transform_filter_items[] = {
+    {SEQ_TRANSFORM_FILTER_AUTO,
+     "AUTO",
+     0,
+     "Auto",
+     "Automatically choose filter based on scaling factor"},
     {SEQ_TRANSFORM_FILTER_NEAREST, "NEAREST", 0, "Nearest", "Use nearest sample"},
     {SEQ_TRANSFORM_FILTER_BILINEAR,
      "BILINEAR",
@@ -1770,7 +1775,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
   prop = RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "filter");
   RNA_def_property_enum_items(prop, transform_filter_items);
-  RNA_def_property_enum_default(prop, SEQ_TRANSFORM_FILTER_BILINEAR);
+  RNA_def_property_enum_default(prop, SEQ_TRANSFORM_FILTER_AUTO);
   RNA_def_property_ui_text(prop, "Filter", "Type of filter to use for image transformation");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SequenceTransform_update");
 

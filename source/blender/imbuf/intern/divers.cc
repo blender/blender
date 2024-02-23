@@ -702,7 +702,7 @@ void IMB_rect_from_float(ImBuf *ibuf)
 
   /* create byte rect if it didn't exist yet */
   if (ibuf->byte_buffer.data == nullptr) {
-    if (imb_addrectImBuf(ibuf) == 0) {
+    if (imb_addrectImBuf(ibuf, false) == 0) {
       return;
     }
   }

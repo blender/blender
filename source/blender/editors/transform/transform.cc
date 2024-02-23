@@ -11,8 +11,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_mask_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_screen_types.h"
 
 #include "BLI_math_matrix.h"
@@ -23,14 +21,12 @@
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_mask.h"
-#include "BKE_scene.h"
 
 #include "GPU_state.h"
 
 #include "ED_clip.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_image.hh"
-#include "ED_keyframing.hh"
 #include "ED_node.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -50,7 +46,7 @@
 #include "RNA_access.hh"
 
 #include "BLF_api.hh"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "transform.hh"
 #include "transform_constraints.hh"
@@ -883,30 +879,30 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
   /* Initialize */
   switch (modal_type) {
     case TFM_MODAL_AXIS_X:
-      msg_2d = RPT_("along X");
-      msg_3d = RPT_("along %s X");
+      msg_2d = IFACE_("along X");
+      msg_3d = IFACE_("along %s X");
       constraint_new = CON_AXIS0;
       break;
     case TFM_MODAL_AXIS_Y:
-      msg_2d = RPT_("along Y");
-      msg_3d = RPT_("along %s Y");
+      msg_2d = IFACE_("along Y");
+      msg_3d = IFACE_("along %s Y");
       constraint_new = CON_AXIS1;
       break;
     case TFM_MODAL_AXIS_Z:
-      msg_2d = RPT_("along Z");
-      msg_3d = RPT_("along %s Z");
+      msg_2d = IFACE_("along Z");
+      msg_3d = IFACE_("along %s Z");
       constraint_new = CON_AXIS2;
       break;
     case TFM_MODAL_PLANE_X:
-      msg_3d = RPT_("locking %s X");
+      msg_3d = IFACE_("locking %s X");
       constraint_new = CON_AXIS1 | CON_AXIS2;
       break;
     case TFM_MODAL_PLANE_Y:
-      msg_3d = RPT_("locking %s Y");
+      msg_3d = IFACE_("locking %s Y");
       constraint_new = CON_AXIS0 | CON_AXIS2;
       break;
     case TFM_MODAL_PLANE_Z:
-      msg_3d = RPT_("locking %s Z");
+      msg_3d = IFACE_("locking %s Z");
       constraint_new = CON_AXIS0 | CON_AXIS1;
       break;
     default:
@@ -1250,7 +1246,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
             if (t->options & CTX_CAMERA) {
               /* Exception for switching to dolly, or trackball, in camera view. */
               if (t->mode == TFM_TRANSLATION) {
-                setLocalConstraint(t, (CON_AXIS2), RPT_("along local Z"));
+                setLocalConstraint(t, (CON_AXIS2), IFACE_("along local Z"));
               }
               else if (t->mode == TFM_ROTATION) {
                 restoreTransObjects(t);
@@ -1496,7 +1492,20 @@ static void drawTransformView(const bContext * /*C*/, ARegion *region, void *arg
   GPU_line_width(1.0f);
 
   drawConstraint(t);
-  drawPropCircle(t);
+
+  switch (t->spacetype) {
+    case SPACE_GRAPH:
+    case SPACE_ACTION:
+      /* Different visualization because the proportional editing in these editors only looks at
+       * the x-axis. */
+      drawPropRange(t);
+      break;
+
+    default:
+      drawPropCircle(t);
+      break;
+  }
+
   drawSnapping(t);
 
   if (region == t->region && t->mode_info && t->mode_info->draw_fn) {

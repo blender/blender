@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "render_task_delegate.h"
+#include "render_task_delegate.hh"
 
 #include <epoxy/gl.h>
 
@@ -16,7 +16,7 @@
 
 #include "Eigen/Core"
 
-#include "engine.h"
+#include "engine.hh"
 
 namespace blender::render::hydra {
 

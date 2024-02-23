@@ -84,10 +84,10 @@ typedef enum eRigidBodyWorld_Flag {
 /* ******************************** */
 /* RigidBody Object */
 
-/* Container for data that is shared among CoW copies.
+/* Container for data that is shared among evaluated copies.
  *
  * This is placed in a separate struct so that, for example, the physics_shape
- * pointer can be replaced without having to update all CoW copies. */
+ * pointer can be replaced without having to update all evaluated copies. */
 #
 #
 typedef struct RigidBodyOb_Shared {

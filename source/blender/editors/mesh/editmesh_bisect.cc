@@ -10,13 +10,13 @@
 
 #include "DNA_object_types.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -172,7 +172,7 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     G.moving = G_TRANSFORM_EDIT;
 
     /* Initialize modal callout. */
-    ED_workspace_status_text(C, RPT_("LMB: Click and drag to draw cut line"));
+    ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
   }
   return ret;
 }
@@ -201,7 +201,7 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
   /* update or clear modal callout */
   if (event->type == EVT_MODAL_MAP) {
     if (event->val == GESTURE_MODAL_BEGIN) {
-      ED_workspace_status_text(C, RPT_("LMB: Release to confirm cut line"));
+      ED_workspace_status_text(C, IFACE_("LMB: Release to confirm cut line"));
     }
     else {
       ED_workspace_status_text(C, nullptr);
@@ -320,9 +320,9 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
     copy_v3_v3(plane_co_local, plane_co);
     copy_v3_v3(plane_no_local, plane_no);
 
-    invert_m4_m4(imat, obedit->object_to_world);
+    invert_m4_m4(imat, obedit->object_to_world().ptr());
     mul_m4_v3(imat, plane_co_local);
-    mul_transposed_mat3_m4_v3(obedit->object_to_world, plane_no_local);
+    mul_transposed_mat3_m4_v3(obedit->object_to_world().ptr(), plane_no_local);
 
     BMOperator bmop;
     EDBM_op_init(

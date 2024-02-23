@@ -16,18 +16,14 @@
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_dlrbTree.h"
 #include "BLI_range.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
-#include "BKE_screen.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_draw.hh"
@@ -806,7 +802,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
        ale = ale->next, ymax -= NLATRACK_STEP(snla))
   {
     float ymin = ymax - NLATRACK_HEIGHT(snla);
-    float ycenter = (ymax + ymin) / 2.0f;
+    float ycenter = (ymax + ymin + 2 * NLATRACK_SKIP - 1) / 2.0f;
 
     /* check if visible */
     if (IN_RANGE(ymin, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -869,8 +865,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
            */
           switch (adt->act_extendmode) {
             case NLASTRIP_EXTEND_HOLD: {
-              immRectf(
-                  pos, v2d->cur.xmin, ymin + NLATRACK_SKIP, v2d->cur.xmax, ymax - NLATRACK_SKIP);
+              immRectf(pos,
+                       v2d->cur.xmin,
+                       ymin + NLATRACK_SKIP,
+                       v2d->cur.xmax,
+                       ymax + NLATRACK_SKIP - 1);
               break;
             }
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
@@ -894,7 +893,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
                                     static_cast<bAction *>(ale->data),
                                     ycenter,
                                     ymin + NLATRACK_SKIP,
-                                    ymax - NLATRACK_SKIP);
+                                    ymax + NLATRACK_SKIP - 1);
 
           GPU_blend(GPU_BLEND_NONE);
           break;

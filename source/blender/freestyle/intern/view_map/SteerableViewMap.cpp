@@ -21,7 +21,7 @@
 #include "BLI_math_base.h"
 #include "BLI_sys_types.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"

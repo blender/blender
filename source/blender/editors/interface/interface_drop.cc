@@ -8,8 +8,6 @@
 
 #include "UI_interface.hh"
 
-#include "BLI_string.h"
-
 namespace blender::ui {
 
 DragInfo::DragInfo(const wmDrag &drag, const wmEvent &event, const DropLocation drop_location)
@@ -55,13 +53,13 @@ std::string drop_target_tooltip(const ARegion &region,
 {
   const char *disabled_hint_dummy = nullptr;
   if (!drop_target.can_drop(drag, &disabled_hint_dummy)) {
-    return nullptr;
+    return {};
   }
 
   const std::optional<DropLocation> drop_location = drop_target.choose_drop_location(region,
                                                                                      event);
   if (!drop_location) {
-    return nullptr;
+    return {};
   }
 
   const DragInfo drag_info{drag, event, *drop_location};

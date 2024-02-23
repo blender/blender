@@ -4612,6 +4612,8 @@ def km_grease_pencil_edit_mode(params):
         # Dissolve
         ("grease_pencil.dissolve", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("grease_pencil.dissolve", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
+        # Separate
+        ("grease_pencil.separate", {"type": 'P', "value": 'PRESS'}, None),
         # Delete all active frames
         ("grease_pencil.delete_frame", {"type": 'DEL', "value": 'PRESS', "shift": True},
          {"properties": [("type", "ALL_FRAMES")]}),
@@ -6963,7 +6965,7 @@ def km_image_editor_tool_generic_sample(params):
 
 def km_image_editor_tool_uv_cursor(params):
     return (
-        "Image Editor Tool: UV, Cursor",
+        "Image Editor Tool: Uv, Cursor",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("uv.cursor_set", {"type": params.tool_mouse, "value": 'PRESS'}, None),
@@ -6976,7 +6978,7 @@ def km_image_editor_tool_uv_cursor(params):
 
 def km_image_editor_tool_uv_select(params, *, fallback):
     return (
-        _fallback_id("Image Editor Tool: UV, Tweak", fallback),
+        _fallback_id("Image Editor Tool: Uv, Tweak", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
@@ -6994,7 +6996,7 @@ def km_image_editor_tool_uv_select(params, *, fallback):
 
 def km_image_editor_tool_uv_select_box(params, *, fallback):
     return (
-        _fallback_id("Image Editor Tool: UV, Select Box", fallback),
+        _fallback_id("Image Editor Tool: Uv, Select Box", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
@@ -7008,7 +7010,7 @@ def km_image_editor_tool_uv_select_box(params, *, fallback):
 
 def km_image_editor_tool_uv_select_circle(params, *, fallback):
     return (
-        _fallback_id("Image Editor Tool: UV, Select Circle", fallback),
+        _fallback_id("Image Editor Tool: Uv, Select Circle", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and not params.use_fallback_tool) else _template_items_tool_select_actions_simple(
@@ -7023,7 +7025,7 @@ def km_image_editor_tool_uv_select_circle(params, *, fallback):
 
 def km_image_editor_tool_uv_select_lasso(params, *, fallback):
     return (
-        _fallback_id("Image Editor Tool: UV, Select Lasso", fallback),
+        _fallback_id("Image Editor Tool: Uv, Select Lasso", fallback),
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
 
         {"items": [
@@ -7037,7 +7039,7 @@ def km_image_editor_tool_uv_select_lasso(params, *, fallback):
 
 def km_image_editor_tool_uv_rip_region(params):
     return (
-        "Image Editor Tool: UV, Rip Region",
+        "Image Editor Tool: Uv, Rip Region",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("uv.rip_move", {**params.tool_maybe_tweak_event, **params.tool_modifier},
@@ -7048,7 +7050,7 @@ def km_image_editor_tool_uv_rip_region(params):
 
 def km_image_editor_tool_uv_sculpt_stroke(params):
     return (
-        "Image Editor Tool: UV, Sculpt Stroke",
+        "Image Editor Tool: Uv, Sculpt Stroke",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("sculpt.uv_sculpt_stroke", {"type": params.tool_mouse, "value": 'PRESS'}, None),
@@ -7067,7 +7069,7 @@ def km_image_editor_tool_uv_sculpt_stroke(params):
 
 def km_image_editor_tool_uv_move(params):
     return (
-        "Image Editor Tool: UV, Move",
+        "Image Editor Tool: Uv, Move",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("transform.translate", {**params.tool_maybe_tweak_event, **params.tool_modifier},
@@ -7078,7 +7080,7 @@ def km_image_editor_tool_uv_move(params):
 
 def km_image_editor_tool_uv_rotate(params):
     return (
-        "Image Editor Tool: UV, Rotate",
+        "Image Editor Tool: Uv, Rotate",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("transform.rotate", {**params.tool_maybe_tweak_event, **params.tool_modifier},
@@ -7089,7 +7091,7 @@ def km_image_editor_tool_uv_rotate(params):
 
 def km_image_editor_tool_uv_scale(params):
     return (
-        "Image Editor Tool: UV, Scale",
+        "Image Editor Tool: Uv, Scale",
         {"space_type": 'IMAGE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
             ("transform.resize", {**params.tool_maybe_tweak_event, **params.tool_modifier},

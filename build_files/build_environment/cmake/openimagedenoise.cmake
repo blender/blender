@@ -9,7 +9,12 @@ set(OIDN_EXTRA_ARGS
   -DOIDN_FILTER_RTLIGHTMAP=OFF
   -DPython_EXECUTABLE=${PYTHON_BINARY}
 )
-if(NOT APPLE)
+if(APPLE)
+  set(OIDN_EXTRA_ARGS
+    ${OIDN_EXTRA_ARGS}
+    -DOIDN_DEVICE_METAL=ON
+  )
+else()
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DOIDN_DEVICE_SYCL=ON
@@ -53,8 +58,16 @@ ExternalProject_Add(external_openimagedenoise
   URL_HASH ${OIDN_HASH_TYPE}=${OIDN_HASH}
   PREFIX ${BUILD_DIR}/openimagedenoise
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimagedenoise ${OIDN_CMAKE_FLAGS} ${OIDN_EXTRA_ARGS}
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise < ${PATCH_DIR}/oidn.diff
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimagedenoise
+    ${OIDN_CMAKE_FLAGS}
+    ${OIDN_EXTRA_ARGS}
+
+  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d
+    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+    ${PATCH_DIR}/oidn.diff
+
   INSTALL_DIR ${LIBDIR}/openimagedenoise
 )
 
@@ -82,9 +95,16 @@ endif()
 
 if(BUILD_MODE STREQUAL Release AND WIN32)
     ExternalProject_Add_Step(external_openimagedenoise after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/bin ${HARVEST_TARGET}/openimagedenoise/bin
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/lib ${HARVEST_TARGET}/openimagedenoise/lib
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openimagedenoise/include ${HARVEST_TARGET}/openimagedenoise/include
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/openimagedenoise/bin
+        ${HARVEST_TARGET}/openimagedenoise/bin
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/openimagedenoise/lib
+        ${HARVEST_TARGET}/openimagedenoise/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/openimagedenoise/include
+        ${HARVEST_TARGET}/openimagedenoise/include
+
       DEPENDEES install
     )
 endif()

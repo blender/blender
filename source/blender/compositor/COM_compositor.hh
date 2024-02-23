@@ -10,6 +10,9 @@
 namespace blender::realtime_compositor {
 class RenderContext;
 }
+namespace blender::compositor {
+class ProfilerData;
+}
 
 struct Render;
 
@@ -325,7 +328,7 @@ struct Render;
  *            should be checked further, probably it'll be also needed for preview
  *            generation in display space
  */
-/* clang-format off */
+/* clang-format on */
 
 void COM_execute(Render *render,
                  RenderData *render_data,
@@ -333,7 +336,8 @@ void COM_execute(Render *render,
                  bNodeTree *node_tree,
                  bool rendering,
                  const char *view_name,
-                 blender::realtime_compositor::RenderContext *render_context);
+                 blender::realtime_compositor::RenderContext *render_context,
+                 blender::compositor::ProfilerData &profiler_data);
 
 /**
  * \brief Deinitialize the compositor caches and allocated memory.

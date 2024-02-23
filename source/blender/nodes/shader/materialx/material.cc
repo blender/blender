@@ -4,7 +4,6 @@
 
 #include <MaterialXFormat/XmlIo.h>
 
-#include "material.h"
 #include "node_parser.h"
 
 #include "DEG_depsgraph.hh"

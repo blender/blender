@@ -12,7 +12,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
-#include "DNA_collection_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
@@ -33,15 +32,13 @@
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
 #include "BKE_blender_version.h"
-#include "BKE_context.hh"
 #include "BKE_curve.hh"
 #include "BKE_curves.hh"
-#include "BKE_displist.h"
 #include "BKE_editmesh.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
@@ -51,9 +48,8 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_particle.h"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subdiv_modifier.hh"
 
@@ -488,7 +484,7 @@ static bool format_stats(
   if (*stats_p == nullptr) {
     /* Don't access dependency graph if interface is marked as locked. */
     wmWindowManager *wm = (wmWindowManager *)bmain->wm.first;
-    if (wm->is_interface_locked) {
+    if (wm->runtime->is_interface_locked) {
       return false;
     }
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
@@ -559,14 +555,14 @@ static void get_stats_string(char *info,
 
   if (obedit) {
     if (BKE_keyblock_from_object(obedit)) {
-      *ofs += BLI_strncpy_rlen(info + *ofs, RPT_("(Key) "), len - *ofs);
+      *ofs += BLI_strncpy_rlen(info + *ofs, IFACE_("(Key) "), len - *ofs);
     }
 
     if (obedit->type == OB_MESH) {
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
 
-                                RPT_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
+                                IFACE_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
                                 stats_fmt->totvertsel,
                                 stats_fmt->totvert,
                                 stats_fmt->totedgesel,
@@ -579,26 +575,29 @@ static void get_stats_string(char *info,
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
 
-                                RPT_("Joints:%s/%s | Bones:%s/%s"),
+                                IFACE_("Joints:%s/%s | Bones:%s/%s"),
                                 stats_fmt->totvertsel,
                                 stats_fmt->totvert,
                                 stats_fmt->totbonesel,
                                 stats_fmt->totbone);
     }
     else {
-      *ofs += BLI_snprintf_rlen(
-          info + *ofs, len - *ofs, RPT_("Verts:%s/%s"), stats_fmt->totvertsel, stats_fmt->totvert);
+      *ofs += BLI_snprintf_rlen(info + *ofs,
+                                len - *ofs,
+                                IFACE_("Verts:%s/%s"),
+                                stats_fmt->totvertsel,
+                                stats_fmt->totvert);
     }
   }
   else if (ob && (object_mode & OB_MODE_POSE)) {
     *ofs += BLI_snprintf_rlen(
-        info + *ofs, len - *ofs, RPT_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
+        info + *ofs, len - *ofs, IFACE_("Bones:%s/%s"), stats_fmt->totbonesel, stats_fmt->totbone);
   }
   else if ((ob) && (ob->type == OB_GPENCIL_LEGACY)) {
     *ofs += BLI_snprintf_rlen(info + *ofs,
                               len - *ofs,
 
-                              RPT_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
+                              IFACE_("Layers:%s | Frames:%s | Strokes:%s | Points:%s"),
                               stats_fmt->totgplayer,
                               stats_fmt->totgpframe,
                               stats_fmt->totgpstroke,
@@ -609,7 +608,7 @@ static void get_stats_string(char *info,
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
 
-                                RPT_("Verts:%s | Tris:%s"),
+                                IFACE_("Verts:%s | Tris:%s"),
                                 stats_fmt->totvertsculpt,
                                 stats_fmt->tottri);
     }
@@ -617,7 +616,7 @@ static void get_stats_string(char *info,
       *ofs += BLI_snprintf_rlen(info + *ofs,
                                 len - *ofs,
 
-                                RPT_("Verts:%s | Faces:%s"),
+                                IFACE_("Verts:%s | Faces:%s"),
                                 stats_fmt->totvertsculpt,
                                 stats_fmt->totfacesculpt);
     }
@@ -626,7 +625,7 @@ static void get_stats_string(char *info,
     *ofs += BLI_snprintf_rlen(info + *ofs,
                               len - *ofs,
 
-                              RPT_("Verts:%s | Faces:%s | Tris:%s"),
+                              IFACE_("Verts:%s | Faces:%s | Tris:%s"),
                               stats_fmt->totvert,
                               stats_fmt->totface,
                               stats_fmt->tottri);
@@ -636,7 +635,7 @@ static void get_stats_string(char *info,
     *ofs += BLI_snprintf_rlen(info + *ofs,
                               len - *ofs,
 
-                              RPT_(" | Objects:%s/%s"),
+                              IFACE_(" | Objects:%s/%s"),
                               stats_fmt->totobjsel,
                               stats_fmt->totobj);
   }
@@ -675,7 +674,7 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
     ofs += BLI_snprintf_rlen(info + ofs,
                              len - ofs,
 
-                             RPT_("Duration: %s (Frame %i/%i)"),
+                             IFACE_("Duration: %s (Frame %i/%i)"),
                              timecode,
                              relative_current_frame,
                              frame_count);
@@ -688,7 +687,7 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
     }
     uintptr_t mem_in_use = MEM_get_memory_in_use();
     BLI_str_format_byte_unit(formatted_mem, mem_in_use, false);
-    ofs += BLI_snprintf_rlen(info + ofs, len, RPT_("Memory: %s"), formatted_mem);
+    ofs += BLI_snprintf_rlen(info + ofs, len, IFACE_("Memory: %s"), formatted_mem);
   }
 
   /* GPU VRAM status. */
@@ -704,13 +703,13 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
       ofs += BLI_snprintf_rlen(info + ofs,
                                len - ofs,
 
-                               RPT_("VRAM: %.1f/%.1f GiB"),
+                               IFACE_("VRAM: %.1f/%.1f GiB"),
                                gpu_total_gb - gpu_free_gb,
                                gpu_total_gb);
     }
     else {
       /* Can only show amount of GPU VRAM available. */
-      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, RPT_("VRAM: %.1f GiB Free"), gpu_free_gb);
+      ofs += BLI_snprintf_rlen(info + ofs, len - ofs, IFACE_("VRAM: %.1f GiB Free"), gpu_free_gb);
     }
   }
 
@@ -719,7 +718,7 @@ const char *ED_info_statusbar_string_ex(Main *bmain,
     if (info[0]) {
       ofs += BLI_snprintf_rlen(info + ofs, len - ofs, " | ");
     }
-    ofs += BLI_snprintf_rlen(info + ofs, len - ofs, RPT_("%s"), BKE_blender_version_string());
+    ofs += BLI_snprintf_rlen(info + ofs, len - ofs, IFACE_("%s"), BKE_blender_version_string());
   }
 
   return info;
@@ -790,18 +789,18 @@ void ED_info_draw_stats(
   };
   char labels[MAX_LABELS_COUNT][64];
 
-  STRNCPY_UTF8(labels[OBJ], RPT_("Objects"));
-  STRNCPY_UTF8(labels[VERTS], RPT_("Vertices"));
-  STRNCPY_UTF8(labels[EDGES], RPT_("Edges"));
-  STRNCPY_UTF8(labels[FACES], RPT_("Faces"));
-  STRNCPY_UTF8(labels[TRIS], RPT_("Triangles"));
-  STRNCPY_UTF8(labels[JOINTS], RPT_("Joints"));
-  STRNCPY_UTF8(labels[BONES], RPT_("Bones"));
-  STRNCPY_UTF8(labels[LAYERS], RPT_("Layers"));
-  STRNCPY_UTF8(labels[FRAMES], RPT_("Frames"));
-  STRNCPY_UTF8(labels[STROKES], RPT_("Strokes"));
-  STRNCPY_UTF8(labels[POINTS], RPT_("Points"));
-  STRNCPY_UTF8(labels[LIGHTS], RPT_("Lights"));
+  STRNCPY_UTF8(labels[OBJ], IFACE_("Objects"));
+  STRNCPY_UTF8(labels[VERTS], IFACE_("Vertices"));
+  STRNCPY_UTF8(labels[EDGES], IFACE_("Edges"));
+  STRNCPY_UTF8(labels[FACES], IFACE_("Faces"));
+  STRNCPY_UTF8(labels[TRIS], IFACE_("Triangles"));
+  STRNCPY_UTF8(labels[JOINTS], IFACE_("Joints"));
+  STRNCPY_UTF8(labels[BONES], IFACE_("Bones"));
+  STRNCPY_UTF8(labels[LAYERS], IFACE_("Layers"));
+  STRNCPY_UTF8(labels[FRAMES], IFACE_("Frames"));
+  STRNCPY_UTF8(labels[STROKES], IFACE_("Strokes"));
+  STRNCPY_UTF8(labels[POINTS], IFACE_("Points"));
+  STRNCPY_UTF8(labels[LIGHTS], IFACE_("Lights"));
 
   int longest_label = 0;
   for (int i = 0; i < MAX_LABELS_COUNT; ++i) {

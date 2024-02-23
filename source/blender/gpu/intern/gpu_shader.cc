@@ -447,6 +447,12 @@ GPUShader *GPU_shader_create_from_python(const char *vertcode,
   return sh;
 }
 
+void GPU_shader_compile_static()
+{
+  printf("Compiling all static GPU shaders. This process takes a while.\n");
+  gpu_shader_create_info_compile("");
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -571,29 +577,26 @@ void GPU_shader_constant_int_ex(GPUShader *sh, int location, int value)
 {
   Shader &shader = *unwrap(sh);
   BLI_assert(shader.constants.types[location] == gpu::shader::Type::INT);
-  shader.constants.values[location].i = value;
-  shader.constants.is_dirty = true;
+  shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].i, value);
 }
 void GPU_shader_constant_uint_ex(GPUShader *sh, int location, uint value)
 {
   Shader &shader = *unwrap(sh);
   BLI_assert(shader.constants.types[location] == gpu::shader::Type::UINT);
-  shader.constants.values[location].u = value;
-  shader.constants.is_dirty = true;
+  shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].u, value);
 }
 void GPU_shader_constant_float_ex(GPUShader *sh, int location, float value)
 {
   Shader &shader = *unwrap(sh);
   BLI_assert(shader.constants.types[location] == gpu::shader::Type::FLOAT);
-  shader.constants.values[location].f = value;
-  shader.constants.is_dirty = true;
+  shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].f, value);
 }
 void GPU_shader_constant_bool_ex(GPUShader *sh, int location, bool value)
 {
   Shader &shader = *unwrap(sh);
   BLI_assert(shader.constants.types[location] == gpu::shader::Type::BOOL);
-  shader.constants.values[location].u = value;
-  shader.constants.is_dirty = true;
+  shader.constants.is_dirty |= assign_if_different(shader.constants.values[location].u,
+                                                   uint32_t(value));
 }
 
 void GPU_shader_constant_int(GPUShader *sh, const char *name, int value)

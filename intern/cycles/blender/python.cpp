@@ -65,7 +65,7 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
-  flags.cpu.sse41 = get_boolean(cscene, "debug_use_cpu_sse41");
+  flags.cpu.sse42 = get_boolean(cscene, "debug_use_cpu_sse42");
   flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
   /* Synchronize CUDA flags. */
@@ -417,12 +417,14 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   for (size_t i = 0; i < devices.size(); i++) {
     DeviceInfo &device = devices[i];
     string type_name = Device::string_from_type(device.type);
-    PyObject *device_tuple = PyTuple_New(5);
+    PyObject *device_tuple = PyTuple_New(6);
     PyTuple_SET_ITEM(device_tuple, 0, pyunicode_from_string(device.description.c_str()));
     PyTuple_SET_ITEM(device_tuple, 1, pyunicode_from_string(type_name.c_str()));
     PyTuple_SET_ITEM(device_tuple, 2, pyunicode_from_string(device.id.c_str()));
     PyTuple_SET_ITEM(device_tuple, 3, PyBool_FromLong(device.has_peer_memory));
     PyTuple_SET_ITEM(device_tuple, 4, PyBool_FromLong(device.use_hardware_raytracing));
+    PyTuple_SET_ITEM(
+        device_tuple, 5, PyBool_FromLong(device.denoisers & DENOISER_OPENIMAGEDENOISE));
     PyTuple_SET_ITEM(ret, i, device_tuple);
   }
 
@@ -613,14 +615,12 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
     if (!found_existing) {
       /* Create new socket. */
-      BL::NodeSocket b_sock = (param->isoutput) ? b_node.outputs.create(b_data,
-                                                                        socket_type.c_str(),
-                                                                        param_label.c_str(),
-                                                                        param->name.c_str()) :
-                                                  b_node.inputs.create(b_data,
-                                                                       socket_type.c_str(),
-                                                                       param_label.c_str(),
-                                                                       param->name.c_str());
+      BL::NodeSocket b_sock =
+          (param->isoutput) ?
+              b_node.outputs.create(
+                  b_data, socket_type.c_str(), param_label.c_str(), param->name.c_str(), false) :
+              b_node.inputs.create(
+                  b_data, socket_type.c_str(), param_label.c_str(), param->name.c_str(), false);
 
       /* set default value */
       if (data_type == BL::NodeSocket::type_VALUE) {

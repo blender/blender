@@ -564,8 +564,10 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ray_trace_screen_comp.glsl
   engines/eevee_next/shaders/eevee_ray_trace_screen_lib.glsl
   engines/eevee_next/shaders/eevee_ray_types_lib.glsl
+  engines/eevee_next/shaders/eevee_reflection_probe_convolve_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_eval_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_lib.glsl
+  engines/eevee_next/shaders/eevee_reflection_probe_mapping_lib.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_remap_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_select_comp.glsl
   engines/eevee_next/shaders/eevee_reflection_probe_update_irradiance_comp.glsl
@@ -955,6 +957,9 @@ if(WITH_GTESTS)
     endif()
     if(WITH_VULKAN_BACKEND)
       add_definitions(-DWITH_VULKAN_BACKEND)
+      list(APPEND INC_SYS
+        PUBLIC ${VULKAN_INCLUDE_DIRS}
+      )
     endif()
   endif()
 endif()

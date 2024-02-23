@@ -12,18 +12,6 @@
 
 namespace blender::workbench {
 
-VolumePass::~VolumePass()
-{
-  GPUShader **sh_p = &shaders_[0][0][0][0];
-  const int n = ARRAY_SIZE(shaders_);
-  for (int i = 0; i < n; i++, sh_p++) {
-    GPUShader *sh = *sh_p;
-    if (sh) {
-      GPU_shader_free(sh);
-    }
-  }
-}
-
 void VolumePass::sync(SceneResources &resources)
 {
   active_ = false;
@@ -61,11 +49,12 @@ void VolumePass::object_sync_volume(Manager &manager,
 
   const bool use_slice = (volume->display.axis_slice_method == AXIS_SLICE_SINGLE);
 
-  sub_ps.shader_set(get_shader(use_slice, false, volume->display.interpolation_method, false));
+  sub_ps.shader_set(ShaderCache::get().volume_get(
+      false, volume->display.interpolation_method, false, use_slice));
   sub_ps.push_constant("do_depth_test", scene_state.shading.type >= OB_SOLID);
 
   const float density_scale = volume->display.density *
-                              BKE_volume_density_scale(volume, ob->object_to_world);
+                              BKE_volume_density_scale(volume, ob->object_to_world().ptr());
 
   sub_ps.bind_texture("depthBuffer", &resources.depth_tx);
   sub_ps.bind_texture("stencil_tx", &stencil_tx_);
@@ -82,7 +71,7 @@ void VolumePass::object_sync_volume(Manager &manager,
         manager, sub_ps, ob_ref, volume->display.slice_axis, volume->display.slice_depth);
   }
   else {
-    float4x4 texture_to_world = float4x4(ob->object_to_world) * float4x4(grid->texture_to_object);
+    float4x4 texture_to_world = ob->object_to_world() * float4x4(grid->texture_to_object);
     float3 world_size = math::to_scale(texture_to_world);
 
     int3 resolution;
@@ -128,7 +117,8 @@ void VolumePass::object_sync_modifier(Manager &manager,
 
   const bool use_slice = settings.axis_slice_method == AXIS_SLICE_SINGLE;
 
-  sub_ps.shader_set(get_shader(use_slice, settings.use_coba, settings.interp_method, true));
+  sub_ps.shader_set(
+      ShaderCache::get().volume_get(true, settings.interp_method, settings.use_coba, use_slice));
   sub_ps.push_constant("do_depth_test", scene_state.shading.type >= OB_SOLID);
 
   if (settings.use_coba) {
@@ -200,33 +190,6 @@ void VolumePass::draw(Manager &manager, View &view, SceneResources &resources)
   fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(resources.color_tx));
   fb_.bind();
   manager.submit(ps_, view);
-}
-
-GPUShader *VolumePass::get_shader(bool slice, bool coba, int interpolation, bool smoke)
-{
-  GPUShader *&shader = shaders_[slice][coba][interpolation][smoke];
-
-  if (shader == nullptr) {
-    std::string create_info_name = "workbench_volume";
-    create_info_name += (smoke) ? "_smoke" : "_object";
-    switch (interpolation) {
-      case VOLUME_DISPLAY_INTERP_LINEAR:
-        create_info_name += "_linear";
-        break;
-      case VOLUME_DISPLAY_INTERP_CUBIC:
-        create_info_name += "_cubic";
-        break;
-      case VOLUME_DISPLAY_INTERP_CLOSEST:
-        create_info_name += "_closest";
-        break;
-      default:
-        BLI_assert_unreachable();
-    }
-    create_info_name += (coba) ? "_coba" : "_no_coba";
-    create_info_name += (slice) ? "_slice" : "_no_slice";
-    shader = GPU_shader_create_from_info_name(create_info_name.c_str());
-  }
-  return shader;
 }
 
 void VolumePass::draw_slice_ps(

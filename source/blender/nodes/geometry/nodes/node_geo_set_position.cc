@@ -2,13 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DEG_depsgraph_query.hh"
-
 #include "BLI_task.hh"
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_mesh.hh"
+#include "BKE_instances.hh"
 
 #include "node_geometry_util.hh"
 
@@ -23,20 +21,25 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
-static void set_computed_position_and_offset(GeometryComponent &component,
-                                             const VArray<float3> &in_positions,
-                                             const VArray<float3> &in_offsets,
-                                             const IndexMask &selection,
-                                             MutableAttributeAccessor attributes)
-{
-  /* Optimize the case when `in_positions` references the original positions array. */
-  const bke::AttributeReader positions_read_only = attributes.lookup<float3>("position");
-  bool positions_are_original = false;
-  if (positions_read_only.varray.is_span() && in_positions.is_span()) {
-    positions_are_original = positions_read_only.varray.get_internal_span().data() ==
-                             in_positions.get_internal_span().data();
-  }
+constexpr GrainSize grain_size{10000};
 
+static bool check_positions_are_original(const AttributeAccessor &attributes,
+                                         const VArray<float3> &in_positions)
+{
+  const bke::AttributeReader positions_read_only = attributes.lookup<float3>("position");
+  if (positions_read_only.varray.is_span() && in_positions.is_span()) {
+    return positions_read_only.varray.get_internal_span().data() ==
+           in_positions.get_internal_span().data();
+  }
+  return false;
+}
+
+static void write_offset_positions(const bool positions_are_original,
+                                   const IndexMask &selection,
+                                   const VArray<float3> &in_positions,
+                                   const VArray<float3> &in_offsets,
+                                   VMutableArray<float3> &out_positions)
+{
   if (positions_are_original) {
     if (const std::optional<float3> offset = in_offsets.get_if_single()) {
       if (math::is_zero(*offset)) {
@@ -44,8 +47,32 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       }
     }
   }
-  const GrainSize grain_size{10000};
 
+  MutableVArraySpan<float3> out_positions_span = out_positions;
+  if (positions_are_original) {
+    devirtualize_varray(in_offsets, [&](const auto in_offsets) {
+      selection.foreach_index_optimized<int>(
+          grain_size, [&](const int i) { out_positions_span[i] += in_offsets[i]; });
+    });
+  }
+  else {
+    devirtualize_varray2(
+        in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
+          selection.foreach_index_optimized<int>(grain_size, [&](const int i) {
+            out_positions_span[i] = in_positions[i] + in_offsets[i];
+          });
+        });
+  }
+  out_positions_span.save();
+}
+
+static void set_computed_position_and_offset(GeometryComponent &component,
+                                             const VArray<float3> &in_positions,
+                                             const VArray<float3> &in_offsets,
+                                             const IndexMask &selection,
+                                             MutableAttributeAccessor attributes)
+{
+  /* Optimize the case when `in_positions` references the original positions array. */
   switch (component.type()) {
     case GeometryComponent::Type::Curve: {
       if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
@@ -79,26 +106,30 @@ static void set_computed_position_and_offset(GeometryComponent &component,
         curves.calculate_bezier_auto_handles();
         break;
       }
-      ATTR_FALLTHROUGH;
+      AttributeWriter<float3> positions = attributes.lookup_for_write<float3>("position");
+      write_offset_positions(check_positions_are_original(attributes, in_positions),
+                             selection,
+                             in_positions,
+                             in_offsets,
+                             positions.varray);
+      positions.finish();
+      break;
+    }
+    case GeometryComponent::Type::Instance: {
+      /* Special case for "position" which is no longer an attribute on instances. */
+      auto &instances_component = reinterpret_cast<bke::InstancesComponent &>(component);
+      bke::Instances &instances = *instances_component.get_for_write();
+      VMutableArray<float3> positions = bke::instance_position_varray_for_write(instances);
+      write_offset_positions(false, selection, in_positions, in_offsets, positions);
+      break;
     }
     default: {
       AttributeWriter<float3> positions = attributes.lookup_for_write<float3>("position");
-      MutableVArraySpan<float3> out_positions_span = positions.varray;
-      if (positions_are_original) {
-        devirtualize_varray(in_offsets, [&](const auto in_offsets) {
-          selection.foreach_index_optimized<int>(
-              grain_size, [&](const int i) { out_positions_span[i] += in_offsets[i]; });
-        });
-      }
-      else {
-        devirtualize_varray2(
-            in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
-              selection.foreach_index_optimized<int>(grain_size, [&](const int i) {
-                out_positions_span[i] = in_positions[i] + in_offsets[i];
-              });
-            });
-      }
-      out_positions_span.save();
+      write_offset_positions(check_positions_are_original(attributes, in_positions),
+                             selection,
+                             in_positions,
+                             in_offsets,
+                             positions.varray);
       positions.finish();
       break;
     }

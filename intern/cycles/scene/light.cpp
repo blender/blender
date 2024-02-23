@@ -110,6 +110,8 @@ NODE_DEFINE(Light)
   SOCKET_INT(map_resolution, "Map Resolution", 0);
   SOCKET_FLOAT(average_radiance, "Average Radiance", 0.0f);
 
+  SOCKET_BOOLEAN(is_sphere, "Is Sphere", true);
+
   SOCKET_FLOAT(spot_angle, "Spot Angle", M_PI_4_F);
   SOCKET_FLOAT(spot_smooth, "Spot Smooth", 0.0f);
 
@@ -1253,6 +1255,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       klights[light_index].co = light->get_co();
       klights[light_index].spot.radius = radius;
       klights[light_index].spot.eval_fac = eval_fac;
+      klights[light_index].spot.is_sphere = light->get_is_sphere() && radius != 0.0f;
     }
     else if (light->light_type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
@@ -1328,7 +1331,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
       float3 dir = safe_normalize(light->get_dir());
 
-      if (light->use_mis && area != 0.0f) {
+      if (light->use_mis && area != 0.0f && light->spread > 0.0f) {
         shader_id |= SHADER_USE_MIS;
       }
 

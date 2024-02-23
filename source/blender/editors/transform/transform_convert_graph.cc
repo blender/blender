@@ -18,17 +18,16 @@
 #include "BKE_fcurve.h"
 #include "BKE_layer.hh"
 #include "BKE_nla.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_keyframes_edit.hh"
-#include "ED_markers.hh"
 
 #include "UI_view2d.hh"
 
 #include "transform.hh"
+#include "transform_constraints.hh"
 #include "transform_convert.hh"
-#include "transform_mode.hh"
 #include "transform_snap.hh"
 
 struct TransDataGraph {
@@ -143,6 +142,24 @@ static bool graph_edit_is_translation_mode(TransInfo *t)
 static bool graph_edit_use_local_center(TransInfo *t)
 {
   return ((t->around == V3D_AROUND_LOCAL_ORIGINS) && (graph_edit_is_translation_mode(t) == false));
+}
+
+static void enable_autolock(TransInfo *t, SpaceGraph *space_graph)
+{
+  /* Locking the axis makes most sense for translation. We may want to enable it for scaling as
+   * well if artists require that. */
+  if (t->mode != TFM_TRANSLATION) {
+    return;
+  }
+
+  /* These flags are set when using tweak mode on handles. */
+  if ((space_graph->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_LEFT) ||
+      (space_graph->runtime.flag & SIPO_RUNTIME_FLAG_TWEAK_HANDLES_RIGHT))
+  {
+    return;
+  }
+
+  initSelectConstraint(t);
 }
 
 /**
@@ -367,6 +384,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
     }
   }
 
+  bool at_least_one_key_selected = false;
+
   /* loop 2: build transdata arrays */
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
@@ -405,7 +424,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
         TransDataCurveHandleFlags *hdata = nullptr;
 
         graph_bezt_get_transform_selection(t, bezt, use_handle, &sel_left, &sel_key, &sel_right);
-
+        at_least_one_key_selected |= sel_key;
         if (is_prop_edit) {
           bool is_sel = (sel_key || sel_left || sel_right);
           /* we always select all handles for proportional editing if central handle is selected */
@@ -614,6 +633,10 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
         }
       }
     }
+  }
+
+  if (sipo->flag & SIPO_AUTOLOCK_AXIS && at_least_one_key_selected) {
+    enable_autolock(t, sipo);
   }
 
   /* cleanup temp list */

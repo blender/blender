@@ -57,7 +57,7 @@ if not os.path.exists(blender_bin):
             blender_bin = blender_app_path
 
 icons_blend = (
-    os.path.join(ROOTDIR, "..", "lib", "resources", "icon_geom.blend"),
+    os.path.join(ROOTDIR, "release", "datafiles", "assets", "icons", "toolbar.blend"),
 )
 
 
@@ -76,7 +76,7 @@ for blend in icons_blend:
     output_dir = os.path.join(BASEDIR, "icons")
     files_old = set(names_and_time_from_path(output_dir))
     cmd = (
-        blender_bin, "--background", "--factory-startup", "-noaudio",
+        blender_bin, "--background", "--factory-startup",
         blend,
         "--python", os.path.join(BASEDIR, "blender_icons_geom.py"),
         "--",

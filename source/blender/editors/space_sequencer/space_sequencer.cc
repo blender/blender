@@ -20,7 +20,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_base.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
@@ -48,8 +48,6 @@
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
-
-#include "IMB_imbuf.hh"
 
 /* Only for cursor drawing. */
 #include "DRW_engine.hh"
@@ -675,14 +673,18 @@ static void sequencer_tools_region_init(wmWindowManager *wm, ARegion *region)
 
 static void sequencer_tools_region_draw(const bContext *C, ARegion *region)
 {
+  ScrArea *area = CTX_wm_area(C);
   wmOperatorCallContext op_context = WM_OP_INVOKE_REGION_WIN;
-  switch (region->regiontype) {
-    case RGN_TYPE_CHANNELS:
-      op_context = WM_OP_INVOKE_REGION_CHANNELS;
-      break;
-    case RGN_TYPE_PREVIEW:
+
+  LISTBASE_FOREACH (ARegion *, ar, &area->regionbase) {
+    if (ar->regiontype == RGN_TYPE_PREVIEW && region->regiontype == RGN_TYPE_TOOLS) {
       op_context = WM_OP_INVOKE_REGION_PREVIEW;
       break;
+    }
+  }
+
+  if (region->regiontype == RGN_TYPE_CHANNELS) {
+    op_context = WM_OP_INVOKE_REGION_CHANNELS;
   }
 
   ED_region_panels_ex(C, region, op_context, nullptr);
@@ -908,10 +910,12 @@ static void sequencer_buttons_region_listener(const wmRegionListenerParams *para
   }
 }
 
-static void sequencer_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void sequencer_id_remap(ScrArea * /*area*/,
+                               SpaceLink *slink,
+                               const blender::bke::id::IDRemapper &mappings)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
-  BKE_id_remapper_apply(mappings, (ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply((ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
 }
 
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

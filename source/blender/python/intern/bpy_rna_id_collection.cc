@@ -16,7 +16,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
@@ -24,23 +24,17 @@
 #include "DNA_ID.h"
 /* Those following are only to support hack of not listing some internal
  * 'backward' pointers in generated user_map. */
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "bpy_capi_utils.h"
 #include "bpy_rna_id_collection.h"
 
 #include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_compat.h"
-#include "../generic/python_utildefines.h"
 
-#include "RNA_access.hh"
 #include "RNA_enum_types.hh"
-#include "RNA_types.hh"
 
 #include "bpy_rna.h"
 
@@ -383,11 +377,10 @@ static PyObject *bpy_orphans_purge(PyObject * /*self*/, PyObject *args, PyObject
   Main *bmain = G_MAIN; /* XXX Ugly, but should work! */
 #endif
 
-  int num_tagged[INDEX_ID_MAX] = {0};
-
-  bool do_local_ids = true;
-  bool do_linked_ids = true;
-  bool do_recursive_cleanup = false;
+  LibQueryUnusedIDsData unused_ids_data;
+  unused_ids_data.do_local_ids = true;
+  unused_ids_data.do_linked_ids = true;
+  unused_ids_data.do_recursive = false;
 
   static const char *_keywords[] = {"do_local_ids", "do_linked_ids", "do_recursive", nullptr};
   static _PyArg_Parser _parser = {
@@ -404,20 +397,19 @@ static PyObject *bpy_orphans_purge(PyObject * /*self*/, PyObject *args, PyObject
                                         kwds,
                                         &_parser,
                                         PyC_ParseBool,
-                                        &do_local_ids,
+                                        &unused_ids_data.do_local_ids,
                                         PyC_ParseBool,
-                                        &do_linked_ids,
+                                        &unused_ids_data.do_linked_ids,
                                         PyC_ParseBool,
-                                        &do_recursive_cleanup))
+                                        &unused_ids_data.do_recursive))
   {
     return nullptr;
   }
 
   /* Tag all IDs to delete. */
-  BKE_lib_query_unused_ids_tag(
-      bmain, LIB_TAG_DOIT, do_local_ids, do_linked_ids, do_recursive_cleanup, num_tagged);
+  BKE_lib_query_unused_ids_tag(bmain, LIB_TAG_DOIT, unused_ids_data);
 
-  if (num_tagged[INDEX_ID_NULL] == 0) {
+  if (unused_ids_data.num_total[INDEX_ID_NULL] == 0) {
     return PyLong_FromSize_t(0);
   }
 

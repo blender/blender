@@ -13,7 +13,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_math_euler.hh"
 #include "BLI_multi_value_map.hh"
 #include "BLI_set.hh"
 #include "BLI_stack.hh"
@@ -21,14 +20,11 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
-#include "BKE_node_tree_update.hh"
-
-#include "RNA_types.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -246,6 +242,11 @@ static SocketDeclarationPtr declaration_for_interface_socket(
       const auto &value = node_interface::get_socket_data_as<bNodeSocketValueRotation>(io_socket);
       std::unique_ptr<decl::Rotation> decl = std::make_unique<decl::Rotation>();
       decl->default_value = math::EulerXYZ(float3(value.value_euler));
+      dst = std::move(decl);
+      break;
+    }
+    case SOCK_MATRIX: {
+      std::unique_ptr<decl::Matrix> decl = std::make_unique<decl::Matrix>();
       dst = std::move(decl);
       break;
     }

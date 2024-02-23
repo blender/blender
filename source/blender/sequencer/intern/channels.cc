@@ -11,15 +11,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
-#include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "SEQ_channels.hh"
-#include "SEQ_iterator.hh"
-#include "SEQ_relations.hh"
-#include "SEQ_sequencer.hh"
 
 ListBase *SEQ_channels_displayed_get(Editing *ed)
 {

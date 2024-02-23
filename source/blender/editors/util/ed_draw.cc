@@ -13,12 +13,11 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
@@ -39,7 +38,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_access.hh"
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -483,29 +481,29 @@ void ED_slider_status_string_get(const tSlider *slider,
 
   if (slider->allow_overshoot_lower || slider->allow_overshoot_upper) {
     if (slider->overshoot) {
-      STRNCPY(overshoot_str, RPT_("[E] - Disable overshoot"));
+      STRNCPY(overshoot_str, IFACE_("[E] - Disable overshoot"));
     }
     else {
-      STRNCPY(overshoot_str, RPT_("[E] - Enable overshoot"));
+      STRNCPY(overshoot_str, IFACE_("[E] - Enable overshoot"));
     }
   }
   else {
-    STRNCPY(overshoot_str, RPT_("Overshoot disabled"));
+    STRNCPY(overshoot_str, IFACE_("Overshoot disabled"));
   }
 
   if (slider->precision) {
-    STRNCPY(precision_str, RPT_("[Shift] - Precision active"));
+    STRNCPY(precision_str, IFACE_("[Shift] - Precision active"));
   }
   else {
-    STRNCPY(precision_str, RPT_("Shift - Hold for precision"));
+    STRNCPY(precision_str, IFACE_("Shift - Hold for precision"));
   }
 
   if (slider->allow_increments) {
     if (slider->increments) {
-      STRNCPY(increments_str, RPT_(" | [Ctrl] - Increments active"));
+      STRNCPY(increments_str, IFACE_(" | [Ctrl] - Increments active"));
     }
     else {
-      STRNCPY(increments_str, RPT_(" | Ctrl - Hold for 10% increments"));
+      STRNCPY(increments_str, IFACE_(" | Ctrl - Hold for 10% increments"));
     }
   }
   else {

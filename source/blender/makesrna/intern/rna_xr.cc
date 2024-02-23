@@ -6,7 +6,7 @@
  * \ingroup RNA
  */
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -2088,7 +2088,6 @@ static void rna_def_xr_session_state(BlenderRNA *brna)
   PropertyRNA *parm, *prop;
 
   srna = RNA_def_struct(brna, "XrSessionState", nullptr);
-  RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
   RNA_def_struct_ui_text(srna, "Session State", "Runtime state information about the VR session");
 
   func = RNA_def_function(srna, "is_running", "rna_XrSessionState_is_running");

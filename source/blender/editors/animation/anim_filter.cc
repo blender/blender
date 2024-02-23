@@ -62,18 +62,17 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_layer.hh"
@@ -81,7 +80,7 @@
 #include "BKE_mask.h"
 #include "BKE_material.h"
 #include "BKE_modifier.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "ED_anim_api.hh"
 #include "ED_markers.hh"
@@ -90,8 +89,6 @@
 #include "SEQ_utils.hh"
 
 #include "ANIM_bone_collections.hh"
-
-#include "UI_resources.hh" /* for TH_KEYFRAME_SCALE lookup */
 
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */

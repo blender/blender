@@ -13,7 +13,6 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_time.h" /* USER_ZOOM_CONTINUE */
@@ -1032,7 +1031,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
   /* Check if the 'timer' is initialized, as zooming with the trackpad
    * never uses the "Continuous" zoom method, and the 'timer' is not initialized. */
   if ((U.viewzoom == USER_ZOOM_CONTINUE) && vzd->timer) { /* XXX store this setting as RNA prop? */
-    const double time = BLI_check_seconds_timer();
+    const double time = BLI_time_now_seconds();
     const float time_step = float(time - vzd->timer_lastdraw);
 
     dx *= time_step * 5.0f;
@@ -1232,7 +1231,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
     vzd->timer = WM_event_timer_add(CTX_wm_manager(C), window, TIMER, 0.01f);
-    vzd->timer_lastdraw = BLI_check_seconds_timer();
+    vzd->timer_lastdraw = BLI_time_now_seconds();
   }
 
   return OPERATOR_RUNNING_MODAL;
@@ -1908,11 +1907,17 @@ static void scroller_activate_init(bContext *C,
    * - zooming must be allowed on this axis, otherwise, default to pan
    */
   View2DScrollers scrollers;
-  /* Some Editors like the File-browser or Spreadsheet already set up custom masks for scroll-bars
-   * (they don't cover the whole region width or height), these need to be considered, otherwise
-   * coords for `mouse_in_scroller_handle` later are not compatible. */
+  /* Reconstruct the custom scroller mask passed to #UI_view2d_scrollers_draw().
+   *
+   * Some editors like the File Browser, Spreadsheet or scrubbing UI already set up custom masks
+   * for scroll-bars (they don't cover the whole region width or height), these need to be
+   * considered, otherwise coords for `mouse_in_scroller_handle` later are not compatible. This
+   * should be a reliable way to do it. Otherwise the custom scroller mask could also be stored in
+   * #View2D.
+   */
   rcti scroller_mask = v2d->hor;
   BLI_rcti_union(&scroller_mask, &v2d->vert);
+
   view2d_scrollers_calc(v2d, &scroller_mask, &scrollers);
 
   /* Use a union of 'cur' & 'tot' in case the current view is far outside 'tot'. In this cases

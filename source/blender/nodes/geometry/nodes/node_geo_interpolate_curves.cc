@@ -12,11 +12,8 @@
 #include "BLI_task.hh"
 
 #include "BKE_curves.hh"
-#include "BKE_curves_utils.hh"
 
 #include "GEO_randomize.hh"
-
-#include "DNA_pointcloud_types.h"
 
 namespace blender::nodes::node_geo_interpolate_curves_cc {
 

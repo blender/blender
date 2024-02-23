@@ -4,8 +4,6 @@
 
 #include "NOD_derived_node_tree.hh"
 
-#include "BKE_node.hh"
-
 #include "BLI_dot_export.hh"
 
 namespace blender::nodes {

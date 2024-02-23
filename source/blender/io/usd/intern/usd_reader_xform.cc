@@ -5,7 +5,7 @@
  *
  * Adapted from the Blender Alembic importer implementation. */
 
-#include "usd_reader_xform.h"
+#include "usd_reader_xform.hh"
 
 #include "BKE_constraint.h"
 #include "BKE_lib_id.hh"

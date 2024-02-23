@@ -94,6 +94,7 @@ TEST(BLI_uuid, string_formatting)
   memset(&uuid, 0, sizeof(uuid));
   BLI_uuid_format(buffer.data(), uuid);
   EXPECT_EQ("00000000-0000-0000-0000-000000000000", buffer);
+  EXPECT_EQ("00000000-0000-0000-0000-000000000000", uuid.str());
 
   /* Demo of where the bits end up in the formatted string. */
   uuid.time_low = 1;
@@ -105,17 +106,20 @@ TEST(BLI_uuid, string_formatting)
   uuid.node[5] = 7;
   BLI_uuid_format(buffer.data(), uuid);
   EXPECT_EQ("00000001-0002-0003-0405-060000000007", buffer);
+  EXPECT_EQ("00000001-0002-0003-0405-060000000007", uuid.str());
 
   /* Somewhat more complex bit patterns. This is a version 1 UUID generated from Python. */
   const bUUID uuid1 = {3540651616, 5282, 4588, 139, 153, 0xf7, 0x73, 0x69, 0x44, 0xdb, 0x8b};
   BLI_uuid_format(buffer.data(), uuid1);
   EXPECT_EQ("d30a0e60-14a2-11ec-8b99-f7736944db8b", buffer);
+  EXPECT_EQ("d30a0e60-14a2-11ec-8b99-f7736944db8b", uuid1.str());
 
   /* Namespace UUID, example listed in RFC4211. */
   const bUUID namespace_dns = {
       0x6ba7b810, 0x9dad, 0x11d1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8};
   BLI_uuid_format(buffer.data(), namespace_dns);
   EXPECT_EQ("6ba7b810-9dad-11d1-80b4-00c04fd430c8", buffer);
+  EXPECT_EQ("6ba7b810-9dad-11d1-80b4-00c04fd430c8", namespace_dns.str());
 }
 
 TEST(BLI_uuid, string_parsing_ok)

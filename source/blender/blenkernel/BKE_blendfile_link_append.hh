@@ -29,7 +29,7 @@ void BKE_blendfile_link_append_context_free(BlendfileLinkAppendContext *lapp_con
  *
  * \param flag: A combination of:
  * - #eFileSel_Params_Flag from `DNA_space_types.h` &
- * - #eBLOLibLinkFlags * from `BLO_readfile.h`.
+ * - #eBLOLibLinkFlags * from `BLO_readfile.hh`.
  * \param do_set: Set the given \a flag if true, clear it otherwise.
  */
 void BKE_blendfile_link_append_context_flag_set(BlendfileLinkAppendContext *lapp_context,

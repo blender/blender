@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
@@ -186,7 +186,6 @@ class SyncModule {
                    const ObjectRef &ob_ref,
                    ModifierData *modifier_data = nullptr,
                    ParticleSystem *particle_sys = nullptr);
-  void sync_light_probe(Object *ob, ObjectHandle &ob_handle);
 };
 
 using HairHandleCallback = FunctionRef<void(ObjectHandle, ModifierData &, ParticleSystem &)>;

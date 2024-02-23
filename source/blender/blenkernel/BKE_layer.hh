@@ -10,7 +10,7 @@
 
 #include "BLI_vector.hh"
 
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_listBase.h"

@@ -153,7 +153,7 @@ bUUID::bUUID(const std::initializer_list<uint32_t> field_values)
   std::copy(field_iter, field_values.end(), this->node);
 }
 
-bUUID::bUUID(const std::string &string_formatted_uuid)
+bUUID::bUUID(const StringRefNull string_formatted_uuid)
 {
   const bool parsed_ok = BLI_uuid_parse_string(this, string_formatted_uuid.c_str());
   if (!parsed_ok) {
@@ -166,6 +166,13 @@ bUUID::bUUID(const std::string &string_formatted_uuid)
 bUUID::bUUID(const ::bUUID &struct_uuid)
 {
   *(static_cast<::bUUID *>(this)) = struct_uuid;
+}
+
+std::string bUUID::str() const
+{
+  std::string string(36, '\0');
+  BLI_uuid_format(string.data(), *this);
+  return string;
 }
 
 uint64_t bUUID::hash() const

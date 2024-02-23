@@ -25,7 +25,7 @@
 #include "BKE_appdir.hh" /* own include */
 #include "BKE_blender_version.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "GHOST_Path-api.hh"
 

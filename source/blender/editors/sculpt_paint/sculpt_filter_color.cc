@@ -13,17 +13,16 @@
 #include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_layer.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
 
 #include "IMB_colormanagement.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -331,6 +330,11 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = ob->sculpt;
   View3D *v3d = CTX_wm_view3d(C);
+
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
 
   int mval[2];
   RNA_int_get_array(op->ptr, "start_mouse", mval);

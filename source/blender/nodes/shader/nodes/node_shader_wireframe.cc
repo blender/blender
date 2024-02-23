@@ -4,7 +4,7 @@
 
 #include "node_shader_util.hh"
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "GPU_material.hh"
 

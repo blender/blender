@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_curve_types.h"
-#include "DNA_vfont_types.h"
 
 #include "BKE_curve.hh"
 #include "BKE_curve_legacy_convert.hh"
@@ -12,7 +11,6 @@
 #include "BKE_vfont.hh"
 
 #include "BLI_bounds.hh"
-#include "BLI_hash.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_task.hh"
@@ -319,8 +317,8 @@ static void add_instances_from_handles(bke::Instances &instances,
                                        const TextLayout &layout)
 {
   instances.resize(layout.positions.size());
-  MutableSpan<int> handles = instances.reference_handles();
-  MutableSpan<float4x4> transforms = instances.transforms();
+  MutableSpan<int> handles = instances.reference_handles_for_write();
+  MutableSpan<float4x4> transforms = instances.transforms_for_write();
 
   threading::parallel_for(IndexRange(layout.positions.size()), 256, [&](IndexRange range) {
     for (const int i : range) {

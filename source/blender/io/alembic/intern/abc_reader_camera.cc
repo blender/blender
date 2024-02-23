@@ -18,7 +18,7 @@
 #include "BKE_camera.h"
 #include "BKE_object.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::ICamera;

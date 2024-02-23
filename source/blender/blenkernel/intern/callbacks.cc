@@ -9,13 +9,12 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
-#include "RNA_types.hh"
 
 static ListBase callback_slots[BKE_CB_EVT_TOT] = {{nullptr}};
 

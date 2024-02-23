@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "camera.h"
+#include "camera.hh"
 
 #include "BKE_camera.h"
 
@@ -10,7 +10,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "hydra/object.h"
+#include "hydra/object.hh"
 
 namespace blender::render::hydra {
 
@@ -80,7 +80,7 @@ pxr::GfCamera gf_camera(const Object *camera_obj,
   BKE_camera_params_from_object(&params, camera_obj);
 
   pxr::GfCamera camera = gf_camera(params, res, border);
-  camera.SetTransform(io::hydra::gf_matrix_from_transform(camera_obj->object_to_world));
+  camera.SetTransform(io::hydra::gf_matrix_from_transform(camera_obj->object_to_world().ptr()));
 
   return camera;
 }

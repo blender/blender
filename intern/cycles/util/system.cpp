@@ -130,9 +130,7 @@ int system_cpu_bits()
 
 struct CPUCapabilities {
   bool sse2;
-  bool sse3;
-  bool sse41;
-  bool avx;
+  bool sse42;
   bool avx2;
 };
 
@@ -155,7 +153,7 @@ static CPUCapabilities &system_cpu_capabilities()
 
       const bool ssse3 = (result[2] & ((int)1 << 9)) != 0;
       const bool sse41 = (result[2] & ((int)1 << 19)) != 0;
-      // const bool sse42 = (result[2] & ((int)1 << 20)) != 0;
+      const bool sse42 = (result[2] & ((int)1 << 20)) != 0;
 
       const bool fma3 = (result[2] & ((int)1 << 12)) != 0;
       const bool os_uses_xsave_xrestore = (result[2] & ((int)1 << 27)) != 0;
@@ -163,8 +161,7 @@ static CPUCapabilities &system_cpu_capabilities()
 
       /* Simplify to combined capabilities for which we specialize kernels. */
       caps.sse2 = sse && sse2;
-      caps.sse3 = sse && sse2 && sse3 && ssse3;
-      caps.sse41 = sse && sse2 && sse3 && ssse3 && sse41;
+      caps.sse42 = sse && sse2 && sse3 && ssse3 && sse41 && sse42;
 
       if (os_uses_xsave_xrestore && cpu_avx_support) {
         // Check if the OS will save the YMM registers
@@ -187,9 +184,8 @@ static CPUCapabilities &system_cpu_capabilities()
         bool bmi2 = (result[1] & ((int)1 << 8)) != 0;
         bool avx2 = (result[1] & ((int)1 << 5)) != 0;
 
-        caps.avx = sse && sse2 && sse3 && ssse3 && sse41 && avx;
-        caps.avx2 = sse && sse2 && sse3 && ssse3 && sse41 && avx && f16c && avx2 && fma3 && bmi1 &&
-                    bmi2;
+        caps.avx2 = sse && sse2 && sse3 && ssse3 && sse41 && sse42 && avx && f16c && avx2 &&
+                    fma3 && bmi1 && bmi2;
       }
     }
 
@@ -205,10 +201,10 @@ bool system_cpu_support_sse2()
   return caps.sse2;
 }
 
-bool system_cpu_support_sse41()
+bool system_cpu_support_sse42()
 {
   CPUCapabilities &caps = system_cpu_capabilities();
-  return caps.sse41;
+  return caps.sse42;
 }
 
 bool system_cpu_support_avx2()
@@ -223,7 +219,7 @@ bool system_cpu_support_sse2()
   return false;
 }
 
-bool system_cpu_support_sse41()
+bool system_cpu_support_sse42()
 {
   return false;
 }

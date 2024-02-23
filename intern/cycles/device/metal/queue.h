@@ -40,6 +40,8 @@ class MetalDeviceQueue : public DeviceQueue {
   virtual void copy_to_device(device_memory &mem) override;
   virtual void copy_from_device(device_memory &mem) override;
 
+  virtual void *native_queue() override;
+
  protected:
   void setup_capture();
   void update_capture(DeviceKernel kernel);

@@ -142,13 +142,14 @@ void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_p
   }
 }
 
-void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const IDRemapper *mappings)
+void BKE_viewer_path_id_remap(ViewerPath *viewer_path,
+                              const blender::bke::id::IDRemapper &mappings)
 {
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
         auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
-        BKE_id_remapper_apply(mappings, &typed_elem->id, ID_REMAP_APPLY_DEFAULT);
+        mappings.apply(&typed_elem->id, ID_REMAP_APPLY_DEFAULT);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER:

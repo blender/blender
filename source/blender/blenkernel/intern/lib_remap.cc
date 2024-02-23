@@ -18,7 +18,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_armature.hh"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_curve.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
@@ -29,7 +29,7 @@
 #include "BKE_mball.hh"
 #include "BKE_modifier.hh"
 #include "BKE_multires.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 
@@ -37,6 +37,8 @@
 #include "DEG_depsgraph_build.hh"
 
 #include "lib_intern.hh" /* own include */
+
+using namespace blender::bke::id;
 
 static CLG_LogRef LOG = {"bke.lib_remap"};
 
@@ -59,7 +61,7 @@ struct IDRemap {
   eIDRemapType type;
   Main *bmain; /* Only used to trigger depsgraph updates in the right bmain. */
 
-  IDRemapper *id_remapper;
+  IDRemapper &id_remapper;
 
   /** The ID in which we are replacing old_id by new_id usages. */
   ID *id_owner;
@@ -103,7 +105,7 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
                                                   ID *id_self,
                                                   ID **id_ptr,
                                                   IDRemap *id_remap_data,
-                                                  const IDRemapper *mappings,
+                                                  const IDRemapper &mappings,
                                                   const IDRemapperApplyOptions id_remapper_options,
                                                   const int cb_flag,
                                                   const bool is_indirect,
@@ -116,16 +118,16 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
 
   ID *old_id = *id_ptr;
   if (!violates_never_null) {
-    BKE_id_remapper_apply_ex(mappings, id_ptr, id_remapper_options, id_self);
+    mappings.apply(id_ptr, id_remapper_options, id_self);
     if (!skip_update_tagging) {
       if (id_remap_data->bmain != nullptr) {
         DEG_id_tag_update_ex(id_remap_data->bmain,
                              id_self,
-                             ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+                             ID_RECALC_SYNC_TO_EVAL | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
         if (id_self != id_owner) {
           DEG_id_tag_update_ex(id_remap_data->bmain,
                                id_owner,
-                               ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
+                               ID_RECALC_SYNC_TO_EVAL | ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
         }
       }
       if (GS(id_owner->name) == ID_NT) {
@@ -195,15 +197,15 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     return IDWALK_RET_NOP;
   }
 
-  IDRemapper *id_remapper = id_remap_data->id_remapper;
+  IDRemapper &id_remapper = id_remap_data->id_remapper;
   IDRemapperApplyOptions id_remapper_options = ID_REMAP_APPLY_DEFAULT;
 
   /* Used to cleanup all IDs used by a specific one. */
   if (id_remap_data->type == ID_REMAP_TYPE_CLEANUP) {
     /* Clearing existing instance to reduce potential lookup times for IDs referencing many other
      * IDs. This makes sure that there will only be a single rule in the id_remapper. */
-    BKE_id_remapper_clear(id_remapper);
-    BKE_id_remapper_add(id_remapper, *id_p, nullptr);
+    id_remapper.clear();
+    id_remapper.add(*id_p, nullptr);
   }
 
   /* Better remap to nullptr than not remapping at all,
@@ -212,8 +214,8 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
     id_remapper_options |= ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF;
   }
 
-  const IDRemapperApplyResult expected_mapping_result = BKE_id_remapper_get_mapping_result(
-      id_remapper, *id_p, id_remapper_options, id_self);
+  const IDRemapperApplyResult expected_mapping_result = id_remapper.get_mapping_result(
+      *id_p, id_remapper_options, id_self);
   /* Exit, when no modifications will be done; ensuring id->runtime counters won't changed. */
   if (ELEM(expected_mapping_result,
            ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
@@ -247,15 +249,18 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
       id_owner->lib,
       (*id_p)->name,
       *id_p,
-      BKE_id_remapper_result_string(expected_mapping_result),
+      id_remapper.result_to_string(expected_mapping_result).c_str(),
       is_indirect,
       skip_indirect,
       is_reference,
       skip_reference);
 #endif
 
-  if ((id_remap_data->flag & ID_REMAP_FLAG_NEVER_NULL_USAGE) && (cb_flag & IDWALK_CB_NEVER_NULL)) {
-    id_owner->tag |= LIB_TAG_DOIT;
+  if ((id_remap_data->flag & ID_REMAP_STORE_NEVER_NULL_USAGE) &&
+      (cb_flag & IDWALK_CB_NEVER_NULL) &&
+      (expected_mapping_result == ID_REMAP_RESULT_SOURCE_UNASSIGNED))
+  {
+    id_remapper.never_null_users_add(id_owner);
   }
 
   /* Special hack in case it's Object->data and we are in edit mode, and new_id is not nullptr
@@ -292,7 +297,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
 static void libblock_remap_data_preprocess_ob(Object *ob,
                                               eIDRemapType remap_type,
-                                              const IDRemapper *id_remapper)
+                                              const IDRemapper &id_remapper)
 {
   if (ob->type != OB_ARMATURE) {
     return;
@@ -303,7 +308,7 @@ static void libblock_remap_data_preprocess_ob(Object *ob,
 
   const bool is_cleanup_type = remap_type == ID_REMAP_TYPE_CLEANUP;
   /* Early exit when mapping, but no armature mappings present. */
-  if (!is_cleanup_type && !BKE_id_remapper_has_mapping_for(id_remapper, FILTER_ID_AR)) {
+  if (!is_cleanup_type && !id_remapper.contains_mappings_for_any(FILTER_ID_AR)) {
     return;
   }
 
@@ -313,8 +318,8 @@ static void libblock_remap_data_preprocess_ob(Object *ob,
    * Fortunately, this is just a tag, so we can accept to 'over-tag' a bit for pose recalc,
    * and avoid another complex and risky condition nightmare like the one we have in
    * foreach_libblock_remap_callback(). */
-  const IDRemapperApplyResult expected_mapping_result = BKE_id_remapper_get_mapping_result(
-      id_remapper, static_cast<ID *>(ob->data), ID_REMAP_APPLY_DEFAULT, nullptr);
+  const IDRemapperApplyResult expected_mapping_result = id_remapper.get_mapping_result(
+      static_cast<ID *>(ob->data), ID_REMAP_APPLY_DEFAULT, nullptr);
   if (is_cleanup_type || expected_mapping_result == ID_REMAP_RESULT_SOURCE_REMAPPED) {
     ob->pose->flag |= POSE_RECALC;
     /* We need to clear pose bone pointers immediately, some code may access those before
@@ -325,7 +330,7 @@ static void libblock_remap_data_preprocess_ob(Object *ob,
 
 static void libblock_remap_data_preprocess(ID *id_owner,
                                            eIDRemapType remap_type,
-                                           const IDRemapper *id_remapper)
+                                           const IDRemapper &id_remapper)
 {
   switch (GS(id_owner->name)) {
     case ID_OB: {
@@ -483,9 +488,16 @@ static void libblock_remap_reset_remapping_status_callback(ID *old_id,
  * (useful to retrieve info about remapping process).
  */
 static void libblock_remap_data(
-    Main *bmain, ID *id, eIDRemapType remap_type, IDRemapper *id_remapper, const int remap_flags)
+    Main *bmain, ID *id, eIDRemapType remap_type, IDRemapper &id_remapper, const int remap_flags)
 {
-  IDRemap id_remap_data = {eIDRemapType(0)};
+  IDRemap id_remap_data = {
+      /*.type=*/remap_type,
+      /*.bmain=*/bmain,
+      /*.id_remapper=*/id_remapper,
+      /*.id_owner=*/nullptr,
+      /*.flag=*/remap_flags,
+  };
+
   const bool include_ui = (remap_flags & ID_REMAP_FORCE_UI_POINTERS) != 0;
   const int foreach_id_flags = (((remap_flags & ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS) != 0 ?
                                      IDWALK_DO_INTERNAL_RUNTIME_POINTERS :
@@ -499,13 +511,7 @@ static void libblock_remap_data(
                                      IDWALK_DO_LIBRARY_POINTER :
                                      IDWALK_NOP));
 
-  id_remap_data.id_remapper = id_remapper;
-  id_remap_data.type = remap_type;
-  id_remap_data.bmain = bmain;
-  id_remap_data.id_owner = nullptr;
-  id_remap_data.flag = remap_flags;
-
-  BKE_id_remapper_iter(id_remapper, libblock_remap_reset_remapping_status_callback, nullptr);
+  id_remapper.iter(libblock_remap_reset_remapping_status_callback, nullptr);
 
   if (id) {
 #ifdef DEBUG_PRINT
@@ -524,7 +530,7 @@ static void libblock_remap_data(
 
     FOREACH_MAIN_ID_BEGIN (bmain, id_curr) {
       const uint64_t can_use_filter_id = BKE_library_id_can_use_filter_id(id_curr, include_ui);
-      const bool has_mapping = BKE_id_remapper_has_mapping_for(id_remapper, can_use_filter_id);
+      const bool has_mapping = id_remapper.contains_mappings_for_any(can_use_filter_id);
 
       /* Continue when id_remapper doesn't have any mappings that can be used by id_curr. */
       if (!has_mapping) {
@@ -544,7 +550,7 @@ static void libblock_remap_data(
     FOREACH_MAIN_ID_END;
   }
 
-  BKE_id_remapper_iter(id_remapper, libblock_remap_data_update_tags, &id_remap_data);
+  id_remapper.iter(libblock_remap_data_update_tags, &id_remap_data);
 }
 
 struct LibBlockRemapMultipleUserData {
@@ -645,9 +651,9 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
   BKE_libblock_runtime_reset_remapping_status(old_id);
 }
 
-void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper *mappings, const int remap_flags)
+void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper &mappings, const int remap_flags)
 {
-  if (BKE_id_remapper_is_empty(mappings)) {
+  if (mappings.is_empty()) {
     /* Early exit nothing to do. */
     return;
   }
@@ -658,7 +664,7 @@ void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper *mappings, const
   user_data.bmain = bmain;
   user_data.remap_flags = remap_flags;
 
-  BKE_id_remapper_iter(mappings, libblock_remap_foreach_idpair_cb, &user_data);
+  mappings.iter(libblock_remap_foreach_idpair_cb, &user_data);
 
   /* We assume editors do not hold references to their IDs... This is false in some cases
    * (Image is especially tricky here),
@@ -671,9 +677,9 @@ void BKE_libblock_remap_multiple_locked(Main *bmain, IDRemapper *mappings, const
   DEG_relations_tag_update(bmain);
 }
 
-void BKE_libblock_remap_multiple_raw(Main *bmain, IDRemapper *mappings, const int remap_flags)
+void BKE_libblock_remap_multiple_raw(Main *bmain, IDRemapper &mappings, const int remap_flags)
 {
-  if (BKE_id_remapper_is_empty(mappings)) {
+  if (mappings.is_empty()) {
     /* Early exit nothing to do. */
     return;
   }
@@ -687,12 +693,11 @@ void BKE_libblock_remap_multiple_raw(Main *bmain, IDRemapper *mappings, const in
 
 void BKE_libblock_remap_locked(Main *bmain, void *old_idv, void *new_idv, const int remap_flags)
 {
-  IDRemapper *remapper = BKE_id_remapper_create();
+  IDRemapper remapper;
   ID *old_id = static_cast<ID *>(old_idv);
   ID *new_id = static_cast<ID *>(new_idv);
-  BKE_id_remapper_add(remapper, old_id, new_id);
+  remapper.add(old_id, new_id);
   BKE_libblock_remap_multiple_locked(bmain, remapper, remap_flags);
-  BKE_id_remapper_free(remapper);
 }
 
 void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, const int remap_flags)
@@ -704,7 +709,7 @@ void BKE_libblock_remap(Main *bmain, void *old_idv, void *new_idv, const int rem
   BKE_main_unlock(bmain);
 }
 
-void BKE_libblock_remap_multiple(Main *bmain, IDRemapper *mappings, const int remap_flags)
+void BKE_libblock_remap_multiple(Main *bmain, IDRemapper &mappings, const int remap_flags)
 {
   BKE_main_lock(bmain);
 
@@ -713,13 +718,9 @@ void BKE_libblock_remap_multiple(Main *bmain, IDRemapper *mappings, const int re
   BKE_main_unlock(bmain);
 }
 
-void BKE_libblock_unlink(Main *bmain,
-                         void *idv,
-                         const bool do_flag_never_null,
-                         const bool do_skip_indirect)
+void BKE_libblock_unlink(Main *bmain, void *idv, const bool do_skip_indirect)
 {
-  const int remap_flags = (do_skip_indirect ? ID_REMAP_SKIP_INDIRECT_USAGE : 0) |
-                          (do_flag_never_null ? ID_REMAP_FLAG_NEVER_NULL_USAGE : 0);
+  const int remap_flags = (do_skip_indirect ? ID_REMAP_SKIP_INDIRECT_USAGE : 0);
 
   BKE_main_lock(bmain);
 
@@ -798,10 +799,10 @@ static void libblock_relink_foreach_idpair_cb(ID *old_id, ID *new_id, void *user
 void BKE_libblock_relink_multiple(Main *bmain,
                                   const blender::Span<ID *> ids,
                                   const eIDRemapType remap_type,
-                                  IDRemapper *id_remapper,
+                                  IDRemapper &id_remapper,
                                   const int remap_flags)
 {
-  BLI_assert(remap_type == ID_REMAP_TYPE_REMAP || BKE_id_remapper_is_empty(id_remapper));
+  BLI_assert(remap_type == ID_REMAP_TYPE_REMAP || id_remapper.is_empty());
 
   for (ID *id_iter : ids) {
     libblock_remap_data(bmain, id_iter, remap_type, id_remapper, remap_flags);
@@ -815,7 +816,7 @@ void BKE_libblock_relink_multiple(Main *bmain,
     case ID_REMAP_TYPE_REMAP: {
       LibBlockRelinkMultipleUserData user_data = {bmain, ids};
 
-      BKE_id_remapper_iter(id_remapper, libblock_relink_foreach_idpair_cb, &user_data);
+      id_remapper.iter(libblock_relink_foreach_idpair_cb, &user_data);
       break;
     }
     case ID_REMAP_TYPE_CLEANUP: {
@@ -869,7 +870,7 @@ void BKE_libblock_relink_ex(
   blender::Array<ID *> ids = {id};
 
   /* No need to lock here, we are only affecting given ID, not bmain database. */
-  IDRemapper *id_remapper = BKE_id_remapper_create();
+  IDRemapper id_remapper;
   eIDRemapType remap_type = ID_REMAP_TYPE_REMAP;
 
   BLI_assert(id != nullptr);
@@ -877,7 +878,7 @@ void BKE_libblock_relink_ex(
   if (old_id != nullptr) {
     BLI_assert((new_id == nullptr) || GS(old_id->name) == GS(new_id->name));
     BLI_assert(old_id != new_id);
-    BKE_id_remapper_add(id_remapper, old_id, new_id);
+    id_remapper.add(old_id, new_id);
   }
   else {
     BLI_assert(new_id == nullptr);
@@ -885,13 +886,11 @@ void BKE_libblock_relink_ex(
   }
 
   BKE_libblock_relink_multiple(bmain, ids, remap_type, id_remapper, remap_flags);
-
-  BKE_id_remapper_free(id_remapper);
 }
 
 struct RelinkToNewIDData {
   blender::Vector<ID *> ids;
-  IDRemapper *id_remapper;
+  IDRemapper id_remapper;
 };
 
 static void libblock_relink_to_newid_prepare_data(Main *bmain,
@@ -908,12 +907,12 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
   Main *bmain = cb_data->bmain;
   ID **id_pointer = cb_data->id_pointer;
   ID *id = *id_pointer;
-  RelinkToNewIDData *relink_data = (RelinkToNewIDData *)cb_data->user_data;
+  RelinkToNewIDData *relink_data = static_cast<RelinkToNewIDData *>(cb_data->user_data);
 
   if (id) {
     /* See: NEW_ID macro */
     if (id->newid != nullptr) {
-      BKE_id_remapper_add(relink_data->id_remapper, id, id->newid);
+      relink_data->id_remapper.add(id, id->newid);
       id = id->newid;
     }
     if (id->tag & LIB_TAG_NEW) {
@@ -945,7 +944,6 @@ void BKE_libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
   BLI_assert(bmain->relations == nullptr);
 
   RelinkToNewIDData relink_data{};
-  relink_data.id_remapper = BKE_id_remapper_create();
 
   libblock_relink_to_newid_prepare_data(bmain, id, &relink_data);
 
@@ -953,6 +951,4 @@ void BKE_libblock_relink_to_newid(Main *bmain, ID *id, const int remap_flag)
                                ID_REMAP_SKIP_OVERRIDE_LIBRARY;
   BKE_libblock_relink_multiple(
       bmain, relink_data.ids, ID_REMAP_TYPE_REMAP, relink_data.id_remapper, remap_flag_final);
-
-  BKE_id_remapper_free(relink_data.id_remapper);
 }

@@ -139,6 +139,7 @@ enum {
   // LA_SHOW_SHADOW_BOX = 1 << 18,
   LA_SHAD_CONTACT = 1 << 19,
   LA_CUSTOM_ATTENUATION = 1 << 20,
+  LA_USE_SOFT_FALLOFF = 1 << 21,
 };
 
 /** #Light::falloff_type */

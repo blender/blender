@@ -34,7 +34,7 @@
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
@@ -43,17 +43,18 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "BKE_blendfile_link_append.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 #include "BLO_writefile.hh"
 
 static CLG_LogRef LOG = {"bke.blendfile_link_append"};
@@ -1894,7 +1895,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     if (lib->id.tag & LIB_TAG_DOIT) {
       id_us_clear_real(&lib->id);
       if (lib->id.us == 0) {
-        BKE_id_free(bmain, (ID *)lib);
+        BKE_id_delete(bmain, lib);
       }
     }
   }
@@ -1915,6 +1916,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     }
   }
   FOREACH_MAIN_ID_END;
+
+  BKE_library_main_rebuild_hierarchy(bmain);
 
   /* Resync overrides if needed. */
   if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {

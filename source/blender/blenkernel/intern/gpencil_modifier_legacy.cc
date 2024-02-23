@@ -18,7 +18,7 @@
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -330,7 +330,7 @@ void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
     bGPdata *gpd_orig = (bGPdata *)DEG_get_original_id(&gpd->id);
 
     /* sync "actframe" changes back to main-db too,
-     * so that editing tools work with copy-on-write
+     * so that editing tools work with copy-on-evaluation
      * when the current frame changes
      */
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd_orig->layers) {
@@ -640,13 +640,13 @@ bGPDframe *BKE_gpencil_frame_retime_get(Depsgraph *depsgraph,
 
 static void gpencil_assign_object_eval(Object *object)
 {
-  BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_WRITE);
+  BLI_assert(object->id.tag & LIB_TAG_COPIED_ON_EVAL);
 
   bGPdata *gpd_eval = object->runtime->gpd_eval;
 
-  gpd_eval->id.tag |= LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT;
+  gpd_eval->id.tag |= LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT;
 
-  if (object->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+  if (object->id.tag & LIB_TAG_COPIED_ON_EVAL) {
     object->data = gpd_eval;
   }
 }
@@ -963,6 +963,7 @@ void BKE_gpencil_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb,
       BLO_read_data_address(reader, &hmd->curfalloff);
       if (hmd->curfalloff) {
         BKE_curvemapping_blend_read(reader, hmd->curfalloff);
+        BKE_curvemapping_init(hmd->curfalloff);
       }
     }
     else if (md->type == eGpencilModifierType_Noise) {

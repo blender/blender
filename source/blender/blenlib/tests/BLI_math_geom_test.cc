@@ -114,3 +114,38 @@ TEST(math_geom, IsectPointQuad2D)
   EXPECT_EQ(-1, isect_point_quad_v2(corner2, quad_cw[0], quad_cw[1], quad_cw[2], quad_cw[3]));
   EXPECT_EQ(+1, isect_point_quad_v2(corner2, quad_ccw[0], quad_ccw[1], quad_ccw[2], quad_ccw[3]));
 }
+
+TEST(math_geom, CrossPoly)
+{
+  const float tri_cw_2d[3][2] = {{-1, 0}, {0, 1}, {1, 0}};
+  const float tri_cw_3d[3][3] = {{-1, 0}, {0, 1}, {1, 0}};
+
+  const float tri_ccw_2d[3][2] = {{1, 0}, {0, 1}, {-1, 0}};
+  const float tri_ccw_3d[3][3] = {{1, 0}, {0, 1}, {-1, 0}};
+
+  auto cross_tri_v3_as_float3 = [](const float(*poly)[3]) -> float3 {
+    float n[3];
+    cross_tri_v3(n, UNPACK3(poly));
+    return float3(n[0], n[1], n[2]);
+  };
+
+  auto cross_poly_v3_as_float3 = [](const float(*poly)[3]) -> float3 {
+    float n[3];
+    cross_poly_v3(n, poly, 3);
+    return float3(n[0], n[1], n[2]);
+  };
+
+  /* Clockwise. */
+  EXPECT_EQ(cross_tri_v3_as_float3(tri_cw_3d)[2], -2);
+  EXPECT_EQ(cross_tri_v2(UNPACK3(tri_cw_2d)), -2);
+
+  EXPECT_EQ(cross_poly_v3_as_float3(tri_cw_3d)[2], -2);
+  EXPECT_EQ(cross_poly_v2(tri_cw_2d, 3), -2);
+
+  /* Counter clockwise. */
+  EXPECT_EQ(cross_tri_v3_as_float3(tri_ccw_3d)[2], 2);
+  EXPECT_EQ(cross_tri_v2(UNPACK3(tri_ccw_2d)), 2);
+
+  EXPECT_EQ(cross_poly_v3_as_float3(tri_ccw_3d)[2], 2);
+  EXPECT_EQ(cross_poly_v2(tri_ccw_2d, 3), 2);
+}

@@ -339,7 +339,11 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
    public: \
     void *operator new(size_t num_bytes) \
     { \
-      return MEM_mallocN(num_bytes, _id); \
+      return MEM_mallocN_aligned(num_bytes, __STDCPP_DEFAULT_NEW_ALIGNMENT__, _id); \
+    } \
+    void *operator new(size_t num_bytes, std::align_val_t alignment) \
+    { \
+      return MEM_mallocN_aligned(num_bytes, size_t(alignment), _id); \
     } \
     void operator delete(void *mem) \
     { \
@@ -349,7 +353,11 @@ template<typename T> inline T *MEM_cnew(const char *allocation_name, const T &ot
     } \
     void *operator new[](size_t num_bytes) \
     { \
-      return MEM_mallocN(num_bytes, _id "[]"); \
+      return MEM_mallocN_aligned(num_bytes, __STDCPP_DEFAULT_NEW_ALIGNMENT__, _id "[]"); \
+    } \
+    void *operator new[](size_t num_bytes, std::align_val_t alignment) \
+    { \
+      return MEM_mallocN_aligned(num_bytes, size_t(alignment), _id "[]"); \
     } \
     void operator delete[](void *mem) \
     { \

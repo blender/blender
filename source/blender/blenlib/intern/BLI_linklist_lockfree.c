@@ -9,9 +9,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_linklist_lockfree.h"
-#include "BLI_strict_flags.h"
 
 #include "atomic_ops.h"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 void BLI_linklist_lockfree_init(LockfreeLinkList *list)
 {

@@ -10,7 +10,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_context.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_texture.h"
 
 #include "RNA_access.hh"

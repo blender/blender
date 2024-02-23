@@ -19,7 +19,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_context.hh"
-#  include "BKE_global.h"
+#  include "BKE_global.hh"
 #  include "BLI_math_vector.h"
 #  include "DNA_scene_types.h"
 #  include "IMB_imbuf.hh"

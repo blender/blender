@@ -36,3 +36,16 @@ vec3 octahedral_uv_to_direction(vec2 co)
 
   return v;
 }
+
+/* Mirror the UV if they are not on the diagonal or unit UV squares.
+ * Doesn't extend outside of [-1..2] range. But this is fine since we use it only for borders. */
+vec2 octahedral_mirror_repeat_uv(vec2 uv)
+{
+  vec2 m = abs(uv - 0.5) + 0.5;
+  vec2 f = floor(m);
+  float x = f.x - f.y;
+  if (x != 0.0) {
+    uv.xy = 1.0 - uv.xy;
+  }
+  return fract(uv);
+}

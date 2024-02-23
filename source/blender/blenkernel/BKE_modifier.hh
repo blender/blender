@@ -165,15 +165,15 @@ struct ModifierEvalContext {
 struct ModifierTypeInfo {
   /* A unique identifier for this modifier. Used to generate the panel id type name.
    * See #BKE_modifier_type_panel_id. */
-  char idname[32];
+  char idname[64];
 
   /* The user visible name for this modifier */
-  char name[32];
+  char name[64];
 
   /* The DNA struct name for the modifier data type, used to
    * write the DNA data out.
    */
-  char struct_name[32];
+  char struct_name[64];
 
   /* The size of the modifier data type, used by allocation. */
   int struct_size;
@@ -421,9 +421,6 @@ void BKE_modifier_free(ModifierData *md);
  */
 void BKE_modifier_remove_from_list(Object *ob, ModifierData *md);
 
-/* Generate new UID for the given modifier. */
-void BKE_modifier_session_uid_generate(ModifierData *md);
-
 void BKE_modifier_unique_name(ListBase *modifiers, ModifierData *md);
 
 ModifierData *BKE_modifier_copy_ex(const ModifierData *md, int flag);
@@ -472,8 +469,20 @@ void BKE_modifiers_foreach_tex_link(Object *ob, TexWalkFunc walk, void *user_dat
 
 ModifierData *BKE_modifiers_findby_type(const Object *ob, ModifierType type);
 ModifierData *BKE_modifiers_findby_name(const Object *ob, const char *name);
-ModifierData *BKE_modifiers_findby_session_uid(const Object *ob, const SessionUID *session_uid);
+ModifierData *BKE_modifiers_findby_persistent_uid(const Object *ob, int persistent_uid);
+
 void BKE_modifiers_clear_errors(Object *ob);
+
+/**
+ * Updates `md.persistent_uid` so that it is a valid identifier (>=1) and is unique in the object.
+ */
+void BKE_modifiers_persistent_uid_init(const Object &object, ModifierData &md);
+/**
+ * Returns true when all the modifier identifiers are positive and unique. This should generally be
+ * true and should only be used by asserts.
+ */
+bool BKE_modifiers_persistent_uids_are_valid(const Object &object);
+
 /**
  * used for buttons, to find out if the 'draw deformed in edit-mode option is there.
  *
@@ -579,12 +588,10 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 /**
  * Get evaluated mesh for other evaluated object, which is used as an operand for the modifier,
  * e.g. second operand for boolean modifier.
- * Note that modifiers in stack always get fully evaluated COW ID pointers,
+ * Note that modifiers in stack always get fully evaluated ID pointers,
  * never original ones. Makes things simpler.
  */
 Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval);
-
-void BKE_modifier_check_uids_unique_and_report(const Object *object);
 
 void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase);
 void BKE_modifier_blend_read_data(BlendDataReader *reader, ListBase *lb, Object *ob);

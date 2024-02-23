@@ -13,7 +13,7 @@
 
 #include <fmt/format.h>
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_object_types.h"
@@ -304,8 +304,6 @@ class CollectionViewItem : public BasicTreeViewItem {
                                   &collection_light_linking_ptr,
                                   "link_state",
                                   0,
-                                  0.0f,
-                                  0.0f,
                                   0.0f,
                                   0.0f,
                                   nullptr);

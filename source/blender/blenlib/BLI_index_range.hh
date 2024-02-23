@@ -41,6 +41,7 @@
 #include <iosfwd>
 
 #include "BLI_assert.h"
+#include "BLI_random_access_iterator_mixin.hh"
 
 namespace blender {
 
@@ -59,19 +60,42 @@ class IndexRange {
     BLI_assert(size >= 0);
   }
 
-  constexpr IndexRange(int64_t start, int64_t size) : start_(start), size_(size)
+  constexpr IndexRange(const int64_t start, const int64_t size) : start_(start), size_(size)
   {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
   }
 
-  class Iterator {
+  constexpr static IndexRange from_begin_size(const int64_t begin, const int64_t size)
+  {
+    return IndexRange(begin, size);
+  }
+
+  constexpr static IndexRange from_begin_end(const int64_t begin, const int64_t end)
+  {
+    return IndexRange(begin, end - begin);
+  }
+
+  constexpr static IndexRange from_begin_end_inclusive(const int64_t begin, const int64_t last)
+  {
+    return IndexRange(begin, last - begin + 1);
+  }
+
+  constexpr static IndexRange from_end_size(const int64_t end, const int64_t size)
+  {
+    return IndexRange(end - size, size);
+  }
+
+  constexpr static IndexRange from_single(const int64_t index)
+  {
+    return IndexRange(index, 1);
+  }
+
+  class Iterator : public iterator::RandomAccessIteratorMixin<Iterator> {
    public:
-    using iterator_category = std::forward_iterator_tag;
     using value_type = int64_t;
     using pointer = const int64_t *;
-    using reference = const int64_t &;
-    using difference_type = std::ptrdiff_t;
+    using reference = int64_t;
 
    private:
     int64_t current_;
@@ -79,35 +103,12 @@ class IndexRange {
    public:
     constexpr explicit Iterator(int64_t current) : current_(current) {}
 
-    constexpr Iterator &operator++()
-    {
-      current_++;
-      return *this;
-    }
-
-    constexpr Iterator operator++(int)
-    {
-      Iterator copied_iterator = *this;
-      ++(*this);
-      return copied_iterator;
-    }
-
-    constexpr friend bool operator!=(const Iterator &a, const Iterator &b)
-    {
-      return a.current_ != b.current_;
-    }
-
-    constexpr friend bool operator==(const Iterator &a, const Iterator &b)
-    {
-      return a.current_ == b.current_;
-    }
-
-    constexpr friend int64_t operator-(const Iterator &a, const Iterator &b)
-    {
-      return a.current_ - b.current_;
-    }
-
     constexpr int64_t operator*() const
+    {
+      return current_;
+    }
+
+    const int64_t &iter_prop() const
     {
       return current_;
     }

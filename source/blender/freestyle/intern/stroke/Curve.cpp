@@ -13,7 +13,7 @@
 #include "CurveAdvancedIterators.h"
 #include "CurveIterators.h"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BLI_utildefines.h"
 
 namespace Freestyle {

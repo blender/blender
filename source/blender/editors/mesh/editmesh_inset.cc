@@ -14,11 +14,11 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_unit.hh"
 
@@ -73,7 +73,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
   InsetData *opdata = static_cast<InsetData *>(op->customdata);
 
-  const char *str = RPT_(
+  const char *str = IFACE_(
       "Confirm: Enter/LMB, Cancel: (Esc/RMB), Thickness: %s, "
       "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s), Individual (I): "
       "(%s)");
@@ -141,7 +141,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
         MEM_malloc_arrayN(objects.size(), sizeof(*opdata->ob_store), __func__));
     for (uint ob_index = 0; ob_index < objects.size(); ob_index++) {
       Object *obedit = objects[ob_index];
-      float scale = mat4_to_scale(obedit->object_to_world);
+      float scale = mat4_to_scale(obedit->object_to_world().ptr());
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {

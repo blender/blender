@@ -12,8 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_meshdata_types.h"
-
 #include "bmesh.hh"
 
 #include "BLI_math_geom.h"

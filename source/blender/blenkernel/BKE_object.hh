@@ -115,7 +115,8 @@ bool BKE_object_copy_gpencil_modifier(Object *ob_dst, GpencilModifierData *gmd_s
  * Copy the whole stack of modifiers from one object into another.
  *
  * \warning *Does not* clear modifier stack and related data (particle systems, soft-body,
- * etc.) in `ob_dst`, if needed calling code must do it.
+ * etc.) in `ob_dst`, if needed calling code must do it. The caller is also responsible for
+ * ensuring the modifier identifiers are unique.
  *
  * \param do_copy_all: If true, even modifiers that should not support copying (like Hook one)
  * will be duplicated.
@@ -318,7 +319,7 @@ blender::Vector<Base *> BKE_object_pose_base_array_get(const Scene *scene,
 void BKE_object_get_parent_matrix(Object *ob, Object *par, float r_parentmat[4][4]);
 
 /**
- * Compute object world transform and store it in `ob->object_to_world`.
+ * Compute object world transform and store it in `ob->object_to_world().ptr()`.
  */
 void BKE_object_where_is_calc(Depsgraph *depsgraph, Scene *scene, Object *ob);
 void BKE_object_where_is_calc_ex(

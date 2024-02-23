@@ -23,7 +23,7 @@
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1508,7 +1508,7 @@ static void nurb_bezt_direction_worldspace_get(Object *ob,
 {
   float rsmat[3][3];
   BKE_nurb_bezt_calc_normal(nu, bezt, r_dir);
-  copy_m3_m4(rsmat, ob->object_to_world);
+  copy_m3_m4(rsmat, ob->object_to_world().ptr());
   mul_m3_v3(rsmat, r_dir);
   normalize_v3(r_dir);
 }
@@ -1517,7 +1517,7 @@ static void nurb_bpoint_direction_worldspace_get(Object *ob, Nurb *nu, BPoint *b
 {
   float rsmat[3][3];
   BKE_nurb_bpoint_calc_normal(nu, bp, r_dir);
-  copy_m3_m4(rsmat, ob->object_to_world);
+  copy_m3_m4(rsmat, ob->object_to_world().ptr());
   mul_m3_v3(rsmat, r_dir);
   normalize_v3(r_dir);
 }
@@ -2046,7 +2046,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
     ED_object_base_activate(C, basact);
   }
 
-  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
   return OPERATOR_FINISHED;
 }

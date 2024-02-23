@@ -42,7 +42,7 @@
 #endif
 
 /* vertex box select */
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -61,7 +61,7 @@
 #include "BKE_object.hh"
 #include "BKE_object_types.hh"
 #include "BKE_paint.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"
 
@@ -1194,9 +1194,10 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
       vc->scene->toolsettings);
 
   bool changed = false;
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
   for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
     bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
             ob_eval, *vc->obedit, info.layer_index, info.frame_number);
@@ -1207,10 +1208,13 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
     if (elements.is_empty()) {
       continue;
     }
+    const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
     changed = ed::curves::select_lasso(
         *vc,
         info.drawing.strokes_for_write(),
         deformation.positions,
+        projection,
         elements,
         selection_domain,
         Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
@@ -1432,10 +1436,12 @@ static bool view3d_lasso_select(bContext *C,
               bke::crazyspace::get_evaluated_curves_deformation(*vc->depsgraph, *vc->obedit);
           const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
+          const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
           changed = ed::curves::select_lasso(
               *vc,
               curves,
               deformation.positions,
+              projection,
               elements,
               selection_domain,
               Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
@@ -2388,9 +2394,10 @@ static Base *mouse_select_object_center(ViewContext *vc, Base *startbase, const 
   while (base) {
     if (BASE_SELECTABLE(v3d, base)) {
       float screen_co[2];
-      if (ED_view3d_project_float_global(
-              region, base->object->object_to_world[3], screen_co, V3D_PROJ_TEST_CLIP_DEFAULT) ==
-          V3D_PROJ_RET_OK)
+      if (ED_view3d_project_float_global(region,
+                                         base->object->object_to_world().location(),
+                                         screen_co,
+                                         V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK)
       {
         float dist_test = len_manhattan_v2v2(mval_fl, screen_co);
         if (base == oldbasact) {
@@ -3109,12 +3116,13 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obedit);
           const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+          const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, &curves_ob);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
-                                                         curves_ob,
                                                          curves.points_by_curve(),
                                                          deformation.positions,
+                                                         projection,
                                                          elements,
                                                          selection_domain,
                                                          mval,
@@ -3193,7 +3201,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc.scene, grease_pencil);
 
   /* Get selection domain from tool settings. */
@@ -3208,6 +3216,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
         ClosestGreasePencilDrawing new_closest = init;
         for (const int i : range) {
           ed::greasepencil::MutableDrawingInfo info = drawings[i];
+          const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
           /* Get deformation by modifiers. */
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
@@ -3219,11 +3228,14 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           if (elements.is_empty()) {
             continue;
           }
+          const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+          const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc.rv3d,
+                                                                              layer_to_world);
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
-                                                         *vc.obedit,
                                                          info.drawing.strokes().points_by_curve(),
                                                          deformation.positions,
+                                                         projection,
                                                          elements,
                                                          selection_domain,
                                                          mval,
@@ -4213,9 +4225,10 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
       scene->toolsettings);
 
   bool changed = false;
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
   for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
     bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
             ob_eval, *vc->obedit, info.layer_index, info.frame_number);
@@ -4225,9 +4238,12 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
     if (elements.is_empty()) {
       continue;
     }
+    const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
     changed |= ed::curves::select_box(*vc,
                                       info.drawing.strokes_for_write(),
                                       deformation.positions,
+                                      projection,
                                       elements,
                                       selection_domain,
                                       *rect,
@@ -4313,9 +4329,16 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
           bke::crazyspace::GeometryDeformation deformation =
               bke::crazyspace::get_evaluated_curves_deformation(*vc.depsgraph, *vc.obedit);
           const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
+          const float4x4 projection = ED_view3d_ob_project_mat_get(vc.rv3d, vc.obedit);
           const IndexRange elements(curves.attributes().domain_size(selection_domain));
-          changed = ed::curves::select_box(
-              vc, curves, deformation.positions, elements, selection_domain, rect, sel_op);
+          changed = ed::curves::select_box(vc,
+                                           curves,
+                                           deformation.positions,
+                                           projection,
+                                           elements,
+                                           selection_domain,
+                                           rect,
+                                           sel_op);
           if (changed) {
             /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
              * generic attribute for now. */
@@ -5067,9 +5090,10 @@ static bool grease_pencil_circle_select(ViewContext *vc,
       vc->scene->toolsettings);
 
   bool changed = false;
-  const Array<ed::greasepencil::MutableDrawingInfo> drawings =
+  const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
       ed::greasepencil::retrieve_editable_drawings(*vc->scene, grease_pencil);
   for (const ed::greasepencil::MutableDrawingInfo info : drawings) {
+    const bke::greasepencil::Layer &layer = *grease_pencil.layers()[info.layer_index];
     bke::crazyspace::GeometryDeformation deformation =
         bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
             ob_eval, *vc->obedit, info.layer_index, info.frame_number);
@@ -5079,9 +5103,12 @@ static bool grease_pencil_circle_select(ViewContext *vc,
     if (elements.is_empty()) {
       continue;
     }
+    const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
+    const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(vc->rv3d, layer_to_world);
     changed = ed::curves::select_circle(*vc,
                                         info.drawing.strokes_for_write(),
                                         deformation.positions,
+                                        projection,
                                         elements,
                                         selection_domain,
                                         int2(mval),
@@ -5138,9 +5165,17 @@ static bool obedit_circle_select(bContext *C,
       bke::crazyspace::GeometryDeformation deformation =
           bke::crazyspace::get_evaluated_curves_deformation(*vc->depsgraph, *vc->obedit);
       const bke::AttrDomain selection_domain = bke::AttrDomain(curves_id.selection_domain);
+      const float4x4 projection = ED_view3d_ob_project_mat_get(vc->rv3d, vc->obedit);
       const IndexRange elements(curves.attributes().domain_size(selection_domain));
-      changed = ed::curves::select_circle(
-          *vc, curves, deformation.positions, elements, selection_domain, mval, rad, sel_op);
+      changed = ed::curves::select_circle(*vc,
+                                          curves,
+                                          deformation.positions,
+                                          projection,
+                                          elements,
+                                          selection_domain,
+                                          mval,
+                                          rad,
+                                          sel_op);
       if (changed) {
         /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
          * generic attribute for now. */
@@ -5189,7 +5224,7 @@ static bool object_circle_select(ViewContext *vc,
     if (BASE_SELECTABLE(v3d, base) && ((base->flag & BASE_SELECTED) != select_flag)) {
       float screen_co[2];
       if (ED_view3d_project_float_global(vc->region,
-                                         base->object->object_to_world[3],
+                                         base->object->object_to_world().location(),
                                          screen_co,
                                          V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK)
       {

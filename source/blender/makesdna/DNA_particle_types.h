@@ -392,7 +392,7 @@ typedef struct ParticleSystem {
   void *batch_cache;
 
   /**
-   * Set by dependency graph's copy-on-write, allows to quickly go
+   * Set by dependency graph's copy-on-evaluation, allows to quickly go
    * from evaluated particle system to original one.
    *
    * Original system will have this set to NULL.

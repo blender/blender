@@ -25,21 +25,34 @@ ExternalProject_Add(external_xr_openxr_sdk
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
   URL_HASH ${XR_OPENXR_SDK_HASH_TYPE}=${XR_OPENXR_SDK_HASH}
   PREFIX ${BUILD_DIR}/xr_openxr_sdk
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/xr_openxr_sdk ${DEFAULT_CMAKE_FLAGS} ${XR_OPENXR_SDK_EXTRA_ARGS}
+
+  CMAKE_ARGS
+    -DCMAKE_INSTALL_PREFIX=${LIBDIR}/xr_openxr_sdk
+    ${DEFAULT_CMAKE_FLAGS}
+    ${XR_OPENXR_SDK_EXTRA_ARGS}
+
   INSTALL_DIR ${LIBDIR}/xr_openxr_sdk
 )
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
     ExternalProject_Add_Step(external_xr_openxr_sdk after_install
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/xr_openxr_sdk/include/openxr ${HARVEST_TARGET}/xr_openxr_sdk/include/openxr
-      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/xr_openxr_sdk/lib ${HARVEST_TARGET}/xr_openxr_sdk/lib
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/xr_openxr_sdk/include/openxr
+        ${HARVEST_TARGET}/xr_openxr_sdk/include/openxr
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/xr_openxr_sdk/lib
+        ${HARVEST_TARGET}/xr_openxr_sdk/lib
+
       DEPENDEES install
     )
   endif()
   if(BUILD_MODE STREQUAL Debug)
     ExternalProject_Add_Step(external_xr_openxr_sdk after_install
-      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/xr_openxr_sdk/lib/openxr_loaderd.lib ${HARVEST_TARGET}/xr_openxr_sdk/lib/openxr_loaderd.lib
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/xr_openxr_sdk/lib/openxr_loaderd.lib
+        ${HARVEST_TARGET}/xr_openxr_sdk/lib/openxr_loaderd.lib
+
       DEPENDEES install
     )
   endif()

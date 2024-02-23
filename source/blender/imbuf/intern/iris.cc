@@ -17,7 +17,6 @@
 #include "IMB_filetype.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "imbuf.hh"
 
 #define IMAGIC 0732
 

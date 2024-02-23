@@ -6,7 +6,7 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "BLI_time.h"
 
@@ -236,6 +236,14 @@ void MTLShader::compute_shader_from_glsl(MutableSpan<const char *> sources)
   /* Consolidate GLSL compute sources. */
   std::stringstream ss;
   for (int i = 0; i < sources.size(); i++) {
+    /* Output preprocessor directive to improve shader log. */
+    StringRefNull name = shader::gpu_shader_dependency_get_filename_from_source_string(sources[i]);
+    if (name.is_empty()) {
+      ss << "#line 1 \"generated_code_" << i << "\"\n";
+    }
+    else {
+      ss << "#line 1 \"" << name << "\"\n";
+    }
     ss << sources[i] << std::endl;
   }
   shd_builder_->glsl_compute_source_ = ss.str();
@@ -314,16 +322,13 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
     MTLCompileOptions *options = [[[MTLCompileOptions alloc] init] autorelease];
     options.languageVersion = MTLLanguageVersion2_2;
     options.fastMathEnabled = YES;
+    options.preserveInvariance = YES;
 
-    if (@available(macOS 11.00, *)) {
-      options.preserveInvariance = YES;
-
-      /* Raster order groups for tile data in struct require Metal 2.3.
-       * Retaining Metal 2.2. for old shaders to maintain backwards
-       * compatibility for existing features. */
-      if (info->subpass_inputs_.size() > 0) {
-        options.languageVersion = MTLLanguageVersion2_3;
-      }
+    /* Raster order groups for tile data in struct require Metal 2.3.
+     * Retaining Metal 2.2. for old shaders to maintain backwards
+     * compatibility for existing features. */
+    if (info->subpass_inputs_.size() > 0) {
+      options.languageVersion = MTLLanguageVersion2_3;
     }
 #if defined(MAC_OS_VERSION_14_0)
     if (@available(macOS 14.00, *)) {
@@ -364,14 +369,6 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
       /* Inject unique context ID to avoid cross-context shader cache collisions.
        * Required on macOS 11.0. */
       NSString *source_with_header = source_with_header_a;
-      if (@available(macos 11.0, *)) {
-        /* Pass-through. Availability syntax requirement, expression cannot be negated. */
-      }
-      else {
-        source_with_header = [source_with_header_a
-            stringByAppendingString:[NSString stringWithFormat:@"\n\n#define MTL_CONTEXT_IND %d\n",
-                                                               context_->context_id]];
-      }
       [source_with_header retain];
 
       /* Prepare Shader Library. */

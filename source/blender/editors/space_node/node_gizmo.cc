@@ -15,7 +15,6 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.h"
-#include "BKE_main.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"
@@ -27,7 +26,6 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
-#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "node_intern.hh"

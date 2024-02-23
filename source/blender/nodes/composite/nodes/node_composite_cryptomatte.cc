@@ -30,7 +30,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_cryptomatte.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_lib_id.hh"
 #include "BKE_library.hh"
@@ -240,99 +240,21 @@ CryptomatteSession *ntreeCompositCryptomatteSession(const Scene *scene, bNode *n
   return session_ptr.release();
 }
 
-namespace blender::nodes::node_composite_cryptomatte_cc {
+namespace blender::nodes::node_composite_base_cryptomatte_cc {
 
 NODE_STORAGE_FUNCS(NodeCryptomatte)
 
-static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
-    {SOCK_RGBA, N_("Image")},
-    {SOCK_FLOAT, N_("Matte")},
-    {SOCK_RGBA, N_("Pick")},
-    {-1, ""},
-};
-
-static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
-{
-  b.add_input<decl::Color>("Image")
-      .default_value({0.0f, 0.0f, 0.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_output<decl::Color>("Image");
-  b.add_output<decl::Float>("Matte");
-  b.add_output<decl::Color>("Pick");
-}
-
-static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
-{
-  NodeCryptomatte *user = MEM_cnew<NodeCryptomatte>(__func__);
-  node->storage = user;
-}
-
-static void node_init_api_cryptomatte(const bContext *C, PointerRNA *ptr)
-{
-  Scene *scene = CTX_data_scene(C);
-  bNode *node = static_cast<bNode *>(ptr->data);
-  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
-  node->id = &scene->id;
-  id_us_plus(node->id);
-}
-
-static void node_free_cryptomatte(bNode *node)
-{
-  BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
-  NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
-
-  if (nc) {
-    MEM_SAFE_FREE(nc->matte_id);
-    BLI_freelistN(&nc->runtime.layers);
-    BLI_freelistN(&nc->entries);
-    MEM_freeN(nc);
-  }
-}
-
-static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
-                                  bNode *dest_node,
-                                  const bNode *src_node)
-{
-  NodeCryptomatte *src_nc = static_cast<NodeCryptomatte *>(src_node->storage);
-  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupallocN(src_nc));
-
-  BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
-  BLI_listbase_clear(&dest_nc->runtime.layers);
-  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
-  dest_node->storage = dest_nc;
-}
-
-static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
-                                  const bNodeTree *ntree,
-                                  const char **r_disabled_hint)
-{
-  if (STREQ(ntree->idname, "CompositorNodeTree")) {
-    Scene *scene;
-
-    /* See node_composit_poll_rlayers. */
-    for (scene = static_cast<Scene *>(G.main->scenes.first); scene;
-         scene = static_cast<Scene *>(scene->id.next))
-    {
-      if (scene->nodetree == ntree) {
-        break;
-      }
-    }
-
-    if (scene == nullptr) {
-      *r_disabled_hint = RPT_(
-          "The node tree must be the compositing node tree of any scene in the file");
-    }
-    return scene != nullptr;
-  }
-  *r_disabled_hint = RPT_("Not a compositor node tree");
-  return false;
-}
-
 using namespace blender::realtime_compositor;
 
-class CryptoMatteOperation : public NodeOperation {
+class BaseCryptoMatteOperation : public NodeOperation {
  public:
   using NodeOperation::NodeOperation;
+
+  /* Should return the input image result. */
+  virtual Result &get_input_image() = 0;
+
+  /* Should returns all the Cryptomatte layers in order. */
+  virtual Vector<GPUTexture *> get_layers() = 0;
 
   void execute() override
   {
@@ -462,7 +384,7 @@ class CryptoMatteOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_cryptomatte_image");
     GPU_shader_bind(shader);
 
-    Result &input_image = get_input("Image");
+    Result &input_image = get_input_image();
     input_image.bind_as_texture(shader, "input_tx");
 
     matte.bind_as_texture(shader, "matte_tx");
@@ -480,8 +402,123 @@ class CryptoMatteOperation : public NodeOperation {
     image_output.unbind_as_image();
   }
 
+  /* Get the identifiers of the entities selected by the user to generate a matte from. The
+   * identifiers are hashes of the names of the entities encoded in floats. See the "ID Generation"
+   * section of the Cryptomatte specification for more information. */
+  Vector<float> get_identifiers()
+  {
+    Vector<float> identifiers;
+    LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &node_storage(bnode()).entries) {
+      identifiers.append(cryptomatte_entry->encoded_hash);
+    }
+    return identifiers;
+  }
+};
+
+}  // namespace blender::nodes::node_composite_base_cryptomatte_cc
+
+namespace blender::nodes::node_composite_cryptomatte_cc {
+
+NODE_STORAGE_FUNCS(NodeCryptomatte)
+
+static bNodeSocketTemplate cmp_node_cryptomatte_out[] = {
+    {SOCK_RGBA, N_("Image")},
+    {SOCK_FLOAT, N_("Matte")},
+    {SOCK_RGBA, N_("Pick")},
+    {-1, ""},
+};
+
+static void cmp_node_cryptomatte_declare(NodeDeclarationBuilder &b)
+{
+  b.add_input<decl::Color>("Image")
+      .default_value({0.0f, 0.0f, 0.0f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Matte");
+  b.add_output<decl::Color>("Pick");
+}
+
+static void node_init_cryptomatte(bNodeTree * /*ntree*/, bNode *node)
+{
+  NodeCryptomatte *user = MEM_cnew<NodeCryptomatte>(__func__);
+  node->storage = user;
+}
+
+static void node_init_api_cryptomatte(const bContext *C, PointerRNA *ptr)
+{
+  Scene *scene = CTX_data_scene(C);
+  bNode *node = static_cast<bNode *>(ptr->data);
+  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
+  node->id = &scene->id;
+  id_us_plus(node->id);
+}
+
+static void node_free_cryptomatte(bNode *node)
+{
+  BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
+  NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
+
+  if (nc) {
+    MEM_SAFE_FREE(nc->matte_id);
+    BLI_freelistN(&nc->runtime.layers);
+    BLI_freelistN(&nc->entries);
+    MEM_freeN(nc);
+  }
+}
+
+static void node_copy_cryptomatte(bNodeTree * /*dst_ntree*/,
+                                  bNode *dest_node,
+                                  const bNode *src_node)
+{
+  NodeCryptomatte *src_nc = static_cast<NodeCryptomatte *>(src_node->storage);
+  NodeCryptomatte *dest_nc = static_cast<NodeCryptomatte *>(MEM_dupallocN(src_nc));
+
+  BLI_duplicatelist(&dest_nc->entries, &src_nc->entries);
+  BLI_listbase_clear(&dest_nc->runtime.layers);
+  dest_nc->matte_id = static_cast<char *>(MEM_dupallocN(src_nc->matte_id));
+  dest_node->storage = dest_nc;
+}
+
+static bool node_poll_cryptomatte(const bNodeType * /*ntype*/,
+                                  const bNodeTree *ntree,
+                                  const char **r_disabled_hint)
+{
+  if (STREQ(ntree->idname, "CompositorNodeTree")) {
+    Scene *scene;
+
+    /* See node_composit_poll_rlayers. */
+    for (scene = static_cast<Scene *>(G.main->scenes.first); scene;
+         scene = static_cast<Scene *>(scene->id.next))
+    {
+      if (scene->nodetree == ntree) {
+        break;
+      }
+    }
+
+    if (scene == nullptr) {
+      *r_disabled_hint = RPT_(
+          "The node tree must be the compositing node tree of any scene in the file");
+    }
+    return scene != nullptr;
+  }
+  *r_disabled_hint = RPT_("Not a compositor node tree");
+  return false;
+}
+
+using namespace blender::realtime_compositor;
+using namespace blender::nodes::node_composite_base_cryptomatte_cc;
+
+class CryptoMatteOperation : public BaseCryptoMatteOperation {
+ public:
+  using BaseCryptoMatteOperation::BaseCryptoMatteOperation;
+
+  Result &get_input_image() override
+  {
+    return get_input("Image");
+  }
+
   /* Returns all the relevant Cryptomatte layers from the selected source. */
-  Vector<GPUTexture *> get_layers()
+  Vector<GPUTexture *> get_layers() override
   {
     switch (get_source()) {
       case CMP_NODE_CRYPTOMATTE_SOURCE_RENDER:
@@ -629,18 +666,6 @@ class CryptoMatteOperation : public NodeOperation {
     ntreeCompositCryptomatteLayerPrefix(
         &context().get_scene(), &bnode(), type_name, sizeof(type_name));
     return std::string(type_name);
-  }
-
-  /* Get the identifiers of the entities selected by the user to generate a matte from. The
-   * identifiers are hashes of the names of the entities encoded in floats. See the "ID Generation"
-   * section of the Cryptomatte specification for more information. */
-  Vector<float> get_identifiers()
-  {
-    Vector<float> identifiers;
-    LISTBASE_FOREACH (CryptomatteEntry *, cryptomatte_entry, &node_storage(bnode()).entries) {
-      identifiers.append(cryptomatte_entry->encoded_hash);
-    }
-    return identifiers;
   }
 
   /* The domain should be centered with the same size as the source. In case of invalid source,
@@ -804,23 +829,31 @@ static void node_init_cryptomatte_legacy(bNodeTree *ntree, bNode *node)
 }
 
 using namespace blender::realtime_compositor;
+using namespace blender::nodes::node_composite_base_cryptomatte_cc;
 
-class CryptoMatteOperation : public NodeOperation {
+class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
  public:
-  using NodeOperation::NodeOperation;
+  using BaseCryptoMatteOperation::BaseCryptoMatteOperation;
 
-  void execute() override
+  Result &get_input_image() override
   {
-    get_input("image").pass_through(get_result("Image"));
-    get_result("Matte").allocate_invalid();
-    get_result("Pick").allocate_invalid();
-    context().set_info_message("Viewport compositor setup not fully supported");
+    return get_input("image");
+  }
+
+  Vector<GPUTexture *> get_layers() override
+  {
+    Vector<GPUTexture *> layers;
+    /* Add all textures of all inputs except the first input, which is the input image. */
+    for (const bNodeSocket *socket : bnode().input_sockets().drop_front(1)) {
+      layers.append(get_input(socket->identifier).texture());
+    }
+    return layers;
   }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
 {
-  return new CryptoMatteOperation(context, node);
+  return new LegacyCryptoMatteOperation(context, node);
 }
 
 }  // namespace blender::nodes::node_composite_legacy_cryptomatte_cc
@@ -840,8 +873,6 @@ void register_node_type_cmp_cryptomatte_legacy()
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_operation = legacy_file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

@@ -152,11 +152,11 @@ void MultiFunction::call_auto(const IndexMask &mask, Params params, Context cont
 
         IndexMaskMemory memory;
         const int64_t offset = -input_slice_start;
-        const IndexMask offset_mask = mask.slice_and_offset(sub_range, offset, memory);
+        const IndexMask shifted_mask = mask.slice_and_shift(sub_range, offset, memory);
 
-        ParamsBuilder sliced_params{*this, &offset_mask};
+        ParamsBuilder sliced_params{*this, &shifted_mask};
         add_sliced_parameters(*signature_ref_, params, input_slice_range, sliced_params);
-        this->call(offset_mask, sliced_params, context);
+        this->call(shifted_mask, sliced_params, context);
       });
 }
 

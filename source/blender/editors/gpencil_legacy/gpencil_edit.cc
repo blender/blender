@@ -15,7 +15,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math_matrix.h"
@@ -23,10 +22,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -38,20 +36,16 @@
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
 #include "BKE_deform.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_gpencil_curve_legacy.h"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_workspace.h"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -63,17 +57,13 @@
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "UI_view2d.hh"
 
-#include "ED_armature.hh"
 #include "ED_gpencil_legacy.hh"
 #include "ED_object.hh"
 #include "ED_outliner.hh"
 #include "ED_screen.hh"
-#include "ED_select_utils.hh"
-#include "ED_space_api.hh"
 #include "ED_transform_snap_object_context.hh"
 #include "ED_view3d.hh"
 
@@ -310,7 +300,7 @@ static int gpencil_selectmode_toggle_exec(bContext *C, wmOperator *op)
 
   WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
   return OPERATOR_FINISHED;
 }
@@ -1336,9 +1326,8 @@ static int gpencil_extrude_exec(bContext *C, wmOperator *op)
 
   if (changed) {
     /* updates */
-    DEG_id_tag_update(&gpd->id,
-                      ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
-    DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
+    DEG_id_tag_update(&obact->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
@@ -2951,7 +2940,7 @@ static int gpencil_snap_to_grid_exec(bContext *C, wmOperator * /*op*/)
 
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&obact->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
@@ -3053,7 +3042,7 @@ static int gpencil_snap_to_cursor_exec(bContext *C, wmOperator *op)
 
   if (changed) {
     DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
-    DEG_id_tag_update(&obact->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&obact->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
@@ -3182,7 +3171,7 @@ static int gpencil_snap_cursor_to_sel_exec(bContext *C, wmOperator *op)
       }
     }
 
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
   }
 
@@ -4194,7 +4183,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
       Scene *scene = CTX_data_scene(C);
       Object *cam_ob = scene->camera;
       if (cam_ob != nullptr) {
-        invert_m4_m4(viewmat, cam_ob->object_to_world);
+        invert_m4_m4(viewmat, cam_ob->object_to_world().ptr());
       }
       break;
     }
@@ -4262,7 +4251,7 @@ static int gpencil_stroke_outline_exec(bContext *C, wmOperator *op)
           /* Apply layer thickness change. */
           gps_duplicate->thickness += gpl->line_change;
           /* Apply object scale to thickness. */
-          gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world);
+          gps_duplicate->thickness *= mat4_to_scale(ob->object_to_world().ptr());
           CLAMP_MIN(gps_duplicate->thickness, 1.0f);
 
           /* Stroke. */
@@ -5721,7 +5710,7 @@ static int gpencil_cutter_lasso_select(bContext *C,
 
   /* updates */
   if (changed) {
-    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, nullptr);
     WM_event_add_notifier(C, NC_GEOM | ND_SELECT, nullptr);
   }
@@ -5806,8 +5795,8 @@ bool ED_object_gpencil_exit(Main *bmain, Object *ob)
                   OB_MODE_SCULPT_GPENCIL_LEGACY | OB_MODE_WEIGHT_GPENCIL_LEGACY |
                   OB_MODE_VERTEX_GPENCIL_LEGACY);
 
-    /* Inform all CoW versions that we changed the mode. */
-    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+    /* Inform all evaluated versions that we changed the mode. */
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
     ok = true;
   }
   return ok;

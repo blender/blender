@@ -10,7 +10,7 @@
 
 #include "DRW_render.hh"
 
-#include "BKE_global.h" /* for G.debug_value */
+#include "BKE_global.hh" /* for G.debug_value */
 
 #include "GPU_capabilities.h"
 #include "GPU_platform.h"

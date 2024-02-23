@@ -14,8 +14,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"
-#include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"
+
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /***/
 

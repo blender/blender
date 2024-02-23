@@ -22,7 +22,6 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_movieclip.h"
@@ -874,7 +873,8 @@ static void graph_region_draw(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, sc->flag & SC_SHOW_SECONDS);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  const rcti scroller_mask = ED_time_scrub_clamp_scroller_mask(v2d->mask);
+  UI_view2d_scrollers_draw(v2d, &scroller_mask);
 
   /* scale indicators */
   {
@@ -1151,16 +1151,18 @@ static void clip_properties_region_listener(const wmRegionListenerParams *params
 /** \name IO Callbacks
  * \{ */
 
-static void clip_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
+static void clip_id_remap(ScrArea * /*area*/,
+                          SpaceLink *slink,
+                          const blender::bke::id::IDRemapper &mappings)
 {
   SpaceClip *sclip = (SpaceClip *)slink;
 
-  if (!BKE_id_remapper_has_mapping_for(mappings, FILTER_ID_MC | FILTER_ID_MSK)) {
+  if (!mappings.contains_mappings_for_any(FILTER_ID_MC | FILTER_ID_MSK)) {
     return;
   }
 
-  BKE_id_remapper_apply(mappings, (ID **)&sclip->clip, ID_REMAP_APPLY_ENSURE_REAL);
-  BKE_id_remapper_apply(mappings, (ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply((ID **)&sclip->clip, ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply((ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 static void clip_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

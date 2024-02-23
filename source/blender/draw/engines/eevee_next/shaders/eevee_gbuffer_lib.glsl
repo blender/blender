@@ -467,6 +467,14 @@ void gbuffer_additional_info_load(inout GBufferReader gbuf, samplerGBufferNormal
  *
  * \{ */
 
+/** Outputting dummy closure is required for correct render passes in case of unlit materials. */
+void gbuffer_closure_unlit_pack(inout GBufferWriter gbuf, vec3 N)
+{
+  gbuffer_append_closure(gbuf, GBUF_UNLIT);
+  gbuffer_append_data(gbuf, vec4(0.0));
+  gbuffer_append_normal(gbuf, N);
+}
+
 void gbuffer_closure_diffuse_pack(inout GBufferWriter gbuf, ClosureUndetermined cl)
 {
   gbuffer_append_closure(gbuf, GBUF_DIFFUSE);
@@ -752,9 +760,7 @@ GBufferWriter gbuffer_pack(GBufferData data_in)
   }
 
   if (gbuf.layer_normal == 0) {
-    /* If no lit BDSF is outputted, still output the surface normal in the first layer.
-     * This is needed by some algorithms. */
-    gbuffer_append_normal(gbuf, data_in.surface_N);
+    gbuffer_closure_unlit_pack(gbuf, data_in.surface_N);
   }
 
   if (has_additional_data) {

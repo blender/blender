@@ -21,7 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
@@ -33,7 +33,7 @@
 #include "BKE_idprop.h"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -104,13 +104,13 @@ static void joined_armature_fix_links_constraints(Main *bmain,
         BKE_action_fix_paths_rename(
             &tarArm->id, data->act, "pose.bones[", pchan->name, curbone->name, 0, 0, false);
 
-        DEG_id_tag_update_ex(bmain, &data->act->id, ID_RECALC_COPY_ON_WRITE);
+        DEG_id_tag_update_ex(bmain, &data->act->id, ID_RECALC_SYNC_TO_EVAL);
       }
     }
   }
 
   if (changed) {
-    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 
@@ -212,7 +212,7 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
   }
 
   if (changed) {
-    DEG_id_tag_update_ex(afd->bmain, id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update_ex(afd->bmain, id, ID_RECALC_SYNC_TO_EVAL);
   }
 }
 
@@ -255,7 +255,7 @@ static void joined_armature_fix_links(
       /* make tar armature be new parent */
       ob->parent = tarArm;
 
-      DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 }
@@ -340,7 +340,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 
   /* Inverse transform for all selected armatures in this object,
    * See #object_join_exec for detailed comment on why the safe version is used. */
-  invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world);
+  invert_m4_m4_safe_ortho(oimat, ob_active->object_to_world().ptr());
 
   /* Index bone collections by name.  This is also used later to keep track
    * of collections added from other armatures. */
@@ -391,7 +391,7 @@ int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
       // BASACT->flag &= ~OB_MODE_POSE;
 
       /* Find the difference matrix */
-      mul_m4_m4m4(mat, oimat, ob_iter->object_to_world);
+      mul_m4_m4m4(mat, oimat, ob_iter->object_to_world().ptr());
 
       /* Copy bones and posechannels from the object to the edit armature */
       for (pchan = static_cast<bPoseChannel *>(opose->chanbase.first); pchan; pchan = pchann) {

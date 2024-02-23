@@ -346,6 +346,9 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
       case CTX_MODE_SCULPT:
         km = WM_keymap_find_all(wm, "Sculpt", SPACE_EMPTY, RGN_TYPE_WINDOW);
         break;
+      case CTX_MODE_SCULPT_CURVES:
+        km = WM_keymap_find_all(wm, "Sculpt Curves", SPACE_EMPTY, RGN_TYPE_WINDOW);
+        break;
       default:
         break;
     }

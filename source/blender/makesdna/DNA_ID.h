@@ -501,7 +501,7 @@ typedef struct ID {
   IDOverrideLibrary *override_library;
 
   /**
-   * Only set for data-blocks which are coming from copy-on-write, points to
+   * Only set for data-blocks which are coming from copy-on-evaluation, points to
    * the original version of it.
    * Also used temporarily during memfile undo to keep a reference to old ID when found.
    */
@@ -697,11 +697,11 @@ typedef struct PreviewImage {
 
 #define ID_IS_ASSET(_id) (((const ID *)(_id))->asset_data != NULL)
 
-/* Check whether datablock type is covered by copy-on-write. */
-#define ID_TYPE_IS_COW(_id_type) \
+/* Check whether datablock type is covered by copy-on-evaluation. */
+#define ID_TYPE_USE_COPY_ON_EVAL(_id_type) \
   (!ELEM(_id_type, ID_LI, ID_IP, ID_SCR, ID_VF, ID_BR, ID_WM, ID_PAL, ID_PC, ID_WS, ID_IM))
 
-/* Check whether data-block type requires copy-on-write from #ID_RECALC_PARAMETERS.
+/* Check whether data-block type requires copy-on-evaluation from #ID_RECALC_PARAMETERS.
  * Keep in sync with #BKE_id_eval_properties_copy. */
 #define ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type) ELEM(id_type, ID_ME)
 
@@ -961,7 +961,7 @@ enum {
    */
   LIB_TAG_LOCALIZED = 1 << 22,
   /**
-   * ID is a copy-on-write/localized version.
+   * ID is an evaluated/localized version.
    *
    * RESET_NEVER
    *
@@ -969,17 +969,17 @@ enum {
    * If support for this is needed, see #88026 as this flag controls memory ownership
    * of physics *shared* pointers.
    */
-  LIB_TAG_COPIED_ON_WRITE = 1 << 23,
+  LIB_TAG_COPIED_ON_EVAL = 1 << 23,
   /**
-   * ID is not the original COW ID created by the depsgraph, but has been re-allocated during the
-   * evaluation process of another ID.
+   * ID is not the original evaluated ID created by the depsgraph, but has been re-allocated during
+   * the evaluation process of another ID.
    *
    * RESET_NEVER
    *
    * Typical example is object data, when evaluating the object's modifier stack the final obdata
-   * can be different than the COW initial obdata ID.
+   * can be different than the evaluated initial obdata ID.
    */
-  LIB_TAG_COPIED_ON_WRITE_EVAL_RESULT = 1 << 24,
+  LIB_TAG_COPIED_ON_EVAL_FINAL_RESULT = 1 << 24,
 
   /**
    * ID management status tags related to non-standard BMain IDs.
@@ -1085,12 +1085,12 @@ typedef enum IDRecalcFlag {
    * re-rendered. */
   ID_RECALC_EDITORS = (1 << 12),
 
-  /* ** Update copy on write component. **
+  /* ** Update evaluated copy component. **
    *
    * This is most generic tag which should only be used when nothing else matches.
    * It is not to explicitly mixed in with other recalculation flags.
    */
-  ID_RECALC_COPY_ON_WRITE = (1 << 13),
+  ID_RECALC_SYNC_TO_EVAL = (1 << 13),
 
   /* Sequences in the sequencer did change.
    * Use this tag with a scene ID which owns the sequences. */
@@ -1106,13 +1106,13 @@ typedef enum IDRecalcFlag {
 
   ID_RECALC_AUDIO = (1 << 20),
 
-  /* NOTE: This triggers copy on write for types that require it.
+  /* NOTE: This triggers copy-on-eval for types that require it.
    * Exceptions to this can be added using #ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW,
    * this has the advantage that large arrays stored in the idea data don't
    * have to be copied on every update. */
   ID_RECALC_PARAMETERS = (1 << 21),
 
-  /* Input has changed and datablock is to be reload from disk.
+  /* Input has changed and data-block is to be reload from disk.
    * Applies to movie clips to inform that copy-on-written version is to be refreshed for the new
    * input file or for color space changes. */
   ID_RECALC_SOURCE = (1 << 23),
@@ -1148,12 +1148,12 @@ typedef enum IDRecalcFlag {
 
   /* Update animation data-block itself, without doing full re-evaluation of
    * all dependent objects. */
-  ID_RECALC_ANIMATION_NO_FLUSH = ID_RECALC_COPY_ON_WRITE,
+  ID_RECALC_ANIMATION_NO_FLUSH = ID_RECALC_SYNC_TO_EVAL,
 
   /* Ensure geometry of object and edit modes are both up-to-date in the evaluated data-block.
    * Example usage is when mesh validation modifies the non-edit-mode data,
    * which we want to be copied over to the evaluated data-block. */
-  ID_RECALC_GEOMETRY_ALL_MODES = ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE,
+  ID_RECALC_GEOMETRY_ALL_MODES = ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL,
 
   /***************************************************************************
    * Aggregate flags, use only for checks on runtime.
@@ -1209,6 +1209,7 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_WM (1ULL << 38)
 #define FILTER_ID_LI (1ULL << 39)
 #define FILTER_ID_GP (1ULL << 40)
+#define FILTER_ID_IP (1ULL << 41)
 
 #define FILTER_ID_ALL \
   (FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU_LEGACY | \
@@ -1217,7 +1218,8 @@ typedef enum IDRecalcFlag {
    FILTER_ID_NT | FILTER_ID_OB | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | \
    FILTER_ID_SPK | FILTER_ID_SO | FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | \
    FILTER_ID_CF | FILTER_ID_WS | FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | \
-   FILTER_ID_SIM | FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI | FILTER_ID_GP)
+   FILTER_ID_SIM | FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI | FILTER_ID_GP | \
+   FILTER_ID_IP)
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
@@ -1327,7 +1329,7 @@ typedef enum eID_Index {
   INDEX_ID_WS,
   INDEX_ID_WM,
 
-  /* Special values. */
+  /* Special values, keep last. */
   INDEX_ID_NULL,
 } eID_Index;
 

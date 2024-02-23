@@ -260,7 +260,7 @@ struct PuffOperationExecutor {
             brush_, dist_to_brush_cu, brush_radius_cu);
         math::max_inplace(max_weight, radius_falloff);
       }
-      r_curve_weights[curve_i] = max_weight;
+      math::max_inplace(r_curve_weights[curve_i], max_weight);
     });
   }
 

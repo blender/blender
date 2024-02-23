@@ -4,7 +4,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -19,8 +19,6 @@
 #include "ANIM_keyframing.hh"
 
 #include "RNA_access.hh"
-#include "RNA_define.hh"
-#include "RNA_enum_types.hh"
 
 #include "WM_api.hh"
 #include "WM_message.hh"
@@ -167,9 +165,12 @@ static int grease_pencil_brush_stroke_invoke(bContext *C, wmOperator *op, const 
 
   /* If auto-key is on and the drawing at the current frame starts before the current frame a new
    * keyframe needs to be inserted. */
-  if (blender::animrig::is_autokey_on(scene) && active_layer.frame_key_at(current_frame) &&
-      *active_layer.frame_key_at(current_frame) < current_frame)
-  {
+  const bool is_first = active_layer.sorted_keys().is_empty() ||
+                        (active_layer.sorted_keys().first() > current_frame);
+  const bool needs_new_drawing = is_first ||
+                                 (*active_layer.frame_key_at(current_frame) < current_frame);
+
+  if (blender::animrig::is_autokey_on(scene) && needs_new_drawing) {
     const ToolSettings *ts = CTX_data_tool_settings(C);
     if ((ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) != 0) {
       /* For additive drawing, we duplicate the frame that's currently visible and insert it at the
@@ -262,7 +263,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
 }
@@ -296,7 +297,7 @@ static int grease_pencil_draw_mode_toggle_exec(bContext *C, wmOperator *op)
   WM_toolsystem_update_from_context_view3d(C);
 
   /* Necessary to change the object mode on the evaluated object. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
   return OPERATOR_FINISHED;

@@ -11,7 +11,7 @@
  * It is the module that tracks the objects between frames updates.
  */
 
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_object.hh"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
@@ -38,7 +38,8 @@ namespace blender::eevee {
 
 void VelocityModule::init()
 {
-  if (!inst_.is_viewport() && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) &&
+  if (!inst_.is_viewport() && !inst_.is_baking() &&
+      (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) &&
       !inst_.motion_blur.postfx_enabled())
   {
     /* No motion blur and the vector pass was requested. Do the steps sync here. */
@@ -53,7 +54,7 @@ void VelocityModule::init()
 
   /* For viewport, only previous motion is supported.
    * Still bind previous step to avoid undefined behavior. */
-  next_step_ = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
+  next_step_ = (inst_.is_viewport() || inst_.is_baking()) ? STEP_PREVIOUS : STEP_NEXT;
 }
 
 /* Similar to Instance::object_sync, but only syncs velocity. */
@@ -153,18 +154,17 @@ bool VelocityModule::step_object_sync(Object *ob,
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
   vel.id = object_key.hash();
-  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = float4x4_view(ob->object_to_world);
+  object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = ob->object_to_world();
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
     if (vel.obj.ofs[STEP_PREVIOUS] == -1) {
       vel.obj.ofs[STEP_PREVIOUS] = object_steps_usage[STEP_PREVIOUS]++;
-      object_steps[STEP_PREVIOUS]->get_or_resize(vel.obj.ofs[STEP_PREVIOUS]) = float4x4_view(
-          ob->object_to_world);
+      object_steps[STEP_PREVIOUS]->get_or_resize(
+          vel.obj.ofs[STEP_PREVIOUS]) = ob->object_to_world();
     }
     if (vel.obj.ofs[STEP_NEXT] == -1) {
       vel.obj.ofs[STEP_NEXT] = object_steps_usage[STEP_NEXT]++;
-      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = float4x4_view(
-          ob->object_to_world);
+      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->object_to_world();
     }
   }
 

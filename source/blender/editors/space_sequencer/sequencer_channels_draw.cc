@@ -19,15 +19,9 @@
 
 #include "ED_screen.hh"
 
-#include "GPU_framebuffer.h"
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
-#include "GPU_state.h"
 #include "GPU_vertex_buffer.h"
-#include "GPU_viewport.h"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "SEQ_channels.hh"
@@ -126,8 +120,6 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
                                   0,
                                   0,
                                   0,
-                                  0,
-                                  0,
                                   nullptr);
 
   char *tooltip = BLI_sprintfN(
@@ -163,8 +155,6 @@ static float draw_channel_widget_lock(const SeqChannelDrawContext *context,
                                   width,
                                   &ptr,
                                   hide_prop,
-                                  0,
-                                  0,
                                   0,
                                   0,
                                   0,
@@ -242,8 +232,6 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
                            &ptr,
                            RNA_property_identifier(prop),
                            -1,
-                           0,
-                           0,
                            0,
                            0,
                            nullptr);

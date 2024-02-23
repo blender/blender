@@ -27,7 +27,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_object.hh"
@@ -84,7 +84,7 @@ void paintface_flush_flags(bContext *C,
   bool updated = false;
 
   if (me_orig != nullptr && me_eval != nullptr && me_orig->faces_num == mesh->faces_num) {
-    /* Update the COW copy of the mesh. */
+    /* Update the evaluated copy of the mesh. */
     if (flush_hidden) {
       const VArray<bool> hide_poly_me = *attributes_me.lookup_or_default<bool>(
           ".hide_poly", bke::AttrDomain::Face, false);
@@ -150,7 +150,7 @@ void paintface_flush_flags(bContext *C,
     DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
   }
   else {
-    DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
@@ -725,7 +725,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
     return ok;
   }
 
-  copy_m3_m4(bmat, ob->object_to_world);
+  copy_m3_m4(bmat, ob->object_to_world().ptr());
 
   const Span<float3> positions = mesh->vert_positions();
   const OffsetIndices faces = mesh->faces();
@@ -743,7 +743,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 
     for (const int vert : corner_verts.slice(faces[i])) {
       mul_v3_m3v3(vec, bmat, positions[vert]);
-      add_v3_v3v3(vec, vec, ob->object_to_world[3]);
+      add_v3_v3v3(vec, vec, ob->object_to_world().location());
       minmax_v3v3_v3(r_min, r_max, vec);
     }
 
@@ -1080,7 +1080,7 @@ void paintvert_select_less(Mesh *mesh, const bool face_step)
 
 void paintvert_tag_select_update(bContext *C, Object *ob)
 {
-  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 }
 

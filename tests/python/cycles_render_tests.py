@@ -68,7 +68,6 @@ def get_arguments(filepath, output_filepath):
 
     args = [
         "--background",
-        "-noaudio",
         "--factory-startup",
         "--enable-autoexec",
         "--debug-memory",
@@ -147,8 +146,6 @@ def main():
     test_dir_name = Path(test_dir).name
     if test_dir_name in ('motion_blur', 'integrator', ):
         report.set_fail_threshold(0.032)
-    if test_dir_name == "denoise":
-        report.set_fail_threshold(0.25)
 
     ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
 

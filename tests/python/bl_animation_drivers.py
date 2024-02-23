@@ -9,7 +9,7 @@ import sys
 from rna_prop_ui import rna_idprop_quote_path
 
 """
-blender -b -noaudio --factory-startup --python tests/python/bl_animation_drivers.py -- --testdir /path/to/lib/tests/animation
+blender -b --factory-startup --python tests/python/bl_animation_drivers.py -- --testdir /path/to/tests/data/animation
 """
 
 

@@ -27,7 +27,7 @@
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -247,8 +247,8 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
 
-      /* Tag armature for copy-on-write update (since act_bone is in armature not object). */
-      DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+      /* Tag armature for copy-on-evaluation update (since act_bone is in armature not object). */
+      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
     }
 
     changed = true;
@@ -605,7 +605,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
       }
       /* need to tag armature for cow updates, or else selection doesn't update */
-      DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
       ob_prev = ob;
     }
   }
@@ -1188,7 +1188,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 
     /* Need to tag armature for cow updates, or else selection doesn't update. */
-    DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
   }
 
   ED_outliner_select_sync_from_pose_bone_tag(C);

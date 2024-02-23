@@ -18,7 +18,7 @@
 #include "BLI_math_color.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -55,11 +55,9 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_curve.hh"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_grease_pencil.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_main.hh"
 #include "BKE_nla.h"
 
 #include "GPU_immediate.h"
@@ -4568,7 +4566,7 @@ static bool achannel_is_broken(const bAnimListElem *ale)
       const FCurve *fcu = static_cast<const FCurve *>(ale->data);
 
       /* The channel is disabled (has a bad rna path), or it's a driver that failed to evaluate. */
-      return (ale->flag & FCURVE_DISABLED) ||
+      return (fcu->flag & FCURVE_DISABLED) ||
              (fcu->driver != nullptr && (fcu->driver->flag & DRIVER_FLAG_INVALID));
     }
     default:
@@ -5616,8 +5614,6 @@ void ANIM_channel_draw_widgets(const bContext *C,
                       -1,
                       0,
                       0,
-                      -1,
-                      -1,
                       nullptr);
 
       /* copy what outliner does here, see outliner_buttons */

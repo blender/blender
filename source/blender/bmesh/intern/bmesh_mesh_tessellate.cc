@@ -13,9 +13,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
 #include "BLI_heap.h"
-#include "BLI_linklist.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_memarena.h"
@@ -24,7 +22,6 @@
 #include "BLI_task.h"
 
 #include "bmesh.hh"
-#include "bmesh_tools.hh"
 
 /**
  * On systems with 32+ cores,

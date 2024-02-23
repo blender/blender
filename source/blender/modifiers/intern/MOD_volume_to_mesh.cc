@@ -15,27 +15,22 @@
 #include "BKE_volume_grid.hh"
 #include "BKE_volume_to_mesh.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "MOD_modifiertypes.hh"
 #include "MOD_ui_common.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_volume_types.h"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "RNA_access.hh"
 #include "RNA_prototypes.h"
 
 #include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector.h"
 #include "BLI_span.hh"
 #include "BLI_string.h"
-#include "BLI_timeit.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -162,8 +157,8 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   const openvdb::GridBase &local_grid = volume_grid->grid(tree_token);
 
   openvdb::math::Transform::Ptr transform = local_grid.transform().copy();
-  transform->postMult(openvdb::Mat4d((float *)vmmd->object->object_to_world));
-  openvdb::Mat4d imat = openvdb::Mat4d((float *)ctx->object->world_to_object);
+  transform->postMult(openvdb::Mat4d(vmmd->object->object_to_world().base_ptr()));
+  openvdb::Mat4d imat = openvdb::Mat4d(ctx->object->world_to_object().base_ptr());
   /* `imat` had floating point issues and wasn't affine. */
   imat.setCol(3, openvdb::Vec4d(0, 0, 0, 1));
   transform->postMult(imat);

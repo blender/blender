@@ -176,19 +176,6 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
   } \
   ((void)0)
 
-#define CLOG_STR_AT_SEVERITY_N(clg_ref, severity, verbose_level, str) \
-  { \
-    CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
-    if (((_lg_ty->flag & CLG_FLAG_USE) && (_lg_ty->level >= verbose_level)) || \
-        (severity >= CLG_SEVERITY_WARN)) \
-    { \
-      const char *_str = str; \
-      CLG_log_str(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, _str); \
-      MEM_freeN((void *)_str); \
-    } \
-  } \
-  ((void)0)
-
 #define CLOG_INFO(clg_ref, level, ...) \
   CLOG_AT_SEVERITY(clg_ref, CLG_SEVERITY_INFO, level, __VA_ARGS__)
 #define CLOG_WARN(clg_ref, ...) CLOG_AT_SEVERITY(clg_ref, CLG_SEVERITY_WARN, 0, __VA_ARGS__)
@@ -200,13 +187,6 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_STR_WARN(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_WARN, 0, str)
 #define CLOG_STR_ERROR(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_ERROR, 0, str)
 #define CLOG_STR_FATAL(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_FATAL, 0, str)
-
-/* Allocated string which is immediately freed. */
-#define CLOG_STR_INFO_N(clg_ref, level, str) \
-  CLOG_STR_AT_SEVERITY_N(clg_ref, CLG_SEVERITY_INFO, level, str)
-#define CLOG_STR_WARN_N(clg_ref, str) CLOG_STR_AT_SEVERITY_N(clg_ref, CLG_SEVERITY_WARN, 0, str)
-#define CLOG_STR_ERROR_N(clg_ref, str) CLOG_STR_AT_SEVERITY_N(clg_ref, CLG_SEVERITY_ERROR, 0, str)
-#define CLOG_STR_FATAL_N(clg_ref, str) CLOG_STR_AT_SEVERITY_N(clg_ref, CLG_SEVERITY_FATAL, 0, str)
 
 #ifdef __cplusplus
 }

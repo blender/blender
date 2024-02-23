@@ -12,11 +12,14 @@
 #  include "MEM_guardedalloc.h"
 #endif
 
+#include "COM_profile.hh"
+
 namespace blender::compositor {
 
 class CompositorContext;
 class ExecutionSystem;
 class NodeOperation;
+class ProfilerData;
 
 /**
  * Base class for execution models. Contains shared implementation.
@@ -43,12 +46,19 @@ class ExecutionModel {
    */
   Span<NodeOperation *> operations_;
 
+  Profiler profiler_;
+
  public:
   ExecutionModel(CompositorContext &context, Span<NodeOperation *> operations);
 
   virtual ~ExecutionModel() {}
 
   virtual void execute(ExecutionSystem &exec_system) = 0;
+
+  const ProfilerData &get_profiler_data() const
+  {
+    return profiler_.get_data();
+  }
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:BaseExecutionModel")

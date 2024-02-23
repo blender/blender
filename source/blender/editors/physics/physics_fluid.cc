@@ -22,14 +22,14 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_fluid.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_main.hh"
 #include "BKE_modifier.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_screen.hh"
 
 #include "DEG_depsgraph.hh"
@@ -338,7 +338,7 @@ static void fluid_bake_endjob(void *customdata)
   if (job->success) {
     /* Show bake info. */
     WM_reportf(
-        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, BLI_check_seconds_timer() - job->start);
+        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, BLI_time_now_seconds() - job->start);
   }
   else {
     if (fds->error[0] != '\0') {
@@ -361,7 +361,7 @@ static void fluid_bake_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   job->stop = &worker_status->stop;
   job->do_update = &worker_status->do_update;
   job->progress = &worker_status->progress;
-  job->start = BLI_check_seconds_timer();
+  job->start = BLI_time_now_seconds();
   job->success = 1;
 
   G.is_break = false;
@@ -446,7 +446,7 @@ static void fluid_free_endjob(void *customdata)
   if (job->success) {
     /* Show free job info */
     WM_reportf(
-        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, BLI_check_seconds_timer() - job->start);
+        RPT_INFO, "Fluid: %s complete! (%.2f)", job->name, BLI_time_now_seconds() - job->start);
   }
   else {
     if (fds->error[0] != '\0') {
@@ -466,7 +466,7 @@ static void fluid_free_startjob(void *customdata, wmJobWorkerStatus *worker_stat
   job->stop = &worker_status->stop;
   job->do_update = &worker_status->do_update;
   job->progress = &worker_status->progress;
-  job->start = BLI_check_seconds_timer();
+  job->start = BLI_time_now_seconds();
   job->success = 1;
 
   G.is_break = false;

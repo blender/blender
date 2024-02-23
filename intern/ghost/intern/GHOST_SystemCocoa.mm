@@ -890,16 +890,15 @@ GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
      * This behavior could confuse users, especially when trying to pick a color from another app,
      * potentially capturing the wallpaper under that app window.
      */
-    if (@available(macOS 11.0, *)) {
-      /* Although these methods are documented as available for macOS 10.15, they are not actually
-       * shipped, leading to a crash if used on macOS 10.15.
-       *
-       * Ref: https://developer.apple.com/forums/thread/683860?answerId=684400022#684400022
-       */
-      if (!CGPreflightScreenCaptureAccess()) {
-        CGRequestScreenCaptureAccess();
-        return GHOST_kFailure;
-      }
+
+    /* Although these methods are documented as available for macOS 10.15, they are not actually
+     * shipped, leading to a crash if used on macOS 10.15.
+     *
+     * Ref: https://developer.apple.com/forums/thread/683860?answerId=684400022#684400022
+     */
+    if (!CGPreflightScreenCaptureAccess()) {
+      CGRequestScreenCaptureAccess();
+      return GHOST_kFailure;
     }
 
     CGEventRef event = CGEventCreate(nil);

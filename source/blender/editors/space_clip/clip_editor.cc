@@ -26,14 +26,12 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_task.h"
-#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -42,8 +40,6 @@
 #include "IMB_imbuf_types.hh"
 
 #include "ED_clip.hh"
-#include "ED_mask.hh"
-#include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
 #include "WM_api.hh"

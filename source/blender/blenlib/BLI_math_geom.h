@@ -57,13 +57,19 @@ float area_poly_signed_v2(const float verts[][2], unsigned int nr);
 float cotangent_tri_weight_v3(const float v1[3], const float v2[3], const float v3[3]);
 
 void cross_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3]);
+/**
+ * Scalar cross product of a 2D triangle.
+ *
+ * - Equivalent to `area * 2`.
+ * - Useful for checking polygon winding (a negative value is clockwise).
+ */
 MINLINE float cross_tri_v2(const float v1[2], const float v2[2], const float v3[2]);
 void cross_poly_v3(float n[3], const float verts[][3], unsigned int nr);
 /**
- * Scalar cross product of a 2d polygon.
+ * Scalar cross product of a 2D polygon.
  *
- * - equivalent to `area * 2`
- * - useful for checking polygon winding (a positive value is clockwise).
+ * - Equivalent to `area * 2`.
+ * - Useful for checking polygon winding (a negative value is clockwise).
  */
 float cross_poly_v2(const float verts[][2], unsigned int nr);
 
@@ -573,6 +579,12 @@ bool isect_ray_ray_v3(const float ray_origin_a[3],
  *
  * \note #line_plane_factor_v3() shares logic.
  */
+bool isect_ray_plane_v3_factor(const float ray_origin[3],
+                               const float ray_direction[3],
+                               const float plane_co[3],
+                               const float plane_no[3],
+                               float *r_lambda);
+
 bool isect_ray_plane_v3(const float ray_origin[3],
                         const float ray_direction[3],
                         const float plane[4],

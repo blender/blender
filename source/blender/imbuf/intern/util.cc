@@ -29,7 +29,7 @@
 #ifdef WITH_FFMPEG
 #  include "BLI_string.h" /* BLI_vsnprintf */
 
-#  include "BKE_global.h" /* G.debug */
+#  include "BKE_global.hh" /* G.debug */
 
 extern "C" {
 #  include <libavcodec/avcodec.h>
@@ -37,7 +37,7 @@ extern "C" {
 #  include <libavformat/avformat.h>
 #  include <libavutil/log.h>
 
-#  include "ffmpeg_compat.h"
+#  include "ffmpeg_compat.h" /* Keep for compatibility. */
 }
 
 #endif
@@ -86,6 +86,7 @@ const char *imb_ext_audio[] = {
     ".aiff",
     ".m4a",
     ".mka",
+    ".opus",
     nullptr,
 };
 
@@ -168,16 +169,6 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype)
 bool IMB_ispic(const char *filepath)
 {
   return (IMB_ispic_type(filepath) != IMB_FTYPE_NONE);
-}
-
-static bool isavi(const char *filepath)
-{
-#ifdef WITH_AVI
-  return AVI_is_avi(filepath);
-#else
-  (void)filepath;
-  return false;
-#endif
 }
 
 #ifdef WITH_FFMPEG
@@ -308,72 +299,19 @@ static int isffmpeg(const char *filepath)
 }
 #endif
 
-int imb_get_anim_type(const char *filepath)
+bool IMB_isanim(const char *filepath)
 {
-  BLI_stat_t st;
-
   BLI_assert(!BLI_path_is_rel(filepath));
 
   if (UTIL_DEBUG) {
     printf("%s: %s\n", __func__, filepath);
   }
 
-#ifndef _WIN32
-#  ifdef WITH_FFMPEG
-  /* stat test below fails on large files > 4GB */
+#ifdef WITH_FFMPEG
   if (isffmpeg(filepath)) {
-    return ANIM_FFMPEG;
+    return true;
   }
-#  endif
-  if (BLI_stat(filepath, &st) == -1) {
-    return 0;
-  }
-  if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return 0;
-  }
+#endif
 
-  if (isavi(filepath)) {
-    return ANIM_AVI;
-  }
-
-  if (ismovie(filepath)) {
-    return ANIM_MOVIE;
-  }
-#else /* !_WIN32 */
-  if (BLI_stat(filepath, &st) == -1) {
-    return 0;
-  }
-  if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return 0;
-  }
-
-  if (ismovie(filepath)) {
-    return ANIM_MOVIE;
-  }
-#  ifdef WITH_FFMPEG
-  if (isffmpeg(filepath)) {
-    return ANIM_FFMPEG;
-  }
-#  endif
-
-  if (isavi(filepath)) {
-    return ANIM_AVI;
-  }
-#endif /* !_WIN32 */
-
-  /* Assume a single image is part of an image sequence. */
-  if (IMB_ispic(filepath)) {
-    return ANIM_SEQUENCE;
-  }
-
-  return ANIM_NONE;
-}
-
-bool IMB_isanim(const char *filepath)
-{
-  int type;
-
-  type = imb_get_anim_type(filepath);
-
-  return (type && type != ANIM_SEQUENCE);
+  return false;
 }

@@ -32,10 +32,9 @@
 
 #include "BLI_array.hh"
 #include "BLI_blenlib.h"
-#include "BLI_dlrbTree.h"
 #include "BLI_math_rotation.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
@@ -48,15 +47,12 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_object.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-#include "BKE_screen.hh"
+#include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_unit.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
-#include "RNA_path.hh"
 #include "RNA_prototypes.h"
 
 #include "WM_api.hh"
@@ -65,25 +61,16 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "ED_armature.hh"
 #include "ED_keyframes_edit.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_markers.hh"
 #include "ED_numinput.hh"
 #include "ED_screen.hh"
-#include "ED_space_api.hh"
 #include "ED_util.hh"
 
 #include "ANIM_fcurve.hh"
 
-#include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
-#include "GPU_matrix.h"
-#include "GPU_state.h"
-
 #include "armature_intern.hh"
-
-#include "BLF_api.hh"
 
 using blender::Vector;
 
@@ -908,38 +895,38 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
   switch (pso->mode) {
     case POSESLIDE_PUSH:
-      STRNCPY(mode_str, RPT_("Push Pose"));
+      STRNCPY(mode_str, IFACE_("Push Pose"));
       break;
     case POSESLIDE_RELAX:
-      STRNCPY(mode_str, RPT_("Relax Pose"));
+      STRNCPY(mode_str, IFACE_("Relax Pose"));
       break;
     case POSESLIDE_BREAKDOWN:
-      STRNCPY(mode_str, RPT_("Breakdown"));
+      STRNCPY(mode_str, IFACE_("Breakdown"));
       break;
     case POSESLIDE_BLEND:
-      STRNCPY(mode_str, RPT_("Blend to Neighbor"));
+      STRNCPY(mode_str, IFACE_("Blend to Neighbor"));
       break;
 
     default:
       /* Unknown. */
-      STRNCPY(mode_str, RPT_("Sliding-Tool"));
+      STRNCPY(mode_str, IFACE_("Sliding-Tool"));
       break;
   }
 
   switch (pso->axislock) {
     case PS_LOCK_X:
-      STRNCPY(axis_str, RPT_("[X]/Y/Z axis only (X to clear)"));
+      STRNCPY(axis_str, IFACE_("[X]/Y/Z axis only (X to clear)"));
       break;
     case PS_LOCK_Y:
-      STRNCPY(axis_str, RPT_("X/[Y]/Z axis only (Y to clear)"));
+      STRNCPY(axis_str, IFACE_("X/[Y]/Z axis only (Y to clear)"));
       break;
     case PS_LOCK_Z:
-      STRNCPY(axis_str, RPT_("X/Y/[Z] axis only (Z to clear)"));
+      STRNCPY(axis_str, IFACE_("X/Y/[Z] axis only (Z to clear)"));
       break;
 
     default:
       if (ELEM(pso->channels, PS_TFM_LOC, PS_TFM_ROT, PS_TFM_SIZE)) {
-        STRNCPY(axis_str, RPT_("X/Y/Z = Axis Constraint"));
+        STRNCPY(axis_str, IFACE_("X/Y/Z = Axis Constraint"));
       }
       else {
         axis_str[0] = '\0';
@@ -949,26 +936,26 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
 
   switch (pso->channels) {
     case PS_TFM_LOC:
-      SNPRINTF(limits_str, RPT_("[G]/R/S/B/C - Location only (G to clear) | %s"), axis_str);
+      SNPRINTF(limits_str, IFACE_("[G]/R/S/B/C - Location only (G to clear) | %s"), axis_str);
       break;
     case PS_TFM_ROT:
-      SNPRINTF(limits_str, RPT_("G/[R]/S/B/C - Rotation only (R to clear) | %s"), axis_str);
+      SNPRINTF(limits_str, IFACE_("G/[R]/S/B/C - Rotation only (R to clear) | %s"), axis_str);
       break;
     case PS_TFM_SIZE:
-      SNPRINTF(limits_str, RPT_("G/R/[S]/B/C - Scale only (S to clear) | %s"), axis_str);
+      SNPRINTF(limits_str, IFACE_("G/R/[S]/B/C - Scale only (S to clear) | %s"), axis_str);
       break;
     case PS_TFM_BBONE_SHAPE:
-      STRNCPY(limits_str, RPT_("G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"));
+      STRNCPY(limits_str, IFACE_("G/R/S/[B]/C - Bendy Bone properties only (B to clear) | %s"));
       break;
     case PS_TFM_PROPS:
-      STRNCPY(limits_str, RPT_("G/R/S/B/[C] - Custom Properties only (C to clear) | %s"));
+      STRNCPY(limits_str, IFACE_("G/R/S/B/[C] - Custom Properties only (C to clear) | %s"));
       break;
     default:
-      STRNCPY(limits_str, RPT_("G/R/S/B/C - Limit to Transform/Property Set"));
+      STRNCPY(limits_str, IFACE_("G/R/S/B/C - Limit to Transform/Property Set"));
       break;
   }
 
-  STRNCPY(bone_vis_str, RPT_("[H] - Toggle bone visibility"));
+  STRNCPY(bone_vis_str, IFACE_("[H] - Toggle bone visibility"));
 
   ED_slider_status_string_get(pso->slider, slider_str, sizeof(slider_str));
 

@@ -6,7 +6,6 @@
  * \ingroup texnodes
  */
 
-#include "NOD_texture.h"
 #include "node_texture_util.hh"
 
 static bNodeSocketTemplate inputs[] = {

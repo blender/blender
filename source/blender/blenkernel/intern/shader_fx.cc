@@ -11,27 +11,19 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math_vector.h"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
-#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_shader_fx_types.h"
 
-#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_object.hh"
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
-
-#include "DEG_depsgraph.hh"
-#include "DEG_depsgraph_query.hh"
 
 #include "FX_shader_types.h"
 

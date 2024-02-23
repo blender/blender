@@ -6,6 +6,8 @@
  * \ingroup edmesh
  */
 
+#include <fmt/format.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -14,16 +16,13 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_unit.hh"
-
-#include "DNA_curveprofile_types.h"
-#include "DNA_mesh_types.h"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -124,15 +123,11 @@ static float get_bevel_offset(wmOperator *op)
 
 static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
 {
-  char status_text[UI_MAX_DRAW_STR];
-  char buf[UI_MAX_DRAW_STR];
-  char *p = buf;
-  int available_len = sizeof(buf);
   Scene *sce = CTX_data_scene(C);
 
-#define WM_MODALKEY(_id) \
-  WM_modalkeymap_operator_items_to_string_buf( \
-      op->type, (_id), true, UI_MAX_SHORTCUT_STR, &available_len, &p)
+  auto get_modal_key_str = [&](int id) {
+    return WM_modalkeymap_operator_items_to_string(op->type, id, true).value_or("");
+  };
 
   char offset_str[NUM_STR_REP_LEN];
   if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
@@ -170,54 +165,52 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   RNA_property_enum_name_gettexted(
       C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &affect_str);
 
-  SNPRINTF(status_text,
-           RPT_("%s: Confirm, "
-                "%s: Cancel, "
-                "%s: Width Type (%s), "
-                "%s: Width (%s), "
-                "%s: Segments (%d), "
-                "%s: Profile (%.3f), "
-                "%s: Clamp Overlap (%s), "
-                "%s: Affect (%s), "
-                "%s: Outer Miter (%s), "
-                "%s: Inner Miter (%s), "
-                "%s: Harden Normals (%s), "
-                "%s: Mark Seam (%s), "
-                "%s: Mark Sharp (%s), "
-                "%s: Profile Type (%s), "
-                "%s: Intersection (%s)"),
-           WM_MODALKEY(BEV_MODAL_CONFIRM),
-           WM_MODALKEY(BEV_MODAL_CANCEL),
-           WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),
-           mode_str,
-           WM_MODALKEY(BEV_MODAL_VALUE_OFFSET),
-           offset_str,
-           WM_MODALKEY(BEV_MODAL_VALUE_SEGMENTS),
-           RNA_int_get(op->ptr, "segments"),
-           WM_MODALKEY(BEV_MODAL_VALUE_PROFILE),
-           RNA_float_get(op->ptr, "profile"),
-           WM_MODALKEY(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
-           WM_MODALKEY(BEV_MODAL_AFFECT_CHANGE),
-           affect_str,
-           WM_MODALKEY(BEV_MODAL_OUTER_MITER_CHANGE),
-           omiter_str,
-           WM_MODALKEY(BEV_MODAL_INNER_MITER_CHANGE),
-           imiter_str,
-           WM_MODALKEY(BEV_MODAL_HARDEN_NORMALS_TOGGLE),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "harden_normals")),
-           WM_MODALKEY(BEV_MODAL_MARK_SEAM_TOGGLE),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_seam")),
-           WM_MODALKEY(BEV_MODAL_MARK_SHARP_TOGGLE),
-           WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_sharp")),
-           WM_MODALKEY(BEV_MODAL_PROFILE_TYPE_CHANGE),
-           profile_type_str,
-           WM_MODALKEY(BEV_MODAL_VERTEX_MESH_CHANGE),
-           vmesh_str);
+  const std::string status_text = fmt::format(
+      IFACE_("{}: Confirm, "
+             "{}: Cancel, "
+             "{}: Width Type ({}), "
+             "{}: Width ({}), "
+             "{}: Segments ({}), "
+             "{}: Profile ({:.3f}), "
+             "{}: Clamp Overlap ({}), "
+             "{}: Affect ({}), "
+             "{}: Outer Miter ({}), "
+             "{}: Inner Miter ({}), "
+             "{}: Harden Normals ({}), "
+             "{}: Mark Seam ({}), "
+             "{}: Mark Sharp ({}), "
+             "{}: Profile Type ({}), "
+             "{}: Intersection ({})"),
+      get_modal_key_str(BEV_MODAL_CONFIRM),
+      get_modal_key_str(BEV_MODAL_CANCEL),
+      get_modal_key_str(BEV_MODAL_OFFSET_MODE_CHANGE),
+      mode_str,
+      get_modal_key_str(BEV_MODAL_VALUE_OFFSET),
+      offset_str,
+      get_modal_key_str(BEV_MODAL_VALUE_SEGMENTS),
+      RNA_int_get(op->ptr, "segments"),
+      get_modal_key_str(BEV_MODAL_VALUE_PROFILE),
+      RNA_float_get(op->ptr, "profile"),
+      get_modal_key_str(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
+      get_modal_key_str(BEV_MODAL_AFFECT_CHANGE),
+      affect_str,
+      get_modal_key_str(BEV_MODAL_OUTER_MITER_CHANGE),
+      omiter_str,
+      get_modal_key_str(BEV_MODAL_INNER_MITER_CHANGE),
+      imiter_str,
+      get_modal_key_str(BEV_MODAL_HARDEN_NORMALS_TOGGLE),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "harden_normals")),
+      get_modal_key_str(BEV_MODAL_MARK_SEAM_TOGGLE),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_seam")),
+      get_modal_key_str(BEV_MODAL_MARK_SHARP_TOGGLE),
+      WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_sharp")),
+      get_modal_key_str(BEV_MODAL_PROFILE_TYPE_CHANGE),
+      profile_type_str,
+      get_modal_key_str(BEV_MODAL_VERTEX_MESH_CHANGE),
+      vmesh_str);
 
-#undef WM_MODALKEY
-
-  ED_workspace_status_text(C, status_text);
+  ED_workspace_status_text(C, status_text.c_str());
 }
 
 static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
@@ -243,7 +236,7 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
     const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
         scene, view_layer, v3d);
     for (Object *obedit : objects) {
-      float scale = mat4_to_scale(obedit->object_to_world);
+      float scale = mat4_to_scale(obedit->object_to_world().ptr());
       opdata->max_obj_scale = max_ff(opdata->max_obj_scale, scale);
       BMEditMesh *em = BKE_editmesh_from_object(obedit);
       if (em->bm->totvertsel > 0) {

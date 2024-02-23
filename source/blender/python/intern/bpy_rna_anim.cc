@@ -20,7 +20,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_keyframes_edit.hh"
 #include "ED_keyframing.hh"
 
 #include "ANIM_keyframing.hh"
@@ -29,10 +28,10 @@
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -595,7 +594,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 
     bContext *context = BPY_context_get();
     WM_event_add_notifier(BPY_context_get(), NC_ANIMATION | ND_FCURVES_ORDER, nullptr);
-    DEG_id_tag_update(id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(CTX_data_main(context));
   }
   else {

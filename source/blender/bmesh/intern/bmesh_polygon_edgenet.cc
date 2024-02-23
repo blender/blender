@@ -1642,7 +1642,7 @@ finally:
 /* Sanity check: ensure we don't have connecting edges before splicing begins. */
 #  ifndef NDEBUG
     {
-      struct TempVertPair *tvp = temp_vert_pairs.list;
+      TempVertPair *tvp = temp_vert_pairs.list;
       do {
         /* We must _never_ create connections here
          * (in case the islands can't have a connection at all). */

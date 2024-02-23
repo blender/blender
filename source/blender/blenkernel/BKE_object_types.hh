@@ -26,6 +26,9 @@ namespace blender::bke {
 struct GeometrySet;
 
 struct ObjectRuntime {
+  /** Final transformation matrices with constraints & animsys applied. */
+  float4x4 object_to_world;
+  float4x4 world_to_object;
   /**
    * The custom data layer mask that was last used
    * to calculate data_eval and mesh_deform_eval.
@@ -64,7 +67,7 @@ struct ObjectRuntime {
   /**
    * Original data pointer, before object->data was changed to point
    * to data_eval.
-   * Is assigned by dependency graph's copy-on-write evaluation.
+   * Is assigned by dependency graph's copy-on-evaluation.
    */
   ID *data_orig = nullptr;
   /**
@@ -100,7 +103,7 @@ struct ObjectRuntime {
   /**
    * Original grease pencil bGPdata pointer, before object->data was changed to point
    * to gpd_eval.
-   * Is assigned by dependency graph's copy-on-write evaluation.
+   * Is assigned by dependency graph's copy-on-evaluation.
    */
   bGPdata *gpd_orig = nullptr;
   /**

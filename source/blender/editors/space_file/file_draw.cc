@@ -30,11 +30,11 @@
 
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BLF_api.hh"
 
@@ -96,8 +96,6 @@ void ED_file_path_button(bScreen *screen,
                   0,
                   0.0f,
                   float(FILE_MAX),
-                  0.0f,
-                  0.0f,
                   TIP_("File path"));
 
   BLI_assert(!UI_but_flag_is_set(but, UI_BUT_UNDO));
@@ -823,26 +821,28 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
   BLI_path_join(newname, sizeof(newname), params->dir, filename);
 
   if (!STREQ(orgname, newname)) {
-    if (!BLI_exists(newname)) {
-      errno = 0;
-      if ((BLI_rename(orgname, newname) != 0) || !BLI_exists(newname)) {
-        WM_reportf(RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
-        WM_report_banner_show(wm, win);
-      }
-      else {
-        /* If rename is successful, scroll to newly renamed entry. */
-        STRNCPY(params->renamefile, filename);
-        file_params_invoke_rename_postscroll(wm, win, sfile);
-      }
-
-      /* to make sure we show what is on disk */
-      ED_fileselect_clear(wm, sfile);
-    }
-    else {
+    errno = 0;
+    if ((BLI_rename(orgname, newname) != 0) || !BLI_exists(newname)) {
+      WM_reportf(RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
+      WM_report_banner_show(wm, win);
       /* Renaming failed, reset the name for further renaming handling. */
       STRNCPY(params->renamefile, oldname);
     }
+    else {
+      /* If rename is successful, set renamefile to newly renamed entry.
+       * This is used later to select and scroll to the file.
+       */
+      STRNCPY(params->renamefile, filename);
+    }
 
+    /* Ensure we select and scroll to the renamed file.
+     * This is done even if the rename fails as we want to make sure that the file we tried to
+     * rename is still selected and in view. (it can move if something added files/folders to the
+     * directory while we were renaming.
+     */
+    file_params_invoke_rename_postscroll(wm, win, sfile);
+    /* to make sure we show what is on disk */
+    ED_fileselect_clear(wm, sfile);
     ED_region_tag_redraw(region);
   }
 }
@@ -1423,7 +1423,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
                                                  ARegion *region,
                                                  FileAssetSelectParams *asset_params)
 {
-  char library_ui_path[PATH_MAX];
+  char library_ui_path[FILE_MAX_LIBEXTRA];
   file_path_to_ui_path(asset_params->base_params.dir, library_ui_path, sizeof(library_ui_path));
 
   uchar text_col[4];

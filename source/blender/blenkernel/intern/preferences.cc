@@ -10,8 +10,6 @@
 
 #include <cstring>
 
-#include "DNA_asset_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_fileops.h"
@@ -24,7 +22,7 @@
 #include "BKE_appdir.hh"
 #include "BKE_preferences.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_defaults.h"
 #include "DNA_userdef_types.h"
@@ -195,6 +193,22 @@ void BKE_preferences_extension_repo_remove(UserDef *userdef, bUserExtensionRepo 
   BLI_freelinkN(&userdef->extension_repos, repo);
 }
 
+bUserExtensionRepo *BKE_preferences_extension_repo_add_default(UserDef *userdef)
+{
+  bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
+      userdef, "Blender Official", "blender_official", "");
+  STRNCPY(repo->remote_path, "https://extensions.blender.org");
+  repo->flag |= USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH;
+  return repo;
+}
+
+bUserExtensionRepo *BKE_preferences_extension_repo_add_default_user(UserDef *userdef)
+{
+  bUserExtensionRepo *repo = BKE_preferences_extension_repo_add(
+      userdef, "User Default", "user_default", "");
+  return repo;
+}
+
 void BKE_preferences_extension_repo_name_set(UserDef *userdef,
                                              bUserExtensionRepo *repo,
                                              const char *name)
@@ -262,6 +276,82 @@ bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef 
 {
   return static_cast<bUserExtensionRepo *>(
       BLI_findstring(&userdef->extension_repos, module, offsetof(bUserExtensionRepo, module)));
+}
+
+bUserExtensionRepo *BKE_preferences_extension_repo_find_by_remote_path_prefix(
+    const UserDef *userdef, const char *path_full, const bool only_enabled)
+{
+  const int path_full_len = strlen(path_full);
+  const int path_full_offset = BKE_preferences_extension_repo_remote_scheme_end(path_full);
+
+  LISTBASE_FOREACH (bUserExtensionRepo *, repo, &userdef->extension_repos) {
+    if (only_enabled && (repo->flag & USER_EXTENSION_REPO_FLAG_DISABLED)) {
+      continue;
+    }
+
+    /* Has a valid remote path to check. */
+    if ((repo->flag & USER_EXTENSION_REPO_FLAG_USE_REMOTE_PATH) == 0) {
+      continue;
+    }
+    if (repo->remote_path[0] == '\0') {
+      continue;
+    }
+
+    /* Set path variables which may be offset by the "scheme". */
+    const char *path_repo = repo->remote_path;
+    const char *path_test = path_full;
+    int path_test_len = path_full_len;
+
+    /* Allow paths beginning with both `http` & `https` to be considered equivalent.
+     * This is done by skipping the "scheme" prefix both have a scheme. */
+    if (path_full_offset) {
+      const int path_repo_offset = BKE_preferences_extension_repo_remote_scheme_end(path_repo);
+      if (path_repo_offset) {
+        path_repo += path_repo_offset;
+        path_test += path_full_offset;
+        path_test_len -= path_full_offset;
+      }
+    }
+
+    /* The length of the path without trailing slashes. */
+    int path_repo_len = strlen(path_repo);
+    while (path_repo_len && ELEM(path_repo[path_repo_len - 1], '/', '\\')) {
+      path_repo_len--;
+    }
+
+    if (path_test_len <= path_repo_len) {
+      continue;
+    }
+    if (memcmp(path_repo, path_test, path_repo_len) != 0) {
+      continue;
+    }
+
+    /* A delimiter must follow to ensure `path_test` doesn't reference a longer host-name.
+     * Will typically be a `/` or a `:`. */
+    if (!ELEM(path_test[path_repo_len], '/', '\\', ':', '&', '?')) {
+      continue;
+    }
+    return repo;
+  }
+  return nullptr;
+}
+
+int BKE_preferences_extension_repo_remote_scheme_end(const char *url)
+{
+  /* Technically the "://" are not part of the scheme, so subtract 3 from the return value. */
+  const char *scheme_check[] = {
+      "http://",
+      "https://",
+      "file://",
+  };
+  for (int i = 0; i < ARRAY_SIZE(scheme_check); i++) {
+    const char *scheme = scheme_check[i];
+    int scheme_len = strlen(scheme);
+    if (strncmp(url, scheme, scheme_len) == 0) {
+      return scheme_len - 3;
+    }
+  }
+  return 0;
 }
 
 int BKE_preferences_extension_repo_get_index(const UserDef *userdef,

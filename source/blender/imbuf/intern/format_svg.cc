@@ -14,7 +14,6 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_filetype.hh"
 #include "IMB_imbuf_types.hh"
-#include "nanosvg.h"
 #include "nanosvgrast.h"
 
 ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,

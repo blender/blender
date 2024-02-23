@@ -16,7 +16,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "BKE_global.h"
+#include "BKE_global.hh"
 
 #include "MEM_guardedalloc.h"
 

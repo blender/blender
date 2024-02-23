@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "final_engine.h"
-#include "camera.h"
+#include "final_engine.hh"
+#include "camera.hh"
 
 #include <pxr/imaging/hd/light.h>
 #include <pxr/imaging/hd/renderBuffer.h>
@@ -72,7 +72,7 @@ void FinalEngine::render()
   engine_->Execute(render_index_.get(), &t);
 
   char elapsed_time[32];
-  double time_begin = BLI_check_seconds_timer();
+  double time_begin = BLI_time_now_seconds();
   float percent_done = 0.0;
 
   while (true) {
@@ -82,7 +82,7 @@ void FinalEngine::render()
 
     percent_done = renderer_percent_done();
     BLI_timecode_string_from_time_simple(
-        elapsed_time, sizeof(elapsed_time), BLI_check_seconds_timer() - time_begin);
+        elapsed_time, sizeof(elapsed_time), BLI_time_now_seconds() - time_begin);
     notify_status(percent_done / 100.0,
                   std::string(scene_name) + ": " + view_layer->name,
                   std::string("Render Time: ") + elapsed_time +

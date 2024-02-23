@@ -12,7 +12,7 @@
 #  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
 
-double BLI_check_seconds_timer(void)
+double BLI_time_now_seconds(void)
 {
   static int hasperfcounter = -1; /* (-1 == unknown) */
   static double perffreq;
@@ -47,12 +47,12 @@ double BLI_check_seconds_timer(void)
   }
 }
 
-long int BLI_check_seconds_timer_i(void)
+long int BLI_time_now_seconds_i(void)
 {
-  return (long int)BLI_check_seconds_timer();
+  return (long int)BLI_time_now_seconds();
 }
 
-void BLI_sleep_ms(int ms)
+void BLI_time_sleep_ms(int ms)
 {
   Sleep(ms);
 }
@@ -62,7 +62,7 @@ void BLI_sleep_ms(int ms)
 #  include <sys/time.h>
 #  include <unistd.h>
 
-double BLI_check_seconds_timer(void)
+double BLI_time_now_seconds(void)
 {
   struct timeval tv;
   struct timezone tz;
@@ -72,7 +72,7 @@ double BLI_check_seconds_timer(void)
   return ((double)tv.tv_sec + tv.tv_usec / 1000000.0);
 }
 
-long int BLI_check_seconds_timer_i(void)
+long int BLI_time_now_seconds_i(void)
 {
   struct timeval tv;
   struct timezone tz;
@@ -82,7 +82,7 @@ long int BLI_check_seconds_timer_i(void)
   return tv.tv_sec;
 }
 
-void BLI_sleep_ms(int ms)
+void BLI_time_sleep_ms(int ms)
 {
   if (ms >= 1000) {
     sleep(ms / 1000);

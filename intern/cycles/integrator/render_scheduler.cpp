@@ -46,6 +46,11 @@ void RenderScheduler::set_denoiser_params(const DenoiseParams &params)
   denoiser_params_ = params;
 }
 
+bool RenderScheduler::is_denoiser_gpu_used() const
+{
+  return denoiser_params_.use_gpu;
+}
+
 void RenderScheduler::set_limit_samples_per_update(const int limit_samples)
 {
   limit_samples_per_update_ = limit_samples;

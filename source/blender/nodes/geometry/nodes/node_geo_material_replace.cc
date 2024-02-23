@@ -7,7 +7,6 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.h"
 
 namespace blender::nodes::node_geo_material_replace_cc {
 

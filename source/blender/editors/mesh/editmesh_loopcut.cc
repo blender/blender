@@ -13,15 +13,13 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
-
-#include "DNA_mesh_types.h"
+#include "BLT_translation.hh"
 
 #include "BKE_context.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
 #include "BKE_modifier.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 #include "BKE_unit.hh"
 
 #include "UI_interface.hh"
@@ -90,7 +88,9 @@ struct RingSelOpData {
 static void ringsel_draw(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
   RingSelOpData *lcd = static_cast<RingSelOpData *>(arg);
-  EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world);
+  if (lcd->ob != nullptr) {
+    EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->object_to_world().ptr());
+  }
 }
 
 static void edgering_select(RingSelOpData *lcd)
@@ -463,8 +463,8 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
   if (is_interactive) {
     ED_workspace_status_text(
         C,
-        RPT_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
-             "hold Alt for smooth"));
+        IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+               "hold Alt for smooth"));
     return OPERATOR_RUNNING_MODAL;
   }
 
@@ -685,7 +685,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       BLI_snprintf(str_rep + NUM_STR_REP_LEN, NUM_STR_REP_LEN, "%.2f", smoothness);
     }
     SNPRINTF(
-        buf, RPT_("Number of Cuts: %s, Smooth: %s (Alt)"), str_rep, str_rep + NUM_STR_REP_LEN);
+        buf, IFACE_("Number of Cuts: %s, Smooth: %s (Alt)"), str_rep, str_rep + NUM_STR_REP_LEN);
     ED_workspace_status_text(C, buf);
   }
 

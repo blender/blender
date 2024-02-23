@@ -22,7 +22,6 @@
 #include "../mathutils/mathutils.h"
 
 #include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
 
 #include "BKE_customdata.hh"
 

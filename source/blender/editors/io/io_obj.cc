@@ -13,13 +13,13 @@
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
+#  include "BKE_report.hh"
 
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 #  include "BLI_utildefines.h"
 
-#  include "BLT_translation.h"
+#  include "BLT_translation.hh"
 
 #  include "ED_fileselect.hh"
 #  include "ED_outliner.hh"
@@ -390,7 +390,6 @@ void WM_OT_obj_export(wmOperatorType *ot)
 static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
   OBJImportParams import_params{};
-  RNA_string_get(op->ptr, "filepath", import_params.filepath);
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
@@ -405,32 +404,18 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
   import_params.clear_selection = true;
 
-  int files_len = RNA_collection_length(op->ptr, "files");
-  if (files_len) {
-    /* Importing multiple files: loop over them and import one by one. */
-    PointerRNA fileptr;
-    PropertyRNA *prop;
-    char dir_only[FILE_MAX], file_only[FILE_MAX];
+  const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 
-    RNA_string_get(op->ptr, "directory", dir_only);
-    prop = RNA_struct_find_property(op->ptr, "files");
-    for (int i = 0; i < files_len; i++) {
-      RNA_property_collection_lookup_int(op->ptr, prop, i, &fileptr);
-      RNA_string_get(&fileptr, "name", file_only);
-      BLI_path_join(import_params.filepath, sizeof(import_params.filepath), dir_only, file_only);
-      import_params.clear_selection = (i == 0);
-      OBJ_import(C, &import_params);
-    }
-  }
-  else if (RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    /* Importing one file. */
-    RNA_string_get(op->ptr, "filepath", import_params.filepath);
-    OBJ_import(C, &import_params);
-  }
-  else {
+  if (paths.is_empty()) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
+  for (const auto &path : paths) {
+    STRNCPY(import_params.filepath, path.c_str());
+    OBJ_import(C, &import_params);
+    /* Only first import clears selection. */
+    import_params.clear_selection = false;
+  };
 
   Scene *scene = CTX_data_scene(C);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

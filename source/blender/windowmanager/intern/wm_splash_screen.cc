@@ -17,8 +17,6 @@
 #include <algorithm>
 #include <cstring>
 
-#include "CLG_log.h"
-
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -31,11 +29,8 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
-#include "BKE_screen.hh"
 
-#include "BLT_translation.h"
-
-#include "BLF_api.hh"
+#include "BLT_translation.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -52,7 +47,11 @@
 
 #include "wm.hh"
 
-static void wm_block_close(bContext *C, void *arg_block, void * /*arg*/)
+/* -------------------------------------------------------------------- */
+/** \name Splash Screen
+ * \{ */
+
+static void wm_block_splash_close(bContext *C, void *arg_block, void * /*arg*/)
 {
   wmWindow *win = CTX_wm_window(C);
   UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
@@ -170,7 +169,31 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
   return ibuf;
 }
 
-static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*arg*/)
+/**
+ * Close the splash when opening a file-selector.
+ */
+static void wm_block_splash_close_on_fileselect(bContext *C, void *arg1, void * /*arg2*/)
+{
+  wmWindow *win = CTX_wm_window(C);
+  if (!win) {
+    return;
+  }
+
+  /* Check for the event as this will run before the new window/area has been created. */
+  bool has_fileselect = false;
+  LISTBASE_FOREACH (const wmEvent *, event, &win->event_queue) {
+    if (event->type == EVT_FILESELECT) {
+      has_fileselect = true;
+      break;
+    }
+  }
+
+  if (has_fileselect) {
+    wm_block_splash_close(C, arg1, nullptr);
+  }
+}
+
+static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*arg*/)
 {
   const uiStyle *style = UI_style_get_dpi();
 
@@ -195,7 +218,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*ar
     uiBut *but = uiDefButImage(
         block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, nullptr);
 
-    UI_but_func_set(but, wm_block_close, block, nullptr);
+    UI_but_func_set(but, wm_block_splash_close, block, nullptr);
 
     wm_block_splash_add_label(block,
                               BKE_blender_version_string(),
@@ -234,6 +257,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*ar
     mt = WM_menutype_find("WM_MT_splash", true);
   }
 
+  UI_block_func_set(block, wm_block_splash_close_on_fileselect, block, nullptr);
+
   if (mt) {
     UI_menutype_draw(C, mt, layout);
   }
@@ -245,7 +270,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void * /*ar
 
 static int wm_splash_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
-  UI_popup_block_invoke(C, wm_block_create_splash, nullptr, nullptr);
+  UI_popup_block_invoke(C, wm_block_splash_create, nullptr, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -260,7 +285,13 @@ void WM_OT_splash(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
 }
 
-static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void * /*arg*/)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Splash Screen: About
+ * \{ */
+
+static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg*/)
 {
   const uiStyle *style = UI_style_get_dpi();
   const int text_points_max = std::max(style->widget.points, style->widgetlabel.points);
@@ -321,9 +352,9 @@ static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void * /*arg
   return block;
 }
 
-static int wm_about_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static int wm_splash_about_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
 {
-  UI_popup_block_invoke(C, wm_block_create_about, nullptr, nullptr);
+  UI_popup_block_invoke(C, wm_block_about_create, nullptr, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -334,6 +365,8 @@ void WM_OT_splash_about(wmOperatorType *ot)
   ot->idname = "WM_OT_splash_about";
   ot->description = "Open a window with information about Blender";
 
-  ot->invoke = wm_about_invoke;
+  ot->invoke = wm_splash_about_invoke;
   ot->poll = WM_operator_winactive;
 }
+
+/** \} */

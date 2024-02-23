@@ -26,9 +26,7 @@ class ConstantOperation : public NodeOperation {
   virtual const float *get_constant_elem() = 0;
   bool can_get_constant_elem() const;
 
-  void update_memory_buffer(MemoryBuffer *output,
-                            const rcti &area,
-                            Span<MemoryBuffer *> inputs) final;
+  void update_memory_buffer(MemoryBuffer *output, const rcti &area, Span<MemoryBuffer *> inputs);
 };
 
 }  // namespace blender::compositor

@@ -24,7 +24,6 @@
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
@@ -37,38 +36,32 @@
 #include "DNA_vfont_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
-#include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_callbacks.h"
+#include "BKE_callbacks.hh"
 #include "BLI_blenlib.h"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
 #include "BLI_task.h"
 #include "BLI_threads.h"
-#include "BLI_time.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_readfile.h"
+#include "BLO_readfile.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_action.h"
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
-#include "BKE_armature.hh"
-#include "BKE_bpath.h"
-#include "BKE_cachefile.h"
-#include "BKE_collection.h"
+#include "BKE_bpath.hh"
+#include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curveprofile.h"
-#include "BKE_duplilist.h"
+#include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
-#include "BKE_freestyle.h"
-#include "BKE_gpencil_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"
@@ -77,35 +70,28 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
-#include "BKE_linestyle.h"
 #include "BKE_main.hh"
-#include "BKE_mask.h"
-#include "BKE_modifier.hh"
-#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_pointcache.h"
 #include "BKE_preview_image.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
+#include "BKE_scene_runtime.hh"
 #include "BKE_screen.hh"
 #include "BKE_sound.h"
 #include "BKE_unit.hh"
 #include "BKE_workspace.h"
-#include "BKE_world.h"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_debug.hh"
 #include "DEG_depsgraph_query.hh"
-#include "DEG_depsgraph_writeback_sync.hh"
 
 #include "RE_engine.h"
 
 #include "RNA_access.hh"
 
-#include "SEQ_edit.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
 
@@ -119,6 +105,8 @@
 #include "DRW_engine.hh"
 
 #include "bmesh.hh"
+
+using blender::bke::SceneRuntime;
 
 CurveMapping *BKE_sculpt_default_cavity_curve()
 
@@ -249,6 +237,8 @@ static void scene_init_data(ID *id)
   scene->master_collection = BKE_collection_master_add(scene);
 
   BKE_view_layer_add(scene, DATA_("ViewLayer"), nullptr, VIEWLAYER_ADD_NEW);
+
+  scene->runtime = MEM_new<SceneRuntime>(__func__);
 }
 
 static void scene_copy_markers(Scene *scene_dst, const Scene *scene_src, const int flag)
@@ -369,6 +359,8 @@ static void scene_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   }
 
   BKE_scene_copy_data_eevee(scene_dst, scene_src);
+
+  scene_dst->runtime = MEM_new<SceneRuntime>(__func__);
 }
 
 static void scene_free_markers(Scene *scene, bool do_id_user)
@@ -464,6 +456,8 @@ static void scene_free_data(ID *id)
 
   /* These are freed on `do_versions`. */
   BLI_assert(scene->layer_properties == nullptr);
+
+  MEM_delete(scene->runtime);
 }
 
 static void scene_foreach_rigidbodyworldSceneLooper(RigidBodyWorld * /*rbw*/,
@@ -892,6 +886,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 
   LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->mat_override, IDWALK_CB_USER);
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, view_layer->world_override, IDWALK_CB_USER);
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
         data,
         IDP_foreach_property(view_layer->id_properties,
@@ -1259,6 +1254,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   /* set users to one by default, not in lib-link, this will increase it for compo nodes */
   id_us_ensure_real(&sce->id);
 
+  sce->runtime = MEM_new<SceneRuntime>(__func__);
+
   BLO_read_list(reader, &(sce->base));
 
   BLO_read_list(reader, &sce->keyingsets);
@@ -1604,6 +1601,10 @@ constexpr IDTypeInfo get_type_info()
   IDTypeInfo info{};
   info.id_code = ID_SCE;
   info.id_filter = FILTER_ID_SCE;
+  info.dependencies_id_types = (FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC |
+                                FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS |
+                                FILTER_ID_MSK | FILTER_ID_SO | FILTER_ID_GD_LEGACY | FILTER_ID_BR |
+                                FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT);
   info.main_listbase_index = INDEX_ID_SCE;
   info.struct_size = sizeof(Scene);
   info.name = "Scene";
@@ -2170,13 +2171,13 @@ int BKE_scene_base_iter_next(
           if (iter->dupli_refob != *ob) {
             if (iter->dupli_refob) {
               /* Restore previous object's real matrix. */
-              copy_m4_m4(iter->dupli_refob->object_to_world, iter->omat);
+              copy_m4_m4(iter->dupli_refob->runtime->object_to_world.ptr(), iter->omat);
             }
             /* Backup new object's real matrix. */
             iter->dupli_refob = *ob;
-            copy_m4_m4(iter->omat, iter->dupli_refob->object_to_world);
+            copy_m4_m4(iter->omat, iter->dupli_refob->object_to_world().ptr());
           }
-          copy_m4_m4((*ob)->object_to_world, iter->dupob->mat);
+          copy_m4_m4((*ob)->runtime->object_to_world.ptr(), iter->dupob->mat);
 
           iter->dupob = iter->dupob->next;
         }
@@ -2186,7 +2187,7 @@ int BKE_scene_base_iter_next(
 
           if (iter->dupli_refob) {
             /* Restore last object's real matrix. */
-            copy_m4_m4(iter->dupli_refob->object_to_world, iter->omat);
+            copy_m4_m4(iter->dupli_refob->runtime->object_to_world.ptr(), iter->omat);
             iter->dupli_refob = nullptr;
           }
 
@@ -2268,7 +2269,7 @@ bool BKE_scene_camera_switch_update(Scene *scene)
   Object *camera = BKE_scene_camera_switch_find(scene);
   if (camera && (camera != scene->camera)) {
     scene->camera = camera;
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
     return true;
   }
 #else

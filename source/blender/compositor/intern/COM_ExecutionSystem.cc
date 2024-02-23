@@ -25,7 +25,9 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
                                  bool rendering,
                                  bool fastcalculation,
                                  const char *view_name,
-                                 realtime_compositor::RenderContext *render_context)
+                                 realtime_compositor::RenderContext *render_context,
+                                 ProfilerData &profiler_data)
+    : profiler_data_(profiler_data)
 {
   num_work_threads_ = WorkScheduler::get_num_cpu_threads();
   context_.set_render_context(render_context);
@@ -42,8 +44,7 @@ ExecutionSystem::ExecutionSystem(RenderData *rd,
     context_.set_quality((eCompositorQuality)editingtree->edit_quality);
   }
   context_.set_rendering(rendering);
-  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() &&
-                                     (editingtree->flag & NTREE_COM_OPENCL));
+  context_.setHasActiveOpenCLDevices(WorkScheduler::has_gpu_devices() && false);
 
   context_.set_render_data(rd);
 
@@ -86,8 +87,8 @@ ExecutionSystem::~ExecutionSystem()
   groups_.clear();
 }
 
-void ExecutionSystem::set_operations(const Vector<NodeOperation *> &operations,
-                                     const Vector<ExecutionGroup *> &groups)
+void ExecutionSystem::set_operations(const Span<NodeOperation *> operations,
+                                     const Span<ExecutionGroup *> groups)
 {
   operations_ = operations;
   groups_ = groups;
@@ -100,6 +101,8 @@ void ExecutionSystem::execute()
     op->init_data();
   }
   execution_model_->execute(*this);
+
+  profiler_data_ = execution_model_->get_profiler_data();
 }
 
 void ExecutionSystem::execute_work(const rcti &work_rect,

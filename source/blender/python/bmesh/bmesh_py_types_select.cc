@@ -22,7 +22,6 @@
 #include "bmesh_py_types.h"
 #include "bmesh_py_types_select.h"
 
-#include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
 PyDoc_STRVAR(

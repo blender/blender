@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "volume_modifier.h"
+#include "volume_modifier.hh"
 
 #include <pxr/usdImaging/usdVolImaging/tokens.h>
 
@@ -15,7 +15,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.hh"
 
-#include "hydra_scene_delegate.h"
+#include "hydra_scene_delegate.hh"
 
 namespace blender::io::hydra {
 
@@ -120,7 +120,7 @@ void VolumeModifierData::write_transform()
                pxr::GfMatrix4d(1.0f).SetTranslate(pxr::GfVec3d(texspace_loc));
 
   /* applying object transform */
-  transform *= gf_matrix_from_transform(object->object_to_world);
+  transform *= gf_matrix_from_transform(object->object_to_world().ptr());
 }
 
 std::string VolumeModifierData::get_cached_file_path(std::string directory, int frame)

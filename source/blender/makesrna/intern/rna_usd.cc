@@ -14,12 +14,14 @@
 
 #include "WM_types.hh"
 
-#include "usd.h"
+#include "usd.hh"
 
 #ifdef RNA_RUNTIME
 
 #  include "DNA_object_types.h"
 #  include "WM_api.hh"
+
+using namespace blender::io::usd;
 
 static StructRNA *rna_USDHook_refine(PointerRNA *ptr)
 {
@@ -44,8 +46,6 @@ static bool rna_USDHook_unregister(Main * /*bmain*/, StructRNA *type)
   /* unlink Blender-side data */
   USD_unregister_hook(hook);
 
-  MEM_freeN(hook);
-
   return true;
 }
 
@@ -58,8 +58,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
                                        StructFreeFunc free)
 {
   const char *error_prefix = "Registering USD hook class:";
-  USDHook dummy_hook = {{0}};
-  USDHook *hook;
+  USDHook dummy_hook{};
 
   /* setup dummy type info to store static properties in */
   PointerRNA dummy_hook_ptr = RNA_pointer_create(nullptr, &RNA_USDHook, &dummy_hook);
@@ -80,8 +79,7 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   }
 
   /* check if we have registered this hook before, and remove it */
-  hook = USD_find_hook_name(dummy_hook.idname);
-  if (hook) {
+  if (USDHook *hook = USD_find_hook_name(dummy_hook.idname)) {
     BKE_reportf(reports,
                 RPT_INFO,
                 "%s '%s', bl_idname '%s' has been registered before, unregistering previous",
@@ -103,23 +101,24 @@ static StructRNA *rna_USDHook_register(Main *bmain,
   }
 
   /* create a new KeyingSetInfo type */
-  hook = static_cast<USDHook *>(MEM_mallocN(sizeof(USDHook), "python USD hook"));
-  memcpy(hook, &dummy_hook, sizeof(USDHook));
+  auto hook = std::make_unique<USDHook>();
+  *hook = dummy_hook;
 
   /* set RNA-extensions info */
   hook->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, hook->idname, &RNA_USDHook);
   hook->rna_ext.data = data;
   hook->rna_ext.call = call;
   hook->rna_ext.free = free;
-  RNA_struct_blender_type_set(hook->rna_ext.srna, hook);
+  RNA_struct_blender_type_set(hook->rna_ext.srna, hook.get());
 
   /* add and register with other info as needed */
-  USD_register_hook(hook);
+  StructRNA *srna = hook->rna_ext.srna;
+  USD_register_hook(std::move(hook));
 
   WM_main_add_notifier(NC_WINDOW, nullptr);
 
   /* return the struct-rna added */
-  return hook->rna_ext.srna;
+  return srna;
 }
 
 #else

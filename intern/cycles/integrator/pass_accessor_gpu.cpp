@@ -48,6 +48,7 @@ void PassAccessorGPU::run_film_convert_kernels(DeviceKernel kernel,
                                &buffer_params.window_width,
                                &offset,
                                &buffer_params.stride,
+                               &destination.pixel_offset,
                                &destination.offset,
                                &destination_stride);
 

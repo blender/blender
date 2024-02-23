@@ -11,14 +11,13 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 
-#include "BLI_math_base_safe.h"
 #include "BLI_math_bits.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BLI_strict_flags.h"
+#include "BLI_strict_flags.h" /* Keep last. */
 
 /********************************** Polygons *********************************/
 
@@ -156,7 +155,7 @@ float cross_poly_v2(const float verts[][2], uint nr)
   co_curr = verts[0];
   cross = 0.0f;
   for (a = 0; a < nr; a++) {
-    cross += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
+    cross += (co_prev[0] - co_curr[0]) * (co_curr[1] + co_prev[1]);
     co_prev = co_curr;
     co_curr += 2;
   }
@@ -1698,22 +1697,33 @@ bool isect_ray_tri_v3(const float ray_origin[3],
   return true;
 }
 
+bool isect_ray_plane_v3_factor(const float ray_origin[3],
+                               const float ray_direction[3],
+                               const float plane_co[3],
+                               const float plane_no[3],
+                               float *r_lambda)
+{
+  float h[3];
+  float dot = dot_v3v3(plane_no, ray_direction);
+  if (dot == 0.0f) {
+    return false;
+  }
+  sub_v3_v3v3(h, ray_origin, plane_co);
+  *r_lambda = -dot_v3v3(plane_no, h) / dot;
+  return true;
+}
+
 bool isect_ray_plane_v3(const float ray_origin[3],
                         const float ray_direction[3],
                         const float plane[4],
                         float *r_lambda,
                         const bool clip)
 {
-  float h[3], plane_co[3];
-  float dot;
-
-  dot = dot_v3v3(plane, ray_direction);
-  if (dot == 0.0f) {
+  float plane_co[3], plane_no[3];
+  plane_to_point_vector_v3(plane, plane_co, plane_no);
+  if (!isect_ray_plane_v3_factor(ray_origin, ray_direction, plane_co, plane_no, r_lambda)) {
     return false;
   }
-  mul_v3_v3fl(plane_co, plane, (-plane[3] / len_squared_v3(plane)));
-  sub_v3_v3v3(h, ray_origin, plane_co);
-  *r_lambda = -dot_v3v3(plane, h) / dot;
   if (clip && (*r_lambda < 0.0f)) {
     return false;
   }

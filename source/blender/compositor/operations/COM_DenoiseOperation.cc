@@ -19,7 +19,7 @@ bool COM_is_denoise_supported()
 #  ifdef __APPLE__
   return true;
 #  else
-  return BLI_cpu_support_sse41();
+  return BLI_cpu_support_sse42();
 #  endif
 
 #else
@@ -114,6 +114,7 @@ class DenoiseFilter {
 DenoiseBaseOperation::DenoiseBaseOperation()
 {
   flags_.is_fullframe_operation = true;
+  flags_.can_be_constant = true;
   output_rendered_ = false;
 }
 
@@ -203,27 +204,23 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
                                         MemoryBuffer *input_albedo,
                                         const NodeDenoise *settings)
 {
-  BLI_assert(input_color->get_buffer());
-  if (!input_color->get_buffer()) {
+  if (input_color->is_a_single_elem()) {
+    output->fill(output->get_rect(), input_color->get_elem(0, 0));
     return;
   }
 
   BLI_assert(COM_is_denoise_supported());
-  /* OpenImageDenoise needs full buffers. */
-  MemoryBuffer *buf_color = input_color->is_a_single_elem() ? input_color->inflate() : input_color;
-  MemoryBuffer *buf_normal = input_normal && input_normal->is_a_single_elem() ?
-                                 input_normal->inflate() :
-                                 input_normal;
-  MemoryBuffer *buf_albedo = input_albedo && input_albedo->is_a_single_elem() ?
-                                 input_albedo->inflate() :
-                                 input_albedo;
 
   DenoiseFilter filter;
   filter.init_and_lock_denoiser(this, output);
 
-  filter.set_image("color", buf_color);
-  filter.set_image("normal", buf_normal);
-  filter.set_image("albedo", buf_albedo);
+  filter.set_image("color", input_color);
+  if (!input_albedo->is_a_single_elem()) {
+    filter.set_image("albedo", input_albedo);
+    if (!input_normal->is_a_single_elem()) {
+      filter.set_image("normal", input_normal);
+    }
+  }
 
   BLI_assert(settings);
   if (settings) {
@@ -237,17 +234,6 @@ void DenoiseOperation::generate_denoise(MemoryBuffer *output,
 
   /* Copy the alpha channel, OpenImageDenoise currently only supports RGB. */
   output->copy_from(input_color, input_color->get_rect(), 3, COM_DATA_TYPE_VALUE_CHANNELS, 3);
-
-  /* Delete inflated buffers. */
-  if (input_color->is_a_single_elem()) {
-    delete buf_color;
-  }
-  if (input_normal && input_normal->is_a_single_elem()) {
-    delete buf_normal;
-  }
-  if (input_albedo && input_albedo->is_a_single_elem()) {
-    delete buf_albedo;
-  }
 }
 
 void DenoiseOperation::update_memory_buffer(MemoryBuffer *output,
@@ -286,21 +272,18 @@ MemoryBuffer *DenoisePrefilterOperation::create_memory_buffer(rcti *rect2)
 
 void DenoisePrefilterOperation::generate_denoise(MemoryBuffer *output, MemoryBuffer *input)
 {
-  BLI_assert(COM_is_denoise_supported());
+  if (input->is_a_single_elem()) {
+    copy_v4_v4(output->get_elem(0, 0), input->get_elem(0, 0));
+    return;
+  }
 
-  /* Denoising needs full buffers. */
-  MemoryBuffer *input_buf = input->is_a_single_elem() ? input->inflate() : input;
+  BLI_assert(COM_is_denoise_supported());
 
   DenoiseFilter filter;
   filter.init_and_lock_denoiser(this, output);
-  filter.set_image(image_name_, input_buf);
+  filter.set_image(image_name_, input);
   filter.execute();
   filter.deinit_and_unlock_denoiser();
-
-  /* Delete inflated buffers. */
-  if (input->is_a_single_elem()) {
-    delete input_buf;
-  }
 }
 
 void DenoisePrefilterOperation::update_memory_buffer(MemoryBuffer *output,

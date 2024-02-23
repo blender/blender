@@ -15,7 +15,7 @@
 
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "DNA_armature_types.h"
 
@@ -27,7 +27,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 #include "BKE_pose_backup.h"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -502,13 +502,13 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
     ED_slider_status_string_get(pbd->slider, slider_string, sizeof(slider_string));
 
     if (pbd->state == POSE_BLEND_BLENDING) {
-      STRNCPY(tab_string, RPT_("[Tab] - Show original pose"));
+      STRNCPY(tab_string, IFACE_("[Tab] - Show original pose"));
     }
     else {
-      STRNCPY(tab_string, RPT_("[Tab] - Show blended pose"));
+      STRNCPY(tab_string, IFACE_("[Tab] - Show blended pose"));
     }
 
-    SNPRINTF(status_string, "%s | %s | [Ctrl] - Flip Pose", tab_string, slider_string);
+    SNPRINTF(status_string, IFACE_("%s | %s | [Ctrl] - Flip Pose"), tab_string, slider_string);
     ED_workspace_status_text(C, status_string);
 
     poselib_blend_apply(C, op);

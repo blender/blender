@@ -2,13 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_array_utils.hh"
-
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_bvhutils.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_runtime.hh"
 
 #include "NOD_rna_define.hh"
 
@@ -83,8 +80,8 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
   BLI_assert(pointcloud.totpoint > 0);
 
   BVHTreeFromPointCloud tree_data;
-  const BVHTree *tree = BKE_bvhtree_from_pointcloud_get(&tree_data, &pointcloud, 2);
-  if (tree == nullptr) {
+  BKE_bvhtree_from_pointcloud_get(pointcloud, IndexMask(pointcloud.totpoint), tree_data);
+  if (tree_data.tree == nullptr) {
     r_indices.fill(0);
     r_distances_sq.fill(0.0f);
     return;

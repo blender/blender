@@ -2172,9 +2172,7 @@ PyDoc_STRVAR(
     Matrix_zero_doc,
     ".. method:: zero()\n"
     "\n"
-    "   Set all the matrix values to zero.\n"
-    "\n"
-    "   :rtype: :class:`Matrix`\n");
+    "   Set all the matrix values to zero.\n");
 static PyObject *Matrix_zero(MatrixObject *self)
 {
   if (BaseMath_Prepare_ForWrite(self) == -1) {

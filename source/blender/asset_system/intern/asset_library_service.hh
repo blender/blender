@@ -23,6 +23,10 @@ struct bUserAssetLibrary;
 
 namespace blender::asset_system {
 
+class AllAssetLibrary;
+class OnDiskAssetLibrary;
+class RuntimeAssetLibrary;
+
 /**
  * Global singleton-ish that provides access to individual #AssetLibrary instances.
  *
@@ -44,13 +48,13 @@ class AssetLibraryService {
    * library may point to the same path as a custom library. */
   using OnDiskLibraryIdentifier = std::pair<eAssetLibraryType, std::string>;
   /* Mapping of a (type, root path) pair to the AssetLibrary instance. */
-  Map<OnDiskLibraryIdentifier, std::unique_ptr<AssetLibrary>> on_disk_libraries_;
+  Map<OnDiskLibraryIdentifier, std::unique_ptr<OnDiskAssetLibrary>> on_disk_libraries_;
   /** Library without a known path, i.e. the "Current File" library if the file isn't saved yet. If
    * the file was saved, a valid path for the library can be determined and #on_disk_libraries_
    * above should be used. */
-  std::unique_ptr<AssetLibrary> current_file_library_;
+  std::unique_ptr<RuntimeAssetLibrary> current_file_library_;
   /** The "all" asset library, merging all other libraries into one. */
-  std::unique_ptr<AssetLibrary> all_library_;
+  std::unique_ptr<AllAssetLibrary> all_library_;
 
   /* Handlers for managing the life cycle of the AssetLibraryService instance. */
   bCallbackFuncStore on_load_callback_store_;
@@ -84,7 +88,13 @@ class AssetLibraryService {
   AssetLibrary *get_asset_library_current_file();
   /** Get the "All" asset library, which loads all others and merges them into one. */
   AssetLibrary *get_asset_library_all(const Main *bmain);
-  void rebuild_all_library();
+  /**
+   * Tag the "All" asset library as needing to reload catalogs. This should be called when catalog
+   * data of other asset libraries changes. Note that changes to the catalog definition file on
+   * disk don't ever affect this "dirty" flag. It only reflects changes from this Blender session.
+   */
+  void tag_all_library_catalogs_dirty();
+  void reload_all_library_catalogs_if_dirty();
 
   /**
    * Return the start position of the last blend-file extension in given path,

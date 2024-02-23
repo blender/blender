@@ -18,10 +18,10 @@
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_threads.h"
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "BKE_anim_data.h"
-#include "BKE_collection.h"
+#include "BKE_collection.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_layer.hh"
@@ -32,7 +32,7 @@
 #include "BKE_object.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_rigidbody.h"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 
 #include "DNA_defaults.h"
 
@@ -238,7 +238,6 @@ static ID **collection_owner_pointer_get(ID *id)
   if ((id->flag & LIB_EMBEDDED_DATA) == 0) {
     return nullptr;
   }
-  BLI_assert((id->tag & LIB_TAG_NO_MAIN) == 0);
 
   Collection *master_collection = (Collection *)id;
   BLI_assert((master_collection->flag & COLLECTION_IS_MASTER) != 0);
@@ -352,6 +351,7 @@ static void collection_blend_read_after_liblink(BlendLibReader * /*reader*/, ID 
 IDTypeInfo IDType_ID_GR = {
     /*id_code*/ ID_GR,
     /*id_filter*/ FILTER_ID_GR,
+    /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_GR,
     /*main_listbase_index*/ INDEX_ID_GR,
     /*struct_size*/ sizeof(Collection),
     /*name*/ "Collection",
@@ -1858,7 +1858,7 @@ void BKE_collection_parent_relations_rebuild(Collection *collection)
 
     /* Can happen when remapping data partially out-of-Main (during advanced ID management
      * operations like lib-override resync e.g.). */
-    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE)) != 0) {
+    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_EVAL)) != 0) {
       continue;
     }
 
@@ -1882,7 +1882,7 @@ static void collection_parents_rebuild_recursive(Collection *collection)
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     /* See comment above in `BKE_collection_parent_relations_rebuild`. */
-    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_WRITE)) != 0) {
+    if ((child->collection->id.tag & (LIB_TAG_NO_MAIN | LIB_TAG_COPIED_ON_EVAL)) != 0) {
       continue;
     }
     collection_parents_rebuild_recursive(child->collection);

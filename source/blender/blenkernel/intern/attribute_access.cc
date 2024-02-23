@@ -17,7 +17,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
-#include "BLT_translation.h"
+#include "BLT_translation.hh"
 
 #include "FN_field.hh"
 
@@ -50,6 +50,8 @@ const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
       return &CPPType::get<ColorGeometry4b>();
     case CD_PROP_QUATERNION:
       return &CPPType::get<math::Quaternion>();
+    case CD_PROP_FLOAT4X4:
+      return &CPPType::get<float4x4>();
     case CD_PROP_STRING:
       return &CPPType::get<MStringProperty>();
     default:
@@ -88,6 +90,9 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   }
   if (type.is<math::Quaternion>()) {
     return CD_PROP_QUATERNION;
+  }
+  if (type.is<float4x4>()) {
+    return CD_PROP_FLOAT4X4;
   }
   if (type.is<MStringProperty>()) {
     return CD_PROP_STRING;
@@ -129,6 +134,9 @@ bool allow_procedural_attribute_access(StringRef attribute_name)
   if (attribute_name.startswith(".uv")) {
     return false;
   }
+  if (attribute_name == ".reference_index") {
+    return false;
+  }
   if (attribute_name.startswith("." UV_VERTSEL_NAME ".")) {
     return false;
   }
@@ -164,6 +172,8 @@ static int attribute_data_type_complexity(const eCustomDataType data_type)
       return 8;
     case CD_PROP_COLOR:
       return 9;
+    case CD_PROP_FLOAT4X4:
+      return 10;
 #if 0 /* These attribute types are not supported yet. */
     case CD_PROP_STRING:
       return 10;
@@ -321,10 +331,8 @@ static const void *add_generic_custom_data_layer_with_existing_data(
     return CustomData_add_layer_anonymous_with_data(
         &custom_data, data_type, &anonymous_id, domain_size, layer_data, sharing_info);
   }
-  char attribute_name_c[MAX_CUSTOMDATA_LAYER_NAME];
-  attribute_id.name().copy(attribute_name_c);
   return CustomData_add_layer_named_with_data(
-      &custom_data, data_type, layer_data, domain_size, attribute_name_c, sharing_info);
+      &custom_data, data_type, layer_data, domain_size, attribute_id.name(), sharing_info);
 }
 
 static bool add_custom_data_layer_from_attribute_init(const AttributeIDRef &attribute_id,
@@ -386,7 +394,7 @@ static bool custom_data_layer_matches_attribute_id(const CustomDataLayer &layer,
 bool BuiltinCustomDataLayerProvider::layer_exists(const CustomData &custom_data) const
 {
   if (stored_as_named_attribute_) {
-    return CustomData_get_named_layer_index(&custom_data, stored_type_, name_.c_str()) != -1;
+    return CustomData_get_named_layer_index(&custom_data, stored_type_, name_) != -1;
   }
   return CustomData_has_layer(&custom_data, stored_type_);
 }
@@ -410,7 +418,7 @@ GAttributeReader BuiltinCustomDataLayerProvider::try_get_for_read(const void *ow
 
   int index;
   if (stored_as_named_attribute_) {
-    index = CustomData_get_named_layer_index(custom_data, stored_type_, name_.c_str());
+    index = CustomData_get_named_layer_index(custom_data, stored_type_, name_);
   }
   else {
     index = CustomData_get_layer_index(custom_data, stored_type_);
@@ -446,8 +454,7 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
 
   void *data = nullptr;
   if (stored_as_named_attribute_) {
-    data = CustomData_get_layer_named_for_write(
-        custom_data, stored_type_, name_.c_str(), element_num);
+    data = CustomData_get_layer_named_for_write(custom_data, stored_type_, name_, element_num);
   }
   else {
     data = CustomData_get_layer_for_write(custom_data, stored_type_, element_num);
@@ -476,7 +483,7 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
 
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
-    if (CustomData_free_layer_named(custom_data, name_.c_str(), element_num)) {
+    if (CustomData_free_layer_named(custom_data, name_, element_num)) {
       update();
       return true;
     }
@@ -505,7 +512,7 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
 
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
-    if (CustomData_has_layer_named(custom_data, data_type_, name_.c_str())) {
+    if (CustomData_has_layer_named(custom_data, data_type_, name_)) {
       /* Exists already. */
       return false;
     }
@@ -528,7 +535,7 @@ bool BuiltinCustomDataLayerProvider::exists(const void *owner) const
     return false;
   }
   if (stored_as_named_attribute_) {
-    return CustomData_has_layer_named(custom_data, stored_type_, name_.c_str());
+    return CustomData_has_layer_named(custom_data, stored_type_, name_);
   }
   return CustomData_get_layer(custom_data, stored_type_) != nullptr;
 }
