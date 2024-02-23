@@ -31,17 +31,16 @@ TreeElementAnimData::TreeElementAnimData(TreeElement &legacy_te, AnimData &anim_
 
 void TreeElementAnimData::expand(SpaceOutliner & /*space_outliner*/) const
 {
-  if (!anim_data_.action) {
-    return;
-  }
 
-  /* Animation data-block itself. */
-  add_element(&legacy_te_.subtree,
-              reinterpret_cast<ID *>(anim_data_.action),
-              nullptr,
-              &legacy_te_,
-              TSE_SOME_ID,
-              0);
+  if (anim_data_.action) {
+    /* Animation data-block itself. */
+    add_element(&legacy_te_.subtree,
+                reinterpret_cast<ID *>(anim_data_.action),
+                nullptr,
+                &legacy_te_,
+                TSE_SOME_ID,
+                0);
+  }
 
   expand_drivers();
   expand_NLA_tracks();
