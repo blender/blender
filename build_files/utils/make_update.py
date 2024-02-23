@@ -555,9 +555,21 @@ def submodules_update(args: argparse.Namespace, branch: Optional[str]) -> str:
     msg += floating_libraries_update(args, branch)
 
     print("* Updating Git submodules")
-    exitcode = call((args.git_command, "submodule", "update", "--init"), exit_on_error=False)
-    if exitcode != 0:
-        msg += "Error updating Git submodules\n"
+
+    submodule_directories = get_submodule_directories(args)
+    for submodule_path in submodule_directories:
+        if submodule_path.parts[0] == "lib" and args.no_libraries:
+            print(f"Skipping library submodule {submodule_path}")
+            continue
+
+        if submodule_path.parts[0] == "tests" and not args.use_tests:
+            print(f"Skipping tests submodule {submodule_path}")
+            continue
+
+        exitcode = call((args.git_command, "submodule", "update", "--init", submodule_path),
+                        exit_on_error=False)
+        if exitcode != 0:
+            msg += f"Error updating Git submodule {submodule_path}\n"
 
     add_submodule_push_url(args)
 
