@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 struct UserDef;
 struct bUserExtensionRepo;
@@ -95,9 +96,9 @@ void BKE_preferences_extension_repo_module_set(UserDef *userdef,
                                                const char *module);
 
 void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo, const char *path);
-void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
-                                                char *dirpath,
-                                                int dirpath_maxncpy);
+size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
+                                                  char *dirpath,
+                                                  int dirpath_maxncpy);
 
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index);
 bUserExtensionRepo *BKE_preferences_extension_repo_find_by_module(const UserDef *userdef,

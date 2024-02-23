@@ -247,13 +247,12 @@ void BKE_preferences_extension_repo_custom_dirpath_set(bUserExtensionRepo *repo,
   STRNCPY(repo->custom_dirpath, path);
 }
 
-void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
-                                                char *dirpath,
-                                                const int dirpath_maxncpy)
+size_t BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
+                                                  char *dirpath,
+                                                  const int dirpath_maxncpy)
 {
   if (repo->flag & USER_EXTENSION_REPO_FLAG_USE_CUSTOM_DIRECTORY) {
-    BLI_strncpy(dirpath, repo->custom_dirpath, dirpath_maxncpy);
-    return;
+    return BLI_strncpy_rlen(dirpath, repo->custom_dirpath, dirpath_maxncpy);
   }
 
   /* TODO: support `BLENDER_USER_EXTENSIONS`, until then add to user resource. */
@@ -261,9 +260,9 @@ void BKE_preferences_extension_repo_dirpath_get(const bUserExtensionRepo *repo,
   /* Highly unlikely to fail as the directory doesn't have to exist. */
   if (!path) {
     dirpath[0] = '\0';
-    return;
+    return 0;
   }
-  BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), "extensions", repo->module);
+  return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), "extensions", repo->module);
 }
 
 bUserExtensionRepo *BKE_preferences_extension_repo_find_index(const UserDef *userdef, int index)
