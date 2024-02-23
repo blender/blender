@@ -117,8 +117,8 @@ TEST_F(AssetCatalogTreeTest, load_single_file_into_tree)
       "path/without/simplename", /* From CDF. */
   };
 
-  const AssetCatalogTree *tree = service.get_catalog_tree();
-  expect_tree_items(*tree, expected_paths);
+  const AssetCatalogTree &tree = service.catalog_tree();
+  expect_tree_items(tree, expected_paths);
 }
 
 TEST_F(AssetCatalogTreeTest, foreach_in_tree)
@@ -141,8 +141,8 @@ TEST_F(AssetCatalogTreeTest, foreach_in_tree)
   service.load_from_disk(asset_library_root_ + SEP_STR + "blender_assets.cats.txt");
 
   std::vector<AssetCatalogPath> expected_root_items{{"character", "path"}};
-  const AssetCatalogTree *tree = service.get_catalog_tree();
-  expect_tree_root_items(*tree, expected_root_items);
+  const AssetCatalogTree &tree = service.catalog_tree();
+  expect_tree_root_items(tree, expected_root_items);
 
   /* Test if the direct children of the root item are what's expected. */
   std::vector<std::vector<AssetCatalogPath>> expected_root_child_items = {
@@ -152,7 +152,7 @@ TEST_F(AssetCatalogTreeTest, foreach_in_tree)
       {"path/without"},
   };
   int i = 0;
-  tree->foreach_root_item([&expected_root_child_items, &i](const AssetCatalogTreeItem &item) {
+  tree.foreach_root_item([&expected_root_child_items, &i](const AssetCatalogTreeItem &item) {
     expect_tree_item_child_items(item, expected_root_child_items[i]);
     i++;
   });
