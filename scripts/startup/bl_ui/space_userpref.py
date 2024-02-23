@@ -2127,7 +2127,7 @@ class USERPREF_PT_extensions_repos(Panel):
                 # Apart from being consistent with the custom directory UI,
                 # prefer a read-only property over a label because this is not necessarily
                 # valid UTF-8 which will raise a Python exception when passed in as text.
-                row.prop(active_repo, "directory")
+                row.prop(active_repo, "directory", text="")
 
             layout_panel.separator()
 

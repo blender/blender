@@ -385,7 +385,7 @@ void BKE_preferences_extension_remote_to_name(const char *remote_path,
   while (*c && url_char_is_delimiter(*c)) {
     c++;
   }
-  /* Skip the domain name typically. */
+  /* Skip the domain name. */
   while (*c && !url_char_is_delimiter(*c)) {
     c++;
   }
