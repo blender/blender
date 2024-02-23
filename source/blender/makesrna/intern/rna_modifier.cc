@@ -8285,7 +8285,8 @@ static void rna_def_modifier_grease_pencil_offset(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_vertex_group(
       srna, "rna_GreasePencilOffsetModifier_vertex_group_name_set");
 
-  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+  rna_def_modifier_panel_open_prop(srna, "open_general_panel", 0);
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 1);
 
   prop = RNA_def_property(srna, "offset_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, offset_mode_items);
