@@ -391,6 +391,15 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
 {
   using namespace blender::bke::greasepencil;
 
+  if (gpd.flag & LIB_FAKEUSER) {
+    id_fake_user_set(&grease_pencil.id);
+  }
+
+  BLI_assert(!grease_pencil.id.properties);
+  if (gpd.id.properties) {
+    grease_pencil.id.properties = IDP_CopyProperty(gpd.id.properties);
+  }
+
   int num_drawings = 0;
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd.layers) {
     num_drawings += BLI_listbase_count(&gpl->frames);
