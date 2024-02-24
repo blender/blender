@@ -76,6 +76,8 @@
 #include "BKE_softbody.h"
 #include "BKE_volume.hh"
 
+#include "BLT_translation.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
@@ -1812,8 +1814,14 @@ static int modifier_apply_invoke(bContext *C, wmOperator *op, const wmEvent *eve
         RNA_property_boolean_set(op->ptr, prop, true);
       }
       if (RNA_property_boolean_get(op->ptr, prop)) {
-        return WM_operator_confirm_message(
-            C, op, "Make object data single-user and apply modifier");
+        return WM_operator_confirm_ex(
+            C,
+            op,
+            IFACE_("Apply Modifier"),
+            IFACE_("Make data single-user, apply modifier, and remove it from the list."),
+            IFACE_("Apply"),
+            ALERT_ICON_WARNING,
+            false);
       }
     }
     return modifier_apply_exec(C, op);
