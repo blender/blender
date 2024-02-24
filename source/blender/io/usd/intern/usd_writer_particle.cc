@@ -17,7 +17,7 @@
  * All rights reserved.
  */
 #include "usd_writer_particle.h"
-#include "usd_hierarchy_iterator.h"
+#include "usd_hierarchy_iterator.hh"
 
 #include <pxr/usd/usdGeom/pointInstancer.h>
 #include <pxr/usd/usdGeom/sphere.h>

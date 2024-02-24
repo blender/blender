@@ -24,10 +24,11 @@
 struct Light;
 struct Main;
 struct Scene;
-struct USDExportParams;
-struct USDImportParams;
 
 namespace blender::io::usd {
+
+struct USDExportParams;
+struct USDImportParams;
 
 struct ImportSettings;
 

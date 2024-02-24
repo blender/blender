@@ -2,12 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-<<<<<<< HEAD
-#include "usd_reader_light.h"
-#include "usd_light_convert.h"
-=======
 #include "usd_reader_light.hh"
->>>>>>> main
+#include "usd_light_convert.h"
 
 #include "BLI_math_rotation.h"
 
@@ -181,17 +177,10 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
 
     pxr::UsdLuxDistantLight distant_light(prim_);
     if (distant_light) {
-<<<<<<< HEAD
+
       float angle;
       if (get_authored_value(light_api.GetAngleAttr(), motionSampleTime, &angle)) {
         blight->sun_angle = angle * float(M_PI) / 180.0f;
-=======
-      if (pxr::UsdAttribute angle_attr = distant_light.GetAngleAttr()) {
-        float angle = 0.0f;
-        if (angle_attr.Get(&angle, motionSampleTime)) {
-          blight->sun_angle = DEG2RADF(angle * 2.0f);
-        }
->>>>>>> main
       }
     }
   }

@@ -22,11 +22,11 @@
 #  include <pxr/usd/usdShade/material.h>
 
 struct Material;
-struct USDImportParams;
 
 namespace blender::io::usd {
 
 struct USDExporterContext;
+struct USDImportParams;
 
 bool umm_module_loaded();
 

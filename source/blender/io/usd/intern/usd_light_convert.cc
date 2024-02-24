@@ -19,10 +19,10 @@
 
 #include "usd_light_convert.h"
 
-#include "usd.h"
-#include "usd_asset_utils.h"
-#include "usd_reader_prim.h"
-#include "usd_writer_material.h"
+#include "usd.hh"
+#include "usd_asset_utils.hh"
+#include "usd_reader_prim.hh"
+#include "usd_writer_material.hh"
 
 #include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/gf/rotation.h>
@@ -40,7 +40,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
-#include "BKE_scene.h"
+#include "BKE_scene.hh"
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"
@@ -76,7 +76,7 @@ bool get_authored_value(const pxr::UsdAttribute attr, const double motionSampleT
 }
 
 struct WorldNtreeSearchResults {
-  const USDExportParams params;
+  const blender::io::usd::USDExportParams params;
   pxr::UsdStageRefPtr stage;
 
   float world_color[3];
@@ -91,7 +91,7 @@ struct WorldNtreeSearchResults {
   bool env_tex_found;
   bool mult_found;
 
-  WorldNtreeSearchResults(const USDExportParams &in_params, pxr::UsdStageRefPtr in_stage)
+  WorldNtreeSearchResults(const blender::io::usd::USDExportParams &in_params, pxr::UsdStageRefPtr in_stage)
       : params(in_params),
         stage(in_stage),
         world_intensity(0.0f),

@@ -18,9 +18,9 @@
 #ifdef WITH_PYTHON
 
 #  include "usd_umm.h"
-#  include "usd.h"
-#  include "usd_asset_utils.h"
-#  include "usd_exporter_context.h"
+#  include "usd.hh"
+#  include "usd_asset_utils.hh"
+#  include "usd_exporter_context.hh"
 
 #  include <boost/python/call.hpp>
 #  include <boost/python/dict.hpp>

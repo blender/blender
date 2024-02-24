@@ -4,34 +4,24 @@
 
 #include "usd_writer_material.hh"
 
-<<<<<<< HEAD
-#include "usd.h"
-#include "usd_asset_utils.h"
-#include "usd_exporter_context.h"
-#include "usd_hook.h"
-#include "usd_umm.h"
-=======
 #include "usd.hh"
+#include "usd_asset_utils.hh"
 #include "usd_exporter_context.hh"
 #include "usd_hook.hh"
->>>>>>> main
+#include "usd_umm.h"
 
 #include "BKE_appdir.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"
 #include "BKE_curve.hh"
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
-<<<<<<< HEAD
 #include "BKE_node_tree_update.hh"
-#include "BKE_report.h"
-=======
 #include "BKE_report.hh"
->>>>>>> main
 
 #include "IMB_colormanagement.hh"
 

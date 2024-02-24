@@ -131,69 +131,17 @@ set(SRC
   usd.hh
   usd_private.hh
 
-<<<<<<< HEAD
-  intern/usd_armature_utils.h
-  intern/usd_asset_utils.h
-  intern/usd_blend_shape_utils.h
-  intern/usd_exporter_context.h
-  intern/usd_hash_types.h
-  intern/usd_hierarchy_iterator.h
-  intern/usd_light_convert.h
-  intern/usd_lux_api_wrapper.h
-  intern/usd_modifier_disabler.h
-  intern/usd_skel_convert.h
-  intern/usd_skel_root_utils.h
-
-  intern/usd_reader_camera.h
-  intern/usd_reader_curve.h
-  intern/usd_reader_geom.h
-  intern/usd_reader_instance.h
-  intern/usd_reader_light.h
-  intern/usd_reader_material.h
-  intern/usd_reader_mesh.h
-  intern/usd_reader_nurbs.h
-  intern/usd_reader_pointinstancer.h
-  intern/usd_reader_prim.h
-  intern/usd_reader_skeleton.h
-  intern/usd_reader_shape.h
-  intern/usd_reader_stage.h
-  intern/usd_reader_volume.h 
-  intern/usd_reader_xform.h
-
-  intern/usd_hook.h
-  intern/usd_umm.h
-
-  intern/usd_writer_abstract.h
-  intern/usd_writer_armature.h
-  intern/usd_writer_camera.h
-  intern/usd_writer_curves.h
-  intern/usd_writer_hair.h
-  intern/usd_writer_light.h
-  intern/usd_writer_material.h
-  intern/usd_writer_mesh.h
-  intern/usd_writer_metaball.h
-  intern/usd_writer_particle.h
-  intern/usd_writer_transform.h
-  intern/usd_writer_volume.h
-=======
   intern/usd_armature_utils.hh
   intern/usd_asset_utils.hh
   intern/usd_blend_shape_utils.hh
   intern/usd_exporter_context.hh
   intern/usd_hash_types.hh
   intern/usd_hierarchy_iterator.hh
-  intern/usd_hook.hh
-  intern/usd_writer_abstract.hh
-  intern/usd_writer_armature.hh
-  intern/usd_writer_camera.hh
-  intern/usd_writer_curves.hh
-  intern/usd_writer_hair.hh
-  intern/usd_writer_light.hh
-  intern/usd_writer_material.hh
-  intern/usd_writer_mesh.hh
-  intern/usd_writer_metaball.hh
-  intern/usd_writer_transform.hh
-  intern/usd_writer_volume.hh
+  intern/usd_light_convert.h
+  intern/usd_lux_api_wrapper.h
+  intern/usd_modifier_disabler.h
+  intern/usd_skel_convert.hh
+  intern/usd_skel_root_utils.hh
 
   intern/usd_reader_camera.hh
   intern/usd_reader_curve.hh
@@ -203,16 +151,29 @@ set(SRC
   intern/usd_reader_material.hh
   intern/usd_reader_mesh.hh
   intern/usd_reader_nurbs.hh
+  intern/usd_reader_pointinstancer.hh
   intern/usd_reader_prim.hh
-  intern/usd_reader_shape.hh
   intern/usd_reader_skeleton.hh
+  intern/usd_reader_shape.hh
   intern/usd_reader_stage.hh
   intern/usd_reader_volume.hh
   intern/usd_reader_xform.hh
-  intern/usd_reader_pointinstancer.hh
-  intern/usd_skel_convert.hh
-  intern/usd_skel_root_utils.hh
->>>>>>> main
+
+  intern/usd_hook.hh
+  intern/usd_umm.h
+
+  intern/usd_writer_abstract.hh
+  intern/usd_writer_armature.hh
+  intern/usd_writer_camera.hh
+  intern/usd_writer_curves.hh
+  intern/usd_writer_hair.hh
+  intern/usd_writer_light.hh
+  intern/usd_writer_material.hh
+  intern/usd_writer_mesh.hh
+  intern/usd_writer_metaball.hh
+  intern/usd_writer_particle.h
+  intern/usd_writer_transform.hh
+  intern/usd_writer_volume.hh
 )
 
 if(WITH_HYDRA)

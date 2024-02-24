@@ -3,20 +3,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_mesh.hh"
 
-<<<<<<< HEAD
-#include "usd_armature_utils.h"
-#include "usd_blend_shape_utils.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_modifier_disabler.h"
-#include "usd_skel_convert.h"
-#include "usd_writer_armature.h"
-=======
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
 #include "usd_hierarchy_iterator.hh"
+#include "usd_modifier_disabler.h"
 #include "usd_skel_convert.hh"
 #include "usd_writer_armature.hh"
->>>>>>> main
 
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>

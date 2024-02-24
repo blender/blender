@@ -97,7 +97,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   usd_camera.CreateVerticalApertureOffsetAttr().Set(aperture_y * camera->shifty * film_aspect,
                                                     timecode);
   /* TODO(makowalsk): confirm this is the correct way to get the shutter. */
-  float shutter_length = scene->eevee.motion_blur_shutter / 2.0f;
+  float shutter_length = scene->eevee.motion_blur_shutter_deprecated / 2.0f;
 
   double shutter_open = -shutter_length;
   double shutter_close = shutter_length;

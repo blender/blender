@@ -4,13 +4,9 @@
 
 #include "usd_reader_material.hh"
 
-<<<<<<< HEAD
 #include "usd_umm.h"
 
-#include "usd_asset_utils.h"
-=======
 #include "usd_asset_utils.hh"
->>>>>>> main
 
 #include "BKE_appdir.hh"
 #include "BKE_image.h"
@@ -19,12 +15,8 @@
 #include "BKE_material.h"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
-<<<<<<< HEAD
 #include "BKE_texture.h"
-#include "BKE_report.h"
-=======
 #include "BKE_report.hh"
->>>>>>> main
 
 #include "BLI_fileops.h"
 #include "BLI_map.hh"

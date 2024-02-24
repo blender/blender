@@ -41,7 +41,7 @@ void USDHairWriter::do_write(HierarchyContext &context)
 {
   /* Get untransformed vertices, there's a xform under the hair. */
   float inv_mat[4][4];
-  invert_m4_m4_safe(inv_mat, context.object->object_to_world);
+  invert_m4_m4_safe(inv_mat, context.object->object_to_world().ptr());
 
   ParticleSystem *psys = context.particle_system;
   ParticleCacheKey **cache = psys->pathcache;

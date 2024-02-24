@@ -470,13 +470,11 @@ bool write_to_path(const void *data, size_t size, const char *path, ReportList *
   return bytes_written > 0;
 }
 
-}  // namespace blender::io::usd
-
-void USD_path_abs(char *path, const char *basepath, bool for_import)
+void USD_path_abs(char* path, const char* basepath, bool for_import)
 {
   if (!BLI_path_is_rel(path)) {
     pxr::ArResolvedPath resolved_path = for_import ? pxr::ArGetResolver().Resolve(path) :
-                                                     pxr::ArGetResolver().ResolveForNewAsset(path);
+      pxr::ArGetResolver().ResolveForNewAsset(path);
 
     std::string path_str = resolved_path.GetPathString();
 
@@ -486,9 +484,9 @@ void USD_path_abs(char *path, const char *basepath, bool for_import)
         return;
       }
       WM_reportf(RPT_ERROR,
-                 "In %s: resolved path %s exceeds path buffer length.",
-                 __func__,
-                 path_str.c_str());
+        "In %s: resolved path %s exceeds path buffer length.",
+        __func__,
+        path_str.c_str());
     }
   }
 
@@ -496,3 +494,5 @@ void USD_path_abs(char *path, const char *basepath, bool for_import)
    * fall back on the standard Blender absolute path resolution. */
   BLI_path_abs(path, basepath);
 }
+
+}  // namespace blender::io::usd

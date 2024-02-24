@@ -19,7 +19,7 @@
 #ifndef __USD_WRITER_PARTICLE_H__
 #define __USD_WRITER_PARTICLE_H__
 
-#include "usd_writer_abstract.h"
+#include "usd_writer_abstract.hh"
 
 namespace blender::io::usd {
 

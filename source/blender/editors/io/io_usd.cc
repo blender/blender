@@ -15,13 +15,9 @@
 
 #  include "BKE_context.hh"
 #  include "BKE_file_handler.hh"
-<<<<<<< HEAD
 #  include "BKE_main.hh"
-#  include "BKE_report.h"
-#  include "BKE_screen.hh"
-=======
 #  include "BKE_report.hh"
->>>>>>> main
+#  include "BKE_screen.hh"
 
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
@@ -36,6 +32,7 @@
 
 #  include "RNA_access.hh"
 #  include "RNA_define.hh"
+#  include "RNA_enum_types.hh"
 
 #  include "UI_interface.hh"
 #  include "UI_resources.hh"
@@ -53,12 +50,9 @@
 
 #  include <cstdio>
 
-<<<<<<< HEAD
 static const char *WM_OT_USD_EXPORT_IDNAME = "WM_OT_usd_export";
 static const char *WM_OT_USD_IMPORT_IDNAME = "WM_OT_usd_import";
-=======
 using namespace blender::io::usd;
->>>>>>> main
 
 const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {DAG_EVAL_RENDER,

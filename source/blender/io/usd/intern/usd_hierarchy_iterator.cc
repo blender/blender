@@ -3,24 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd.hh"
 
-<<<<<<< HEAD
-#include "usd_armature_utils.h"
-#include "usd_blend_shape_utils.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_skel_convert.h"
-#include "usd_skel_root_utils.h"
-#include "usd_writer_abstract.h"
-#include "usd_writer_armature.h"
-#include "usd_writer_camera.h"
-#include "usd_writer_curves.h"
-#include "usd_writer_hair.h"
-#include "usd_writer_light.h"
-#include "usd_writer_mesh.h"
-#include "usd_writer_metaball.h"
-#include "usd_writer_particle.h"
-#include "usd_writer_transform.h"
-#include "usd_writer_volume.h"
-=======
 #include "usd_armature_utils.hh"
 #include "usd_blend_shape_utils.hh"
 #include "usd_hierarchy_iterator.hh"
@@ -34,9 +16,9 @@
 #include "usd_writer_light.hh"
 #include "usd_writer_mesh.hh"
 #include "usd_writer_metaball.hh"
+#include "usd_writer_particle.h"
 #include "usd_writer_transform.hh"
 #include "usd_writer_volume.hh"
->>>>>>> main
 
 #include <memory>
 #include <string>

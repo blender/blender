@@ -3,28 +3,20 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "IO_types.hh"
-<<<<<<< HEAD
-#include "usd.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_hook.h"
 
-#include "usd_light_convert.h"
-#include "usd_reader_geom.h"
-#include "usd_reader_instance.h"
-#include "usd_reader_prim.h"
-#include "usd_reader_stage.h"
-=======
 #include "usd.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
+
+#include "usd_light_convert.h"
 #include "usd_reader_geom.hh"
+#include "usd_reader_instance.hh"
 #include "usd_reader_prim.hh"
 #include "usd_reader_stage.hh"
->>>>>>> main
 
 #include <pxr/base/plug/registry.h>
 
-#include "usd_writer_material.h"
+#include "usd_writer_material.hh"
 
 #include <pxr/pxr.h>
 #include <pxr/usd/usd/stage.h>
@@ -128,23 +120,6 @@ static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_pa
   BLI_addtail(object_paths, usd_path);
 
   return true;
-}
-
-/* Create a collection with the given parent and name. */
-static Collection *create_collection(Main *bmain, Collection *parent, const char *name)
-{
-  if (!bmain) {
-    return nullptr;
-  }
-
-  Collection *coll = BKE_collection_add(bmain, parent, name);
-
-  if (coll) {
-    id_fake_user_set(&coll->id);
-    DEG_id_tag_update(&coll->id, ID_RECALC_COPY_ON_WRITE);
-  }
-
-  return coll;
 }
 
 /* Set the instance collection on the given instance reader.
@@ -576,7 +551,7 @@ static void import_endjob(void *customdata)
 
     DEG_id_tag_update(&data->scene->id, ID_RECALC_BASE_FLAGS);
     if (!data->archive->dome_lights().empty()) {
-      DEG_id_tag_update(&data->scene->world->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&data->scene->world->id, ID_RECALC_SYNC_TO_EVAL);
     }
     DEG_relations_tag_update(data->bmain);
 

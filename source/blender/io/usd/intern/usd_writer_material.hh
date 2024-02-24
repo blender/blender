@@ -13,8 +13,6 @@
 struct bNode;
 struct bNodeTree;
 struct Material;
-struct USDExportParams;
-struct Material;
 struct ReportList;
 
 namespace blender::io::usd {
@@ -26,6 +24,7 @@ T usd_define_or_over(pxr::UsdStageRefPtr stage, pxr::SdfPath path, bool as_overs
 }
 
 struct USDExporterContext;
+struct USDExportParams;
 
 /* Create USDMaterial from Blender material.
  *

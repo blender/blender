@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "usd.h"
+#include "usd.hh"
 
 #include "DNA_modifier_types.h"
 

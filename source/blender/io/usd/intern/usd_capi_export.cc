@@ -6,20 +6,13 @@
 
 #include "IO_subdiv_disabler.hh"
 #include "usd.hh"
-<<<<<<< HEAD
 
-#include "usd_asset_utils.h"
-#include "usd_hierarchy_iterator.h"
-#include "usd_hook.h"
-#include "usd_light_convert.h"
-#include "usd_modifier_disabler.h"
-#include "usd_umm.h"
-#include "usd_writer_material.h"
-=======
+#include "usd_asset_utils.hh"
 #include "usd_hierarchy_iterator.hh"
 #include "usd_hook.hh"
-#include "usd_private.hh"
->>>>>>> main
+#include "usd_light_convert.h"
+#include "usd_umm.h"
+#include "usd_writer_material.hh"
 
 #include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
@@ -47,20 +40,14 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender_version.h"
 #include "BKE_context.hh"
-<<<<<<< HEAD
-#include "BKE_global.h"
+#include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_report.h"
-#include "BKE_scene.h"
-=======
-#include "BKE_global.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
->>>>>>> main
 
 #include "BLI_fileops.h"
 #include "BLI_math_matrix.h"
@@ -701,8 +688,6 @@ static void export_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   }
   G.is_break = false;
 
-  ModifierDisabler mod_disabler(data->depsgraph, data->params);
-
   worker_status->progress = 0.01f;
   worker_status->do_update = true;
 
@@ -915,7 +900,6 @@ int USD_get_version()
   return PXR_VERSION;
 }
 
-<<<<<<< HEAD
 bool USD_umm_module_loaded(void)
 {
 #ifdef WITH_PYTHON
@@ -924,6 +908,5 @@ bool USD_umm_module_loaded(void)
   return false;
 #endif
 }
-=======
+
 }  // namespace blender::io::usd
->>>>>>> main
