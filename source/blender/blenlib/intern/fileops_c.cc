@@ -477,29 +477,29 @@ int BLI_rename(const char *from, const char *to)
   return urename(from, to, false);
 #elif defined(__APPLE__)
   return renamex_np(from, to, RENAME_EXCL);
-#elif defined(__GLIBC_PREREQ)
-#  if __GLIBC_PREREQ(2, 28)
-  /* Most common Linux cases. */
-  int ret = renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
-  if (ret < 0 && errno == EINVAL) {
-    /* Most likely a filesystem that doesn't support RENAME_NOREPLACE.
-     * (For example NFS, Samba, exFAT, NTFS, etc)
-     * Retry with a non atomic operation.
-     */
-    if (BLI_exists(to)) {
-      return 1;
-    }
-    return rename(from, to);
-  }
-  return ret;
-#  endif
 #else
-  /* At least all BSD's currently. */
+
+#  if defined(__GLIBC_PREREQ)
+#    if __GLIBC_PREREQ(2, 28)
+  /* Most common Linux case, use `RENAME_NOREPLACE` when available. */
+  {
+    const int ret = renameat2(AT_FDCWD, from, AT_FDCWD, to, RENAME_NOREPLACE);
+    if (!(ret < 0 && errno == EINVAL)) {
+      return ret;
+    }
+    /* Most likely a file-system that doesn't support RENAME_NOREPLACE.
+     * (For example NFS, Samba, exFAT, NTFS, etc)
+     * Fall through to use the generic UNIX non atomic operation, see #116049. */
+  }
+#    endif /* __GLIBC_PREREQ(2, 28) */
+#  endif   /* __GLIBC_PREREQ */
+
+  /* All BSD's currently & fallback for Linux. */
   if (BLI_exists(to)) {
     return 1;
   }
   return rename(from, to);
-#endif
+#endif     /* !defined(WIN32) && !defined(__APPLE__) */
 }
 
 int BLI_rename_overwrite(const char *from, const char *to)
