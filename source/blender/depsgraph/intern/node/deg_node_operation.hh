@@ -159,7 +159,7 @@ enum class OperationCode {
   VIEW_LAYER_EVAL,
 
   /* Copy on Write. ------------------------------------------------------- */
-  COPY_ON_WRITE,
+  COPY_ON_EVAL,
 
   /* Shading. ------------------------------------------------------------- */
   SHADING,

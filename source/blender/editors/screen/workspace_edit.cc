@@ -45,6 +45,8 @@
 
 #include "screen_intern.h"
 
+using blender::Vector;
+
 /* -------------------------------------------------------------------- */
 /** \name Workspace API
  *
@@ -242,23 +244,16 @@ bool ED_workspace_delete(WorkSpace *workspace, Main *bmain, bContext *C, wmWindo
     return false;
   }
 
-  ListBase ordered;
-  BKE_id_ordered_list(&ordered, &bmain->workspaces);
-  WorkSpace *prev = nullptr, *next = nullptr;
-  LISTBASE_FOREACH (LinkData *, link, &ordered) {
-    if (link->data == workspace) {
-      prev = static_cast<WorkSpace *>(link->prev ? link->prev->data : nullptr);
-      next = static_cast<WorkSpace *>(link->next ? link->next->data : nullptr);
-      break;
-    }
-  }
-  BLI_freelistN(&ordered);
-  BLI_assert((prev != nullptr) || (next != nullptr));
+  Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces);
+  const int index = ordered.first_index_of(&workspace->id);
+
+  WorkSpace *new_active = reinterpret_cast<WorkSpace *>(index == 0 ? ordered[1] :
+                                                                     ordered[index - 1]);
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     WorkSpace *workspace_active = WM_window_get_active_workspace(win);
     if (workspace_active == workspace) {
-      ED_workspace_change((prev != nullptr) ? prev : next, C, wm, win);
+      ED_workspace_change(new_active, C, wm, win);
     }
   }
 

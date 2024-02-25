@@ -109,7 +109,6 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
   std::unique_ptr<bke::Instances> dst_instances = std::make_unique<bke::Instances>();
   dst_instances->resize(offsets.total_size());
 
-  MutableSpan<float4x4> all_transforms = dst_instances->transforms();
   MutableSpan<int> all_handles = dst_instances->reference_handles_for_write();
 
   for (const int i : src_components.index_range()) {
@@ -126,12 +125,11 @@ static void join_instances(const Span<const GeometryComponent *> src_components,
 
     const Span<int> src_handles = src_instances.reference_handles();
     array_utils::gather(handle_map.as_span(), src_handles, all_handles.slice(dst_range));
-    array_utils::copy(src_instances.transforms(), all_transforms.slice(dst_range));
   }
 
   result.replace_instances(dst_instances.release());
   auto &dst_component = result.get_component_for_write<bke::InstancesComponent>();
-  join_attributes(src_components, dst_component, {"position", ".reference_index"});
+  join_attributes(src_components, dst_component, {".reference_index"});
 }
 
 static void join_volumes(const Span<const GeometryComponent *> /*src_components*/,
@@ -174,11 +172,13 @@ static void join_component_type(const bke::GeometryComponent::Type component_typ
   }
 
   std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
-  for (const GeometryComponent *component : components) {
+  instances->resize(components.size());
+  instances->transforms_for_write().fill(float4x4::identity());
+  MutableSpan<int> handles = instances->reference_handles_for_write();
+  for (const int i : components.index_range()) {
     GeometrySet tmp_geo;
-    tmp_geo.add(*component);
-    const int handle = instances->add_reference(bke::InstanceReference{tmp_geo});
-    instances->add_instance(handle, float4x4::identity());
+    tmp_geo.add(*components[i]);
+    handles[i] = instances->add_reference(bke::InstanceReference{tmp_geo});
   }
 
   RealizeInstancesOptions options;

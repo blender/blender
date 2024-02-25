@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-12 11:01+0000\n"
+"POT-Creation-Date: 2024-02-19 09:41+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -135202,10 +135202,6 @@ msgid "Surface UV Coordinate"
 msgstr "Tọa Độ UV của Bề Mặt"
 
 
-msgid "Surface UV coordinate at the attachment point"
-msgstr "Tọa độ UV bề mặt tại điểm đính vào"
-
-
 msgid "Surface Normal"
 msgstr "Pháp Tuyến Bề Mặt"
 
@@ -135214,16 +135210,12 @@ msgid "Surface normal at the attachment point"
 msgstr "Pháp tuyến Bề mặt tại điểm đính kèm"
 
 
-msgid "Surface Geometry to attach hair curves to"
-msgstr "Hình Học Bề Mặt để gắn các đường cong tóc vào"
-
-
 msgid "Surface Object to attach to (needs to have matching transforms)"
 msgstr "Đối Tượng Bề Mặt để gắn vào (cần có các biến hóa xứng khớp)"
 
 
-msgid "Surface UV map used for attachment "
-msgstr "Ánh xạ UV bề mặt sử dụng để đính vào "
+msgid "Surface UV map used for attachment"
+msgstr "Ánh xạ UV bề mặt sử dụng cho vật đính kèm"
 
 
 msgid "Surface Rest Position"
@@ -135252,10 +135244,6 @@ msgstr "Bám dính gốc của mỗi đường cong vào điểm bề mặt gầ
 
 msgid "Align to Surface Normal"
 msgstr "Căn Chỉnh theo Pháp Tuyến Bề Mặt"
-
-
-msgid "Align the curve to the surface normal (need guide as reference)"
-msgstr "Căn chỉnh đường cong theo pháp tuyến bề mặt (cần hướng dẫn làm tham chiếu)"
 
 
 msgid "Blend along Curve"
@@ -135348,10 +135336,6 @@ msgstr "Khoảng cách tối thiểu giữa hai hướng dẫn cho bản đồ h
 
 msgid "Guide Mask"
 msgstr "Chắn Lọc Hướng Dẫn"
-
-
-msgid "Mask for which curve are eligible to be selected as guides"
-msgstr "Chắn lọc cho đường cong nào đủ điều kiện được chọn làm hướng dẫn"
 
 
 msgid "Existing Guide Map"
@@ -135518,16 +135502,8 @@ msgid "Guide Selection"
 msgstr "Lựa Chọn Hướng Dẫn"
 
 
-msgid "Guide Curves or Points used for the selection of Guide Curves"
-msgstr "Đường Cong Hướng Dẫn hoặc các Điểm sử dụng để chọn Đường Cong Hướng Dẫn"
-
-
 msgid "Minimum distance between two guides"
 msgstr "Khoảng cách tối thiểu giữa hai hướng dẫn"
-
-
-msgid "ID to group together curves for guide map creation"
-msgstr "ID để nhóm các đường cong lại với nhau hòng tạo bản đồ hướng dẫn"
 
 
 msgid "Curl Hair Curves"
@@ -135586,28 +135562,8 @@ msgid "Curve ID"
 msgstr "ID của Đường Cong"
 
 
-msgid "ID of each Curve"
-msgstr "ID của mỗi Đường Cong"
-
-
-msgid "Length of each Curve"
-msgstr "Chiều Dài của mỗi Đường Cong"
-
-
-msgid "Direction from root to tip of each Curve"
-msgstr "Chiều hướng từ gốc đến ngọn của mỗi Đường Cong"
-
-
-msgid "Random vector for each Curve"
-msgstr "Vector ngẫu nhiên cho mỗi đường cong"
-
-
 msgid "Surface UV"
 msgstr "UV của Bề Mặt"
-
-
-msgid "Attachment surface UV coordinate of each Curve"
-msgstr "Tọa độ UV bề mặt đính vào của mỗi Đường cong"
 
 
 msgid "Curve Root"
@@ -135630,24 +135586,12 @@ msgid "Root Position"
 msgstr "Vị Trí Gốc"
 
 
-msgid "Position of the root point of a Curve"
-msgstr "Vị trí điểm gốc của một Đường Cong"
-
-
 msgid "Root Direction"
 msgstr "Chiều Hướng Gốc"
 
 
-msgid "Direction of the root segment of a Curve"
-msgstr "Chiều hướng của phân đoạn gốc của một Đường Cong"
-
-
 msgid "Root Index"
 msgstr "Chỉ Số Gốc"
-
-
-msgid "Index of the root point of a Curve"
-msgstr "Chỉ số điểm gốc của một Đường Cong"
 
 
 msgid "Curve Segment"
@@ -135660,10 +135604,6 @@ msgstr "Đọc thông tin phân đoạn đường cong trước của mỗi đi�
 
 msgid "Segment Length"
 msgstr "Chiều Dài Phân Đoạn"
-
-
-msgid "Distance to previous point on Curve"
-msgstr "Khoảng cách tới điểm trước đó trên Đường Cong"
 
 
 msgid "Segment Direction"
@@ -135702,24 +135642,12 @@ msgid "Tip Position"
 msgstr "Vị Trí Đỉnh"
 
 
-msgid "Position of the tip point of a Curve"
-msgstr "Vị trí điểm đầu của một Đường Cong"
-
-
 msgid "Tip Direction"
 msgstr "Chiều Hướng Đỉnh"
 
 
-msgid "Direction of the tip segment of a Curve"
-msgstr "Chiều hướng của phân đoạn đỉnh của một Đường Cong"
-
-
 msgid "Tip Index"
 msgstr "Chỉ Số Đỉnh"
-
-
-msgid "Index of the tip point of a Curve"
-msgstr "Chỉ số điểm đỉnh của một Đường Cong"
 
 
 msgid "Displace Hair Curves"
@@ -135842,14 +135770,6 @@ msgid "Normal direction of the surface mesh at the attachment point"
 msgstr "Chiều hướng pháp tuyến của khung lưới bề mặt tại điểm gắn vào"
 
 
-msgid "Surface geometry for generation "
-msgstr "Hình học bề mặt để sinh tạo "
-
-
-msgid "Surface object for generation (Needs matching transforms)"
-msgstr "Đối tượng bề mặt để sinh tạo (Cần các biến dạng xứng khớp)"
-
-
 msgid "Length of the generated hair curves"
 msgstr "Chiều dài của đường cong tóc sinh tạo ra"
 
@@ -135870,10 +135790,6 @@ msgid "Poisson Disk Distribution"
 msgstr "Phân Phối Đĩa Poisson"
 
 
-msgid "Use poisson disk distribution method to keep a minimum distance"
-msgstr "Sử dụng phương pháp phân phối đĩa poisson để giữ một khoảng cách tối thiểu"
-
-
 msgid "Surface density of generated hair curves"
 msgstr "Mật độ bề mặt của đường cong tóc sinh tạo ra"
 
@@ -135884,10 +135800,6 @@ msgstr "Màn Chắn Lọc Mật Độ"
 
 msgid "Factor applied on the density for curve distribution"
 msgstr "Hệ số áp dụng cho mật độ để phân bố đường cong"
-
-
-msgid "Discard points based on an mask texture after distribution"
-msgstr "Loại bỏ các điểm dựa trên chất liệu màn chắn lọc sau khi phân bổ"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -135906,10 +135818,6 @@ msgid "Attachment UV"
 msgstr "UV của vật Đính Kèm"
 
 
-msgid "Surface attachment UV coordinate stored on each curve"
-msgstr "Tọa độ UV của vật đính kèm bề mặt được lưu trữ trên mỗi đường cong"
-
-
 msgid "Attachment is Valid"
 msgstr "Vật Đính Kèm là Hợp Lệ"
 
@@ -135924,10 +135832,6 @@ msgstr "Hình Học Bề Mặt"
 
 msgid "Surface geometry of the curve attachment"
 msgstr "Hình học bề mặt của phần đính kèm đường cong"
-
-
-msgid "Surface UV map used for attachment"
-msgstr "Ánh xạ UV bề mặt sử dụng cho vật đính kèm"
 
 
 msgid "Deforms hair curves using a noise texture"
@@ -135950,24 +135854,12 @@ msgid "Scale along Curve"
 msgstr "Đổi Tỷ Lệ dọc theo Đường Cong"
 
 
-msgid "Scale of noise texture along each Curve"
-msgstr "Tỷ lệ của chất liệu nhiễu dọc theo mỗi Đường Cong"
-
-
 msgid "Offset per Curve"
 msgstr "Dịch Chuyển mỗi Đường Cong"
 
 
-msgid "Random offset of noise texture for each Curve"
-msgstr "Dịch chuyển ngẫu nhiên chất liệu nhiễu cho mỗi Đường Cong"
-
-
 msgid "Seed value for randomization"
 msgstr "Giá trị mầm ngẫu nhiên"
-
-
-msgid "Preserve the length of the Curves on a segment basis"
-msgstr "Bảo tồn độ dài của Đường Cong trên cơ sở phân đoạn"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
@@ -136020,10 +135912,6 @@ msgstr "Phân phối lại các điểm kiểm soát hiện có dọc theo mỗi
 
 msgid "Feature Awareness"
 msgstr "Nhận Thức Hình Thể"
-
-
-msgid "Use simeple feature awareness to keep feature definition"
-msgstr "Sử dụng tính năng nhận thức hình thể đơn giản để duy trì các định hình về hình thể"
 
 
 msgid "Restore Curve Segment Length"
@@ -136134,14 +136022,6 @@ msgid "Factor to influence the rotation angle"
 msgstr "Hiệu số ảnh hưởng đến góc xoay chiều"
 
 
-msgid "Rotation Axis (Default: Tangent at root)"
-msgstr "Trục Xoay Chiều (Mặc Định: Tiếp tuyến tại gốc)"
-
-
-msgid "Random offset to the rotation angle per Curve"
-msgstr "Dịch chuyển ngẫu nhiên cho góc xoay chiều trên mỗi Đường Cong"
-
-
 msgid "Lock Ends"
 msgstr "Khóa các Đầu"
 
@@ -136208,10 +136088,6 @@ msgstr "Pha trộn co bọc cho các điểm phía trên bề mặt"
 
 msgid "Smoothing Steps"
 msgstr "Số Bước Làm Mịn"
-
-
-msgid "Amount of steps of smoothing applied after shwrinkwrap"
-msgstr "Số bước làm mịn được áp dụng sau khi co bọc"
 
 
 msgid "Lock Roots"

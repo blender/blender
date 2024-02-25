@@ -1713,6 +1713,8 @@ void BKE_scopes_update(Scopes *scopes,
   }
   if (scopes->vecscope) {
     MEM_freeN(scopes->vecscope);
+  }
+  if (scopes->vecscope_rgb) {
     MEM_freeN(scopes->vecscope_rgb);
   }
 

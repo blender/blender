@@ -27,7 +27,7 @@
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_preview_image.hh"
 #include "BKE_world.h"
 

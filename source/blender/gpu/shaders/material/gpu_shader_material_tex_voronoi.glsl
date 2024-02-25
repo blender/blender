@@ -63,7 +63,7 @@ void node_tex_voronoi_f1_1d(vec3 coord,
   params.max_distance = 0.5 + 0.5 * params.randomness;
   VoronoiOutput Output = fractal_voronoi_x_fx(params, w);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outW = Output.Position.w;
 }
 
@@ -93,7 +93,7 @@ void node_tex_voronoi_smooth_f1_1d(vec3 coord,
   params.max_distance = 0.5 + 0.5 * params.randomness;
   VoronoiOutput Output = fractal_voronoi_x_fx(params, w);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outW = Output.Position.w;
 }
 
@@ -123,7 +123,7 @@ void node_tex_voronoi_f2_1d(vec3 coord,
   params.max_distance = (0.5 + 0.5 * params.randomness) * 2.0;
   VoronoiOutput Output = fractal_voronoi_x_fx(params, w);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outW = Output.Position.w;
 }
 
@@ -208,7 +208,7 @@ void node_tex_voronoi_f1_2d(vec3 coord,
   params.max_distance = voronoi_distance(vec2(0.0), vec2(0.5 + 0.5 * params.randomness), params);
   VoronoiOutput Output = fractal_voronoi_x_fx(params, coord.xy);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
 }
 
@@ -238,7 +238,7 @@ void node_tex_voronoi_smooth_f1_2d(vec3 coord,
   params.max_distance = voronoi_distance(vec2(0.0), vec2(0.5 + 0.5 * params.randomness), params);
   VoronoiOutput Output = fractal_voronoi_x_fx(params, coord.xy);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
 }
 
@@ -269,7 +269,7 @@ void node_tex_voronoi_f2_2d(vec3 coord,
                         2.0;
   VoronoiOutput Output = fractal_voronoi_x_fx(params, coord.xy);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
 }
 
@@ -354,7 +354,7 @@ void node_tex_voronoi_f1_3d(vec3 coord,
   params.max_distance = voronoi_distance(vec3(0.0), vec3(0.5 + 0.5 * params.randomness), params);
   VoronoiOutput Output = fractal_voronoi_x_fx(params, coord);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
 }
 
@@ -384,7 +384,7 @@ void node_tex_voronoi_smooth_f1_3d(vec3 coord,
   params.max_distance = voronoi_distance(vec3(0.0), vec3(0.5 + 0.5 * params.randomness), params);
   VoronoiOutput Output = fractal_voronoi_x_fx(params, coord);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
 }
 
@@ -415,7 +415,7 @@ void node_tex_voronoi_f2_3d(vec3 coord,
                         2.0;
   VoronoiOutput Output = fractal_voronoi_x_fx(params, coord);
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
 }
 
@@ -501,7 +501,7 @@ void node_tex_voronoi_f1_4d(vec3 coord,
   params.max_distance = voronoi_distance(vec4(0.0), vec4(0.5 + 0.5 * params.randomness), params);
   VoronoiOutput Output = fractal_voronoi_x_fx(params, vec4(coord, w));
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
   outW = Output.Position.w;
 }
@@ -533,7 +533,7 @@ void node_tex_voronoi_smooth_f1_4d(vec3 coord,
   params.max_distance = voronoi_distance(vec4(0.0), vec4(0.5 + 0.5 * params.randomness), params);
   VoronoiOutput Output = fractal_voronoi_x_fx(params, vec4(coord, w));
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
   outW = Output.Position.w;
 }
@@ -566,7 +566,7 @@ void node_tex_voronoi_f2_4d(vec3 coord,
                         2.0;
   VoronoiOutput Output = fractal_voronoi_x_fx(params, vec4(coord, w));
   outDistance = Output.Distance;
-  outColor.xyz = Output.Color;
+  outColor = vec4(Output.Color, 1.0);
   outPosition = Output.Position.xyz;
   outW = Output.Position.w;
 }

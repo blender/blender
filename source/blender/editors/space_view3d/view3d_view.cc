@@ -241,7 +241,7 @@ static int view3d_setobjectascamera_exec(bContext *C, wmOperator *op)
     v3d->camera = ob;
     if (v3d->scenelock && scene->camera != ob) {
       scene->camera = ob;
-      DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
       DEG_relations_tag_update(CTX_data_main(C));
     }
 

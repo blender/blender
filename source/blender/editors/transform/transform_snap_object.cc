@@ -279,7 +279,7 @@ eSnapMode SnapData::snap_edge_points_impl(SnapObjectContext *sctx,
       if (lambda < (range) || (1.0f - range) < lambda) {
         int v_id = lambda < 0.5f ? 0 : 1;
 
-        if (this->snap_point(v_pair[v_id], v_id)) {
+        if (this->snap_point(v_pair[v_id], vindex[v_id])) {
           elem = SCE_SNAP_TO_EDGE_ENDPOINT;
           this->copy_vert_no(vindex[v_id], this->nearest_point.no);
         }
@@ -1244,9 +1244,13 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
 {
   eSnapMode retval = SCE_SNAP_TO_NONE;
   float ray_depth_max = BVH_RAYCAST_DIST_MAX;
+  bool use_occlusion_plane = false;
 
-  const bool is_allways_occluded = !params->use_occlusion_test;
-  bool use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
+  /* It is required `mval` to calculate the occlusion plane. */
+  if (mval) {
+    const bool is_allways_occluded = !params->use_occlusion_test;
+    use_occlusion_plane = is_allways_occluded || !XRAY_ENABLED(v3d);
+  }
 
   if (use_occlusion_plane || (snap_to_flag & SCE_SNAP_TO_FACE)) {
     const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);

@@ -39,8 +39,7 @@ void main()
                         uniform_buf.raytrace.resolution_bias;
 
   uint gbuf_header = texelFetch(gbuf_header_tx, texel_fullres, 0).r;
-  GBufferReader gbuf = gbuffer_read_header_closure_types(gbuf_header);
-  uint closure_type = gbuffer_closure_get(gbuf, closure_index).type;
+  ClosureType closure_type = gbuffer_closure_type_get_by_bin(gbuf_header, closure_index);
 
   bool is_reflection = true;
   if ((closure_type == CLOSURE_BSDF_TRANSLUCENT_ID) ||

@@ -322,7 +322,7 @@ set(SRC
   intern/wm_runtime.cc
   intern/workspace.cc
   intern/world.cc
-  intern/writeavi.cc
+  intern/writemovie.cc
 
   BKE_DerivedMesh.hh
   BKE_action.h
@@ -466,7 +466,6 @@ set(SRC
   BKE_movieclip.h
   BKE_multires.hh
   BKE_nla.h
-  BKE_node.h
   BKE_node.hh
   BKE_node_enum.hh
   BKE_node_runtime.hh
@@ -535,7 +534,7 @@ set(SRC
   BKE_wm_runtime.hh
   BKE_workspace.h
   BKE_world.h
-  BKE_writeavi.h
+  BKE_writemovie.hh
 
   nla_private.h
   particle_private.h
@@ -652,13 +651,6 @@ endif()
 
 if(WITH_IMAGE_WEBP)
   add_definitions(-DWITH_WEBP)
-endif()
-
-if(WITH_CODEC_AVI)
-  list(APPEND INC
-    ../io/avi
-  )
-  add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_FFMPEG)

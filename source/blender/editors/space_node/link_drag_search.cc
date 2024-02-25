@@ -233,7 +233,7 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
                                                      const bool skip_local,
                                                      Vector<SocketLinkOperation> &search_link_ops)
 {
-  AssetFilterSettings filter_settings{};
+  asset::AssetFilterSettings filter_settings{};
   filter_settings.id_types = FILTER_ID_NT;
 
   asset::list::storage_fetch(&library_ref, &C);

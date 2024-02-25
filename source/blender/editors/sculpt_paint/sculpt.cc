@@ -126,7 +126,8 @@ static bool is_realtime_restored(Brush *brush)
 
 static CLG_LogRef LOG = {"ed.sculpt_paint"};
 
-float SCULPT_calc_radius(ViewContext *vc,
+namespace blender::ed::sculpt_paint {
+float sculpt_calc_radius(ViewContext *vc,
                          const Brush *brush,
                          const Scene *scene,
                          const float3 location)
@@ -138,6 +139,7 @@ float SCULPT_calc_radius(ViewContext *vc,
     return BKE_brush_unprojected_radius_get(scene, brush);
   }
 }
+}  // namespace blender::ed::sculpt_paint
 
 bool ED_sculpt_report_if_shape_key_is_locked(const Object *ob, ReportList *reports)
 {
@@ -5499,7 +5501,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   /* Truly temporary data that isn't stored in properties. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(ss->cache)) {
-    cache->initial_radius = SCULPT_calc_radius(cache->vc, brush, scene, cache->true_location);
+    cache->initial_radius = sculpt_calc_radius(cache->vc, brush, scene, cache->true_location);
 
     if (!BKE_brush_use_locked_size(scene, brush)) {
       BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
@@ -5999,7 +6001,7 @@ bool SCULPT_stroke_get_location_ex(bContext *C,
 
   float closest_radius_sq = FLT_MAX;
   if (limit_closest_radius) {
-    closest_radius_sq = SCULPT_calc_radius(&vc, brush, CTX_data_scene(C), out);
+    closest_radius_sq = sculpt_calc_radius(&vc, brush, CTX_data_scene(C), out);
     closest_radius_sq *= closest_radius_sq;
   }
 
@@ -6430,7 +6432,7 @@ static void sculpt_stroke_update_step(bContext *C,
 
   float radius = ss->cache->radius;
   if (brush->flag & BRUSH_ANCHORED) {
-    radius = SCULPT_calc_radius(cache->vc, brush, CTX_data_scene(C), cache->true_location);
+    radius = sculpt_calc_radius(cache->vc, brush, CTX_data_scene(C), cache->true_location);
   }
 
   if (ELEM(ss->cached_dyntopo.mode, DYNTOPO_DETAIL_CONSTANT, DYNTOPO_DETAIL_MANUAL)) {

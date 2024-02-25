@@ -32,11 +32,17 @@
 /* Reflection Probes. */
 #define SPHERE_PROBE_GROUP_SIZE 16
 #define SPHERE_PROBE_SELECT_GROUP_SIZE 64
-/* Number of additional pixels on the border of an octahedral map to reserve for fixing seams.
- * Border size requires depends on the max number of mipmap levels. */
 #define SPHERE_PROBE_MIPMAP_LEVELS 5
 #define SPHERE_PROBE_SH_GROUP_SIZE 512
 #define SPHERE_PROBE_SH_SAMPLES_PER_GROUP 64
+/* Must be power of two for correct partitioning. */
+#define SPHERE_PROBE_ATLAS_MAX_SUBDIV 10
+#define SPHERE_PROBE_ATLAS_RES (1 << SPHERE_PROBE_ATLAS_MAX_SUBDIV)
+/* Start and end value for mixing sphere probe and volume probes. */
+#define SPHERE_PROBE_MIX_START_ROUGHNESS 0.7
+#define SPHERE_PROBE_MIX_END_ROUGHNESS 0.9
+/* Roughness of the last mip map for sphere probes. */
+#define SPHERE_PROBE_MIP_MAX_ROUGHNESS 0.7
 /**
  * Limited by the UBO size limit `(16384 bytes / sizeof(SphereProbeData))`.
  */

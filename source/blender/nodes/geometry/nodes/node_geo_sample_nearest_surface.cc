@@ -106,33 +106,27 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
     FieldEvaluator field_evaluator{field_context, mesh.faces_num};
     field_evaluator.add(group_id_field);
     field_evaluator.evaluate();
-    VArraySpan<int> group_ids_span = field_evaluator.get_evaluated<int>(0);
+    const VArray<int> group_ids = field_evaluator.get_evaluated<int>(0);
 
-    /* Compute an #IndexMask for every unique group id. */
-    group_indices_.add_multiple(group_ids_span);
-    const int groups_num = group_indices_.size();
+    /* Compute index masks for groups. */
     IndexMaskMemory memory;
-    Array<IndexMask> group_masks(groups_num);
-    IndexMask::from_groups<int>(
-        IndexMask(mesh.faces_num),
-        memory,
-        [&](const int i) { return group_indices_.index_of(group_ids_span[i]); },
-        group_masks);
+    const Vector<IndexMask> group_masks = IndexMask::from_group_ids(
+        group_ids, memory, group_indices_);
+    const int groups_num = group_masks.size();
 
     /* Construct BVH tree for each group. */
     bvh_trees_.reinitialize(groups_num);
-    threading::parallel_for(IndexRange(groups_num), 16, [&](const IndexRange range) {
-      for (const int group_i : range) {
-        const IndexMask &group_mask = group_masks[group_i];
-        BVHTreeFromMesh &bvh = bvh_trees_[group_i];
-        if (group_mask.size() == mesh.faces_num) {
-          BKE_bvhtree_from_mesh_get(&bvh, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
-        }
-        else {
-          BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
-        }
-      }
-    });
+    threading::parallel_for_weighted(
+        IndexRange(groups_num),
+        512,
+        [&](const IndexRange range) {
+          for (const int group_i : range) {
+            const IndexMask &group_mask = group_masks[group_i];
+            BVHTreeFromMesh &bvh = bvh_trees_[group_i];
+            BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
+          }
+        },
+        [&](const int group_i) { return group_masks[group_i].size(); });
   }
 
   ~SampleNearestSurfaceFunction()

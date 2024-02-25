@@ -396,7 +396,7 @@ static void try_convert_single_object(Object &curves_ob,
   particle_system->recalc |= ID_RECALC_PSYS_RESET;
 
   DEG_id_tag_update(&surface_ob.id, ID_RECALC_GEOMETRY);
-  DEG_id_tag_update(&settings.id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&settings.id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 static int curves_convert_to_particle_system_exec(bContext *C, wmOperator *op)

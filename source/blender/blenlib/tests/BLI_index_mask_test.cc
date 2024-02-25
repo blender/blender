@@ -24,7 +24,7 @@ TEST(index_mask, IndicesToMask)
   EXPECT_EQ(mask.first(), 5);
   EXPECT_EQ(mask.last(), 101000);
   EXPECT_EQ(mask.min_array_size(), 101001);
-  EXPECT_EQ(mask.bounds(), IndexRange(5, 101001 - 5));
+  EXPECT_EQ(mask.bounds(), IndexRange::from_begin_end_inclusive(5, 101000));
 }
 
 TEST(index_mask, FromBits)

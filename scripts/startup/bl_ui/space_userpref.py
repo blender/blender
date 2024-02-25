@@ -1597,7 +1597,7 @@ class USERPREF_UL_asset_libraries(UIList):
 class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
-        icon = 'WORLD' if repo.use_remote_path else 'DISK_DRIVE'
+        icon = 'NETWORK_DRIVE' if repo.use_remote_path else 'DISK_DRIVE'
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(repo, "name", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
@@ -1613,6 +1613,24 @@ class USERPREF_UL_extension_repos(UIList):
                 layout.label(text="", icon='ERROR')
 
         layout.prop(repo, "enabled", text="", emboss=False, icon='CHECKBOX_HLT' if repo.enabled else 'CHECKBOX_DEHLT')
+
+    def filter_items(self, _context, data, propname):
+        # Repositories has no index, converting to a list.
+        items = list(getattr(data, propname))
+
+        flags = [self.bitflag_filter_item] * len(items)
+
+        indices = [None] * len(items)
+        for index, orig_index in enumerate(sorted(
+            range(len(items)),
+            key=lambda i: (
+                items[i].use_remote_path is False,
+                items[i].name.lower(),
+            )
+        )):
+            indices[orig_index] = index
+
+        return flags, indices
 
 
 # -----------------------------------------------------------------------------
@@ -2103,9 +2121,13 @@ class USERPREF_PT_extensions_repos(Panel):
             if active_repo.use_custom_directory:
                 if active_repo.custom_directory == "":
                     row.alert = True
+                row.prop(active_repo, "custom_directory", text="")
             else:
-                row.active = False
-            row.prop(active_repo, "custom_directory", text="")
+                # Show the read-only directory property.
+                # Apart from being consistent with the custom directory UI,
+                # prefer a read-only property over a label because this is not necessarily
+                # valid UTF-8 which will raise a Python exception when passed in as text.
+                row.prop(active_repo, "directory", text="")
 
             layout_panel.separator()
 

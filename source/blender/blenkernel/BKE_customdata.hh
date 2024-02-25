@@ -844,4 +844,5 @@ void CustomData_debug_info_from_layers(const CustomData *data, const char *inden
 
 namespace blender::bke {
 std::optional<VolumeGridType> custom_data_type_to_volume_grid_type(eCustomDataType type);
+std::optional<eCustomDataType> volume_grid_type_to_custom_data_type(VolumeGridType type);
 }  // namespace blender::bke

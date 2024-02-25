@@ -1391,11 +1391,6 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
  * #PAINT_FALLOFF_SHAPE_NOOP
  */
 
-float SCULPT_calc_radius(ViewContext *vc,
-                         const Brush *brush,
-                         const Scene *scene,
-                         const blender::float3 location);
-
 SculptBrushTestFn SCULPT_brush_test_init(const SculptSession *ss, SculptBrushTest *test);
 SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
                                             SculptBrushTest *test,
@@ -1546,6 +1541,28 @@ bool stroke_is_dyntopo(const SculptSession *ss, const Sculpt *sd, const Brush *b
 
 WarnFlag check_attribute_warning(Scene *scene, Object *ob);
 
+namespace detail_size {
+constexpr float RELATIVE_SCALE_FACTOR = 0.4f;
+
+/**
+ * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_percent value.
+ *
+ * Corresponds to a change from Constant & Manual Detailing to Brush Detailing.
+ */
+float constant_to_brush_detail(const float constant_detail,
+                               const float brush_radius,
+                               const Object *ob);
+
+/**
+ * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_size value.
+ *
+ * Corresponds to a change from Constant & Manual Detailing to Relative Detailing.
+ */
+float constant_to_relative_detail(const float constant_detail,
+                                  const float brush_radius,
+                                  const float pixel_radius,
+                                  const Object *ob);
+}
 }
 
 /** \} */
@@ -2075,7 +2092,6 @@ void apply_settings(Scene *scene, SculptSession *ss, Sculpt *sculpt, Brush *brus
 
 void SCULPT_OT_detail_flood_fill(wmOperatorType *ot);
 void SCULPT_OT_sample_detail_size(wmOperatorType *ot);
-void SCULPT_OT_set_detail_size(wmOperatorType *ot);
 void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot);
 /** \} */
 
@@ -2427,6 +2443,13 @@ void SCULPT_update_object_bounding_box(Object *ob);
  * autosmooth.
  */
 #define SCULPT_tool_needs_smooth_origco(tool) ELEM(tool, SCULPT_TOOL_DRAW_SHARP)
+
+namespace blender::ed::sculpt_paint {
+float sculpt_calc_radius(ViewContext *vc,
+                         const Brush *brush,
+                         const Scene *scene,
+                         const float3 location);
+}
 
 inline void *SCULPT_vertex_attr_get(const PBVHVertRef vertex, const SculptAttribute *attr)
 {

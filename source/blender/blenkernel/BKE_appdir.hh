@@ -176,7 +176,7 @@ enum {
   BLENDER_SYSTEM_PYTHON = 54,
 };
 
-/* for BKE_appdir_folder_id_version only */
+/** For #BKE_appdir_folder_id_version only. */
 enum {
   BLENDER_RESOURCE_PATH_USER = 0,
   BLENDER_RESOURCE_PATH_LOCAL = 1,

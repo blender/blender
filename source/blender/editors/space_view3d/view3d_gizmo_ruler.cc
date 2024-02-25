@@ -518,7 +518,7 @@ static void view3d_ruler_gpencil_ensure(bContext *C)
   Scene *scene = CTX_data_scene(C);
   if (scene->gpd == nullptr) {
     scene->gpd = BKE_gpencil_data_addnew(bmain, "Annotations");
-    DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update_ex(bmain, &scene->id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(bmain);
   }
 }

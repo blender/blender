@@ -46,7 +46,7 @@
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_nla.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_report.hh"
 #include "BKE_texture.h"
 
@@ -4116,7 +4116,7 @@ void BKE_animsys_update_driver_array(ID *id)
   AnimData *adt = BKE_animdata_from_id(id);
 
   /* Runtime driver map to avoid O(n^2) lookups in BKE_animsys_eval_driver.
-   * Ideally the depsgraph could pass a pointer to the COW driver directly,
+   * Ideally the depsgraph could pass a pointer to the evaluated driver directly,
    * but this is difficult in the current design. */
   if (adt && adt->drivers.first) {
     BLI_assert(!adt->driver_array);
@@ -4168,7 +4168,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
 
       PathResolvedRNA anim_rna;
       if (BKE_animsys_rna_path_resolve(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
-        /* Evaluate driver, and write results to COW-domain destination */
+        /* Evaluate driver, and write results to copy-on-eval-domain destination */
         const float ctime = DEG_get_ctime(depsgraph);
         const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
             depsgraph, ctime);

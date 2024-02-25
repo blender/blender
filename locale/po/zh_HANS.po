@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-12 11:01+0000\n"
-"PO-Revision-Date: 2024-02-11 19:00+0000\n"
+"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"PO-Revision-Date: 2024-02-18 18:33+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -522,7 +522,7 @@ msgstr "合并"
 
 
 msgid "The strip values are combined with accumulated results by appropriately using addition, multiplication, or quaternion math, based on channel type"
-msgstr "根据通道类型，适当地使用加法、乘法或四元数运算累，将片段值与累积结果合并"
+msgstr "根据通道类型，适当地使用加法、乘法或四元数运算，将片段值与累积结果合并"
 
 
 msgid "Add"
@@ -1734,7 +1734,7 @@ msgstr "该属性供Blender内部使用"
 
 
 msgid "Is Required"
-msgstr "是必须的"
+msgstr "是必需的"
 
 
 msgid "Whether the attribute can be removed or renamed"
@@ -1926,7 +1926,7 @@ msgstr "文件路径"
 
 
 msgid "Image filepath to use when saving externally"
-msgstr "将图像存为外部文件时使用的文件路径"
+msgstr "将图像保存为外部文件时使用的文件路径"
 
 
 msgid "Vertical dimension of the baking map"
@@ -3090,7 +3090,7 @@ msgstr "排列系数"
 
 
 msgid "Avoid object if danger from it is above this threshold"
-msgstr "如果超过当前阈值时躲避物体"
+msgstr "如果超过当前阈值则躲避物体"
 
 
 msgid "Object to avoid"
@@ -3262,7 +3262,7 @@ msgstr "健康状态"
 
 
 msgid "Initial boid health when born"
-msgstr "出生是的初始健康状态"
+msgstr "出生时的初始健康状态"
 
 
 msgid "Boid height relative to particle size"
@@ -4068,7 +4068,7 @@ msgstr "雕刻能力"
 
 
 msgid "Read-only indications of which brush operations are supported by the current sculpt tool"
-msgstr "只读型标示, 标示的是哪个笔刷操作被当前雕刻工具所支持"
+msgstr "只读型标识, 标示的是哪个笔刷操作被当前雕刻工具所支持"
 
 
 msgid "Has Auto Smooth"
@@ -6443,7 +6443,7 @@ msgstr "光源为 D65白点下的线性 DCI-P3"
 
 
 msgid "Linear FilmLight E-Gamut"
-msgstr "线性 FilmLight E-Gamut（ 色域）"
+msgstr "线性 FilmLight E-Gamut (色域)"
 
 
 msgid "Linear E-Gamut with illuminant D65 white point"
@@ -7916,7 +7916,7 @@ msgstr "偏移系数"
 
 
 msgid "Percentage value defining target position along length of curve"
-msgstr "确定目标位置在曲线长度上的的百分比值"
+msgstr "确定目标位置在曲线长度上的百分比值"
 
 
 msgid "Target Curve object"
@@ -10135,7 +10135,7 @@ msgstr "仅显示已选中"
 
 
 msgid "Only include channels relating to selected objects and data"
-msgstr "近包含与选择物体和数据相关的通道"
+msgstr "仅包含与选择物体和数据相关的通道"
 
 
 msgid "Display Particle"
@@ -11153,7 +11153,7 @@ msgstr "平滑度"
 
 
 msgid "Limit maximum steepness of wave slope between simulation points (use higher values for smoother waves at expense of reduced detail)"
-msgstr "将波形的最大斜度限制在模拟点之间 (使用更高的值做出更平滑的波形, 将损失一定的细节)"
+msgstr "将波形的最大斜度限制在模拟点之间 (使用更高的值得到更平滑的波形, 将损失一定的细节)"
 
 
 msgid "Wave propagation speed"
@@ -19976,11 +19976,11 @@ msgstr "排除"
 
 
 msgid "Use Exclusion blending mode while painting"
-msgstr "在绘制时使用排斥混合模式"
+msgstr "在绘制时使用排除混合模式"
 
 
 msgid "Use Subtract blending mode while painting"
-msgstr "在绘制时使用 '相减' 混合模式"
+msgstr "在绘制时使用相减混合模式"
 
 
 msgid "Use Hue blending mode while painting"
@@ -20448,7 +20448,7 @@ msgstr "通过改变布料模拟的约束形状来使网格变形"
 
 
 msgid "Amount of random elements that are going to be affected by the brush"
-msgstr "将受笔刷影响的随机元素的数量"
+msgstr "将受到笔刷影响的随机元素的数量"
 
 
 msgid "Max Element Distance"
@@ -20782,7 +20782,7 @@ msgstr "基于屏幕空间或相对于笔刷大小执行抖动"
 
 
 msgid "Jittering happens in screen space, in pixels"
-msgstr "屏幕空间中抖动, 单位为像素"
+msgstr "屏幕空间中的抖动, 单位为像素"
 
 
 msgid "Jittering happens relative to the brush size"
@@ -21395,7 +21395,7 @@ msgstr "仅影响与笔画起始位置法向相似的顶点"
 
 
 msgid "Affect only vertices connected to the active vertex under the brush"
-msgstr "仅影响与笔刷下与活动顶点相连的顶点"
+msgstr "仅影响在笔刷下与活动顶点相连的顶点"
 
 
 msgid "View Normal"
@@ -21883,7 +21883,7 @@ msgstr "重写帧"
 
 
 msgid "Whether to use a custom frame for looking up data in the cache file, instead of using the current scene frame"
-msgstr "是否要使用自定义帧用于查找在缓存文件中的数据，而不是使用当前的场景帧"
+msgstr "是否需要使用自定义帧来查找在缓存文件中的数据，而不是使用当前的场景帧"
 
 
 msgid "Prefetch Cache Size"
@@ -30571,7 +30571,7 @@ msgstr "类别"
 
 
 msgid "Filter add-ons by category"
-msgstr "以分类筛选插件"
+msgstr "按类别筛选插件"
 
 
 msgid "Filter by add-on name, author & category"
@@ -31631,7 +31631,7 @@ msgstr "模态键位映射表"
 
 
 msgid "Indicates that a keymap is used for translate modal events for an operator"
-msgstr "键位映射表被定义为纪录用于响应促动器的模态事件"
+msgstr "键位映射表被定义为记录用于响应促动器的模态事件"
 
 
 msgid "Keymap is defined by the user"
@@ -39307,7 +39307,7 @@ msgstr "用于选择/加权受影响区域的顶点组名称"
 
 
 msgid "Ocean Modifier"
-msgstr "洋面面修改器"
+msgstr "洋面修改器"
 
 
 msgid "Simulate an ocean surface"
@@ -39423,11 +39423,11 @@ msgstr "随机生成器的种数"
 
 
 msgid "Repetitions of the generated surface in X"
-msgstr "所生成表面的的 X 向重复量"
+msgstr "所生成表面的 X 向重复量"
 
 
 msgid "Repetitions of the generated surface in Y"
-msgstr "所生成表面的的 Y 向重复量"
+msgstr "所生成表面的 Y 向重复量"
 
 
 msgid "Render Resolution"
@@ -45154,7 +45154,7 @@ msgstr "输出指定帧号上某个标记的绝对位置"
 
 
 msgid "Method to use to filter transform"
-msgstr "用于过滤变化的的方法"
+msgstr "用于过滤变换的方法"
 
 
 msgid "Translate"
@@ -48530,7 +48530,7 @@ msgstr "偏移量"
 
 
 msgid "Offset Frequency"
-msgstr "品议频率"
+msgstr "偏移频率"
 
 
 msgid "Squash Amount"
@@ -50151,15 +50151,15 @@ msgstr "布尔节点接口界面"
 
 
 msgid "Collection Node Socket Interface"
-msgstr "集合节点接口"
+msgstr "集合节点接口界面"
 
 
 msgid "Color Node Socket Interface"
-msgstr "色彩型节点接口"
+msgstr "色彩型节点接口界面"
 
 
 msgid "Float Node Socket Interface"
-msgstr "浮点型节点接口"
+msgstr "浮点型节点接口界面"
 
 
 msgid "Maximum value"
@@ -50179,23 +50179,27 @@ msgstr "默认值的子类型"
 
 
 msgid "Geometry Node Socket Interface"
-msgstr "几何节点接口"
+msgstr "几何节点接口界面"
 
 
 msgid "Image Node Socket Interface"
-msgstr "图像节点接口"
+msgstr "图像节点接口界面"
 
 
 msgid "Integer Node Socket Interface"
-msgstr "整数型节点接口"
+msgstr "整数型节点接口界面"
 
 
 msgid "Material Node Socket Interface"
-msgstr "材质节点接口"
+msgstr "材质节点接口界面"
+
+
+msgid "Menu Node Socket Interface"
+msgstr "菜单节点接口界面"
 
 
 msgid "Object Node Socket Interface"
-msgstr "物体节点接口"
+msgstr "物体节点接口界面"
 
 
 msgid "Rotation Node Socket Interface"
@@ -50203,19 +50207,19 @@ msgstr "旋转节点接口界面"
 
 
 msgid "Shader Node Socket Interface"
-msgstr "着色器型节点接口"
+msgstr "着色器型节点接口界面"
 
 
 msgid "String Node Socket Interface"
-msgstr "字符串型节点接口"
+msgstr "字符串型节点接口界面"
 
 
 msgid "Texture Node Socket Interface"
-msgstr "纹理节点接口"
+msgstr "纹理节点接口界面"
 
 
 msgid "Vector Node Socket Interface"
-msgstr "矢量型节点接口"
+msgstr "矢量型节点接口界面"
 
 
 msgid "Node Tree Path"
@@ -51090,7 +51094,7 @@ msgstr "帧吸附"
 
 
 msgid "Snap selected keyframes to the times specified"
-msgstr "讲选择的关键帧吸附至指定的时间点"
+msgstr "将选择的关键帧吸附至指定的时间点"
 
 
 msgid "Selection to Current Frame"
@@ -64220,7 +64224,7 @@ msgstr "使用顶点组影响精减结果"
 
 
 msgid "Delete selected vertices, edges or faces"
-msgstr "删除选中的的顶点、边或面"
+msgstr "删除选中的顶点、边或面"
 
 
 msgid "Method used for deleting mesh data"
@@ -66495,7 +66499,7 @@ msgstr "所选的点/边/面的修改次序, 基于指定的方法"
 
 
 msgid "Which elements to affect (vertices, edges and/or faces)"
-msgstr "删除选中的的顶点、边或面"
+msgstr "哪类元素将受影响 (顶点, 边和/或面)"
 
 
 msgid "Reverse the sorting effect"
@@ -70694,7 +70698,7 @@ msgstr "执行大小写匹配"
 
 
 msgid "Name filter using '*', '?' and '[abc]' unix style wildcards"
-msgstr "使用通配符'*'和'?'进行名称过滤"
+msgstr "使用unix通配符'*', '?' 和 '[abc]' 进行名称过滤"
 
 
 msgid "Select or deselect random visible objects"
@@ -73372,7 +73376,7 @@ msgstr "从上下文中使用活动的粒子系统"
 
 
 msgid "Delete selected particles or keys"
-msgstr "删除选中的的粒子或关键帧"
+msgstr "删除选中的粒子或关键帧"
 
 
 msgid "Delete a full particle or only keys"
@@ -98244,6 +98248,10 @@ msgid "Use nearest sample"
 msgstr "使用邻近采样"
 
 
+msgid "Interpolate between 2×2 samples"
+msgstr "在 2×2 采样之间插值"
+
+
 msgid "Move along X axis"
 msgstr "沿 X 轴移动"
 
@@ -117016,7 +117024,7 @@ msgstr "退出"
 
 msgctxt "Operator"
 msgid "Last Session"
-msgstr "最近的对话"
+msgstr "最近的会话"
 
 
 msgctxt "Operator"
@@ -117056,7 +117064,7 @@ msgstr "重复历史..."
 
 msgctxt "Operator"
 msgid "Menu Search..."
-msgstr "菜单查找..."
+msgstr "菜单搜索..."
 
 
 msgctxt "Operator"
@@ -136610,10 +136618,6 @@ msgid "Surface UV Coordinate"
 msgstr "表面UV坐标"
 
 
-msgid "Surface UV coordinate at the attachment point"
-msgstr "附着点表面的UV坐标"
-
-
 msgid "Surface Normal"
 msgstr "表面法线"
 
@@ -136622,16 +136626,12 @@ msgid "Surface normal at the attachment point"
 msgstr "附着点表面法线"
 
 
-msgid "Surface Geometry to attach hair curves to"
-msgstr "毛发曲线附加到的曲面几何体"
-
-
 msgid "Surface Object to attach to (needs to have matching transforms)"
 msgstr "表面物体附加到 (需要进行匹配的转换)"
 
 
-msgid "Surface UV map used for attachment "
-msgstr "用于附着的表面UV映射 "
+msgid "Surface UV map used for attachment"
+msgstr "用于附着的表面UV映射"
 
 
 msgid "Surface Rest Position"
@@ -136660,10 +136660,6 @@ msgstr "将每条曲线的根部捕捉到最近的曲面点"
 
 msgid "Align to Surface Normal"
 msgstr "对齐到表面法线"
-
-
-msgid "Align the curve to the surface normal (need guide as reference)"
-msgstr "将曲线与表面法线对齐（需要导线作为参考）"
 
 
 msgid "Blend along Curve"
@@ -136756,10 +136752,6 @@ msgstr "用于新引导映射的两个引导之间的最小距离"
 
 msgid "Guide Mask"
 msgstr "引导遮罩"
-
-
-msgid "Mask for which curve are eligible to be selected as guides"
-msgstr "适合被选择用作于引导的曲线遮罩"
 
 
 msgid "Existing Guide Map"
@@ -136926,16 +136918,8 @@ msgid "Guide Selection"
 msgstr "引导选择"
 
 
-msgid "Guide Curves or Points used for the selection of Guide Curves"
-msgstr "用于选择的导向曲线的导向曲线或点"
-
-
 msgid "Minimum distance between two guides"
 msgstr "两条引导线之间的最小距离"
-
-
-msgid "ID to group together curves for guide map creation"
-msgstr "用于将曲线组群以创建引导映射的ID"
 
 
 msgid "Curl Hair Curves"
@@ -136994,28 +136978,8 @@ msgid "Curve ID"
 msgstr "曲线ID"
 
 
-msgid "ID of each Curve"
-msgstr "每条曲线的ID"
-
-
-msgid "Length of each Curve"
-msgstr "每条曲线的长度"
-
-
-msgid "Direction from root to tip of each Curve"
-msgstr "从每条曲线的根部到梢部的方向"
-
-
-msgid "Random vector for each Curve"
-msgstr "每条曲线的随机矢量"
-
-
 msgid "Surface UV"
 msgstr "表面UV"
-
-
-msgid "Attachment surface UV coordinate of each Curve"
-msgstr "每条曲线的附着表面UV坐标"
 
 
 msgid "Curve Root"
@@ -137038,24 +137002,12 @@ msgid "Root Position"
 msgstr "根部位置"
 
 
-msgid "Position of the root point of a Curve"
-msgstr "曲线的根点位置"
-
-
 msgid "Root Direction"
 msgstr "根部方向"
 
 
-msgid "Direction of the root segment of a Curve"
-msgstr "曲线根部线段的方向"
-
-
 msgid "Root Index"
 msgstr "根部编号"
-
-
-msgid "Index of the root point of a Curve"
-msgstr "曲线的根点编号"
 
 
 msgid "Curve Segment"
@@ -137068,10 +137020,6 @@ msgstr "读取每个点的上一个曲线片段的信息"
 
 msgid "Segment Length"
 msgstr "片段长度"
-
-
-msgid "Distance to previous point on Curve"
-msgstr "到曲线上前一点的距离"
 
 
 msgid "Segment Direction"
@@ -137110,24 +137058,12 @@ msgid "Tip Position"
 msgstr "梢部位置"
 
 
-msgid "Position of the tip point of a Curve"
-msgstr "曲线梢部点的位置"
-
-
 msgid "Tip Direction"
 msgstr "梢部方向"
 
 
-msgid "Direction of the tip segment of a Curve"
-msgstr "曲线梢部片段的方向"
-
-
 msgid "Tip Index"
 msgstr "梢部编号"
-
-
-msgid "Index of the tip point of a Curve"
-msgstr "曲线发梢点的编号"
 
 
 msgid "Displace Hair Curves"
@@ -137250,14 +137186,6 @@ msgid "Normal direction of the surface mesh at the attachment point"
 msgstr "附着点位置的表面网格法线方向"
 
 
-msgid "Surface geometry for generation "
-msgstr "用于生成的曲面几何图形 "
-
-
-msgid "Surface object for generation (Needs matching transforms)"
-msgstr "用于生成的曲面物体（需要匹配变换）"
-
-
 msgid "Length of the generated hair curves"
 msgstr "生成的毛发曲线的长度"
 
@@ -137278,10 +137206,6 @@ msgid "Poisson Disk Distribution"
 msgstr "泊松盘分布"
 
 
-msgid "Use poisson disk distribution method to keep a minimum distance"
-msgstr "使用泊松圆盘分布方法保持最小距离"
-
-
 msgid "Surface density of generated hair curves"
 msgstr "生成的毛发曲线的表面密度"
 
@@ -137292,10 +137216,6 @@ msgstr "密度遮罩"
 
 msgid "Factor applied on the density for curve distribution"
 msgstr "应用于曲线分布密度的系数"
-
-
-msgid "Discard points based on an mask texture after distribution"
-msgstr "分布后，基于一个遮罩纹理舍弃点"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -137314,10 +137234,6 @@ msgid "Attachment UV"
 msgstr "附加UV"
 
 
-msgid "Surface attachment UV coordinate stored on each curve"
-msgstr "存储在每条曲线上的曲面UV坐标"
-
-
 msgid "Attachment is Valid"
 msgstr "附加有效性"
 
@@ -137332,10 +137248,6 @@ msgstr "表面几何"
 
 msgid "Surface geometry of the curve attachment"
 msgstr "曲线附着的表面几何"
-
-
-msgid "Surface UV map used for attachment"
-msgstr "用于附着的表面UV映射"
 
 
 msgid "Deforms hair curves using a noise texture"
@@ -137358,24 +137270,12 @@ msgid "Scale along Curve"
 msgstr "沿曲线缩放"
 
 
-msgid "Scale of noise texture along each Curve"
-msgstr "沿每条曲线的噪波纹理缩放"
-
-
 msgid "Offset per Curve"
 msgstr "每条曲线的偏移"
 
 
-msgid "Random offset of noise texture for each Curve"
-msgstr "每条曲线的噪波纹理的随机偏移"
-
-
 msgid "Seed value for randomization"
 msgstr "随机化的种子值"
-
-
-msgid "Preserve the length of the Curves on a segment basis"
-msgstr "以片段为基础保留曲线的长度"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
@@ -137428,10 +137328,6 @@ msgstr "沿每条曲线均匀地重新分布现有控制点"
 
 msgid "Feature Awareness"
 msgstr "特征意识"
-
-
-msgid "Use simeple feature awareness to keep feature definition"
-msgstr "使用简单的特征意识来保持特征定义"
 
 
 msgid "Restore Curve Segment Length"
@@ -137542,14 +137438,6 @@ msgid "Factor to influence the rotation angle"
 msgstr "旋转角度系数"
 
 
-msgid "Rotation Axis (Default: Tangent at root)"
-msgstr "旋转轴（默认为发根的切线方向）"
-
-
-msgid "Random offset to the rotation angle per Curve"
-msgstr "每条曲线旋转角度的随机偏移量"
-
-
 msgid "Lock Ends"
 msgstr "锁定发稍"
 
@@ -137616,10 +137504,6 @@ msgstr "混合缩裹表面上的点"
 
 msgid "Smoothing Steps"
 msgstr "平滑步数"
-
-
-msgid "Amount of steps of smoothing applied after shwrinkwrap"
-msgstr "缩裹后应用的平滑步数"
 
 
 msgid "Lock Roots"

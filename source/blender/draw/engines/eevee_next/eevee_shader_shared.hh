@@ -1276,6 +1276,7 @@ enum eClosureBits : uint32_t {
   CLOSURE_VOLUME = (1u << 11u),
   CLOSURE_AMBIENT_OCCLUSION = (1u << 12u),
   CLOSURE_SHADER_TO_RGBA = (1u << 13u),
+  CLOSURE_CLEARCOAT = (1u << 14u),
 };
 
 enum GBufferMode : uint32_t {

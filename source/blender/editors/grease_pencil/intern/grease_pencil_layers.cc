@@ -114,7 +114,7 @@ static void GREASE_PENCIL_OT_layer_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_remove_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = active_grease_pencil_layer_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
@@ -420,7 +420,7 @@ static void GREASE_PENCIL_OT_layer_isolate(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_isolate_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = active_grease_pencil_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -462,7 +462,7 @@ static void GREASE_PENCIL_OT_layer_lock_all(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_lock_all_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = active_grease_pencil_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -516,7 +516,7 @@ static void GREASE_PENCIL_OT_layer_duplicate(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_duplicate_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = active_grease_pencil_layer_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

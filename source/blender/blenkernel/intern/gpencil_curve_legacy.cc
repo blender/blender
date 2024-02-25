@@ -534,7 +534,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   ob_gp->actcol = actcol;
 
   /* Tag for recalculation */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   DEG_id_tag_update(&ob_gp->id, ID_RECALC_GEOMETRY);
 }
 

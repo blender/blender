@@ -73,7 +73,7 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
                                             ViewLayer *view_layer,
                                             eDepsNode_LinkedState_Type linked_state)
 {
-  /* NOTE: Pass view layer index of 0 since after scene CoW there is
+  /* NOTE: Pass view layer index of 0 since after scene evaluated copy there is
    * only one view layer in there. */
   view_layer_index_ = 0;
   /* Scene ID block. */
@@ -87,10 +87,10 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   /* Setup currently building context. */
   scene_ = scene;
   view_layer_ = view_layer;
-  /* Get pointer to a CoW version of scene ID. */
+  /* Get pointer to an evaluated version of scene ID. */
   Scene *scene_cow = get_cow_datablock(scene);
   /* Scene objects. */
-  /* NOTE: Base is used for function bindings as-is, so need to pass CoW base,
+  /* NOTE: Base is used for function bindings as-is, so need to pass evaluated base,
    * but object is expected to be an original one. Hence we go into some
    * tricks here iterating over the view layer. */
   int base_index = 0;

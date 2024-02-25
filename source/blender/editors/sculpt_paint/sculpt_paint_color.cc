@@ -536,8 +536,6 @@ static void do_smear_brush_task(Object *ob, const Brush *brush, PBVHNode *node)
       mul_v4_fl(accum, 1.0f / totw);
     }
 
-    blend_color_mix_float(interp_color, interp_color, accum);
-
     float col[4];
     SCULPT_vertex_color_get(ss, vd.vertex, col);
 

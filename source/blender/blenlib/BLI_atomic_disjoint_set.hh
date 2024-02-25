@@ -55,33 +55,37 @@ class AtomicDisjointSet {
         return;
       }
 
-      Item x_item = items_[x].load(relaxed);
-      Item y_item = items_[y].load(relaxed);
+      int x_rank = items_[x].load(relaxed).rank;
+      int y_rank = items_[y].load(relaxed).rank;
 
       if (
           /* Implement union by rank heuristic. */
-          x_item.rank > y_item.rank
+          x_rank > y_rank
           /* If the rank is the same, make a consistent decision. */
-          || (x_item.rank == y_item.rank && x < y))
+          || (x_rank == y_rank && x < y))
       {
-        std::swap(x_item, y_item);
+        std::swap(x_rank, y_rank);
         std::swap(x, y);
       }
 
       /* Update parent of item x. */
-      const Item x_item_new{y, x_item.rank};
-      if (!items_[x].compare_exchange_strong(x_item, x_item_new, relaxed)) {
+      Item x_item_old = {x, x_rank};
+      const Item x_item_new{y, x_rank};
+      if (!items_[x].compare_exchange_strong(x_item_old, x_item_new, relaxed)) {
         /* Another thread has updated item x, start again. */
         continue;
       }
 
-      if (x_item.rank == y_item.rank) {
+      if (x_rank == y_rank) {
         /* Increase rank of item y. This may fail when another thread has updated item y in the
          * meantime. That may lead to worse behavior with the union by rank heurist, but seems to
          * be ok in practice. */
-        const Item y_item_new{y, y_item.rank + 1};
-        items_[y].compare_exchange_weak(y_item, y_item_new, relaxed);
+        Item y_item_old{y, y_rank};
+        const Item y_item_new{y, y_rank + 1};
+        items_[y].compare_exchange_weak(y_item_old, y_item_new, relaxed);
       }
+
+      return;
     }
   }
 

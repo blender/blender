@@ -276,7 +276,7 @@ static void trace_end_job(void *customdata)
     DEG_relations_tag_update(trace_job->bmain);
 
     DEG_id_tag_update(&trace_job->scene->id, ID_RECALC_SELECT);
-    DEG_id_tag_update(&trace_job->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&trace_job->gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
 
     WM_main_add_notifier(NC_OBJECT | NA_ADDED, nullptr);
     WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, trace_job->scene);

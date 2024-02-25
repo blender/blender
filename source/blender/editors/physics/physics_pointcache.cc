@@ -425,7 +425,7 @@ static int ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
     BKE_ptcache_free(pid.cache);
     *(pid.cache_ptr) = static_cast<PointCache *>(pid.ptcaches->first);
 
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
     WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, ob);
   }
 

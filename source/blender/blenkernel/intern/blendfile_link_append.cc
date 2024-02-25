@@ -43,6 +43,7 @@
 #include "BKE_lib_override.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
@@ -1894,7 +1895,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     if (lib->id.tag & LIB_TAG_DOIT) {
       id_us_clear_real(&lib->id);
       if (lib->id.us == 0) {
-        BKE_id_free(bmain, (ID *)lib);
+        BKE_id_delete(bmain, lib);
       }
     }
   }
@@ -1915,6 +1916,8 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
     }
   }
   FOREACH_MAIN_ID_END;
+
+  BKE_library_main_rebuild_hierarchy(bmain);
 
   /* Resync overrides if needed. */
   if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {

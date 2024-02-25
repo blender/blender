@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_generate_lib.glsl)
@@ -24,8 +25,8 @@ struct LightProbeSample {
  */
 LightProbeSample lightprobe_load(vec3 P, vec3 Ng, vec3 V)
 {
-  /* TODO: Dependency hell */
-  float noise = 0.0;
+  float noise = interlieved_gradient_noise(UTIL_TEXEL, 0.0, 0.0);
+  noise = fract(noise + sampling_rng_1D_get(SAMPLING_LIGHTPROBE));
 
   LightProbeSample result;
   result.volume_irradiance = lightprobe_irradiance_sample(P, V, Ng);
@@ -73,7 +74,7 @@ vec3 lightprobe_spherical_sample_normalized_with_parallax(
 
 float pdf_to_lod(float pdf)
 {
-  return 1.0; /* TODO */
+  return 0.0; /* TODO */
 }
 
 vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float pdf)
@@ -82,18 +83,6 @@ vec3 lightprobe_eval_direction(LightProbeSample samp, vec3 P, vec3 L, float pdf)
       samp.spherical_id, P, L, pdf_to_lod(pdf), samp.volume_irradiance);
 
   return radiance_sh;
-}
-
-float lightprobe_roughness_to_cube_sh_mix_fac(float roughness)
-{
-  /* Temporary. Do something better. */
-  return square(saturate(roughness * 4.0 - 2.0));
-}
-
-float lightprobe_roughness_to_lod(float roughness)
-{
-  /* Temporary. Do something better. */
-  return sqrt(roughness) * SPHERE_PROBE_MIPMAP_LEVELS;
 }
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureDiffuse cl, vec3 P, vec3 V)
@@ -110,9 +99,14 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureTranslucent cl, vec3 P, vec3 
 
 vec3 lightprobe_reflection_dominant_dir(vec3 N, vec3 V, float roughness)
 {
+  /* From Frostbite PBR Course
+   * http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf
+   * Listing 22.
+   * Note that the reference labels squared roughness (GGX input) as roughness. */
+  float m = square(roughness);
   vec3 R = -reflect(V, N);
-  float smoothness = 1.0 - roughness;
-  float fac = smoothness * (sqrt(smoothness) + roughness);
+  float smoothness = 1.0 - m;
+  float fac = smoothness * (sqrt(smoothness) + m);
   return normalize(mix(N, R, fac));
 }
 
@@ -120,34 +114,79 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureReflection reflection, vec3 P
 {
   vec3 L = lightprobe_reflection_dominant_dir(reflection.N, V, reflection.roughness);
 
-  float lod = lightprobe_roughness_to_lod(reflection.roughness);
+  float lod = sphere_probe_roughness_to_lod(reflection.roughness);
   vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
       samp.spherical_id, P, L, lod, samp.volume_irradiance);
 
-  float fac = lightprobe_roughness_to_cube_sh_mix_fac(reflection.roughness);
+  float fac = sphere_probe_roughness_to_mix_fac(reflection.roughness);
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
   return mix(radiance_cube, radiance_sh, fac);
 }
 
+/* Return the equivalent reflective roughness resulting in a similar lobe. */
+float lightprobe_refraction_roughness_remapping(float roughness, float ior)
+{
+  /* This is a very rough mapping used by manually curve fitting the apparent roughness
+   * (blurriness) of GGX reflections and GGX refraction.
+   * A better fit is desirable if it is in the same order of complexity.  */
+  if (ior > 1.0) {
+    return roughness * sqrt_fast(1.0 - 1.0 / ior);
+  }
+  else {
+    return roughness * sqrt_fast(saturate(1.0 - ior)) * 0.8;
+  }
+}
+
 vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughness)
 {
+  /* Reusing same thing as lightprobe_reflection_dominant_dir for now with the roughness mapped to
+   * reflection roughness. */
+  float m = square(roughness);
   vec3 R = refract(-V, N, 1.0 / ior);
-  float smoothness = 1.0 - roughness;
-  float fac = smoothness * (sqrt(smoothness) + roughness);
+  float smoothness = 1.0 - m;
+  float fac = smoothness * (sqrt(smoothness) + m);
   return normalize(mix(-N, R, fac));
 }
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V)
 {
-  vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, cl.roughness);
+  float effective_roughness = lightprobe_refraction_roughness_remapping(cl.roughness, cl.ior);
 
-  float lod = lightprobe_roughness_to_lod(cl.roughness);
+  vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, effective_roughness);
+
+  float lod = sphere_probe_roughness_to_lod(effective_roughness);
   vec3 radiance_cube = lightprobe_spherical_sample_normalized_with_parallax(
       samp.spherical_id, P, L, lod, samp.volume_irradiance);
 
-  float fac = lightprobe_roughness_to_cube_sh_mix_fac(cl.roughness);
+  float fac = sphere_probe_roughness_to_mix_fac(effective_roughness);
   vec3 radiance_sh = spherical_harmonics_evaluate_lambert(L, samp.volume_irradiance);
   return mix(radiance_cube, radiance_sh, fac);
+}
+
+void lightprobe_eval(
+    LightProbeSample samp, ClosureUndetermined cl, vec3 P, vec3 V, inout vec3 radiance)
+{
+  switch (cl.type) {
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+      /* TODO: Support in ray tracing first. Otherwise we have a discrepancy. */
+      radiance += lightprobe_eval(samp, to_closure_translucent(cl), P, V);
+      break;
+    case CLOSURE_BSSRDF_BURLEY_ID:
+      /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
+    case CLOSURE_BSDF_DIFFUSE_ID:
+      radiance += lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
+      break;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+      radiance += lightprobe_eval(samp, to_closure_reflection(cl), P, V);
+      break;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
+      /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
+      radiance = lightprobe_eval(samp, to_closure_refraction(cl), P, V);
+      break;
+    case CLOSURE_NONE_ID:
+      /* TODO(fclem): Assert. */
+      break;
+  }
 }
 
 #endif /* SPHERE_PROBE */

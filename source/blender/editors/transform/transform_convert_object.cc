@@ -186,7 +186,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
     skip_invert = true;
   }
 
-  /* NOTE: This is not really following copy-on-write design and we should not
+  /* NOTE: This is not really following copy-on-evaluation design and we should not
    * be re-evaluating the evaluated object. But as the comment above mentioned
    * this is part of a hack.
    * More proper solution would be to make a shallow copy of the object and

@@ -56,7 +56,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_rigidbody.h"
 
 #include "DEG_depsgraph.hh"
@@ -76,6 +76,8 @@
 #ifdef DEBUG_TIME
 #  include "BLI_time_utildefines.h"
 #endif
+
+using blender::Vector;
 
 using namespace blender::bke::id;
 
@@ -178,9 +180,10 @@ static int lib_id_clear_library_data_users_update_cb(LibraryIDLinkCallbackData *
   ID *id = static_cast<ID *>(cb_data->user_data);
   if (*cb_data->id_pointer == id) {
     /* Even though the ID itself remain the same after being made local, from depsgraph point of
-     * view this is a different ID. Hence we need to tag all of its users for COW update. */
+     * view this is a different ID. Hence we need to tag all of its users for a copy-on-eval
+     * update. */
     DEG_id_tag_update_ex(
-        cb_data->bmain, cb_data->owner_id, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_COPY_ON_WRITE);
+        cb_data->bmain, cb_data->owner_id, ID_RECALC_TAG_FOR_UNDO | ID_RECALC_SYNC_TO_EVAL);
     return IDWALK_RET_STOP_ITER;
   }
   return IDWALK_RET_NOP;
@@ -227,7 +230,7 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
   /* We need to tag this IDs and all of its users, conceptually new local ID and original linked
    * ones are two completely different data-blocks that were virtually remapped, even though in
    * reality they remain the same data. For undo this info is critical now. */
-  DEG_id_tag_update_ex(bmain, id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update_ex(bmain, id, ID_RECALC_SYNC_TO_EVAL);
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
     BKE_library_foreach_ID_link(
@@ -1273,7 +1276,7 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
 
     /* We also need to ensure a valid `session_uid` for some non-main data (like embedded IDs).
      * IDs not allocated however should not need those (this would e.g. avoid generating session
-     * uids for depsgraph CoW IDs, if it was using this function). */
+     * uids for depsgraph evaluated IDs, if it was using this function). */
     if ((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
       BKE_lib_libblock_session_uid_ensure(id);
     }
@@ -1393,10 +1396,10 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
   BLI_assert(new_id != nullptr);
 
   if ((flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) != 0) {
-    new_id->tag |= LIB_TAG_COPIED_ON_WRITE;
+    new_id->tag |= LIB_TAG_COPIED_ON_EVAL;
   }
   else {
-    new_id->tag &= ~LIB_TAG_COPIED_ON_WRITE;
+    new_id->tag &= ~LIB_TAG_COPIED_ON_EVAL;
   }
 
   const size_t id_len = BKE_libblock_get_alloc_info(GS(new_id->name), nullptr);
@@ -2164,43 +2167,40 @@ static int *id_order_get(ID *id)
   }
 }
 
-static int id_order_compare(const void *a, const void *b)
+static bool id_order_compare(ID *a, ID *b)
 {
-  ID *id_a = static_cast<ID *>(((LinkData *)a)->data);
-  ID *id_b = static_cast<ID *>(((LinkData *)b)->data);
-
-  int *order_a = id_order_get(id_a);
-  int *order_b = id_order_get(id_b);
+  int *order_a = id_order_get(a);
+  int *order_b = id_order_get(b);
 
   if (order_a && order_b) {
     if (*order_a < *order_b) {
-      return -1;
+      return true;
     }
     if (*order_a > *order_b) {
-      return 1;
+      return false;
     }
   }
 
-  return strcmp(id_a->name, id_b->name);
+  return strcmp(a->name, b->name) <= 0;
 }
 
-void BKE_id_ordered_list(ListBase *ordered_lb, const ListBase *lb)
+Vector<ID *> BKE_id_ordered_list(const ListBase *lb)
 {
-  BLI_listbase_clear(ordered_lb);
+  Vector<ID *> ordered;
 
   LISTBASE_FOREACH (ID *, id, lb) {
-    BLI_addtail(ordered_lb, BLI_genericNodeN(id));
+    ordered.append(id);
   }
 
-  BLI_listbase_sort(ordered_lb, id_order_compare);
+  std::sort(ordered.begin(), ordered.end(), id_order_compare);
 
-  int num = 0;
-  LISTBASE_FOREACH (LinkData *, link, ordered_lb) {
-    int *order = id_order_get(static_cast<ID *>(link->data));
-    if (order) {
-      *order = num++;
+  for (const int i : ordered.index_range()) {
+    if (int *order = id_order_get(ordered[i])) {
+      *order = i;
     }
   }
+
+  return ordered;
 }
 
 void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)

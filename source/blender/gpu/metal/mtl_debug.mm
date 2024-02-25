@@ -59,7 +59,7 @@ void MTLContext::debug_group_end()
   }
 }
 
-bool MTLContext::debug_capture_begin()
+bool MTLContext::debug_capture_begin(const char * /*title*/)
 {
   MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
   if (!capture_manager) {

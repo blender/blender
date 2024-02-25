@@ -46,7 +46,7 @@ class AssetCatalogTreeViewAllItem;
 class AssetCatalogTreeView : public ui::AbstractTreeView {
   asset_system::AssetLibrary *asset_library_;
   /** The asset catalog tree this tree-view represents. */
-  asset_system::AssetCatalogTree *catalog_tree_;
+  const asset_system::AssetCatalogTree *catalog_tree_;
   FileAssetSelectParams *params_;
   SpaceFile &space_file_;
 
@@ -65,7 +65,7 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
 
  private:
   ui::BasicTreeViewItem &build_catalog_items_recursive(ui::TreeViewOrItem &view_parent_item,
-                                                       AssetCatalogTreeItem &catalog);
+                                                       const AssetCatalogTreeItem &catalog);
 
   AssetCatalogTreeViewAllItem &add_all_item();
   void add_unassigned_item();
@@ -76,10 +76,10 @@ class AssetCatalogTreeView : public ui::AbstractTreeView {
 
 class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
   /** The catalog tree item this tree view item represents. */
-  AssetCatalogTreeItem &catalog_item_;
+  const AssetCatalogTreeItem &catalog_item_;
 
  public:
-  AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog_item);
+  AssetCatalogTreeViewItem(const AssetCatalogTreeItem &catalog_item);
 
   void on_activate(bContext &C) override;
 
@@ -96,11 +96,11 @@ class AssetCatalogTreeViewItem : public ui::BasicTreeViewItem {
 };
 
 class AssetCatalogDragController : public ui::AbstractViewItemDragController {
-  AssetCatalogTreeItem &catalog_item_;
+  const AssetCatalogTreeItem &catalog_item_;
 
  public:
   explicit AssetCatalogDragController(AssetCatalogTreeView &tree_view,
-                                      AssetCatalogTreeItem &catalog_item);
+                                      const AssetCatalogTreeItem &catalog_item);
 
   eWM_DragDataType get_drag_type() const override;
   void *create_drag_data() const override;
@@ -108,10 +108,10 @@ class AssetCatalogDragController : public ui::AbstractViewItemDragController {
 };
 
 class AssetCatalogDropTarget : public ui::TreeViewItemDropTarget {
-  AssetCatalogTreeItem &catalog_item_;
+  const AssetCatalogTreeItem &catalog_item_;
 
  public:
-  AssetCatalogDropTarget(AssetCatalogTreeViewItem &item, AssetCatalogTreeItem &catalog_item);
+  AssetCatalogDropTarget(AssetCatalogTreeViewItem &item, const AssetCatalogTreeItem &catalog_item);
 
   bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const override;
   std::string drop_tooltip(const ui::DragInfo &drag_info) const override;
@@ -198,7 +198,7 @@ void AssetCatalogTreeView::build_tree()
 
   if (catalog_tree_) {
     /* Pass the "All" item on as parent of the actual catalog items. */
-    catalog_tree_->foreach_root_item([this, &all_item](AssetCatalogTreeItem &item) {
+    catalog_tree_->foreach_root_item([this, &all_item](const AssetCatalogTreeItem &item) {
       build_catalog_items_recursive(all_item, item);
     });
   }
@@ -207,14 +207,14 @@ void AssetCatalogTreeView::build_tree()
 }
 
 ui::BasicTreeViewItem &AssetCatalogTreeView::build_catalog_items_recursive(
-    ui::TreeViewOrItem &view_parent_item, AssetCatalogTreeItem &catalog)
+    ui::TreeViewOrItem &view_parent_item, const AssetCatalogTreeItem &catalog)
 {
   ui::BasicTreeViewItem &view_item = view_parent_item.add_tree_item<AssetCatalogTreeViewItem>(
-      &catalog);
+      catalog);
   view_item.set_is_active_fn(
       [this, &catalog]() { return is_active_catalog(catalog.get_catalog_id()); });
 
-  catalog.foreach_child([&view_item, this](AssetCatalogTreeItem &child) {
+  catalog.foreach_child([&view_item, this](const AssetCatalogTreeItem &child) {
     build_catalog_items_recursive(view_item, child);
   });
   return view_item;
@@ -264,8 +264,8 @@ bool AssetCatalogTreeView::is_active_catalog(CatalogID catalog_id) const
 
 /* ---------------------------------------------------------------------- */
 
-AssetCatalogTreeViewItem::AssetCatalogTreeViewItem(AssetCatalogTreeItem *catalog_item)
-    : BasicTreeViewItem(catalog_item->get_name()), catalog_item_(*catalog_item)
+AssetCatalogTreeViewItem::AssetCatalogTreeViewItem(const AssetCatalogTreeItem &catalog_item)
+    : BasicTreeViewItem(catalog_item.get_name()), catalog_item_(catalog_item)
 {
 }
 
@@ -306,8 +306,6 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               &props);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
-  char catalog_id_str_buffer[UUID_STRING_SIZE] = "";
-  BLI_uuid_format(catalog_id_str_buffer, catalog_item_.get_catalog_id());
   uiItemFullO(&column,
               "ASSET_OT_catalog_delete",
               IFACE_("Delete Catalog"),
@@ -316,7 +314,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               WM_OP_INVOKE_DEFAULT,
               UI_ITEM_NONE,
               &props);
-  RNA_string_set(&props, "catalog_id", catalog_id_str_buffer);
+  RNA_string_set(&props, "catalog_id", catalog_item_.get_catalog_id().str().c_str());
   uiItemO(&column, IFACE_("Rename"), ICON_NONE, "UI_OT_view_item_rename");
 
   /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done
@@ -362,7 +360,7 @@ std::unique_ptr<ui::AbstractViewItemDragController> AssetCatalogTreeViewItem::
 /* ---------------------------------------------------------------------- */
 
 AssetCatalogDropTarget::AssetCatalogDropTarget(AssetCatalogTreeViewItem &item,
-                                               AssetCatalogTreeItem &catalog_item)
+                                               const AssetCatalogTreeItem &catalog_item)
     : ui::TreeViewItemDropTarget(item), catalog_item_(catalog_item)
 {
 }
@@ -545,7 +543,7 @@ asset_system::AssetLibrary &AssetCatalogDropTarget::get_asset_library() const
 /* ---------------------------------------------------------------------- */
 
 AssetCatalogDragController::AssetCatalogDragController(AssetCatalogTreeView &tree_view,
-                                                       AssetCatalogTreeItem &catalog_item)
+                                                       const AssetCatalogTreeItem &catalog_item)
     : ui::AbstractViewItemDragController(tree_view), catalog_item_(catalog_item)
 {
 }

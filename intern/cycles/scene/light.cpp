@@ -1331,7 +1331,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
       float3 dir = safe_normalize(light->get_dir());
 
-      if (light->use_mis && area != 0.0f) {
+      if (light->use_mis && area != 0.0f && light->spread > 0.0f) {
         shader_id |= SHADER_USE_MIS;
       }
 

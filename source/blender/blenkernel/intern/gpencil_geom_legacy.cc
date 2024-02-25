@@ -2788,7 +2788,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
                              use_vgroups);
 
   /* Tag for recalculation */
-  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
 
   return true;
 }

@@ -243,9 +243,9 @@ void flush_editors_id_update(Depsgraph *graph, const DEGEditorUpdateContext *upd
      * time, to distinguish between user edits and initial evaluation when
      * the data-block becomes visible.
      *
-     * TODO: image data-blocks do not use COW, so might not be detected
+     * TODO: image data-blocks do not use copy-on-eval, so might not be detected
      * correctly. */
-    if (deg_copy_on_write_is_expanded(id_cow)) {
+    if (deg_eval_copy_is_expanded(id_cow)) {
       if (graph->is_active && id_node->is_user_modified) {
         deg_editors_id_update(update_ctx, id_orig);
       }
@@ -293,7 +293,7 @@ void invalidate_tagged_evaluated_data(Depsgraph *graph)
       continue;
     }
     ID *id_cow = id_node->id_cow;
-    if (!deg_copy_on_write_is_expanded(id_cow)) {
+    if (!deg_eval_copy_is_expanded(id_cow)) {
       continue;
     }
     for (ComponentNode *comp_node : id_node->components.values()) {

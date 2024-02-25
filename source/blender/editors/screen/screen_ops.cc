@@ -76,6 +76,8 @@
 
 #include "screen_intern.h" /* own module include */
 
+using blender::Vector;
+
 #define KM_MODAL_CANCEL 1
 #define KM_MODAL_APPLY 2
 #define KM_MODAL_SNAP_ON 3
@@ -5788,32 +5790,24 @@ static int space_workspace_cycle_invoke(bContext *C, wmOperator *op, const wmEve
   Main *bmain = CTX_data_main(C);
   const eScreenCycle direction = eScreenCycle(RNA_enum_get(op->ptr, "direction"));
   WorkSpace *workspace_src = WM_window_get_active_workspace(win);
-  WorkSpace *workspace_dst = nullptr;
 
-  ListBase ordered;
-  BKE_id_ordered_list(&ordered, &bmain->workspaces);
-
-  LISTBASE_FOREACH (LinkData *, link, &ordered) {
-    if (link->data == workspace_src) {
-      if (direction == SPACE_CONTEXT_CYCLE_PREV) {
-        workspace_dst = static_cast<WorkSpace *>((link->prev) ? link->prev->data : nullptr);
-      }
-      else {
-        workspace_dst = static_cast<WorkSpace *>((link->next) ? link->next->data : nullptr);
-      }
-    }
-  }
-
-  if (workspace_dst == nullptr) {
-    LinkData *link = static_cast<LinkData *>(
-        (direction == SPACE_CONTEXT_CYCLE_PREV) ? ordered.last : ordered.first);
-    workspace_dst = static_cast<WorkSpace *>(link->data);
-  }
-
-  BLI_freelistN(&ordered);
-
-  if (workspace_src == workspace_dst) {
+  Vector<ID *> ordered = BKE_id_ordered_list(&bmain->workspaces);
+  if (ordered.size() == 1) {
     return OPERATOR_CANCELLED;
+  }
+
+  const int index = ordered.first_index_of(&workspace_src->id);
+
+  WorkSpace *workspace_dst = nullptr;
+  switch (direction) {
+    case SPACE_CONTEXT_CYCLE_PREV:
+      workspace_dst = reinterpret_cast<WorkSpace *>(index == 0 ? ordered.last() :
+                                                                 ordered[index - 1]);
+      break;
+    case SPACE_CONTEXT_CYCLE_NEXT:
+      workspace_dst = reinterpret_cast<WorkSpace *>(
+          index == ordered.index_range().last() ? ordered.first() : ordered[index + 1]);
+      break;
   }
 
   win->workspace_hook->temp_workspace_store = workspace_dst;

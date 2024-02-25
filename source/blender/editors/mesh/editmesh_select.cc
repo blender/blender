@@ -2539,11 +2539,11 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       em_iter->selectmode = ts->selectmode;
       EDBM_selectmode_set(em_iter);
       DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
-                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
     }
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   }
 
   return ret;
@@ -2583,7 +2583,7 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
       em_iter->selectmode = ts->selectmode;
       EDBM_selectmode_set(em_iter);
       DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
-                        ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
       changed = true;
     }
@@ -2591,7 +2591,7 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
 
   if (changed) {
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
-    DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
   }
   return changed;
 }

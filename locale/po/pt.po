@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'835651cfddcb')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-02-12 11:01+0000\n"
-"PO-Revision-Date: 2024-02-10 00:02+0000\n"
+"POT-Creation-Date: 2024-02-19 09:41+0000\n"
+"PO-Revision-Date: 2024-02-16 19:55+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -656,6 +656,14 @@ msgstr "Definições de caminhos de movimento"
 
 msgid "Motion Path settings for animation visualization"
 msgstr "As definições de caminhos de movimento para a visualização de animação."
+
+
+msgid "Bake to active Camera"
+msgstr "Fazer bake para a Câmara activa"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "Os pontos do traçado de movimento serão calculados para o espaço de coordenadas da câmara activa. Isto significa que só aparecerão correctamente quando vendo por essa câmara. Mudar de câmara usando marcadores não é suportado"
 
 
 msgid "Bake Location"
@@ -1490,6 +1498,10 @@ msgid "ID Name"
 msgstr "Nome do identificador"
 
 
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Quando definido, o recurso recebe um ID personalizado, caso contrário assume o nome da classe utilizada para definir o recurso (por exemplo, se o nome da classe é \"OBJECT_AST_hello\", e bl_idname não está definido pelo script, então bl_idname = \"OBJECT_AST_hello\")"
+
+
 msgid "Options"
 msgstr "Opções"
 
@@ -2212,6 +2224,14 @@ msgstr "Usar a posição da câmara activa para projectar raios"
 
 msgid "Horizontal dimension of the baking map"
 msgstr "Dimensão horizontal do mapa para geração e gravação."
+
+
+msgid "Bézier Curve Point"
+msgstr "Ponto de Curva Bézier"
+
+
+msgid "Bézier curve point with two handles"
+msgstr "Ponto de curva Bézier com dois manípulos"
 
 
 msgid "Control Point"
@@ -3499,9 +3519,17 @@ msgid "Ease In"
 msgstr "Suavizar Entrada"
 
 
+msgid "Length of first Bézier Handle (for B-Bones only)"
+msgstr "Comprimento do primeiro Manípulo Bézier (apenas para B-Bones)"
+
+
 msgctxt "Armature"
 msgid "Ease Out"
 msgstr "Suavizar Saída"
+
+
+msgid "Length of second Bézier Handle (for B-Bones only)"
+msgstr "Comprimento do segundo Manípulo Bézier (apenas para B-Bones)"
 
 
 msgid "B-Bone End Handle Type"
@@ -7214,6 +7242,10 @@ msgid "Floor"
 msgstr "Piso"
 
 
+msgid "Use position (and optionally rotation) of target to define a 'wall' or 'floor' that the owner cannot cross"
+msgstr "Usa posição (e opcionalmente rotação) do alvo para definir uma \"parede\" ou \"piso\" que o proprietário não pode atravessar"
+
+
 msgid "Follow Path"
 msgstr "Seguir caminho"
 
@@ -9275,6 +9307,10 @@ msgid "Handle Type"
 msgstr "Tipo de manípulo"
 
 
+msgid "Curve interpolation at this point: Bézier or vector"
+msgstr "Interpolação de curva neste ponto: Bézier ou vetor"
+
+
 msgid "Auto Handle"
 msgstr "Manípulo automático"
 
@@ -9393,6 +9429,10 @@ msgstr "Permite definir o tipo de curva a ser usado para os novos traços."
 
 msgid "Poly"
 msgstr "Polígonos"
+
+
+msgid "Bézier"
+msgstr "Bézier"
 
 
 msgid "Depth"
@@ -16838,16 +16878,125 @@ msgid "Show an indicator for the current value while dragging"
 msgstr "Mostrar um indicador para o valor actual enquanto arrasta"
 
 
+msgid "Handle All Events"
+msgstr "Lidar com Todos os Eventos"
+
+
+msgid "When highlighted, do not pass events through to be handled by other keymaps"
+msgstr "Quando realçado, não deixar passar eventos para serem processados por outros mapeamentos de teclas"
+
+
 msgid "Grab Cursor"
 msgstr "Agarrar o cursor"
+
+
+msgid "Tool Property Init"
+msgstr "Iniciação de Propriedades de Ferramentas"
+
+
+msgid "Merge active tool properties on activation (does not overwrite existing)"
+msgstr "Juntar propriedades da ferramenta activa na activação (não sobrepõe existentes)"
+
+
+msgid "Select Background"
+msgstr "Seleccionar Fundo"
+
+
+msgid "Don't write into the depth buffer"
+msgstr "Não escrever no buffer de profundidade"
+
+
+msgid "Use Tooltip"
+msgstr "Usar Dica de Ferramenta"
+
+
+msgid "Use tooltips when hovering over this gizmo"
+msgstr "Mostrar dicas quando pairar sobre o gizmo"
+
+
+msgctxt "Operator"
+msgid "GizmoGroup"
+msgstr "GrupoGizmo"
+
+
+msgid "Storage of an operator being executed, or registered after execution"
+msgstr "Armazenamento de um operador a ser executado, ou registado após execução"
+
+
+msgid "Options for this operator type"
+msgstr "Opções para este tipo de operador"
+
+
+msgid "Use in 3D viewport"
+msgstr "Usar na janela de visualização 3D"
+
+
+msgid "Scale to respect zoom (otherwise zoom independent display size)"
+msgstr "Redimensionar para respeitar o nível de aproximação (caso contrário tamanho de exibição independente do nível de aproximação)"
+
+
+msgid "Depth 3D"
+msgstr "Profundidade 3D"
+
+
+msgid "Supports culled depth by other objects in the view"
+msgstr "Suporta profundidade oculta por outros objectos no campo de visão"
+
+
+msgid "Supports selection"
+msgstr "Suportar selecção"
 
 
 msgid "Persistent"
 msgstr "Persistente"
 
 
+msgid "Show Modal All"
+msgstr "Mostrar Todos dos Modais"
+
+
+msgid "Show all while interacting, as well as this group when another is being interacted with"
+msgstr "Mostrar todos durante interacção, assim como este grupo durante interacção com outro"
+
+
+msgid "Exclude Modal"
+msgstr "Excluir Modal"
+
+
+msgid "Show all except this group while interacting"
+msgstr "Mostrar todos excepto este grupo durante interacção"
+
+
+msgid "Tool Init"
+msgstr "Inicialização de Ferramenta"
+
+
+msgid "Postpone running until tool operator run (when used with a tool)"
+msgstr "Adiar execução até correr operador de ferramenta (quando usado com uma ferramenta)"
+
+
+msgid "Use fallback tools keymap"
+msgstr "Usar mapeamento de teclas de reserva da ferramenta"
+
+
+msgid "Add fallback tools keymap to this gizmo type"
+msgstr "Adicionar mapeamento de teclas de ferramentas de reserva a este tipo de gizmo"
+
+
+msgid "VR Redraws"
+msgstr "Redesenhar para RV"
+
+
+msgid "The gizmos are made for use with virtual reality sessions and require special redraw management"
+msgstr "Os Gizmos são feitos para usar com sessões de realidade virtual e requerem gestão especial de representação"
+
+
 msgid "Region Type"
 msgstr "Tipo de região"
+
+
+msgid "The region where the panel is going to be used in"
+msgstr "A região em que o painel vai ser usado"
 
 
 msgid "Window"
@@ -16862,12 +17011,100 @@ msgid "Temporary"
 msgstr "Temporário"
 
 
+msgid "Sidebar"
+msgstr "Barra Lateral"
+
+
 msgid "Tools"
 msgstr "Ferramentas"
 
 
 msgid "Tool Properties"
 msgstr "Ferramentas de propriedades"
+
+
+msgid "Asset Shelf Header"
+msgstr "Cabeçalho da Prateleira de Recursos"
+
+
+msgid "Floating Region"
+msgstr "Região Flutuante"
+
+
+msgid "Navigation Bar"
+msgstr "Barra de Navegação"
+
+
+msgid "Execute Buttons"
+msgstr "Botões de Execução"
+
+
+msgid "Footer"
+msgstr "Rodapé"
+
+
+msgid "Tool Header"
+msgstr "Cabeçalho de Ferramentas"
+
+
+msgid "XR"
+msgstr "XR"
+
+
+msgid "The space where the panel is going to be used in"
+msgstr "O espaço no qual o painel vai ser usado"
+
+
+msgid "Gizmos"
+msgstr "Gizmos"
+
+
+msgid "List of gizmos in the Gizmo Map"
+msgstr "Lista de gizmos no Mapa de Gizmo"
+
+
+msgid "Has Reports"
+msgstr "Tem Relatórios"
+
+
+msgid "GizmoGroup has a set of reports (warnings and errors) from last execution"
+msgstr "O GizmoGroup tem um conjunto de relatórios (avisos e erros) da última execução"
+
+
+msgid "VR Controller Poses Indicator"
+msgstr "Indicador de Poses do Controlador de RV"
+
+
+msgid "VR Viewer Pose Indicator"
+msgstr "Indicador de Pose de Visualizador de RV"
+
+
+msgid "Gizmo Group Properties"
+msgstr "Propriedades do Grupo de Gizmos"
+
+
+msgid "Input properties of a Gizmo Group"
+msgstr "Propriedade de Entrada de um Grupo de Gizmos"
+
+
+msgid "Gizmo Properties"
+msgstr "Propriedades de Gizmo"
+
+
+msgid "Input properties of a Gizmo"
+msgstr "Propriedades de entrada de um Gizmo"
+
+
+msgid "Modifier affecting the Grease Pencil object"
+msgstr "Modificador afectando os objecto Grease Pencil"
+
+
+msgid "Override Modifier"
+msgstr "Revogar Modificador"
+
+
+msgid "In a local override object, whether this modifier comes from the linked reference object, or is local to the override"
+msgstr "Num objecto com revogação local, se este modificador vem do objecto de referência vinculado, ou é local da revogação"
 
 
 msgid "Modifier name"
@@ -16898,20 +17135,56 @@ msgid "Texture Mapping"
 msgstr "Mapeamento de textura"
 
 
+msgid "Change stroke UV texture values"
+msgstr "Alterar valores UV de traço"
+
+
 msgid "Time Offset"
 msgstr "Deslocamento de tempo"
+
+
+msgid "Offset keyframes"
+msgstr "Afastar Fotogramas"
+
+
+msgid "Vertex Weight Angle"
+msgstr "Ângulo de Peso de Vértices"
+
+
+msgid "Generate Vertex Weights base on stroke angle"
+msgstr "Gerar Pesos de Vértices baseados no ângulo de traços"
 
 
 msgid "Vertex Weight Proximity"
 msgstr "Aproximar peso de vértices"
 
 
+msgid "Generate Vertex Weights base on distance to object"
+msgstr "Gerar Pesos de Vértices baseados na distância ao objecto"
+
+
 msgid "Array"
 msgstr "Matriz"
 
 
+msgid "Create array of duplicate instances"
+msgstr "Criar disposição de instâncias duplicadas"
+
+
 msgid "Build"
 msgstr "Construir"
+
+
+msgid "Create duplication of strokes"
+msgstr "Criar duplicação de traços"
+
+
+msgid "Dot Dash"
+msgstr "Ponto Traço"
+
+
+msgid "Generate dot-dash styled strokes"
+msgstr "Gerar traços com estilo de linha ponto-traço"
 
 
 msgid "Envelope"

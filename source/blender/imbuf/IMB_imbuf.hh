@@ -333,7 +333,6 @@ void IMB_close_anim(ImBufAnim *anim);
 void IMB_close_anim_proxies(ImBufAnim *anim);
 bool IMB_anim_can_produce_frames(const ImBufAnim *anim);
 
-int ismovie(const char *filepath);
 int IMB_anim_get_image_width(ImBufAnim *anim);
 int IMB_anim_get_image_height(ImBufAnim *anim);
 bool IMB_get_gop_decode_time(ImBufAnim *anim);
@@ -397,9 +396,11 @@ bool IMB_ispic_type_matches(const char *filepath, int filetype);
 int IMB_ispic_type_from_memory(const unsigned char *buf, size_t buf_size);
 int IMB_ispic_type(const char *filepath);
 
+/**
+ * Test if the file is a video file (known format, has a video stream and
+ * supported video codec).
+ */
 bool IMB_isanim(const char *filepath);
-
-int imb_get_anim_type(const char *filepath);
 
 /**
  * Test if color-space conversions of pixels in buffer need to take into account alpha.
@@ -520,11 +521,7 @@ void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, const float b
 ImBuf *IMB_loadifffile(int file, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
 
 ImBuf *IMB_half_x(ImBuf *ibuf1);
-ImBuf *IMB_double_fast_x(ImBuf *ibuf1);
-ImBuf *IMB_double_x(ImBuf *ibuf1);
 ImBuf *IMB_half_y(ImBuf *ibuf1);
-ImBuf *IMB_double_fast_y(ImBuf *ibuf1);
-ImBuf *IMB_double_y(ImBuf *ibuf1);
 
 void IMB_flipx(ImBuf *ibuf);
 void IMB_flipy(ImBuf *ibuf);

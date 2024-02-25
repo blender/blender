@@ -86,6 +86,12 @@ enum {
    * etc.). */
   ID_REMAP_DO_LIBRARY_POINTERS = 1 << 8,
 
+  /** Allow remapping of an ID opinter of a certain to another one of a different type.
+   *
+   * WARNING: Use with caution. Should only be needed in a very small amount of cases, e.g. when
+   * converting an ID type to another. */
+  ID_REMAP_ALLOW_IDTYPE_MISMATCH = 1 << 9,
+
   /**
    * Don't touch the special user counts (use when the 'old' remapped ID remains in use):
    * - Do not transfer 'fake user' status from old to new ID.
@@ -266,6 +272,13 @@ class IDRemapper {
    * should have been) remapped to `nullptr`.
    */
   blender::Set<ID *> never_null_users_;
+
+ public:
+  /**
+   * In almost all cases, the original pointer and its new replacement should be of the same type.
+   * however, there are some rare exceptions, e.g. when converting from one ID type to another.
+   */
+  bool allow_idtype_mismatch = false;
 
  public:
   void clear(void)

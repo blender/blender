@@ -81,7 +81,7 @@ static void rna_Volume_update_filepath(Main * /*bmain*/, Scene * /*scene*/, Poin
 {
   Volume *volume = (Volume *)ptr->owner_id;
   BKE_volume_unload(volume);
-  DEG_id_tag_update(&volume->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&volume->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_GEOM | ND_DATA, volume);
 }
 

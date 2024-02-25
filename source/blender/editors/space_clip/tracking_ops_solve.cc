@@ -157,7 +157,7 @@ static void solve_camera_freejob(void *scv)
     int width, height;
     BKE_movieclip_get_size(clip, &scj->user, &width, &height);
     BKE_tracking_camera_to_blender(tracking, scene, camera, width, height);
-    DEG_id_tag_update(&camera->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&camera->id, ID_RECALC_SYNC_TO_EVAL);
     WM_main_add_notifier(NC_OBJECT, camera);
   }
 

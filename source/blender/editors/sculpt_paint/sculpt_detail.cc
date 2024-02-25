@@ -163,7 +163,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
       zero_v3(center);
     }
 
-    radius = SCULPT_calc_radius(vc, brush, vc->scene, center);
+    radius = sculpt_calc_radius(vc, brush, vc->scene, center);
     printf("radius: %.5f", radius);
   }
 

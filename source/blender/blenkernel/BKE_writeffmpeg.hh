@@ -41,24 +41,24 @@ struct ReportList;
 struct Scene;
 struct SwsContext;
 
-int BKE_ffmpeg_start(void *context_v,
-                     const Scene *scene,
-                     RenderData *rd,
-                     int rectx,
-                     int recty,
-                     ReportList *reports,
-                     bool preview,
-                     const char *suffix);
-void BKE_ffmpeg_end(void *context_v);
-int BKE_ffmpeg_append(void *context_v,
+struct ImBuf;
+
+bool BKE_ffmpeg_start(void *context_v,
+                      const Scene *scene,
                       RenderData *rd,
-                      int start_frame,
-                      int frame,
-                      int *pixels,
                       int rectx,
                       int recty,
-                      const char *suffix,
-                      ReportList *reports);
+                      ReportList *reports,
+                      bool preview,
+                      const char *suffix);
+void BKE_ffmpeg_end(void *context_v);
+bool BKE_ffmpeg_append(void *context_v,
+                       RenderData *rd,
+                       int start_frame,
+                       int frame,
+                       const ImBuf *image,
+                       const char *suffix,
+                       ReportList *reports);
 void BKE_ffmpeg_filepath_get(char filepath[/*FILE_MAX*/ 1024],
                              const RenderData *rd,
                              bool preview,

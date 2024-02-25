@@ -54,11 +54,15 @@
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
+#include "BLT_translation.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -1166,8 +1170,14 @@ static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEv
       RNA_property_boolean_set(op->ptr, prop, true);
     }
     if (RNA_property_boolean_get(op->ptr, prop)) {
-      return WM_operator_confirm_message(
-          C, op, "Create new object-data users and apply transformation");
+      return WM_operator_confirm_ex(C,
+                                    op,
+                                    IFACE_("Apply Object Transformations"),
+                                    IFACE_("Warning: Multiple objects share the same data.\nMake "
+                                           "single user and then apply transformations?"),
+                                    IFACE_("Apply"),
+                                    ALERT_ICON_WARNING,
+                                    false);
     }
   }
   return object_transform_apply_exec(C, op);
@@ -1812,7 +1822,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
     /* Special support for dupli-groups. */
     else if (tob->instance_collection && tob->instance_collection->id.tag & LIB_TAG_DOIT) {
       DEG_id_tag_update(&tob->id, ID_RECALC_TRANSFORM);
-      DEG_id_tag_update(&tob->instance_collection->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&tob->instance_collection->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 

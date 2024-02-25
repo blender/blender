@@ -768,7 +768,7 @@ template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<S
 }
 
 template<typename StorageType>
-void convert(UnsignedNormalized<StorageType> & /*dst*/, const UI32 &src)
+void convert(UnsignedNormalized<StorageType> & /*dst*/, const UI32 & /*src*/)
 {
   BLI_assert_unreachable();
 }

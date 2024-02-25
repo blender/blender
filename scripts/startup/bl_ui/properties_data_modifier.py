@@ -108,6 +108,7 @@ class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_MIX')
             self.operator_modifier_add(layout, 'VERTEX_WEIGHT_PROXIMITY')
         if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_VERTEX_WEIGHT_PROXIMITY')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_VERTEX_WEIGHT_ANGLE')
         layout.template_modifier_asset_menu_items(catalog_path=self.bl_label)
 
@@ -195,6 +196,7 @@ class OBJECT_MT_modifier_add_deform(ModifierAddMenu, Menu):
         if ob_type == 'VOLUME':
             self.operator_modifier_add(layout, 'VOLUME_DISPLACE')
         if ob_type == 'GREASEPENCIL':
+            self.operator_modifier_add(layout, 'GREASE_PENCIL_HOOK')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_LATTICE')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_NOISE')
             self.operator_modifier_add(layout, 'GREASE_PENCIL_OFFSET')

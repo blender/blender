@@ -30,6 +30,13 @@ AssetWeakReference::AssetWeakReference()
 {
 }
 
+AssetWeakReference::AssetWeakReference(const AssetWeakReference &other)
+    : asset_library_type(other.asset_library_type),
+      asset_library_identifier(BLI_strdup_null(other.asset_library_identifier)),
+      relative_asset_identifier(BLI_strdup_null(other.relative_asset_identifier))
+{
+}
+
 AssetWeakReference::AssetWeakReference(AssetWeakReference &&other)
     : asset_library_type(other.asset_library_type),
       asset_library_identifier(other.asset_library_identifier),
@@ -46,18 +53,24 @@ AssetWeakReference::~AssetWeakReference()
   MEM_delete(relative_asset_identifier);
 }
 
-AssetWeakReference *BKE_asset_weak_reference_copy(AssetWeakReference *weak_ref)
+AssetWeakReference &AssetWeakReference::operator=(const AssetWeakReference &other)
 {
-  if (weak_ref == nullptr) {
-    return nullptr;
+  if (this == &other) {
+    return *this;
   }
+  std::destroy_at(this);
+  new (this) AssetWeakReference(other);
+  return *this;
+}
 
-  AssetWeakReference *weak_ref_copy = MEM_new<AssetWeakReference>(__func__);
-  weak_ref_copy->asset_library_type = weak_ref->asset_library_type;
-  weak_ref_copy->asset_library_identifier = BLI_strdup(weak_ref->asset_library_identifier);
-  weak_ref_copy->relative_asset_identifier = BLI_strdup(weak_ref->relative_asset_identifier);
-
-  return weak_ref_copy;
+AssetWeakReference &AssetWeakReference::operator=(AssetWeakReference &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) AssetWeakReference(std::move(other));
+  return *this;
 }
 
 AssetWeakReference AssetWeakReference::make_reference(

@@ -2039,7 +2039,7 @@ bool RNA_property_enum_item_from_value_gettexted(
 
   if (result && !(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
     r_item->name = BLT_translate_do_iface(prop->translation_context, r_item->name);
-    r_item->description = BLT_translate_do_tooltip(prop->translation_context, r_item->description);
+    r_item->description = BLT_translate_do_tooltip(nullptr, r_item->description);
   }
 
   return result;
@@ -2112,7 +2112,12 @@ static bool rna_property_editable_do(PointerRNA *ptr,
   }
 
   /* Early return if the property itself is not editable. */
-  if ((flag & PROP_EDITABLE) == 0 || (flag & PROP_REGISTER) != 0) {
+  if ((flag & PROP_EDITABLE) == 0) {
+    return false;
+  }
+  /* Only considered registerable properties "internal"
+   * because regular properties may not be editable and still be displayed. */
+  if (flag & PROP_REGISTER) {
     if (r_info != nullptr && (*r_info)[0] == '\0') {
       *r_info = N_("This property is for internal use only and can't be edited");
     }
@@ -2264,7 +2269,8 @@ static void rna_property_update(
 
 #if 1
     /* TODO(@ideasman42): Should eventually be replaced entirely by message bus (below)
-     * for now keep since COW, bugs are hard to track when we have other missing updates. */
+     * for now keep since copy-on-eval, bugs are hard to track when we have other missing updates.
+     */
     if (prop->noteflag) {
       WM_main_add_notifier(prop->noteflag, ptr->owner_id);
     }
@@ -2279,12 +2285,12 @@ static void rna_property_update(
     }
     if (ptr->owner_id != nullptr && ((prop->flag & PROP_NO_DEG_UPDATE) == 0)) {
       const short id_type = GS(ptr->owner_id->name);
-      if (ID_TYPE_IS_COW(id_type)) {
+      if (ID_TYPE_USE_COPY_ON_EVAL(id_type)) {
         if (prop->flag & PROP_DEG_SYNC_ONLY) {
-          DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE);
+          DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL);
         }
         else {
-          DEG_id_tag_update(ptr->owner_id, ID_RECALC_COPY_ON_WRITE | ID_RECALC_PARAMETERS);
+          DEG_id_tag_update(ptr->owner_id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_PARAMETERS);
         }
       }
     }

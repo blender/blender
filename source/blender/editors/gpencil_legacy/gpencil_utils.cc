@@ -2787,7 +2787,7 @@ void ED_gpencil_tag_scene_gpencil(Scene *scene)
   }
   FOREACH_SCENE_COLLECTION_END;
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
   WM_main_add_notifier(NC_GPENCIL | NA_EDITED, nullptr);
 }

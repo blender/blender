@@ -366,7 +366,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   uint rng_seed = uint(BLI_time_now_seconds_i() & UINT_MAX);
   tgpi->rng = BLI_rng_new(rng_seed);
 
-  DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /* add new segment to curve */
@@ -1093,7 +1093,7 @@ static void gpencil_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 
   MEM_SAFE_FREE(depth_arr);
 
-  DEG_id_tag_update(&gpd->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 }
@@ -1163,7 +1163,7 @@ static void gpencil_primitive_exit(bContext *C, wmOperator *op)
     gpd->runtime.sbuffer_sflag = 0;
   }
 
-  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
   /* clear pointer */
@@ -1414,7 +1414,7 @@ static void gpencil_primitive_interaction_end(bContext *C,
     BKE_gpencil_stroke_copy_to_keyframes(tgpi->gpd, tgpi->gpl, gpf, gps, tail);
   }
 
-  DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_SYNC_TO_EVAL);
   DEG_id_tag_update(&tgpi->gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
   /* clean up temp data */

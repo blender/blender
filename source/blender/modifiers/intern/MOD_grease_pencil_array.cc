@@ -153,7 +153,7 @@ static bke::CurvesGeometry create_array_copies(const Object &ob,
                                                const bke::CurvesGeometry &base_curves,
                                                bke::CurvesGeometry filtered_curves)
 {
-  /* Assign replacement material on filterd curves so all copies can have this material when later
+  /* Assign replacement material on filtered curves so all copies can have this material when later
    * when they get instanced. */
   if (mmd.mat_rpl > 0) {
     bke::MutableAttributeAccessor attributes = filtered_curves.attributes_for_write();

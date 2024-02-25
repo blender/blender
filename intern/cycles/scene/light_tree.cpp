@@ -108,7 +108,9 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
 
     /* TODO: need a better way to handle this when textures are used. */
     float area = triangle_area(vertices[0], vertices[1], vertices[2]);
-    measure.energy = area * average(shader->emission_estimate);
+    /* Use absolute value of emission_estimate so lights with negative strength are properly
+     * supported in the light tree. */
+    measure.energy = area * average(fabs(shader->emission_estimate));
 
     /* NOTE: the original implementation used the bounding box centroid, but triangle centroid
      * seems to work fine */
@@ -220,7 +222,7 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
 
     /* Use absolute value of energy so lights with negative strength are properly supported in the
      * light tree. */
-    measure.energy = fabsf(average(strength));
+    measure.energy = average(fabs(strength));
 
     light_set_membership = lamp->get_light_set_membership();
   }

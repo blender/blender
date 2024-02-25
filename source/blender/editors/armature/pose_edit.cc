@@ -84,8 +84,8 @@ bool ED_object_posemode_enter_ex(Main *bmain, Object *ob)
     case OB_ARMATURE:
       ob->restore_mode = ob->mode;
       ob->mode |= OB_MODE_POSE;
-      /* Inform all CoW versions that we changed the mode. */
-      DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+      /* Inform all evaluated versions that we changed the mode. */
+      DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
       ok = true;
 
       break;
@@ -117,8 +117,8 @@ bool ED_object_posemode_exit_ex(Main *bmain, Object *ob)
     ob->restore_mode = ob->mode;
     ob->mode &= ~OB_MODE_POSE;
 
-    /* Inform all CoW versions that we changed the mode. */
-    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_COPY_ON_WRITE);
+    /* Inform all evaluated versions that we changed the mode. */
+    DEG_id_tag_update_ex(bmain, &ob->id, ID_RECALC_SYNC_TO_EVAL);
     ok = true;
   }
   return ok;
@@ -195,9 +195,9 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, ePosePathC
   BLI_freelistN(&targets);
 
   if (range != POSE_PATH_CALC_RANGE_CURRENT_FRAME) {
-    /* Tag armature object for copy on write - so paths will draw/redraw.
+    /* Tag armature object for copy-on-eval - so paths will draw/redraw.
      * For currently frame only we update evaluated object directly. */
-    DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   }
 
   /* Free temporary depsgraph. */
@@ -400,8 +400,8 @@ static void ED_pose_clear_paths(Object *ob, bool only_selected)
     ob->pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
   }
 
-  /* tag armature object for copy on write - so removed paths don't still show */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  /* tag armature object for copy-on-eval - so removed paths don't still show */
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 /* Operator callback - wrapper for the back-end function. */
@@ -474,7 +474,7 @@ static int pose_update_paths_range_exec(bContext *C, wmOperator * /*op*/)
   ob->pose->avs.path_ef = PEFRA;
 
   /* tag for updates */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
   return OPERATOR_FINISHED;
@@ -702,7 +702,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
     if (changed) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
-      DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 
@@ -764,7 +764,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
     if (changed) {
       changed_multi = true;
       WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
-      DEG_id_tag_update(&arm->id, ID_RECALC_COPY_ON_WRITE);
+      DEG_id_tag_update(&arm->id, ID_RECALC_SYNC_TO_EVAL);
     }
   }
 

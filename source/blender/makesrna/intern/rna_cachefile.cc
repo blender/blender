@@ -43,7 +43,7 @@ static void rna_CacheFile_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
 {
   CacheFile *cache_file = (CacheFile *)ptr->data;
 
-  DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
 }
 
@@ -51,7 +51,7 @@ static void rna_CacheFileLayer_update(Main * /*bmain*/, Scene * /*scene*/, Point
 {
   CacheFile *cache_file = (CacheFile *)ptr->owner_id;
 
-  DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&cache_file->id, ID_RECALC_SYNC_TO_EVAL);
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
 }
 

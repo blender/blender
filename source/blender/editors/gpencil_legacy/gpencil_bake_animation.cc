@@ -350,7 +350,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
   /* Notifiers. */
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  DEG_id_tag_update(&gpd_dst->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&gpd_dst->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | NA_ADDED, nullptr);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 

@@ -135,6 +135,12 @@ static int gwl_registry_handler_interface_slot_max();
 static int gwl_registry_handler_interface_slot_from_string(const char *interface);
 static const GWL_RegistryHandler *gwl_registry_handler_from_interface_slot(int interface_slot);
 
+static bool xkb_compose_state_feed_and_get_utf8(
+    xkb_compose_state *compose_state,
+    xkb_state *state,
+    const xkb_keycode_t key,
+    char r_utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)]);
+
 #ifdef USE_EVENT_BACKGROUND_THREAD
 static void gwl_display_event_thread_destroy(GWL_Display *display);
 
@@ -1103,6 +1109,37 @@ static void gwl_seat_key_layout_active_state_update_mask(GWL_Seat *seat)
   }
 }
 
+/** Callback that runs from GHOST's timer. */
+static void gwl_seat_key_repeat_timer_fn(GHOST_ITimerTask *task, uint64_t time_ms)
+{
+  GWL_KeyRepeatPlayload *payload = static_cast<GWL_KeyRepeatPlayload *>(task->getUserData());
+
+  GWL_Seat *seat = payload->seat;
+  wl_surface *wl_surface_focus = seat->keyboard.wl.surface_window;
+  if (UNLIKELY(wl_surface_focus == nullptr)) {
+    return;
+  }
+
+  GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface_focus);
+  GHOST_SystemWayland *system = seat->system;
+  const uint64_t event_ms = payload->time_ms_init + time_ms;
+  /* Calculate this value every time in case modifier keys are pressed. */
+
+  char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
+  if (seat->xkb.compose_state &&
+      xkb_compose_state_feed_and_get_utf8(
+          seat->xkb.compose_state, seat->xkb.state, payload->key_code, utf8_buf))
+  {
+    /* `utf8_buf` has been filled by a compose action. */
+  }
+  else {
+    xkb_state_key_get_utf8(seat->xkb.state, payload->key_code, utf8_buf, sizeof(utf8_buf));
+  }
+
+  system->pushEvent_maybe_pending(new GHOST_EventKey(
+      event_ms, GHOST_kEventKeyDown, win, payload->key_data.gkey, true, utf8_buf));
+}
+
 /**
  * \note Caller must lock `timer_mutex`.
  */
@@ -1743,6 +1780,8 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
     __attribute__((format(printf, 1, 0)));
 #endif
 
+static bool ghost_wayland_log_handler_is_background = false;
+
 /**
  * Callback for WAYLAND to run when there is an error.
  *
@@ -1751,6 +1790,15 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
  */
 static void ghost_wayland_log_handler(const char *msg, va_list arg)
 {
+  /* This is fine in background mode, we will try to fall back to headless GPU context.
+   * Happens when render farm process runs without user login session. */
+  if (ghost_wayland_log_handler_is_background &&
+      (strstr(msg, "error: XDG_RUNTIME_DIR not set in the environment") ||
+       strstr(msg, "error: XDG_RUNTIME_DIR is invalid or not set in the environment")))
+  {
+    return;
+  }
+
   fprintf(stderr, "GHOST/Wayland: ");
   vfprintf(stderr, msg, arg); /* Includes newline. */
 
@@ -2761,13 +2809,11 @@ static void keyboard_depressed_state_key_event(GWL_Seat *seat,
 }
 
 static void keyboard_depressed_state_push_events_from_change(
-    GWL_Seat *seat, const GWL_KeyboardDepressedState &key_depressed_prev)
+    GWL_Seat *seat,
+    GHOST_IWindow *win,
+    const uint64_t event_ms,
+    const GWL_KeyboardDepressedState &key_depressed_prev)
 {
-  GHOST_IWindow *win = ghost_wl_surface_user_data(seat->keyboard.wl.surface_window);
-  const GHOST_SystemWayland *system = seat->system;
-  /* Caller has no time-stamp, set from system. */
-  const uint64_t event_ms = system->getMilliSeconds();
-
   /* Separate key up and down into separate passes so key down events always come after key up.
    * Do this so users of GHOST can use the last pressed or released modifier to check
    * if the modifier is held instead of counting modifiers pressed as is done here,
@@ -4718,6 +4764,8 @@ static void keyboard_handle_enter(void *data,
   CLOG_INFO(LOG, 2, "enter");
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
+  GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface);
+
   seat->keyboard.serial = serial;
   seat->keyboard.wl.surface_window = wl_surface;
 
@@ -4729,6 +4777,12 @@ static void keyboard_handle_enter(void *data,
   GWL_KeyboardDepressedState key_depressed_prev = seat->key_depressed;
   keyboard_depressed_state_reset(seat);
 
+  /* Keep track of the last held repeating key, start the repeat timer if one exists. */
+  struct {
+    uint32_t key = std::numeric_limits<uint32_t>::max();
+    xkb_keysym_t sym = 0;
+  } repeat;
+
   uint32_t *key;
   WL_ARRAY_FOR_EACH (key, keys) {
     const xkb_keycode_t key_code = *key + EVDEV_OFFSET;
@@ -4738,9 +4792,41 @@ static void keyboard_handle_enter(void *data,
     if (gkey != GHOST_kKeyUnknown) {
       keyboard_depressed_state_key_event(seat, gkey, GHOST_kEventKeyDown);
     }
+
+    if (xkb_keymap_key_repeats(xkb_state_get_keymap(seat->xkb.state), key_code)) {
+      repeat.key = *key;
+      repeat.sym = sym;
+    }
   }
 
-  keyboard_depressed_state_push_events_from_change(seat, key_depressed_prev);
+  /* Caller has no time-stamp, set from system. */
+  const uint64_t event_ms = seat->system->getMilliSeconds();
+  keyboard_depressed_state_push_events_from_change(seat, win, event_ms, key_depressed_prev);
+
+  if ((repeat.key != std::numeric_limits<uint32_t>::max()) && (seat->key_repeat.rate > 0)) {
+    /* Since the key has been held, immediately send a press event.
+     * This also ensures the key will be registered as pressed, see #117896. */
+#ifdef USE_EVENT_BACKGROUND_THREAD
+    std::lock_guard lock_timer_guard{*seat->system->timer_mutex};
+#endif
+    /* Should have been cleared on leave, set here just in case. */
+    if (UNLIKELY(seat->key_repeat.timer)) {
+      keyboard_handle_key_repeat_cancel(seat);
+    }
+
+    const xkb_keycode_t key_code = repeat.key + EVDEV_OFFSET;
+    const GHOST_TKey gkey = xkb_map_gkey_or_scan_code(repeat.sym, repeat.key);
+
+    GWL_KeyRepeatPlayload *key_repeat_payload = new GWL_KeyRepeatPlayload();
+    key_repeat_payload->seat = seat;
+    key_repeat_payload->key_code = key_code;
+    key_repeat_payload->key_data.gkey = gkey;
+
+    gwl_seat_key_repeat_timer_add(seat, gwl_seat_key_repeat_timer_fn, key_repeat_payload, false);
+    /* Ensure there is a press event on enter so this is known to be held before any mouse
+     * button events which may use a key-binding that depends on this key being held. */
+    gwl_seat_key_repeat_timer_fn(seat->key_repeat.timer, 0);
+  }
 }
 
 /**
@@ -5031,33 +5117,7 @@ static void keyboard_handle_key(void *data,
   }
 
   if (key_repeat_payload) {
-    auto key_repeat_fn = [](GHOST_ITimerTask *task, uint64_t time_ms) {
-      GWL_KeyRepeatPlayload *payload = static_cast<GWL_KeyRepeatPlayload *>(task->getUserData());
-
-      GWL_Seat *seat = payload->seat;
-      if (wl_surface *wl_surface_focus = seat->keyboard.wl.surface_window) {
-        GHOST_IWindow *win = ghost_wl_surface_user_data(wl_surface_focus);
-        GHOST_SystemWayland *system = seat->system;
-        const uint64_t event_ms = payload->time_ms_init + time_ms;
-        /* Calculate this value every time in case modifier keys are pressed. */
-
-        char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
-        if (seat->xkb.compose_state &&
-            xkb_compose_state_feed_and_get_utf8(
-                seat->xkb.compose_state, seat->xkb.state, payload->key_code, utf8_buf))
-        {
-          /* `utf8_buf` has been filled by a compose action. */
-        }
-        else {
-          xkb_state_key_get_utf8(seat->xkb.state, payload->key_code, utf8_buf, sizeof(utf8_buf));
-        }
-
-        system->pushEvent_maybe_pending(new GHOST_EventKey(
-            event_ms, GHOST_kEventKeyDown, win, payload->key_data.gkey, true, utf8_buf));
-      }
-    };
-
-    gwl_seat_key_repeat_timer_add(seat, key_repeat_fn, key_repeat_payload, true);
+    gwl_seat_key_repeat_timer_add(seat, gwl_seat_key_repeat_timer_fn, key_repeat_payload, true);
   }
 }
 
@@ -6853,6 +6913,7 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 #endif
       display_(new GWL_Display)
 {
+  ghost_wayland_log_handler_is_background = background;
   wl_log_set_handler_client(ghost_wayland_log_handler);
 
   display_->system = this;

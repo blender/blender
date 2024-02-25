@@ -1547,7 +1547,7 @@ static void grease_pencil_wpaintmode_enter(Scene *scene, Object *ob)
   ob->mode |= OB_MODE_WEIGHT_PAINT;
 
   /* Flush object mode. */
-  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  DEG_id_tag_update(&ob->id, ID_RECALC_SYNC_TO_EVAL);
 }
 
 void ED_object_wpaintmode_enter_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)

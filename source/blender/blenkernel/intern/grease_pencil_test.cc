@@ -363,4 +363,96 @@ TEST(greasepencil, remove_frame_fixed_duration_overwrite_end)
   EXPECT_TRUE(layer.frames().lookup(5).is_null());
 }
 
+TEST(greasepencil, remove_drawings_no_change)
+{
+  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
+      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+
+  grease_pencil->add_empty_drawings(3);
+
+  Layer &layer_a = grease_pencil->add_layer("LayerA");
+  Layer &layer_b = grease_pencil->add_layer("LayerB");
+  layer_b.add_frame(10, 0);
+  layer_b.add_frame(20, 1);
+  layer_b.add_frame(30, 2);
+
+  EXPECT_EQ(layer_a.frames().size(), 0);
+  EXPECT_EQ(layer_b.frames().size(), 3);
+  EXPECT_EQ(layer_b.frames().lookup(10).drawing_index, 0);
+  EXPECT_EQ(layer_b.frames().lookup(20).drawing_index, 1);
+  EXPECT_EQ(layer_b.frames().lookup(30).drawing_index, 2);
+  /* Test DNA storage data too. */
+  layer_a.prepare_for_dna_write();
+  layer_b.prepare_for_dna_write();
+  EXPECT_EQ(layer_a.frames_storage.num, 0);
+  EXPECT_EQ(layer_b.frames_storage.num, 3);
+  EXPECT_EQ(layer_b.frames_storage.values[0].drawing_index, 0);
+  EXPECT_EQ(layer_b.frames_storage.values[1].drawing_index, 1);
+  EXPECT_EQ(layer_b.frames_storage.values[2].drawing_index, 2);
+
+  grease_pencil->remove_layer(layer_a);
+  EXPECT_EQ(layer_b.frames().size(), 3);
+  EXPECT_EQ(layer_b.frames().lookup(10).drawing_index, 0);
+  EXPECT_EQ(layer_b.frames().lookup(20).drawing_index, 1);
+  EXPECT_EQ(layer_b.frames().lookup(30).drawing_index, 2);
+  /* Test DNA storage data too. */
+  layer_b.prepare_for_dna_write();
+  EXPECT_EQ(layer_b.frames_storage.num, 3);
+  EXPECT_EQ(layer_b.frames_storage.values[0].drawing_index, 0);
+  EXPECT_EQ(layer_b.frames_storage.values[1].drawing_index, 1);
+  EXPECT_EQ(layer_b.frames_storage.values[2].drawing_index, 2);
+
+  BKE_id_free(nullptr, grease_pencil);
+}
+
+TEST(greasepencil, remove_drawings_with_no_users)
+{
+  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
+      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+
+  /* Test drawing index correctness: Removing users from drawings should remove those drawings, and
+   * all index references should get updated to match the changed drawing indices. */
+
+  grease_pencil->add_empty_drawings(5);
+
+  Layer &layer_a = grease_pencil->add_layer("LayerA");
+  layer_a.add_frame(10, 0);
+  layer_a.add_frame(20, 1);
+  layer_a.add_frame(30, 2);
+  Layer &layer_b = grease_pencil->add_layer("LayerB");
+  layer_b.add_frame(10, 3);
+  layer_b.add_frame(30, 4);
+
+  EXPECT_EQ(layer_a.frames().size(), 3);
+  EXPECT_EQ(layer_a.frames().lookup(10).drawing_index, 0);
+  EXPECT_EQ(layer_a.frames().lookup(20).drawing_index, 1);
+  EXPECT_EQ(layer_a.frames().lookup(30).drawing_index, 2);
+  EXPECT_EQ(layer_b.frames().size(), 2);
+  EXPECT_EQ(layer_b.frames().lookup(10).drawing_index, 3);
+  EXPECT_EQ(layer_b.frames().lookup(30).drawing_index, 4);
+  /* Test DNA storage data too. */
+  layer_a.prepare_for_dna_write();
+  layer_b.prepare_for_dna_write();
+  EXPECT_EQ(layer_a.frames_storage.num, 3);
+  EXPECT_EQ(layer_a.frames_storage.values[0].drawing_index, 0);
+  EXPECT_EQ(layer_a.frames_storage.values[1].drawing_index, 1);
+  EXPECT_EQ(layer_a.frames_storage.values[2].drawing_index, 2);
+  EXPECT_EQ(layer_b.frames_storage.num, 2);
+  EXPECT_EQ(layer_b.frames_storage.values[0].drawing_index, 3);
+  EXPECT_EQ(layer_b.frames_storage.values[1].drawing_index, 4);
+
+  /* Drawings 0,1,2 get removed, drawings 3,4 move up (order changes). */
+  grease_pencil->remove_layer(layer_a);
+  EXPECT_EQ(layer_b.frames().size(), 2);
+  EXPECT_EQ(layer_b.frames().lookup(10).drawing_index, 1);
+  EXPECT_EQ(layer_b.frames().lookup(30).drawing_index, 0);
+  /* Test DNA storage data too. */
+  layer_b.prepare_for_dna_write();
+  EXPECT_EQ(layer_b.frames_storage.num, 2);
+  EXPECT_EQ(layer_b.frames_storage.values[0].drawing_index, 1);
+  EXPECT_EQ(layer_b.frames_storage.values[1].drawing_index, 0);
+
+  BKE_id_free(nullptr, grease_pencil);
+}
+
 }  // namespace blender::bke::greasepencil::tests

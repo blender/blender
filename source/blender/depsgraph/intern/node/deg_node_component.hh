@@ -130,7 +130,7 @@ struct ComponentNode : public Node {
     return true;
   }
 
-  /* Denotes whether COW component is to be tagged when this component
+  /* Denotes whether copy-on-eval component is to be tagged when this component
    * is tagged for update. */
   virtual bool need_tag_cow_before_update()
   {
@@ -230,7 +230,7 @@ struct ParametersComponentNode : public ComponentNode {
   {
     if (ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(owner->id_type)) {
       /* Disabled as this is not true for newly added objects, needs investigation. */
-      // BLI_assert(deg_copy_on_write_is_expanded(owner->id_cow));
+      // BLI_assert(deg_eval_copy_is_expanded(owner->id_cow));
       return false;
     }
     return true;
