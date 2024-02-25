@@ -123,16 +123,20 @@ class ProximityFunction : public mf::MultiFunction {
 
     /* Construct BVH tree for each group. */
     bvh_trees_.resize(groups_num);
-    threading::parallel_for(IndexRange(groups_num), 16, [&](const IndexRange range) {
-      for (const int group_i : range) {
-        const IndexMask &group_mask = group_masks[group_i];
-        if (group_mask.is_empty()) {
-          continue;
-        }
-        BVHTreeFromPointCloud &bvh = bvh_trees_[group_i].pointcloud_bvh;
-        BKE_bvhtree_from_pointcloud_get(pointcloud, group_mask, bvh);
-      }
-    });
+    threading::parallel_for_weighted(
+        IndexRange(groups_num),
+        512,
+        [&](const IndexRange range) {
+          for (const int group_i : range) {
+            const IndexMask &group_mask = group_masks[group_i];
+            if (group_mask.is_empty()) {
+              continue;
+            }
+            BVHTreeFromPointCloud &bvh = bvh_trees_[group_i].pointcloud_bvh;
+            BKE_bvhtree_from_pointcloud_get(pointcloud, group_mask, bvh);
+          }
+        },
+        [&](const int group_i) { return group_masks[group_i].size(); });
   }
 
   void init_for_mesh(const Mesh &mesh, const Field<int> &group_id_field)
@@ -152,29 +156,33 @@ class ProximityFunction : public mf::MultiFunction {
 
     /* Construct BVH tree for each group. */
     bvh_trees_.resize(groups_num);
-    threading::parallel_for(IndexRange(groups_num), 16, [&](const IndexRange range) {
-      for (const int group_i : range) {
-        const IndexMask &group_mask = group_masks[group_i];
-        if (group_mask.is_empty()) {
-          continue;
-        }
-        BVHTreeFromMesh &bvh = bvh_trees_[group_i].mesh_bvh;
-        switch (type_) {
-          case GEO_NODE_PROX_TARGET_POINTS: {
-            BKE_bvhtree_from_mesh_verts_init(mesh, group_mask, bvh);
-            break;
+    threading::parallel_for_weighted(
+        IndexRange(groups_num),
+        512,
+        [&](const IndexRange range) {
+          for (const int group_i : range) {
+            const IndexMask &group_mask = group_masks[group_i];
+            if (group_mask.is_empty()) {
+              continue;
+            }
+            BVHTreeFromMesh &bvh = bvh_trees_[group_i].mesh_bvh;
+            switch (type_) {
+              case GEO_NODE_PROX_TARGET_POINTS: {
+                BKE_bvhtree_from_mesh_verts_init(mesh, group_mask, bvh);
+                break;
+              }
+              case GEO_NODE_PROX_TARGET_EDGES: {
+                BKE_bvhtree_from_mesh_edges_init(mesh, group_mask, bvh);
+                break;
+              }
+              case GEO_NODE_PROX_TARGET_FACES: {
+                BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
+                break;
+              }
+            }
           }
-          case GEO_NODE_PROX_TARGET_EDGES: {
-            BKE_bvhtree_from_mesh_edges_init(mesh, group_mask, bvh);
-            break;
-          }
-          case GEO_NODE_PROX_TARGET_FACES: {
-            BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
-            break;
-          }
-        }
-      }
-    });
+        },
+        [&](const int group_i) { return group_masks[group_i].size(); });
   }
 
   bke::AttrDomain get_domain_on_mesh() const
