@@ -50,7 +50,7 @@ struct GBufferData {
 struct GBufferWriter {
   /* Packed GBuffer data in layer indexing. */
   vec4 data[GBUFFER_DATA_MAX];
-  /* Packed normal data. Redundant normals are omited. */
+  /* Packed normal data. Redundant normals are omitted. */
   vec2 N[GBUFFER_NORMAL_MAX];
   /* Header containing which closures are encoded and which normals are used. */
   uint header;

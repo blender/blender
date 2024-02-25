@@ -95,7 +95,7 @@ inline void parallel_for(IndexRange range, int64_t grain_size, const Function &f
  * Using this function makes sense when the work load for each index can differ significantly, so
  * that it is impossible to determine a good constant grain size.
  *
- * This function has a bit more overhead than the unweighted #parallel_for. If that is noticable
+ * This function has a bit more overhead than the unweighted #parallel_for. If that is noticeable
  * highly depends on the use-case. So the overhead should be measured when trying to use this
  * function for cases where all tasks may be very small.
  *

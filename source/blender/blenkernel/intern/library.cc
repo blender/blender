@@ -265,7 +265,7 @@ void BKE_library_main_rebuild_hierarchy(Main *bmain)
     }
 
     /* Otherwise, it's an indirectly used library with no known parent, another loop is needed to
-     * ansure all knwon hierarcy has valid indices when trying to find the best valid parent
+     * ensure all known hierarchy has valid indices when trying to find the best valid parent
      * library. */
   }
 

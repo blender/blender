@@ -55,7 +55,7 @@ enum {
    */
   ID_REMAP_STORE_NEVER_NULL_USAGE = 1 << 2,
   /**
-   * This tells the callback func to force setting IDs
+   * This tells the callback function to force setting IDs
    * using target one with a 'never NULL' pointer to NULL.
    * \warning Use with extreme care, this will leave database in broken state
    * and can cause crashes very easily!
@@ -86,7 +86,8 @@ enum {
    * etc.). */
   ID_REMAP_DO_LIBRARY_POINTERS = 1 << 8,
 
-  /** Allow remapping of an ID opinter of a certain to another one of a different type.
+  /**
+   * Allow remapping of an ID pointer of a certain to another one of a different type.
    *
    * WARNING: Use with caution. Should only be needed in a very small amount of cases, e.g. when
    * converting an ID type to another. */

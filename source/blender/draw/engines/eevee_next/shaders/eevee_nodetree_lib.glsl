@@ -177,8 +177,8 @@ Closure closure_eval(ClosureTranslucent translucent)
  * Allow clearcoat layer without noise.
  * Choosing the bin with the least weight can choose a
  * different bin for the same closure and
- * produce issue with raytracing denoiser.
- * Alway start with the second bin, this one doesn't
+ * produce issue with ray-tracing denoiser.
+ * Always start with the second bin, this one doesn't
  * overlap with other closure. */
 bool g_closure_reflection_bin = true;
 #define CHOOSE_MIN_WEIGHT_CLOSURE_BIN(a, b) \
