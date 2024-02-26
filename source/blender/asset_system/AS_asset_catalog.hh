@@ -274,9 +274,9 @@ class AssetCatalogService {
   void tag_all_catalogs_as_unsaved_changes();
 
   /* For access by subclasses, as those will not be marked as friend by #AssetCatalogCollection. */
-  AssetCatalogDefinitionFile *get_catalog_definition_file() const;
-  OwningAssetCatalogMap &get_catalogs() const;
-  OwningAssetCatalogMap &get_deleted_catalogs() const;
+  const AssetCatalogDefinitionFile *get_catalog_definition_file() const;
+  const OwningAssetCatalogMap &get_catalogs() const;
+  const OwningAssetCatalogMap &get_deleted_catalogs() const;
 };
 
 /**

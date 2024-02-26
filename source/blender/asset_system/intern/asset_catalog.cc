@@ -115,16 +115,16 @@ bool AssetCatalogService::is_empty() const
   return catalog_collection_->catalogs_.is_empty();
 }
 
-OwningAssetCatalogMap &AssetCatalogService::get_catalogs() const
+const OwningAssetCatalogMap &AssetCatalogService::get_catalogs() const
 {
   return catalog_collection_->catalogs_;
 }
-OwningAssetCatalogMap &AssetCatalogService::get_deleted_catalogs() const
+const OwningAssetCatalogMap &AssetCatalogService::get_deleted_catalogs() const
 {
   return catalog_collection_->deleted_catalogs_;
 }
 
-AssetCatalogDefinitionFile *AssetCatalogService::get_catalog_definition_file() const
+const AssetCatalogDefinitionFile *AssetCatalogService::get_catalog_definition_file() const
 {
   return catalog_collection_->catalog_definition_file_.get();
 }
