@@ -646,9 +646,6 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
        iter != nullptr;
        iter = iter->next)
   {
-    if (iter->collection->id.lib != root_collection->id.lib && ID_IS_LINKED(root_collection)) {
-      continue;
-    }
     if (ID_IS_LINKED(iter->collection) && iter->collection->id.lib != target_id->lib) {
       continue;
     }
@@ -755,7 +752,10 @@ ID *ui_template_id_liboverride_hierarchy_make(
     /* If we failed to find a valid 'active' collection so far for our override hierarchy, but do
      * have a valid 'active' object, try to find a collection from that object. */
     LISTBASE_FOREACH (Collection *, collection_iter, &bmain->collections) {
-      if (!(ID_IS_LINKED(collection_iter) || ID_IS_OVERRIDE_LIBRARY_REAL(collection_iter))) {
+      if (ID_IS_LINKED(collection_iter) && collection_iter->id.lib != id->lib) {
+        continue;
+      }
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(collection_iter)) {
         continue;
       }
       if (!BKE_collection_has_object_recursive(collection_iter, object_active)) {
