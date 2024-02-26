@@ -369,6 +369,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_DASH,
      "Dot Dash",
      "Generate dot-dash styled strokes"},
+    {eModifierType_GreasePencilArmature,
+     "GREASE_PENCIL_ARMATURE",
+     ICON_MOD_ARMATURE,
+     "Armature",
+     "Deform stroke points using armature object"},
 
     RNA_ENUM_ITEM_HEADING(N_("Physics"), nullptr),
     {eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
@@ -1000,6 +1005,7 @@ RNA_MOD_OBJECT_SET(GreasePencilTint, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilLattice, object, OB_LATTICE);
 RNA_MOD_OBJECT_SET(GreasePencilWeightProximity, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilHook, object, OB_EMPTY);
+RNA_MOD_OBJECT_SET(GreasePencilArmature, object, OB_ARMATURE);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
@@ -1948,6 +1954,7 @@ RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilLattice);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilWeightAngle);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilWeightProximity);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilHook);
+RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilArmature);
 
 static void rna_GreasePencilLineartModifier_material_set(PointerRNA *ptr,
                                                          PointerRNA value,
@@ -9779,6 +9786,52 @@ static void rna_def_modifier_grease_pencil_weight_proximity(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_armature(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilArmatureModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Armature Modifier", "Deform stroke points using armature object");
+  RNA_def_struct_sdna(srna, "GreasePencilArmatureModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_ARMATURE);
+
+  rna_def_modifier_grease_pencil_vertex_group(
+      srna, "rna_GreasePencilArmatureModifier_vertex_group_name_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Object", "Armature object to deform with");
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 "rna_GreasePencilArmatureModifier_object_set",
+                                 nullptr,
+                                 "rna_Armature_object_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "use_bone_envelopes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "deformflag", ARM_DEF_ENVELOPE);
+  RNA_def_property_ui_text(prop, "Use Bone Envelopes", "Bind Bone envelopes to armature modifier");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_vertex_groups", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "deformflag", ARM_DEF_VGROUP);
+  RNA_def_property_ui_text(prop, "Use Vertex Groups", "Bind vertex groups to armature modifier");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_deform_preserve_volume", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "deformflag", ARM_DEF_QUATERNION);
+  RNA_def_property_ui_text(
+      prop, "Preserve Volume", "Deform rotation interpolation with quaternions");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -9965,6 +10018,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_weight_proximity(brna);
   rna_def_modifier_grease_pencil_hook(brna);
   rna_def_modifier_grease_pencil_lineart(brna);
+  rna_def_modifier_grease_pencil_armature(brna);
 }
 
 #endif

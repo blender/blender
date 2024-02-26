@@ -982,5 +982,11 @@
     .shadow_camera_far = 200.0f, \
     .shadow_camera_size = 200.0f, \
   }
-  
+
+#define _DNA_DEFAULT_GreasePencilArmatureModifierData \
+  { \
+    .deformflag = ARM_DEF_VGROUP, \
+    .object = NULL, \
+  }
+
 /* clang-format off */
