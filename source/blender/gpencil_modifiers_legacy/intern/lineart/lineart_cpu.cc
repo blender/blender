@@ -15,6 +15,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
+#include "BLI_math_vector.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.h"
 #include "BLI_time.h"
@@ -1385,16 +1386,29 @@ void lineart_main_perspective_division(LineartData *ld)
 void lineart_main_discard_out_of_frame_edges(LineartData *ld)
 {
   LineartEdge *e;
-  int i;
+  const float bounds[4][2] = {{-1.0f, -1.0f}, {-1.0f, 1.0f}, {1.0f, -1.0f}, {1.0f, 1.0f}};
 
 #define LRT_VERT_OUT_OF_BOUND(v) \
-  (v && (v->fbcoord[0] < -1 || v->fbcoord[0] > 1 || v->fbcoord[1] < -1 || v->fbcoord[1] > 1))
+  (v->fbcoord[0] < -1 || v->fbcoord[0] > 1 || v->fbcoord[1] < -1 || v->fbcoord[1] > 1)
 
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, &ld->geom.line_buffer_pointers) {
     e = (LineartEdge *)eln->pointer;
-    for (i = 0; i < eln->element_count; i++) {
-      if (LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2)) {
+    for (int i = 0; i < eln->element_count; i++) {
+      if (!e[i].v1 || !e[i].v2) {
         e[i].flags = LRT_EDGE_FLAG_CHAIN_PICKED;
+        continue;
+      }
+      const blender::float2 vec1(e[i].v1->fbcoord), vec2(e[i].v2->fbcoord);
+      if (LRT_VERT_OUT_OF_BOUND(e[i].v1) && LRT_VERT_OUT_OF_BOUND(e[i].v2)) {
+        /* A line could still cross the image border even when both of the vertices are out of
+         * bound. */
+        if (isect_seg_seg_v2(bounds[0], bounds[1], vec1, vec2) == ISECT_LINE_LINE_NONE &&
+            isect_seg_seg_v2(bounds[0], bounds[2], vec1, vec2) == ISECT_LINE_LINE_NONE &&
+            isect_seg_seg_v2(bounds[1], bounds[3], vec1, vec2) == ISECT_LINE_LINE_NONE &&
+            isect_seg_seg_v2(bounds[2], bounds[3], vec1, vec2) == ISECT_LINE_LINE_NONE)
+        {
+          e[i].flags = LRT_EDGE_FLAG_CHAIN_PICKED;
+        }
       }
     }
   }
