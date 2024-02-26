@@ -87,7 +87,7 @@ FCurve *action_fcurve_ensure(Main *bmain,
       agrp = action_groups_add_new(act, group);
 
       /* Sync bone group colors if applicable. */
-      if (ptr && (ptr->type == &RNA_PoseBone)) {
+      if (ptr && (ptr->type == &RNA_PoseBone) && ptr->data) {
         const bPoseChannel *pchan = static_cast<const bPoseChannel *>(ptr->data);
         action_group_colors_set_from_posebone(agrp, pchan);
       }
