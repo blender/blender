@@ -14,6 +14,8 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "MEM_guardedalloc.h"
+
 #include "IO_stl.hh"
 #include "stl_export.hh"
 
