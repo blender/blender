@@ -25,6 +25,9 @@ namespace gpu {
 
 class GPULogParser;
 
+/* Set to 1 to log the full source of shaders that fail to compile. */
+#define DEBUG_LOG_SHADER_SRC_ON_ERROR 0
+
 /**
  * Compilation is done on a list of GLSL sources. This list contains placeholders that should be
  * provided by the backend shader. These defines contains the locations where the backend can patch
