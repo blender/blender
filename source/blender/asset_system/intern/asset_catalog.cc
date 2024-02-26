@@ -589,11 +589,13 @@ std::unique_ptr<AssetCatalogTree> AssetCatalogService::read_into_tree() const
 
 void AssetCatalogService::invalidate_catalog_tree()
 {
+  std::lock_guard lock{catalog_tree_mutex_};
   this->catalog_tree_ = nullptr;
 }
 
 const AssetCatalogTree &AssetCatalogService::catalog_tree()
 {
+  std::lock_guard lock{catalog_tree_mutex_};
   if (!catalog_tree_) {
     /* Ensure all catalog paths lead to valid catalogs. This is important for the catalog tree to
      * be usable, e.g. it makes sure every item in the tree maps to an actual catalog. */

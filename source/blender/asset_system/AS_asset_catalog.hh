@@ -10,6 +10,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <set>
 #include <string>
 
@@ -45,6 +46,8 @@ class AssetCatalogService {
    * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree().
    */
   std::unique_ptr<AssetCatalogTree> catalog_tree_;
+  std::mutex catalog_tree_mutex_;
+
   CatalogFilePath asset_library_root_;
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
@@ -177,6 +180,9 @@ class AssetCatalogService {
    */
   void update_catalog_path(CatalogID catalog_id, const AssetCatalogPath &new_catalog_path);
 
+  /**
+   * May be called from multiple threads.
+   */
   const AssetCatalogTree &catalog_tree();
 
   /** Return true only if there are no catalogs known. */
@@ -250,8 +256,11 @@ class AssetCatalogService {
       const CatalogFilePath &blend_file_path);
 
   std::unique_ptr<AssetCatalogTree> read_into_tree() const;
-  /** Ensure a #catalog_tree() will update the tree. Must be called whenever the contained user
-   * visible catalogs change. */
+  /**
+   * Ensure a #catalog_tree() will update the tree. Must be called whenever the contained user
+   * visible catalogs change.
+   * May be called from multiple threads.
+   */
   void invalidate_catalog_tree();
 
   /**
