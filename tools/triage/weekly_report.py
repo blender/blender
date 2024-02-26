@@ -106,6 +106,9 @@ def report_personal_weekly_get(username, start, verbose=True):
             elif op_type == "create_pull_request":
                 fullname = activity["repo"]["full_name"] + "/pulls/" + activity["content"].split('|')[0]
                 pulls_created.add(fullname)
+            elif op_type in {"approve_pull_request", "reject_pull_request"}:
+                fullname = activity["repo"]["full_name"] + "/pulls/" + activity["content"].split('|')[0]
+                pulls_reviewed.append(fullname)
             elif op_type == "commit_repo":
                 if activity["ref_name"] == "refs/heads/main" and activity["content"] and activity["repo"]["name"] != ".profile":
                     content_json = json.loads(activity["content"])
