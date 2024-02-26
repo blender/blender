@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2024-02-08 02:55+0000\n"
-"Last-Translator: Andrej <azhilenkov@gmail.com>\n"
+"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"PO-Revision-Date: 2024-02-22 02:44+0000\n"
+"Last-Translator: Marina Veselkova <m.ves.cg@gmail.com>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -653,6 +653,14 @@ msgstr "Настройки траектории движения"
 
 msgid "Motion Path settings for animation visualization"
 msgstr "Настройки пути движения для визуализации анимации"
+
+
+msgid "Bake to active Camera"
+msgstr "Запечь к активной камере"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "Точки траектории движения будут запекаться в пространстве камеры активной камеры. Это означает, что они будут выглядеть правильно только при взгляде через эту камеру. Переключение камер с помощью маркеров не поддерживается"
 
 
 msgid "Bake Location"
@@ -1487,6 +1495,10 @@ msgid "ID Name"
 msgstr "Имя ID"
 
 
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Если установлено, ассет приобретает особый идентификатор. В противном случае он принимает имя класса, используемого для определения меню (например, если имя класса «OBJECT_AST_hello» и bl_idname не установлено скриптом, тогда bl_idname = \"OBJECT_AST_hello\")"
+
+
 msgid "Options"
 msgstr "Опции"
 
@@ -2209,6 +2221,14 @@ msgstr "Использовать положение активной камер�
 
 msgid "Horizontal dimension of the baking map"
 msgstr "Горизонтальное разрешение запекаемой карты"
+
+
+msgid "Bézier Curve Point"
+msgstr "Точка кривой Безье"
+
+
+msgid "Bézier curve point with two handles"
+msgstr "Точка кривой Безье с двумя рукоятками"
 
 
 msgid "Control Point"
@@ -3496,9 +3516,17 @@ msgid "Ease In"
 msgstr "Вход"
 
 
+msgid "Length of first Bézier Handle (for B-Bones only)"
+msgstr "Длина первой рукоятки Безье (только для B-костей)"
+
+
 msgctxt "Armature"
 msgid "Ease Out"
 msgstr "Выход"
+
+
+msgid "Length of second Bézier Handle (for B-Bones only)"
+msgstr "Длина второй рукоятки Безье (только для B-костей)"
 
 
 msgid "B-Bone End Handle Type"
@@ -3921,8 +3949,16 @@ msgid "Child Number"
 msgstr "Номер потомка"
 
 
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Индекс данной коллекции в списке потомков родителя. Обратите внимание, что поиск этого индекса требует сканирования всех коллекций костей, поэтому обращайтесь к нему с осторожностью"
+
+
 msgid "Index"
 msgstr "Индекс"
+
+
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "Номер кости в списке armature.collections_all. Нахождение номера подразумевает проверку других костей этого списка, так что будьте осторожны"
 
 
 msgid "Is Editable"
@@ -3931,6 +3967,10 @@ msgstr "Можно редактировать"
 
 msgid "This collection is owned by a local Armature, or was added via a library override in the current blend file"
 msgstr "Эта коллекция принадлежит локальному скелету или была добавлена через переопределение библиотеки в текущем blend-файле"
+
+
+msgid "This bone collection is expanded in the bone collections tree view"
+msgstr "Эта коллекция костей раскрывается в окне в иерархическом списке"
 
 
 msgid "Is Local Override"
@@ -3945,12 +3985,32 @@ msgid "Solo"
 msgstr "Соло"
 
 
+msgid "Show only this bone collection, and others also marked as 'solo'"
+msgstr "Отображать только эту коллекцию костей и другие, помеченные как 'cоло'"
+
+
 msgid "Visible"
 msgstr "Видимо"
 
 
 msgid "Bones in this collection will be visible in pose/object mode"
 msgstr "Показывать кости из этой коллекции в режиме позы/объекта"
+
+
+msgid "Ancestors Effectively Visible"
+msgstr "Родители полностью видны"
+
+
+msgid "True when all of the ancestors of this bone collection are marked as visible; always True for root bone collections"
+msgstr "Истина, если все предки этой коллекции костей отмечены как видимые; всегда истина для корневых коллекций костей"
+
+
+msgid "Effective Visibility"
+msgstr "Эффективная видимость"
+
+
+msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible, or when it is marked as 'solo'"
+msgstr "Определяет, если эта коллекция костей эффективно видна во вьюпорте. Это значение равно Истина, если эта коллекция костей и все ее предки видны, или если она помечена как \"соло\""
 
 
 msgid "Unique within the Armature"
@@ -5342,6 +5402,14 @@ msgstr "Объект фокуса"
 
 msgid "Use this object to define the depth of field focal point"
 msgstr "Объект, определяющий фокусную точку для глубины резкости"
+
+
+msgid "Focus Bone"
+msgstr "Кость фокуса"
+
+
+msgid "Use this armature bone to define the depth of field focal point"
+msgstr "Используйте эту кость арматуры, чтобы определить точку фокусировки глубины резкости"
 
 
 msgid "Use Depth of Field"
@@ -36626,7 +36694,7 @@ msgstr "Объединить XYZ"
 
 
 msgid "Composite"
-msgstr "Композиция"
+msgstr "Композит"
 
 
 msgid "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)"
@@ -38284,6 +38352,10 @@ msgstr "Извлечь атрибуты, прикреплённые к объе�
 
 msgid "Attribute Name"
 msgstr "Имя атрибута"
+
+
+msgid "Instancer"
+msgstr "Создатель экземпляров"
 
 
 msgid "Background"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2024-02-14 08:26+0000\n"
+"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"PO-Revision-Date: 2024-02-22 06:59+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -137727,12 +137727,20 @@ msgid "Surface UV Coordinate"
 msgstr "UV súradnice povrchu"
 
 
+msgid "Surface UV coordinates at the attachment point"
+msgstr "UV súradnice povrchu v bode pripojenia"
+
+
 msgid "Surface Normal"
 msgstr "Normála povrchu"
 
 
 msgid "Surface normal at the attachment point"
 msgstr "Normála povrchu v bode pripojenia"
+
+
+msgid "Surface geometry to attach hair curves to"
+msgstr "Geometria povrchu na pripojenie kriviek vlasov"
 
 
 msgid "Surface Object to attach to (needs to have matching transforms)"
@@ -137769,6 +137777,10 @@ msgstr "Prichytí koreň každej krivky k najbližšiemu bodu povrchu"
 
 msgid "Align to Surface Normal"
 msgstr "Zarovnať na normálu povrchu"
+
+
+msgid "Align the curve to the surface normal (needs a guide as reference)"
+msgstr "Zarovná krivku na normálu povrchu (potrebuje vodenie ako referenciu)"
 
 
 msgid "Blend along Curve"
@@ -137861,6 +137873,10 @@ msgstr "Minimálna vzdialenosť medzi dvoma vodeniami pre novú mapu vodenia"
 
 msgid "Guide Mask"
 msgstr "Maska vodenia"
+
+
+msgid "Mask for which curves are eligible to be selected as guides"
+msgstr "Maska, pre ktorú sú krivky vhodné na výber ako vodenie"
 
 
 msgid "Existing Guide Map"
@@ -138027,8 +138043,16 @@ msgid "Guide Selection"
 msgstr "Výber vodenia"
 
 
+msgid "Guide curves or points used for the selection of guide curves"
+msgstr "Krivky vodenia alebo body používané na výber kriviek vodenia"
+
+
 msgid "Minimum distance between two guides"
 msgstr "Minimálna vzdialenosť medzi dvoma vodeniami"
+
+
+msgid "ID to group curves together for guide map creation"
+msgstr "ID na zoskupenie kriviek na vytvorenie mapy vodenia"
 
 
 msgid "Curl Hair Curves"
@@ -138087,8 +138111,28 @@ msgid "Curve ID"
 msgstr "ID krivky"
 
 
+msgid "ID of each curve"
+msgstr "ID každej krivky"
+
+
+msgid "Length of each curve"
+msgstr "Dĺžka každej krivky"
+
+
+msgid "Direction from root to tip of each curve"
+msgstr "Smer od koreňa po špičku každej krivky"
+
+
+msgid "Random vector for each curve"
+msgstr "Náhodný vektor pre každú krivku"
+
+
 msgid "Surface UV"
 msgstr "UV povrchu"
+
+
+msgid "Attachment surface UV coordinates of each curve"
+msgstr "Uchytenie UV súradníc povrchu každej krivky"
 
 
 msgid "Curve Root"
@@ -138111,12 +138155,24 @@ msgid "Root Position"
 msgstr "Poloha koreňa"
 
 
+msgid "Position of the root point of a curve"
+msgstr "Poloha koreňového bodu krivky"
+
+
 msgid "Root Direction"
 msgstr "Smer koreňa"
 
 
+msgid "Direction of the root segment of a curve"
+msgstr "Smer koreňového segmentu krivky"
+
+
 msgid "Root Index"
 msgstr "Index koreňa"
+
+
+msgid "Index of the root point of a curve"
+msgstr "Index koreňového bodu krivky"
 
 
 msgid "Curve Segment"
@@ -138129,6 +138185,10 @@ msgstr "Číta informácie o predošlom segmente krivky každého bodu"
 
 msgid "Segment Length"
 msgstr "Dĺžka segmentu"
+
+
+msgid "Distance to previous point on curve"
+msgstr "Vzdialenosť od predošlého bodu na krivke"
 
 
 msgid "Segment Direction"
@@ -138167,12 +138227,24 @@ msgid "Tip Position"
 msgstr "Poloha špičky"
 
 
+msgid "Position of the tip point of a curve"
+msgstr "Poloha bodu špičky krivky"
+
+
 msgid "Tip Direction"
 msgstr "Smer špičky"
 
 
+msgid "Direction of the tip segment of a curve"
+msgstr "Smer segmentu špičky krivky"
+
+
 msgid "Tip Index"
 msgstr "Index špičky"
+
+
+msgid "Index of the tip point of a curve"
+msgstr "Index bodu špičky krivky"
 
 
 msgid "Displace Hair Curves"
@@ -138295,6 +138367,14 @@ msgid "Normal direction of the surface mesh at the attachment point"
 msgstr "Smer normály povrchovej siete v bode prichytenia"
 
 
+msgid "Surface geometry for generation"
+msgstr "Geometria povrchu na generovanie"
+
+
+msgid "Surface object for generation (needs matching transforms)"
+msgstr "Povrchový objekt na vygenerovanie (potrebuje zodpovedajúce transformácie)"
+
+
 msgid "Length of the generated hair curves"
 msgstr "Dĺžka vygenerovaných kriviek vlasov"
 
@@ -138315,6 +138395,10 @@ msgid "Poisson Disk Distribution"
 msgstr "Poissonove rozloženie diskov"
 
 
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "Na udržanie minimálnej vzdialenosti použije metódu Poissonovho rozloženia diskov"
+
+
 msgid "Surface density of generated hair curves"
 msgstr "Povrchová hustota vygenerovaných kriviek vlasov"
 
@@ -138325,6 +138409,10 @@ msgstr "Maska hustoty"
 
 msgid "Factor applied on the density for curve distribution"
 msgstr "Faktor aplikovaný pre hustotu na rozloženie kriviek"
+
+
+msgid "Discard points based on a mask texture after distribution"
+msgstr "Vyradenie bodov na základe textúry masky po distribúcii"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -138341,6 +138429,10 @@ msgstr "Číta informácie o prichytení týkajúce sa povrchovej siete"
 
 msgid "Attachment UV"
 msgstr "Prichytenia UV"
+
+
+msgid "Surface attachment UV coordinates stored on each curve"
+msgstr "UV súradnice povrchu prichytenia uložené na každej krivke"
 
 
 msgid "Attachment is Valid"
@@ -138379,12 +138471,24 @@ msgid "Scale along Curve"
 msgstr "Mierka pozdĺž krivky"
 
 
+msgid "Scale of noise texture along each curve"
+msgstr "Mierka textúry šumu pozdĺž každej krivky"
+
+
 msgid "Offset per Curve"
 msgstr "Posuv na krivku"
 
 
+msgid "Random offset of noise texture for each curve"
+msgstr "Náhodný posuv textúry šumu pre každú krivku"
+
+
 msgid "Seed value for randomization"
 msgstr "Hodnota rozosiatia pre náhodnosť"
+
+
+msgid "Preserve the length of the curves on a segment basis"
+msgstr "Zachová dĺžku kriviek na základe segmentov"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
@@ -138437,6 +138541,10 @@ msgstr "Prerozdelí existujúce riadiace body rovnomerne pozdĺž každej krivky
 
 msgid "Feature Awareness"
 msgstr "Informovanosť o funkciách"
+
+
+msgid "Use simple feature awareness to keep feature definition"
+msgstr "Na zachovanie definície funkcie použije jednoduché informovanie o funkcii"
 
 
 msgid "Restore Curve Segment Length"
@@ -138547,6 +138655,14 @@ msgid "Factor to influence the rotation angle"
 msgstr "Faktor na ovplyvnenie uhla rotácie"
 
 
+msgid "Rotation axis (default: tangent at root)"
+msgstr "Os rotácie (predvolené: dotyčnica pri koreni)"
+
+
+msgid "Random offset to the rotation angle per curve"
+msgstr "Náhodný posuv k uhlu pootočenia podľa krivky"
+
+
 msgid "Lock Ends"
 msgstr "Zamknúť konce"
 
@@ -138613,6 +138729,10 @@ msgstr "Prelína zmrštenie pre body nad povrchom"
 
 msgid "Smoothing Steps"
 msgstr "Kroky vyhladenia"
+
+
+msgid "Amount of steps of smoothing applied after shrinkwrap"
+msgstr "Množstvo krokov vyhladenia aplikovaných po zmrštení"
 
 
 msgid "Lock Roots"

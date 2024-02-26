@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2024-02-19 01:55+0000\n"
+"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"PO-Revision-Date: 2024-02-19 21:51+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -7006,7 +7006,7 @@ msgstr "[Local Space]: La restricció s'aplica en relació amb el sistema de coo
 
 
 msgid "Constraint's panel is expanded in UI"
-msgstr "S'amplia en la IU el mostrador de restriccions"
+msgstr "S'amplia en la IU el plafó de restriccions"
 
 
 msgid "Object for Custom Space"
@@ -137727,12 +137727,20 @@ msgid "Surface UV Coordinate"
 msgstr "Coordenada UV de superfície"
 
 
+msgid "Surface UV coordinates at the attachment point"
+msgstr "Coordenada UV superficial en el punt d'adhesió"
+
+
 msgid "Surface Normal"
 msgstr "Normal de superfície"
 
 
 msgid "Surface normal at the attachment point"
 msgstr "Normal de superfície en el punt d'adhesió"
+
+
+msgid "Surface geometry to attach hair curves to"
+msgstr "Geometria de la superfície on adherir-hi les corbes de pèl"
 
 
 msgid "Surface Object to attach to (needs to have matching transforms)"
@@ -137769,6 +137777,10 @@ msgstr "Acobla l'arrel de cada corba al punt més pròxim de la superfície"
 
 msgid "Align to Surface Normal"
 msgstr "Alinear a normal de superfície"
+
+
+msgid "Align the curve to the surface normal (needs a guide as reference)"
+msgstr "Alinea la corba a la normal de superfície (li cal una guia de referència)"
 
 
 msgid "Blend along Curve"
@@ -137861,6 +137873,10 @@ msgstr "Distància mínima entre dues guies en el nou mapa guia"
 
 msgid "Guide Mask"
 msgstr "Màscara de guia"
+
+
+msgid "Mask for which curves are eligible to be selected as guides"
+msgstr "[Guide Mask]: Màscara per quines corbes són susceptubles de seleccionar-se com a guies"
 
 
 msgid "Existing Guide Map"
@@ -138027,8 +138043,16 @@ msgid "Guide Selection"
 msgstr "Selecció de guia"
 
 
+msgid "Guide curves or points used for the selection of guide curves"
+msgstr "Corbes guia o punts emprats per a la selecció de corbes guia"
+
+
 msgid "Minimum distance between two guides"
 msgstr "Distància mínima entre dues guies"
+
+
+msgid "ID to group curves together for guide map creation"
+msgstr "ID per agrupar les corbes en la creació del mapa guia"
 
 
 msgid "Curl Hair Curves"
@@ -138087,8 +138111,28 @@ msgid "Curve ID"
 msgstr "ID de corba"
 
 
+msgid "ID of each curve"
+msgstr "ID de cada corba"
+
+
+msgid "Length of each curve"
+msgstr "Longitud de cada corba"
+
+
+msgid "Direction from root to tip of each curve"
+msgstr "Direcció des de l'arrel fins a la punta de cada corba"
+
+
+msgid "Random vector for each curve"
+msgstr "Vector aleatori per a cada corba"
+
+
 msgid "Surface UV"
 msgstr "UV de superfície"
+
+
+msgid "Attachment surface UV coordinates of each curve"
+msgstr "Coordenada de superfície UV d'adhesió de cada corba"
 
 
 msgid "Curve Root"
@@ -138111,12 +138155,24 @@ msgid "Root Position"
 msgstr "Ubicació d'arrel"
 
 
+msgid "Position of the root point of a curve"
+msgstr "Ubicació del punt arrel d'una corba"
+
+
 msgid "Root Direction"
 msgstr "Direcció de l'arrel"
 
 
+msgid "Direction of the root segment of a curve"
+msgstr "Direcció del segment arrel d'una corba"
+
+
 msgid "Root Index"
 msgstr "Índex de l'arrel"
+
+
+msgid "Index of the root point of a curve"
+msgstr "Índex del punt arrel d'una corba"
 
 
 msgid "Curve Segment"
@@ -138129,6 +138185,10 @@ msgstr "Llegeix la informació de cada segment de corba anterior a cada punt"
 
 msgid "Segment Length"
 msgstr "Longitud del segment"
+
+
+msgid "Distance to previous point on curve"
+msgstr "Distància al punt anterior de la corba"
 
 
 msgid "Segment Direction"
@@ -138167,12 +138227,24 @@ msgid "Tip Position"
 msgstr "Ubicació de punta"
 
 
+msgid "Position of the tip point of a curve"
+msgstr "Ubicació de la punta de la corba"
+
+
 msgid "Tip Direction"
 msgstr "Direcció de la punta"
 
 
+msgid "Direction of the tip segment of a curve"
+msgstr "Direcció del segment de la punta d'una corba"
+
+
 msgid "Tip Index"
 msgstr "Índex de la punta"
+
+
+msgid "Index of the tip point of a curve"
+msgstr "Índex del punt extrem d'una corba"
 
 
 msgid "Displace Hair Curves"
@@ -138295,6 +138367,14 @@ msgid "Normal direction of the surface mesh at the attachment point"
 msgstr "Direcció de normal de la superfície de malla en el punt d'adhesió"
 
 
+msgid "Surface geometry for generation"
+msgstr "Geometria de superfície per a la generació"
+
+
+msgid "Surface object for generation (needs matching transforms)"
+msgstr "Objecte de superfície per la generació (necessita transformacions coincidents)"
+
+
 msgid "Length of the generated hair curves"
 msgstr "Llargada de les corbes de pèl generades"
 
@@ -138315,6 +138395,10 @@ msgid "Poisson Disk Distribution"
 msgstr "Distribució del disc de Poisson"
 
 
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "Empra el mètode de distribució de disc de Poisson per mantenir una distància mínima"
+
+
 msgid "Surface density of generated hair curves"
 msgstr "Densitat de superfície de les corbes de pèl generades"
 
@@ -138325,6 +138409,10 @@ msgstr "Màscara de densitat"
 
 msgid "Factor applied on the density for curve distribution"
 msgstr "Factor aplicat a la densitat per a la distribució de corbes"
+
+
+msgid "Discard points based on a mask texture after distribution"
+msgstr "Descartar els punts basats en una textura màscara després de la distribució"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -138341,6 +138429,10 @@ msgstr "Llegeix la informació d'adhesió relativa a una superfície de malla"
 
 msgid "Attachment UV"
 msgstr "UV d'adhesió"
+
+
+msgid "Surface attachment UV coordinates stored on each curve"
+msgstr "Coordenades d'adhesió UV de superfície guardades per a cada corba"
 
 
 msgid "Attachment is Valid"
@@ -138379,12 +138471,24 @@ msgid "Scale along Curve"
 msgstr "Escalar seguint la corba"
 
 
+msgid "Scale of noise texture along each curve"
+msgstr "Escala la textura soroll al llarg de cada corba"
+
+
 msgid "Offset per Curve"
 msgstr "Desviació per corba"
 
 
+msgid "Random offset of noise texture for each curve"
+msgstr "Desviació aleatòria de la textura soroll per a cada corba"
+
+
 msgid "Seed value for randomization"
 msgstr "Valor de llavor d'aleatorització"
+
+
+msgid "Preserve the length of the curves on a segment basis"
+msgstr "Preserva la longitud de les corbes per segments"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
@@ -138437,6 +138541,10 @@ msgstr "Redistribueix els punts de control existents uniformement al llarg de ca
 
 msgid "Feature Awareness"
 msgstr "Sensibilitat als detalls"
+
+
+msgid "Use simple feature awareness to keep feature definition"
+msgstr "Emprar la detecció de detalls simple per mantenir la definició dels detalls"
 
 
 msgid "Restore Curve Segment Length"
@@ -138547,6 +138655,14 @@ msgid "Factor to influence the rotation angle"
 msgstr "Factor d'influència en l'angle de rotació"
 
 
+msgid "Rotation axis (default: tangent at root)"
+msgstr "Eix de rotació (per defecte: tangent a arrel)"
+
+
+msgid "Random offset to the rotation angle per curve"
+msgstr "Desviació aleatòria a l'angle de rotació per corba"
+
+
 msgid "Lock Ends"
 msgstr "Travar extrems"
 
@@ -138613,6 +138729,10 @@ msgstr "Fusionar el sobrecobrir per als punts per sobre de la superfície"
 
 msgid "Smoothing Steps"
 msgstr "Tandes de suavitzat"
+
+
+msgid "Amount of steps of smoothing applied after shrinkwrap"
+msgstr "Quantitat de passos de suavització aplicats després de sobrecobrir"
 
 
 msgid "Lock Roots"
