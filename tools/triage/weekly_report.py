@@ -202,7 +202,7 @@ def report_personal_weekly_get(username, start, verbose=True):
             pull_data = gitea_json_issue_get_cached(pull)
             title = pull_data["title"]
             owner, repo, _, number = pull.split('/')
-            print(f"* {owner}/{repo}!{number}: {title}")
+            print(f"* {title} ({owner}/{repo}!{number})")
 
     print("**Review: %s**" % len(pulls_reviewed))
     print_pulls(pulls_reviewed)
