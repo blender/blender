@@ -53,6 +53,15 @@ def url_json_get_all_pages(url, limit=50, verbose=False):
     return result
 
 
+def gitea_user_get(username):
+    """
+    Get the user data as JSON from the user name. https://docs.gitea.com/api/next/#tag/user/operation/userGet
+    """
+
+    url = f"{BASE_API_URL}/users/{username}"
+    return url_json_get(url)
+
+
 def gitea_json_issue_get(issue_fullname):
     """
     Get issue/pull JSON data.
