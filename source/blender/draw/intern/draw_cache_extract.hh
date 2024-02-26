@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.h"
@@ -305,7 +306,7 @@ void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,
-                                        const float obmat[4][4],
+                                        const float4x4 &object_to_world,
                                         bool do_final,
                                         bool do_uvedit,
                                         const Scene *scene,

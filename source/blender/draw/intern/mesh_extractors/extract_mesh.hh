@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_virtual_array.hh"
 
@@ -61,7 +62,7 @@ struct MeshRenderData {
   bool use_simplify_normals;
 
   /** Use for #MeshStatVis calculation which use world-space coords. */
-  float obmat[4][4];
+  float4x4 object_to_world;
 
   const ToolSettings *toolsettings;
   /** Edit Mesh */
@@ -280,7 +281,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         bool is_editmode,
                                         bool is_paint_mode,
                                         bool is_mode_active,
-                                        const float obmat[4][4],
+                                        const float4x4 &object_to_world,
                                         bool do_final,
                                         bool do_uvedit,
                                         bool use_hide,
