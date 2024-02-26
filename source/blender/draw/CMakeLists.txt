@@ -63,6 +63,7 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
   intern/mesh_extractors/extract_mesh_vbo_tan.cc
   intern/mesh_extractors/extract_mesh_vbo_uv.cc
+  intern/mesh_extractors/extract_mesh_vbo_vnor.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc

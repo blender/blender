@@ -74,8 +74,8 @@ struct MeshBufferList {
    * (except fdots and skin roots). For some VBOs, it extends to (in this exact order) :
    * loops + loose_edges * 2 + loose_verts */
   struct {
-    GPUVertBuf *pos_nor;  /* extend */
-    GPUVertBuf *lnor;     /* extend */
+    GPUVertBuf *pos;      /* extend */
+    GPUVertBuf *nor;      /* extend */
     GPUVertBuf *edge_fac; /* extend */
     GPUVertBuf *weights;  /* extend */
     GPUVertBuf *uv;
@@ -101,6 +101,7 @@ struct MeshBufferList {
     GPUVertBuf *fdot_idx;
     GPUVertBuf *attr[GPU_MAX_ATTR];
     GPUVertBuf *attr_viewer;
+    GPUVertBuf *vnor;
   } vbo;
   /* Index Buffers:
    * Only need to be updated when topology changes. */

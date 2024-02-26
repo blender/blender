@@ -52,11 +52,8 @@ eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
 
 static const MeshExtract *mesh_extract_override_hq_normals(const MeshExtract *extractor)
 {
-  if (extractor == &extract_pos_nor) {
-    return &extract_pos_nor_hq;
-  }
-  if (extractor == &extract_lnor) {
-    return &extract_lnor_hq;
+  if (extractor == &extract_nor) {
+    return &extract_nor_hq;
   }
   if (extractor == &extract_tan) {
     return &extract_tan_hq;
