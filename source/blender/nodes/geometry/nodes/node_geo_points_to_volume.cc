@@ -88,8 +88,7 @@ static void convert_to_grid_index_space(const float voxel_size,
  */
 static void initialize_volume_component_from_points(GeoNodeExecParams &params,
                                                     const NodeGeometryPointsToVolume &storage,
-                                                    GeometrySet &r_geometry_set,
-                                                    openvdb::GridClass gridClass)
+                                                    GeometrySet &r_geometry_set)
 {
   Vector<float3> positions;
   Vector<float> radii;
@@ -131,15 +130,10 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
 
   convert_to_grid_index_space(voxel_size, positions, radii);
 
-  if (gridClass == openvdb::GRID_FOG_VOLUME) {
-    const float density = params.get_input<float>("Density");
-    blender::geometry::fog_volume_grid_add_from_points(
-        volume, "density", positions, radii, voxel_size, density);
-  }
-  else if (gridClass == openvdb::GRID_LEVEL_SET) {
-    blender::geometry::sdf_volume_grid_add_from_points(
-        volume, "distance", positions, radii, voxel_size);
-  }
+  const float density = params.get_input<float>("Density");
+  blender::geometry::fog_volume_grid_add_from_points(
+      volume, "density", positions, radii, voxel_size, density);
+
   r_geometry_set.keep_only_during_modify({GeometryComponent::Type::Volume});
   r_geometry_set.replace_volume(volume);
 }
@@ -208,8 +202,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Points");
   const NodeGeometryPointsToVolume &storage = node_storage(params.node());
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    initialize_volume_component_from_points(
-        params, storage, geometry_set, openvdb::GRID_FOG_VOLUME);
+    initialize_volume_component_from_points(params, storage, geometry_set);
   });
   params.set_output("Volume", std::move(geometry_set));
 #else
