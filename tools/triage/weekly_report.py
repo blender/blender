@@ -116,6 +116,9 @@ def report_personal_weekly_get(username, start, verbose=True):
                     for commits in content_json["Commits"]:
                         title = commits["Message"].split('\n', 1)[0]
 
+                        if title.startswith("Merge branch "):
+                            continue
+
                         # Substitute occurrences of "#\d+" with "repo#\d+"
                         title = re.sub(r"#(\d+)", rf"{repo_fullname}#\1", title)
 
