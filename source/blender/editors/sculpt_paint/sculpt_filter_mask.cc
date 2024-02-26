@@ -41,20 +41,12 @@ enum eSculptMaskFilterTypes {
 };
 
 static EnumPropertyItem prop_mask_filter_types[] = {
-    {MASK_FILTER_SMOOTH, "SMOOTH", 0, "Smooth Mask", "Smooth mask"},
-    {MASK_FILTER_SHARPEN, "SHARPEN", 0, "Sharpen Mask", "Sharpen mask"},
-    {MASK_FILTER_GROW, "GROW", 0, "Grow Mask", "Grow mask"},
-    {MASK_FILTER_SHRINK, "SHRINK", 0, "Shrink Mask", "Shrink mask"},
-    {MASK_FILTER_CONTRAST_INCREASE,
-     "CONTRAST_INCREASE",
-     0,
-     "Increase Contrast",
-     "Increase the contrast of the paint mask"},
-    {MASK_FILTER_CONTRAST_DECREASE,
-     "CONTRAST_DECREASE",
-     0,
-     "Decrease Contrast",
-     "Decrease the contrast of the paint mask"},
+    {MASK_FILTER_SMOOTH, "SMOOTH", 0, "Smooth Mask", ""},
+    {MASK_FILTER_SHARPEN, "SHARPEN", 0, "Sharpen Mask", ""},
+    {MASK_FILTER_GROW, "GROW", 0, "Grow Mask", ""},
+    {MASK_FILTER_SHRINK, "SHRINK", 0, "Shrink Mask", ""},
+    {MASK_FILTER_CONTRAST_INCREASE, "CONTRAST_INCREASE", 0, "Increase Contrast", ""},
+    {MASK_FILTER_CONTRAST_DECREASE, "CONTRAST_DECREASE", 0, "Decrease Contrast", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
