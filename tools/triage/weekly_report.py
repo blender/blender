@@ -209,7 +209,7 @@ def report_personal_weekly_get(username, start, verbose=True):
     print()
 
     # Print created diffs
-    print("**Created pulls: %s**" % len(pulls_created))
+    print("**Created Pull Requests: %s**" % len(pulls_created))
     print_pulls(pulls_created)
     print()
 
@@ -229,9 +229,9 @@ def report_personal_weekly_get(username, start, verbose=True):
         print("Debug:")
         print(f"Activities from {start.isoformat()} to {date_end.isoformat()}:")
         print()
-        print("Pulls Created:")
+        print("Pull Requests Created:")
         print_links(pulls_created)
-        print("Pulls Reviewed:")
+        print("Pull Requests Reviewed:")
         print_links(pulls_reviewed)
         print("Issues Confirmed:")
         print_links(issues_confirmed)
