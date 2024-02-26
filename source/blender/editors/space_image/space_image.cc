@@ -1080,6 +1080,7 @@ static void image_space_blend_read_data(BlendDataReader * /*reader*/, SpaceLink 
   sima->scopes.waveform_2 = nullptr;
   sima->scopes.waveform_3 = nullptr;
   sima->scopes.vecscope = nullptr;
+  sima->scopes.vecscope_rgb = nullptr;
   sima->scopes.ok = 0;
 
 /* WARNING: gpencil data is no longer stored directly in sima after 2.5
