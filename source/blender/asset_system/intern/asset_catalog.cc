@@ -297,7 +297,6 @@ AssetCatalog *AssetCatalogService::create_catalog(const AssetCatalogPath &catalo
     catalog_collection_->catalog_definition_file_->add_new(catalog_ptr);
   }
 
-  this->create_missing_catalogs();
   this->invalidate_catalog_tree();
   AssetLibraryService::get()->tag_all_library_catalogs_dirty();
 
@@ -593,9 +592,13 @@ void AssetCatalogService::invalidate_catalog_tree()
   this->catalog_tree_ = nullptr;
 }
 
-const AssetCatalogTree &AssetCatalogService::catalog_tree() const
+const AssetCatalogTree &AssetCatalogService::catalog_tree()
 {
   if (!catalog_tree_) {
+    /* Ensure all catalog paths lead to valid catalogs. This is important for the catalog tree to
+     * be usable, e.g. it makes sure every item in the tree maps to an actual catalog. */
+    this->create_missing_catalogs();
+
     catalog_tree_ = read_into_tree();
   }
   return *catalog_tree_;

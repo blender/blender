@@ -42,10 +42,9 @@ using OwningAssetCatalogMap = Map<CatalogID, std::unique_ptr<AssetCatalog>>;
 class AssetCatalogService {
   std::unique_ptr<AssetCatalogCollection> catalog_collection_;
   /**
-   * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree() (hence
-   * mutable).
+   * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree().
    */
-  mutable std::unique_ptr<AssetCatalogTree> catalog_tree_;
+  std::unique_ptr<AssetCatalogTree> catalog_tree_;
   CatalogFilePath asset_library_root_;
 
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
@@ -178,7 +177,7 @@ class AssetCatalogService {
    */
   void update_catalog_path(CatalogID catalog_id, const AssetCatalogPath &new_catalog_path);
 
-  const AssetCatalogTree &catalog_tree() const;
+  const AssetCatalogTree &catalog_tree();
 
   /** Return true only if there are no catalogs known. */
   bool is_empty() const;
