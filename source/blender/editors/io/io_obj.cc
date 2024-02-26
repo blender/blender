@@ -106,6 +106,8 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.export_smooth_groups = RNA_boolean_get(op->ptr, "export_smooth_groups");
   export_params.smooth_groups_bitflags = RNA_boolean_get(op->ptr, "smooth_group_bitflags");
 
+  export_params.reports = op->reports;
+
   OBJ_export(C, &export_params);
 
   return OPERATOR_FINISHED;
@@ -403,6 +405,8 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.collection_separator = separator[0];
   import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
   import_params.clear_selection = true;
+
+  import_params.reports = op->reports;
 
   const auto paths = blender::ed::io::paths_from_operator_properties(op->ptr);
 

@@ -45,6 +45,8 @@ struct PLYExportParams {
   ePLYVertexColorMode vertex_colors;
   bool export_attributes;
   bool export_triangulated_mesh;
+
+  ReportList *reports = nullptr;
 };
 
 struct PLYImportParams {
@@ -57,6 +59,8 @@ struct PLYImportParams {
   ePLYVertexColorMode vertex_colors;
   bool import_attributes;
   bool merge_verts;
+
+  ReportList *reports = nullptr;
 };
 
 /**
@@ -64,4 +68,4 @@ struct PLYImportParams {
  */
 void PLY_export(bContext *C, const PLYExportParams *export_params);
 
-void PLY_import(bContext *C, const PLYImportParams *import_params, wmOperator *op);
+void PLY_import(bContext *C, const PLYImportParams *import_params);

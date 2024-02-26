@@ -15,17 +15,14 @@ namespace blender::io::ply {
 
 class PlyReadBuffer;
 
-void splitstr(std::string str, Vector<std::string> &words, const StringRef &deli);
-
 /* Main import function used from within Blender. */
-void importer_main(bContext *C, const PLYImportParams &import_params, wmOperator *op);
+void importer_main(bContext *C, const PLYImportParams &import_params);
 
 /* Used from tests, where full bContext does not exist. */
 void importer_main(Main *bmain,
                    Scene *scene,
                    ViewLayer *view_layer,
-                   const PLYImportParams &import_params,
-                   wmOperator *op);
+                   const PLYImportParams &import_params);
 
 const char *read_header(PlyReadBuffer &file, PlyHeader &r_header);
 
