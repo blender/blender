@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2024-02-18 07:28+0000\n"
+"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"PO-Revision-Date: 2024-02-19 21:51+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -137727,12 +137727,20 @@ msgid "Surface UV Coordinate"
 msgstr "Coord UV de superficie"
 
 
+msgid "Surface UV coordinates at the attachment point"
+msgstr "Coordenadas UV de la superficie en el punto de anclaje"
+
+
 msgid "Surface Normal"
 msgstr "Normal de superficie"
 
 
 msgid "Surface normal at the attachment point"
 msgstr "Normal de la superficie en el punto de anclaje"
+
+
+msgid "Surface geometry to attach hair curves to"
+msgstr "Geometría de la superficie a la cual anclar las curvas de pelo"
 
 
 msgid "Surface Object to attach to (needs to have matching transforms)"
@@ -137769,6 +137777,10 @@ msgstr "Adhiere la raíz de cada curva de pelo al punto más cercano de la super
 
 msgid "Align to Surface Normal"
 msgstr "Alinear a normal de superficie"
+
+
+msgid "Align the curve to the surface normal (needs a guide as reference)"
+msgstr "Alinea la curva a la normal de la superficie (requiere una guía como referencia)"
 
 
 msgid "Blend along Curve"
@@ -137861,6 +137873,10 @@ msgstr "Distancia mínima entre dos guías para el nuevo mapa de guías"
 
 msgid "Guide Mask"
 msgstr "Máscara de guías"
+
+
+msgid "Mask for which curves are eligible to be selected as guides"
+msgstr "Máscara para definir qué curvas serán elegibles como guías"
 
 
 msgid "Existing Guide Map"
@@ -138027,8 +138043,16 @@ msgid "Guide Selection"
 msgstr "Selección de guías"
 
 
+msgid "Guide curves or points used for the selection of guide curves"
+msgstr "Curvas de guía o puntos usados para la selección de curvas de guía"
+
+
 msgid "Minimum distance between two guides"
 msgstr "Distancia mínima entre dos guías"
+
+
+msgid "ID to group curves together for guide map creation"
+msgstr "ID para agrupar las curvas para la creación del mapa de guías"
 
 
 msgid "Curl Hair Curves"
@@ -138087,8 +138111,28 @@ msgid "Curve ID"
 msgstr "ID de la curva"
 
 
+msgid "ID of each curve"
+msgstr "ID de cada curva"
+
+
+msgid "Length of each curve"
+msgstr "Longitud de cada curva"
+
+
+msgid "Direction from root to tip of each curve"
+msgstr "Dirección, desde la raíz hasta la punta, de cada curva"
+
+
+msgid "Random vector for each curve"
+msgstr "Vector aleatorio para cada curva"
+
+
 msgid "Surface UV"
 msgstr "UV de superficie"
+
+
+msgid "Attachment surface UV coordinates of each curve"
+msgstr "Coordenadas UV de anclaje de cada curva sobre la superficie"
 
 
 msgid "Curve Root"
@@ -138111,12 +138155,24 @@ msgid "Root Position"
 msgstr "Posición de la raíz"
 
 
+msgid "Position of the root point of a curve"
+msgstr "Posición de la raíz de una curva"
+
+
 msgid "Root Direction"
 msgstr "Dirección de la raíz"
 
 
+msgid "Direction of the root segment of a curve"
+msgstr "Dirección del segmento de la raíz de una curva"
+
+
 msgid "Root Index"
 msgstr "Identificador de la raíz"
+
+
+msgid "Index of the root point of a curve"
+msgstr "Identificador del punto de la raíz de una curva"
 
 
 msgid "Curve Segment"
@@ -138129,6 +138185,10 @@ msgstr "Proporciona información acerca del segmento anterior de cada punto de l
 
 msgid "Segment Length"
 msgstr "Longitud del segmento"
+
+
+msgid "Distance to previous point on curve"
+msgstr "Distancia hasta el punto anterior de la curva"
 
 
 msgid "Segment Direction"
@@ -138167,12 +138227,24 @@ msgid "Tip Position"
 msgstr "Posición de la punta"
 
 
+msgid "Position of the tip point of a curve"
+msgstr "Posición del punto de la punta de una curva"
+
+
 msgid "Tip Direction"
 msgstr "Dirección de la punta"
 
 
+msgid "Direction of the tip segment of a curve"
+msgstr "Dirección del segmento de la punta de una curva"
+
+
 msgid "Tip Index"
 msgstr "Identificador de la punta"
+
+
+msgid "Index of the tip point of a curve"
+msgstr "Identificador del punto de la punta de una curva"
 
 
 msgid "Displace Hair Curves"
@@ -138295,6 +138367,14 @@ msgid "Normal direction of the surface mesh at the attachment point"
 msgstr "Dirección normal de la superficie de la malla en el punto de anclaje"
 
 
+msgid "Surface geometry for generation"
+msgstr "Geometría de la superficie para la generación"
+
+
+msgid "Surface object for generation (needs matching transforms)"
+msgstr "Objeto de la superficie para la generación (necesita tener transformaciones coincidentes)"
+
+
 msgid "Length of the generated hair curves"
 msgstr "Longitud de las curvas de pelo generadas"
 
@@ -138315,6 +138395,10 @@ msgid "Poisson Disk Distribution"
 msgstr "Distribución en disco de Poisson"
 
 
+msgid "Use Poisson disk distribution method to keep a minimum distance"
+msgstr "Usar una distribución en forma de disco de Poisson para mantener una distancia mínima"
+
+
 msgid "Surface density of generated hair curves"
 msgstr "Densidad superficial de las curvas de pelo generadas"
 
@@ -138325,6 +138409,10 @@ msgstr "Máscara de densidad"
 
 msgid "Factor applied on the density for curve distribution"
 msgstr "Factor aplicado a la densidad para la distribución de las curvas"
+
+
+msgid "Discard points based on a mask texture after distribution"
+msgstr "Permite descartar puntos basándose en una textura de máscara, luego de efectuada la distribución"
 
 
 msgid "Factor applied on the density for the viewport"
@@ -138341,6 +138429,10 @@ msgstr "Proporciona información de anclaje con respecto a la superficie de una 
 
 msgid "Attachment UV"
 msgstr "UV de anclaje"
+
+
+msgid "Surface attachment UV coordinates stored on each curve"
+msgstr "Coordenadas UV de anclaje sobre la superficie, almacenadas en cada curva"
 
 
 msgid "Attachment is Valid"
@@ -138379,12 +138471,24 @@ msgid "Scale along Curve"
 msgstr "Escala a lo largo"
 
 
+msgid "Scale of noise texture along each curve"
+msgstr "Escala de la textura de ruido a lo largo de cada curva"
+
+
 msgid "Offset per Curve"
 msgstr "Desplazamiento por curva"
 
 
+msgid "Random offset of noise texture for each curve"
+msgstr "Desplazamiento aleatorio de la textura de ruido para cada curva"
+
+
 msgid "Seed value for randomization"
 msgstr "Valor semilla para el cálculo aleatorio"
+
+
+msgid "Preserve the length of the curves on a segment basis"
+msgstr "Preserva la longitud de las curvas en base a los segmentos"
 
 
 msgid "Interpolates existing guide curves on a surface mesh"
@@ -138437,6 +138541,10 @@ msgstr "Redistribuye los puntos de control existentes de forma homogénea a lo l
 
 msgid "Feature Awareness"
 msgstr "Sensibilidad a la forma"
+
+
+msgid "Use simple feature awareness to keep feature definition"
+msgstr "Usa un método simple de sensibilidad a la forma para preservar la definición de las mismas"
 
 
 msgid "Restore Curve Segment Length"
@@ -138547,6 +138655,14 @@ msgid "Factor to influence the rotation angle"
 msgstr "Factor para influenciar el ángulo de rotación"
 
 
+msgid "Rotation axis (default: tangent at root)"
+msgstr "Eje de rotación (predefinido: tangente en la raíz)"
+
+
+msgid "Random offset to the rotation angle per curve"
+msgstr "Desplazamiento aleatorio del ángulo de rotación por cada curva"
+
+
 msgid "Lock Ends"
 msgstr "Bloquear a extremos"
 
@@ -138613,6 +138729,10 @@ msgstr "Fundir envoltura, para puntos encima de la superficie"
 
 msgid "Smoothing Steps"
 msgstr "Intervalos de suavizado"
+
+
+msgid "Amount of steps of smoothing applied after shrinkwrap"
+msgstr "Cantidad de intervalos de suavizado aplicados luego de la envoltura"
 
 
 msgid "Lock Roots"

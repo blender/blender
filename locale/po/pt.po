@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2024-02-16 19:55+0000\n"
+"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"PO-Revision-Date: 2024-02-23 23:55+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -17075,6 +17075,10 @@ msgid "VR Controller Poses Indicator"
 msgstr "Indicador de Poses do Controlador de RV"
 
 
+msgid "VR Landmark Indicators"
+msgstr "Indicador de Marco RV"
+
+
 msgid "VR Viewer Pose Indicator"
 msgstr "Indicador de Pose de Visualizador de RV"
 
@@ -17191,32 +17195,120 @@ msgid "Envelope"
 msgstr "Envelope"
 
 
+msgid "Create an envelope shape"
+msgstr "Criar uma forma invólucro"
+
+
+msgid "Extend or shrink strokes"
+msgstr "Extender ou encolher traços"
+
+
+msgid "Line Art"
+msgstr "Desenho de Contorno"
+
+
+msgid "Generate line art strokes from selected source"
+msgstr "Gerar traços das linhas de contorno de fonte seleccionada"
+
+
 msgid "Mirror"
 msgstr "Espelhar"
+
+
+msgid "Duplicate strokes like a mirror"
+msgstr "Duplicar traços como um espelho"
+
+
+msgid "Multiple Strokes"
+msgstr "Múltiplos Traços"
+
+
+msgid "Produce multiple strokes along one stroke"
+msgstr "Produzir múltiplas linhas ao longo de um traço"
+
+
+msgid "Simplify stroke reducing number of points"
+msgstr "Simplificar traço reduzindo número de pontos"
+
+
+msgid "Subdivide"
+msgstr "Subdividir"
+
+
+msgid "Subdivide stroke adding more control points"
+msgstr "Subdividir traço adicionando mais pontos de controle"
+
+
+msgid "Deform stroke points using armature object"
+msgstr "Deformar pontos do traço usando um objecto armação"
 
 
 msgid "Hook"
 msgstr "Gancho"
 
 
+msgid "Deform stroke points using objects"
+msgstr "Deformar pontos do traço usando objectos"
+
+
 msgid "Lattice"
 msgstr "Treliça"
+
+
+msgid "Deform strokes using lattice"
+msgstr "Deformar traços usando uma grelha"
+
+
+msgid "Add noise to strokes"
+msgstr "Adicionar ruído aos traços"
+
+
+msgid "Change stroke location, rotation or scale"
+msgstr "Alterar posição, rotação e escala dos traços"
+
+
+msgid "Project the shape onto another object"
+msgstr "Projectar a forma sobre outro objecto"
 
 
 msgid "Smooth"
 msgstr "Suavizar"
 
 
+msgid "Smooth stroke"
+msgstr "Suavizar traço"
+
+
+msgid "Change stroke thickness"
+msgstr "Alterar espessura do traço"
+
+
 msgid "Hue/Saturation"
 msgstr "Matiz e saturação"
+
+
+msgid "Apply changes to stroke colors"
+msgstr "Aplicar alterações às cores dos traços"
+
+
+msgid "Opacity of the strokes"
+msgstr "Opacidade dos traços"
 
 
 msgid "Tint"
 msgstr "Tingimento"
 
 
+msgid "Tint strokes with new color"
+msgstr "Tingir traços com nova cor"
+
+
 msgid "Armature Modifier"
 msgstr "Modificador - Armação"
+
+
+msgid "Change stroke using armature to deform modifier"
+msgstr "Modificador para deformar traço usando uma armação"
 
 
 msgid "Invert vertex group influence"
@@ -17247,16 +17339,84 @@ msgid "Name of Vertex Group which determines influence of modifier per point"
 msgstr "Nome do grupo de vértices que determina a influência do modificador por ponto."
 
 
+msgid "Instance Modifier"
+msgstr "Modificador de Instância"
+
+
+msgid "Create grid of duplicate instances"
+msgstr "Criar grelha de instâncias duplicadas"
+
+
 msgid "Constant Offset"
 msgstr "Deslocamento constante"
+
+
+msgid "Value for the distance between items"
+msgstr "Valor para a distância entre items"
+
+
+msgid "Number of items"
+msgstr "Número de items"
+
+
+msgid "Inverse Pass"
+msgstr "Passagem Inversa"
+
+
+msgid "Inverse filter"
+msgstr "Filtro Inverso"
+
+
+msgid "Inverse Layers"
+msgstr "Camada Inversa"
+
+
+msgid "Inverse Materials"
+msgstr "Material Inverso"
 
 
 msgid "Pass"
 msgstr "Passo"
 
 
+msgid "Layer pass index"
+msgstr "Índice de passagem da camada"
+
+
+msgid "Material used for filtering effect"
+msgstr "Material usado para efeito de filtragem"
+
+
+msgid "Offset Object"
+msgstr "Afastar Objecto"
+
+
 msgid "Use the location and rotation of another object to determine the distance and rotational change between arrayed items"
 msgstr "Usa a localização e rotação de outro objeto para determinar a distância e alteração rotacional entre os itens que estão na matriz."
+
+
+msgid "Pass index"
+msgstr "Índice de passagem"
+
+
+msgid "Random Offset"
+msgstr "Afastamento Aleatório"
+
+
+msgid "Value for changes in location"
+msgstr "Valor para alterações na posição"
+
+
+msgid "Random Rotation"
+msgstr "Aleatorizar a Rotação"
+
+
+msgid "Value for changes in rotation"
+msgstr "Valores para alterações na rotação"
+
+
+msgid "Value for changes in scale"
+msgstr "Valor para alterações na escala"
 
 
 msgid "Relative Offset"
@@ -17267,36 +17427,376 @@ msgid "The size of the geometry will determine the distance between arrayed item
 msgstr "O tamanho da geometria irá determinar a distância entre os itens constantes na matriz."
 
 
+msgid "Index of the material used for generated strokes (0 keep original material)"
+msgstr "Índice do material usado para traços gerados (0 para manter material original)"
+
+
+msgid "Random seed"
+msgstr "Semente aleatória"
+
+
+msgid "Enable offset"
+msgstr "Activar afastamento"
+
+
+msgid "Use Object Offset"
+msgstr "Usar Afastamento do Objecto"
+
+
+msgid "Enable object offset"
+msgstr "Activar afastamento do objecto"
+
+
 msgid "Shift"
 msgstr "Shift"
+
+
+msgid "Enable shift"
+msgstr "Activar Afastamento"
 
 
 msgid "Uniform Scale"
 msgstr "Escala uniforme"
 
 
+msgid "Use the same random seed for each scale axis for a uniform scale"
+msgstr "Usar a mesma semente aleatória para cada eixo de escala para uma escala uniforme"
+
+
 msgid "Build Modifier"
 msgstr "Modificador - Construir"
+
+
+msgid "Animate strokes appearing and disappearing"
+msgstr "Animar traços a aparecer e desaparecer"
+
+
+msgid "Time Alignment"
+msgstr "Alinhamento de Tempo"
+
+
+msgid "How should strokes start to appear/disappear"
+msgstr "Como os traços devem começar a aparecer/desaparece"
+
+
+msgid "Align Start"
+msgstr "Alinhar Inicio"
+
+
+msgid "All strokes start at same time (i.e. short strokes finish earlier)"
+msgstr "Todos os traços começam ao mesmo tempo (traços mais curtos acabam primeiro)"
+
+
+msgid "Align End"
+msgstr "Alinhar Fim"
+
+
+msgid "All strokes end at same time (i.e. short strokes start later)"
+msgstr "Todos os traços acabam ao mesmo tempo (traços mais curtos começam primeiro)"
+
+
+msgid "Fade Factor"
+msgstr "Factor de Desvanecimento"
+
+
+msgid "Defines how much of the stroke is fading in/out"
+msgstr "Define que quantidade do traço tem desvanecimento de entrada ou de saída"
+
+
+msgid "Opacity Strength"
+msgstr "Força da Opacidade"
+
+
+msgid "How much strength fading applies on top of stroke opacity"
+msgstr "Que quantidade de desvanecimento de força é aplicado sobre opacidade do traço"
+
+
+msgid "Thickness Strength"
+msgstr "Força de Espessura"
+
+
+msgid "How much strength fading applies on top of stroke thickness"
+msgstr "Que quantidade de desvanecimento de força é aplicado sobre espessura do traço"
+
+
+msgid "End Frame (when Restrict Frame Range is enabled)"
+msgstr "Fotograma Final (quando Restrição de Intervalo de Fotogramas está activa)"
+
+
+msgid "Start Frame (when Restrict Frame Range is enabled)"
+msgstr "Fotograma de Inicial quando Restrição de Intervalo de Fotogramas está activa)"
+
+
+msgid "Maximum number of frames that the build effect can run for (unless another GP keyframe occurs before this time has elapsed)"
+msgstr "Número máximo de fotogramas em que o efeito de construção pode correr (a não ser que outro fotograma GP ocorra antes deste tempo ter passado)"
+
+
+msgid "How strokes are being built"
+msgstr "Como os traços estão a ser construídos"
+
+
+msgid "Sequential"
+msgstr "Sequencial"
+
+
+msgid "Strokes appear/disappear one after the other, but only a single one changes at a time"
+msgstr "Os traços aparecem/desaparecem um após o outro, mas apenas um se transforma de cada vez"
+
+
+msgid "Concurrent"
+msgstr "Simultâneo"
+
+
+msgid "Multiple strokes appear/disappear at once"
+msgstr "Múltiplos traços aparecem/desaparecem de uma vez"
+
+
+msgid "Builds only new strokes (assuming 'additive' drawing)"
+msgstr "Apenas constrói novos traços (assumindo desenho 'aditivo')"
+
+
+msgid "Object used as build starting position"
+msgstr "Objecto usado como ponto de início da construção"
+
+
+msgid "Defines how much of the stroke is visible"
+msgstr "Define que quantidade do traço está visível"
 
 
 msgid "Speed Factor"
 msgstr "Fator de velocidade"
 
 
+msgid "Multiply recorded drawing speed by a factor"
+msgstr "Multiplicar a velocidade de desenho gravada por um factor"
+
+
+msgid "Maximum Gap"
+msgstr "Intervalo Máximo"
+
+
+msgid "The maximum gap between strokes in seconds"
+msgstr "O intervalo máximo entre traços em segundos"
+
+
 msgid "Delay"
 msgstr "Atraso"
+
+
+msgid "Number of frames after each GP keyframe before the modifier has any effect"
+msgstr "Número de fotogramas após cada fotograma chave do GP antes do modificador ter qualquer efeito"
+
+
+msgid "Output Vertex group"
+msgstr "Grupo de Vértices de Saída"
+
+
+msgid "Timing"
+msgstr "Temporização"
+
+
+msgid "Use drawing speed, a number of frames, or a manual factor to build strokes"
+msgstr "Usar velocidade de desenho, número de fotogramas, ou factor manual para construir traços"
+
+
+msgid "Natural Drawing Speed"
+msgstr "Velocidade Natural de Desenho"
+
+
+msgid "Use recorded speed multiplied by a factor"
+msgstr "Usar velocidade gravada multiplicada por um factor"
+
+
+msgid "Number of Frames"
+msgstr "Número de Fotogramas"
+
+
+msgid "Set a fixed number of frames for all build animations"
+msgstr "Definir um número fixo de fotogramas para todas as animações de contrução"
+
+
+msgid "Percentage Factor"
+msgstr "Factor de Percentagem"
+
+
+msgid "Set a manual percentage to build"
+msgstr "Definir uma percentagem manual para construção"
 
 
 msgid "Transition"
 msgstr "Transição"
 
 
+msgid "How are strokes animated (i.e. are they appearing or disappearing)"
+msgstr "Como são animados os traços (se estão a aparecer ou desaparecer)"
+
+
 msgid "Grow"
 msgstr "Crescer"
 
 
+msgid "Show points in the order they occur in each stroke (e.g. for animating lines being drawn)"
+msgstr "Mostrar pontos na ordem em que ocorrem em cada traço (para animar linhas a ser desenhadas)"
+
+
+msgid "Hide points from the end of each stroke to the start (e.g. for animating lines being erased)"
+msgstr "Esconder pontos do fim para o princípio de cada traço (para animar linhas a ser apagadas)"
+
+
+msgid "Vanish"
+msgstr "Desaparecer"
+
+
+msgid "Hide points in the order they occur in each stroke (e.g. for animating ink fading or vanishing after getting drawn)"
+msgstr "Esconder pontos na ordem em que ocorrem em cada traço (para tinta a desvanecer ou desaparecer após ser desenhada)"
+
+
+msgid "Use Fading"
+msgstr "usar Desvanecimento"
+
+
+msgid "Fade out strokes instead of directly cutting off"
+msgstr "Desvanecer traços em vez de cortar abruptamente"
+
+
+msgid "Restrict Visible Points"
+msgstr "Restringir Pontos Visíveis"
+
+
+msgid "Use a percentage factor to determine the visible points"
+msgstr "Usar factor de percentagem para determinar pontos visíveis"
+
+
+msgid "Only modify strokes during the specified frame range"
+msgstr "Modificar pontos apenas no intervalo especificado"
+
+
+msgid "Hue/Saturation Modifier"
+msgstr "Modificador de Matiz/Saturação"
+
+
+msgid "Change Hue/Saturation modifier"
+msgstr "Alterar modificador de Matiz/Saturação"
+
+
+msgid "Custom curve to apply effect"
+msgstr "Curva personalizada para aplicar o efeito"
+
+
+msgid "Color Hue"
+msgstr "Matiz de Cor"
+
+
+msgid "Set what colors of the stroke are affected"
+msgstr "Que cores do traço são afectadas"
+
+
+msgid "Modify fill and stroke colors"
+msgstr "Modificar preenchimento e contorno"
+
+
+msgid "Modify stroke color only"
+msgstr "Modificar apenas contorno"
+
+
+msgid "Modify fill color only"
+msgstr "Modificar apenas preenchimento"
+
+
+msgid "Color Saturation"
+msgstr "Saturação de Cor"
+
+
 msgid "Custom Curve"
 msgstr "Curva personalizada"
+
+
+msgid "Use a custom curve to define color effect along the strokes"
+msgstr "Usar curva personalizada para definir efeito de cor ao longo do traço"
+
+
+msgid "Color Value"
+msgstr "Valor da Cor"
+
+
+msgid "Dash Modifier"
+msgstr "Modificador de Tracejado"
+
+
+msgid "Create dot-dash effect for strokes"
+msgstr "Cria um efeito de ponto-traço nas linhas"
+
+
+msgid "Offset into each stroke before the beginning of the dashed segment generation"
+msgstr "Afastamento em cada traço antes do início da geração de tracejado"
+
+
+msgid "Active Dash Segment Index"
+msgstr "Índice de Segmento de Tracejado Activo"
+
+
+msgid "Active index in the segment list"
+msgstr "Índice activo na lista de segmentos"
+
+
+msgid "Envelope Modifier"
+msgstr "Modificador de Invólucro"
+
+
+msgid "Envelope stroke effect modifier"
+msgstr "Modificador de efeito de invólucro"
+
+
+msgid "Inverse VertexGroup"
+msgstr "Inverter Grupo de Vértices"
+
+
+msgid "The material to use for the new strokes"
+msgstr "Material a usar para novos traços"
+
+
+msgid "Algorithm to use for generating the envelope"
+msgstr "Algoritmo para gerar o invólucro"
+
+
+msgid "Deform the stroke to best match the envelope shape"
+msgstr "Deformar o traço para melhor corresponder à forma do invólucro"
+
+
+msgid "Add segments to create the envelope. Keep the original stroke"
+msgstr "Adicionar segmentos para criar o invólucro. Manter o traço original"
+
+
+msgid "Fills"
+msgstr "Preenchimentos"
+
+
+msgid "Add fill segments to create the envelope. Don't keep the original stroke"
+msgstr "Adicionar segmentos de preenchimento para criar o invólucro. Não manter o traço original"
+
+
+msgid "Skip Segments"
+msgstr "Saltar Segmentos"
+
+
+msgid "The number of generated segments to skip to reduce complexity"
+msgstr "Número de segmentos gerados a saltar, para reduzir complexidade"
+
+
+msgid "Spread Length"
+msgstr "Força de Dispersão"
+
+
+msgid "The number of points to skip to create straight segments"
+msgstr "Número de pontos a saltar gerados a saltar para cria segmentos direitos"
+
+
+msgid "Multiplier for the strength of the new strokes"
+msgstr "Multiplicador para a força dos novos traços"
+
+
+msgid "Multiplier for the thickness of the new strokes"
+msgstr "Multiplicador para a espessura dos novos traços"
 
 
 msgid "Vertex group name for modulating the deform"
@@ -17307,12 +17807,20 @@ msgid "Hook Modifier"
 msgstr "Modificador - Gancho"
 
 
+msgid "Hook modifier to modify the location of stroke points"
+msgstr "Modificador Gancho para modificar a posição de pontos dos traços"
+
+
 msgid "Hook Center"
 msgstr "Enganchar centro"
 
 
 msgid "Falloff Curve"
 msgstr "Curva de decaimento"
+
+
+msgid "Custom falloff curve"
+msgstr "Curva de decaimento personalizada"
 
 
 msgid "If not zero, the distance from the hook where influence ends"
@@ -17369,6 +17877,10 @@ msgid "Constant"
 msgstr "Constante"
 
 
+msgid "Inverse Vertex Group"
+msgstr "Grupo de vértices inverso"
+
+
 msgid "Matrix"
 msgstr "Matriz"
 
@@ -17401,6 +17913,10 @@ msgid "Lattice Modifier"
 msgstr "Modificador - Treliça"
 
 
+msgid "Change stroke using lattice to deform modifier"
+msgstr "Alterar traço usando uma grelha para deformar"
+
+
 msgid "Lattice object to deform with"
 msgstr "Objeto jaula, com o qual deformar."
 
@@ -17409,12 +17925,188 @@ msgid "Strength of modifier effect"
 msgstr "Força do efeito do modificador."
 
 
+msgid "Length Modifier"
+msgstr "Modificador de comprimento"
+
+
+msgid "Stretch or shrink strokes"
+msgstr "Esticar ou encolher traços"
+
+
+msgid "End Factor"
+msgstr "Factor de término"
+
+
+msgid "Added length to the end of each stroke relative to its length"
+msgstr "Comprimento adicionado ao final de cada traço relativamente ao seu comprimento"
+
+
+msgid "Absolute added length to the end of each stroke"
+msgstr "Comprimento absoluto adicionado ao final de cada traço"
+
+
+msgid "Invert Curvature"
+msgstr "Inverter Curvatura"
+
+
+msgid "Invert the curvature of the stroke's extension"
+msgstr "Inverter a curvatura da extensão do traço"
+
+
+msgid "Filter Angle"
+msgstr "Filtrar Ângulo"
+
+
+msgid "Ignore points on the stroke that deviate from their neighbors by more than this angle when determining the extrapolation shape"
+msgstr "Ignorar pontos do traço que desviam dos vizinhos mais do que este ângulo quando se determina a forma de extrapolação"
+
+
+msgid "Mode to define length"
+msgstr "Modo para definir comprimento"
+
+
+msgid "Length in ratio to the stroke's length"
+msgstr "Comprimento em rácio do comprimento do traço"
+
+
+msgid "Length in geometry space"
+msgstr "Comprimento no espaço da geometria"
+
+
+msgid "Used Length"
+msgstr "Comprimento usado"
+
+
+msgid "Defines what portion of the stroke is used for the calculation of the extension"
+msgstr "Define que porção do traço é usado para o cálculo da extensão"
+
+
 msgid "Point Density"
 msgstr "Ponto de densidade"
 
 
+msgid "Multiplied by Start/End for the total added point count"
+msgstr "Multiplicado pelo Início/Fm para o total de pontos adicionados"
+
+
+msgid "Random End Factor"
+msgstr "Factor de Término Aleatório"
+
+
+msgid "Size of random length added to the end of each stroke"
+msgstr "Tamanho de comprimento aleatório adicionado ao final de cada traço"
+
+
+msgid "Random Noise Offset"
+msgstr "Ruído de Afastamento Aleatório"
+
+
+msgid "Smoothly offset each stroke's random value"
+msgstr "Afastar o valor aleatório de cada traço suavemente"
+
+
+msgid "Random Start Factor"
+msgstr "Factor de Arranque Aleatório"
+
+
+msgid "Size of random length added to the start of each stroke"
+msgstr "Tamanho do comprimento aleatório adicionado ao início de cada traço"
+
+
+msgid "Segment Influence"
+msgstr "Influência de Segmento"
+
+
+msgid "Factor to determine how much the length of the individual segments should influence the final computed curvature. Higher factors makes small segments influence the overall curvature less"
+msgstr "Factor para determinar o quanto o comprimento de segmentos individuais deve influenciar a curvatura computada final. Factores mais altos fazem segmentos menores influenciar menos a curvatura"
+
+
+msgid "Start Factor"
+msgstr "Factor de Arranque"
+
+
+msgid "Added length to the start of each stroke relative to its length"
+msgstr "Comprimento adicionado ao início de cada traço relativo ao seu comprimento"
+
+
+msgid "Absolute added length to the start of each stroke"
+msgstr "Comprimento absoluto adicionado ao início de cada traço"
+
+
 msgid "Step"
 msgstr "Passos"
+
+
+msgid "Number of frames between randomization steps"
+msgstr "Número de fotogramas entre passos de aleatorização"
+
+
+msgid "Use Curvature"
+msgstr "Usar Curvatura"
+
+
+msgid "Follow the curvature of the stroke"
+msgstr "Seguir a curvatura do traço"
+
+
+msgid "Use random values over time"
+msgstr "Usar valores aleatórios ao longo do tempo"
+
+
+msgid "Line Art Modifier"
+msgstr "Modificador Desenho de Contornos"
+
+
+msgid "Image Threshold"
+msgstr "Limite de Imagem"
+
+
+msgid "Segments with an image distance smaller than this will be chained together"
+msgstr "Segmentos a uma distância de imagem inferior a este valor serão encadeados"
+
+
+msgid "Crease Threshold"
+msgstr "Limite de Vinco"
+
+
+msgid "Angles smaller than this will be treated as creases. Crease angle priority: object line art crease override > mesh auto smooth angle > line art default crease"
+msgstr "Ângulos inferiores a este valor serão tratados como vincos. Prioridade de ângulo de vinco: Revogação de vinco de desenho de contornos do objecto > ângulo de auto-suavização da malha > vinco pré-definido do desenho de contornos"
+
+
+msgid "Invert Vertex Group"
+msgstr "Inverter Grupo de Vértices"
+
+
+msgid "Invert source vertex group values"
+msgstr "Inverter valores do grupo de vértices fonte"
+
+
+msgid "Is Baked"
+msgstr "Está Pré-Calculado"
+
+
+msgid "This modifier has baked data"
+msgstr "Este modificador tem dados pré calculada"
+
+
+msgid "Light Object"
+msgstr "Objecto Luz"
+
+
+msgid "Use this light object to generate light contour"
+msgstr "Usar este objecto luz"
+
+
+msgid "The strength value for the generate strokes"
+msgstr "O valor de força para os traços gerados"
+
+
+msgid "Overscan"
+msgstr "Sobre-Margem"
+
+
+msgid "A margin to prevent strokes from ending abruptly at the edge of the image"
+msgstr "Uma margem para prevenir que os traços terminem abruptamente no final de uma imagem"
 
 
 msgid "Shaded"
@@ -18960,6 +19652,14 @@ msgstr "Tipo de mapeamento final"
 
 msgid "Start Mapping Type"
 msgstr "Tipo de mapeamento inicial"
+
+
+msgid "Determine how the geometry start factor is mapped to a spline"
+msgstr "Determinar como o factor de arranque da geometria é mapeado numa spline"
+
+
+msgid "Geometry Start Factor"
+msgstr "Factor de Arranque da Geometria"
 
 
 msgid "Round"
