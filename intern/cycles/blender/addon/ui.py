@@ -2234,7 +2234,6 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
         col = layout.column(heading="CPU")
 
         row = col.row(align=True)
-        row.prop(cscene, "debug_use_cpu_sse2", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse42", toggle=True)
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
         col.prop(cscene, "debug_bvh_layout", text="BVH")
