@@ -283,6 +283,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         const float obmat[4][4],
                                         bool do_final,
                                         bool do_uvedit,
+                                        bool use_hide,
                                         const ToolSettings *ts);
 void mesh_render_data_free(MeshRenderData *mr);
 void mesh_render_data_update_normals(MeshRenderData &mr, eMRDataType data_flag);

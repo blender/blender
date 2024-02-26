@@ -547,6 +547,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
+                                        const bool use_hide,
                                         const ToolSettings *ts)
 {
   MeshRenderData *mr = MEM_new<MeshRenderData>(__func__);
@@ -554,6 +555,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
   mr->mat_len = mesh_render_mat_len_get(object, mesh);
 
   copy_m4_m4(mr->obmat, obmat);
+
+  mr->use_hide = use_hide;
 
   if (is_editmode) {
     Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object);
@@ -679,9 +682,11 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->material_indices = *attributes.lookup<int>("material_index", bke::AttrDomain::Face);
 
     if (is_mode_active || is_paint_mode) {
-      mr->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-      mr->hide_edge = *attributes.lookup<bool>(".hide_edge", bke::AttrDomain::Edge);
-      mr->hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      if (use_hide) {
+        mr->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+        mr->hide_edge = *attributes.lookup<bool>(".hide_edge", bke::AttrDomain::Edge);
+        mr->hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+      }
 
       mr->select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
       mr->select_edge = *attributes.lookup<bool>(".select_edge", bke::AttrDomain::Edge);
