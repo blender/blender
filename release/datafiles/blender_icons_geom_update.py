@@ -47,7 +47,7 @@ if not os.path.exists(blender_bin):
             blender_bin = blender_app_path
 
 icons_blend = (
-    os.path.join(ROOTDIR, "..", "lib", "resources", "icon_geom.blend"),
+    os.path.join(ROOTDIR, "release", "datafiles", "assets", "icons", "toolbar.blend"),
 )
 
 

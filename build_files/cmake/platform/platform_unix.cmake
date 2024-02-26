@@ -11,7 +11,7 @@ if(NOT DEFINED LIBDIR)
   set(LIBDIR_NATIVE_ABI ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
   # Path to precompiled libraries with known CentOS 7 ABI.
-  set(LIBDIR_CENTOS7_ABI ${CMAKE_SOURCE_DIR}/../lib/linux_centos7_x86_64)
+  set(LIBDIR_CENTOS7_ABI ${CMAKE_SOURCE_DIR}/lib/linux_x64)
 
   # Choose the best suitable libraries.
   if(EXISTS ${LIBDIR_NATIVE_ABI})

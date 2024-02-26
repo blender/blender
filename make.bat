@@ -56,11 +56,6 @@ if "%BUILD_VS_YEAR%" == "" (
 	)
 )
 
-if "%SVN_FIX%" == "1" (
-	call "%BLENDER_DIR%\build_files\windows\svn_fix.cmd"
-	goto EOF
-)
-
 if "%BUILD_UPDATE%" == "1" (
 	call "%BLENDER_DIR%\build_files\windows\check_libraries.cmd"
 	if errorlevel 1 goto EOF

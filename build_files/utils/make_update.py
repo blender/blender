@@ -12,8 +12,9 @@ sub-modules and libraries.
 import argparse
 import os
 import platform
-import shutil
 import sys
+
+from pathlib import Path
 
 import make_utils
 from make_utils import call, check_output
@@ -22,6 +23,7 @@ from make_utils import call, check_output
 def print_stage(text):
     print("")
     print(text)
+    print("=" * len(text))
     print("")
 
 # Parse arguments
@@ -50,105 +52,135 @@ def parse_arguments():
 
 
 def get_blender_git_root():
-    return check_output([args.git_command, "rev-parse", "--show-toplevel"])
+    return Path(check_output([args.git_command, "rev-parse", "--show-toplevel"]))
 
 # Setup for precompiled libraries and tests from svn.
 
 
-def get_effective_architecture(args):
-    if args.architecture:
-        return args.architecture
+def get_effective_platform(args) -> str:
+    """
+    Get platform of the host.
 
-    # Check platform.version to detect arm64 with x86_64 python binary.
-    if "ARM64" in platform.version():
-        return "arm64"
+    The result string is normalized to the name used by Blender releases and
+    library repository name prefixes: linux, macos, windows.
+    """
 
-    return platform.machine().lower()
-
-
-def svn_update(args, release_version):
-    svn_non_interactive = [args.svn_command, '--non-interactive']
-
-    lib_dirpath = os.path.join(get_blender_git_root(), '..', 'lib')
-    svn_url = make_utils.svn_libraries_base_url(release_version, args.svn_branch)
-
-    # Checkout precompiled libraries
-    architecture = get_effective_architecture(args)
-    if sys.platform == 'darwin':
-        if architecture == 'arm64':
-            lib_platform = "darwin_arm64"
-        elif architecture == 'x86_64':
-            lib_platform = "darwin"
-        else:
-            lib_platform = None
-    elif sys.platform == 'win32':
-        # Windows checkout is usually handled by bat scripts since python3 to run
-        # this script is bundled as part of the precompiled libraries. However it
-        # is used by the buildbot.
-        lib_platform = "win64_vc15"
-    elif args.use_centos_libraries or args.use_linux_libraries:
-        lib_platform = "linux_centos7_x86_64"
+    if sys.platform == "darwin":
+        platform = "macos"
+    elif sys.platform == "win32":
+        platform = "windows"
     else:
-        # No precompiled libraries for Linux.
-        lib_platform = None
+        platform = sys.platform
 
-    if lib_platform:
-        lib_platform_dirpath = os.path.join(lib_dirpath, lib_platform)
+    assert (platform in ("linux", "macos", "windows"))
 
-        if not os.path.exists(lib_platform_dirpath):
-            print_stage("Checking out Precompiled Libraries")
+    return platform
 
-            if make_utils.command_missing(args.svn_command):
-                sys.stderr.write("svn not found, can't checkout libraries\n")
-                sys.exit(1)
 
-            svn_url_platform = svn_url + lib_platform
-            call(svn_non_interactive + ["checkout", svn_url_platform, lib_platform_dirpath])
+def get_effective_architecture(args) -> str:
+    """
+    Get architecture of the host.
 
-    if args.use_tests:
-        lib_tests = "tests"
-        lib_tests_dirpath = os.path.join(lib_dirpath, lib_tests)
+    The result string is normalized to the architecture name used by the Blender
+    releases and library repository name suffixes: x64, arm64.
 
-        if not os.path.exists(lib_tests_dirpath):
-            print_stage("Checking out Tests")
+    NOTE: When cross-compiling the architecture is coming from the command line
+    argument.
+    """
+    architecture = args.architecture
+    if architecture:
+        assert isinstance(architecture, str)
+    elif "ARM64" in platform.version():
+        # Check platform.version to detect arm64 with x86_64 python binary.
+        architecture = "arm64"
+    else:
+        architecture = platform.machine().lower()
 
-            if make_utils.command_missing(args.svn_command):
-                sys.stderr.write("svn not found, can't checkout tests\n")
-                sys.exit(1)
+    # Normalize the architecture name.
+    if architecture in ("x86_64", "amd64"):
+        architecture = "x64"
 
-            svn_url_tests = svn_url + lib_tests
-            call(svn_non_interactive + ["checkout", svn_url_tests, lib_tests_dirpath])
+    assert (architecture in ("x64", "arm64"))
 
-    # Update precompiled libraries and tests
-    print_stage("Updating Precompiled Libraries and Tests")
+    return architecture
 
-    if os.path.isdir(lib_dirpath):
-        for dirname in os.listdir(lib_dirpath):
-            dirpath = os.path.join(lib_dirpath, dirname)
 
-            if dirname == ".svn":
-                # Cleanup must be run from svn root directory if it exists.
-                if not make_utils.command_missing(args.svn_command):
-                    call(svn_non_interactive + ["cleanup", lib_dirpath])
-                continue
+def get_submodule_directories(args):
+    """
+    Get list of all configured submodule directories.
+    """
 
-            svn_dirpath = os.path.join(dirpath, ".svn")
-            svn_root_dirpath = os.path.join(lib_dirpath, ".svn")
+    blender_git_root = get_blender_git_root()
+    dot_modules = blender_git_root / ".gitmodules"
 
-            if (
-                    os.path.isdir(dirpath) and
-                    (os.path.exists(svn_dirpath) or os.path.exists(svn_root_dirpath))
-            ):
-                if make_utils.command_missing(args.svn_command):
-                    sys.stderr.write("svn not found, can't update libraries\n")
-                    sys.exit(1)
+    if not dot_modules.exists():
+        return ()
 
-                # Cleanup to continue with interrupted downloads.
-                if os.path.exists(svn_dirpath):
-                    call(svn_non_interactive + ["cleanup", dirpath])
-                # Switch to appropriate branch and update.
-                call(svn_non_interactive + ["switch", svn_url + dirname, dirpath], exit_on_error=False)
-                call(svn_non_interactive + ["update", dirpath])
+    submodule_directories_output = check_output(
+        [args.git_command, "config", "--file", dot_modules, "--get-regexp", "path"])
+    return (Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines())
+
+
+def ensure_git_lfs(args) -> None:
+    # Use `--skip-repo` to avoid creating git hooks.
+    # This is called from the `blender.git` checkout, so we don't need to install hooks there.
+    call((args.git_command, "lfs", "install", "--skip-repo"), exit_on_error=True)
+
+
+def update_precompiled_libraries(args):
+    """
+    Configure and update submodule for precompiled libraries
+
+    This function detects the current host architecture and enables
+    corresponding submodule, and updates the submodule.
+
+    NOTE: When cross-compiling the architecture is coming from the command line
+    argument.
+    """
+
+    print_stage("Configuring Precompiled Libraries")
+
+    platform = get_effective_platform(args)
+    arch = get_effective_architecture(args)
+
+    print(f"Detected platform     : {platform}")
+    print(f"Detected architecture : {arch}")
+    print()
+
+    if sys.platform == "linux" and not args.use_linux_libraries:
+        print("Skipping Linux libraries configuration")
+        return ""
+
+    submodule_dir = f"lib/{platform}_{arch}"
+
+    submodule_directories = get_submodule_directories(args)
+
+    if Path(submodule_dir) not in submodule_directories:
+        return "Skipping libraries update: no configured submodule\n"
+
+    make_utils.git_enable_submodule(args.git_command, submodule_dir)
+
+    if not make_utils.git_update_submodule(args.git_command, submodule_dir):
+        return "Error updating precompiled libraries\n"
+
+    return ""
+
+
+def update_tests_data_files(args):
+    """
+    Configure and update submodule with files used by regression tests
+    """
+
+    print_stage("Configuring Tests Data Files")
+
+    submodule_dir = "tests/data"
+
+    make_utils.git_enable_submodule(args.git_command, submodule_dir)
+
+    if not make_utils.git_update_submodule(args.git_command, submodule_dir):
+        return "Error updating test data\n"
+
+    return ""
 
 
 # Test if git repo can be updated.
@@ -189,13 +221,7 @@ def blender_update(args):
     call([args.git_command, "pull", "--rebase"])
 
 
-# Update submodules.
-def submodules_update(args, release_version, branch):
-    print_stage("Updating Submodules")
-    if make_utils.command_missing(args.git_command):
-        sys.stderr.write("git not found, can't update code\n")
-        sys.exit(1)
-
+def submodules_update_non_tracking(args, release_version, branch):
     # Update submodules to appropriate given branch,
     # falling back to master if none is given and/or found in a sub-repository.
     branch_fallback = "master"
@@ -218,6 +244,7 @@ def submodules_update(args, release_version, branch):
     # Checkout appropriate branch and pull changes.
     skip_msg = ""
     for submodule_path, submodule_branch, submodule_branch_fallback in submodules:
+        print(f"- Updating {submodule_path}")
         cwd = os.getcwd()
         try:
             os.chdir(submodule_path)
@@ -245,9 +272,46 @@ def submodules_update(args, release_version, branch):
     return skip_msg
 
 
+def submodules_update_tracking(args, release_version, branch):
+    msg = ""
+
+    submodule_directories = get_submodule_directories(args)
+    for submodule_path in submodule_directories:
+        if submodule_path.parts[0] == "lib" and args.no_libraries:
+            print(f"Skipping library submodule {submodule_path}")
+            continue
+
+        if submodule_path.parts[0] == "tests" and not args.use_tests:
+            print(f"Skipping tests submodule {submodule_path}")
+            continue
+
+        print(f"- Updating {submodule_path}")
+
+        if not make_utils.git_update_submodule(args.git_command, submodule_path):
+            msg += f"Error updating Git submodule {submodule_path}\n"
+
+    return msg
+
+
+def submodules_update(args, release_version, branch):
+    print_stage("Updating Submodules")
+
+    if make_utils.command_missing(args.git_command):
+        sys.stderr.write("git not found, can't update code\n")
+        sys.exit(1)
+
+    msg = ""
+
+    msg += submodules_update_non_tracking(args, release_version, branch)
+    msg += submodules_update_tracking(args, release_version, branch)
+
+    return msg
+
+
 if __name__ == "__main__":
     args = parse_arguments()
     blender_skip_msg = ""
+    libraries_skip_msg = ""
     submodules_skip_msg = ""
 
     blender_version = make_utils. parse_blender_version()
@@ -260,21 +324,29 @@ if __name__ == "__main__":
         branch = 'main'
         release_version = None
 
-    if not args.no_libraries:
-        svn_update(args, release_version)
+    # Submodules and precompiled libraries require Git LFS.
+    ensure_git_lfs(args)
+
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
         if blender_skip_msg:
             blender_skip_msg = "Blender repository skipped: " + blender_skip_msg + "\n"
         else:
             blender_update(args)
+
+    if not args.no_libraries:
+        libraries_skip_msg += update_precompiled_libraries(args)
+        if args.use_tests:
+            libraries_skip_msg += update_tests_data_files(args)
+
     if not args.no_submodules:
         submodules_skip_msg = submodules_update(args, release_version, branch)
 
     # Report any skipped repositories at the end, so it's not as easy to miss.
-    skip_msg = blender_skip_msg + submodules_skip_msg
+    skip_msg = blender_skip_msg + libraries_skip_msg + submodules_skip_msg
     if skip_msg:
-        print_stage(skip_msg.strip())
+        print_stage("Update finished with the following messages")
+        print(skip_msg.strip())
 
     # For failed submodule update we throw an error, since not having correct
     # submodules can make Blender throw errors.

@@ -7,7 +7,7 @@ class BlendfileLoadingTest : public BlendfileLoadingBaseTest {
 
 TEST_F(BlendfileLoadingTest, CanaryTest)
 {
-  /* Load the smallest blend file we have in the SVN lib/tests directory. */
+  /* Load the smallest blend file we have in the tests/data directory. */
   if (!blendfile_load("modifier_stack/array_test.blend")) {
     return;
   }

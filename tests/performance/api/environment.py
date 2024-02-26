@@ -23,7 +23,7 @@ class TestEnvironment:
         self.blender_dir = base_dir / 'blender'
         self.build_dir = base_dir / 'build'
         self.lib_dir = base_dir / 'lib'
-        self.benchmarks_dir = self.blender_git_dir.parent / 'lib' / 'benchmarks'
+        self.benchmarks_dir = self.blender_git_dir / 'tests' / 'benchmarks'
         self.git_executable = 'git'
         self.cmake_executable = 'cmake'
         self.cmake_options = ['-DWITH_INTERNATIONAL=OFF', '-DWITH_BUILDINFO=OFF']

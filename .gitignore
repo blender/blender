@@ -49,3 +49,6 @@ waveletNoiseTile.bin
 
 # testing environment
 /Testing
+
+# External repositories.
+/tests/benchmarks/
