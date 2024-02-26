@@ -46,6 +46,7 @@ dnf config-manager --add-repo http://developer.download.nvidia.com/compute/cuda/
 PACKAGES_FOR_LIBS=(
     # Used to checkout Blender's code.
     git
+    git-lfs
     # Used to checkout Blender's `../lib/` directory.
     subversion
     # Used to extract packages.
