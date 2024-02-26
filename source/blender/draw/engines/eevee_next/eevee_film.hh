@@ -79,6 +79,8 @@ class Film {
   int2 display_extent;
 
   eViewLayerEEVEEPassType enabled_passes_ = eViewLayerEEVEEPassType(0);
+  PassCategory enabled_categories_ = PassCategory(0);
+  bool use_reprojection_ = false;
 
  public:
   Film(Instance &inst, FilmData &data) : inst_(inst), data_(data){};

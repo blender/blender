@@ -30,7 +30,6 @@ using namespace draw;
 
 constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
 constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
-
 #endif
 
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
@@ -240,6 +239,16 @@ enum ePassStorageType : uint32_t {
   PASS_STORAGE_CRYPTOMATTE = 2u,
 };
 
+enum PassCategory : uint32_t {
+  PASS_CATEGORY_DATA = 1u << 0,
+  PASS_CATEGORY_COLOR_1 = 1u << 1,
+  PASS_CATEGORY_COLOR_2 = 1u << 2,
+  PASS_CATEGORY_COLOR_3 = 1u << 3,
+  PASS_CATEGORY_AOV = 1u << 4,
+  PASS_CATEGORY_CRYPTOMATTE = 1u << 5,
+};
+ENUM_OPERATORS(PassCategory, PASS_CATEGORY_CRYPTOMATTE)
+
 struct FilmSample {
   int2 texel;
   float weight;
@@ -269,14 +278,6 @@ struct FilmData {
   float2 extent_inv;
   /** Is true if history is valid and can be sampled. Bypass history to resets accumulation. */
   bool1 use_history;
-  /** Is true if combined buffer is valid and can be re-projected to reduce variance. */
-  bool1 use_reprojection;
-  /** Is true if accumulation of non-filtered passes is needed. */
-  bool1 has_data;
-  /** Is true if accumulation of filtered passes is needed. */
-  bool1 any_render_pass_1;
-  bool1 any_render_pass_2;
-  bool1 any_render_pass_3;
   /** Controlled by user in lookdev mode or by render settings. */
   float background_opacity;
   /** Output counts per type. */
@@ -326,6 +327,7 @@ struct FilmData {
   int samples_len;
   /** Sum of the weights of all samples in the sample table. */
   float samples_weight_total;
+  int _pad1;
   FilmSample samples[FILM_PRECOMP_SAMPLE_MAX];
 };
 BLI_STATIC_ASSERT_ALIGN(FilmData, 16)
