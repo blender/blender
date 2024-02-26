@@ -41,6 +41,7 @@ yum -y install gcc-toolset-11
 PACKAGES_FOR_LIBS=(
     # Used to checkout Blender's code.
     git
+    git-lfs
     # Used to checkout Blender's `../lib/` directory.
     subversion
     # Used to extract packages.
