@@ -5,6 +5,7 @@
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_bxdf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_ray_generate_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_reflection_probe_eval_lib.glsl)
@@ -123,20 +124,6 @@ vec3 lightprobe_eval(LightProbeSample samp, ClosureReflection reflection, vec3 P
   return mix(radiance_cube, radiance_sh, fac);
 }
 
-/* Return the equivalent reflective roughness resulting in a similar lobe. */
-float lightprobe_refraction_roughness_remapping(float roughness, float ior)
-{
-  /* This is a very rough mapping used by manually curve fitting the apparent roughness
-   * (blurriness) of GGX reflections and GGX refraction.
-   * A better fit is desirable if it is in the same order of complexity.  */
-  if (ior > 1.0) {
-    return roughness * sqrt_fast(1.0 - 1.0 / ior);
-  }
-  else {
-    return roughness * sqrt_fast(saturate(1.0 - ior)) * 0.8;
-  }
-}
-
 vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughness)
 {
   /* Reusing same thing as lightprobe_reflection_dominant_dir for now with the roughness mapped to
@@ -150,7 +137,7 @@ vec3 lightprobe_refraction_dominant_dir(vec3 N, vec3 V, float ior, float roughne
 
 vec3 lightprobe_eval(LightProbeSample samp, ClosureRefraction cl, vec3 P, vec3 V)
 {
-  float effective_roughness = lightprobe_refraction_roughness_remapping(cl.roughness, cl.ior);
+  float effective_roughness = refraction_roughness_remapping(cl.roughness, cl.ior);
 
   vec3 L = lightprobe_refraction_dominant_dir(cl.N, V, cl.ior, effective_roughness);
 
@@ -180,8 +167,7 @@ void lightprobe_eval(
       radiance += lightprobe_eval(samp, to_closure_reflection(cl), P, V);
       break;
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
-      radiance = lightprobe_eval(samp, to_closure_refraction(cl), P, V);
+      radiance += lightprobe_eval(samp, to_closure_refraction(cl), P, V);
       break;
     case CLOSURE_NONE_ID:
       /* TODO(fclem): Assert. */

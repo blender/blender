@@ -123,13 +123,8 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
  * L is normalized vector to light shape center.
  * Ng is ideally the geometric normal.
  */
-float light_attenuation_facing(
-    LightData light, vec3 L, float distance_to_light, vec3 Ng, bool use_subsurface)
+vec2 light_attenuation_facing(LightData light, vec3 L, float distance_to_light, vec3 Ng)
 {
-  if (use_subsurface) {
-    return 1.0;
-  }
-
   float radius;
   if (is_area_light(light.type)) {
     radius = length(vec2(light._area_size_x, light._area_size_y));
@@ -143,14 +138,14 @@ float light_attenuation_facing(
   float sin_light_angle = dot(L, Ng);
   /* Do attenuation after the horizon line to avoid harsh cut
    * or biasing of surfaces without light bleeding. */
-  return saturate((sin_light_angle + sin_solid_angle + 0.1) * 10.0);
+  /* Compute for both front facing and backfacing. */
+  return saturate((vec2(sin_light_angle, -sin_light_angle) + sin_solid_angle + 0.1) * 10.0);
 }
 
-float light_attenuation_surface(
-    LightData light, const bool is_directional, vec3 Ng, bool use_subsurface, LightVector lv)
+vec2 light_attenuation_surface(LightData light, const bool is_directional, vec3 Ng, LightVector lv)
 {
   return light_attenuation_common(light, is_directional, lv.L) *
-         light_attenuation_facing(light, lv.L, lv.dist, Ng, use_subsurface) *
+         light_attenuation_facing(light, lv.L, lv.dist, Ng) *
          light_influence_attenuation(lv.dist, light.influence_radius_invsqr_surface);
 }
 

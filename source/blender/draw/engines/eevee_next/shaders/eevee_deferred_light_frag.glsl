@@ -47,6 +47,7 @@ void main()
     cl_light.N = -Ng;
     cl_light.ltc_mat = LTC_LAMBERT_MAT;
     cl_light.type = LIGHT_DIFFUSE;
+    cl_light.subsurface = true;
     stack.cl[gbuf.closure_count] = cl_light;
   }
 #endif
