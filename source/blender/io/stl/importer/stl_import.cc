@@ -12,7 +12,7 @@
 #include "BKE_layer.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"

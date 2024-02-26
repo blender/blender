@@ -9,7 +9,7 @@
 #include <cstdio>
 
 #include "BKE_layer.hh"
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"

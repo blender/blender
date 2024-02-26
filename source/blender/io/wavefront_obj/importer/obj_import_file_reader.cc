@@ -6,7 +6,7 @@
  * \ingroup obj
  */
 
-#include "BKE_report.h"
+#include "BKE_report.hh"
 
 #include "BLI_map.hh"
 #include "BLI_math_color.h"
