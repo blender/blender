@@ -2658,7 +2658,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-              lmd->flags |= LRT_GPENCIL_USE_CACHE;
+              lmd->flags |= MOD_LINEART_USE_CACHE;
               lmd->chain_smooth_tolerance = 0.2f;
             }
           }
@@ -2897,7 +2897,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
           LISTBASE_FOREACH (GpencilModifierData *, md, &ob->greasepencil_modifiers) {
             if (md->type == eGpencilModifierType_Lineart) {
               LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-              lmd->calculation_flags |= LRT_USE_CREASE_ON_SMOOTH_SURFACES;
+              lmd->calculation_flags |= MOD_LINEART_USE_CREASE_ON_SMOOTH_SURFACES;
             }
           }
         }

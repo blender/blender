@@ -800,7 +800,7 @@
     .flag = MOD_WIREFRAME_REPLACE | MOD_WIREFRAME_OFS_EVEN, \
     .mat_ofs = 0, \
   }
-
+  
 #define _DNA_DEFAULT_GreasePencilOpacityModifierData \
   { \
     .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
@@ -962,4 +962,25 @@
     .falloff = 0.0f, \
     .force = 0.5f, \
   }
+
+#define _DNA_DEFAULT_GreasePencilLineartModifierData \
+  { \
+    .edge_types = MOD_LINEART_EDGE_FLAG_INIT_TYPE, \
+    .thickness = 25, \
+    .opacity = 1.0f, \
+    .crease_threshold = DEG2RAD(140.0f), \
+    .calculation_flags = MOD_LINEART_ALLOW_DUPLI_OBJECTS | MOD_LINEART_ALLOW_CLIPPING_BOUNDARIES | \
+                         MOD_LINEART_USE_CREASE_ON_SHARP_EDGES | MOD_LINEART_FILTER_FACE_MARK_KEEP_CONTOUR | \
+                         MOD_LINEART_MATCH_OUTPUT_VGROUP, \
+    /* Do not split by default, this is for better chaining quality. */ \
+    .angle_splitting_threshold = 0.0f, \
+    .chaining_image_threshold = 0.001f, \
+    .stroke_depth_offset = 0.05,\
+    .chain_smooth_tolerance = 0.0f,\
+    .overscan = 0.1f,\
+    .shadow_camera_near = 0.1f, \
+    .shadow_camera_far = 200.0f, \
+    .shadow_camera_size = 200.0f, \
+  }
+  
 /* clang-format off */

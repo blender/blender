@@ -32,11 +32,13 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
   for (int i = 0; i < ba->line_count; i++) {
     LineartEdge *n_e = ba->linked_lines[i];
 
-    if (!(n_e->flags & LRT_EDGE_FLAG_ALL_TYPE) || (n_e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
+    if (!(n_e->flags & MOD_LINEART_EDGE_FLAG_ALL_TYPE) ||
+        (n_e->flags & MOD_LINEART_EDGE_FLAG_CHAIN_PICKED))
+    {
       continue;
     }
 
-    if (match_flag && ((n_e->flags & LRT_EDGE_FLAG_ALL_TYPE) & match_flag) == 0) {
+    if (match_flag && ((n_e->flags & MOD_LINEART_EDGE_FLAG_ALL_TYPE) & match_flag) == 0) {
       continue;
     }
 
@@ -49,7 +51,7 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
       return n_e;
     }
 
-    if (n_e->flags & LRT_EDGE_FLAG_INTERSECTION) {
+    if (n_e->flags & MOD_LINEART_EDGE_FLAG_INTERSECTION) {
       if (n_e->object_ref != match_isec_object) {
         continue;
       }
@@ -128,7 +130,7 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartData *ld,
   copy_v3_v3(eci->gpos, gpos);
   eci->index = index;
   copy_v3_v3(eci->normal, normal);
-  eci->line_type = type & LRT_EDGE_FLAG_ALL_TYPE;
+  eci->line_type = type & MOD_LINEART_EDGE_FLAG_ALL_TYPE;
   eci->occlusion = level;
   eci->material_mask_bits = material_mask_bits;
   eci->shadow_mask_bits = shadow_mask_bits;
@@ -163,7 +165,7 @@ static LineartEdgeChainItem *lineart_chain_prepend_point(LineartData *ld,
   copy_v3_v3(eci->gpos, gpos);
   eci->index = index;
   copy_v3_v3(eci->normal, normal);
-  eci->line_type = type & LRT_EDGE_FLAG_ALL_TYPE;
+  eci->line_type = type & MOD_LINEART_EDGE_FLAG_ALL_TYPE;
   eci->occlusion = level;
   eci->material_mask_bits = material_mask_bits;
   eci->shadow_mask_bits = shadow_mask_bits;
@@ -195,12 +197,14 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
 
   LRT_ITER_ALL_LINES_BEGIN
   {
-    if (!(e->flags & LRT_EDGE_FLAG_ALL_TYPE) || (e->flags & LRT_EDGE_FLAG_CHAIN_PICKED)) {
+    if (!(e->flags & MOD_LINEART_EDGE_FLAG_ALL_TYPE) ||
+        (e->flags & MOD_LINEART_EDGE_FLAG_CHAIN_PICKED))
+    {
       LRT_ITER_ALL_LINES_NEXT
       continue;
     }
 
-    e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
+    e->flags |= MOD_LINEART_EDGE_FLAG_CHAIN_PICKED;
 
     ec = lineart_chain_create(ld);
 
@@ -245,7 +249,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
     while (ba && (new_e = lineart_line_get_connected(
                       ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref)))
     {
-      new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
+      new_e->flags |= MOD_LINEART_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
         zero_v3(N);
@@ -390,7 +394,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
     while (ba && (new_e = lineart_line_get_connected(
                       ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref)))
     {
-      new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
+      new_e->flags |= MOD_LINEART_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
         zero_v3(N);
@@ -409,7 +413,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
 
       /* Fix leading vertex type. */
       eci = static_cast<LineartEdgeChainItem *>(ec->chain.last);
-      eci->line_type = new_e->flags & LRT_EDGE_FLAG_ALL_TYPE;
+      eci->line_type = new_e->flags & MOD_LINEART_EDGE_FLAG_ALL_TYPE;
 
       if (new_vt == new_e->v1) {
         es = static_cast<LineartEdgeSegment *>(new_e->segments.last);
@@ -489,10 +493,10 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
       ba = MOD_lineart_get_bounding_area(ld, new_vt->fbcoord[0], new_vt->fbcoord[1]);
     }
     if (ld->conf.fuzzy_everything) {
-      ec->type = LRT_EDGE_FLAG_CONTOUR;
+      ec->type = MOD_LINEART_EDGE_FLAG_CONTOUR;
     }
     else {
-      ec->type = (e->flags & LRT_EDGE_FLAG_ALL_TYPE);
+      ec->type = (e->flags & MOD_LINEART_EDGE_FLAG_ALL_TYPE);
     }
   }
   LRT_ITER_ALL_LINES_END
@@ -758,15 +762,15 @@ static void lineart_chain_connect(LineartData * /*ld*/,
                                   int reverse_2)
 {
   LineartEdgeChainItem *eci;
-  if (onto->type == LRT_EDGE_FLAG_INTERSECTION) {
+  if (onto->type == MOD_LINEART_EDGE_FLAG_INTERSECTION) {
     if (sub->object_ref) {
       onto->object_ref = sub->object_ref;
-      onto->type = LRT_EDGE_FLAG_CONTOUR;
+      onto->type = MOD_LINEART_EDGE_FLAG_CONTOUR;
     }
   }
-  else if (sub->type == LRT_EDGE_FLAG_INTERSECTION) {
-    if (onto->type != LRT_EDGE_FLAG_INTERSECTION) {
-      onto->type = LRT_EDGE_FLAG_CONTOUR;
+  else if (sub->type == MOD_LINEART_EDGE_FLAG_INTERSECTION) {
+    if (onto->type != MOD_LINEART_EDGE_FLAG_INTERSECTION) {
+      onto->type = MOD_LINEART_EDGE_FLAG_CONTOUR;
     }
   }
   if (!reverse_1) {  /*  L--R L-R. */
@@ -832,8 +836,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
       if (!ld->conf.fuzzy_everything) {
         if (ld->conf.fuzzy_intersections) {
           /* If none of those are intersection lines... */
-          if (!(cre->ec->type & LRT_EDGE_FLAG_INTERSECTION) &&
-              !(ec->type & LRT_EDGE_FLAG_INTERSECTION))
+          if (!(cre->ec->type & MOD_LINEART_EDGE_FLAG_INTERSECTION) &&
+              !(ec->type & MOD_LINEART_EDGE_FLAG_INTERSECTION))
           {
             continue; /* We don't want to chain along different objects at the moment. */
           }
@@ -855,8 +859,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
     if (!ld->conf.fuzzy_everything) {
       if (cre->ec->type != ec->type) {
         if (ld->conf.fuzzy_intersections) {
-          if (!(cre->ec->type == LRT_EDGE_FLAG_INTERSECTION ||
-                ec->type == LRT_EDGE_FLAG_INTERSECTION))
+          if (!(cre->ec->type == MOD_LINEART_EDGE_FLAG_INTERSECTION ||
+                ec->type == MOD_LINEART_EDGE_FLAG_INTERSECTION))
           {
             continue; /* Fuzzy intersections but no intersection line found. */
           }
@@ -950,7 +954,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
     BLI_addtail(&ld->chains, ec);
     loop_id = ec->loop_id;
 
-    if (ec->type == LRT_EDGE_FLAG_LOOSE && (!ld->conf.use_loose_edge_chain)) {
+    if (ec->type == MOD_LINEART_EDGE_FLAG_LOOSE && (!ld->conf.use_loose_edge_chain)) {
       continue;
     }
 
@@ -1092,9 +1096,9 @@ void MOD_lineart_finalize_chains(LineartData *ld)
 {
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
     if (ELEM(ec->type,
-             LRT_EDGE_FLAG_INTERSECTION,
-             LRT_EDGE_FLAG_PROJECTED_SHADOW,
-             LRT_EDGE_FLAG_LIGHT_CONTOUR))
+             MOD_LINEART_EDGE_FLAG_INTERSECTION,
+             MOD_LINEART_EDGE_FLAG_PROJECTED_SHADOW,
+             MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR))
     {
       continue;
     }
@@ -1393,7 +1397,7 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
 void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld)
 {
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
-    if (ec->type == LRT_EDGE_FLAG_CONTOUR &&
+    if (ec->type == MOD_LINEART_EDGE_FLAG_CONTOUR &&
         ec->shadow_mask_bits & LRT_SHADOW_SILHOUETTE_ERASED_GROUP)
     {
       uint32_t target = ec->shadow_mask_bits & LRT_OBINDEX_HIGHER;

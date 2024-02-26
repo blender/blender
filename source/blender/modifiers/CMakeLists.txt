@@ -17,6 +17,11 @@ set(INC
   ../render
   ../windowmanager
   ../../../intern/eigen
+  
+  # Needed for shared line art functions from legacy implementations.
+  ../gpencil_modifiers_legacy
+  ../gpencil_modifiers_legacy/intern
+  ../gpencil_modifiers_legacy/intern/lineart
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -66,6 +71,7 @@ set(SRC
   intern/MOD_laplaciandeform.cc
   intern/MOD_laplaciansmooth.cc
   intern/MOD_lattice.cc
+  intern/MOD_lineart.cc
   intern/MOD_mask.cc
   intern/MOD_mesh_to_volume.cc
   intern/MOD_meshcache.cc

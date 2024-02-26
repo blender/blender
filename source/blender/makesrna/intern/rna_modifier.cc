@@ -13,6 +13,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_cachefile_types.h"
 #include "DNA_gpencil_modifier_types.h"
+#include "DNA_lineart_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
@@ -233,6 +234,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_LENGTH,
      "Length",
      "Grease Pencil length modifier"},
+    {eModifierType_GreasePencilLineart,
+     "LINEART",
+     ICON_GREASEPENCIL,
+     "Line Art",
+     "Generate line art from scene geometries"},
     {eModifierType_GreasePencilMirror,
      "GREASE_PENCIL_MIRROR",
      ICON_MOD_MIRROR,
@@ -912,6 +918,7 @@ RNA_MOD_VGROUP_NAME_SET(Weld, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(Wireframe, defgrp_name);
 RNA_MOD_VGROUP_NAME_SET(GreasePencilWeightAngle, target_vgname);
 RNA_MOD_VGROUP_NAME_SET(GreasePencilWeightProximity, target_vgname);
+RNA_MOD_VGROUP_NAME_SET(GreasePencilLineart, vgname);
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
 {
@@ -1808,6 +1815,24 @@ static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)
   return &settings->properties;
 }
 
+static void rna_Lineart_start_level_set(PointerRNA *ptr, int value)
+{
+  GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)ptr->data;
+
+  value = std::clamp(value, 0, 128);
+  lmd->level_start = value;
+  lmd->level_end = std::max(value, int(lmd->level_end));
+}
+
+static void rna_Lineart_end_level_set(PointerRNA *ptr, int value)
+{
+  GreasePencilLineartModifierData *lmd = (GreasePencilLineartModifierData *)ptr->data;
+
+  value = std::clamp(value, 0, 128);
+  lmd->level_end = value;
+  lmd->level_start = std::min(value, int(lmd->level_start));
+}
+
 static const NodesModifierData *find_nodes_modifier_by_bake(const Object &object,
                                                             const NodesModifierBake &bake)
 {
@@ -1923,6 +1948,17 @@ RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilLattice);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilWeightAngle);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilWeightProximity);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilHook);
+
+static void rna_GreasePencilLineartModifier_material_set(PointerRNA *ptr,
+                                                         PointerRNA value,
+                                                         ReportList *reports)
+{
+  GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(
+      ptr->data);
+  Material **ma_target = &lmd->target_material;
+
+  rna_GreasePencilModifier_material_set(ptr, value, reports, ma_target);
+}
 
 static void rna_GreasePencilOpacityModifier_opacity_factor_range(
     PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
@@ -8177,6 +8213,509 @@ static void rna_def_modifier_grease_pencil_tint(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
+static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem modifier_lineart_source_type[] = {
+      {LINEART_SOURCE_COLLECTION, "COLLECTION", 0, "Collection", ""},
+      {LINEART_SOURCE_OBJECT, "OBJECT", 0, "Object", ""},
+      {LINEART_SOURCE_SCENE, "SCENE", 0, "Scene", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem modifier_lineart_shadow_region_filtering[] = {
+      {LINEART_SHADOW_FILTER_NONE,
+       "NONE",
+       0,
+       "None",
+       "Not filtering any lines based on illumination region"},
+      {LINEART_SHADOW_FILTER_ILLUMINATED,
+       "ILLUMINATED",
+       0,
+       "Illuminated",
+       "Only selecting lines from illuminated regions"},
+      {LINEART_SHADOW_FILTER_SHADED,
+       "SHADED",
+       0,
+       "Shaded",
+       "Only selecting lines from shaded regions"},
+      {LINEART_SHADOW_FILTER_ILLUMINATED_ENCLOSED_SHAPES,
+       "ILLUMINATED_ENCLOSED",
+       0,
+       "Illuminated (Enclosed Shapes)",
+       "Selecting lines from lit regions, and make the combination of contour, light contour and "
+       "shadow lines into enclosed shapes"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  static const EnumPropertyItem modifier_lineart_silhouette_filtering[] = {
+      {LINEART_SILHOUETTE_FILTER_NONE, "NONE", 0, "Contour", ""},
+      {LINEART_SILHOUETTE_FILTER_GROUP, "GROUP", 0, "Silhouette", ""},
+      {LINEART_SILHOUETTE_FILTER_INDIVIDUAL, "INDIVIDUAL", 0, "Individual Silhouette", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  srna = RNA_def_struct(brna, "GreasePencilLineartModifier", "Modifier");
+  RNA_def_struct_ui_text(
+      srna, "Line Art Modifier", "Generate line art strokes from selected source");
+  RNA_def_struct_sdna(srna, "GreasePencilLineartModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_LINEART);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "use_custom_camera", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "calculation_flags", MOD_LINEART_USE_CUSTOM_CAMERA);
+  RNA_def_property_ui_text(
+      prop, "Use Custom Camera", "Use custom camera instead of the active camera");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "use_fuzzy_intersections", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_INTERSECTION_AS_CONTOUR);
+  RNA_def_property_ui_text(prop,
+                           "Intersection With Contour",
+                           "Treat intersection and contour lines as if they were the same type so "
+                           "they can be chained together");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_fuzzy_all", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_EVERYTHING_AS_CONTOUR);
+  RNA_def_property_ui_text(
+      prop, "All Lines", "Treat all lines as the same line type so they can be chained together");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_object_instances", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_ALLOW_DUPLI_OBJECTS);
+  RNA_def_property_ui_text(prop,
+                           "Instanced Objects",
+                           "Allow particle objects and face/vertex instances to show in line art");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_edge_overlap", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_ALLOW_OVERLAPPING_EDGES);
+  RNA_def_property_ui_text(
+      prop,
+      "Handle Overlapping Edges",
+      "Allow edges in the same location (i.e. from edge split) to show properly. May run slower");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_clip_plane_boundaries", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_ALLOW_CLIPPING_BOUNDARIES);
+  RNA_def_property_ui_text(prop,
+                           "Clipping Boundaries",
+                           "Allow lines generated by the near/far clipping plane to be shown");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "crease_threshold", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0, DEG2RAD(180.0f));
+  RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(180.0f), 0.01f, 1);
+  RNA_def_property_ui_text(prop,
+                           "Crease Threshold",
+                           "Angles smaller than this will be treated as creases. Crease angle "
+                           "priority: object line art crease override > mesh auto smooth angle > "
+                           "line art default crease");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_float_sdna(prop, nullptr, "angle_splitting_threshold");
+  RNA_def_property_ui_text(
+      prop, "Angle Splitting", "Angle in screen space below which a stroke is split in two");
+  /* Don't allow value very close to PI, or we get a lot of small segments. */
+  RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(179.5f), 0.01f, 1);
+  RNA_def_property_range(prop, 0.0f, DEG2RAD(180.0f));
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "smooth_tolerance", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "chain_smooth_tolerance");
+  RNA_def_property_ui_text(
+      prop, "Smooth Tolerance", "Strength of smoothing applied on jagged chains");
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.05f, 4);
+  RNA_def_property_range(prop, 0.0f, 30.0f);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_loose_as_contour", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "calculation_flags", MOD_LINEART_LOOSE_AS_CONTOUR);
+  RNA_def_property_ui_text(prop, "Loose As Contour", "Loose edges will have contour type");
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "invert_source_vertex_group", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_INVERT_SOURCE_VGROUP);
+  RNA_def_property_ui_text(prop, "Invert Vertex Group", "Invert source vertex group values");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_output_vertex_group_match_by_name", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_MATCH_OUTPUT_VGROUP);
+  RNA_def_property_ui_text(prop, "Match Output", "Match output vertex group based on name");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "calculation_flags", MOD_LINEART_FILTER_FACE_MARK);
+  RNA_def_property_ui_text(
+      prop, "Filter Face Marks", "Filter feature lines using freestyle face marks");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark_invert", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_FILTER_FACE_MARK_INVERT);
+  RNA_def_property_ui_text(prop, "Invert", "Invert face mark filtering");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark_boundaries", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_FILTER_FACE_MARK_BOUNDARIES);
+  RNA_def_property_ui_text(
+      prop, "Boundaries", "Filter feature lines based on face mark boundaries");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_face_mark_keep_contour", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_FILTER_FACE_MARK_KEEP_CONTOUR);
+  RNA_def_property_ui_text(prop, "Keep Contour", "Preserve contour lines while filtering");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "chaining_image_threshold", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_ui_text(
+      prop,
+      "Image Threshold",
+      "Segments with an image distance smaller than this will be chained together");
+  RNA_def_property_ui_range(prop, 0.0f, 0.3f, 0.001f, 4);
+  RNA_def_property_range(prop, 0.0f, 0.3f);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_loose_edge_chain", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "calculation_flags", MOD_LINEART_CHAIN_LOOSE_EDGES);
+  RNA_def_property_ui_text(prop, "Chain Loose Edges", "Allow loose edges to be chained together");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_geometry_space_chain", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_CHAIN_GEOMETRY_SPACE);
+  RNA_def_property_ui_text(
+      prop, "Use Geometry Space", "Use geometry distance for chaining instead of image space");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_detail_preserve", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_CHAIN_PRESERVE_DETAILS);
+  RNA_def_property_ui_text(
+      prop, "Preserve Details", "Keep the zig-zag \"noise\" in initial chaining");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_overlap_edge_type_support", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_ALLOW_OVERLAP_EDGE_TYPES);
+  RNA_def_property_ui_text(prop,
+                           "Overlapping Edge Types",
+                           "Allow an edge to have multiple overlapping types. This will create a "
+                           "separate stroke for each overlapping type");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "stroke_depth_offset", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_ui_text(prop,
+                           "Stroke Depth Offset",
+                           "Move strokes slightly towards the camera to avoid clipping while "
+                           "preserve depth for the viewport");
+  RNA_def_property_ui_range(prop, 0.0, 0.5, 0.001, 4);
+  RNA_def_property_range(prop, -0.1, FLT_MAX);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_offset_towards_custom_camera", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flags", LINEART_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA);
+  RNA_def_property_ui_text(prop,
+                           "Offset Towards Custom Camera",
+                           "Offset strokes towards selected camera instead of the active camera");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "source_camera", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(
+      prop, "Camera Object", "Use specified camera object for generating line art");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "light_contour_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(
+      prop, "Light Object", "Use this light object to generate light contour");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "source_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, modifier_lineart_source_type);
+  RNA_def_property_ui_text(prop, "Source Type", "Line art stroke source type");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "source_object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_ui_text(prop, "Object", "Generate strokes from this object");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "source_collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_ui_text(
+      prop, "Collection", "Generate strokes from the objects in this collection");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  /* types */
+  prop = RNA_def_property(srna, "use_contour", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_CONTOUR);
+  RNA_def_property_ui_text(prop, "Use Contour", "Generate strokes from contours lines");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_loose", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_LOOSE);
+  RNA_def_property_ui_text(prop, "Use Loose", "Generate strokes from loose edges");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_crease", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_CREASE);
+  RNA_def_property_ui_text(prop, "Use Crease", "Generate strokes from creased edges");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_material", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_MATERIAL);
+  RNA_def_property_ui_text(
+      prop, "Use Material", "Generate strokes from borders between materials");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_edge_mark", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_EDGE_MARK);
+  RNA_def_property_ui_text(prop, "Use Edge Mark", "Generate strokes from freestyle marked edges");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_intersection", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_INTERSECTION);
+  RNA_def_property_ui_text(prop, "Use Intersection", "Generate strokes from intersections");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_light_contour", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_LIGHT_CONTOUR);
+  RNA_def_property_ui_text(prop,
+                           "Use Light Contour",
+                           "Generate light/shadow separation lines from a reference light object");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "edge_types", MOD_LINEART_EDGE_FLAG_PROJECTED_SHADOW);
+  RNA_def_property_ui_text(
+      prop, "Use Shadow", "Project contour lines using a light source object");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "shadow_region_filtering", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "shadow_selection");
+  RNA_def_property_enum_items(prop, modifier_lineart_shadow_region_filtering);
+  RNA_def_property_ui_text(prop,
+                           "Shadow Region Filtering",
+                           "Select feature lines that comes from lit or shaded regions. Will not "
+                           "affect cast shadow and light contour since they are at the border");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "silhouette_filtering", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "silhouette_selection");
+  RNA_def_property_enum_items(prop, modifier_lineart_silhouette_filtering);
+  RNA_def_property_ui_text(prop, "Silhouette Filtering", "Select contour or silhouette");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "use_multiple_levels", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "use_multiple_levels", 0);
+  RNA_def_property_ui_text(
+      prop, "Use Occlusion Range", "Generate strokes from a range of occlusion levels");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "level_start", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Level Start", "Minimum number of occlusions for the generated strokes");
+  RNA_def_property_range(prop, 0, 128);
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Lineart_start_level_set", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "level_end", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Level End", "Maximum number of occlusions for the generated strokes");
+  RNA_def_property_range(prop, 0, 128);
+  RNA_def_property_int_funcs(prop, nullptr, "rna_Lineart_end_level_set", nullptr);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "target_layer", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Layer", "Grease Pencil layer to which assign the generated strokes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "target_material", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_struct_type(prop, "Material");
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 "rna_GreasePencilLineartModifier_material_set",
+                                 nullptr,
+                                 "rna_GreasePencilModifier_material_poll");
+  RNA_def_property_ui_text(
+      prop, "Material", "Grease Pencil material assigned to the generated strokes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "source_vertex_group", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Source Vertex Group",
+      "Match the beginning of vertex group names from mesh objects, match all when left empty");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "vgname");
+  RNA_def_property_string_funcs(
+      prop, nullptr, nullptr, "rna_GreasePencilLineartModifier_vgname_set");
+  RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name for selected strokes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", LINEART_GPENCIL_IS_BAKED);
+  RNA_def_property_ui_text(prop, "Is Baked", "This modifier has baked data");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", LINEART_GPENCIL_USE_CACHE);
+  RNA_def_property_ui_text(prop,
+                           "Use Cache",
+                           "Use cached scene data from the first line art modifier in the stack. "
+                           "Certain settings will be unavailable");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "overscan", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Overscan",
+      "A margin to prevent strokes from ending abruptly at the edge of the image");
+  RNA_def_property_ui_range(prop, 0.0f, 0.5f, 0.01f, 3);
+  RNA_def_property_range(prop, 0.0f, 0.5f);
+  RNA_def_property_update(prop, NC_SCENE, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Thickness", "The thickness for the generated strokes");
+  RNA_def_property_ui_range(prop, 1, 100, 1, 1);
+  RNA_def_property_range(prop, 1, 200);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_ui_text(prop, "Opacity", "The strength value for the generate strokes");
+  RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.01f, 2);
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_material_mask", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "mask_switches", LINEART_GPENCIL_MATERIAL_MASK_ENABLE);
+  RNA_def_property_ui_text(
+      prop, "Use Material Mask", "Use material masks to filter out occluded strokes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_material_mask_match", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "mask_switches", LINEART_GPENCIL_MATERIAL_MASK_MATCH);
+  RNA_def_property_ui_text(
+      prop, "Match Masks", "Require matching all material masks instead of just one");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_material_mask_bits", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "material_mask_bits", 1);
+  RNA_def_property_array(prop, 8);
+  RNA_def_property_ui_text(prop, "Masks", "Mask bits to match from Material Line Art settings");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_intersection_match", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "mask_switches", LINEART_GPENCIL_INTERSECTION_MATCH);
+  RNA_def_property_ui_text(
+      prop, "Match Intersection", "Require matching all intersection masks instead of just one");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_intersection_mask", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "intersection_mask", 1);
+  RNA_def_property_array(prop, 8);
+  RNA_def_property_ui_text(prop, "Masks", "Mask bits to match from Collection Line Art settings");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_crease_on_smooth", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_USE_CREASE_ON_SMOOTH_SURFACES);
+  RNA_def_property_ui_text(
+      prop, "Crease On Smooth Surfaces", "Allow crease edges to show inside smooth surfaces");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_crease_on_sharp", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_USE_CREASE_ON_SHARP_EDGES);
+  RNA_def_property_ui_text(prop, "Crease On Sharp Edges", "Allow crease to show on sharp edges");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_image_boundary_trimming", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_USE_IMAGE_BOUNDARY_TRIMMING);
+  RNA_def_property_ui_text(
+      prop,
+      "Image Boundary Trimming",
+      "Trim all edges right at the boundary of image (including overscan region)");
+
+  prop = RNA_def_property(srna, "use_back_face_culling", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "calculation_flags", MOD_LINEART_USE_BACK_FACE_CULLING);
+  RNA_def_property_ui_text(
+      prop,
+      "Back Face Culling",
+      "Remove all back faces to speed up calculation, this will create edges in "
+      "different occlusion levels than when disabled");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "shadow_camera_near", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Shadow Camera Near", "Near clipping distance of shadow camera");
+  RNA_def_property_ui_range(prop, 0.0f, 500.0f, 0.1f, 2);
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "shadow_camera_far", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Shadow Camera Far", "Far clipping distance of shadow camera");
+  RNA_def_property_ui_range(prop, 0.0f, 500.0f, 0.1f, 2);
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "shadow_camera_size", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Shadow Camera Size",
+      "Represents the \"Orthographic Scale\" of an orthographic camera. "
+      "If the camera is positioned at the light's location with this scale, it will "
+      "represent the coverage of the shadow \"camera\"");
+  RNA_def_property_ui_range(prop, 0.0f, 500.0f, 0.1f, 2);
+  RNA_def_property_range(prop, 0.0f, 10000.0f);
+
+  prop = RNA_def_property(srna, "use_invert_collection", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", LINEART_GPENCIL_INVERT_COLLECTION);
+  RNA_def_property_ui_text(prop,
+                           "Invert Collection Filtering",
+                           "Select everything except lines from specified collection");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_invert_silhouette", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flags", LINEART_GPENCIL_INVERT_SILHOUETTE_FILTER);
+  RNA_def_property_ui_text(prop, "Invert Silhouette Filtering", "Select anti-silhouette lines");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 static void rna_def_modifier_grease_pencil_smooth(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -9425,6 +9964,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_array(brna);
   rna_def_modifier_grease_pencil_weight_proximity(brna);
   rna_def_modifier_grease_pencil_hook(brna);
+  rna_def_modifier_grease_pencil_lineart(brna);
 }
 
 #endif
