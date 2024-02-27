@@ -18,6 +18,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_duplilist.h"
 #include "BKE_geometry_set.hh"
 
@@ -103,6 +104,11 @@ static void populate_cache_for_instance(Object &object,
   }
 }
 
+static bool attribute_type_supports_viewer_overlay(const eCustomDataType data_type)
+{
+  return CD_TYPE_AS_MASK(data_type) & (CD_MASK_PROP_ALL & ~CD_MASK_PROP_QUATERNION);
+}
+
 static void populate_cache_for_geometry(Object &object,
                                         OVERLAY_PrivateData &pd,
                                         const float opacity)
@@ -114,21 +120,29 @@ static void populate_cache_for_geometry(Object &object,
   switch (object.type) {
     case OB_MESH: {
       Mesh *mesh = static_cast<Mesh *>(object.data);
-      if (mesh->attributes().contains(".viewer")) {
-        GPUBatch *batch = DRW_cache_mesh_surface_viewer_attribute_get(&object);
-        DRW_shgroup_uniform_float_copy(pd.viewer_attribute_mesh_grp, "opacity", opacity);
-        DRW_shgroup_call(pd.viewer_attribute_mesh_grp, batch, &object);
+      if (const std::optional<bke::AttributeMetaData> meta_data =
+              mesh->attributes().lookup_meta_data(".viewer"))
+      {
+        if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
+          GPUBatch *batch = DRW_cache_mesh_surface_viewer_attribute_get(&object);
+          DRW_shgroup_uniform_float_copy(pd.viewer_attribute_mesh_grp, "opacity", opacity);
+          DRW_shgroup_call(pd.viewer_attribute_mesh_grp, batch, &object);
+        }
       }
       break;
     }
     case OB_POINTCLOUD: {
       PointCloud *pointcloud = static_cast<PointCloud *>(object.data);
-      if (pointcloud->attributes().contains(".viewer")) {
-        GPUVertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
-        DRWShadingGroup *grp = DRW_shgroup_pointcloud_create_sub(
-            &object, pd.viewer_attribute_pointcloud_grp, nullptr);
-        DRW_shgroup_uniform_float_copy(grp, "opacity", opacity);
-        DRW_shgroup_buffer_texture_ref(grp, "attribute_tx", vertbuf);
+      if (const std::optional<bke::AttributeMetaData> meta_data =
+              pointcloud->attributes().lookup_meta_data(".viewer"))
+      {
+        if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
+          GPUVertBuf **vertbuf = DRW_pointcloud_evaluated_attribute(pointcloud, ".viewer");
+          DRWShadingGroup *grp = DRW_shgroup_pointcloud_create_sub(
+              &object, pd.viewer_attribute_pointcloud_grp, nullptr);
+          DRW_shgroup_uniform_float_copy(grp, "opacity", opacity);
+          DRW_shgroup_buffer_texture_ref(grp, "attribute_tx", vertbuf);
+        }
       }
       break;
     }
@@ -136,10 +150,14 @@ static void populate_cache_for_geometry(Object &object,
       Curve *curve = static_cast<Curve *>(object.data);
       if (curve->curve_eval) {
         const bke::CurvesGeometry &curves = curve->curve_eval->geometry.wrap();
-        if (curves.attributes().contains(".viewer")) {
-          GPUBatch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
-          DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curve_grp, "opacity", opacity);
-          DRW_shgroup_call_obmat(pd.viewer_attribute_curve_grp, batch, object.object_to_world);
+        if (const std::optional<bke::AttributeMetaData> meta_data =
+                curves.attributes().lookup_meta_data(".viewer"))
+        {
+          if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
+            GPUBatch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
+            DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curve_grp, "opacity", opacity);
+            DRW_shgroup_call_obmat(pd.viewer_attribute_curve_grp, batch, object.object_to_world);
+          }
         }
       }
       break;
@@ -147,15 +165,19 @@ static void populate_cache_for_geometry(Object &object,
     case OB_CURVES: {
       Curves *curves_id = static_cast<Curves *>(object.data);
       const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-      if (curves.attributes().contains(".viewer")) {
-        bool is_point_domain;
-        GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
-            curves_id, ".viewer", &is_point_domain);
-        DRWShadingGroup *grp = DRW_shgroup_curves_create_sub(
-            &object, pd.viewer_attribute_curves_grp, nullptr);
-        DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curves_grp, "opacity", opacity);
-        DRW_shgroup_uniform_bool_copy(grp, "is_point_domain", is_point_domain);
-        DRW_shgroup_buffer_texture(grp, "color_tx", *texture);
+      if (const std::optional<bke::AttributeMetaData> meta_data =
+              curves.attributes().lookup_meta_data(".viewer"))
+      {
+        if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
+          bool is_point_domain;
+          GPUVertBuf **texture = DRW_curves_texture_for_evaluated_attribute(
+              curves_id, ".viewer", &is_point_domain);
+          DRWShadingGroup *grp = DRW_shgroup_curves_create_sub(
+              &object, pd.viewer_attribute_curves_grp, nullptr);
+          DRW_shgroup_uniform_float_copy(pd.viewer_attribute_curves_grp, "opacity", opacity);
+          DRW_shgroup_uniform_bool_copy(grp, "is_point_domain", is_point_domain);
+          DRW_shgroup_buffer_texture(grp, "color_tx", *texture);
+        }
       }
       break;
     }
@@ -171,9 +193,13 @@ void OVERLAY_viewer_attribute_cache_populate(OVERLAY_Data *vedata, Object *objec
   if (dupli_object->preview_instance_index >= 0) {
     const auto &instances =
         *dupli_object->preview_base_geometry->get_component<blender::bke::InstancesComponent>();
-    if (instances.attributes()->contains(".viewer")) {
-      populate_cache_for_instance(*object, *pd, *dupli_object, opacity);
-      return;
+    if (const std::optional<blender::bke::AttributeMetaData> meta_data =
+            instances.attributes()->lookup_meta_data(".viewer"))
+    {
+      if (attribute_type_supports_viewer_overlay(meta_data->data_type)) {
+        populate_cache_for_instance(*object, *pd, *dupli_object, opacity);
+        return;
+      }
     }
   }
   populate_cache_for_geometry(*object, *pd, opacity);
