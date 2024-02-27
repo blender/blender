@@ -2264,9 +2264,10 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *area, ARegion *region)
   WM_cursor_set(win, WM_CURSOR_DEFAULT);
 }
 
-void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *region)
+void ED_region_visibility_change_update_ex(
+    bContext *C, ScrArea *area, ARegion *region, bool is_hidden, bool do_init)
 {
-  if (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_POLL_FAILED)) {
+  if (is_hidden) {
     WM_event_remove_handlers(C, &region->handlers);
     /* Needed to close any open pop-overs which would otherwise remain open,
      * crashing on attempting to refresh. See: #93410.
@@ -2276,8 +2277,17 @@ void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *reg
     UI_region_free_active_but_all(C, region);
   }
 
-  ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), area);
-  ED_area_tag_redraw(area);
+  if (do_init) {
+    ED_area_init(CTX_wm_manager(C), CTX_wm_window(C), area);
+    ED_area_tag_redraw(area);
+  }
+}
+
+void ED_region_visibility_change_update(bContext *C, ScrArea *area, ARegion *region)
+{
+  const bool is_hidden = region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_POLL_FAILED);
+  const bool do_init = true;
+  ED_region_visibility_change_update_ex(C, area, region, is_hidden, do_init);
 }
 
 void region_toggle_hidden(bContext *C, ARegion *region, const bool do_fade)
