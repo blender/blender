@@ -566,7 +566,6 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(GreasePencilSubdivModifierData),
     SDNA_DEFAULT_DECL(GreasePencilNoiseModifierData),
     SDNA_DEFAULT_DECL(GreasePencilLengthModifierData),
-    SDNA_DEFAULT_DECL(GreasePencilWeightAngleModifierData),
     SDNA_DEFAULT_DECL(GreasePencilHookModifierData),
     SDNA_DEFAULT_DECL(GreasePencilLineartModifierData),
 
