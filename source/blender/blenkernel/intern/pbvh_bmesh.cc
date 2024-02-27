@@ -2302,6 +2302,29 @@ bool bmesh_update_topology(PBVH *pbvh,
 
 }  // namespace blender::bke::pbvh
 
+/* Updates a given PBVH Node with the original coordinates of the corresponding BMesh vertex.
+ * Attempts to retrieve the value from the BMLog, falls back to the vertex's current coordinates
+ * if it is either not found in the log or not requested. */
+static void BKE_pbvh_bmesh_node_copy_original_co(
+    BMLog *log, PBVHNode *node, BMVert *v, int i, bool use_original)
+{
+  if (!use_original) {
+    copy_v3_v3(node->bm_orco[i], v->co);
+  }
+  else {
+    const float *origco = BM_log_find_original_vert_co(log, v);
+    if (origco) {
+      copy_v3_v3(node->bm_orco[i], origco);
+    }
+    else {
+      copy_v3_v3(node->bm_orco[i], v->co);
+    }
+  }
+
+  node->bm_orvert[i] = v;
+  BM_elem_index_set(v, i); /* set_dirty! */
+}
+
 void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool use_original)
 {
   /* Skip if original coords/triangles are already saved. */
@@ -2322,31 +2345,11 @@ void BKE_pbvh_bmesh_node_save_orig(BMesh *bm, BMLog *log, PBVHNode *node, bool u
   /* Copy out the vertices and assign a temporary index. */
   int i = 0;
   for (BMVert *v : node->bm_unique_verts) {
-    const float *origco = BM_log_original_vert_co(log, v);
-
-    if (use_original && origco) {
-      copy_v3_v3(node->bm_orco[i], origco);
-    }
-    else {
-      copy_v3_v3(node->bm_orco[i], v->co);
-    }
-
-    node->bm_orvert[i] = v;
-    BM_elem_index_set(v, i); /* set_dirty! */
+    BKE_pbvh_bmesh_node_copy_original_co(log, node, v, i, use_original);
     i++;
   }
   for (BMVert *v : node->bm_other_verts) {
-    const float *origco = BM_log_original_vert_co(log, v);
-
-    if (use_original && origco) {
-      copy_v3_v3(node->bm_orco[i], BM_log_original_vert_co(log, v));
-    }
-    else {
-      copy_v3_v3(node->bm_orco[i], v->co);
-    }
-
-    node->bm_orvert[i] = v;
-    BM_elem_index_set(v, i); /* set_dirty! */
+    BKE_pbvh_bmesh_node_copy_original_co(log, node, v, i, use_original);
     i++;
   }
   /* Likely this is already dirty. */
