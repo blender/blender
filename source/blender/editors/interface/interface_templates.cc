@@ -973,11 +973,10 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
-  /* TODO: select appropriate bmain for ID, might need to be asset main, changes in this functions
-   * are most likely wrong still. */
   TemplateID *template_ui = (TemplateID *)arg_litem;
   PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   ID *id = static_cast<ID *>(idptr.data);
+  Main *id_main = BKE_main_from_id(CTX_data_main(C), id);
   const int event = POINTER_AS_INT(arg_event);
   const char *undo_push_label = nullptr;
 
@@ -1028,7 +1027,6 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_LOCAL:
       if (id) {
-        Main *id_main = BKE_main_from_id(CTX_data_main(C), id);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(
               C, id_main, template_ui, &idptr, &undo_push_label);
@@ -1050,7 +1048,6 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
-        Main *id_main = BKE_main_from_id(CTX_data_main(C), id);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(
               C, id_main, template_ui, &idptr, &undo_push_label);
@@ -1071,18 +1068,15 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
                                    (template_ui->ptr.type == &RNA_LayerObjects));
 
         /* make copy */
-        Main *bmain = CTX_data_main(C);
-        Main *id_main = BKE_main_from_id(bmain, id);
-
         if (do_scene_obj) {
           Scene *scene = CTX_data_scene(C);
           ED_object_single_user(id_main, scene, (Object *)id);
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
-          DEG_relations_tag_update(bmain);
+          DEG_relations_tag_update(id_main);
         }
         else {
           id_single_user(C, id, &template_ui->ptr, template_ui->prop);
-          DEG_relations_tag_update(bmain);
+          DEG_relations_tag_update(id_main);
         }
         undo_push_label = "Make Single User";
       }
@@ -1371,7 +1365,7 @@ static void template_ID(const bContext *C,
   /* text button with name */
   if (id) {
     char name[UI_MAX_NAME_STR];
-    const bool user_alert = (id->us <= 0) && !(id->tag & LIB_TAG_ASSET_MAIN);
+    const bool user_alert = (id->us <= 0);
 
     const int width = template_search_textbut_width(&idptr,
                                                     RNA_struct_find_property(&idptr, "name"));
