@@ -371,6 +371,7 @@ static void bake_geometry_nodes_endjob(void *customdata)
   G.is_rendering = false;
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
   WM_main_add_notifier(NC_NODE | ND_DISPLAY, nullptr);
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, nullptr);
 }
 
 static void reset_old_bake(NodeBakeRequest &request)
