@@ -442,6 +442,10 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   Paint *paint = &scene->toolsettings->gp_paint->paint;
   Brush *brush = BKE_paint_brush(paint);
 
+  if (brush->gpencil_settings == nullptr) {
+    BKE_brush_init_gpencil_settings(brush);
+  }
+
   BKE_curvemapping_init(brush->gpencil_settings->curve_sensitivity);
   BKE_curvemapping_init(brush->gpencil_settings->curve_strength);
   BKE_curvemapping_init(brush->gpencil_settings->curve_jitter);
