@@ -3737,7 +3737,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     fd->reports->duration.libraries = BLI_check_seconds_timer() - fd->reports->duration.libraries;
 
     /* Skip in undo case. */
-    if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
+    if (!is_undo) {
       /* Note that we can't recompute user-counts at this point in undo case, we play too much with
        * IDs from different memory realms, and Main database is not in a fully valid state yet.
        */
@@ -3790,7 +3790,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     /* Now that all our data-blocks are loaded,
      * we can re-generate overrides from their references. */
-    if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
+    if (!is_undo) {
       /* Do not apply in undo case! */
       fd->reports->duration.lib_overrides = BLI_check_seconds_timer();
 
