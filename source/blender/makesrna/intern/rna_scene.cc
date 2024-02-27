@@ -1843,8 +1843,11 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
   Scene *scene = (Scene *)ptr->owner_id;
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
-  BLI_assert(BKE_id_is_in_global_main(&scene->id));
-  BKE_view_layer_rename(G_MAIN, scene, view_layer, value);
+  Main *main = BKE_main_from_id(G_MAIN, &scene->id);
+  if (main == nullptr) {
+    return;
+  }
+  BKE_view_layer_rename(main, scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)

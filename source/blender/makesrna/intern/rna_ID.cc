@@ -289,9 +289,6 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
   Main *id_main = BKE_main_from_id(G_MAIN, id);
   BKE_main_namemap_remove_name(id_main, id, id->name + 2);
   BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
-  /* TODO: add BKE_id_is_in_editable_main? */
-  /* TODO: this does update immediately in the asset shelf. */
-  BLI_assert(BKE_id_is_in_global_main(id) || (id->tag & LIB_TAG_ASSET_MAIN));
   BKE_libblock_ensure_unique_name(id_main, id);
 
   if (GS(id->name) == ID_OB) {
@@ -300,6 +297,8 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
   }
+
+  /* TODO: this does not update immediately in the asset shelf. */
 }
 
 static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
@@ -325,8 +324,7 @@ static int rna_ID_name_editable(const PointerRNA *ptr, const char **r_info)
       return 0;
     }
   }
-  /* TODO: add BKE_id_is_in_editable_main? */
-  else if (!(BKE_id_is_in_global_main(id) || (id->tag & LIB_TAG_ASSET_MAIN))) {
+  else if (BKE_main_from_id(G_MAIN, id, true) == nullptr) {
     if (r_info) {
       *r_info = N_("Datablocks not in global Main data-base cannot be renamed");
     }
@@ -1156,18 +1154,20 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 {
   ID *id = ptr->owner_id;
   short *totcol = BKE_id_material_len_p(id);
-  Material *mat_id = (Material *)assign_ptr->owner_id;
-  if (totcol && (key >= 0 && key < *totcol)) {
-    Main *id_main = BKE_main_from_id(G_MAIN, id);
-    /* TODO: BKE_id_is_in_editable_main? */
-    BLI_assert(BKE_id_is_in_global_main(id));
-    BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
-    BKE_id_material_assign(id_main, id, mat_id, key + 1);
-    return 1;
-  }
-  else {
+  Material *mat = (Material *)assign_ptr->owner_id;
+  if (!(totcol && (key >= 0 && key < *totcol))) {
     return 0;
   }
+
+  Main *id_main = BKE_main_from_id(G_MAIN, id);
+  if (mat) {
+    if (id_main != BKE_main_from_id(G_MAIN, &mat->id)) {
+      return 0;
+    }
+  }
+
+  BKE_id_material_assign(id_main, id, mat, key + 1);
+  return 1;
 }
 
 static void rna_IDMaterials_append_id(ID *id, Main *bmain, Material *ma)
@@ -1219,8 +1219,6 @@ static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
   Library *lib = (Library *)ptr->data;
   Main *id_main = BKE_main_from_id(G_MAIN, &lib->id);
-  /* TODO: BKE_id_is_in_editable_main? */
-  BLI_assert(BKE_id_is_in_global_main(&lib->id));
   BKE_library_filepath_set(id_main, lib, value);
 }
 

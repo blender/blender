@@ -518,8 +518,10 @@ int set_listbasepointers(Main *main, ListBase *lb[]);
  * Use this in operator and draw code instead of assuming the main
  * in the context owns datablocks. Some datablock can be part of
  * main datablocks from asset libraries instead.
+ *
+ * Optionally can verify membership of global_main, but this is expensive.
  */
-Main *BKE_main_from_id(Main *global_main, const ID *id);
+Main *BKE_main_from_id(Main *global_main, const ID *id, bool verify = false);
 
 #define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \

@@ -24,7 +24,7 @@
 
 #include "DNA_ID.h"
 
-#include "BKE_asset_weak_reference.hh"
+#include "BKE_asset.hh"
 #include "BKE_bpath.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -963,7 +963,25 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
   return (INDEX_ID_MAX - 1);
 }
 
-Main *BKE_main_from_id(Main *global_main, const ID *id)
+Main *BKE_main_from_id(Main *global_main, const ID *id, const bool verify)
 {
-  return (id->tag & LIB_TAG_ASSET_MAIN) ? BKE_asset_weak_reference_main(id) : global_main;
+  if (id == nullptr || (id->tag & LIB_TAG_NO_MAIN)) {
+    return nullptr;
+  }
+  if (id->tag & LIB_TAG_ASSET_MAIN) {
+    return BKE_asset_weak_reference_main(id);
+  }
+
+  if (verify) {
+    /* This is rather expensive, so don't do by default and assume valid input. */
+    if (BLI_findindex(which_libbase(global_main, GS(id->name)), id) == -1) {
+      return nullptr;
+    }
+  }
+  else {
+    /* Debug assert, especially for places that pass in G_MAIN. */
+    BLI_assert(BLI_findindex(which_libbase(global_main, GS(id->name)), id) != -1);
+  }
+
+  return global_main;
 }

@@ -27,7 +27,6 @@
 
 #  include "BKE_action.h"
 #  include "BKE_armature.hh"
-#  include "BKE_asset.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
 #  include "BKE_collection.hh"
@@ -126,11 +125,10 @@ static void rna_Main_ID_remove(Main *bmain,
                 id->name + 2);
     return;
   }
-  /* TODO: also check reverse case somehow? */
   if (bmain != BKE_main_from_id(bmain, id)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "%s '%s' is part of a difference main database and should be removed from there",
+                "%s '%s' is part of a different main database and should be removed from there",
                 BKE_idtype_idcode_to_name(GS(id->name)),
                 id->name + 2);
     return;

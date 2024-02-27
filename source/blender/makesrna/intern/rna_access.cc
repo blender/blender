@@ -2143,7 +2143,8 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
     return false;
   }
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
-    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(G_MAIN, id);
+    Main *main = BKE_main_from_id(G_MAIN, id);
+    const bool is_liboverride_system = BKE_lib_override_library_is_system_defined(main, id);
     if (!RNA_property_overridable_get(ptr, prop_orig)) {
       if (r_info != nullptr && (*r_info)[0] == '\0') {
         *r_info = N_("Can't edit this property from an override data-block");
@@ -2341,7 +2342,11 @@ bool RNA_property_update_check(PropertyRNA *prop)
 
 void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
-  rna_property_update(C, CTX_data_main(C), CTX_data_scene(C), ptr, prop);
+  Main *main = CTX_data_main(C);
+  if (ptr->owner_id) {
+    main = BKE_main_from_id(main, ptr->owner_id);
+  }
+  rna_property_update(C, main, CTX_data_scene(C), ptr, prop);
 }
 
 void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)

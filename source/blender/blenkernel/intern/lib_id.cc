@@ -2131,13 +2131,6 @@ void BKE_id_tag_clear_atomic(ID *id, int tag)
   atomic_fetch_and_and_int32(&id->tag, ~tag);
 }
 
-bool BKE_id_is_in_global_main(ID *id)
-{
-  /* We do not want to fail when id is nullptr here, even though this is a bit strange behavior...
-   */
-  return (id == nullptr || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
-}
-
 bool BKE_id_can_be_asset(const ID *id)
 {
   return !ID_IS_LINKED(id) && !ID_IS_OVERRIDE_LIBRARY(id) &&
