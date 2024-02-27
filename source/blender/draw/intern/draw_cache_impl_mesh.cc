@@ -1589,6 +1589,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
   if (DRW_batch_requested(cache.batch.surface_weights, GPU_PRIM_TRIS)) {
     DRW_ibo_request(cache.batch.surface_weights, &mbuflist->ibo.tris);
     DRW_vbo_request(cache.batch.surface_weights, &mbuflist->vbo.pos);
+    DRW_vbo_request(cache.batch.surface_weights, &mbuflist->vbo.nor);
     DRW_vbo_request(cache.batch.surface_weights, &mbuflist->vbo.weights);
   }
   assert_deps_valid(
