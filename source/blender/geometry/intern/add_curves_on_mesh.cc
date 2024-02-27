@@ -236,13 +236,92 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
   });
 }
 
+static void calc_radius_without_interpolation(CurvesGeometry &curves,
+                                              const IndexRange new_points_range,
+                                              const float radius)
+{
+  bke::SpanAttributeWriter radius_attr =
+      curves.attributes_for_write().lookup_or_add_for_write_span<float>("radius",
+                                                                        bke::AttrDomain::Point);
+  radius_attr.span.slice(new_points_range).fill(radius);
+  radius_attr.finish();
+}
+
+static void calc_radius_with_interpolation(CurvesGeometry &curves,
+                                           const int old_curves_num,
+                                           const float radius,
+                                           const Span<float> new_lengths_cu,
+                                           const Span<NeighborCurves> neighbors_per_curve)
+{
+  const int added_curves_num = new_lengths_cu.size();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  bke::SpanAttributeWriter radius_attr =
+      curves.attributes_for_write().lookup_for_write_span<float>("radius");
+
+  if (!radius_attr) {
+    return;
+  }
+
+  MutableSpan<float3> positions_cu = curves.positions_for_write();
+  MutableSpan<float> radii_cu = radius_attr.span;
+
+  threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      const NeighborCurves &neighbors = neighbors_per_curve[i];
+      const float length_cu = new_lengths_cu[i];
+      const int curve_i = old_curves_num + i;
+      const IndexRange points = points_by_curve[curve_i];
+
+      if (neighbors.is_empty()) {
+        /* If there are no neighbors, just using uniform radius. */
+        radii_cu.slice(points).fill(radius);
+        continue;
+      }
+
+      radii_cu.slice(points).fill(0.0f);
+
+      for (const NeighborCurve &neighbor : neighbors) {
+        const int neighbor_curve_i = neighbor.index;
+        const IndexRange neighbor_points = points_by_curve[neighbor_curve_i];
+        const Span<float3> neighbor_positions_cu = positions_cu.slice(neighbor_points);
+        const Span<float> neighbor_radii_cu = radius_attr.span.slice(neighbor_points);
+
+        Array<float, 32> lengths(length_parameterize::segments_num(neighbor_points.size(), false));
+        length_parameterize::accumulate_lengths<float3>(neighbor_positions_cu, false, lengths);
+
+        const float neighbor_length_cu = lengths.last();
+
+        Array<float, 32> sample_lengths(points.size());
+        const float length_factor = std::min(1.0f, length_cu / neighbor_length_cu);
+        const float resample_factor = (1.0f / (points.size() - 1.0f)) * length_factor;
+        for (const int i : sample_lengths.index_range()) {
+          sample_lengths[i] = i * resample_factor * neighbor_length_cu;
+        }
+
+        Array<int, 32> indices(points.size());
+        Array<float, 32> factors(points.size());
+        length_parameterize::sample_at_lengths(lengths, sample_lengths, indices, factors);
+
+        for (const int i : IndexRange(points.size())) {
+          const float sample_cu = math::interpolate(
+              neighbor_radii_cu[indices[i]], neighbor_radii_cu[indices[i] + 1], factors[i]);
+
+          radii_cu[points[i]] += neighbor.weight * sample_cu;
+        }
+      }
+    }
+  });
+  radius_attr.finish();
+}
+
 AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                           const AddCurvesOnMeshInputs &inputs)
 {
   AddCurvesOnMeshOutputs outputs;
 
   const bool use_interpolation = inputs.interpolate_length || inputs.interpolate_point_count ||
-                                 inputs.interpolate_shape || inputs.interpolate_resolution;
+                                 inputs.interpolate_radius || inputs.interpolate_shape ||
+                                 inputs.interpolate_resolution;
 
   Vector<float3> root_positions_cu;
   Vector<float3> bary_coords;
@@ -314,7 +393,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   const int new_points_num = curves.offsets().last();
   curves.resize(new_points_num, new_curves_num);
-  MutableSpan<float3> positions_cu = curves.positions_for_write();
+  const OffsetIndices points_by_curve = curves.points_by_curve();
 
   /* The new elements are added at the end of the arrays. */
   outputs.new_points_range = curves.points_range().drop_front(old_points_num);
@@ -325,9 +404,9 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
   surface_uv_coords.take_back(added_curves_num).copy_from(used_uvs);
 
   /* Determine length of new curves. */
+  Span<float3> positions_cu = curves.positions();
   Array<float> new_lengths_cu(added_curves_num);
   if (inputs.interpolate_length) {
-    const OffsetIndices points_by_curve = curves.points_by_curve();
     interpolate_from_neighbors<float>(
         neighbors_per_curve,
         inputs.fallback_curve_length,
@@ -378,6 +457,16 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
                                                inputs.transforms->surface_to_curves_normal);
   }
 
+  /* Initialize radius attribute */
+  if (inputs.interpolate_radius) {
+    calc_radius_with_interpolation(
+        curves, old_curves_num, inputs.fallback_curve_radius, new_lengths_cu, neighbors_per_curve);
+  }
+  else {
+    calc_radius_without_interpolation(
+        curves, outputs.new_points_range, inputs.fallback_curve_radius);
+  }
+
   curves.fill_curve_types(new_curves_range, CURVE_TYPE_CATMULL_ROM);
 
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
@@ -400,7 +489,7 @@ AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
 
   /* Explicitly set all other attributes besides those processed above to default values. */
   bke::fill_attribute_range_default(
-      attributes, bke::AttrDomain::Point, {"position"}, outputs.new_points_range);
+      attributes, bke::AttrDomain::Point, {"position", "radius"}, outputs.new_points_range);
   bke::fill_attribute_range_default(attributes,
                                     bke::AttrDomain::Curve,
                                     {"curve_type", "surface_uv_coordinate", "resolution"},

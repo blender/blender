@@ -8758,12 +8758,17 @@ class VIEW3D_PT_curves_sculpt_add_shape(Panel):
 
         col = layout.column(heading="Interpolate", align=True)
         col.prop(brush.curves_sculpt_settings, "interpolate_length", text="Length")
+        col.prop(brush.curves_sculpt_settings, "interpolate_radius", text="Radius")
         col.prop(brush.curves_sculpt_settings, "interpolate_shape", text="Shape")
         col.prop(brush.curves_sculpt_settings, "interpolate_point_count", text="Point Count")
 
         col = layout.column()
         col.active = not brush.curves_sculpt_settings.interpolate_length
         col.prop(brush.curves_sculpt_settings, "curve_length", text="Length")
+
+        col = layout.column()
+        col.active = not brush.curves_sculpt_settings.interpolate_radius
+        col.prop(brush.curves_sculpt_settings, "curve_radius", text="Radius")
 
         col = layout.column()
         col.active = not brush.curves_sculpt_settings.interpolate_point_count

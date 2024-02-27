@@ -801,16 +801,22 @@ def brush_settings(layout, context, brush, popover=False):
             layout.prop(brush.curves_sculpt_settings, "add_amount")
             col = layout.column(heading="Interpolate", align=True)
             col.prop(brush.curves_sculpt_settings, "interpolate_length", text="Length")
+            col.prop(brush.curves_sculpt_settings, "interpolate_radius", text="Radius")
             col.prop(brush.curves_sculpt_settings, "interpolate_shape", text="Shape")
             col.prop(brush.curves_sculpt_settings, "interpolate_point_count", text="Point Count")
 
             col = layout.column()
             col.active = not brush.curves_sculpt_settings.interpolate_length
-            col.prop(brush.curves_sculpt_settings, "curve_length")
+            col.prop(brush.curves_sculpt_settings, "curve_length", text="Length")
+
+            col = layout.column()
+            col.active = not brush.curves_sculpt_settings.interpolate_radius
+            col.prop(brush.curves_sculpt_settings, "curve_radius", text="Radius")
 
             col = layout.column()
             col.active = not brush.curves_sculpt_settings.interpolate_point_count
-            col.prop(brush.curves_sculpt_settings, "points_per_curve")
+            col.prop(brush.curves_sculpt_settings, "points_per_curve", text="Points")
+
         elif brush.curves_sculpt_tool == 'GROW_SHRINK':
             layout.prop(brush.curves_sculpt_settings, "scale_uniform")
             layout.prop(brush.curves_sculpt_settings, "minimum_length")
