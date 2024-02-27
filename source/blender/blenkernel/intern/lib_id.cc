@@ -1269,6 +1269,9 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0) {
         DEG_id_type_tag(bmain, type);
       }
+      if (bmain->is_asset_weak_reference_main) {
+        id->tag |= LIB_TAG_ASSET_MAIN;
+      }
     }
     else {
       BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
@@ -1460,6 +1463,10 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
   if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     DEG_id_type_tag(bmain, GS(new_id->name));
+  }
+
+  if (bmain && bmain->is_asset_weak_reference_main) {
+    new_id->tag |= LIB_TAG_ASSET_MAIN;
   }
 
   *r_newid = new_id;

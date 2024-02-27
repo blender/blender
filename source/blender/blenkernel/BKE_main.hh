@@ -191,6 +191,11 @@ struct Main {
    */
   bool is_global_main;
 
+  /**
+   * True if main used to store weakly referenced assets.
+   */
+  bool is_asset_weak_reference_main;
+
   BlendThumbnail *blen_thumb;
 
   Library *curlib;

@@ -144,6 +144,7 @@ struct AssetWeakReferenceMain {
   AssetWeakReferenceMain(std::string filepath)
       : filepath(std::move(filepath)), main(BKE_main_new())
   {
+    main->is_asset_weak_reference_main = true;
   }
   AssetWeakReferenceMain(const AssetWeakReferenceMain &) = delete;
   AssetWeakReferenceMain(AssetWeakReferenceMain &&other)
