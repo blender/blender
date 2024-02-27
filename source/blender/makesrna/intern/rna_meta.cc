@@ -39,7 +39,7 @@
 #  include "WM_api.hh"
 #  include "WM_types.hh"
 
-static int rna_Meta_texspace_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_Meta_texspace_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   MetaBall *mb = (MetaBall *)ptr->data;
   return (mb->texspace_flag & MB_TEXSPACE_FLAG_AUTO) ? 0 : int(PROP_EDITABLE);

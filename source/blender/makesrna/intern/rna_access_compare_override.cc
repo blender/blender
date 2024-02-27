@@ -120,7 +120,7 @@ int RNA_property_override_flag(PropertyRNA *prop)
   return rna_ensure_property(prop)->flag_override;
 }
 
-bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
+bool RNA_property_overridable_get(const PointerRNA *ptr, PropertyRNA *prop)
 {
   if (prop->magic == RNA_MAGIC) {
     /* Special handling for insertions of constraints or modifiers... */

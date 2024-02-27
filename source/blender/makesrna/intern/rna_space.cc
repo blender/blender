@@ -2757,7 +2757,7 @@ static std::optional<std::string> rna_FileSelectParams_path(const PointerRNA * /
   return "params";
 }
 
-int rna_FileSelectParams_filename_editable(PointerRNA *ptr, const char **r_info)
+int rna_FileSelectParams_filename_editable(const PointerRNA *ptr, const char **r_info)
 {
   FileSelectParams *params = static_cast<FileSelectParams *>(ptr->data);
 
@@ -2837,7 +2837,7 @@ static PointerRNA rna_FileAssetSelectParams_filter_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FileAssetSelectIDFilter, ptr->data);
 }
 
-static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr)
+static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(const PointerRNA *ptr)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
 
@@ -2860,7 +2860,8 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr
   return rna_pointer_inherit_refine(ptr, &RNA_AssetMetaData, asset_data);
 }
 
-static int rna_FileBrowser_FileSelectEntry_name_editable(PointerRNA *ptr, const char **r_info)
+static int rna_FileBrowser_FileSelectEntry_name_editable(const PointerRNA *ptr,
+                                                         const char **r_info)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
 
@@ -2977,7 +2978,8 @@ static void rna_FileBrowser_FSMenuEntry_name_set(PointerRNA *ptr, const char *va
   ED_fsmenu_entry_set_name(fsm, value);
 }
 
-static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_FileBrowser_FSMenuEntry_name_get_editable(const PointerRNA *ptr,
+                                                         const char ** /*r_info*/)
 {
   FSMenuEntry *fsm = static_cast<FSMenuEntry *>(ptr->data);
 

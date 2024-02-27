@@ -1268,7 +1268,7 @@ static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *va
   copy_v3_v3(values, sl->light_ambient);
 }
 
-int rna_show_statusbar_vram_editable(PointerRNA * /*ptr*/, const char ** /*r_info*/)
+int rna_show_statusbar_vram_editable(const PointerRNA * /*ptr*/, const char ** /*r_info*/)
 {
   return GPU_mem_stats_supported() ? PROP_EDITABLE : PropertyFlag(0);
 }

@@ -259,7 +259,7 @@ void rna_def_mtex_common(BlenderRNA *brna,
 void rna_def_texpaint_slots(BlenderRNA *brna, StructRNA *srna);
 void rna_def_view_layer_common(BlenderRNA *brna, StructRNA *srna, bool scene);
 
-int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info);
+int rna_AssetMetaData_editable(const PointerRNA *ptr, const char **r_info);
 /**
  * \note the UI text and updating has to be set by the caller.
  */
@@ -596,7 +596,7 @@ PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 
 /* Pointer Handling */
 
-PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *data);
+PointerRNA rna_pointer_inherit_refine(const PointerRNA *ptr, StructRNA *type, void *data);
 
 /* Functions */
 

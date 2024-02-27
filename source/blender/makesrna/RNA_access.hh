@@ -287,21 +287,21 @@ int RNA_property_enum_bitflag_identifiers(
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value);
 
-bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_editable(const PointerRNA *ptr, PropertyRNA *prop);
 /**
  * Version of #RNA_property_editable that tries to return additional info in \a r_info
  * that can be exposed in UI.
  */
-bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char **r_info);
+bool RNA_property_editable_info(const PointerRNA *ptr, PropertyRNA *prop, const char **r_info);
 /**
  * Same as RNA_property_editable(), except this checks individual items in an array.
  */
-bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, const int index);
+bool RNA_property_editable_index(const PointerRNA *ptr, PropertyRNA *prop, const int index);
 
 /**
  * Without lib check, only checks the flag.
  */
-bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_editable_flag(const PointerRNA *ptr, PropertyRNA *prop);
 
 bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
@@ -309,7 +309,7 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
  * \note Does not take into account editable status, this has to be checked separately
  * (using #RNA_property_editable_flag() usually).
  */
-bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_overridable_get(const PointerRNA *ptr, PropertyRNA *prop);
 /**
  * Should only be used for custom properties.
  */

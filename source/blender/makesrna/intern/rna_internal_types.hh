@@ -48,8 +48,8 @@ using UpdateFunc = void (*)(Main *bmain, Scene *active_scene, PointerRNA *ptr);
 using ContextPropUpdateFunc = void (*)(bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 using ContextUpdateFunc = void (*)(bContext *C, PointerRNA *ptr);
 
-using EditableFunc = int (*)(PointerRNA *ptr, const char **r_info);
-using ItemEditableFunc = int (*)(PointerRNA *ptr, int index);
+using EditableFunc = int (*)(const PointerRNA *ptr, const char **r_info);
+using ItemEditableFunc = int (*)(const PointerRNA *ptr, int index);
 using IDPropertiesFunc = IDProperty **(*)(PointerRNA *ptr);
 using StructRefineFunc = StructRNA *(*)(PointerRNA *ptr);
 using StructPathFunc = std::optional<std::string> (*)(const PointerRNA *ptr);
