@@ -1338,12 +1338,17 @@ static int rna_operator_exec_cb(bContext *C, wmOperator *op)
 
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
-  op->type->rna_ext.call(C, &opr, func, &list);
+  const bool has_error = op->type->rna_ext.call(C, &opr, func, &list) == -1;
 
   RNA_parameter_get_lookup(&list, "result", &ret);
   result = *(int *)ret;
 
   RNA_parameter_list_free(&list);
+
+  if (UNLIKELY(has_error)) {
+    /* A modal handler may have been added, ensure this is removed, see: #113479. */
+    WM_event_remove_modal_handler_all(op, false);
+  }
 
   return result;
 }
@@ -1388,12 +1393,17 @@ static int rna_operator_invoke_cb(bContext *C, wmOperator *op, const wmEvent *ev
   RNA_parameter_list_create(&list, &opr, func);
   RNA_parameter_set_lookup(&list, "context", &C);
   RNA_parameter_set_lookup(&list, "event", &event);
-  op->type->rna_ext.call(C, &opr, func, &list);
+  const bool has_error = op->type->rna_ext.call(C, &opr, func, &list) == -1;
 
   RNA_parameter_get_lookup(&list, "result", &ret);
   result = *(int *)ret;
 
   RNA_parameter_list_free(&list);
+
+  if (UNLIKELY(has_error)) {
+    /* A modal handler may have been added, ensure this is removed, see: #113479. */
+    WM_event_remove_modal_handler_all(op, false);
+  }
 
   return result;
 }
