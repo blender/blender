@@ -3698,7 +3698,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     Main *old_main = static_cast<Main *>(fd->old_mainlist->first);
     BLI_assert(old_main != nullptr);
     BLI_assert(old_main->curlib == nullptr);
-    for (Main *libmain = old_main->next; libmain != nullptr; libmain = libmain->next) {
+    Main *libmain, *libmain_next;
+    for (libmain = old_main->next; libmain != nullptr; libmain = libmain_next) {
+      libmain_next = libmain->next;
       read_undo_move_libmain_data(fd, new_main, old_main, libmain, nullptr);
     }
   }
