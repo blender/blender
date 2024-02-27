@@ -323,7 +323,7 @@ static std::optional<std::string> rna_GPencilLayer_path(const PointerRNA *ptr)
   return fmt::format("layers[\"{}\"]", name_esc);
 }
 
-static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_GPencilLayer_active_frame_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   bGPDlayer *gpl = (bGPDlayer *)ptr->data;
 
