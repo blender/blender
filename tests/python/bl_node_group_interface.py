@@ -272,13 +272,6 @@ class NodeGroupInterfaceTests:
         self.assertSequenceEqual([s.name for s in group_node.inputs], ["Input 0", "Input 1"])
         self.assertSequenceEqual([s.name for s in group_node.outputs], ["Output 0", "Output 1"])
 
-        # Nested panel is not allowed and should return None.
-        panel1 = tree.interface.new_panel("Panel 1", parent=panel0)
-        self.assertIsNone(panel1)
-        self.assertSequenceEqual(tree.interface.items_tree, [out0, in0, panel0, out1, in1])
-        self.assertSequenceEqual([s.name for s in group_node.inputs], ["Input 0", "Input 1"])
-        self.assertSequenceEqual([s.name for s in group_node.outputs], ["Output 0", "Output 1"])
-
     def do_test_remove(self, socket_type):
         tree, group_node = self.make_group_and_instance()
 
