@@ -118,7 +118,7 @@ def get_submodule_directories(args):
 
     submodule_directories_output = check_output(
         [args.git_command, "config", "--file", dot_modules, "--get-regexp", "path"])
-    return (Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines())
+    return [Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines()]
 
 
 def ensure_git_lfs(args) -> None:
@@ -127,9 +127,9 @@ def ensure_git_lfs(args) -> None:
     call((args.git_command, "lfs", "install", "--skip-repo"), exit_on_error=True)
 
 
-def update_precompiled_libraries(args):
+def initialize_precompiled_libraries(args):
     """
-    Configure and update submodule for precompiled libraries
+    Configure submodule for precompiled libraries
 
     This function detects the current host architecture and enables
     corresponding submodule, and updates the submodule.
@@ -158,27 +158,23 @@ def update_precompiled_libraries(args):
     if Path(submodule_dir) not in submodule_directories:
         return "Skipping libraries update: no configured submodule\n"
 
-    make_utils.git_enable_submodule(args.git_command, submodule_dir)
-
-    if not make_utils.git_update_submodule(args.git_command, submodule_dir):
-        return "Error updating precompiled libraries\n"
+    print(f"* Enabling precompiled libraries at {submodule_dir}")
+    make_utils.git_enable_submodule(args.git_command, Path(submodule_dir))
 
     return ""
 
 
-def update_tests_data_files(args):
+def initialize_tests_data_files(args):
     """
-    Configure and update submodule with files used by regression tests
+    Configure submodule with files used by regression tests
     """
 
     print_stage("Configuring Tests Data Files")
 
     submodule_dir = "tests/data"
 
-    make_utils.git_enable_submodule(args.git_command, submodule_dir)
-
-    if not make_utils.git_update_submodule(args.git_command, submodule_dir):
-        return "Error updating test data\n"
+    print(f"* Enabling tests data at {submodule_dir}")
+    make_utils.git_enable_submodule(args.git_command, Path(submodule_dir))
 
     return ""
 
@@ -221,7 +217,49 @@ def blender_update(args):
     call([args.git_command, "pull", "--rebase"])
 
 
-def submodules_update_non_tracking(args, release_version, branch):
+def _is_library_submodule(submodule_path):
+    if submodule_path.parts[0] in ("lib", "tests"):
+        return True
+
+    if submodule_path.is_relative_to(Path("release") / "datafiles"):
+        return True
+
+    return False
+
+
+def submodules_lib_update(args, release_version, branch):
+    print_stage("Updating Libraries")
+
+    if make_utils.command_missing(args.git_command):
+        sys.stderr.write("git not found, can't update code\n")
+        sys.exit(1)
+
+    msg = ""
+
+    submodule_directories = get_submodule_directories(args)
+    for submodule_path in submodule_directories:
+        if not _is_library_submodule(submodule_path):
+            continue
+
+        if not make_utils.is_git_submodule_enabled(args.git_command, submodule_path):
+            print(f"* Skipping {submodule_path}")
+            continue
+
+        print(f"* Updating {submodule_path} ...")
+
+        if not make_utils.git_update_submodule(args.git_command, submodule_path):
+            msg += f"Error updating Git submodule {submodule_path}\n"
+
+    return msg
+
+
+def submodules_code_update(args, release_version, branch):
+    print_stage("Updating Submodules")
+
+    if make_utils.command_missing(args.git_command):
+        sys.stderr.write("git not found, can't update code\n")
+        sys.exit(1)
+
     # Update submodules to appropriate given branch,
     # falling back to master if none is given and/or found in a sub-repository.
     branch_fallback = "master"
@@ -272,42 +310,6 @@ def submodules_update_non_tracking(args, release_version, branch):
     return skip_msg
 
 
-def submodules_update_tracking(args, release_version, branch):
-    msg = ""
-
-    submodule_directories = get_submodule_directories(args)
-    for submodule_path in submodule_directories:
-        if submodule_path.parts[0] == "lib" and args.no_libraries:
-            print(f"Skipping library submodule {submodule_path}")
-            continue
-
-        if submodule_path.parts[0] == "tests" and not args.use_tests:
-            print(f"Skipping tests submodule {submodule_path}")
-            continue
-
-        print(f"- Updating {submodule_path}")
-
-        if not make_utils.git_update_submodule(args.git_command, submodule_path):
-            msg += f"Error updating Git submodule {submodule_path}\n"
-
-    return msg
-
-
-def submodules_update(args, release_version, branch):
-    print_stage("Updating Submodules")
-
-    if make_utils.command_missing(args.git_command):
-        sys.stderr.write("git not found, can't update code\n")
-        sys.exit(1)
-
-    msg = ""
-
-    msg += submodules_update_non_tracking(args, release_version, branch)
-    msg += submodules_update_tracking(args, release_version, branch)
-
-    return msg
-
-
 if __name__ == "__main__":
     args = parse_arguments()
     blender_skip_msg = ""
@@ -335,12 +337,13 @@ if __name__ == "__main__":
             blender_update(args)
 
     if not args.no_libraries:
-        libraries_skip_msg += update_precompiled_libraries(args)
+        libraries_skip_msg += initialize_precompiled_libraries(args)
         if args.use_tests:
-            libraries_skip_msg += update_tests_data_files(args)
+            libraries_skip_msg += initialize_tests_data_files(args)
+        libraries_skip_msg += submodules_lib_update(args, release_version, branch)
 
     if not args.no_submodules:
-        submodules_skip_msg = submodules_update(args, release_version, branch)
+        submodules_skip_msg = submodules_code_update(args, release_version, branch)
 
     # Report any skipped repositories at the end, so it's not as easy to miss.
     skip_msg = blender_skip_msg + libraries_skip_msg + submodules_skip_msg

@@ -99,14 +99,51 @@ def git_branch_release_version(branch, tag):
     return release_version
 
 
+def git_get_config(git_command, key, file):
+    if file:
+        return check_output([git_command, "config", "--file", file, "--get", key])
+
+    return check_output([git_command, "config", "--get", key])
+
+
+def _git_submodule_config_key(submodule_dir, key):
+    submodule_dir_str = submodule_dir.as_posix()
+    return f"submodule.{submodule_dir_str}.{key}"
+
+
+def is_git_submodule_enabled(git_command: str, submodule_dir: Path):
+    """Check whether submodule denoted by its directory within the repository is enabled"""
+
+    git_root = Path(check_output([git_command, "rev-parse", "--show-toplevel"]))
+    gitmodules = git_root / ".gitmodules"
+
+    # Check whether the submodule actually exists.
+    # Request path of an unknown submodule will cause non-zero exit code.
+    path = git_get_config(
+        git_command, _git_submodule_config_key(submodule_dir, "path"), str(gitmodules))
+    if not path:
+        return False
+
+    # When the "update" strategy is not provided explicitly in the the local configuration
+    # `git config` returns a non-zero exit code. For those assume the default "checkout"
+    # strategy.
+    update = check_output(
+        (git_command, "config", "--local", _git_submodule_config_key(submodule_dir, "update")),
+        exit_on_error=False)
+
+    return update.lower() != "none"
+
+
 def git_enable_submodule(git_command, submodule_dir):
     """Enable submodule denoted by its directory within the repository"""
 
     command = (git_command,
                "config",
                "--local",
-               f"submodule.{submodule_dir}.update", "checkout")
-    call(command, exit_on_error=True, silent=False)
+               _git_submodule_config_key(submodule_dir, "update"),
+               "checkout")
+
+    call(command, exit_on_error=True, silent=True)
 
 
 def git_update_submodule(git_command, submodule_dir):
