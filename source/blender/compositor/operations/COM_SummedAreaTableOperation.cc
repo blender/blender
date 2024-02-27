@@ -64,28 +64,30 @@ void SummedAreaTableOperation::update_memory_buffer(MemoryBuffer *output,
   MemoryBuffer *image = inputs[0];
 
   /* First pass: copy input to output and sum horizontally. */
-  threading::parallel_for(IndexRange(area.ymin, area.ymax), 1, [&](const IndexRange range_y) {
-    for (const int y : range_y) {
-      float4 accumulated_color = float4(0.0f);
-      for (const int x : IndexRange(area.xmin, area.xmax)) {
-        const float4 color = float4(image->get_elem(x, y));
-        accumulated_color += mode_ == eMode::Squared ? color * color : color;
-        copy_v4_v4(output->get_elem(x, y), accumulated_color);
-      }
-    }
-  });
+  threading::parallel_for(
+      IndexRange(area.ymin, area.ymax - area.ymin), 1, [&](const IndexRange range_y) {
+        for (const int y : range_y) {
+          float4 accumulated_color = float4(0.0f);
+          for (const int x : IndexRange(area.xmin, area.xmax - area.xmin)) {
+            const float4 color = float4(image->get_elem(x, y));
+            accumulated_color += mode_ == eMode::Squared ? color * color : color;
+            copy_v4_v4(output->get_elem(x, y), accumulated_color);
+          }
+        }
+      });
 
   /* Second pass: vertical sum. */
-  threading::parallel_for(IndexRange(area.xmin, area.xmax), 1, [&](const IndexRange range_x) {
-    for (const int x : range_x) {
-      float4 accumulated_color = float4(0.0f);
-      for (const int y : IndexRange(area.ymin, area.ymax)) {
-        const float4 color = float4(output->get_elem(x, y));
-        accumulated_color += color;
-        copy_v4_v4(output->get_elem(x, y), accumulated_color);
-      }
-    }
-  });
+  threading::parallel_for(
+      IndexRange(area.xmin, area.xmax - area.xmin), 1, [&](const IndexRange range_x) {
+        for (const int x : range_x) {
+          float4 accumulated_color = float4(0.0f);
+          for (const int y : IndexRange(area.ymin, area.ymax - area.ymin)) {
+            const float4 color = float4(output->get_elem(x, y));
+            accumulated_color += color;
+            copy_v4_v4(output->get_elem(x, y), accumulated_color);
+          }
+        }
+      });
 }
 
 MemoryBuffer *SummedAreaTableOperation::create_memory_buffer(rcti *area)
@@ -94,29 +96,31 @@ MemoryBuffer *SummedAreaTableOperation::create_memory_buffer(rcti *area)
   MemoryBuffer *output = new MemoryBuffer(DataType::Color, *area);
 
   /* First pass: copy input to output and sum horizontally. */
-  threading::parallel_for(IndexRange(area->ymin, area->ymax), 1, [&](const IndexRange range_y) {
-    for (const int y : range_y) {
-      float4 accumulated_color = float4(0.0f);
-      for (const int x : IndexRange(area->xmin, area->xmax)) {
-        float4 color;
-        image_reader_->read(&color.x, x, y, nullptr);
-        accumulated_color += mode_ == eMode::Squared ? color * color : color;
-        copy_v4_v4(output->get_elem(x, y), accumulated_color);
-      }
-    }
-  });
+  threading::parallel_for(
+      IndexRange(area->ymin, area->ymax - area->ymin), 1, [&](const IndexRange range_y) {
+        for (const int y : range_y) {
+          float4 accumulated_color = float4(0.0f);
+          for (const int x : IndexRange(area->xmin, area->xmax - area->xmin)) {
+            float4 color;
+            image_reader_->read(&color.x, x, y, nullptr);
+            accumulated_color += mode_ == eMode::Squared ? color * color : color;
+            copy_v4_v4(output->get_elem(x, y), accumulated_color);
+          }
+        }
+      });
 
   /* Second pass: vertical sum. */
-  threading::parallel_for(IndexRange(area->xmin, area->xmax), 1, [&](const IndexRange range_x) {
-    for (const int x : range_x) {
-      float4 accumulated_color = float4(0.0f);
-      for (const int y : IndexRange(area->ymin, area->ymax)) {
+  threading::parallel_for(
+      IndexRange(area->xmin, area->xmax - area->xmin), 1, [&](const IndexRange range_x) {
+        for (const int x : range_x) {
+          float4 accumulated_color = float4(0.0f);
+          for (const int y : IndexRange(area->ymin, area->ymax - area->ymin)) {
 
-        accumulated_color += float4(output->get_elem(x, y));
-        copy_v4_v4(output->get_elem(x, y), accumulated_color);
-      }
-    }
-  });
+            accumulated_color += float4(output->get_elem(x, y));
+            copy_v4_v4(output->get_elem(x, y), accumulated_color);
+          }
+        }
+      });
 
   return output;
 }
