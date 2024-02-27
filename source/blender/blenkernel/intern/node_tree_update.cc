@@ -147,6 +147,16 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 1;
       }
       return -1;
+    case SOCK_ROTATION:
+      switch (from->type) {
+        case SOCK_ROTATION:
+          return 3;
+        case SOCK_VECTOR:
+          return 2;
+        case SOCK_FLOAT:
+          return 1;
+      }
+      return -1;
   }
 
   /* The rest of the socket types only allow an internal link if both the input and output socket

@@ -249,6 +249,12 @@ static void geom_add_polygon(Geometry *geom,
     bool got_uv = false, got_normal = false;
     /* Parse vertex index. */
     p = parse_int(p, end, INT32_MAX, corner.vert_index, false);
+
+    /* Skip parsing when we reach start of the comment. */
+    if (*p == '#') {
+      break;
+    }
+
     face_valid &= corner.vert_index != INT32_MAX;
     if (p < end && *p == '/') {
       /* Parse UV index. */

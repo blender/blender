@@ -23,9 +23,9 @@ typedef struct GPUShaderCreateInfo GPUShaderCreateInfo;
 /** Opaque type hiding #blender::gpu::Shader */
 typedef struct GPUShader GPUShader;
 
-/* Hardware limit is 16. Position attribute is always needed so we reduce to 15.
+/* Hardware limit is 16. Position and Normal attributes are always needed, so we reduce them to 14.
  * This makes sure the GPUVertexFormat name buffer does not overflow. */
-#define GPU_MAX_ATTR 15
+#define GPU_MAX_ATTR 14
 
 /* Determined by the maximum uniform buffer size divided by chunk size. */
 #define GPU_MAX_UNIFORM_ATTR 8
