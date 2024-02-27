@@ -764,7 +764,8 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
      * the edge
      */
     if (!(pi && LRT_DOUBLE_CLOSE_ENOUGH(ratio[0], 1.0f) &&
-          LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 0.0f))) {
+          LRT_DOUBLE_CLOSE_ENOUGH(ratio[1], 0.0f)))
+    {
       trie[pi] = 1;
       pi++;
     }
