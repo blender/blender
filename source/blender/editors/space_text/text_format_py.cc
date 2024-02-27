@@ -346,6 +346,10 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
     fmt = line->prev->format;
     cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
     BLI_assert((FMT_CONT_ALL & cont) == cont);
+    /* So slashes beginning on continuation display properly, see: #118767. */
+    if (cont & (FMT_CONT_QUOTEDOUBLE | FMT_CONT_QUOTESINGLE | FMT_CONT_TRIPLE)) {
+      prev = FMT_TYPE_STRING;
+ }
   }
   else {
     cont = FMT_CONT_NOP;
