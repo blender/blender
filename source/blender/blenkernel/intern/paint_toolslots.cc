@@ -53,7 +53,6 @@ static void paint_toolslots_init(Main *bmain, Paint *paint)
       BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
       if (paint->tool_slots[slot_index].brush == nullptr) {
         paint->tool_slots[slot_index].brush = brush;
-        id_us_plus(&brush->id);
       }
     }
   }
@@ -120,10 +119,6 @@ void BKE_paint_toolslots_brush_update_ex(Paint *paint, Brush *brush)
   const int slot_index = BKE_brush_tool_get(brush, paint);
   BKE_paint_toolslots_len_ensure(paint, slot_index + 1);
   PaintToolSlot *tslot = &paint->tool_slots[slot_index];
-  id_us_plus(&brush->id);
-  if (tslot->brush) {
-    id_us_min(&tslot->brush->id);
-  }
   tslot->brush = brush;
 }
 
@@ -147,7 +142,6 @@ void BKE_paint_toolslots_brush_validate(Main *bmain, Paint *paint)
     if (tslot->brush) {
       if ((i != BKE_brush_tool_get(tslot->brush, paint)) || (tslot->brush->ob_mode & ob_mode) == 0)
       {
-        id_us_min(&tslot->brush->id);
         tslot->brush = nullptr;
       }
     }

@@ -35,6 +35,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_appdir.hh"
+#include "BKE_asset.hh"
 #include "BKE_blender_copybuffer.hh"
 #include "BKE_brush.hh"
 #include "BKE_context.hh"
@@ -821,22 +822,26 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 
 static int new_texture_exec(bContext *C, wmOperator * /*op*/)
 {
-  Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
-  Main *bmain = CTX_data_main(C);
   PointerRNA ptr;
   PropertyRNA *prop;
 
+  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+
+  Main *id_main = CTX_data_main(C);
+  if (ptr.owner_id) {
+    id_main = BKE_asset_weak_reference_main(id_main, ptr.owner_id);
+  }
+
   /* add or copy texture */
+  Tex *tex = static_cast<Tex *>(CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data);
   if (tex) {
-    tex = (Tex *)BKE_id_copy(bmain, &tex->id);
+    tex = (Tex *)BKE_id_copy(id_main, &tex->id);
   }
   else {
-    tex = BKE_texture_add(bmain, DATA_("Texture"));
+    tex = BKE_texture_add(id_main, DATA_("Texture"));
   }
 
   /* hook into UI */
-  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
-
   if (prop) {
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */

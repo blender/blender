@@ -1270,6 +1270,8 @@ static char *rna_def_property_set_func(
           fprintf(f, "    }\n");
         }
 
+        /* TODO: check here for wrong linking between regular and asset main? */
+
         if (prop->flag & PROP_ID_REFCOUNT) {
           fprintf(f, "\n    if (data->%s) {\n", dp->dnaname);
           fprintf(f, "        id_us_min((ID *)data->%s);\n", dp->dnaname);

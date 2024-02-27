@@ -341,42 +341,6 @@ bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
   return false;
 }
 
-int BKE_lib_override_user_edited_from_library_count(Main *bmain,
-                                                    const ID_Type id_type,
-                                                    Library *library,
-                                                    ReportList *r_reports)
-{
-  ListBase *lb = which_libbase(bmain, id_type);
-  int num_user_edited = 0;
-
-  for (ID *id_iter = static_cast<ID *>(lb->first); id_iter != nullptr;
-       id_iter = static_cast<ID *>(id_iter->next))
-  {
-    if (ID_IS_LINKED(id_iter)) {
-      break;
-    }
-    if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
-      continue;
-    }
-    if (id_iter->override_library->reference->lib != library) {
-      continue;
-    }
-    if (!BKE_lib_override_library_is_user_edited(id_iter)) {
-      continue;
-    }
-
-    /* NOTE: If changes have been saved in a draft, then the local override is based on said
-     * draft (using the linked ID from the draft file as reference), so there should be no user
-     * edited changes anymore. */
-    num_user_edited++;
-    if (r_reports) {
-      BKE_report(r_reports, RPT_INFO, id_iter->name + 2);
-    }
-  }
-
-  return num_user_edited;
-}
-
 bool BKE_lib_override_library_property_is_animated(
     const ID *id,
     const IDOverrideLibraryProperty *liboverride_prop,

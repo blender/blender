@@ -34,6 +34,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_asset.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
@@ -2532,7 +2533,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima;
   Image *ima;
-  Main *bmain;
+  Main *id_main;
   PropertyRNA *prop;
   char name_buffer[MAX_ID_NAME - 2];
   const char *name;
@@ -2540,9 +2541,14 @@ static int image_new_exec(bContext *C, wmOperator *op)
   int width, height, floatbuf, gen_type, alpha;
   int stereo3d;
 
+  ImageNewData *data = image_new_init(C, op);
+
   /* retrieve state */
   sima = CTX_wm_space_image(C);
-  bmain = CTX_data_main(C);
+  id_main = CTX_data_main(C);
+  if (data->pprop.ptr.owner_id) {
+    id_main = BKE_asset_weak_reference_main(id_main, data->pprop.ptr.owner_id);
+  }
 
   prop = RNA_struct_find_property(op->ptr, "name");
   RNA_property_string_get(op->ptr, prop, name_buffer);
@@ -2566,7 +2572,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     color[3] = 1.0f;
   }
 
-  ima = BKE_image_add_generated(bmain,
+  ima = BKE_image_add_generated(id_main,
                                 width,
                                 height,
                                 name,
@@ -2584,8 +2590,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
   }
 
   /* hook into UI */
-  ImageNewData *data = image_new_init(C, op);
-
   if (data->pprop.prop) {
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
@@ -2596,7 +2600,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
   }
   else if (sima) {
-    ED_space_image_set(bmain, sima, ima, false);
+    ED_space_image_set(id_main, sima, ima, false);
   }
   else {
     /* #BKE_image_add_generated creates one user by default, remove it if image is not linked to
@@ -2604,7 +2608,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
     id_us_min(&ima->id);
   }
 
-  BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : nullptr, IMA_SIGNAL_USER_NEW_IMAGE);
+  BKE_image_signal(id_main, ima, (sima) ? &sima->iuser : nullptr, IMA_SIGNAL_USER_NEW_IMAGE);
 
   WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 

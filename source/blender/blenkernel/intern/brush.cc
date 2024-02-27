@@ -25,7 +25,6 @@
 #include "BLT_translation.hh"
 
 #include "BKE_asset.hh"
-#include "BKE_blendfile_link_append.hh"
 #include "BKE_bpath.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
@@ -524,60 +523,6 @@ static void brush_defaults(Brush *brush)
 
 #undef FROM_DEFAULT
 #undef FROM_DEFAULT_PTR
-}
-
-Brush *BKE_brush_asset_runtime_ensure(Main *bmain, const AssetWeakReference &brush_asset_reference)
-{
-  char asset_full_path_buffer[FILE_MAX_LIBEXTRA];
-  char *asset_lib_path, *asset_group, *asset_name;
-
-  AS_asset_full_path_explode_from_weak_ref(
-      &brush_asset_reference, asset_full_path_buffer, &asset_lib_path, &asset_group, &asset_name);
-
-  if (asset_lib_path == nullptr && asset_group == nullptr && asset_name == nullptr) {
-    return nullptr;
-  }
-
-  BLI_assert(STREQ(asset_group, IDType_ID_BR.name));
-  BLI_assert(asset_name != nullptr);
-
-  /* If the weakreference resolves to a null library path, assume that we are in local asset case.
-   */
-  if (asset_lib_path == nullptr) {
-    Brush *local_brush_asset = reinterpret_cast<Brush *>(
-        BLI_findstring(&bmain->brushes, asset_name, offsetof(ID, name) + 2));
-
-    if (local_brush_asset == nullptr || !ID_IS_ASSET(local_brush_asset)) {
-      return nullptr;
-    }
-    return local_brush_asset;
-  }
-
-  LibraryLink_Params lapp_parameters{};
-  lapp_parameters.bmain = bmain;
-  BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
-      &lapp_parameters);
-  BKE_blendfile_link_append_context_flag_set(lapp_context, BLO_LIBLINK_FORCE_INDIRECT, true);
-  BKE_blendfile_link_append_context_flag_set(lapp_context, FILE_LINK, true);
-
-  BKE_blendfile_link_append_context_library_add(lapp_context, asset_lib_path, nullptr);
-
-  BlendfileLinkAppendContextItem *lapp_item = BKE_blendfile_link_append_context_item_add(
-      lapp_context, asset_name, ID_BR, nullptr);
-  BKE_blendfile_link_append_context_item_library_index_enable(lapp_context, lapp_item, 0);
-
-  BKE_blendfile_link(lapp_context, nullptr);
-  BKE_blendfile_override(lapp_context,
-                         eBKELibLinkOverride(BKE_LIBLINK_OVERRIDE_USE_EXISTING_LIBOVERRIDES |
-                                             BKE_LIBLINK_OVERRIDE_CREATE_RUNTIME),
-                         nullptr);
-
-  Brush *liboverride_brush = reinterpret_cast<Brush *>(
-      BKE_blendfile_link_append_context_item_liboverrideid_get(lapp_context, lapp_item));
-
-  BKE_blendfile_link_append_context_free(lapp_context);
-
-  return liboverride_brush;
 }
 
 /* Datablock add/copy/free/make_local */

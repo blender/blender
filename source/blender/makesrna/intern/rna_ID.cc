@@ -16,6 +16,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_asset.hh"
 #include "BKE_icons.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main_namemap.hh"
@@ -285,12 +286,13 @@ int rna_ID_name_length(PointerRNA *ptr)
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
-  BLI_assert(BKE_id_is_in_global_main(id));
-  BLI_assert(!ID_IS_LINKED(id));
-
-  BKE_main_namemap_remove_name(G_MAIN, id, id->name + 2);
+  Main *id_main = BKE_asset_weak_reference_main(G_MAIN, id);
+  BKE_main_namemap_remove_name(id_main, id, id->name + 2);
   BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
-  BKE_libblock_ensure_unique_name(G_MAIN, id);
+  /* TODO: add BKE_id_is_in_editable_main? */
+  /* TODO: this does update immediately in the asset shelf. */
+  BLI_assert(BKE_id_is_in_global_main(id) || (id->tag & LIB_TAG_ASSET_MAIN));
+  BKE_libblock_ensure_unique_name(id_main, id);
 
   if (GS(id->name) == ID_OB) {
     Object *ob = (Object *)id;
@@ -323,7 +325,8 @@ static int rna_ID_name_editable(PointerRNA *ptr, const char **r_info)
       return 0;
     }
   }
-  else if (!BKE_id_is_in_global_main(id)) {
+  /* TODO: add BKE_id_is_in_editable_main? */
+  else if (!(BKE_id_is_in_global_main(id) || (id->tag & LIB_TAG_ASSET_MAIN))) {
     if (r_info) {
       *r_info = N_("Datablocks not in global Main data-base cannot be renamed");
     }
@@ -1155,9 +1158,11 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
   short *totcol = BKE_id_material_len_p(id);
   Material *mat_id = (Material *)assign_ptr->owner_id;
   if (totcol && (key >= 0 && key < *totcol)) {
+    Main *id_main = BKE_asset_weak_reference_main(G_MAIN, id);
+    /* TODO: BKE_id_is_in_editable_main? */
     BLI_assert(BKE_id_is_in_global_main(id));
     BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
-    BKE_id_material_assign(G_MAIN, id, mat_id, key + 1);
+    BKE_id_material_assign(id_main, id, mat_id, key + 1);
     return 1;
   }
   else {
@@ -1213,8 +1218,10 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain)
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
   Library *lib = (Library *)ptr->data;
+  Main *id_main = BKE_asset_weak_reference_main(G_MAIN, &lib->id);
+  /* TODO: BKE_id_is_in_editable_main? */
   BLI_assert(BKE_id_is_in_global_main(&lib->id));
-  BKE_library_filepath_set(G_MAIN, lib, value);
+  BKE_library_filepath_set(id_main, lib, value);
 }
 
 /* ***** ImagePreview ***** */
@@ -2301,6 +2308,14 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIB_TAG_INDIRECT);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Is Indirect", "Is this ID block linked indirectly");
+
+  prop = RNA_def_property(srna, "is_asset_library_data", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "tag", LIB_TAG_ASSET_MAIN);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop,
+                           "Asset Library Data",
+                           "This data-block is part of an asset library blend file, not the blend "
+                           "file opened for editing");
 
   prop = RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
   RNA_def_property_pointer_sdna(prop, nullptr, "lib");

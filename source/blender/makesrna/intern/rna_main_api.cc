@@ -27,6 +27,7 @@
 
 #  include "BKE_action.h"
 #  include "BKE_armature.hh"
+#  include "BKE_asset.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_camera.h"
 #  include "BKE_collection.hh"
@@ -125,6 +126,18 @@ static void rna_Main_ID_remove(Main *bmain,
                 id->name + 2);
     return;
   }
+  /* TODO: also check reverse case somehow? */
+  if (bmain != BKE_asset_weak_reference_main(bmain, id)) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "%s '%s' is part of a difference main database and should be removed from there",
+                BKE_idtype_idcode_to_name(GS(id->name)),
+                id->name + 2);
+    return;
+  }
+  /* TODO: this will not clear pointers from regular main to this asset.
+   * Those probably should not exist, and be purely runtime lookups? */
+
   if (do_unlink) {
     BKE_id_delete(bmain, id);
     RNA_POINTER_INVALIDATE(id_ptr);

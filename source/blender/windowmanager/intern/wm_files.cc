@@ -146,11 +146,6 @@ static void wm_history_file_write();
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
 
-static bool wm_operator_open_file_draft_check_dialog(bContext *C,
-                                                     wmOperator *op,
-                                                     const int num_user_edited_lost,
-                                                     ReportList *user_edited_lost_reports);
-
 static CLG_LogRef LOG = {"wm.files"};
 
 /* -------------------------------------------------------------------- */
@@ -2830,7 +2825,6 @@ static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatch
 enum {
   OPEN_MAINFILE_STATE_DISCARD_CHANGES,
   OPEN_MAINFILE_STATE_SELECT_FILE_PATH,
-  OPEN_MAINFILE_STATE_DISCARD_ASSET_DRAFTS,
   OPEN_MAINFILE_STATE_OPEN,
 };
 
@@ -2848,7 +2842,7 @@ static int wm_open_mainfile__discard_changes(bContext *C, wmOperator *op)
     set_next_operator_state(op, OPEN_MAINFILE_STATE_SELECT_FILE_PATH);
   }
   else {
-    set_next_operator_state(op, OPEN_MAINFILE_STATE_DISCARD_ASSET_DRAFTS);
+    set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
   }
 
   if (wm_operator_close_file_dialog_if_needed(C, op, wm_open_mainfile_after_dialog_callback)) {
@@ -2888,44 +2882,6 @@ static int wm_open_mainfile__select_file_path(bContext *C, wmOperator *op)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_open_mainfile__discard_asset_drafts(bContext *C, wmOperator *op)
-{
-  Main *bmain = CTX_data_main(C);
-
-  char filepath[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filepath);
-
-  set_next_operator_state(op, OPEN_MAINFILE_STATE_OPEN);
-
-  Library *lib = static_cast<Library *>(
-      BLI_findstring(&bmain->libraries, filepath, offsetof(Library, filepath_abs)));
-
-  if (lib == nullptr) {
-    return wm_open_mainfile_dispatch(C, op);
-  }
-
-  /* If new to-be-opened blendfile was a library of the currently opened one, check for potential
-   * persistent edited assets that would be reset to their library status (only Brushes IDs
-   * currently). */
-  ReportList *reports = MEM_cnew<ReportList>(__func__);
-  BKE_reports_init(reports, RPT_STORE);
-  const int num_user_edited_brushes = BKE_lib_override_user_edited_from_library_count(
-      bmain, ID_BR, lib, reports);
-  if (num_user_edited_brushes > 0) {
-    /* NOTE: steals ownership of `user_edited_lost_reports` regardless of its result. */
-    if (wm_operator_open_file_draft_check_dialog(C, op, num_user_edited_brushes, reports)) {
-      return OPERATOR_INTERFACE;
-    }
-    reports = nullptr;
-  }
-  else {
-    BKE_reports_clear(reports);
-    MEM_delete(reports);
-  }
-
-  return wm_open_mainfile_dispatch(C, op);
-}
-
 static int wm_open_mainfile__open(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -2958,7 +2914,6 @@ static int wm_open_mainfile__open(bContext *C, wmOperator *op)
 static OperatorDispatchTarget wm_open_mainfile_dispatch_targets[] = {
     {OPEN_MAINFILE_STATE_DISCARD_CHANGES, wm_open_mainfile__discard_changes},
     {OPEN_MAINFILE_STATE_SELECT_FILE_PATH, wm_open_mainfile__select_file_path},
-    {OPEN_MAINFILE_STATE_DISCARD_ASSET_DRAFTS, wm_open_mainfile__discard_asset_drafts},
     {OPEN_MAINFILE_STATE_OPEN, wm_open_mainfile__open},
     {0, nullptr},
 };
@@ -4528,218 +4483,4 @@ bool wm_operator_close_file_dialog_if_needed(bContext *C,
   return false;
 }
 
-/** \} */
-
-/**
- * \name Open Asset Library File Dialog.
- *
- * This handles cases where user is opening a file that is an asset library, which assets are used
- * in the 'user preference' way (i.e. assets are linked, and have runtime-only, session-persistant,
- * user-editable overrides of these.
- *
- * Special warning is necessary because when opening the library file, all non-drafted user edits
- * of the relevant assets will be lost. */
-/** \{ */
-
-static const char *open_file_draft_check_dialog_name = "open_file_draft_check_popup";
-
-typedef struct wmOpenDraftCheckCallback {
-  IDProperty *op_properties;
-
-  ReportList *user_edited_lost_reports;
-  int num_user_edited_lost;
-
-  char new_filepath[FILE_MAX];
-} wmOpenDraftCheckCallback;
-
-static void wm_block_open_file_draft_cancel(bContext *C, void *arg_block, void * /*arg_data*/)
-{
-  wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
-}
-
-static void wm_block_open_file_draft_discard(bContext *C, void *arg_block, void *arg_data)
-{
-  wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
-
-  /* Close the popup before executing the callback. Otherwise
-   * the popup might be closed by the callback, which will lead
-   * to a crash. */
-  wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
-
-  callback->exec(C, callback->user_data);
-  WM_generic_callback_free(callback);
-}
-
-static void wm_block_open_file_draft_save(bContext *C, void *arg_block, void *arg_data)
-{
-  wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
-  bool execute_callback = true;
-
-  wmWindow *win = CTX_wm_window(C);
-  UI_popup_block_close(C, win, static_cast<uiBlock *>(arg_block));
-
-  /* TODO: Actually save the edited lost local runtime assets overrides into drafts. */
-
-  if (execute_callback) {
-    callback->exec(C, callback->user_data);
-  }
-  WM_generic_callback_free(callback);
-}
-
-static void wm_block_open_file_draft_cancel_button(uiBlock *block, wmGenericCallback *post_action)
-{
-  uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
-  UI_but_func_set(but, wm_block_open_file_draft_cancel, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-}
-
-static void wm_block_open_file_draft_discard_button(uiBlock *block, wmGenericCallback *post_action)
-{
-  uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Ignore"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
-  UI_but_func_set(but, wm_block_open_file_draft_discard, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-}
-
-static void wm_block_open_file_draft_save_button(uiBlock *block, wmGenericCallback *post_action)
-{
-  uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Save To Draft"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
-  UI_but_func_set(but, wm_block_open_file_draft_save, block, post_action);
-  UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
-  UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);
-}
-
-static void wm_open_file_after_draft_check_dialog_callback(bContext *C, void *user_data)
-{
-  wmOpenDraftCheckCallback *callback_data = static_cast<wmOpenDraftCheckCallback *>(user_data);
-
-  WM_operator_name_call_with_properties(
-      C, "WM_OT_open_mainfile", WM_OP_INVOKE_DEFAULT, callback_data->op_properties, nullptr);
-}
-
-static uiBlock *block_create__open_draft_check_file_dialog(struct bContext *C,
-                                                           struct ARegion *region,
-                                                           void *arg1)
-{
-  wmGenericCallback *post_action = static_cast<wmGenericCallback *>(arg1);
-  wmOpenDraftCheckCallback *callback_data = static_cast<wmOpenDraftCheckCallback *>(
-      post_action->user_data);
-
-  uiBlock *block = UI_block_begin(C, region, open_file_draft_check_dialog_name, UI_EMBOSS);
-  UI_block_flag_enable(
-      block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
-  UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
-
-  uiLayout *layout = uiItemsAlertBox(block, 34, ALERT_ICON_QUESTION);
-
-  /* Title. */
-  uiItemL_ex(layout, TIP_("Save User-Edited Assets to Draft?"), ICON_NONE, true, false);
-
-  char message[2048];
-  SNPRINTF(message,
-           TIP_("The following %d assets have local edits that will be lost"),
-           callback_data->num_user_edited_lost);
-  uiItemL(layout, message, ICON_NONE);
-  uiItemL(layout, "by opening the chosen Blender Asset Library file", ICON_NONE);
-  uiItemL(layout, callback_data->new_filepath, ICON_NONE);
-
-  /* Draw available report messages. */
-  LISTBASE_FOREACH (Report *, report, &callback_data->user_edited_lost_reports->list) {
-    uiLayout *row = uiLayoutColumn(layout, false);
-    uiLayoutSetScaleY(row, 0.6f);
-    uiItemS(row);
-
-    uiItemL_ex(row, report->message, ICON_NONE, false, true);
-  }
-
-  uiItemS_ex(layout, 4.0f);
-
-  /* Buttons. */
-#ifdef _WIN32
-  const bool windows_layout = true;
-#else
-  const bool windows_layout = false;
-#endif
-
-  if (windows_layout) {
-    /* Windows standard layout. */
-
-    uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
-    uiLayoutSetScaleY(split, 1.2f);
-
-    uiLayoutColumn(split, false);
-    wm_block_open_file_draft_save_button(block, post_action);
-
-    uiLayoutColumn(split, false);
-    wm_block_open_file_draft_discard_button(block, post_action);
-
-    uiLayoutColumn(split, false);
-    wm_block_open_file_draft_cancel_button(block, post_action);
-  }
-  else {
-    /* Non-Windows layout (macOS and Linux). */
-
-    uiLayout *split = uiLayoutSplit(layout, 0.3f, true);
-    uiLayoutSetScaleY(split, 1.2f);
-
-    uiLayoutColumn(split, false);
-    wm_block_open_file_draft_discard_button(block, post_action);
-
-    uiLayout *split_right = uiLayoutSplit(split, 0.1f, true);
-
-    uiLayoutColumn(split_right, false);
-    /* Empty space. */
-
-    uiLayoutColumn(split_right, false);
-    wm_block_open_file_draft_cancel_button(block, post_action);
-
-    uiLayoutColumn(split_right, false);
-    wm_block_open_file_draft_save_button(block, post_action);
-  }
-
-  UI_block_bounds_set_centered(block, int(14 * U.scale_factor));
-  return block;
-}
-
-static void wm_free_open_file_draft_check_callback(void *user_data)
-{
-  wmOpenDraftCheckCallback *callback_data = static_cast<wmOpenDraftCheckCallback *>(user_data);
-
-  IDP_FreeProperty(callback_data->op_properties);
-  BKE_reports_clear(callback_data->user_edited_lost_reports);
-  MEM_delete(callback_data->user_edited_lost_reports);
-
-  MEM_delete(callback_data);
-}
-
-/* NOTE: steals ownership of `user_edited_lost_reports`. */
-static bool wm_operator_open_file_draft_check_dialog(bContext *C,
-                                                     wmOperator *op,
-                                                     const int num_user_edited_lost,
-                                                     ReportList *user_edited_lost_reports)
-{
-  wmOpenDraftCheckCallback *callback_data = MEM_cnew<wmOpenDraftCheckCallback>(__func__);
-  callback_data->op_properties = IDP_CopyProperty(op->properties);
-  RNA_string_get(op->ptr, "filepath", callback_data->new_filepath);
-  callback_data->num_user_edited_lost = num_user_edited_lost;
-  callback_data->user_edited_lost_reports = user_edited_lost_reports;
-
-  wmGenericCallback *callback = MEM_cnew<wmGenericCallback>(__func__);
-  callback->exec = wm_open_file_after_draft_check_dialog_callback;
-  callback->user_data = callback_data;
-  callback->free_user_data = wm_free_open_file_draft_check_callback;
-
-  if (!UI_popup_block_name_exists(CTX_wm_screen(C), open_file_draft_check_dialog_name)) {
-    UI_popup_block_invoke(
-        C, block_create__open_draft_check_file_dialog, callback, free_post_file_close_action);
-    return true;
-  }
-
-  WM_generic_callback_free(callback);
-  return false;
-}
 /** \} */

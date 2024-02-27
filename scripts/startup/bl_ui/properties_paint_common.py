@@ -157,13 +157,7 @@ class BrushSelectPanel(BrushPanel):
         col = row.column()
         col.menu("VIEW3D_MT_brush_context_menu", icon='DOWNARROW_HLT', text="")
 
-        # TODO: Need actual check if this is an asset from library.
-        # TODO: why is brush.asset_data None for these?
-        is_linked = brush.library
-        is_override = brush.override_library and brush.override_library.reference
-        is_asset_brush = is_linked or is_override
-
-        if not is_asset_brush:
+        if not brush.is_asset_library_data and not brush.asset_data:
             # Legacy custom icon, mostly replaced by asset preview.
             layout.use_property_split = True
             layout.use_property_decorate = False

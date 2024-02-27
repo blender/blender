@@ -668,8 +668,6 @@ const Brush *BKE_paint_brush_for_read(const Paint *p)
 void BKE_paint_brush_set(Paint *p, Brush *br)
 {
   if (p) {
-    id_us_min((ID *)p->brush);
-    id_us_plus((ID *)br);
     p->brush = br;
 
     BKE_paint_toolslots_brush_update(p);
@@ -678,9 +676,7 @@ void BKE_paint_brush_set(Paint *p, Brush *br)
 
 bool BKE_paint_brush_is_valid_asset(const Brush *brush)
 {
-  return brush && (ID_IS_ASSET(&brush->id) ||
-                   (!ID_IS_LINKED(&brush->id) && ID_IS_OVERRIDE_LIBRARY_REAL(&brush->id) &&
-                    ID_IS_ASSET(brush->id.override_library->reference)));
+  return brush && ID_IS_ASSET(&brush->id);
 }
 
 static void paint_brush_asset_update(Paint &paint,
@@ -689,9 +685,7 @@ static void paint_brush_asset_update(Paint &paint,
 {
   MEM_delete(paint.brush_asset_reference);
 
-  if (brush == nullptr || brush != paint.brush || !ID_IS_OVERRIDE_LIBRARY_REAL(paint.brush) ||
-      !(ID_IS_ASSET(paint.brush) || ID_IS_ASSET(paint.brush->id.override_library->reference)))
-  {
+  if (brush == nullptr || brush != paint.brush || !(brush->id.tag & LIB_TAG_ASSET_MAIN)) {
     return;
   }
 
@@ -742,7 +736,8 @@ void BKE_paint_brush_asset_restore(Main *bmain, Paint *paint)
   MEM_delete(paint->brush_asset_reference);
   paint->brush_asset_reference = nullptr;
 
-  Brush *brush_asset = BKE_brush_asset_runtime_ensure(bmain, weak_ref);
+  Brush *brush_asset = reinterpret_cast<Brush *>(
+      BKE_asset_weak_reference_ensure(*bmain, ID_BR, weak_ref));
 
   /* Will either re-assign the brush_asset_reference to `paint`, or free it if loading a brush ID
    * from it failed. */
@@ -1302,13 +1297,7 @@ void BKE_paint_copy(const Paint *src, Paint *dst, const int flag)
   }
 
   if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-    id_us_plus((ID *)dst->brush);
     id_us_plus((ID *)dst->palette);
-    if (src->tool_slots != nullptr) {
-      for (int i = 0; i < dst->tool_slots_len; i++) {
-        id_us_plus((ID *)dst->tool_slots[i].brush);
-      }
-    }
   }
 }
 

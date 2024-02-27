@@ -962,6 +962,11 @@ typedef struct PaintToolSlot {
 
 /** Paint Tool Base. */
 typedef struct Paint {
+  /**
+   * The active brush. Possibly null. Possibly stored in a separate #Main data-base and not user-
+   * counted.
+   * //TODO: Or always stored in a separate #Main?
+   */
   struct Brush *brush;
 
   /**

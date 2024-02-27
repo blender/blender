@@ -46,13 +46,7 @@ class VIEW3D_MT_brush_context_menu(Menu):
             layout.label(text="No brush selected", icon='INFO')
             return
 
-        # TODO: Need actual check if this is an asset from library.
-        # TODO: why is brush.asset_data None for these?
-        is_linked = brush.library
-        is_override = brush.override_library and brush.override_library.reference
-        is_asset_brush = is_linked or is_override
-
-        if is_asset_brush:
+        if brush.is_asset_library_data:
             layout.operator("brush.asset_save_as", text="Duplicate Asset...", icon='DUPLICATE')
             layout.operator("brush.asset_delete", text="Delete Asset")
 

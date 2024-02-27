@@ -43,6 +43,8 @@
 #include "BLF_api.hh"
 #include "BLT_translation.hh"
 
+#include "BKE_action.h"
+#include "BKE_asset.hh"
 #include "BKE_blender_version.h"
 #include "BKE_blendfile.hh"
 #include "BKE_colorband.hh"
@@ -943,6 +945,8 @@ static void template_id_liboverride_hierarchy_make(bContext *C,
 
 static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
+  /* TODO: select appropriate bmain for ID, might need to be asset main, changes in this functions
+   * are most likely wrong still. */
   TemplateID *template_ui = (TemplateID *)arg_litem;
   PointerRNA idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
   ID *id = static_cast<ID *>(idptr.data);
@@ -996,12 +1000,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_LOCAL:
       if (id) {
-        Main *bmain = CTX_data_main(C);
+        Main *id_main = BKE_asset_weak_reference_main(CTX_data_main(C), id);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
+          template_id_liboverride_hierarchy_make(
+              C, id_main, template_ui, &idptr, &undo_push_label);
         }
         else {
-          if (BKE_lib_id_make_local(bmain, id, 0)) {
+          if (BKE_lib_id_make_local(id_main, id, 0)) {
             BKE_id_newptr_and_tag_clear(id);
 
             /* Reassign to get proper updates/notifiers. */
@@ -1017,12 +1022,13 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
-        Main *bmain = CTX_data_main(C);
+        Main *id_main = BKE_asset_weak_reference_main(CTX_data_main(C), id);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
-          template_id_liboverride_hierarchy_make(C, bmain, template_ui, &idptr, &undo_push_label);
+          template_id_liboverride_hierarchy_make(
+              C, id_main, template_ui, &idptr, &undo_push_label);
         }
         else {
-          BKE_lib_override_library_make_local(bmain, id);
+          BKE_lib_override_library_make_local(id_main, id);
           /* Reassign to get proper updates/notifiers. */
           idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
           RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, nullptr);
@@ -1037,15 +1043,16 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
                                    (template_ui->ptr.type == &RNA_LayerObjects));
 
         /* make copy */
+        Main *bmain = CTX_data_main(C);
+        Main *id_main = BKE_asset_weak_reference_main(bmain, id);
+
         if (do_scene_obj) {
-          Main *bmain = CTX_data_main(C);
           Scene *scene = CTX_data_scene(C);
-          ED_object_single_user(bmain, scene, (Object *)id);
+          ED_object_single_user(id_main, scene, (Object *)id);
           WM_event_add_notifier(C, NC_WINDOW, nullptr);
           DEG_relations_tag_update(bmain);
         }
         else {
-          Main *bmain = CTX_data_main(C);
           id_single_user(C, id, &template_ui->ptr, template_ui->prop);
           DEG_relations_tag_update(bmain);
         }
@@ -1336,7 +1343,7 @@ static void template_ID(const bContext *C,
   /* text button with name */
   if (id) {
     char name[UI_MAX_NAME_STR];
-    const bool user_alert = (id->us <= 0);
+    const bool user_alert = (id->us <= 0) && !(id->tag & LIB_TAG_ASSET_MAIN);
 
     const int width = template_search_textbut_width(&idptr,
                                                     RNA_struct_find_property(&idptr, "name"));
@@ -1755,10 +1762,15 @@ static void ui_template_id(uiLayout *layout,
     flag |= UI_ID_OPEN;
   }
 
+  Main *id_main = CTX_data_main(C);
+  if (ptr->owner_id) {
+    id_main = BKE_asset_weak_reference_main(id_main, ptr->owner_id);
+  }
+
   StructRNA *type = RNA_property_pointer_type(ptr, prop);
   short idcode = RNA_type_to_ID_code(type);
   template_ui->idcode = idcode;
-  template_ui->idlb = which_libbase(CTX_data_main(C), idcode);
+  template_ui->idlb = which_libbase(id_main, idcode);
 
   /* create UI elements for this template
    * - template_ID makes a copy of the template data and assigns it to the relevant buttons

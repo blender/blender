@@ -591,7 +591,7 @@ static void scene_foreach_paint(LibraryForeachIDData *data,
                                                     SCENE_FOREACH_UNDO_RESTORE,
                                                     reader,
                                                     &paint_old->brush,
-                                                    IDWALK_CB_USER);
+                                                    IDWALK_CB_NOP);
 
   for (int i = 0; i < paint_old->tool_slots_len; i++) {
     /* This is a bit tricky.
@@ -610,7 +610,7 @@ static void scene_foreach_paint(LibraryForeachIDData *data,
                                                       SCENE_FOREACH_UNDO_RESTORE,
                                                       reader,
                                                       &paint_old->tool_slots[i].brush,
-                                                      IDWALK_CB_USER);
+                                                      IDWALK_CB_NOP);
   }
 
   Palette *palette_tmp = nullptr;
