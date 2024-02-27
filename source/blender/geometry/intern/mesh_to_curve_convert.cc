@@ -55,6 +55,9 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
         if (meta_data.domain == bke::AttrDomain::Point) {
           return true;
         }
+        if (meta_data.data_type == CD_PROP_STRING) {
+          return true;
+        }
         if (skip.contains(id.name())) {
           return true;
         }

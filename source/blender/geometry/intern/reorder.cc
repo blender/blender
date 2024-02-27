@@ -53,6 +53,9 @@ static void reorder_attributes_group_to_group(const bke::AttributeAccessor src_a
         if (meta_data.domain != domain) {
           return true;
         }
+        if (meta_data.data_type == CD_PROP_STRING) {
+          return true;
+        }
         const GVArray src = *src_attributes.lookup(id, domain);
         bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
             id, domain, meta_data.data_type);
@@ -215,17 +218,19 @@ static void clean_unused_attributes(const bke::AnonymousAttributePropagationInfo
                                     bke::MutableAttributeAccessor attributes)
 {
   Vector<std::string> unused_ids;
-  attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData /*meta_data*/) {
-        if (!id.is_anonymous()) {
-          return true;
-        }
-        if (propagation_info.propagate(id.anonymous_id())) {
-          return true;
-        }
-        unused_ids.append(id.name());
-        return true;
-      });
+  attributes.for_all([&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+    if (!id.is_anonymous()) {
+      return true;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
+      return true;
+    }
+    if (propagation_info.propagate(id.anonymous_id())) {
+      return true;
+    }
+    unused_ids.append(id.name());
+    return true;
+  });
 
   for (const std::string &unused_id : unused_ids) {
     attributes.remove(unused_id);
