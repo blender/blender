@@ -228,6 +228,9 @@ void OBJECT_OT_geometry_node_tree_copy_assign(struct wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_dash_modifier_segment_add(struct wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_dash_modifier_segment_remove(struct wmOperatorType *ot);
 void OBJECT_OT_grease_pencil_dash_modifier_segment_move(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_time_modifier_segment_add(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_time_modifier_segment_remove(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_time_modifier_segment_move(struct wmOperatorType *ot);
 
 /* object_gpencil_modifiers.c */
 

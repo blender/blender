@@ -989,4 +989,26 @@
     .object = NULL, \
   }
 
+#define _DNA_DEFAULT_GreasePencilTimeModifierData \
+  { \
+    .flag = MOD_GREASE_PENCIL_TIME_KEEP_LOOP, \
+    .offset = 1, \
+    .frame_scale = 1.0f, \
+    .mode = 0, \
+    .sfra = 1, \
+    .efra = 250, \
+    .segments_array = NULL, \
+    .segments_num = 1, \
+    .segment_active_index = 0, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilTimeModifierSegment \
+  { \
+    .name = "Segment", \
+    .segment_start = 1, \
+    .segment_end = 2, \
+    .segment_mode = 0, \
+    .segment_repeat = 1, \
+  }
+
 /* clang-format off */

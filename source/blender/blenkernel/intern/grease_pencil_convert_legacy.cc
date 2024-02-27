@@ -924,6 +924,7 @@ static void legacy_object_modifier_dash(Object &object, GpencilModifierData &leg
   md_dash.dash_offset = legacy_md_dash.dash_offset;
   md_dash.segment_active_index = legacy_md_dash.segment_active_index;
   md_dash.segments_num = legacy_md_dash.segments_len;
+  MEM_SAFE_FREE(md_dash.segments_array);
   md_dash.segments_array = MEM_cnew_array<GreasePencilDashModifierSegment>(
       legacy_md_dash.segments_len, __func__);
   for (const int i : IndexRange(md_dash.segments_num)) {
@@ -1385,6 +1386,82 @@ static void legacy_object_modifier_thickness(Object &object, GpencilModifierData
                                    legacy_md_thickness.flag & GP_THICK_CUSTOM_CURVE);
 }
 
+static void legacy_object_modifier_time(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilTime, legacy_md);
+  auto &md_time = reinterpret_cast<GreasePencilTimeModifierData &>(md);
+  auto &legacy_md_time = reinterpret_cast<TimeGpencilModifierData &>(legacy_md);
+
+  md_time.flag = 0;
+  if (legacy_md_time.flag & GP_TIME_CUSTOM_RANGE) {
+    md_time.flag |= MOD_GREASE_PENCIL_TIME_CUSTOM_RANGE;
+  }
+  if (legacy_md_time.flag & GP_TIME_KEEP_LOOP) {
+    md_time.flag |= MOD_GREASE_PENCIL_TIME_KEEP_LOOP;
+  }
+  switch (eTimeGpencil_Mode(legacy_md_time.mode)) {
+    case GP_TIME_MODE_NORMAL:
+      md_time.mode = MOD_GREASE_PENCIL_TIME_MODE_NORMAL;
+      break;
+    case GP_TIME_MODE_REVERSE:
+      md_time.mode = MOD_GREASE_PENCIL_TIME_MODE_REVERSE;
+      break;
+    case GP_TIME_MODE_FIX:
+      md_time.mode = MOD_GREASE_PENCIL_TIME_MODE_FIX;
+      break;
+    case GP_TIME_MODE_PINGPONG:
+      md_time.mode = MOD_GREASE_PENCIL_TIME_MODE_PINGPONG;
+      break;
+    case GP_TIME_MODE_CHAIN:
+      md_time.mode = MOD_GREASE_PENCIL_TIME_MODE_CHAIN;
+      break;
+  }
+  md_time.offset = legacy_md_time.offset;
+  md_time.frame_scale = legacy_md_time.frame_scale;
+  md_time.sfra = legacy_md_time.sfra;
+  md_time.efra = legacy_md_time.efra;
+  md_time.segment_active_index = legacy_md_time.segment_active_index;
+  md_time.segments_num = legacy_md_time.segments_len;
+  MEM_SAFE_FREE(md_time.segments_array);
+  md_time.segments_array = MEM_cnew_array<GreasePencilTimeModifierSegment>(
+      legacy_md_time.segments_len, __func__);
+  for (const int i : IndexRange(md_time.segments_num)) {
+    GreasePencilTimeModifierSegment &dst_segment = md_time.segments_array[i];
+    const TimeGpencilModifierSegment &src_segment = legacy_md_time.segments[i];
+    STRNCPY(dst_segment.name, src_segment.name);
+    switch (eTimeGpencil_Seg_Mode(src_segment.seg_mode)) {
+      case GP_TIME_SEG_MODE_NORMAL:
+        dst_segment.segment_mode = MOD_GREASE_PENCIL_TIME_SEG_MODE_NORMAL;
+        break;
+      case GP_TIME_SEG_MODE_REVERSE:
+        dst_segment.segment_mode = MOD_GREASE_PENCIL_TIME_SEG_MODE_REVERSE;
+        break;
+      case GP_TIME_SEG_MODE_PINGPONG:
+        dst_segment.segment_mode = MOD_GREASE_PENCIL_TIME_SEG_MODE_PINGPONG;
+        break;
+    }
+    dst_segment.segment_start = src_segment.seg_start;
+    dst_segment.segment_end = src_segment.seg_end;
+    dst_segment.segment_repeat = src_segment.seg_repeat;
+  }
+
+  /* Note: GPv2 time modifier has a material pointer but it is unused. */
+  legacy_object_modifier_influence(md_time.influence,
+                                   legacy_md_time.layername,
+                                   legacy_md_time.layer_pass,
+                                   legacy_md_time.flag & GP_TIME_INVERT_LAYER,
+                                   legacy_md_time.flag & GP_TIME_INVERT_LAYERPASS,
+                                   nullptr,
+                                   0,
+                                   false,
+                                   false,
+                                   "",
+                                   false,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifier_tint(Object &object, GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
@@ -1573,6 +1650,9 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Thick:
         legacy_object_modifier_thickness(object, *gpd_md);
         break;
+      case eGpencilModifierType_Time:
+        legacy_object_modifier_time(object, *gpd_md);
+        break;
       case eGpencilModifierType_Tint:
         legacy_object_modifier_tint(object, *gpd_md);
         break;
@@ -1585,7 +1665,6 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
 
       case eGpencilModifierType_Build:
       case eGpencilModifierType_Simplify:
-      case eGpencilModifierType_Time:
       case eGpencilModifierType_Texture:
       case eGpencilModifierType_Lineart:
       case eGpencilModifierType_Shrinkwrap:
