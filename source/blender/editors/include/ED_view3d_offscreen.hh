@@ -111,3 +111,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                              GPUOffScreen *ofs,
                                              GPUViewport *viewport,
                                              char err_out[256]);
+
+/**
+ * Drawing off-screen is not supported while drawing,
+ * this is a simple check to use when the code path may occur within a draw call
+ * (Python scripting for example).
+ */
+bool ED_view3d_draw_offscreen_check_nested();
