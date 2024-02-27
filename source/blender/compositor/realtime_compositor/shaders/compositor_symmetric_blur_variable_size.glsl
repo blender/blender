@@ -38,10 +38,10 @@ float load_size(ivec2 texel)
 {
   if (extend_bounds) {
     ivec2 blur_radius = texture_size(weights_tx) - 1;
-    return texture_load(size_tx, texel - blur_radius).x;
+    return clamp(texture_load(size_tx, texel - blur_radius).x, 0.0, 1.0);
   }
   else {
-    return texture_load(size_tx, texel).x;
+    return clamp(texture_load(size_tx, texel).x, 0.0, 1.0);
   }
 }
 
@@ -52,100 +52,57 @@ void main()
   vec4 accumulated_color = vec4(0.0);
   vec4 accumulated_weight = vec4(0.0);
 
+  /* The weights texture only stores the weights for the first quadrant, but since the weights are
+   * symmetric, other quadrants can be found using mirroring. It follows that the base blur radius
+   * is the weights texture size minus one, where the one corresponds to the zero weight. */
+  ivec2 weights_size = texture_size(weights_tx);
+  ivec2 base_radius = weights_size - ivec2(1);
+  ivec2 radius = ivec2(ceil(base_radius * load_size(texel)));
+  vec2 coordinates_scale = vec2(1.0) / (radius + ivec2(1));
+
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = load_input(texel);
   float center_weight = texture_load(weights_tx, ivec2(0)).x;
   accumulated_color += center_color * center_weight;
   accumulated_weight += center_weight;
 
-  ivec2 weights_size = texture_size(weights_tx);
-
-  /* Then, compute the contributions of the pixels along the x axis of the filter, but only
-   * accumulate them if their distance to the center is less their computed variable blur size,
-   * noting that the weights texture only stores the weights for the positive half, but since the
-   * filter is symmetric, the same weight is used for the negative half and we add both of their
+  /* Then, compute the contributions of the pixels along the x axis of the filter, noting that the
+   * weights texture only stores the weights for the positive half, but since the filter is
+   * symmetric, the same weight is used for the negative half and we add both of their
    * contributions. */
-  for (int x = 1; x < weights_size.x; x++) {
-    float weight = texture_load(weights_tx, ivec2(x, 0)).x;
-
-    float right_size = load_size(texel + ivec2(x, 0));
-    float right_blur_radius = right_size * weights_size.x;
-    if (x < right_blur_radius) {
-      accumulated_color += load_input(texel + ivec2(x, 0)) * weight;
-      accumulated_weight += weight;
-    }
-
-    float left_size = load_size(texel + ivec2(-x, 0));
-    float left_blur_radius = right_size * weights_size.x;
-    if (x < left_blur_radius) {
-      accumulated_color += load_input(texel + ivec2(-x, 0)) * weight;
-      accumulated_weight += weight;
-    }
+  for (int x = 1; x <= radius.x; x++) {
+    float weight_coordinates = (x + 0.5) * coordinates_scale.x;
+    float weight = texture(weights_tx, vec2(weight_coordinates, 0.0)).x;
+    accumulated_color += load_input(texel + ivec2(x, 0)) * weight;
+    accumulated_color += load_input(texel + ivec2(-x, 0)) * weight;
+    accumulated_weight += weight * 2.0;
   }
 
-  /* Then, compute the contributions of the pixels along the y axis of the filter, but only
-   * accumulate them if their distance to the center is less their computed variable blur size,
-   * noting that the weights texture only stores the weights for the positive half, but since the
-   * filter is symmetric, the same weight is used for the negative half and we add both of their
+  /* Then, compute the contributions of the pixels along the y axis of the filter, noting that the
+   * weights texture only stores the weights for the positive half, but since the filter is
+   * symmetric, the same weight is used for the negative half and we add both of their
    * contributions. */
-  for (int y = 1; y < weights_size.y; y++) {
-    float weight = texture_load(weights_tx, ivec2(0, y)).x;
-
-    float top_size = load_size(texel + ivec2(0, y));
-    float top_blur_radius = top_size * weights_size.y;
-    if (y < top_blur_radius) {
-      accumulated_color += load_input(texel + ivec2(0, y)) * weight;
-      accumulated_weight += weight;
-    }
-
-    float bottom_size = load_size(texel + ivec2(0, -y));
-    float bottom_blur_radius = bottom_size * weights_size.x;
-    if (y < bottom_blur_radius) {
-      accumulated_color += load_input(texel + ivec2(0, -y)) * weight;
-      accumulated_weight += weight;
-    }
+  for (int y = 1; y <= radius.y; y++) {
+    float weight_coordinates = (y + 0.5) * coordinates_scale.y;
+    float weight = texture(weights_tx, vec2(0.0, weight_coordinates)).x;
+    accumulated_color += load_input(texel + ivec2(0, y)) * weight;
+    accumulated_color += load_input(texel + ivec2(0, -y)) * weight;
+    accumulated_weight += weight * 2.0;
   }
 
-  /* Finally, compute the contributions of the pixels in the four quadrants of the filter, but only
-   * accumulate them if the center lies inside the rectangle centered at the pixel whose width and
-   * height is the variable blur size, noting that the weights texture only stores the weights for
-   * the upper right quadrant, but since the filter is symmetric, the same weight is used for the
-   * rest of the quadrants and we add all four of their contributions. */
-  for (int y = 1; y < weights_size.y; y++) {
-    for (int x = 1; x < weights_size.x; x++) {
-      float weight = texture_load(weights_tx, ivec2(x, y)).x;
-
-      /* Upper right quadrant. */
-      float upper_right_size = load_size(texel + ivec2(x, y));
-      vec2 upper_right_blur_radius = upper_right_size * vec2(weights_size);
-      if (x < upper_right_blur_radius.x && y < upper_right_blur_radius.y) {
-        accumulated_color += load_input(texel + ivec2(x, y)) * weight;
-        accumulated_weight += weight;
-      }
-
-      /* Upper left quadrant. */
-      float upper_left_size = load_size(texel + ivec2(-x, y));
-      vec2 upper_left_blur_radius = upper_left_size * vec2(weights_size);
-      if (x < upper_left_blur_radius.x && y < upper_left_blur_radius.y) {
-        accumulated_color += load_input(texel + ivec2(-x, y)) * weight;
-        accumulated_weight += weight;
-      }
-
-      /* Bottom right quadrant. */
-      float bottom_right_size = load_size(texel + ivec2(x, -y));
-      vec2 bottom_right_blur_radius = bottom_right_size * vec2(weights_size);
-      if (x < bottom_right_blur_radius.x && y < bottom_right_blur_radius.y) {
-        accumulated_color += load_input(texel + ivec2(x, -y)) * weight;
-        accumulated_weight += weight;
-      }
-
-      /* Bottom left quadrant. */
-      float bottom_left_size = load_size(texel + ivec2(-x, -y));
-      vec2 bottom_left_blur_radius = bottom_left_size * vec2(weights_size);
-      if (x < bottom_left_blur_radius.x && y < bottom_left_blur_radius.y) {
-        accumulated_color += load_input(texel + ivec2(-x, -y)) * weight;
-        accumulated_weight += weight;
-      }
+  /* Finally, compute the contributions of the pixels in the four quadrants of the filter, noting
+   * that the weights texture only stores the weights for the upper right quadrant, but since the
+   * filter is symmetric, the same weight is used for the rest of the quadrants and we add all four
+   * of their contributions. */
+  for (int y = 1; y <= radius.y; y++) {
+    for (int x = 1; x <= radius.x; x++) {
+      vec2 weight_coordinates = (vec2(x, y) + vec2(0.5)) * coordinates_scale;
+      float weight = texture(weights_tx, weight_coordinates).x;
+      accumulated_color += load_input(texel + ivec2(x, y)) * weight;
+      accumulated_color += load_input(texel + ivec2(-x, y)) * weight;
+      accumulated_color += load_input(texel + ivec2(x, -y)) * weight;
+      accumulated_color += load_input(texel + ivec2(-x, -y)) * weight;
+      accumulated_weight += weight * 4.0;
     }
   }
 
