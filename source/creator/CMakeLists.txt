@@ -152,6 +152,11 @@ set(SRC
   creator_intern.h
 )
 
+if(CMAKE_GENERATOR MATCHES "^Visual Studio.+")
+  # This helps visual studio find the debugger visualizers
+  list(APPEND SRC ${CMAKE_SOURCE_DIR}/tools/utils_ide/natvis/Blender.natvis)
+endif()
+
 # MSVC 2010 gives linking errors with the manifest.
 if(WIN32 AND NOT UNIX)
   add_definitions(
