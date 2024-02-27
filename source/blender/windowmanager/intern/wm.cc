@@ -385,6 +385,22 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    bScreen *screen = WM_window_get_active_screen(win);
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      switch (area->spacetype) {
+        case SPACE_FILE: {
+          SpaceFile *sfile = static_cast<SpaceFile *>(area->spacedata.first);
+          if (sfile->op && sfile->op->type == ot) {
+            /* Freed as part of the handler. */
+            sfile->op = nullptr;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
     for (int i = 0; i < ARRAY_SIZE(lb); i++) {
       LISTBASE_FOREACH (wmEventHandler *, handler_base, lb[i]) {
