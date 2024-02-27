@@ -650,6 +650,9 @@ typedef struct DRWManager {
 
   bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
 
+  /** True, when drawing is in progress, see #DRW_draw_in_progress. */
+  bool in_progress;
+
   DRWView *view_default;
   DRWView *view_active;
   DRWView *view_previous;

@@ -137,6 +137,11 @@ void DRW_draw_depth_object(
     Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object);
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d);
 
+/**
+ * Query that drawing is in progress (use to prevent nested draw calls).
+ */
+bool DRW_draw_in_progress();
+
 /* Grease pencil render. */
 
 /**
