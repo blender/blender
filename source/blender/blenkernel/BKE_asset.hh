@@ -81,7 +81,11 @@ void BKE_asset_metadata_read(BlendDataReader *reader, AssetMetaData *asset_data)
 void BKE_asset_weak_reference_write(BlendWriter *writer, const AssetWeakReference *weak_ref);
 void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *weak_ref);
 
-Main *BKE_asset_weak_reference_main(Main *global_main, const ID *id);
+/**
+ * Database of assets that are weakly reference by scene data,
+ * currently used for brush assets and their dependencies.
+ */
+Main *BKE_asset_weak_reference_main(const ID *id);
 void BKE_asset_weak_reference_main_free();
 ID *BKE_asset_weak_reference_ensure(Main &global_main,
                                     ID_Type id_type,

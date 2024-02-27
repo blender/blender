@@ -512,6 +512,15 @@ ListBase *which_libbase(Main *bmain, short type);
  */
 int set_listbasepointers(Main *main, ListBase *lb[]);
 
+/**
+ * Return main database this ID is a member of.
+ *
+ * Use this in operator and draw code instead of assuming the main
+ * in the context owns datablocks. Some datablock can be part of
+ * main datablocks from asset libraries instead.
+ */
+Main *BKE_main_from_id(Main *global_main, const ID *id);
+
 #define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile >= (subver)))

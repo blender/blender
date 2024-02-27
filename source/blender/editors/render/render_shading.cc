@@ -829,7 +829,7 @@ static int new_texture_exec(bContext *C, wmOperator * /*op*/)
 
   Main *id_main = CTX_data_main(C);
   if (ptr.owner_id) {
-    id_main = BKE_asset_weak_reference_main(id_main, ptr.owner_id);
+    id_main = BKE_main_from_id(id_main, ptr.owner_id);
   }
 
   /* add or copy texture */

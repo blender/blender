@@ -24,6 +24,7 @@
 
 #include "DNA_ID.h"
 
+#include "BKE_asset_weak_reference.hh"
 #include "BKE_bpath.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -960,4 +961,9 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
   lb[INDEX_ID_NULL] = nullptr;
 
   return (INDEX_ID_MAX - 1);
+}
+
+Main *BKE_main_from_id(Main *global_main, const ID *id)
+{
+  return (id->tag & LIB_TAG_ASSET_MAIN) ? BKE_asset_weak_reference_main(id) : global_main;
 }

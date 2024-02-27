@@ -23,8 +23,6 @@
  *    of IDs in a given Main data-base.
  */
 
-#include "DNA_ID_enums.h"
-
 #include <optional>
 
 struct BlendFileReadReport;

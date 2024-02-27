@@ -2547,7 +2547,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
   sima = CTX_wm_space_image(C);
   id_main = CTX_data_main(C);
   if (data->pprop.ptr.owner_id) {
-    id_main = BKE_asset_weak_reference_main(id_main, data->pprop.ptr.owner_id);
+    id_main = BKE_main_from_id(id_main, data->pprop.ptr.owner_id);
   }
 
   prop = RNA_struct_find_property(op->ptr, "name");

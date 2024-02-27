@@ -14,7 +14,6 @@
 #include "DNA_object_enums.h"
 
 enum class PaintMode : int8_t;
-struct AssetWeakReference;
 struct Brush;
 struct ImBuf;
 struct ImagePool;

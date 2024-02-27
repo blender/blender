@@ -1028,7 +1028,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_LOCAL:
       if (id) {
-        Main *id_main = BKE_asset_weak_reference_main(CTX_data_main(C), id);
+        Main *id_main = BKE_main_from_id(CTX_data_main(C), id);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(
               C, id_main, template_ui, &idptr, &undo_push_label);
@@ -1050,7 +1050,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
-        Main *id_main = BKE_asset_weak_reference_main(CTX_data_main(C), id);
+        Main *id_main = BKE_main_from_id(CTX_data_main(C), id);
         if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
           template_id_liboverride_hierarchy_make(
               C, id_main, template_ui, &idptr, &undo_push_label);
@@ -1072,7 +1072,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 
         /* make copy */
         Main *bmain = CTX_data_main(C);
-        Main *id_main = BKE_asset_weak_reference_main(bmain, id);
+        Main *id_main = BKE_main_from_id(bmain, id);
 
         if (do_scene_obj) {
           Scene *scene = CTX_data_scene(C);
@@ -1792,7 +1792,7 @@ static void ui_template_id(uiLayout *layout,
 
   Main *id_main = CTX_data_main(C);
   if (ptr->owner_id) {
-    id_main = BKE_asset_weak_reference_main(id_main, ptr->owner_id);
+    id_main = BKE_main_from_id(id_main, ptr->owner_id);
   }
 
   StructRNA *type = RNA_property_pointer_type(ptr, prop);

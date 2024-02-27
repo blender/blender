@@ -127,7 +127,7 @@ static void rna_Main_ID_remove(Main *bmain,
     return;
   }
   /* TODO: also check reverse case somehow? */
-  if (bmain != BKE_asset_weak_reference_main(bmain, id)) {
+  if (bmain != BKE_main_from_id(bmain, id)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "%s '%s' is part of a difference main database and should be removed from there",

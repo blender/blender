@@ -129,7 +129,7 @@ void BKE_asset_weak_reference_read(BlendDataReader *reader, AssetWeakReference *
   BLO_read_data_address(reader, &weak_ref->relative_asset_identifier);
 }
 
-/* Main database for each brush asset blend file.
+/* Main database for storing assets that are weak referenced.
  *
  * This avoids mixing asset datablocks in the regular main, which leads to naming conflicts and
  * confusing user interface.
@@ -166,11 +166,9 @@ static Vector<AssetWeakReferenceMain> &get_weak_reference_mains()
   return mains;
 }
 
-Main *BKE_asset_weak_reference_main(Main *global_main, const ID *id)
+Main *BKE_asset_weak_reference_main(const ID *id)
 {
-  if (!(id->tag & LIB_TAG_ASSET_MAIN)) {
-    return global_main;
-  }
+  BLI_assert(id->tag & LIB_TAG_ASSET_MAIN);
 
   for (const AssetWeakReferenceMain &weak_ref_main : get_weak_reference_mains()) {
     /* TODO: Look into make this whole thing more efficient. */

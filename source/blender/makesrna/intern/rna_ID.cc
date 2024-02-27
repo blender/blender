@@ -286,7 +286,7 @@ int rna_ID_name_length(PointerRNA *ptr)
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
-  Main *id_main = BKE_asset_weak_reference_main(G_MAIN, id);
+  Main *id_main = BKE_main_from_id(G_MAIN, id);
   BKE_main_namemap_remove_name(id_main, id, id->name + 2);
   BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
   /* TODO: add BKE_id_is_in_editable_main? */
@@ -1158,7 +1158,7 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
   short *totcol = BKE_id_material_len_p(id);
   Material *mat_id = (Material *)assign_ptr->owner_id;
   if (totcol && (key >= 0 && key < *totcol)) {
-    Main *id_main = BKE_asset_weak_reference_main(G_MAIN, id);
+    Main *id_main = BKE_main_from_id(G_MAIN, id);
     /* TODO: BKE_id_is_in_editable_main? */
     BLI_assert(BKE_id_is_in_global_main(id));
     BLI_assert(BKE_id_is_in_global_main(&mat_id->id));
@@ -1218,7 +1218,7 @@ static void rna_IDMaterials_clear_id(ID *id, Main *bmain)
 static void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
   Library *lib = (Library *)ptr->data;
-  Main *id_main = BKE_asset_weak_reference_main(G_MAIN, &lib->id);
+  Main *id_main = BKE_main_from_id(G_MAIN, &lib->id);
   /* TODO: BKE_id_is_in_editable_main? */
   BLI_assert(BKE_id_is_in_global_main(&lib->id));
   BKE_library_filepath_set(id_main, lib, value);

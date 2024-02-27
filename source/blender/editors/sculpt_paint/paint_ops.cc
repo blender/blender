@@ -1112,7 +1112,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   library->catalog_service->write_to_disk(filepath);
 
   /* Save to asset library. */
-  Main *asset_main = BKE_asset_weak_reference_main(bmain, &brush->id);
+  Main *asset_main = BKE_main_from_id(bmain, &brush->id);
 
   std::string final_full_asset_filepath;
   const bool sucess = brush_asset_write_in_library(asset_main,
@@ -1254,7 +1254,7 @@ static int brush_asset_delete_exec(bContext *C, wmOperator *op)
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
   Main *bmain = CTX_data_main(C);
-  Main *asset_main = BKE_asset_weak_reference_main(bmain, &brush->id);
+  Main *asset_main = BKE_main_from_id(bmain, &brush->id);
 
   bUserAssetLibrary *library = BKE_preferences_asset_library_find_by_name(
       &U, paint->brush_asset_reference->asset_library_identifier);
@@ -1339,7 +1339,7 @@ static int brush_asset_update_exec(bContext *C, wmOperator *op)
 
   BLI_assert(BKE_paint_brush_is_valid_asset(brush));
 
-  Main *asset_main = BKE_asset_weak_reference_main(bmain, &brush->id);
+  Main *asset_main = BKE_main_from_id(bmain, &brush->id);
   std::string final_full_asset_filepath;
   brush_asset_write_in_library(asset_main,
                                brush,
@@ -1380,7 +1380,7 @@ static int brush_asset_revert_exec(bContext *C, wmOperator * /*op*/)
   Main *bmain = CTX_data_main(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
-  Main *asset_main = BKE_asset_weak_reference_main(bmain, &brush->id);
+  Main *asset_main = BKE_main_from_id(bmain, &brush->id);
 
   // TODO: delete and reload dependencies too?
   // TODO: hack to make remapping work, should not be needed
