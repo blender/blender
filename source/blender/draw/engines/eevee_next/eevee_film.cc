@@ -445,7 +445,7 @@ void Film::sync()
 
   GPUShader *sh = inst_.shaders.static_shader_get(shader);
   accumulate_ps_.init();
-  accumulate_ps_.specialize_constant(sh, "enabled_categories", int(enabled_categories_));
+  accumulate_ps_.specialize_constant(sh, "enabled_categories", uint(enabled_categories_));
   accumulate_ps_.specialize_constant(sh, "samples_len", &data_.samples_len);
   accumulate_ps_.specialize_constant(sh, "use_reprojection", &use_reprojection_);
   accumulate_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
