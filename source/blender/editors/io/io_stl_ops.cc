@@ -113,9 +113,12 @@ static bool wm_stl_export_check(bContext * /*C*/, wmOperator *op)
 {
   char filepath[FILE_MAX];
   bool changed = false;
+  bool use_batch = RNA_boolean_get(op->ptr, "use_batch");
   RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_path_extension_check(filepath, ".stl")) {
+  /* Enforce an extension on the filepath unless Batch mode is used. Batch mode
+   * will perform substitutions, including the extension, during its processing. */
+  if (!use_batch && !BLI_path_extension_check(filepath, ".stl")) {
     BLI_path_extension_ensure(filepath, FILE_MAX, ".stl");
     RNA_string_set(op->ptr, "filepath", filepath);
     changed = true;
