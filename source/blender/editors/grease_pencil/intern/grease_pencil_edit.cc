@@ -1841,7 +1841,10 @@ static void remove_unused_materials(Main *bmain, Object *object)
   for (int slot = 1; slot <= object->totcol; slot++) {
     while (slot <= object->totcol && !BKE_object_material_slot_used(object, slot)) {
       object->actcol = slot;
-      BKE_object_material_slot_remove(bmain, object);
+      if (!BKE_object_material_slot_remove(bmain, object)) {
+        break;
+      }
+
       if (actcol >= slot) {
         actcol--;
       }
