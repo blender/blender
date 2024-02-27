@@ -178,6 +178,12 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
   switch (BKE_pbvh_type(pbvh)) {
     case PBVH_BMESH: {
       /* Dyntopo Symmetrize. */
