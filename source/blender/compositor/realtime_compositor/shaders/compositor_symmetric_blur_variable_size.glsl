@@ -57,8 +57,8 @@ void main()
    * is the weights texture size minus one, where the one corresponds to the zero weight. */
   ivec2 weights_size = texture_size(weights_tx);
   ivec2 base_radius = weights_size - ivec2(1);
-  ivec2 radius = ivec2(ceil(base_radius * load_size(texel)));
-  vec2 coordinates_scale = vec2(1.0) / (radius + ivec2(1));
+  ivec2 radius = ivec2(ceil(vec2(base_radius) * load_size(texel)));
+  vec2 coordinates_scale = vec2(1.0) / vec2(radius + ivec2(1));
 
   /* First, compute the contribution of the center pixel. */
   vec4 center_color = load_input(texel);
