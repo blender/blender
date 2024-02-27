@@ -1299,7 +1299,16 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
     ss << fmt::format(TIP_("{} (Integer)"), *static_cast<int *>(socket_value));
   }
   else if (socket_type.is<float>()) {
-    ss << fmt::format(TIP_("{} (Float)"), *static_cast<float *>(socket_value));
+    const float float_value = *static_cast<float *>(socket_value);
+    /* Above that threshold floats can't represent fractions anymore. */
+    if (std::abs(float_value) > (1 << 24)) {
+      /* Use higher precision to display correct integer value instead of one that is rounded to
+       * fewer significant digits. */
+      ss << fmt::format(TIP_("{:.10} (Float)"), float_value);
+    }
+    else {
+      ss << fmt::format(TIP_("{} (Float)"), float_value);
+    }
   }
   else if (socket_type.is<blender::float3>()) {
     const blender::float3 &vector = *static_cast<blender::float3 *>(socket_value);

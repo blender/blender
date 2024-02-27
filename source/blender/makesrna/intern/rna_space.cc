@@ -2585,6 +2585,16 @@ static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *
   ED_node_tree_update(C);
 }
 
+static void rna_SpaceNodeEditor_geometry_nodes_type_update(Main * /*main*/,
+                                                           Scene * /*scene*/,
+                                                           PointerRNA *ptr)
+{
+  SpaceNode *snode = static_cast<SpaceNode *>(ptr->data);
+  if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    snode->flag &= ~SNODE_PIN;
+  }
+}
+
 static int rna_SpaceNodeEditor_tree_type_get(PointerRNA *ptr)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
@@ -7567,7 +7577,8 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, geometry_nodes_type_items);
   RNA_def_property_ui_text(prop, "Geometry Nodes Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_geometry_nodes_type_update");
 
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

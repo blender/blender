@@ -558,7 +558,18 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
       if (lf_zone_node == nullptr) {
         return;
       }
+      const lf::FunctionNode *lf_simulation_output_node =
+          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
+              simulation_zone->output_node, nullptr);
+      if (lf_simulation_output_node == nullptr) {
+        return;
+      }
       local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_zone_node);
+      /* By making the simulation output node a side-effect-node, we can ensure that the simulation
+       * runs when it contains an active viewer. */
+      local_side_effect_nodes.nodes_by_context.add(compute_context_generic->hash(),
+                                                   lf_simulation_output_node);
+
       current_zone = simulation_zone;
     }
     else if (const auto *compute_context = dynamic_cast<const bke::RepeatZoneComputeContext *>(
