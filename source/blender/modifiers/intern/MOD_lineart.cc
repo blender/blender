@@ -802,8 +802,11 @@ static void generate_strokes(ModifierData &md,
     return *grease_pencil.get_editable_drawing_at(layer, current_frame);
   }();
 
+  float4x4 mat = ctx.object->world_to_object();
+
   MOD_lineart_gpencil_generate_v3(
       lmd.cache,
+      mat,
       ctx.depsgraph,
       drawing,
       lmd.source_type,

@@ -5640,6 +5640,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
 }
 
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
+                                     blender::float4x4 inverse_mat,
                                      Depsgraph *depsgraph,
                                      blender::bke::greasepencil::Drawing &drawing,
                                      const int8_t source_type,
@@ -5865,8 +5866,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     int i;
     LISTBASE_FOREACH_INDEX (LineartEdgeChainItem *, eci, &cwi.chain->chain, i) {
       int point_i = i + up_to_point;
-      float *point = (float *)&point_positions[point_i];
-      copy_v3_v3(point, eci->gpos);
+      point_positions[point_i] = blender::math::transform_point(inverse_mat, float3(eci->gpos));
       point_radii.span[point_i] = thickness / 2.0f;
       point_opacities.span[point_i] = opacity;
 
