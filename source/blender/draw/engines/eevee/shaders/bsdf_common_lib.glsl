@@ -159,6 +159,9 @@ vec3 ensure_valid_specular_reflection(vec3 Ng, vec3 I, vec3 N)
   }
 
   vec3 X = normalize(N - dot(N, Ng) * Ng);
+  if (any(isnan(X))) {
+    X = N;
+  }
   float Ix = dot(I, X);
 
   float a = sqr(Ix) + sqr(Iz);
