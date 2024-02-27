@@ -18,8 +18,8 @@ static float get_pixel_saturation(const float pixel_color[4],
   const int min_channel = std::min(other_1, other_2);
   const int max_channel = std::max(other_1, other_2);
 
-  const float val = screen_balance * pixel_color[min_channel] +
-                    (1.0f - screen_balance) * pixel_color[max_channel];
+  const float val = pixel_color[max_channel] +
+                    screen_balance * (pixel_color[min_channel] - pixel_color[max_channel]);
 
   return (pixel_color[primary_channel] - val) * fabsf(1.0f - val);
 }
