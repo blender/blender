@@ -22,6 +22,8 @@
 #include "BKE_global.hh"
 #include "BKE_report.hh"
 
+#include "BLT_translation.hh"
+
 #include "GHOST_C-api.h"
 
 #include "ED_screen.hh"
@@ -350,7 +352,7 @@ int wm_stereo3d_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*
   if (wm_stereo3d_set_properties(C, op)) {
     return wm_stereo3d_set_exec(C, op);
   }
-  return WM_operator_props_dialog_popup(C, op, 300);
+  return WM_operator_props_dialog_popup(C, op, 300, IFACE_("Set Stereo 3D"), IFACE_("Set"));
 }
 
 void wm_stereo3d_set_draw(bContext * /*C*/, wmOperator *op)

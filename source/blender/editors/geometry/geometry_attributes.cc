@@ -687,7 +687,8 @@ static int geometry_attribute_convert_invoke(bContext *C,
     RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
   }
 
-  return WM_operator_props_dialog_popup(C, op, 300);
+  return WM_operator_props_dialog_popup(
+      C, op, 300, IFACE_("Convert Attribute Domain"), IFACE_("Convert"));
 }
 
 static void geometry_attribute_convert_ui(bContext * /*C*/, wmOperator *op)
@@ -770,7 +771,8 @@ static int geometry_color_attribute_convert_invoke(bContext *C,
     RNA_property_enum_set(op->ptr, prop, meta_data.data_type);
   }
 
-  return WM_operator_props_dialog_popup(C, op, 300);
+  return WM_operator_props_dialog_popup(
+      C, op, 300, IFACE_("Convert Color Attribute Domain"), IFACE_("Convert"));
 }
 
 static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op)

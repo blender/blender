@@ -3172,7 +3172,8 @@ static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
     RNA_property_int_set_array(op->ptr, prop, size);
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
-  return WM_operator_props_dialog_popup(C, op, 200);
+  return WM_operator_props_dialog_popup(
+      C, op, 200, IFACE_("Scale Image to New Size"), IFACE_("Resize"));
 }
 
 static int image_scale_exec(bContext *C, wmOperator *op)
@@ -4211,7 +4212,7 @@ static int tile_add_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*
   RNA_int_set(op->ptr, "count", 1);
   RNA_string_set(op->ptr, "label", "");
 
-  return WM_operator_props_dialog_popup(C, op, 300);
+  return WM_operator_props_dialog_popup(C, op, 300, IFACE_("Add Tile to Image"), IFACE_("Add"));
 }
 
 static void tile_add_draw(bContext * /*C*/, wmOperator *op)
@@ -4344,7 +4345,8 @@ static int tile_fill_invoke(bContext *C, wmOperator *op, const wmEvent * /*event
 {
   tile_fill_init(op->ptr, CTX_data_edit_image(C), nullptr);
 
-  return WM_operator_props_dialog_popup(C, op, 300);
+  return WM_operator_props_dialog_popup(
+      C, op, 300, IFACE_("Fill Tile With Generated Image"), IFACE_("Fill"));
 }
 
 static void tile_fill_draw(bContext * /*C*/, wmOperator *op)

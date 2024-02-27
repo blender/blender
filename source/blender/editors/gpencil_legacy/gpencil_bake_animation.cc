@@ -26,6 +26,8 @@
 #include "BKE_material.h"
 #include "BKE_scene.hh"
 
+#include "BLT_translation.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
@@ -385,7 +387,8 @@ static int gpencil_bake_grease_pencil_animation_invoke(bContext *C,
   }
 
   /* Show popup dialog to allow editing. */
-  return WM_operator_props_dialog_popup(C, op, 250);
+  return WM_operator_props_dialog_popup(
+      C, op, 250, IFACE_("Bake Object Transform to Grease Pencil"), IFACE_("Bake"));
 }
 
 void GPENCIL_OT_bake_grease_pencil_animation(wmOperatorType *ot)
