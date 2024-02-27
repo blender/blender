@@ -1185,7 +1185,7 @@ void create_blank(Main &bmain, Object &object, const int frame_number)
   grease_pencil.insert_blank_frame(new_layer, frame_number, 0, BEZT_KEYTYPE_KEYFRAME);
 }
 
-void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
+void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
 {
   using namespace blender::bke::greasepencil;
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
@@ -1213,7 +1213,7 @@ void create_stroke(Main &bmain, Object &object, float4x4 matrix, const int frame
   drawing_lines.tag_topology_changed();
 }
 
-void create_suzanne(Main &bmain, Object &object, float4x4 matrix, const int frame_number)
+void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, const int frame_number)
 {
   /* Original model created by Matias Mendiola. */
   using namespace blender::bke::greasepencil;

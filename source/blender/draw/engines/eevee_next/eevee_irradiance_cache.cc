@@ -740,9 +740,9 @@ void IrradianceBake::sync()
   }
 }
 
-void IrradianceBake::surfel_raster_views_sync(float3 scene_min,
-                                              float3 scene_max,
-                                              float4x4 probe_to_world)
+void IrradianceBake::surfel_raster_views_sync(const float3 &scene_min,
+                                              const float3 &scene_max,
+                                              const float4x4 &probe_to_world)
 {
   using namespace blender::math;
 

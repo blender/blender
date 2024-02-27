@@ -217,8 +217,8 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
                                                   IndexMaskMemory &memory);
 
 void create_blank(Main &bmain, Object &object, int frame_number);
-void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);
-void create_suzanne(Main &bmain, Object &object, float4x4 matrix, int frame_number);
+void create_stroke(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
+void create_suzanne(Main &bmain, Object &object, const float4x4 &matrix, int frame_number);
 
 int64_t ramer_douglas_peucker_simplify(IndexRange range,
                                        float epsilon,

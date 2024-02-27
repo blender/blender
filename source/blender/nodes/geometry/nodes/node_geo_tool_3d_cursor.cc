@@ -30,7 +30,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   const View3DCursor &cursor = params.user_data()->call_data->operator_data->scene->cursor;
 
-  const float4x4 world_to_object =
+  const float4x4 &world_to_object =
       params.user_data()->call_data->operator_data->self_object->world_to_object();
 
   const float3 location_global(cursor.location);
