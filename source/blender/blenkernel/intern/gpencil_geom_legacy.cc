@@ -3972,7 +3972,7 @@ static int generate_perimeter_cap(const float point[4],
 /**
  * Calculate the perimeter (outline) of a stroke as list of tPerimeterPoint.
  * \param subdivisions: Number of subdivisions for the start and end caps
- * \return: list of tPerimeterPoint
+ * \return list of tPerimeterPoint.
  */
 static ListBase *gpencil_stroke_perimeter_ex(const bGPdata *gpd,
                                              const bGPDlayer *gpl,
