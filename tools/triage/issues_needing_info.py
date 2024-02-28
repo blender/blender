@@ -18,7 +18,7 @@ import datetime
 from gitea_utils import gitea_json_issues_search, gitea_json_issue_events_filter, git_username_detect
 
 
-def print_needing_info_urls(username, before):
+def print_needing_info_urls(username: str, before: str) -> None:
 
     print(f"Needs information from user before {before}:")
 

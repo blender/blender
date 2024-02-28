@@ -20,10 +20,24 @@ import argparse
 import datetime
 import json
 import re
-from gitea_utils import gitea_json_activities_get, gitea_json_issue_get, gitea_json_issue_events_filter, gitea_user_get, git_username_detect
+
+from gitea_utils import (
+    gitea_json_activities_get,
+    gitea_json_issue_events_filter,
+    gitea_json_issue_get,
+    gitea_user_get, git_username_detect,
+)
+
+from typing import (
+    Any,
+    Dict,
+    List,
+    Set,
+    Iterable,
+)
 
 
-def argparse_create():
+def argparse_create() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Generate Weekly Report",
         epilog="This script is typically used to help write weekly reports")
@@ -53,36 +67,37 @@ def argparse_create():
     return parser
 
 
-def report_personal_weekly_get(username, start, verbose=True):
+def report_personal_weekly_get(username: str, start: datetime.datetime, verbose: bool = True) -> None:
 
-    data_cache = {}
+    data_cache: Dict[str, Dict[str, Any]] = {}
 
-    def gitea_json_issue_get_cached(issue_fullname):
+    def gitea_json_issue_get_cached(issue_fullname: str) -> Dict[str, Any]:
         if issue_fullname not in data_cache:
-            data_cache[issue_fullname] = gitea_json_issue_get(issue_fullname)
+            issue = gitea_json_issue_get(issue_fullname)
+            data_cache[issue_fullname] = issue
 
         return data_cache[issue_fullname]
 
-    pulls_closed = set()
-    pulls_commented = set()
-    pulls_created = set()
+    pulls_closed: Set[str] = set()
+    pulls_commented: Set[str] = set()
+    pulls_created: Set[str] = set()
 
-    issues_closed = set()
-    issues_commented = set()
-    issues_created = set()
+    issues_closed: Set[str] = set()
+    issues_commented: Set[str] = set()
+    issues_created: Set[str] = set()
 
-    pulls_reviewed = []
+    pulls_reviewed: List[str] = []
 
-    issues_confirmed = []
-    issues_needing_user_info = []
-    issues_needing_developer_info = []
-    issues_fixed = []
-    issues_duplicated = []
-    issues_archived = []
+    issues_confirmed: List[str] = []
+    issues_needing_user_info: List[str] = []
+    issues_needing_developer_info: List[str] = []
+    issues_fixed: List[str] = []
+    issues_duplicated: List[str] = []
+    issues_archived: List[str] = []
 
-    commits_main = []
+    commits_main: List[str] = []
 
-    user_data = gitea_user_get(username)
+    user_data: Dict[str, Any] = gitea_user_get(username)
 
     for i in range(7):
         date_curr = start + datetime.timedelta(days=i)
@@ -112,10 +127,16 @@ def report_personal_weekly_get(username, start, verbose=True):
                 fullname = activity["repo"]["full_name"] + "/pulls/" + activity["content"].split('|')[0]
                 pulls_reviewed.append(fullname)
             elif op_type == "commit_repo":
-                if activity["ref_name"] == "refs/heads/main" and activity["content"] and activity["repo"]["name"] != ".profile":
+                if (
+                        activity["ref_name"] == "refs/heads/main" and
+                        activity["content"] and
+                        activity["repo"]["name"] != ".profile"
+                ):
                     content_json = json.loads(activity["content"])
+                    assert isinstance(content_json, dict)
                     repo_fullname = activity["repo"]["full_name"]
-                    for commits in content_json["Commits"]:
+                    content_json_commits: List[Dict[str, Any]] = content_json["Commits"]
+                    for commits in content_json_commits:
                         # Skip commits that were not made by this user. Using email doesn't seem to
                         # be possible unfortunately.
                         if commits["AuthorName"] != user_data["full_name"]:
@@ -207,7 +228,7 @@ def report_personal_weekly_get(username, start, verbose=True):
     print()
 
     # Print review stats
-    def print_pulls(pulls):
+    def print_pulls(pulls: Iterable[str]) -> None:
         for pull in pulls:
             pull_data = gitea_json_issue_get_cached(pull)
             title = pull_data["title"]
@@ -232,7 +253,7 @@ def report_personal_weekly_get(username, start, verbose=True):
     if verbose:
         # Debug
 
-        def print_links(issues):
+        def print_links(issues: Iterable[str]) -> None:
             for fullname in issues:
                 print(f"https://projects.blender.org/{fullname}")
 
