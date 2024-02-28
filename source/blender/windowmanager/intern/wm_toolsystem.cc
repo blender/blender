@@ -346,25 +346,6 @@ void WM_toolsystem_ref_sync_from_context(Main *bmain, WorkSpace *workspace, bToo
         }
       }
     }
-    else {
-      const PaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
-      Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
-      const EnumPropertyItem *items = BKE_paint_get_tool_enum_from_paintmode(paint_mode);
-      if (paint && paint->brush && items) {
-        const ID *brush = (ID *)paint->brush;
-        const char tool_type = BKE_brush_tool_get((Brush *)brush, paint);
-        const int i = RNA_enum_from_value(items, tool_type);
-        /* Possible when loading files from the future. */
-        if (i != -1) {
-          const char *name = items[i].name;
-          const char *identifier = items[i].identifier;
-          if (!STREQ(tref_rt->data_block, identifier)) {
-            STRNCPY(tref_rt->data_block, identifier);
-            SNPRINTF(tref->idname, "builtin_brush.%s", name);
-          }
-        }
-      }
-    }
   }
 }
 
