@@ -136,15 +136,15 @@ static CurveType get_curve_type(const Alembic::AbcGeom::BasisType basis)
   return CURVE_TYPE_POLY;
 }
 
-static bool curves_topology_changed(const bke::CurvesGeometry &geometry,
+static bool curves_topology_changed(const bke::CurvesGeometry &curves,
                                     Span<int> preprocessed_offsets)
 {
   /* Offsets have an extra element. */
-  if (geometry.curve_num != preprocessed_offsets.size() - 1) {
+  if (curves.curve_num != preprocessed_offsets.size() - 1) {
     return true;
   }
 
-  const Span<int> offsets = geometry.offsets();
+  const Span<int> offsets = curves.offsets();
   for (const int i_curve : preprocessed_offsets.index_range()) {
     if (offsets[i_curve] != preprocessed_offsets[i_curve]) {
       return true;
@@ -323,13 +323,12 @@ void AbcCurveReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSele
   }
 }
 
-void AbcCurveReader::read_curves_sample(Curves *curves,
+void AbcCurveReader::read_curves_sample(Curves *curves_id,
                                         const ICurvesSchema &schema,
                                         const ISampleSelector &sample_sel)
 {
   std::optional<PreprocessedSampleData> opt_preprocess = preprocess_sample(
       m_iobject.getFullName(), schema, sample_sel);
-
   if (!opt_preprocess) {
     return;
   }
@@ -339,42 +338,42 @@ void AbcCurveReader::read_curves_sample(Curves *curves,
   const int point_count = data.offset_in_blender.last();
   const int curve_count = data.offset_in_blender.size() - 1;
 
-  bke::CurvesGeometry &geometry = curves->geometry.wrap();
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
 
-  if (curves_topology_changed(geometry, data.offset_in_blender)) {
-    geometry.resize(point_count, curve_count);
-    geometry.offsets_for_write().copy_from(data.offset_in_blender);
+  if (curves_topology_changed(curves, data.offset_in_blender)) {
+    curves.resize(point_count, curve_count);
+    curves.offsets_for_write().copy_from(data.offset_in_blender);
   }
 
-  geometry.fill_curve_types(data.curve_type);
+  curves.fill_curve_types(data.curve_type);
 
   if (data.curve_type != CURVE_TYPE_POLY) {
-    geometry.resolution_for_write().fill(get_curve_resolution(schema, sample_sel));
+    curves.resolution_for_write().fill(get_curve_resolution(schema, sample_sel));
   }
 
-  MutableSpan<float3> curves_positions = geometry.positions_for_write();
-  for (const int i_curve : geometry.curves_range()) {
+  MutableSpan<float3> curves_positions = curves.positions_for_write();
+  for (const int i_curve : curves.curves_range()) {
     int position_offset = data.offset_in_alembic[i_curve];
-    for (const int i_point : geometry.points_by_curve()[i_curve]) {
+    for (const int i_point : curves.points_by_curve()[i_curve]) {
       const Imath::V3f &pos = (*data.positions)[position_offset++];
       copy_zup_from_yup(curves_positions[i_point], pos.getValue());
     }
   }
 
   if (data.do_cyclic) {
-    geometry.cyclic_for_write().copy_from(data.curves_cyclic);
-    geometry.handle_types_left_for_write().fill(BEZIER_HANDLE_AUTO);
-    geometry.handle_types_right_for_write().fill(BEZIER_HANDLE_AUTO);
+    curves.cyclic_for_write().copy_from(data.curves_cyclic);
+    curves.handle_types_left_for_write().fill(BEZIER_HANDLE_AUTO);
+    curves.handle_types_right_for_write().fill(BEZIER_HANDLE_AUTO);
   }
 
   if (data.radii) {
     bke::SpanAttributeWriter<float> radii =
-        geometry.attributes_for_write().lookup_or_add_for_write_span<float>(
-            "radius", bke::AttrDomain::Point);
+        curves.attributes_for_write().lookup_or_add_for_write_span<float>("radius",
+                                                                          bke::AttrDomain::Point);
 
-    for (const int i_curve : geometry.curves_range()) {
+    for (const int i_curve : curves.curves_range()) {
       int position_offset = data.offset_in_alembic[i_curve];
-      for (const int i_point : geometry.points_by_curve()[i_curve]) {
+      for (const int i_point : curves.points_by_curve()[i_curve]) {
         radii.span[i_point] = (*data.radii)[position_offset++];
       }
     }
@@ -383,14 +382,14 @@ void AbcCurveReader::read_curves_sample(Curves *curves,
   }
 
   if (data.curve_type == CURVE_TYPE_NURBS) {
-    geometry.nurbs_orders_for_write().copy_from(data.curves_orders);
+    curves.nurbs_orders_for_write().copy_from(data.curves_orders);
 
     if (data.weights) {
-      MutableSpan<float> curves_weights = geometry.nurbs_weights_for_write();
+      MutableSpan<float> curves_weights = curves.nurbs_weights_for_write();
       Span<float> data_weights_span = {data.weights->get(), int64_t(data.weights->size())};
-      for (const int i_curve : geometry.curves_range()) {
+      for (const int i_curve : curves.curves_range()) {
         const int alembic_offset = data.offset_in_alembic[i_curve];
-        const IndexRange points = geometry.points_by_curve()[i_curve];
+        const IndexRange points = curves.points_by_curve()[i_curve];
         curves_weights.slice(points).copy_from(
             data_weights_span.slice(alembic_offset, points.size()));
       }

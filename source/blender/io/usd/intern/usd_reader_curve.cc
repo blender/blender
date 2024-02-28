@@ -38,7 +38,7 @@ static int point_count(int usdCount, CurveType curve_type, bool is_cyclic)
   if (curve_type == CURVE_TYPE_BEZIER) {
     return bezier_point_count(usdCount, is_cyclic);
   }
-    return usdCount;
+  return usdCount;
 }
 
 /** Return the sum of the values of each element in `usdCounts`. This is used for precomputing the
@@ -79,22 +79,22 @@ static void add_bezier_control_point(int cp,
 }
 
 /** Returns true if the number of curves or the number of curve points in each curve differ. */
-static bool curves_topology_changed(const CurvesGeometry &geometry,
+static bool curves_topology_changed(const bke::CurvesGeometry &curves,
                                     const pxr::VtIntArray &usdCounts,
                                     CurveType curve_type,
                                     int expected_total_point_num,
                                     bool is_cyclic)
 {
-  if (geometry.curve_num != usdCounts.size()) {
+  if (curves.curves_num() != usdCounts.size()) {
     return true;
   }
-  if (geometry.point_num != expected_total_point_num) {
+  if (curves.points_num() != expected_total_point_num) {
     return true;
   }
 
-  for (const int curve_idx : IndexRange(geometry.curve_num)) {
-    const int expected_curve_point_num = point_count(usdCounts[curve_idx], curve_type, is_cyclic);
-    const int current_curve_point_num = geometry.curve_offsets[curve_idx];
+  for (const int curve : curves.curves_range()) {
+    const int expected_curve_point_num = point_count(usdCounts[curve], curve_type, is_cyclic);
+    const int current_curve_point_num = curves.curve_offsets[curve];
 
     if (current_curve_point_num != expected_curve_point_num) {
       return true;
@@ -141,7 +141,7 @@ void USDCurvesReader::read_object_data(Main *bmain, double motionSampleTime)
   USDXformReader::read_object_data(bmain, motionSampleTime);
 }
 
-void USDCurvesReader::read_curve_sample(Curves *cu, const double motionSampleTime)
+void USDCurvesReader::read_curve_sample(Curves *curves_id, const double motionSampleTime)
 {
   curve_prim_ = pxr::UsdGeomBasisCurves(prim_);
   if (!curve_prim_) {
@@ -179,33 +179,33 @@ void USDCurvesReader::read_curve_sample(Curves *cu, const double motionSampleTim
   const int num_points = accumulate_point_count(usdCounts, curve_type, is_cyclic);
   const int default_resolution = 6;
 
-  bke::CurvesGeometry &geometry = cu->geometry.wrap();
-  if (curves_topology_changed(geometry, usdCounts, curve_type, num_points, is_cyclic)) {
-    geometry.resize(num_points, num_subcurves);
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  if (curves_topology_changed(curves, usdCounts, curve_type, num_points, is_cyclic)) {
+    curves.resize(num_points, num_subcurves);
   }
 
-  geometry.fill_curve_types(curve_type);
-  geometry.resolution_for_write().fill(default_resolution);
+  curves.fill_curve_types(curve_type);
+  curves.resolution_for_write().fill(default_resolution);
 
   if (is_cyclic) {
-    geometry.cyclic_for_write().fill(true);
+    curves.cyclic_for_write().fill(true);
   }
 
   if (curve_type == CURVE_TYPE_NURBS) {
     const int8_t curve_order = type == pxr::UsdGeomTokens->cubic ? 4 : 2;
-    geometry.nurbs_orders_for_write().fill(curve_order);
+    curves.nurbs_orders_for_write().fill(curve_order);
   }
 
-  MutableSpan<int> offsets = geometry.offsets_for_write();
-  MutableSpan<float3> positions = geometry.positions_for_write();
+  MutableSpan<int> offsets = curves.offsets_for_write();
+  MutableSpan<float3> positions = curves.positions_for_write();
 
   /* Bezier curves require care in filing out their left/right handles. */
   if (type == pxr::UsdGeomTokens->cubic && basis == pxr::UsdGeomTokens->bezier) {
-    geometry.handle_types_left_for_write().fill(BEZIER_HANDLE_ALIGN);
-    geometry.handle_types_right_for_write().fill(BEZIER_HANDLE_ALIGN);
+    curves.handle_types_left_for_write().fill(BEZIER_HANDLE_ALIGN);
+    curves.handle_types_right_for_write().fill(BEZIER_HANDLE_ALIGN);
 
-    MutableSpan<float3> handles_right = geometry.handle_positions_right_for_write();
-    MutableSpan<float3> handles_left = geometry.handle_positions_left_for_write();
+    MutableSpan<float3> handles_right = curves.handle_positions_right_for_write();
+    MutableSpan<float3> handles_left = curves.handle_positions_left_for_write();
     Span<pxr::GfVec3f> points{usdPoints.data(), int64_t(usdPoints.size())};
 
     int usd_point_offset = 0;
@@ -239,15 +239,15 @@ void USDCurvesReader::read_curve_sample(Curves *cu, const double motionSampleTim
       offset += num_verts;
     }
 
-    for (const int i_point : geometry.points_range()) {
+    for (const int i_point : curves.points_range()) {
       positions[i_point] = to_float3(usdPoints[i_point]);
     }
   }
 
   if (!usdWidths.empty()) {
-    bke::SpanAttributeWriter<float> radii =
-        geometry.attributes_for_write().lookup_or_add_for_write_span<float>(
-            "radius", bke::AttrDomain::Point);
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+    bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
+        "radius", bke::AttrDomain::Point);
 
     pxr::TfToken widths_interp = curve_prim_.GetWidthsInterpolation();
     if (widths_interp == pxr::UsdGeomTokens->constant) {
@@ -277,7 +277,7 @@ void USDCurvesReader::read_curve_sample(Curves *cu, const double motionSampleTim
         }
       }
       else {
-        for (const int i_point : geometry.points_range()) {
+        for (const int i_point : curves.points_range()) {
           radii.span[i_point] = usdWidths[i_point] / 2;
         }
       }

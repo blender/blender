@@ -36,7 +36,7 @@ class AbcCurveReader final : public AbcObjectReader {
                      float velocity_scale,
                      const char **err_str) override;
 
-  void read_curves_sample(Curves *curves,
+  void read_curves_sample(Curves *curves_id,
                           const Alembic::AbcGeom::ICurvesSchema &schema,
                           const Alembic::Abc::ISampleSelector &sample_selector);
 };

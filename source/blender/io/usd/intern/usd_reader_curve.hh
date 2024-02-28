@@ -35,7 +35,7 @@ class USDCurvesReader : public USDGeomReader {
   void create_object(Main *bmain, double motionSampleTime) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 
-  void read_curve_sample(Curves *cu, double motionSampleTime);
+  void read_curve_sample(Curves *curves_id, double motionSampleTime);
 
   void read_geometry(bke::GeometrySet &geometry_set,
                      USDMeshReadParams params,
