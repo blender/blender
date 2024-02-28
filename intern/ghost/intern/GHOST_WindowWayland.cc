@@ -894,7 +894,6 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
       libdecor_frame_commit(decor.frame, state, configuration);
       libdecor_state_free(state);
 
-      decor.pending.configuration = nullptr;
       decor.pending.size[0] = 0;
       decor.pending.size[1] = 0;
 
@@ -906,6 +905,8 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
         decor.pending.configuration_needs_free = false;
       }
 #  endif
+
+      decor.pending.configuration = nullptr;
     }
   }
   else
