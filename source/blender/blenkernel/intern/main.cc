@@ -980,7 +980,15 @@ Main *BKE_main_from_id(Main *global_main, const ID *id, const bool verify)
   }
   else {
     /* Debug assert, especially for places that pass in G_MAIN. */
-    BLI_assert(BLI_findindex(which_libbase(global_main, GS(id->name)), id) != -1);
+    #ifndef NDEBUG
+    if (id->flag & LIB_EMBEDDED_DATA) {
+      const ID *id_owner = BKE_id_owner_get(const_cast<ID*>(id));
+      BLI_assert(BLI_findindex(which_libbase(global_main, GS(id_owner->name)), id_owner) != -1);
+    }
+    else {
+      BLI_assert(BLI_findindex(which_libbase(global_main, GS(id->name)), id) != -1);
+    }
+    #endif
   }
 
   return global_main;
