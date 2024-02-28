@@ -264,6 +264,10 @@ static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
   bNode *node;
   nodeFindNode(ntree, sock, &node, nullptr);
+  if (node->type != NODE_CUSTOM) {
+    /* Can't change the socket type on built-in nodes like this. */
+    return;
+  }
   nodeModifySocketTypeStatic(ntree, node, sock, value, 0);
 }
 
