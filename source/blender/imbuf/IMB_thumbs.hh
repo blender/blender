@@ -46,13 +46,13 @@ enum ThumbSource {
 #define THUMB_DEFAULT_HASH "00000000000000000000000000000000"
 
 /**
- * Create thumbnail for file and returns new imbuf for thumbnail.
+ * Create thumbnail for file and returns new ImBuf for thumbnail.
  * \param filepath: File path (but not a library path!) to the thumbnail to be created.
  */
 ImBuf *IMB_thumb_create(const char *filepath, ThumbSize size, ThumbSource source, ImBuf *img);
 
 /**
- * Read thumbnail for file and returns new imbuf for thumbnail.
+ * Read thumbnail for file and returns new ImBuf for thumbnail.
  * \param file_or_lib_path: File path or library-ID path (e.g. `/a/b.blend/Material/MyMaterial`) to
  *                          the thumbnail to be read.
  */

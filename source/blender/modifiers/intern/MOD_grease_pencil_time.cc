@@ -129,9 +129,11 @@ struct FrameRange {
   }
 };
 
-/* Find the index range of sorted keys that covers the frame range, including the key right before
- * and after the inverval. The extra keys are needed when frames are held at the beginning or when
- * reversing the direction. */
+/**
+ * Find the index range of sorted keys that covers the frame range, including the key right before
+ * and after the interval. The extra keys are needed when frames are held at the beginning or when
+ * reversing the direction.
+ */
 static const IndexRange find_key_range(const Span<int> sorted_keys, const FrameRange &frame_range)
 {
   IndexRange result = sorted_keys.index_range();

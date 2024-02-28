@@ -2717,13 +2717,13 @@ void uiTemplateNodeTreeInterface(uiLayout *layout, PointerRNA *ptr);
 void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr);
 
 /**
- * \return A RNA pointer for the operator properties.
+ * \return An RNA pointer for the operator properties.
  */
 PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
                                                  const char *opname,
                                                  bool create_properties);
 /**
- * \return A RNA pointer for the operator properties.
+ * \return An RNA pointer for the operator properties.
  */
 PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
                                              const char *opname,

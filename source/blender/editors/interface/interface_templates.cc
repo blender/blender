@@ -898,7 +898,7 @@ ID *ui_template_id_liboverride_hierarchy_make(
   if (id_override != nullptr) {
     id_override->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
 
-    /* Ensure that the hierarchy root of the newly overridden data is instanciated in the scene, in
+    /* Ensure that the hierarchy root of the newly overridden data is instantiated in the scene, in
      * case it's a collection or object. */
     ID *hierarchy_root = id_override->override_library->hierarchy_root;
     if (GS(hierarchy_root->name) == ID_OB) {

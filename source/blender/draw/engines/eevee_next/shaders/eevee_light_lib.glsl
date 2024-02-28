@@ -138,7 +138,7 @@ vec2 light_attenuation_facing(LightData light, vec3 L, float distance_to_light, 
   float sin_light_angle = dot(L, Ng);
   /* Do attenuation after the horizon line to avoid harsh cut
    * or biasing of surfaces without light bleeding. */
-  /* Compute for both front facing and backfacing. */
+  /* Compute for both front facing and back-facing. */
   return saturate((vec2(sin_light_angle, -sin_light_angle) + sin_solid_angle + 0.1) * 10.0);
 }
 

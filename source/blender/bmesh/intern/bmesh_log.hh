@@ -181,7 +181,7 @@ void BM_log_all_added(BMesh *bm, BMLog *log);
 void BM_log_before_all_removed(BMesh *bm, BMLog *log);
 
 /**
- * Search the log for the original veftex coordinates.
+ * Search the log for the original vertex coordinates.
  *
  * Does not modify the log or the vertex.
  *

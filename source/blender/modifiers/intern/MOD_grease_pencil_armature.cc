@@ -110,8 +110,8 @@ static void modify_curves(ModifierData &md, const ModifierEvalContext &ctx, Draw
   bke::CurvesGeometry &curves = drawing.strokes_for_write();
 
   /* The influence flag is where the "invert" flag is stored,
-   * but armature functions expect "deformflags" to have the flag set as well.
-   * Copy to deformflag here to keep old functions happy. */
+   * but armature functions expect `deformflag` to have the flag set as well.
+   * Copy to `deformflag` here to keep old functions happy. */
   const int deformflag = amd.deformflag |
                          (amd.influence.flag & GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP ?
                               ARM_DEF_INVERT_VGROUP :
