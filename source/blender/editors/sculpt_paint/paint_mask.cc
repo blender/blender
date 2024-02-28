@@ -2169,6 +2169,17 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
   return WM_gesture_lasso_invoke(C, op, event);
 }
 
+static int project_line_gesture_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
+  return WM_gesture_straightline_active_side_invoke(C, op, event);
+}
+
 static int project_gesture_line_exec(bContext *C, wmOperator *op)
 {
   SculptGestureContext *sgcontext = sculpt_gesture_init_from_line(C, op);
@@ -2330,7 +2341,7 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
   ot->idname = "SCULPT_OT_project_line_gesture";
   ot->description = "Project the geometry onto a plane defined by a line";
 
-  ot->invoke = WM_gesture_straightline_active_side_invoke;
+  ot->invoke = project_line_gesture_invoke;
   ot->modal = WM_gesture_straightline_oneshot_modal;
   ot->exec = project_gesture_line_exec;
 
