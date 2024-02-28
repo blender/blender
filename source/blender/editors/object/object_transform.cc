@@ -532,8 +532,6 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
  * should stay in the same place, e.g. for apply-size-rot or object center */
 static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  Object workob;
-
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   /* a change was made, adjust the children to compensate */
@@ -541,8 +539,8 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
     if (ob_child->parent == ob) {
       Object *ob_child_eval = DEG_get_evaluated_object(depsgraph, ob_child);
       BKE_object_apply_mat4(ob_child_eval, ob_child_eval->object_to_world().ptr(), true, false);
-      BKE_object_workob_calc_parent(depsgraph, scene, ob_child_eval, &workob);
-      invert_m4_m4(ob_child->parentinv, workob.object_to_world().ptr());
+      invert_m4_m4(ob_child->parentinv,
+                   BKE_object_calc_parent(depsgraph, scene, ob_child_eval).ptr());
       /* Copy result of BKE_object_apply_mat4(). */
       BKE_object_transform_copy(ob_child, ob_child_eval);
       /* Make sure evaluated object is in a consistent state with the original one.
@@ -687,9 +685,7 @@ static int apply_objects_internal(bContext *C,
     obact = CTX_data_active_object(C);
     invert_m4_m4(obact_invmat, obact->object_to_world().ptr());
 
-    Object workob;
-    BKE_object_workob_calc_parent(depsgraph, scene, obact, &workob);
-    copy_m4_m4(obact_parent, workob.object_to_world().ptr());
+    copy_m4_m4(obact_parent, BKE_object_calc_parent(depsgraph, scene, obact).ptr());
     copy_m4_m4(obact_parentinv, obact->parentinv);
 
     if (apply_objects_internal_need_single_user(C)) {
