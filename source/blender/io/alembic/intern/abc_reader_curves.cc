@@ -139,18 +139,9 @@ static CurveType get_curve_type(const Alembic::AbcGeom::BasisType basis)
 static bool curves_topology_changed(const bke::CurvesGeometry &curves,
                                     Span<int> preprocessed_offsets)
 {
-  /* Offsets have an extra element. */
-  if (curves.curve_num != preprocessed_offsets.size() - 1) {
+  if (curves.offsets() != preprocessed_offsets) {
     return true;
   }
-
-  const Span<int> offsets = curves.offsets();
-  for (const int i_curve : preprocessed_offsets.index_range()) {
-    if (offsets[i_curve] != preprocessed_offsets[i_curve]) {
-      return true;
-    }
-  }
-
   return false;
 }
 
