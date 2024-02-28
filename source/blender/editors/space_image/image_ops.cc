@@ -1326,7 +1326,6 @@ static Image *image_open_single(Main *bmain,
 
 static int image_open_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   ScrArea *area = CTX_wm_area(C);
   Scene *scene = CTX_data_scene(C);
   ImageUser *iuser = nullptr;
@@ -1341,9 +1340,16 @@ static int image_open_exec(bContext *C, wmOperator *op)
     image_open_init(C, op);
   }
 
-  ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, use_udim);
+  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
+
+  Main *id_main = CTX_data_main(C);
+  if (iod->pprop.ptr.owner_id) {
+    id_main = BKE_main_from_id(id_main, iod->pprop.ptr.owner_id);
+  }
+
+  ListBase ranges = ED_image_filesel_detect_sequences(id_main, op, use_udim);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    Image *ima_range = image_open_single(bmain, op, range, use_multiview);
+    Image *ima_range = image_open_single(id_main, op, range, use_multiview);
 
     /* take the first image */
     if ((ima == nullptr) && ima_range) {
@@ -1360,9 +1366,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* hook into UI */
-  ImageOpenData *iod = static_cast<ImageOpenData *>(op->customdata);
-
   if (iod->pprop.prop) {
     /* when creating new ID blocks, use is already 1, but RNA
      * pointer use also increases user, so this compensates it */
@@ -1378,7 +1381,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
   else if (area && area->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
-    ED_space_image_set(bmain, sima, ima, false);
+    ED_space_image_set(id_main, sima, ima, false);
     iuser = &sima->iuser;
   }
   else {
@@ -1418,9 +1421,9 @@ static int image_open_exec(bContext *C, wmOperator *op)
   }
 
   /* XXX BKE_packedfile_unpack_image frees image buffers */
-  ED_preview_kill_jobs(CTX_wm_manager(C), bmain);
+  ED_preview_kill_jobs(CTX_wm_manager(C), id_main);
 
-  BKE_image_signal(bmain, ima, iuser, IMA_SIGNAL_RELOAD);
+  BKE_image_signal(id_main, ima, iuser, IMA_SIGNAL_RELOAD);
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
 
   MEM_freeN(op->customdata);
