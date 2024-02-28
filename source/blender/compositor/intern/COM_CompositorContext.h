@@ -60,11 +60,6 @@ class CompositorContext {
   bNodeInstanceHash *previews_;
 
   /**
-   * \brief does this system have active opencl devices?
-   */
-  bool hasActiveOpenCLDevices_;
-
-  /**
    * \brief Skip slow nodes
    */
   bool fast_calculation_;
@@ -180,22 +175,6 @@ class CompositorContext {
    */
   int get_framenumber() const;
 
-  /**
-   * \brief has this system active opencl_devices?
-   */
-  bool get_has_active_opencl_devices() const
-  {
-    return hasActiveOpenCLDevices_;
-  }
-
-  /**
-   * \brief set has this system active opencl_devices?
-   */
-  void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices)
-  {
-    hasActiveOpenCLDevices_ = hasAvtiveOpenCLDevices;
-  }
-
   /** Whether it has a view with a specific name and not the default one. */
   bool has_explicit_view() const
   {
@@ -234,11 +213,6 @@ class CompositorContext {
     view_name_ = view_name;
   }
 
-  int get_chunksize() const
-  {
-    return 256;
-  }
-
   void set_fast_calculation(bool fast_calculation)
   {
     fast_calculation_ = fast_calculation;
@@ -246,10 +220,6 @@ class CompositorContext {
   bool is_fast_calculation() const
   {
     return fast_calculation_;
-  }
-  bool is_groupnode_buffer_enabled() const
-  {
-    return false;
   }
 
   /**
@@ -262,11 +232,6 @@ class CompositorContext {
   }
 
   Size2f get_render_size() const;
-
-  /**
-   * Get active execution model.
-   */
-  eExecutionModel get_execution_model() const;
 };
 
 }  // namespace blender::compositor

@@ -23,8 +23,6 @@ CompositorOperation::CompositorOperation()
 
   this->set_render_data(nullptr);
   output_buffer_ = nullptr;
-  image_input_ = nullptr;
-  alpha_input_ = nullptr;
 
   use_alpha_input_ = false;
   active_ = false;
@@ -43,8 +41,6 @@ void CompositorOperation::init_execution()
   }
 
   /* When initializing the tree during initial load the width and height can be zero. */
-  image_input_ = get_input_socket_reader(0);
-  alpha_input_ = get_input_socket_reader(1);
   if (this->get_width() * this->get_height() != 0) {
     output_buffer_ = (float *)MEM_callocN(
         sizeof(float[4]) * this->get_width() * this->get_height(), "CompositorOperation");
@@ -93,89 +89,6 @@ void CompositorOperation::deinit_execution()
   }
 
   output_buffer_ = nullptr;
-  image_input_ = nullptr;
-  alpha_input_ = nullptr;
-}
-
-void CompositorOperation::execute_region(rcti *rect, uint /*tile_number*/)
-{
-  float color[8]; /* 7 is enough. */
-  float *buffer = output_buffer_;
-
-  if (!buffer) {
-    return;
-  }
-  int x1 = rect->xmin;
-  int y1 = rect->ymin;
-  int x2 = rect->xmax;
-  int y2 = rect->ymax;
-  int offset = (y1 * this->get_width() + x1);
-  int add = (this->get_width() - (x2 - x1));
-  int offset4 = offset * COM_DATA_TYPE_COLOR_CHANNELS;
-  int x;
-  int y;
-  bool breaked = false;
-  int dx = 0, dy = 0;
-
-#if 0
-  const RenderData *rd = rd_;
-
-  if (rd->mode & R_BORDER && rd->mode & R_CROP) {
-    /**
-     * When using cropped render result, need to re-position area of interest,
-     * so it'll match bounds of render border within frame. By default, canvas
-     * will be centered between full frame and cropped frame, so we use such
-     * scheme to map cropped coordinates to full-frame coordinates
-     *
-     * ^ Y
-     * |                      Width
-     * +------------------------------------------------+
-     * |                                                |
-     * |                                                |
-     * |  Centered canvas, we map coordinate from it    |
-     * |              +------------------+              |
-     * |              |                  |              |  H
-     * |              |                  |              |  e
-     * |  +------------------+ . Center  |              |  i
-     * |  |           |      |           |              |  g
-     * |  |           |      |           |              |  h
-     * |  |....dx.... +------|-----------+              |  t
-     * |  |           . dy   |                          |
-     * |  +------------------+                          |
-     * |  Render border, we map coordinates to it       |
-     * |                                                |    X
-     * +------------------------------------------------+---->
-     *                      Full frame
-     */
-
-    int full_width, full_height;
-    BKE_render_resolution(rd, false, &full_width, &full_height);
-
-    dx = rd->border.xmin * full_width - (full_width - this->get_width()) / 2.0f;
-    dy = rd->border.ymin * full_height - (full_height - this->get_height()) / 2.0f;
-  }
-#endif
-
-  for (y = y1; y < y2 && (!breaked); y++) {
-    for (x = x1; x < x2 && (!breaked); x++) {
-      int input_x = x + dx, input_y = y + dy;
-
-      image_input_->read_sampled(color, input_x, input_y, PixelSampler::Nearest);
-      if (use_alpha_input_) {
-        alpha_input_->read_sampled(&(color[3]), input_x, input_y, PixelSampler::Nearest);
-      }
-
-      copy_v4_v4(buffer + offset4, color);
-
-      offset4 += COM_DATA_TYPE_COLOR_CHANNELS;
-      offset++;
-      if (is_braked()) {
-        breaked = true;
-      }
-    }
-    offset += add;
-    offset4 += add * COM_DATA_TYPE_COLOR_CHANNELS;
-  }
 }
 
 void CompositorOperation::set_scene_name(const char *scene_name)
@@ -217,16 +130,8 @@ void CompositorOperation::determine_canvas(const rcti & /*preferred_area*/, rcti
   rcti local_preferred;
   BLI_rcti_init(&local_preferred, 0, width, 0, height);
 
-  switch (execution_model_) {
-    case eExecutionModel::Tiled:
-      NodeOperation::determine_canvas(local_preferred, r_area);
-      r_area = local_preferred;
-      break;
-    case eExecutionModel::FullFrame:
-      set_determined_canvas_modifier([&](rcti &canvas) { canvas = local_preferred; });
-      NodeOperation::determine_canvas(local_preferred, r_area);
-      break;
-  }
+  set_determined_canvas_modifier([&](rcti &canvas) { canvas = local_preferred; });
+  NodeOperation::determine_canvas(local_preferred, r_area);
 }
 
 }  // namespace blender::compositor

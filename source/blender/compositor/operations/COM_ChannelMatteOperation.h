@@ -14,8 +14,6 @@ namespace blender::compositor {
  */
 class ChannelMatteOperation : public MultiThreadedOperation {
  private:
-  SocketReader *input_image_program_;
-
   // int color_space_; /* node->custom1 */ /* UNUSED */ /* TODO? */
   int matte_channel_; /* node->custom2 */
   int limit_method_;  /* node->algorithm */
@@ -37,18 +35,9 @@ class ChannelMatteOperation : public MultiThreadedOperation {
   int ids_[3];
 
  public:
-  /**
-   * Default constructor
-   */
   ChannelMatteOperation();
 
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
   void init_execution() override;
-  void deinit_execution() override;
 
   void set_settings(NodeChroma *node_chroma, const int custom2)
   {

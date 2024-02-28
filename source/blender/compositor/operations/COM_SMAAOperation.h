@@ -13,37 +13,15 @@ namespace blender::compositor {
 
 class SMAAEdgeDetectionOperation : public MultiThreadedOperation {
  protected:
-  SocketReader *image_reader_;
-  SocketReader *value_reader_;
-
   float threshold_;
   float contrast_limit_;
 
  public:
   SMAAEdgeDetectionOperation();
 
-  /**
-   * the inner loop of this program
-   */
-  virtual void execute_pixel(float output[4], int x, int y, void *data) override;
-
-  /**
-   * Initialize the execution
-   */
-  void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
-
   void set_threshold(float threshold);
 
   void set_local_contrast_adaptation_factor(float factor);
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -56,34 +34,13 @@ class SMAAEdgeDetectionOperation : public MultiThreadedOperation {
 
 class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
  private:
-  SocketReader *image_reader_;
   std::function<void(int x, int y, float *out)> sample_image_fn_;
   int corner_rounding_;
 
  public:
   SMAABlendingWeightCalculationOperation();
 
-  /**
-   * the inner loop of this program
-   */
-  void execute_pixel(float output[4], int x, int y, void *data) override;
-
-  /**
-   * Initialize the execution
-   */
-  void init_execution() override;
-  void *initialize_tile_data(rcti *rect) override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
-
   void set_corner_rounding(float rounding);
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_started(MemoryBuffer *output,
@@ -123,32 +80,8 @@ class SMAABlendingWeightCalculationOperation : public MultiThreadedOperation {
 /* Neighborhood Blending (Third Pass) */
 
 class SMAANeighborhoodBlendingOperation : public MultiThreadedOperation {
- private:
-  SocketReader *image1Reader_;
-  SocketReader *image2Reader_;
-
  public:
   SMAANeighborhoodBlendingOperation();
-
-  /**
-   * the inner loop of this program
-   */
-  void execute_pixel(float output[4], int x, int y, void *data) override;
-
-  /**
-   * Initialize the execution
-   */
-  void init_execution() override;
-  void *initialize_tile_data(rcti *rect) override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,

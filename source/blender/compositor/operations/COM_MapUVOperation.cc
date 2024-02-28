@@ -13,12 +13,8 @@ MapUVOperation::MapUVOperation()
   this->add_output_socket(DataType::Color);
   alpha_ = 0.0f;
   nearest_neighbour_ = false;
-  flags_.complex = true;
   flags_.can_be_constant = true;
   set_canvas_input_index(UV_INPUT_INDEX);
-
-  inputUVProgram_ = nullptr;
-  input_color_program_ = nullptr;
 }
 
 void MapUVOperation::init_data()
@@ -30,61 +26,6 @@ void MapUVOperation::init_data()
   NodeOperation *uv_input = get_input_operation(UV_INPUT_INDEX);
   uv_width_ = uv_input->get_width();
   uv_height_ = uv_input->get_height();
-}
-
-void MapUVOperation::init_execution()
-{
-  input_color_program_ = this->get_input_socket_reader(0);
-  inputUVProgram_ = this->get_input_socket_reader(1);
-  if (execution_model_ == eExecutionModel::Tiled) {
-    uv_input_read_fn_ = [=](float x, float y, float *out) {
-      inputUVProgram_->read_sampled(out, x, y, PixelSampler::Bilinear);
-    };
-  }
-}
-
-void MapUVOperation::execute_pixel_sampled(float output[4],
-                                           float x,
-                                           float y,
-                                           PixelSampler /*sampler*/)
-{
-  float xy[2] = {x, y};
-  float uv[2], deriv[2][2], alpha;
-
-  pixel_transform(xy, uv, deriv, alpha);
-  if (alpha == 0.0f) {
-    zero_v4(output);
-    return;
-  }
-
-  if (nearest_neighbour_) {
-    input_color_program_->read_sampled(output, uv[0], uv[1], PixelSampler::Nearest);
-  }
-  else {
-    /* EWA filtering */
-    input_color_program_->read_filtered(output, uv[0], uv[1], deriv[0], deriv[1]);
-
-    /* UV to alpha threshold */
-    const float threshold = alpha_ * 0.05f;
-    /* XXX alpha threshold is used to fade out pixels on boundaries with invalid derivatives.
-     * this calculation is not very well defined, should be looked into if it becomes a problem ...
-     */
-    float du = len_v2(deriv[0]);
-    float dv = len_v2(deriv[1]);
-    float factor = 1.0f - threshold * (du / input_color_program_->get_width() +
-                                       dv / input_color_program_->get_height());
-    if (factor < 0.0f) {
-      alpha = 0.0f;
-    }
-    else {
-      alpha *= factor;
-    }
-  }
-
-  /* "premul" */
-  if (alpha < 1.0f) {
-    mul_v4_fl(output, alpha);
-  }
 }
 
 bool MapUVOperation::read_uv(float x, float y, float &r_u, float &r_v, float &r_alpha)
@@ -153,43 +94,6 @@ void MapUVOperation::pixel_transform(const float xy[2],
     r_deriv[0][1] *= numinv;
     r_deriv[1][1] *= numinv;
   }
-}
-
-void MapUVOperation::deinit_execution()
-{
-  inputUVProgram_ = nullptr;
-  input_color_program_ = nullptr;
-}
-
-bool MapUVOperation::determine_depending_area_of_interest(rcti *input,
-                                                          ReadBufferOperation *read_operation,
-                                                          rcti *output)
-{
-  rcti color_input;
-  rcti uv_input;
-  NodeOperation *operation = nullptr;
-
-  /* the uv buffer only needs a 3x3 buffer. The image needs whole buffer */
-
-  operation = get_input_operation(0);
-  color_input.xmax = operation->get_width();
-  color_input.xmin = 0;
-  color_input.ymax = operation->get_height();
-  color_input.ymin = 0;
-  if (operation->determine_depending_area_of_interest(&color_input, read_operation, output)) {
-    return true;
-  }
-
-  operation = get_input_operation(1);
-  uv_input.xmax = input->xmax + 1;
-  uv_input.xmin = input->xmin - 1;
-  uv_input.ymax = input->ymax + 1;
-  uv_input.ymin = input->ymin - 1;
-  if (operation->determine_depending_area_of_interest(&uv_input, read_operation, output)) {
-    return true;
-  }
-
-  return false;
 }
 
 void MapUVOperation::get_area_of_interest(const int input_idx,

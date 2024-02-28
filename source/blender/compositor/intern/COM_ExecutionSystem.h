@@ -82,36 +82,9 @@ class ProfilerData;
  *
  * \see COM_convert_data_type Datatype conversions
  * \see Converter.convert_resolution Image size conversions
- *
- * \section EM_Step4 Step4: group operations in executions groups
- * ExecutionGroup are groups of operations that are calculated as being one bigger operation.
- * All operations will be part of an ExecutionGroup.
- * Complex nodes will be added to separate groups. Between ExecutionGroup's the data will be stored
- * in MemoryBuffers. ReadBufferOperations and WriteBufferOperations are added where needed.
- *
- * <pre>
- *
- *        +------------------------------+      +----------------+
- *        | ExecutionGroup A             |      |ExecutionGroup B|   ExecutionGroup
- *        | +----------+     +----------+|      |+----------+    |
- *   /----->| Operation|---->| Operation|-\ /--->| Operation|-\  |   NodeOperation
- *   |    | | A        |     | B        ||| |   || C        | |  |
- *   |    | | cFFA     |  /->| cFFA     ||| |   || cFFA     | |  |
- *   |    | +----------+  |  +----------+|| |   |+----------+ |  |
- *   |    +---------------|--------------+v |   +-------------v--+
- * +-*----+           +---*--+         +--*-*--+           +--*----+
- * |inputA|           |inputB|         |outputA|           |outputB| MemoryBuffer
- * |cFAA  |           |cFAA  |         |cFAA   |           |cFAA   |
- * +------+           +------+         +-------+           +-------+
- * </pre>
- * \see ExecutionSystem.group_operations method doing this step
- * \see ExecutionSystem.add_read_write_buffer_operations
- * \see NodeOperation.is_complex
- * \see ExecutionGroup class representing the ExecutionGroup
  */
 
 /* Forward declarations. */
-class ExecutionGroup;
 class ExecutionModel;
 class NodeOperation;
 
@@ -135,11 +108,6 @@ class ExecutionSystem {
    * \brief vector of operations
    */
   Vector<NodeOperation *> operations_;
-
-  /**
-   * \brief vector of groups
-   */
-  Vector<ExecutionGroup *> groups_;
 
   /**
    * Active execution model implementation.
@@ -178,13 +146,13 @@ class ExecutionSystem {
    */
   ~ExecutionSystem();
 
-  void set_operations(Span<NodeOperation *> operations, Span<ExecutionGroup *> groups);
+  void set_operations(Span<NodeOperation *> operations);
 
   /**
    * \brief execute this system
-   * - initialize the NodeOperation's and ExecutionGroup's
-   * - schedule the output ExecutionGroup's based on their priority
-   * - deinitialize the ExecutionGroup's and NodeOperation's
+   * - initialize the NodeOperation's
+   * - schedule the outputs based on their priority
+   * - deinitialize the NodeOperation's
    */
   void execute();
 
@@ -194,11 +162,6 @@ class ExecutionSystem {
   const CompositorContext &get_context() const
   {
     return context_;
-  }
-
-  SharedOperationBuffers &get_active_buffers()
-  {
-    return active_buffers_;
   }
 
   /**

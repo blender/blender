@@ -19,7 +19,6 @@ PreviewOperation::PreviewOperation(const ColorManagedViewSettings *view_settings
   this->add_input_socket(DataType::Color, ResizeMode::Align);
   preview_ = nullptr;
   output_image_ = nullptr;
-  input_ = nullptr;
   divider_ = 1.0f;
   view_settings_ = view_settings;
   display_settings_ = display_settings;
@@ -39,7 +38,6 @@ void PreviewOperation::verify_preview(bNodeInstanceHash *previews, bNodeInstance
 
 void PreviewOperation::init_execution()
 {
-  input_ = get_input_socket_reader(0);
   output_image_ = preview_->ibuf;
 
   if (this->get_width() == uint(preview_->ibuf->x) &&
@@ -57,49 +55,8 @@ void PreviewOperation::init_execution()
 void PreviewOperation::deinit_execution()
 {
   output_image_ = nullptr;
-  input_ = nullptr;
 }
 
-void PreviewOperation::execute_region(rcti *rect, uint /*tile_number*/)
-{
-  int offset;
-  float color[4];
-  ColormanageProcessor *cm_processor;
-
-  cm_processor = IMB_colormanagement_display_processor_new(view_settings_, display_settings_);
-
-  for (int y = rect->ymin; y < rect->ymax; y++) {
-    offset = (y * get_width() + rect->xmin) * 4;
-    for (int x = rect->xmin; x < rect->xmax; x++) {
-      float rx = floor(x / divider_);
-      float ry = floor(y / divider_);
-
-      color[0] = 0.0f;
-      color[1] = 0.0f;
-      color[2] = 0.0f;
-      color[3] = 1.0f;
-      input_->read_sampled(color, rx, ry, PixelSampler::Nearest);
-      IMB_colormanagement_processor_apply_v4(cm_processor, color);
-      rgba_float_to_uchar(output_image_->byte_buffer.data + offset, color);
-      offset += 4;
-    }
-  }
-
-  IMB_colormanagement_processor_free(cm_processor);
-}
-bool PreviewOperation::determine_depending_area_of_interest(rcti *input,
-                                                            ReadBufferOperation *read_operation,
-                                                            rcti *output)
-{
-  rcti new_input;
-
-  new_input.xmin = input->xmin / divider_;
-  new_input.xmax = input->xmax / divider_;
-  new_input.ymin = input->ymin / divider_;
-  new_input.ymax = input->ymax / divider_;
-
-  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
-}
 void PreviewOperation::determine_canvas(const rcti & /*preferred_area*/, rcti &r_area)
 {
   /* Use default preview resolution as preferred ensuring it has size so that

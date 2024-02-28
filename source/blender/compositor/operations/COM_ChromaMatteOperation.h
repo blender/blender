@@ -15,22 +15,9 @@ namespace blender::compositor {
 class ChromaMatteOperation : public MultiThreadedOperation {
  private:
   NodeChroma *settings_;
-  SocketReader *input_image_program_;
-  SocketReader *input_key_program_;
 
  public:
-  /**
-   * Default constructor
-   */
   ChromaMatteOperation();
-
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  void init_execution() override;
-  void deinit_execution() override;
 
   void set_settings(NodeChroma *node_chroma)
   {

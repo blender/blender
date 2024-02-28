@@ -113,24 +113,8 @@ class DenoiseFilter {
 
 DenoiseBaseOperation::DenoiseBaseOperation()
 {
-  flags_.is_fullframe_operation = true;
   flags_.can_be_constant = true;
   output_rendered_ = false;
-}
-
-bool DenoiseBaseOperation::determine_depending_area_of_interest(
-    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
-{
-  if (is_cached()) {
-    return false;
-  }
-
-  rcti new_input;
-  new_input.xmax = this->get_width();
-  new_input.xmin = 0;
-  new_input.ymax = this->get_height();
-  new_input.ymin = 0;
-  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void DenoiseBaseOperation::get_area_of_interest(const int /*input_idx*/,
@@ -147,21 +131,6 @@ DenoiseOperation::DenoiseOperation()
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
   settings_ = nullptr;
-}
-void DenoiseOperation::init_execution()
-{
-  SingleThreadedOperation::init_execution();
-  input_program_color_ = get_input_socket_reader(0);
-  input_program_normal_ = get_input_socket_reader(1);
-  input_program_albedo_ = get_input_socket_reader(2);
-}
-
-void DenoiseOperation::deinit_execution()
-{
-  input_program_color_ = nullptr;
-  input_program_normal_ = nullptr;
-  input_program_albedo_ = nullptr;
-  SingleThreadedOperation::deinit_execution();
 }
 
 static bool are_guiding_passes_noise_free(const NodeDenoise *settings)
@@ -181,21 +150,6 @@ void DenoiseOperation::hash_output_params()
   if (settings_) {
     hash_params(int(settings_->hdr), are_guiding_passes_noise_free(settings_));
   }
-}
-
-MemoryBuffer *DenoiseOperation::create_memory_buffer(rcti *rect2)
-{
-  MemoryBuffer *tile_color = (MemoryBuffer *)input_program_color_->initialize_tile_data(rect2);
-  MemoryBuffer *tile_normal = (MemoryBuffer *)input_program_normal_->initialize_tile_data(rect2);
-  MemoryBuffer *tile_albedo = (MemoryBuffer *)input_program_albedo_->initialize_tile_data(rect2);
-  rcti rect;
-  rect.xmin = 0;
-  rect.ymin = 0;
-  rect.xmax = get_width();
-  rect.ymax = get_height();
-  MemoryBuffer *result = new MemoryBuffer(DataType::Color, rect);
-  this->generate_denoise(result, tile_color, tile_normal, tile_albedo, settings_);
-  return result;
 }
 
 void DenoiseOperation::generate_denoise(MemoryBuffer *output,
@@ -256,18 +210,6 @@ DenoisePrefilterOperation::DenoisePrefilterOperation(DataType data_type)
 void DenoisePrefilterOperation::hash_output_params()
 {
   hash_param(image_name_);
-}
-
-MemoryBuffer *DenoisePrefilterOperation::create_memory_buffer(rcti *rect2)
-{
-  MemoryBuffer *input = (MemoryBuffer *)this->get_input_operation(0)->initialize_tile_data(rect2);
-  rcti rect;
-  BLI_rcti_init(&rect, 0, get_width(), 0, get_height());
-
-  MemoryBuffer *result = new MemoryBuffer(get_output_socket()->get_data_type(), rect);
-  generate_denoise(result, input);
-
-  return result;
 }
 
 void DenoisePrefilterOperation::generate_denoise(MemoryBuffer *output, MemoryBuffer *input)

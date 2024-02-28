@@ -14,7 +14,6 @@ namespace blender::compositor {
 
 class InpaintSimpleOperation : public NodeOperation {
  protected:
-  SocketReader *input_image_program_;
   MemoryBuffer *cached_buffer_;
   bool cached_buffer_ready_;
   int max_distance_;
@@ -37,11 +36,7 @@ class InpaintSimpleOperation : public NodeOperation {
 
   void inpaint(const MemoryBuffer *input, MemoryBuffer *output);
 
-  void execute_pixel(float output[4], int x, int y, void *data) override;
-
   void init_execution() override;
-
-  void *initialize_tile_data(rcti *rect) override;
 
   void deinit_execution() override;
 
@@ -49,10 +44,6 @@ class InpaintSimpleOperation : public NodeOperation {
   {
     max_distance_ = max_distance;
   }
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer(MemoryBuffer *output,

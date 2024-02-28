@@ -12,7 +12,6 @@ namespace blender::compositor {
 
 class ConvertColorSpaceOperation : public MultiThreadedOperation {
  private:
-  SocketReader *input_program_;
   NodeConvertColorSpace *settings_;
   ColormanageProcessor *color_processor_;
 
@@ -20,19 +19,8 @@ class ConvertColorSpaceOperation : public MultiThreadedOperation {
   ConvertColorSpaceOperation();
 
   void set_settings(NodeConvertColorSpace *node_color_space);
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
-  /**
-   * Initialize the execution
-   */
   void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
   void deinit_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,

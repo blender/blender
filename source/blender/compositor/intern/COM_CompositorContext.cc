@@ -11,7 +11,6 @@ CompositorContext::CompositorContext()
   scene_ = nullptr;
   rd_ = nullptr;
   quality_ = eCompositorQuality::High;
-  hasActiveOpenCLDevices_ = false;
   fast_calculation_ = false;
   bnodetree_ = nullptr;
 }
@@ -26,11 +25,6 @@ Size2f CompositorContext::get_render_size() const
 {
   return {get_render_data()->xsch * get_render_percentage_as_factor(),
           get_render_data()->ysch * get_render_percentage_as_factor()};
-}
-
-eExecutionModel CompositorContext::get_execution_model() const
-{
-  return eExecutionModel::FullFrame;
 }
 
 }  // namespace blender::compositor

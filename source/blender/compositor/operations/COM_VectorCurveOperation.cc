@@ -13,32 +13,7 @@ VectorCurveOperation::VectorCurveOperation()
   this->add_input_socket(DataType::Vector);
   this->add_output_socket(DataType::Vector);
 
-  input_program_ = nullptr;
-
   this->flags_.can_be_constant = true;
-}
-void VectorCurveOperation::init_execution()
-{
-  CurveBaseOperation::init_execution();
-  input_program_ = this->get_input_socket_reader(0);
-}
-
-void VectorCurveOperation::execute_pixel_sampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
-{
-  float input[4];
-
-  input_program_->read_sampled(input, x, y, sampler);
-
-  BKE_curvemapping_evaluate_premulRGBF(curve_mapping_, output, input);
-}
-
-void VectorCurveOperation::deinit_execution()
-{
-  CurveBaseOperation::deinit_execution();
-  input_program_ = nullptr;
 }
 
 void VectorCurveOperation::update_memory_buffer_partial(MemoryBuffer *output,

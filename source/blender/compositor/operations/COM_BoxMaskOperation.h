@@ -12,12 +12,6 @@ class BoxMaskOperation : public MultiThreadedOperation {
  private:
   using MaskFunc = std::function<float(bool is_inside, const float *mask, const float *value)>;
 
-  /**
-   * Cached reference to the input_program
-   */
-  SocketReader *input_mask_;
-  SocketReader *input_value_;
-
   float sine_;
   float cosine_;
   float aspect_ratio_;
@@ -28,20 +22,7 @@ class BoxMaskOperation : public MultiThreadedOperation {
  public:
   BoxMaskOperation();
 
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  /**
-   * Initialize the execution
-   */
   void init_execution() override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
 
   void set_data(const NodeBoxMask *data)
   {

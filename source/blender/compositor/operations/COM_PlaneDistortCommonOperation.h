@@ -48,22 +48,10 @@ class PlaneDistortBaseOperation : public MultiThreadedOperation {
 };
 
 class PlaneDistortWarpImageOperation : public PlaneDistortBaseOperation {
- protected:
-  SocketReader *pixel_reader_;
-
  public:
   PlaneDistortWarpImageOperation();
 
   void calculate_corners(const float corners[4][2], bool normalized, int sample) override;
-
-  void init_execution() override;
-  void deinit_execution() override;
-
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
   void update_memory_buffer_partial(MemoryBuffer *output,
@@ -80,8 +68,6 @@ class PlaneDistortMaskOperation : public PlaneDistortBaseOperation {
   PlaneDistortMaskOperation();
 
   void init_execution() override;
-
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

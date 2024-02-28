@@ -18,12 +18,9 @@ TextureBaseOperation::TextureBaseOperation()
   this->add_input_socket(DataType::Vector);  // offset
   this->add_input_socket(DataType::Vector);  // size
   texture_ = nullptr;
-  input_size_ = nullptr;
-  input_offset_ = nullptr;
   rd_ = nullptr;
   pool_ = nullptr;
   scene_color_manage_ = false;
-  flags_.complex = true;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
 {
@@ -36,8 +33,6 @@ TextureAlphaOperation::TextureAlphaOperation() : TextureBaseOperation()
 
 void TextureBaseOperation::init_execution()
 {
-  input_offset_ = get_input_socket_reader(0);
-  input_size_ = get_input_socket_reader(1);
   pool_ = BKE_image_pool_new();
   if (texture_ != nullptr && texture_->nodetree != nullptr && texture_->use_nodes) {
     ntreeTexBeginExecTree(texture_->nodetree);
@@ -46,8 +41,6 @@ void TextureBaseOperation::init_execution()
 }
 void TextureBaseOperation::deinit_execution()
 {
-  input_size_ = nullptr;
-  input_offset_ = nullptr;
   BKE_image_pool_free(pool_);
   pool_ = nullptr;
   if (texture_ != nullptr && texture_->use_nodes && texture_->nodetree != nullptr &&
@@ -68,66 +61,9 @@ void TextureBaseOperation::determine_canvas(const rcti &preferred_area, rcti &r_
     r_area.ymax = preferred_area.ymin + height;
   }
 
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    /* Determine inputs. */
-    rcti temp = COM_AREA_NONE;
-    NodeOperation::determine_canvas(r_area, temp);
-  }
-}
-
-void TextureAlphaOperation::execute_pixel_sampled(float output[4],
-                                                  float x,
-                                                  float y,
-                                                  PixelSampler sampler)
-{
-  float color[4];
-  TextureBaseOperation::execute_pixel_sampled(color, x, y, sampler);
-  output[0] = color[3];
-}
-
-void TextureBaseOperation::execute_pixel_sampled(float output[4],
-                                                 float x,
-                                                 float y,
-                                                 PixelSampler sampler)
-{
-  TexResult texres = {0.0f};
-  float texture_size[4];
-  float texture_offset[4];
-  float vec[3];
-  int retval;
-  const float cx = this->get_width() / 2;
-  const float cy = this->get_height() / 2;
-  float u = (x - cx) / this->get_width() * 2;
-  float v = (y - cy) / this->get_height() * 2;
-
-  /* When no interpolation/filtering happens in multitex() force nearest interpolation.
-   * We do it here because (a) we can't easily say multitex() that we want nearest
-   * interpolation and (b) in such configuration multitex() simply floor's the value
-   * which often produces artifacts.
-   */
-  if (texture_ != nullptr && (texture_->imaflag & TEX_INTERPOL) == 0) {
-    u += 0.5f / cx;
-    v += 0.5f / cy;
-  }
-
-  input_size_->read_sampled(texture_size, x, y, sampler);
-  input_offset_->read_sampled(texture_offset, x, y, sampler);
-
-  vec[0] = texture_size[0] * (u + texture_offset[0]);
-  vec[1] = texture_size[1] * (v + texture_offset[1]);
-  vec[2] = texture_size[2] * texture_offset[2];
-
-  const int thread_id = WorkScheduler::current_thread_id();
-  retval = multitex_ext(
-      texture_, vec, nullptr, nullptr, 0, &texres, thread_id, pool_, scene_color_manage_, false);
-
-  output[3] = texres.talpha ? texres.trgba[3] : texres.tin;
-  if (retval & TEX_RGB) {
-    copy_v3_v3(output, texres.trgba);
-  }
-  else {
-    output[0] = output[1] = output[2] = output[3];
-  }
+  /* Determine inputs. */
+  rcti temp = COM_AREA_NONE;
+  NodeOperation::determine_canvas(r_area, temp);
 }
 
 void TextureBaseOperation::update_memory_buffer_partial(MemoryBuffer *output,
