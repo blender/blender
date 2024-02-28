@@ -22,7 +22,10 @@ from pathlib import Path
 from make_utils import call, check_output
 from urllib.parse import urljoin, urlsplit
 
-from typing import Optional
+from typing import (
+    Optional,
+    Tuple,
+)
 
 
 def print_stage(text: str) -> None:
@@ -91,7 +94,7 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
     NOTE: When cross-compiling the architecture is coming from the command line
     argument.
     """
-    architecture = args.architecture
+    architecture: Optional[str] = args.architecture
     if architecture:
         assert isinstance(architecture, str)
     elif "ARM64" in platform.version():
@@ -101,15 +104,16 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
         architecture = platform.machine().lower()
 
     # Normalize the architecture name.
-    if architecture in ("x86_64", "amd64"):
+    if architecture in {"x86_64", "amd64"}:
         architecture = "x64"
 
-    assert (architecture in ("x64", "arm64"))
+    assert (architecture in {"x64", "arm64"})
 
+    assert isinstance(architecture, str)
     return architecture
 
 
-def get_submodule_directories(args: argparse.Namespace):
+def get_submodule_directories(args: argparse.Namespace) -> Tuple[Path, ...]:
     """
     Get list of all configured submodule directories.
     """
@@ -121,8 +125,8 @@ def get_submodule_directories(args: argparse.Namespace):
         return ()
 
     submodule_directories_output = check_output(
-        [args.git_command, "config", "--file", dot_modules, "--get-regexp", "path"])
-    return [Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines()]
+        [args.git_command, "config", "--file", str(dot_modules), "--get-regexp", "path"])
+    return tuple([Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines()])
 
 
 def ensure_git_lfs(args: argparse.Namespace) -> None:
@@ -281,7 +285,8 @@ def resolve_external_url(blender_url: str, repo_name: str) -> str:
 def external_script_copy_old_submodule_over(
         args: argparse.Namespace,
         directory: Path,
-        old_submodules_dir: Path) -> None:
+        old_submodules_dir: Path,
+) -> None:
     blender_git_root = get_blender_git_root()
     external_dir = blender_git_root / directory
 
@@ -301,10 +306,12 @@ def external_script_copy_old_submodule_over(
     call((args.git_command, "config", "--file", str(git_config), "--unset", "core.worktree"))
 
 
-def floating_checkout_initialize_if_needed(args: argparse.Namespace,
-                                           repo_name: str,
-                                           directory: Path,
-                                           old_submodules_dir: Path = None) -> None:
+def floating_checkout_initialize_if_needed(
+        args: argparse.Namespace,
+        repo_name: str,
+        directory: Path,
+        old_submodules_dir: Optional[Path] = None,
+) -> None:
     """Initialize checkout of an external repository"""
 
     blender_git_root = get_blender_git_root()
@@ -334,9 +341,11 @@ def floating_checkout_initialize_if_needed(args: argparse.Namespace,
     call((args.git_command, "clone", "--origin", origin_name, external_url, str(external_dir)))
 
 
-def floating_checkout_add_origin_if_needed(args: argparse.Namespace,
-                                           repo_name: str,
-                                           directory: Path) -> None:
+def floating_checkout_add_origin_if_needed(
+        args: argparse.Namespace,
+        repo_name: str,
+        directory: Path,
+) -> None:
     """
     Add remote called 'origin' if there is a fork of the external repository available
 
@@ -393,12 +402,14 @@ def floating_checkout_add_origin_if_needed(args: argparse.Namespace,
     return
 
 
-def floating_checkout_update(args: argparse.Namespace,
-                             repo_name: str,
-                             directory: Path,
-                             branch: Optional[str],
-                             old_submodules_dir: Path = None,
-                             only_update=False) -> str:
+def floating_checkout_update(
+        args: argparse.Namespace,
+        repo_name: str,
+        directory: Path,
+        branch: Optional[str],
+        old_submodules_dir: Optional[Path] = None,
+        only_update: bool = False,
+) -> str:
     """Update a single external checkout with the given name in the scripts folder"""
 
     blender_git_root = get_blender_git_root()
@@ -475,31 +486,37 @@ def floating_checkout_update(args: argparse.Namespace,
     return skip_msg
 
 
-def external_scripts_update(args: argparse.Namespace,
-                            repo_name: str,
-                            directory_name: str,
-                            branch: Optional[str]) -> str:
-    return floating_checkout_update(args,
-                                    repo_name,
-                                    Path("scripts") / directory_name,
-                                    branch,
-                                    old_submodules_dir=Path("release") / "scripts" / directory_name)
+def external_scripts_update(
+        args: argparse.Namespace,
+        repo_name: str,
+        directory_name: str,
+        branch: Optional[str],
+) -> str:
+    return floating_checkout_update(
+        args,
+        repo_name,
+        Path("scripts") / directory_name,
+        branch,
+        old_submodules_dir=Path("release") / "scripts" / directory_name,
+    )
 
 
 def floating_libraries_update(args: argparse.Namespace, branch: Optional[str]) -> str:
     """Update libraries checkouts which are floating (not attached as Git submodules)"""
     msg = ""
 
-    msg += floating_checkout_update(args,
-                                    "benchmarks",
-                                    Path("tests") / "benchmarks",
-                                    branch,
-                                    only_update=True)
+    msg += floating_checkout_update(
+        args,
+        "benchmarks",
+        Path("tests") / "benchmarks",
+        branch,
+        only_update=True,
+    )
 
     return msg
 
 
-def add_submodule_push_url(args: argparse.Namespace):
+def add_submodule_push_url(args: argparse.Namespace) -> None:
     """
     Add pushURL configuration for all locally activated submodules, pointing to SSH protocol.
     """
