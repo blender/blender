@@ -1655,7 +1655,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.label(text=rpt_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "XX.XX.26918.50"
+                    driver_version = "XX.XX.27642.38"
                     col.label(
                         text=rpt_("Requires Intel GPU with Xe-HPG architecture and"),
                         icon='BLANK1',
