@@ -60,7 +60,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_asset.hh"
 #include "BKE_blender_version.h"
@@ -3645,7 +3645,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     Main *old_main = static_cast<Main *>(fd->old_mainlist->first);
     BLI_assert(old_main != nullptr);
     BLI_assert(old_main->curlib == nullptr);
-    for (Main *libmain = old_main->next; libmain != nullptr; libmain = libmain->next) {
+    Main *libmain, *libmain_next;
+    for (libmain = old_main->next; libmain != nullptr; libmain = libmain_next) {
+      libmain_next = libmain->next;
       read_undo_move_libmain_data(fd, new_main, old_main, libmain, nullptr);
     }
   }
@@ -3684,7 +3686,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
     fd->reports->duration.libraries = BLI_time_now_seconds() - fd->reports->duration.libraries;
 
     /* Skip in undo case. */
-    if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
+    if (!is_undo) {
       /* Note that we can't recompute user-counts at this point in undo case, we play too much with
        * IDs from different memory realms, and Main database is not in a fully valid state yet.
        */
@@ -3737,7 +3739,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
     /* Now that all our data-blocks are loaded,
      * we can re-generate overrides from their references. */
-    if ((fd->flags & FD_FLAGS_IS_MEMFILE) == 0) {
+    if (!is_undo) {
       /* Do not apply in undo case! */
       fd->reports->duration.lib_overrides = BLI_time_now_seconds();
 
@@ -4506,13 +4508,13 @@ static void read_library_linked_id(
     read_libblock(fd, mainvar, bhead, id->tag, false, r_id);
   }
   else {
-    BLO_reportf_wrap(basefd->reports,
-                     RPT_INFO,
-                     RPT_("LIB: %s: '%s' missing from '%s', parent '%s'"),
-                     BKE_idtype_idcode_to_name(GS(id->name)),
-                     id->name + 2,
-                     mainvar->curlib->filepath_abs,
-                     library_parent_filepath(mainvar->curlib));
+    CLOG_INFO(&LOG,
+              3,
+              "LIB: %s: '%s' missing from '%s', parent '%s'",
+              BKE_idtype_idcode_to_name(GS(id->name)),
+              id->name + 2,
+              mainvar->curlib->filepath_abs,
+              library_parent_filepath(mainvar->curlib));
     basefd->reports->count.missing_linked_id++;
 
     /* Generate a placeholder for this ID (simplified version of read_libblock actually...). */

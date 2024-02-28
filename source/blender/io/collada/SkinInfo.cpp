@@ -209,12 +209,12 @@ void SkinInfo::link_armature(bContext *C,
     bc_set_parent(ob, ob_arm, C);
   }
 #else
-  Object workob;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
   ob->parent = ob_arm;
   ob->partype = PAROBJECT;
 
-  BKE_object_workob_calc_parent(scene, ob, &workob);
-  invert_m4_m4(ob->parentinv, workob.object_to_world);
+  invert_m4_m4(ob->parentinv, BKE_object_calc_parent(depsgraph, scene, ob).ptr());
 
   DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 #endif

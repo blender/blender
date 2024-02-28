@@ -146,7 +146,9 @@ class IrradianceBake {
   }
 
   /** Create the views used to rasterize the scene into surfel representation. */
-  void surfel_raster_views_sync(float3 scene_min, float3 scene_max, float4x4 probe_to_world);
+  void surfel_raster_views_sync(const float3 &scene_min,
+                                const float3 &scene_max,
+                                const float4x4 &probe_to_world);
   /** Create a surfel representation of the scene from the probe using the capture pipeline. */
   void surfels_create(const Object &probe_object);
   /** Evaluate direct lighting (and also clear the surfels radiance). */

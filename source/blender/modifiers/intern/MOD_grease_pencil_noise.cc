@@ -144,7 +144,7 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     return vertex_weight * BKE_curvemapping_evaluateF(mmd.influence.custom_curve, 0, value);
   };
 
-  auto get_noise = [](const Array<float> &noise_table, const float value) {
+  auto get_noise = [](const Span<float> noise_table, const float value) {
     return math::interpolate(noise_table[int(math::ceil(value))],
                              noise_table[int(math::floor(value))],
                              math::fract(value));

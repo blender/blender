@@ -166,7 +166,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
       *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
 
   const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(menu_path);
-  asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
+  const asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
   BLI_assert(catalog_item != nullptr);
 
   if (assets.is_empty() && !catalog_item->has_children()) {
@@ -201,7 +201,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 
   const Set<StringRef> all_builtin_menus = get_builtin_menus(edit_tree->type);
 
-  catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &item) {
+  catalog_item->foreach_child([&](const asset_system::AssetCatalogTreeItem &item) {
     if (all_builtin_menus.contains_as(item.catalog_path().str())) {
       return;
     }
@@ -275,7 +275,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  tree.catalogs.foreach_root_item([&](asset_system::AssetCatalogTreeItem &item) {
+  tree.catalogs.foreach_root_item([&](const asset_system::AssetCatalogTreeItem &item) {
     if (!all_builtin_menus.contains_as(item.catalog_path().str())) {
       asset::draw_menu_for_catalog(
           screen, *all_library, item, "NODE_MT_node_add_catalog_assets", *layout);

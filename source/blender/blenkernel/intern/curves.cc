@@ -25,7 +25,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"

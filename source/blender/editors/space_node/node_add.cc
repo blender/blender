@@ -729,7 +729,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
     node->id = (ID *)ima;
   }
 
-  /* When adding new image file via drag-drop we need to load imbuf in order
+  /* When adding new image file via drag-drop we need to load #ImBuf in order
    * to get proper image source. */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     BKE_image_signal(bmain, ima, nullptr, IMA_SIGNAL_RELOAD);

@@ -44,7 +44,7 @@
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
@@ -1990,10 +1990,10 @@ static void update_paint_modes_for_brush_assets(Main &bmain)
   }
 }
 
-static void image_settings_avi_to_ffmpeg(Scene *sce)
+static void image_settings_avi_to_ffmpeg(Scene *scene)
 {
-  if (ELEM(sce->r.im_format.imtype, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG)) {
-    sce->r.im_format.imtype = R_IMF_IMTYPE_FFMPEG;
+  if (ELEM(scene->r.im_format.imtype, R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG)) {
+    scene->r.im_format.imtype = R_IMF_IMTYPE_FFMPEG;
   }
 }
 
@@ -3003,19 +3003,37 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 6)) {
-    update_paint_modes_for_brush_assets(*bmain);
     if (!DNA_struct_member_exists(fd->filesdna, "SpaceImage", "float", "stretch_opacity")) {
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
         LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
           LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
             if (sl->spacetype == SPACE_IMAGE) {
-              SpaceImage *sima = (SpaceImage *)sl;
+              SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
               sima->stretch_opacity = 0.9f;
             }
           }
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      image_settings_avi_to_ffmpeg(scene);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 6)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (BrushCurvesSculptSettings *settings = brush->curves_sculpt_settings) {
+        settings->flag |= BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_RADIUS;
+        settings->curve_radius = 0.01f;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 7)) {
+    update_paint_modes_for_brush_assets(*bmain);
   }
 
   /**

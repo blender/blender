@@ -239,7 +239,8 @@ class TOPBAR_MT_file_cleanup(Menu):
         layout = self.layout
         layout.separator()
 
-        props = layout.operator("outliner.orphans_purge", text="Unused Data-Blocks")
+        layout.operator("outliner.orphans_purge", text="Purge Unused Data")
+        layout.operator("outliner.orphans_manage", text="Manage Unused Data")
 
 
 class TOPBAR_MT_file(Menu):

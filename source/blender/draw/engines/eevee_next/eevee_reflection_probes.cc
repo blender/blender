@@ -114,8 +114,11 @@ bool SphereProbeModule::ensure_atlas()
 
 void SphereProbeModule::end_sync()
 {
-  const bool world_updated = instance_.light_probes.world_sphere_.do_render;
   const bool atlas_resized = ensure_atlas();
+  if (atlas_resized) {
+    instance_.light_probes.world_sphere_.do_render = true;
+  }
+  const bool world_updated = instance_.light_probes.world_sphere_.do_render;
   /* Detect if we need to render probe objects. */
   update_probes_next_sample_ = false;
   for (SphereProbe &probe : instance_.light_probes.sphere_map_.values()) {
@@ -129,6 +132,15 @@ void SphereProbeModule::end_sync()
        * This avoids stuttering when moving a light-probe. */
       update_probes_next_sample_ = true;
     }
+  }
+
+  /* When reflection probes are synced the sampling must be reset.
+   *
+   * This fixes issues when using a single non-projected sample. Without resetting the
+   * previous rendered viewport will be drawn and reflection probes will not be updated.
+   * #Instance::render_sample */
+  if (instance_.do_reflection_probe_sync()) {
+    instance_.sampling.reset();
   }
   /* If we cannot render probes this redraw make sure we request another redraw. */
   if (update_probes_next_sample_ && (instance_.do_reflection_probe_sync() == false)) {

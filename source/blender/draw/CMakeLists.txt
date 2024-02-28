@@ -57,12 +57,13 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_lnor.cc
   intern/mesh_extractors/extract_mesh_vbo_mesh_analysis.cc
   intern/mesh_extractors/extract_mesh_vbo_orco.cc
-  intern/mesh_extractors/extract_mesh_vbo_pos_nor.cc
+  intern/mesh_extractors/extract_mesh_vbo_pos.cc
   intern/mesh_extractors/extract_mesh_vbo_sculpt_data.cc
   intern/mesh_extractors/extract_mesh_vbo_select_idx.cc
   intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
   intern/mesh_extractors/extract_mesh_vbo_tan.cc
   intern/mesh_extractors/extract_mesh_vbo_uv.cc
+  intern/mesh_extractors/extract_mesh_vbo_vnor.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc

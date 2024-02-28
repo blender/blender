@@ -642,9 +642,6 @@ static void template_id_liboverride_hierarchy_collections_tag_recursive(
        iter != nullptr;
        iter = iter->next)
   {
-    if (iter->collection->id.lib != root_collection->id.lib && ID_IS_LINKED(root_collection)) {
-      continue;
-    }
     if (ID_IS_LINKED(iter->collection) && iter->collection->id.lib != target_id->lib) {
       continue;
     }
@@ -719,7 +716,8 @@ ID *ui_template_id_liboverride_hierarchy_make(
     }
   }
 
-  Collection *collection_active = CTX_data_collection(C);
+  Collection *collection_active_context = CTX_data_collection(C);
+  Collection *collection_active = collection_active_context;
   if (collection_active == nullptr && GS(owner_id->name) == ID_GR) {
     collection_active = (Collection *)owner_id;
   }
@@ -751,7 +749,10 @@ ID *ui_template_id_liboverride_hierarchy_make(
     /* If we failed to find a valid 'active' collection so far for our override hierarchy, but do
      * have a valid 'active' object, try to find a collection from that object. */
     LISTBASE_FOREACH (Collection *, collection_iter, &bmain->collections) {
-      if (!(ID_IS_LINKED(collection_iter) || ID_IS_OVERRIDE_LIBRARY_REAL(collection_iter))) {
+      if (ID_IS_LINKED(collection_iter) && collection_iter->id.lib != id->lib) {
+        continue;
+      }
+      if (!ID_IS_OVERRIDE_LIBRARY_REAL(collection_iter)) {
         continue;
       }
       if (!BKE_collection_has_object_recursive(collection_iter, object_active)) {
@@ -898,6 +899,33 @@ ID *ui_template_id_liboverride_hierarchy_make(
 
   if (id_override != nullptr) {
     id_override->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
+
+    /* Ensure that the hierarchy root of the newly overridden data is instantiated in the scene, in
+     * case it's a collection or object. */
+    ID *hierarchy_root = id_override->override_library->hierarchy_root;
+    if (GS(hierarchy_root->name) == ID_OB) {
+      Object *object_hierarchy_root = reinterpret_cast<Object *>(hierarchy_root);
+      if (!BKE_scene_has_object(scene, object_hierarchy_root)) {
+        if (!ID_IS_LINKED(collection_active_context)) {
+          BKE_collection_object_add(bmain, collection_active_context, object_hierarchy_root);
+        }
+        else {
+          BKE_collection_object_add(bmain, scene->master_collection, object_hierarchy_root);
+        }
+      }
+    }
+    else if (GS(hierarchy_root->name) == ID_GR) {
+      Collection *collection_hierarchy_root = reinterpret_cast<Collection *>(hierarchy_root);
+      if (!BKE_collection_has_collection(scene->master_collection, collection_hierarchy_root)) {
+        if (!ID_IS_LINKED(collection_active_context)) {
+          BKE_collection_child_add(bmain, collection_active_context, collection_hierarchy_root);
+        }
+        else {
+          BKE_collection_child_add(bmain, scene->master_collection, collection_hierarchy_root);
+        }
+      }
+    }
+
     *r_undo_push_label = "Make Library Override Hierarchy";
 
     /* In theory we could rely on setting/updating the RNA ID pointer property (as done by calling

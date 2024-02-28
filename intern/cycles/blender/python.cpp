@@ -66,7 +66,6 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
   /* Synchronize CPU flags. */
   flags.cpu.avx2 = get_boolean(cscene, "debug_use_cpu_avx2");
   flags.cpu.sse42 = get_boolean(cscene, "debug_use_cpu_sse42");
-  flags.cpu.sse2 = get_boolean(cscene, "debug_use_cpu_sse2");
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
   /* Synchronize CUDA flags. */
   flags.cuda.adaptive_compile = get_boolean(cscene, "debug_use_cuda_adaptive_compile");

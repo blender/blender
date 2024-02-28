@@ -24,7 +24,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_sound.h"
 
@@ -573,7 +573,7 @@ static int rna_Sequence_frame_length_get(PointerRNA *ptr)
   return SEQ_time_right_handle_frame_get(scene, seq) - SEQ_time_left_handle_frame_get(scene, seq);
 }
 
-static int rna_Sequence_frame_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_Sequence_frame_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   Sequence *seq = (Sequence *)ptr->data;
   /* Effect sequences' start frame and length must be readonly! */

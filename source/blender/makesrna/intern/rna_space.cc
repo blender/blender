@@ -551,7 +551,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "BKE_anim_data.h"
+#  include "BKE_anim_data.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"
@@ -2585,6 +2585,16 @@ static void rna_SpaceNodeEditor_node_tree_update(const bContext *C, PointerRNA *
   ED_node_tree_update(C);
 }
 
+static void rna_SpaceNodeEditor_geometry_nodes_type_update(Main * /*main*/,
+                                                           Scene * /*scene*/,
+                                                           PointerRNA *ptr)
+{
+  SpaceNode *snode = static_cast<SpaceNode *>(ptr->data);
+  if (snode->geometry_nodes_type == SNODE_GEOMETRY_TOOL) {
+    snode->flag &= ~SNODE_PIN;
+  }
+}
+
 static int rna_SpaceNodeEditor_tree_type_get(PointerRNA *ptr)
 {
   SpaceNode *snode = (SpaceNode *)ptr->data;
@@ -2757,7 +2767,7 @@ static std::optional<std::string> rna_FileSelectParams_path(const PointerRNA * /
   return "params";
 }
 
-int rna_FileSelectParams_filename_editable(PointerRNA *ptr, const char **r_info)
+int rna_FileSelectParams_filename_editable(const PointerRNA *ptr, const char **r_info)
 {
   FileSelectParams *params = static_cast<FileSelectParams *>(ptr->data);
 
@@ -2837,7 +2847,7 @@ static PointerRNA rna_FileAssetSelectParams_filter_id_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_FileAssetSelectIDFilter, ptr->data);
 }
 
-static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr)
+static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(const PointerRNA *ptr)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
 
@@ -2860,7 +2870,8 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr
   return rna_pointer_inherit_refine(ptr, &RNA_AssetMetaData, asset_data);
 }
 
-static int rna_FileBrowser_FileSelectEntry_name_editable(PointerRNA *ptr, const char **r_info)
+static int rna_FileBrowser_FileSelectEntry_name_editable(const PointerRNA *ptr,
+                                                         const char **r_info)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
 
@@ -2977,7 +2988,8 @@ static void rna_FileBrowser_FSMenuEntry_name_set(PointerRNA *ptr, const char *va
   ED_fsmenu_entry_set_name(fsm, value);
 }
 
-static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_FileBrowser_FSMenuEntry_name_get_editable(const PointerRNA *ptr,
+                                                         const char ** /*r_info*/)
 {
   FSMenuEntry *fsm = static_cast<FSMenuEntry *>(ptr->data);
 
@@ -3786,8 +3798,8 @@ static void rna_def_space_outliner(BlenderRNA *brna)
       {SO_ID_ORPHANS,
        "ORPHAN_DATA",
        ICON_ORPHAN_DATA,
-       "Orphan Data",
-       "Display data-blocks which are unused and/or will be lost when the file is reloaded"},
+       "Unused Data",
+       "Display data that is unused and/or will be lost when the file is reloaded"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -7565,7 +7577,8 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, geometry_nodes_type_items);
   RNA_def_property_ui_text(prop, "Geometry Nodes Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_NODE, "rna_SpaceNodeEditor_geometry_nodes_type_update");
 
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -54,11 +54,15 @@
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
+#include "BLT_translation.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
+
+#include "UI_interface.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -528,8 +532,6 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
  * should stay in the same place, e.g. for apply-size-rot or object center */
 static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  Object workob;
-
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   /* a change was made, adjust the children to compensate */
@@ -537,8 +539,8 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
     if (ob_child->parent == ob) {
       Object *ob_child_eval = DEG_get_evaluated_object(depsgraph, ob_child);
       BKE_object_apply_mat4(ob_child_eval, ob_child_eval->object_to_world().ptr(), true, false);
-      BKE_object_workob_calc_parent(depsgraph, scene, ob_child_eval, &workob);
-      invert_m4_m4(ob_child->parentinv, workob.object_to_world().ptr());
+      invert_m4_m4(ob_child->parentinv,
+                   BKE_object_calc_parent(depsgraph, scene, ob_child_eval).ptr());
       /* Copy result of BKE_object_apply_mat4(). */
       BKE_object_transform_copy(ob_child, ob_child_eval);
       /* Make sure evaluated object is in a consistent state with the original one.
@@ -683,9 +685,7 @@ static int apply_objects_internal(bContext *C,
     obact = CTX_data_active_object(C);
     invert_m4_m4(obact_invmat, obact->object_to_world().ptr());
 
-    Object workob;
-    BKE_object_workob_calc_parent(depsgraph, scene, obact, &workob);
-    copy_m4_m4(obact_parent, workob.object_to_world().ptr());
+    copy_m4_m4(obact_parent, BKE_object_calc_parent(depsgraph, scene, obact).ptr());
     copy_m4_m4(obact_parentinv, obact->parentinv);
 
     if (apply_objects_internal_need_single_user(C)) {
@@ -1166,8 +1166,14 @@ static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEv
       RNA_property_boolean_set(op->ptr, prop, true);
     }
     if (RNA_property_boolean_get(op->ptr, prop)) {
-      return WM_operator_confirm_message(
-          C, op, "Create new object-data users and apply transformation");
+      return WM_operator_confirm_ex(C,
+                                    op,
+                                    IFACE_("Apply Object Transformations"),
+                                    IFACE_("Warning: Multiple objects share the same data.\nMake "
+                                           "single user and then apply transformations?"),
+                                    IFACE_("Apply"),
+                                    ALERT_ICON_WARNING,
+                                    false);
     }
   }
   return object_transform_apply_exec(C, op);

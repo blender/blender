@@ -303,11 +303,11 @@ struct SpecializeConstant {
   /* Value of the constant or a reference to it. */
   union {
     int int_value;
-    int uint_value;
+    uint uint_value;
     float float_value;
     bool bool_value;
     const int *int_ref;
-    const int *uint_ref;
+    const uint *uint_ref;
     const float *float_ref;
     const bool *bool_ref;
   };
@@ -331,12 +331,16 @@ struct SpecializeConstant {
       : shader(sh), float_value(val), location(loc), type(Type::FloatValue){};
   SpecializeConstant(GPUShader *sh, int loc, const int &val)
       : shader(sh), int_value(val), location(loc), type(Type::IntValue){};
+  SpecializeConstant(GPUShader *sh, int loc, const uint &val)
+      : shader(sh), uint_value(val), location(loc), type(Type::UintValue){};
   SpecializeConstant(GPUShader *sh, int loc, const bool &val)
       : shader(sh), bool_value(val), location(loc), type(Type::BoolValue){};
   SpecializeConstant(GPUShader *sh, int loc, const float *val)
       : shader(sh), float_ref(val), location(loc), type(Type::FloatReference){};
   SpecializeConstant(GPUShader *sh, int loc, const int *val)
       : shader(sh), int_ref(val), location(loc), type(Type::IntReference){};
+  SpecializeConstant(GPUShader *sh, int loc, const uint *val)
+      : shader(sh), uint_ref(val), location(loc), type(Type::UintReference){};
   SpecializeConstant(GPUShader *sh, int loc, const bool *val)
       : shader(sh), bool_ref(val), location(loc), type(Type::BoolReference){};
 

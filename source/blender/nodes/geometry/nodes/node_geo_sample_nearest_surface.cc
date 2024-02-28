@@ -116,13 +116,17 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
 
     /* Construct BVH tree for each group. */
     bvh_trees_.reinitialize(groups_num);
-    threading::parallel_for(IndexRange(groups_num), 16, [&](const IndexRange range) {
-      for (const int group_i : range) {
-        const IndexMask &group_mask = group_masks[group_i];
-        BVHTreeFromMesh &bvh = bvh_trees_[group_i];
-        BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
-      }
-    });
+    threading::parallel_for_weighted(
+        IndexRange(groups_num),
+        512,
+        [&](const IndexRange range) {
+          for (const int group_i : range) {
+            const IndexMask &group_mask = group_masks[group_i];
+            BVHTreeFromMesh &bvh = bvh_trees_[group_i];
+            BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
+          }
+        },
+        [&](const int group_i) { return group_masks[group_i].size(); });
   }
 
   ~SampleNearestSurfaceFunction()

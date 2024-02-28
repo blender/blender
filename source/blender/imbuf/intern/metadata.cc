@@ -60,12 +60,12 @@ bool IMB_metadata_get_field(IDProperty *metadata,
   return false;
 }
 
-void IMB_metadata_copy(ImBuf *dimb, ImBuf *simb)
+void IMB_metadata_copy(ImBuf *ibuf_dst, const ImBuf *ibuf_src)
 {
-  BLI_assert(dimb != simb);
-  if (simb->metadata) {
-    IMB_metadata_free(dimb->metadata);
-    dimb->metadata = IDP_CopyProperty(simb->metadata);
+  BLI_assert(ibuf_dst != ibuf_src);
+  if (ibuf_src->metadata) {
+    IMB_metadata_free(ibuf_dst->metadata);
+    ibuf_dst->metadata = IDP_CopyProperty(ibuf_src->metadata);
   }
 }
 

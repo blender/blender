@@ -233,7 +233,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache &subdi
   GPU_vertbuf_init_build_on_device(
       refined_vbo, get_edituv_stretch_angle_format_subdiv(), subdiv_cache.num_subdiv_loops);
 
-  GPUVertBuf *pos_nor = cache.final.buff.vbo.pos_nor;
+  GPUVertBuf *pos_nor = cache.final.buff.vbo.pos;
   GPUVertBuf *uvs = cache.final.buff.vbo.uv;
 
   /* It may happen that the data for the UV editor is requested before (as a separate draw update)
@@ -282,7 +282,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache &subdi
   draw_subdiv_build_edituv_stretch_angle_buffer(
       subdiv_cache, pos_nor, uvs, uvs_offset, refined_vbo);
 
-  if (!cache.final.buff.vbo.pos_nor) {
+  if (!cache.final.buff.vbo.pos) {
     GPU_vertbuf_discard(pos_nor);
   }
 }

@@ -8,6 +8,7 @@
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_math_fast_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name GGX
@@ -127,6 +128,20 @@ float F_eta(float eta, float cos_theta)
   }
   /* Total internal reflections. */
   return 1.0;
+}
+
+/* Return the equivalent reflective roughness resulting in a similar lobe. */
+float refraction_roughness_remapping(float roughness, float ior)
+{
+  /* This is a very rough mapping used by manually curve fitting the apparent roughness
+   * (blurriness) of GGX reflections and GGX refraction.
+   * A better fit is desirable if it is in the same order of complexity.  */
+  if (ior > 1.0) {
+    return roughness * sqrt_fast(1.0 - 1.0 / ior);
+  }
+  else {
+    return roughness * sqrt_fast(saturate(1.0 - ior)) * 0.8;
+  }
 }
 
 /** \} */

@@ -163,7 +163,7 @@ class GLBackend : public GPUBackend {
   void render_end() override{};
   void render_step() override{};
 
-  bool debug_capture_begin();
+  bool debug_capture_begin(const char *title);
   void debug_capture_end();
 
  private:

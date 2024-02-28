@@ -180,7 +180,7 @@ void film_cryptomatte_layer_accum_and_store(
   }
   /* x = hash, y = accumulated weight. Only keep track of 4 highest weighted samples. */
   vec2 crypto_samples[4] = vec2[4](vec2(0.0), vec2(0.0), vec2(0.0), vec2(0.0));
-  for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+  for (int i = 0; i < samples_len; i++) {
     FilmSample src = film_sample_get(i, texel_film);
     film_sample_cryptomatte_accum(src, layer_component, cryptomatte_tx, crypto_samples);
   }
@@ -201,7 +201,7 @@ float film_distance_load(ivec2 texel)
   /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
   texel = texel % imageSize(in_weight_img).xy;
 
-  if (!uniform_buf.film.use_history || uniform_buf.film.use_reprojection) {
+  if (!uniform_buf.film.use_history || use_reprojection) {
     return 1.0e16;
   }
   return imageLoad(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_DISTANCE)).x;
@@ -212,7 +212,7 @@ float film_weight_load(ivec2 texel)
   /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
   texel = texel % imageSize(in_weight_img).xy;
 
-  if (!uniform_buf.film.use_history || uniform_buf.film.use_reprojection) {
+  if (!uniform_buf.film.use_history || use_reprojection) {
     return 0.0;
   }
   return imageLoad(in_weight_img, ivec3(texel, FILM_WEIGHT_LAYER_ACCUMULATION)).x;
@@ -456,7 +456,7 @@ void film_store_combined(
   /* Undo the weighting to get final spatially-filtered color. */
   color_src = color / color_weight;
 
-  if (uniform_buf.film.use_reprojection) {
+  if (use_reprojection) {
     /* Interactive accumulation. Do reprojection and Temporal Anti-Aliasing. */
 
     /* Reproject by finding where this pixel was in the previous frame. */
@@ -632,7 +632,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     vec4 combined_accum = vec4(0.0);
 
     FilmSample src;
-    for (int i = uniform_buf.film.samples_len - 1; i >= 0; i--) {
+    for (int i = samples_len - 1; i >= 0; i--) {
       src = film_sample_get(i, texel_film);
       film_sample_accum_combined(src, combined_accum, weight_accum);
     }
@@ -640,13 +640,13 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     film_store_combined(dst, src.texel, combined_accum, weight_accum, out_color);
   }
 
-  if (uniform_buf.film.has_data) {
+  if (flag_test(enabled_categories, PASS_CATEGORY_DATA)) {
     float film_distance = film_distance_load(texel_film);
 
     /* Get sample closest to target texel. It is always sample 0. */
     FilmSample film_sample = film_sample_get(0, texel_film);
 
-    if (uniform_buf.film.use_reprojection || film_sample.weight < film_distance) {
+    if (use_reprojection || film_sample.weight < film_distance) {
       float depth = texelFetch(depth_tx, film_sample.texel, 0).x;
       vec4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
       /* Transform to pixel space, matching Cycles format. */
@@ -676,13 +676,13 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     }
   }
 
-  if (uniform_buf.film.any_render_pass_1) {
+  if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_1)) {
     vec4 diffuse_light_accum = vec4(0.0);
     vec4 specular_light_accum = vec4(0.0);
     vec4 volume_light_accum = vec4(0.0);
     vec4 emission_accum = vec4(0.0);
 
-    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+    for (int i = 0; i < samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
       film_sample_accum(src,
                         uniform_buf.film.diffuse_light_id,
@@ -711,7 +711,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     film_store_color(dst, uniform_buf.film.emission_id, emission_accum, out_color);
   }
 
-  if (uniform_buf.film.any_render_pass_2) {
+  if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_2)) {
     vec4 diffuse_color_accum = vec4(0.0);
     vec4 specular_color_accum = vec4(0.0);
     vec4 environment_accum = vec4(0.0);
@@ -719,7 +719,7 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     float shadow_accum = 0.0;
     float ao_accum = 0.0;
 
-    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+    for (int i = 0; i < samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
       film_sample_accum(src,
                         uniform_buf.film.diffuse_color_id,
@@ -760,10 +760,10 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     film_store_value(dst, uniform_buf.film.mist_id, mist_accum, out_color);
   }
 
-  if (uniform_buf.film.any_render_pass_3) {
+  if (flag_test(enabled_categories, PASS_CATEGORY_COLOR_3)) {
     vec4 transparent_accum = vec4(0.0);
 
-    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
+    for (int i = 0; i < samples_len; i++) {
       FilmSample src = film_sample_get(i, texel_film);
       film_sample_accum(src,
                         uniform_buf.film.transparent_id,
@@ -777,37 +777,41 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     film_store_color(dst, uniform_buf.film.transparent_id, transparent_accum, out_color);
   }
 
-  for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {
-    vec4 aov_accum = vec4(0.0);
+  if (flag_test(enabled_categories, PASS_CATEGORY_AOV)) {
+    for (int aov = 0; aov < uniform_buf.film.aov_color_len; aov++) {
+      vec4 aov_accum = vec4(0.0);
 
-    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
-      FilmSample src = film_sample_get(i, texel_film);
-      film_sample_accum(src, 0, uniform_buf.render_pass.color_len + aov, rp_color_tx, aov_accum);
+      for (int i = 0; i < samples_len; i++) {
+        FilmSample src = film_sample_get(i, texel_film);
+        film_sample_accum(src, 0, uniform_buf.render_pass.color_len + aov, rp_color_tx, aov_accum);
+      }
+      film_store_color(dst, uniform_buf.film.aov_color_id + aov, aov_accum, out_color);
     }
-    film_store_color(dst, uniform_buf.film.aov_color_id + aov, aov_accum, out_color);
+
+    for (int aov = 0; aov < uniform_buf.film.aov_value_len; aov++) {
+      float aov_accum = 0.0;
+
+      for (int i = 0; i < samples_len; i++) {
+        FilmSample src = film_sample_get(i, texel_film);
+        film_sample_accum(src, 0, uniform_buf.render_pass.value_len + aov, rp_value_tx, aov_accum);
+      }
+      film_store_value(dst, uniform_buf.film.aov_value_id + aov, aov_accum, out_color);
+    }
   }
 
-  for (int aov = 0; aov < uniform_buf.film.aov_value_len; aov++) {
-    float aov_accum = 0.0;
+  if (flag_test(enabled_categories, PASS_CATEGORY_CRYPTOMATTE)) {
+    if (uniform_buf.film.cryptomatte_samples_len != 0) {
+      /* Cryptomatte passes cannot be cleared by a weighted store like other passes. */
+      if (!uniform_buf.film.use_history || use_reprojection) {
+        cryptomatte_clear_samples(dst);
+      }
 
-    for (int i = 0; i < uniform_buf.film.samples_len; i++) {
-      FilmSample src = film_sample_get(i, texel_film);
-      film_sample_accum(src, 0, uniform_buf.render_pass.value_len + aov, rp_value_tx, aov_accum);
+      film_cryptomatte_layer_accum_and_store(
+          dst, texel_film, uniform_buf.film.cryptomatte_object_id, 0, out_color);
+      film_cryptomatte_layer_accum_and_store(
+          dst, texel_film, uniform_buf.film.cryptomatte_asset_id, 1, out_color);
+      film_cryptomatte_layer_accum_and_store(
+          dst, texel_film, uniform_buf.film.cryptomatte_material_id, 2, out_color);
     }
-    film_store_value(dst, uniform_buf.film.aov_value_id + aov, aov_accum, out_color);
-  }
-
-  if (uniform_buf.film.cryptomatte_samples_len != 0) {
-    /* Cryptomatte passes cannot be cleared by a weighted store like other passes. */
-    if (!uniform_buf.film.use_history || uniform_buf.film.use_reprojection) {
-      cryptomatte_clear_samples(dst);
-    }
-
-    film_cryptomatte_layer_accum_and_store(
-        dst, texel_film, uniform_buf.film.cryptomatte_object_id, 0, out_color);
-    film_cryptomatte_layer_accum_and_store(
-        dst, texel_film, uniform_buf.film.cryptomatte_asset_id, 1, out_color);
-    film_cryptomatte_layer_accum_and_store(
-        dst, texel_film, uniform_buf.film.cryptomatte_material_id, 2, out_color);
   }
 }

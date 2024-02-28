@@ -144,6 +144,9 @@ void ED_operatortypes_object()
   WM_operatortype_append(OBJECT_OT_grease_pencil_dash_modifier_segment_add);
   WM_operatortype_append(OBJECT_OT_grease_pencil_dash_modifier_segment_remove);
   WM_operatortype_append(OBJECT_OT_grease_pencil_dash_modifier_segment_move);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_time_modifier_segment_add);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_time_modifier_segment_remove);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_time_modifier_segment_move);
 
   /* grease pencil modifiers */
   WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);

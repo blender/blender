@@ -26,17 +26,12 @@ class AbcPointsReader final : public AbcObjectReader {
 
   void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) override;
 
-  struct Mesh *read_mesh(struct Mesh *existing_mesh,
-                         const Alembic::Abc::ISampleSelector &sample_sel,
-                         int read_flag,
-                         const char *velocity_name,
-                         float velocity_scale,
-                         const char **err_str) override;
+  void read_geometry(bke::GeometrySet &geometry_set,
+                     const Alembic::Abc::ISampleSelector &sample_sel,
+                     int read_flag,
+                     const char *velocity_name,
+                     float velocity_scale,
+                     const char **err_str) override;
 };
-
-void read_points_sample(const Alembic::AbcGeom::IPointsSchema &schema,
-                        const Alembic::AbcGeom::ISampleSelector &selector,
-                        CDStreamConfig &config,
-                        ImportSettings *settings);
 
 }  // namespace blender::io::alembic

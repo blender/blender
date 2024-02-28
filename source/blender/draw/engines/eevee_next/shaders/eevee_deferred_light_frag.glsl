@@ -15,35 +15,6 @@
 #pragma BLENDER_REQUIRE(eevee_subsurface_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 
-ClosureLight closure_light_new(ClosureUndetermined cl, vec3 V)
-{
-  ClosureLight cl_light;
-  cl_light.N = cl.N;
-  cl_light.ltc_mat = LTC_LAMBERT_MAT;
-  cl_light.type = LIGHT_DIFFUSE;
-  cl_light.light_shadowed = vec3(0.0);
-  switch (cl.type) {
-    case CLOSURE_BSDF_TRANSLUCENT_ID:
-      cl_light.N = -cl.N;
-      break;
-    case CLOSURE_BSSRDF_BURLEY_ID:
-    case CLOSURE_BSDF_DIFFUSE_ID:
-      break;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-      cl_light.ltc_mat = LTC_GGX_MAT(dot(cl.N, V), cl.data.x);
-      cl_light.type = LIGHT_SPECULAR;
-      break;
-    case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-      cl_light.N = -cl.N;
-      cl_light.type = LIGHT_SPECULAR;
-      break;
-    case CLOSURE_NONE_ID:
-      /* TODO(fclem): Assert. */
-      break;
-  }
-  return cl_light;
-}
-
 void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -76,6 +47,7 @@ void main()
     cl_light.N = -Ng;
     cl_light.ltc_mat = LTC_LAMBERT_MAT;
     cl_light.type = LIGHT_DIFFUSE;
+    cl_light.subsurface = true;
     stack.cl[gbuf.closure_count] = cl_light;
   }
 #endif
@@ -110,39 +82,20 @@ void main()
 
     for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
       ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
-      switch (cl.type) {
-        case CLOSURE_BSDF_TRANSLUCENT_ID:
-          /* TODO: Support in ray tracing first. Otherwise we have a discrepancy. */
-          stack.cl[i].light_shadowed += lightprobe_eval(samp, to_closure_translucent(cl), P, V);
-          break;
-        case CLOSURE_BSSRDF_BURLEY_ID:
-          /* TODO: Support translucency in ray tracing first. Otherwise we have a discrepancy. */
-        case CLOSURE_BSDF_DIFFUSE_ID:
-          stack.cl[i].light_shadowed += lightprobe_eval(samp, to_closure_diffuse(cl), P, V);
-          break;
-        case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
-          stack.cl[i].light_shadowed += lightprobe_eval(samp, to_closure_reflection(cl), P, V);
-          break;
-        case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
-          /* TODO(fclem): Add instead of replacing when we support correct refracted light. */
-          stack.cl[i].light_shadowed = lightprobe_eval(samp, to_closure_refraction(cl), P, V);
-          break;
-        case CLOSURE_NONE_ID:
-          /* TODO(fclem): Assert. */
-          break;
-      }
+      lightprobe_eval(samp, cl, g_data.P, V, stack.cl[i].light_shadowed);
     }
   }
 
   for (int i = 0; i < LIGHT_CLOSURE_EVAL_COUNT && i < gbuf.closure_count; i++) {
+    int layer_index = gbuffer_closure_get_bin_index(gbuf, i);
     /* TODO(fclem): Layered texture. */
-    if (i == 0) {
+    if (layer_index == 0) {
       imageStore(direct_radiance_1_img, texel, vec4(stack.cl[i].light_shadowed, 1.0));
     }
-    else if (i == 1) {
+    else if (layer_index == 1) {
       imageStore(direct_radiance_2_img, texel, vec4(stack.cl[i].light_shadowed, 1.0));
     }
-    else if (i == 2) {
+    else if (layer_index == 2) {
       imageStore(direct_radiance_3_img, texel, vec4(stack.cl[i].light_shadowed, 1.0));
     }
   }

@@ -2144,6 +2144,11 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Depsgraph *depsgraph,
                                         err_out);
 }
 
+bool ED_view3d_draw_offscreen_check_nested()
+{
+  return DRW_draw_in_progress();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

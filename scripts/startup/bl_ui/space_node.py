@@ -1086,7 +1086,7 @@ class NODE_PT_repeat_zone_items(Panel):
         if snode is None:
             return False
         node = context.active_node
-        if node is None or node.bl_idname not in (cls.input_node_type, cls.output_node_type):
+        if node is None or node.bl_idname not in {cls.input_node_type, cls.output_node_type}:
             return False
         if cls.get_output_node(context) is None:
             return False

@@ -20,13 +20,28 @@ import argparse
 import datetime
 import json
 import re
-from gitea_utils import gitea_json_activities_get, gitea_json_issue_get, gitea_json_issue_events_filter, git_username_detect
+
+from gitea_utils import (
+    gitea_json_activities_get,
+    gitea_json_issue_events_filter,
+    gitea_json_issue_get,
+    gitea_user_get, git_username_detect,
+)
+
+from typing import (
+    Any,
+    Dict,
+    List,
+    Set,
+    Iterable,
+)
 
 
-def argparse_create():
+def argparse_create() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Generate Weekly Report",
-        epilog="This script is typically used to help write weekly reports")
+        epilog="This script is typically used to help write weekly reports",
+    )
 
     parser.add_argument(
         "--username",
@@ -34,53 +49,61 @@ def argparse_create():
         metavar='USERNAME',
         type=str,
         required=False,
-        help="")
+        help="",
+    )
 
     parser.add_argument(
         "--weeks-ago",
         dest="weeks_ago",
         type=int,
         default=1,
-        help="Determine which week the report should be generated for. 0 means the current week. "
-             "The default is 1, to create a report for the previous week.")
+        help=(
+            "Determine which week the report should be generated for. 0 means the current week. "
+            "The default is 1, to create a report for the previous week."
+        ),
+    )
 
     parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
-        help="increase output verbosity")
+        help="increase output verbosity",
+    )
 
     return parser
 
 
-def report_personal_weekly_get(username, start, verbose=True):
+def report_personal_weekly_get(username: str, start: datetime.datetime, verbose: bool = True) -> None:
 
-    data_cache = {}
+    data_cache: Dict[str, Dict[str, Any]] = {}
 
-    def gitea_json_issue_get_cached(issue_fullname):
+    def gitea_json_issue_get_cached(issue_fullname: str) -> Dict[str, Any]:
         if issue_fullname not in data_cache:
-            data_cache[issue_fullname] = gitea_json_issue_get(issue_fullname)
+            issue = gitea_json_issue_get(issue_fullname)
+            data_cache[issue_fullname] = issue
 
         return data_cache[issue_fullname]
 
-    pulls_closed = set()
-    pulls_commented = set()
-    pulls_created = set()
+    pulls_closed: Set[str] = set()
+    pulls_commented: Set[str] = set()
+    pulls_created: Set[str] = set()
 
-    issues_closed = set()
-    issues_commented = set()
-    issues_created = set()
+    issues_closed: Set[str] = set()
+    issues_commented: Set[str] = set()
+    issues_created: Set[str] = set()
 
-    pulls_reviewed = []
+    pulls_reviewed: List[str] = []
 
-    issues_confirmed = []
-    issues_needing_user_info = []
-    issues_needing_developer_info = []
-    issues_fixed = []
-    issues_duplicated = []
-    issues_archived = []
+    issues_confirmed: List[str] = []
+    issues_needing_user_info: List[str] = []
+    issues_needing_developer_info: List[str] = []
+    issues_fixed: List[str] = []
+    issues_duplicated: List[str] = []
+    issues_archived: List[str] = []
 
-    commits_main = []
+    commits_main: List[str] = []
+
+    user_data: Dict[str, Any] = gitea_user_get(username)
 
     for i in range(7):
         date_curr = start + datetime.timedelta(days=i)
@@ -106,12 +129,29 @@ def report_personal_weekly_get(username, start, verbose=True):
             elif op_type == "create_pull_request":
                 fullname = activity["repo"]["full_name"] + "/pulls/" + activity["content"].split('|')[0]
                 pulls_created.add(fullname)
+            elif op_type in {"approve_pull_request", "reject_pull_request"}:
+                fullname = activity["repo"]["full_name"] + "/pulls/" + activity["content"].split('|')[0]
+                pulls_reviewed.append(fullname)
             elif op_type == "commit_repo":
-                if activity["ref_name"] == "refs/heads/main" and activity["content"] and activity["repo"]["name"] != ".profile":
+                if (
+                        activity["ref_name"] == "refs/heads/main" and
+                        activity["content"] and
+                        activity["repo"]["name"] != ".profile"
+                ):
                     content_json = json.loads(activity["content"])
+                    assert isinstance(content_json, dict)
                     repo_fullname = activity["repo"]["full_name"]
-                    for commits in content_json["Commits"]:
+                    content_json_commits: List[Dict[str, Any]] = content_json["Commits"]
+                    for commits in content_json_commits:
+                        # Skip commits that were not made by this user. Using email doesn't seem to
+                        # be possible unfortunately.
+                        if commits["AuthorName"] != user_data["full_name"]:
+                            continue
+
                         title = commits["Message"].split('\n', 1)[0]
+
+                        if title.startswith("Merge branch "):
+                            continue
 
                         # Substitute occurrences of "#\d+" with "repo#\d+"
                         title = re.sub(r"#(\d+)", rf"{repo_fullname}#\1", title)
@@ -126,14 +166,17 @@ def report_personal_weekly_get(username, start, verbose=True):
         print(f"[{int(100 * (process / len_total))}%] Checking issue {issue}       ", end="\r", flush=True)
         process += 1
 
-        issue_events = gitea_json_issue_events_filter(issue,
-                                                      date_start=start,
-                                                      date_end=date_end,
-                                                      username=username,
-                                                      labels={
-                                                          "Status/Confirmed",
-                                                          "Status/Needs Information from User",
-                                                          "Status/Needs Info from Developers"})
+        issue_events = gitea_json_issue_events_filter(
+            issue,
+            date_start=start,
+            date_end=date_end,
+            username=username,
+            labels={
+                "Status/Confirmed",
+                "Status/Needs Information from User",
+                "Status/Needs Info from Developers"
+            }
+        )
 
         for event in issue_events:
             label_name = event["label"]["name"]
@@ -148,12 +191,14 @@ def report_personal_weekly_get(username, start, verbose=True):
         print(f"[{int(100 * (process / len_total))}%] Checking issue {issue}       ", end="\r", flush=True)
         process += 1
 
-        issue_events = gitea_json_issue_events_filter(issue,
-                                                      date_start=start,
-                                                      date_end=date_end,
-                                                      username=username,
-                                                      event_type={"close", "commit_ref"},
-                                                      labels={"Status/Duplicate"})
+        issue_events = gitea_json_issue_events_filter(
+            issue,
+            date_start=start,
+            date_end=date_end,
+            username=username,
+            event_type={"close", "commit_ref"},
+            labels={"Status/Duplicate"},
+        )
 
         for event in issue_events:
             event_type = event["type"]
@@ -168,11 +213,13 @@ def report_personal_weekly_get(username, start, verbose=True):
         print(f"[{int(100 * (process / len_total))}%] Checking pull {pull}         ", end="\r", flush=True)
         process += 1
 
-        pull_events = gitea_json_issue_events_filter(pull.replace("pulls", "issues"),
-                                                     date_start=start,
-                                                     date_end=date_end,
-                                                     username=username,
-                                                     event_type={"comment"})
+        pull_events = gitea_json_issue_events_filter(
+            pull.replace("pulls", "issues"),
+            date_start=start,
+            date_end=date_end,
+            username=username,
+            event_type={"comment"},
+        )
 
         if pull_events:
             pull_data = gitea_json_issue_get_cached(pull)
@@ -194,19 +241,19 @@ def report_personal_weekly_get(username, start, verbose=True):
     print()
 
     # Print review stats
-    def print_pulls(pulls):
+    def print_pulls(pulls: Iterable[str]) -> None:
         for pull in pulls:
             pull_data = gitea_json_issue_get_cached(pull)
             title = pull_data["title"]
             owner, repo, _, number = pull.split('/')
-            print(f"* {owner}/{repo}!{number}: {title}")
+            print(f"* {title} ({owner}/{repo}!{number})")
 
     print("**Review: %s**" % len(pulls_reviewed))
     print_pulls(pulls_reviewed)
     print()
 
     # Print created diffs
-    print("**Created pulls: %s**" % len(pulls_created))
+    print("**Created Pull Requests: %s**" % len(pulls_created))
     print_pulls(pulls_created)
     print()
 
@@ -219,16 +266,16 @@ def report_personal_weekly_get(username, start, verbose=True):
     if verbose:
         # Debug
 
-        def print_links(issues):
+        def print_links(issues: Iterable[str]) -> None:
             for fullname in issues:
                 print(f"https://projects.blender.org/{fullname}")
 
         print("Debug:")
         print(f"Activities from {start.isoformat()} to {date_end.isoformat()}:")
         print()
-        print("Pulls Created:")
+        print("Pull Requests Created:")
         print_links(pulls_created)
-        print("Pulls Reviewed:")
+        print("Pull Requests Reviewed:")
         print_links(pulls_reviewed)
         print("Issues Confirmed:")
         print_links(issues_confirmed)

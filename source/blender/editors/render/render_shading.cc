@@ -32,7 +32,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_appdir.hh"
 #include "BKE_asset.hh"
@@ -1776,7 +1776,7 @@ static int lightprobe_cache_free_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&object->id, ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SHADING);
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, scene);
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
 
   return OPERATOR_FINISHED;
 }

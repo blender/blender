@@ -386,18 +386,23 @@ void GLContext::debug_group_end()
   }
 }
 
-bool GLContext::debug_capture_begin()
+bool GLContext::debug_capture_begin(const char *title)
 {
-  return GLBackend::get()->debug_capture_begin();
+  return GLBackend::get()->debug_capture_begin(title);
 }
 
-bool GLBackend::debug_capture_begin()
+bool GLBackend::debug_capture_begin(const char *title)
 {
 #ifdef WITH_RENDERDOC
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
-    return renderdoc_.start_frame_capture(nullptr, nullptr);
+    bool result = renderdoc_.start_frame_capture(nullptr, nullptr);
+    if (result && title) {
+      renderdoc_.set_frame_capture_title(title);
+    }
+    return result;
   }
 #endif
+  UNUSED_VARS(title);
   return false;
 }
 

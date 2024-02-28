@@ -21,6 +21,8 @@ struct STLImportParams {
   bool use_scene_unit;
   float global_scale;
   bool use_mesh_validate;
+
+  ReportList *reports = nullptr;
 };
 
 struct STLExportParams {
@@ -34,6 +36,8 @@ struct STLExportParams {
   bool apply_modifiers;
   bool ascii_format;
   bool use_batch;
+
+  ReportList *reports = nullptr;
 };
 
 void STL_import(bContext *C, const STLImportParams *import_params);

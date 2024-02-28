@@ -5567,7 +5567,7 @@ void ED_region_visibility_change_update_animated(bContext *C, ScrArea *area, ARe
     ED_area_init(wm, win, area);
   }
   else {
-    WM_event_remove_handlers(C, &region->handlers);
+    ED_region_visibility_change_update_ex(C, area, region, true, false);
   }
 
   if (region->next) {

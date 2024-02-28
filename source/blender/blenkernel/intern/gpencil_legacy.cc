@@ -34,7 +34,7 @@
 #include "DNA_space_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_collection.hh"
 #include "BKE_colortools.hh"
 #include "BKE_deform.hh"

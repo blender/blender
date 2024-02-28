@@ -55,7 +55,7 @@ static float4x4 get_world_shading_rotation_matrix(float studiolight_rot_z)
 }
 
 static LightData get_light_data_from_studio_solidlight(const SolidLight *sl,
-                                                       float4x4 world_shading_rotation)
+                                                       const float4x4 &world_shading_rotation)
 {
   LightData light = {};
   if (sl && sl->flag) {

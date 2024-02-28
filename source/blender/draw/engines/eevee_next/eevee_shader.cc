@@ -18,6 +18,7 @@
 #include "eevee_shadow.hh"
 
 #include "BLI_assert.h"
+#include "BLI_math_bits.h"
 
 namespace blender::eevee {
 
@@ -389,35 +390,78 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     info.additional_info("eevee_cryptomatte_out");
   }
 
-  int lit_closure_count = 0;
+  int32_t closure_data_slots = 0;
+  int32_t closure_extra_eval = 0;
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_DIFFUSE)) {
     info.define("MAT_DIFFUSE");
-    lit_closure_count++;
-  }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY)) {
-    info.define("MAT_REFLECTION");
-    lit_closure_count++;
-  }
-  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT)) {
-    info.define("MAT_TRANSLUCENT");
-    lit_closure_count++;
+    closure_data_slots |= (1 << 0);
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
     info.define("MAT_SUBSURFACE");
-    lit_closure_count++;
+    closure_data_slots |= (1 << 0);
   }
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_REFRACT)) {
     info.define("MAT_REFRACTION");
-    /* TODO(fclem): Support refracted lights. */
+    closure_data_slots |= (1 << 0);
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT)) {
+    info.define("MAT_TRANSLUCENT");
+    closure_data_slots |= (1 << 1);
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_GLOSSY)) {
+    info.define("MAT_REFLECTION");
+    closure_data_slots |= (1 << 2);
+  }
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_COAT)) {
+    info.define("MAT_CLEARCOAT");
+    closure_data_slots |= (1 << 3);
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSLUCENT | GPU_MATFLAG_SUBSURFACE)) {
     info.define("SHADOW_SUBSURFACE");
   }
 
+  int32_t CLOSURE_BIN_COUNT = count_bits_i(closure_data_slots);
+  switch (CLOSURE_BIN_COUNT) {
+    /* These need to be separated since the strings need to be static. */
+    case 0:
+    case 1:
+      info.define("CLOSURE_BIN_COUNT", "1");
+      break;
+    case 2:
+      info.define("CLOSURE_BIN_COUNT", "2");
+      break;
+    case 3:
+      info.define("CLOSURE_BIN_COUNT", "3");
+      break;
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  if (pipeline_type == MAT_PIPE_DEFERRED) {
+    switch (CLOSURE_BIN_COUNT) {
+      /* These need to be separated since the strings need to be static. */
+      case 0:
+      case 1:
+        info.define("GBUFFER_LAYER_MAX", "1");
+        break;
+      case 2:
+        info.define("GBUFFER_LAYER_MAX", "2");
+        break;
+      case 3:
+        info.define("GBUFFER_LAYER_MAX", "3");
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
+
   if ((pipeline_type == MAT_PIPE_FORWARD) ||
       GPU_material_flag_get(gpumat, GPU_MATFLAG_SHADER_TO_RGBA))
   {
+    int32_t lit_closure_count = CLOSURE_BIN_COUNT + closure_extra_eval;
     switch (lit_closure_count) {
       case 0:
         /* Define nothing. This will in turn define SKIP_LIGHT_EVAL. */
@@ -431,9 +475,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         break;
       case 3:
         info.define("LIGHT_CLOSURE_EVAL_COUNT", "3");
-        break;
-      case 4:
-        info.define("LIGHT_CLOSURE_EVAL_COUNT", "4");
         break;
       default:
         BLI_assert_unreachable();
@@ -575,9 +616,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       frag_gen << "}\n\n";
     }
 
-    frag_gen << "Closure nodetree_surface()\n";
+    frag_gen << "Closure nodetree_surface(float closure_rand)\n";
     frag_gen << "{\n";
-    frag_gen << "  closure_weights_reset();\n";
+    frag_gen << "  closure_weights_reset(closure_rand);\n";
     frag_gen << ((!codegen.surface.empty()) ? codegen.surface : "return Closure(0);\n");
     frag_gen << "}\n\n";
 
@@ -595,7 +636,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
 
     comp_gen << "Closure nodetree_volume()\n";
     comp_gen << "{\n";
-    comp_gen << "  closure_weights_reset();\n";
+    comp_gen << "  closure_weights_reset(0.0);\n";
     comp_gen << ((!codegen.volume.empty()) ? codegen.volume : "return Closure(0);\n");
     comp_gen << "}\n\n";
 

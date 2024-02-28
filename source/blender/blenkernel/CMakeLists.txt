@@ -324,7 +324,7 @@ set(SRC
   BKE_action.h
   BKE_action.hh
   BKE_addon.h
-  BKE_anim_data.h
+  BKE_anim_data.hh
   BKE_anim_path.h
   BKE_anim_visualization.h
   BKE_animsys.h

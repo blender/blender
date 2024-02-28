@@ -79,6 +79,15 @@
 #  endif
 #endif
 
+/**
+ * Queue configuration calls until a valid window frame size is available.
+ * This is needed because LIBDECOR has an issue where windows initialized with a zero
+ * size don't have a usable title bar. see #117583.
+ */
+#ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
+#  define USE_LIBDECOR_CONFIG_COPY_QUEUE
+#endif
+
 #ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
 static libdecor_configuration *ghost_wl_libdecor_configuration_copy(
     const libdecor_configuration *configuration);
@@ -112,6 +121,15 @@ struct GWL_LibDecor_Window {
 #  ifdef USE_LIBDECOR_CONFIG_COPY_WORKAROUND
     bool configuration_needs_free = false;
 #  endif
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_QUEUE
+    /**
+     * Queue configurations which cannot be applied because the window size isn't know.
+     * All items in this list are allocated.
+     */
+    std::vector<libdecor_configuration *> configuration_queue;
+#  endif
+
   } pending;
 
   /** The window has been configured (see #xdg_surface_ack_configure). */
@@ -124,7 +142,16 @@ static void gwl_libdecor_window_destroy(GWL_LibDecor_Window *decor)
   if (decor->pending.configuration_needs_free) {
     ghost_wl_libdecor_configuration_free(decor->pending.configuration);
   }
+
 #  endif /* USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_QUEUE
+  for (libdecor_configuration *configuration : decor->pending.configuration_queue) {
+    ghost_wl_libdecor_configuration_free(configuration);
+  }
+  decor->pending.configuration_queue.clear();
+#  endif /* USE_LIBDECOR_CONFIG_COPY_QUEUE */
+
   libdecor_frame_unref(decor->frame);
   delete decor;
 }
@@ -888,13 +915,21 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 
       decor.pending.ack_configure = false;
 
-      libdecor_configuration *configuration = decor.pending.configuration;
-
       libdecor_state *state = libdecor_state_new(UNPACK2(decor.pending.size));
-      libdecor_frame_commit(decor.frame, state, configuration);
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_QUEUE
+      GHOST_ASSERT(decor.pending.size[0] != 0 && decor.pending.size[1] != 0, "Invalid size");
+      for (libdecor_configuration *configuration : decor.pending.configuration_queue) {
+        libdecor_frame_commit(decor.frame, state, configuration);
+        ghost_wl_libdecor_configuration_free(configuration);
+      }
+      decor.pending.configuration_queue.clear();
+#  endif
+
+      libdecor_frame_commit(decor.frame, state, decor.pending.configuration);
+
       libdecor_state_free(state);
 
-      decor.pending.configuration = nullptr;
       decor.pending.size[0] = 0;
       decor.pending.size[1] = 0;
 
@@ -906,6 +941,8 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
         decor.pending.configuration_needs_free = false;
       }
 #  endif
+
+      decor.pending.configuration = nullptr;
     }
   }
   else
@@ -1300,6 +1337,14 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
        * the buffer scale will be 1, rounding is a requirement until then. */
       gwl_round_int2_by(frame_pending.size, win->frame.buffer_scale);
     }
+    else {
+      /* These values are cleared after use & will practically always be zero.
+       * Read them because it's possible multiple configure calls run before they can be handled.
+       */
+      GWL_LibDecor_Window &decor = *win->libdecor;
+      size_next[0] = decor.pending.size[0];
+      size_next[1] = decor.pending.size[1];
+    }
   }
 
   /* Set the state. */
@@ -1312,7 +1357,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
     }
   }
 
-  if (size_next[0] && size_next[1]) {
+  {
     GWL_Window *win = static_cast<GWL_Window *>(data);
     GWL_LibDecor_Window &decor = *win->libdecor;
 
@@ -1339,6 +1384,23 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
       decor.pending.configuration = nullptr;
 #  endif /* !USE_LIBDECOR_CONFIG_COPY_WORKAROUND */
     }
+
+#  ifdef USE_LIBDECOR_CONFIG_COPY_QUEUE
+    if (!(size_next[0] && size_next[1])) {
+      /* Always copy. */
+      if (decor.pending.configuration_needs_free == false) {
+        decor.pending.configuration = ghost_wl_libdecor_configuration_copy(
+            decor.pending.configuration);
+        decor.pending.configuration_needs_free = true;
+      }
+      /* Transfer ownership to the queue. */
+      decor.pending.configuration_queue.push_back(decor.pending.configuration);
+      decor.pending.configuration = nullptr;
+      decor.pending.configuration_needs_free = false;
+      /* Wait until we have a valid size. */
+      decor.pending.ack_configure = false;
+    }
+#  endif /* USE_LIBDECOR_CONFIG_COPY_QUEUE */
   }
 
   /* Apply & commit the changes. */

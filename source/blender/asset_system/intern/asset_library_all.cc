@@ -56,8 +56,6 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
       },
       false);
 
-  new_catalog_service->rebuild_tree();
-
   this->catalog_service = std::move(new_catalog_service);
   catalogs_dirty_ = false;
 }
@@ -67,7 +65,7 @@ void AllAssetLibrary::tag_catalogs_dirty()
   catalogs_dirty_ = true;
 }
 
-bool AllAssetLibrary::is_catalogs_dirty()
+bool AllAssetLibrary::is_catalogs_dirty() const
 {
   return catalogs_dirty_;
 }

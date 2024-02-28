@@ -26,7 +26,9 @@ vec4 closure_to_rgba(Closure cl_unused)
   forward_lighting_eval(g_thickness, radiance, transmittance);
 
   /* Reset for the next closure tree. */
-  closure_weights_reset();
+  float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
+  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  closure_weights_reset(closure_rand);
 
   return vec4(radiance, saturate(1.0 - average(transmittance)));
 }
@@ -39,13 +41,13 @@ void main()
   init_globals();
 
   float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).r;
-  g_closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
+  float closure_rand = fract(noise + sampling_rng_1D_get(SAMPLING_CLOSURE));
 
   fragment_displacement();
 
   g_thickness = max(0.0, nodetree_thickness());
 
-  nodetree_surface();
+  nodetree_surface(closure_rand);
 
   vec3 radiance, transmittance;
   forward_lighting_eval(g_thickness, radiance, transmittance);

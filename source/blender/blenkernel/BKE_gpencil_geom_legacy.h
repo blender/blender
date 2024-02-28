@@ -488,7 +488,7 @@ void BKE_gpencil_stroke_from_view_space(struct bGPDstroke *gps,
 /**
  * Calculates the perimeter of a stroke projected from the view and returns it as a new stroke.
  * \param subdivisions: Number of subdivisions for the start and end caps.
- * \return: bGPDstroke pointer to stroke perimeter.
+ * \return bGPDstroke pointer to stroke perimeter.
  */
 struct bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(float viewmat[4][4],
                                                           struct bGPdata *gpd,

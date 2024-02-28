@@ -790,6 +790,10 @@ bool GPU_material_has_displacement_output(GPUMaterial *mat)
 
 void GPU_material_flag_set(GPUMaterial *mat, eGPUMaterialFlag flag)
 {
+  if ((flag & GPU_MATFLAG_GLOSSY) && (mat->flag & GPU_MATFLAG_GLOSSY)) {
+    /* Tag material using multiple glossy BSDF as using clear coat. */
+    mat->flag |= GPU_MATFLAG_COAT;
+  }
   mat->flag |= flag;
 }
 

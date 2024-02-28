@@ -70,8 +70,8 @@ static void generate_strokes_actual(
       gpl,
       gpf,
       lmd->source_type,
-      lmd->source_type == LRT_SOURCE_OBJECT ? (void *)lmd->source_object :
-                                              (void *)lmd->source_collection,
+      lmd->source_type == LINEART_SOURCE_OBJECT ? (void *)lmd->source_object :
+                                                  (void *)lmd->source_collection,
       lmd->level_start,
       lmd->use_multiple_levels ? lmd->level_end : lmd->level_start,
       lmd->target_material ? BKE_gpencil_object_material_index_get(ob, lmd->target_material) : 0,
@@ -97,16 +97,16 @@ static bool isModifierDisabled(GpencilModifierData *md)
     return true;
   }
 
-  if (lmd->source_type == LRT_SOURCE_OBJECT && !lmd->source_object) {
+  if (lmd->source_type == LINEART_SOURCE_OBJECT && !lmd->source_object) {
     return true;
   }
 
-  if (lmd->source_type == LRT_SOURCE_COLLECTION && !lmd->source_collection) {
+  if (lmd->source_type == LINEART_SOURCE_COLLECTION && !lmd->source_collection) {
     return true;
   }
 
   /* Preventing calculation in depsgraph when baking frames. */
-  if (lmd->flags & LRT_GPENCIL_IS_BAKED) {
+  if (lmd->flags & MOD_LINEART_IS_BAKED) {
     return true;
   }
 
@@ -143,7 +143,7 @@ static void generate_strokes(GpencilModifierData *md, Depsgraph *depsgraph, Obje
     MOD_lineart_destroy_render_data(lmd);
   }
   else {
-    if (!(lmd->flags & LRT_GPENCIL_USE_CACHE)) {
+    if (!(lmd->flags & MOD_LINEART_USE_CACHE)) {
       MOD_lineart_compute_feature_lines(depsgraph, lmd, &local_lc, !(ob->dtx & OB_DRAW_IN_FRONT));
       MOD_lineart_destroy_render_data(lmd);
     }
@@ -153,7 +153,7 @@ static void generate_strokes(GpencilModifierData *md, Depsgraph *depsgraph, Obje
 
   generate_strokes_actual(md, depsgraph, ob, gpl, gpf);
 
-  if (!(lmd->flags & LRT_GPENCIL_USE_CACHE)) {
+  if (!(lmd->flags & MOD_LINEART_USE_CACHE)) {
     /* Clear local cache. */
     if (local_lc != gpd->runtime.lineart_cache) {
       MOD_lineart_clear_cache(&local_lc);
@@ -246,7 +246,7 @@ static void update_depsgraph(GpencilModifierData *md,
    * visibility computation. Line art exclusion is handled inside #add_this_collection. */
   add_this_collection(ctx->scene->master_collection, ctx, mode);
 
-  if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA && lmd->source_camera) {
+  if (lmd->calculation_flags & MOD_LINEART_USE_CUSTOM_CAMERA && lmd->source_camera) {
     DEG_add_object_relation(
         ctx->node, lmd->source_camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
     DEG_add_object_relation(
@@ -299,10 +299,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(layout, ptr, "source_type", UI_ITEM_NONE, nullptr, ICON_NONE);
 
-  if (source_type == LRT_SOURCE_OBJECT) {
+  if (source_type == LINEART_SOURCE_OBJECT) {
     uiItemR(layout, ptr, "source_object", UI_ITEM_NONE, nullptr, ICON_OBJECT_DATA);
   }
-  else if (source_type == LRT_SOURCE_COLLECTION) {
+  else if (source_type == LINEART_SOURCE_COLLECTION) {
     uiLayout *sub = uiLayoutRow(layout, true);
     uiItemR(sub, ptr, "source_collection", UI_ITEM_NONE, nullptr, ICON_OUTLINER_COLLECTION);
     uiItemR(sub, ptr, "use_invert_collection", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
@@ -369,7 +369,7 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(entry, ptr, "silhouette_filtering", UI_ITEM_NONE, "", ICON_NONE);
 
   const int silhouette_filtering = RNA_enum_get(ptr, "silhouette_filtering");
-  if (silhouette_filtering != LRT_SILHOUETTE_FILTER_NONE) {
+  if (silhouette_filtering != LINEART_SILHOUETTE_FILTER_NONE) {
     uiItemR(entry, ptr, "use_invert_silhouette", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 

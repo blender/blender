@@ -14,7 +14,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_image.h"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
@@ -144,6 +144,16 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
         case SOCK_RGBA:
           return 2;
         case SOCK_VECTOR:
+          return 1;
+      }
+      return -1;
+    case SOCK_ROTATION:
+      switch (from->type) {
+        case SOCK_ROTATION:
+          return 3;
+        case SOCK_VECTOR:
+          return 2;
+        case SOCK_FLOAT:
           return 1;
       }
       return -1;

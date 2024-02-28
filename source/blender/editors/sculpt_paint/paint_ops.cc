@@ -1199,7 +1199,7 @@ static void visit_asset_catalog_for_search_fn(
     return;
   }
 
-  asset_system::AssetCatalogTree &full_tree = *library->catalog_service->get_catalog_tree();
+  const asset_system::AssetCatalogTree &full_tree = library->catalog_service->catalog_tree();
   full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
     visit_fn(StringPropertySearchVisitParams{item.catalog_path().str(), std::nullopt});
   });

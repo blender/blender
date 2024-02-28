@@ -517,6 +517,8 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   RegionView3D *rv3d = dst->draw_ctx.rv3d;
   ARegion *region = dst->draw_ctx.region;
 
+  dst->in_progress = true;
+
   int view = (viewport) ? GPU_viewport_active_view_get(viewport) : 0;
 
   if (!dst->viewport && dst->vmempool) {
@@ -647,6 +649,7 @@ static void drw_manager_exit(DRWManager *dst)
   /* Avoid accidental reuse. */
   drw_state_ensure_not_reused(dst);
 #endif
+  dst->in_progress = false;
 }
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get()
@@ -2928,6 +2931,11 @@ void DRW_draw_depth_object(
   GPU_framebuffer_restore();
 
   GPU_framebuffer_free(depth_fb);
+}
+
+bool DRW_draw_in_progress()
+{
+  return DST.in_progress;
 }
 
 /** \} */

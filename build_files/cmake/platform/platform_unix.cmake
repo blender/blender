@@ -38,13 +38,29 @@ else()
   endif()
 
   if(NOT (EXISTS ${LIBDIR}))
-    message(STATUS
-      "Unable to find LIBDIR: ${LIBDIR}, system libraries may be used "
-      "(disable WITH_LIBS_PRECOMPILED to suppress this message)."
-    )
+    if(WITH_STRICT_BUILD_OPTIONS)
+      message(SEND_ERROR
+        "Unable to find LIBDIR: ${LIBDIR}. "
+        "WITH_LIBS_PRECOMPILED needs to be able to find the LIBDIR for the precompiled libraries."
+      )
+    else()
+      message(STATUS
+        "Unable to find LIBDIR: ${LIBDIR}. system libraries may be used "
+        "(disable WITH_LIBS_PRECOMPILED to suppress this message)."
+      )
+    endif()
     unset(LIBDIR)
+    set(WITH_LIBS_PRECOMPILED OFF)
   endif()
 endif()
+
+# Disable the CPU check if not portable or if we are not using the pre-compiled libs.
+# This is because:
+# 1. We don't install the CPU check library on a non portable build.
+# 2. We assume that people know what systems they are targeting when they build a non
+#    portable build or when not using our precompiled libs.
+set_and_warn_dependency(WITH_INSTALL_PORTABLE WITH_CPU_CHECK OFF)
+set_and_warn_dependency(WITH_LIBS_PRECOMPILED WITH_CPU_CHECK OFF)
 
 # Support restoring this value once pre-compiled libraries have been handled.
 set(WITH_STATIC_LIBS_INIT ${WITH_STATIC_LIBS})
@@ -898,7 +914,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
       message(STATUS "The \"mold\" binary could not be found, using system linker.")
       set(WITH_LINKER_MOLD OFF)
     elseif(CMAKE_C_COMPILER_VERSION VERSION_LESS 12.1)
-      message(STATUS "GCC 12.1 or newer is required for th MOLD linker.")
+      message(STATUS "GCC 12.1 or newer is required for the MOLD linker.")
       set(WITH_LINKER_MOLD OFF)
     else()
       get_filename_component(MOLD_BIN_DIR "${MOLD_BIN}" DIRECTORY)

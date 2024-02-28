@@ -107,8 +107,11 @@ static void blend_read(BlendDataReader *reader, ModifierData *md)
   modifier::greasepencil::read_influence_data(reader, &mmd->influence);
 }
 
-static float get_distance_factor(
-    float3 target_pos, float4x4 obmat, float3 pos, const float dist_min, const float dist_max)
+static float get_distance_factor(float3 target_pos,
+                                 const float4x4 &obmat,
+                                 float3 pos,
+                                 const float dist_min,
+                                 const float dist_max)
 {
   const float3 gvert = math::transform_point(obmat, pos);
   const float dist = math::distance(target_pos, gvert);
@@ -176,7 +179,7 @@ static void write_weights_for_drawing(const ModifierData &md,
       curves, mmd.influence);
 
   const Span<float3> positions = curves.positions();
-  const float4x4 obmat = ob.object_to_world();
+  const float4x4 &obmat = ob.object_to_world();
   const float3 target_pos = mmd.object->object_to_world().location();
   const bool invert = (mmd.flag & MOD_GREASE_PENCIL_WEIGHT_PROXIMITY_INVERT_OUTPUT) != 0;
   const bool do_multiply = (mmd.flag & MOD_GREASE_PENCIL_WEIGHT_PROXIMITY_MULTIPLY_DATA) != 0;

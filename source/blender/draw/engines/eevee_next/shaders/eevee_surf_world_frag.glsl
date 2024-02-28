@@ -31,7 +31,7 @@ void main()
   g_data.P = -g_data.N;
   attrib_load();
 
-  nodetree_surface();
+  nodetree_surface(0.0);
 
   g_holdout = saturate(g_holdout);
 

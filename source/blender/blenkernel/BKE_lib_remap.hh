@@ -55,7 +55,7 @@ enum {
    */
   ID_REMAP_STORE_NEVER_NULL_USAGE = 1 << 2,
   /**
-   * This tells the callback func to force setting IDs
+   * This tells the callback function to force setting IDs
    * using target one with a 'never NULL' pointer to NULL.
    * \warning Use with extreme care, this will leave database in broken state
    * and can cause crashes very easily!
@@ -85,6 +85,13 @@ enum {
    * the calling code takes care of the rest of the required changes (ID tags & flags updates,
    * etc.). */
   ID_REMAP_DO_LIBRARY_POINTERS = 1 << 8,
+
+  /**
+   * Allow remapping of an ID pointer of a certain to another one of a different type.
+   *
+   * WARNING: Use with caution. Should only be needed in a very small amount of cases, e.g. when
+   * converting an ID type to another. */
+  ID_REMAP_ALLOW_IDTYPE_MISMATCH = 1 << 9,
 
   /**
    * Don't touch the special user counts (use when the 'old' remapped ID remains in use):
@@ -266,6 +273,13 @@ class IDRemapper {
    * should have been) remapped to `nullptr`.
    */
   blender::Set<ID *> never_null_users_;
+
+ public:
+  /**
+   * In almost all cases, the original pointer and its new replacement should be of the same type.
+   * however, there are some rare exceptions, e.g. when converting from one ID type to another.
+   */
+  bool allow_idtype_mismatch = false;
 
  public:
   void clear(void)

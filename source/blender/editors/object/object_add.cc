@@ -45,7 +45,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_armature.hh"
 #include "BKE_camera.h"
 #include "BKE_collection.hh"
@@ -1448,16 +1448,16 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       BKE_gpencil_modifier_unique_name(&ob->greasepencil_modifiers, (GpencilModifierData *)md);
 
       if (type == GP_LRT_COLLECTION) {
-        md->source_type = LRT_SOURCE_COLLECTION;
+        md->source_type = LINEART_SOURCE_COLLECTION;
         md->source_collection = CTX_data_collection(C);
       }
       else if (type == GP_LRT_OBJECT) {
-        md->source_type = LRT_SOURCE_OBJECT;
+        md->source_type = LINEART_SOURCE_OBJECT;
         md->source_object = ob_orig;
       }
       else {
         /* Whole scene. */
-        md->source_type = LRT_SOURCE_SCENE;
+        md->source_type = LINEART_SOURCE_SCENE;
       }
       /* Only created one layer and one material. */
       STRNCPY(md->target_layer, ((bGPDlayer *)gpd->layers.first)->info);

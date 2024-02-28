@@ -42,9 +42,9 @@ void main()
     GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);
 
     for (int i = 0; i < GBUFFER_LAYER_MAX; i++) {
-      ClosureUndetermined cl = gbuffer_closure_get(gbuf, i);
+      ClosureUndetermined cl = gbuffer_closure_get_by_bin(gbuf, i);
       if (cl.type == CLOSURE_NONE_ID) {
-        break;
+        continue;
       }
       float roughness = closure_apparent_roughness_get(cl);
       float ray_roughness_fac = ray_roughness_factor(uniform_buf.raytrace, roughness);

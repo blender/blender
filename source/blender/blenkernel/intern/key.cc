@@ -34,7 +34,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"

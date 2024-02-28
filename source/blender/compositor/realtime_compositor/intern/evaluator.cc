@@ -142,7 +142,8 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
 void Evaluator::compile_and_evaluate_shader_compile_unit(CompileState &compile_state)
 {
   ShaderCompileUnit &compile_unit = compile_state.get_shader_compile_unit();
-  ShaderOperation *operation = new ShaderOperation(context_, compile_unit);
+  const Schedule &schedule = compile_state.get_schedule();
+  ShaderOperation *operation = new ShaderOperation(context_, compile_unit, schedule);
 
   for (DNode node : compile_unit) {
     compile_state.map_node_to_shader_operation(node, operation);

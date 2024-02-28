@@ -16,7 +16,7 @@
 
 #include "DNA_anim_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 
 #include "intern/builder/deg_builder_relations.h"
 #include "intern/depsgraph_relation.hh"

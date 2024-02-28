@@ -773,7 +773,7 @@ void ShadowModule::init()
   /* Make allocation safe. Avoids crash later on. */
   if (!atlas_tx_.is_valid()) {
     atlas_tx_.ensure_2d_array(ShadowModule::atlas_type, int2(1), 1);
-    inst_.info = "Error: Could not allocate shadow atlas. Most likely out of GPU memory.";
+    inst_.info += "Error: Could not allocate shadow atlas. Most likely out of GPU memory.\n";
   }
 
   /* Read end of the swap-chain to avoid stall. */
@@ -794,12 +794,12 @@ void ShadowModule::init()
       std::stringstream ss;
       ss << "Error: Shadow buffer full, may result in missing shadows and lower performance. ("
          << stats.page_used_count << " / " << shadow_page_len_ << ")\n";
-      inst_.info = ss.str();
+      inst_.info += ss.str();
     }
     if (stats.view_needed_count > SHADOW_VIEW_MAX && enabled_) {
       std::stringstream ss;
       ss << "Error: Too many shadow updates, some shadow might be incorrect.\n";
-      inst_.info = ss.str();
+      inst_.info += ss.str();
     }
   }
 
@@ -1420,16 +1420,16 @@ void ShadowModule::debug_draw(View &view, GPUFrameBuffer *view_fb)
 
   switch (inst_.debug_mode) {
     case DEBUG_SHADOW_TILEMAPS:
-      inst_.info = "Debug Mode: Shadow Tilemap\n";
+      inst_.info += "Debug Mode: Shadow Tilemap\n";
       break;
     case DEBUG_SHADOW_VALUES:
-      inst_.info = "Debug Mode: Shadow Values\n";
+      inst_.info += "Debug Mode: Shadow Values\n";
       break;
     case DEBUG_SHADOW_TILE_RANDOM_COLOR:
-      inst_.info = "Debug Mode: Shadow Tile Random Color\n";
+      inst_.info += "Debug Mode: Shadow Tile Random Color\n";
       break;
     case DEBUG_SHADOW_TILEMAP_RANDOM_COLOR:
-      inst_.info = "Debug Mode: Shadow Tilemap Random Color\n";
+      inst_.info += "Debug Mode: Shadow Tilemap Random Color\n";
       break;
     default:
       break;

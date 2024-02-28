@@ -494,7 +494,7 @@ void ED_gpencil_update_color_uv(Main *bmain, Material *mat);
 
 /**
  * Extend selection to stroke intersections:
- * \returns:
+ * \return The result of selecting:
  * 0 - No hit
  * 1 - Hit in point A
  * 2 - Hit in point B

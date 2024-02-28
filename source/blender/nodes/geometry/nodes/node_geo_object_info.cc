@@ -54,7 +54,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  const float4x4 object_matrix = object->object_to_world();
+  const float4x4 &object_matrix = object->object_to_world();
   const float4x4 transform = self_object->world_to_object() * object_matrix;
 
   float3 location, scale;

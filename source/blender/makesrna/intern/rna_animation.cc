@@ -91,7 +91,7 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 
 #  include "BLI_math_base.h"
 
-#  include "BKE_anim_data.h"
+#  include "BKE_anim_data.hh"
 #  include "BKE_animsys.h"
 #  include "BKE_fcurve.h"
 #  include "BKE_nla.h"
@@ -119,7 +119,7 @@ static void rna_AnimData_dependency_update(Main *bmain, Scene *scene, PointerRNA
   rna_AnimData_update(bmain, scene, ptr);
 }
 
-static int rna_AnimData_action_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_AnimData_action_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   AnimData *adt = (AnimData *)ptr->data;
   return BKE_animdata_action_editable(adt) ? PROP_EDITABLE : PropertyFlag(0);
@@ -381,7 +381,7 @@ static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
   return ID_code_to_RNA_type(ksp->idtype);
 }
 
-static int rna_ksPath_id_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_ksPath_id_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   KS_Path *ksp = (KS_Path *)ptr->data;
   return (ksp->idtype) ? PROP_EDITABLE : PropertyFlag(0);
@@ -478,7 +478,7 @@ static void rna_KeyingSet_name_set(PointerRNA *ptr, const char *value)
   STRNCPY(ks->name, value);
 }
 
-static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr, const char ** /*r_info*/)
+static int rna_KeyingSet_active_ksPath_editable(const PointerRNA *ptr, const char ** /*r_info*/)
 {
   KeyingSet *ks = (KeyingSet *)ptr->data;
 

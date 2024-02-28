@@ -142,14 +142,13 @@ Imath::M44d get_matrix(const IXformSchema &schema, const chrono_t time)
   return blend_matrices(s0.getMatrix(), s1.getMatrix(), interpolation_settings->weight);
 }
 
-Mesh *AbcObjectReader::read_mesh(Mesh *existing_mesh,
-                                 const Alembic::Abc::ISampleSelector & /*sample_sel*/,
-                                 int /*read_flag*/,
-                                 const char * /*velocity_name*/,
-                                 const float /*velocity_scale*/,
-                                 const char ** /*err_str*/)
+void AbcObjectReader::read_geometry(bke::GeometrySet & /*geometry_set*/,
+                                    const Alembic::Abc::ISampleSelector & /*sample_sel*/,
+                                    int /*read_flag*/,
+                                    const char * /*velocity_name*/,
+                                    const float /*velocity_scale*/,
+                                    const char ** /*err_str*/)
 {
-  return existing_mesh;
 }
 
 bool AbcObjectReader::topology_changed(const Mesh * /*existing_mesh*/,

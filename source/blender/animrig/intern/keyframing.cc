@@ -18,7 +18,7 @@
 #include "ANIM_visualkey.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
 #include "BKE_idtype.hh"

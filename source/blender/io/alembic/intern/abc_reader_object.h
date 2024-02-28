@@ -17,6 +17,10 @@ struct Main;
 struct Mesh;
 struct Object;
 
+namespace blender::bke {
+struct GeometrySet;
+}
+
 using Alembic::AbcCoreAbstract::chrono_t;
 
 namespace blender::io::alembic {
@@ -139,12 +143,13 @@ class AbcObjectReader {
 
   virtual void readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel) = 0;
 
-  virtual struct Mesh *read_mesh(struct Mesh *mesh,
-                                 const Alembic::Abc::ISampleSelector &sample_sel,
-                                 int read_flag,
-                                 const char *velocity_name,
-                                 float velocity_scale,
-                                 const char **err_str);
+  virtual void read_geometry(bke::GeometrySet &geometry_set,
+                             const Alembic::Abc::ISampleSelector &sample_sel,
+                             int read_flag,
+                             const char *velocity_name,
+                             float velocity_scale,
+                             const char **err_str);
+
   virtual bool topology_changed(const Mesh *existing_mesh,
                                 const Alembic::Abc::ISampleSelector &sample_sel);
 

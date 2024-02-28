@@ -23,7 +23,7 @@
 
 #  include "DNA_mesh_types.h"
 
-#  include "BKE_anim_data.h"
+#  include "BKE_anim_data.hh"
 #  include "BKE_attribute.hh"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"

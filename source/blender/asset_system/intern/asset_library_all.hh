@@ -30,7 +30,7 @@ class AllAssetLibrary : public AssetLibrary {
   void rebuild_catalogs_from_nested(bool reload_nested_catalogs);
 
   void tag_catalogs_dirty();
-  bool is_catalogs_dirty();
+  bool is_catalogs_dirty() const;
 };
 
 }  // namespace blender::asset_system

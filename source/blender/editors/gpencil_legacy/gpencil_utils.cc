@@ -25,6 +25,8 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "DNA_brush_types.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
@@ -3430,7 +3432,7 @@ int ED_gpencil_new_layer_dialog(bContext *C, wmOperator *op)
       bGPdata *gpd = static_cast<bGPdata *>(ob->data);
       gpencil_layer_new_name_get(gpd, name, sizeof(name));
       RNA_property_string_set(op->ptr, prop, name);
-      return WM_operator_props_dialog_popup(C, op, 200);
+      return WM_operator_props_dialog_popup(C, op, 200, IFACE_("Add New Layer"), IFACE_("Add"));
     }
   }
   return 0;

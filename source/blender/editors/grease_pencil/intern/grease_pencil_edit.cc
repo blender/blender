@@ -1696,15 +1696,6 @@ static void GREASE_PENCIL_OT_stroke_reorder(wmOperatorType *ot)
 /** \name Move To Layer Operator
  * \{ */
 
-static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
-  if (add_new_layer) {
-    return WM_operator_props_popup_confirm(C, op, event);
-  }
-  return OPERATOR_RUNNING_MODAL;
-}
-
 static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
 {
   using namespace bke::greasepencil;
@@ -1788,6 +1779,15 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool add_new_layer = RNA_boolean_get(op->ptr, "add_new_layer");
+  if (add_new_layer) {
+    return WM_operator_props_popup_confirm(C, op, event);
+  }
+  return grease_pencil_move_to_layer_exec(C, op);
+}
+
 static void GREASE_PENCIL_OT_move_to_layer(wmOperatorType *ot)
 {
   PropertyRNA *prop;
@@ -1841,7 +1841,10 @@ static void remove_unused_materials(Main *bmain, Object *object)
   for (int slot = 1; slot <= object->totcol; slot++) {
     while (slot <= object->totcol && !BKE_object_material_slot_used(object, slot)) {
       object->actcol = slot;
-      BKE_object_material_slot_remove(bmain, object);
+      if (!BKE_object_material_slot_remove(bmain, object)) {
+        break;
+      }
+
       if (actcol >= slot) {
         actcol--;
       }

@@ -680,7 +680,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
             });
       });
 
-  float4x4 curves_to_world_mat = curves_ob.object_to_world();
+  const float4x4 &curves_to_world_mat = curves_ob.object_to_world();
   float4x4 world_to_curves_mat = math::invert(curves_to_world_mat);
 
   const float4x4 projection = ED_view3d_ob_project_mat_get(&rv3d, &curves_ob);

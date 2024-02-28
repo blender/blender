@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'09ff1b1f7e3f')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-19 09:41+0000\n"
-"PO-Revision-Date: 2024-02-14 21:20+0000\n"
+"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"PO-Revision-Date: 2024-02-20 05:29+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
@@ -1613,6 +1613,10 @@ msgstr "浮點色彩特性"
 
 msgid "Float Vector Attribute"
 msgstr "浮點向量特性"
+
+
+msgid "Integer Attribute"
+msgstr "整數特性"
 
 
 msgid "Quaternion Attribute"
@@ -3235,6 +3239,16 @@ msgid "B-Bone Start Handle"
 msgstr "B骨骼始端控制桿"
 
 
+msgctxt "Armature"
+msgid "Ease In"
+msgstr "緩入"
+
+
+msgctxt "Armature"
+msgid "Ease Out"
+msgstr "緩出"
+
+
 msgid "B-Bone End Handle Type"
 msgstr "B骨骼末端控制桿類型"
 
@@ -3431,6 +3445,14 @@ msgid "Inherit all effects of parent scaling"
 msgstr "繼承所有親代縮放效果"
 
 
+msgid "Fix Shear"
+msgstr "修復切變"
+
+
+msgid "None (Legacy)"
+msgstr "無 (舊版)"
+
+
 msgid "Length"
 msgstr "長度"
 
@@ -3565,6 +3587,10 @@ msgstr "獨演"
 
 msgid "Visible"
 msgstr "可見"
+
+
+msgid "Active Collection"
+msgstr "作用中集盒"
 
 
 msgid "Bool Attribute Value"
@@ -3711,12 +3737,24 @@ msgid "Length of newly added curves when it is not interpolated from other curve
 msgstr "未從其他曲線進行插值時新添加的曲線其長度"
 
 
+msgid "Density Mode"
+msgstr "密度模式"
+
+
 msgid "Remove"
 msgstr "移除"
 
 
+msgid "Interpolate Length"
+msgstr "插補長度"
+
+
 msgid "Use length of the curves in close proximity"
 msgstr "使用接近的曲線長度"
+
+
+msgid "Interpolate Shape"
+msgstr "插補形狀"
 
 
 msgid "Minimum Distance"
@@ -3731,12 +3769,20 @@ msgid "Avoid shrinking curves shorter than this length"
 msgstr "避免收縮曲線小於此長度"
 
 
+msgid "Scale Uniform"
+msgstr "一致縮放"
+
+
 msgid "Grow or shrink curves by changing their size uniformly instead of using trimming or extrapolation"
 msgstr "透過均一地改變尺寸來擴大或收縮曲線, 而不是修剪或延伸曲線"
 
 
 msgid "Grease Pencil Brush Settings"
 msgstr "油性筆刷設定"
+
+
+msgid "Active Smooth"
+msgstr "平滑作用"
 
 
 msgid "Angle"
@@ -3798,8 +3844,16 @@ msgid "Flat"
 msgstr "平"
 
 
+msgid "Curve Jitter"
+msgstr "曲線抖動"
+
+
 msgid "Random Curve"
 msgstr "隨機曲線"
+
+
+msgid "Curve Sensitivity"
+msgstr "曲線靈敏度"
 
 
 msgid "Curve Strength"
@@ -3846,6 +3900,10 @@ msgid "Stroke"
 msgstr "筆觸"
 
 
+msgid "Closure Size"
+msgstr "閉合大小"
+
+
 msgid "Strokes end extension for closing gaps, use zero to disable"
 msgstr "延伸筆觸終點以蓋上形狀, 設為零來取消"
 
@@ -3882,8 +3940,16 @@ msgid "Use visible strokes as fill boundary limits"
 msgstr "採用可見的筆觸來做為填充界限"
 
 
+msgid "Edit Lines"
+msgstr "編輯線條"
+
+
 msgid "Use edit lines as fill boundary limits"
 msgstr "採用編輯的線段來做為填充界限"
+
+
+msgid "Closure Mode"
+msgstr "閉合模式"
 
 
 msgid "Radius"
@@ -3896,6 +3962,30 @@ msgstr "精度"
 
 msgid "Factor for fill boundary accuracy, higher values are more accurate but slower"
 msgstr "填充界限的精確係數，數字愈高愈精確但運算愈慢"
+
+
+msgid "Layer Mode"
+msgstr "分層模式"
+
+
+msgid "Visible layers"
+msgstr "可見層"
+
+
+msgid "Layer Above"
+msgstr "上層"
+
+
+msgid "Layer Below"
+msgstr "下層"
+
+
+msgid "All Above"
+msgstr "全部上層"
+
+
+msgid "All Below"
+msgstr "全部下層"
 
 
 msgid "Simplify"
@@ -3926,8 +4016,12 @@ msgid "Ink"
 msgstr "墨水"
 
 
+msgid "Ink Noise"
+msgstr "墨水噪訊"
+
+
 msgid "Block"
-msgstr "組塊"
+msgstr "區塊"
 
 
 msgid "Marker"
@@ -3944,6 +4038,18 @@ msgstr "鑿刻"
 
 msgid "Fill"
 msgstr "填入"
+
+
+msgid "Eraser Soft"
+msgstr "橡皮擦軟"
+
+
+msgid "Eraser Hard"
+msgstr "橡皮擦硬"
+
+
+msgid "Eraser Stroke"
+msgstr "橡皮擦筆觸"
 
 
 msgctxt "GPencil"
@@ -4061,6 +4167,10 @@ msgid "Number of times to subdivide newly created strokes, for less jagged strok
 msgstr "新建筆觸的細分次數，為了改善鋸齒狀筆觸"
 
 
+msgid "Pin Mode"
+msgstr "釘住模式"
+
+
 msgid "Hue"
 msgstr "色相"
 
@@ -4097,12 +4207,24 @@ msgid "Random factor to modify original value"
 msgstr "修改原始明度的隨機係數"
 
 
+msgid "Show Fill"
+msgstr "顯示填充"
+
+
 msgid "Show transparent lines to use as boundary for filling"
 msgstr "顯示作為填充邊界的透明線條"
 
 
+msgid "Show Lines"
+msgstr "顯示線條"
+
+
 msgid "Show help lines for filling to see boundaries"
 msgstr "顯示填充輔助線來檢視邊界"
+
+
+msgid "Visual Aids"
+msgstr "視覺輔助"
 
 
 msgid "Show Lasso"
@@ -4117,12 +4239,28 @@ msgid "Active Layer"
 msgstr "作用分層"
 
 
+msgid "Strokes Collision"
+msgstr "筆觸碰撞"
+
+
+msgid "Default Eraser"
+msgstr "預設橡皮擦"
+
+
 msgid "Use this brush when enable eraser with fast switch key"
 msgstr "當啟用橡皮擦快速切換鍵時使用此筆刷"
 
 
+msgid "Affect Position"
+msgstr "影響位置"
+
+
 msgid "The brush affects the position of the point"
 msgstr "影響點位置的筆刷"
+
+
+msgid "Affect Strength"
+msgstr "影響強度"
 
 
 msgid "The brush affects the color strength of the point"
@@ -4155,6 +4293,10 @@ msgstr "啟用繪圖板壓力控制抖動"
 
 msgid "Keep caps"
 msgstr "保留蓋帽"
+
+
+msgid "Pin Material"
+msgstr "釘住材質"
 
 
 msgid "Keep material assigned to brush"
@@ -4193,6 +4335,10 @@ msgid "Additional post processing options for new strokes"
 msgstr "新筆觸的額外後期處理選項"
 
 
+msgid "Random Settings"
+msgstr "隨機設定"
+
+
 msgid "Random brush settings"
 msgstr "隨機筆刷設定"
 
@@ -4213,6 +4359,10 @@ msgid "Use tablet pressure for color strength"
 msgstr "使用繪圖板感壓控制色彩力度"
 
 
+msgid "Stroke Random"
+msgstr "筆觸隨機"
+
+
 msgid "Use randomness at stroke level"
 msgstr "筆觸層級使用隨機度"
 
@@ -4221,12 +4371,20 @@ msgid "Trim intersecting stroke ends"
 msgstr "修剪交叉的筆觸端點"
 
 
+msgid "UV Random"
+msgstr "UV 隨機"
+
+
 msgid "Vertex Color Factor"
 msgstr "頂點色彩係數"
 
 
 msgid "Factor used to mix vertex color to get final color"
 msgstr "這個係數用於混合頂點色彩以獲得最終色彩"
+
+
+msgid "Mode Type"
+msgstr "模式類型"
 
 
 msgid "Defines how vertex color affect to the strokes"
@@ -4245,8 +4403,20 @@ msgid "Vertex Color affects to Stroke and Fill"
 msgstr "頂點色彩影響筆觸及填充"
 
 
+msgid "Cache Layer"
+msgstr "快取層"
+
+
 msgid "Layer of the cache, used to load or override data from the first the first layer"
-msgstr "快取的圖層，用於載入或覆蓋第一個圖層的資料"
+msgstr "快取的分層，用於載入或覆蓋第一個分層的資料"
+
+
+msgid "Hide Layer"
+msgstr "隱藏分層"
+
+
+msgid "Cache Layers"
+msgstr "快取分層"
 
 
 msgid "Object Path"
@@ -4469,6 +4639,10 @@ msgid "Rotation of blades in aperture"
 msgstr "光圈中葉片的旋轉"
 
 
+msgid "Focus Distance"
+msgstr "對焦焦距"
+
+
 msgid "Distance to the focus point for depth of field"
 msgstr "景深離焦點距離"
 
@@ -4479,6 +4653,10 @@ msgstr "焦點物體"
 
 msgid "Use this object to define the depth of field focal point"
 msgstr "使用此物體來定義景深焦點"
+
+
+msgid "Focus Bone"
+msgstr "對焦骨骼"
 
 
 msgid "Stereo"
@@ -4569,6 +4747,10 @@ msgid "Render every pixel rotating the camera around the middle of the interocul
 msgstr "繞著瞳孔間距的中點轉動攝影機來算繪每個畫素"
 
 
+msgid "ChannelDriver Variables"
+msgstr "頻道驅動器變數"
+
+
 msgid "Child Particle"
 msgstr "子代粒子"
 
@@ -4611,6 +4793,10 @@ msgstr "摩擦"
 
 msgid "Friction force if a collision happened (higher = less movement)"
 msgstr "碰撞發生時的摩擦力 (較高 = 較少移動)"
+
+
+msgid "Impulse Clamping"
+msgstr "衝量限定"
 
 
 msgid "Self Minimum Distance"
@@ -4663,6 +4849,10 @@ msgstr "彎折彈簧阻尼"
 
 msgid "Amount of damping in bending behavior"
 msgstr "彎曲表現的阻尼量"
+
+
+msgid "Bending Model"
+msgstr "彎曲模型"
 
 
 msgid "Physical model for simulating bending forces"
@@ -4745,6 +4935,10 @@ msgid "Effector Weights"
 msgstr "作用器權重"
 
 
+msgid "Fluid Density"
+msgstr "流體密度"
+
+
 msgid "Density (kg/l) of the fluid contained inside the object, used to create a hydrostatic pressure gradient simulating the weight of the internal fluid, or buoyancy from the surrounding fluid if negative"
 msgstr "物體內部裝盛的流體密度 (kg/l)，用於建立水靜壓梯度來模擬內部流體的重量, 如果是負數的話則是周圍流體的浮力"
 
@@ -4823,6 +5017,10 @@ msgstr "檢查內部彈簧的法線"
 
 msgid "Require the points the internal springs connect to have opposite normal directions"
 msgstr "要求內部彈簧連接的點要有相反方向的法線"
+
+
+msgid "Tension Stiffness"
+msgstr "拉伸剛度"
 
 
 msgid "How much the material resists stretching"
@@ -5097,6 +5295,18 @@ msgid "The inputs are invalid, or the algorithm has been improperly called"
 msgstr "輸入內容無效，或演算法不正常呼叫"
 
 
+msgid "Collection Child"
+msgstr "集盒子級"
+
+
+msgid "Light Linking"
+msgstr "光照連結"
+
+
+msgid "Collection Children"
+msgstr "集盒子級"
+
+
 msgid "Link State"
 msgstr "連結狀態"
 
@@ -5109,8 +5319,16 @@ msgid "Exclude"
 msgstr "排除"
 
 
+msgid "Collection Object"
+msgstr "集盒物體"
+
+
 msgid "Collection Objects"
-msgstr "物件集盒"
+msgstr "集盒物體集"
+
+
+msgid "Collection of collection objects"
+msgstr "集盒物體的集盒"
 
 
 msgid "Collision Settings"
@@ -5235,6 +5453,10 @@ msgstr "顯示裝置名稱"
 
 msgid "Input color space settings"
 msgstr "輸入色彩空間設定"
+
+
+msgid "Is Data"
+msgstr "有資料"
 
 
 msgid "Input Color Space"
@@ -5598,6 +5820,10 @@ msgid "Amount of residual error in Blender space unit for constraints that work 
 msgstr "Blender 空間單位中約束作用於位置的殘餘錯誤量"
 
 
+msgid "Rotation error"
+msgstr "旋轉錯誤"
+
+
 msgid "Amount of residual error in radians for constraints that work on orientation"
 msgstr "約束作用於方向的殘餘弧度錯誤"
 
@@ -5608,6 +5834,10 @@ msgstr "影響"
 
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "約束對最終解決方案的影響量"
+
+
+msgid "Override Constraint"
+msgstr "凌駕約束"
 
 
 msgid "Constraint has valid settings and can be evaluated"
@@ -5640,6 +5870,10 @@ msgstr "世界空間"
 
 msgid "The constraint is applied relative to the world coordinate system"
 msgstr "約束會以相對方式套用至世界座標系統"
+
+
+msgid "Custom Space"
+msgstr "自訂空間"
 
 
 msgid "Pose Space"
@@ -5986,8 +6220,20 @@ msgid "Bones only: apply the object's transformation channels of the action to t
 msgstr "僅用於骨骼：套用該動作對於約束骨骼的物體變換通道，而不是套用骨骼的通道"
 
 
+msgid "Armature Constraint"
+msgstr "骨架約束"
+
+
 msgid "Targets"
 msgstr "目標"
+
+
+msgid "Target Bones"
+msgstr "目標骨骼"
+
+
+msgid "Use Envelopes"
+msgstr "使用封套"
 
 
 msgid "Preserve Volume"
@@ -11716,7 +11962,7 @@ msgstr "鎖定依層顯示的目前框幀"
 
 
 msgid "List of Masking Layers"
-msgstr "遮罩圖層列表"
+msgstr "遮罩分層列表"
 
 
 msgid "Layer Opacity"
@@ -11780,7 +12026,7 @@ msgstr "視圖層"
 
 
 msgid "Grease Pencil Masking Layers"
-msgstr "蠟筆遮罩圖層"
+msgstr "蠟筆遮罩分層"
 
 
 msgid "Invert mask"
@@ -11836,7 +12082,7 @@ msgstr "頂面 (X-Y)"
 
 
 msgid "Auto-Masking Layer"
-msgstr "自動遮罩圖層"
+msgstr "自動遮罩分層"
 
 
 msgid "Auto-Masking Material"
@@ -33572,12 +33818,17 @@ msgstr "添加新層"
 
 
 msgid "Add new layer as masking"
-msgstr "依遮罩增加新圖層"
+msgstr "依遮罩增加新分層"
 
 
 msgctxt "Operator"
 msgid "Remove Mask Layer"
 msgstr "移除遮罩分層"
+
+
+msgctxt "Operator"
+msgid "Remove Layer"
+msgstr "移除分層"
 
 
 msgid "Append Materials of the active Grease Pencil to other object"
@@ -41106,6 +41357,11 @@ msgstr "移除所選算繪視圖"
 msgctxt "Operator"
 msgid "Add AOV"
 msgstr "添加 AOV"
+
+
+msgctxt "Operator"
+msgid "Remove View Layer"
+msgstr "移除視圖層"
 
 
 msgctxt "Operator"
@@ -52661,6 +52917,11 @@ msgstr "輸出"
 
 
 msgctxt "ID"
+msgid "View Layer"
+msgstr "視圖層"
+
+
+msgctxt "ID"
 msgid "Constraints"
 msgstr "約束"
 
@@ -57663,6 +57924,10 @@ msgstr "槽 %d"
 msgctxt "Operator"
 msgid "Instance to Scene"
 msgstr "實例至場景"
+
+
+msgid "All View Layers"
+msgstr "全部視圖層"
 
 
 msgctxt "Operator"

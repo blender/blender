@@ -59,6 +59,8 @@ struct OBJExportParams {
   bool export_smooth_groups;
   /* Create bitflags instead of the default "0"/"1" group IDs. */
   bool smooth_groups_bitflags;
+
+  ReportList *reports = nullptr;
 };
 
 struct OBJImportParams {
@@ -76,6 +78,8 @@ struct OBJImportParams {
   bool validate_meshes = false;
   bool relative_paths = true;
   bool clear_selection = true;
+
+  ReportList *reports = nullptr;
 };
 
 /**

@@ -569,7 +569,8 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
   const int remap_flags = data->remap_flags;
 
   BLI_assert(old_id != nullptr);
-  BLI_assert((new_id == nullptr) || GS(old_id->name) == GS(new_id->name));
+  BLI_assert((new_id == nullptr) || remap_flags & ID_REMAP_ALLOW_IDTYPE_MISMATCH ||
+             GS(old_id->name) == GS(new_id->name));
 
   if (free_notifier_reference_cb) {
     free_notifier_reference_cb(old_id);
