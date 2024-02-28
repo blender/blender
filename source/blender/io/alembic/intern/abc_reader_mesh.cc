@@ -490,7 +490,7 @@ static void read_mesh_sample(const std::string &iobject_full_name,
   }
 }
 
-CDStreamConfig get_config(Mesh *mesh)
+static CDStreamConfig get_config(Mesh *mesh)
 {
   CDStreamConfig config;
   config.mesh = mesh;

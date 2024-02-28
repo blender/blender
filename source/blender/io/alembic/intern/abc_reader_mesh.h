@@ -87,6 +87,4 @@ void read_mverts(Mesh &mesh,
                  const Alembic::AbcGeom::P3fArraySamplePtr positions,
                  const Alembic::AbcGeom::N3fArraySamplePtr normals);
 
-CDStreamConfig get_config(struct Mesh *mesh, const std::string &iobject_full_name);
-
 }  // namespace blender::io::alembic
