@@ -21,13 +21,10 @@
 #include "BKE_material.h"
 #include "BKE_report.hh"
 
-#include "BLI_math_geom.h"
 #include "BLT_translation.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
-
-#include "WM_api.hh"
 
 namespace blender::io::usd {
 

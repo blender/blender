@@ -16,6 +16,8 @@
 
 #include "BKE_report.hh"
 
+#include "DNA_windowmanager_types.h"
+
 #include "RNA_access.hh"
 #include "RNA_prototypes.h"
 #include "RNA_types.hh"

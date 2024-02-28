@@ -19,10 +19,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
-#include <pxr/base/vt/value.h>
-#include <pxr/usd/sdf/types.h>
 
 #include <pxr/usd/usdGeom/curves.h>
 

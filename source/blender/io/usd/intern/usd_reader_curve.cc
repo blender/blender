@@ -5,6 +5,7 @@
  * Modifications Copyright 2021 Tangent Animation. All rights reserved. */
 
 #include "usd_reader_curve.hh"
+#include "usd.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
@@ -17,10 +18,8 @@
 #include "DNA_curves_types.h"
 #include "DNA_object_types.h"
 
-#include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
 #include <pxr/usd/usdGeom/basisCurves.h>
-#include <pxr/usd/usdGeom/curves.h>
 
 namespace blender::io::usd {
 static inline float3 to_float3(pxr::GfVec3f vec3f)

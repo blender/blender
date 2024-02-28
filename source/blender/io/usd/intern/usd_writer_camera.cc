@@ -10,6 +10,8 @@
 #include "BKE_camera.h"
 #include "BLI_assert.h"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"
 

@@ -19,24 +19,16 @@
 #include "usd_writer_transform.hh"
 #include "usd_writer_volume.hh"
 
-#include <memory>
 #include <string>
 
 #include <pxr/base/tf/stringUtils.h>
 
-#include "BKE_duplilist.hh"
+#include "BKE_main.hh"
 
 #include "BLI_assert.h"
-#include "BLI_utildefines.h"
 
-#include "DEG_depsgraph_query.hh"
-
-#include "DNA_ID.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
-
-#include "DNA_armature_types.h"
-#include "DNA_mesh_types.h"
 
 namespace blender::io::usd {
 
