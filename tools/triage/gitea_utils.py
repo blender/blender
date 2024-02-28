@@ -116,7 +116,7 @@ def gitea_json_issues_search(
             query_params["type"] if "type" in query_params else "issues and pulls"))
 
         print("Query params:", {
-              k: v for k, v in query_params.items() if k not in ("type", "access_token")})
+              k: v for k, v in query_params.items() if k not in {"type", "access_token"}})
 
     base_url = f"{BASE_API_URL}/repos/issues/search"
     encoded_query_params = urllib.parse.urlencode(query_params)

@@ -72,7 +72,7 @@ def print_row(config: api.TestConfig, entries: List, end='\n') -> None:
         status = entry.status
         output = entry.output
         result = ''
-        if status in ('done', 'outdated') and output:
+        if status in {'done', 'outdated'} and output:
             result = '%.4fs' % output['time']
 
             if status == 'outdated':
@@ -106,7 +106,7 @@ def run_entry(env: api.TestEnvironment,
     failed = False
 
     # Check if entry needs to be run.
-    if update_only and entry.status not in ('queued', 'outdated'):
+    if update_only and entry.status not in {'queued', 'outdated'}:
         print_row(config, row, end='\r')
         return updated, failed
 

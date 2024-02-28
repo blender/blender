@@ -593,7 +593,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, rna_prop_ui.PropertyPanel, Panel):
             return "active_pose_bone"
 
         bone_path = obj.pose.bones[context.bone.name].path_from_id()
-        return f"object.{bone_path}"
+        return "object." + bone_path
 
 
 classes = (
