@@ -2331,7 +2331,7 @@ class TriOverlaps {
 
  public:
   TriOverlaps(const IMesh &tm,
-              const Array<BoundingBox> &tri_bb,
+              const Span<BoundingBox> tri_bb,
               int nshapes,
               std::function<int(int)> shape_fn,
               bool use_self)
@@ -2642,7 +2642,7 @@ static void calc_subdivided_non_cluster_tris(Array<IMesh> &r_tri_subdivided,
 static void calc_cluster_tris(Array<IMesh> &tri_subdivided,
                               const IMesh &tm,
                               const CoplanarClusterInfo &clinfo,
-                              const Array<CDT_data> &cluster_subdivided,
+                              const Span<CDT_data> cluster_subdivided,
                               IMeshArena *arena)
 {
   for (int c : clinfo.index_range()) {

@@ -230,7 +230,8 @@ void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
   seq->len = seq->enddisp - seq->startdisp;
 }
 
-void seq_time_update_effects_strip_range(const Scene *scene, blender::Span<Sequence *> &effects)
+void seq_time_update_effects_strip_range(const Scene *scene,
+                                         const blender::Span<Sequence *> effects)
 {
   /* First pass: Update length of immediate effects. */
   for (Sequence *seq : effects) {

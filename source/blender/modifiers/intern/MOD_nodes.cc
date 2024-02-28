@@ -921,7 +921,7 @@ struct BakeFrameIndices {
 };
 
 static BakeFrameIndices get_bake_frame_indices(
-    const Span<std::unique_ptr<bake::FrameCache>> &frame_caches, const SubFrame frame)
+    const Span<std::unique_ptr<bake::FrameCache>> frame_caches, const SubFrame frame)
 {
   BakeFrameIndices frame_indices;
   if (!frame_caches.is_empty()) {

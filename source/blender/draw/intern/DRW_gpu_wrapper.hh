@@ -462,7 +462,7 @@ class StorageVectorBuffer : public StorageArrayBuffer<T, len, false> {
     new (ptr) T(std::forward<ForwardT>(value)...);
   }
 
-  void extend(const Span<T> &values)
+  void extend(const Span<T> values)
   {
     /* TODO(fclem): Optimize to a single memcpy. */
     for (auto v : values) {

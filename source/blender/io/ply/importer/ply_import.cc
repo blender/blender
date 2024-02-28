@@ -35,7 +35,7 @@
 namespace blender::io::ply {
 
 /* If line starts with keyword, returns true and drops it from the line. */
-static bool parse_keyword(Span<char> &str, StringRef keyword)
+static bool parse_keyword(Span<char> str, StringRef keyword)
 {
   const size_t keyword_len = keyword.size();
   if (str.size() < keyword_len) {
@@ -48,7 +48,7 @@ static bool parse_keyword(Span<char> &str, StringRef keyword)
   return true;
 }
 
-static Span<char> parse_word(Span<char> &str)
+static Span<char> parse_word(Span<char> str)
 {
   size_t len = 0;
   while (len < str.size() && str[len] > ' ') {
@@ -59,7 +59,7 @@ static Span<char> parse_word(Span<char> &str)
   return word;
 }
 
-static void skip_space(Span<char> &str)
+static void skip_space(Span<char> str)
 {
   while (!str.is_empty() && str[0] <= ' ') {
     str = str.drop_front(1);

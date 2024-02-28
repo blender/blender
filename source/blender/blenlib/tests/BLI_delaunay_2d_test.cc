@@ -95,7 +95,7 @@ template<typename T> CDT_input<T> fill_input_from_string(const char *spec)
 /* Find an original index in a table mapping new to original.
  * Return -1 if not found.
  */
-static int get_orig_index(const Array<Vector<int>> &out_to_orig, int orig_index)
+static int get_orig_index(const Span<Vector<int>> out_to_orig, int orig_index)
 {
   int n = int(out_to_orig.size());
   for (int i = 0; i < n; ++i) {
@@ -264,9 +264,9 @@ static bool draw_append = false; /* Will be set to true after first call. */
 
 template<typename T>
 void graph_draw(const std::string &label,
-                const Array<VecBase<T, 2>> &verts,
-                const Array<std::pair<int, int>> &edges,
-                const Array<Vector<int>> &faces)
+                const Span<VecBase<T, 2>> verts,
+                const Span<std::pair<int, int>> edges,
+                const Span<Vector<int>> faces)
 {
   /* Would like to use BKE_tempdir_base() here, but that brings in dependence on kernel library.
    * This is just for developer debugging anyway, and should never be called in production Blender.
