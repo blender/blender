@@ -5640,7 +5640,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
 }
 
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
-                                     blender::float4x4 inverse_mat,
+                                     const blender::float4x4 &inverse_mat,
                                      Depsgraph *depsgraph,
                                      blender::bke::greasepencil::Drawing &drawing,
                                      const int8_t source_type,

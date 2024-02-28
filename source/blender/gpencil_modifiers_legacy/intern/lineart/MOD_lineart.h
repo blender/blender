@@ -964,7 +964,7 @@ namespace blender::bke::greasepencil {
 class Drawing;
 }
 void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
-                                     blender::float4x4 mat,
+                                     const blender::float4x4 &mat,
                                      Depsgraph *depsgraph,
                                      blender::bke::greasepencil::Drawing &drawing,
                                      int8_t source_type,
