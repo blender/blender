@@ -1368,6 +1368,8 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_brush_tool(context):
+        # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # it's still used because many areas assume that brush tools have it set #bToolRef.
         tool = None
         if context:
             brush = context.tool_settings.sculpt.brush
@@ -1634,13 +1636,23 @@ class _defs_vertex_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="brush.paint_vertex.",
-            type=bpy.types.Brush,
-            attr="vertex_tool",
-        )
+        # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # it's still used because many areas assume that brush tools have it set #bToolRef.
+        tool = None
+        if context:
+            brush = context.tool_settings.vertex_paint.brush
+            if brush:
+                tool = brush.vertex_tool
+        return [
+            ToolDef.from_dict(
+                dict(
+                    idname="builtin.brush",
+                    label="Brush",
+                    icon="brush.sculpt.paint",
+                    data_block=tool
+                )
+            )
+        ]
 
 
 class _defs_texture_paint:
@@ -1655,14 +1667,24 @@ class _defs_texture_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="brush.paint_texture.",
-            type=bpy.types.Brush,
-            attr="image_tool",
-            cursor='PAINT_CROSS',
-        )
+        # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # it's still used because many areas assume that brush tools have it set #bToolRef.
+        tool = None
+        if context:
+            brush = context.tool_settings.image_paint.brush
+            if brush:
+                tool = brush.image_tool
+        return [
+            ToolDef.from_dict(
+                dict(
+                    idname="builtin.brush",
+                    label="Brush",
+                    icon="brush.sculpt.paint",
+                    cursor='PAINT_CROSS',
+                    data_block=tool
+                )
+            )
+        ]
 
 
 class _defs_weight_paint:
@@ -1682,13 +1704,23 @@ class _defs_weight_paint:
 
     @staticmethod
     def generate_from_brushes(context):
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="brush.paint_weight.",
-            type=bpy.types.Brush,
-            attr="weight_tool",
-        )
+        # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # it's still used because many areas assume that brush tools have it set #bToolRef.
+        tool = None
+        if context:
+            brush = context.tool_settings.weight_paint.brush
+            if brush:
+                tool = brush.weight_tool
+        return [
+            ToolDef.from_dict(
+                dict(
+                    idname="builtin.brush",
+                    label="Brush",
+                    icon="brush.sculpt.paint",
+                    data_block=tool
+                )
+            )
+        ]
 
     @ToolDef.from_fn
     def sample_weight():
@@ -1765,14 +1797,23 @@ class _defs_paint_grease_pencil:
     #
     # @staticmethod
     # def generate_from_brushes(context):
-    #     return generate_from_enum_ex(
-    #         context,
-    #         idname_prefix="builtin_brush.",
-    #         icon_prefix="brush.gpencil_draw.",
-    #         type=bpy.types.Brush,
-    #         attr="gpencil_tool",
-    #         cursor='DOT',
-    #     )
+        # # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # # it's still used because many areas assume that brush tools have it set #bToolRef.
+        # tool = None
+        # if context:
+        #     brush = context.tool_settings.gpencil_paint.brush
+        #     if brush:
+        #         tool = brush.gpencil_tool
+        # return [
+        #     ToolDef.from_dict(
+        #         dict(
+        #             idname="builtin.brush",
+        #             label="Brush",
+        #             icon="brush.sculpt.paint",
+        #             data_block=tool
+        #         )
+        #     )
+        # ]
 
     @ToolDef.from_fn
     def draw():
@@ -2432,9 +2473,11 @@ class _defs_curves_sculpt:
 
     @staticmethod
     def generate_brush_tool(context):
+        # Though `data_block` is conceptually unnecessary with a single brush tool,
+        # it's still used because many areas assume that brush tools have it set #bToolRef.
         tool = None
         if context:
-            brush = context.tool_settings.sculpt.brush
+            brush = context.tool_settings.curves_sculpt.brush
             if brush:
                 tool = brush.curves_sculpt_tool
         return [
