@@ -93,6 +93,12 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
 
+  const View3D *v3d = CTX_wm_view3d(C);
+  const Base *base = CTX_data_active_base(C);
+  if (!BKE_base_is_visible(v3d, base)) {
+    return OPERATOR_CANCELLED;
+  }
+
   Vector<PBVHNode *> nodes = bke::pbvh::search_gather(ss->pbvh, {});
 
   if (nodes.is_empty()) {
