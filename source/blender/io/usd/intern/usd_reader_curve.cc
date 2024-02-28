@@ -38,9 +38,7 @@ static int point_count(int usdCount, CurveType curve_type, bool is_cyclic)
   if (curve_type == CURVE_TYPE_BEZIER) {
     return bezier_point_count(usdCount, is_cyclic);
   }
-  else {
     return usdCount;
-  }
 }
 
 /** Return the sum of the values of each element in `usdCounts`. This is used for precomputing the
