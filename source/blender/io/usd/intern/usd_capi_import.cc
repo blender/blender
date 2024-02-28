@@ -574,19 +574,19 @@ USDMeshReadParams create_mesh_read_params(const double motion_sample_time, const
   return params;
 }
 
-Mesh *USD_read_mesh(CacheReader *reader,
-                    Object *ob,
-                    Mesh *existing_mesh,
-                    const USDMeshReadParams params,
-                    const char **err_str)
+void USD_read_geometry(CacheReader *reader,
+                       Object *ob,
+                       blender::bke::GeometrySet &geometry_set,
+                       const USDMeshReadParams params,
+                       const char **err_str)
 {
   USDGeomReader *usd_reader = dynamic_cast<USDGeomReader *>(get_usd_reader(reader, ob, err_str));
 
   if (usd_reader == nullptr) {
-    return nullptr;
+    return;
   }
 
-  return usd_reader->read_mesh(existing_mesh, params, err_str);
+  return usd_reader->read_geometry(geometry_set, params, err_str);
 }
 
 bool USD_mesh_topology_changed(CacheReader *reader,

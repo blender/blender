@@ -792,24 +792,24 @@ static ISampleSelector sample_selector_for_time(chrono_t time)
   return ISampleSelector(time, ISampleSelector::kFloorIndex);
 }
 
-Mesh *ABC_read_mesh(CacheReader *reader,
-                    Object *ob,
-                    Mesh *existing_mesh,
-                    const ABCReadParams *params,
-                    const char **err_str)
+void ABC_read_geometry(CacheReader *reader,
+                       Object *ob,
+                       blender::bke::GeometrySet &geometry_set,
+                       const ABCReadParams *params,
+                       const char **err_str)
 {
   AbcObjectReader *abc_reader = get_abc_reader(reader, ob, err_str);
   if (abc_reader == nullptr) {
-    return nullptr;
+    return;
   }
 
   ISampleSelector sample_sel = sample_selector_for_time(params->time);
-  return abc_reader->read_mesh(existing_mesh,
-                               sample_sel,
-                               params->read_flags,
-                               params->velocity_name,
-                               params->velocity_scale,
-                               err_str);
+  return abc_reader->read_geometry(geometry_set,
+                                   sample_sel,
+                                   params->read_flags,
+                                   params->velocity_name,
+                                   params->velocity_scale,
+                                   err_str);
 }
 
 bool ABC_mesh_topology_changed(CacheReader *reader,

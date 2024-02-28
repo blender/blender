@@ -7,6 +7,7 @@
  */
 
 #include "abc_reader_points.h"
+#include "abc_axis_conversion.h"
 #include "abc_reader_mesh.h"
 #include "abc_reader_transform.h"
 #include "abc_util.h"
@@ -14,22 +15,19 @@
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_pointcloud_types.h"
 
 #include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
+#include "BKE_pointcloud.hh"
 
-using Alembic::AbcGeom::kWrapExisting;
-using Alembic::AbcGeom::N3fArraySamplePtr;
-using Alembic::AbcGeom::P3fArraySamplePtr;
+#include "BLI_math_vector.h"
 
-using Alembic::AbcGeom::ICompoundProperty;
-using Alembic::AbcGeom::IN3fArrayProperty;
-using Alembic::AbcGeom::IPoints;
-using Alembic::AbcGeom::IPointsSchema;
-using Alembic::AbcGeom::ISampleSelector;
+using namespace Alembic::AbcGeom;
 
 namespace blender::io::alembic {
 
@@ -58,8 +56,8 @@ bool AbcPointsReader::accepts_object_type(
     return false;
   }
 
-  if (ob->type != OB_MESH) {
-    *err_str = RPT_("Object type mismatch, Alembic object path points to Points");
+  if (ob->type != OB_POINTCLOUD) {
+    *err_str = RPT_("Object type mismatch, Alembic object path points to Points.");
     return false;
   }
 
@@ -68,29 +66,38 @@ bool AbcPointsReader::accepts_object_type(
 
 void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
-  Mesh *mesh = BKE_mesh_add(bmain, m_data_name.c_str());
-  Mesh *read_mesh = this->read_mesh(mesh, sample_sel, 0, "", 0.0f, nullptr);
+  PointCloud *point_cloud = static_cast<PointCloud *>(
+      BKE_pointcloud_add_default(bmain, m_data_name.c_str()));
 
-  if (read_mesh != mesh) {
-    BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object);
+  bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
+      point_cloud, bke::GeometryOwnershipType::Editable);
+  read_geometry(geometry_set, sample_sel, 0, "", 1.0f, nullptr);
+
+  PointCloud *read_point_cloud =
+      geometry_set.get_component_for_write<bke::PointCloudComponent>().release();
+
+  if (read_point_cloud != point_cloud) {
+    BKE_pointcloud_nomain_to_pointcloud(read_point_cloud, point_cloud);
   }
 
-  if (m_settings->validate_meshes) {
-    BKE_mesh_validate(mesh, false, false);
-  }
-
-  m_object = BKE_object_add_only_object(bmain, OB_MESH, m_object_name.c_str());
-  m_object->data = mesh;
+  m_object = BKE_object_add_only_object(bmain, OB_POINTCLOUD, m_object_name.c_str());
+  m_object->data = point_cloud;
 
   if (m_settings->always_add_cache_reader || has_animations(m_schema, m_settings)) {
     addCacheModifier();
   }
 }
 
-void read_points_sample(const IPointsSchema &schema,
-                        const ISampleSelector &selector,
-                        CDStreamConfig &config,
-                        ImportSettings *settings)
+static void read_points(const P3fArraySamplePtr positions, MutableSpan<float3> r_points)
+{
+  for (size_t i = 0; i < positions->size(); i++) {
+    copy_zup_from_yup(r_points[i], (*positions)[i].getValue());
+  }
+}
+
+static N3fArraySamplePtr read_points_sample(const IPointsSchema &schema,
+                                            const ISampleSelector &selector,
+                                            MutableSpan<float3> r_points)
 {
   Alembic::AbcGeom::IPointsSchema::Sample sample = schema.getValue(selector);
 
@@ -109,23 +116,19 @@ void read_points_sample(const IPointsSchema &schema,
     }
   }
 
-  read_mverts(*config.mesh, positions, vnormals);
-
-  if (!settings->velocity_name.empty() && settings->velocity_scale != 0.0f) {
-    V3fArraySamplePtr velocities = get_velocity_prop(schema, selector, settings->velocity_name);
-    if (velocities) {
-      read_velocity(velocities, config, settings->velocity_scale);
-    }
-  }
+  read_points(positions, r_points);
+  return vnormals;
 }
 
-Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
-                                 const ISampleSelector &sample_sel,
-                                 int /*read_flag*/,
-                                 const char *velocity_name,
-                                 const float velocity_scale,
-                                 const char **err_str)
+void AbcPointsReader::read_geometry(bke::GeometrySet &geometry_set,
+                                    const Alembic::Abc::ISampleSelector &sample_sel,
+                                    int /*read_flag*/,
+                                    const char * /*velocity_name*/,
+                                    const float /*velocity_scale*/,
+                                    const char **err_str)
 {
+  BLI_assert(geometry_set.has_pointcloud());
+
   IPointsSchema::Sample sample;
   try {
     sample = m_schema.getValue(sample_sel);
@@ -137,26 +140,60 @@ Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
            m_schema.getName().c_str(),
            sample_sel.getRequestedTime(),
            ex.what());
-    return existing_mesh;
+    return;
   }
+
+  PointCloud *existing_point_cloud = geometry_set.get_pointcloud_for_write();
+  PointCloud *point_cloud = existing_point_cloud;
 
   const P3fArraySamplePtr &positions = sample.getPositions();
 
-  Mesh *new_mesh = nullptr;
+  const IFloatGeomParam widths_param = m_schema.getWidthsParam();
+  FloatArraySamplePtr radii;
 
-  if (existing_mesh->verts_num != positions->size()) {
-    new_mesh = BKE_mesh_new_nomain(positions->size(), 0, 0, 0);
+  if (widths_param.valid()) {
+    IFloatGeomParam::Sample wsample = widths_param.getExpandedValue(sample_sel);
+    radii = wsample.getVals();
   }
 
-  ImportSettings settings;
-  settings.velocity_name = velocity_name;
-  settings.velocity_scale = velocity_scale;
+  if (point_cloud->totpoint != positions->size()) {
+    point_cloud = BKE_pointcloud_new_nomain(positions->size());
+  }
 
-  Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;
-  CDStreamConfig config = get_config(mesh_to_export);
-  read_points_sample(m_schema, sample_sel, config, &settings);
+  bke::MutableAttributeAccessor attribute_accessor = point_cloud->attributes_for_write();
 
-  return mesh_to_export;
+  bke::SpanAttributeWriter<float3> positions_writer =
+      attribute_accessor.lookup_or_add_for_write_span<float3>("position", bke::AttrDomain::Point);
+  MutableSpan<float3> point_positions = positions_writer.span;
+  N3fArraySamplePtr normals = read_points_sample(m_schema, sample_sel, point_positions);
+  positions_writer.finish();
+
+  bke::SpanAttributeWriter<float> point_radii_writer =
+      attribute_accessor.lookup_or_add_for_write_span<float>("radius", bke::AttrDomain::Point);
+  MutableSpan<float> point_radii = point_radii_writer.span;
+
+  if (radii) {
+    for (size_t i = 0; i < radii->size(); i++) {
+      point_radii[i] = (*radii)[i];
+    }
+  }
+  else {
+    point_radii.fill(0.01f);
+  }
+  point_radii_writer.finish();
+
+  if (normals) {
+    bke::SpanAttributeWriter<float3> normals_writer =
+        attribute_accessor.lookup_or_add_for_write_span<float3>("N", bke::AttrDomain::Point);
+    MutableSpan<float3> point_normals = normals_writer.span;
+    for (size_t i = 0; i < normals->size(); i++) {
+      Imath::V3f nor_in = (*normals)[i];
+      copy_zup_from_yup(point_normals[i], nor_in.getValue());
+    }
+    normals_writer.finish();
+  }
+
+  geometry_set.replace_pointcloud(point_cloud);
 }
 
 }  // namespace blender::io::alembic
