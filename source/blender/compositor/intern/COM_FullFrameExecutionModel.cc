@@ -134,7 +134,7 @@ void FullFrameExecutionModel::render_operations()
 {
   const bool is_rendering = context_.is_rendering();
 
-  WorkScheduler::start(this->context_);
+  WorkScheduler::start();
   for (eCompositorPriority priority : priorities_) {
     for (NodeOperation *op : operations_) {
       const bool has_size = op->get_width() > 0 && op->get_height() > 0;

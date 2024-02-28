@@ -40,7 +40,6 @@ class FileOutputOperation : public MultiThreadedOperation {
                       const NodeImageMultiFile *node_data,
                       Vector<FileOutputInput> inputs);
 
-  void execute_region(rcti *rect, unsigned int tile_number) override;
   bool is_output_operation(bool /*rendering*/) const override
   {
     return true;

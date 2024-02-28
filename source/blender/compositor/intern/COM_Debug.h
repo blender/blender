@@ -24,15 +24,11 @@ static constexpr bool COM_EXPORT_OPERATION_BUFFERS = false;
 class Node;
 class NodeOperation;
 class ExecutionSystem;
-class ExecutionGroup;
 
 class DebugInfo {
  public:
-  typedef enum { EG_WAIT, EG_RUNNING, EG_FINISHED } GroupState;
-
   typedef std::map<const Node *, std::string> NodeNameMap;
   typedef std::map<const NodeOperation *, std::string> OpNameMap;
-  typedef std::map<const ExecutionGroup *, GroupState> GroupStateMap;
 
   static std::string node_name(const Node *node);
   static std::string operation_name(const NodeOperation *op);
@@ -47,8 +43,6 @@ class DebugInfo {
   static std::string current_node_name_;
   /** Base name for automatic sub-operations. */
   static std::string current_op_name_;
-  /** For visualizing group states. */
-  static GroupStateMap group_states_;
 
  public:
   static void convert_started()
@@ -58,14 +52,10 @@ class DebugInfo {
     }
   }
 
-  static void execute_started(const ExecutionSystem *system)
+  static void execute_started()
   {
     if (COM_EXPORT_GRAPHVIZ) {
       file_index_ = 1;
-      group_states_.clear();
-      for (ExecutionGroup *execution_group : system->groups_) {
-        group_states_[execution_group] = EG_WAIT;
-      }
     }
     if (COM_EXPORT_OPERATION_BUFFERS) {
       delete_operation_exports();
@@ -100,19 +90,6 @@ class DebugInfo {
     }
   };
 
-  static void execution_group_started(const ExecutionGroup *group)
-  {
-    if (COM_EXPORT_GRAPHVIZ) {
-      group_states_[group] = EG_RUNNING;
-    }
-  };
-  static void execution_group_finished(const ExecutionGroup *group)
-  {
-    if (COM_EXPORT_GRAPHVIZ) {
-      group_states_[group] = EG_FINISHED;
-    }
-  };
-
   static void operation_rendered(const NodeOperation *op, MemoryBuffer *render)
   {
     /* Don't export constant operations as there are too many and it's rarely useful. */
@@ -126,7 +103,6 @@ class DebugInfo {
  protected:
   static int graphviz_operation(const ExecutionSystem *system,
                                 NodeOperation *operation,
-                                const ExecutionGroup *group,
                                 char *str,
                                 int maxlen);
   static int graphviz_legend_color(const char *name, const char *color, char *str, int maxlen);
@@ -134,7 +110,7 @@ class DebugInfo {
       const char *name, const char *color, const char *style, char *str, int maxlen);
   static int graphviz_legend_group(
       const char *name, const char *color, const char *style, char *str, int maxlen);
-  static int graphviz_legend(char *str, int maxlen, bool has_execution_groups);
+  static int graphviz_legend(char *str, int maxlen);
   static bool graphviz_system(const ExecutionSystem *system, char *str, int maxlen);
 
   static void export_operation(const NodeOperation *op, MemoryBuffer *render);

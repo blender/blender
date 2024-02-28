@@ -47,8 +47,6 @@ class KeyingScreenOperation : public MultiThreadedOperation {
   void init_execution() override;
   void deinit_execution() override;
 
-  void *initialize_tile_data(rcti *rect) override;
-
   void set_movie_clip(MovieClip *clip)
   {
     movie_clip_ = clip;
@@ -65,8 +63,6 @@ class KeyingScreenOperation : public MultiThreadedOperation {
   {
     framenumber_ = framenumber;
   }
-
-  void execute_pixel(float output[4], int x, int y, void *data) override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,

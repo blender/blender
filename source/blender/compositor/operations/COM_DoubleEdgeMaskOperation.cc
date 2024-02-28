@@ -143,74 +143,10 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation()
   this->add_input_socket(DataType::Value);
   this->add_input_socket(DataType::Value);
   this->add_output_socket(DataType::Value);
-  input_inner_mask_ = nullptr;
-  input_outer_mask_ = nullptr;
   include_all_inner_edges_ = false;
   include_edges_of_image_ = false;
-  flags_.complex = true;
   flags_.can_be_constant = true;
   is_output_rendered_ = false;
-}
-
-bool DoubleEdgeMaskOperation::determine_depending_area_of_interest(
-    rcti * /*input*/, ReadBufferOperation *read_operation, rcti *output)
-{
-  if (cached_instance_ == nullptr) {
-    rcti new_input;
-    new_input.xmax = this->get_width();
-    new_input.xmin = 0;
-    new_input.ymax = this->get_height();
-    new_input.ymin = 0;
-    return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
-  }
-
-  return false;
-}
-
-void DoubleEdgeMaskOperation::init_execution()
-{
-  input_inner_mask_ = this->get_input_socket_reader(0);
-  input_outer_mask_ = this->get_input_socket_reader(1);
-  init_mutex();
-  cached_instance_ = nullptr;
-}
-
-void *DoubleEdgeMaskOperation::initialize_tile_data(rcti *rect)
-{
-  if (cached_instance_) {
-    return cached_instance_;
-  }
-
-  lock_mutex();
-  if (cached_instance_ == nullptr) {
-    MemoryBuffer *inner_mask = (MemoryBuffer *)input_inner_mask_->initialize_tile_data(rect);
-    MemoryBuffer *outer_mask = (MemoryBuffer *)input_outer_mask_->initialize_tile_data(rect);
-    float *data = (float *)MEM_mallocN(sizeof(float) * this->get_width() * this->get_height(),
-                                       __func__);
-    float *imask = inner_mask->get_buffer();
-    float *omask = outer_mask->get_buffer();
-    compute_double_edge_mask(imask, omask, data);
-    cached_instance_ = data;
-  }
-  unlock_mutex();
-  return cached_instance_;
-}
-void DoubleEdgeMaskOperation::execute_pixel(float output[4], int x, int y, void *data)
-{
-  float *buffer = (float *)data;
-  int index = (y * this->get_width() + x);
-  output[0] = buffer[index];
-}
-
-void DoubleEdgeMaskOperation::deinit_execution()
-{
-  input_inner_mask_ = nullptr;
-  input_outer_mask_ = nullptr;
-  deinit_mutex();
-  if (cached_instance_) {
-    MEM_freeN(cached_instance_);
-    cached_instance_ = nullptr;
-  }
 }
 
 void DoubleEdgeMaskOperation::get_area_of_interest(int /*input_idx*/,

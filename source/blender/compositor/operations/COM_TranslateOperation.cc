@@ -14,58 +14,12 @@ TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mod
   this->add_input_socket(DataType::Value, ResizeMode::None);
   this->add_output_socket(data_type);
   this->set_canvas_input_index(0);
-  input_operation_ = nullptr;
-  input_xoperation_ = nullptr;
-  input_yoperation_ = nullptr;
   is_delta_set_ = false;
   is_relative_ = false;
   this->x_extend_mode_ = MemoryBufferExtend::Clip;
   this->y_extend_mode_ = MemoryBufferExtend::Clip;
 
   this->flags_.can_be_constant = true;
-}
-
-void TranslateOperation::init_execution()
-{
-  input_operation_ = this->get_input_socket_reader(0);
-  input_xoperation_ = this->get_input_socket_reader(1);
-  input_yoperation_ = this->get_input_socket_reader(2);
-}
-
-void TranslateOperation::deinit_execution()
-{
-  input_operation_ = nullptr;
-  input_xoperation_ = nullptr;
-  input_yoperation_ = nullptr;
-}
-
-void TranslateOperation::execute_pixel_sampled(float output[4],
-                                               float x,
-                                               float y,
-                                               PixelSampler /*sampler*/)
-{
-  ensure_delta();
-
-  float original_xpos = x - this->get_delta_x();
-  float original_ypos = y - this->get_delta_y();
-
-  input_operation_->read_sampled(output, original_xpos, original_ypos, PixelSampler::Bilinear);
-}
-
-bool TranslateOperation::determine_depending_area_of_interest(rcti *input,
-                                                              ReadBufferOperation *read_operation,
-                                                              rcti *output)
-{
-  rcti new_input;
-
-  ensure_delta();
-
-  new_input.xmin = input->xmin - this->get_delta_x();
-  new_input.xmax = input->xmax - this->get_delta_x();
-  new_input.ymin = input->ymin - this->get_delta_y();
-  new_input.ymax = input->ymax - this->get_delta_y();
-
-  return NodeOperation::determine_depending_area_of_interest(&new_input, read_operation, output);
 }
 
 void TranslateOperation::set_wrapping(int wrapping_type)

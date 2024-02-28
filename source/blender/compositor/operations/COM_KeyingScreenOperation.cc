@@ -26,21 +26,14 @@ KeyingScreenOperation::KeyingScreenOperation()
   movie_clip_ = nullptr;
   framenumber_ = 0;
   tracking_object_[0] = 0;
-  flags_.complex = true;
   cached_marker_points_ = nullptr;
 }
 
 void KeyingScreenOperation::init_execution()
 {
-  init_mutex();
-  if (execution_model_ == eExecutionModel::FullFrame) {
-    BLI_assert(cached_marker_points_ == nullptr);
-    if (movie_clip_) {
-      cached_marker_points_ = compute_marker_points();
-    }
-  }
-  else {
-    cached_marker_points_ = nullptr;
+  BLI_assert(cached_marker_points_ == nullptr);
+  if (movie_clip_) {
+    cached_marker_points_ = compute_marker_points();
   }
 }
 
@@ -144,23 +137,6 @@ Array<KeyingScreenOperation::MarkerPoint> *KeyingScreenOperation::compute_marker
   return marker_points;
 }
 
-void *KeyingScreenOperation::initialize_tile_data(rcti * /*rect*/)
-{
-  if (movie_clip_ == nullptr) {
-    return nullptr;
-  }
-
-  if (!cached_marker_points_) {
-    lock_mutex();
-    if (cached_marker_points_ == nullptr) {
-      cached_marker_points_ = compute_marker_points();
-    }
-    unlock_mutex();
-  }
-
-  return nullptr;
-}
-
 void KeyingScreenOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
   r_area = COM_AREA_NONE;
@@ -176,31 +152,6 @@ void KeyingScreenOperation::determine_canvas(const rcti &preferred_area, rcti &r
     r_area.xmax = r_area.xmin + width;
     r_area.ymax = r_area.ymin + height;
   }
-}
-
-void KeyingScreenOperation::execute_pixel(float output[4], int x, int y, void * /* data */)
-{
-  if (!cached_marker_points_) {
-    copy_v4_fl(output, 0.0f);
-    return;
-  }
-
-  const int2 size = int2(this->get_width(), this->get_height());
-  const float2 normalized_pixel_location = float2(x, y) / float2(size);
-  const float squared_shape_parameter = math::square(1.0f / smoothness_);
-
-  float4 weighted_sum = float4(0.0f);
-  float sum_of_weights = 0.0f;
-  for (const MarkerPoint &marker_point : *cached_marker_points_) {
-    const float2 difference = normalized_pixel_location - marker_point.position;
-    const float squared_distance = math::dot(difference, difference);
-    const float gaussian = math::exp(-squared_distance * squared_shape_parameter);
-    weighted_sum += marker_point.color * gaussian;
-    sum_of_weights += gaussian;
-  }
-  weighted_sum /= sum_of_weights;
-
-  copy_v4_v4(output, weighted_sum);
 }
 
 void KeyingScreenOperation::update_memory_buffer_partial(MemoryBuffer *output,

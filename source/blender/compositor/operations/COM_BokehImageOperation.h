@@ -95,19 +95,7 @@ class BokehImageOperation : public MultiThreadedOperation {
  public:
   BokehImageOperation();
 
-  /**
-   * \brief The inner loop of this operation.
-   */
-  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
-
-  /**
-   * \brief Initialize the execution
-   */
   void init_execution() override;
-
-  /**
-   * \brief De-initialize the execution
-   */
   void deinit_execution() override;
 
   /**

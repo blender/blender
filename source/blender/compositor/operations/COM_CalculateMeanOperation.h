@@ -22,11 +22,6 @@ class CalculateMeanOperation : public ConstantOperation {
   };
 
  protected:
-  /**
-   * \brief Cached reference to the reader
-   */
-  SocketReader *image_reader_;
-
   bool is_calculated_;
   float constant_value_;
   int setting_;
@@ -35,26 +30,8 @@ class CalculateMeanOperation : public ConstantOperation {
  public:
   CalculateMeanOperation();
 
-  /**
-   * The inner loop of this operation.
-   */
-  void execute_pixel(float output[4], int x, int y, void *data) override;
-
-  /**
-   * Initialize the execution
-   */
   void init_execution() override;
 
-  void *initialize_tile_data(rcti *rect) override;
-
-  /**
-   * Deinitialize the execution
-   */
-  void deinit_execution() override;
-
-  bool determine_depending_area_of_interest(rcti *input,
-                                            ReadBufferOperation *read_operation,
-                                            rcti *output) override;
   void set_setting(int setting);
 
   void get_area_of_interest(int input_idx, const rcti &output_area, rcti &r_input_area) override;
@@ -71,7 +48,6 @@ class CalculateMeanOperation : public ConstantOperation {
    * The caller takes care of checking the value is only calculated once. */
   virtual float calculate_value(const MemoryBuffer *input) const;
 
-  float calculate_mean_tile(MemoryBuffer *tile) const;
   float calculate_mean(const MemoryBuffer *input) const;
 
  private:

@@ -48,4 +48,14 @@ class GaussianAlphaBlurBaseOperation : public BlurBaseOperation {
   }
 };
 
+class GaussianAlphaXBlurOperation : public GaussianAlphaBlurBaseOperation {
+ public:
+  GaussianAlphaXBlurOperation() : GaussianAlphaBlurBaseOperation(eDimension::X) {}
+};
+
+class GaussianAlphaYBlurOperation : public GaussianAlphaBlurBaseOperation {
+ public:
+  GaussianAlphaYBlurOperation() : GaussianAlphaBlurBaseOperation(eDimension::Y) {}
+};
+
 }  // namespace blender::compositor

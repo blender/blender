@@ -21,28 +21,14 @@ struct ImBuf;
 
 namespace blender::compositor {
 
-/**
- * \brief state of a memory buffer
- * \ingroup Memory
- */
-enum class MemoryBufferState {
-  /** \brief memory has been allocated on creator device and CPU machine,
-   * but kernel has not been executed */
-  Default = 0,
-  /** \brief chunk is consolidated from other chunks. special state. */
-  Temporary = 6,
-};
-
 enum class MemoryBufferExtend {
   Clip,
   Extend,
   Repeat,
 };
 
-class MemoryProxy;
-
 /**
- * \brief a MemoryBuffer contains access to the data of a chunk
+ * \brief a MemoryBuffer contains access to the data
  */
 class MemoryBuffer {
  public:
@@ -66,24 +52,14 @@ class MemoryBuffer {
 
  private:
   /**
-   * \brief proxy of the memory (same for all chunks in the same buffer)
-   */
-  MemoryProxy *memory_proxy_;
-
-  /**
    * \brief the type of buffer DataType::Value, DataType::Vector, DataType::Color
    */
   DataType datatype_;
 
   /**
-   * \brief region of this buffer inside relative to the MemoryProxy
+   * \brief region of this buffer inside
    */
   rcti rect_;
-
-  /**
-   * \brief state of the buffer
-   */
-  MemoryBufferState state_;
 
   /**
    * \brief the actual float buffer/data
@@ -113,11 +89,6 @@ class MemoryBuffer {
   int to_positive_y_stride_;
 
  public:
-  /**
-   * \brief construct new temporarily MemoryBuffer for an area
-   */
-  MemoryBuffer(MemoryProxy *memory_proxy, const rcti &rect, MemoryBufferState state);
-
   /**
    * \brief construct new temporarily MemoryBuffer for an area
    */
@@ -384,12 +355,6 @@ class MemoryBuffer {
     return buffer_;
   }
 
-  float *release_ownership_buffer()
-  {
-    owns_data_ = false;
-    return buffer_;
-  }
-
   /**
    * Converts a single elem buffer to a full size buffer (allocates memory for all
    * elements in resolution).
@@ -491,8 +456,6 @@ class MemoryBuffer {
     y = y + rect_.ymin;
   }
 
-  /* TODO(manzanilla): to be removed with tiled implementation. For applying #MemoryBufferExtend
-   * use #wrap_pixel. */
   inline void read(float *result,
                    int x,
                    int y,
@@ -514,28 +477,6 @@ class MemoryBuffer {
       memcpy(result, buffer, sizeof(float) * num_channels_);
     }
   }
-
-  /* TODO(manzanilla): to be removed with tiled implementation. */
-  inline void read_no_check(float *result,
-                            int x,
-                            int y,
-                            MemoryBufferExtend extend_x = MemoryBufferExtend::Clip,
-                            MemoryBufferExtend extend_y = MemoryBufferExtend::Clip)
-  {
-    int u = x;
-    int v = y;
-
-    this->wrap_pixel(u, v, extend_x, extend_y);
-    const int offset = get_coords_offset(u, v);
-
-    BLI_assert(offset >= 0);
-    BLI_assert(offset < this->buffer_len() * num_channels_);
-    BLI_assert(!(extend_x == MemoryBufferExtend::Clip && (u < rect_.xmin || u >= rect_.xmax)) &&
-               !(extend_y == MemoryBufferExtend::Clip && (v < rect_.ymin || v >= rect_.ymax)));
-    float *buffer = &buffer_[offset];
-    memcpy(result, buffer, sizeof(float) * num_channels_);
-  }
-
   void write_pixel(int x, int y, const float color[4]);
   void add_pixel(int x, int y, const float color[4]);
   inline void read_bilinear(float *result,
@@ -567,16 +508,6 @@ class MemoryBuffer {
                                          extend_x == MemoryBufferExtend::Repeat,
                                          extend_y == MemoryBufferExtend::Repeat);
     }
-  }
-
-  void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
-
-  /**
-   * \brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
-   */
-  inline bool is_temporarily() const
-  {
-    return state_ == MemoryBufferState::Temporary;
   }
 
   /**

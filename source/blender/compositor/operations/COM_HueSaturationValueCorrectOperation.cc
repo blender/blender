@@ -14,52 +14,6 @@ HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation()
 {
   this->add_input_socket(DataType::Color);
   this->add_output_socket(DataType::Color);
-
-  input_program_ = nullptr;
-}
-void HueSaturationValueCorrectOperation::init_execution()
-{
-  CurveBaseOperation::init_execution();
-  input_program_ = this->get_input_socket_reader(0);
-}
-
-void HueSaturationValueCorrectOperation::execute_pixel_sampled(float output[4],
-                                                               float x,
-                                                               float y,
-                                                               PixelSampler sampler)
-{
-  float hsv[4], f;
-
-  input_program_->read_sampled(hsv, x, y, sampler);
-
-  /* We parameterize the curve using the hue value. */
-  const float parameter = hsv[0];
-
-  /* adjust hue, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(curve_mapping_, 0, parameter);
-  hsv[0] += f - 0.5f;
-
-  /* adjust saturation, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(curve_mapping_, 1, parameter);
-  hsv[1] *= (f * 2.0f);
-
-  /* adjust value, scaling returned default 0.5 up to 1 */
-  f = BKE_curvemapping_evaluateF(curve_mapping_, 2, parameter);
-  hsv[2] *= (f * 2.0f);
-
-  hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */
-  CLAMP(hsv[1], 0.0f, 1.0f);
-
-  output[0] = hsv[0];
-  output[1] = hsv[1];
-  output[2] = hsv[2];
-  output[3] = hsv[3];
-}
-
-void HueSaturationValueCorrectOperation::deinit_execution()
-{
-  CurveBaseOperation::deinit_execution();
-  input_program_ = nullptr;
 }
 
 void HueSaturationValueCorrectOperation::update_memory_buffer_partial(MemoryBuffer *output,

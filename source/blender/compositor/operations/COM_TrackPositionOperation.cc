@@ -113,21 +113,6 @@ void TrackPositionOperation::calc_track_position()
   }
 }
 
-void TrackPositionOperation::execute_pixel_sampled(float output[4],
-                                                   float /*x*/,
-                                                   float /*y*/,
-                                                   PixelSampler /*sampler*/)
-{
-  output[0] = marker_pos_[axis_] - relative_pos_[axis_];
-
-  if (axis_ == 0) {
-    output[0] *= width_;
-  }
-  else {
-    output[0] *= height_;
-  }
-}
-
 const float *TrackPositionOperation::get_constant_elem()
 {
   if (!is_track_position_calculated_) {

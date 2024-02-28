@@ -32,7 +32,6 @@ https://github.com/AcademySoftwareFoundation/MaterialX
 ** meson; version 0.63 -- https://github.com/mesonbuild/meson
 ** oneAPI Threading Building Block; version 2020_U3 --
 https://software.intel.com/en-us/oneapi/onetbb
-** OpenCL Wrangler; version 27a6867 -- https://github.com/OpenCLWrangler/clew
 ** OpenImageDenoise; version 1.4.3 -- https://www.openimagedenoise.org/
 ** OpenImageIO; version 2.4.15.0 -- http://www.openimageio.org
 ** OpenSSL; version 3.1.2 -- https://www.openssl.org/

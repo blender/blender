@@ -335,6 +335,7 @@ typedef struct GreasePencilLayerTreeGroup {
 typedef enum GreasePencilFlag {
   GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
   GREASE_PENCIL_AUTOLOCK_LAYERS = (1 << 1),
+  GREASE_PENCIL_STROKE_ORDER_3D = (1 << 2),
 } GreasePencilFlag;
 
 /**

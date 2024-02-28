@@ -13,56 +13,7 @@ LuminanceMatteOperation::LuminanceMatteOperation()
   add_input_socket(DataType::Color);
   add_output_socket(DataType::Value);
 
-  input_image_program_ = nullptr;
   flags_.can_be_constant = true;
-}
-
-void LuminanceMatteOperation::init_execution()
-{
-  input_image_program_ = this->get_input_socket_reader(0);
-}
-
-void LuminanceMatteOperation::deinit_execution()
-{
-  input_image_program_ = nullptr;
-}
-
-void LuminanceMatteOperation::execute_pixel_sampled(float output[4],
-                                                    float x,
-                                                    float y,
-                                                    PixelSampler sampler)
-{
-  float in_color[4];
-  input_image_program_->read_sampled(in_color, x, y, sampler);
-
-  const float high = settings_->t1;
-  const float low = settings_->t2;
-  const float luminance = IMB_colormanagement_get_luminance(in_color);
-
-  float alpha;
-
-  /* one line thread-friend algorithm:
-   * output[0] = std::min(input_value[3], std::min(1.0f, std::max(0.0f, ((luminance - low) / (high
-   * - low))));
-   */
-
-  /* test range */
-  if (luminance > high) {
-    alpha = 1.0f;
-  }
-  else if (luminance < low) {
-    alpha = 0.0f;
-  }
-  else { /* Blend. */
-    alpha = (luminance - low) / (high - low);
-  }
-
-  /* Store matte(alpha) value in [0] to go with
-   * COM_SetAlphaMultiplyOperation and the Value output.
-   */
-
-  /* don't make something that was more transparent less transparent */
-  output[0] = min_ff(alpha, in_color[3]);
 }
 
 void LuminanceMatteOperation::update_memory_buffer_partial(MemoryBuffer *output,
