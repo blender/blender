@@ -11,7 +11,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 
 #include "../outliner_intern.hh"
 #include "common.hh"

@@ -10,7 +10,7 @@
 #include <sstream>
 #include <string>
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_duplilist.hh"
 #include "BKE_key.hh"
 #include "BKE_object.hh"

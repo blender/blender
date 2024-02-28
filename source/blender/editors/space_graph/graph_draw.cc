@@ -20,7 +20,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_curve.hh"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"

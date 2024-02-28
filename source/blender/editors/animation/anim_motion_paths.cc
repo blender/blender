@@ -20,7 +20,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 

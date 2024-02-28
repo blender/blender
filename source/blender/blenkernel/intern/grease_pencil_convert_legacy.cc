@@ -8,7 +8,7 @@
 
 #include <fmt/format.h>
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_attribute.hh"
 #include "BKE_colorband.hh"
 #include "BKE_colortools.hh"

@@ -55,7 +55,7 @@
 #undef DNA_GENFILE_VERSIONING_MACROS
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_asset.hh"

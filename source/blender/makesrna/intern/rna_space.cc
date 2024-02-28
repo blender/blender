@@ -551,7 +551,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 #  include "BLI_path_util.h"
 #  include "BLI_string.h"
 
-#  include "BKE_anim_data.h"
+#  include "BKE_anim_data.hh"
 #  include "BKE_brush.hh"
 #  include "BKE_context.hh"
 #  include "BKE_global.hh"

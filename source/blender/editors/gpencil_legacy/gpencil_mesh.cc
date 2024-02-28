@@ -19,7 +19,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_context.hh"
 #include "BKE_duplilist.hh"
 #include "BKE_gpencil_geom_legacy.h"

@@ -22,7 +22,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"

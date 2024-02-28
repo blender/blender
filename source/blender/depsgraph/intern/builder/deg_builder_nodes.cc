@@ -53,7 +53,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"

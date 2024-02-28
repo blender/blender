@@ -66,7 +66,7 @@
 
 #include "BKE_DerivedMesh.hh"
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_anim_path.h"
 #include "BKE_anim_visualization.h"
 #include "BKE_animsys.h"

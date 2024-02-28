@@ -9,7 +9,7 @@
 #include "ANIM_animdata.hh"
 
 #include "BKE_action.h"
-#include "BKE_anim_data.h"
+#include "BKE_anim_data.hh"
 #include "BKE_fcurve.h"
 #include "BKE_lib_id.hh"
 
