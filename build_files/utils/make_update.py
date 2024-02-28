@@ -106,10 +106,10 @@ def get_effective_architecture(args: argparse.Namespace) -> str:
 
     assert (architecture in ("x64", "arm64"))
 
-    return str(architecture)
+    return architecture
 
 
-def get_submodule_directories(args: argparse.Namespace) -> list[Path]:
+def get_submodule_directories(args: argparse.Namespace):
     """
     Get list of all configured submodule directories.
     """
@@ -118,10 +118,10 @@ def get_submodule_directories(args: argparse.Namespace) -> list[Path]:
     dot_modules = blender_git_root / ".gitmodules"
 
     if not dot_modules.exists():
-        return []
+        return ()
 
     submodule_directories_output = check_output(
-        [args.git_command, "config", "--file", str(dot_modules), "--get-regexp", "path"])
+        [args.git_command, "config", "--file", dot_modules, "--get-regexp", "path"])
     return [Path(line.split(' ', 1)[1]) for line in submodule_directories_output.strip().splitlines()]
 
 
@@ -304,7 +304,7 @@ def external_script_copy_old_submodule_over(
 def floating_checkout_initialize_if_needed(args: argparse.Namespace,
                                            repo_name: str,
                                            directory: Path,
-                                           old_submodules_dir: Optional[Path] = None) -> None:
+                                           old_submodules_dir: Path = None) -> None:
     """Initialize checkout of an external repository"""
 
     blender_git_root = get_blender_git_root()
@@ -397,8 +397,8 @@ def floating_checkout_update(args: argparse.Namespace,
                              repo_name: str,
                              directory: Path,
                              branch: Optional[str],
-                             old_submodules_dir: Optional[Path] = None,
-                             only_update: bool = False) -> str:
+                             old_submodules_dir: Path = None,
+                             only_update=False) -> str:
     """Update a single external checkout with the given name in the scripts folder"""
 
     blender_git_root = get_blender_git_root()
@@ -499,7 +499,7 @@ def floating_libraries_update(args: argparse.Namespace, branch: Optional[str]) -
     return msg
 
 
-def add_submodule_push_url(args: argparse.Namespace) -> None:
+def add_submodule_push_url(args: argparse.Namespace):
     """
     Add pushURL configuration for all locally activated submodules, pointing to SSH protocol.
     """

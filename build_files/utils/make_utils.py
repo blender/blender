@@ -20,8 +20,7 @@ from typing import (
 )
 
 
-def call(cmd: Sequence[str], exit_on_error: bool = True,
-         silent: bool = False, env: Optional[dict[str, str]] = None) -> int:
+def call(cmd: Sequence[str], exit_on_error: bool = True, silent: bool = False, env=None) -> int:
     if not silent:
         cmd_str = ""
         if env:
@@ -136,7 +135,7 @@ def _git_submodule_config_key(submodule_dir: Path, key: str) -> str:
     return f"submodule.{submodule_dir_str}.{key}"
 
 
-def is_git_submodule_enabled(git_command: str, submodule_dir: Path) -> bool:
+def is_git_submodule_enabled(git_command: str, submodule_dir: Path):
     """Check whether submodule denoted by its directory within the repository is enabled"""
 
     git_root = Path(check_output([git_command, "rev-parse", "--show-toplevel"]))
@@ -159,7 +158,7 @@ def is_git_submodule_enabled(git_command: str, submodule_dir: Path) -> bool:
     return update.lower() != "none"
 
 
-def git_enable_submodule(git_command: str, submodule_dir: Path) -> None:
+def git_enable_submodule(git_command: str, submodule_dir: Path):
     """Enable submodule denoted by its directory within the repository"""
 
     command = (git_command,
@@ -201,11 +200,11 @@ def git_update_submodule(git_command: str, submodule_dir: Path) -> bool:
 
     env = {"GIT_LFS_SKIP_SMUDGE": "1"}
 
-    if call((git_command, "submodule", "update", "--init", "--progress", str(submodule_dir)),
+    if call((git_command, "submodule", "update", "--init", "--progress", submodule_dir),
             exit_on_error=False, env=env) != 0:
         return False
 
-    return call((git_command, "-C", str(submodule_dir), "lfs", "pull"),
+    return call((git_command, "-C", submodule_dir, "lfs", "pull"),
                 exit_on_error=False) == 0
 
 
