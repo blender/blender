@@ -40,7 +40,8 @@ from typing import (
 def argparse_create() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Generate Weekly Report",
-        epilog="This script is typically used to help write weekly reports")
+        epilog="This script is typically used to help write weekly reports",
+    )
 
     parser.add_argument(
         "--username",
@@ -48,21 +49,26 @@ def argparse_create() -> argparse.ArgumentParser:
         metavar='USERNAME',
         type=str,
         required=False,
-        help="")
+        help="",
+    )
 
     parser.add_argument(
         "--weeks-ago",
         dest="weeks_ago",
         type=int,
         default=1,
-        help="Determine which week the report should be generated for. 0 means the current week. "
-             "The default is 1, to create a report for the previous week.")
+        help=(
+            "Determine which week the report should be generated for. 0 means the current week. "
+            "The default is 1, to create a report for the previous week."
+        ),
+    )
 
     parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
-        help="increase output verbosity")
+        help="increase output verbosity",
+    )
 
     return parser
 
@@ -160,14 +166,17 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
         print(f"[{int(100 * (process / len_total))}%] Checking issue {issue}       ", end="\r", flush=True)
         process += 1
 
-        issue_events = gitea_json_issue_events_filter(issue,
-                                                      date_start=start,
-                                                      date_end=date_end,
-                                                      username=username,
-                                                      labels={
-                                                          "Status/Confirmed",
-                                                          "Status/Needs Information from User",
-                                                          "Status/Needs Info from Developers"})
+        issue_events = gitea_json_issue_events_filter(
+            issue,
+            date_start=start,
+            date_end=date_end,
+            username=username,
+            labels={
+                "Status/Confirmed",
+                "Status/Needs Information from User",
+                "Status/Needs Info from Developers"
+            }
+        )
 
         for event in issue_events:
             label_name = event["label"]["name"]
@@ -182,12 +191,14 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
         print(f"[{int(100 * (process / len_total))}%] Checking issue {issue}       ", end="\r", flush=True)
         process += 1
 
-        issue_events = gitea_json_issue_events_filter(issue,
-                                                      date_start=start,
-                                                      date_end=date_end,
-                                                      username=username,
-                                                      event_type={"close", "commit_ref"},
-                                                      labels={"Status/Duplicate"})
+        issue_events = gitea_json_issue_events_filter(
+            issue,
+            date_start=start,
+            date_end=date_end,
+            username=username,
+            event_type={"close", "commit_ref"},
+            labels={"Status/Duplicate"},
+        )
 
         for event in issue_events:
             event_type = event["type"]
@@ -202,11 +213,13 @@ def report_personal_weekly_get(username: str, start: datetime.datetime, verbose:
         print(f"[{int(100 * (process / len_total))}%] Checking pull {pull}         ", end="\r", flush=True)
         process += 1
 
-        pull_events = gitea_json_issue_events_filter(pull.replace("pulls", "issues"),
-                                                     date_start=start,
-                                                     date_end=date_end,
-                                                     username=username,
-                                                     event_type={"comment"})
+        pull_events = gitea_json_issue_events_filter(
+            pull.replace("pulls", "issues"),
+            date_start=start,
+            date_end=date_end,
+            username=username,
+            event_type={"comment"},
+        )
 
         if pull_events:
             pull_data = gitea_json_issue_get_cached(pull)
