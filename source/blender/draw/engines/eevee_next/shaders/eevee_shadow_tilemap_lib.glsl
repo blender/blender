@@ -205,6 +205,24 @@ vec3 shadow_punctual_local_position_to_face_local(int face_id, vec3 lL)
   }
 }
 
+vec3 shadow_punctual_face_local_to_local_position(int face_id, vec3 fL)
+{
+  switch (face_id) {
+    case 1:
+      return vec3(-fL.z, -fL.x, fL.y);
+    case 2:
+      return vec3(fL.z, fL.x, fL.y);
+    case 3:
+      return vec3(fL.x, -fL.z, fL.y);
+    case 4:
+      return vec3(-fL.x, fL.z, fL.y);
+    case 5:
+      return vec3(fL.x, -fL.y, -fL.z);
+    default:
+      return fL;
+  }
+}
+
 /* Turns local light coordinate into shadow region index. Matches eCubeFace order.
  * \note lL does not need to be normalized. */
 int shadow_punctual_face_index_get(vec3 lL)

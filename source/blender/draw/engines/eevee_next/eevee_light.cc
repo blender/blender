@@ -78,6 +78,8 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
   this->power[LIGHT_SPECULAR] = la->spec_fac * shape_power;
   this->power[LIGHT_VOLUME] = la->volume_fac * point_power;
 
+  this->pcf_radius = la->shadow_filter_radius;
+
   eLightType new_type = to_light_type(la->type, la->area_shape, la->mode & LA_USE_SOFT_FALLOFF);
   if (assign_if_different(this->type, new_type)) {
     shadow_discard_safe(shadows);
