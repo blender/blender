@@ -29,7 +29,7 @@ class GField;
 namespace blender::bke {
 
 enum class AttrDomain : int8_t {
-  /* Use for to choose automatically based on other data. */
+  /* Used to choose automatically based on other data. */
   Auto = -1,
   /* Mesh, Curve or Point Cloud Point. */
   Point = 0,
