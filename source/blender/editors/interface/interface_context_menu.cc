@@ -416,6 +416,10 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
         STRNCPY(drawstr, idname);
 #endif
       }
+      else if (but->tip_label_func) {
+        /* The "quick tooltip" often contains a short string that can be used as a fallback. */
+        drawstr = but->tip_label_func(but);
+      }
     }
     ED_screen_user_menu_item_add_operator(
         &um->items,
