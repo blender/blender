@@ -543,7 +543,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
             break;
         }
 
-        if (bvhMetalRT) {
+        if (bvhMetalRT && bvhMetalRT->accel_struct) {
           /* Mark all Accelerations resources as used */
           [mtlComputeCommandEncoder useResource:bvhMetalRT->accel_struct
                                           usage:MTLResourceUsageRead];
