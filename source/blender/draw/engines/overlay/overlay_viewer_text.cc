@@ -44,7 +44,7 @@ static void add_values_to_text_cache(const GVArray &values,
       const float3 position = math::transform_point(object_to_world, positions[i]);
       const T &value = values_typed[i];
 
-      char numstr[32];
+      char numstr[64];
       size_t numstr_len = 0;
       if constexpr (std::is_same_v<T, bool>) {
         numstr_len = SNPRINTF_RLEN(numstr, "%s", value ? "True" : "False");
@@ -77,7 +77,8 @@ static void add_values_to_text_cache(const GVArray &values,
             numstr, "(%.3f, %.3f, %.3f, %.3f)", value.r, value.g, value.b, value.a);
       }
       else if constexpr (std::is_same_v<T, math::Quaternion>) {
-        numstr_len = SNPRINTF_RLEN(numstr, "(%g, %g, %g, %g)", value.w, value.x, value.y, value.z);
+        numstr_len = SNPRINTF_RLEN(
+            numstr, "(%.3f, %.3f, %.3f, %.3f)", value.w, value.x, value.y, value.z);
       }
       else {
         BLI_assert_unreachable();
