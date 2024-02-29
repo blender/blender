@@ -10,6 +10,8 @@
 #include <cstring>
 #include <optional>
 
+#include "ANIM_animation.hh"
+
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
@@ -278,7 +280,15 @@ bool BKE_animdata_id_is_animated(const ID *id)
     return false;
   }
 
-  if (adt->action != nullptr && !BLI_listbase_is_empty(&adt->action->curves)) {
+  /* If an Animation is assigned, it takes precedence over the Action, even when
+   * this Animation has no F-Curves and the Action does. */
+  if (adt->animation) {
+    const blender::animrig::Animation &anim = adt->animation->wrap();
+    if (anim.is_binding_animated(adt->binding_handle)) {
+      return true;
+    }
+  }
+  else if (adt->action != nullptr && !BLI_listbase_is_empty(&adt->action->curves)) {
     return true;
   }
 

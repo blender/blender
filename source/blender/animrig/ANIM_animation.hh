@@ -120,6 +120,43 @@ class Animation : public ::Animation {
   const Binding *binding_for_id(const ID &animated_id) const;
 
   Binding &binding_add();
+
+  /** Assign this animation to the ID.
+   *
+   * \param binding The binding this ID should be animated by, may be nullptr if it is to be
+   * assigned later. In that case, the ID will not actually receive any animation.
+   * \param animated_id The ID that should be animated by this Animation data-block.
+   */
+  bool assign_id(Binding *binding, ID &animated_id);
+
+  /**
+   * Unassign this Animation from the animated ID.
+   *
+   * \param animated_id ID that is animated by this Animation. Calling this
+   * function when this ID is _not_ animated by this Animation is not allowed,
+   * and considered a bug.
+   */
+  void unassign_id(ID &animated_id);
+
+  /**
+   * Find the binding that best matches the animated ID.
+   *
+   * If the ID is already animated by this Animation, by matching this
+   * Animation's bindings with (in order):
+   *
+   * - `animated_id.adt->binding_handle`,
+   * - `animated_id.adt->binding_name`,
+   * - `animated_id.name`.
+   *
+   * Note that this is different from #binding_for_id, which does not use the
+   * binding name, and only works when this Animation is already assigned. */
+  Binding *find_suitable_binding_for(const ID &animated_id);
+
+  /**
+   * Return whether this Animation actually has any animation data for the given binding.
+   */
+  bool is_binding_animated(binding_handle_t binding_handle) const;
+
   /** Free all data in the `Animation`. Doesn't delete the `Animation` itself. */
   void free_data();
 
@@ -270,6 +307,29 @@ class Binding : public ::AnimationBinding {
   Binding(const Binding &other) = default;
   ~Binding() = default;
 
+  /**
+   * Binding handle value indicating that there is no binding assigned.
+   */
+  constexpr static binding_handle_t unassigned = 0;
+
+  /**
+   * Let the given ID receive animation from this binding.
+   *
+   * This is a low-level function; for most purposes you want
+   * #Animation::assign_id instead.
+   *
+   * \note This does _not_ set animated_id->adt->animation to the owner of this
+   * Binding. It's the caller's responsibility to do that.
+   *
+   * \return Whether this was possible. If the Binding was already bound to a
+   * specific ID type, and `animated_id` is of a different type, it will be
+   * refused. If the ID type cannot be animated at all, false is also returned.
+   *
+   * \see assign_animation
+   * \see Animation::assign_id
+   */
+  bool connect_id(ID &animated_id);
+
   /** Return whether this Binding is usable by this ID type. */
   bool is_suitable_for(const ID &animated_id) const;
 };
@@ -331,6 +391,48 @@ class ChannelBag : public ::AnimationChannelBag {
 };
 static_assert(sizeof(ChannelBag) == sizeof(::AnimationChannelBag),
               "DNA struct and its C++ wrapper must have the same size");
+
+/**
+ * Assign the animation to the ID.
+ *
+ * This will will make a best-effort guess as to which binding to use, in this
+ * order;
+ *
+ * - By binding handle.
+ * - By fallback string.
+ * - By the ID's name (matching agains the binding name).
+ * - If the above do not find a suitable binding, the animated ID will not
+ *   receive any animation and the calller is responsible for creating a binding
+ *   and assigning it.
+ *
+ * \return `false` if the assignment was not possible (for example the ID is of a type that cannot
+ * be animated). If the above fall-through case of "no binding found" is reached, this function
+ * will still return `true` as the Animation was succesfully assigned.
+ */
+bool assign_animation(Animation &anim, ID &animated_id);
+
+/**
+ * Ensure that this ID is no longer animated.
+ */
+void unassign_animation(ID &animated_id);
+
+/**
+ * Return the Animation of this ID, or nullptr if it has none.
+ */
+Animation *get_animation(ID &animated_id);
+
+/**
+ * Return the F-Curves for this specific binding handle.
+ *
+ * This is just a utility function, that's intended to become obsolete when multi-layer animation
+ * is introduced. However, since Blender currently only supports a single layer with a single
+ * strip, of a single type, this function can be used.
+ *
+ * The use of this function is also an indicator for code that will have to be altered when
+ * multi-layered animation is getting implemented.
+ */
+Span<FCurve *> fcurves_for_animation(Animation &anim, binding_handle_t binding_handle);
+Span<const FCurve *> fcurves_for_animation(const Animation &anim, binding_handle_t binding_handle);
 
 }  // namespace blender::animrig
 

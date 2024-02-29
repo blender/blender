@@ -12,6 +12,35 @@ blender -b --factory-startup --python tests/python/bl_animation_id.py
 """
 
 
+class AnimationIDAssignmentTest(unittest.TestCase):
+    """Test assigning animations & check reference counts."""
+
+    def test_animation_id_assignment(self):
+        # Create new animation datablock.
+        anim = bpy.data.animations.new('TestAnim')
+        self.assertEqual(0, anim.users)
+
+        # Assign the animation to the cube,
+        cube = bpy.data.objects['Cube']
+        cube_adt = cube.animation_data_create()
+        cube_adt.animation = anim
+        self.assertEqual(1, anim.users)
+
+        # Assign the animation to the camera as well.
+        camera = bpy.data.objects['Camera']
+        camera_adt = camera.animation_data_create()
+        camera_adt.animation = anim
+        self.assertEqual(2, anim.users)
+
+        # Unassigning should decrement the user count.
+        cube_adt.animation = None
+        self.assertEqual(1, anim.users)
+
+        # Deleting the camera should also decrement the user count.
+        bpy.data.objects.remove(camera)
+        self.assertEqual(0, anim.users)
+
+
 class LimitationsTest(unittest.TestCase):
     """Test artificial limitations for the Animation data-block.
 

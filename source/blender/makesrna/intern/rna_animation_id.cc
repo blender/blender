@@ -139,7 +139,7 @@ static AnimationBinding *rna_Animation_bindings_new(Animation *anim_id,
 
   animrig::Animation &anim = anim_id->wrap();
   animrig::Binding &binding = anim.binding_add();
-  /* TODO: actually set binding->idtype to this ID's type. */
+  binding.connect_id(*animated_id);
   anim.binding_name_define(binding, animated_id->name);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);

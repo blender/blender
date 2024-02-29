@@ -25,6 +25,7 @@
 
 #include "rna_internal.hh"
 
+#include "WM_api.hh"
 #include "WM_types.hh"
 
 #include "ED_keyframing.hh"
@@ -108,6 +109,8 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 #  include "BKE_animsys.h"
 #  include "BKE_fcurve.hh"
 #  include "BKE_nla.h"
+
+#  include "ANIM_animation.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
@@ -220,6 +223,62 @@ bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
 
   return true;
 }
+
+#  ifdef WITH_ANIM_BAKLAVA
+static void rna_AnimData_animation_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
+{
+  BLI_assert(ptr->owner_id);
+  ID &animated_id = *ptr->owner_id;
+
+  Animation *anim = static_cast<Animation *>(value.data);
+  if (!anim) {
+    blender::animrig::unassign_animation(animated_id);
+    return;
+  }
+
+  blender::animrig::assign_animation(anim->wrap(), animated_id);
+}
+
+static void rna_AnimData_animation_binding_handle_set(
+    PointerRNA *ptr, const blender::animrig::binding_handle_t new_binding_handle)
+{
+  BLI_assert(ptr->owner_id);
+  ID &animated_id = *ptr->owner_id;
+
+  /* 'adt' is guaranteed to exist, or otherwise this function could not be called. */
+  AnimData *adt = BKE_animdata_from_id(&animated_id);
+  BLI_assert_msg(adt, "ID.animation_data is unexpectedly empty");
+  if (!adt) {
+    WM_reportf(RPT_ERROR,
+               "Data-block '%s' does not have any animation data, how did you set this property?",
+               animated_id.name + 2);
+    return;
+  }
+
+  if (new_binding_handle == blender::animrig::Binding::unassigned) {
+    /* No need to check with the Animation, as 'no binding' is always valid. */
+    adt->binding_handle = blender::animrig::Binding::unassigned;
+    return;
+  }
+
+  blender::animrig::Animation *anim = blender::animrig::get_animation(animated_id);
+  if (!anim) {
+    /* No animation to verify the binding handle is valid. Just set it, it'll be ignored anyway. */
+    adt->binding_handle = new_binding_handle;
+    return;
+  }
+
+  blender::animrig::Binding *binding = anim->binding_for_handle(new_binding_handle);
+  if (!binding) {
+    WM_reportf(RPT_ERROR,
+               "Animation '%s' has no binding with handle %d",
+               anim->id.name + 2,
+               new_binding_handle);
+    return;
+  }
+  binding->connect_id(animated_id);
+}
+#  endif
 
 /* ****************************** */
 
@@ -1480,6 +1539,34 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ADT_CURVES_ALWAYS_VISIBLE);
   RNA_def_property_ui_text(prop, "Pin in Graph Editor", "");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
+
+#  ifdef WITH_ANIM_BAKLAVA
+  /* Animation data-block */
+  prop = RNA_def_property(srna, "animation", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Animation");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, nullptr, "rna_AnimData_animation_set", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Animation", "Active Animation for this data-block");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
+
+  prop = RNA_def_property(srna, "animation_binding_handle", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "binding_handle");
+  RNA_def_property_int_funcs(prop, nullptr, "rna_AnimData_animation_binding_handle_set", nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Animation Binding Handle",
+                           "A number that identifies which sub-set of the Animation is considered "
+                           "to be for this data-block");
+  RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN, "rna_AnimData_dependency_update");
+
+  prop = RNA_def_property(srna, "animation_binding_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "binding_name");
+  RNA_def_property_ui_text(
+      prop,
+      "Animation Binding Name",
+      "The name of the animation binding. The binding identifies which sub-set of the Animation "
+      "is considered to be for this data-block, and its name is used to find the right binding "
+      "when assigning an Animation");
+#  endif
 
   RNA_define_lib_overridable(false);
 
