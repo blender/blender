@@ -191,7 +191,7 @@ void AssetLibrary::load_catalogs()
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
   catalog_service->load_from_disk();
-  this->catalog_service_ = std::move(catalog_service);
+  catalog_service_ = std::move(catalog_service);
 }
 
 AssetCatalogService &AssetLibrary::catalog_service() const
