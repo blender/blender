@@ -59,9 +59,12 @@
 
 #include "BLT_translation.hh"
 
+#include "AS_asset_catalog_path.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
 #include "AS_asset_representation.hh"
+
+#include "UI_resources.hh"
 
 #include "curves_sculpt_intern.hh"
 #include "paint_intern.hh"
@@ -1185,7 +1188,7 @@ static void visit_asset_catalog_for_search_fn(
     const bContext *C,
     PointerRNA *ptr,
     PropertyRNA * /*prop*/,
-    const char * /*edit_text*/,
+    const char *edit_text,
     FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   const bUserAssetLibrary *user_library = get_asset_library_from_prop(*ptr);
@@ -1197,6 +1200,13 @@ static void visit_asset_catalog_for_search_fn(
       CTX_data_main(C), user_library_to_library_ref(*user_library));
   if (!library) {
     return;
+  }
+
+  if (edit_text && edit_text[0] != '\0') {
+    asset_system::AssetCatalogPath edit_path = edit_text;
+    if (!library->catalog_service().find_catalog_by_path(edit_path)) {
+      visit_fn(StringPropertySearchVisitParams{edit_path.str(), std::nullopt, ICON_ADD});
+    }
   }
 
   const asset_system::AssetCatalogTree &full_tree = library->catalog_service().catalog_tree();
