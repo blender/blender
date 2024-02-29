@@ -357,7 +357,6 @@ def generate(context, space_type, *, use_fallback_keys=True, use_reset=True):
 
     if use_hack_properties:
         keymap.keymap_items.remove(kmi_hack)
-        keymap.keymap_items.remove(kmi_hack_brush_select)
 
     # Keep last so we can try add a key without any modifiers
     # in the case this toolbar was activated with modifiers.
