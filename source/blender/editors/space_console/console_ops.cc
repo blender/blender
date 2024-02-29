@@ -24,6 +24,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_report.h"
+#include "BKE_screen.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -398,6 +399,8 @@ static int console_move_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
   ConsoleLine *ci = console_history_verify(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   int type = RNA_enum_get(op->ptr, "type");
   bool select = RNA_boolean_get(op->ptr, "select");
@@ -461,9 +464,6 @@ static int console_move_exec(bContext *C, wmOperator *op)
   }
 
   if (done) {
-    ScrArea *area = CTX_wm_area(C);
-    ARegion *region = CTX_wm_region(C);
-
     ED_area_tag_redraw(area);
     console_scroll_bottom(region);
   }
@@ -493,7 +493,8 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 static int console_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   ConsoleLine *ci = console_history_verify(C);
   char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
   int len = strlen(str);
@@ -524,7 +525,7 @@ static int console_insert_exec(bContext *C, wmOperator *op)
   console_select_offset(sc, len);
 
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -625,8 +626,10 @@ void CONSOLE_OT_indent_or_autocomplete(wmOperatorType *ot)
 static int console_indent_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   int spaces;
   int len;
 
@@ -648,7 +651,7 @@ static int console_indent_exec(bContext *C, wmOperator * /*op*/)
   console_select_offset(sc, len);
 
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -672,8 +675,10 @@ void CONSOLE_OT_indent(wmOperatorType *ot)
 static int console_unindent_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   int spaces;
   int len;
 
@@ -702,7 +707,7 @@ static int console_unindent_exec(bContext *C, wmOperator * /*op*/)
   console_select_offset(sc, -len);
 
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -732,8 +737,10 @@ static const EnumPropertyItem console_delete_type_items[] = {
 static int console_delete_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   int pos;
   int stride;
 
@@ -747,7 +754,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
   /* If there is a selection just delete it and nothing else. */
   if (sc->sel_start != sc->sel_end && console_delete_editable_selection(sc) > 0) {
     console_textview_update_rect(sc, region);
-    ED_area_tag_redraw(CTX_wm_area(C));
+    ED_area_tag_redraw(area);
     console_scroll_bottom(region);
     return OPERATOR_FINISHED;
   }
@@ -805,7 +812,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
   console_select_offset(sc, -stride);
 
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -835,8 +842,9 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 static int console_clear_line_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   if (ci->len == 0) {
     return OPERATOR_CANCELLED;
@@ -848,7 +856,7 @@ static int console_clear_line_exec(bContext *C, wmOperator * /*op*/)
 
   console_textview_update_rect(sc, region);
 
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -871,7 +879,8 @@ void CONSOLE_OT_clear_line(wmOperatorType *ot)
 static int console_clear_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   const bool scrollback = RNA_boolean_get(op->ptr, "scrollback");
   const bool history = RNA_boolean_get(op->ptr, "history");
@@ -892,7 +901,7 @@ static int console_clear_exec(bContext *C, wmOperator *op)
   }
 
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   return OPERATOR_FINISHED;
 }
@@ -917,7 +926,8 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 static int console_history_cycle_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   /* TODO: stupid, just prevents crashes when no command line. */
   ConsoleLine *ci = console_history_verify(C);
@@ -959,7 +969,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 
   /* could be wrapped so update scroll rect */
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -985,8 +995,9 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 static int console_history_append_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   ConsoleLine *ci = console_history_verify(C);
   /* own this text in the new line, don't free */
   char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
@@ -1012,12 +1023,7 @@ static int console_history_append_exec(bContext *C, wmOperator *op)
   console_line_cursor_set(ci, cursor);
 
   ED_area_tag_redraw(area);
-
-  /* When calling render modally this can be null when calling:
-   * `bpy.ops.render.render('INVOKE_DEFAULT')`. */
-  if (region) {
-    console_scroll_bottom(region);
-  }
+  console_scroll_bottom(region);
 
   return OPERATOR_FINISHED;
 }
@@ -1048,8 +1054,9 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci;
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   /* own this text in the new line, don't free */
   char *str = RNA_string_get_alloc(op->ptr, "text", nullptr, 0, nullptr);
@@ -1062,13 +1069,8 @@ static int console_scrollback_append_exec(bContext *C, wmOperator *op)
 
   console_scrollback_limit(sc);
 
-  /* 'region' can be null depending on the operator that runs
-   * rendering with invoke default for eg causes this */
-  if (region) {
-    console_textview_update_rect(sc, region);
-  }
-
-  ED_area_tag_redraw(CTX_wm_area(C));
+  console_textview_update_rect(sc, region);
+  ED_area_tag_redraw(area);
 
   return OPERATOR_FINISHED;
 }
@@ -1152,8 +1154,10 @@ static int console_paste_exec(bContext *C, wmOperator *op)
 {
   const bool selection = RNA_boolean_get(op->ptr, "selection");
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
   ConsoleLine *ci = console_history_verify(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   int buf_str_len;
 
   char *buf_str = WM_clipboard_text_get(selection, true, &buf_str_len);
@@ -1181,7 +1185,7 @@ static int console_paste_exec(bContext *C, wmOperator *op)
   MEM_freeN(buf_str);
 
   console_textview_update_rect(sc, region);
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   console_scroll_bottom(region);
 
@@ -1260,7 +1264,9 @@ static void console_cursor_set_to_pos(SpaceConsole *sc,
 static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   SetConsoleCursor *scu = static_cast<SetConsoleCursor *>(op->customdata);
   int sel_prev[2] = {sc->sel_start, sc->sel_end};
 
@@ -1268,7 +1274,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, const wmEven
 
   /* only redraw if the selection changed */
   if (sel_prev[0] != sc->sel_start || sel_prev[1] != sc->sel_end) {
-    ED_area_tag_redraw(CTX_wm_area(C));
+    ED_area_tag_redraw(area);
   }
 }
 
@@ -1285,11 +1291,14 @@ static void console_cursor_set_exit(bContext *C, wmOperator *op)
 static int console_modal_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+
   SetConsoleCursor *scu;
 
   ConsoleLine *cl = static_cast<ConsoleLine *>(sc->history.last);
   if (cl != nullptr) {
-    const int pos = console_char_pick(sc, CTX_wm_region(C), event->mval);
+    const int pos = console_char_pick(sc, region, event->mval);
     if (pos >= 0 && pos <= cl->len) {
       /* Set text cursor immediately. */
       console_line_cursor_set(cl, cl->len - pos);
@@ -1360,6 +1369,7 @@ static int console_modal_select_all_invoke(bContext *C,
                                            wmOperator * /* op */,
                                            const wmEvent * /* event */)
 {
+  ScrArea *area = CTX_wm_area(C);
   SpaceConsole *sc = CTX_wm_space_console(C);
 
   int offset = strlen(sc->prompt);
@@ -1376,7 +1386,7 @@ static int console_modal_select_all_invoke(bContext *C,
   sc->sel_start = 0;
   sc->sel_end = offset;
 
-  ED_area_tag_redraw(CTX_wm_area(C));
+  ED_area_tag_redraw(area);
 
   return OPERATOR_FINISHED;
 }
@@ -1396,7 +1406,8 @@ void CONSOLE_OT_select_all(wmOperatorType *ot)
 static int console_selectword_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   SpaceConsole *sc = CTX_wm_space_console(C);
-  ARegion *region = CTX_wm_region(C);
+  ScrArea *area = CTX_wm_area(C);
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
 
   ConsoleLine cl_dummy = {nullptr};
   ConsoleLine *cl;
@@ -1418,7 +1429,7 @@ static int console_selectword_invoke(bContext *C, wmOperator * /*op*/, const wmE
     if ((sel[0] != sc->sel_start) || (sel[1] != sc->sel_end)) {
       sc->sel_start = sel[0];
       sc->sel_end = sel[1];
-      ED_area_tag_redraw(CTX_wm_area(C));
+      ED_area_tag_redraw(area);
       ret = OPERATOR_FINISHED;
     }
   }
