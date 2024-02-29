@@ -140,7 +140,7 @@ PointerRNA persistent_catalog_path_rna_pointer(const bScreen &owner_screen,
                                                const asset_system::AssetLibrary &library,
                                                const asset_system::AssetCatalogTreeItem &item)
 {
-  const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(
+  const asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog_by_path(
       item.catalog_path());
   if (!catalog) {
     return PointerRNA_NULL;

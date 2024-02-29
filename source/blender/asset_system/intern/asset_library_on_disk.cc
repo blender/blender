@@ -20,7 +20,7 @@ OnDiskAssetLibrary::OnDiskAssetLibrary(eAssetLibraryType library_type,
 
 void OnDiskAssetLibrary::refresh_catalogs()
 {
-  catalog_service->reload_catalogs();
+  catalog_service().reload_catalogs();
 }
 
 }  // namespace blender::asset_system

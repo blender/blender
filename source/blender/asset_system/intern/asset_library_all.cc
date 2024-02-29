@@ -30,11 +30,11 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
   AssetLibrary::foreach_loaded(
       [&](AssetLibrary &nested) {
         if (reload_nested_catalogs) {
-          nested.catalog_service->reload_catalogs();
+          nested.catalog_service().reload_catalogs();
         }
 
         new_catalog_service->add_from_existing(
-            *nested.catalog_service,
+            nested.catalog_service(),
             /*on_duplicate_items=*/[](const AssetCatalog &existing,
                                       const AssetCatalog &to_be_ignored) {
               if (existing.path == to_be_ignored.path) {
@@ -56,7 +56,7 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
       },
       false);
 
-  this->catalog_service = std::move(new_catalog_service);
+  this->catalog_service_ = std::move(new_catalog_service);
   catalogs_dirty_ = false;
 }
 

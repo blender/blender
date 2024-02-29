@@ -69,6 +69,8 @@ class AssetLibrary {
   std::unique_ptr<AssetStorage> asset_storage_;
 
  protected:
+  std::unique_ptr<AssetCatalogService> catalog_service_;
+
   std::optional<eAssetImportMethod> import_method_;
   /** Assets owned by this library may be imported with a different method than set in
    * #import_method_ above, it's just a default. */
@@ -82,8 +84,6 @@ class AssetLibrary {
   /* Controlled by #ed::asset::catalogs_set_save_catalogs_when_file_is_saved,
    * for managing the "Save Catalog Changes" in the quit-confirmation dialog box. */
   static bool save_catalogs_when_file_is_saved;
-
-  std::unique_ptr<AssetCatalogService> catalog_service;
 
   friend class AssetLibraryService;
   friend class AssetRepresentation;
@@ -110,6 +110,8 @@ class AssetLibrary {
   static void foreach_loaded(FunctionRef<void(AssetLibrary &)> fn, bool include_all_library);
 
   void load_catalogs();
+
+  AssetCatalogService &catalog_service() const;
 
   /**
    * Create a representation of an asset to be considered part of this library. Once the
