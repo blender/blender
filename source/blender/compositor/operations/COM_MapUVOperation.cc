@@ -144,7 +144,7 @@ void MapUVOperation::update_memory_buffer_partial(MemoryBuffer *output,
     }
     else {
       /* EWA filtering. */
-      input_image->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], it.out);
+      input_image->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], false, it.out);
 
       /* UV to alpha threshold. */
       const float threshold = alpha_ * 0.05f;
