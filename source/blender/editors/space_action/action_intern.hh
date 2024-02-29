@@ -30,7 +30,10 @@ void action_buttons_register(ARegionType *art);
 /**
  * Left hand part.
  */
-void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region);
+void draw_channel_names(bContext *C,
+                        bAnimContext *ac,
+                        ARegion *region,
+                        const ListBase /* bAnimListElem */ &anim_data);
 /**
  * Draw keyframes in each channel.
  */
