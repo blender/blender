@@ -5427,6 +5427,35 @@ static void blend_read_paint_mask(BlendDataReader *reader,
   }
 }
 
+static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &layer, const int count)
+{
+  BLO_read_data_address(reader, &layer.data);
+  if (layer.data != nullptr) {
+    /* Make layer data shareable. */
+    layer.sharing_info = make_implicit_sharing_info_for_layer(
+        eCustomDataType(layer.type), layer.data, count);
+  }
+  if (CustomData_layer_ensure_data_exists(&layer, count)) {
+    /* Under normal operations, this shouldn't happen, but...
+     * For a CD_PROP_BOOL example, see #84935.
+     * For a CD_MLOOPUV example, see #90620. */
+    CLOG_WARN(&LOG,
+              "Allocated custom data layer that was not saved correctly for layer.type = %d.",
+              layer.type);
+  }
+
+  if (layer.type == CD_MDISPS) {
+    blend_read_mdisps(
+        reader, count, static_cast<MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
+  }
+  else if (layer.type == CD_GRID_PAINT_MASK) {
+    blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer.data));
+  }
+  else if (layer.type == CD_MDEFORMVERT) {
+    BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer.data));
+  }
+}
+
 void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int count)
 {
   BLO_read_data_address(reader, &data->layers);
@@ -5450,31 +5479,7 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
     layer->sharing_info = nullptr;
 
     if (CustomData_verify_versions(data, i)) {
-      BLO_read_data_address(reader, &layer->data);
-      if (layer->data != nullptr) {
-        /* Make layer data shareable. */
-        layer->sharing_info = make_implicit_sharing_info_for_layer(
-            eCustomDataType(layer->type), layer->data, count);
-      }
-      if (CustomData_layer_ensure_data_exists(layer, count)) {
-        /* Under normal operations, this shouldn't happen, but...
-         * For a CD_PROP_BOOL example, see #84935.
-         * For a CD_MLOOPUV example, see #90620. */
-        CLOG_WARN(&LOG,
-                  "Allocated custom data layer that was not saved correctly for layer->type = %d.",
-                  layer->type);
-      }
-
-      if (layer->type == CD_MDISPS) {
-        blend_read_mdisps(
-            reader, count, static_cast<MDisps *>(layer->data), layer->flag & CD_FLAG_EXTERNAL);
-      }
-      else if (layer->type == CD_GRID_PAINT_MASK) {
-        blend_read_paint_mask(reader, count, static_cast<GridPaintMask *>(layer->data));
-      }
-      else if (layer->type == CD_MDEFORMVERT) {
-        BKE_defvert_blend_read(reader, count, static_cast<MDeformVert *>(layer->data));
-      }
+      blend_read_layer_data(reader, *layer, count);
       i++;
     }
   }
