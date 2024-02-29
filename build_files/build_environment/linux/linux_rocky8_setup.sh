@@ -9,8 +9,8 @@
 set -e
 
 if [ `id -u` -ne 0 ]; then
-   echo "This script must be run as root"
-   exit 1
+  echo "This script must be run as root"
+  exit 1
 fi
 
 # Required by: config manager command below to enable powertools.
@@ -47,8 +47,6 @@ PACKAGES_FOR_LIBS=(
     # Used to checkout Blender's code.
     git
     git-lfs
-    # Used to checkout Blender's `../lib/` directory.
-    subversion
     # Used to extract packages.
     bzip2
     # Used to extract packages.
