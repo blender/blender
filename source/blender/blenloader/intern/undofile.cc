@@ -25,6 +25,7 @@
 #include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_implicit_sharing.hh"
 
 #include "BLO_readfile.hh"
 #include "BLO_undofile.hh"
@@ -45,7 +46,17 @@ void BLO_memfile_free(MemFile *memfile)
     }
     MEM_freeN(chunk);
   }
+  MEM_delete(memfile->shared_storage);
+  memfile->shared_storage = nullptr;
   memfile->size = 0;
+}
+
+MemFileSharedStorage::~MemFileSharedStorage()
+{
+  for (const blender::ImplicitSharingInfo *sharing_info : map.values()) {
+    /* Removing the user makes sure shared data is freed when the undo step was its last owner. */
+    sharing_info->remove_user_and_delete_if_last();
+  }
 }
 
 void BLO_memfile_merge(MemFile *first, MemFile *second)

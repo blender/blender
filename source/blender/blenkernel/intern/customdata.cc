@@ -5374,7 +5374,10 @@ void CustomData_blend_write(BlendWriter *writer,
       writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
   for (const CustomDataLayer &layer : layers_to_write) {
-    blend_write_layer_data(writer, layer, count);
+    const size_t size_in_bytes = CustomData_sizeof(eCustomDataType(layer.type)) * count;
+    BLO_write_shared(writer, layer.data, size_in_bytes, layer.sharing_info, [&]() {
+      blend_write_layer_data(writer, layer, count);
+    });
   }
 
   if (data->external) {
@@ -5430,11 +5433,6 @@ static void blend_read_paint_mask(BlendDataReader *reader,
 static void blend_read_layer_data(BlendDataReader *reader, CustomDataLayer &layer, const int count)
 {
   BLO_read_data_address(reader, &layer.data);
-  if (layer.data != nullptr) {
-    /* Make layer data shareable. */
-    layer.sharing_info = make_implicit_sharing_info_for_layer(
-        eCustomDataType(layer.type), layer.data, count);
-  }
   if (CustomData_layer_ensure_data_exists(&layer, count)) {
     /* Under normal operations, this shouldn't happen, but...
      * For a CD_PROP_BOOL example, see #84935.
@@ -5479,7 +5477,12 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
     layer->sharing_info = nullptr;
 
     if (CustomData_verify_versions(data, i)) {
-      blend_read_layer_data(reader, *layer, count);
+      layer->sharing_info = BLO_read_shared(reader, &layer->data, [&]() {
+        blend_read_layer_data(reader, *layer, count);
+        return layer->data ? make_implicit_sharing_info_for_layer(
+                                 eCustomDataType(layer->type), layer->data, count) :
+                             nullptr;
+      });
       i++;
     }
   }
