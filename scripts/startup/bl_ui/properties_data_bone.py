@@ -569,6 +569,10 @@ class BONE_PT_custom_props(BoneButtonsPanel, rna_prop_ui.PropertyPanel, Panel):
 
     @classmethod
     def _get_context_path(self, context):
+        if context.mode == 'EDIT_ARMATURE':
+            # This also accounts for pinned armatures.
+            return "edit_bone"
+
         obj = context.object
         if not obj:
             # We have to return _something_. If there is some bone by some
