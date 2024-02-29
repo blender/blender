@@ -136,10 +136,6 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
       uiLayoutSetEmboss(&row, UI_EMBOSS);
 
-      if (!is_collapsible()) {
-        uiItemL(&row, nullptr, ICON_BLANK1);
-      }
-
       uiLayout *subrow = uiLayoutRow(&row, false);
       uiLayoutSetActive(subrow, catalog_path_enabled_);
       uiItemL(subrow, catalog_item_.get_name().c_str(), ICON_NONE);
