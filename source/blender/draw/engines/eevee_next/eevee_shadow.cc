@@ -1009,28 +1009,6 @@ void ShadowModule::end_sync()
     Manager &manager = *inst_.manager;
 
     {
-      /* Mark for update all shadow pages touching an updated shadow caster. */
-      PassSimple &pass = caster_update_ps_;
-      pass.init();
-      pass.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_UPDATE));
-      pass.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
-      pass.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
-      /* Past caster transforms. */
-      if (past_casters_updated_.size() > 0) {
-        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
-        pass.bind_ssbo("resource_ids_buf", past_casters_updated_);
-        pass.dispatch(int3(past_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
-      }
-      /* Current caster transforms. */
-      if (curr_casters_updated_.size() > 0) {
-        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
-        pass.bind_ssbo("resource_ids_buf", curr_casters_updated_);
-        pass.dispatch(int3(curr_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
-      }
-      pass.barrier(GPU_BARRIER_SHADER_STORAGE);
-    }
-
-    {
       PassSimple &pass = tilemap_setup_ps_;
       pass.init();
 
@@ -1077,6 +1055,28 @@ void ShadowModule::end_sync()
         }
         sub.barrier(GPU_BARRIER_SHADER_STORAGE);
       }
+    }
+
+    {
+      /* Mark for update all shadow pages touching an updated shadow caster. */
+      PassSimple &pass = caster_update_ps_;
+      pass.init();
+      pass.shader_set(inst_.shaders.static_shader_get(SHADOW_TILEMAP_TAG_UPDATE));
+      pass.bind_ssbo("tilemaps_buf", tilemap_pool.tilemaps_data);
+      pass.bind_ssbo("tiles_buf", tilemap_pool.tiles_data);
+      /* Past caster transforms. */
+      if (past_casters_updated_.size() > 0) {
+        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.previous());
+        pass.bind_ssbo("resource_ids_buf", past_casters_updated_);
+        pass.dispatch(int3(past_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
+      }
+      /* Current caster transforms. */
+      if (curr_casters_updated_.size() > 0) {
+        pass.bind_ssbo("bounds_buf", &manager.bounds_buf.current());
+        pass.bind_ssbo("resource_ids_buf", curr_casters_updated_);
+        pass.dispatch(int3(curr_casters_updated_.size(), 1, tilemap_pool.tilemaps_data.size()));
+      }
+      pass.barrier(GPU_BARRIER_SHADER_STORAGE);
     }
 
     /* Non volume usage tagging happens between these two steps.
@@ -1337,13 +1337,7 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
   }
 
   inst_.hiz_buffer.update();
-
-  /* Run caster update once and before the update loop.
-   * This is valid even before the view update since only the static tilemaps
-   * are concerned about this tagging. */
-  /* TODO(fclem): There is an optimization opportunity here where we can
-   * test casters only against the static tilemaps instead of all of them. */
-  inst_.manager->submit(caster_update_ps_, view);
+  bool update_casters = true;
 
   do {
     DRW_stats_group_start("Shadow");
@@ -1351,6 +1345,12 @@ void ShadowModule::set_view(View &view, GPUTexture *depth_tx)
       GPU_uniformbuf_clear_to_zero(shadow_multi_view_.matrices_ubo_get());
 
       inst_.manager->submit(tilemap_setup_ps_, view);
+      if (assign_if_different(update_casters, false)) {
+        /* Run caster update only once. */
+        /* TODO(fclem): There is an optimization opportunity here where we can
+         * test casters only against the static tilemaps instead of all of them. */
+        inst_.manager->submit(caster_update_ps_, view);
+      }
       inst_.manager->submit(tilemap_usage_ps_, view);
       inst_.manager->submit(tilemap_update_ps_, view);
 
