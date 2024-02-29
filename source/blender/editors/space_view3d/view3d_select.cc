@@ -543,31 +543,24 @@ static void do_lasso_select_pose__do_tag(void *user_data,
     data->is_changed = true;
   }
 }
-static void do_lasso_tag_pose(ViewContext *vc,
-                              Object *ob,
-                              const int mcoords[][2],
-                              const int mcoords_len)
+static void do_lasso_tag_pose(ViewContext *vc, const int mcoords[][2], const int mcoords_len)
 {
-  ViewContext vc_tmp;
   LassoSelectUserData data;
   rcti rect;
 
-  if ((ob->type != OB_ARMATURE) || (ob->pose == nullptr)) {
+  if ((vc->obact->type != OB_ARMATURE) || (vc->obact->pose == nullptr)) {
     return;
   }
-
-  vc_tmp = *vc;
-  vc_tmp.obact = ob;
 
   BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
 
   view3d_userdata_lassoselect_init(
       &data, vc, &rect, mcoords, mcoords_len, static_cast<eSelectOp>(0));
 
-  ED_view3d_init_mats_rv3d(vc_tmp.obact, vc->rv3d);
+  ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
 
   /* Treat bones as clipped segments (no joints). */
-  pose_foreachScreenBone(&vc_tmp,
+  pose_foreachScreenBone(vc,
                          do_lasso_select_pose__do_tag,
                          &data,
                          V3D_PROJ_TEST_CLIP_DEFAULT | V3D_PROJ_TEST_CLIP_CONTENT_DEFAULT);
@@ -697,10 +690,13 @@ static bool do_lasso_select_pose(ViewContext *vc,
 {
   blender::Vector<Base *> bases = do_pose_tag_select_op_prepare(vc);
 
+  ViewContext vc_temp = *vc;
+
   for (const int i : bases.index_range()) {
     Base *base_iter = bases[i];
     Object *ob_iter = base_iter->object;
-    do_lasso_tag_pose(vc, ob_iter, mcoords, mcoords_len);
+    ED_view3d_viewcontext_init_object(&vc_temp, ob_iter);
+    do_lasso_tag_pose(&vc_temp, mcoords, mcoords_len);
   }
 
   const bool changed_multi = do_pose_tag_select_op_exec(bases, sel_op);
