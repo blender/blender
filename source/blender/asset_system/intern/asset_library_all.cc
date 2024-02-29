@@ -58,6 +58,7 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
       },
       false);
 
+  std::lock_guard lock{catalog_service_mutex_};
   catalog_service_ = std::move(new_catalog_service);
   catalogs_dirty_ = false;
 }

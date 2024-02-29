@@ -10,6 +10,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 
 #include "AS_asset_catalog.hh"
 
@@ -69,7 +70,11 @@ class AssetLibrary {
   std::unique_ptr<AssetStorage> asset_storage_;
 
  protected:
+  /* Changing this pointer should be protected using #catalog_service_mutex_. Note that changes
+   * within the catalog service may still happen without the mutex being locked. They should be
+   * protected separately. */
   std::unique_ptr<AssetCatalogService> catalog_service_;
+  std::mutex catalog_service_mutex_;
 
   std::optional<eAssetImportMethod> import_method_;
   /** Assets owned by this library may be imported with a different method than set in

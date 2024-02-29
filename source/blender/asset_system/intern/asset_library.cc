@@ -191,6 +191,7 @@ void AssetLibrary::load_catalogs()
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
   catalog_service->load_from_disk();
+  std::lock_guard lock{catalog_service_mutex_};
   catalog_service_ = std::move(catalog_service);
 }
 
