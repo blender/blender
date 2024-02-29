@@ -221,6 +221,50 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
 static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
+  if (g_drop_coords.in_use) {
+    if (!g_drop_coords.has_read_mouse_pos) {
+      /* We didn't read the mouse position, so we need to do it manually here. */
+      int xy[2];
+      wmWindow *win = CTX_wm_window(C);
+      xy[0] = win->eventstate->xy[0];
+      xy[1] = win->eventstate->xy[1];
+
+      ARegion *region = CTX_wm_region(C);
+      int mval[2];
+      /* Convert mouse coordinates to region local coordinates. */
+      mval[0] = xy[0] - region->winrct.xmin;
+      mval[1] = xy[1] - region->winrct.ymin;
+
+      update_overlay_strip_position_data(C, mval);
+    }
+
+    RNA_int_set(drop->ptr, "frame_start", g_drop_coords.start_frame);
+    RNA_int_set(drop->ptr, "channel", g_drop_coords.channel);
+    RNA_boolean_set(drop->ptr, "overlap_shuffle_override", true);
+  }
+  else {
+    /* We are dropped inside the preview region. Put the strip on top of the
+     * current displayed frame. */
+    Scene *scene = CTX_data_scene(C);
+    Editing *ed = SEQ_editing_ensure(scene);
+    ListBase *seqbase = SEQ_active_seqbase_get(ed);
+    ListBase *channels = SEQ_channels_displayed_get(ed);
+    SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+    blender::VectorSet strips = SEQ_query_rendered_strips(
+        scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
+
+    /* Get the top most strip channel that is in view. */
+    int max_channel = -1;
+    for (Sequence *seq : strips) {
+      max_channel = max_ii(seq->machine, max_channel);
+    }
+
+    if (max_channel != -1) {
+      RNA_int_set(drop->ptr, "channel", max_channel);
+    }
+  }
+
   ID *id = WM_drag_get_local_ID_or_import_from_asset(C, drag, 0);
   /* ID dropped. */
   if (id != nullptr) {
@@ -266,50 +310,6 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       RNA_collection_clear(drop->ptr, "files");
       RNA_collection_add(drop->ptr, "files", &itemptr);
       RNA_string_set(&itemptr, "name", file);
-    }
-  }
-
-  if (g_drop_coords.in_use) {
-    if (!g_drop_coords.has_read_mouse_pos) {
-      /* We didn't read the mouse position, so we need to do it manually here. */
-      int xy[2];
-      wmWindow *win = CTX_wm_window(C);
-      xy[0] = win->eventstate->xy[0];
-      xy[1] = win->eventstate->xy[1];
-
-      ARegion *region = CTX_wm_region(C);
-      int mval[2];
-      /* Convert mouse coordinates to region local coordinates. */
-      mval[0] = xy[0] - region->winrct.xmin;
-      mval[1] = xy[1] - region->winrct.ymin;
-
-      update_overlay_strip_position_data(C, mval);
-    }
-
-    RNA_int_set(drop->ptr, "frame_start", g_drop_coords.start_frame);
-    RNA_int_set(drop->ptr, "channel", g_drop_coords.channel);
-    RNA_boolean_set(drop->ptr, "overlap_shuffle_override", true);
-  }
-  else {
-    /* We are dropped inside the preview region. Put the strip on top of the
-     * current displayed frame. */
-    Scene *scene = CTX_data_scene(C);
-    Editing *ed = SEQ_editing_ensure(scene);
-    ListBase *seqbase = SEQ_active_seqbase_get(ed);
-    ListBase *channels = SEQ_channels_displayed_get(ed);
-    SpaceSeq *sseq = CTX_wm_space_seq(C);
-
-    blender::VectorSet strips = SEQ_query_rendered_strips(
-        scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
-
-    /* Get the top most strip channel that is in view. */
-    int max_channel = -1;
-    for (Sequence *seq : strips) {
-      max_channel = max_ii(seq->machine, max_channel);
-    }
-
-    if (max_channel != -1) {
-      RNA_int_set(drop->ptr, "channel", max_channel);
     }
   }
 }
