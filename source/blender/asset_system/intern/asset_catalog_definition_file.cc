@@ -151,6 +151,11 @@ std::unique_ptr<AssetCatalog> AssetCatalogDefinitionFile::parse_catalog_line(con
   return std::make_unique<AssetCatalog>(catalog_id, catalog_path.cleanup(), simple_name);
 }
 
+AssetCatalogDefinitionFile::AssetCatalogDefinitionFile(const CatalogFilePath &file_path)
+    : file_path(file_path)
+{
+}
+
 bool AssetCatalogDefinitionFile::write_to_disk() const
 {
   BLI_assert_msg(!this->file_path.empty(), "Writing to CDF requires its file path to be known");

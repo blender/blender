@@ -8,12 +8,14 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "AS_asset_library.hh"
 
 namespace blender::asset_system {
 
 class AllAssetLibrary : public AssetLibrary {
-  bool catalogs_dirty_ = true;
+  std::atomic<bool> catalogs_dirty_ = true;
 
  public:
   AllAssetLibrary();

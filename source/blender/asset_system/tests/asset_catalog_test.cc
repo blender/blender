@@ -1116,9 +1116,9 @@ class TestableAssetCatalogCollection : public AssetCatalogCollection {
   {
     return catalog_definition_file_.get();
   }
-  AssetCatalogDefinitionFile *allocate_catalog_definition_file()
+  AssetCatalogDefinitionFile *allocate_catalog_definition_file(StringRef file_path)
   {
-    catalog_definition_file_ = std::make_unique<AssetCatalogDefinitionFile>();
+    catalog_definition_file_ = std::make_unique<AssetCatalogDefinitionFile>(file_path);
     return get_catalog_definition_file();
   }
 };
@@ -1185,8 +1185,8 @@ TEST_F(AssetCatalogTest, cat_collection_deep_copy__nonempty_cdf)
   catcoll.get_catalogs().add_new(cat2->catalog_id, std::move(cat2));
   catcoll.get_deleted_catalogs().add_new(cat3->catalog_id, std::move(cat3));
 
-  AssetCatalogDefinitionFile *cdf = catcoll.allocate_catalog_definition_file();
-  cdf->file_path = "path/to/somewhere.cats.txt";
+  AssetCatalogDefinitionFile *cdf = catcoll.allocate_catalog_definition_file(
+      "path/to/somewhere.cats.txt");
   cdf->add_new(cat1_ptr);
   cdf->add_new(cat2_ptr);
   cdf->add_new(cat3_ptr);
