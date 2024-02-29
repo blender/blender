@@ -91,15 +91,6 @@ set(LIB
 )
 
 if(WITH_IMAGE_OPENEXR)
-  # Keep until APPLE/ARM libraries are updated.
-  if(APPLE)
-    if(CMAKE_OSX_ARCHITECTURES MATCHES arm64)
-      list(APPEND INC_SYS
-        ${IMATH_INCLUDE_DIRS}
-      )
-    endif()
-  endif()
-
   list(APPEND LIB
     bf_imbuf_openexr
   )
@@ -108,6 +99,15 @@ else()
   list(APPEND SRC
     intern/openexr/openexr_stub.cpp
   )
+endif()
+
+# Keep until APPLE/ARM libraries are updated.
+if(APPLE)
+  if(CMAKE_OSX_ARCHITECTURES MATCHES arm64)
+    list(APPEND INC_SYS
+      ${IMATH_INCLUDE_DIRS}
+    )
+  endif()
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
