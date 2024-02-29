@@ -5942,7 +5942,7 @@ static void rna_array_as_string_elem(int type, void **buf_p, int len, std::strin
     case PROP_FLOAT: {
       float *buf = static_cast<float *>(*buf_p);
       for (int i = 0; i < len; i++, buf++) {
-        ss << fmt::format((i < end || !end) ? "%g, " : "%g", *buf);
+        ss << fmt::format((i < end || !end) ? "{:g}, " : "{:g}", *buf);
       }
       *buf_p = buf;
       break;
@@ -6072,7 +6072,7 @@ std::string RNA_property_as_string(
             bool is_first = true;
             for (; item->identifier; item++) {
               if (item->identifier[0] && item->value & val) {
-                ss << fmt::format(is_first ? "'%s'" : ", '%s'", item->identifier);
+                ss << fmt::format(is_first ? "'{}'" : ", '{}'", item->identifier);
                 is_first = false;
               }
             }
