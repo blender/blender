@@ -473,26 +473,19 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
-      /* save the undo state as quit.blend */
+      /* Save quit.blend. */
       Main *bmain = CTX_data_main(C);
       char filepath[FILE_MAX];
-      BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
-      MemFile *undo_memfile = wm->undo_stack ?
-                                  ED_undosys_stack_memfile_get_if_active(wm->undo_stack) :
-                                  nullptr;
-      /* When true, the `undo_memfile` doesn't contain all information necessary
-       * for writing and up to date blend file. */
-      const bool is_memfile_outdated = ED_editors_flush_edits(bmain);
+      const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
 
-      if (undo_memfile && !is_memfile_outdated) {
-        BLO_memfile_write_file(undo_memfile, filepath);
+      BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), BLENDER_QUIT_FILE);
+
+      ED_editors_flush_edits(bmain);
+
+      BlendFileWriteParams blend_file_write_params{};
+      if (BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr)) {
+        printf("Saved session recovery to \"%s\"\n", filepath);
       }
-      else {
-        const int fileflags = G.fileflags & ~G_FILE_COMPRESS;
-        BlendFileWriteParams blend_file_write_params{};
-        BLO_write_file(bmain, filepath, fileflags, &blend_file_write_params, nullptr);
-      }
-      printf("Saved session recovery to \"%s\"\n", filepath);
     }
 
     WM_jobs_kill_all(wm);

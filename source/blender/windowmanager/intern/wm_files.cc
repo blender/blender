@@ -2115,9 +2115,12 @@ static bool wm_autosave_write_try(Main *bmain, wmWindowManager *wm)
 
   wm_autosave_location(filepath);
 
-  if (MemFile *memfile = ED_undosys_stack_memfile_get_if_active(wm->undo_stack)) {
-    /* Fast save of last undo-buffer, now with UI. */
-    BLO_memfile_write_file(memfile, filepath);
+  /* Technically, we could always just save here, but that would cause performance regressions
+   * compared to when the #MemFile undo step was used for saving undo-steps. So for now just skip
+   * auto-save when we are in a mode where auto-save wouldn't have worked previously anyway. This
+   * check can be removed once the performance regressions have been solved. */
+  if (ED_undosys_stack_memfile_get_if_active(wm->undo_stack) != nullptr) {
+    WM_autosave_write(wm, bmain);
     return true;
   }
   if ((U.uiflag & USER_GLOBALUNDO) == 0) {

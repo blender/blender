@@ -514,7 +514,7 @@ class RealtimeCompositor {
      * However, while this has been tested on Linux and works well, on macOS it causes to
      * spontaneous invalid colors in the composite output. The Windows has not been extensively
      * tested yet. */
-#if defined(__linux__)
+#if defined(__linux__) || defined(_WIN32)
     if (G.background) {
       /* In the background mode the system context of the render engine might be nullptr, which
        * forces some code paths which more tightly couple it with the draw manager.
@@ -546,7 +546,7 @@ class RealtimeCompositor {
     context_->viewer_output_to_viewer_image();
     texture_pool_->free_unused_and_reset();
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(_WIN32)
     GPU_flush();
     GPU_render_end();
     GPU_context_active_set(nullptr);

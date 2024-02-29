@@ -292,6 +292,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     }
   }
 
+  const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;
   mesh->runtime = nullptr;
 
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
@@ -317,7 +318,12 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       writer, &mesh->face_data, face_layers, mesh->faces_num, CD_MASK_MESH.pmask, &mesh->id);
 
   if (mesh->face_offset_indices) {
-    BLO_write_int32_array(writer, mesh->faces_num + 1, mesh->face_offset_indices);
+    BLO_write_shared(
+        writer,
+        mesh->face_offset_indices,
+        sizeof(int) * mesh->faces_num,
+        mesh_runtime->face_offsets_sharing_info,
+        [&]() { BLO_write_int32_array(writer, mesh->faces_num + 1, mesh->face_offset_indices); });
   }
 }
 
@@ -363,9 +369,11 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   mesh->runtime = new blender::bke::MeshRuntime();
 
   if (mesh->face_offset_indices) {
-    BLO_read_int32_array(reader, mesh->faces_num + 1, &mesh->face_offset_indices);
-    mesh->runtime->face_offsets_sharing_info = blender::implicit_sharing::info_for_mem_free(
-        mesh->face_offset_indices);
+    mesh->runtime->face_offsets_sharing_info = BLO_read_shared(
+        reader, &mesh->face_offset_indices, [&]() {
+          BLO_read_int32_array(reader, mesh->faces_num + 1, &mesh->face_offset_indices);
+          return blender::implicit_sharing::info_for_mem_free(mesh->face_offset_indices);
+        });
   }
 
   if (mesh->mselect == nullptr) {

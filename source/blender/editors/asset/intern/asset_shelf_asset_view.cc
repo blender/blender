@@ -181,13 +181,13 @@ static std::optional<asset_system::AssetCatalogFilter> catalog_filter_from_shelf
     return {};
   }
 
-  asset_system::AssetCatalog *active_catalog = library.catalog_service->find_catalog_by_path(
+  asset_system::AssetCatalog *active_catalog = library.catalog_service().find_catalog_by_path(
       shelf_settings.active_catalog_path);
   if (!active_catalog) {
     return {};
   }
 
-  return library.catalog_service->create_catalog_filter(active_catalog->catalog_id);
+  return library.catalog_service().create_catalog_filter(active_catalog->catalog_id);
 }
 
 /* ---------------------------------------------------------------------- */

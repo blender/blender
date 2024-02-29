@@ -13,8 +13,21 @@
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 
+namespace blender {
+class ImplicitSharingInfo;
+}
+struct GHash;
 struct Main;
 struct Scene;
+
+struct MemFileSharedStorage {
+  /**
+   * Maps the data pointer to the sharing info that it is owned by.
+   */
+  blender::Map<const void *, const blender::ImplicitSharingInfo *> map;
+
+  ~MemFileSharedStorage();
+};
 
 struct MemFileChunk {
   void *next, *prev;
@@ -35,6 +48,11 @@ struct MemFileChunk {
 struct MemFile {
   ListBase chunks;
   size_t size;
+  /**
+   * Some data is not serialized into a new buffer because the undo-step can take ownership of it
+   * without making a copy. This is faster and requires less memory.
+   */
+  MemFileSharedStorage *shared_storage;
 };
 
 struct MemFileWriteData {
@@ -94,11 +112,5 @@ void BLO_memfile_clear_future(MemFile *memfile);
 /* Utilities. */
 
 Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene);
-/**
- * Saves .blend using undo buffer.
- *
- * \return success.
- */
-bool BLO_memfile_write_file(MemFile *memfile, const char *filepath);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);

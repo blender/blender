@@ -4,6 +4,8 @@
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"
 
 #include "BKE_preferences.h"
 

@@ -183,8 +183,8 @@ AssetCatalogTreeView::AssetCatalogTreeView(asset_system::AssetLibrary *library,
                                            SpaceFile &space_file)
     : asset_library_(library), params_(params), space_file_(space_file)
 {
-  if (library && library->catalog_service) {
-    catalog_tree_ = &library->catalog_service->catalog_tree();
+  if (library) {
+    catalog_tree_ = &library->catalog_service().catalog_tree();
   }
   else {
     catalog_tree_ = nullptr;
@@ -503,10 +503,10 @@ AssetCatalog *AssetCatalogDropTarget::get_drag_catalog(
   if (drag.type != WM_DRAG_ASSET_CATALOG) {
     return nullptr;
   }
-  const AssetCatalogService *catalog_service = asset_library.catalog_service.get();
+  const AssetCatalogService &catalog_service = asset_library.catalog_service();
   const wmDragAssetCatalog *catalog_drag = WM_drag_get_asset_catalog_data(&drag);
 
-  return catalog_service->find_catalog(catalog_drag->drag_catalog_id);
+  return catalog_service.find_catalog(catalog_drag->drag_catalog_id);
 }
 
 bool AssetCatalogDropTarget::has_droppable_asset(const wmDrag &drag, const char **r_disabled_hint)
@@ -744,11 +744,11 @@ void file_ensure_updated_catalog_filter_data(
 {
   AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
       filter_settings_handle);
-  const AssetCatalogService *catalog_service = asset_library->catalog_service.get();
+  const AssetCatalogService &catalog_service = asset_library->catalog_service();
 
   if (filter_settings->asset_catalog_visibility != FILE_SHOW_ASSETS_ALL_CATALOGS) {
     filter_settings->catalog_filter = std::make_unique<AssetCatalogFilter>(
-        catalog_service->create_catalog_filter(filter_settings->asset_catalog_id));
+        catalog_service.create_catalog_filter(filter_settings->asset_catalog_id));
   }
 }
 

@@ -24,6 +24,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"
 #include "asset_library_service.hh"
 #include "asset_storage.hh"
 #include "utils.hh"
@@ -167,7 +169,7 @@ AssetLibrary::AssetLibrary(eAssetLibraryType library_type, StringRef name, Strin
       name_(name),
       root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
       asset_storage_(std::make_unique<AssetStorage>()),
-      catalog_service(std::make_unique<AssetCatalogService>())
+      catalog_service_(std::make_unique<AssetCatalogService>())
 {
 }
 
@@ -189,7 +191,12 @@ void AssetLibrary::load_catalogs()
 {
   auto catalog_service = std::make_unique<AssetCatalogService>(root_path());
   catalog_service->load_from_disk();
-  this->catalog_service = std::move(catalog_service);
+  this->catalog_service_ = std::move(catalog_service);
+}
+
+AssetCatalogService &AssetLibrary::catalog_service() const
+{
+  return *catalog_service_;
 }
 
 void AssetLibrary::refresh_catalogs() {}
@@ -254,12 +261,8 @@ void AssetLibrary::on_blend_save_post(Main *main,
                                       PointerRNA ** /*pointers*/,
                                       const int /*num_pointers*/)
 {
-  if (this->catalog_service == nullptr) {
-    return;
-  }
-
   if (save_catalogs_when_file_is_saved) {
-    this->catalog_service->write_to_disk(main->filepath);
+    this->catalog_service().write_to_disk(main->filepath);
   }
 }
 
@@ -281,7 +284,7 @@ void AssetLibrary::refresh_catalog_simplename(AssetMetaData *asset_data)
     asset_data->catalog_simple_name[0] = '\0';
     return;
   }
-  const AssetCatalog *catalog = this->catalog_service->find_catalog(asset_data->catalog_id);
+  const AssetCatalog *catalog = this->catalog_service().find_catalog(asset_data->catalog_id);
   if (catalog == nullptr) {
     /* No-op if the catalog cannot be found. This could be the kind of "the catalog definition file
      * is corrupt/lost" scenario that the simple name is meant to help recover from. */

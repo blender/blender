@@ -503,7 +503,7 @@ bool AssetLibraryService::has_any_unsaved_catalogs() const
 
   foreach_loaded_asset_library(
       [&has_unsaved_changes](AssetLibrary &library) {
-        if (library.catalog_service->has_unsaved_changes()) {
+        if (library.catalog_service().has_unsaved_changes()) {
           has_unsaved_changes = true;
         }
       },
