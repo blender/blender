@@ -16,7 +16,8 @@ namespace blender::ed::asset {
 
 bool id_type_is_non_experimental(const ID *id);
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_FLAGS \
-  (FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_AC | FILTER_ID_WO | FILTER_ID_NT)
+  (FILTER_ID_BR | FILTER_ID_MA | FILTER_ID_GR | FILTER_ID_OB | FILTER_ID_AC | FILTER_ID_WO | \
+   FILTER_ID_NT)
 
 /**
  * Check if the asset type for \a id (which doesn't need to be an asset right now) can be an asset,
@@ -39,6 +40,6 @@ int64_t types_supported_as_filter_flags();
  * Should start with a consonant, so usages can prefix it with "a" (not "an").
  */
 #define ED_ASSET_TYPE_IDS_NON_EXPERIMENTAL_UI_STRING \
-  "Material, Collection, Object, Pose Action, Node Group or World"
+  "Material, Collection, Object, Brush, Pose Action, Node Group or World"
 
 }  // namespace blender::ed::asset
