@@ -24,6 +24,8 @@
 
 #include "DNA_userdef_types.h"
 
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"
 #include "asset_library_service.hh"
 #include "asset_storage.hh"
 #include "utils.hh"
