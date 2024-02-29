@@ -269,7 +269,7 @@ public:
 	 * \note The buffersize will be multiplicated by three for this device.
 	 * \exception DeviceException Thrown if the audio device cannot be opened.
 	 */
-	OpenALDevice(DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE, std::string name = "");
+	OpenALDevice(DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE, const std::string &name = "");
 
 	virtual ~OpenALDevice();
 

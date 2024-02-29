@@ -62,14 +62,14 @@ public:
 	 * @param name A representative name for the device.
 	 * @param factory The factory that creates the device.
 	 */
-	static void registerDevice(std::string name, std::shared_ptr<IDeviceFactory> factory);
+	static void registerDevice(const std::string &name, std::shared_ptr<IDeviceFactory> factory);
 
 	/**
 	 * Returns the factory for a specific device.
 	 * @param name The representative name of the device.
 	 * @return The factory if it was found, or nullptr otherwise.
 	 */
-	static std::shared_ptr<IDeviceFactory> getDeviceFactory(std::string name);
+	static std::shared_ptr<IDeviceFactory> getDeviceFactory(const std::string &name);
 
 	/**
 	 * Returns the default device based on the priorities of the registered factories.
@@ -92,7 +92,7 @@ public:
 	 * If a device is currently being handled it will be released.
 	 * @param name The representative name of the device.
 	 */
-	static void openDevice(std::string name);
+	static void openDevice(const std::string &name);
 
 	/**
 	 * Opens the default device which will then be handled by the manager.

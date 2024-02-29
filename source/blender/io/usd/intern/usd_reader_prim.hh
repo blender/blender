@@ -22,6 +22,7 @@ struct CacheFile;
 struct Main;
 struct Material;
 struct Object;
+struct ReportList;
 
 namespace blender::io::usd {
 

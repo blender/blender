@@ -454,17 +454,16 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
 {
   float object_space_constant_detail;
   if (cd->mode == DETAILING_MODE_RESOLUTION) {
-    object_space_constant_detail = 1.0f /
-                                   (cd->current_value *
-                                    mat4_to_scale(cd->active_object->object_to_world().ptr()));
+    object_space_constant_detail = detail_size::constant_to_detail_size(cd->current_value,
+                                                                        cd->active_object);
   }
   else if (cd->mode == DETAILING_MODE_BRUSH_PERCENT) {
-    object_space_constant_detail = cd->brush_radius * cd->current_value / 100.0f;
+    object_space_constant_detail = detail_size::brush_to_detail_size(cd->current_value,
+                                                                     cd->brush_radius);
   }
   else {
-    object_space_constant_detail = (cd->brush_radius / cd->pixel_radius) *
-                                   (cd->current_value * U.pixelsize) /
-                                   detail_size::RELATIVE_SCALE_FACTOR;
+    object_space_constant_detail = detail_size::relative_to_detail_size(
+        cd->current_value, cd->brush_radius, cd->pixel_radius, U.pixelsize);
   }
 
   /* The constant detail represents the maximum edge length allowed before subdividing it. If the
@@ -614,7 +613,7 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
     }
     else {
       sampled_value = detail_size::constant_to_relative_detail(
-          detail_size, cd->brush_radius, cd->pixel_radius, cd->active_object);
+          detail_size, cd->brush_radius, cd->pixel_radius, U.pixelsize, cd->active_object);
     }
     cd->current_value = clamp_f(sampled_value, cd->min_value, cd->max_value);
   }
@@ -870,6 +869,24 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
 }  // namespace blender::ed::sculpt_paint::dyntopo
 
 namespace blender::ed::sculpt_paint::dyntopo::detail_size {
+float constant_to_detail_size(const float constant_detail, const Object *ob)
+{
+  return 1.0f / (constant_detail * mat4_to_scale(ob->object_to_world().ptr()));
+}
+
+float brush_to_detail_size(const float brush_percent, const float brush_radius)
+{
+  return brush_radius * brush_percent / 100.0f;
+}
+
+float relative_to_detail_size(const float relative_detail,
+                              const float brush_radius,
+                              const float pixel_radius,
+                              const float pixel_size)
+{
+  return (brush_radius / pixel_radius) * (relative_detail * pixel_size) / RELATIVE_SCALE_FACTOR;
+}
+
 float constant_to_brush_detail(const float constant_detail,
                                const float brush_radius,
                                const Object *ob)
@@ -882,11 +899,12 @@ float constant_to_brush_detail(const float constant_detail,
 float constant_to_relative_detail(const float constant_detail,
                                   const float brush_radius,
                                   const float pixel_radius,
+                                  const float pixel_size,
                                   const Object *ob)
 {
   const float object_scale = mat4_to_scale(ob->object_to_world().ptr());
 
-  return (pixel_radius / brush_radius) * (RELATIVE_SCALE_FACTOR / U.pixelsize) *
+  return (pixel_radius / brush_radius) * (RELATIVE_SCALE_FACTOR / pixel_size) *
          (1.0f / (constant_detail * object_scale));
 }
 }  // namespace blender::ed::sculpt_paint::dyntopo::detail_size

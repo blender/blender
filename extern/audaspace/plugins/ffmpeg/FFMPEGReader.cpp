@@ -239,7 +239,7 @@ void FFMPEGReader::init(int stream)
 	m_specs.rate = (SampleRate) m_codecCtx->sample_rate;
 }
 
-FFMPEGReader::FFMPEGReader(std::string filename, int stream) :
+FFMPEGReader::FFMPEGReader(const std::string &filename, int stream) :
 	m_pkgbuf(),
 	m_formatCtx(nullptr),
 	m_codecCtx(nullptr),

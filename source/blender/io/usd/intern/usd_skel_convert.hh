@@ -6,18 +6,16 @@
 #include "BLI_map.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_windowmanager_types.h"
-
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usdGeom/xformCache.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
-#include <pxr/usd/usdSkel/skeletonQuery.h>
 
 struct Depsgraph;
 struct Key;
 struct Main;
 struct Mesh;
 struct Object;
+struct ReportList;
 
 namespace blender::io::usd {
 

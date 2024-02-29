@@ -6,6 +6,8 @@
 #include "usd.hh"
 #include "usd_reader_xform.hh"
 
+struct Main;
+
 namespace blender::io::usd {
 
 class USDLightReader : public USDXformReader {

@@ -5,15 +5,11 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
-#include "DNA_cachefile_types.h"
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
-
-#include "WM_api.hh"
 
 #include "usd_reader_shape.hh"
 

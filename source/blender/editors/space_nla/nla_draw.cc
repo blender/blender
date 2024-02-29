@@ -909,27 +909,14 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 /* *********************************************** */
 /* Track List */
 
-void draw_nla_track_list(const bContext *C, bAnimContext *ac, ARegion *region)
+void draw_nla_track_list(const bContext *C,
+                         bAnimContext *ac,
+                         ARegion *region,
+                         const ListBase /* bAnimListElem */ &anim_data)
 {
-  ListBase anim_data = {nullptr, nullptr};
 
   SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   View2D *v2d = &region->v2d;
-  size_t items;
-
-  /* build list of tracks to draw */
-  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
-  items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  /* Update max-extent of tracks here (taking into account scrollers):
-   * - this is done to allow the track list to be scrollable, but must be done here
-   *   to avoid regenerating the list again and/or also because tracks list is drawn first
-   * - offset of NLATRACK_HEIGHT*2 is added to the height of the tracks, as first is for
-   *  start of list offset, and the second is as a correction for the scrollers.
-   */
-  int height = NLATRACK_TOT_HEIGHT(ac, items);
-  v2d->tot.ymin = -height;
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
@@ -984,9 +971,6 @@ void draw_nla_track_list(const bContext *C, bAnimContext *ac, ARegion *region)
 
     GPU_blend(GPU_BLEND_NONE);
   }
-
-  /* free temporary tracks */
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /* *********************************************** */

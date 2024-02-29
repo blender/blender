@@ -10,15 +10,14 @@
 #include "usd_hook.hh"
 #include "usd_private.hh"
 
-#include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/token.h>
 #include <pxr/pxr.h>
-#include <pxr/usd/usd/prim.h>
+#include <pxr/usd/sdf/assetPath.h>
 #include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
-#include <pxr/usd/usdUtils/dependencies.h>
+#include <pxr/usd/usdUtils/usdzPackage.h>
 
 #include "MEM_guardedalloc.h"
 

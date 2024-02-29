@@ -69,7 +69,7 @@ protected:
 	 * @param file The source code file in which the exception was thrown.
 	 * @param line The source code line from which the exception was thrown.
 	 */
-	Exception(std::string message, std::string file, int line);
+	Exception(const std::string &message, const std::string &file, int line);
 public:
 	/**
 	 * Destroys the object.
@@ -120,7 +120,7 @@ public:
 	 * @param file The source code file in which the exception was thrown.
 	 * @param line The source code line from which the exception was thrown.
 	 */
-	FileException(std::string message, std::string file, int line);
+	FileException(const std::string &message, const std::string &file, int line);
 
 	/**
 	 * Copy constructor.
@@ -145,7 +145,7 @@ public:
 	 * @param file The source code file in which the exception was thrown.
 	 * @param line The source code line from which the exception was thrown.
 	 */
-	DeviceException(std::string message, std::string file, int line);
+	DeviceException(const std::string &message, const std::string &file, int line);
 
 	/**
 	 * Copy constructor.
@@ -171,7 +171,7 @@ public:
 	 * @param file The source code file in which the exception was thrown.
 	 * @param line The source code line from which the exception was thrown.
 	 */
-	StateException(std::string message, std::string file, int line);
+	StateException(const std::string &message, const std::string &file, int line);
 
 	/**
 	 * Copy constructor.

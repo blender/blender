@@ -4,16 +4,10 @@
 #pragma once
 
 #include <pxr/usd/usd/prim.h>
-#include <pxr/usd/usd/stage.h>
-#include <pxr/usd/usd/tokens.h>
 
 struct Key;
-struct Main;
 struct Mesh;
 struct Object;
-struct Scene;
-struct USDExportParams;
-struct USDImportParams;
 
 namespace blender::io::usd {
 

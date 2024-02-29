@@ -1433,6 +1433,65 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
                 layout.template_curve_mapping(settings, "thickness_primitive_curve", brush=True)
 
 
+def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=False):
+    tool_settings = context.tool_settings
+    settings = tool_settings.gpencil_paint
+    gp_settings = brush.gpencil_settings
+    tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
+    if gp_settings is None:
+        return
+
+    grease_pencil_tool = brush.gpencil_tool
+
+    UnifiedPaintPanel.prop_unified(
+        layout,
+        context,
+        brush,
+        "size",
+        unified_name="use_unified_size",
+        pressure_name="use_pressure_size",
+        text="Radius",
+        slider=True,
+        header=compact,
+    )
+
+    if brush.use_pressure_size and not compact:
+        col = layout.column()
+        col.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True,
+                                   use_negative_slope=True)
+
+    UnifiedPaintPanel.prop_unified(
+        layout,
+        context,
+        brush,
+        "strength",
+        unified_name="use_unified_strength",
+        pressure_name="use_pressure_strength",
+        slider=True,
+        header=compact,
+    )
+
+    if brush.use_pressure_strength and not compact:
+        col = layout.column()
+        col.template_curve_mapping(gp_settings, "curve_strength", brush=True,
+                                   use_negative_slope=True)
+
+    if grease_pencil_tool == 'DRAW':
+        layout.prop(gp_settings, "active_smooth_factor")
+        row = layout.row(align=True)
+        if compact:
+            row.prop(gp_settings, "caps_type", text="", expand=True)
+        else:
+            row.prop(gp_settings, "caps_type", text="Caps Type")
+        # TODO: Remove this when caps work.
+        row.enabled = False
+    elif grease_pencil_tool == 'ERASE':
+        layout.prop(gp_settings, "eraser_mode", expand=True)
+        if gp_settings.eraser_mode == "HARD":
+            layout.prop(gp_settings, "use_keep_caps_eraser")
+        layout.prop(gp_settings, "use_active_layer_only")
+
+
 def brush_basic_gpencil_sculpt_settings(layout, _context, brush, *, compact=False):
     if brush is None:
         return

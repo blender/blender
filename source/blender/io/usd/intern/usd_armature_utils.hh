@@ -12,14 +12,12 @@
 #include <pxr/base/tf/token.h>
 #include <pxr/usd/usdSkel/animation.h>
 
-#include <functional>
+#include <string>
 
 struct Bone;
 struct Depsgraph;
 struct ModifierData;
 struct Object;
-struct Scene;
-struct USDExportParams;
 
 namespace blender::io::usd {
 

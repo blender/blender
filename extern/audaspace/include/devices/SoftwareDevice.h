@@ -231,9 +231,9 @@ protected:
 	std::shared_ptr<Mixer> m_mixer;
 
 	/**
-	 * Whether to do high or low quality resampling.
+	 * Resampling quality.
 	 */
-	bool m_quality;
+	ResampleQuality m_quality;
 
 	/**
 	 * Initializes member variables.
@@ -347,9 +347,9 @@ public:
 
 	/**
 	 * Sets the resampling quality.
-	 * \param quality Low (false) or high (true) quality.
+	 * \param quality Resampling quality vs performance setting.
 	 */
-	void setQuality(bool quality);
+	void setQuality(ResampleQuality quality);
 
 	virtual DeviceSpecs getSpecs() const;
 	virtual std::shared_ptr<IHandle> play(std::shared_ptr<IReader> reader, bool keep = false);

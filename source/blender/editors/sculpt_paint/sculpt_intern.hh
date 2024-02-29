@@ -1230,7 +1230,29 @@ void triangulate(BMesh *bm);
 WarnFlag check_attribute_warning(Scene *scene, Object *ob);
 
 namespace detail_size {
+
+/**
+ * Scaling factor to match the displayed size to the actual sculpted size
+ */
 constexpr float RELATIVE_SCALE_FACTOR = 0.4f;
+
+/**
+ * Converts from Sculpt#constant_detail to the PBVH max edge length.
+ */
+float constant_to_detail_size(const float constant_detail, const Object *ob);
+
+/**
+ * Converts from Sculpt#detail_percent to the PBVH max edge length.
+ */
+float brush_to_detail_size(const float brush_percent, const float brush_radius);
+
+/**
+ * Converts from Sculpt#detail_size to the PBVH max edge length.
+ */
+float relative_to_detail_size(const float relative_detail,
+                              const float brush_radius,
+                              const float pixel_radius,
+                              const float pixel_size);
 
 /**
  * Converts from Sculpt#constant_detail to equivalent Sculpt#detail_percent value.
@@ -1249,6 +1271,7 @@ float constant_to_brush_detail(const float constant_detail,
 float constant_to_relative_detail(const float constant_detail,
                                   const float brush_radius,
                                   const float pixel_radius,
+                                  const float pixel_size,
                                   const Object *ob);
 }
 }

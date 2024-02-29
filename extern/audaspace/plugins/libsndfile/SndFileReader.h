@@ -103,7 +103,7 @@ public:
 	 * \exception Exception Thrown if the file specified does not exist or
 	 *            cannot be read with libsndfile.
 	 */
-	SndFileReader(std::string filename);
+	SndFileReader(const std::string &filename);
 
 	/**
 	 * Creates a new reader.

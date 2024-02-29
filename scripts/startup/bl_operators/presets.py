@@ -658,70 +658,77 @@ class WM_MT_operator_presets(Menu):
 
 
 class WM_OT_operator_presets_cleanup(Operator):
+    """Remove outdated operator properties from presets that may cause problems"""
+
     bl_idname = "wm.operator_presets_cleanup"
     bl_label = "Clean Up Operator Presets"
-    bl_description = "Remove outdated operator properties from presets that may cause problems"
 
     operator: StringProperty(name="operator")
     properties: CollectionProperty(name="properties", type=OperatorFileListElement)
 
-    def cleanup_preset(self, filepath, properties):
-        from pathlib import Path
-        file = Path(filepath)
-        if not (file.is_file() and filepath.suffix == ".py"):
+    def _cleanup_preset(self, filepath, properties_exclude):
+        import os
+        import re
+        if not (os.path.isfile(filepath) and os.path.splitext(filepath)[1].lower() == ".py"):
             return
-        lines = file.read_text().splitlines(True)
-        if len(lines) == 0:
+        with open(filepath, "r", encoding="utf-8") as fh:
+            lines = fh.read().splitlines(True)
+        if not lines:
             return
-        new_lines = []
-        for line in lines:
-            if not any(line.startswith(("op.%s" % prop)) for prop in properties):
-                new_lines.append(line)
-        file.write_text("".join(new_lines))
+        regex_exclude = re.compile("(" + "|".join([re.escape("op." + prop) for prop in properties_exclude]) + ")\\b")
+        lines = [line for line in lines if not regex_exclude.match(line)]
+        with open(filepath, "w", encoding="utf-8") as fh:
+            fh.write("".join(lines))
 
-    def cleanup_operators_presets(self, operators, properties):
-        base_preset_directory = bpy.utils.user_resource(
-            'SCRIPTS', path="presets", create=False)
+    def _cleanup_operators_presets(self, operators, properties_exclude):
+        import os
+        base_preset_directory = bpy.utils.user_resource('SCRIPTS', path="presets", create=False)
+        if not base_preset_directory:
+            return
         for operator in operators:
-            from pathlib import Path
             operator_path = AddPresetOperator.operator_path(operator)
-            directory = Path(base_preset_directory, operator_path)
+            directory = os.path.join(base_preset_directory, operator_path)
 
-            if not directory.is_dir():
+            if not os.path.isdir(directory):
                 continue
-
-            for filepath in directory.iterdir():
-                self.cleanup_preset(filepath, properties)
+            for filename in os.listdir(directory):
+                self._cleanup_preset(os.path.join(directory, filename), properties_exclude)
 
     def execute(self, context):
-        properties = []
+        properties_exclude = []
         operators = []
         if self.operator:
             operators.append(self.operator)
             for prop in self.properties:
-                properties.append(prop.name)
+                properties_exclude.append(prop.name)
         else:
             # Cleanup by default I/O Operators Presets
-            operators = ['WM_OT_alembic_export',
-                         'WM_OT_alembic_import',
-                         'WM_OT_collada_export',
-                         'WM_OT_collada_import',
-                         'WM_OT_gpencil_export_svg',
-                         'WM_OT_gpencil_export_pdf',
-                         'WM_OT_gpencil_export_svg',
-                         'WM_OT_gpencil_import_svg',
-                         'WM_OT_obj_export',
-                         'WM_OT_obj_import',
-                         'WM_OT_ply_export',
-                         'WM_OT_ply_import',
-                         'WM_OT_stl_export',
-                         'WM_OT_stl_import',
-                         'WM_OT_usd_export',
-                         'WM_OT_usd_import',
-                         ]
-            properties = ["filepath", "directory", "files", "filename"]
+            operators = [
+                "WM_OT_alembic_export",
+                "WM_OT_alembic_import",
+                "WM_OT_collada_export",
+                "WM_OT_collada_import",
+                "WM_OT_gpencil_export_svg",
+                "WM_OT_gpencil_export_pdf",
+                "WM_OT_gpencil_export_svg",
+                "WM_OT_gpencil_import_svg",
+                "WM_OT_obj_export",
+                "WM_OT_obj_import",
+                "WM_OT_ply_export",
+                "WM_OT_ply_import",
+                "WM_OT_stl_export",
+                "WM_OT_stl_import",
+                "WM_OT_usd_export",
+                "WM_OT_usd_import",
+            ]
+            properties_exclude = [
+                "filepath",
+                "directory",
+                "files",
+                "filename"
+            ]
 
-        self.cleanup_operators_presets(operators, properties)
+        self._cleanup_operators_presets(operators, properties_exclude)
         return {'FINISHED'}
 
 

@@ -8,9 +8,12 @@
 #include "usd.hh"
 #include "usd_reader_geom.hh"
 
-#include "pxr/usd/usdGeom/basisCurves.h"
+#include <pxr/usd/usdGeom/basisCurves.h>
 
 struct Curves;
+namespace blender::bke {
+struct GeometrySet;
+}
 
 namespace blender::io::usd {
 

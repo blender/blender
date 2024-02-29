@@ -599,7 +599,8 @@ void BKE_sound_load(Main *bmain, bSound *sound)
 AUD_Device *BKE_sound_mixdown(const Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
   sound_verify_evaluated_id(&scene->id);
-  return AUD_openMixdownDevice(specs, scene->sound_scene, volume, start / FPS);
+  return AUD_openMixdownDevice(
+      specs, scene->sound_scene, volume, AUD_RESAMPLE_QUALITY_MEDIUM, start / FPS);
 }
 
 void BKE_sound_create_scene(Scene *scene)

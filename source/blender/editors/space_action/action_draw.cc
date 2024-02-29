@@ -48,23 +48,13 @@
 /** \name Channel List
  * \{ */
 
-void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
+void draw_channel_names(bContext *C,
+                        bAnimContext *ac,
+                        ARegion *region,
+                        const ListBase /* bAnimListElem */ &anim_data)
 {
-  ListBase anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
-  eAnimFilter_Flags filter;
-
   View2D *v2d = &region->v2d;
-  size_t items;
-
-  /* build list of channels to draw */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
-  items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
-
-  const int height = ANIM_UI_get_channels_total_height(v2d, items);
-  const float pad_bottom = BLI_listbase_is_empty(ac->markers) ? 0 : UI_MARKER_MARGIN_Y;
-  v2d->tot.ymin = -(height + pad_bottom);
-
   /* need to do a view-sync here, so that the keys area doesn't jump around (it must copy this) */
   UI_view2d_sync(nullptr, ac->area, v2d, V2D_LOCK_COPY);
 
@@ -112,9 +102,6 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
     UI_block_end(C, block);
     UI_block_draw(C, block);
   }
-
-  /* Free temporary channels. */
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /** \} */

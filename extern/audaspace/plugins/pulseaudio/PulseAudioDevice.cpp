@@ -121,7 +121,7 @@ void PulseAudioDevice::playing(bool playing)
 	AUD_pa_threaded_mainloop_unlock(m_mainloop);
 }
 
-PulseAudioDevice::PulseAudioDevice(std::string name, DeviceSpecs specs, int buffersize) :
+PulseAudioDevice::PulseAudioDevice(const std::string &name, DeviceSpecs specs, int buffersize) :
 	m_synchronizer(this),
 	m_playback(false),
 	m_state(PA_CONTEXT_UNCONNECTED),
@@ -321,7 +321,7 @@ public:
 		m_buffersize = buffersize;
 	}
 
-	virtual void setName(std::string name)
+	virtual void setName(const std::string &name)
 	{
 		m_name = name;
 	}

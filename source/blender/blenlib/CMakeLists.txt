@@ -263,6 +263,7 @@ set(SRC
   BLI_lazy_threading.hh
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh
+  BLI_linear_allocator_chunked_list.hh
   BLI_link_utils.h
   BLI_linklist.h
   BLI_linklist_lockfree.h
@@ -521,6 +522,7 @@ if(WITH_GTESTS)
     tests/BLI_kdtree_test.cc
     tests/BLI_length_parameterize_test.cc
     tests/BLI_linear_allocator_test.cc
+    tests/BLI_linear_allocator_chunked_list_test.cc
     tests/BLI_linklist_lockfree_test.cc
     tests/BLI_listbase_test.cc
     tests/BLI_map_test.cc

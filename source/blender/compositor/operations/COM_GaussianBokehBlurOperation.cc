@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <memory>
+
+#include "BLI_index_range.hh"
+#include "BLI_math_vector.hh"
+
 #include "COM_GaussianBokehBlurOperation.h"
 
 #include "RE_pipeline.h"
@@ -148,7 +153,7 @@ void GaussianBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *outp
 GaussianBlurReferenceOperation::GaussianBlurReferenceOperation()
     : BlurBaseOperation(DataType::Color)
 {
-  maintabs_ = nullptr;
+  weights_ = nullptr;
   use_variable_size_ = true;
 }
 
@@ -206,23 +211,45 @@ void GaussianBlurReferenceOperation::init_execution()
 
 void GaussianBlurReferenceOperation::update_gauss()
 {
-  int i;
-  int x = std::max(filtersizex_, filtersizey_);
-  maintabs_ = (float **)MEM_mallocN(x * sizeof(float *), "gauss array");
-  for (i = 0; i < x; i++) {
-    maintabs_[i] = make_gausstab(i + 1, i + 1);
-  }
-}
+  const int2 radius = int2(filtersizex_, filtersizey_);
+  const float2 scale = math::safe_divide(float2(1.0f), float2(radius));
+  const int2 size = radius + int2(1);
 
-void GaussianBlurReferenceOperation::deinit_execution()
-{
-  int x, i;
-  x = std::max(filtersizex_, filtersizey_);
-  for (i = 0; i < x; i++) {
-    MEM_freeN(maintabs_[i]);
+  rcti weights_area;
+  BLI_rcti_init(&weights_area, 0, size.x, 0, size.y);
+  weights_ = std::make_unique<MemoryBuffer>(DataType::Value, weights_area, false);
+
+  float sum = 0.0f;
+
+  const float center_weight = RE_filter_value(data_.filtertype, 0.0f);
+  *weights_->get_elem(0, 0) = center_weight;
+  sum += center_weight;
+
+  for (const int x : IndexRange(size.x).drop_front(1)) {
+    const float weight = RE_filter_value(data_.filtertype, x * scale.x);
+    *weights_->get_elem(x, 0) = weight;
+    sum += weight * 2.0f;
   }
-  MEM_freeN(maintabs_);
-  BlurBaseOperation::deinit_execution();
+
+  for (const int y : IndexRange(size.y).drop_front(1)) {
+    const float weight = RE_filter_value(data_.filtertype, y * scale.y);
+    *weights_->get_elem(0, y) = weight;
+    sum += weight * 2.0f;
+  }
+
+  for (const int y : IndexRange(size.y).drop_front(1)) {
+    for (const int x : IndexRange(size.x).drop_front(1)) {
+      const float weight = RE_filter_value(data_.filtertype, math::length(float2(x, y) * scale));
+      *weights_->get_elem(x, y) = weight;
+      sum += weight * 4.0f;
+    }
+  }
+
+  for (const int y : IndexRange(size.y)) {
+    for (const int x : IndexRange(size.x)) {
+      *weights_->get_elem(x, y) /= sum;
+    }
+  }
 }
 
 void GaussianBlurReferenceOperation::get_area_of_interest(const int input_idx,
@@ -246,56 +273,56 @@ void GaussianBlurReferenceOperation::update_memory_buffer_partial(MemoryBuffer *
                                                                   const rcti &area,
                                                                   Span<MemoryBuffer *> inputs)
 {
+  const MemoryBuffer *size_input = inputs[SIZE_INPUT_INDEX];
   const MemoryBuffer *image_input = inputs[IMAGE_INPUT_INDEX];
-  MemoryBuffer *size_input = inputs[SIZE_INPUT_INDEX];
-  for (BuffersIterator<float> it = output->iterate_with({size_input}, area); !it.is_end(); ++it) {
-    const float ref_size = *it.in(0);
-    int ref_radx = int(ref_size * radx_);
-    int ref_rady = int(ref_size * rady_);
-    if (ref_radx > filtersizex_) {
-      ref_radx = filtersizex_;
-    }
-    else if (ref_radx < 1) {
-      ref_radx = 1;
-    }
-    if (ref_rady > filtersizey_) {
-      ref_rady = filtersizey_;
-    }
-    else if (ref_rady < 1) {
-      ref_rady = 1;
+
+  int2 weights_size = int2(weights_->get_width(), weights_->get_height());
+  int2 base_radius = weights_size - int2(1);
+
+  for (BuffersIterator<float> it = output->iterate_with({}, area); !it.is_end(); ++it) {
+    float4 accumulated_color = float4(0.0f);
+    float4 accumulated_weight = float4(0.0f);
+
+    int2 radius = int2(math::ceil(float2(base_radius) * *size_input->get_elem(it.x, it.y)));
+
+    float4 center_color = float4(image_input->get_elem_clamped(it.x, it.y));
+    float center_weight = *weights_->get_elem(0, 0);
+    accumulated_color += center_color * center_weight;
+    accumulated_weight += center_weight;
+
+    for (int x = 1; x <= radius.x; x++) {
+      float weight_coordinates = (x / float(radius.x)) * base_radius.x;
+      float weight;
+      weights_->read_elem_bilinear(weight_coordinates, 0.0f, &weight);
+      accumulated_color += float4(image_input->get_elem_clamped(it.x + x, it.y)) * weight;
+      accumulated_color += float4(image_input->get_elem_clamped(it.x - x, it.y)) * weight;
+      accumulated_weight += weight * 2.0f;
     }
 
-    const int x = it.x;
-    const int y = it.y;
-    if (ref_radx == 1 && ref_rady == 1) {
-      image_input->read_elem(x, y, it.out);
-      continue;
+    for (int y = 1; y <= radius.y; y++) {
+      float weight_coordinates = (y / float(radius.y)) * base_radius.y;
+      float weight;
+      weights_->read_elem_bilinear(0.0f, weight_coordinates, &weight);
+      accumulated_color += float4(image_input->get_elem_clamped(it.x, it.y + y)) * weight;
+      accumulated_color += float4(image_input->get_elem_clamped(it.x, it.y - y)) * weight;
+      accumulated_weight += weight * 2.0f;
     }
 
-    const int w = get_width();
-    const int height = get_height();
-    const int minxr = x - ref_radx < 0 ? -x : -ref_radx;
-    const int maxxr = x + ref_radx > w ? w - x : ref_radx;
-    const int minyr = y - ref_rady < 0 ? -y : -ref_rady;
-    const int maxyr = y + ref_rady > height ? height - y : ref_rady;
-
-    const float *gausstabx = maintabs_[ref_radx - 1];
-    const float *gausstabcentx = gausstabx + ref_radx;
-    const float *gausstaby = maintabs_[ref_rady - 1];
-    const float *gausstabcenty = gausstaby + ref_rady;
-
-    float gauss_sum = 0.0f;
-    float color_sum[4] = {0};
-    const float *row_color = image_input->get_elem(x + minxr, y + minyr);
-    for (int i = minyr; i < maxyr; i++, row_color += image_input->row_stride) {
-      const float *color = row_color;
-      for (int j = minxr; j < maxxr; j++, color += image_input->elem_stride) {
-        const float val = gausstabcenty[i] * gausstabcentx[j];
-        gauss_sum += val;
-        madd_v4_v4fl(color_sum, color, val);
+    for (int y = 1; y <= radius.y; y++) {
+      for (int x = 1; x <= radius.x; x++) {
+        float2 weight_coordinates = (float2(x, y) / float2(radius)) * float2(base_radius);
+        float weight;
+        weights_->read_elem_bilinear(weight_coordinates.x, weight_coordinates.y, &weight);
+        accumulated_color += float4(image_input->get_elem_clamped(it.x + x, it.y + y)) * weight;
+        accumulated_color += float4(image_input->get_elem_clamped(it.x - x, it.y + y)) * weight;
+        accumulated_color += float4(image_input->get_elem_clamped(it.x + x, it.y - y)) * weight;
+        accumulated_color += float4(image_input->get_elem_clamped(it.x - x, it.y - y)) * weight;
+        accumulated_weight += weight * 4.0f;
       }
     }
-    mul_v4_v4fl(it.out, color_sum, 1.0f / gauss_sum);
+
+    accumulated_color = math::safe_divide(accumulated_color, accumulated_weight);
+    copy_v4_v4(it.out, accumulated_color);
   }
 }
 

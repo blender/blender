@@ -3,22 +3,22 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-struct Main;
-
-#include "WM_types.hh"
-
+#include "BLI_map.hh"
 #include "BLI_set.hh"
+#include "BLI_vector.hh"
 
 #include "usd.hh"
 #include "usd_hash_types.hh"
 #include "usd_reader_prim.hh"
 
-#include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/imageable.h>
 
 #include <string>
 
+struct Collection;
 struct ImportSettings;
+struct Main;
+struct ReportList;
 
 namespace blender::io::usd {
 

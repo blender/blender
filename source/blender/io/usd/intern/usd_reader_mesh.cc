@@ -19,11 +19,10 @@
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
+#include "BLI_color.hh"
 #include "BLI_map.hh"
-#include "BLI_math_color.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-#include "BLI_string.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -31,15 +30,13 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "WM_api.hh"
-
 #include "MEM_guardedalloc.h"
 
+#include <pxr/base/gf/matrix4f.h>
 #include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/sdf/types.h>
-#include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdGeom/subset.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
