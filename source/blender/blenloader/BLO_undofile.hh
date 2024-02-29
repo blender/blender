@@ -94,11 +94,5 @@ void BLO_memfile_clear_future(MemFile *memfile);
 /* Utilities. */
 
 Main *BLO_memfile_main_get(MemFile *memfile, Main *bmain, Scene **r_scene);
-/**
- * Saves .blend using undo buffer.
- *
- * \return success.
- */
-bool BLO_memfile_write_file(MemFile *memfile, const char *filepath);
 
 FileReader *BLO_memfile_new_filereader(MemFile *memfile, int undo_direction);
