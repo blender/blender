@@ -1672,7 +1672,7 @@ class _defs_weight_paint:
              ob.data.use_paint_mask_vertex)):
             return VIEW3D_PT_tools_active._tools_select
         elif context.pose_object:
-            return (_defs_view3d_select.select,)
+            return VIEW3D_PT_tools_active._tools_select
         return ()
 
     @staticmethod
