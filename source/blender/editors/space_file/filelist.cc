@@ -590,9 +590,9 @@ static int compare_asset_catalog(void *user_data, const void *a1, const void *a2
   const asset_system::AssetLibrary &asset_library1 = entry1->asset->owner_asset_library();
   const asset_system::AssetLibrary &asset_library2 = entry2->asset->owner_asset_library();
 
-  const asset_system::AssetCatalog *catalog1 = asset_library1.catalog_service->find_catalog(
+  const asset_system::AssetCatalog *catalog1 = asset_library1.catalog_service().find_catalog(
       entry1->asset->get_metadata().catalog_id);
-  const asset_system::AssetCatalog *catalog2 = asset_library2.catalog_service->find_catalog(
+  const asset_system::AssetCatalog *catalog2 = asset_library2.catalog_service().find_catalog(
       entry2->asset->get_metadata().catalog_id);
 
   /* Always keep assets without catalog last. */

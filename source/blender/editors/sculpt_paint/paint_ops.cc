@@ -1031,10 +1031,10 @@ static const bUserAssetLibrary *get_asset_library_from_prop(PointerRNA &ptr)
 static asset_system::AssetCatalog &asset_library_ensure_catalog(
     asset_system::AssetLibrary &library, const asset_system::AssetCatalogPath &path)
 {
-  if (asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(path)) {
+  if (asset_system::AssetCatalog *catalog = library.catalog_service().find_catalog_by_path(path)) {
     return *catalog;
   }
-  return *library.catalog_service->create_catalog(path);
+  return *library.catalog_service().create_catalog(path);
 }
 
 static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
@@ -1047,7 +1047,7 @@ static asset_system::AssetCatalog &asset_library_ensure_catalogs_in_path(
     asset_library_ensure_catalog(library, parent / component_name);
     parent = parent / component_name;
   });
-  return *library.catalog_service->find_catalog_by_path(path);
+  return *library.catalog_service().find_catalog_by_path(path);
 }
 
 static AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_library)
@@ -1109,7 +1109,7 @@ static int brush_asset_save_as_exec(bContext *C, wmOperator *op)
   const asset_system::CatalogID catalog_id = catalog.catalog_id;
   const std::string catalog_simple_name = catalog.simple_name;
 
-  library->catalog_service->write_to_disk(filepath);
+  library->catalog_service().write_to_disk(filepath);
 
   /* Save to asset library. */
   Main *asset_main = BKE_main_from_id(bmain, &brush->id);
@@ -1199,7 +1199,7 @@ static void visit_asset_catalog_for_search_fn(
     return;
   }
 
-  const asset_system::AssetCatalogTree &full_tree = library->catalog_service->catalog_tree();
+  const asset_system::AssetCatalogTree &full_tree = library->catalog_service().catalog_tree();
   full_tree.foreach_item([&](const asset_system::AssetCatalogTreeItem &item) {
     visit_fn(StringPropertySearchVisitParams{item.catalog_path().str(), std::nullopt});
   });
