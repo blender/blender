@@ -58,4 +58,4 @@ class AssetCatalogCollection {
   static OwningAssetCatalogMap copy_catalog_map(const OwningAssetCatalogMap &orig);
 };
 
-}
+}  // namespace blender::asset_system
