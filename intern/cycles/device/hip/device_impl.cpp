@@ -1099,7 +1099,11 @@ void HIPDevice::tex_alloc(device_texture &mem)
     thread_scoped_lock lock(hip_mem_map_mutex);
     cmem = &hip_mem_map[&mem];
 
-    hip_assert(hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
+    if (hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL) != hipSuccess) {
+      set_error(
+          "Failed to create texture. Maximum GPU texture size or available GPU memory was likely "
+          "exceeded.");
+    }
 
     texture_info[slot].data = (uint64_t)cmem->texobject;
   }
