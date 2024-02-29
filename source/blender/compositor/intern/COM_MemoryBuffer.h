@@ -263,7 +263,8 @@ class MemoryBuffer {
     }
   }
 
-  void read_elem_filtered(float x, float y, float dx[2], float dy[2], float *out) const;
+  void read_elem_filtered(
+      float x, float y, float dx[2], float dy[2], bool extend_boundary, float *out) const;
 
   /**
    * Get channel value at given coordinates.

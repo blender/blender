@@ -152,7 +152,7 @@ void DisplaceOperation::update_memory_buffer_partial(MemoryBuffer *output,
     }
     else {
       /* EWA filtering (without nearest it gets blurry with NO distortion). */
-      input_color->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], it.out);
+      input_color->read_elem_filtered(uv[0], uv[1], deriv[0], deriv[1], false, it.out);
     }
   }
 }

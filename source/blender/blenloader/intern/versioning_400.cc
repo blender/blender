@@ -3032,7 +3032,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 7)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 8)) {
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      light->shadow_filter_radius = 3.0f;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 9)) {
     update_paint_modes_for_brush_assets(*bmain);
   }
 

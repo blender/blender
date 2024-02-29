@@ -4588,7 +4588,7 @@ def km_grease_pencil_paint_mode(_params):
         ("paint.sample_color", {"type": 'X', "value": 'PRESS', "shift": True}, None),
 
         # Isolate Layer
-         ("grease_pencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
+        ("grease_pencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
     ])
 
     return keymap
@@ -4663,8 +4663,8 @@ def km_grease_pencil_edit_mode(params):
         ("grease_pencil.reorder", {"type": 'DOWN_ARROW', "value": 'PRESS',
          "ctrl": True, "shift": True}, {"properties": [("direction", "BOTTOM")]}),
 
-         # Isolate Layer
-         ("grease_pencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
+        # Isolate Layer
+        ("grease_pencil.layer_isolate", {"type": 'NUMPAD_ASTERIX', "value": 'PRESS'}, None),
     ])
 
     return keymap

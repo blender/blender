@@ -60,21 +60,12 @@ class PlaneDistortWarpImageOperation : public PlaneDistortBaseOperation {
 };
 
 class PlaneDistortMaskOperation : public PlaneDistortBaseOperation {
- protected:
-  int osa_;
-  float jitter_[32][2];
-
  public:
   PlaneDistortMaskOperation();
-
-  void init_execution() override;
 
   void update_memory_buffer_partial(MemoryBuffer *output,
                                     const rcti &area,
                                     Span<MemoryBuffer *> inputs) override;
-
- private:
-  int get_jitter_samples_inside_count(int x, int y, MotionSample &sample_data);
 };
 
 }  // namespace blender::compositor

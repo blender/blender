@@ -210,6 +210,9 @@ typedef struct wmWindowManager {
   ListBase timers;
   /** Timer for auto save. */
   struct wmTimer *autosavetimer;
+  /** Auto-save timer was up, but it wasn't possible to auto-save in the current mode. */
+  char autosave_scheduled;
+  char _pad2[7];
 
   /** All undo history (runtime only). */
   struct UndoStack *undo_stack;

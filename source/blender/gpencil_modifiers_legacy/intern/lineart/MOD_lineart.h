@@ -879,11 +879,6 @@ struct GreasePencilLineartModifierData;
 struct LineartData;
 struct Scene;
 
-void MOD_lineart_wrap_modifier_v3(const LineartGpencilModifierData *lmd_legacy,
-                                  GreasePencilLineartModifierData *lmd);
-void MOD_lineart_unwrap_modifier_v3(LineartGpencilModifierData *lmd_legacy,
-                                    const GreasePencilLineartModifierData *lmd);
-
 void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd_legacy);
 void MOD_lineart_destroy_render_data_v3(struct GreasePencilLineartModifierData *lmd);
 

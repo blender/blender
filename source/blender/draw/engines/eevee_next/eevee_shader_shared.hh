@@ -807,8 +807,6 @@ struct LightData {
   int tilemap_index;
   /** Directional : Offset of the LOD min in LOD min tile units. */
   int2 clipmap_base_offset;
-  /** Number of step for shadow map tracing. */
-  int shadow_ray_step_count;
   /** Punctual: Other parts of the perspective matrix. */
   float clip_side;
   /** Punctual: Shift to apply to the light origin to get the shadow projection origin. */
@@ -817,7 +815,9 @@ struct LightData {
   float shadow_shape_scale_or_angle;
   /** Trace distance for directional lights. */
   float shadow_trace_distance;
-  float _pad2;
+  /* Radius in pixels for shadow filtering. */
+  float pcf_radius;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(LightData, 16)
 
@@ -1024,7 +1024,7 @@ struct ShadowSceneData {
   int step_count;
   /* Bias the shading point by using the normal to avoid self intersection. */
   float normal_bias;
-  int _pad2;
+  int _pad0;
 };
 BLI_STATIC_ASSERT_ALIGN(ShadowSceneData, 16)
 
