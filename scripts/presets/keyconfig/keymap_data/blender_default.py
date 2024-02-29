@@ -357,7 +357,6 @@ def _template_items_transform_actions(
         use_shear=False,
 ):
     items = [
-        ("transform.translate", {"type": params.select_mouse, "value": 'CLICK_DRAG'}, None),
         op_tool_optional(
             ("transform.translate", {"type": 'G', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.move"), params),
@@ -367,6 +366,8 @@ def _template_items_transform_actions(
         op_tool_optional(
             ("transform.resize", {"type": 'S', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.scale"), params),
+
+        ("transform.translate", {"type": params.select_mouse, "value": 'CLICK_DRAG'}, None),
     ]
 
     if use_bend:
