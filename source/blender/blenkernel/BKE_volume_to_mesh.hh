@@ -44,6 +44,8 @@ Mesh *volume_to_mesh(const openvdb::GridBase &grid,
                      float threshold,
                      float adaptivity);
 
+Mesh *volume_grid_to_mesh(const openvdb::GridBase &grid, float threshold, float adaptivity);
+
 /**
  * Convert an OpenVDB volume grid to corresponding mesh data: vertex positions and quad and
  * triangle indices.

@@ -1333,6 +1333,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_MESH_TO_DENSITY_GRID 2126
 #define GEO_NODE_MESH_TO_SDF_GRID 2127
 #define GEO_NODE_POINTS_TO_SDF_GRID 2128
+#define GEO_NODE_GRID_TO_MESH 2129
+#define GEO_NODE_DISTRIBUTE_POINTS_IN_GRID 2130
 
 /** \} */
 

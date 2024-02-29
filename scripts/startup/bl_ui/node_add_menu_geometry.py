@@ -475,7 +475,8 @@ class NODE_MT_category_GEO_POINT(Menu):
 
     def draw(self, context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsInVolume")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsInGrid")
         node_add_menu.add_node_type(layout, "GeometryNodeDistributePointsOnFaces")
         layout.separator()
         node_add_menu.add_node_type(layout, "GeometryNodePoints")
@@ -717,6 +718,8 @@ class NODE_MT_geometry_node_GEO_VOLUME_OPERATIONS(Menu):
     def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeVolumeToMesh")
+        if context.preferences.experimental.use_new_volume_nodes:
+            node_add_menu.add_node_type(layout, "GeometryNodeGridToMesh")
         node_add_menu.draw_assets_for_catalog(layout, "Volume/Operations")
 
 
