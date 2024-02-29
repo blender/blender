@@ -33,20 +33,15 @@ namespace blender::asset_system {
 
 const CatalogFilePath AssetCatalogService::DEFAULT_CATALOG_FILENAME = "blender_assets.cats.txt";
 
-AssetCatalogService::AssetCatalogService()
-    : catalog_collection_(std::make_unique<AssetCatalogCollection>())
+AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
+    : catalog_collection_(std::make_unique<AssetCatalogCollection>()),
+      asset_library_root_(asset_library_root)
 {
 }
 
 AssetCatalogService::AssetCatalogService(read_only_tag) : AssetCatalogService()
 {
   const_cast<bool &>(is_read_only_) = true;
-}
-
-AssetCatalogService::AssetCatalogService(const CatalogFilePath &asset_library_root)
-    : AssetCatalogService()
-{
-  asset_library_root_ = asset_library_root;
 }
 
 void AssetCatalogService::tag_has_unsaved_changes(AssetCatalog *edited_catalog)
@@ -372,8 +367,7 @@ void AssetCatalogService::load_single_file(const CatalogFilePath &catalog_defini
 std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::parse_catalog_file(
     const CatalogFilePath &catalog_definition_file_path)
 {
-  auto cdf = std::make_unique<AssetCatalogDefinitionFile>();
-  cdf->file_path = catalog_definition_file_path;
+  auto cdf = std::make_unique<AssetCatalogDefinitionFile>(catalog_definition_file_path);
 
   /* TODO(Sybren): this might have to move to a higher level when supporting multiple CDFs. */
   Set<AssetCatalogPath> seen_paths;
@@ -556,8 +550,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
 std::unique_ptr<AssetCatalogDefinitionFile> AssetCatalogService::construct_cdf_in_memory(
     const CatalogFilePath &file_path) const
 {
-  auto cdf = std::make_unique<AssetCatalogDefinitionFile>();
-  cdf->file_path = file_path;
+  auto cdf = std::make_unique<AssetCatalogDefinitionFile>(file_path);
 
   for (auto &catalog : catalog_collection_->catalogs_.values()) {
     cdf->add_new(catalog.get());

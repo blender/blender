@@ -40,17 +40,17 @@ using OwningAssetCatalogMap = Map<CatalogID, std::unique_ptr<AssetCatalog>>;
  * directory hierarchy). */
 class AssetCatalogService {
   std::unique_ptr<AssetCatalogCollection> catalog_collection_;
+
   /**
    * Cached catalog tree storage. Lazy-created by #AssetCatalogService::catalog_tree().
    */
   std::unique_ptr<AssetCatalogTree> catalog_tree_;
   std::mutex catalog_tree_mutex_;
 
-  CatalogFilePath asset_library_root_;
-
   Vector<std::unique_ptr<AssetCatalogCollection>> undo_snapshots_;
   Vector<std::unique_ptr<AssetCatalogCollection>> redo_snapshots_;
 
+  const CatalogFilePath asset_library_root_;
   const bool is_read_only_ = false;
 
  public:
@@ -59,9 +59,8 @@ class AssetCatalogService {
   struct read_only_tag {};
 
  public:
-  AssetCatalogService();
+  explicit AssetCatalogService(const CatalogFilePath &asset_library_root = {});
   explicit AssetCatalogService(read_only_tag);
-  explicit AssetCatalogService(const CatalogFilePath &asset_library_root);
 
   /**
    * Set tag indicating that some catalog modifications are unsaved, which could

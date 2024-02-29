@@ -37,10 +37,10 @@ class AssetCatalogDefinitionFile {
   const static std::string VERSION_MARKER;
   const static std::string HEADER;
 
-  CatalogFilePath file_path;
+  const CatalogFilePath file_path;
 
  public:
-  AssetCatalogDefinitionFile() = default;
+  AssetCatalogDefinitionFile(const CatalogFilePath &file_path);
 
   /**
    * Write the catalog definitions to the same file they were read from.
