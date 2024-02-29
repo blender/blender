@@ -44,6 +44,36 @@
 namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
+/** \name Local Funcitons
+ * \{ */
+
+static bool space_node_active_view_poll(bContext *C)
+{
+  if (!ED_operator_node_active(C)) {
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return true;
+}
+
+static bool space_node_composite_active_view_poll(bContext *C)
+{
+  if (!composite_node_active(C)) {
+    return false;
+  }
+  const ARegion *region = CTX_wm_region(C);
+  if (!(region && region->regiontype == RGN_TYPE_WINDOW)) {
+    return false;
+  }
+  return true;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name View All Operator
  * \{ */
 
@@ -133,7 +163,7 @@ void NODE_OT_view_all(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = node_view_all_exec;
-  ot->poll = ED_operator_node_active;
+  ot->poll = space_node_active_view_poll;
 
   /* flags */
   ot->flag = 0;
@@ -166,7 +196,7 @@ void NODE_OT_view_selected(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = node_view_selected_exec;
-  ot->poll = ED_operator_node_active;
+  ot->poll = space_node_active_view_poll;
 
   /* flags */
   ot->flag = 0;
@@ -291,7 +321,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = snode_bg_viewmove_invoke;
   ot->modal = snode_bg_viewmove_modal;
-  ot->poll = composite_node_active;
+  ot->poll = space_node_composite_active_view_poll;
   ot->cancel = snode_bg_viewmove_cancel;
 
   /* flags */
@@ -328,7 +358,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = backimage_zoom_exec;
-  ot->poll = composite_node_active;
+  ot->poll = space_node_composite_active_view_poll;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
@@ -393,7 +423,7 @@ void NODE_OT_backimage_fit(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = backimage_fit_exec;
-  ot->poll = composite_node_active;
+  ot->poll = space_node_composite_active_view_poll;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
@@ -682,7 +712,7 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
   ot->invoke = sample_invoke;
   ot->modal = sample_modal;
   ot->cancel = sample_cancel;
-  ot->poll = ED_operator_node_active;
+  ot->poll = space_node_active_view_poll;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING;
