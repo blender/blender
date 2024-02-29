@@ -683,7 +683,9 @@ static void paint_brush_asset_update(Paint &paint,
                                      Brush *brush,
                                      const AssetWeakReference &brush_asset_reference)
 {
+  BLI_assert(&brush_asset_reference != paint.brush_asset_reference);
   MEM_delete(paint.brush_asset_reference);
+  paint.brush_asset_reference = nullptr;
 
   if (brush == nullptr || brush != paint.brush || !(brush->id.tag & LIB_TAG_ASSET_MAIN)) {
     return;
