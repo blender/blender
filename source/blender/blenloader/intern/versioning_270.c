@@ -1141,6 +1141,16 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
     while (a--) {
       LISTBASE_FOREACH (ID *, id, lbarray[a]) {
         id->flag &= LIB_FAKEUSER;
+
+        /* NOTE: This is added in 4.1 code.
+         *
+         * Original commit (3fcf535d2e) forgot to handle embedded IDs. Fortunately, back then, the
+         * only embedded IDs that existed were the NodeTree ones, and the current API to access
+         * them should still be valid on code from 9 years ago. */
+        bNodeTree *node_tree = ntreeFromID(id);
+        if (node_tree) {
+          node_tree->id.flag &= LIB_FAKEUSER;
+        }
       }
     }
   }
