@@ -51,6 +51,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_path_util.h"
+#include "BLI_sort.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
@@ -453,6 +455,16 @@ static void report_job_duration(const ImportJobData *data)
   std::cout << '\n';
 }
 
+static void sort_readers(blender::MutableSpan<AbcObjectReader *> readers)
+{
+  blender::parallel_sort(
+      readers.begin(), readers.end(), [](const AbcObjectReader *a, const AbcObjectReader *b) {
+        const char *na = a->name().c_str();
+        const char *nb = b->name().c_str();
+        return BLI_strcasecmp(na, nb) < 0;
+      });
+}
+
 static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
 {
   SCOPE_TIMER("Alembic import, objects reading and creation");
@@ -509,6 +521,10 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
 
   /* Create objects and set scene frame range. */
 
+  /* Sort readers by name: when creating a lot of objects in Blender,
+   * it is much faster if the order is sorted by name. */
+  sort_readers(data->readers);
+
   const float size = float(data->readers.size());
   size_t i = 0;
 
@@ -531,7 +547,7 @@ static void import_startjob(void *user_data, wmJobWorkerStatus *worker_status)
                 << " is invalid.\n";
     }
 
-    *data->progress = 0.1f + 0.3f * (++i / size);
+    *data->progress = 0.1f + 0.6f * (++i / size);
     *data->do_update = true;
 
     if (G.is_break) {
