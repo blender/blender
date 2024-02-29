@@ -271,21 +271,39 @@ static void action_channel_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
+static void set_v2d_height(View2D *v2d, const size_t item_count, const bool add_marker_padding)
+{
+  const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
+  const float pad_bottom = add_marker_padding ? UI_MARKER_MARGIN_Y : 0;
+  v2d->tot.ymin = -(height + pad_bottom);
+  UI_view2d_curRect_clamp_y(v2d);
+}
+
 static void action_channel_region_draw(const bContext *C, ARegion *region)
 {
   /* draw entirely, view changes should be handled here */
   bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    return;
+  }
+
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
 
-  UI_view2d_view_ortho(v2d);
+  ListBase anim_data = {nullptr, nullptr};
+  /* Build list of channels to draw. */
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_LIST_CHANNELS);
+  const size_t item_count = ANIM_animdata_filter(
+      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+  /* The View2D's height needs to be set before calling UI_view2d_view_ortho because the latter
+   * uses the View2D's `cur` rect which might be modified when setting the height. */
+  set_v2d_height(v2d, item_count, !BLI_listbase_is_empty(ac.markers));
 
-  /* data */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    draw_channel_names((bContext *)C, &ac, region);
-  }
+  UI_view2d_view_ortho(v2d);
+  draw_channel_names((bContext *)C, &ac, region, anim_data);
 
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
@@ -294,6 +312,7 @@ static void action_channel_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* no scrollers here */
+  ANIM_animdata_freelist(&anim_data);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -857,12 +876,6 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceAction, sl);
 }
 
-static void action_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
-{
-  View2D *v2d = &region->v2d;
-  UI_view2d_curRect_clamp_y(v2d);
-}
-
 void ED_spacetype_action()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -896,7 +909,6 @@ void ED_spacetype_action()
   art->draw_overlay = action_main_region_draw_overlay;
   art->listener = action_main_region_listener;
   art->message_subscribe = saction_main_region_message_subscribe;
-  art->on_view2d_changed = action_main_region_view2d_changed;
   art->keymapflag = ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);

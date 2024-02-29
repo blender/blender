@@ -368,20 +368,34 @@ static void graph_channel_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
+static void set_v2d_height(View2D *v2d, const size_t item_count)
+{
+  const int height = ANIM_UI_get_channels_total_height(v2d, item_count);
+  v2d->tot.ymin = -height;
+  UI_view2d_curRect_clamp_y(v2d);
+}
+
 static void graph_channel_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    return;
+  }
   View2D *v2d = &region->v2d;
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
 
+  ListBase anim_data = {nullptr, nullptr};
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  const size_t item_count = ANIM_animdata_filter(
+      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+  set_v2d_height(v2d, item_count);
   UI_view2d_view_ortho(v2d);
 
   /* draw channels */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    graph_draw_channel_names((bContext *)C, &ac, region);
-  }
+  graph_draw_channel_names((bContext *)C, &ac, region, anim_data);
 
   /* channel filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
@@ -391,6 +405,8 @@ static void graph_channel_region_draw(const bContext *C, ARegion *region)
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, nullptr);
+
+  ANIM_animdata_freelist(&anim_data);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

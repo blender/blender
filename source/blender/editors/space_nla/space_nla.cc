@@ -176,17 +176,35 @@ static void nla_track_region_init(wmWindowManager *wm, ARegion *region)
 static void nla_track_region_draw(const bContext *C, ARegion *region)
 {
   bAnimContext ac;
-  View2D *v2d = &region->v2d;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    return;
+  }
 
   /* clear and setup matrix */
   UI_ThemeClearColor(TH_BACK);
 
+  ListBase anim_data = {nullptr, nullptr};
+
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac.sl);
+  View2D *v2d = &region->v2d;
+
+  const eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                    ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  const size_t item_count = ANIM_animdata_filter(
+      &ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  /* Recalculate the height of the track list. Needs to be done before the call to
+   * `UI_view2d_view_ortho`.*/
+  int height = NLATRACK_TOT_HEIGHT(&ac, item_count);
+  if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
+    height -= (UI_MARKER_MARGIN_Y - NLATRACK_STEP(snla));
+  }
+  v2d->tot.ymin = -height;
+  UI_view2d_curRect_clamp_y(v2d);
+
   UI_view2d_view_ortho(v2d);
 
-  /* data */
-  if (ANIM_animdata_get_context(C, &ac)) {
-    draw_nla_track_list(C, &ac, region);
-  }
+  draw_nla_track_list(C, &ac, region, anim_data);
 
   /* track filter next to scrubbing area */
   ED_time_scrub_channel_search_draw(C, region, ac.ads);
@@ -196,6 +214,7 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
 
   /* scrollers */
   UI_view2d_scrollers_draw(v2d, nullptr);
+  ANIM_animdata_freelist(&anim_data);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -430,20 +449,6 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
   }
 }
 
-static void nla_main_region_view2d_changed(const bContext *C, ARegion *region)
-{
-  SpaceNla *snla = CTX_wm_space_nla(C);
-  View2D *v2d = &region->v2d;
-
-  /* If markers are present add region padding
-   * so bottom strip isn't hidden.
-   */
-  if (!BLI_listbase_is_empty(ED_context_get_markers(C))) {
-    v2d->tot.ymin -= (UI_MARKER_MARGIN_Y - NLATRACK_STEP(snla));
-  }
-  UI_view2d_curRect_clamp_y(v2d);
-}
-
 static void nla_track_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
@@ -625,7 +630,6 @@ void ED_spacetype_nla()
   art->draw_overlay = nla_main_region_draw_overlay;
   art->listener = nla_main_region_listener;
   art->message_subscribe = nla_main_region_message_subscribe;
-  art->on_view2d_changed = nla_main_region_view2d_changed;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);

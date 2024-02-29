@@ -1521,27 +1521,15 @@ void graph_draw_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, shor
 /** \name Channel List
  * \{ */
 
-void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
+void graph_draw_channel_names(bContext *C,
+                              bAnimContext *ac,
+                              ARegion *region,
+                              const ListBase /* bAnimListElem */ &anim_data)
 {
-  ListBase anim_data = {nullptr, nullptr};
   bAnimListElem *ale;
-  int filter;
 
   View2D *v2d = &region->v2d;
-  float height;
-  size_t items;
 
-  /* build list of channels to draw */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-            ANIMFILTER_FCURVESONLY);
-  items = ANIM_animdata_filter(
-      ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
-
-  /* Update max-extent of channels here (taking into account scrollers):
-   * - this is done to allow the channel list to be scrollable, but must be done here
-   *   to avoid regenerating the list again and/or also because channels list is drawn first */
-  height = ANIM_UI_get_channels_total_height(v2d, items);
-  v2d->tot.ymin = -height;
   const float channel_step = ANIM_UI_get_channel_step();
 
   /* Loop through channels, and set up drawing depending on their type. */
@@ -1592,9 +1580,6 @@ void graph_draw_channel_names(bContext *C, bAnimContext *ac, ARegion *region)
 
     GPU_blend(GPU_BLEND_NONE);
   }
-
-  /* Free temporary channels. */
-  ANIM_animdata_freelist(&anim_data);
 }
 
 /** \} */
