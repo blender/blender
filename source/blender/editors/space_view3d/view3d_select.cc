@@ -468,8 +468,13 @@ static bool view3d_selectable_data(bContext *C)
       }
     }
     else {
-      if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) &&
+      if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_TEXTURE_PAINT)) &&
           !BKE_paint_select_elem_test(ob))
+      {
+        return false;
+      }
+      if ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
+          !(BKE_paint_select_elem_test(ob) || BKE_object_pose_armature_get_with_wpaint_check(ob)))
       {
         return false;
       }
@@ -610,22 +615,37 @@ static bool do_lasso_select_objects(ViewContext *vc,
  */
 static blender::Vector<Base *> do_pose_tag_select_op_prepare(ViewContext *vc)
 {
-  blender::Vector<Base *> bases;
-
-  FOREACH_BASE_IN_MODE_BEGIN (
-      vc->scene, vc->view_layer, vc->v3d, OB_ARMATURE, OB_MODE_POSE, base_iter)
-  {
-    Object *ob_iter = base_iter->object;
-    bArmature *arm = static_cast<bArmature *>(ob_iter->data);
-    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_iter->pose->chanbase) {
+  auto bases_tag_and_append_fn = [](blender::Vector<Base *> &bases, Base *base) {
+    Object *ob = base->object;
+    bArmature *arm = static_cast<bArmature *>(ob->data);
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
       Bone *bone = pchan->bone;
       bone->flag &= ~BONE_DONE;
     }
     arm->id.tag |= LIB_TAG_DOIT;
-    ob_iter->id.tag &= ~LIB_TAG_DOIT;
-    bases.append(base_iter);
+    ob->id.tag &= ~LIB_TAG_DOIT;
+    bases.append(base);
+  };
+
+  blender::Vector<Base *> bases;
+
+  /* Special case, pose + weight paint mode. */
+  if (vc->obact && (vc->obact->mode & OB_MODE_WEIGHT_PAINT)) {
+    Object *ob_pose = BKE_object_pose_armature_get_with_wpaint_check(vc->obact);
+    BLI_assert(ob_pose != nullptr); /* Caller is expected to check. */
+    Base *base = BKE_view_layer_base_find(vc->view_layer, ob_pose);
+    if (base) {
+      bases_tag_and_append_fn(bases, base);
+    }
   }
-  FOREACH_BASE_IN_MODE_END;
+  else {
+    FOREACH_BASE_IN_MODE_BEGIN (
+        vc->scene, vc->view_layer, vc->v3d, OB_ARMATURE, OB_MODE_POSE, base_iter)
+    {
+      bases_tag_and_append_fn(bases, base_iter);
+    }
+    FOREACH_BASE_IN_MODE_END;
+  }
   return bases;
 }
 
@@ -1378,19 +1398,22 @@ static bool view3d_lasso_select(bContext *C,
     else if (BKE_paint_select_vert_test(ob)) {
       changed_multi |= do_lasso_select_paintvert(vc, wm_userdata, mcoords, mcoords_len, sel_op);
     }
-    else if (ob &&
-             (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
-    {
-      /* pass */
-    }
     else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
       changed_multi |= PE_lasso_select(C, mcoords, mcoords_len, sel_op) != OPERATOR_CANCELLED;
     }
-    else if (ob && (ob->mode & OB_MODE_POSE)) {
+    else if (ob &&
+             ((ob->mode & OB_MODE_POSE) | ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
+                                           BKE_object_pose_armature_get_with_wpaint_check(ob))))
+    {
       changed_multi |= do_lasso_select_pose(vc, mcoords, mcoords_len, sel_op);
       if (changed_multi) {
         ED_outliner_select_sync_from_pose_bone_tag(C);
       }
+    }
+    else if (ob &&
+             (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
+    {
+      /* pass */
     }
     else {
       changed_multi |= do_lasso_select_objects(vc, mcoords, mcoords_len, sel_op);
@@ -4365,7 +4388,10 @@ static int view3d_box_select_exec(bContext *C, wmOperator *op)
     else if (vc.obact && vc.obact->mode & OB_MODE_PARTICLE_EDIT) {
       changed_multi = PE_box_select(C, &rect, sel_op);
     }
-    else if (vc.obact && vc.obact->mode & OB_MODE_POSE) {
+    else if (vc.obact && ((vc.obact->mode & OB_MODE_POSE) ||
+                          ((vc.obact->mode & OB_MODE_WEIGHT_PAINT) &&
+                           BKE_object_pose_armature_get_with_wpaint_check(vc.obact))))
+    {
       changed_multi = do_pose_box_select(C, &vc, &rect, sel_op);
       if (changed_multi) {
         ED_outliner_select_sync_from_pose_bone_tag(C);
@@ -5340,6 +5366,14 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
   }
   else if (obact && obact->mode & OB_MODE_SCULPT) {
     return OPERATOR_CANCELLED;
+  }
+  else if (Object *obact_pose = (obact && (obact->mode & OB_MODE_WEIGHT_PAINT)) ?
+                                    BKE_object_pose_armature_get_with_wpaint_check(obact) :
+                                    nullptr)
+  {
+    ED_view3d_viewcontext_init_object(&vc, obact_pose);
+    pose_circle_select(&vc, sel_op, mval, float(radius));
+    ED_outliner_select_sync_from_pose_bone_tag(C);
   }
   else {
     if (object_circle_select(&vc, sel_op, mval, float(radius))) {
