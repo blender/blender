@@ -210,7 +210,7 @@ public:
 		m_buffersize = buffersize;
 	}
 
-	virtual void setName(std::string name)
+	virtual void setName(const std::string &name)
 	{
 	}
 };

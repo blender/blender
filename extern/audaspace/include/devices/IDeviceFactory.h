@@ -71,7 +71,7 @@ public:
 	 * Sets a name for the device.
 	 * \param name The internal name for the device.
 	 */
-	virtual void setName(std::string name)=0;
+	virtual void setName(const std::string &name)=0;
 };
 
 AUD_NAMESPACE_END

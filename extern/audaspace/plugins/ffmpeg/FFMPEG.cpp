@@ -35,7 +35,7 @@ void FFMPEG::registerPlugin()
 	FileManager::registerOutput(plugin);
 }
 
-std::shared_ptr<IReader> FFMPEG::createReader(std::string filename, int stream)
+std::shared_ptr<IReader> FFMPEG::createReader(const std::string &filename, int stream)
 {
 	return std::shared_ptr<IReader>(new FFMPEGReader(filename, stream));
 }
@@ -45,7 +45,7 @@ std::shared_ptr<IReader> FFMPEG::createReader(std::shared_ptr<Buffer> buffer, in
 	return std::shared_ptr<IReader>(new FFMPEGReader(buffer, stream));
 }
 
-std::vector<StreamInfo> FFMPEG::queryStreams(std::string filename)
+std::vector<StreamInfo> FFMPEG::queryStreams(const std::string &filename)
 {
 	return FFMPEGReader(filename).queryStreams();
 }
@@ -55,7 +55,7 @@ std::vector<StreamInfo> FFMPEG::queryStreams(std::shared_ptr<Buffer> buffer)
 	return FFMPEGReader(buffer).queryStreams();
 }
 
-std::shared_ptr<IWriter> FFMPEG::createWriter(std::string filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)
+std::shared_ptr<IWriter> FFMPEG::createWriter(const std::string &filename, DeviceSpecs specs, Container format, Codec codec, unsigned int bitrate)
 {
 	return std::shared_ptr<IWriter>(new FFMPEGWriter(filename, specs, format, codec, bitrate));
 }

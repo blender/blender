@@ -151,7 +151,7 @@ public:
 	 * \param buffersize The size of the internal buffer.
 	 * \exception Exception Thrown if the audio device cannot be opened.
 	 */
-	JackDevice(std::string name, DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	JackDevice(const std::string &name, DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Closes the JACK client.

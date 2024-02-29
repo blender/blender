@@ -69,6 +69,7 @@ extern AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, in
  * \param format The file's container format.
  * \param codec The codec used for encoding the audio data.
  * \param bitrate The bitrate for encoding.
+ * \param quality The resampling quality.
  * \param callback A callback function that is called periodically during mixdown, reporting progress if length > 0. Can be NULL.
  * \param data Pass through parameter that is passed to the callback.
  * \param error String buffer to copy the error message to in case of failure.
@@ -78,7 +79,7 @@ extern AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, in
 extern AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length,
 							   unsigned int buffersize, const char* filename,
 							   AUD_DeviceSpecs specs, AUD_Container format,
-							   AUD_Codec codec, unsigned int bitrate,
+							   AUD_Codec codec, unsigned int bitrate, AUD_ResampleQuality quality,
 							   void(*callback)(float, void*), void* data, char* error, size_t errorsize);
 
 /**
@@ -92,6 +93,7 @@ extern AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned in
  * \param format The file's container format.
  * \param codec The codec used for encoding the audio data.
  * \param bitrate The bitrate for encoding.
+ * \param quality The resampling quality.
  * \param callback A callback function that is called periodically during mixdown, reporting progress if length > 0. Can be NULL.
  * \param data Pass through parameter that is passed to the callback.
  * \param error String buffer to copy the error message to in case of failure.
@@ -101,7 +103,7 @@ extern AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned in
 extern AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length,
 										   unsigned int buffersize, const char* filename,
 										   AUD_DeviceSpecs specs, AUD_Container format,
-										   AUD_Codec codec, unsigned int bitrate,
+										   AUD_Codec codec, unsigned int bitrate, AUD_ResampleQuality quality,
 										   void(*callback)(float, void*), void* data, char* error, size_t errorsize);
 
 /**
@@ -109,10 +111,12 @@ extern AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start,
  * \param specs Output audio specifications.
  * \param sequencer The sound scene to mix down.
  * \param volume The overall mixdown volume.
+ * \param quality The resampling quality.
  * \param start The start time of the mixdown in the sound scene.
  * \return The read device for the mixdown.
  */
-extern AUD_API AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, double start);
+extern AUD_API AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer,
+												 float volume, AUD_ResampleQuality quality, double start);
 
 /**
  * Initializes audio routines (FFMPEG/JACK if it is enabled).

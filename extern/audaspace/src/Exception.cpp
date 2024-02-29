@@ -25,7 +25,7 @@ Exception::Exception(const Exception& exception) :
 {
 }
 
-Exception::Exception(std::string message, std::string file, int line) :
+Exception::Exception(const std::string &message, const std::string &file, int line) :
 	m_message(message),
 	m_file(file),
 	m_line(line)
@@ -65,7 +65,7 @@ int Exception::getLine() const
 	return m_line;
 }
 
-FileException::FileException(std::string message, std::string file, int line) :
+FileException::FileException(const std::string &message, const std::string &file, int line) :
 	Exception(message, file, line)
 {
 }
@@ -79,7 +79,7 @@ FileException::~FileException() AUD_NOEXCEPT
 {
 }
 
-DeviceException::DeviceException(std::string message, std::string file, int line) :
+DeviceException::DeviceException(const std::string &message, const std::string &file, int line) :
 	Exception(message, file, line)
 {
 }
@@ -93,7 +93,7 @@ DeviceException::~DeviceException() AUD_NOEXCEPT
 {
 }
 
-StateException::StateException(std::string message, std::string file, int line) :
+StateException::StateException(const std::string &message, const std::string &file, int line) :
 	Exception(message, file, line)
 {
 }
