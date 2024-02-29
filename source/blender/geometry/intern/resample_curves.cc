@@ -431,8 +431,9 @@ CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
   /* Fill the counts for the curves that aren't selected and accumulate the counts into offsets. */
   offset_indices::copy_group_sizes(src_points_by_curve, unselected, dst_offsets);
   /* We assume the counts are at least 1. */
-  BLI_assert(std::all_of(
-      dst_offsets.begin(), dst_offsets.end(), [&](const int i) { return dst_offsets[i] > 0; }));
+  BLI_assert(std::all_of(dst_offsets.begin(),
+                         dst_offsets.drop_back(1).end(),
+                         [&](const int count) { return count > 0; }));
   offset_indices::accumulate_counts_to_offsets(dst_offsets);
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
