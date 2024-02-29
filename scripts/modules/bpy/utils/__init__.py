@@ -900,10 +900,8 @@ def register_tool(tool_cls, *, after=None, separator=False, group=False):
     """
     Register a tool in the toolbar.
 
-    :arg tool: A tool subclass.
-    :type tool: :class:`bpy.types.WorkSpaceTool` subclass.
-    :arg space_type: Space type identifier.
-    :type space_type: string
+    :arg tool_cls: A tool subclass.
+    :type tool_cls: :class:`bpy.types.WorkSpaceTool` subclass.
     :arg after: Optional identifiers this tool will be added after.
     :type after: collection of strings or None.
     :arg separator: When true, add a separator before this tool.
