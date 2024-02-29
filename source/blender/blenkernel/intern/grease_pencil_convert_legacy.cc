@@ -724,13 +724,17 @@ static ModifierData &legacy_object_modifier_common(Object &object,
         return false;
       }
       StringRefNull rna_path = fcurve->rna_path;
+      char legacy_name_esc[MAX_NAME * 2];
+      BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
       const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
-                                                       legacy_md.name);
+                                                       legacy_name_esc);
       if (!rna_path.startswith(legacy_root_path)) {
         return false;
       }
+      char new_name_esc[MAX_NAME * 2];
+      BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
       const std::string new_rna_path = fmt::format(
-          "modifiers[\"{}\"]{}", new_md.name, rna_path.substr(int64_t(legacy_root_path.size())));
+          "modifiers[\"{}\"]{}", new_name_esc, rna_path.substr(int64_t(legacy_root_path.size())));
       MEM_freeN(fcurve->rna_path);
       fcurve->rna_path = BLI_strdupn(new_rna_path.c_str(), new_rna_path.size());
       return true;
