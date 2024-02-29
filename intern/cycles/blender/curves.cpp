@@ -965,8 +965,9 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
   }
 
   /* Export motion keys. */
-  const int num_keys = hair->get_curve_keys().size();
-  const int num_curves = b_curves.curves.length();
+  const int num_keys = hair->num_keys();
+  const int num_motion_curves = b_curves.curves.length();
+  const int num_curves = hair->num_curves();
   float4 *mP = attr_mP->data_float4() + motion_step * num_keys;
   bool have_motion = false;
   int num_motion_keys = 0;
@@ -975,7 +976,11 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
   BL::FloatVectorAttribute b_attr_position = find_curves_position_attribute(b_curves);
   std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
 
-  for (int i = 0; i < num_curves; i++) {
+  for (int i = 0; i < num_motion_curves; i++) {
+    if (curve_index >= num_curves) {
+      break;
+    }
+
     const int first_point_index = b_curves.curve_offset_data[i].value();
     const int num_points = b_curves.curve_offset_data[i + 1].value() - first_point_index;
 
