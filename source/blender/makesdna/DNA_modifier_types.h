@@ -3066,7 +3066,7 @@ typedef struct GreasePencilLineartModifierData {
    *
    * Do not change any of the data below since the layout of these
    * data is currently shared with the old line art modifier.
-   * See `MOD_lineart_wrap_modifier_v3` for how it works. */
+   * See `BKE_grease_pencil_lineart_wrap_v3` for how it works. */
 
   uint16_t edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
 

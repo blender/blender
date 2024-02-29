@@ -36,6 +36,7 @@
 #include "BKE_gpencil_legacy.h"
 #include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_grease_pencil.hh"
+#include "BKE_grease_pencil_legacy_convert.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
@@ -3558,100 +3559,6 @@ static void lineart_destroy_render_data(LineartData *ld)
   lineart_mem_destroy(&ld->render_data_pool);
 }
 
-void MOD_lineart_wrap_modifier_v3(const LineartGpencilModifierData *lmd_legacy,
-                                  GreasePencilLineartModifierData *lmd)
-{
-#define LMD_WRAP(var) lmd->var = lmd_legacy->var
-
-  LMD_WRAP(edge_types);
-  LMD_WRAP(source_type);
-  LMD_WRAP(use_multiple_levels);
-  LMD_WRAP(level_start);
-  LMD_WRAP(level_end);
-  LMD_WRAP(source_camera);
-  LMD_WRAP(light_contour_object);
-  LMD_WRAP(source_object);
-  LMD_WRAP(source_collection);
-  LMD_WRAP(target_material);
-  STRNCPY(lmd->source_vertex_group, lmd_legacy->source_vertex_group);
-  STRNCPY(lmd->vgname, lmd_legacy->vgname);
-  LMD_WRAP(overscan);
-  LMD_WRAP(shadow_camera_fov);
-  LMD_WRAP(shadow_camera_size);
-  LMD_WRAP(shadow_camera_near);
-  LMD_WRAP(shadow_camera_far);
-  LMD_WRAP(opacity);
-  LMD_WRAP(thickness);
-  LMD_WRAP(mask_switches);
-  LMD_WRAP(material_mask_bits);
-  LMD_WRAP(intersection_mask);
-  LMD_WRAP(shadow_selection);
-  LMD_WRAP(silhouette_selection);
-  LMD_WRAP(crease_threshold);
-  LMD_WRAP(angle_splitting_threshold);
-  LMD_WRAP(chain_smooth_tolerance);
-  LMD_WRAP(chaining_image_threshold);
-  LMD_WRAP(calculation_flags);
-  LMD_WRAP(flags);
-  LMD_WRAP(stroke_depth_offset);
-  LMD_WRAP(level_start_override);
-  LMD_WRAP(level_end_override);
-  LMD_WRAP(edge_types_override);
-  LMD_WRAP(shadow_selection_override);
-  LMD_WRAP(shadow_use_silhouette_override);
-  LMD_WRAP(cache);
-  LMD_WRAP(la_data_ptr);
-
-#undef LMD_WRAP
-}
-
-void MOD_lineart_unwrap_modifier_v3(LineartGpencilModifierData *lmd_legacy,
-                                    const GreasePencilLineartModifierData *lmd)
-{
-#define LMD_UNWRAP(var) lmd_legacy->var = lmd->var
-
-  LMD_UNWRAP(edge_types);
-  LMD_UNWRAP(source_type);
-  LMD_UNWRAP(use_multiple_levels);
-  LMD_UNWRAP(level_start);
-  LMD_UNWRAP(level_end);
-  LMD_UNWRAP(source_camera);
-  LMD_UNWRAP(light_contour_object);
-  LMD_UNWRAP(source_object);
-  LMD_UNWRAP(source_collection);
-  LMD_UNWRAP(target_material);
-  STRNCPY(lmd_legacy->source_vertex_group, lmd->source_vertex_group);
-  STRNCPY(lmd_legacy->vgname, lmd->vgname);
-  LMD_UNWRAP(overscan);
-  LMD_UNWRAP(shadow_camera_fov);
-  LMD_UNWRAP(shadow_camera_size);
-  LMD_UNWRAP(shadow_camera_near);
-  LMD_UNWRAP(shadow_camera_far);
-  LMD_UNWRAP(opacity);
-  LMD_UNWRAP(thickness);
-  LMD_UNWRAP(mask_switches);
-  LMD_UNWRAP(material_mask_bits);
-  LMD_UNWRAP(intersection_mask);
-  LMD_UNWRAP(shadow_selection);
-  LMD_UNWRAP(silhouette_selection);
-  LMD_UNWRAP(crease_threshold);
-  LMD_UNWRAP(angle_splitting_threshold);
-  LMD_UNWRAP(chain_smooth_tolerance);
-  LMD_UNWRAP(chaining_image_threshold);
-  LMD_UNWRAP(calculation_flags);
-  LMD_UNWRAP(flags);
-  LMD_UNWRAP(stroke_depth_offset);
-  LMD_UNWRAP(level_start_override);
-  LMD_UNWRAP(level_end_override);
-  LMD_UNWRAP(edge_types_override);
-  LMD_UNWRAP(shadow_selection_override);
-  LMD_UNWRAP(shadow_use_silhouette_override);
-  LMD_UNWRAP(cache);
-  LMD_UNWRAP(la_data_ptr);
-
-#undef LMD_UNWRAP
-}
-
 void MOD_lineart_destroy_render_data_v3(GreasePencilLineartModifierData *lmd)
 {
   LineartData *ld = lmd->la_data_ptr;
@@ -3671,9 +3578,9 @@ void MOD_lineart_destroy_render_data_v3(GreasePencilLineartModifierData *lmd)
 void MOD_lineart_destroy_render_data(LineartGpencilModifierData *lmd_legacy)
 {
   GreasePencilLineartModifierData lmd;
-  MOD_lineart_wrap_modifier_v3(lmd_legacy, &lmd);
+  greasepencil::convert::lineart_wrap_v3(lmd_legacy, &lmd);
   MOD_lineart_destroy_render_data_v3(&lmd);
-  MOD_lineart_unwrap_modifier_v3(lmd_legacy, &lmd);
+  greasepencil::convert::lineart_unwrap_v3(lmd_legacy, &lmd);
 }
 
 LineartCache *MOD_lineart_init_cache()
@@ -5325,10 +5232,10 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 {
   bool ret = false;
   GreasePencilLineartModifierData lmd;
-  MOD_lineart_wrap_modifier_v3(lmd_legacy, &lmd);
+  greasepencil::convert::lineart_wrap_v3(lmd_legacy, &lmd);
   ret = MOD_lineart_compute_feature_lines_v3(
       depsgraph, lmd, cached_result, enable_stroke_depth_offset);
-  MOD_lineart_unwrap_modifier_v3(lmd_legacy, &lmd);
+  greasepencil::convert::lineart_unwrap_v3(lmd_legacy, &lmd);
   return ret;
 }
 

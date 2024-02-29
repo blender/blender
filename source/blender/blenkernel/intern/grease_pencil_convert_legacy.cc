@@ -1598,6 +1598,16 @@ static void legacy_object_modifier_weight_proximity(Object &object, GpencilModif
                                    false);
 }
 
+static void legacy_object_modifier_weight_lineart(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilWeightAngle, legacy_md);
+  auto &md_lineart = reinterpret_cast<GreasePencilLineartModifierData &>(md);
+  auto &legacy_md_lineart = reinterpret_cast<LineartGpencilModifierData &>(legacy_md);
+
+  greasepencil::convert::lineart_wrap_v3(&legacy_md_lineart, &md_lineart);
+}
+
 static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
 {
   BLI_assert(BLI_listbase_is_empty(&object.modifiers));
@@ -1671,6 +1681,8 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Simplify:
       case eGpencilModifierType_Texture:
       case eGpencilModifierType_Lineart:
+        legacy_object_modifier_weight_lineart(object, *gpd_md);
+        break;
       case eGpencilModifierType_Shrinkwrap:
       case eGpencilModifierType_Envelope:
       case eGpencilModifierType_Outline:
@@ -1705,6 +1717,100 @@ void legacy_gpencil_object(Main &bmain, Object &object)
   thickness_factor_to_modifier(*gpd, object);
 
   BKE_object_free_derived_caches(&object);
+}
+
+void lineart_wrap_v3(const LineartGpencilModifierData *lmd_legacy,
+                     GreasePencilLineartModifierData *lmd)
+{
+#define LMD_WRAP(var) lmd->var = lmd_legacy->var
+
+  LMD_WRAP(edge_types);
+  LMD_WRAP(source_type);
+  LMD_WRAP(use_multiple_levels);
+  LMD_WRAP(level_start);
+  LMD_WRAP(level_end);
+  LMD_WRAP(source_camera);
+  LMD_WRAP(light_contour_object);
+  LMD_WRAP(source_object);
+  LMD_WRAP(source_collection);
+  LMD_WRAP(target_material);
+  STRNCPY(lmd->source_vertex_group, lmd_legacy->source_vertex_group);
+  STRNCPY(lmd->vgname, lmd_legacy->vgname);
+  LMD_WRAP(overscan);
+  LMD_WRAP(shadow_camera_fov);
+  LMD_WRAP(shadow_camera_size);
+  LMD_WRAP(shadow_camera_near);
+  LMD_WRAP(shadow_camera_far);
+  LMD_WRAP(opacity);
+  lmd->thickness = lmd_legacy->thickness / 2;
+  LMD_WRAP(mask_switches);
+  LMD_WRAP(material_mask_bits);
+  LMD_WRAP(intersection_mask);
+  LMD_WRAP(shadow_selection);
+  LMD_WRAP(silhouette_selection);
+  LMD_WRAP(crease_threshold);
+  LMD_WRAP(angle_splitting_threshold);
+  LMD_WRAP(chain_smooth_tolerance);
+  LMD_WRAP(chaining_image_threshold);
+  LMD_WRAP(calculation_flags);
+  LMD_WRAP(flags);
+  LMD_WRAP(stroke_depth_offset);
+  LMD_WRAP(level_start_override);
+  LMD_WRAP(level_end_override);
+  LMD_WRAP(edge_types_override);
+  LMD_WRAP(shadow_selection_override);
+  LMD_WRAP(shadow_use_silhouette_override);
+  LMD_WRAP(cache);
+  LMD_WRAP(la_data_ptr);
+
+#undef LMD_WRAP
+}
+
+void lineart_unwrap_v3(LineartGpencilModifierData *lmd_legacy,
+                       const GreasePencilLineartModifierData *lmd)
+{
+#define LMD_UNWRAP(var) lmd_legacy->var = lmd->var
+
+  LMD_UNWRAP(edge_types);
+  LMD_UNWRAP(source_type);
+  LMD_UNWRAP(use_multiple_levels);
+  LMD_UNWRAP(level_start);
+  LMD_UNWRAP(level_end);
+  LMD_UNWRAP(source_camera);
+  LMD_UNWRAP(light_contour_object);
+  LMD_UNWRAP(source_object);
+  LMD_UNWRAP(source_collection);
+  LMD_UNWRAP(target_material);
+  STRNCPY(lmd_legacy->source_vertex_group, lmd->source_vertex_group);
+  STRNCPY(lmd_legacy->vgname, lmd->vgname);
+  LMD_UNWRAP(overscan);
+  LMD_UNWRAP(shadow_camera_fov);
+  LMD_UNWRAP(shadow_camera_size);
+  LMD_UNWRAP(shadow_camera_near);
+  LMD_UNWRAP(shadow_camera_far);
+  LMD_UNWRAP(opacity);
+  lmd_legacy->thickness = lmd->thickness * 2;
+  LMD_UNWRAP(mask_switches);
+  LMD_UNWRAP(material_mask_bits);
+  LMD_UNWRAP(intersection_mask);
+  LMD_UNWRAP(shadow_selection);
+  LMD_UNWRAP(silhouette_selection);
+  LMD_UNWRAP(crease_threshold);
+  LMD_UNWRAP(angle_splitting_threshold);
+  LMD_UNWRAP(chain_smooth_tolerance);
+  LMD_UNWRAP(chaining_image_threshold);
+  LMD_UNWRAP(calculation_flags);
+  LMD_UNWRAP(flags);
+  LMD_UNWRAP(stroke_depth_offset);
+  LMD_UNWRAP(level_start_override);
+  LMD_UNWRAP(level_end_override);
+  LMD_UNWRAP(edge_types_override);
+  LMD_UNWRAP(shadow_selection_override);
+  LMD_UNWRAP(shadow_use_silhouette_override);
+  LMD_UNWRAP(cache);
+  LMD_UNWRAP(la_data_ptr);
+
+#undef LMD_UNWRAP
 }
 
 }  // namespace blender::bke::greasepencil::convert

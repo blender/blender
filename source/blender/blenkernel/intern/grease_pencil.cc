@@ -49,6 +49,7 @@
 #include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_brush_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_grease_pencil_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -2769,5 +2770,3 @@ static void write_layer_tree(GreasePencil &grease_pencil, BlendWriter *writer)
   grease_pencil.root_group_ptr->wrap().prepare_for_dna_write();
   write_layer_tree_group(writer, grease_pencil.root_group_ptr);
 }
-
-/** \} */
