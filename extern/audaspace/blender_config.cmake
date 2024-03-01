@@ -36,4 +36,15 @@ set(LIBPULSE_FOUND ${WITH_PULSEAUDIO})
 set(PYTHONLIBS_FOUND TRUE)
 set(NUMPY_FOUND ${WITH_PYTHON_NUMPY})
 set(NUMPY_INCLUDE_DIRS ${PYTHON_NUMPY_INCLUDE_DIRS})
+
 set(SDL_FOUND ${WITH_SDL})
+if(SDL_FOUND)
+  set(USE_SDL2 TRUE)
+  if(WITH_SDL_DYNLOAD)
+    set(SDL2_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/extern/sdlew/include/SDL2")
+    # Not needed, Blender's `sdlew` defines symbols.
+    set(SDL2_LIBRARY "")
+  endif()
+  # This probably shouldn't be used, but it is.
+  set(SDL_LIBRARY "${SDL2_LIBRARY}")
+endif()
