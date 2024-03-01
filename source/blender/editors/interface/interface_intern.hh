@@ -193,10 +193,6 @@ struct uiBut {
   /* both these values use depends on the button type
    * (polymorphic struct or union would be nicer for this stuff) */
 
-  /**
-   * For #uiBut.type:
-   * - UI_BTYPE_SCROLL:       Use as scroll size.
-   */
   float a1 = 0;
 
   float a2 = 0;
@@ -390,6 +386,12 @@ struct uiButSeparatorLine : public uiBut {
 /** Derived struct for #UI_BTYPE_LABEL. */
 struct uiButLabel : public uiBut {
   float alpha_factor = 1.0f;
+};
+
+/** Derived struct for #UI_BTYPE_SCROLL. */
+struct uiButScrollBar : public uiBut {
+  /** Actual visual height of UI list (in rows). */
+  float visual_height = -1.0f;
 };
 
 struct uiButViewItem : public uiBut {

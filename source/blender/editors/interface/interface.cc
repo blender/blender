@@ -918,6 +918,12 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       label_oldbut->alpha_factor = label_but->alpha_factor;
       break;
     }
+    case UI_BTYPE_SCROLL: {
+      uiButScrollBar *scroll_oldbut = (uiButScrollBar *)oldbut;
+      uiButScrollBar *scroll_but = (uiButScrollBar *)but;
+      scroll_oldbut->visual_height = scroll_but->visual_height;
+      break;
+    }
     case UI_BTYPE_VIEW_ITEM: {
       uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
       uiButViewItem *view_item_newbut = (uiButViewItem *)but;
@@ -3973,6 +3979,9 @@ static uiBut *ui_but_new(const eButType type)
       break;
     case UI_BTYPE_LABEL:
       but = MEM_new<uiButLabel>("uiButLabel");
+      break;
+    case UI_BTYPE_SCROLL:
+      but = MEM_new<uiButScrollBar>("uiButScrollBar");
       break;
     default:
       but = MEM_new<uiBut>("uiBut");

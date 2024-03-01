@@ -824,20 +824,22 @@ static void ui_template_list_layout_draw(const bContext *C,
       /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         uiLayoutColumn(row, false);
-        uiDefButI(block,
-                  UI_BTYPE_SCROLL,
-                  0,
-                  "",
-                  0,
-                  0,
-                  V2D_SCROLL_WIDTH,
-                  UI_UNIT_Y * dyn_data->visual_height,
-                  &ui_list->list_scroll,
-                  0,
-                  dyn_data->height - dyn_data->visual_height,
-                  dyn_data->visual_height,
-                  0,
-                  "");
+        but = uiDefButI(block,
+                        UI_BTYPE_SCROLL,
+                        0,
+                        "",
+                        0,
+                        0,
+                        V2D_SCROLL_WIDTH,
+                        UI_UNIT_Y * dyn_data->visual_height,
+                        &ui_list->list_scroll,
+                        0,
+                        dyn_data->height - dyn_data->visual_height,
+                        0,
+                        0,
+                        "");
+        uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
+        but_scroll->visual_height = dyn_data->visual_height;
       }
       break;
     }
@@ -971,20 +973,22 @@ static void ui_template_list_layout_draw(const bContext *C,
       /* Add scroll-bar. */
       if (items->tot_items > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
-        uiDefButI(block,
-                  UI_BTYPE_SCROLL,
-                  0,
-                  "",
-                  0,
-                  0,
-                  V2D_SCROLL_WIDTH,
-                  UI_UNIT_Y * dyn_data->visual_height,
-                  &ui_list->list_scroll,
-                  0,
-                  dyn_data->height - dyn_data->visual_height,
-                  dyn_data->visual_height,
-                  0,
-                  "");
+        but = uiDefButI(block,
+                        UI_BTYPE_SCROLL,
+                        0,
+                        "",
+                        0,
+                        0,
+                        V2D_SCROLL_WIDTH,
+                        UI_UNIT_Y * dyn_data->visual_height,
+                        &ui_list->list_scroll,
+                        0,
+                        dyn_data->height - dyn_data->visual_height,
+                        0,
+                        0,
+                        "");
+        uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
+        but_scroll->visual_height = dyn_data->visual_height;
       }
       break;
     }
@@ -1066,20 +1070,22 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       if (items->tot_items > visual_info.visual_items) {
         /* col = */ uiLayoutColumn(row, false);
-        uiDefButI(block,
-                  UI_BTYPE_SCROLL,
-                  0,
-                  "",
-                  0,
-                  0,
-                  V2D_SCROLL_WIDTH,
-                  size_y * dyn_data->visual_height,
-                  &ui_list->list_scroll,
-                  0,
-                  dyn_data->height - dyn_data->visual_height,
-                  dyn_data->visual_height,
-                  0,
-                  "");
+        but = uiDefButI(block,
+                        UI_BTYPE_SCROLL,
+                        0,
+                        "",
+                        0,
+                        0,
+                        V2D_SCROLL_WIDTH,
+                        size_y * dyn_data->visual_height,
+                        &ui_list->list_scroll,
+                        0,
+                        dyn_data->height - dyn_data->visual_height,
+                        0,
+                        0,
+                        "");
+        uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
+        but_scroll->visual_height = dyn_data->visual_height;
       }
       break;
   }
