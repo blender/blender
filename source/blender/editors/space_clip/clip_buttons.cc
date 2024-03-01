@@ -206,8 +206,6 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
                 &scopes->track_preview_height,
                 UI_UNIT_Y,
                 UI_UNIT_Y * 20.0f,
-                0.0f,
-                0.0f,
                 "");
 }
 
@@ -441,8 +439,6 @@ void uiTemplateMarker(uiLayout *layout,
                                  UI_UNIT_Y,
                                  &cb->marker_flag,
                                  0,
-                                 0,
-                                 1,
                                  0,
                                  tip);
     UI_but_funcN_set(bt, marker_update_cb, cb, nullptr);

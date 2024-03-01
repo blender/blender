@@ -3413,25 +3413,11 @@ void uiItemV(uiLayout *layout, const char *name, int icon, int argval)
   const int w = ui_text_icon_width(layout, name, icon, false);
 
   if (icon && name[0]) {
-    uiDefIconTextButI(block,
-                      UI_BTYPE_BUT,
-                      argval,
-                      icon,
-                      name,
-                      0,
-                      0,
-                      w,
-                      UI_UNIT_Y,
-                      retvalue,
-                      0.0,
-                      0.0,
-                      0,
-                      -1,
-                      "");
+    uiDefIconTextButI(
+        block, UI_BTYPE_BUT, argval, icon, name, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, "");
   }
   else if (icon) {
-    uiDefIconButI(
-        block, UI_BTYPE_BUT, argval, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, 0, -1, "");
+    uiDefIconButI(block, UI_BTYPE_BUT, argval, icon, 0, 0, w, UI_UNIT_Y, retvalue, 0.0, 0.0, "");
   }
   else {
     uiDefButI(

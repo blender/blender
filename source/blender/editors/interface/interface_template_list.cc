@@ -1121,8 +1121,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                              &(ui_list->filter_flag),
                              0,
                              0,
-                             0,
-                             0,
                              TIP_("Hide filtering options"));
       UI_but_flag_disable(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
@@ -1138,8 +1136,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                             &dyn_data->resize,
                             0.0,
                             0.0,
-                            0,
-                            0,
                             "");
         UI_but_func_set(but, [ui_list](bContext &C) { uilist_resize_update(&C, ui_list); });
       }
@@ -1178,8 +1174,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                              &(ui_list->filter_flag),
                              0,
                              0,
-                             0,
-                             0,
                              TIP_("Show filtering options"));
       UI_but_flag_disable(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
@@ -1195,8 +1189,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                             &dyn_data->resize,
                             0.0,
                             0.0,
-                            0,
-                            0,
                             "");
         UI_but_func_set(but, [ui_list](bContext &C) { uilist_resize_update(&C, ui_list); });
       }

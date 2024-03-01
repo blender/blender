@@ -376,8 +376,6 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     &apply_on_spline_always_off_hack,
                                     0.0,
                                     0.0,
-                                    0.0,
-                                    0.0,
                                     RPT_("Apply on Spline"));
       UI_but_disable(but,
                      "This modifier can only deform filled curve/surface, not the control points");
@@ -400,8 +398,6 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
                                     UI_UNIT_X - 2,
                                     UI_UNIT_Y,
                                     &apply_on_spline_always_on_hack,
-                                    0.0,
-                                    0.0,
                                     0.0,
                                     0.0,
                                     RPT_("Apply on Spline"));
