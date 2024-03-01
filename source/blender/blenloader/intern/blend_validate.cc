@@ -19,7 +19,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_key_types.h"
+#include "DNA_node_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -28,6 +30,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_node.hh"
 #include "BKE_report.hh"
 
 #include "BLO_blend_validate.hh"
@@ -205,4 +208,29 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
   }
 
   return is_valid;
+}
+
+void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports*/)
+{
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    bNodeTree *node_tree = ntreeFromID(id_iter);
+    if (node_tree) {
+      if (node_tree->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
+        if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
+          node_tree->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+        }
+      }
+    }
+
+    if (GS(id_iter->name) == ID_SCE) {
+      Scene *scene = reinterpret_cast<Scene *>(id_iter);
+      if (scene->master_collection &&
+          (scene->master_collection->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE))
+      {
+        scene->master_collection->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
+      }
+    }
+  }
+  FOREACH_MAIN_ID_END;
 }
