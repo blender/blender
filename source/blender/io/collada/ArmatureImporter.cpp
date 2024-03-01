@@ -469,6 +469,12 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
       continue;
     }
 
+    /* Assumption that joint_parent_map only lists armatures is apparently wrong (it can be meshes,
+     * too), this needs to be checked again, for now prevent a crash though. */
+    if (ob_arm->type != OB_ARMATURE) {
+      continue;
+    }
+
     bArmature *armature = (bArmature *)ob_arm->data;
     if (!armature) {
       continue;
