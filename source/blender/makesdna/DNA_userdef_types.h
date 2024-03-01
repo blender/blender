@@ -1471,16 +1471,6 @@ typedef enum eUserpref_VirtualPixel {
   VIRTUAL_PIXEL_DOUBLE = 1,
 } eUserpref_VirtualPixel;
 
-typedef enum eOpensubdiv_Computee_Type {
-  USER_OPENSUBDIV_COMPUTE_NONE = 0,
-  USER_OPENSUBDIV_COMPUTE_CPU = 1,
-  USER_OPENSUBDIV_COMPUTE_OPENMP = 2,
-  USER_OPENSUBDIV_COMPUTE_OPENCL = 3,
-  USER_OPENSUBDIV_COMPUTE_CUDA = 4,
-  USER_OPENSUBDIV_COMPUTE_GLSL_TRANSFORM_FEEDBACK = 5,
-  USER_OPENSUBDIV_COMPUTE_GLSL_COMPUTE = 6,
-} eOpensubdiv_Computee_Type;
-
 /** #UserDef.factor_display_type */
 typedef enum eUserpref_FactorDisplay {
   USER_FACTOR_AS_FACTOR = 0,
