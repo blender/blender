@@ -389,6 +389,11 @@ struct uiButProgress : public uiBut {
   eButProgressType progress_type = UI_BUT_PROGRESS_TYPE_BAR;
 };
 
+/** Derived struct for #UI_BTYPE_SEPR_LINE. */
+struct uiButSeparatorLine : public uiBut {
+  bool is_vertical;
+};
+
 struct uiButViewItem : public uiBut {
   /* C-Handle to the view item this button was created for. */
   uiViewItemHandle *view_item = nullptr;

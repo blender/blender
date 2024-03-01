@@ -3389,7 +3389,8 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 /** Separator line. */
 static void ui_draw_separator(const uiWidgetColors *wcol, uiBut *but, const rcti *rect)
 {
-  const bool vertical = but->a1 == 1.0f;
+  const uiButSeparatorLine *but_line = static_cast<uiButSeparatorLine *>(but);
+  const bool vertical = but_line->is_vertical;
   const int mid = vertical ? BLI_rcti_cent_x(rect) : BLI_rcti_cent_y(rect);
   const uchar col[4] = {
       wcol->text[0],

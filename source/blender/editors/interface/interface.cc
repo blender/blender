@@ -906,6 +906,12 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       progress_oldbut->progress_factor = progress_but->progress_factor;
       break;
     }
+    case UI_BTYPE_SEPR_LINE: {
+      uiButSeparatorLine *line_oldbut = (uiButSeparatorLine *)oldbut;
+      uiButSeparatorLine *line_but = (uiButSeparatorLine *)but;
+      line_oldbut->is_vertical = line_but->is_vertical;
+      break;
+    }
     case UI_BTYPE_VIEW_ITEM: {
       uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
       uiButViewItem *view_item_newbut = (uiButViewItem *)but;
@@ -3937,6 +3943,9 @@ static uiBut *ui_but_new(const eButType type)
       break;
     case UI_BTYPE_PROGRESS:
       but = MEM_new<uiButProgress>("uiButProgress");
+      break;
+    case UI_BTYPE_SEPR_LINE:
+      but = MEM_new<uiButSeparatorLine>("uiButSeparatorLine");
       break;
     case UI_BTYPE_HSVCUBE:
       but = MEM_new<uiButHSVCube>("uiButHSVCube");
