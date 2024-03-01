@@ -1807,14 +1807,13 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
      * holding CTRL or SHIFT, ignore events when the cursor is over the icon. This disambiguates
      * the case where we are recursing *and* holding CTRL or SHIFT in order to extend or range
      * select recursively. */
-    if (!recurse && (extend || use_range) &&
-        outliner_item_is_co_over_icon(activate_te, view_mval[0]))
-    {
+    if (!recurse && (extend || use_range) && is_over_icon) {
       return OPERATOR_CANCELLED;
     }
 
     if (use_range) {
-      do_outliner_range_select(C, space_outliner, activate_te, extend, recurse, parent_collection);
+      do_outliner_range_select(
+          C, space_outliner, activate_te, extend, (recurse && is_over_icon), parent_collection);
     }
     else {
       const bool is_over_name_icons = outliner_item_is_co_over_name_icons(activate_te,
@@ -1836,7 +1835,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
       /* The recurse flag is set when the user double-clicks
        * to select everything in a collection or hierarchy. */
       if (recurse) {
-        if (outliner_item_is_co_over_icon(activate_te, view_mval[0])) {
+        if (is_over_icon) {
           /* Select or deselect object hierarchy recursively. */
           outliner_item_select(C, space_outliner, activate_te, select_flag);
           do_outliner_select_recursive(&activate_te->subtree, select, parent_collection);
