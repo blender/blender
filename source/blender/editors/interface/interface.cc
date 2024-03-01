@@ -912,6 +912,12 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       line_oldbut->is_vertical = line_but->is_vertical;
       break;
     }
+    case UI_BTYPE_LABEL: {
+      uiButLabel *label_oldbut = (uiButLabel *)oldbut;
+      uiButLabel *label_but = (uiButLabel *)but;
+      label_oldbut->alpha_factor = label_but->alpha_factor;
+      break;
+    }
     case UI_BTYPE_VIEW_ITEM: {
       uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
       uiButViewItem *view_item_newbut = (uiButViewItem *)but;
@@ -3965,6 +3971,9 @@ static uiBut *ui_but_new(const eButType type)
     case UI_BTYPE_VIEW_ITEM:
       but = MEM_new<uiButViewItem>("uiButViewItem");
       break;
+    case UI_BTYPE_LABEL:
+      but = MEM_new<uiButLabel>("uiButLabel");
+      break;
     default:
       but = MEM_new<uiBut>("uiBut");
       break;
@@ -6356,6 +6365,13 @@ void UI_but_number_slider_precision_set(uiBut *but, float precision)
   but_number->precision = precision;
   /* -1 is a valid value, UI code figures out an appropriate precision then. */
   BLI_assert(precision > -2);
+}
+
+void UI_but_label_alpha_factor_set(uiBut *but, const float alpha_factor)
+{
+  uiButLabel *but_label = reinterpret_cast<uiButLabel *>(but);
+  BLI_assert(but->type == UI_BTYPE_LABEL);
+  but_label->alpha_factor = alpha_factor;
 }
 
 void UI_but_search_preview_grid_size_set(uiBut *but, int rows, int cols)

@@ -195,15 +195,10 @@ struct uiBut {
 
   /**
    * For #uiBut.type:
-   * - UI_BTYPE_LABEL:        Use `(a1 == 1.0f)` to use a2 as a blending factor (imaginative!).
    * - UI_BTYPE_SCROLL:       Use as scroll size.
    */
   float a1 = 0;
 
-  /**
-   * For #uiBut.type:
-   * - UI_BTYPE_LABEL:        If `(a1 == 1.0f)` use a2 as a blending factor.
-   */
   float a2 = 0;
 
   uchar col[4] = {0};
@@ -390,6 +385,11 @@ struct uiButProgress : public uiBut {
 /** Derived struct for #UI_BTYPE_SEPR_LINE. */
 struct uiButSeparatorLine : public uiBut {
   bool is_vertical;
+};
+
+/** Derived struct for #UI_BTYPE_LABEL. */
+struct uiButLabel : public uiBut {
+  float alpha_factor = 1.0f;
 };
 
 struct uiButViewItem : public uiBut {
