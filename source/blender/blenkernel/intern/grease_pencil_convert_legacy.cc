@@ -961,6 +961,45 @@ static void legacy_object_modifier_dash(Object &object, GpencilModifierData &leg
                                    false);
 }
 
+static void legacy_object_modifier_envelope(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilEnvelope, legacy_md);
+  auto &md_envelope = reinterpret_cast<GreasePencilEnvelopeModifierData &>(md);
+  auto &legacy_md_envelope = reinterpret_cast<EnvelopeGpencilModifierData &>(legacy_md);
+
+  switch (eEnvelopeGpencil_Mode(legacy_md_envelope.mode)) {
+    case GP_ENVELOPE_DEFORM:
+      md_envelope.mode = MOD_GREASE_PENCIL_ENVELOPE_DEFORM;
+      break;
+    case GP_ENVELOPE_SEGMENTS:
+      md_envelope.mode = MOD_GREASE_PENCIL_ENVELOPE_SEGMENTS;
+      break;
+    case GP_ENVELOPE_FILLS:
+      md_envelope.mode = MOD_GREASE_PENCIL_ENVELOPE_FILLS;
+      break;
+  }
+  md_envelope.mat_nr = legacy_md_envelope.mat_nr;
+  md_envelope.thickness = legacy_md_envelope.thickness;
+  md_envelope.strength = legacy_md_envelope.strength;
+  md_envelope.skip = legacy_md_envelope.skip;
+  md_envelope.spread = legacy_md_envelope.spread;
+
+  legacy_object_modifier_influence(md_envelope.influence,
+                                   legacy_md_envelope.layername,
+                                   legacy_md_envelope.layer_pass,
+                                   legacy_md_envelope.flag & GP_ENVELOPE_INVERT_LAYER,
+                                   legacy_md_envelope.flag & GP_ENVELOPE_INVERT_LAYERPASS,
+                                   &legacy_md_envelope.material,
+                                   legacy_md_envelope.pass_index,
+                                   legacy_md_envelope.flag & GP_ENVELOPE_INVERT_MATERIAL,
+                                   legacy_md_envelope.flag & GP_ENVELOPE_INVERT_PASS,
+                                   legacy_md_envelope.vgname,
+                                   legacy_md_envelope.flag & GP_ENVELOPE_INVERT_VGROUP,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifier_hook(Object &object, GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
@@ -1631,6 +1670,9 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Dash:
         legacy_object_modifier_dash(object, *gpd_md);
         break;
+      case eGpencilModifierType_Envelope:
+        legacy_object_modifier_envelope(object, *gpd_md);
+        break;
       case eGpencilModifierType_Hook:
         legacy_object_modifier_hook(object, *gpd_md);
         break;
@@ -1684,7 +1726,6 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
         legacy_object_modifier_weight_lineart(object, *gpd_md);
         break;
       case eGpencilModifierType_Shrinkwrap:
-      case eGpencilModifierType_Envelope:
       case eGpencilModifierType_Outline:
         break;
     }

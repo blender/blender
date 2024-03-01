@@ -115,6 +115,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilLineart = 78,
   eModifierType_GreasePencilArmature = 79,
   eModifierType_GreasePencilTime = 80,
+  eModifierType_GreasePencilEnvelope = 81,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -3225,3 +3226,27 @@ typedef enum GreasePencilTimeModifierSegmentMode {
   MOD_GREASE_PENCIL_TIME_SEG_MODE_REVERSE = 1,
   MOD_GREASE_PENCIL_TIME_SEG_MODE_PINGPONG = 2,
 } GreasePencilTimeModifierSegmentMode;
+
+typedef struct GreasePencilEnvelopeModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+  /* #GreasePencilEnvelopeModifierMode. */
+  int mode;
+  /** Material for the new strokes. */
+  int mat_nr;
+  /** Thickness multiplier for the new strokes. */
+  float thickness;
+  /** Strength multiplier for the new strokes. */
+  float strength;
+  /** Number of points to skip over. */
+  int skip;
+  /* Length of the envelope effect. */
+  int spread;
+} GreasePencilEnvelopeModifierData;
+
+/* Texture->mode */
+typedef enum GreasePencilEnvelopeModifierMode {
+  MOD_GREASE_PENCIL_ENVELOPE_DEFORM = 0,
+  MOD_GREASE_PENCIL_ENVELOPE_SEGMENTS = 1,
+  MOD_GREASE_PENCIL_ENVELOPE_FILLS = 2,
+} GreasePencilEnvelopeModifierMode;
