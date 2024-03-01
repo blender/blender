@@ -1148,15 +1148,17 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 
         layout.separator()
 
+        layout.label(text="Symmetrize")
         layout.prop(sculpt, "symmetrize_direction")
-        layout.operator("sculpt.symmetrize")
         layout.prop(WindowManager.operator_properties_last("sculpt.symmetrize"), "merge_tolerance")
+        layout.operator("sculpt.symmetrize")
 
 
 class VIEW3D_PT_sculpt_symmetry_for_topbar(Panel):
     bl_space_type = 'TOPBAR'
     bl_region_type = 'HEADER'
     bl_label = "Symmetry"
+    bl_ui_units_x = 13
 
     draw = VIEW3D_PT_sculpt_symmetry.draw
 
