@@ -6004,12 +6004,6 @@ void UI_block_layout_resolve(uiBlock *block, int *r_x, int *r_y)
   }
 
   BLI_listbase_clear(&block->layouts);
-
-  /* XXX silly trick, `interface_templates.cc` doesn't get linked
-   * because it's not used by other files in this module? */
-  {
-    UI_template_fix_linking();
-  }
 }
 
 bool UI_block_layout_needs_resolving(const uiBlock *block)
