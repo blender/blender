@@ -37,12 +37,12 @@ else()
     unset(LIBDIR_GLIBC228_ABI)
   endif()
 
-  if(DEFINED LIBDIR)
-    if(NOT (EXISTS ${LIBDIR}))
-      message(STATUS
-        "Unable to find LIBDIR: ${LIBDIR}, system libraries may be used "
-        "(disable WITH_LIBS_PRECOMPILED to suppress this message)."
-      )
+  if(NOT DEFINED LIBDIR OR NOT (EXISTS ${LIBDIR}))
+    message(STATUS
+      "Unable to find LIBDIR: ${LIBDIR}, system libraries may be used "
+      "(disable WITH_LIBS_PRECOMPILED to suppress this message)."
+    )
+    if(DEFINED LIBDIR)
       unset(LIBDIR)
     endif()
   endif()
