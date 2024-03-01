@@ -259,7 +259,7 @@ static uiBlock *template_common_search_menu(const bContext *C,
     const int h = 5 * U.widget_unit * preview_rows * scale;
 
     /* fake button, it holds space for search items */
-    uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, nullptr, 0, 0, 0, 0, nullptr);
+    uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, nullptr, 0, 0, nullptr);
 
     but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y, "");
     UI_but_search_preview_grid_size_set(but, preview_rows, preview_cols);
@@ -279,8 +279,6 @@ static uiBlock *template_common_search_menu(const bContext *C,
              searchbox_width,
              searchbox_height,
              nullptr,
-             0,
-             0,
              0,
              0,
              nullptr);
@@ -1282,8 +1280,6 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                            nullptr,
                            0,
                            0,
-                           0,
-                           0,
                            nullptr);
     UI_but_funcN_set(
         but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
@@ -1398,8 +1394,6 @@ static void template_ID(const bContext *C,
                              nullptr,
                              0,
                              0,
-                             0,
-                             0,
                              TIP_("Indirect library data-block, cannot be made local, "
                                   "Shift + Click to create a library override hierarchy"));
         }
@@ -1413,8 +1407,6 @@ static void template_ID(const bContext *C,
                              UI_UNIT_X,
                              UI_UNIT_Y,
                              nullptr,
-                             0,
-                             0,
                              0,
                              0,
                              TIP_("Direct linked library data-block, click to make local, "
@@ -1441,8 +1433,6 @@ static void template_ID(const bContext *C,
             nullptr,
             0,
             0,
-            0,
-            0,
             TIP_("Library override of linked data-block, click to make fully local, "
                  "Shift + Click to clear the library override and toggle if it can be edited"));
         UI_but_funcN_set(
@@ -1466,8 +1456,6 @@ static void template_ID(const bContext *C,
           numstr_len * 0.2f * UI_UNIT_X + UI_UNIT_X,
           UI_UNIT_Y,
           nullptr,
-          0,
-          0,
           0,
           0,
           TIP_("Display number of users of this data (click to make a single-user copy)"));
@@ -1577,8 +1565,6 @@ static void template_ID(const bContext *C,
                              nullptr,
                              0,
                              0,
-                             0,
-                             0,
                              nullptr);
       UI_but_funcN_set(
           but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OPEN));
@@ -1622,8 +1608,6 @@ static void template_ID(const bContext *C,
             UI_UNIT_X,
             UI_UNIT_Y,
             nullptr,
-            0,
-            0,
             0,
             0,
             TIP_("Unlink data-block "
@@ -3216,20 +3200,8 @@ void uiTemplatePreview(uiLayout *layout,
   uiLayoutSetKeepAspect(col, true);
 
   /* add preview */
-  uiDefBut(block,
-           UI_BTYPE_EXTRA,
-           0,
-           "",
-           0,
-           0,
-           UI_UNIT_X * 10,
-           ui_preview->height,
-           pid,
-           0.0,
-           0.0,
-           0,
-           0,
-           "");
+  uiDefBut(
+      block, UI_BTYPE_EXTRA, 0, "", 0, 0, UI_UNIT_X * 10, ui_preview->height, pid, 0.0, 0.0, "");
   UI_but_func_drawextra_set(block, ED_preview_draw, pparent, slot);
   UI_block_func_handle_set(block, do_preview_buttons, nullptr);
 
@@ -3463,8 +3435,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_flip(&C, coba);
@@ -3485,8 +3455,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, false);
@@ -3507,8 +3475,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       colorband_distribute(&C, coba, true);
@@ -3536,8 +3502,6 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [coba, cb](bContext &C) {
       BKE_colorband_init(coba, true);
@@ -3615,8 +3579,6 @@ static void colorband_buttons_layout(uiLayout *layout,
                         nullptr,
                         0,
                         0,
-                        0,
-                        0,
                         TIP_("Add a new color stop to the color ramp"));
   UI_but_func_set(bt, [coba, cb](bContext &C) { colorband_add(C, cb, *coba); });
 
@@ -3630,8 +3592,6 @@ static void colorband_buttons_layout(uiLayout *layout,
                         2.0f * unit,
                         UI_UNIT_Y,
                         nullptr,
-                        0,
-                        0,
                         0,
                         0,
                         TIP_("Delete the active position"));
@@ -3674,20 +3634,8 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   row = uiLayoutRow(layout, false);
 
-  bt = uiDefBut(block,
-                UI_BTYPE_COLORBAND,
-                0,
-                "",
-                xs,
-                ys,
-                BLI_rctf_size_x(butr),
-                UI_UNIT_Y,
-                coba,
-                0,
-                0,
-                0,
-                0,
-                "");
+  bt = uiDefBut(
+      block, UI_BTYPE_COLORBAND, 0, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
   UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
 
   row = uiLayoutRow(layout, false);
@@ -3816,8 +3764,6 @@ void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
                             UI_UNIT_X * icon_scale,
                             UI_UNIT_Y * icon_scale,
                             nullptr,
-                            0.0,
-                            0.0,
                             0.0,
                             0.0,
                             "");
@@ -3952,8 +3898,6 @@ void uiTemplateIconView(uiLayout *layout,
                        nullptr,
                        0.0,
                        0.0,
-                       0.0,
-                       0.0,
                        "");
   }
 
@@ -3994,8 +3938,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
   uiLayout *col = uiLayoutColumn(layout, true);
   uiBlock *block = uiLayoutGetBlock(col);
 
-  uiDefBut(
-      block, UI_BTYPE_HISTOGRAM, 0, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, 0, 0, "");
+  uiDefBut(block, UI_BTYPE_HISTOGRAM, 0, "", 0, 0, UI_UNIT_X * 10, hist->height, hist, 0, 0, "");
 
   /* Resize grip. */
   uiDefIconButI(block,
@@ -4051,8 +3994,6 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
            UI_UNIT_X * 10,
            scopes->wavefrm_height,
            scopes,
-           0,
-           0,
            0,
            0,
            "");
@@ -4111,8 +4052,6 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
            UI_UNIT_X * 10,
            scopes->vecscope_height,
            scopes,
-           0,
-           0,
            0,
            0,
            "");
@@ -4321,8 +4260,6 @@ static uiBlock *curvemap_tools_func(
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [cumap](bContext &C) {
       BKE_curvemapping_reset_view(cumap);
@@ -4344,8 +4281,6 @@ static uiBlock *curvemap_tools_func(
                                     nullptr,
                                     0.0,
                                     0.0,
-                                    0,
-                                    0,
                                     "");
       UI_but_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
@@ -4368,8 +4303,6 @@ static uiBlock *curvemap_tools_func(
                                     nullptr,
                                     0.0,
                                     0.0,
-                                    0,
-                                    0,
                                     "");
       UI_but_func_set(but, [cumap, cb](bContext &C) {
         cumap->flag |= CUMA_EXTEND_EXTRAPOLATE;
@@ -4394,8 +4327,6 @@ static uiBlock *curvemap_tools_func(
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  reset_mode,
                                   "");
     UI_but_func_set(but, [cumap, cb, reset_mode](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
@@ -4480,18 +4411,15 @@ static void curvemap_buttons_layout(uiLayout *layout,
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[0].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "X", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, "X", 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[1].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "Y", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, "Y", 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[2].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, "Z", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, "Z", 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
   }
@@ -4512,24 +4440,19 @@ static void curvemap_buttons_layout(uiLayout *layout,
                      &cumap->cur,
                      0.0,
                      3.0,
-                     0.0,
-                     0.0,
                      "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[0].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, IFACE_("R"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("R"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[1].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, IFACE_("G"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("G"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[2].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, IFACE_("B"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("B"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
   }
@@ -4539,18 +4462,15 @@ static void curvemap_buttons_layout(uiLayout *layout,
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
     if (cumap->cm[0].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, IFACE_("H"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("H"), 0, 0, dx, dx, &cumap->cur, 0.0, 0.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[1].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, IFACE_("S"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("S"), 0, 0, dx, dx, &cumap->cur, 0.0, 1.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
     if (cumap->cm[2].curve) {
-      bt = uiDefButI(
-          block, UI_BTYPE_ROW, 0, IFACE_("V"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+      bt = uiDefButI(block, UI_BTYPE_ROW, 0, IFACE_("V"), 0, 0, dx, dx, &cumap->cur, 0.0, 2.0, "");
       UI_but_func_set(bt, curvemap_buttons_redraw);
     }
   }
@@ -4568,40 +4488,16 @@ static void curvemap_buttons_layout(uiLayout *layout,
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
 
   /* Zoom in */
-  bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
-                    0,
-                    ICON_ZOOM_IN,
-                    0,
-                    0,
-                    dx,
-                    dx,
-                    nullptr,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    TIP_("Zoom in"));
+  bt = uiDefIconBut(
+      block, UI_BTYPE_BUT, 0, ICON_ZOOM_IN, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Zoom in"));
   UI_but_func_set(bt, [cumap](bContext &C) { curvemap_buttons_zoom_in(&C, cumap); });
   if (!curvemap_can_zoom_in(cumap)) {
     UI_but_disable(bt, "");
   }
 
   /* Zoom out */
-  bt = uiDefIconBut(block,
-                    UI_BTYPE_BUT,
-                    0,
-                    ICON_ZOOM_OUT,
-                    0,
-                    0,
-                    dx,
-                    dx,
-                    nullptr,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    TIP_("Zoom out"));
+  bt = uiDefIconBut(
+      block, UI_BTYPE_BUT, 0, ICON_ZOOM_OUT, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Zoom out"));
   UI_but_func_set(bt, [cumap](bContext &C) { curvemap_buttons_zoom_out(&C, cumap); });
   if (!curvemap_can_zoom_out(cumap)) {
     UI_but_disable(bt, "");
@@ -4649,7 +4545,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
   const int size = max_ii(uiLayoutGetWidth(layout), UI_UNIT_X);
   row = uiLayoutRow(layout, false);
   uiButCurveMapping *curve_but = (uiButCurveMapping *)uiDefBut(
-      block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, -1, 0, "");
+      block, UI_BTYPE_CURVE, 0, "", 0, 0, size, 8.0f * UI_UNIT_X, cumap, 0.0f, 1.0f, "");
   curve_but->gradient_type = bg;
 
   /* Sliders for selected curve point. */
@@ -4692,8 +4588,6 @@ static void curvemap_buttons_layout(uiLayout *layout,
                       nullptr,
                       0.0,
                       0.0,
-                      0.0,
-                      0.0,
                       TIP_("Auto Handle"));
     UI_but_func_set(bt, [cumap, cb](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
@@ -4718,8 +4612,6 @@ static void curvemap_buttons_layout(uiLayout *layout,
                       nullptr,
                       0.0,
                       0.0,
-                      0.0,
-                      0.0,
                       TIP_("Vector Handle"));
     UI_but_func_set(bt, [cumap, cb](bContext &C) {
       CurveMap *cuma = cumap->cm + cumap->cur;
@@ -4740,8 +4632,6 @@ static void curvemap_buttons_layout(uiLayout *layout,
                       UI_UNIT_X,
                       UI_UNIT_Y,
                       nullptr,
-                      0.0,
-                      0.0,
                       0.0,
                       0.0,
                       TIP_("Auto Clamped"));
@@ -4795,20 +4685,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
     });
 
     /* Curve handle delete point */
-    bt = uiDefIconBut(block,
-                      UI_BTYPE_BUT,
-                      0,
-                      ICON_X,
-                      0,
-                      0,
-                      dx,
-                      dx,
-                      nullptr,
-                      0.0,
-                      0.0,
-                      0.0,
-                      0.0,
-                      TIP_("Delete points"));
+    bt = uiDefIconBut(
+        block, UI_BTYPE_BUT, 0, ICON_X, 0, 0, dx, dx, nullptr, 0.0, 0.0, TIP_("Delete points"));
     UI_but_func_set(bt, [cumap, cb](bContext &C) {
       BKE_curvemap_remove(cumap->cm + cumap->cur, SELECT);
       BKE_curvemapping_changed(cumap, false);
@@ -4839,8 +4717,6 @@ static void curvemap_buttons_layout(uiLayout *layout,
                   nullptr,
                   0.0f,
                   0.0f,
-                  0,
-                  0,
                   TIP_("Reset Black/White point and curves"));
     UI_but_func_set(bt, [cumap, cb](bContext &C) {
       cumap->preset = CURVE_PRESET_LINE;
@@ -4930,8 +4806,6 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [profile, cb, preset](bContext &C) {
       profile->preset = preset;
@@ -4971,8 +4845,6 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [profile](bContext &C) {
       BKE_curveprofile_reset_view(profile);
@@ -4992,8 +4864,6 @@ static uiBlock *curve_profile_tools_fn(bContext *C, ARegion *region, void *cb_v)
                                   nullptr,
                                   0.0,
                                   0.0,
-                                  0,
-                                  0,
                                   "");
     UI_but_func_set(but, [profile, cb](bContext &C) {
       BKE_curveprofile_reset(profile);
@@ -5122,8 +4992,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                             nullptr,
                             0.0,
                             0.0,
-                            0.0,
-                            0.0,
                             TIP_("Reapply and update the preset, removing changes"));
       UI_but_func_set(bt, [profile, cb](bContext &C) {
         BKE_curveprofile_reset(profile);
@@ -5151,8 +5019,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                     nullptr,
                     0.0,
                     0.0,
-                    0.0,
-                    0.0,
                     TIP_("Zoom in"));
   UI_but_func_set(bt, [profile](bContext &C) { curve_profile_zoom_in(&C, profile); });
   if (!curve_profile_can_zoom_in(profile)) {
@@ -5169,8 +5035,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                     UI_UNIT_X,
                     UI_UNIT_X,
                     nullptr,
-                    0.0,
-                    0.0,
                     0.0,
                     0.0,
                     TIP_("Zoom out"));
@@ -5195,8 +5059,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                     nullptr,
                     0.0,
                     0.0,
-                    0.0,
-                    0.0,
                     TIP_("Reverse Path"));
   UI_but_func_set(bt, [profile, cb](bContext &C) {
     BKE_curveprofile_reverse(profile);
@@ -5215,8 +5077,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                     UI_UNIT_X,
                     UI_UNIT_X,
                     nullptr,
-                    0.0,
-                    0.0,
                     0.0,
                     0.0,
                     TIP_("Toggle Profile Clipping"));
@@ -5260,8 +5120,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
            profile,
            0.0f,
            1.0f,
-           -1,
-           0,
            "");
 
   /* Position sliders for (first) selected point */
@@ -5369,8 +5227,6 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
                       UI_UNIT_X,
                       UI_UNIT_X,
                       nullptr,
-                      0.0,
-                      0.0,
                       0.0,
                       0.0,
                       TIP_("Delete points"));
@@ -6103,8 +5959,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      nullptr,
                      0.0f,
                      0.0f,
-                     0.0f,
-                     0.0f,
                      "");
 
     /* stick progress bar and cancel button together */
@@ -6129,8 +5983,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                                                                       nullptr,
                                                                       0.0f,
                                                                       0.0f,
-                                                                      0.0f,
-                                                                      0,
                                                                       nullptr);
 
       but_progress->progress_factor = progress;
@@ -6150,8 +6002,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                        nullptr,
                        0.0f,
                        0.0f,
-                       0,
-                       0,
                        TIP_("Stop this job"));
     }
   }
@@ -6169,8 +6019,6 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
                      nullptr,
                      0.0f,
                      0.0f,
-                     0,
-                     0,
                      TIP_("Stop animation playback"));
   }
 }
@@ -6238,8 +6086,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  nullptr,
                  0.0f,
                  0.0f,
-                 0,
-                 0,
                  "");
   /* UI_BTYPE_ROUNDBOX's bg color is set in but->col. */
   copy_v4_v4_uchar(but->col, report_icon_color);
@@ -6256,8 +6102,6 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
                  nullptr,
                  0.0f,
                  0.0f,
-                 0,
-                 0,
                  "");
   /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
   copy_v3_v3_uchar(but->col, report_icon_color);
@@ -6382,8 +6226,6 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                  nullptr,
                  0.0f,
                  0.0f,
-                 0,
-                 0,
                  "");
   /* UI_BTYPE_ROUNDBOX's bg color is set in but->col. */
   UI_GetThemeColorType4ubv(TH_INFO_WARNING, SPACE_INFO, but->col);
@@ -6400,8 +6242,6 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                  nullptr,
                  0.0f,
                  0.0f,
-                 0,
-                 0,
                  "");
 
   /* Use icon background at low opacity to highlight, but still contrasting with area TH_TEXT. */
@@ -6430,8 +6270,6 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                      nullptr,
                      0.0f,
                      0.0f,
-                     0.0f,
-                     0.0f,
                      compat_error_msg);
   UI_GetThemeColorType4ubv(TH_INFO_WARNING_TEXT, SPACE_INFO, but->col);
   but->col[3] = 255; /* This theme color is RBG only, so have to set alpha here. */
@@ -6446,8 +6284,6 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
                  short(width + UI_UNIT_X),
                  UI_UNIT_Y,
                  nullptr,
-                 0.0f,
-                 0.0f,
                  0.0f,
                  0.0f,
                  compat_error_msg);
@@ -6710,7 +6546,7 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[
    * Eventually it should be possible to use theme colors for this purpose,
    * but this requires a better design for extendable color palettes in user preferences. */
   uiBut *but = uiDefBut(
-      block, UI_BTYPE_NODE_SOCKET, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
+      block, UI_BTYPE_NODE_SOCKET, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0,  "");
   rgba_float_to_uchar(but->col, color);
 
   UI_block_align_end(block);

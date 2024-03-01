@@ -1416,8 +1416,6 @@ static uiBlock *node_find_menu(bContext *C, ARegion *region, void *arg_op)
            nullptr,
            0,
            0,
-           0,
-           0,
            nullptr);
 
   /* Move it downwards, mouse over button. */

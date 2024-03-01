@@ -335,8 +335,6 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
                             nullptr,
                             0.0,
                             0.0,
-                            0.0,
-                            0.0,
                             TIP_("Delete Modifier"));
   FModifierDeleteContext *ctx = static_cast<FModifierDeleteContext *>(
       MEM_mallocN(sizeof(FModifierDeleteContext), __func__));
@@ -695,8 +693,6 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
                         nullptr,
                         0,
                         0,
-                        0,
-                        0,
                         TIP_("Add a new control-point to the envelope on the current frame"));
   UI_but_func_set(but, fmod_envelope_addpoint_cb, env, nullptr);
 
@@ -724,8 +720,6 @@ static void envelope_panel_draw(const bContext *C, Panel *panel)
                        0.9 * UI_UNIT_X,
                        UI_UNIT_Y,
                        nullptr,
-                       0.0,
-                       0.0,
                        0.0,
                        0.0,
                        TIP_("Delete envelope control point"));

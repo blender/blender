@@ -481,8 +481,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
              nullptr,
              0,
              0,
-             0,
-             0,
              "");
     return;
   }
@@ -547,7 +545,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     else {
       c = IFACE_("Median:");
     }
-    uiDefBut(block, UI_BTYPE_LABEL, 0, c, 0, yi -= buth, butw, buth, nullptr, 0, 0, 0, 0, "");
+    uiDefBut(block, UI_BTYPE_LABEL, 0, c, 0, yi -= buth, butw, buth, nullptr, 0, 0,  "");
 
     UI_block_align_begin(block);
 
@@ -659,8 +657,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                  nullptr,
                  0.0,
                  0.0,
-                 0,
-                 0,
                  "");
         /* customdata layer added on demand */
         but = uiDefButF(block,
@@ -737,8 +733,6 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                  nullptr,
                  0.0,
                  0.0,
-                 0,
-                 0,
                  "");
         /* customdata layer added on demand */
         but = uiDefButF(block,
@@ -1213,8 +1207,6 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
              butw,
              buth,
              nullptr,
-             0,
-             0,
              0,
              0,
              "");

@@ -835,8 +835,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                         &ui_list->list_scroll,
                         0,
                         dyn_data->height - dyn_data->visual_height,
-                        0,
-                        0,
                         "");
         uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
@@ -984,8 +982,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                         &ui_list->list_scroll,
                         0,
                         dyn_data->height - dyn_data->visual_height,
-                        0,
-                        0,
                         "");
         uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
@@ -1081,8 +1077,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                         &ui_list->list_scroll,
                         0,
                         dyn_data->height - dyn_data->visual_height,
-                        0,
-                        0,
                         "");
         uiButScrollBar *but_scroll = reinterpret_cast<uiButScrollBar *>(but);
         but_scroll->visual_height = dyn_data->visual_height;
@@ -1161,8 +1155,6 @@ static void ui_template_list_layout_draw(const bContext *C,
                nullptr,
                0.0,
                0.0,
-               0,
-               0,
                "");
 
       layout_data->draw_filter(ui_list, C, col);

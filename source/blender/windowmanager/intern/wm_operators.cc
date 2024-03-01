@@ -1110,8 +1110,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            nullptr,
            0.0,
            0.0,
-           0,
-           0,
            "");
 #endif
   uiBut *but = uiDefSearchButO_ptr(block,
@@ -1137,8 +1135,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            width,
            height,
            nullptr,
-           0,
-           0,
            0,
            0,
            nullptr);
@@ -1570,14 +1566,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
                              nullptr,
                              0,
                              0,
-                             0,
-                             0,
                              "");
       uiLayoutColumn(col, false);
     }
 
     cancel_but = uiDefBut(
-        col_block, UI_BTYPE_BUT, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
+        col_block, UI_BTYPE_BUT, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
 
     if (!windows_layout) {
       uiLayoutColumn(col, false);
@@ -1590,8 +1584,6 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
                              0,
                              UI_UNIT_Y,
                              nullptr,
-                             0,
-                             0,
                              0,
                              0,
                              "");
@@ -1949,8 +1941,6 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
            init_data->size[0],
            init_data->size[1],
            nullptr,
-           0,
-           0,
            0,
            0,
            nullptr);

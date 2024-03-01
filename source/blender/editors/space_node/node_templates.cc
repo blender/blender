@@ -604,8 +604,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                    nullptr,
                    0.0,
                    0.0,
-                   0.0,
-                   0.0,
                    "");
         }
 
@@ -627,8 +625,6 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                              UI_UNIT_X * 4,
                              UI_UNIT_Y,
                              nullptr,
-                             0.0,
-                             0.0,
                              0.0,
                              0.0,
                              TIP_("Add node to input"));
@@ -690,8 +686,6 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
                    nullptr,
                    0.0,
                    0.0,
-                   0.0,
-                   0.0,
                    TIP_("Remove nodes connected to the input"));
     UI_but_funcN_set(but, ui_node_link, MEM_dupallocN(arg), POINTER_FROM_INT(UI_NODE_LINK_REMOVE));
 
@@ -704,8 +698,6 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
                    UI_UNIT_X * 4,
                    UI_UNIT_Y,
                    nullptr,
-                   0.0,
-                   0.0,
                    0.0,
                    0.0,
                    TIP_("Disconnect nodes connected to the input"));
@@ -812,8 +804,6 @@ static void ui_node_draw_panel(uiLayout &layout,
                                 UI_UNIT_X * 4,
                                 UI_UNIT_Y,
                                 nullptr,
-                                0.0,
-                                0.0,
                                 0.0,
                                 0.0,
                                 "");

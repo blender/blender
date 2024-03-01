@@ -190,13 +190,6 @@ struct uiBut {
   char *poin = nullptr;
   float hardmin = 0, hardmax = 0, softmin = 0, softmax = 0;
 
-  /* both these values use depends on the button type
-   * (polymorphic struct or union would be nicer for this stuff) */
-
-  float a1 = 0;
-
-  float a2 = 0;
-
   uchar col[4] = {0};
 
   /** See \ref UI_but_func_identity_compare_set(). */

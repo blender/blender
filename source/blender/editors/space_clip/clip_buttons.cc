@@ -128,8 +128,7 @@ void uiTemplateMovieClip(
   if (clip) {
     uiLayout *row = uiLayoutRow(layout, false);
     uiBlock *block = uiLayoutGetBlock(row);
-    uiDefBut(
-        block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, 0, 0, "");
+    uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
 
     row = uiLayoutRow(layout, false);
     uiLayout *split = uiLayoutSplit(row, 0.0f, false);
@@ -188,8 +187,6 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
            UI_UNIT_X * 10,
            scopes->track_preview_height,
            scopes,
-           0,
-           0,
            0,
            0,
            "");
@@ -463,8 +460,6 @@ void uiTemplateMarker(uiLayout *layout,
                nullptr,
                0,
                0,
-               0,
-               0,
                "");
 
       return;
@@ -535,8 +530,6 @@ void uiTemplateMarker(uiLayout *layout,
              nullptr,
              0,
              0,
-             0,
-             0,
              "");
     uiBut *bt = uiDefButF(block,
                           UI_BTYPE_NUM,
@@ -576,8 +569,6 @@ void uiTemplateMarker(uiLayout *layout,
              15 * UI_UNIT_X,
              UI_UNIT_Y,
              nullptr,
-             0,
-             0,
              0,
              0,
              "");
@@ -621,8 +612,6 @@ void uiTemplateMarker(uiLayout *layout,
              nullptr,
              0,
              0,
-             0,
-             0,
              "");
     bt = uiDefButF(block,
                    UI_BTYPE_NUM,
@@ -662,8 +651,6 @@ void uiTemplateMarker(uiLayout *layout,
              15 * UI_UNIT_X,
              UI_UNIT_Y,
              nullptr,
-             0,
-             0,
              0,
              0,
              "");

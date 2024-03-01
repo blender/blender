@@ -856,8 +856,6 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
            nullptr,
            0,
            0,
-           0,
-           0,
            nullptr);
 
   /* Center the menu on the cursor */
