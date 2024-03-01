@@ -691,12 +691,9 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event);
  * Call an existent menu. The menu can be created in C or Python.
  */
 void WM_menu_name_call(bContext *C, const char *menu_name, short context);
-/**
- * Similar to #WM_enum_search_invoke, but draws previews. Also, this can't
- * be used as invoke callback directly since it needs additional info.
- */
-int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, short prv_rows);
+
 int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+
 /**
  * Invoke callback, confirm menu + exec.
  */
