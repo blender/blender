@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <utility>
+
 #include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_math_rotation.h"
@@ -1329,6 +1331,22 @@ static bool rna_NodeLink_is_hidden_get(PointerRNA *ptr)
 {
   bNodeLink *link = static_cast<bNodeLink *>(ptr->data);
   return nodeLinkIsHidden(link);
+}
+
+static void rna_NodeLink_swap_multi_input_sort_id(
+    ID *id, bNodeLink *self, Main *bmain, ReportList *reports, bNodeLink *other)
+{
+  if (self->tosock != other->tosock) {
+    BKE_report(reports, RPT_ERROR_INVALID_INPUT, "The links must be siblings");
+    return;
+  }
+
+  std::swap(self->multi_input_socket_index, other->multi_input_socket_index);
+
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
+  BKE_ntree_update_tag_link_changed(ntree);
+  ED_node_tree_propagate_change(nullptr, bmain, ntree);
+  WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
 /* ******** Node ******** */
@@ -10276,6 +10294,8 @@ static void rna_def_node_link(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  FunctionRNA *func;
+  PropertyRNA *parm;
 
   srna = RNA_def_struct(brna, "NodeLink", nullptr);
   RNA_def_struct_ui_text(srna, "NodeLink", "Link between nodes in a node tree");
@@ -10330,6 +10350,26 @@ static void rna_def_node_link(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Is Hidden", "Link is hidden due to invisible sockets");
+
+  prop = RNA_def_property(srna, "multi_input_sort_id", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "multi_input_socket_index");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Multi Input Sort ID",
+      "Used to sort multiple links coming into the same input. The highest ID is at the top");
+
+  func = RNA_def_function(
+      srna, "swap_multi_input_sort_id", "rna_NodeLink_swap_multi_input_sort_id");
+  RNA_def_function_ui_description(
+      func, "Swap the order of two links connected to the same multi-input socket");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN | FUNC_USE_REPORTS);
+  parm = RNA_def_pointer(func,
+                         "other",
+                         "NodeLink",
+                         "Other",
+                         "The other link. Must link to the same multi input socket");
+  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 }
 
 static void rna_def_nodetree_nodes_api(BlenderRNA *brna, PropertyRNA *cprop)

@@ -1258,10 +1258,15 @@ class NodeSocket(StructRNA, metaclass=RNAMetaPropGroup):
         List of node links from or to this socket.
 
         .. note:: Takes ``O(len(nodetree.links))`` time."""
-        return tuple(
-            link for link in self.id_data.links
-            if (link.from_socket == self or
-                link.to_socket == self))
+        links = (link for link in self.id_data.links
+                 if self in (link.from_socket, link.to_socket))
+
+        if not self.is_output:
+            links = sorted(links,
+                           key=lambda link: link.multi_input_sort_id,
+                           reverse=True)
+
+        return tuple(links)
 
 
 class NodeTreeInterfaceItem(StructRNA):
