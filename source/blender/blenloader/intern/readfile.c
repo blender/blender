@@ -3846,6 +3846,8 @@ static void after_liblink_merged_bmain_process(Main *bmain)
    * so simpler to just use it directly in this single call. */
   BLO_main_validate_shapekeys(bmain, NULL);
 
+  BLO_main_validate_embedded_liboverrides(bmain, NULL);
+
   /* We have to rebuild that runtime information *after* all data-blocks have been properly linked.
    */
   BKE_main_collections_parent_relations_rebuild(bmain);
