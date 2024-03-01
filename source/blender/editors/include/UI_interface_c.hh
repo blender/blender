@@ -1048,8 +1048,6 @@ uiBut *uiDefButS(uiBlock *block,
                  short *poin,
                  float min,
                  float max,
-                 float a1,
-                 float a2,
                  const char *tip);
 uiBut *uiDefButBitS(uiBlock *block,
                     int type,
@@ -3292,7 +3290,7 @@ ARegion *UI_tooltip_create_from_search_item_generic(
 
 /* Float precision helpers */
 #define UI_PRECISION_FLOAT_MAX 6
-/* For float buttons the 'step' (or a1), is scaled */
+/* For float buttons the 'step', is scaled */
 #define UI_PRECISION_FLOAT_SCALE 0.01f
 
 /* Typical UI text */

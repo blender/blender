@@ -3286,8 +3286,6 @@ void uiTemplatePreview(uiLayout *layout,
                 pr_texture,
                 10,
                 TEX_PR_TEXTURE,
-                0,
-                0,
                 "");
       if (GS(parent->name) == ID_MA) {
         uiDefButS(block,
@@ -3301,8 +3299,6 @@ void uiTemplatePreview(uiLayout *layout,
                   pr_texture,
                   10,
                   TEX_PR_OTHER,
-                  0,
-                  0,
                   "");
       }
       else if (GS(parent->name) == ID_LA) {
@@ -3317,8 +3313,6 @@ void uiTemplatePreview(uiLayout *layout,
                   pr_texture,
                   10,
                   TEX_PR_OTHER,
-                  0,
-                  0,
                   "");
       }
       else if (GS(parent->name) == ID_WO) {
@@ -3333,8 +3327,6 @@ void uiTemplatePreview(uiLayout *layout,
                   pr_texture,
                   10,
                   TEX_PR_OTHER,
-                  0,
-                  0,
                   "");
       }
       else if (GS(parent->name) == ID_LS) {
@@ -3349,8 +3341,6 @@ void uiTemplatePreview(uiLayout *layout,
                   pr_texture,
                   10,
                   TEX_PR_OTHER,
-                  0,
-                  0,
                   "");
       }
       uiDefButS(block,
@@ -3364,8 +3354,6 @@ void uiTemplatePreview(uiLayout *layout,
                 pr_texture,
                 10,
                 TEX_PR_BOTH,
-                0,
-                0,
                 "");
 
       /* Alpha button for texture preview */
@@ -3724,8 +3712,6 @@ static void colorband_buttons_layout(uiLayout *layout,
                      &coba->cur,
                      0.0,
                      float(std::max(0, coba->tot - 1)),
-                     0,
-                     0,
                      TIP_("Choose active color stop"));
       UI_but_number_step_size_set(bt, 1);
 
@@ -3751,8 +3737,6 @@ static void colorband_buttons_layout(uiLayout *layout,
                      &coba->cur,
                      0.0,
                      float(std::max(0, coba->tot - 1)),
-                     0,
-                     0,
                      TIP_("Choose active color stop"));
       UI_but_number_step_size_set(bt, 1);
 

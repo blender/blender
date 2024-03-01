@@ -88,8 +88,6 @@ static void ui_imageuser_slot_menu(bContext * /*C*/, uiLayout *layout, void *ima
               &image->render_slot,
               float(slot_id),
               0.0,
-              0,
-              -1,
               "");
   }
 
@@ -182,8 +180,6 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
               &iuser->layer,
               0.0,
               0.0,
-              0,
-              -1,
               "");
   }
 
@@ -200,8 +196,6 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
               &iuser->layer,
               float(nr),
               0.0,
-              0,
-              -1,
               "");
   }
 
@@ -276,8 +270,6 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
               &iuser->pass,
               float(nr),
               0.0,
-              0,
-              -1,
               "");
   }
 
@@ -355,8 +347,6 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
               &iuser->view,
               float(nr),
               0.0,
-              0,
-              -1,
               "");
   }
 
@@ -405,8 +395,6 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
               &iuser->view,
               float(nr),
               0.0,
-              0,
-              -1,
               "");
   }
 }
