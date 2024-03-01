@@ -906,8 +906,10 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
         # Install to the same directory as the source, so debian-like
         # distros are happy with their policy.
         set(_suffix "site-packages")
-        if(${PYTHON_USD_PATH} MATCHES "dist-packages")
-          set(_suffix "dist-packages")
+        if(0) # TODO: `PYTHON_USD_PATH` isn't defined anywhere.
+          if(${PYTHON_USD_PATH} MATCHES "dist-packages")
+            set(_suffix "dist-packages")
+          endif()
         endif()
         install(
           DIRECTORY ${USD_LIBRARY_DIR}/python/

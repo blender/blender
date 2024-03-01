@@ -19,7 +19,7 @@ add_definitions(-DBOOST_ALL_NO_LIB)
 # Clang as well works around the issue.
 if(UNIX AND NOT APPLE)
   if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    if(EXISTS ${LIBDIR})
+    if(DEFINED LIBDIR)
       add_definitions(-DARCH_HAS_GNU_STL_EXTENSIONS)
     endif()
   endif()
