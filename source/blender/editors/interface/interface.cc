@@ -5840,12 +5840,6 @@ void UI_block_func_handle_set(uiBlock *block, uiBlockHandleFunc func, void *arg)
   block->handle_func_arg = arg;
 }
 
-void UI_block_func_butmenu_set(uiBlock *block, uiMenuHandleFunc func, void *arg)
-{
-  block->butm_func = func;
-  block->butm_func_arg = arg;
-}
-
 void UI_block_func_set(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2)
 {
   block->func = func;

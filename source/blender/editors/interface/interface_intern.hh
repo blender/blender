@@ -561,9 +561,6 @@ struct uiBlock {
   uiButHandleNFunc funcN;
   void *func_argN;
 
-  uiMenuHandleFunc butm_func;
-  void *butm_func_arg;
-
   uiBlockHandleFunc handle_func;
   void *handle_func_arg;
 
