@@ -392,18 +392,8 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
   const int x = tile_draw_rect->xmin;
   const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
 
-  but = uiDefIconBut(block,
-                     UI_BTYPE_LABEL,
-                     0,
-                     icon,
-                     x,
-                     y,
-                     width,
-                     height,
-                     nullptr,
-                     0.0f,
-                     0.0f,
-                     nullptr);
+  but = uiDefIconBut(
+      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, nullptr);
   UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
   if (file->asset) {
     UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);

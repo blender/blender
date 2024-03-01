@@ -4787,7 +4787,7 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
 
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
 
-  for (const auto &[name, preset] :
+  for (const auto &item :
        {std::pair<StringRef, eCurveProfilePresets>(IFACE_("Default"), PROF_PRESET_LINE),
         std::pair<StringRef, eCurveProfilePresets>(IFACE_("Support Loops"), PROF_PRESET_SUPPORTS),
         std::pair<StringRef, eCurveProfilePresets>(IFACE_("Cornice Molding"), PROF_PRESET_CORNICE),
@@ -4798,7 +4798,7 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
                                   UI_BTYPE_BUT_MENU,
                                   1,
                                   ICON_BLANK1,
-                                  name,
+                                  item.first,
                                   0,
                                   yco -= UI_UNIT_Y,
                                   0,
@@ -4807,6 +4807,7 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
                                   0.0,
                                   0.0,
                                   "");
+    const eCurveProfilePresets preset = item.second;
     UI_but_func_set(but, [profile, cb, preset](bContext &C) {
       profile->preset = preset;
       BKE_curveprofile_reset(profile);
@@ -6546,7 +6547,7 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, const float color[
    * Eventually it should be possible to use theme colors for this purpose,
    * but this requires a better design for extendable color palettes in user preferences. */
   uiBut *but = uiDefBut(
-      block, UI_BTYPE_NODE_SOCKET, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0,  "");
+      block, UI_BTYPE_NODE_SOCKET, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, "");
   rgba_float_to_uchar(but->col, color);
 
   UI_block_align_end(block);
