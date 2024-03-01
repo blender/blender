@@ -9448,7 +9448,7 @@ static void def_fn_rotate_euler(StructRNA *srna)
 
   PropertyRNA *prop;
 
-  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  prop = RNA_def_property(srna, "rotation_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
   RNA_def_property_enum_items(prop, type_items);
   RNA_def_property_ui_text(prop, "Type", "Method used to describe the rotation");
