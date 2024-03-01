@@ -833,7 +833,7 @@ static uiBlock *merged_element_search_menu(bContext *C, ARegion *region, void *d
 
   short menu_width = 10 * UI_UNIT_X;
   but = uiDefSearchBut(
-      block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, menu_width, UI_UNIT_Y, 0, 0, "");
+      block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, menu_width, UI_UNIT_Y, "");
   UI_but_func_search_set(but,
                          nullptr,
                          merged_element_search_update_fn,

@@ -6132,8 +6132,6 @@ uiBut *uiDefSearchBut(uiBlock *block,
                       int y,
                       short width,
                       short height,
-                      float a1,
-                      float a2,
                       const char *tip)
 {
   uiBut *but = ui_def_but(block,
@@ -6147,8 +6145,8 @@ uiBut *uiDefSearchBut(uiBlock *block,
                           arg,
                           0.0,
                           maxncpy,
-                          a1,
-                          a2,
+                          0.0f,
+                          0.0f,
                           tip);
 
   ui_def_but_icon(but, icon, UI_HAS_ICON);
@@ -6334,11 +6332,9 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                            int y,
                            short width,
                            short height,
-                           float a1,
-                           float a2,
                            const char *tip)
 {
-  uiBut *but = uiDefSearchBut(block, arg, retval, icon, maxncpy, x, y, width, height, a1, a2, tip);
+  uiBut *but = uiDefSearchBut(block, arg, retval, icon, maxncpy, x, y, width, height, tip);
   UI_but_func_search_set(but,
                          ui_searchbox_create_generic,
                          operator_enum_search_update_fn,
@@ -6413,6 +6409,14 @@ void UI_but_number_slider_precision_set(uiBut *but, float precision)
   but_number->precision = precision;
   /* -1 is a valid value, UI code figures out an appropriate precision then. */
   BLI_assert(precision > -2);
+}
+
+void UI_but_search_preview_grid_size_set(uiBut *but, int rows, int cols)
+{
+  BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
+  uiButSearch *but_search = reinterpret_cast<uiButSearch *>(but);
+  but_search->preview_rows = rows;
+  but_search->preview_cols = cols;
 }
 
 void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)

@@ -1125,8 +1125,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                    10,
                                    width,
                                    UI_UNIT_Y,
-                                   0.0f,
-                                   0.0f,
                                    "");
 
   /* fake button, it holds space for search items */
@@ -1923,8 +1921,6 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
                               10,
                               init_data->size[0],
                               UI_UNIT_Y,
-                              0,
-                              0,
                               "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
