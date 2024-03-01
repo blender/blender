@@ -26,9 +26,13 @@ std::string DebugInfo::current_op_name_;
 static std::string operation_class_name(const NodeOperation *op)
 {
   std::string full_name = typeid(*op).name();
-  /* Remove name-spaces. */
+  /* The typeid name is implementation defined, but it is typically a full C++ name that is either
+   * mangled or demangled. In case it was demangled, remove the namespaces, but if it was mangled,
+   * return the entire name, since there is no easy way to demangle it. */
   size_t pos = full_name.find_last_of(':');
-  BLI_assert(pos != std::string::npos);
+  if (pos == std::string::npos) {
+    return full_name;
+  }
   return full_name.substr(pos + 1);
 }
 
