@@ -5611,7 +5611,6 @@ void uiTemplateColorPicker(uiLayout *layout,
   if (lock_luminosity) {
     float color[4]; /* in case of alpha */
     RNA_property_float_get_array(ptr, prop, color);
-    but->a2 = len_v3(color);
     cpicker->luminosity_lock_value = len_v3(color);
   }
 
