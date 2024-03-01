@@ -5544,38 +5544,6 @@ uiBut *uiDefIconTextBut(uiBlock *block,
   but->drawflag |= UI_BUT_ICON_LEFT;
   return but;
 }
-uiBut *uiDefIconTextButF(uiBlock *block,
-                         int type,
-                         int retval,
-                         int icon,
-                         const StringRef str,
-                         int x,
-                         int y,
-                         short width,
-                         short height,
-                         float *poin,
-                         float min,
-                         float max,
-                         float a1,
-                         float a2,
-                         const char *tip)
-{
-  return uiDefIconTextBut(block,
-                          type | UI_BUT_POIN_FLOAT,
-                          retval,
-                          icon,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          (void *)poin,
-                          min,
-                          max,
-                          a1,
-                          a2,
-                          tip);
-}
 uiBut *uiDefIconTextButI(uiBlock *block,
                          int type,
                          int retval,
