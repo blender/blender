@@ -15,6 +15,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_bit_vector.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
@@ -3714,34 +3715,32 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
                                            int index,
                                            const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
-                                           BLI_bitmap *r_successful_remaps)
+                                           blender::BitVector<> &r_successful_remaps)
 {
   const int count = values.size();
-  BLI_bitmap_set_all(r_successful_remaps, false, count);
+  r_successful_remaps.fill(false);
 
   if (r_force_all != nullptr) {
     *r_force_all = false;
   }
 
-  BLI_bitmap *remap_domain = BLI_BITMAP_NEW(count, __func__);
+  blender::BitVector remap_domain(count, false);
   for (int i = 0; i < count; i++) {
     if (!ELEM(index, i, -1)) {
       continue;
     }
 
-    BLI_BITMAP_ENABLE(remap_domain, i);
+    remap_domain[i].set();
   }
 
   /* No context means no correction. */
   if (context == nullptr || context->strip.act == nullptr) {
-    BLI_bitmap_copy_all(r_successful_remaps, remap_domain, count);
-    MEM_freeN(remap_domain);
+    r_successful_remaps = remap_domain;
     return;
   }
 
   /* If the strip is not evaluated, it is the same as zero influence. */
   if (context->eval_strip == nullptr) {
-    MEM_freeN(remap_domain);
     return;
   }
 
@@ -3753,14 +3752,12 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   if (blend_mode == NLASTRIP_MODE_REPLACE && influence == 1.0f &&
       BLI_listbase_is_empty(&context->upper_estrips))
   {
-    BLI_bitmap_copy_all(r_successful_remaps, remap_domain, count);
-    MEM_freeN(remap_domain);
+    r_successful_remaps = remap_domain;
     return;
   }
 
   /* Zero influence is division by zero. */
   if (influence <= 0.0f) {
-    MEM_freeN(remap_domain);
     return;
   }
 
@@ -3778,7 +3775,6 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
   if (nec->base_snapshot.length != count) {
     BLI_assert_msg(0, "invalid value count");
     nlaeval_snapshot_free_data(&blended_snapshot);
-    MEM_freeN(remap_domain);
     return;
   }
 
@@ -3795,10 +3791,12 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
 
     *r_force_all = true;
     index = -1;
-    BLI_bitmap_set_all(remap_domain, true, 4);
+    remap_domain.fill(true);
   }
 
-  BLI_bitmap_copy_all(blended_necs->remap_domain.ptr, remap_domain, count);
+  for (const int i : remap_domain.index_range()) {
+    BLI_BITMAP_SET(blended_necs->remap_domain.ptr, i, remap_domain[i]);
+  }
 
   /* Need to send id_ptr instead of prop_ptr so fcurve RNA paths resolve properly. */
   PointerRNA id_ptr = RNA_id_pointer_create(prop_ptr->owner_id);
@@ -3827,10 +3825,11 @@ void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
     values[i] = blended_necs->values[i];
   }
 
-  BLI_bitmap_copy_all(r_successful_remaps, blended_necs->remap_domain.ptr, blended_necs->length);
+  for (int i = 0; i < blended_necs->length; i++) {
+    r_successful_remaps[i].set(BLI_BITMAP_TEST_BOOL(blended_necs->remap_domain.ptr, i));
+  }
 
   nlaeval_snapshot_free_data(&blended_snapshot);
-  MEM_freeN(remap_domain);
 }
 
 void BKE_animsys_free_nla_keyframing_context_cache(ListBase *cache)
