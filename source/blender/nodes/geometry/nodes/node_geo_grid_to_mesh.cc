@@ -9,6 +9,8 @@
 
 #include "GEO_randomize.hh"
 
+#include "NOD_socket_search_link.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_grid_to_mesh_cc {
@@ -21,6 +23,13 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Values larger than the threshold are inside the generated mesh");
   b.add_input<decl::Float>("Adaptivity").min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Geometry>("Mesh");
+}
+
+static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
+{
+  if (U.experimental.use_new_volume_nodes) {
+    nodes::search_link_ops_for_basic_node(params);
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -50,6 +59,7 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_GRID_TO_MESH, "Grid to Mesh", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
+  ntype.gather_link_search_ops = node_gather_link_search_ops;
   nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)

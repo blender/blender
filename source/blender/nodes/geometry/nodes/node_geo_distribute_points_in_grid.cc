@@ -16,6 +16,7 @@
 #include "BKE_volume_grid.hh"
 
 #include "NOD_rna_define.hh"
+#include "NOD_socket_search_link.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -80,6 +81,13 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bke::nodeSetSocketAvailability(ntree, sock_seed, mode == DistributeMode::Random);
   bke::nodeSetSocketAvailability(ntree, sock_spacing, mode == DistributeMode::Grid);
   bke::nodeSetSocketAvailability(ntree, sock_threshold, mode == DistributeMode::Grid);
+}
+
+static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
+{
+  if (U.experimental.use_new_volume_nodes) {
+    nodes::search_link_ops_for_basic_node(params);
+  }
 }
 
 #ifdef WITH_OPENVDB
@@ -268,6 +276,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = node_gather_link_search_ops;
   nodeRegisterType(&ntype);
 
   node_rna(ntype.rna_ext.srna);
