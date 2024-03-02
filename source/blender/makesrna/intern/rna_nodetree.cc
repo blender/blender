@@ -2159,7 +2159,7 @@ void rna_Node_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   ED_node_tree_propagate_change(nullptr, bmain, ntree);
 }
 
-static void rna_Node_update_relations(Main *bmain, Scene *scene, PointerRNA *ptr)
+void rna_Node_update_relations(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   rna_Node_update(bmain, scene, ptr);
   DEG_relations_tag_update(bmain);
