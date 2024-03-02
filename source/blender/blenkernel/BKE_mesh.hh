@@ -311,6 +311,8 @@ void mesh_calc_edges(Mesh &mesh, bool keep_existing_edges, bool select_new_edges
 
 void mesh_flip_faces(Mesh &mesh, const IndexMask &selection);
 
+void mesh_ensure_required_data_layers(Mesh &mesh);
+
 /** Set mesh vertex normals to known-correct values, avoiding future lazy computation. */
 void mesh_vert_normals_assign(Mesh &mesh, Span<float3> vert_normals);
 
