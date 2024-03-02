@@ -12,7 +12,8 @@ namespace blender::compositor {
 
 class KuwaharaAnisotropicOperation : public MultiThreadedOperation {
  public:
-  NodeKuwaharaData data;
+  float sharpness_;
+  float eccentricity_;
 
   KuwaharaAnisotropicOperation();
 
@@ -21,6 +22,8 @@ class KuwaharaAnisotropicOperation : public MultiThreadedOperation {
                                     Span<MemoryBuffer *> inputs) override;
   float get_sharpness();
   float get_eccentricity();
+  void set_sharpness(float sharpness);
+  void set_eccentricity(float eccentricity);
 };
 
 }  // namespace blender::compositor

@@ -52,7 +52,7 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     /* For high radii, we accelerate the filter using a summed area table, making the filter
      * execute in constant time as opposed to having quadratic complexity. Except if high precision
      * is enabled, since summed area tables are less precise. */
-    if (!data_->high_precision && size > 5.0f) {
+    if (!high_precision_ && size > 5.0f) {
       for (int q = 0; q < 4; q++) {
         /* A fancy expression to compute the sign of the quadrant q. */
         int2 sign = int2((q % 2) * 2 - 1, ((q / 2) * 2 - 1));

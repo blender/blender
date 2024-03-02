@@ -9,14 +9,14 @@
 namespace blender::compositor {
 
 class KuwaharaClassicOperation : public MultiThreadedOperation {
-  const NodeKuwaharaData *data_;
+  bool high_precision_;
 
  public:
   KuwaharaClassicOperation();
 
-  void set_data(const NodeKuwaharaData *data)
+  void set_high_precision(bool high_precision)
   {
-    data_ = data;
+    high_precision_ = high_precision;
   }
 
   void update_memory_buffer_partial(MemoryBuffer *output,
