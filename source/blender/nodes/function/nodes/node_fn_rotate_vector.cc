@@ -11,7 +11,7 @@ namespace blender::nodes::node_fn_rotate_vector_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector");
+  b.add_input<decl::Vector>("Vector").is_default_link_socket();
   b.add_input<decl::Rotation>("Rotation");
   b.add_output<decl::Vector>("Vector");
 };
