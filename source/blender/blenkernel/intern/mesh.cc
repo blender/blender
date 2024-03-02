@@ -486,7 +486,7 @@ void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
   mesh.default_color_attribute = BLI_strdupn(id.name().data(), id.name().size());
 }
 
-static void mesh_ensure_cdlayers_primary(Mesh &mesh)
+void mesh_ensure_required_data_layers(Mesh &mesh)
 {
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
   AttributeInitConstruct attribute_init;
@@ -557,8 +557,6 @@ void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh)
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_clear_geometry(*mesh);
   clear_attribute_names(*mesh);
-
-  blender::bke::mesh_ensure_cdlayers_primary(*mesh);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
@@ -707,7 +705,7 @@ Mesh *BKE_mesh_new_nomain(const int verts_num,
   mesh->faces_num = faces_num;
   mesh->corners_num = corners_num;
 
-  blender::bke::mesh_ensure_cdlayers_primary(*mesh);
+  blender::bke::mesh_ensure_required_data_layers(*mesh);
   BKE_mesh_face_offsets_ensure_alloc(mesh);
 
   return mesh;
@@ -829,7 +827,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
 
   /* The destination mesh should at least have valid primary CD layers,
    * even in cases where the source mesh does not. */
-  blender::bke::mesh_ensure_cdlayers_primary(*me_dst);
+  blender::bke::mesh_ensure_required_data_layers(*me_dst);
   BKE_mesh_face_offsets_ensure_alloc(me_dst);
   if (do_tessface && !CustomData_get_layer(&me_dst->fdata_legacy, CD_MFACE)) {
     CustomData_add_layer(&me_dst->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, me_dst->totface_legacy);
