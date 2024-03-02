@@ -5202,6 +5202,8 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
 
   BLO_read_data_address(reader, &data->external);
 
+  blender::Map<void *, const ImplicitSharingInfo *> sharing_info_by_data;
+
   int i = 0;
   while (i < data->totlayer) {
     CustomDataLayer *layer = &data->layers[i];
@@ -5214,9 +5216,16 @@ void CustomData_blend_read(BlendDataReader *reader, CustomData *data, const int 
     if (CustomData_verify_versions(data, i)) {
       BLO_read_data_address(reader, &layer->data);
       if (layer->data != nullptr) {
-        /* Make layer data shareable. */
-        layer->sharing_info = make_implicit_sharing_info_for_layer(
-            eCustomDataType(layer->type), layer->data, count);
+        /* Make layer data shareable. It's possible that the same data is shared between layers. */
+        layer->sharing_info = sharing_info_by_data.lookup_default(layer->data, nullptr);
+        if (layer->sharing_info != nullptr) {
+          layer->sharing_info->add_user();
+        }
+        else {
+          layer->sharing_info = make_implicit_sharing_info_for_layer(
+              eCustomDataType(layer->type), layer->data, count);
+          sharing_info_by_data.add(layer->data, layer->sharing_info);
+        }
       }
       if (CustomData_layer_ensure_data_exists(layer, count)) {
         /* Under normal operations, this shouldn't happen, but...
