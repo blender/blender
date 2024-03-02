@@ -456,6 +456,41 @@ bool BKE_mesh_has_custom_loop_normals(Mesh *mesh)
   return CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
 }
 
+namespace blender::bke {
+
+void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
+                                                const AttributeIDRef &id,
+                                                AttrDomain domain,
+                                                eCustomDataType data_type)
+{
+  if (id.is_anonymous()) {
+    return;
+  }
+  if (!(CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) ||
+      !(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR))
+  {
+    return;
+  }
+  if (mesh.default_color_attribute) {
+    return;
+  }
+  mesh.default_color_attribute = BLI_strdupn(id.name().data(), id.name().size());
+}
+
+static void mesh_ensure_cdlayers_primary(Mesh &mesh)
+{
+  MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  AttributeInitConstruct attribute_init;
+
+  /* Try to create attributes if they do not exist. */
+  attributes.add("position", AttrDomain::Point, CD_PROP_FLOAT3, attribute_init);
+  attributes.add(".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, attribute_init);
+  attributes.add(".corner_vert", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
+  attributes.add(".corner_edge", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
+}
+
+}  // namespace blender::bke
+
 void BKE_mesh_free_data_for_undo(Mesh *mesh)
 {
   mesh_free_data(&mesh->id);
@@ -513,6 +548,8 @@ void BKE_mesh_clear_geometry_and_metadata(Mesh *mesh)
   BKE_mesh_runtime_clear_cache(mesh);
   mesh_clear_geometry(*mesh);
   clear_attribute_names(*mesh);
+
+  blender::bke::mesh_ensure_cdlayers_primary(*mesh);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
@@ -646,41 +683,6 @@ MutableSpan<MDeformVert> Mesh::deform_verts_for_write()
               &this->vert_data, CD_MDEFORMVERT, CD_SET_DEFAULT, this->verts_num)),
           this->verts_num};
 }
-
-namespace blender::bke {
-
-void mesh_ensure_default_color_attribute_on_add(Mesh &mesh,
-                                                const AttributeIDRef &id,
-                                                AttrDomain domain,
-                                                eCustomDataType data_type)
-{
-  if (id.is_anonymous()) {
-    return;
-  }
-  if (!(CD_TYPE_AS_MASK(data_type) & CD_MASK_COLOR_ALL) ||
-      !(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR))
-  {
-    return;
-  }
-  if (mesh.default_color_attribute) {
-    return;
-  }
-  mesh.default_color_attribute = BLI_strdupn(id.name().data(), id.name().size());
-}
-
-static void mesh_ensure_cdlayers_primary(Mesh &mesh)
-{
-  MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  AttributeInitConstruct attribute_init;
-
-  /* Try to create attributes if they do not exist. */
-  attributes.add("position", AttrDomain::Point, CD_PROP_FLOAT3, attribute_init);
-  attributes.add(".edge_verts", AttrDomain::Edge, CD_PROP_INT32_2D, attribute_init);
-  attributes.add(".corner_vert", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
-  attributes.add(".corner_edge", AttrDomain::Corner, CD_PROP_INT32, attribute_init);
-}
-
-}  // namespace blender::bke
 
 Mesh *BKE_mesh_new_nomain(const int verts_num,
                           const int edges_num,
