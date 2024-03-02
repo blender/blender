@@ -7,8 +7,6 @@
 
 #include "GEO_mesh_to_volume.hh"
 
-#include "NOD_socket_search_link.hh"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_mesh_to_sdf_grid_cc {
@@ -27,13 +25,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(100)
       .description("Width of the active voxel surface, in voxels");
   b.add_output<decl::Float>("SDF Grid");
-}
-
-static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
-{
-  if (U.experimental.use_new_volume_nodes) {
-    nodes::search_link_ops_for_basic_node(params);
-  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -64,7 +55,7 @@ static void node_register()
   geo_node_type_base(&ntype, GEO_NODE_MESH_TO_SDF_GRID, "Mesh to SDF Grid", NODE_CLASS_GEOMETRY);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.gather_link_search_ops = node_gather_link_search_ops;
+  ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
   nodeRegisterType(&ntype);
 }
 NOD_REGISTER_NODE(node_register)
