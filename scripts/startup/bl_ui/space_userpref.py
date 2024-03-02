@@ -2075,6 +2075,8 @@ class USERPREF_PT_extensions_repos(Panel):
         paths = context.preferences.filepaths
         active_repo_index = paths.active_extension_repo
 
+        layout.label(text="Repositories")
+
         row = layout.row()
 
         row.template_list(
