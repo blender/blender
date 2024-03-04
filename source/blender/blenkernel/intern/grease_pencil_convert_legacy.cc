@@ -1718,13 +1718,12 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_WeightProximity:
         legacy_object_modifier_weight_proximity(object, *gpd_md);
         break;
-
-      case eGpencilModifierType_Build:
-      case eGpencilModifierType_Simplify:
-      case eGpencilModifierType_Texture:
       case eGpencilModifierType_Lineart:
         legacy_object_modifier_weight_lineart(object, *gpd_md);
         break;
+      case eGpencilModifierType_Build:
+      case eGpencilModifierType_Simplify:
+      case eGpencilModifierType_Texture:
       case eGpencilModifierType_Shrinkwrap:
       case eGpencilModifierType_Outline:
         break;
