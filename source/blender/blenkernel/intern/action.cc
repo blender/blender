@@ -199,7 +199,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_id_struct(writer, bAction, id_address, &act->id);
   BKE_id_blend_write(writer, &act->id);
 
-  BKE_fcurve_blend_write(writer, &act->curves);
+  BKE_fcurve_blend_write_listbase(writer, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
     BLO_write_struct(writer, bActionGroup, grp);
@@ -229,7 +229,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   }
   /* >>> XXX deprecated - old animation system */
 
-  BKE_fcurve_blend_read_data(reader, &act->curves);
+  BKE_fcurve_blend_read_data_listbase(reader, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     BLO_read_data_address(reader, &agrp->channels.first);

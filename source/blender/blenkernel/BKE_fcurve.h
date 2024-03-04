@@ -657,8 +657,15 @@ void BKE_fmodifiers_blend_read_data(struct BlendDataReader *reader,
                                     ListBase *fmodifiers,
                                     struct FCurve *curve);
 
-void BKE_fcurve_blend_write(struct BlendWriter *writer, struct ListBase *fcurves);
-void BKE_fcurve_blend_read_data(struct BlendDataReader *reader, struct ListBase *fcurves);
+/**
+ * Write the FCurve's data to the writer.
+ * If this is used to write an FCurve, be sure to call `BLO_write_struct(writer, FCurve, fcurve);`
+ * before calling this function.
+ */
+void BKE_fcurve_blend_write_data(struct BlendWriter *writer, struct FCurve *fcurve);
+void BKE_fcurve_blend_write_listbase(struct BlendWriter *writer, struct ListBase *fcurves);
+void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu);
+void BKE_fcurve_blend_read_data_listbase(struct BlendDataReader *reader, struct ListBase *fcurves);
 
 #ifdef __cplusplus
 }

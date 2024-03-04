@@ -2584,98 +2584,108 @@ void BKE_fmodifiers_blend_read_data(BlendDataReader *reader, ListBase *fmodifier
   }
 }
 
-void BKE_fcurve_blend_write(BlendWriter *writer, ListBase *fcurves)
+void BKE_fcurve_blend_write_data(BlendWriter *writer, FCurve *fcu)
+{
+  /* curve data */
+  if (fcu->bezt) {
+    BLO_write_struct_array(writer, BezTriple, fcu->totvert, fcu->bezt);
+  }
+  if (fcu->fpt) {
+    BLO_write_struct_array(writer, FPoint, fcu->totvert, fcu->fpt);
+  }
+
+  if (fcu->rna_path) {
+    BLO_write_string(writer, fcu->rna_path);
+  }
+
+  /* driver data */
+  if (fcu->driver) {
+    ChannelDriver *driver = fcu->driver;
+
+    BLO_write_struct(writer, ChannelDriver, driver);
+
+    /* variables */
+    BLO_write_struct_list(writer, DriverVar, &driver->variables);
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+      DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
+        if (dtar->rna_path) {
+          BLO_write_string(writer, dtar->rna_path);
+        }
+      }
+      DRIVER_TARGETS_LOOPER_END;
+    }
+  }
+
+  /* write F-Modifiers */
+  BKE_fmodifiers_blend_write(writer, &fcu->modifiers);
+}
+
+void BKE_fcurve_blend_write_listbase(BlendWriter *writer, ListBase *fcurves)
 {
   BLO_write_struct_list(writer, FCurve, fcurves);
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    /* curve data */
-    if (fcu->bezt) {
-      BLO_write_struct_array(writer, BezTriple, fcu->totvert, fcu->bezt);
-    }
-    if (fcu->fpt) {
-      BLO_write_struct_array(writer, FPoint, fcu->totvert, fcu->fpt);
-    }
-
-    if (fcu->rna_path) {
-      BLO_write_string(writer, fcu->rna_path);
-    }
-
-    /* driver data */
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-
-      BLO_write_struct(writer, ChannelDriver, driver);
-
-      /* variables */
-      BLO_write_struct_list(writer, DriverVar, &driver->variables);
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-          if (dtar->rna_path) {
-            BLO_write_string(writer, dtar->rna_path);
-          }
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* write F-Modifiers */
-    BKE_fmodifiers_blend_write(writer, &fcu->modifiers);
+    BKE_fcurve_blend_write_data(writer, fcu);
   }
 }
 
-void BKE_fcurve_blend_read_data(BlendDataReader *reader, ListBase *fcurves)
+void BKE_fcurve_blend_read_data(BlendDataReader *reader, FCurve *fcu)
+{
+  /* curve data */
+  BLO_read_data_address(reader, &fcu->bezt);
+  BLO_read_data_address(reader, &fcu->fpt);
+
+  /* rna path */
+  BLO_read_data_address(reader, &fcu->rna_path);
+
+  /* group */
+  BLO_read_data_address(reader, &fcu->grp);
+
+  /* clear disabled flag - allows disabled drivers to be tried again (#32155),
+   * but also means that another method for "reviving disabled F-Curves" exists
+   */
+  fcu->flag &= ~FCURVE_DISABLED;
+
+  /* driver */
+  BLO_read_data_address(reader, &fcu->driver);
+  if (fcu->driver) {
+    ChannelDriver *driver = fcu->driver;
+
+    /* Compiled expression data will need to be regenerated
+     * (old pointer may still be set here). */
+    driver->expr_comp = nullptr;
+    driver->expr_simple = nullptr;
+
+    /* Give the driver a fresh chance - the operating environment may be different now
+     * (addons, etc. may be different) so the driver namespace may be sane now #32155. */
+    driver->flag &= ~DRIVER_FLAG_INVALID;
+
+    /* relink variables, targets and their paths */
+    BLO_read_list(reader, &driver->variables);
+    LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+      DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
+        /* only relink the targets being used */
+        if (tarIndex < dvar->num_targets) {
+          BLO_read_data_address(reader, &dtar->rna_path);
+        }
+        else {
+          dtar->rna_path = nullptr;
+          dtar->id = nullptr;
+        }
+      }
+      DRIVER_TARGETS_LOOPER_END;
+    }
+  }
+
+  /* modifiers */
+  BLO_read_list(reader, &fcu->modifiers);
+  BKE_fmodifiers_blend_read_data(reader, &fcu->modifiers, fcu);
+}
+
+void BKE_fcurve_blend_read_data_listbase(BlendDataReader *reader, ListBase *fcurves)
 {
   /* Link F-Curve data to F-Curve again (non ID-libraries). */
   LISTBASE_FOREACH (FCurve *, fcu, fcurves) {
-    /* curve data */
-    BLO_read_data_address(reader, &fcu->bezt);
-    BLO_read_data_address(reader, &fcu->fpt);
-
-    /* rna path */
-    BLO_read_data_address(reader, &fcu->rna_path);
-
-    /* group */
-    BLO_read_data_address(reader, &fcu->grp);
-
-    /* clear disabled flag - allows disabled drivers to be tried again (#32155),
-     * but also means that another method for "reviving disabled F-Curves" exists
-     */
-    fcu->flag &= ~FCURVE_DISABLED;
-
-    /* driver */
-    BLO_read_data_address(reader, &fcu->driver);
-    if (fcu->driver) {
-      ChannelDriver *driver = fcu->driver;
-
-      /* Compiled expression data will need to be regenerated
-       * (old pointer may still be set here). */
-      driver->expr_comp = nullptr;
-      driver->expr_simple = nullptr;
-
-      /* Give the driver a fresh chance - the operating environment may be different now
-       * (addons, etc. may be different) so the driver namespace may be sane now #32155. */
-      driver->flag &= ~DRIVER_FLAG_INVALID;
-
-      /* relink variables, targets and their paths */
-      BLO_read_list(reader, &driver->variables);
-      LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-        DRIVER_TARGETS_LOOPER_BEGIN (dvar) {
-          /* only relink the targets being used */
-          if (tarIndex < dvar->num_targets) {
-            BLO_read_data_address(reader, &dtar->rna_path);
-          }
-          else {
-            dtar->rna_path = nullptr;
-            dtar->id = nullptr;
-          }
-        }
-        DRIVER_TARGETS_LOOPER_END;
-      }
-    }
-
-    /* modifiers */
-    BLO_read_list(reader, &fcu->modifiers);
-    BKE_fmodifiers_blend_read_data(reader, &fcu->modifiers, fcu);
+    BKE_fcurve_blend_read_data(reader, fcu);
   }
 }
 
