@@ -6940,8 +6940,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, nullptr, "tempdir");
-  RNA_def_property_ui_text(
-      prop, "Temporary Directory", "The directory for storing temporary save files");
+  RNA_def_property_ui_text(prop,
+                           "Temporary Directory",
+                           "The directory for storing temporary save files. "
+                           "The path must reference an existing directory or it will be ignored");
   RNA_def_property_update(prop, 0, "rna_userdef_temp_update");
 
   prop = RNA_def_property(srna, "render_cache_directory", PROP_STRING, PROP_DIRPATH);
