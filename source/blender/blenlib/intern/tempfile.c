@@ -78,6 +78,4 @@ void BLI_temp_directory_path_get(char *tempdir, const size_t tempdir_maxncpy)
   if (tempdir[0] == '\0') {
     BLI_strncpy(tempdir, "/tmp/", tempdir_maxncpy);
   }
-
-  BLI_dir_create_recursive(tempdir);
 }
