@@ -21,6 +21,8 @@
 #  include "usd.hh"
 #  include "usd_asset_utils.hh"
 #  include "usd_exporter_context.hh"
+#  include "usd_reader_material.hh"
+#  include "usd_writer_material.hh"
 
 #  include <boost/python/call.hpp>
 #  include <boost/python/dict.hpp>
@@ -31,7 +33,15 @@
 
 #  include <iostream>
 
+#  include "BKE_image.h"
+#  include "BKE_main.hh"
+#  include "BKE_node.hh"
+#  include "BLI_fileops.h"
+#  include "BLI_listbase.h"
+#  include "BLI_path_util.h"
+#  include "bpy_rna.h"
 #  include "DNA_material_types.h"
+#  include "DNA_node_types.h"
 #  include "WM_api.hh"
 
 #  include "Python.h"
@@ -80,6 +90,74 @@ static PyObject *import_texture_noop(PyObject *self, PyObject *args)
   return PyUnicode_FromString(asset_path);
 }
 
+static void process_textures(const USDImportParams &params,
+                             Main *bmain,
+                             bNode* node,
+                             const python::dict& source_path_dict)
+{
+  if (!ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+    return;
+  }
+
+  Image* ima = reinterpret_cast<Image*>(node->id);
+  if (!ima) {
+    return;
+  }
+
+  if (ima->filepath[0] == '\0') {
+    return;
+  }
+
+  ensure_udim_tiles(ima);
+
+  /* Pack textures if necessary. */
+  if (params.import_textures_mode == USD_TEX_IMPORT_PACK && !BKE_image_has_packedfile(ima)) {
+    char dir_path[FILE_MAXDIR];
+    BLI_path_split_dir_part(ima->filepath, dir_path, sizeof(dir_path));
+
+    if (BLI_path_cmp_normalized(dir_path, temp_textures_dir()) == 0) {
+      /* Texture was saved to the temporary import directory, so pack it. */
+      BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
+    }
+  }
+
+  /* Set the usd_source_path property on imported textures. */
+  std::string path(ima->filepath);
+
+  if (source_path_dict.contains(path)) {
+    python::object value = source_path_dict[path];
+    python::extract<std::string> value_str(value);
+
+    if (value_str.check()) {
+      ensure_usd_source_path_prop(value_str(), &ima->id);
+    }
+  }
+}
+
+static void process_textures(const USDImportParams& params,
+                             Main* bmain,
+                             const bNodeTree* ntree,
+                             const python::dict &source_path_dict)
+{
+  if (!ntree) {
+    return;
+  }
+
+  ntree->ensure_topology_cache();
+
+  for (bNode* node = (bNode*)ntree->nodes.first; node; node = node->next) {
+    if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+      process_textures(params, bmain, node, source_path_dict);
+    }
+    else if (node->is_group()) {
+      if (const bNodeTree* sub_tree = reinterpret_cast<const bNodeTree*>(node->id)) {
+        process_textures(params, bmain, sub_tree, source_path_dict);
+      }
+    }
+  }
+}
+
+
 static PyMethodDef import_texture_noop_method = {"import_texture_noop_cb",
                                                  import_texture_noop,
                                                  METH_VARARGS,
@@ -106,7 +184,7 @@ static PyObject *import_texture(PyObject *self, PyObject *args)
     return NULL;
   }
 
-  if (PyTuple_Size(self) < 2) {
+  if (PyTuple_Size(self) < 3) {
     return NULL;
   }
 
@@ -124,7 +202,19 @@ static PyObject *import_texture(PyObject *self, PyObject *args)
   eUSDTexNameCollisionMode name_collision_mode = static_cast<eUSDTexNameCollisionMode>(
       PyLong_AsLong(name_collision_mode_item));
 
+  PyObject* paths_dict_item = PyTuple_GetItem(self, 2);
+  if (!(paths_dict_item && PyDict_Check(paths_dict_item))) {
+    return NULL;
+  }
+
   std::string import_path = import_asset(asset_path, tex_dir, name_collision_mode, nullptr);
+
+  if (import_path != std::string(asset_path)) {
+    int ret = PyDict_SetItemString(paths_dict_item, import_path.c_str(), PyUnicode_FromString(asset_path));
+    if (ret != 0) {
+      printf("Error setting python dictionary item\n");
+    }
+  }
 
   if (!import_path.empty()) {
     return PyUnicode_FromString(import_path.c_str());
@@ -145,7 +235,7 @@ static PyMethodDef import_texture_method = {"import_texture",
                                             "destination. The function may return None if "
                                             "there was a Python error."};
 
-static PyObject *create_import_texture_cb(const USDImportParams &import_params)
+static PyObject *create_import_texture_cb(const USDImportParams &import_params, python::dict &source_paths_dict)
 {
   if (import_params.import_textures_mode == USD_TEX_IMPORT_NONE) {
     /* Importing textures is turned off, so return a no-op function. */
@@ -165,14 +255,110 @@ static PyObject *create_import_texture_cb(const USDImportParams &import_params)
                                                            USD_TEX_NAME_COLLISION_OVERWRITE :
                                                            import_params.tex_name_collision_mode;
 
-  PyObject *import_texture_self = PyTuple_New(2);
+  PyObject *import_texture_self = PyTuple_New(3);
   PyObject *tex_dir_item = PyUnicode_FromString(textures_dir);
   PyTuple_SetItem(import_texture_self, 0, tex_dir_item);
   PyObject *collision_mode_item = PyLong_FromLong(static_cast<long>(name_collision_mode));
   PyTuple_SetItem(import_texture_self, 1, collision_mode_item);
+  PyTuple_SetItem(import_texture_self, 2, source_paths_dict.ptr());
 
   PyObject *new_func = PyCFunction_New(&import_texture_method, import_texture_self);
   Py_DECREF(import_texture_self);
+
+  return new_func;
+}
+
+static PyObject* get_image_path(PyObject* self, PyObject* args)
+{
+  PyObject *obj = NULL;
+  if (!PyArg_ParseTuple(args, "O", &obj)) {
+    return NULL;
+  }
+
+  if (!obj) {
+    return NULL;
+  }
+
+  ID *id;
+  if (!pyrna_id_FromPyObject(obj, &id)) {
+    return NULL;
+  }
+
+  if (!id) {
+    return NULL;
+  }
+
+  if (GS(id->name) != ID_IM) {
+    return NULL;
+  }
+
+  Image* ima = reinterpret_cast<Image*>(id);
+
+  if (!self) {
+    return NULL;
+  }
+
+  if (!PyTuple_Check(self)) {
+    return NULL;
+  }
+
+  if (PyTuple_Size(self) < 4) {
+    return NULL;
+  }
+
+  USDExportParams export_params{};
+
+  PyObject* relative_paths_item = PyTuple_GetItem(self, 0);
+  if (!(relative_paths_item && PyLong_Check(relative_paths_item))) {
+    return NULL;
+  }
+  export_params.relative_paths = PyLong_AsLong(relative_paths_item);
+
+  PyObject* export_textures_item = PyTuple_GetItem(self, 1);
+  if (!(export_textures_item && PyLong_Check(export_textures_item))) {
+    return NULL;
+  }
+  export_params.export_textures = PyLong_AsLong(export_textures_item);
+
+  PyObject* use_original_paths_item = PyTuple_GetItem(self, 2);
+  if (!(use_original_paths_item && PyLong_Check(use_original_paths_item))) {
+    return NULL;
+  }
+  export_params.use_original_paths = PyLong_AsLong(use_original_paths_item);
+
+  PyObject* stage_path_item = PyTuple_GetItem(self, 3);
+  if (!(stage_path_item && PyUnicode_Check(stage_path_item))) {
+    return NULL;
+  }
+  const char* stage_path = PyUnicode_AsUTF8(stage_path_item);
+
+  std::string asset_path = get_tex_image_asset_filepath(ima, stage_path, export_params);
+
+  return PyUnicode_FromString(asset_path.c_str());
+}
+
+static PyMethodDef get_image_path_method = {"get_image_path",
+                                            get_image_path,
+                                            METH_VARARGS,
+                                            "Returns the USD asset export path for the given texture image.  "
+                                            "The function may return None if there was a Python error."};
+
+static PyObject* create_get_image_path_cb(const USDExportParams& export_params, const std::string &stage_path)
+{
+  /* Create a "self" tuple storing the export parameters we'll need to evaluate
+   * the function. */
+  PyObject* get_image_path_self = PyTuple_New(4);
+  PyObject* relative_paths_item = PyLong_FromLong(export_params.relative_paths);
+  PyTuple_SetItem(get_image_path_self, 0, relative_paths_item);
+  PyObject* export_textures_item = PyLong_FromLong(export_params.export_textures);
+  PyTuple_SetItem(get_image_path_self, 1, export_textures_item);
+  PyObject* use_original_paths_item = PyLong_FromLong(export_params.use_original_paths);
+  PyTuple_SetItem(get_image_path_self, 2, use_original_paths_item);
+  PyObject* stage_path_item = PyUnicode_FromString(stage_path.c_str());
+  PyTuple_SetItem(get_image_path_self, 3, stage_path_item);
+
+  PyObject* new_func = PyCFunction_New(&get_image_path_method, get_image_path_self);
+  Py_DECREF(get_image_path_self);
 
   return new_func;
 }
@@ -315,6 +501,7 @@ bool umm_module_loaded()
 }
 
 bool umm_import_material(const USDImportParams &import_params,
+                         Main *bmain,
                          Material *mtl,
                          const pxr::UsdShadeMaterial &usd_material,
                          const std::string &render_context)
@@ -368,12 +555,17 @@ bool umm_import_material(const USDImportParams &import_params,
     args_dict["mtl_path"] = usd_material.GetPath().GetAsString();
     args_dict["stage"] = stage;
 
-    PyObject *import_tex_cb_arg = create_import_texture_cb(import_params);
+    python::dict paths_dict;
+    PyObject *import_tex_cb_arg = create_import_texture_cb(import_params, paths_dict);
     args_dict["import_texture_cb"] = python::object(python::handle<>(import_tex_cb_arg));
 
     python::dict result = python::call<python::dict>(func, args_dict);
 
     success = report_notification(result) == UMM_NOTIFICATION_SUCCESS;
+
+    if (success) {
+      process_textures(import_params, bmain, mtl->nodetree, paths_dict);
+    }
   }
   catch (...) {
     if (PyErr_Occurred()) {
@@ -383,6 +575,11 @@ bool umm_import_material(const USDImportParams &import_params,
   }
 
   PyGILState_Release(gilstate);
+
+  /* Clean up the temp directory, in case we imported textures. */
+  if (BLI_is_dir(temp_textures_dir())) {
+    BLI_delete(temp_textures_dir(), true, true);
+  }
 
   return success;
 }
@@ -444,6 +641,10 @@ bool umm_export_material(const USDExporterContext &usd_export_context,
 
     std::string usd_path = stage->GetRootLayer()->GetRealPath();
     args_dict["usd_path"] = usd_path;
+
+    std::string stage_path = stage->GetRootLayer()->GetRealPath();
+    PyObject* get_image_path_cb_arg = create_get_image_path_cb(usd_export_context.export_params, stage_path);
+    args_dict["get_image_path_cb"] = python::object(python::handle<>(get_image_path_cb_arg));
 
     python::dict result = python::call<python::dict>(func, args_dict);
 

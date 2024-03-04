@@ -21,6 +21,7 @@
 
 #  include <pxr/usd/usdShade/material.h>
 
+struct Main;
 struct Material;
 
 namespace blender::io::usd {
@@ -31,6 +32,7 @@ struct USDImportParams;
 bool umm_module_loaded();
 
 bool umm_import_material(const USDImportParams &import_params,
+                         Main *bmain,
                          Material *mtl,
                          const pxr::UsdShadeMaterial &usd_material,
                          const std::string &render_context);

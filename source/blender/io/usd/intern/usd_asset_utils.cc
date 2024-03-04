@@ -8,19 +8,25 @@
 #include <pxr/usd/ar/packageUtils.h>
 #include <pxr/usd/ar/resolver.h>
 #include <pxr/usd/ar/writableAsset.h>
+#include <pxr/base/tf/pathUtils.h>
 
 #include "BKE_appdir.hh"
+#include "BKE_idprop.h"
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include <filesystem>
 #include <string_view>
+
+namespace fs = std::filesystem;
 
 static const char UDIM_PATTERN[] = "<UDIM>";
 static const char UDIM_PATTERN2[] = "%3CUDIM%3E";
@@ -385,6 +391,10 @@ bool should_import_asset(const std::string &path)
     return true;
   }
 
+  if (is_udim_path(path) && parent_dir_exists_on_file_system(path.c_str())) {
+    return false;
+  }
+
   return !BLI_is_file(path.c_str()) && asset_exists(path.c_str());
 }
 
@@ -468,6 +478,143 @@ bool write_to_path(const void *data, size_t size, const char *path, ReportList *
   }
 
   return bytes_written > 0;
+}
+
+void ensure_usd_source_path_prop(const std::string& path, ID* id)
+{
+  if (!id || path.empty()) {
+    return;
+  }
+
+  if (pxr::ArIsPackageRelativePath(path)) {
+    /* Don't record package-relative paths (e.g., images in USDZ
+     * archives). */
+    return;
+  }
+
+  IDProperty* idgroup = IDP_EnsureProperties(id);
+
+  if (!idgroup) {
+    return;
+  }
+
+  const char* prop_name = "usd_source_path";
+
+  if (IDP_GetPropertyFromGroup(idgroup, prop_name)) {
+    return;
+  }
+
+  IDPropertyTemplate val = { 0 };
+  val.string.str = path.c_str();
+  /* Note length includes null terminator. */
+  val.string.len = path.size() + 1;
+  val.string.subtype = IDP_STRING_SUB_UTF8;
+
+  IDProperty* prop = IDP_New(IDP_STRING, &val, prop_name);
+
+  IDP_AddToGroup(idgroup, prop);
+}
+
+std::string get_usd_source_path(ID* id)
+{
+  if (!id) {
+    return "";
+  }
+
+  IDProperty* idgroup = IDP_EnsureProperties(id);
+
+  if (!idgroup) {
+    return "";
+  }
+
+  const char* prop_name = "usd_source_path";
+
+  IDProperty *prop = IDP_GetPropertyFromGroup(idgroup, prop_name);
+
+  if (!prop) {
+    return "";
+  }
+
+  return static_cast<const char*>(prop->data.pointer);
+}
+
+std::string get_relative_path(const std::string& path, const std::string& anchor)
+{
+  if (path.empty() || anchor.empty()) {
+    return path;
+  }
+
+  if (path == anchor) {
+    return path;
+  }
+
+  if (BLI_path_is_rel(path.c_str())) {
+    return path;
+  }
+
+  if (pxr::ArIsPackageRelativePath(path)) {
+    return path;
+  }
+
+  if (BLI_is_file(path.c_str()) && BLI_is_file(anchor.c_str())) {
+    /* Treat the paths as standard files. */
+    char rel_path[FILE_MAX];
+    STRNCPY(rel_path, path.c_str());
+    BLI_path_rel(rel_path, anchor.c_str());
+    if (!BLI_path_is_rel(rel_path)) {
+      return path;
+    }
+    BLI_string_replace_char(rel_path, '\\', '/');
+    return rel_path + 2;
+  }
+
+  /* if we got here, the paths may be URIs or files on on the
+   * file system. */
+
+  /* We don't have a library to compute relative paths for URIs
+   * so we use the standard fielsystem calls to do so.  This
+   * may not work for all URIs in theory, but is probably sufficient
+   * for the subset of URIs we are likely to encounter in practice
+   * currently.
+   * TODO(makowalski): provide better utilities for this. */
+
+  pxr::ArResolver& ar = pxr::ArGetResolver();
+
+  std::string resolved_path = ar.Resolve(path);
+  std::string resolved_anchor = ar.Resolve(anchor);
+
+  if (resolved_path.empty() || resolved_anchor.empty()) {
+    return path;
+  }
+
+  std::string prefix = pxr::TfStringGetCommonPrefix(path, anchor);
+  if (prefix.empty()) {
+    return path;
+  }
+
+  std::replace(prefix.begin(), prefix.end(), '\\', '/');
+
+  size_t last_slash_pos = prefix.find_last_of('/');
+  if (last_slash_pos == std::string::npos) {
+    /* Unexpected: The prefix doesn't contain a slash,
+     * so this was not an absolute path. */
+    return path;
+  }
+
+  /* Replace the common prefix up to the last slash with
+   * a fake root directory to allow computing the relative path. */
+  resolved_path = "/root" + resolved_path.substr(last_slash_pos);
+  resolved_anchor = "/root" + resolved_anchor.substr(last_slash_pos);
+
+  fs::path path_obj(resolved_path);
+  fs::path anchor_obj(resolved_anchor);
+
+  std::string rel_path = fs::relative(path_obj, anchor_obj).generic_string();
+  if (!rel_path.empty()) {
+    return rel_path;
+  }
+
+  return path;
 }
 
 void USD_path_abs(char* path, const char* basepath, bool for_import)

@@ -197,4 +197,10 @@ Material *find_existing_material(
     const blender::Map<std::string, Material *> &mat_map,
     const blender::Map<std::string, std::string> &usd_path_to_mat_name);
 
+/**
+ * If the given image has a UDIM file path, make sure the image has the
+ * required list of tiles.
+ */
+void ensure_udim_tiles(Image* ima);
+
 }  // namespace blender::io::usd

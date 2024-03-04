@@ -377,6 +377,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
 
+  bool use_original_paths = RNA_boolean_get(op->ptr, "use_original_paths");
+
   const eUSDZTextureDownscaleSize usdz_downscale_size = eUSDZTextureDownscaleSize(
       RNA_enum_get(op->ptr, "usdz_downscale_size"));
 
@@ -444,6 +446,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    shutter_close,
                                    export_textures,
                                    relative_paths,
+                                   use_original_paths,
                                    backward_compatible,
                                    light_intensity_scale,
                                    generate_mdl,
@@ -910,6 +913,14 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   false,
                   "Overwrite Textures",
                   "Overwrite existing files when exporting textures");
+
+  RNA_def_boolean(ot->srna,
+                  "use_original_paths",
+                  false,
+                  "Use Original Paths",
+                  "Use the original USD asset path for textures that were previously imported "
+                  "(e.g., textures that were downloaded to the local file system from URIs).  "
+                  "This option is not available when exporting textures");
 
   RNA_def_float(ot->srna,
                 "light_intensity_scale",
@@ -1561,6 +1572,9 @@ static void usd_export_panel_materials_draw(const bContext *C, Panel *panel)
               ICON_NONE);
   if (RNA_boolean_get(ptr, "export_textures")) {
     uiItemR(col, ptr, "overwrite_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
+  else {
+    uiItemR(col, ptr, "use_original_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
   }
 
   /* Without this column the spacing is off by a pixel or two */

@@ -164,6 +164,7 @@ struct USDExportParams {
   double shutter_close = 0.75;
   bool export_textures = true;
   bool relative_paths = true;
+  bool use_original_paths = false;
   bool backward_compatible = true;
   float light_intensity_scale = 1.0f;
   bool generate_mdl = false;

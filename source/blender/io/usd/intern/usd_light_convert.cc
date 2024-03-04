@@ -548,7 +548,10 @@ void dome_light_to_world_material(const USDImportParams &params,
   const bool import_textures = params.import_textures_mode != USD_TEX_IMPORT_NONE &&
                                should_import_asset(tex_path_str);
 
+  std::string imported_file_source_path;
   if (import_textures) {
+    imported_file_source_path = tex_path_str;
+
     /* If we are packing the imported textures, we first write them
      * to a temporary directory. */
     const char *textures_dir = params.import_textures_mode == USD_TEX_IMPORT_PACK ?
@@ -571,6 +574,10 @@ void dome_light_to_world_material(const USDImportParams &params,
   }
 
   tex->id = &image->id;
+
+  if (import_textures && imported_file_source_path != tex_path_str) {
+    ensure_usd_source_path_prop(imported_file_source_path, &image->id);
+  }
 
   if (import_textures && params.import_textures_mode == USD_TEX_IMPORT_PACK &&
       !BKE_image_has_packedfile(image))

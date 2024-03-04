@@ -2484,28 +2484,47 @@ std::string get_tex_image_asset_filepath(bNode *node,
                                          const USDExportParams &export_params)
 {
   Image *ima = reinterpret_cast<Image *>(node->id);
+  std::string stage_path = stage->GetRootLayer()->GetRealPath();
+  return get_tex_image_asset_filepath(ima, stage_path, export_params);
+}
+
+std::string get_tex_image_asset_filepath(Image* ima,
+                                         const std::string& stage_path,
+                                         const USDExportParams& export_params)
+{
   if (!ima) {
     return "";
   }
 
   std::string path;
 
-  if (is_in_memory_texture(ima) || is_packed_texture(ima)) {
+  if (is_in_memory_texture(ima)) {
     path = get_in_memory_texture_filename(ima);
   }
-  else if (strlen(ima->filepath) > 0) {
-    /* Get absolute path. */
-    path = get_tex_image_asset_filepath(ima);
+  else {
+    if (!export_params.export_textures && export_params.use_original_paths) {
+      path = get_usd_source_path(&ima->id);
+    }
+
+    if (path.empty()) {
+      if (is_packed_texture(ima)) {
+        path = get_in_memory_texture_filename(ima);
+      }
+      else if (ima->filepath[0] != '\0') {
+        /* Get absolute path. */
+        path = get_tex_image_asset_filepath(ima);
+      }
+    }
   }
 
-  return get_tex_image_asset_filepath(path, stage, export_params);
+  return get_tex_image_asset_filepath(path, stage_path, export_params);
 }
 
 /* Return a USD asset path referencing the given texture file. The resulting path
  * may be absolute, relative to the USD file, or in a 'textures' directory
  * in the same directory as the USD file, depending on the export parameters. */
 std::string get_tex_image_asset_filepath(const std::string &path,
-                                         const pxr::UsdStageRefPtr stage,
+                                         const std::string& stage_path,
                                          const USDExportParams &export_params)
 {
   if (path.empty()) {
@@ -2525,8 +2544,6 @@ std::string get_tex_image_asset_filepath(const std::string &path,
     }
     else {
       /* Create absolute path in the textures directory. */
-      pxr::SdfLayerHandle layer = stage->GetRootLayer();
-      std::string stage_path = layer->GetRealPath();
       if (stage_path.empty()) {
         return path;
       }
@@ -2541,13 +2558,17 @@ std::string get_tex_image_asset_filepath(const std::string &path,
 
   if (export_params.relative_paths) {
     /* Get the path relative to the USD. */
-    pxr::SdfLayerHandle layer = stage->GetRootLayer();
-    std::string stage_path = layer->GetRealPath();
     if (stage_path.empty()) {
       return path;
     }
 
-    char rel_path[FILE_MAX];
+    std::string rel_path = get_relative_path(path, stage_path);
+    if (rel_path.empty()) {
+      return path;
+    }
+    return rel_path;
+
+   /* char rel_path[FILE_MAX];
     STRNCPY(rel_path, path.c_str());
 
     BLI_path_rel(rel_path, stage_path.c_str());
@@ -2555,7 +2576,7 @@ std::string get_tex_image_asset_filepath(const std::string &path,
       return path;
     }
     BLI_string_replace_char(rel_path, '\\', '/');
-    return rel_path + 2;
+    return rel_path + 2;*/
   }
 
   return path;

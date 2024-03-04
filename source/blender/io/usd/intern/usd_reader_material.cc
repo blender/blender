@@ -502,11 +502,7 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
     bool mdl_imported = false;
 #ifdef WITH_PYTHON
     /* Invoke UMM to convert to MDL. */
-    mdl_imported = umm_import_material(params_, mtl, usd_material, "MDL");
-    if (params_.import_textures_mode == USD_TEX_IMPORT_PACK) {
-      /* Process the imported material to pack the textures.  */
-      pack_imported_textures(mtl);
-    }
+    mdl_imported = umm_import_material(params_, bmain_, mtl, usd_material, "MDL");
 #endif
     if (!mdl_imported && usd_preview) {
       /* The material has no MDL shader or we couldn't convert the MDL,
@@ -1239,7 +1235,11 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
   const bool import_textures = params_.import_textures_mode != USD_TEX_IMPORT_NONE &&
                                should_import_asset(file_path);
 
+  std::string imported_file_source_path;
+
   if (import_textures) {
+    imported_file_source_path = file_path;
+
     /* If we are packing the imported textures, we first write them
      * to a temporary directory. */
     const char *textures_dir = params_.import_textures_mode == USD_TEX_IMPORT_PACK ?
@@ -1317,6 +1317,10 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
 
   NodeTexImage *storage = static_cast<NodeTexImage *>(tex_image->storage);
   storage->extension = get_image_extension(usd_shader, storage->extension);
+
+  if (import_textures && imported_file_source_path != file_path) {
+    ensure_usd_source_path_prop(imported_file_source_path, &image->id);
+  }
 
   if (import_textures && params_.import_textures_mode == USD_TEX_IMPORT_PACK &&
       !BKE_image_has_packedfile(image))
@@ -1457,6 +1461,32 @@ Material *find_existing_material(
   }
 
   return mat_map.lookup_default(usd_mat_path.GetName(), nullptr);
+}
+
+void ensure_udim_tiles(Image* ima)
+{
+  if (!ima) {
+    return;
+  }
+
+  if (ima->filepath[0] == '\0') {
+    return;
+  }
+
+  std::string path(ima->filepath);
+
+  if (!is_udim_path(path)) {
+    return;
+  }
+
+  /* If this is a UDIM texture, this will store the
+  * UDIM tile indices. */
+  blender::Vector<int> udim_tiles;
+  udim_tiles = get_udim_tiles(path);
+
+  if (!udim_tiles.is_empty()) {
+    add_udim_tiles(ima, udim_tiles);
+  }
 }
 
 }  // namespace blender::io::usd
