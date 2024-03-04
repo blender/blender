@@ -39,6 +39,14 @@ bool BLI_temp_directory_path_copy_if_valid(char *tempdir,
 
   /* Add a trailing slash if needed. */
   BLI_path_slash_ensure(tempdir, tempdir_maxncpy);
+
+  /* There's nothing preventing an environment variable (even preferences) from being CWD relative.
+   * This causes:
+   * - Asserts in code-paths which expect absolute paths (blend-file IO).
+   * - The temporary directory to change if the CWD changes.
+   * Avoid issues by ensuring the temporary directory is *never* CWD relative. */
+  BLI_path_abs_from_cwd(tempdir, tempdir_maxncpy);
+
   return true;
 }
 
