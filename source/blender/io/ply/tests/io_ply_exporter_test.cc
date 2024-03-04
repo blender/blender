@@ -42,7 +42,7 @@ class PLYExportTest : public BlendfileLoadingBaseTest {
   {
     BlendfileLoadingBaseTest::SetUp();
 
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
   }
 
   void TearDown() override
