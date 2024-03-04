@@ -2037,7 +2037,7 @@ static void rna_def_armature_collections(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_ui_text(
       prop,
       "Solo Active",
-      "Read-ony flag that indicates there is at least one bone collection marked as 'solo'");
+      "Read-only flag that indicates there is at least one bone collection marked as 'solo'");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   /* Armature.collections.new(...) */

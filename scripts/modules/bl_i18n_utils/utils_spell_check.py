@@ -56,6 +56,7 @@ class SpellChecker:
         "ons",  # add-ons
         "pong",  # ping pong
         "procedurals",  # Used as noun
+        "recurse",
         "resumable",
         "runtimes",
         "scalable",
@@ -271,7 +272,7 @@ class SpellChecker:
         "unprotect",
         "unreacted",
         "unreferenced",
-        "unregister", "unregistration",
+        "unregister", "unregistration", "unregistering",
         "unselect", "unselected", "unselectable",
         "unsets",
         "unshadowed",
@@ -413,6 +414,7 @@ class SpellChecker:
         "anisotropic", "anisotropy",
         "arcminute", "arcminutes",
         "arcsecond", "arcseconds",
+        "autokey",
         "bimanual",  # OpenXR?
         "bitangent",
         "boid", "boids",
@@ -466,6 +468,7 @@ class SpellChecker:
         "quartic",
         "quaternion", "quaternions",
         "quintic",
+        "reallocations",
         "samplerate",
         "sandboxed",
         "sawtooth",
@@ -507,6 +510,7 @@ class SpellChecker:
         "chrominance",
         "clearcoat",
         "codec", "codecs",
+        "codepoint",
         "collada",
         "colorspace",
         "compositing",
@@ -814,7 +818,7 @@ class SpellChecker:
         "tma",
         "ui",
         "unix",
-        "uuid",
+        "uuid", "uid",
         "vbo", "vbos",
         "vfx",
         "vmm",
