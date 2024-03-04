@@ -1744,6 +1744,7 @@ static void set_active_layer(bContext *C, SculptAttrRef *attr)
     mesh->attributes_for_write().add(
         attr->name, attr->domain, attr->type, bke::AttributeInitDefaultValue());
     layer = BKE_id_attribute_find(&mesh->id, attr->name, attr->type, attr->domain);
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
 
   if (layer) {
@@ -1847,11 +1848,11 @@ static void sculpt_undosys_step_decode_redo(bContext *C, Depsgraph *depsgraph, S
     us_iter = (SculptUndoStep *)us_iter->step.prev;
   }
   while (us_iter && (us_iter->step.is_applied == false)) {
-    set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_start);
+    set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_end);
     sculpt_undosys_step_decode_redo_impl(C, depsgraph, us_iter);
 
     if (us_iter == us) {
-      set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_end);
+      set_active_layer(C, &((SculptUndoStep *)us_iter)->active_color_start);
       break;
     }
     us_iter = (SculptUndoStep *)us_iter->step.next;
