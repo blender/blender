@@ -488,7 +488,7 @@ static void create_envelope_strokes_for_curve(const EnvelopeInfo &info,
 
     curve_offsets[dst_i] = dst_points[dst_envelope_points.start()];
     material_indices[dst_i] = info.material_index >= 0 ? info.material_index :
-                                                     src_material_indices[src_curve_index];
+                                                         src_material_indices[src_curve_index];
 
     create_envelope_stroke_for_point(src_curve_points,
                                      src_curve_cyclic,
