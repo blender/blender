@@ -75,6 +75,7 @@ ShaderCompileUnit &CompileState::get_shader_compile_unit()
 void CompileState::reset_shader_compile_unit()
 {
   shader_compile_unit_.clear();
+  shader_compile_unit_domain_ = Domain::Identity();
 }
 
 bool CompileState::should_compile_shader_compile_unit(DNode node)
