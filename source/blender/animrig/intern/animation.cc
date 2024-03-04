@@ -694,6 +694,83 @@ ChannelBag &KeyframeStrip::channelbag_for_binding_add(const Binding &binding)
   return channels;
 }
 
+FCurve *KeyframeStrip::fcurve_find(const Binding &binding,
+                                   const StringRefNull rna_path,
+                                   const int array_index)
+{
+  ChannelBag *channels = this->channelbag_for_binding(binding);
+  if (channels == nullptr) {
+    return nullptr;
+  }
+
+  /* Copy of the logic in BKE_fcurve_find(), but then compatible with our array-of-FCurves
+   * instead of ListBase. */
+
+  for (FCurve *fcu : channels->fcurves()) {
+    /* Check indices first, much cheaper than a string comparison. */
+    /* Simple string-compare (this assumes that they have the same root...) */
+    if (fcu->array_index == array_index && fcu->rna_path && StringRef(fcu->rna_path) == rna_path) {
+      return fcu;
+    }
+  }
+  return nullptr;
+}
+
+FCurve &KeyframeStrip::fcurve_find_or_create(const Binding &binding,
+                                             const StringRefNull rna_path,
+                                             const int array_index)
+{
+  if (FCurve *existing_fcurve = this->fcurve_find(binding, rna_path, array_index)) {
+    return *existing_fcurve;
+  }
+
+  FCurve *new_fcurve = create_fcurve_for_channel(rna_path.c_str(), array_index);
+
+  ChannelBag *channels = this->channelbag_for_binding(binding);
+  if (channels == nullptr) {
+    channels = &this->channelbag_for_binding_add(binding);
+  }
+
+  if (channels->fcurve_array_num == 0) {
+    new_fcurve->flag |= FCURVE_ACTIVE; /* First curve is added active. */
+  }
+
+  grow_array_and_append(&channels->fcurve_array, &channels->fcurve_array_num, new_fcurve);
+  return *new_fcurve;
+}
+
+FCurve *KeyframeStrip::keyframe_insert(const Binding &binding,
+                                       const StringRefNull rna_path,
+                                       const int array_index,
+                                       const float2 time_value,
+                                       const KeyframeSettings &settings)
+{
+  FCurve &fcurve = this->fcurve_find_or_create(binding, rna_path, array_index);
+
+  if (!BKE_fcurve_is_keyframable(&fcurve)) {
+    /* TODO: handle this properly, in a way that can be communicated to the user. */
+    std::fprintf(stderr,
+                 "FCurve %s[%d] for binding %s doesn't allow inserting keys.\n",
+                 rna_path.c_str(),
+                 array_index,
+                 binding.name);
+    return nullptr;
+  }
+
+  /* TODO: Handle the eInsertKeyFlags. */
+  const int index = insert_vert_fcurve(&fcurve, time_value, settings, eInsertKeyFlags(0));
+  if (index < 0) {
+    std::fprintf(stderr,
+                 "Could not insert key into FCurve %s[%d] for binding %s.\n",
+                 rna_path.c_str(),
+                 array_index,
+                 binding.name);
+    return nullptr;
+  }
+
+  return &fcurve;
+}
+
 /* AnimationChannelBag implementation. */
 
 ChannelBag::ChannelBag(const ChannelBag &other)
@@ -732,6 +809,17 @@ const FCurve *ChannelBag::fcurve(const int64_t index) const
 FCurve *ChannelBag::fcurve(const int64_t index)
 {
   return this->fcurve_array[index];
+}
+
+const FCurve *ChannelBag::fcurve_find(const StringRefNull rna_path, const int array_index) const
+{
+  for (const FCurve *fcu : this->fcurves()) {
+    /* Check indices first, much cheaper than a string comparison. */
+    if (fcu->array_index == array_index && fcu->rna_path && StringRef(fcu->rna_path) == rna_path) {
+      return fcu;
+    }
+  }
+  return nullptr;
 }
 
 /* Utility function implementations. */

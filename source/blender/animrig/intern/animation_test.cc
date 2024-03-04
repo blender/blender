@@ -124,6 +124,13 @@ TEST_F(AnimationLayersTest, add_strip)
   EXPECT_EQ(-inf, another_strip.frame_start) << "Expected strip to be infinite.";
   EXPECT_EQ(inf, another_strip.frame_end) << "Expected strip to be infinite.";
   EXPECT_EQ(0, another_strip.frame_offset) << "Expected infinite strip to have no offset.";
+
+  /* Add some keys to check that also the strip data is freed correctly. */
+  const KeyframeSettings settings = get_keyframe_settings(false);
+  Binding &binding = anim->binding_add();
+  strip.as<KeyframeStrip>().keyframe_insert(binding, "location", 0, {1.0f, 47.0f}, settings);
+  another_strip.as<KeyframeStrip>().keyframe_insert(
+      binding, "location", 0, {1.0f, 47.0f}, settings);
 }
 
 TEST_F(AnimationLayersTest, remove_strip)
@@ -132,6 +139,13 @@ TEST_F(AnimationLayersTest, remove_strip)
   Strip &strip0 = layer.strip_add(Strip::Type::Keyframe);
   Strip &strip1 = layer.strip_add(Strip::Type::Keyframe);
   Strip &strip2 = layer.strip_add(Strip::Type::Keyframe);
+
+  /* Add some keys to check that also the strip data is freed correctly. */
+  const KeyframeSettings settings = get_keyframe_settings(false);
+  Binding &binding = anim->binding_add();
+  strip0.as<KeyframeStrip>().keyframe_insert(binding, "location", 0, {1.0f, 47.0f}, settings);
+  strip1.as<KeyframeStrip>().keyframe_insert(binding, "location", 0, {1.0f, 47.0f}, settings);
+  strip2.as<KeyframeStrip>().keyframe_insert(binding, "location", 0, {1.0f, 47.0f}, settings);
 
   EXPECT_TRUE(layer.strip_remove(strip1));
   EXPECT_EQ(2, layer.strips().size());
@@ -305,6 +319,41 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
   adt->binding_handle = 161;
   STRNCPY_UTF8(adt->binding_name, "¿¿What's this??");
   EXPECT_EQ(&binding, anim->find_suitable_binding_for(cube->id));
+}
+
+TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
+{
+  Binding &binding = anim->binding_add();
+  EXPECT_TRUE(binding.connect_id(cube->id));
+  Layer &layer = anim->layer_add("Kübus layer");
+
+  Strip &strip = layer.strip_add(Strip::Type::Keyframe);
+  KeyframeStrip &key_strip = strip.as<KeyframeStrip>();
+
+  const KeyframeSettings settings = get_keyframe_settings(false);
+  FCurve *fcurve_loc_a = key_strip.keyframe_insert(
+      binding, "location", 0, {1.0f, 47.0f}, settings);
+  ASSERT_NE(nullptr, fcurve_loc_a)
+      << "Expect all the necessary data structures to be created on insertion of a key";
+
+  /* Check the strip was created correctly, with the channels for the binding. */
+  ASSERT_EQ(1, key_strip.channelbags().size());
+  ChannelBag *channels = key_strip.channelbag(0);
+  EXPECT_EQ(binding.handle, channels->binding_handle);
+
+  /* Insert a second key, should insert into the same FCurve as before. */
+  FCurve *fcurve_loc_b = key_strip.keyframe_insert(
+      binding, "location", 0, {5.0f, 47.1f}, settings);
+  ASSERT_EQ(fcurve_loc_a, fcurve_loc_b)
+      << "Expect same (binding/rna path/array index) tuple to return the same FCurve.";
+  EXPECT_EQ(2, fcurve_loc_b->totvert);
+
+  /* Insert another key for another property, should create another FCurve. */
+  FCurve *fcurve_rot = key_strip.keyframe_insert(
+      binding, "rotation_quaternion", 0, {1.0f, 0.25f}, settings);
+  EXPECT_NE(fcurve_loc_b, fcurve_rot)
+      << "Expected rotation and location curves to be different FCurves.";
+  EXPECT_EQ(2, channels->fcurves().size()) << "Expected a second FCurve to be created.";
 }
 
 }  // namespace blender::animrig::tests

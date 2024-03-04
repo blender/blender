@@ -367,6 +367,25 @@ class KeyframeStrip : public ::KeyframeAnimationStrip {
    * Should only be called when there is no `ChannelBag` for this binding yet.
    */
   ChannelBag &channelbag_for_binding_add(const Binding &binding);
+  /**
+   * Find an FCurve for this binding + RNA path + array index combination.
+   *
+   * If it cannot be found, `nullptr` is returned.
+   */
+  FCurve *fcurve_find(const Binding &binding, StringRefNull rna_path, int array_index);
+
+  /**
+   * Find an FCurve for this binding + RNA path + array index combination.
+   *
+   * If it cannot be found, a new one is created.
+   */
+  FCurve &fcurve_find_or_create(const Binding &binding, StringRefNull rna_path, int array_index);
+
+  FCurve *keyframe_insert(const Binding &binding,
+                          StringRefNull rna_path,
+                          int array_index,
+                          float2 time_value,
+                          const KeyframeSettings &settings);
 };
 static_assert(sizeof(KeyframeStrip) == sizeof(::KeyframeAnimationStrip),
               "DNA struct and its C++ wrapper must have the same size");
@@ -388,6 +407,8 @@ class ChannelBag : public ::AnimationChannelBag {
   blender::MutableSpan<FCurve *> fcurves();
   const FCurve *fcurve(int64_t index) const;
   FCurve *fcurve(int64_t index);
+
+  const FCurve *fcurve_find(StringRefNull rna_path, int array_index) const;
 };
 static_assert(sizeof(ChannelBag) == sizeof(::AnimationChannelBag),
               "DNA struct and its C++ wrapper must have the same size");
