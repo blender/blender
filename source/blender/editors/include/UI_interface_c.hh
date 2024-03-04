@@ -2915,8 +2915,6 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
  * To force inserting a blank dummy element, NULL can be passed for \a ptr and \a propname.
  */
 void uiItemDecoratorR(uiLayout *layout, PointerRNA *ptr, const char *propname, int index);
-/** Value item */
-void uiItemV(uiLayout *layout, const char *name, int icon, int argval);
 /** Separator item */
 void uiItemS(uiLayout *layout);
 /** Separator item */
