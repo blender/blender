@@ -597,6 +597,29 @@ Strip::~Strip()
   BLI_assert_unreachable();
 }
 
+bool Strip::contains_frame(const float frame_time) const
+{
+  return this->frame_start <= frame_time && frame_time <= this->frame_end;
+}
+
+bool Strip::is_last_frame(const float frame_time) const
+{
+  /* Maybe this needs a more advanced equality check. Implement that when
+   * we have an actual example case that breaks. */
+  return this->frame_end == frame_time;
+}
+
+void Strip::resize(const float frame_start, const float frame_end)
+{
+  BLI_assert(frame_start <= frame_end);
+  BLI_assert_msg(frame_start < std::numeric_limits<float>::infinity(),
+                 "only the end frame can be at positive infinity");
+  BLI_assert_msg(frame_end > -std::numeric_limits<float>::infinity(),
+                 "only the start frame can be at negative infinity");
+  this->frame_start = frame_start;
+  this->frame_end = frame_end;
+}
+
 /* ----- KeyframeAnimationStrip implementation ----------- */
 
 KeyframeStrip::KeyframeStrip(const KeyframeStrip &other)

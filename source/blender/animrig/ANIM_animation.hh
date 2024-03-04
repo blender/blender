@@ -178,7 +178,17 @@ static_assert(sizeof(Animation) == sizeof(::Animation),
  */
 class Strip : public ::AnimationStrip {
  public:
-  Strip() = default;
+  /**
+   * Strip instances should not be created via this constructor. Create a sub-class like
+   * #KeyframeStrip instead.
+   *
+   * The reason is that various functions will assume that the `Strip` is actually a down-cast
+   * instance of another strip class, and that `Strip::type()` will say which type. To avoid having
+   * to explcitly deal with an 'invalid' type everywhere, creating a `Strip` directly is simply not
+   * allowed.
+   */
+  Strip() = delete;
+
   /**
    * Strip cannot be duplicated via the copy constructor. Either use a concrete
    * strip type's copy constructor, or use Strip::duplicate().
@@ -213,6 +223,18 @@ class Strip : public ::AnimationStrip {
   template<typename T> bool is() const;
   template<typename T> T &as();
   template<typename T> const T &as() const;
+
+  bool contains_frame(float frame_time) const;
+  bool is_last_frame(float frame_time) const;
+
+  /**
+   * Set the start and end frame.
+   *
+   * Note that this does not do anything else. There is no check whether the
+   * frame numbers are valid (i.e. frame_start <= frame_end). Infinite values
+   * (negative for frame_start, positive for frame_end) are supported.
+   */
+  void resize(float frame_start, float frame_end);
 };
 static_assert(sizeof(Strip) == sizeof(::AnimationStrip),
               "DNA struct and its C++ wrapper must have the same size");

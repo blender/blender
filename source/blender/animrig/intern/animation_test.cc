@@ -321,6 +321,44 @@ TEST_F(AnimationLayersTest, find_suitable_binding)
   EXPECT_EQ(&binding, anim->find_suitable_binding_for(cube->id));
 }
 
+TEST_F(AnimationLayersTest, strip)
+{
+  constexpr float inf = std::numeric_limits<float>::infinity();
+  Layer &layer0 = anim->layer_add("Test Læür nul");
+  Strip &strip = layer0.strip_add(Strip::Type::Keyframe);
+
+  strip.resize(-inf, inf);
+  EXPECT_TRUE(strip.contains_frame(0.0f));
+  EXPECT_TRUE(strip.contains_frame(-100000.0f));
+  EXPECT_TRUE(strip.contains_frame(100000.0f));
+  EXPECT_TRUE(strip.is_last_frame(inf));
+
+  strip.resize(1.0f, 2.0f);
+  EXPECT_FALSE(strip.contains_frame(0.0f))
+      << "Strip should not contain frames before its first frame";
+  EXPECT_TRUE(strip.contains_frame(1.0f)) << "Strip should contain its first frame.";
+  EXPECT_TRUE(strip.contains_frame(2.0f)) << "Strip should contain its last frame.";
+  EXPECT_FALSE(strip.contains_frame(2.0001f))
+      << "Strip should not contain frames after its last frame";
+
+  EXPECT_FALSE(strip.is_last_frame(1.0f));
+  EXPECT_FALSE(strip.is_last_frame(1.5f));
+  EXPECT_FALSE(strip.is_last_frame(1.9999f));
+  EXPECT_TRUE(strip.is_last_frame(2.0f));
+  EXPECT_FALSE(strip.is_last_frame(2.0001f));
+
+  /* Same test as above, but with much larger end frame number. This is 2 hours at 24 FPS. */
+  strip.resize(1.0f, 172800.0f);
+  EXPECT_TRUE(strip.contains_frame(172800.0f)) << "Strip should contain its last frame.";
+  EXPECT_FALSE(strip.contains_frame(172800.1f))
+      << "Strip should not contain frames after its last frame";
+
+  /* You can't get much closer to the end frame before it's considered equal. */
+  EXPECT_FALSE(strip.is_last_frame(172799.925f));
+  EXPECT_TRUE(strip.is_last_frame(172800.0f));
+  EXPECT_FALSE(strip.is_last_frame(172800.075f));
+}
+
 TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
 {
   Binding &binding = anim->binding_add();
@@ -346,7 +384,10 @@ TEST_F(AnimationLayersTest, KeyframeStrip__keyframe_insert)
       binding, "location", 0, {5.0f, 47.1f}, settings);
   ASSERT_EQ(fcurve_loc_a, fcurve_loc_b)
       << "Expect same (binding/rna path/array index) tuple to return the same FCurve.";
+
   EXPECT_EQ(2, fcurve_loc_b->totvert);
+  EXPECT_EQ(47.0f, evaluate_fcurve(fcurve_loc_a, 1.0f));
+  EXPECT_EQ(47.1f, evaluate_fcurve(fcurve_loc_a, 5.0f));
 
   /* Insert another key for another property, should create another FCurve. */
   FCurve *fcurve_rot = key_strip.keyframe_insert(

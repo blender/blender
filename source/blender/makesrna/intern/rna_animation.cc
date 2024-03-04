@@ -250,7 +250,7 @@ static void rna_AnimData_animation_binding_handle_set(
   BLI_assert_msg(adt, "ID.animation_data is unexpectedly empty");
   if (!adt) {
     WM_reportf(RPT_ERROR,
-               "Data-block '%s' does not have any animation data, how did you set this property?",
+               "Data-block '%s' does not have any animation data, use animation_data_create()",
                animated_id.name + 2);
     return;
   }
