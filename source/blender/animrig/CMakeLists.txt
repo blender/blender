@@ -54,6 +54,7 @@ set(LIB
   PRIVATE bf_editor_interface
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::clog
 )
 
 
@@ -64,6 +65,7 @@ if(WITH_GTESTS)
   set(TEST_INC
   )
   set(TEST_SRC
+    intern/animation_test.cc
     intern/bone_collections_test.cc
   )
   set(TEST_LIB

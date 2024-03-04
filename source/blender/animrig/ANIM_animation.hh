@@ -62,14 +62,73 @@ class Animation : public ::Animation {
   const Layer *layer(int64_t index) const;
   Layer *layer(int64_t index);
 
+  Layer &layer_add(StringRefNull name);
+
+  /**
+   * Remove the layer from this animation.
+   *
+   * After this call, the passed reference is no longer valid, as the memory
+   * will have been freed. Any strips on the layer will be freed too.
+   *
+   * \return true when the layer was found & removed, false if it wasn't found.
+   */
+  bool layer_remove(Layer &layer_to_remove);
+
   /* Animation Binding access. */
   blender::Span<const Binding *> bindings() const;
   blender::MutableSpan<Binding *> bindings();
   const Binding *binding(int64_t index) const;
   Binding *binding(int64_t index);
 
+  Binding *binding_for_handle(binding_handle_t handle);
+  const Binding *binding_for_handle(binding_handle_t handle) const;
+
+  /**
+   * Set the binding name.
+   *
+   * This has to be done on the Animation level to ensure each binding has a
+   * unique name within the Animation.
+   *
+   * \see Animation::binding_name_define
+   * \see Animation::binding_name_propagate
+   */
+  void binding_name_set(Main &bmain, Binding &binding, StringRefNull new_name);
+
+  /**
+   * Set the binding name, and ensure it is unique.
+   *
+   * This function usually isn't necessary, call #binding_name_set instead.
+   *
+   * \see Animation::binding_name_set
+   * \see Animation::binding_name_propagate
+   */
+  void binding_name_define(Binding &binding, StringRefNull new_name);
+
+  /**
+   * Update the `AnimData::animation_binding_name` field of any ID that is animated by
+   * this.Binding.
+   *
+   * Should be called after `binding_name_define(binding)`. This is implemented as a separate
+   * function due to the need to access bmain, which is available in the RNA on-property-update
+   * handler, but not in the RNA property setter.
+   */
+  void binding_name_propagate(Main &bmain, const Binding &binding);
+
+  Binding *binding_find_by_name(StringRefNull binding_name);
+
+  Binding *binding_for_id(const ID &animated_id);
+  const Binding *binding_for_id(const ID &animated_id) const;
+
+  Binding &binding_add();
   /** Free all data in the `Animation`. Doesn't delete the `Animation` itself. */
   void free_data();
+
+ protected:
+  /** Return the layer's index, or -1 if not found in this animation. */
+  int64_t find_layer_index(const Layer &layer) const;
+
+ private:
+  Binding &binding_allocate();
 };
 static_assert(sizeof(Animation) == sizeof(::Animation),
               "DNA struct and its C++ wrapper must have the same size");
@@ -172,6 +231,21 @@ class Layer : public ::AnimationLayer {
   blender::MutableSpan<Strip *> strips();
   const Strip *strip(int64_t index) const;
   Strip *strip(int64_t index);
+  Strip &strip_add(Strip::Type strip_type);
+
+  /**
+   * Remove the strip from this layer.
+   *
+   * After this call, the passed reference is no longer valid, as the memory
+   * will have been freed.
+   *
+   * \return true when the strip was found & removed, false if it wasn't found.
+   */
+  bool strip_remove(Strip &strip);
+
+ protected:
+  /** Return the strip's index, or -1 if not found in this layer. */
+  int64_t find_strip_index(const Strip &strip) const;
 };
 static_assert(sizeof(Layer) == sizeof(::AnimationLayer),
               "DNA struct and its C++ wrapper must have the same size");
@@ -195,6 +269,9 @@ class Binding : public ::AnimationBinding {
   Binding() = default;
   Binding(const Binding &other) = default;
   ~Binding() = default;
+
+  /** Return whether this Binding is usable by this ID type. */
+  bool is_suitable_for(const ID &animated_id) const;
 };
 static_assert(sizeof(Binding) == sizeof(::AnimationBinding),
               "DNA struct and its C++ wrapper must have the same size");
@@ -213,6 +290,23 @@ class KeyframeStrip : public ::KeyframeAnimationStrip {
   blender::MutableSpan<ChannelBag *> channelbags();
   const ChannelBag *channelbag(int64_t index) const;
   ChannelBag *channelbag(int64_t index);
+
+  /**
+   * Find the animation channels for this binding.
+   *
+   * \return nullptr if there is none yet for this binding.
+   */
+  const ChannelBag *channelbag_for_binding(const Binding &binding) const;
+  ChannelBag *channelbag_for_binding(const Binding &binding);
+  const ChannelBag *channelbag_for_binding(binding_handle_t binding_handle) const;
+  ChannelBag *channelbag_for_binding(binding_handle_t binding_handle);
+
+  /**
+   * Add the animation channels for this binding.
+   *
+   * Should only be called when there is no `ChannelBag` for this binding yet.
+   */
+  ChannelBag &channelbag_for_binding_add(const Binding &binding);
 };
 static_assert(sizeof(KeyframeStrip) == sizeof(::KeyframeAnimationStrip),
               "DNA struct and its C++ wrapper must have the same size");
