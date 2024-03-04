@@ -264,6 +264,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_ENVELOPE,
      "Envelope",
      "Create an envelope shape"},
+    {eModifierType_GreasePencilOutline,
+     "GREASE_PENCIL_OUTLINE",
+     ICON_MOD_OUTLINE,
+     "Outline",
+     "Convert stroke to perimeter"},
 
     RNA_ENUM_ITEM_HEADING(N_("Deform"), nullptr),
     {eModifierType_Armature,
@@ -1016,6 +1021,7 @@ RNA_MOD_OBJECT_SET(GreasePencilLattice, object, OB_LATTICE);
 RNA_MOD_OBJECT_SET(GreasePencilWeightProximity, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilHook, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilArmature, object, OB_ARMATURE);
+RNA_MOD_OBJECT_SET(GreasePencilOutline, object, OB_EMPTY);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
@@ -1954,6 +1960,7 @@ RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilArray);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilWeightProximity);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilHook);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilEnvelope);
+RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilOutline);
 
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOffset);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOpacity);
@@ -2167,6 +2174,14 @@ static void rna_GreasePencilTimeModifier_end_frame_set(PointerRNA *ptr, int valu
   if (tmd->sfra >= tmd->efra) {
     tmd->sfra = std::max(tmd->efra, MINFRAME);
   }
+}
+
+static void rna_GreasePencilOutlineModifier_outline_material_set(PointerRNA *ptr,
+                                                                 PointerRNA value,
+                                                                 ReportList *reports)
+{
+  GreasePencilOutlineModifierData *omd = static_cast<GreasePencilOutlineModifierData *>(ptr->data);
+  rna_GreasePencilModifier_material_set(ptr, value, reports, &omd->outline_material);
 }
 
 #else
@@ -10195,6 +10210,67 @@ static void rna_def_modifier_grease_pencil_envelope(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_outline(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilOutlineModifier", "Modifier");
+  RNA_def_struct_ui_text(srna, "Outline Modifier", "Outline of Strokes modifier from camera view");
+  RNA_def_struct_sdna(srna, "GreasePencilOutlineModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_OUTLINE);
+
+  rna_def_modifier_grease_pencil_layer_filter(srna);
+  rna_def_modifier_grease_pencil_material_filter(
+      srna, "rna_GreasePencilOutlineModifier_material_filter_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "thickness", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "thickness");
+  RNA_def_property_range(prop, 1, 1000);
+  RNA_def_property_ui_text(prop, "Thickness", "Thickness of the perimeter stroke");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "sample_length", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, nullptr, "sample_length");
+  RNA_def_property_ui_range(prop, 0.0f, 100.0f, 0.1f, 2);
+  RNA_def_property_ui_text(prop, "Sample Length", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "subdivision", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "subdiv");
+  RNA_def_property_range(prop, 0, 10);
+  RNA_def_property_ui_text(prop, "Subdivisions", "Number of subdivisions");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_keep_shape", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", MOD_GREASE_PENCIL_OUTLINE_KEEP_SHAPE);
+  RNA_def_property_ui_text(prop, "Keep Shape", "Try to keep global shape");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "outline_material", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 "rna_GreasePencilOutlineModifier_outline_material_set",
+                                 nullptr,
+                                 "rna_GreasePencilModifier_material_poll");
+  RNA_def_property_ui_text(prop, "Outline Material", "Material used for outline strokes");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Target Object", "Target object to define stroke start");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_pointer_funcs(
+      prop, nullptr, "rna_GreasePencilOutlineModifier_object_set", nullptr, nullptr);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -10385,6 +10461,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_time_segment(brna);
   rna_def_modifier_grease_pencil_time(brna);
   rna_def_modifier_grease_pencil_envelope(brna);
+  rna_def_modifier_grease_pencil_outline(brna);
 }
 
 #endif

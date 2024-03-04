@@ -94,6 +94,7 @@ extern ModifierTypeInfo modifierType_GreasePencilLineart;
 extern ModifierTypeInfo modifierType_GreasePencilArmature;
 extern ModifierTypeInfo modifierType_GreasePencilTime;
 extern ModifierTypeInfo modifierType_GreasePencilEnvelope;
+extern ModifierTypeInfo modifierType_GreasePencilOutline;
 
 /* MOD_util.cc */
 

@@ -1324,6 +1324,40 @@ static void legacy_object_modifier_opacity(Object &object, GpencilModifierData &
                                    legacy_md_opacity.flag & GP_OPACITY_CUSTOM_CURVE);
 }
 
+static void legacy_object_modifier_outline(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilOutline, legacy_md);
+  auto &md_outline = reinterpret_cast<GreasePencilOutlineModifierData &>(md);
+  auto &legacy_md_outline = reinterpret_cast<OutlineGpencilModifierData &>(legacy_md);
+
+  md_outline.flag = 0;
+  if (legacy_md_outline.flag & GP_OUTLINE_KEEP_SHAPE) {
+    md_outline.flag |= MOD_GREASE_PENCIL_OUTLINE_KEEP_SHAPE;
+  }
+  md_outline.object = legacy_md_outline.object;
+  legacy_md_outline.object = nullptr;
+  md_outline.outline_material = legacy_md_outline.outline_material;
+  legacy_md_outline.outline_material = nullptr;
+  md_outline.sample_length = legacy_md_outline.sample_length;
+  md_outline.subdiv = legacy_md_outline.subdiv;
+  md_outline.thickness = legacy_md_outline.thickness;
+
+  legacy_object_modifier_influence(md_outline.influence,
+                                   legacy_md_outline.layername,
+                                   legacy_md_outline.layer_pass,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_LAYER,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_LAYERPASS,
+                                   &legacy_md_outline.material,
+                                   legacy_md_outline.pass_index,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_MATERIAL,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_PASS,
+                                   "",
+                                   false,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifier_smooth(Object &object, GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
@@ -1697,6 +1731,9 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Opacity:
         legacy_object_modifier_opacity(object, *gpd_md);
         break;
+      case eGpencilModifierType_Outline:
+        legacy_object_modifier_outline(object, *gpd_md);
+        break;
       case eGpencilModifierType_Smooth:
         legacy_object_modifier_smooth(object, *gpd_md);
         break;
@@ -1725,7 +1762,6 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Simplify:
       case eGpencilModifierType_Texture:
       case eGpencilModifierType_Shrinkwrap:
-      case eGpencilModifierType_Outline:
         break;
     }
 
