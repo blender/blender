@@ -804,6 +804,19 @@ static bool try_add_shared_field_attribute(MutableAttributeAccessor attributes,
   return attributes.add(id_to_create, domain, data_type, init);
 }
 
+static bool attribute_data_matches_varray(const GAttributeReader &attribute, const GVArray &varray)
+{
+  const CommonVArrayInfo varray_info = varray.common_info();
+  if (varray_info.type != CommonVArrayInfo::Type::Span) {
+    return false;
+  }
+  const CommonVArrayInfo attribute_info = attribute.varray.common_info();
+  if (attribute_info.type != CommonVArrayInfo::Type::Span) {
+    return false;
+  }
+  return varray_info.data == attribute_info.data;
+}
+
 bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
                                    const fn::FieldContext &field_context,
                                    const AttributeIDRef &attribute_id,
@@ -821,23 +834,21 @@ bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
 
   const bke::AttributeValidator validator = attributes.lookup_validator(attribute_id);
 
-  const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(attribute_id);
-  const bool attribute_matches = meta_data &&
-                                 attribute_kind_matches(*meta_data, domain, data_type);
-
   /* We are writing to an attribute that exists already with the correct domain and type. */
-  if (attribute_matches) {
-    if (GSpanAttributeWriter dst_attribute = attributes.lookup_for_write_span(attribute_id)) {
+  if (const GAttributeReader dst = attributes.lookup(attribute_id)) {
+    if (dst.domain == domain && dst.varray.type() == field.cpp_type()) {
       fn::FieldEvaluator evaluator{field_context, domain_size};
       evaluator.add(validator.validate_field_if_necessary(field));
       evaluator.set_selection(selection);
       evaluator.evaluate();
+      const GVArray &result = evaluator.get_evaluated(0);
+      if (attribute_data_matches_varray(dst, result)) {
+        return true;
+      }
 
-      const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-
-      array_utils::copy(evaluator.get_evaluated(0), selection, dst_attribute.span);
-
-      dst_attribute.finish();
+      GSpanAttributeWriter dst_mut = attributes.lookup_for_write_span(attribute_id);
+      array_utils::copy(result, evaluator.get_evaluated_selection_as_mask(), dst_mut.span);
+      dst_mut.finish();
       return true;
     }
   }
@@ -862,16 +873,6 @@ bool try_capture_field_on_geometry(MutableAttributeAccessor attributes,
                                  GMutableSpan{type, buffer, domain_size});
   evaluator.set_selection(selection);
   evaluator.evaluate();
-
-  if (attribute_matches) {
-    if (GAttributeWriter attribute = attributes.lookup_for_write(attribute_id)) {
-      attribute.varray.set_all(buffer);
-      attribute.finish();
-      type.destruct_n(buffer, domain_size);
-      MEM_freeN(buffer);
-      return true;
-    }
-  }
 
   attributes.remove(attribute_id);
   if (attributes.add(attribute_id, domain, data_type, bke::AttributeInitMoveArray(buffer))) {
