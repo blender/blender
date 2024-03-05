@@ -187,6 +187,8 @@ static void generate_arc_from_point_to_point(const float3 &from,
   const float3 vec_from = from - center_pt;
   const float3 vec_to = to - center_pt;
   if (math::is_zero(vec_from) || math::is_zero(vec_to)) {
+    r_perimeter.append(center_pt);
+    r_src_indices.append(src_point_index);
     return;
   }
 
@@ -322,14 +324,14 @@ static void generate_stroke_perimeter(const Span<float3> all_positions,
     const float3 pt_a = positions[a];
     const float3 pt_b = positions[b];
     const float3 pt_c = positions[c];
-    const float radius = all_radii[point] + radius_offset;
+    const float radius = std::max(all_radii[point] + radius_offset, 0.0f);
     generate_corner(pt_a, pt_b, pt_c, radius, subdivisions, point, r_perimeter, r_point_indices);
   };
   auto add_cap = [&](const int center_i, const int next_i, const eGPDstroke_Caps cap_type) {
     const int point = points[center_i];
     const float3 &center = positions[center_i];
     const float3 dir = math::normalize(positions[next_i] - center);
-    const float radius = all_radii[point] + radius_offset;
+    const float radius = std::max(all_radii[point] + radius_offset, 0.0f);
     generate_cap(center, dir, radius, subdivisions, cap_type, point, r_perimeter, r_point_indices);
   };
 
