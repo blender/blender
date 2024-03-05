@@ -798,10 +798,10 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         /* Not in undo case. */
         if (!BLO_write_is_undo(writer)) {
           switch (ndg->type) {
-            case 2: /* Grrrr! magic numbers :( */
+            case CMP_NODE_GLARE_STREAKS:
               ndg->angle = ndg->streaks;
               break;
-            case 0:
+            case CMP_NODE_GLARE_SIMPLE_STAR:
               ndg->angle = ndg->star_45;
               break;
             default:

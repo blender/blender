@@ -53,7 +53,7 @@ static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeGlare *ndg = MEM_cnew<NodeGlare>(__func__);
   ndg->quality = 1;
-  ndg->type = 2;
+  ndg->type = CMP_NODE_GLARE_STREAKS;
   ndg->iter = 3;
   ndg->colmod = 0.25;
   ndg->mix = 0;
@@ -71,10 +71,10 @@ static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, Pointer
   uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-  if (RNA_enum_get(ptr, "glare_type") != 1) {
+  if (RNA_enum_get(ptr, "glare_type") != CMP_NODE_GLARE_FOG_GLOW) {
     uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
-    if (RNA_enum_get(ptr, "glare_type") != 0) {
+    if (RNA_enum_get(ptr, "glare_type") != CMP_NODE_GLARE_SIMPLE_STAR) {
       uiItemR(layout,
               ptr,
               "color_modulation",
@@ -87,19 +87,21 @@ static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, Pointer
   uiItemR(layout, ptr, "mix", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
-  if (RNA_enum_get(ptr, "glare_type") == 2) {
+  if (RNA_enum_get(ptr, "glare_type") == CMP_NODE_GLARE_STREAKS) {
     uiItemR(layout, ptr, "streaks", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
     uiItemR(layout, ptr, "angle_offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
-  if (RNA_enum_get(ptr, "glare_type") == 0 || RNA_enum_get(ptr, "glare_type") == 2) {
+  if (RNA_enum_get(ptr, "glare_type") == CMP_NODE_GLARE_SIMPLE_STAR ||
+      RNA_enum_get(ptr, "glare_type") == CMP_NODE_GLARE_STREAKS)
+  {
     uiItemR(
         layout, ptr, "fade", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
 
-    if (RNA_enum_get(ptr, "glare_type") == 0) {
+    if (RNA_enum_get(ptr, "glare_type") == CMP_NODE_GLARE_SIMPLE_STAR) {
       uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
     }
   }
-  if (RNA_enum_get(ptr, "glare_type") == 1) {
+  if (RNA_enum_get(ptr, "glare_type") == CMP_NODE_GLARE_FOG_GLOW) {
     uiItemR(layout, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
 }

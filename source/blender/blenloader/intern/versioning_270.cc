@@ -1464,10 +1464,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
             if (node->type == CMP_NODE_GLARE) {
               NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
               switch (ndg->type) {
-                case 2: /* Grrrr! magic numbers :( */
+                case CMP_NODE_GLARE_STREAKS:
                   ndg->streaks = ndg->angle;
                   break;
-                case 0:
+                case CMP_NODE_GLARE_SIMPLE_STAR:
                   ndg->star_45 = ndg->angle != 0;
                   break;
                 default:
