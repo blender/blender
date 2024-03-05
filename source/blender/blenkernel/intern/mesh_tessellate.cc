@@ -45,9 +45,9 @@ BLI_INLINE void mesh_calc_tessellation_for_face_impl(const Span<int> corner_vert
                                                      const float normal_precalc[3])
 {
   auto create_tri = [&](int i1, int i2, int i3) {
-    (*tri)[0] = int(face_start + i1);
-    (*tri)[1] = int(face_start + i2);
-    (*tri)[2] = int(face_start + i3);
+    (*tri)[0] = face_start + i1;
+    (*tri)[1] = face_start + i2;
+    (*tri)[2] = face_start + i3;
   };
 
   switch (face_size) {

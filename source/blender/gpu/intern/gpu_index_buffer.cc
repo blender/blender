@@ -248,7 +248,7 @@ GPUIndexBuf *GPU_indexbuf_build_curves_on_device(GPUPrimType prim_type,
                                                  uint verts_per_curve)
 {
   uint64_t dispatch_x_dim = verts_per_curve;
-  if (prim_type == GPU_PRIM_LINE_STRIP || prim_type == GPU_PRIM_TRI_STRIP) {
+  if (ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_TRI_STRIP)) {
     dispatch_x_dim += 1;
   }
   uint64_t grid_x, grid_y, grid_z;
