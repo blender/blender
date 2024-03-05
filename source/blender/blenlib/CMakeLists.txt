@@ -51,7 +51,7 @@ set(SRC
   intern/bit_ref.cc
   intern/bit_span.cc
   intern/bitmap.c
-  intern/bitmap_draw_2d.c
+  intern/bitmap_draw_2d.cc
   intern/boxpack_2d.c
   intern/buffer.c
   intern/cache_mutex.cc

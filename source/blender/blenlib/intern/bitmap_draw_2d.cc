@@ -8,7 +8,7 @@
  * Utility functions for primitive drawing operations.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -281,9 +281,9 @@ void BLI_bitmap_draw_2d_tri_v2i(
 /* sort edge-segments on y, then x axis */
 static int draw_poly_v2i_n__span_y_sort(const void *a_p, const void *b_p, void *verts_p)
 {
-  const int(*verts)[2] = verts_p;
-  const int *a = a_p;
-  const int *b = b_p;
+  const int(*verts)[2] = static_cast<const int(*)[2]>(verts_p);
+  const int *a = static_cast<const int *>(a_p);
+  const int *b = static_cast<const int *>(b_p);
   const int *co_a = verts[a[0]];
   const int *co_b = verts[b[0]];
 
@@ -325,7 +325,8 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
   /* Originally by Darel Rex Finley, 2007.
    * Optimized by Campbell Barton, 2016 to track sorted intersections. */
 
-  int(*span_y)[2] = MEM_mallocN(sizeof(*span_y) * (size_t)verts_len, __func__);
+  int(*span_y)[2] = static_cast<int(*)[2]>(
+      MEM_mallocN(sizeof(*span_y) * (size_t)verts_len, __func__));
   int span_y_len = 0;
 
   for (int i_curr = 0, i_prev = verts_len - 1; i_curr < verts_len; i_prev = i_curr++) {
@@ -356,7 +357,8 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
   struct NodeX {
     int span_y_index;
     int x;
-  } *node_x = MEM_mallocN(sizeof(*node_x) * (size_t)(verts_len + 1), __func__);
+  } *node_x = static_cast<NodeX *>(
+      MEM_mallocN(sizeof(*node_x) * (size_t)(verts_len + 1), __func__));
   int node_x_len = 0;
 
   int span_y_index = 0;

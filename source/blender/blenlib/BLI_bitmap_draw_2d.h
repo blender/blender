@@ -8,10 +8,6 @@
  * \ingroup bli
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Plot a line from \a p1 to \a p2 (inclusive).
  *
@@ -51,7 +47,3 @@ void BLI_bitmap_draw_2d_poly_v2i_n(int xmin,
                                    int verts_len,
                                    void (*callback)(int x, int x_end, int y, void *),
                                    void *user_data);
-
-#ifdef __cplusplus
-}
-#endif
