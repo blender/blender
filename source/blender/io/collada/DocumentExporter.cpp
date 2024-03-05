@@ -17,6 +17,7 @@
 #include "COLLADASWColorOrTexture.h"
 #include "COLLADASWConstants.h"
 #include "COLLADASWEffectProfile.h"
+#include "COLLADASWException.h"
 #include "COLLADASWImage.h"
 #include "COLLADASWInputList.h"
 #include "COLLADASWInstanceCamera.h"
@@ -173,7 +174,15 @@ int DocumentExporter::exportCurrentScene()
   clear_global_id_map();
 
   COLLADABU::NativeString native_filename = make_temp_filepath(nullptr, ".dae");
-  COLLADASW::StreamWriter *writer = new COLLADASW::StreamWriter(native_filename);
+  COLLADASW::StreamWriter *writer;
+  try {
+    writer = new COLLADASW::StreamWriter(native_filename);
+  }
+  catch (COLLADASW::StreamWriterException &e) {
+    e.printMessage();
+    fprintf(stderr, "Collada: No Objects will be exported.\n");
+    return 1;
+  }
 
   /* open <collada> */
   writer->startDocument();
