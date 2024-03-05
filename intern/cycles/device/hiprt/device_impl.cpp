@@ -803,6 +803,12 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
                                    hiprtBuildOptions options,
                                    bool refit)
 {
+
+  size_t num_object = objects.size();
+  if (num_object == 0) {
+    return 0;
+  }
+
   hiprtBuildOperation build_operation = refit ? hiprtBuildOperationUpdate :
                                                 hiprtBuildOperationBuild;
 
@@ -816,7 +822,6 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   size_t num_instances = 0;
   int blender_instance_id = 0;
 
-  size_t num_object = objects.size();
   user_instance_id.alloc(num_object);
   prim_visibility.alloc(num_object);
   hiprt_blas_ptr.alloc(num_object);
