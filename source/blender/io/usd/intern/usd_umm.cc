@@ -36,6 +36,7 @@
 #  include "BKE_image.h"
 #  include "BKE_main.hh"
 #  include "BKE_node.hh"
+#  include "BKE_node_runtime.hh"
 #  include "BLI_fileops.h"
 #  include "BLI_listbase.h"
 #  include "BLI_path_util.h"
