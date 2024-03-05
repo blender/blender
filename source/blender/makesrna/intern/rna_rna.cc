@@ -2232,12 +2232,11 @@ void rna_property_override_diff_default(Main *bmain, RNAPropertyOverrideDiffCont
   }
 
   if (op != nullptr) {
-    if (created || op->rna_prop_type == 0) {
-      op->rna_prop_type = rna_prop_type;
-    }
-    else {
-      BLI_assert(op->rna_prop_type == rna_prop_type);
-    }
+    /* In theory, if the liboverride operation already existed, it should already be of the right
+     * type. However, in some rare cases a same exact RNA path can end up pointing at different
+     * data of a different path than when the liboverride property was created, so just always
+     * ensure the type is now valid. */
+    op->rna_prop_type = rna_prop_type;
   }
 
   return;
@@ -2525,6 +2524,26 @@ bool rna_property_override_apply_default(Main *bmain,
   const int len_src = rnaapply_ctx.len_src;
   const int len_storage = rnaapply_ctx.len_storage;
   IDOverrideLibraryPropertyOperation *opop = rnaapply_ctx.liboverride_operation;
+
+  const PropertyType prop_src_type = RNA_property_type(prop_src);
+  const PropertyType prop_dst_type = RNA_property_type(prop_dst);
+
+  /* It is possible that a same exact RNA path points to a different property of a different type
+   * (due to changes in the program, or in some custom data...). */
+  if (prop_src_type != prop_dst_type ||
+      (prop_storage && prop_src_type != RNA_property_type(prop_storage)))
+  {
+    CLOG_WARN(&LOG_COMPARE_OVERRIDE,
+              "%s.%s: Inconsistency between stored property type (%d) and linked reference one "
+              "(%d), skipping liboverride apply",
+              ptr_dst->owner_id->name,
+              rnaapply_ctx.liboverride_property->rna_path,
+              prop_src_type,
+              prop_dst_type);
+    /* Keep the liboverride property, update its type to the new actual one. */
+    rnaapply_ctx.liboverride_property->rna_prop_type = prop_dst_type;
+    return false;
+  }
 
   BLI_assert(len_dst == len_src && (!prop_storage || len_dst == len_storage));
   UNUSED_VARS_NDEBUG(len_src, len_storage);
