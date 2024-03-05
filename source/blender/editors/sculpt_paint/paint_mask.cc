@@ -729,6 +729,12 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
     return nullptr;
   }
 
+  /* A single point is equally as invalid for a lasso gesture as no points. */
+  if (mcoords_len == 1) {
+    MEM_freeN((void *)mcoords);
+    return nullptr;
+  }
+
   sgcontext->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(sgcontext->vc.rv3d,
                                                                  sgcontext->vc.obact);
   BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
@@ -1528,6 +1534,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
   ARegion *region = vc->region;
 
   const int tot_screen_points = sgcontext->tot_gesture_points;
+  BLI_assert(tot_screen_points > 1);
   float(*screen_points)[2] = sgcontext->gesture_points;
 
   const int trim_totverts = tot_screen_points * 2;
