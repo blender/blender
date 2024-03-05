@@ -2029,6 +2029,11 @@ void wm_test_opengl_deprecation_warning(bContext *C)
              "Please contact the developer of the add-on to migrate to use 'gpu' module");
 
   if (win) {
+    /* We want this warning on the Main window, not a child window even if active. See #118765. */
+    if (win->parent) {
+      win = win->parent;
+    }
+
     wmWindow *prevwin = CTX_wm_window(C);
     CTX_wm_window_set(C, win);
     UI_popup_block_invoke(C, block_create_opengl_usage_warning, nullptr, nullptr);
