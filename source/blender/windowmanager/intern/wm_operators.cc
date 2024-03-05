@@ -610,7 +610,7 @@ std::optional<std::string> WM_context_path_resolve_property_full(const bContext 
       if (prop != nullptr) {
         std::string prop_str = RNA_path_property_py(ptr, prop, index);
         if (prop_str[0] == '[') {
-          member_id_data_path = fmt::format("{}.{}", *data_path, prop_str);
+          member_id_data_path = fmt::format("{}.{}{}", member_id, *data_path, prop_str);
         }
         else {
           member_id_data_path = fmt::format("{}.{}.{}", member_id, *data_path, prop_str);
