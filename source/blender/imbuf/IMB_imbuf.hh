@@ -60,8 +60,8 @@ struct GSet;
 struct ImageFormatData;
 struct Stereo3dFormat;
 
-void IMB_init(void);
-void IMB_exit(void);
+void IMB_init();
+void IMB_exit();
 
 ImBuf *IMB_ibImageFromMemory(const unsigned char *mem,
                              size_t size,
@@ -674,8 +674,8 @@ void IMB_transform(const ImBuf *src,
 
 /* FFMPEG */
 
-void IMB_ffmpeg_init(void);
-const char *IMB_ffmpeg_last_error(void);
+void IMB_ffmpeg_init();
+const char *IMB_ffmpeg_last_error();
 
 GPUTexture *IMB_create_gpu_texture(const char *name,
                                    ImBuf *ibuf,

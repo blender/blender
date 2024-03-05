@@ -26,4 +26,4 @@ GPUShader *DRW_shader_draw_view_finalize_get();
 GPUShader *DRW_shader_draw_resource_finalize_get();
 GPUShader *DRW_shader_draw_command_generate_get();
 
-void DRW_shaders_free(void);
+void DRW_shaders_free();
