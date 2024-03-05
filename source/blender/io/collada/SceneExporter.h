@@ -28,7 +28,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_constraint.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "ED_keyframing.hh"

@@ -61,7 +61,7 @@
 #include "BKE_duplilist.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_effect.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_image.h"

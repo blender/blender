@@ -25,7 +25,7 @@
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_nla.h"
 
 #include "UI_interface_c.hh"

@@ -38,7 +38,7 @@
 
 #include "BLT_translation.hh"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_movieclip.h"

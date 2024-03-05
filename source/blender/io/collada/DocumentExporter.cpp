@@ -72,7 +72,7 @@
 #include "BKE_armature.hh"
 #include "BKE_blender_version.h"
 #include "BKE_customdata.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_main.hh"

@@ -26,7 +26,7 @@
 
 #include "BKE_action.h"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_main.hh"
 #include "BKE_scene.hh"
 
