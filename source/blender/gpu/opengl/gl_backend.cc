@@ -513,6 +513,7 @@ void GLBackend::capabilities_init()
   glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &GCaps.max_batch_vertices);
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &GCaps.max_vertex_attribs);
   glGetIntegerv(GL_MAX_VARYING_FLOATS, &GCaps.max_varying_floats);
+  glGetIntegerv(GL_MAX_IMAGE_UNITS, &GCaps.max_images);
 
   glGetIntegerv(GL_NUM_EXTENSIONS, &GCaps.extensions_len);
   GCaps.extension_get = gl_extension_get;
