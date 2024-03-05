@@ -159,9 +159,9 @@ void select_frames_range(bke::greasepencil::TreeNode &node,
 bool has_any_frame_selected(const bke::greasepencil::Layer &layer);
 
 /**
- * Check for an active keyframe at the current scene time. When there is not, create one when
- * Autokey is on (taking Additive drawing setting into account).
- * Returns false when no keyframe could be found or created.
+ * Check for an active keyframe at the current scene time. When there is not,
+ * create one when auto-key is on (taking additive drawing setting into account).
+ * \return false when no keyframe could be found or created.
  */
 bool ensure_active_keyframe(const Scene &scene, GreasePencil &grease_pencil);
 
