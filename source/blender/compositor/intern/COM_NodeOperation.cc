@@ -6,6 +6,7 @@
 
 #include "COM_ExecutionSystem.h"
 
+#include "COM_ConstantOperation.h"
 #include "COM_NodeOperation.h" /* own include */
 
 namespace blender::compositor {
