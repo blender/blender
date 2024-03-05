@@ -88,7 +88,7 @@ set(SRC
   intern/kdtree_2d.c
   intern/kdtree_3d.c
   intern/kdtree_4d.c
-  intern/lasso_2d.c
+  intern/lasso_2d.cc
   intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.cc
@@ -259,7 +259,7 @@ set(SRC
   BLI_kdopbvh.h
   BLI_kdtree.h
   BLI_kdtree_impl.h
-  BLI_lasso_2d.h
+  BLI_lasso_2d.hh
   BLI_lazy_threading.hh
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh

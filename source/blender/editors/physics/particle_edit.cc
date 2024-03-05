@@ -21,7 +21,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_kdtree.h"
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_rand.h"

@@ -18,7 +18,7 @@
 #include "BLI_bit_span_ops.hh"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"

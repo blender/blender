@@ -8,7 +8,7 @@
 
 #include "BLI_bit_vector.hh"
 #include "BLI_bitmap_draw_2d.h"
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix_types.hh"
