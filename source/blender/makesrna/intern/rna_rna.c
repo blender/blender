@@ -2120,12 +2120,11 @@ int rna_property_override_diff_default(Main *bmain,
   }
 
   if (op != NULL) {
-    if (created || op->rna_prop_type == 0) {
-      op->rna_prop_type = rna_prop_type;
-    }
-    else {
-      BLI_assert(op->rna_prop_type == rna_prop_type);
-    }
+    /* In theory, if the liboverride operation already existed, it should already be of the right
+     * type. However, in some rare cases a same exact RNA path can end up pointing at different
+     * data of a different path than when the liboverride property was created, so just always
+     * ensure the type is now valid. */
+    op->rna_prop_type = rna_prop_type;
   }
 
   return 0;
@@ -2419,7 +2418,26 @@ bool rna_property_override_apply_default(Main *bmain,
                                          PointerRNA *UNUSED(ptr_item_storage),
                                          IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage));
+  const PropertyType prop_src_type = RNA_property_type(prop_src);
+  const PropertyType prop_dst_type = RNA_property_type(prop_dst);
+
+  /* It is possible that a same exact RNA path points to a different property of a different type
+   * (due to changes in the program, or in some custom data...). */
+  if (prop_src_type != prop_dst_type ||
+      (prop_storage && prop_src_type != RNA_property_type(prop_storage))) {
+    CLOG_WARN(&LOG_COMPARE_OVERRIDE,
+              "%s.%s: Inconsistency between stored property type (%d) and linked reference one "
+              "(%d), skipping liboverride apply",
+              ptr_dst->owner_id->name,
+              "<unknown RNA path>",
+              prop_src_type,
+              prop_dst_type);
+    /* Keep the liboverride property, its type will be updated to the new actual one by caller
+     * code. */
+    return false;
+  }
+
+  BLI_assert(len_dst == len_src && (!prop_storage || len_dst == len_storage));
   UNUSED_VARS_NDEBUG(len_src, len_storage);
 
   const bool is_array = len_dst > 0;

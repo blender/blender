@@ -1185,6 +1185,11 @@ static void rna_property_override_apply_ex(Main *bmain,
                 op->rna_path,
                 ptr_src->owner_id->name);
     }
+    /* Ensure RNA type of the liboverride property matches the one of the RNA property. These types
+     * may become desynchronized for 'valid' reasons in very rare cases (in case the same RNA path
+     * changes to a different type of data!). See also start of
+     * #rna_property_override_apply_default for details. */
+    op->rna_prop_type = RNA_property_type(prop_dst);
   }
 }
 
