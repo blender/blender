@@ -417,6 +417,13 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
     return vec3(0.0);
   }
 
+  vec3 L = light_vector_get(light, is_directional, P).L;
+  if (dot(L, Ng) < 0.001) {
+    /* Don't apply PCF to almost perpendicular,
+     * since we can't project the offset to the surface. */
+    return vec3(0.0);
+  }
+
   ShadowSampleParams params;
   if (is_directional) {
     params = shadow_directional_sample_params_get(shadow_tilemaps_tx, light, P);
@@ -464,8 +471,6 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
   vec3 offset_P = P + ws_offset;
 
   /* Project the offset position into the surface */
-
-  vec3 L = light_vector_get(light, is_directional, P).L;
 
   if (abs(dot(Ng, L)) > 0.999) {
     return ws_offset;
