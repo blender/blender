@@ -5336,17 +5336,10 @@ void ui_draw_popover_back(ARegion *region, uiStyle * /*style*/, uiBlock *block, 
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
-  if (block) {
-    float mval_origin[2] = {float(block->bounds_offset[0]), float(block->bounds_offset[1])};
-    ui_window_to_block_fl(region, block, &mval_origin[0], &mval_origin[1]);
-    ui_draw_popover_back_impl(
-        wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect, mval_origin);
-  }
-  else {
-    const float zoom = 1.0f / block->aspect;
-    wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
-    wt->draw_block(&wt->wcol, rect, 0, 0, zoom);
-  }
+  float mval_origin[2] = {float(block->bounds_offset[0]), float(block->bounds_offset[1])};
+  ui_window_to_block_fl(region, block, &mval_origin[0], &mval_origin[1]);
+  ui_draw_popover_back_impl(
+      wt->wcol_theme, rect, block->direction, U.widget_unit / block->aspect, mval_origin);
 
   ui_draw_clip_tri(block, rect, wt);
 }
