@@ -132,7 +132,7 @@ static void deform_drawing(const ModifierData &md,
   Array<float> modified_ends;
   if (mmd.rand_start_fac != 0.0 || mmd.rand_end_fac != 0.0) {
     modified_starts = Array<float>(curves.curves_num(), mmd.start_fac);
-    modified_ends = Array<float>(curves.curves_num(), mmd.start_fac);
+    modified_ends = Array<float>(curves.curves_num(), mmd.end_fac);
 
     /* Use random to modify start/end factors. Put the modified values outside the
      * branch so it could be accessed in later stretching/shrinking stages. */
