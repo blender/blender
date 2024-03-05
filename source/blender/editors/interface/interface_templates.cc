@@ -2816,7 +2816,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
        * - this is used for allowing operators with popups to rename stuff with fewer clicks
        */
       if (is_popup) {
-        if ((but->rnaprop == op->type->prop) && (but->type == UI_BTYPE_TEXT)) {
+        if ((but->rnaprop == op->type->prop) && (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_NUM))) {
           UI_but_focus_on_enter_event(CTX_wm_window(C), but);
         }
       }

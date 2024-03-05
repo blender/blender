@@ -5440,6 +5440,11 @@ static int ui_do_but_NUM(
       else if (ELEM(event->type, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
         click = 1;
       }
+      else if (event->type == EVT_BUT_OPEN) {
+        /* Handle UI_but_focus_on_enter_event. */
+        button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+        retval = WM_UI_HANDLER_BREAK;
+      }
       else if (event->type == EVT_MINUSKEY && event->val == KM_PRESS) {
         button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
         data->value = -data->value;
