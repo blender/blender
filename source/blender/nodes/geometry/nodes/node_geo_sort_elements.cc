@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include "BKE_attribute.hh"
-#include "BKE_mesh.hh"
+#include "BKE_instances.hh"
 
 #include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
@@ -121,19 +121,17 @@ static int identifiers_to_indices(MutableSpan<int> r_identifiers_to_indices)
   return deduplicated_identifiers.size();
 }
 
-static std::optional<Array<int>> sorted_indices(const bke::GeometryComponent &component,
+static std::optional<Array<int>> sorted_indices(const fn::FieldContext &field_context,
+                                                const int domain_size,
                                                 const Field<bool> selection_field,
                                                 const Field<int> group_id_field,
-                                                const Field<float> weight_field,
-                                                const bke::AttrDomain domain)
+                                                const Field<float> weight_field)
 {
-  const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
     return std::nullopt;
   }
 
-  const bke::GeometryFieldContext context(component, domain);
-  FieldEvaluator evaluator(context, domain_size);
+  FieldEvaluator evaluator(field_context, domain_size);
   evaluator.set_selection(selection_field);
   evaluator.add(group_id_field);
   evaluator.add(weight_field);
@@ -206,31 +204,54 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bke::AnonymousAttributePropagationInfo propagation_info =
       params.get_output_propagation_info("Geometry");
 
+  GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
+
   std::atomic<bool> has_reorder = false;
   std::atomic<bool> has_unsupported = false;
-  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    GeometryComponentEditData::remember_deformed_positions_if_necessary(geometry_set);
-    for (const auto [type, domains] : geometry::components_supported_reordering().items()) {
-      const bke::GeometryComponent *src_component = geometry_set.get_component(type);
-      if (src_component == nullptr || src_component->is_empty()) {
-        continue;
+  if (domain == bke::AttrDomain::Instance) {
+    if (const bke::Instances *instances = geometry_set.get_instances()) {
+      if (const std::optional<Array<int>> indices = sorted_indices(
+              bke::InstancesFieldContext(*instances),
+              instances->instances_num(),
+              selection_field,
+              group_id_field,
+              weight_field))
+      {
+        bke::Instances *result = geometry::reorder_instaces(
+            *instances, *indices, propagation_info);
+        geometry_set.replace_instances(result);
+        has_reorder = true;
       }
-      if (!domains.contains(domain)) {
-        has_unsupported = true;
-        continue;
-      }
-      has_reorder = true;
-      const std::optional<Array<int>> indices = sorted_indices(
-          *src_component, selection_field, group_id_field, weight_field, domain);
-      if (!indices.has_value()) {
-        continue;
-      }
-      bke::GeometryComponentPtr dst_component = geometry::reordered_component(
-          *src_component, *indices, domain, propagation_info);
-      geometry_set.remove(type);
-      geometry_set.add(*dst_component.get());
     }
-  });
+  }
+  else {
+    geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+      for (const auto [type, domains] : geometry::components_supported_reordering().items()) {
+        const bke::GeometryComponent *src_component = geometry_set.get_component(type);
+        if (src_component == nullptr || src_component->is_empty()) {
+          continue;
+        }
+        if (!domains.contains(domain)) {
+          has_unsupported = true;
+          continue;
+        }
+        has_reorder = true;
+        const std::optional<Array<int>> indices = sorted_indices(
+            bke::GeometryFieldContext(*src_component, domain),
+            src_component->attribute_domain_size(domain),
+            selection_field,
+            group_id_field,
+            weight_field);
+        if (!indices.has_value()) {
+          continue;
+        }
+        bke::GeometryComponentPtr dst_component = geometry::reordered_component(
+            *src_component, *indices, domain, propagation_info);
+        geometry_set.remove(type);
+        geometry_set.add(*dst_component.get());
+      }
+    });
+  }
 
   if (has_unsupported && !has_reorder) {
     params.error_message_add(NodeWarningType::Info,
