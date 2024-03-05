@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
 "PO-Revision-Date: 2024-01-25 18:24+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -45209,18 +45209,6 @@ msgid "Rotate Euler"
 msgstr "Xoay Chiều Euler"
 
 
-msgid "Base orientation for rotation"
-msgstr "Định hướng cơ sở cho xoay chiều"
-
-
-msgid "Rotate the input rotation in the local space of the object"
-msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của đối tượng"
-
-
-msgid "Rotate the input rotation in its local space"
-msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của nó"
-
-
 msgid "Method used to describe the rotation"
 msgstr "Phương pháp sử dụng để mô tả sự xoay chiều"
 
@@ -45231,6 +45219,18 @@ msgstr "Xoay chung quanh trục một góc độ"
 
 msgid "Rotate around the X, Y, and Z axes"
 msgstr "Xoay quanh các trục X, Y, và Z"
+
+
+msgid "Base orientation for rotation"
+msgstr "Định hướng cơ sở cho xoay chiều"
+
+
+msgid "Rotate the input rotation in the local space of the object"
+msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của đối tượng"
+
+
+msgid "Rotate the input rotation in its local space"
+msgstr "Thực hiện xoay chiều ở đầu vào trong không gian địa phương của nó"
 
 
 msgid "Rotate Vector"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
-"PO-Revision-Date: 2024-02-23 23:55+0000\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"PO-Revision-Date: 2024-03-02 10:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -739,11 +739,11 @@ msgstr "Existem ainda caminhos de ossos que necessitam de actualização (só de
 
 
 msgid "Paths Range"
-msgstr "Alcance dos Caminhos"
+msgstr "Intervalo dos Caminhos"
 
 
 msgid "Type of range to calculate for Motion Paths"
-msgstr "Tipo de alcance a calcular para Caminhos de Movimento"
+msgstr "Tipo de intervalo a calcular para Caminhos de Movimento"
 
 
 msgid "All Keys"
@@ -4068,10 +4068,6 @@ msgid "Solo Active"
 msgstr "Solo Activo"
 
 
-msgid "Read-ony flag that indicates there is at least one bone collection marked as 'solo'"
-msgstr "Etiqueta só de leitura que indica que há pelo menos uma colecção de ossos marcada como 'solo'"
-
-
 msgid "Theme color or custom color of a bone"
 msgstr "Cor da paleta ou cor personalizada de um osso"
 
@@ -6474,7 +6470,7 @@ msgstr "AgX Log"
 
 
 msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
-msgstr "Codificação Log com inserção e rotação Chroma, e com 25 paragens de Alcance Dinâmico"
+msgstr "Codificação Log com inserção e rotação Chroma, e com 25 paragens de Intervalo Dinâmico"
 
 
 msgid "Display P3"
@@ -6490,7 +6486,7 @@ msgstr "Filmic Log"
 
 
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
-msgstr "Modelador filmico logaritmico com 16.5 paragens de latitude, e 25 paragens de alcance dinâmico"
+msgstr "Modelador fílmico logarítmico com 16.5 paragens de latitude, e 25 paragens de intervalo dinâmico"
 
 
 msgid "Filmic sRGB"
@@ -6638,11 +6634,11 @@ msgstr "Permite usar curvas RGB para transformações da pré-amostragem."
 
 
 msgid "High Dynamic Range"
-msgstr "Alto Alcance Dinâmico"
+msgstr "Alto Intervalo Dinâmico"
 
 
 msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors"
-msgstr "Activar exibição em alto alcance dinâmico, removendo limites de brilho. Isto requer um monitor com suporte para HDR, e uma transformação de exibição concebida para HDR. 'Filmic' e 'AgX' não geram cores HDR"
+msgstr "Activar exibição em alto intervalo dinâmico, removendo limites de brilho. Isto requer um monitor com suporte para HDR, e uma transformação de exibição concebida para HDR. 'Filmic' e 'AgX' não geram cores HDR"
 
 
 msgid "View Transform"
@@ -8600,7 +8596,7 @@ msgstr "Cria uma restrição tendo como base um relacionamento de envelopamento.
 
 
 msgid "Face Cull"
-msgstr "Refugar face"
+msgstr "Ocluir face"
 
 
 msgid "Stop vertices from projecting to a face on the target when facing towards/away"
@@ -8608,7 +8604,7 @@ msgstr "Faz com que os vértices parem de ser projetados em uma face do alvo qua
 
 
 msgid "No culling"
-msgstr "Sem abate"
+msgstr "Sem oclusão"
 
 
 msgid "Front"
@@ -14190,11 +14186,11 @@ msgstr "Grelha de bandeiras do domínio do fluido"
 
 
 msgid "Highlight Range"
-msgstr "Realçar Alcance"
+msgstr "Realçar Intervalo"
 
 
 msgid "Highlight the voxels with values of the color mapped field within the range"
-msgstr "Realçar os voxels com valores do campo mapeado por cores dentro do alcance"
+msgstr "Realçar os voxels com valores do campo mapeado por cores dentro do intervalo"
 
 
 msgid "Lower Bound"
@@ -15451,7 +15447,7 @@ msgstr "Contornos"
 
 
 msgid "Exclude contours"
-msgstr "Exclui os contornos."
+msgstr "Exclui os contornos"
 
 
 msgid "Crease"
@@ -15783,7 +15779,7 @@ msgstr "Raio da esfera para a computação de curvaturas."
 
 
 msgid "Culling"
-msgstr "Abatimento"
+msgstr "Oclusão"
 
 
 msgid "If enabled, out-of-view edges are ignored"
@@ -16940,7 +16936,7 @@ msgstr "Profundidade 3D"
 
 
 msgid "Supports culled depth by other objects in the view"
-msgstr "Suporta profundidade oculta por outros objectos no campo de visão"
+msgstr "Suporta profundidade separada por outros objectos no campo de visão"
 
 
 msgid "Supports selection"
@@ -18089,6 +18085,22 @@ msgid "This modifier has baked data"
 msgstr "Este modificador tem dados pré calculada"
 
 
+msgid "Level End"
+msgstr "Nível Final"
+
+
+msgid "Maximum number of occlusions for the generated strokes"
+msgstr "Número máximo de oclusões para os traços gerados"
+
+
+msgid "Level Start"
+msgstr "Nível Inicial"
+
+
+msgid "Minimum number of occlusions for the generated strokes"
+msgstr "Número mínimo de oclusões para os traços gerados"
+
+
 msgid "Light Object"
 msgstr "Objecto Luz"
 
@@ -18109,40 +18121,704 @@ msgid "A margin to prevent strokes from ending abruptly at the edge of the image
 msgstr "Uma margem para prevenir que os traços terminem abruptamente no final de uma imagem"
 
 
+msgid "Shadow Camera Far"
+msgstr "Câmara de Sombra Afastada"
+
+
+msgid "Far clipping distance of shadow camera"
+msgstr "Distância de corte afastada da câmara sombra"
+
+
+msgid "Shadow Camera Near"
+msgstr "Câmara de Sombra Próxmia"
+
+
+msgid "Near clipping distance of shadow camera"
+msgstr "Distância de corte próxima da câmara sombra"
+
+
+msgid "Shadow Camera Size"
+msgstr "Tamanho do Câmara Sombra"
+
+
+msgid "Represents the \"Orthographic Scale\" of an orthographic camera. If the camera is positioned at the light's location with this scale, it will represent the coverage of the shadow \"camera\""
+msgstr "Representa a \"Escala Ortogonal\" de uma câmara ortogonal. Se a câmara estiver posicionada na mesma localização da luz com esta escala, representa a cobertura da \"câmara\" sombra"
+
+
+msgid "Shadow Region Filtering"
+msgstr "Filtragem de Região em Sombra"
+
+
+msgid "Select feature lines that comes from lit or shaded regions. Will not affect cast shadow and light contour since they are at the border"
+msgstr "Seleccionar linhas de feição que vêm de zonas iluminadas ou me sombra. Não afecta sombras projectadas e perfis luminosos, uma vez que estes estão na periferia"
+
+
+msgid "Not filtering any lines based on illumination region"
+msgstr "Não filtrar linhas com base na iluminação"
+
+
+msgid "Illuminated"
+msgstr "Iluminado"
+
+
+msgid "Only selecting lines from illuminated regions"
+msgstr "Seleccionar apenas linhas de regiões iluminadas"
+
+
 msgid "Shaded"
 msgstr "Sombreamento"
+
+
+msgid "Only selecting lines from shaded regions"
+msgstr "Seleccionar apenas linhas de regiões em sombra"
+
+
+msgid "Illuminated (Enclosed Shapes)"
+msgstr "Iluminado (Formas Fechadas)"
+
+
+msgid "Selecting lines from lit regions, and make the combination of contour, light contour and shadow lines into enclosed shapes"
+msgstr "Seleccionar linhas de regiões iluminadas, e fazer a combinação de contornos, contornos iluminado e linhas de sombra em formas contidas"
+
+
+msgid "Silhouette Filtering"
+msgstr "Filtragem de Silhueta"
+
+
+msgid "Select contour or silhouette"
+msgstr "Seleccionar contorno ou silhueta"
+
+
+msgid "Individual Silhouette"
+msgstr "Silhueta Individual"
+
+
+msgid "Smooth Tolerance"
+msgstr "Tolerância Suave"
+
+
+msgid "Strength of smoothing applied on jagged chains"
+msgstr "Força de suavização aplicada nas cadeias serrilhadas"
+
+
+msgid "Camera Object"
+msgstr "Objecto Câmara"
+
+
+msgid "Use specified camera object for generating line art"
+msgstr "Usar objecto câmara especificado para gerar desenho de contornos"
+
+
+msgid "Generate strokes from the objects in this collection"
+msgstr "Gerar traços dos objectos desta colecção"
+
+
+msgid "Generate strokes from this object"
+msgstr "Gerar traços deste objecto"
+
+
+msgid "Source Type"
+msgstr "Tipo de Origem"
+
+
+msgid "Line art stroke source type"
+msgstr "Tipo de origem dos traços do desenho de contornos"
+
+
+msgid "Source Vertex Group"
+msgstr "Grupo de Vértices de Origem"
+
+
+msgid "Match the beginning of vertex group names from mesh objects, match all when left empty"
+msgstr "Corresponder com o princípio dos nomes dos grupos de vértices de objectos malha, usar todos quando vazio"
+
+
+msgid "Angle Splitting"
+msgstr "Divisão de Ângulos"
+
+
+msgid "Angle in screen space below which a stroke is split in two"
+msgstr "Ângulo em espaço de coordenadas de ecrã abaixo do qual um traço é dividido em dois"
+
+
+msgid "Stroke Depth Offset"
+msgstr "Afastamento de Profundidade do Traço"
+
+
+msgid "Move strokes slightly towards the camera to avoid clipping while preserve depth for the viewport"
+msgstr "Mover ligeiramente traços em direcção à câmara para evitar intersecções, preservando a profundidade na janela de visualização"
+
+
+msgid "Grease Pencil layer to which assign the generated strokes"
+msgstr "Camada de Grease Pencil à qual adicionar os traços"
+
+
+msgid "Grease Pencil material assigned to the generated strokes"
+msgstr "Material Grease Pencil aplicado aos traços gerados"
+
+
+msgid "The thickness for the generated strokes"
+msgstr "A espessura para os traços gerados"
+
+
+msgid "Back Face Culling"
+msgstr "Oclusão de Faces Reversas"
+
+
+msgid "Remove all back faces to speed up calculation, this will create edges in different occlusion levels than when disabled"
+msgstr "Remover todas as faces reversas para acelerar os cálculos, cria arestas em níveis de oclusão diferentes de quando está desactivado"
+
+
+msgid "Use cached scene data from the first line art modifier in the stack. Certain settings will be unavailable"
+msgstr "Usar dados de cena armazenados pelo primeiro modificador de desenho de contornos na lista. Algumas definições ficarão indisponíveis"
+
+
+msgid "Clipping Boundaries"
+msgstr "Fronteiras de corte"
+
+
+msgid "Allow lines generated by the near/far clipping plane to be shown"
+msgstr "Permitir que linhas geradas pelos planos de corte de proximidade/afastamento sejam visíveis"
+
+
+msgid "Use Contour"
+msgstr "Usar Contorno"
+
+
+msgid "Generate strokes from contours lines"
+msgstr "Gerar traços de linhas de contorno"
+
+
+msgid "Use Crease"
+msgstr "Usar Vincos"
+
+
+msgid "Generate strokes from creased edges"
+msgstr "Gerar traços de arestas vincadas"
+
+
+msgid "Crease On Sharp Edges"
+msgstr "Vincos em Arestas Afiadas"
+
+
+msgid "Allow crease to show on sharp edges"
+msgstr "Permitir que vincos apareçam em arestas afiadas"
+
+
+msgid "Crease On Smooth Surfaces"
+msgstr "Vincos em Superfícies Suaves"
+
+
+msgid "Allow crease edges to show inside smooth surfaces"
+msgstr "Permitir que arestas vincadas apareçam em superfícies suaves"
+
+
+msgid "Use Custom Camera"
+msgstr "Usar Câmara Personalizada"
+
+
+msgid "Use custom camera instead of the active camera"
+msgstr "Usar câmara personalizada em vez da câmara activa"
+
+
+msgid "Preserve Details"
+msgstr "Preservar Detalhes"
+
+
+msgid "Keep the zig-zag \"noise\" in initial chaining"
+msgstr "Manter o \"ruído\" zig-zag no encadeamento inicial"
+
+
+msgid "Use Edge Mark"
+msgstr "Usar Arestas Marcadas"
+
+
+msgid "Generate strokes from freestyle marked edges"
+msgstr "Gerar traços de arestas marcadas como freestyle"
+
+
+msgid "Handle Overlapping Edges"
+msgstr "Lidar com Arestas Sobrepostas"
+
+
+msgid "Allow edges in the same location (i.e. from edge split) to show properly. May run slower"
+msgstr "Permitir que arestas na mesma posição (por exemplo do modificador Dividir Arestas) apareção correctamente. Pode correr mais lentamente"
+
+
+msgid "Filter Face Marks"
+msgstr "Filtrar Marcas de Faces"
+
+
+msgid "Filter feature lines using freestyle face marks"
+msgstr "Filtrar linhas de feição usando marcações de faces de freestyle"
 
 
 msgid "Boundaries"
 msgstr "Margens"
 
 
+msgid "Filter feature lines based on face mark boundaries"
+msgstr "Filtrar linhas de feição com base em marcações de faces de fronteira"
+
+
+msgid "Invert face mark filtering"
+msgstr "Inverter filtragem de marcação de faces"
+
+
+msgid "Keep Contour"
+msgstr "Manter Contorno"
+
+
+msgid "Preserve contour lines while filtering"
+msgstr "Manter linhas de contorno durante a filtragem"
+
+
+msgid "All Lines"
+msgstr "Todas as linhas"
+
+
+msgid "Treat all lines as the same line type so they can be chained together"
+msgstr "Tratar todas as linhas como sendo do mesmo tipo para que possam ser encadeadas juntamente"
+
+
+msgid "Intersection With Contour"
+msgstr "Intersecção com Contorno"
+
+
+msgid "Treat intersection and contour lines as if they were the same type so they can be chained together"
+msgstr "Tratar linhas de intersecção e contorno como se fossem do mesmo tipo, para que possam ser encadeadas em conjunto"
+
+
+msgid "Use Geometry Space"
+msgstr "Usar Espaço da Geometria"
+
+
+msgid "Use geometry distance for chaining instead of image space"
+msgstr "Usar distância da geometria para encadeamento em vez de medir em unidades de imagem"
+
+
+msgid "Image Boundary Trimming"
+msgstr "Aparar no Limite da Imagem"
+
+
+msgid "Trim all edges right at the boundary of image (including overscan region)"
+msgstr "Cortar todas as arestas nas pontas da imagem (incluindo sobre-margem)"
+
+
+msgid "Use Intersection"
+msgstr "Usar Intersecção"
+
+
+msgid "Generate strokes from intersections"
+msgstr "Gerar traços das intersecções"
+
+
+msgid "Mask bits to match from Collection Line Art settings"
+msgstr "Bits máscara para corresponder com definições de Colecção de Desenho de Contornos"
+
+
+msgid "Match Intersection"
+msgstr "Corresponder Intersecção"
+
+
+msgid "Require matching all intersection masks instead of just one"
+msgstr "Exigir correspondência de todas as máscaras de intersecção, por oposição a apenas umas"
+
+
+msgid "Invert Collection Filtering"
+msgstr "Inverter Filtragem de Colecção"
+
+
+msgid "Select everything except lines from specified collection"
+msgstr "Seleccionar tudo excepto linhas da colecção especificada"
+
+
+msgid "Invert Silhouette Filtering"
+msgstr "Inverter Filtragem de Silhueta"
+
+
+msgid "Select anti-silhouette lines"
+msgstr "Seleccionar linhas anti-silhueta"
+
+
+msgid "Use Light Contour"
+msgstr "Usar Contorno Luminoso"
+
+
+msgid "Generate light/shadow separation lines from a reference light object"
+msgstr "Usar linhas de separação entre luz/sombra a partir de um objecto luz de referência"
+
+
+msgid "Use Loose"
+msgstr "Usar Soltas"
+
+
+msgid "Generate strokes from loose edges"
+msgstr "Gerar traços de arestas soltas"
+
+
+msgid "Loose As Contour"
+msgstr "Soltas como Contorno"
+
+
+msgid "Loose edges will have contour type"
+msgstr "Arestas soltas terão um tipo de contorno"
+
+
+msgid "Chain Loose Edges"
+msgstr "Encadear Arestas Soltas"
+
+
+msgid "Allow loose edges to be chained together"
+msgstr "Permitir que arestas soltas sejam encadeadas juntas"
+
+
+msgid "Use Material"
+msgstr "Usar Material"
+
+
+msgid "Generate strokes from borders between materials"
+msgstr "Gerar traços a partir das fronteiras entre materiais"
+
+
+msgid "Use Material Mask"
+msgstr "Usar Máscara de Material"
+
+
+msgid "Use material masks to filter out occluded strokes"
+msgstr "Usar máscara de material para excluir da filtragem traços ocultos"
+
+
+msgid "Mask bits to match from Material Line Art settings"
+msgstr "Bits máscara para corresponder com definições de Material de Desenho de Contornos"
+
+
+msgid "Match Masks"
+msgstr "Corresponder Máscaras"
+
+
+msgid "Require matching all material masks instead of just one"
+msgstr "Exigir correspondência de todas as máscaras de material, por oposição a apenas umas"
+
+
+msgid "Use Occlusion Range"
+msgstr "Usar Intervalo de Oclusão"
+
+
+msgid "Generate strokes from a range of occlusion levels"
+msgstr "Gerar traços a partir de intervalo de níveis de oclusão"
+
+
+msgid "Instanced Objects"
+msgstr "Objectos instanciados"
+
+
+msgid "Allow particle objects and face/vertex instances to show in line art"
+msgstr "Permitir que objectos partículas e instâncias de face/vértice apareçam em desenhos de contornos"
+
+
+msgid "Offset Towards Custom Camera"
+msgstr "Afastamento em Direcção da Câmara Personalizada"
+
+
+msgid "Offset strokes towards selected camera instead of the active camera"
+msgstr "Afasta traços em direcção à câmara seleccionada, por oposição à câmara activa"
+
+
+msgid "Match Output"
+msgstr "Corresponder Saída"
+
+
+msgid "Match output vertex group based on name"
+msgstr "Corresponder grupo de vértices de saída com base no nome"
+
+
+msgid "Overlapping Edge Types"
+msgstr "Tipos de Arestas Sobrepostos"
+
+
+msgid "Allow an edge to have multiple overlapping types. This will create a separate stroke for each overlapping type"
+msgstr "Permitir uma aresta ter múltiplos tipos sobrepostos. Isto cria um traço separado para cada tipo em sobreposição"
+
+
+msgid "Use Shadow"
+msgstr "Usar Sombras"
+
+
+msgid "Project contour lines using a light source object"
+msgstr "Projectar linhas de contorno usando um objecto fonte de luz"
+
+
+msgid "Vertex group name for selected strokes"
+msgstr "Nome de grupo de vértices para traços seleccionados"
+
+
 msgid "Mirror Modifier"
 msgstr "Modificador - Espelho"
+
+
+msgid "Create mirroring strokes"
+msgstr "Criar traços espelhados"
+
+
+msgid "Object used as center"
+msgstr "Objecto usado como centro"
+
+
+msgid "Mirror the X axis"
+msgstr "Espelhar o eixo X"
+
+
+msgid "Mirror the Y axis"
+msgstr "Espelhar o eixo Y"
+
+
+msgid "Mirror the Z axis"
+msgstr "Espelhar o eixo Z"
+
+
+msgid "Clip points"
+msgstr "Cortar vértices"
+
+
+msgid "Multiply Modifier"
+msgstr "Modificador Multiplicar"
+
+
+msgid "Generate multiple strokes from one stroke"
+msgstr "Gerar múltiplos traços a partir de um traço"
+
+
+msgid "Distance of duplications"
+msgstr "Distância das duplicações"
+
+
+msgid "Duplicates"
+msgstr "Duplicados"
+
+
+msgid "How many copies of strokes be displayed"
+msgstr "Quantas cópias dos traços são mostradas"
+
+
+msgid "Fade center"
+msgstr "Desvanecer centro"
+
+
+msgid "Fade influence of stroke's opacity"
+msgstr "Desvanecer a influência da opacidade do traço"
+
+
+msgid "Fade influence of stroke's thickness"
+msgstr "Desvanecer a influência da espessura do traço"
+
+
+msgid "Offset of duplicates. -1 to 1: inner to outer"
+msgstr "Afastamento dos duplicados. -1 a 1: interior para exterior"
 
 
 msgid "Fade"
 msgstr "Esmaecer"
 
 
+msgid "Fade the stroke thickness for each generated stroke"
+msgstr "Desvanecer a espessura do traço para cada traço gerado"
+
+
+msgid "Noise Modifier"
+msgstr "Modificador Ruído"
+
+
+msgid "Noise effect modifier"
+msgstr "Modificador de efeito de ruído"
+
+
+msgid "Amount of noise to apply"
+msgstr "Quantidade de ruído a aplicar"
+
+
+msgid "Strength Factor"
+msgstr "Factor de Força"
+
+
+msgid "Amount of noise to apply to opacity"
+msgstr "Quantidade de ruído a aplicar à opacidade"
+
+
+msgid "Thickness Factor"
+msgstr "Factor de Espessura"
+
+
+msgid "Amount of noise to apply to thickness"
+msgstr "Quantidade de ruído a aplicar à espessura"
+
+
+msgid "Amount of noise to apply to UV rotation"
+msgstr "Quantidade de ruído a aplicar à rotação UV"
+
+
+msgid "Noise Offset"
+msgstr "Afastamento de Ruído"
+
+
+msgid "Offset the noise along the strokes"
+msgstr "Afastar ruído ao longo dos traços"
+
+
+msgid "Scale the noise frequency"
+msgstr "Redimensionar a frequência do ruído"
+
+
+msgid "Where to perform randomization"
+msgstr "Onde aplicar aleatorização"
+
+
 msgid "Steps"
 msgstr "Passos"
+
+
+msgid "Randomize every number of frames"
+msgstr "Aleatorizar a cada número de fotogramas"
+
+
+msgid "Randomize on keyframes only"
+msgstr "Aleatorizar apenas nos fotogramas chave"
+
+
+msgid "Noise Seed"
+msgstr "Semente do ruído"
+
+
+msgid "Use a custom curve to define noise effect along the strokes"
+msgstr "Usar uma curva personalizada para definir o efeito do ruído ao longo dos traços"
+
+
+msgid "Offset Modifier"
+msgstr "Modificador Afastar"
+
+
+msgid "Offset Stroke modifier"
+msgstr "Modificador de afastamento de Traço"
+
+
+msgid "Randomize stroke offset"
+msgstr "Aleatorizar o afastamento do traço"
+
+
+msgid "Offset layers by the same factor"
+msgstr "Afastar camadas pelo mesmo factor"
+
+
+msgid "Offset strokes by the same factor based on stroke draw order"
+msgstr "Afastar traços pelo mesmo factor baseado na ordem de desenho"
+
+
+msgid "Offset materials by the same factor"
+msgstr "Afastar materiais pelo mesmo factor"
 
 
 msgid "Start Offset"
 msgstr "Deslocamento inicial"
 
 
+msgid "Offset starting point"
+msgstr "Ponto de início do afastamento"
+
+
+msgid "Number of elements that will be grouped"
+msgstr "Número de elementos a agrupar"
+
+
+msgid "Opacity Modifier"
+msgstr "Modificador Opacidade"
+
+
+msgid "Opacity of Strokes modifier"
+msgstr "Modificador de opacidade de Traços"
+
+
+msgid "Opacity Factor"
+msgstr "Factor de Opacidade"
+
+
+msgid "Factor of Opacity"
+msgstr "Factor da Opacidade"
+
+
+msgid "Factor of stroke hardness"
+msgstr "Factor de dureza do traço"
+
+
+msgid "Modify stroke hardness"
+msgstr "Modificar a dureza do traço"
+
+
+msgid "Use a custom curve to define opacity effect along the strokes"
+msgstr "Usar uma curva personalizada para definir o efeito de opacidade ao longo dos traços"
+
+
+msgid "Uniform Opacity"
+msgstr "Opacidade Uniforme"
+
+
+msgid "Replace the stroke opacity"
+msgstr "Substituir a opacidade do traço"
+
+
+msgid "Weighted"
+msgstr "Ponderado"
+
+
+msgid "Use weight to modulate effect"
+msgstr "Usar pesos para modular o efeito"
+
+
+msgid "Outline Modifier"
+msgstr "Modificador Contorno"
+
+
+msgid "Outline of Strokes modifier from camera view"
+msgstr "Modificador de contorno dos traços a partir da vista de câmara"
+
+
 msgid "Target Object"
 msgstr "Objeto alvo"
+
+
+msgid "Target object to define stroke start"
+msgstr "Objecto alvo para definir o início do traço"
+
+
+msgid "Outline Material"
+msgstr "Material de Contorno"
+
+
+msgid "Material used for outline strokes"
+msgstr "Material usado para traços de contorno"
+
+
+msgid "Sample Length"
+msgstr "Amostrar Comprimento"
 
 
 msgid "Subdivisions"
 msgstr "Subdivisões"
 
 
+msgid "Number of subdivisions"
+msgstr "Número de subdivisões"
+
+
+msgid "Thickness of the perimeter stroke"
+msgstr "Espessura do traço perimétrico"
+
+
 msgid "Keep Shape"
 msgstr "Manter formato"
+
+
+msgid "Try to keep global shape"
+msgstr "Tentar manter forma global"
 
 
 msgid "Shrinkwrap Modifier"
@@ -18169,12 +18845,32 @@ msgid "Project Limit"
 msgstr "Limite do projeto"
 
 
+msgid "Smooth Factor"
+msgstr "Factor de Suavização"
+
+
+msgid "Amount of smoothing to apply"
+msgstr "Quantidade de suavização a aplicar"
+
+
+msgid "Number of times to apply smooth (high numbers can reduce FPS)"
+msgstr "Número de vezes a aplicar suavização (números altos podem reduzir FPS)"
+
+
+msgid "Subdivision Levels"
+msgstr "Níveis de Subdivisão"
+
+
 msgid "Number of subdivisions that must be performed before extracting vertices' positions and normals"
 msgstr "Número de subdivisões que devem ser realizadas antes da extração da posição dos vértices e normais."
 
 
 msgid "Mesh target to shrink to"
 msgstr "Alvo de malha no qual encolher"
+
+
+msgid "When projecting in the negative direction invert the face cull mode"
+msgstr "Quando projectar na direcção negativa inverter o modo de oclusão de faces"
 
 
 msgid "Negative"
@@ -18193,6 +18889,10 @@ msgid "Allow vertices to move in the positive direction of axis"
 msgstr "Permite que os vértices se movam na direção positiva do eixo."
 
 
+msgid "Wrap Method"
+msgstr "Método de Embrulho"
+
+
 msgid "Shrink the mesh to the nearest target surface"
 msgstr "Encolhe a malha para a superfície alvo mais próxima."
 
@@ -18205,24 +18905,128 @@ msgid "Shrink the mesh to the nearest target vertex"
 msgstr "Encolhe a malha para o vértice alvo mais próximo."
 
 
+msgid "Shrink the mesh to the nearest target surface along the interpolated vertex normals of the target"
+msgstr "Encolher a malha até à superfície alvo mais próxima na direcção das normais de vértices interpoladas do alvo"
+
+
+msgid "Select how vertices are constrained to the target surface"
+msgstr "Seleccionar como os vértices são restringidos à superfície alvo"
+
+
+msgid "Simplify Modifier"
+msgstr "Modificador Simplificar"
+
+
+msgid "Simplify Stroke modifier"
+msgstr "Modificador Simplificar Traços"
+
+
+msgid "Distance between points"
+msgstr "Distância entre pontos"
+
+
+msgid "Factor of Simplify"
+msgstr "Factor de Simplificação"
+
+
+msgid "Length of each segment"
+msgstr "Comprimento de cada segmento"
+
+
+msgid "How to simplify the stroke"
+msgstr "Como simplificar o traço"
+
+
 msgid "Fixed"
 msgstr "Fixo"
+
+
+msgid "Delete alternating vertices in the stroke, except extremes"
+msgstr "Apagar vértices alternados no traço, excepto extremos"
 
 
 msgid "Adaptive"
 msgstr "Adaptativo"
 
 
+msgid "Use a Ramer-Douglas-Peucker algorithm to simplify the stroke preserving main shape"
+msgstr "Usar algoritmo Ramer-Douglas-Peucker para simplificar o traço preservando a forma geral"
+
+
+msgid "Sample"
+msgstr "Amostrar"
+
+
+msgid "Re-sample the stroke with segments of the specified length"
+msgstr "Redesenhar o traços com segmentos de comprimento especificado"
+
+
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Simplify the stroke by merging vertices closer than a given distance"
+msgstr "Simplificar traço fundindo vértices mais próximos que distância dada"
 
 
 msgid "Sharp Threshold"
 msgstr "Ajuste de nitidez"
 
 
+msgid "Preserve corners that have sharper angle than this threshold"
+msgstr "Manter esquinas com ângulos mais apertados que este limite"
+
+
+msgid "Number of times to apply simplify"
+msgstr "Número de vezes a aplicar simplificação"
+
+
 msgid "Smooth Modifier"
 msgstr "Modificador - Suavizar"
+
+
+msgid "Smooth effect modifier"
+msgstr "Modificador de efeito de suavização"
+
+
+msgid "Amount of smooth to apply"
+msgstr "Quantidade de suavização a aplicar"
+
+
+msgid "Number of times to apply smooth (high numbers can reduce fps)"
+msgstr "Número de vezes a aplicar suavização (números altos podem reduzir FPS)"
+
+
+msgid "Use a custom curve to define smooth effect along the strokes"
+msgstr "Usar curva personalizada para definir efeito de suavização ao longo dos traços"
+
+
+msgid "The modifier affects the position of the point"
+msgstr "Este modificador afecta a posição do ponto"
+
+
+msgid "The modifier affects the color strength of the point"
+msgstr "O pincel afecta a força das cores do ponto"
+
+
+msgid "The modifier affects the thickness of the point"
+msgstr "Modificador afecta a espessura do ponto"
+
+
+msgid "The modifier affects the UV rotation factor of the point"
+msgstr "O modificador afecta o factor de rotação UV do ponto"
+
+
+msgid "Smooth the details, but keep the overall shape"
+msgstr "Suavizar detalhes mas manter a forma geral"
+
+
+msgid "Subdivision Modifier"
+msgstr "Modificador Subdivisão"
+
+
+msgid "Subdivide Stroke modifier"
+msgstr "Modificador Subdividir Traços"
 
 
 msgid "Subdivision Type"
@@ -18241,8 +19045,124 @@ msgid "Simple"
 msgstr "Simples"
 
 
+msgid "Texture Modifier"
+msgstr "Modificador Textura"
+
+
+msgid "Transform stroke texture coordinates Modifier"
+msgstr "Modificador de alteração das coordenadas de textura do traço"
+
+
+msgid "Additional rotation applied to dots and square strokes"
+msgstr "Rotação adicional aplicada a pintas e traços quadrados"
+
+
+msgid "Fill Offset"
+msgstr "Deslocamento de Preenchimento"
+
+
+msgid "Additional offset of the fill UV"
+msgstr "Deslocamento adicional à UV do preenchimento"
+
+
+msgid "Fill Rotation"
+msgstr "Rotação do Preenchimento"
+
+
+msgid "Additional rotation of the fill UV"
+msgstr "Rotação adicional da UV do preenchimento"
+
+
+msgid "Fill Scale"
+msgstr "Escala de Preenchimento"
+
+
+msgid "Additional scale of the fill UV"
+msgstr "Escala adicional da UV do preenchimento"
+
+
 msgid "Fit Method"
 msgstr "Método de ajuste"
+
+
+msgid "Constant Length"
+msgstr "Comprimento Constante"
+
+
+msgid "Keep the texture at a constant length regardless of the length of each stroke"
+msgstr "Manter a textura num comprimento constante independentemente do comprimento de cada traço"
+
+
+msgid "Stroke Length"
+msgstr "Comprimento do Traço"
+
+
+msgid "Scale the texture to fit the length of each stroke"
+msgstr "Redimensionar a textura para caber no comprimento de cada traço"
+
+
+msgid "Manipulate only stroke texture coordinates"
+msgstr "Manipular apenas texturas de coordenada dos traços"
+
+
+msgid "Manipulate only fill texture coordinates"
+msgstr "Manipular apenas texturas de coordenada do preenchimento"
+
+
+msgid "Manipulate both stroke and fill texture coordinates"
+msgstr "Manipular texturas de coordenada dos traços e preenchimento"
+
+
+msgid "UV Offset"
+msgstr "Deslocar UV"
+
+
+msgid "Offset value to add to stroke UVs"
+msgstr "Valor de deslocamento para adicionar ao UV dos traços"
+
+
+msgid "Factor to scale the UVs"
+msgstr "Factor para redimensionar UV"
+
+
+msgid "Thick Modifier"
+msgstr "Modificador Espessura"
+
+
+msgid "Subdivide and Smooth Stroke modifier"
+msgstr "Modificador Subdividir e Suavizar"
+
+
+msgid "Absolute thickness to apply everywhere"
+msgstr "Espessura absoluta a aplicar a tudo"
+
+
+msgid "Factor to multiply the thickness with"
+msgstr "Factor com o qual multiplicar"
+
+
+msgid "Use a custom curve to define thickness change along the strokes"
+msgstr "Usar uma curva personalizada para definir a alteração de espessura ao longo dos traços"
+
+
+msgid "Uniform Thickness"
+msgstr "Espessura Uniforme"
+
+
+msgid "Replace the stroke thickness"
+msgstr "Substituir a espessura do traço"
+
+
+msgid "Time Offset Modifier"
+msgstr "Modificador Deslocamento Temporal"
+
+
+msgid "Time offset modifier"
+msgstr "Modificador de deslocamento no tempo"
+
+
+msgid "Final frame of the range"
+msgstr "Fotograma final do intervalo"
 
 
 msgid "Frame Scale"
@@ -18253,24 +19173,164 @@ msgid "Evaluation time in seconds"
 msgstr "Tempo de avaliação em segundos."
 
 
+msgid "First frame of the range"
+msgstr "Fotograma inicial do intervalo"
+
+
+msgid "Apply offset in usual animation direction"
+msgstr "Aplicar deslocamento na direcção normal de animação"
+
+
 msgid "Reverse"
 msgstr "Reverso"
+
+
+msgid "Apply offset in reverse animation direction"
+msgstr "Aplicar deslocamento na direcção reversa de animação"
+
+
+msgid "Fixed Frame"
+msgstr "Fotograma Fixo"
+
+
+msgid "Keep frame and do not change with time"
+msgstr "Manter fotograma e não alterar com o tempo"
+
+
+msgid "Ping Pong"
+msgstr "Ping Pong"
+
+
+msgid "Loop back and forth starting in reverse"
+msgstr "Circundar de trás para a frente e recomeçar em reverso"
+
+
+msgid "Chain"
+msgstr "Encadeado"
+
+
+msgid "List of chained animation segments"
+msgstr "Lista de segmentos de animação encadeados"
 
 
 msgid "Frame Offset"
 msgstr "Deslocamento de fotograma"
 
 
+msgid "Number of frames to offset original keyframe number or frame to fix"
+msgstr "Número de fotogramas a deslocar o fotograma chave original ou fotogramas a fixar"
+
+
+msgid "Custom Range"
+msgstr "Intervalo Personalizado"
+
+
+msgid "Define a custom range of frames to use in modifier"
+msgstr "Definir um número de fotogramas a usar no modificador"
+
+
+msgid "Keep Loop"
+msgstr "Manter Circundável"
+
+
+msgid "Retiming end frames and move to start of animation to keep loop"
+msgstr "Reposicionar os fotogramas finais e movê-los para o início da animação para manter circular"
+
+
+msgid "Tint Modifier"
+msgstr "Modificador - Cobertura"
+
+
+msgid "Tint modifier"
+msgstr "Modificador Tingir"
+
+
+msgid "Color used for tinting"
+msgstr "Cor usada para tingir"
+
+
+msgid "Color ramp used to define tinting colors"
+msgstr "Gradiente de cores usada para definir cores para tingir"
+
+
+msgid "Factor for tinting"
+msgstr "Factor de tingimento"
+
+
+msgid "Parent object to define the center of the effect"
+msgstr "Object pai que define o centro do efeito"
+
+
+msgid "Defines the maximum distance of the effect"
+msgstr "Define a distância máxima do efeito"
+
+
+msgid "Tint Type"
+msgstr "Tipo de Tingimento"
+
+
+msgid "Select type of tinting algorithm"
+msgstr "Selecção do tipo de algoritmo de tingimento"
+
+
+msgid "Use a custom curve to define vertex color effect along the strokes"
+msgstr "Usar uma curva personalizada para definir o efeito de cor de vértices"
+
+
+msgid "Weight Modifier Angle"
+msgstr "Ângulo do Modificador de Peso"
+
+
+msgid "Calculate Vertex Weight dynamically"
+msgstr "Calcular peso de Vértices dinamicamente"
+
+
+msgid "Minimum value for vertex weight"
+msgstr "Valor mínimo para peso de vértices"
+
+
 msgid "Space"
 msgstr "Espaço"
+
+
+msgid "Coordinates space"
+msgstr "Espaço das coordenadas"
+
+
+msgid "Invert output weight values"
+msgstr "Inverter valores de saída dos valores"
+
+
+msgid "Multiply Weights"
+msgstr "Multiplicar Pesos"
+
+
+msgid "Multiply the calculated weights with the existing values in the vertex group"
+msgstr "Multiplicar os pesos calculados com valores existentes no grupo de vértices"
+
+
+msgid "Weight Modifier Proximity"
+msgstr "Proximidade do Modificador de Peso"
 
 
 msgid "Highest"
 msgstr "Mais alta"
 
 
+msgid "Distance mapping to 1.0 weight"
+msgstr "Mapeamento de Distância para peso 1.0"
+
+
 msgid "Lowest"
 msgstr "Mais baixa"
+
+
+msgid "Distance mapping to 0.0 weight"
+msgstr "Mapeamento de Distância para peso 0.0"
+
+
+msgid "Object used as distance reference"
+msgstr "Objecto usado como referência de distâncias"
 
 
 msgid "Vertex Group Element"
@@ -18289,11 +19349,39 @@ msgid "Vertex Weight"
 msgstr "Peso de vértices"
 
 
+msgid "Grid and Canvas Settings"
+msgstr "Definições de Grelha e Tela"
+
+
+msgid "Settings for grid and canvas in 3D viewport"
+msgstr "Definições para a grelha e tela na janela de visualização 3D"
+
+
+msgid "Grid Color"
+msgstr "Cor da Grelha"
+
+
+msgid "Color for grid lines"
+msgstr "Cor das linhas da grelha"
+
+
 msgid "Grid Subdivisions"
 msgstr "Subdivisões da grelha"
 
 
+msgid "Number of subdivisions in each side of symmetry line"
+msgstr "Número de subdivisões de cada lado da linha de simetria"
+
+
+msgid "Offset of the canvas"
+msgstr "Deslocamento da grelha"
+
+
 msgid "Grid Scale"
+msgstr "Escala da grelha"
+
+
+msgid "Grid scale"
 msgstr "Escala da grelha"
 
 
@@ -18317,8 +19405,40 @@ msgid "Index of active grease pencil layer"
 msgstr "O índice da camada de lápis de cera ativa."
 
 
+msgid "Active Note"
+msgstr "Nota activa"
+
+
+msgid "Note/Layer to add annotation strokes to"
+msgstr "Nota/Camada à qual adicionar traços anotativos"
+
+
+msgid "Grease Pencil Mask Layers"
+msgstr "Máscaras de Camadas de Grease Pencil"
+
+
+msgid "Collection of grease pencil masking layers"
+msgstr "Colecção de camadas máscara de Grease Pencil"
+
+
+msgid "Active Layer Mask Index"
+msgstr "Índice de máscara da Camada Activa"
+
+
+msgid "Active index in layer mask array"
+msgstr "Índice activo na sequência de máscaras da camada"
+
+
+msgid "Editor header containing UI elements"
+msgstr "Cabeçalho do editor contendo elementos do Interface do Utilizador"
+
+
 msgid "Statistical view of the levels of color in an image"
 msgstr "Visualização estatística dos níveis de cor em uma imagem."
+
+
+msgid "Channels to display in the histogram"
+msgstr "Canais a mostrar no histograma"
 
 
 msgid "Luma"
@@ -18353,6 +19473,10 @@ msgid "Blue"
 msgstr "Azul"
 
 
+msgid "A"
+msgstr "A"
+
+
 msgid "Show Line"
 msgstr "Mostrar linha"
 
@@ -18363,6 +19487,14 @@ msgstr "Mostra as linhas ao invés dos formatos preenchidos."
 
 msgid "Base type for data-blocks, defining a unique name, linking from other libraries and garbage collection"
 msgstr "Tipo de base para blocos de dados, definindo um nome único, vinculando a partir de outras bibliotecas e coleções destacáveis."
+
+
+msgid "Additional data for an asset data-block"
+msgstr "Dados adicionais para um data-block de recurso"
+
+
+msgid "Type identifier of this data-block"
+msgstr "Tipo desde data-block"
 
 
 msgid "Brush"
@@ -18387,6 +19519,10 @@ msgstr "Biblioteca"
 
 msgid "Light"
 msgstr "Leve"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
 msgid "Mask"
@@ -18417,6 +19553,10 @@ msgid "Particle"
 msgstr "Partículas"
 
 
+msgid "Point Cloud"
+msgstr "Nuvem de Pontos"
+
+
 msgid "Sound"
 msgstr "Som"
 
@@ -18433,8 +19573,28 @@ msgid "Window Manager"
 msgstr "Gerenciador de janelas"
 
 
+msgid "Workspace"
+msgstr "Área de Trabalho"
+
+
 msgid "World"
 msgstr "Ambiente"
+
+
+msgid "Embedded Data"
+msgstr "Dados Integrados"
+
+
+msgid "This data-block is not an independent one, but is actually a sub-data of another ID (typical example: root node trees or master collections)"
+msgstr "Este data-block não é independente, consiste em sub-informação de outro ID (exemplos típicos: árvores de nós raiz, ou colecções mestre)"
+
+
+msgid "Is Evaluated"
+msgstr "É Avaliado"
+
+
+msgid "Whether this ID is runtime-only, evaluated data-block, or actual data from .blend file"
+msgstr "Se este ID é apenas de runtime, data-block avaliado, ou verdadeiros dados do ficheiro .blend"
 
 
 msgid "Is Indirect"
@@ -18443,6 +19603,14 @@ msgstr "Vínculo indireto"
 
 msgid "Is this ID block linked indirectly"
 msgstr "Este identificador de bloco está vinculado indiretamente."
+
+
+msgid "Missing Data"
+msgstr "Dados em Falta"
+
+
+msgid "This data-block is a place-holder for missing linked data (i.e. it is [an override of] a linked data that could not be found anymore)"
+msgstr "Este data-block é um substituto para dados vinculados em falta (por exemplo é [uma revogação de] dados vinculados que já não se conseguem encontrar)"
 
 
 msgid "Library file the data-block is linked from"
@@ -21379,11 +22547,11 @@ msgstr "Compartimentos de textura"
 
 
 msgid "Backface Culling"
-msgstr "Abate das faces oclusas"
+msgstr "Oclusão de Faces Reversas"
 
 
 msgid "Use back face culling to hide the back side of faces"
-msgstr "Usa o abate das faces oclusas de maneira a ocultar o lado de trás das faces (em geral, as partes internas dos objetos)."
+msgstr "Usar oclusão das faces reversas para ocultar o lado traseiro das faces"
 
 
 msgid "Use shader nodes to render the material"
@@ -54275,7 +55443,7 @@ msgstr "Imagem usada como estêncil."
 
 
 msgid "Cull"
-msgstr "Refugar"
+msgstr "Ocultar"
 
 
 msgid "Ignore faces pointing away from the view (faster)"
@@ -57310,11 +58478,11 @@ msgstr "Usa a subdivisão adaptativa durante o período de renderização."
 
 
 msgid "Use Camera Cull"
-msgstr "Usar abatimento pela câmara"
+msgstr "Usar Oclusão por Câmara"
 
 
 msgid "Allow this object and its duplicators to be culled by camera space culling"
-msgstr "Permite que este objeto e seus duplicadores sejam abatidos pelo espaço de abatimento projetado pela câmara."
+msgstr "Permite que este objecto e seus duplicadores sejam ocultos pela oclusão no espaço da câmara"
 
 
 msgid "Use Deformation Motion"
@@ -57326,11 +58494,11 @@ msgstr "Usa a deformação por desfoque de movimento para este objeto."
 
 
 msgid "Use Distance Cull"
-msgstr "Usar a distância para abatimento"
+msgstr "Usar a distância para oclusão"
 
 
 msgid "Allow this object and its duplicators to be culled by distance from camera"
-msgstr "Permite que este objeto e seus duplicadores sejam abatidos pela distância da câmara."
+msgstr "Permite que este objecto e seus duplicadores sejam ocultos pela distância da câmara"
 
 
 msgid "Use Motion Blur"
@@ -57374,11 +58542,11 @@ msgstr "Adaptativamente desfocar os sombreadores de polimento após os saltos de
 
 
 msgid "Camera Cull Margin"
-msgstr "Margem de abatimento pela câmara"
+msgstr "Margem de Oclusão pela Câmara"
 
 
 msgid "Margin for the camera space culling"
-msgstr "Margem para o espaço de abatimento pela câmara."
+msgstr "Margem para oclusão no espaço da câmara"
 
 
 msgid "Reflective Caustics"
@@ -57490,11 +58658,11 @@ msgstr "Número máximo de rebatimentos de reflexão difusa, limitados pelo máx
 
 
 msgid "Cull Distance"
-msgstr "Distância de abatimento"
+msgstr "Distância de Oclusão"
 
 
 msgid "Cull objects which are further away from camera than this distance"
-msgstr "Abate os objetos mais distantes da câmara do que a distância definida."
+msgstr "Oculta objectos a uma distância da câmara maior que este valor"
 
 
 msgid "Feature Set"
@@ -57742,11 +58910,11 @@ msgstr "Permite usar valores diferentes de semeadura (e portanto, diferentes pad
 
 
 msgid "Allow objects to be culled based on the camera frustum"
-msgstr "Permite que os objetos sejam abatidos com base no frustrum da câmara."
+msgstr "Permitir que os objectos sejam ocultos com base no frustum da câmara"
 
 
 msgid "Allow objects to be culled based on the distance from camera"
-msgstr "Permite que os objetos sejam abatidos com base na distância a partir da câmara."
+msgstr "Permitir que os objectos sejam ocultos com base na distância da câmara"
 
 
 msgid "Layer Samples"

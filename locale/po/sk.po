@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
-"PO-Revision-Date: 2024-02-22 06:59+0000\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"PO-Revision-Date: 2024-02-27 14:47+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -4063,10 +4063,6 @@ msgstr "Názov aktívnej kolekcie kostí armatúry; prázdne, ak neexistuje žia
 
 msgid "Solo Active"
 msgstr "Sólo aktívne"
-
-
-msgid "Read-ony flag that indicates there is at least one bone collection marked as 'solo'"
-msgstr "Príznak Len na čítanie, ktorý označuje, že existuje aspoň jedna kolekcia kostí označená ako 'sólo'"
 
 
 msgid "Theme color or custom color of a bone"
@@ -45764,18 +45760,6 @@ msgid "Rotate Euler"
 msgstr "Eulerova rotácia"
 
 
-msgid "Base orientation for rotation"
-msgstr "Základná orientácia pre rotáciu"
-
-
-msgid "Rotate the input rotation in the local space of the object"
-msgstr "Otáča vstupnou rotáciou v lokálnom priestore objektu"
-
-
-msgid "Rotate the input rotation in its local space"
-msgstr "Otáča vstupnou rotáciou vo svojom lokálnom priestore"
-
-
 msgid "Method used to describe the rotation"
 msgstr "Metóda použitá pre popis rotácie"
 
@@ -45786,6 +45770,18 @@ msgstr "Otočí sa okolo osi o uhol"
 
 msgid "Rotate around the X, Y, and Z axes"
 msgstr "Otočiť okolo osí X, Y a Z"
+
+
+msgid "Base orientation for rotation"
+msgstr "Základná orientácia pre rotáciu"
+
+
+msgid "Rotate the input rotation in the local space of the object"
+msgstr "Otáča vstupnou rotáciou v lokálnom priestore objektu"
+
+
+msgid "Rotate the input rotation in its local space"
+msgstr "Otáča vstupnou rotáciou vo svojom lokálnom priestore"
 
 
 msgid "Rotate Rotation"
@@ -106262,10 +106258,6 @@ msgid "Use Remote"
 msgstr "Použiť vzdialené"
 
 
-msgid "Synchonize the repository with a remote URL/path"
-msgstr "Synchronizuje úložisko so vzdialenou adresou URL/cestou"
-
-
 msgid "User Extension Repositories"
 msgstr "Úložiská užívateľských rozšírení"
 
@@ -113744,6 +113736,14 @@ msgstr "Viacnásobný plášť"
 
 msgid "Radius Head"
 msgstr "Polomer Hlava"
+
+
+msgid "Cannot figure out which object this bone belongs to."
+msgstr "Nemožno zistiť, ku ktorému objektu táto kosť patrí."
+
+
+msgid "Please file a bug report."
+msgstr "Podajte hlásenie o chybe."
 
 
 msgid "Not assigned to any bone collection."
@@ -125920,6 +125920,10 @@ msgstr "Nepodarilo sa odstrániť priečinok škvŕn %s"
 
 msgid "File must be saved before baking"
 msgstr "Súbor sa musí pred zapečením uložiť"
+
+
+msgid "Cache has to be enabled"
+msgstr "Zásobník musí byť povolený"
 
 
 msgid "Skipped some collections because of cycle detected"
