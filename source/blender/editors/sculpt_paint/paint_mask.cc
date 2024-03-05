@@ -1036,6 +1036,7 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
   ARegion *region = vc->region;
 
   const int tot_screen_points = gesture_data->tot_gesture_points;
+  BLI_assert(tot_screen_points > 1);
   float(*screen_points)[2] = gesture_data->gesture_points;
 
   const int trim_totverts = tot_screen_points * 2;

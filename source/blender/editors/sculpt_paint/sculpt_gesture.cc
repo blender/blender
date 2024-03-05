@@ -104,6 +104,12 @@ GestureData *init_from_lasso(bContext *C, wmOperator *op)
     return nullptr;
   }
 
+  /* A single point is equally as invalid for a lasso gesture as no points. */
+  if (mcoords_len == 1) {
+    MEM_freeN((void *)mcoords);
+    return nullptr;
+  }
+
   gesture_data->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(gesture_data->vc.rv3d,
                                                                     gesture_data->vc.obact);
   BLI_lasso_boundbox(&gesture_data->lasso.boundbox, mcoords, mcoords_len);
