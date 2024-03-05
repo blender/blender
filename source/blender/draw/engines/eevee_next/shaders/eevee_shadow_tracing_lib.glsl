@@ -438,10 +438,6 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
         params, light, params.uv + vec3(uv_offset, 0.0, 0.0));
     BP = shadow_directional_reconstruct_position(
         params, light, params.uv + vec3(0.0, uv_offset, 0.0));
-    vec3 L = light._back;
-    /* Project the offset positions into the surface plane. */
-    TP = line_plane_intersect(TP, dot(L, TP) > 0.0 ? L : -L, P, Ng);
-    BP = line_plane_intersect(BP, dot(L, BP) > 0.0 ? L : -L, P, Ng);
   }
   else {
     mat4 wininv = shadow_punctual_projection_perspective_inverse(light);
@@ -449,9 +445,6 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
         params, wininv, light, params.uv + vec3(uv_offset, 0.0, 0.0));
     BP = shadow_punctual_reconstruct_position(
         params, wininv, light, params.uv + vec3(0.0, uv_offset, 0.0));
-    /* Project the offset positions into the surface plane. */
-    TP = line_plane_intersect(light._position, normalize(TP - light._position), P, Ng);
-    BP = line_plane_intersect(light._position, normalize(BP - light._position), P, Ng);
   }
 
   /* TODO: Use a mat2x3 (Currently not supported by the Metal backend). */
@@ -467,7 +460,29 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
   pcf_offset = pcf_offset * 2.0 - 1.0;
   pcf_offset *= light.pcf_radius;
 
-  return TBN * vec3(pcf_offset, 0.0);
+  vec3 ws_offset = TBN * vec3(pcf_offset, 0.0);
+  vec3 offset_P = P + ws_offset;
+
+  /* Project the offset position into the surface */
+
+  vec3 L = light_vector_get(light, is_directional, P).L;
+
+  if (abs(dot(Ng, L)) > 0.999) {
+    return ws_offset;
+  }
+
+  offset_P = line_plane_intersect(offset_P, L, P, Ng);
+  ws_offset = offset_P - P;
+
+  if (dot(ws_offset, L) < 0.0) {
+    /* Project the offset position into the perpendicular plane, since it's closer to the light
+     * (avoids overshadowing at geometry angles). */
+    vec3 perpendicular_plane_normal = cross(Ng, normalize(cross(Ng, L)));
+    offset_P = line_plane_intersect(offset_P, L, P, perpendicular_plane_normal);
+    ws_offset = offset_P - P;
+  }
+
+  return ws_offset;
 }
 
 /**
