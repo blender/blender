@@ -190,15 +190,20 @@ static void generate_arc_from_point_to_point(const float3 &from,
     return;
   }
 
-  const float dot = math::dot(vec_from.xy(), vec_to.xy());
-  const float det = vec_from.x * vec_to.y - vec_from.y * vec_to.x;
-  const float angle = math::atan2(-det, -dot) + M_PI;
+  const float cos_angle = math::dot(vec_from.xy(), vec_to.xy());
+  const float sin_angle = vec_from.x * vec_to.y - vec_from.y * vec_to.x;
+  const float angle = math::atan2(sin_angle, cos_angle);
 
   /* Number of points is 2^(n+1) + 1 on half a circle (n=subdivisions)
    * so we multiply by (angle / pi) to get the right amount of
    * points to insert. */
-  const int num_points = std::max(int(((1 << (subdivisions + 1)) + 1) * (math::abs(angle) / M_PI)),
-                                  2);
+  const int num_full = (1 << (subdivisions + 1)) + 1;
+  const int num_points = num_full * math::abs(angle) / M_PI;
+  if (num_points < 2) {
+    r_perimeter.append(center_pt + vec_from);
+    r_src_indices.append(src_point_index);
+    return;
+  }
   const float delta_angle = angle / float(num_points - 1);
   const float delta_cos = math::cos(delta_angle);
   const float delta_sin = math::sin(delta_angle);
@@ -259,8 +264,8 @@ static void generate_corner(const float3 &pt_a,
 {
   const float length = math::length(pt_c - pt_b);
   const float length_prev = math::length(pt_b - pt_a);
-  const float3 tangent = math::normalize(pt_c - pt_b);
-  const float3 tangent_prev = math::normalize(pt_b - pt_a);
+  const float2 tangent = math::normalize((pt_c - pt_b).xy());
+  const float2 tangent_prev = math::normalize((pt_b - pt_a).xy());
   const float3 normal = {tangent.y, -tangent.x, 0.0f};
   const float3 normal_prev = {tangent_prev.y, -tangent_prev.x, 0.0f};
 
@@ -278,7 +283,7 @@ static void generate_corner(const float3 &pt_a,
                                      r_src_indices);
   }
   else {
-    const float3 avg_tangent = math::normalize(tangent_prev + tangent);
+    const float2 avg_tangent = math::normalize(tangent_prev + tangent);
     const float3 miter = {avg_tangent.y, -avg_tangent.x, 0.0f};
     const float miter_invscale = math::dot(normal, miter);
 
