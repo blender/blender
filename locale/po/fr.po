@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
-"PO-Revision-Date: 2024-02-19 21:51+0000\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"PO-Revision-Date: 2024-02-27 00:56+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -4063,10 +4063,6 @@ msgstr "Le nom de la collection d’os active de l’armature ; vide s’il n�
 
 msgid "Solo Active"
 msgstr "Solo actif"
-
-
-msgid "Read-ony flag that indicates there is at least one bone collection marked as 'solo'"
-msgstr "Drapeau en lecture seule indiquant qu’il y a au moins une collection d’os marquée « solo »"
 
 
 msgid "Theme color or custom color of a bone"
@@ -45766,18 +45762,6 @@ msgid "Rotate Euler"
 msgstr "Rotation Euler"
 
 
-msgid "Base orientation for rotation"
-msgstr "Orientation de base pour la rotation"
-
-
-msgid "Rotate the input rotation in the local space of the object"
-msgstr "Faire pivoter la rotation en entrée dans l’espace local de l’objet"
-
-
-msgid "Rotate the input rotation in its local space"
-msgstr "Faire pivoter la rotation en entrée dans son espace local"
-
-
 msgid "Method used to describe the rotation"
 msgstr "Méthode à utiliser pour décrire la rotation"
 
@@ -45788,6 +45772,18 @@ msgstr "Rotation autour d’un axe selon un angle"
 
 msgid "Rotate around the X, Y, and Z axes"
 msgstr "Rotation autour des axes X,Y et Z"
+
+
+msgid "Base orientation for rotation"
+msgstr "Orientation de base pour la rotation"
+
+
+msgid "Rotate the input rotation in the local space of the object"
+msgstr "Faire pivoter la rotation en entrée dans l’espace local de l’objet"
+
+
+msgid "Rotate the input rotation in its local space"
+msgstr "Faire pivoter la rotation en entrée dans son espace local"
 
 
 msgid "Rotate Rotation"
@@ -106264,10 +106260,6 @@ msgid "Use Remote"
 msgstr "Utiliser distant"
 
 
-msgid "Synchonize the repository with a remote URL/path"
-msgstr "Synchroniser le dépôt avec une URL ou chemin distant"
-
-
 msgid "User Extension Repositories"
 msgstr "Dépôts d’extensions de l’utilisateur"
 
@@ -113746,6 +113738,14 @@ msgstr "Multiplication d’enveloppe"
 
 msgid "Radius Head"
 msgstr "Rayon de tête"
+
+
+msgid "Cannot figure out which object this bone belongs to."
+msgstr "Impossible de savoir à quel objet cet os appartient."
+
+
+msgid "Please file a bug report."
+msgstr "Veuillez signaler ce bug."
 
 
 msgid "Not assigned to any bone collection."
@@ -125922,6 +125922,10 @@ msgstr "Impossible de supprimer le dossier de blobs %s"
 
 msgid "File must be saved before baking"
 msgstr "Le fichier doit être enregistré avant le précalcul"
+
+
+msgid "Cache has to be enabled"
+msgstr "Le cache doit être activé"
 
 
 msgid "Skipped some collections because of cycle detected"
