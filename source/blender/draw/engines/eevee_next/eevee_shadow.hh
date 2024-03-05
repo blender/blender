@@ -395,6 +395,9 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   int tilemaps_needed_;
   /** Scaling factor to the light shape for shadow ray casting. */
   float softness_factor_;
+  /** radius * softness_factor (Bypasses LightModule radius modifications to avoid unnecesary
+   * padding in the shadow projection). */
+  float shadow_radius_;
 
  public:
   ShadowPunctual(ShadowModule &module) : shadows_(module){};
@@ -414,7 +417,8 @@ class ShadowPunctual : public NonCopyable, NonMovable {
             float cone_aperture,
             float light_shape_radius,
             float max_distance,
-            float softness_factor);
+            float softness_factor,
+            float shadow_radius);
 
   /**
    * Release the tile-maps that will not be used in the current frame.
