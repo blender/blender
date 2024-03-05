@@ -1807,8 +1807,7 @@ struct GP_SelectUserData {
   int mx, my, radius;
   /* Bounding box rect */
   rcti rect;
-  const int (*lasso_coords)[2];
-  int lasso_coords_len;
+  blender::Array<blender::int2> lasso_coords;
 };
 
 typedef bool (*GPencilTestFn)(ARegion *region,
@@ -2296,29 +2295,24 @@ static bool gpencil_test_lasso(ARegion *region,
   if (gpencil_3d_point_to_screen_space(region, diff_mat, pt, co)) {
     /* test if in lasso boundbox + within the lasso noose */
     return (BLI_rcti_isect_pt(&user_data->rect, co[0], co[1]) &&
-            BLI_lasso_is_point_inside(
-                user_data->lasso_coords, user_data->lasso_coords_len, co[0], co[1], INT_MAX));
+            BLI_lasso_is_point_inside(user_data->lasso_coords, co[0], co[1], INT_MAX));
   }
   return false;
 }
 
 static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  GP_SelectUserData data = {0};
-  data.lasso_coords = WM_gesture_lasso_path_to_array(C, op, &data.lasso_coords_len);
-
-  /* Sanity check. */
-  if (data.lasso_coords == nullptr) {
+  GP_SelectUserData data{};
+  data.lasso_coords = WM_gesture_lasso_path_to_array(C, op);
+  if (data.lasso_coords.is_empty()) {
     return OPERATOR_PASS_THROUGH;
   }
 
   /* Compute boundbox of lasso (for faster testing later). */
-  BLI_lasso_boundbox(&data.rect, data.lasso_coords, data.lasso_coords_len);
+  BLI_lasso_boundbox(&data.rect, data.lasso_coords);
 
   rcti rect = data.rect;
   int ret = gpencil_generic_select_exec(C, op, gpencil_test_lasso, rect, &data);
-
-  MEM_freeN((void *)data.lasso_coords);
 
   return ret;
 }

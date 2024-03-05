@@ -8,6 +8,9 @@
  * \ingroup bli
  */
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+
 /**
  * Plot a line from \a p1 to \a p2 (inclusive).
  *
@@ -43,7 +46,6 @@ void BLI_bitmap_draw_2d_poly_v2i_n(int xmin,
                                    int ymin,
                                    int xmax,
                                    int ymax,
-                                   const int verts[][2],
-                                   int verts_len,
+                                   blender::Span<blender::int2> verts,
                                    void (*callback)(int x, int x_end, int y, void *),
                                    void *user_data);

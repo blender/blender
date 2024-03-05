@@ -1714,8 +1714,7 @@ struct GestureData {
 
   /* Gesture data. */
   /* Screen space points that represent the gesture shape. */
-  float (*gesture_points)[2];
-  int tot_gesture_points;
+  Array<float2> gesture_points;
 
   /* View parameters. */
   float3 true_view_normal;

@@ -964,10 +964,7 @@ static int node_lasso_select_invoke(bContext *C, wmOperator *op, const wmEvent *
   return WM_gesture_lasso_invoke(C, op, event);
 }
 
-static bool do_lasso_select_node(bContext *C,
-                                 const int mcoords[][2],
-                                 const int mcoords_len,
-                                 eSelectOp sel_op)
+static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectOp sel_op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode->edittree;
@@ -984,7 +981,7 @@ static bool do_lasso_select_node(bContext *C,
   }
 
   /* Get rectangle from operator. */
-  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
+  BLI_lasso_boundbox(&rect, mcoords);
 
   for (bNode *node : node_tree.all_nodes()) {
     if (select && (node->flag & NODE_SELECT)) {
@@ -1016,7 +1013,7 @@ static bool do_lasso_select_node(bContext *C,
         if (UI_view2d_view_to_region_clip(
                 &region->v2d, center.x, center.y, &screen_co.x, &screen_co.y) &&
             BLI_rcti_isect_pt(&rect, screen_co.x, screen_co.y) &&
-            BLI_lasso_is_point_inside(mcoords, mcoords_len, screen_co.x, screen_co.y, INT_MAX))
+            BLI_lasso_is_point_inside(mcoords, screen_co.x, screen_co.y, INT_MAX))
         {
           nodeSetSelected(node, select);
           changed = true;
@@ -1035,19 +1032,17 @@ static bool do_lasso_select_node(bContext *C,
 
 static int node_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  int mcoords_len;
-  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
+  const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 
-  if (mcoords) {
-    const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
-
-    do_lasso_select_node(C, mcoords, mcoords_len, sel_op);
-
-    MEM_freeN((void *)mcoords);
-
-    return OPERATOR_FINISHED;
+  if (mcoords.is_empty()) {
+    return OPERATOR_PASS_THROUGH;
   }
-  return OPERATOR_PASS_THROUGH;
+
+  const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
+
+  do_lasso_select_node(C, mcoords, sel_op);
+
+  return OPERATOR_FINISHED;
 }
 
 void NODE_OT_select_lasso(wmOperatorType *ot)

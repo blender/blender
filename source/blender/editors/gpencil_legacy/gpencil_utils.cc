@@ -3093,9 +3093,8 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
     return hit;
   }
 
-  int(*mcoords)[2] = nullptr;
   int len = gps->totpoints;
-  mcoords = static_cast<int(*)[2]>(MEM_mallocN(sizeof(int[2]) * len, __func__));
+  blender::Array<blender::int2> mcoords(len);
 
   /* Convert stroke to 2D array of points. */
   const bGPDspoint *pt;
@@ -3108,14 +3107,11 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
 
   /* Compute bound-box of lasso (for faster testing later). */
   rcti rect;
-  BLI_lasso_boundbox(&rect, mcoords, len);
+  BLI_lasso_boundbox(&rect, mcoords);
 
   /* Test if point inside stroke. */
   hit = (!ELEM(V2D_IS_CLIPPED, mval[0], mval[1]) && BLI_rcti_isect_pt(&rect, mval[0], mval[1]) &&
-         BLI_lasso_is_point_inside(mcoords, len, mval[0], mval[1], INT_MAX));
-
-  /* Free memory. */
-  MEM_SAFE_FREE(mcoords);
+         BLI_lasso_is_point_inside(mcoords, mval[0], mval[1], INT_MAX));
 
   return hit;
 }

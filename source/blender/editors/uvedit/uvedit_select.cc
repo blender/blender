@@ -65,6 +65,8 @@
 
 #include "uvedit_intern.hh"
 
+using blender::Array;
+using blender::int2;
 using blender::Span;
 using blender::Vector;
 
@@ -3892,15 +3894,14 @@ void UV_OT_select_circle(wmOperatorType *ot)
 
 static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
                                                     const rcti *clip_rect,
-                                                    const int mcoords[][2],
-                                                    const int mcoords_len,
+                                                    const Span<int2> mcoords,
                                                     const float co_test[2])
 {
   int co_screen[2];
   if (UI_view2d_view_to_region_clip(
           &region->v2d, co_test[0], co_test[1], &co_screen[0], &co_screen[1]) &&
       BLI_rcti_isect_pt_v(clip_rect, co_screen) &&
-      BLI_lasso_is_point_inside(mcoords, mcoords_len, co_screen[0], co_screen[1], V2D_IS_CLIPPED))
+      BLI_lasso_is_point_inside(mcoords, co_screen[0], co_screen[1], V2D_IS_CLIPPED))
   {
     return true;
   }
@@ -3909,8 +3910,7 @@ static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
 
 static bool do_lasso_select_mesh_uv_is_edge_inside(const ARegion *region,
                                                    const rcti *clip_rect,
-                                                   const int mcoords[][2],
-                                                   const int mcoords_len,
+                                                   const Span<int2> mcoords,
                                                    const float co_test_a[2],
                                                    const float co_test_b[2])
 {
@@ -3919,17 +3919,14 @@ static bool do_lasso_select_mesh_uv_is_edge_inside(const ARegion *region,
           &region->v2d, co_test_a, co_test_b, co_screen_a, co_screen_b) &&
       BLI_rcti_isect_segment(clip_rect, co_screen_a, co_screen_b) &&
       BLI_lasso_is_edge_inside(
-          mcoords, mcoords_len, UNPACK2(co_screen_a), UNPACK2(co_screen_b), V2D_IS_CLIPPED))
+          mcoords, UNPACK2(co_screen_a), UNPACK2(co_screen_b), V2D_IS_CLIPPED))
   {
     return true;
   }
   return false;
 }
 
-static bool do_lasso_select_mesh_uv(bContext *C,
-                                    const int mcoords[][2],
-                                    const int mcoords_len,
-                                    const eSelectOp sel_op)
+static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const eSelectOp sel_op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ARegion *region = CTX_wm_region(C);
@@ -3955,7 +3952,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
   bool changed_multi = false;
   rcti rect;
 
-  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
+  BLI_lasso_boundbox(&rect, mcoords);
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
@@ -3982,7 +3979,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         if (select != uvedit_face_select_test(scene, efa, offsets)) {
           float cent[2];
           BM_face_uv_calc_center_median(efa, offsets.uv, cent);
-          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, mcoords_len, cent)) {
+          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, cent)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
             changed = true;
           }
@@ -4006,9 +4003,8 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, mcoords_len, luv) &&
-              do_lasso_select_mesh_uv_is_point_inside(
-                  region, &rect, mcoords, mcoords_len, luv_prev))
+          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, luv) &&
+              do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, luv_prev))
           {
             uvedit_edge_select_set_with_sticky(scene, em, l_prev, select, false, offsets);
             do_second_pass = false;
@@ -4031,9 +4027,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-            if (do_lasso_select_mesh_uv_is_edge_inside(
-                    region, &rect, mcoords, mcoords_len, luv, luv_prev))
-            {
+            if (do_lasso_select_mesh_uv_is_edge_inside(region, &rect, mcoords, luv, luv_prev)) {
               uvedit_edge_select_set_with_sticky(scene, em, l_prev, select, false, offsets);
               changed = true;
             }
@@ -4054,8 +4048,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           if (select != uvedit_uv_select_test(scene, l, offsets)) {
             float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-            if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, mcoords_len, luv))
-            {
+            if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, luv)) {
               uvedit_uv_select_set(scene, em->bm, l, select, false, offsets);
               changed = true;
               BM_elem_flag_enable(l->v, BM_ELEM_TAG);
@@ -4093,18 +4086,15 @@ static bool do_lasso_select_mesh_uv(bContext *C,
 
 static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  int mcoords_len;
-  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
-
-  if (mcoords) {
-    const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
-    bool changed = do_lasso_select_mesh_uv(C, mcoords, mcoords_len, sel_op);
-    MEM_freeN((void *)mcoords);
-
-    return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+  Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
+  if (mcoords.is_empty()) {
+    return OPERATOR_PASS_THROUGH;
   }
 
-  return OPERATOR_PASS_THROUGH;
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  bool changed = do_lasso_select_mesh_uv(C, mcoords, sel_op);
+
+  return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void UV_OT_select_lasso(wmOperatorType *ot)

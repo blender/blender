@@ -1035,12 +1035,11 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
   ViewContext *vc = &gesture_data->vc;
   ARegion *region = vc->region;
 
-  const int tot_screen_points = gesture_data->tot_gesture_points;
-  BLI_assert(tot_screen_points > 1);
-  float(*screen_points)[2] = gesture_data->gesture_points;
+  const Span<float2> screen_points = gesture_data->gesture_points;
+  BLI_assert(screen_points.size() > 1);
 
-  const int trim_totverts = tot_screen_points * 2;
-  const int trim_faces_nums = (2 * (tot_screen_points - 2)) + (2 * tot_screen_points);
+  const int trim_totverts = screen_points.size() * 2;
+  const int trim_faces_nums = (2 * (screen_points.size() - 2)) + (2 * screen_points.size());
   trim_operation->mesh = BKE_mesh_new_nomain(
       trim_totverts, 0, trim_faces_nums, trim_faces_nums * 3);
   trim_operation->true_mesh_co = static_cast<float(*)[3]>(
@@ -1084,7 +1083,7 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
     madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_front);
   }
 
-  for (int i = 0; i < tot_screen_points; i++) {
+  for (const int i : screen_points.index_range()) {
     float new_point[3];
     if (trim_operation->orientation == SCULPT_GESTURE_TRIM_ORIENTATION_VIEW) {
       ED_view3d_win_to_3d(vc->v3d, region, depth_point, screen_points[i], new_point);
@@ -1104,7 +1103,7 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
 
   /* Write vertices coordinates for the back face. */
   madd_v3_v3v3fl(depth_point, shape_origin, shape_normal, depth_back);
-  for (int i = 0; i < tot_screen_points; i++) {
+  for (const int i : screen_points.index_range()) {
     float new_point[3];
 
     if (trim_operation->extrude_mode == SCULPT_GESTURE_TRIM_EXTRUDE_PROJECT) {
@@ -1123,11 +1122,11 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
       madd_v3_v3fl(new_point, shape_normal, depth_back - dist);
     }
 
-    copy_v3_v3(positions[i + tot_screen_points], new_point);
+    copy_v3_v3(positions[i + screen_points.size()], new_point);
   }
 
   /* Project to object space. */
-  for (int i = 0; i < tot_screen_points * 2; i++) {
+  for (int i = 0; i < screen_points.size() * 2; i++) {
     float new_point[3];
 
     copy_v3_v3(new_point, positions[i]);
@@ -1136,10 +1135,11 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
   }
 
   /* Get the triangulation for the front/back poly. */
-  const int tot_tris_face = tot_screen_points - 2;
+  const int tot_tris_face = screen_points.size() - 2;
   uint(*r_tris)[3] = static_cast<uint(*)[3]>(
       MEM_malloc_arrayN(tot_tris_face, sizeof(uint[3]), "tris"));
-  BLI_polyfill_calc(screen_points, tot_screen_points, 0, r_tris);
+  BLI_polyfill_calc(
+      reinterpret_cast<const float(*)[2]>(screen_points.data()), screen_points.size(), 0, r_tris);
 
   /* Write the front face triangle indices. */
   MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
@@ -1158,9 +1158,9 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
   /* Write the back face triangle indices. */
   for (int i = 0; i < tot_tris_face; i++) {
     face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = r_tris[i][0] + tot_screen_points;
-    corner_verts[loop_index + 1] = r_tris[i][1] + tot_screen_points;
-    corner_verts[loop_index + 2] = r_tris[i][2] + tot_screen_points;
+    corner_verts[loop_index + 0] = r_tris[i][0] + screen_points.size();
+    corner_verts[loop_index + 1] = r_tris[i][1] + screen_points.size();
+    corner_verts[loop_index + 2] = r_tris[i][2] + screen_points.size();
     face_index++;
     loop_index += 3;
   }
@@ -1168,30 +1168,30 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
   MEM_freeN(r_tris);
 
   /* Write the indices for the lateral triangles. */
-  for (int i = 0; i < tot_screen_points; i++) {
+  for (const int i : screen_points.index_range()) {
     face_offsets[face_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
-    if (next_index >= tot_screen_points) {
+    if (next_index >= screen_points.size()) {
       next_index = 0;
     }
-    corner_verts[loop_index + 0] = next_index + tot_screen_points;
+    corner_verts[loop_index + 0] = next_index + screen_points.size();
     corner_verts[loop_index + 1] = next_index;
     corner_verts[loop_index + 2] = current_index;
     face_index++;
     loop_index += 3;
   }
 
-  for (int i = 0; i < tot_screen_points; i++) {
+  for (const int i : screen_points.index_range()) {
     face_offsets[face_index] = loop_index;
     int current_index = i;
     int next_index = current_index + 1;
-    if (next_index >= tot_screen_points) {
+    if (next_index >= screen_points.size()) {
       next_index = 0;
     }
     corner_verts[loop_index + 0] = current_index;
-    corner_verts[loop_index + 1] = current_index + tot_screen_points;
-    corner_verts[loop_index + 2] = next_index + tot_screen_points;
+    corner_verts[loop_index + 1] = current_index + screen_points.size();
+    corner_verts[loop_index + 2] = next_index + screen_points.size();
     face_index++;
     loop_index += 3;
   }

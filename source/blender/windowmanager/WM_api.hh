@@ -19,8 +19,10 @@
 
 #include "DNA_windowmanager_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
 #include "WM_keymap.hh"
@@ -1279,10 +1281,8 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_lasso_cancel(bContext *C, wmOperator *op);
 /**
  * helper function, we may want to add options for conversion to view space
- *
- * caller must free.
  */
-const int (*WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op, int *mcoords_len))[2];
+blender::Array<blender::int2> WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op);
 
 int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 /**

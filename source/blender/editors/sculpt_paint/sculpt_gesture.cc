@@ -97,22 +97,14 @@ GestureData *init_from_lasso(bContext *C, wmOperator *op)
 
   init_common(C, op, gesture_data);
 
-  int mcoords_len;
-  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
-
-  if (!mcoords) {
-    return nullptr;
-  }
-
-  /* A single point is equally as invalid for a lasso gesture as no points. */
-  if (mcoords_len == 1) {
-    MEM_freeN((void *)mcoords);
+  const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
+  if (mcoords.size() <= 1) {
     return nullptr;
   }
 
   gesture_data->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(gesture_data->vc.rv3d,
                                                                     gesture_data->vc.obact);
-  BLI_lasso_boundbox(&gesture_data->lasso.boundbox, mcoords, mcoords_len);
+  BLI_lasso_boundbox(&gesture_data->lasso.boundbox, mcoords);
   const int lasso_width = 1 + gesture_data->lasso.boundbox.xmax -
                           gesture_data->lasso.boundbox.xmin;
   const int lasso_height = 1 + gesture_data->lasso.boundbox.ymax -
@@ -125,7 +117,6 @@ GestureData *init_from_lasso(bContext *C, wmOperator *op)
                                 gesture_data->lasso.boundbox.xmax,
                                 gesture_data->lasso.boundbox.ymax,
                                 mcoords,
-                                mcoords_len,
                                 lasso_px_cb,
                                 gesture_data);
 
@@ -136,15 +127,11 @@ GestureData *init_from_lasso(bContext *C, wmOperator *op)
                           gesture_data->vc.obact,
                           &gesture_data->lasso.boundbox);
 
-  gesture_data->gesture_points = static_cast<float(*)[2]>(
-      MEM_malloc_arrayN(mcoords_len, sizeof(float[2]), "trim points"));
-  gesture_data->tot_gesture_points = mcoords_len;
-  for (int i = 0; i < mcoords_len; i++) {
+  gesture_data->gesture_points.reinitialize(mcoords.size());
+  for (const int i : mcoords.index_range()) {
     gesture_data->gesture_points[i][0] = mcoords[i][0];
     gesture_data->gesture_points[i][1] = mcoords[i][1];
   }
-
-  MEM_freeN((void *)mcoords);
 
   return gesture_data;
 }
@@ -163,9 +150,7 @@ GestureData *init_from_box(bContext *C, wmOperator *op)
   ED_view3d_clipping_calc(
       &bb, gesture_data->true_clip_planes, gesture_data->vc.region, gesture_data->vc.obact, &rect);
 
-  gesture_data->gesture_points = static_cast<float(*)[2]>(
-      MEM_calloc_arrayN(4, sizeof(float[2]), "trim points"));
-  gesture_data->tot_gesture_points = 4;
+  gesture_data->gesture_points.reinitialize(4);
 
   gesture_data->gesture_points[0][0] = rect.xmax;
   gesture_data->gesture_points[0][1] = rect.ymax;
@@ -285,7 +270,6 @@ GestureData *init_from_line(bContext *C, wmOperator *op)
 
 void free_data(GestureData *gesture_data)
 {
-  MEM_SAFE_FREE(gesture_data->gesture_points);
   MEM_SAFE_FREE(gesture_data->operation);
   MEM_delete(gesture_data);
 }

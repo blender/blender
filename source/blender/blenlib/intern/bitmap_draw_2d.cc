@@ -20,6 +20,9 @@
 
 #include "BLI_strict_flags.h" /* Keep last. */
 
+using blender::int2;
+using blender::Span;
+
 /* -------------------------------------------------------------------- */
 /** \name Draw Line
  * \{ */
@@ -317,8 +320,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
                                    const int ymin,
                                    const int xmax,
                                    const int ymax,
-                                   const int verts[][2],
-                                   const int verts_len,
+                                   const Span<int2> verts,
                                    void (*callback)(int x, int x_end, int y, void *),
                                    void *user_data)
 {
@@ -326,10 +328,10 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
    * Optimized by Campbell Barton, 2016 to track sorted intersections. */
 
   int(*span_y)[2] = static_cast<int(*)[2]>(
-      MEM_mallocN(sizeof(*span_y) * (size_t)verts_len, __func__));
+      MEM_mallocN(sizeof(*span_y) * (size_t)verts.size(), __func__));
   int span_y_len = 0;
 
-  for (int i_curr = 0, i_prev = verts_len - 1; i_curr < verts_len; i_prev = i_curr++) {
+  for (int i_curr = 0, i_prev = int(verts.size() - 1); i_curr < verts.size(); i_prev = i_curr++) {
     const int *co_prev = verts[i_prev];
     const int *co_curr = verts[i_curr];
 
@@ -351,14 +353,17 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
     }
   }
 
-  BLI_qsort_r(
-      span_y, (size_t)span_y_len, sizeof(*span_y), draw_poly_v2i_n__span_y_sort, (void *)verts);
+  BLI_qsort_r(span_y,
+              (size_t)span_y_len,
+              sizeof(*span_y),
+              draw_poly_v2i_n__span_y_sort,
+              (void *)verts.data());
 
   struct NodeX {
     int span_y_index;
     int x;
   } *node_x = static_cast<NodeX *>(
-      MEM_mallocN(sizeof(*node_x) * (size_t)(verts_len + 1), __func__));
+      MEM_mallocN(sizeof(*node_x) * (size_t)(verts.size() + 1), __func__));
   int node_x_len = 0;
 
   int span_y_index = 0;
