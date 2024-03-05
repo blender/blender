@@ -132,6 +132,14 @@ static void motion_path_cache(OVERLAY_Data *vedata,
   if (len == 0) {
     return;
   }
+
+  /* Avoid 0 size allocations. Current code to calculate motion paths should
+   * sanitize this already [see animviz_verify_motionpaths()], we might however
+   * encounter an older file where this was still possible. */
+  if (mpath->length == 0) {
+    return;
+  }
+
   int start_index = sfra - mpath->start_frame;
 
   /* Draw curve-line of path. */
