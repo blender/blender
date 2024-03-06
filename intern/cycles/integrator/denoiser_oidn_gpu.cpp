@@ -35,14 +35,22 @@ static const char *oidn_device_type_to_string(const OIDNDeviceType type)
       return "DEFAULT";
     case OIDN_DEVICE_TYPE_CPU:
       return "CPU";
+#  ifdef OIDN_DEVICE_SYCL
     case OIDN_DEVICE_TYPE_SYCL:
       return "SYCL";
+#  endif
+#  ifdef OIDN_DEVICE_CUDA
     case OIDN_DEVICE_TYPE_CUDA:
       return "CUDA";
+#  endif
+#  ifdef OIDN_DEVICE_HIP
     case OIDN_DEVICE_TYPE_HIP:
       return "HIP";
+#  endif
+#  ifdef OIDN_DEVICE_METAL
     case OIDN_DEVICE_TYPE_METAL:
       return "METAL";
+#  endif
   }
   return "UNKNOWN";
 }
