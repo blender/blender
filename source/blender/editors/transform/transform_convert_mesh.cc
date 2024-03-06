@@ -38,6 +38,8 @@
 
 #include "transform_convert.hh"
 
+using namespace blender;
+
 /* -------------------------------------------------------------------- */
 /** \name Container TransCustomData Creation
  * \{ */
@@ -2217,7 +2219,7 @@ TransDataVertSlideVert *transform_mesh_vert_slide_data_create(const TransDataCon
         }
       }
 
-      sv_array[j].co_link_orig_3d = static_cast<float(*)[3]>(
+      sv_array[j].co_link_orig_3d = static_cast<float3(*)>(
           MEM_mallocN(sizeof(*sv_array[j].co_link_orig_3d) * k, __func__));
       sv_array[j].co_link_tot = k;
 

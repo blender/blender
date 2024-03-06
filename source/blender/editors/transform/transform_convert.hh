@@ -48,17 +48,10 @@ struct TransConvertTypeInfo {
  * Structure used for Edge Slide operation.
  */
 struct TransDataEdgeSlideVert {
-  /** #TransDataGenericSlideVert (header) */
   struct BMVert *v;
-  struct LinkNode **cd_loop_groups;
-  float v_co_orig[3];
-  /* end generic */
-
+  blender::float3 v_co_orig;
+  blender::float3 dir_side[2];
   float edge_len;
-
-  /* add origvert.co to get the original locations */
-  float dir_side[2][3];
-
   int loop_nr;
 };
 
@@ -66,13 +59,9 @@ struct TransDataEdgeSlideVert {
  * Structure used for Vert Slide operation.
  */
 struct TransDataVertSlideVert {
-  /** #TransDataGenericSlideVert (header) */
   BMVert *v;
-  LinkNode **cd_loop_groups;
-  float co_orig_3d[3];
-  /* end generic */
-
-  float (*co_link_orig_3d)[3];
+  blender::float3 co_orig_3d;
+  blender::float3 *co_link_orig_3d;
   int co_link_tot;
   int co_link_curr;
 };
