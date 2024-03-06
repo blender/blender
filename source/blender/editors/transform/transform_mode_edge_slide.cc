@@ -6,14 +6,8 @@
  * \ingroup edtransform
  */
 
-#include <cstdlib>
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_matrix.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines_stack.h"
 
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_bvh.h"
@@ -21,18 +15,15 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
-#include "GPU_state.h"
 
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "BLT_translation.hh"
 
@@ -45,23 +36,6 @@
 /* -------------------------------------------------------------------- */
 /** \name Transform (Edge Slide)
  * \{ */
-
-struct TransDataEdgeSlideVert {
-  /** #TransDataGenericSlideVert (header) */
-  BMVert *v;
-  LinkNode **cd_loop_groups;
-  float v_co_orig[3];
-  /* end generic */
-
-  float edge_len;
-
-  BMVert *v_side[2];
-
-  /* add origvert.co to get the original locations */
-  float dir_side[2][3];
-
-  int loop_nr;
-};
 
 struct EdgeSlideData {
   TransDataEdgeSlideVert *sv;
@@ -116,20 +90,6 @@ static void calcEdgeSlideCustomPoints(TransInfo *t)
   applyMouseInput(t, &t->mouse, t->mval, t->values);
 }
 
-static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
-{
-  BMIter iter;
-  BMEdge *e_iter;
-
-  BM_ITER_ELEM (e_iter, &iter, v, BM_EDGES_OF_VERT) {
-    if (BM_elem_flag_test(e_iter, BM_ELEM_SELECT) && e_iter != e) {
-      return e_iter;
-    }
-  }
-
-  return nullptr;
-}
-
 /* Interpolates along a line made up of 2 segments (used for edge slide). */
 static void interp_line_v3_v3v3v3(
     float p[3], const float v1[3], const float v2[3], const float v3[3], float t)
@@ -159,140 +119,6 @@ static void interp_line_v3_v3v3v3(
       interp_v3_v3v3(p, v2, v3, t / t_mid);
     }
   }
-}
-
-/**
- * Find the closest point on the ngon on the opposite side.
- * used to set the edge slide distance for ngons.
- */
-static bool bm_loop_calc_opposite_co(BMLoop *l_tmp, const float plane_no[3], float r_co[3])
-{
-  /* skip adjacent edges */
-  BMLoop *l_first = l_tmp->next;
-  BMLoop *l_last = l_tmp->prev;
-  BMLoop *l_iter;
-  float dist = FLT_MAX;
-  bool found = false;
-
-  l_iter = l_first;
-  do {
-    float tvec[3];
-    if (isect_line_plane_v3(tvec, l_iter->v->co, l_iter->next->v->co, l_tmp->v->co, plane_no)) {
-      const float fac = line_point_factor_v3(tvec, l_iter->v->co, l_iter->next->v->co);
-      /* allow some overlap to avoid missing the intersection because of float precision */
-      if ((fac > -FLT_EPSILON) && (fac < 1.0f + FLT_EPSILON)) {
-        /* likelihood of multiple intersections per ngon is quite low,
-         * it would have to loop back on itself, but better support it
-         * so check for the closest opposite edge */
-        const float tdist = len_v3v3(l_tmp->v->co, tvec);
-        if (tdist < dist) {
-          copy_v3_v3(r_co, tvec);
-          dist = tdist;
-          found = true;
-        }
-      }
-    }
-  } while ((l_iter = l_iter->next) != l_last);
-
-  return found;
-}
-
-/**
- * Given 2 edges and a loop, step over the loops
- * and calculate a direction to slide along.
- *
- * \param r_slide_vec: the direction to slide,
- * the length of the vector defines the slide distance.
- */
-static BMLoop *get_next_loop(
-    BMVert *v, BMLoop *l, BMEdge *e_prev, BMEdge *e_next, float r_slide_vec[3])
-{
-  BMLoop *l_first;
-  float vec_accum[3] = {0.0f, 0.0f, 0.0f};
-  float vec_accum_len = 0.0f;
-  int i = 0;
-
-  BLI_assert(BM_edge_share_vert(e_prev, e_next) == v);
-  BLI_assert(BM_vert_in_edge(l->e, v));
-
-  l_first = l;
-  do {
-    l = BM_loop_other_edge_loop(l, v);
-
-    if (l->e == e_next) {
-      if (i) {
-        normalize_v3_length(vec_accum, vec_accum_len / float(i));
-      }
-      else {
-        /* When there is no edge to slide along,
-         * we must slide along the vector defined by the face we're attach to */
-        BMLoop *l_tmp = BM_face_vert_share_loop(l_first->f, v);
-
-        BLI_assert(ELEM(l_tmp->e, e_prev, e_next) && ELEM(l_tmp->prev->e, e_prev, e_next));
-
-        if (l_tmp->f->len == 4) {
-          /* we could use code below, but in this case
-           * sliding diagonally across the quad works well */
-          sub_v3_v3v3(vec_accum, l_tmp->next->next->v->co, v->co);
-        }
-        else {
-          float tdir[3];
-          BM_loop_calc_face_direction(l_tmp, tdir);
-          cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
-#if 0
-          /* Rough guess, we can do better! */
-          normalize_v3_length(vec_accum,
-                              (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
-#else
-          /* be clever, check the opposite ngon edge to slide into.
-           * this gives best results */
-          {
-            float tvec[3];
-            float dist;
-
-            if (bm_loop_calc_opposite_co(l_tmp, tdir, tvec)) {
-              dist = len_v3v3(l_tmp->v->co, tvec);
-            }
-            else {
-              dist = (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f;
-            }
-
-            normalize_v3_length(vec_accum, dist);
-          }
-#endif
-        }
-      }
-
-      copy_v3_v3(r_slide_vec, vec_accum);
-      return l;
-    }
-
-    /* accumulate the normalized edge vector,
-     * normalize so some edges don't skew the result */
-    float tvec[3];
-    sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
-    vec_accum_len += normalize_v3(tvec);
-    add_v3_v3(vec_accum, tvec);
-    i += 1;
-
-    if (BM_loop_other_edge_loop(l, v)->e == e_next) {
-      if (i) {
-        normalize_v3_length(vec_accum, vec_accum_len / float(i));
-      }
-
-      copy_v3_v3(r_slide_vec, vec_accum);
-      return BM_loop_other_edge_loop(l, v);
-    }
-
-  } while ((l != l->radial_next) && ((l = l->radial_next) != l_first));
-
-  if (i) {
-    normalize_v3_length(vec_accum, vec_accum_len / float(i));
-  }
-
-  copy_v3_v3(r_slide_vec, vec_accum);
-
-  return nullptr;
 }
 
 static blender::float4x4 edge_slide_projmat_get(TransInfo *t, TransDataContainer *tc)
@@ -366,7 +192,6 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
 static void calcEdgeSlide_mval_range(TransInfo *t,
                                      TransDataContainer *tc,
                                      EdgeSlideData *sld,
-                                     const int *sv_table,
                                      const int loop_nr,
                                      const blender::float2 &mval,
                                      const bool use_occlude_geometry,
@@ -413,9 +238,6 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     BMIter iter_other;
     BMEdge *e;
     BMVert *v = sv->v;
-
-    UNUSED_VARS_NDEBUG(sv_table); /* silence warning */
-    BLI_assert(i == sv_table[BM_elem_index_get(v)]);
 
     /* Search cross edges for visible edge to the mouse cursor,
      * then use the shared vertex to calculate screen vector. */
@@ -518,531 +340,24 @@ static void calcEdgeSlide_even(TransInfo *t,
   }
 }
 
-static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataContainer *tc)
+static EdgeSlideData *createEdgeSlideVerts(TransInfo *t,
+                                           TransDataContainer *tc,
+                                           const bool use_double_side)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
-  BMIter iter;
-  BMEdge *e;
-  BMVert *v;
-  TransDataEdgeSlideVert *sv_array;
-  int sv_tot;
-  int *sv_table; /* BMVert -> sv_array index */
-  EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
-  int numsel, i, loop_nr;
-  bool use_occlude_geometry = false;
-  View3D *v3d = nullptr;
-  RegionView3D *rv3d = nullptr;
-
-  sld->curr_sv_index = 0;
-
-  /* Ensure valid selection. */
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-      BMIter iter2;
-      numsel = 0;
-      BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
-        if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-          /* BMESH_TODO: this is probably very evil,
-           * set `v->e` to a selected edge. */
-          v->e = e;
-
-          numsel++;
-        }
-      }
-
-      if (numsel == 0 || numsel > 2) {
-        /* Invalid edge selection. */
-        MEM_freeN(sld);
-        return nullptr;
-      }
-    }
-  }
-
-  BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-    if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-      /* NOTE: any edge with loops can work, but we won't get predictable results, so bail out. */
-      if (!BM_edge_is_manifold(e) && !BM_edge_is_boundary(e)) {
-        /* can edges with at least once face user */
-        MEM_freeN(sld);
-        return nullptr;
-      }
-    }
-  }
-
-  sv_table = static_cast<int *>(MEM_mallocN(sizeof(*sv_table) * bm->totvert, __func__));
-
-#define INDEX_UNSET -1
-#define INDEX_INVALID -2
-
-  {
-    int j = 0;
-    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-      if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-        BM_elem_flag_enable(v, BM_ELEM_TAG);
-        sv_table[i] = INDEX_UNSET;
-        j += 1;
-      }
-      else {
-        BM_elem_flag_disable(v, BM_ELEM_TAG);
-        sv_table[i] = INDEX_INVALID;
-      }
-      BM_elem_index_set(v, i); /* set_inline */
-    }
-    bm->elem_index_dirty &= ~BM_VERT;
-
-    if (!j) {
-      MEM_freeN(sld);
-      MEM_freeN(sv_table);
-      return nullptr;
-    }
-    sv_tot = j;
-  }
-
-  sv_array = static_cast<TransDataEdgeSlideVert *>(
-      MEM_callocN(sizeof(TransDataEdgeSlideVert) * sv_tot, "sv_array"));
-  loop_nr = 0;
-
-  STACK_DECLARE(sv_array);
-  STACK_INIT(sv_array, sv_tot);
-
-  while (true) {
-    float vec_a[3], vec_b[3];
-    BMLoop *l_a, *l_b;
-    BMLoop *l_a_prev, *l_b_prev;
-    BMVert *v_first;
-/* If this succeeds call get_next_loop()
- * which calculates the direction to slide based on clever checks.
- *
- * otherwise we simply use 'e_dir' as an edge-rail.
- * (which is better when the attached edge is a boundary, see: #40422)
- */
-#define EDGESLIDE_VERT_IS_INNER(v, e_dir) \
-\
-  ((BM_edge_is_boundary(e_dir) == false) && (BM_vert_edge_count_nonwire(v) == 2))
-
-    v = nullptr;
-    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-      if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-        break;
-      }
-    }
-
-    if (!v) {
-      break;
-    }
-
-    if (!v->e) {
-      continue;
-    }
-
-    v_first = v;
-
-    /* Walk along the edge loop. */
-    e = v->e;
-
-    /* First, rewind. */
-    do {
-      e = get_other_edge(v, e);
-      if (!e) {
-        e = v->e;
-        break;
-      }
-
-      if (!BM_elem_flag_test(BM_edge_other_vert(e, v), BM_ELEM_TAG)) {
-        break;
-      }
-
-      v = BM_edge_other_vert(e, v);
-    } while (e != v_first->e);
-
-    BM_elem_flag_disable(v, BM_ELEM_TAG);
-
-    l_a = e->l;
-    l_b = e->l->radial_next;
-
-    /* regarding e_next, use get_next_loop()'s improved interpolation where possible */
-    {
-      BMEdge *e_next = get_other_edge(v, e);
-      if (e_next) {
-        get_next_loop(v, l_a, e, e_next, vec_a);
-      }
-      else {
-        BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
-        if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
-          get_next_loop(v, l_a, e, l_tmp->e, vec_a);
-        }
-        else {
-          sub_v3_v3v3(vec_a, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
-        }
-      }
-    }
-
-    /* Equivalent to `!BM_edge_is_boundary(e)`. */
-    if (l_b != l_a) {
-      BMEdge *e_next = get_other_edge(v, e);
-      if (e_next) {
-        get_next_loop(v, l_b, e, e_next, vec_b);
-      }
-      else {
-        BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
-        if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
-          get_next_loop(v, l_b, e, l_tmp->e, vec_b);
-        }
-        else {
-          sub_v3_v3v3(vec_b, BM_edge_other_vert(l_tmp->e, v)->co, v->co);
-        }
-      }
-    }
-    else {
-      l_b = nullptr;
-    }
-
-    l_a_prev = nullptr;
-    l_b_prev = nullptr;
-
-#define SV_FROM_VERT(v) \
-\
-  ((sv_table[BM_elem_index_get(v)] == INDEX_UNSET) ? \
-       ((void)(sv_table[BM_elem_index_get(v)] = STACK_SIZE(sv_array)), \
-\
-        STACK_PUSH_RET_PTR(sv_array)) : \
-\
-       (&sv_array[sv_table[BM_elem_index_get(v)]]))
-
-    /* Iterate over the loop. */
-    v_first = v;
-    do {
-      bool l_a_ok_prev;
-      bool l_b_ok_prev;
-      TransDataEdgeSlideVert *sv;
-      BMVert *v_prev;
-      BMEdge *e_prev;
-
-      /* XXX, 'sv' will initialize multiple times, this is suspicious. see #34024. */
-      BLI_assert(v != nullptr);
-      BLI_assert(sv_table[BM_elem_index_get(v)] != INDEX_INVALID);
-      sv = SV_FROM_VERT(v);
-      sv->v = v;
-      copy_v3_v3(sv->v_co_orig, v->co);
-      sv->loop_nr = loop_nr;
-
-      if (l_a || l_a_prev) {
-        BMLoop *l_tmp = BM_loop_other_edge_loop(l_a ? l_a : l_a_prev, v);
-        sv->v_side[0] = BM_edge_other_vert(l_tmp->e, v);
-        copy_v3_v3(sv->dir_side[0], vec_a);
-      }
-
-      if (l_b || l_b_prev) {
-        BMLoop *l_tmp = BM_loop_other_edge_loop(l_b ? l_b : l_b_prev, v);
-        sv->v_side[1] = BM_edge_other_vert(l_tmp->e, v);
-        copy_v3_v3(sv->dir_side[1], vec_b);
-      }
-
-      v_prev = v;
-      v = BM_edge_other_vert(e, v);
-
-      e_prev = e;
-      e = get_other_edge(v, e);
-
-      if (!e) {
-        BLI_assert(v != nullptr);
-
-        BLI_assert(sv_table[BM_elem_index_get(v)] != INDEX_INVALID);
-        sv = SV_FROM_VERT(v);
-
-        sv->v = v;
-        copy_v3_v3(sv->v_co_orig, v->co);
-        sv->loop_nr = loop_nr;
-
-        if (l_a) {
-          BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
-          sv->v_side[0] = BM_edge_other_vert(l_tmp->e, v);
-          if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
-            get_next_loop(v, l_a, e_prev, l_tmp->e, sv->dir_side[0]);
-          }
-          else {
-            sub_v3_v3v3(sv->dir_side[0], sv->v_side[0]->co, v->co);
-          }
-        }
-
-        if (l_b) {
-          BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
-          sv->v_side[1] = BM_edge_other_vert(l_tmp->e, v);
-          if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
-            get_next_loop(v, l_b, e_prev, l_tmp->e, sv->dir_side[1]);
-          }
-          else {
-            sub_v3_v3v3(sv->dir_side[1], sv->v_side[1]->co, v->co);
-          }
-        }
-
-        BM_elem_flag_disable(v, BM_ELEM_TAG);
-        BM_elem_flag_disable(v_prev, BM_ELEM_TAG);
-
-        break;
-      }
-      l_a_ok_prev = (l_a != nullptr);
-      l_b_ok_prev = (l_b != nullptr);
-
-      l_a_prev = l_a;
-      l_b_prev = l_b;
-
-      if (l_a) {
-        l_a = get_next_loop(v, l_a, e_prev, e, vec_a);
-      }
-      else {
-        zero_v3(vec_a);
-      }
-
-      if (l_b) {
-        l_b = get_next_loop(v, l_b, e_prev, e, vec_b);
-      }
-      else {
-        zero_v3(vec_b);
-      }
-
-      if (l_a && l_b) {
-        /* pass */
-      }
-      else {
-        if (l_a || l_b) {
-          /* find the opposite loop if it was missing previously */
-          if (l_a == nullptr && l_b && (l_b->radial_next != l_b)) {
-            l_a = l_b->radial_next;
-          }
-          else if (l_b == nullptr && l_a && (l_a->radial_next != l_a)) {
-            l_b = l_a->radial_next;
-          }
-        }
-        else if (e->l != nullptr) {
-          /* if there are non-contiguous faces, we can still recover
-           * the loops of the new edges faces */
-
-          /* NOTE:, the behavior in this case means edges may move in opposite directions,
-           * this could be made to work more usefully. */
-
-          if (l_a_ok_prev) {
-            l_a = e->l;
-            l_b = (l_a->radial_next != l_a) ? l_a->radial_next : nullptr;
-          }
-          else if (l_b_ok_prev) {
-            l_b = e->l;
-            l_a = (l_b->radial_next != l_b) ? l_b->radial_next : nullptr;
-          }
-        }
-
-        if (!l_a_ok_prev && l_a) {
-          get_next_loop(v, l_a, e, e_prev, vec_a);
-        }
-        if (!l_b_ok_prev && l_b) {
-          get_next_loop(v, l_b, e, e_prev, vec_b);
-        }
-      }
-
-      BM_elem_flag_disable(v, BM_ELEM_TAG);
-      BM_elem_flag_disable(v_prev, BM_ELEM_TAG);
-    } while ((e != v_first->e) && (l_a || l_b));
-
-#undef SV_FROM_VERT
-#undef INDEX_UNSET
-#undef INDEX_INVALID
-
-    loop_nr++;
-
-#undef EDGESLIDE_VERT_IS_INNER
-  }
-
-  // EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-  BLI_assert(STACK_SIZE(sv_array) == uint(sv_tot));
-
-  sld->sv = sv_array;
-  sld->totsv = sv_tot;
-
-  /* use for visibility checks */
-  if (t->spacetype == SPACE_VIEW3D) {
-    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
-    rv3d = static_cast<RegionView3D *>(t->region ? t->region->regiondata : nullptr);
-    use_occlude_geometry = (v3d && TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->dt > OB_WIRE &&
-                            !XRAY_ENABLED(v3d));
-  }
-
-  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, t->mval, use_occlude_geometry, true);
-
-  if (rv3d) {
-    calcEdgeSlide_even(t, tc, sld, t->mval);
-  }
-
-  MEM_freeN(sv_table);
-
-  return sld;
-}
-
-/**
- * A simple version of #createEdgeSlideVerts_double_side
- * Which assumes the longest unselected.
- */
-static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *tc)
-{
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
-  BMIter iter;
-  BMEdge *e;
-  TransDataEdgeSlideVert *sv_array;
-  int sv_tot;
-  int *sv_table; /* BMVert -> sv_array index */
-  EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
   int loop_nr;
+  EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
+  sld->curr_sv_index = 0;
+
+  sld->sv = transform_mesh_edge_slide_data_create(tc, use_double_side, &loop_nr, &sld->totsv);
+
+  if (sld->sv == nullptr) {
+    MEM_freeN(sld);
+    return nullptr;
+  }
+
   bool use_occlude_geometry = false;
   View3D *v3d = nullptr;
   RegionView3D *rv3d = nullptr;
-
-  if (t->spacetype == SPACE_VIEW3D) {
-    /* background mode support */
-    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
-    rv3d = static_cast<RegionView3D *>(t->region ? t->region->regiondata : nullptr);
-  }
-
-  sld->curr_sv_index = 0;
-  /* ensure valid selection */
-  {
-    int i = 0, j = 0;
-    BMVert *v;
-
-    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-      if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-        float len_sq_max = -1.0f;
-        BMIter iter2;
-        BM_ITER_ELEM (e, &iter2, v, BM_EDGES_OF_VERT) {
-          if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-            float len_sq = BM_edge_calc_length_squared(e);
-            if (len_sq > len_sq_max) {
-              len_sq_max = len_sq;
-              v->e = e;
-            }
-          }
-        }
-
-        if (len_sq_max != -1.0f) {
-          j++;
-        }
-      }
-      BM_elem_index_set(v, i); /* set_inline */
-    }
-    bm->elem_index_dirty &= ~BM_VERT;
-
-    if (!j) {
-      MEM_freeN(sld);
-      return nullptr;
-    }
-
-    sv_tot = j;
-  }
-
-  BLI_assert(sv_tot != 0);
-  /* over alloc */
-  sv_array = static_cast<TransDataEdgeSlideVert *>(
-      MEM_callocN(sizeof(TransDataEdgeSlideVert) * bm->totvertsel, "sv_array"));
-
-  /* Same loop for all loops, weak but we don't connect loops in this case. */
-  loop_nr = 1;
-
-  sv_table = static_cast<int *>(MEM_mallocN(sizeof(*sv_table) * bm->totvert, __func__));
-
-  {
-    int i = 0, j = 0;
-    BMVert *v;
-
-    BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-      sv_table[i] = -1;
-      if ((v->e != nullptr) && BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-        if (BM_elem_flag_test(v->e, BM_ELEM_SELECT) == 0) {
-          TransDataEdgeSlideVert *sv;
-          sv = &sv_array[j];
-          sv->v = v;
-          copy_v3_v3(sv->v_co_orig, v->co);
-          sv->v_side[0] = BM_edge_other_vert(v->e, v);
-          sub_v3_v3v3(sv->dir_side[0], sv->v_side[0]->co, v->co);
-          sv->loop_nr = 0;
-          sv_table[i] = j;
-          j += 1;
-        }
-      }
-    }
-  }
-
-  /* check for wire vertices,
-   * interpolate the directions of wire verts between non-wire verts */
-  if (sv_tot != bm->totvert) {
-    const int sv_tot_nowire = sv_tot;
-    TransDataEdgeSlideVert *sv_iter = sv_array;
-
-    for (int i = 0; i < sv_tot_nowire; i++, sv_iter++) {
-      BMIter eiter;
-      BM_ITER_ELEM (e, &eiter, sv_iter->v, BM_EDGES_OF_VERT) {
-        /* walk over wire */
-        TransDataEdgeSlideVert *sv_end = nullptr;
-        BMEdge *e_step = e;
-        BMVert *v = sv_iter->v;
-        int j;
-
-        j = sv_tot;
-
-        while (true) {
-          BMVert *v_other = BM_edge_other_vert(e_step, v);
-          int endpoint = ((sv_table[BM_elem_index_get(v_other)] != -1) +
-                          (BM_vert_is_edge_pair(v_other) == false));
-
-          if ((BM_elem_flag_test(e_step, BM_ELEM_SELECT) &&
-               BM_elem_flag_test(v_other, BM_ELEM_SELECT)) &&
-              (endpoint == 0))
-          {
-            /* scan down the list */
-            TransDataEdgeSlideVert *sv;
-            BLI_assert(sv_table[BM_elem_index_get(v_other)] == -1);
-            sv_table[BM_elem_index_get(v_other)] = j;
-            sv = &sv_array[j];
-            sv->v = v_other;
-            copy_v3_v3(sv->v_co_orig, v_other->co);
-            copy_v3_v3(sv->dir_side[0], sv_iter->dir_side[0]);
-            j++;
-
-            /* advance! */
-            v = v_other;
-            e_step = BM_DISK_EDGE_NEXT(e_step, v_other);
-          }
-          else {
-            if ((endpoint == 2) && (sv_tot != j)) {
-              BLI_assert(BM_elem_index_get(v_other) != -1);
-              sv_end = &sv_array[sv_table[BM_elem_index_get(v_other)]];
-            }
-            break;
-          }
-        }
-
-        if (sv_end) {
-          int sv_tot_prev = sv_tot;
-          const float *co_src = sv_iter->v->co;
-          const float *co_dst = sv_end->v->co;
-          const float *dir_src = sv_iter->dir_side[0];
-          const float *dir_dst = sv_end->dir_side[0];
-          sv_tot = j;
-
-          while (j-- != sv_tot_prev) {
-            float factor;
-            factor = line_point_factor_v3(sv_array[j].v->co, co_src, co_dst);
-            interp_v3_v3v3(sv_array[j].dir_side[0], dir_src, dir_dst, factor);
-          }
-        }
-      }
-    }
-  }
-
-  // EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-  sld->sv = sv_array;
-  sld->totsv = sv_tot;
 
   /* use for visibility checks */
   if (t->spacetype == SPACE_VIEW3D) {
@@ -1052,13 +367,11 @@ static EdgeSlideData *createEdgeSlideVerts_single_side(TransInfo *t, TransDataCo
                             !XRAY_ENABLED(v3d));
   }
 
-  calcEdgeSlide_mval_range(t, tc, sld, sv_table, loop_nr, t->mval, use_occlude_geometry, false);
+  calcEdgeSlide_mval_range(t, tc, sld, loop_nr, t->mval, use_occlude_geometry, false);
 
   if (rv3d) {
     calcEdgeSlide_even(t, tc, sld, t->mval);
   }
-
-  MEM_freeN(sv_table);
 
   return sld;
 }
@@ -1541,8 +854,7 @@ static void initEdgeSlide_ex(
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    sld = use_double_side ? createEdgeSlideVerts_double_side(t, tc) :
-                            createEdgeSlideVerts_single_side(t, tc);
+    sld = createEdgeSlideVerts(t, tc, use_double_side);
     if (sld) {
       tc->custom.mode.data = sld;
       tc->custom.mode.free_cb = freeEdgeSlideVerts;

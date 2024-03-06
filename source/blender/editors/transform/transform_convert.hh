@@ -44,6 +44,26 @@ struct TransConvertTypeInfo {
   void (*special_aftertrans_update)(bContext *C, TransInfo *t);
 };
 
+/**
+ * Structure used for Edge Slide operation.
+ */
+struct TransDataEdgeSlideVert {
+  /** #TransDataGenericSlideVert (header) */
+  struct BMVert *v;
+  struct LinkNode **cd_loop_groups;
+  float v_co_orig[3];
+  /* end generic */
+
+  float edge_len;
+
+  struct BMVert *v_side[2];
+
+  /* add origvert.co to get the original locations */
+  float dir_side[2][3];
+
+  int loop_nr;
+};
+
 /* `transform_convert.cc` */
 
 /**
@@ -239,6 +259,11 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float quat[4],
                                                      TransData *r_td);
 void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspace_data);
+
+TransDataEdgeSlideVert *transform_mesh_edge_slide_data_create(const TransDataContainer *tc,
+                                                              const bool use_double_side,
+                                                              int *r_group_len,
+                                                              int *r_sv_len);
 
 /* `transform_convert_mesh_edge.cc` */
 
