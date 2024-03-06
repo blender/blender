@@ -431,11 +431,15 @@ static void detect_workarounds()
     }
   }
 
-  /* Right now draw shader parameters are broken on Qualcomm devices
-   * regardless of driver version */
+  /* Draw shader parameters are broken on Qualcomm Windows ARM64 devices
+   * on Mesa version < 24.0.0 */
   if (GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_WIN, GPU_DRIVER_ANY)) {
-    GCaps.shader_draw_parameters_support = false;
-    GLContext::shader_draw_parameters_support = false;
+    if (strstr(version, "Mesa 20.") || strstr(version, "Mesa 21.") ||
+        strstr(version, "Mesa 22.") || strstr(version, "Mesa 23."))
+    {
+      GCaps.shader_draw_parameters_support = false;
+      GLContext::shader_draw_parameters_support = false;
+    }
   }
 
   /* Some Intel drivers have issues with using mips as frame-buffer targets if

@@ -52,6 +52,11 @@ if(WIN32)
   # warning alert.
   # Silence them by restore warn C4100 back to w4
   remove_cc_flag("/w34100")
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES ARM64)
+    # USD currently does not support the new preprocessor,
+    # and does not use sse2neon, so we can remove it here
+    remove_cc_flag("/Zc:preprocessor")
+  endif()
 endif()
 
 set(INC

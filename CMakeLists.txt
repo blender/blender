@@ -640,7 +640,7 @@ mark_as_advanced(WITH_CYCLES_PRECOMPUTE)
 mark_as_advanced(CYCLES_TEST_DEVICES)
 
 # NVIDIA CUDA & OptiX
-if(NOT APPLE)
+if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES ARM64))
   option(WITH_CYCLES_DEVICE_CUDA "Enable Cycles NVIDIA CUDA compute support" ON)
   option(WITH_CYCLES_DEVICE_OPTIX "Enable Cycles NVIDIA OptiX support" ON)
   mark_as_advanced(WITH_CYCLES_DEVICE_CUDA)
@@ -675,7 +675,7 @@ When set, this path will be used at runtime to compile OptiX kernels."
 endif()
 
 # AMD HIP
-if(NOT APPLE)
+if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES ARM64))
   option(WITH_CYCLES_DEVICE_HIP "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES "Build Cycles AMD HIP binaries" OFF)
   # Radeon VII (gfx906) not currently working with HIP SDK, so left out of the list.
@@ -702,7 +702,7 @@ if(APPLE)
 endif()
 
 # oneAPI
-if(NOT APPLE)
+if(NOT APPLE AND NOT (WIN32 AND CMAKE_SYSTEM_PROCESSOR MATCHES ARM64))
   option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
   option(WITH_CYCLES_ONEAPI_BINARIES "\
 Enable Ahead-Of-Time compilation for Cycles oneAPI device"
@@ -2140,8 +2140,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Make MSVC properly report the value of the __cplusplus preprocessor macro
 # Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
 # of the C++ standard chosen above.
+# In addition, for ARM64 devices, we need to tell MSVC to use the new preprocessor
+# This is because sse2neon requires it.
 if(MSVC)
   string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES ARM64)
+    string(APPEND CMAKE_CXX_FLAGS " /Zc:preprocessor")
+    string(APPEND CMAKE_C_FLAGS " /Zc:preprocessor")
+  endif()
 endif()
 
 # Visual Studio has all standards it supports available by default

@@ -127,6 +127,7 @@ static void __cpuid(
 
 char *BLI_cpu_brand_string(void)
 {
+#if !defined(_M_ARM64)
   char buf[49] = {0};
   int result[4] = {0};
   __cpuid(result, 0x80000000);
@@ -138,11 +139,27 @@ char *BLI_cpu_brand_string(void)
     /* TODO(sergey): Make it a bit more presentable by removing trademark. */
     return brand;
   }
+#else
+  // No CPUID on ARM64, so we pull from the registry (on Windows) instead
+  DWORD vendorIdentifierLength = 255;
+  char vendorIdentifier[255];
+  if (RegGetValueA(HKEY_LOCAL_MACHINE,
+                   "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                   "VendorIdentifier",
+                   RRF_RT_REG_SZ,
+                   NULL,
+                   &vendorIdentifier,
+                   &vendorIdentifierLength) == ERROR_SUCCESS)
+  {
+    return BLI_strdup(vendorIdentifier);
+  }
+#endif
   return NULL;
 }
 
 int BLI_cpu_support_sse42(void)
 {
+#if !defined(_M_ARM64)
   int result[4], num;
   __cpuid(result, 0);
   num = result[0];
@@ -151,6 +168,7 @@ int BLI_cpu_support_sse42(void)
     __cpuid(result, 0x00000001);
     return (result[2] & ((int)1 << 20)) != 0;
   }
+#endif
   return 0;
 }
 
