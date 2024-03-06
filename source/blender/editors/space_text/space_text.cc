@@ -480,10 +480,11 @@ void ED_spacetype_text()
 
   BKE_spacetype_register(std::move(st));
 
-  /* register formatters */
-  ED_text_format_register_glsl();
-  ED_text_format_register_py();
+  /* Register formatters.
+   * The first registered formatter is default when there is no extension in the ID-name. */
+  ED_text_format_register_py(); /* Keep first (default formatter). */
   ED_text_format_register_osl();
+  ED_text_format_register_glsl();
   ED_text_format_register_pov();
   ED_text_format_register_pov_ini();
 }
