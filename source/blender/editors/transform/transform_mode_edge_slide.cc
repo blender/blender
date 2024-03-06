@@ -71,11 +71,11 @@ struct EdgeSlideData {
     }
   }
 
-  void project(const TransDataEdgeSlideVert *sv, float2 &r_sco_a, float2 &r_sco_b)
+  void project(const TransDataEdgeSlideVert *svert, float2 &r_sco_a, float2 &r_sco_b) const
   {
-    float3 iloc = sv->v_co_orig();
-    r_sco_a = math::project_point(this->proj_mat, iloc + sv->dir_side[0]).xy() + this->win_half;
-    r_sco_b = math::project_point(this->proj_mat, iloc + sv->dir_side[1]).xy() + this->win_half;
+    float3 iloc = svert->v_co_orig();
+    r_sco_a = math::project_point(this->proj_mat, iloc + svert->dir_side[0]).xy() + this->win_half;
+    r_sco_b = math::project_point(this->proj_mat, iloc + svert->dir_side[1]).xy() + this->win_half;
   }
 };
 
@@ -242,14 +242,9 @@ static bool is_vert_slide_visible(TransInfo *t,
 static void calcEdgeSlide_mval_range(TransInfo *t,
                                      EdgeSlideData *sld,
                                      const int loop_nr,
-                                     const blender::float2 &mval,
+                                     const float2 &mval,
                                      const bool use_calc_direction)
 {
-  /* only for use_calc_direction */
-  float(*loop_dir)[3] = nullptr, *loop_maxdist = nullptr;
-
-  float mval_dir[3], dist_best_sq = FLT_MAX;
-
   /* use for visibility checks */
   SnapObjectContext *snap_context = nullptr;
   bool use_occlude_geometry = false;
@@ -264,10 +259,15 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   /* find mouse vectors, the global one, and one per loop in case we have
    * multiple loops selected, in case they are oriented different */
-  zero_v3(mval_dir);
+  float2 mval_dir = float2(0);
+  float dist_best_sq = FLT_MAX;
+
+  /* only for use_calc_direction */
+  float2 *loop_dir = nullptr;
+  float *loop_maxdist = nullptr;
 
   if (use_calc_direction) {
-    loop_dir = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * loop_nr, "sv loop_dir"));
+    loop_dir = static_cast<float2 *>(MEM_callocN(sizeof(float2) * loop_nr, "sv loop_dir"));
     loop_maxdist = static_cast<float *>(MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist"));
     copy_vn_fl(loop_maxdist, loop_nr, FLT_MAX);
   }
@@ -293,7 +293,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     if (is_visible) {
       if (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)) {
         dist_best_sq = dist_sq;
-        sub_v3_v3v3(mval_dir, sco_b, sco_a);
+        mval_dir = sco_b - sco_a;
         sld->curr_sv_index = i;
       }
     }
@@ -303,7 +303,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
       int l_nr = sv->loop_nr;
       if (dist_sq < loop_maxdist[l_nr]) {
         loop_maxdist[l_nr] = dist_sq;
-        sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
+        loop_dir[l_nr] = sco_b - sco_a;
       }
     }
   }
@@ -312,7 +312,7 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     for (TransDataEdgeSlideVert &sv : sld->sv) {
       /* switch a/b if loop direction is different from global direction */
       int l_nr = sv.loop_nr;
-      if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
+      if (math::dot(loop_dir[l_nr], mval_dir) < 0.0f) {
         swap_v3_v3(sv.dir_side[0], sv.dir_side[1]);
       }
     }

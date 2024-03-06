@@ -33,17 +33,6 @@
 
 using namespace blender;
 
-static void view2d_view_to_region_delta(const TransInfo *t, const float2 &xy_delta, float r_dir[3])
-{
-  float scale[2];
-  const View2D *v2d = static_cast<View2D *>(t->view);
-  UI_view2d_scale_get(v2d, &scale[0], &scale[1]);
-  UI_view2d_view_to_region_fl(v2d, UNPACK2(xy_delta), &r_dir[0], &r_dir[1]);
-  r_dir[0] /= scale[0];
-  r_dir[1] /= scale[1];
-  r_dir[2] = 0.0f;
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Transform (Vert Slide)
  * \{ */
