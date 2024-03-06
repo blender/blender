@@ -362,7 +362,6 @@ class TestBlendLibLinkAnimation(TestBlendLibLinkHelper):
         assert bpy.data.objects["LibMesh"].location[1] == -5.0
 
 
-
 class TestBlendLibAppendBasic(TestBlendLibLinkHelper):
 
     def __init__(self, args):
