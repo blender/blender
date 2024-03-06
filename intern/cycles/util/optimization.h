@@ -38,7 +38,7 @@
  * SSE, some specializations for performance and compatibility are made
  * made testing for __KERNEL_NEON__. */
 
-#  elif defined(__ARM_NEON) && defined(WITH_SSE2NEON)
+#  elif (defined(__ARM_NEON) || defined(_M_ARM64)) && defined(WITH_SSE2NEON)
 
 #    define __KERNEL_NEON__
 #    define __KERNEL_SSE__

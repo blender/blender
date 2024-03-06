@@ -19,7 +19,7 @@
  * Since we can't avoid including <windows.h>, better only include that */
 #if defined(FREE_WINDOWS64)
 #  include "util/windows.h"
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && !defined(__KERNEL_NEON__)
 #  include <intrin.h>
 #elif (defined(__x86_64__) || defined(__i386__))
 #  include <x86intrin.h>
@@ -40,10 +40,16 @@
 #    define SIMD_SET_FLUSH_TO_ZERO \
       _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); \
       _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-#  else
+#  elif !defined(_M_ARM64)
 #    define _MM_FLUSH_ZERO_ON 24
 #    define __get_fpcr(__fpcr) __asm__ __volatile__("mrs %0,fpcr" : "=r"(__fpcr))
 #    define __set_fpcr(__fpcr) __asm__ __volatile__("msr fpcr,%0" : : "ri"(__fpcr))
+#    define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
+#    define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
+#  else
+#    define _MM_FLUSH_ZERO_ON 24
+#    define __get_fpcr(__fpcr) _ReadStatusReg(__fpcr)
+#    define __set_fpcr(__fpcr) _WriteStatusReg(0x5A20, __fpcr)
 #    define SIMD_SET_FLUSH_TO_ZERO set_fz(_MM_FLUSH_ZERO_ON);
 #    define SIMD_GET_FLUSH_TO_ZERO get_fz(_MM_FLUSH_ZERO_ON)
 #  endif
@@ -207,7 +213,11 @@ type shuffle_neon(const type &a, const type &b)
                                     (i3 * 4) + 2 + 16,
                                     (i3 * 4) + 3 + 16};
 
-    return type(vqtbl2q_s8((int8x16x2_t){int8x16_t(a), int8x16_t(b)}, *(uint8x16_t *)tbl));
+    // Note: This cannot all be put in a single line due to how MSVC ARM64
+    // implements the function calls as several layers of macros.
+    int8x16x2_t t = {int8x16_t(a), int8x16_t(b)};
+    uint8x16_t idx = *(uint8x16_t *)tbl;
+    return type(vqtbl2q_s8(t, idx));
   }
 }
 #endif /* __KERNEL_NEON */
