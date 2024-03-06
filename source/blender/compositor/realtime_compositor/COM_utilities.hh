@@ -73,6 +73,9 @@ void compute_dispatch_threads_at_least(GPUShader *shader,
 /* Returns true if a node preview needs to be computed for the give node. */
 bool is_node_preview_needed(const DNode &node);
 
+/* Returns the node output that will be used to generate previews. */
+DOutputSocket find_preview_output_socket(const DNode &node);
+
 /* Computes a lower resolution version of the given result and sets it as a preview for the given
  * node after applying the appropriate color management specified in the given context. */
 void compute_preview_from_result(Context &context, const DNode &node, Result &input_result);
