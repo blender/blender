@@ -2353,13 +2353,39 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
+static int wm_homefile_write_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (!U.app_template[0]) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Overwrite Main Startup File"),
+                                  IFACE_("Make the current file the default startup blend file."),
+                                  IFACE_("Overwrite"),
+                                  ALERT_ICON_QUESTION,
+                                  false);
+  }
+
+  /* A different message if this is overriding a specific template startup file. */
+  char display_name[FILE_MAX];
+  BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(U.app_template));
+  std::string message = fmt::format(
+      IFACE_("Make the current file the default \"{}\" startup file."), IFACE_(display_name));
+  return WM_operator_confirm_ex(C,
+                                op,
+                                IFACE_("Overwrite Template Startup File"),
+                                message.c_str(),
+                                IFACE_("Overwrite"),
+                                ALERT_ICON_QUESTION,
+                                false);
+}
+
 void WM_OT_save_homefile(wmOperatorType *ot)
 {
   ot->name = "Save Startup File";
   ot->idname = "WM_OT_save_homefile";
-  ot->description = "Make the current file the default .blend file";
+  ot->description = "Make the current file the default startup file";
 
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = wm_homefile_write_invoke;
   ot->exec = wm_homefile_write_exec;
 }
 
