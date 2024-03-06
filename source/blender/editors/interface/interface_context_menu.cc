@@ -553,7 +553,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     PropertyRNA *prop = but->rnaprop;
     const PropertyType type = RNA_property_type(prop);
     const PropertySubType subtype = RNA_property_subtype(prop);
-    bool is_anim = RNA_property_animateable(ptr, prop);
+    bool is_anim = RNA_property_anim_editable(ptr, prop);
     const bool is_idprop = RNA_property_is_idprop(prop);
 
     /* second slower test,

@@ -10,7 +10,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include <optional>
 #include <sstream>
 
 #include <fmt/format.h>
@@ -2100,13 +2099,12 @@ int RNA_property_ui_icon(const PropertyRNA *prop)
 
 static bool rna_property_editable_do(const PointerRNA *ptr,
                                      PropertyRNA *prop_orig,
-                                     std::optional<PropertyRNA *> prop_ensured,
                                      const int index,
                                      const char **r_info)
 {
   ID *id = ptr->owner_id;
 
-  PropertyRNA *prop = prop_ensured ? *prop_ensured : rna_ensure_property(prop_orig);
+  PropertyRNA *prop = rna_ensure_property(prop_orig);
 
   const char *info = "";
   const int flag = (prop->itemeditable != nullptr && index >= 0) ?
@@ -2162,12 +2160,12 @@ static bool rna_property_editable_do(const PointerRNA *ptr,
 
 bool RNA_property_editable(const PointerRNA *ptr, PropertyRNA *prop)
 {
-  return rna_property_editable_do(ptr, prop, std::nullopt, -1, nullptr);
+  return rna_property_editable_do(ptr, prop, -1, nullptr);
 }
 
 bool RNA_property_editable_info(const PointerRNA *ptr, PropertyRNA *prop, const char **r_info)
 {
-  return rna_property_editable_do(ptr, prop, std::nullopt, -1, r_info);
+  return rna_property_editable_do(ptr, prop, -1, r_info);
 }
 
 bool RNA_property_editable_flag(const PointerRNA *ptr, PropertyRNA *prop)
@@ -2184,13 +2182,29 @@ bool RNA_property_editable_index(const PointerRNA *ptr, PropertyRNA *prop, const
 {
   BLI_assert(index >= 0);
 
-  return rna_property_editable_do(ptr, prop, std::nullopt, index, nullptr);
+  return rna_property_editable_do(ptr, prop, index, nullptr);
 }
 
 bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop_orig)
 {
   /* check that base ID-block can support animation data */
   if (!id_can_have_animdata(ptr->owner_id)) {
+    return false;
+  }
+
+  PropertyRNA *prop_ensured = rna_ensure_property(prop_orig);
+
+  if (!(prop_ensured->flag & PROP_ANIMATABLE)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool RNA_property_anim_editable(const PointerRNA *ptr, PropertyRNA *prop_orig)
+{
+  /* check that base ID-block can support animation data */
+  if (!RNA_property_animateable(ptr, prop_orig)) {
     return false;
   }
 
@@ -2204,18 +2218,12 @@ bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop_orig)
     }
   }
 
-  PropertyRNA *prop_ensured = rna_ensure_property(prop_orig);
-
-  if (!(prop_ensured->flag & PROP_ANIMATABLE)) {
-    return false;
-  }
-
-  return rna_property_editable_do(ptr, prop_orig, prop_ensured, -1, nullptr);
+  return rna_property_editable_do(ptr, prop_orig, -1, nullptr);
 }
 
-bool RNA_property_drivable(const PointerRNA *ptr, PropertyRNA *prop)
+bool RNA_property_driver_editable(const PointerRNA *ptr, PropertyRNA *prop)
 {
-  if (!RNA_property_animateable(ptr, prop)) {
+  if (!RNA_property_anim_editable(ptr, prop)) {
     return false;
   }
 

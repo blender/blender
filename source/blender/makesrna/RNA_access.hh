@@ -303,14 +303,39 @@ bool RNA_property_editable_index(const PointerRNA *ptr, PropertyRNA *prop, const
  */
 bool RNA_property_editable_flag(const PointerRNA *ptr, PropertyRNA *prop);
 
+/**
+ * A property is animateable if its ID and the RNA property itself are defined as editable.
+ * It does not imply that user can _edit_ such animation though, see #RNA_property_anim_editable
+ * for this.
+ *
+ * This check is only based on information stored in the data _types_ (IDTypeInfo and RNA property
+ * definition), not on the actual data itself.
+ */
 bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop);
+/**
+ * A property is anim-editable if it is animateable, and the related data is editable.
+ *
+ * Unlike #RNA_property_animateable, this check the actual data referenced by the RNA pointer and
+ * property, and not only their type info.
+ *
+ * Typically (with a few exceptions like the #PROP_LIB_EXCEPTION PropertyRNA flag), editable data
+ * belongs to local ID.
+ */
+bool RNA_property_anim_editable(const PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 /**
- * With LibOverrides, a property may be animatable, but not drivable (in case the reference data
- * already has an animation data, its Action can ba an editable local ID, but the drivers are
- * directly stored in the animdata, overriding these is not supported currently).
+ * With LibOverrides, a property may be animatable and anim-editable, but not driver-editable (in
+ * case the reference data already has an animation data, its Action can ba an editable local ID,
+ * but the drivers are directly stored in the animdata, overriding these is not supported
+ * currently).
+ *
+ * Like #RNA_property_anim_editable, this also checks the actual data referenced by the RNA pointer
+ * and property.
+ *
+ * Currently, it is assumed that if an IDType and RNAProperty are animatable, they are also
+ * driveable, so #RNA_property_animateable can be used for drivers as well.
  */
-bool RNA_property_drivable(const PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_driver_editable(const PointerRNA *ptr, PropertyRNA *prop);
 /**
  * \note Does not take into account editable status, this has to be checked separately
  * (using #RNA_property_editable_flag() usually).

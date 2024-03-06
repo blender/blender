@@ -902,7 +902,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  if ((ptr.owner_id && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
+  if ((ptr.owner_id && ptr.data && prop) && RNA_property_anim_editable(&ptr, prop)) {
     if (ptr.type == &RNA_NlaStrip) {
       /* Handle special properties for NLA Strips, whose F-Curves are stored on the
        * strips themselves. These are stored separately or else the properties will
@@ -1004,7 +1004,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    if (prop && !RNA_property_animateable(&ptr, prop)) {
+    if (prop && !RNA_property_anim_editable(&ptr, prop)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "\"%s\" property cannot be animated",
