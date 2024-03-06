@@ -429,7 +429,7 @@ vec3 shadow_pcf_offset(LightData light, const bool is_directional, vec3 P, vec3 
     params = shadow_directional_sample_params_get(shadow_tilemaps_tx, light, P);
   }
   else {
-    params = shadow_punctual_sample_params_get(shadow_tilemaps_tx, light, P);
+    params = shadow_punctual_sample_params_get(light, P);
   }
   ShadowTileData tile = shadow_tile_data_get(shadow_tilemaps_tx, params);
   if (!tile.is_allocated) {

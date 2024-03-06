@@ -152,9 +152,7 @@ vec3 shadow_punctual_reconstruct_position(ShadowSampleParams params,
   return mat3(light.object_mat) * lP + light._position;
 }
 
-ShadowSampleParams shadow_punctual_sample_params_get(usampler2D tilemaps_tx,
-                                                     LightData light,
-                                                     vec3 P)
+ShadowSampleParams shadow_punctual_sample_params_get(LightData light, vec3 P)
 {
   vec3 lP = (P - light._position) * mat3(light.object_mat);
 
@@ -179,7 +177,7 @@ ShadowEvalResult shadow_punctual_sample_get(SHADOW_ATLAS_TYPE atlas_tx,
                                             LightData light,
                                             vec3 P)
 {
-  ShadowSampleParams params = shadow_punctual_sample_params_get(tilemaps_tx, light, P);
+  ShadowSampleParams params = shadow_punctual_sample_params_get(light, P);
 
   float depth = shadow_read_depth(atlas_tx, tilemaps_tx, params);
 
