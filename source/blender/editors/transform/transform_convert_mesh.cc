@@ -2594,14 +2594,10 @@ static TransDataEdgeSlideVert *createEdgeSlideVerts_double_side(const TransDataC
       sv->loop_nr = loop_nr;
 
       if (l_a || l_a_prev) {
-        BMLoop *l_tmp = BM_loop_other_edge_loop(l_a ? l_a : l_a_prev, v);
-        sv->v_side[0] = BM_edge_other_vert(l_tmp->e, v);
         copy_v3_v3(sv->dir_side[0], vec_a);
       }
 
       if (l_b || l_b_prev) {
-        BMLoop *l_tmp = BM_loop_other_edge_loop(l_b ? l_b : l_b_prev, v);
-        sv->v_side[1] = BM_edge_other_vert(l_tmp->e, v);
         copy_v3_v3(sv->dir_side[1], vec_b);
       }
 
@@ -2623,23 +2619,23 @@ static TransDataEdgeSlideVert *createEdgeSlideVerts_double_side(const TransDataC
 
         if (l_a) {
           BMLoop *l_tmp = BM_loop_other_edge_loop(l_a, v);
-          sv->v_side[0] = BM_edge_other_vert(l_tmp->e, v);
+          BMVert *v_other = BM_edge_other_vert(l_tmp->e, v);
           if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
             get_next_loop(v, l_a, e_prev, l_tmp->e, sv->dir_side[0]);
           }
           else {
-            sub_v3_v3v3(sv->dir_side[0], sv->v_side[0]->co, v->co);
+            sub_v3_v3v3(sv->dir_side[0], v_other->co, v->co);
           }
         }
 
         if (l_b) {
           BMLoop *l_tmp = BM_loop_other_edge_loop(l_b, v);
-          sv->v_side[1] = BM_edge_other_vert(l_tmp->e, v);
+          BMVert *v_other = BM_edge_other_vert(l_tmp->e, v);
           if (EDGESLIDE_VERT_IS_INNER(v, l_tmp->e)) {
             get_next_loop(v, l_b, e_prev, l_tmp->e, sv->dir_side[1]);
           }
           else {
-            sub_v3_v3v3(sv->dir_side[1], sv->v_side[1]->co, v->co);
+            sub_v3_v3v3(sv->dir_side[1], v_other->co, v->co);
           }
         }
 
@@ -2803,8 +2799,8 @@ static TransDataEdgeSlideVert *createEdgeSlideVerts_single_side(const TransDataC
           sv = &sv_array[j];
           sv->v = v;
           copy_v3_v3(sv->v_co_orig, v->co);
-          sv->v_side[0] = BM_edge_other_vert(v->e, v);
-          sub_v3_v3v3(sv->dir_side[0], sv->v_side[0]->co, v->co);
+          BMVert *v_other = BM_edge_other_vert(v->e, v);
+          sub_v3_v3v3(sv->dir_side[0], v_other->co, v->co);
           sv->loop_nr = 0;
           sv_table[i] = j;
           j += 1;

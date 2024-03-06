@@ -145,21 +145,11 @@ static void edge_slide_pair_project(TransDataEdgeSlideVert *sv,
 {
   BMVert *v = sv->v;
 
-  if (sv->v_side[1]) {
-    ED_view3d_project_float_v3_m4(region, sv->v_side[1]->co, r_sco_b, projectMat);
-  }
-  else {
-    add_v3_v3v3(r_sco_b, v->co, sv->dir_side[1]);
-    ED_view3d_project_float_v3_m4(region, r_sco_b, r_sco_b, projectMat);
-  }
+  add_v3_v3v3(r_sco_b, v->co, sv->dir_side[1]);
+  ED_view3d_project_float_v3_m4(region, r_sco_b, r_sco_b, projectMat);
 
-  if (sv->v_side[0]) {
-    ED_view3d_project_float_v3_m4(region, sv->v_side[0]->co, r_sco_a, projectMat);
-  }
-  else {
-    add_v3_v3v3(r_sco_a, v->co, sv->dir_side[0]);
-    ED_view3d_project_float_v3_m4(region, r_sco_a, r_sco_a, projectMat);
-  }
+  add_v3_v3v3(r_sco_a, v->co, sv->dir_side[0]);
+  ED_view3d_project_float_v3_m4(region, r_sco_a, r_sco_a, projectMat);
 }
 
 static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float *mval_dir)
@@ -292,7 +282,6 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
       int l_nr = sv->loop_nr;
       if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
         swap_v3_v3(sv->dir_side[0], sv->dir_side[1]);
-        std::swap(sv->v_side[0], sv->v_side[1]);
       }
     }
 
@@ -468,12 +457,12 @@ static void drawEdgeSlide(TransInfo *t)
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBeginAtMost(GPU_PRIM_LINES, 4);
-    if (curr_sv->v_side[0]) {
-      immVertex3fv(pos, curr_sv->v_side[0]->co);
+    if (!is_zero_v3(curr_sv->dir_side[0])) {
+      immVertex3fv(pos, co_a);
       immVertex3fv(pos, curr_sv->v_co_orig);
     }
-    if (curr_sv->v_side[1]) {
-      immVertex3fv(pos, curr_sv->v_side[1]->co);
+    if (!is_zero_v3(curr_sv->dir_side[1])) {
+      immVertex3fv(pos, co_b);
       immVertex3fv(pos, curr_sv->v_co_orig);
     }
     immEnd();
@@ -481,13 +470,13 @@ static void drawEdgeSlide(TransInfo *t)
     {
       float *co_test = nullptr;
       if (slp->flipped) {
-        if (curr_sv->v_side[1]) {
-          co_test = curr_sv->v_side[1]->co;
+        if (!is_zero_v3(curr_sv->dir_side[1])) {
+          co_test = co_b;
         }
       }
       else {
-        if (curr_sv->v_side[0]) {
-          co_test = curr_sv->v_side[0]->co;
+        if (!is_zero_v3(curr_sv->dir_side[0])) {
+          co_test = co_a;
         }
       }
 

@@ -56,8 +56,6 @@ struct TransDataEdgeSlideVert {
 
   float edge_len;
 
-  struct BMVert *v_side[2];
-
   /* add origvert.co to get the original locations */
   float dir_side[2][3];
 
