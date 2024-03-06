@@ -330,7 +330,7 @@ void AssetList::remap_id(ID * /*id_old*/, ID * /*id_new*/) const
  * Class managing a global asset list map, each entry being a list for a specific asset library.
  */
 class AssetListStorage {
-  using AssetListMap = Map<AssetLibraryReferenceWrapper, AssetList>;
+  using AssetListMap = Map<AssetLibraryReference, AssetList>;
 
  public:
   /* Purely static class, can't instantiate this. */
