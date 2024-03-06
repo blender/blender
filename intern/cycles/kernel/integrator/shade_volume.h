@@ -809,7 +809,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Path termination. */
   const float terminate = path_state_rng_light_termination(kg, rng_state);
-  if (light_sample_terminate(kg, &ls, &phase_eval, terminate)) {
+  if (light_sample_terminate(kg, &phase_eval, terminate)) {
     return;
   }
 

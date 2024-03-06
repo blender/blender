@@ -263,7 +263,6 @@ ccl_device
     const float3 rand_light = path_state_rng_3D(kg, rng_state, PRNG_LIGHT);
 
     if (!light_sample_from_position(kg,
-                                    rng_state,
                                     rand_light,
                                     sd->time,
                                     sd->P,
@@ -348,7 +347,7 @@ ccl_device
 
     /* Path termination. */
     const float terminate = path_state_rng_light_termination(kg, rng_state);
-    if (light_sample_terminate(kg, &ls, &bsdf_eval, terminate)) {
+    if (light_sample_terminate(kg, &bsdf_eval, terminate)) {
       return;
     }
 
@@ -570,8 +569,7 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
                                                  IntegratorState state,
                                                  ccl_private const ShaderData *ccl_restrict sd,
                                                  ccl_private const RNGState *ccl_restrict
-                                                     rng_state,
-                                                 ccl_global float *ccl_restrict render_buffer)
+                                                     rng_state)
 {
   const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
 
@@ -752,7 +750,7 @@ ccl_device int integrate_surface(KernelGlobals kg,
     /* Ambient occlusion pass. */
     if (kernel_data.kernel_features & KERNEL_FEATURE_AO) {
       PROFILING_EVENT(PROFILING_SHADE_SURFACE_AO);
-      integrate_surface_ao(kg, state, &sd, &rng_state, render_buffer);
+      integrate_surface_ao(kg, state, &sd, &rng_state);
     }
 #endif
 

@@ -473,12 +473,12 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->group = lamp_lightgroup(kg, lamp);
 
   if (type == LIGHT_SPOT) {
-    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
+    if (!spot_light_sample_from_intersection(klight, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
+    if (!point_light_sample_from_intersection(klight, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }

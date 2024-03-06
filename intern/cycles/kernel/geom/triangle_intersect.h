@@ -139,7 +139,6 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
  */
 ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
                                                 ccl_private ShaderData *sd,
-                                                const int isect_object,
                                                 const int isect_prim,
                                                 const float u,
                                                 const float v)

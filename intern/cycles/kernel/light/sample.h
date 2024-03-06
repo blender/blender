@@ -91,7 +91,6 @@ light_sample_shader_eval(KernelGlobals kg,
 
 /* Early path termination of shadow rays. */
 ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
-                                              ccl_private const LightSample *ccl_restrict ls,
                                               ccl_private BsdfEval *ccl_restrict eval,
                                               const float rand_terminate)
 {
@@ -351,7 +350,6 @@ ccl_device_inline bool light_sample_from_volume_segment(KernelGlobals kg,
 }
 
 ccl_device bool light_sample_from_position(KernelGlobals kg,
-                                           ccl_private const RNGState *rng_state,
                                            const float3 rand,
                                            const float time,
                                            const float3 P,

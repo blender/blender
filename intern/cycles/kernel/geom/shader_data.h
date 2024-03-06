@@ -61,7 +61,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
 #ifdef __HAIR__
   if (sd->type & PRIMITIVE_CURVE) {
     /* curve */
-    curve_shader_setup(kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim);
+    curve_shader_setup(kg, sd, ray->P, ray->D, isect->t, isect->prim);
   }
   else
 #endif
@@ -80,7 +80,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
       sd->shader = kernel_data_fetch(tri_shader, sd->prim);
 
       /* vectors */
-      sd->P = triangle_point_from_uv(kg, sd, isect->object, isect->prim, isect->u, isect->v);
+      sd->P = triangle_point_from_uv(kg, sd, isect->prim, isect->u, isect->v);
       sd->Ng = Ng;
       sd->N = Ng;
 
@@ -95,8 +95,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
     }
     else {
       /* motion triangle */
-      motion_triangle_shader_setup(
-          kg, sd, ray->P, ray->D, isect->t, isect->object, isect->prim, false);
+      motion_triangle_shader_setup(kg, sd);
     }
 
     if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

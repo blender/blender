@@ -126,8 +126,6 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
 
 ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
                                                       IntegratorState state,
-                                                      ccl_private Ray &ccl_restrict ray,
-                                                      ccl_private Intersection &ccl_restrict isect,
                                                       ccl_private ShaderData *emission_sd,
                                                       ccl_global float *ccl_restrict render_buffer,
                                                       ccl_private Spectrum &ccl_restrict
@@ -200,15 +198,8 @@ ccl_device void shadow_linking_shade(KernelGlobals kg,
     }
   }
   else {
-    if (!shadow_linking_shade_surface_emission(kg,
-                                               state,
-                                               ray,
-                                               isect,
-                                               emission_sd,
-                                               render_buffer,
-                                               bsdf_spectrum,
-                                               mis_weight,
-                                               light_group))
+    if (!shadow_linking_shade_surface_emission(
+            kg, state, emission_sd, render_buffer, bsdf_spectrum, mis_weight, light_group))
     {
       return;
     }
