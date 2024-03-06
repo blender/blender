@@ -18,6 +18,7 @@
 
 #include "ED_mesh.hh"
 #include "ED_screen.hh"
+#include "ED_transform_snap_object_context.hh"
 
 #include "WM_api.hh"
 
@@ -32,6 +33,8 @@
 #include "transform_convert.hh"
 #include "transform_mode.hh"
 #include "transform_snap.hh"
+
+using namespace blender;
 
 /* -------------------------------------------------------------------- */
 /** \name Transform (Edge Slide)
@@ -176,6 +179,62 @@ static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float 
   sld->mval_end[1] = mi->imval[1] + mval_end[1];
 }
 
+static bool is_vert_slide_visible(TransInfo *t,
+                                  SnapObjectContext *sctx,
+                                  TransDataEdgeSlideVert *sv,
+                                  const float4 &plane_near)
+{
+  float3 points[3] = {
+      sv->v_co_orig,
+      sv->v_co_orig + sv->dir_side[0] * 0.9f,
+      sv->v_co_orig + sv->dir_side[1] * 0.9f,
+  };
+
+  float3 hit_loc;
+  for (const float3 &p : points) {
+    float3 view_vec;
+    float lambda, ray_depth = FLT_MAX;
+
+    transform_view_vector_calc(t, p, view_vec);
+
+    if (dot_v3v3(view_vec, plane_near) > 0.0f) {
+      /* Behind the view origin. */
+      return false;
+    }
+
+    if (!isect_ray_plane_v3(p, view_vec, plane_near, &lambda, false)) {
+      return false;
+    }
+
+    float3 view_orig = p + view_vec * lambda;
+
+    SnapObjectParams snap_object_params{};
+    snap_object_params.snap_target_select = t->tsnap.target_operation;
+    snap_object_params.edit_mode_type = (t->flag & T_EDIT) != 0 ? SNAP_GEOM_EDIT : SNAP_GEOM_FINAL;
+    snap_object_params.use_occlusion_test = false;
+    snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
+
+    bool has_hit = ED_transform_snap_object_project_ray_ex(sctx,
+                                                           t->depsgraph,
+                                                           static_cast<const View3D *>(t->view),
+                                                           &snap_object_params,
+                                                           view_orig,
+                                                           -view_vec,
+                                                           &ray_depth,
+                                                           hit_loc,
+                                                           nullptr,
+                                                           nullptr,
+                                                           nullptr,
+                                                           nullptr);
+
+    const bool is_occluded = has_hit && lambda > (ray_depth + 0.0001f);
+    if (!is_occluded) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Calculate screen-space `mval_start` / `mval_end`, optionally slide direction.
  */
@@ -184,33 +243,26 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
                                      EdgeSlideData *sld,
                                      const int loop_nr,
                                      const blender::float2 &mval,
-                                     const bool use_occlude_geometry,
                                      const bool use_calc_direction)
 {
-  TransDataEdgeSlideVert *sv;
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  ARegion *region = t->region;
-  View3D *v3d = nullptr;
-  BMBVHTree *bmbvh;
-
   /* only for use_calc_direction */
   float(*loop_dir)[3] = nullptr, *loop_maxdist = nullptr;
 
   float mval_dir[3], dist_best_sq;
 
+  /* Use for visibility checks. */
+  SnapObjectContext *snap_context = nullptr;
+  bool use_occlude_geometry = false;
+  float4 plane_near;
   if (t->spacetype == SPACE_VIEW3D) {
-    /* background mode support */
-    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
+    View3D *v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
+    use_occlude_geometry = (v3d && TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->dt > OB_WIRE &&
+                            !XRAY_ENABLED(v3d));
+    planes_from_projmat(t->persmat, nullptr, nullptr, nullptr, nullptr, plane_near, nullptr);
+    snap_context = ED_transform_snap_object_context_create(t->scene, 0);
   }
 
   const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
-
-  if (use_occlude_geometry) {
-    bmbvh = BKE_bmbvh_new_from_editmesh(em, BMBVH_RESPECT_HIDDEN, nullptr, false);
-  }
-  else {
-    bmbvh = nullptr;
-  }
 
   /* find mouse vectors, the global one, and one per loop in case we have
    * multiple loops selected, in case they are oriented different */
@@ -223,53 +275,42 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     copy_vn_fl(loop_maxdist, loop_nr, -1.0f);
   }
 
-  sv = &sld->sv[0];
+  TransDataEdgeSlideVert *sv = &sld->sv[0];
   for (int i = 0; i < sld->totsv; i++, sv++) {
-    BMIter iter_other;
-    BMEdge *e;
-    BMVert *v = sv->v;
+    bool is_visible = !use_occlude_geometry ||
+                      is_vert_slide_visible(t, snap_context, sv, plane_near);
 
-    /* Search cross edges for visible edge to the mouse cursor,
-     * then use the shared vertex to calculate screen vector. */
-    BM_ITER_ELEM (e, &iter_other, v, BM_EDGES_OF_VERT) {
-      /* screen-space coords */
-      float sco_a[3], sco_b[3];
-      float dist_sq;
-      int l_nr;
+    /* This test is only relevant if object is not wire-drawn! See #32068. */
+    if (!is_visible && !use_calc_direction) {
+      continue;
+    }
 
-      if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-        continue;
+    /* screen-space coords */
+    float sco_a[3], sco_b[3];
+    float dist_sq;
+    int l_nr;
+
+    edge_slide_pair_project(sv, t->region, projection.ptr(), sco_a, sco_b);
+
+    /* global direction */
+    dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
+    if (is_visible) {
+      if ((dist_best_sq == -1.0f) ||
+          /* intentionally use 2d size on 3d vector */
+          (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
+      {
+        dist_best_sq = dist_sq;
+        sub_v3_v3v3(mval_dir, sco_b, sco_a);
+        sld->curr_sv_index = i;
       }
+    }
 
-      /* This test is only relevant if object is not wire-drawn! See #32068. */
-      bool is_visible = !use_occlude_geometry ||
-                        BMBVH_EdgeVisible(bmbvh, e, t->depsgraph, region, v3d, tc->obedit);
-
-      if (!is_visible && !use_calc_direction) {
-        continue;
-      }
-
-      edge_slide_pair_project(sv, region, projection.ptr(), sco_a, sco_b);
-
-      /* global direction */
-      dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
-      if (is_visible) {
-        if ((dist_best_sq == -1.0f) ||
-            /* intentionally use 2d size on 3d vector */
-            (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
-        {
-          dist_best_sq = dist_sq;
-          sub_v3_v3v3(mval_dir, sco_b, sco_a);
-        }
-      }
-
-      if (use_calc_direction) {
-        /* per loop direction */
-        l_nr = sv->loop_nr;
-        if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
-          loop_maxdist[l_nr] = dist_sq;
-          sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
-        }
+    if (use_calc_direction) {
+      /* per loop direction */
+      l_nr = sv->loop_nr;
+      if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
+        loop_maxdist[l_nr] = dist_sq;
+        sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
       }
     }
   }
@@ -291,41 +332,8 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
 
   edge_slide_data_init_mval(&t->mouse, sld, mval_dir);
 
-  if (bmbvh) {
-    BKE_bmbvh_free(bmbvh);
-  }
-}
-
-static void calcEdgeSlide_even(TransInfo *t,
-                               TransDataContainer *tc,
-                               EdgeSlideData *sld,
-                               const blender::float2 &mval)
-{
-  TransDataEdgeSlideVert *sv = sld->sv;
-
-  if (sld->totsv > 0) {
-    ARegion *region = t->region;
-
-    int i = 0;
-
-    float dist_min_sq = FLT_MAX;
-
-    const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
-
-    for (i = 0; i < sld->totsv; i++, sv++) {
-      /* Set length */
-      sv->edge_len = len_v3v3(sv->dir_side[0], sv->dir_side[1]);
-
-      const blender::float2 v_proj = ED_view3d_project_float_v2_m4(region, sv->v->co, projection);
-      const float dist_sq = len_squared_v2v2(mval, v_proj);
-      if (dist_sq < dist_min_sq) {
-        dist_min_sq = dist_sq;
-        sld->curr_sv_index = i;
-      }
-    }
-  }
-  else {
-    sld->curr_sv_index = 0;
+  if (snap_context) {
+    ED_transform_snap_object_context_destroy(snap_context);
   }
 }
 
@@ -344,23 +352,7 @@ static EdgeSlideData *createEdgeSlideVerts(TransInfo *t,
     return nullptr;
   }
 
-  bool use_occlude_geometry = false;
-  View3D *v3d = nullptr;
-  RegionView3D *rv3d = nullptr;
-
-  /* use for visibility checks */
-  if (t->spacetype == SPACE_VIEW3D) {
-    v3d = static_cast<View3D *>(t->area ? t->area->spacedata.first : nullptr);
-    rv3d = static_cast<RegionView3D *>(t->region ? t->region->regiondata : nullptr);
-    use_occlude_geometry = (v3d && TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->dt > OB_WIRE &&
-                            !XRAY_ENABLED(v3d));
-  }
-
-  calcEdgeSlide_mval_range(t, tc, sld, loop_nr, t->mval, use_occlude_geometry, false);
-
-  if (rv3d) {
-    calcEdgeSlide_even(t, tc, sld, t->mval);
-  }
+  calcEdgeSlide_mval_range(t, tc, sld, loop_nr, t->mval, use_double_side);
 
   return sld;
 }

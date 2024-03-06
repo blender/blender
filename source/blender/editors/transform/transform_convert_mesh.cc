@@ -2892,10 +2892,19 @@ TransDataEdgeSlideVert *transform_mesh_edge_slide_data_create(const TransDataCon
                                                               int *r_group_len,
                                                               int *r_sv_len)
 {
-  if (use_double_side) {
-    return createEdgeSlideVerts_double_side(tc, r_group_len, r_sv_len);
+  TransDataEdgeSlideVert *sv_array =
+      use_double_side ? createEdgeSlideVerts_double_side(tc, r_group_len, r_sv_len) :
+                        createEdgeSlideVerts_single_side(tc, r_group_len, r_sv_len);
+
+  if (sv_array) {
+    TransDataEdgeSlideVert *sv = sv_array;
+    for (int i = 0; i < *r_sv_len; i++, sv++) {
+      /* Set length */
+      sv->edge_len = len_v3v3(sv->dir_side[0], sv->dir_side[1]);
+    }
   }
-  return createEdgeSlideVerts_single_side(tc, r_group_len, r_sv_len);
+
+  return sv_array;
 }
 
 /** \} */

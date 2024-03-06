@@ -63,6 +63,22 @@
 
 using namespace blender;
 
+/* -------------------------------------------------------------------- */
+/** \name General Utils
+ * \{ */
+
+/* Calculates projection vector based on a location. */
+void transform_view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
+{
+  if (t->persp != RV3D_ORTHO) {
+    sub_v3_v3v3(r_vec, t->viewinv[3], focus);
+  }
+  else {
+    copy_v3_v3(r_vec, t->viewinv[2]);
+  }
+  normalize_v3(r_vec);
+}
+
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
@@ -71,6 +87,8 @@ bool transdata_check_local_islands(TransInfo *t, short around)
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
           ELEM(t->obedit_type, OB_MESH, OB_GPENCIL_LEGACY));
 }
+
+/** \} */
 
 /* ************************** SPACE DEPENDENT CODE **************************** */
 
