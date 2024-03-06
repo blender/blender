@@ -683,8 +683,6 @@ Layer::Layer(const Layer &other) : Layer()
 
   /* TODO: duplicate masks. */
 
-  /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
-
   this->blend_mode = other.blend_mode;
   this->opacity = other.opacity;
 
@@ -695,8 +693,12 @@ Layer::Layer(const Layer &other) : Layer()
   copy_v3_v3(this->rotation, other.rotation);
   copy_v3_v3(this->scale, other.scale);
 
+  /* Note: We do not duplicate the frame storage since it is only needed for writing to file. */
   this->runtime->frames_ = other.runtime->frames_;
   this->runtime->sorted_keys_cache_ = other.runtime->sorted_keys_cache_;
+  /* Tag the frames map, so the frame storage is recreated once the DNA is saved.*/
+  this->tag_frames_map_changed();
+
   /* TODO: what about masks cache? */
 }
 
