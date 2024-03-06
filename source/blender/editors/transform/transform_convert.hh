@@ -64,6 +64,21 @@ struct TransDataEdgeSlideVert {
   int loop_nr;
 };
 
+/**
+ * Structure used for Vert Slide operation.
+ */
+struct TransDataVertSlideVert {
+  /** #TransDataGenericSlideVert (header) */
+  BMVert *v;
+  LinkNode **cd_loop_groups;
+  float co_orig_3d[3];
+  /* end generic */
+
+  float (*co_link_orig_3d)[3];
+  int co_link_tot;
+  int co_link_curr;
+};
+
 /* `transform_convert.cc` */
 
 /**
@@ -259,6 +274,9 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float quat[4],
                                                      TransData *r_td);
 void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspace_data);
+
+TransDataVertSlideVert *transform_mesh_vert_slide_data_create(const TransDataContainer *tc,
+                                                              int *r_sv_len);
 
 TransDataEdgeSlideVert *transform_mesh_edge_slide_data_create(const TransDataContainer *tc,
                                                               const bool use_double_side,

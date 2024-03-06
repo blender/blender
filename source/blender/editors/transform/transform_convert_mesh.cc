@@ -2160,7 +2160,87 @@ static void special_aftertrans_update__mesh(bContext * /*C*/, TransInfo *t)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name API for Vert Slide
+/** \name API for Edge Slide
+ * \{ */
+
+TransDataVertSlideVert *transform_mesh_vert_slide_data_create(const TransDataContainer *tc,
+                                                              int *r_sv_len)
+{
+  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+  BMesh *bm = em->bm;
+  BMIter iter;
+  BMIter eiter;
+  BMEdge *e;
+  BMVert *v;
+  TransDataVertSlideVert *sv_array;
+  int j;
+
+  j = 0;
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    bool ok = false;
+    if (BM_elem_flag_test(v, BM_ELEM_SELECT) && v->e) {
+      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+          ok = true;
+          break;
+        }
+      }
+    }
+
+    if (ok) {
+      BM_elem_flag_enable(v, BM_ELEM_TAG);
+      j += 1;
+    }
+    else {
+      BM_elem_flag_disable(v, BM_ELEM_TAG);
+    }
+  }
+
+  if (!j) {
+    return nullptr;
+  }
+
+  sv_array = static_cast<TransDataVertSlideVert *>(
+      MEM_callocN(sizeof(TransDataVertSlideVert) * j, "sv_array"));
+
+  j = 0;
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+      int k;
+      sv_array[j].v = v;
+      copy_v3_v3(sv_array[j].co_orig_3d, v->co);
+
+      k = 0;
+      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+          k++;
+        }
+      }
+
+      sv_array[j].co_link_orig_3d = static_cast<float(*)[3]>(
+          MEM_mallocN(sizeof(*sv_array[j].co_link_orig_3d) * k, __func__));
+      sv_array[j].co_link_tot = k;
+
+      k = 0;
+      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+          BMVert *v_other = BM_edge_other_vert(e, v);
+          copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
+          k++;
+        }
+      }
+      j++;
+    }
+  }
+
+  *r_sv_len = j;
+  return sv_array;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name API for Edge Slide
  * \{ */
 
 static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
