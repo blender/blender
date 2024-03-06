@@ -84,6 +84,11 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+# find_package() uses uppercase <PackageName>_ROOT variables.
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif()
+
 # Install CODE|SCRIPT allow the use of generator expressions.
 if(POLICY CMP0087)
   cmake_policy(SET CMP0087 NEW)
