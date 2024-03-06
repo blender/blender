@@ -265,14 +265,14 @@ using IDTypeFilter = uint64_t;
 namespace blender::bke::id {
 
 class IDRemapper {
-  blender::Map<ID *, ID *> mappings_;
+  Map<ID *, ID *> mappings_;
   IDTypeFilter source_types_ = 0;
 
   /**
    * Store all IDs using another ID with the 'NEVER_NULL' flag, which have (or
    * should have been) remapped to `nullptr`.
    */
-  blender::Set<ID *> never_null_users_;
+  Set<ID *> never_null_users_;
 
  public:
   /**
@@ -326,7 +326,7 @@ class IDRemapper {
     never_null_users_.add(id);
   }
 
-  const blender::Set<ID *> &never_null_users(void) const
+  const Set<ID *> &never_null_users() const
   {
     return never_null_users_;
   }
@@ -340,7 +340,7 @@ class IDRemapper {
   }
 
   /** Return a readable string for the given result. Can be used for debugging purposes. */
-  static const blender::StringRefNull result_to_string(const IDRemapperApplyResult result);
+  static const StringRefNull result_to_string(const IDRemapperApplyResult result);
 
   /** Print out the rules inside the given id_remapper. Can be used for debugging purposes. */
   void print(void) const;
