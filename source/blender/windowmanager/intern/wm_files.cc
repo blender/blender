@@ -2524,6 +2524,32 @@ void WM_OT_read_userpref(wmOperatorType *ot)
   ot->exec = wm_userpref_read_exec;
 }
 
+static int wm_userpref_read_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  std::string title;
+
+  const bool template_only = U.app_template[0] &&
+                             RNA_boolean_get(op->ptr, "use_factory_startup_app_template_only");
+
+  if (template_only) {
+    char display_name[FILE_MAX];
+    BLI_path_to_display_name(display_name, sizeof(display_name), IFACE_(U.app_template));
+    title = fmt::format(IFACE_("Load Factory \"{}\" Preferences."), IFACE_(display_name));
+  }
+  else {
+    title = IFACE_("Load Factory Blender Preferences");
+  }
+
+  return WM_operator_confirm_ex(
+      C,
+      op,
+      title.c_str(),
+      IFACE_("To make changes to Preferences permanent, use \"Save Preferences.\""),
+      IFACE_("Load"),
+      ALERT_ICON_WARNING,
+      false);
+}
+
 void WM_OT_read_factory_userpref(wmOperatorType *ot)
 {
   ot->name = "Load Factory Preferences";
@@ -2532,7 +2558,7 @@ void WM_OT_read_factory_userpref(wmOperatorType *ot)
       "Load factory default preferences. "
       "To make changes to preferences permanent, use \"Save Preferences\"";
 
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = wm_userpref_read_invoke;
   ot->exec = wm_userpref_read_exec;
 
   read_factory_reset_props(ot);
