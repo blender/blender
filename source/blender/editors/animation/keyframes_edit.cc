@@ -14,7 +14,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_lasso_2d.h"
+#include "BLI_function_ref.hh"
+#include "BLI_lasso_2d.hh"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -22,7 +23,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_nla.h"
 
 #include "ED_anim_api.hh"
@@ -486,62 +487,53 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 /* BezTriple Validation Callbacks */
 
 /* ------------------------ */
-/* Some macros to make this easier... */
 
-/* run the given check on the 3 handles:
- * - Check should be a macro, which takes the handle index as its single arg,
- *   which it substitutes later.
- * - Requires that a var, of type short, is named 'ok',
- *   and has been initialized to 0.
- */
-#define KEYFRAME_OK_CHECKS(check) \
-  { \
-    CHECK_TYPE(ok, short); \
-    if (check(1)) { \
-      ok |= KEYFRAME_OK_KEY; \
-    } \
-    if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES)) { \
-      /* Only act on visible items, so check handle visibility state. */ \
-      const bool handles_visible = ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ? \
-                                        BEZT_ISSEL_ANY(bezt) : \
-                                        true); \
-      if (handles_visible) { \
-        if (check(0)) { \
-          ok |= KEYFRAME_OK_H1; \
-        } \
-        if (check(2)) { \
-          ok |= KEYFRAME_OK_H2; \
-        } \
-      } \
-    } \
-  } \
-  (void)0
+static short keyframe_ok_checks(
+    KeyframeEditData *ked,
+    BezTriple *bezt,
+    blender::FunctionRef<bool(KeyframeEditData *ked, BezTriple *bezt, const int index)> check)
+{
+  short ok = 0;
+  if (check(ked, bezt, 1)) {
+    ok |= KEYFRAME_OK_KEY;
+  }
+  if (ked && (ked->iterflags & KEYFRAME_ITER_INCL_HANDLES))
+  { /* Only act on visible items, so check handle visibility state. */
+    const bool handles_visible = ((ked->iterflags & KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE) ?
+                                      BEZT_ISSEL_ANY(bezt) :
+                                      true);
+    if (handles_visible) {
+      if (check(ked, bezt, 0)) {
+        ok |= KEYFRAME_OK_H1;
+      }
+      if (check(ked, bezt, 2)) {
+        ok |= KEYFRAME_OK_H2;
+      }
+    }
+  }
+  return ok;
+}
 
 /* ------------------------ */
 
 static short ok_bezier_frame(KeyframeEditData *ked, BezTriple *bezt)
 {
-  short ok = 0;
-
   /* frame is stored in f1 property (this float accuracy check may need to be dropped?) */
-#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][0], ked->f1)
-  KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return IS_EQF(bezt->vec[index][0], ked->f1);
+      });
 
-  /* return ok flags */
   return ok;
 }
 
 static short ok_bezier_framerange(KeyframeEditData *ked, BezTriple *bezt)
 {
-  short ok = 0;
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return (bezt->vec[index][0] > ked->f1) && (bezt->vec[index][0] < ked->f2);
+      });
 
-  /* frame range is stored in float properties */
-#define KEY_CHECK_OK(_index) ((bezt->vec[_index][0] > ked->f1) && (bezt->vec[_index][0] < ked->f2))
-  KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
-
-  /* return ok flags */
   return ok;
 }
 
@@ -558,48 +550,43 @@ static short ok_bezier_selected(KeyframeEditData * /*ked*/, BezTriple *bezt)
 
 static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 {
-  short ok = 0;
-
   /* Value is stored in f1 property:
    * - This float accuracy check may need to be dropped?
    * - Should value be stored in f2 instead
    *   so that we won't have conflicts when using f1 for frames too?
    */
-#define KEY_CHECK_OK(_index) IS_EQF(bezt->vec[_index][1], ked->f1)
-  KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return IS_EQF(bezt->vec[index][1], ked->f1);
+      });
 
-  /* return ok flags */
   return ok;
 }
 
 static short ok_bezier_valuerange(KeyframeEditData *ked, BezTriple *bezt)
 {
-  short ok = 0;
-
   /* value range is stored in float properties */
-#define KEY_CHECK_OK(_index) ((bezt->vec[_index][1] > ked->f1) && (bezt->vec[_index][1] < ked->f2))
-  KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return (bezt->vec[index][1] > ked->f1) && (bezt->vec[index][1] < ked->f2);
+      });
 
-  /* return ok flags */
   return ok;
 }
 
 static short ok_bezier_region(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* rect is stored in data property (it's of type rectf, but may not be set) */
-  if (ked->data) {
-    short ok = 0;
-
-#define KEY_CHECK_OK(_index) BLI_rctf_isect_pt_v(static_cast<rctf *>(ked->data), bezt->vec[_index])
-    KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
-
-    /* return ok flags */
-    return ok;
+  if (!ked->data) {
+    return 0;
   }
-  return 0;
+
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return BLI_rctf_isect_pt_v(static_cast<rctf *>(ked->data), bezt->vec[index]);
+      });
+
+  return ok;
 }
 
 bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const float xy[2])
@@ -609,9 +596,7 @@ bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const 
 
     BLI_rctf_transform_pt_v(data_lasso->rectf_view, data_lasso->rectf_scaled, xy_view, xy);
 
-    if (BLI_lasso_is_point_inside(
-            data_lasso->mcoords, data_lasso->mcoords_len, xy_view[0], xy_view[1], INT_MAX))
-    {
+    if (BLI_lasso_is_point_inside(data_lasso->mcoords, xy_view[0], xy_view[1], INT_MAX)) {
       return true;
     }
   }
@@ -622,18 +607,17 @@ bool keyframe_region_lasso_test(const KeyframeEdit_LassoData *data_lasso, const 
 static short ok_bezier_region_lasso(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* check for lasso customdata (KeyframeEdit_LassoData) */
-  if (ked->data) {
-    short ok = 0;
-
-#define KEY_CHECK_OK(_index) \
-  keyframe_region_lasso_test(static_cast<KeyframeEdit_LassoData *>(ked->data), bezt->vec[_index])
-    KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
-
-    /* return ok flags */
-    return ok;
+  if (!ked->data) {
+    return 0;
   }
-  return 0;
+
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return keyframe_region_lasso_test(static_cast<KeyframeEdit_LassoData *>(ked->data),
+                                          bezt->vec[index]);
+      });
+
+  return ok;
 }
 
 static short ok_bezier_channel_lasso(KeyframeEditData *ked, BezTriple *bezt)
@@ -682,18 +666,17 @@ bool keyframe_region_circle_test(const KeyframeEdit_CircleData *data_circle, con
 static short ok_bezier_region_circle(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* check for circle select customdata (KeyframeEdit_CircleData) */
-  if (ked->data) {
-    short ok = 0;
-
-#define KEY_CHECK_OK(_index) \
-  keyframe_region_circle_test(static_cast<KeyframeEdit_CircleData *>(ked->data), bezt->vec[_index])
-    KEYFRAME_OK_CHECKS(KEY_CHECK_OK);
-#undef KEY_CHECK_OK
-
-    /* return ok flags */
-    return ok;
+  if (!ked->data) {
+    return 0;
   }
-  return 0;
+
+  const short ok = keyframe_ok_checks(
+      ked, bezt, [](KeyframeEditData *ked, BezTriple *bezt, int index) -> bool {
+        return keyframe_region_circle_test(static_cast<KeyframeEdit_CircleData *>(ked->data),
+                                           bezt->vec[index]);
+      });
+
+  return ok;
 }
 
 static short ok_bezier_channel_circle(KeyframeEditData *ked, BezTriple *bezt)

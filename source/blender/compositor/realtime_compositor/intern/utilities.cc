@@ -163,6 +163,21 @@ bool is_node_preview_needed(const DNode &node)
   return true;
 }
 
+DOutputSocket find_preview_output_socket(const DNode &node)
+{
+  if (!is_node_preview_needed(node)) {
+    return DOutputSocket();
+  }
+
+  for (const bNodeSocket *output : node->output_sockets()) {
+    if (output->is_logically_linked()) {
+      return DOutputSocket(node.context(), output);
+    }
+  }
+
+  return DOutputSocket();
+}
+
 /* Given the size of a result, compute a lower resolution size for a preview. The greater dimension
  * will be assigned an arbitrarily chosen size of 128, while the other dimension will get the size
  * that maintains the same aspect ratio. */

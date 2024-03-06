@@ -99,8 +99,6 @@ static void asset_view_draw_item(uiList *ui_list,
       nullptr,
       0,
       0,
-      0,
-      0,
       "");
   ui_def_but_icon(but,
                   asset::handle_get_preview_icon_id(&asset_handle),

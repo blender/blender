@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <LLVMInstallDir>${EMBREE_LLVM_INSTALL_PATH}</LLVMInstallDir>
+    <LLVMToolsVersion>${LLVM_VERSION}</LLVMToolsVersion>
+    <VCToolsVersion>${EMBREE_VCTOOLS_VERSION}</VCToolsVersion>
+  </PropertyGroup>
+</Project>

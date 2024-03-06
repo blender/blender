@@ -5,6 +5,7 @@
 /** \file
  * \ingroup bke
  */
+#include <optional>
 
 #include <memory>
 
@@ -64,7 +65,11 @@ static void brush_init_data(ID *id)
   BKE_brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 }
 
-static void brush_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void brush_copy_data(Main * /*bmain*/,
+                            std::optional<Library *> /*owner_library*/,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int flag)
 {
   Brush *brush_dst = (Brush *)id_dst;
   const Brush *brush_src = (const Brush *)id_src;

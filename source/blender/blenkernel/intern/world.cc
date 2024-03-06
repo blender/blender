@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -81,7 +82,11 @@ static void world_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void world_copy_data(Main *bmain,
+                            std::optional<Library *> owner_library,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int flag)
 {
   World *wrld_dst = (World *)id_dst;
   const World *wrld_src = (const World *)id_src;
@@ -95,8 +100,11 @@ static void world_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
       wrld_dst->nodetree = ntreeLocalize(wrld_src->nodetree);
     }
     else {
-      BKE_id_copy_ex(
-          bmain, (ID *)wrld_src->nodetree, (ID **)&wrld_dst->nodetree, flag_private_id_data);
+      BKE_id_copy_in_lib(bmain,
+                         owner_library,
+                         (ID *)wrld_src->nodetree,
+                         (ID **)&wrld_dst->nodetree,
+                         flag_private_id_data);
     }
     wrld_dst->nodetree->owner_id = &wrld_dst->id;
   }

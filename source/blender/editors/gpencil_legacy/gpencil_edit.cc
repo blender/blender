@@ -16,7 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -5482,8 +5482,7 @@ void GPENCIL_OT_stroke_smooth(wmOperatorType *ot)
 /* smart stroke cutter for trimming stroke ends */
 struct GP_SelectLassoUserData {
   rcti rect;
-  const int (*mcoords)[2];
-  int mcoords_len;
+  blender::Array<blender::int2> mcoords;
 };
 
 static bool gpencil_test_lasso(bGPDstroke *gps,
@@ -5499,7 +5498,7 @@ static bool gpencil_test_lasso(bGPDstroke *gps,
   gpencil_point_to_xy(gsc, gps, &pt2, &x0, &y0);
   /* test if in lasso */
   return (!ELEM(V2D_IS_CLIPPED, x0, y0) && BLI_rcti_isect_pt(&data->rect, x0, y0) &&
-          BLI_lasso_is_point_inside(data->mcoords, data->mcoords_len, x0, y0, INT_MAX));
+          BLI_lasso_is_point_inside(data->mcoords, x0, y0, INT_MAX));
 }
 
 typedef bool (*GPencilTestFn)(bGPDstroke *gps,
@@ -5741,19 +5740,15 @@ static int gpencil_cutter_exec(bContext *C, wmOperator *op)
   }
 
   GP_SelectLassoUserData data{};
-  data.mcoords = WM_gesture_lasso_path_to_array(C, op, &data.mcoords_len);
-
-  /* Sanity check. */
-  if (data.mcoords == nullptr) {
+  data.mcoords = WM_gesture_lasso_path_to_array(C, op);
+  if (data.mcoords.is_empty()) {
     return OPERATOR_PASS_THROUGH;
   }
 
   /* Compute boundbox of lasso (for faster testing later). */
-  BLI_lasso_boundbox(&data.rect, data.mcoords, data.mcoords_len);
+  BLI_lasso_boundbox(&data.rect, data.mcoords);
 
   gpencil_cutter_lasso_select(C, op, gpencil_test_lasso, &data);
-
-  MEM_freeN((void *)data.mcoords);
 
   return OPERATOR_FINISHED;
 }

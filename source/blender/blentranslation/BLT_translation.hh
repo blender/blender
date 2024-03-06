@@ -21,11 +21,11 @@ const char *BLT_pgettext(const char *msgctxt, const char *msgid);
  * - tooltips only include the popup tooltips when hovering a button.
  * - report is for longer, additional information displayed in the UI, such as error messages.
  * - new_dataname is the actual user-created data such as objects, meshes, etc. */
-bool BLT_translate(void);
-bool BLT_translate_iface(void);
-bool BLT_translate_tooltips(void);
-bool BLT_translate_reports(void);
-bool BLT_translate_new_dataname(void);
+bool BLT_translate();
+bool BLT_translate_iface();
+bool BLT_translate_tooltips();
+bool BLT_translate_reports();
+bool BLT_translate_new_dataname();
 const char *BLT_translate_do(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);

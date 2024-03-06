@@ -6,10 +6,6 @@
  * \ingroup edtransform
  */
 
-#include <cstdlib>
-
-#include "MEM_guardedalloc.h"
-
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
@@ -19,17 +15,14 @@
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
-#include "GPU_state.h"
 
 #include "ED_screen.hh"
 
 #include "WM_api.hh"
-#include "WM_types.hh"
 
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
-#include "UI_resources.hh"
 
 #include "BLT_translation.hh"
 
@@ -44,18 +37,6 @@ using namespace blender;
 /* -------------------------------------------------------------------- */
 /** \name Transform (Vert Slide)
  * \{ */
-
-struct TransDataVertSlideVert {
-  /** #TransDataGenericSlideVert (header) */
-  BMVert *v;
-  LinkNode **cd_loop_groups;
-  float co_orig_3d[3];
-  /* end generic */
-
-  float (*co_link_orig_3d)[3];
-  int co_link_tot;
-  int co_link_curr;
-};
 
 struct VertSlideData {
   /* result of ED_view3d_ob_project_mat_get */
@@ -186,79 +167,16 @@ static void calcVertSlideMouseActiveEdges(TransInfo *t, const float2 &mval_fl)
 
 static VertSlideData *createVertSlideVerts(TransInfo *t, const TransDataContainer *tc)
 {
-  BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-  BMesh *bm = em->bm;
-  BMIter iter;
-  BMIter eiter;
-  BMEdge *e;
-  BMVert *v;
-  TransDataVertSlideVert *sv_array;
   VertSlideData *sld = MEM_new<VertSlideData>(__func__);
-  int j;
 
-  sld->curr_sv_index = 0;
+  sld->sv = transform_mesh_vert_slide_data_create(tc, &sld->totsv);
 
-  j = 0;
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    bool ok = false;
-    if (BM_elem_flag_test(v, BM_ELEM_SELECT) && v->e) {
-      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          ok = true;
-          break;
-        }
-      }
-    }
-
-    if (ok) {
-      BM_elem_flag_enable(v, BM_ELEM_TAG);
-      j += 1;
-    }
-    else {
-      BM_elem_flag_disable(v, BM_ELEM_TAG);
-    }
-  }
-
-  if (!j) {
+  if (sld->sv == nullptr) {
     MEM_freeN(sld);
     return nullptr;
   }
 
-  sv_array = static_cast<TransDataVertSlideVert *>(
-      MEM_callocN(sizeof(TransDataVertSlideVert) * j, "sv_array"));
-
-  j = 0;
-  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-    if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-      int k;
-      sv_array[j].v = v;
-      copy_v3_v3(sv_array[j].co_orig_3d, v->co);
-
-      k = 0;
-      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          k++;
-        }
-      }
-
-      sv_array[j].co_link_orig_3d = static_cast<float(*)[3]>(
-          MEM_mallocN(sizeof(*sv_array[j].co_link_orig_3d) * k, __func__));
-      sv_array[j].co_link_tot = k;
-
-      k = 0;
-      BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
-        if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-          BMVert *v_other = BM_edge_other_vert(e, v);
-          copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
-          k++;
-        }
-      }
-      j++;
-    }
-  }
-
-  sld->sv = sv_array;
-  sld->totsv = j;
+  sld->curr_sv_index = 0;
 
   /* most likely will be set below */
   sld->proj_mat = blender::float4x4::identity();

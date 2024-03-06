@@ -229,7 +229,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
   DM_set_only_copy(cddm, &CD_MASK_BAREMESH);
   tmp_mmd.lvl = mmd->lvl;
   tmp_mmd.sculptlvl = mmd->lvl;
-  dm = multires_make_derived_from_derived(cddm, &tmp_mmd, scene, ob, MultiresFlags(0));
+  dm = multires_make_derived_from_derived(cddm, &tmp_mmd, scene, ob, MULTIRES_IGNORE_SIMPLIFY);
 
   cddm->release(cddm);
 
@@ -256,7 +256,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 
   tmp_mmd.lvl = mmd->totlvl;
   tmp_mmd.sculptlvl = mmd->totlvl;
-  dm = multires_make_derived_from_derived(cddm, &tmp_mmd, scene, ob, MultiresFlags(0));
+  dm = multires_make_derived_from_derived(cddm, &tmp_mmd, scene, ob, MULTIRES_IGNORE_SIMPLIFY);
   cddm->release(cddm);
 
   return dm;

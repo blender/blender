@@ -11,10 +11,11 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_lasso_2d.h"
+#include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -36,6 +37,10 @@
 
 #include "clip_intern.h"         /* own include */
 #include "tracking_ops_intern.h" /* own include */
+
+using blender::Array;
+using blender::int2;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Point track marker picking.
@@ -835,10 +840,7 @@ void CLIP_OT_select_box(wmOperatorType *ot)
 
 /********************** lasso select operator *********************/
 
-static int do_lasso_select_marker(bContext *C,
-                                  const int mcoords[][2],
-                                  const int mcoords_len,
-                                  bool select)
+static int do_lasso_select_marker(bContext *C, const Span<int2> mcoords, bool select)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
@@ -850,7 +852,7 @@ static int do_lasso_select_marker(bContext *C,
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
   /* get rectangle from operator */
-  BLI_lasso_boundbox(&rect, mcoords, mcoords_len);
+  BLI_lasso_boundbox(&rect, mcoords);
 
   /* do actual selection */
   LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
@@ -867,8 +869,7 @@ static int do_lasso_select_marker(bContext *C,
       ED_clip_point_stable_pos__reverse(sc, region, marker->pos, screen_co);
 
       if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-          BLI_lasso_is_point_inside(
-              mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
+          BLI_lasso_is_point_inside(mcoords, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
       {
         if (select) {
           BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
@@ -897,8 +898,7 @@ static int do_lasso_select_marker(bContext *C,
       ED_clip_point_stable_pos__reverse(sc, region, plane_marker->corners[i], screen_co);
 
       if (BLI_rcti_isect_pt(&rect, screen_co[0], screen_co[1]) &&
-          BLI_lasso_is_point_inside(
-              mcoords, mcoords_len, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
+          BLI_lasso_is_point_inside(mcoords, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
       {
         if (select) {
           plane_track->flag |= SELECT;
@@ -924,24 +924,22 @@ static int do_lasso_select_marker(bContext *C,
 
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  int mcoords_len;
-  const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
+  const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 
-  if (mcoords) {
-    const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
-    const bool select = (sel_op != SEL_OP_SUB);
-    if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-      SpaceClip *sc = CTX_wm_space_clip(C);
-      ED_clip_select_all(sc, SEL_DESELECT, nullptr);
-    }
-
-    do_lasso_select_marker(C, mcoords, mcoords_len, select);
-
-    MEM_freeN((void *)mcoords);
-
-    return OPERATOR_FINISHED;
+  if (mcoords.is_empty()) {
+    return OPERATOR_PASS_THROUGH;
   }
-  return OPERATOR_PASS_THROUGH;
+
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
+  const bool select = (sel_op != SEL_OP_SUB);
+  if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+    SpaceClip *sc = CTX_wm_space_clip(C);
+    ED_clip_select_all(sc, SEL_DESELECT, nullptr);
+  }
+
+  do_lasso_select_marker(C, mcoords, select);
+
+  return OPERATOR_FINISHED;
 }
 
 void CLIP_OT_select_lasso(wmOperatorType *ot)

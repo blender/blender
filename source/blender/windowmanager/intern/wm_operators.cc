@@ -610,7 +610,7 @@ std::optional<std::string> WM_context_path_resolve_property_full(const bContext 
       if (prop != nullptr) {
         std::string prop_str = RNA_path_property_py(ptr, prop, index);
         if (prop_str[0] == '[') {
-          member_id_data_path = fmt::format("{}.{}", *data_path, prop_str);
+          member_id_data_path = fmt::format("{}.{}{}", member_id, *data_path, prop_str);
         }
         else {
           member_id_data_path = fmt::format("{}.{}.{}", member_id, *data_path, prop_str);
@@ -1079,9 +1079,6 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 
 struct EnumSearchMenu {
   wmOperator *op; /* the operator that will be executed when selecting an item */
-
-  bool use_previews;
-  short prv_cols, prv_rows;
 };
 
 /** Generic enum search invoke popup. */
@@ -1092,10 +1089,8 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   wmOperator *op = search_menu->op;
   /* template_ID uses 4 * widget_unit for width,
    * we use a bit more, some items may have a suffix to show. */
-  const int width = search_menu->use_previews ? 5 * U.widget_unit * search_menu->prv_cols :
-                                                UI_searchbox_size_x();
-  const int height = search_menu->use_previews ? 5 * U.widget_unit * search_menu->prv_rows :
-                                                 UI_searchbox_size_y();
+  const int width = UI_searchbox_size_x();
+  const int height = UI_searchbox_size_y();
   static char search[256] = "";
 
   uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
@@ -1103,8 +1098,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   search[0] = '\0';
-  BLI_assert(search_menu->use_previews ||
-             (search_menu->prv_cols == 0 && search_menu->prv_rows == 0));
 #if 0 /* ok, this isn't so easy... */
   uiDefBut(block,
            UI_BTYPE_LABEL,
@@ -1117,8 +1110,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            nullptr,
            0.0,
            0.0,
-           0,
-           0,
            "");
 #endif
   uiBut *but = uiDefSearchButO_ptr(block,
@@ -1132,8 +1123,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                    10,
                                    width,
                                    UI_UNIT_Y,
-                                   search_menu->prv_rows,
-                                   search_menu->prv_cols,
                                    "");
 
   /* fake button, it holds space for search items */
@@ -1148,8 +1137,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
            nullptr,
            0,
            0,
-           0,
-           0,
            nullptr);
 
   /* Move it downwards, mouse over button. */
@@ -1158,20 +1145,6 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   UI_but_focus_on_enter_event(win, but);
 
   return block;
-}
-
-int WM_enum_search_invoke_previews(bContext *C, wmOperator *op, short prv_cols, short prv_rows)
-{
-  static EnumSearchMenu search_menu;
-
-  search_menu.op = op;
-  search_menu.use_previews = true;
-  search_menu.prv_cols = prv_cols;
-  search_menu.prv_rows = prv_rows;
-
-  UI_popup_block_invoke(C, wm_enum_search_menu, &search_menu, nullptr);
-
-  return OPERATOR_INTERFACE;
 }
 
 int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
@@ -1593,14 +1566,12 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
                              nullptr,
                              0,
                              0,
-                             0,
-                             0,
                              "");
       uiLayoutColumn(col, false);
     }
 
     cancel_but = uiDefBut(
-        col_block, UI_BTYPE_BUT, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
+        col_block, UI_BTYPE_BUT, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, "");
 
     if (!windows_layout) {
       uiLayoutColumn(col, false);
@@ -1613,8 +1584,6 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
                              0,
                              UI_UNIT_Y,
                              nullptr,
-                             0,
-                             0,
                              0,
                              0,
                              "");
@@ -1873,7 +1842,8 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
   ot->exec = wm_debug_menu_exec;
   ot->poll = WM_operator_winactive;
 
-  RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
+  ot->prop = RNA_def_int(
+      ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
 /** \} */
@@ -1944,8 +1914,6 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
                               10,
                               init_data->size[0],
                               UI_UNIT_Y,
-                              0,
-                              0,
                               "");
 
   if (init_data->search_type == SEARCH_TYPE_OPERATOR) {
@@ -1974,8 +1942,6 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
            init_data->size[0],
            init_data->size[1],
            nullptr,
-           0,
-           0,
            0,
            0,
            nullptr);

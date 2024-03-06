@@ -48,12 +48,12 @@ void region_draw(const bContext *C, ARegion *region);
 void region_on_poll_success(const bContext *C, ARegion *region);
 void region_blend_read_data(BlendDataReader *reader, ARegion *region);
 void region_blend_write(BlendWriter *writer, ARegion *region);
-int region_prefsizey(void);
+int region_prefsizey();
 
 void header_region_init(wmWindowManager *wm, ARegion *region);
 void header_region(const bContext *C, ARegion *region);
 void header_region_listen(const wmRegionListenerParams *params);
-int header_region_size(void);
+int header_region_size();
 void header_regiontype_register(ARegionType *region_type, const int space_type);
 
 /** \} */

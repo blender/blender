@@ -156,8 +156,6 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
                                              nullptr,
                                              0,
                                              0,
-                                             0,
-                                             0,
                                              "");
 
   view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
@@ -300,8 +298,6 @@ void BuildOnlyVisibleButtonsHelper::add_spacer_button(uiBlock &block, const int 
              UI_UNIT_X,
              row_count_this_iter * style_.tile_height,
              nullptr,
-             0,
-             0,
              0,
              0,
              "");

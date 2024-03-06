@@ -200,8 +200,6 @@ void AbstractViewItem::add_rename_button(uiBlock &block)
                                view.get_rename_buffer().data(),
                                1.0f,
                                view.get_rename_buffer().size(),
-                               0,
-                               0,
                                "");
 
   /* Gotta be careful with what's passed to the `arg1` here. Any view data will be freed once the

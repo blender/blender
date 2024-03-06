@@ -60,7 +60,7 @@ class STLExportTest : public BlendfileLoadingBaseTest {
   void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
   }
 
   void TearDown() override

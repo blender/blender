@@ -47,7 +47,9 @@ void Manager::begin_sync()
   acquired_textures.clear();
   layer_attributes.clear();
 
-#ifndef NDEBUG
+// For some reason, if this uninitialised data pattern was enabled (ie release asserts enabled),
+// The viewport just gives up rendering objects on ARM64 devices. Possibly Mesa GLOn12-related.
+#if !defined(NDEBUG) && !defined(_M_ARM64)
   /* Detect uninitialized data. */
   memset(matrix_buf.current().data(),
          0xF0,

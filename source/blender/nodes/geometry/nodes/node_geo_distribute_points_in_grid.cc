@@ -268,6 +268,7 @@ static void node_register()
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
+  ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;
   nodeRegisterType(&ntype);
 
   node_rna(ntype.rna_ext.srna);

@@ -245,8 +245,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
     case PROP_COLLECTION: {
       char text[256];
       SNPRINTF(text, IFACE_("%d items"), RNA_property_collection_length(ptr, prop));
-      but = uiDefBut(
-          block, UI_BTYPE_LABEL, 0, text, x, y, width, height, nullptr, 0, 0, 0, 0, nullptr);
+      but = uiDefBut(block, UI_BTYPE_LABEL, 0, text, x, y, width, height, nullptr, 0, 0, nullptr);
       UI_but_flag_enable(but, UI_BUT_DISABLED);
       break;
     }

@@ -13,7 +13,7 @@
 /* Bitness */
 
 #if defined(__ppc64__) || defined(__PPC64__) || defined(__x86_64__) || defined(__ia64__) || \
-    defined(_M_X64) || defined(__aarch64__)
+    defined(_M_X64) || defined(__aarch64__) || defined(_M_ARM64)
 #  define __KERNEL_64_BIT__
 #endif
 

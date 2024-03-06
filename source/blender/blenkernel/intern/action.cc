@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -42,7 +43,7 @@
 #include "BKE_asset.hh"
 #include "BKE_constraint.h"
 #include "BKE_deform.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -97,7 +98,11 @@ static CLG_LogRef LOG = {"bke.action"};
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void action_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void action_copy_data(Main * /*bmain*/,
+                             std::optional<Library *> /*owner_library*/,
+                             ID *id_dst,
+                             const ID *id_src,
+                             const int flag)
 {
   bAction *action_dst = (bAction *)id_dst;
   const bAction *action_src = (const bAction *)id_src;
@@ -199,7 +204,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_id_struct(writer, bAction, id_address, &act->id);
   BKE_id_blend_write(writer, &act->id);
 
-  BKE_fcurve_blend_write(writer, &act->curves);
+  BKE_fcurve_blend_write_listbase(writer, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, grp, &act->groups) {
     BLO_write_struct(writer, bActionGroup, grp);
@@ -229,7 +234,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
   }
   /* >>> XXX deprecated - old animation system */
 
-  BKE_fcurve_blend_read_data(reader, &act->curves);
+  BKE_fcurve_blend_read_data_listbase(reader, &act->curves);
 
   LISTBASE_FOREACH (bActionGroup *, agrp, &act->groups) {
     BLO_read_data_address(reader, &agrp->channels.first);

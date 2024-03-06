@@ -14,6 +14,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -150,7 +151,11 @@ static void ntree_init_data(ID *id)
   ntree_set_typeinfo(ntree, nullptr);
 }
 
-static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, const int flag)
+static void ntree_copy_data(Main * /*bmain*/,
+                            std::optional<Library *> /*owner_library*/,
+                            ID *id_dst,
+                            const ID *id_src,
+                            const int flag)
 {
   bNodeTree *ntree_dst = reinterpret_cast<bNodeTree *>(id_dst);
   const bNodeTree *ntree_src = reinterpret_cast<const bNodeTree *>(id_src);
@@ -798,10 +803,10 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         /* Not in undo case. */
         if (!BLO_write_is_undo(writer)) {
           switch (ndg->type) {
-            case 2: /* Grrrr! magic numbers :( */
+            case CMP_NODE_GLARE_STREAKS:
               ndg->angle = ndg->streaks;
               break;
-            case 0:
+            case CMP_NODE_GLARE_SIMPLE_STAR:
               ndg->angle = ndg->star_45;
               break;
             default:

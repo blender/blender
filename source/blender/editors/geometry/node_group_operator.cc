@@ -208,6 +208,8 @@ static void store_result_geometry(
     case OB_MESH: {
       Mesh &mesh = *static_cast<Mesh *>(object.data);
 
+      const bool has_shape_keys = mesh.key != nullptr;
+
       if (object.mode == OB_MODE_SCULPT) {
         sculpt_paint::undo::geometry_begin(&object, &op);
       }
@@ -222,6 +224,10 @@ static void store_result_geometry(
 
         BKE_object_material_from_eval_data(&bmain, &object, &new_mesh->id);
         BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+      }
+
+      if (has_shape_keys && !mesh.key) {
+        BKE_report(op.reports, RPT_WARNING, "Mesh shape key data removed");
       }
 
       if (object.mode == OB_MODE_EDIT) {

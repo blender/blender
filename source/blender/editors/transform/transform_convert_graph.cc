@@ -15,7 +15,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_layer.hh"
 #include "BKE_nla.h"
 #include "BKE_report.hh"

@@ -224,7 +224,8 @@ void ShadowPunctual::sync(eLightType light_type,
                           float cone_aperture,
                           float light_shape_radius,
                           float max_distance,
-                          float softness_factor)
+                          float softness_factor,
+                          float shadow_radius)
 {
   if (is_spot_light(light_type)) {
     tilemaps_needed_ = (cone_aperture > DEG2RADF(90.0f)) ? 5 : 1;
@@ -247,6 +248,7 @@ void ShadowPunctual::sync(eLightType light_type,
 
   position_ = float3(object_mat[3]);
   softness_factor_ = softness_factor;
+  shadow_radius_ = shadow_radius;
 }
 
 void ShadowPunctual::release_excess_tilemaps()
@@ -341,8 +343,7 @@ void ShadowPunctual::end_sync(Light &light, float lod_bias)
   ShadowTileMapPool &tilemap_pool = shadows_.tilemap_pool;
 
   float side, near, far;
-  compute_projection_boundaries(
-      light_radius_, light_radius_ * softness_factor_, max_distance_, near, far, side);
+  compute_projection_boundaries(light_radius_, shadow_radius_, max_distance_, near, far, side);
 
   /* Shift shadow map origin for area light to avoid clipping nearby geometry. */
   float shift = is_area_light(light.type) ? near : 0.0f;

@@ -1122,6 +1122,8 @@ void gpu::MTLTexture::update_sub(
     /* Decrement texture reference counts. This ensures temporary texture views are released. */
     [texture_handle release];
 
+    ctx->main_command_buffer.submit(false);
+
     /* Release temporary staging buffer allocation.
      * NOTE: Allocation will be tracked with command submission and released once no longer in use.
      */

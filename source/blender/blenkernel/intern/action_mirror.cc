@@ -25,7 +25,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 
 #include "DEG_depsgraph.hh"
 

@@ -24,7 +24,7 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_curve.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"

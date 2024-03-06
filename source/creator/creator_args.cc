@@ -764,12 +764,16 @@ static void print_help(bArgs *ba, bool all)
   if (defs.with_ocio) {
     PRINT("  $OCIO                     Path to override the OpenColorIO config file.\n");
   }
-  if (defs.win32) {
-    PRINT("  $TEMP                     Store temporary files here (MS-Windows).\n");
+  if (defs.win32 || all) {
+    PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
   }
   if (!defs.win32 || all) {
-    PRINT("  $TMP or $TMPDIR           Store temporary files here (UNIX Systems).\n");
+    /* NOTE: while `TMP` checked, don't include here as it's non-standard & may be removed. */
+    PRINT("  $TMPDIR                    Store temporary files here (UNIX Systems).\n");
   }
+  PRINT(
+      "                             The path must reference an existing directory "
+      "or it will be ignored.\n");
 
 #  undef printf
 #  undef PRINT

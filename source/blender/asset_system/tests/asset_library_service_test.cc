@@ -62,7 +62,7 @@ class AssetLibraryServiceTest : public testing::Test {
    * The returned path ends in a slash. */
   CatalogFilePath use_temp_path()
   {
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
     const CatalogFilePath tempdir = BKE_tempdir_session();
     temp_library_path_ = tempdir + "test-temporary-path" + SEP_STR;
     return temp_library_path_;

@@ -556,7 +556,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     PropertyRNA *prop = but->rnaprop;
     const PropertyType type = RNA_property_type(prop);
     const PropertySubType subtype = RNA_property_subtype(prop);
-    bool is_anim = RNA_property_animateable(ptr, prop);
+    bool is_anim = RNA_property_anim_editable(ptr, prop);
     const bool is_idprop = RNA_property_is_idprop(prop);
 
     /* second slower test,
@@ -1111,8 +1111,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             nullptr,
             0,
             0,
-            0,
-            0,
             "");
         item_found = true;
         UI_but_func_set(but2, [um, umi](bContext &) {
@@ -1137,8 +1135,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           w,
           UI_UNIT_Y,
           nullptr,
-          0,
-          0,
           0,
           0,
           "Add to a user defined context menu (stored in the user preferences)");
@@ -1192,8 +1188,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             nullptr,
             0,
             0,
-            0,
-            0,
             "");
         UI_but_func_set(but2, [but](bContext &C) {
           UI_popup_block_invoke(&C, menu_change_shortcut, but, nullptr);
@@ -1210,8 +1204,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                                        w,
                                        UI_UNIT_Y,
                                        nullptr,
-                                       0,
-                                       0,
                                        0,
                                        0,
                                        TIP_("Only keyboard shortcuts can be edited that way, "
@@ -1232,8 +1224,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           nullptr,
           0,
           0,
-          0,
-          0,
           "");
       UI_but_func_set(but2, [but](bContext &C) { remove_shortcut_func(&C, but); });
     }
@@ -1250,8 +1240,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           w,
           UI_UNIT_Y,
           nullptr,
-          0,
-          0,
           0,
           0,
           "");

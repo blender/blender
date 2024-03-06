@@ -68,7 +68,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curveprofile.h"
 #include "BKE_customdata.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil_geom_legacy.h"

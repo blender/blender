@@ -250,9 +250,8 @@ class BlurOperation : public NodeOperation {
       return true;
     }
 
-    /* Both Box and Gaussian filters are separable. The rest is not. */
+    /* Only Gaussian filters are separable. The rest is not. */
     switch (node_storage(bnode()).filtertype) {
-      case R_FILTER_BOX:
       case R_FILTER_GAUSS:
       case R_FILTER_FAST_GAUSS:
         return true;

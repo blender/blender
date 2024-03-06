@@ -159,7 +159,7 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
       const IndexRange points = points_by_curve[stroke_i];
       const int noise_len = math::ceil(points.size() * noise_scale) + 2;
       const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 2);
+          noise_len, int(math::floor(mmd.noise_offset)), seed + 2 + stroke_i);
       for (const int i : points.index_range()) {
         const int point = points[i];
         float weight = get_weight(points, i);
@@ -179,7 +179,8 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
     filtered_strokes.foreach_index(GrainSize(512), [&](const int stroke_i) {
       const IndexRange points = points_by_curve[stroke_i];
       const int noise_len = math::ceil(points.size() * noise_scale) + 2;
-      const Array<float> table = noise_table(noise_len, int(math::floor(mmd.noise_offset)), seed);
+      const Array<float> table = noise_table(
+          noise_len, int(math::floor(mmd.noise_offset)), seed + stroke_i);
       for (const int i : points.index_range()) {
         const int point = points[i];
         const float weight = get_weight(points, i);
@@ -197,7 +198,7 @@ static void deform_drawing(const GreasePencilNoiseModifierData &mmd,
       const IndexRange points = points_by_curve[stroke_i];
       const int noise_len = math::ceil(points.size() * noise_scale) + 2;
       const Array<float> table = noise_table(
-          noise_len, int(math::floor(mmd.noise_offset)), seed + 3);
+          noise_len, int(math::floor(mmd.noise_offset)), seed + 3 + stroke_i);
       for (const int i : points.index_range()) {
         const int point = points[i];
         const float weight = get_weight(points, i);

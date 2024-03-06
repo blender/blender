@@ -30,6 +30,11 @@ if(UNIX AND NOT APPLE)
     -DPKG_WAYLAND_INCLUDE_DIRS=${LIBDIR}/wayland/include
     -DPKG_WAYLAND_LIBRARY_DIRS=${LIBDIR}/wayland/lib64
   )
+elseif(BLENDER_PLATFORM_WINDOWS_ARM)
+  set(VULKAN_LOADER_EXTRA_ARGS
+    -DUSE_MASM=OFF
+    -DVulkanHeaders_DIR=${LIBDIR}/vulkan_headers/share/cmake/VulkanHeaders
+  )
 endif()
 
 ExternalProject_Add(external_vulkan_loader

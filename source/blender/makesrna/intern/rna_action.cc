@@ -34,7 +34,7 @@
 
 #  include "BLI_math_base.h"
 
-#  include "BKE_fcurve.h"
+#  include "BKE_fcurve.hh"
 
 #  include "DEG_depsgraph.hh"
 

@@ -63,17 +63,20 @@ vec3 debug_tile_state_color(ShadowTileData tile)
   return col;
 }
 
-// ShadowSample debug_tile_get(vec3 P, LightData light)
-// {
-//   vec3 lNg = vec3(1.0, 0.0, 0.0);
-//   if (is_sun_light(light.type)) {
-//     return shadow_directional_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, P, lNg);
-//   }
-//   else {
-//     vec3 lL = light_world_to_local(light, P - light._position);
-//     return shadow_punctual_sample_get(shadow_atlas_tx, shadow_tilemaps_tx, light, lL, lNg);
-//   }
-// }
+ShadowSampleParams debug_shadow_sample_get(vec3 P, LightData light)
+{
+  if (is_sun_light(light.type)) {
+    return shadow_directional_sample_params_get(shadow_tilemaps_tx, light, P);
+  }
+  else {
+    return shadow_punctual_sample_params_get(shadow_tilemaps_tx, light, P);
+  }
+}
+
+ShadowTileData debug_tile_get(vec3 P, LightData light)
+{
+  return shadow_tile_data_get(shadow_tilemaps_tx, debug_shadow_sample_get(P, light));
+}
 
 LightData debug_light_get()
 {
@@ -128,23 +131,24 @@ bool debug_tilemaps(vec3 P, LightData light)
 
 void debug_tile_state(vec3 P, LightData light)
 {
-  // ShadowSample samp = debug_tile_get(P, light);
-  // out_color_add = vec4(debug_tile_state_color(samp.tile), 0) * 0.5;
-  // out_color_mul = vec4(0.5);
+  ShadowTileData tile = debug_tile_get(P, light);
+  out_color_add = vec4(debug_tile_state_color(tile), 0) * 0.5;
+  out_color_mul = vec4(0.5);
 }
 
 void debug_atlas_values(vec3 P, LightData light)
 {
-  // ShadowSample samp = debug_tile_get(P, light);
-  // out_color_add = vec4(vec3(samp.occluder_dist), 0);
-  // out_color_mul = vec4(0.0);
+  ShadowSampleParams samp = debug_shadow_sample_get(P, light);
+  float depth = shadow_read_depth(shadow_atlas_tx, shadow_tilemaps_tx, samp);
+  out_color_add = vec4(float3(depth), 0.0);
+  out_color_mul = vec4(0.5);
 }
 
 void debug_random_tile_color(vec3 P, LightData light)
 {
-  // ShadowSample samp = debug_tile_get(P, light);
-  // out_color_add = vec4(debug_random_color(ivec2(samp.tile.page.xy)), 0) * 0.5;
-  // out_color_mul = vec4(0.5);
+  ShadowTileData tile = debug_tile_get(P, light);
+  out_color_add = vec4(debug_random_color(ivec2(tile.page.xy)), 0) * 0.5;
+  out_color_mul = vec4(0.5);
 }
 
 void debug_random_tilemap_color(vec3 P, LightData light)

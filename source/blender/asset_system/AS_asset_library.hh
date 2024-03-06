@@ -261,7 +261,7 @@ blender::asset_system::AssetLibrary *AS_asset_library_load(const char *name,
                                                            const char *library_dirpath);
 
 /** Return whether any loaded AssetLibrary has unsaved changes to its catalogs. */
-bool AS_asset_library_has_any_unsaved_catalogs(void);
+bool AS_asset_library_has_any_unsaved_catalogs();
 
 /**
  * An asset library can include local IDs (IDs in the current file). Their pointers need to be

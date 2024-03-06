@@ -18,7 +18,7 @@
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name F-Curve Path Cache

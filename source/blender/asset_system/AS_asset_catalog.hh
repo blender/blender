@@ -286,7 +286,7 @@ class AssetCatalogService {
  */
 class AssetCatalog {
  public:
-  CatalogID catalog_id;
+  const CatalogID catalog_id;
   AssetCatalogPath path;
   /**
    * Simple, human-readable name for the asset catalog. This is stored on assets alongside the
@@ -318,7 +318,7 @@ class AssetCatalog {
   } flags;
 
  public:
-  AssetCatalog() = default;
+  AssetCatalog() = delete;
   AssetCatalog(CatalogID catalog_id, const AssetCatalogPath &path, const std::string &simple_name);
 
   /**

@@ -1746,7 +1746,6 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
   }
 
   if (use_local_space) {
-    BLI_assert(t->idx_max == 2);
     mul_m3_v3(t->spacemtx_inv, r_val);
   }
 

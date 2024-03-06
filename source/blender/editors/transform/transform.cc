@@ -63,6 +63,22 @@
 
 using namespace blender;
 
+/* -------------------------------------------------------------------- */
+/** \name General Utils
+ * \{ */
+
+/* Calculates projection vector based on a location. */
+void transform_view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3])
+{
+  if (t->persp != RV3D_ORTHO) {
+    sub_v3_v3v3(r_vec, t->viewinv[3], focus);
+  }
+  else {
+    copy_v3_v3(r_vec, t->viewinv[2]);
+  }
+  normalize_v3(r_vec);
+}
+
 bool transdata_check_local_islands(TransInfo *t, short around)
 {
   if (t->options & (CTX_CURSOR | CTX_TEXTURE_SPACE)) {
@@ -71,6 +87,8 @@ bool transdata_check_local_islands(TransInfo *t, short around)
   return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
           ELEM(t->obedit_type, OB_MESH, OB_GPENCIL_LEGACY));
 }
+
+/** \} */
 
 /* ************************** SPACE DEPENDENT CODE **************************** */
 
@@ -708,6 +726,13 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       break;
     }
     case TFM_MODAL_PASSTHROUGH_NAVIGATE:
+      if (ELEM(t->mode, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+        /* Returning `false` will not prevent the navigation from working, it will just not display
+         * the shortcut in the header.
+         * Return `false` here to prevent this modal item from affecting the state with
+         * #T_ALT_TRANSFORM used by the Edge and Vert Slide operators. */
+        return false;
+      }
       return t->vod != nullptr;
   }
   return true;

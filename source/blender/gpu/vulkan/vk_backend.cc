@@ -263,6 +263,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_textures_geom = limits.maxPerStageDescriptorSampledImages;
   GCaps.max_textures_frag = limits.maxPerStageDescriptorSampledImages;
   GCaps.max_samplers = limits.maxSamplerAllocationCount;
+  GCaps.max_images = limits.maxPerStageDescriptorStorageImages;
   for (int i = 0; i < 3; i++) {
     GCaps.max_work_group_count[i] = limits.maxComputeWorkGroupCount[i];
     GCaps.max_work_group_size[i] = limits.maxComputeWorkGroupSize[i];

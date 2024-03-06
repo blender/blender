@@ -2249,7 +2249,7 @@ static void view3d_opengl_read_Z_pixels(GPUViewport *viewport, rcti *rect, void 
   GPU_framebuffer_free(depth_read_fb);
 }
 
-void ED_view3d_select_id_validate(ViewContext *vc)
+void ED_view3d_select_id_validate(const ViewContext *vc)
 {
   validate_object_select_id(
       vc->depsgraph, vc->scene, vc->view_layer, vc->region, vc->v3d, vc->obact);

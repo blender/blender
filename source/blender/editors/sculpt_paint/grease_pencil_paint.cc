@@ -242,6 +242,21 @@ struct PaintOperationExecutor {
     materials.span.last() = material_index;
     hardnesses.span.last() = hardness_;
 
+    /* Only set the attribute if the type is not the default or if it already exists. */
+    if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("start_cap")) {
+      bke::SpanAttributeWriter<int8_t> start_caps =
+          attributes.lookup_or_add_for_write_span<int8_t>("start_cap", bke::AttrDomain::Curve);
+      start_caps.span.last() = settings_->caps_type;
+      start_caps.finish();
+    }
+
+    if (settings_->caps_type != GP_STROKE_CAP_TYPE_ROUND || attributes.contains("end_cap")) {
+      bke::SpanAttributeWriter<int8_t> end_caps = attributes.lookup_or_add_for_write_span<int8_t>(
+          "end_cap", bke::AttrDomain::Curve);
+      end_caps.span.last() = settings_->caps_type;
+      end_caps.finish();
+    }
+
     cyclic.finish();
     materials.finish();
     hardnesses.finish();
@@ -254,10 +269,11 @@ struct PaintOperationExecutor {
                                       bke::AttrDomain::Point,
                                       {"position", "radius", "opacity", "vertex_color"},
                                       curves.points_range().take_back(1));
-    bke::fill_attribute_range_default(attributes,
-                                      bke::AttrDomain::Curve,
-                                      {"curve_type", "material_index", "cyclic", "hardness"},
-                                      curves.curves_range().take_back(1));
+    bke::fill_attribute_range_default(
+        attributes,
+        bke::AttrDomain::Curve,
+        {"curve_type", "material_index", "cyclic", "hardness", "start_cap", "end_cap"},
+        curves.curves_range().take_back(1));
 
     drawing_->tag_topology_changed();
   }

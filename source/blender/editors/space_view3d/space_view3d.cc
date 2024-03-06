@@ -797,6 +797,11 @@ static void view3d_ob_drop_copy_external_asset(bContext *C, wmDrag *drag, wmDrop
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   ED_outliner_select_sync_from_object_tag(C);
 
+  /* Make sure the depsgraph is evaluated so the new object's transforms are up-to-date.
+   * The evaluated #Object::object_to_world() will be copied back to the original object
+   * and used below. */
+  CTX_data_ensure_evaluated_depsgraph(C);
+
   V3DSnapCursorState *snap_state = static_cast<V3DSnapCursorState *>(drop->draw_data);
   if (snap_state) {
     float obmat_final[4][4];

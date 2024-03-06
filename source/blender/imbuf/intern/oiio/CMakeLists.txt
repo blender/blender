@@ -36,21 +36,21 @@ if(WITH_PUGIXML)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-  # Keep until APPLE/ARM libraries are updated.
-  if(APPLE)
-    if(CMAKE_OSX_ARCHITECTURES MATCHES arm64)
-      list(APPEND INC_SYS
-        ${IMATH_INCLUDE_DIRS}
-      )
-    endif()
-  endif()
-
   list(APPEND INC_SYS
     ${OPENEXR_INCLUDE_DIRS}
   )
   list(APPEND LIB
     ${OPENEXR_LIBRARIES}
   )
+endif()
+
+# Keep until APPLE/ARM libraries are updated.
+if(APPLE OR WIN32)
+  if(CMAKE_OSX_ARCHITECTURES MATCHES arm64 OR CMAKE_SYSTEM_PROCESSOR MATCHES ARM64)
+    list(APPEND INC_SYS
+      ${IMATH_INCLUDE_DIRS}
+    )
+  endif()
 endif()
 
 blender_add_lib(bf_imbuf_openimageio "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

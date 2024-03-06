@@ -5,7 +5,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 
 #include "ANIM_fcurve.hh"
 

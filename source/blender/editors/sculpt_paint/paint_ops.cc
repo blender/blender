@@ -1957,6 +1957,8 @@ void ED_operatortypes_paint()
   WM_operatortype_append(PAINT_OT_face_vert_reveal);
 
   /* partial visibility */
+  WM_operatortype_append(hide::PAINT_OT_hide_show_all);
+  WM_operatortype_append(hide::PAINT_OT_hide_show_masked);
   WM_operatortype_append(hide::PAINT_OT_hide_show);
   WM_operatortype_append(hide::PAINT_OT_visibility_invert);
 

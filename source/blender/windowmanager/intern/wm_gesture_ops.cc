@@ -18,6 +18,7 @@
 
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
 #include "BKE_context.hh"
@@ -32,6 +33,9 @@
 #include "ED_select_utils.hh"
 
 #include "RNA_access.hh"
+
+using blender::Array;
+using blender::int2;
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Gesture Utilities
@@ -620,38 +624,29 @@ void WM_gesture_lines_cancel(bContext *C, wmOperator *op)
   gesture_modal_end(C, op);
 }
 
-const int (*WM_gesture_lasso_path_to_array(bContext * /*C*/,
-                                           wmOperator *op,
-                                           int *r_mcoords_len))[2]
+Array<int2> WM_gesture_lasso_path_to_array(bContext * /*C*/, wmOperator *op)
 {
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "path");
-  int(*mcoords)[2] = nullptr;
   BLI_assert(prop != nullptr);
-
-  if (prop) {
-    const int len = RNA_property_collection_length(op->ptr, prop);
-
-    if (len) {
-      int i = 0;
-      mcoords = static_cast<int(*)[2]>(MEM_mallocN(sizeof(int[2]) * len, __func__));
-
-      RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
-        float loc[2];
-
-        RNA_float_get_array(&itemptr, "loc", loc);
-        mcoords[i][0] = int(loc[0]);
-        mcoords[i][1] = int(loc[1]);
-        i++;
-      }
-      RNA_PROP_END;
-    }
-    *r_mcoords_len = len;
+  if (!prop) {
+    return {};
   }
-  else {
-    *r_mcoords_len = 0;
+  const int len = RNA_property_collection_length(op->ptr, prop);
+  if (len == 0) {
+    return {};
   }
 
-  /* cast for 'const' */
+  int i = 0;
+  Array<int2> mcoords(len);
+
+  RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
+    float loc[2];
+    RNA_float_get_array(&itemptr, "loc", loc);
+    mcoords[i] = int2(loc[0], loc[1]);
+    i++;
+  }
+  RNA_PROP_END;
+
   return mcoords;
 }
 

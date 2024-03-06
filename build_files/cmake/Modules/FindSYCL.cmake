@@ -12,12 +12,14 @@
 #                 This can also be an environment variable.
 #  SYCL_FOUND, If false, then don't try to use SYCL.
 
-if(DEFINED SYCL_ROOT_DIR AND SYCL_ROOT_DIR)
+if(NOT (DEFINED SYCL_ROOT_DIR))
+  set(SYCL_ROOT_DIR "")
+endif()
+
+if(SYCL_ROOT_DIR)
   # Pass.
 elseif(DEFINED ENV{SYCL_ROOT_DIR} AND NOT $ENV{SYCL_ROOT_DIR} STREQUAL "")
   set(SYCL_ROOT_DIR $ENV{SYCL_ROOT_DIR})
-else()
-  set(SYCL_ROOT_DIR "")
 endif()
 
 set(_sycl_search_dirs

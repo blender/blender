@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
-"PO-Revision-Date: 2024-02-19 21:51+0000\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"PO-Revision-Date: 2024-03-02 19:55+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -4063,10 +4063,6 @@ msgstr "L'índex de la col·lecció d'ossos activa de l'esquelet; buit quan no h
 
 msgid "Solo Active"
 msgstr "En solitari actiu"
-
-
-msgid "Read-ony flag that indicates there is at least one bone collection marked as 'solo'"
-msgstr "Indicador de només lectura que indica que hi ha almenys una col·lecció d'ossos marcada com a \"en solitari\""
 
 
 msgid "Theme color or custom color of a bone"
@@ -9925,7 +9921,7 @@ msgstr "Identificador aleatori d'instància"
 
 
 msgid "Random id for this instance, typically for randomized shading"
-msgstr "[Instance Random ID]: Identificador aleatori per a aquesta instància, normalment per a una aspectació aleatòria"
+msgstr "[Instance Random ID]: Identificador aleatori per a aquesta instància, normalment per a una aspecció aleatòria"
 
 
 msgid "Show Particles"
@@ -27496,7 +27492,7 @@ msgstr "[Display Transparent]: Mostra la transparència del material en l'object
 
 
 msgid "Display the object's wireframe over solid shading"
-msgstr "Mostra el tramat de l'objecte per damunt de l'aspectació sòlida"
+msgstr "Mostra el tramat de l'objecte per damunt de l'aspecció sòlida"
 
 
 msgid "Soft Body Settings"
@@ -40510,7 +40506,7 @@ msgid ""
 "Warning: Depending on chosen triangulation method, shading may not be fully preserved, \"Fixed\" method usually gives the best result here"
 msgstr ""
 "[Keep Normals]: Intenta preservar les normals adaptades.\n"
-"Avís: Depenent del mètode de triangulació escollit, l'aspectació pot no conservar-se del tot, aquí el mètode «Reparat» dona el millor resultat"
+"Avís: Depenent del mètode de triangulació escollit, l'aspecció pot no conservar-se del tot, aquí el mètode «Reparat» dona el millor resultat"
 
 
 msgid "Minimum Vertices"
@@ -45764,18 +45760,6 @@ msgid "Rotate Euler"
 msgstr "Rotació euler"
 
 
-msgid "Base orientation for rotation"
-msgstr "Orientació base per a la rotació"
-
-
-msgid "Rotate the input rotation in the local space of the object"
-msgstr "Rotació de la rotació d'ingressió dins l'espai local de l'objecte"
-
-
-msgid "Rotate the input rotation in its local space"
-msgstr "Rotació de la rotació d'ingressió en el seu espai local"
-
-
 msgid "Method used to describe the rotation"
 msgstr "Mètode utilitzat per descriure la rotació"
 
@@ -45786,6 +45770,18 @@ msgstr "Rotar al voltant d'un eix en un angle"
 
 msgid "Rotate around the X, Y, and Z axes"
 msgstr "Rotar al voltant dels eixos X, Y i Z"
+
+
+msgid "Base orientation for rotation"
+msgstr "Orientació base per a la rotació"
+
+
+msgid "Rotate the input rotation in the local space of the object"
+msgstr "Rotació de la rotació d'ingressió dins l'espai local de l'objecte"
+
+
+msgid "Rotate the input rotation in its local space"
+msgstr "Rotació de la rotació d'ingressió en el seu espai local"
 
 
 msgid "Rotate Rotation"
@@ -47818,7 +47814,7 @@ msgid ""
 "Compute how much the hemisphere above the shading point is occluded, for example to add weathering effects to corners.\n"
 "Note: For Cycles, this may slow down renders significantly"
 msgstr ""
-"[Ambient Occlusion]: Calcula quant s'obtura l'hemisferi per damunt del punt d'aspectació, per exemple per afegir efectes d'erosió als cantells.\n"
+"[Ambient Occlusion]: Calcula quant s'obtura l'hemisferi per damunt del punt d'aspecció, per exemple per afegir efectes d'erosió als cantells.\n"
 "Nota: Per a Cycles, això pot alentir significativament els revelats"
 
 
@@ -48103,7 +48099,7 @@ msgstr ""
 
 
 msgid "Sheen shading model"
-msgstr "Model d'aspectació de llustre"
+msgstr "Model d'aspecció de llustre"
 
 
 msgid "Ashikhmin"
@@ -48175,7 +48171,7 @@ msgstr "Dades de càmera"
 
 
 msgid "Retrieve information about the camera and how it relates to the current shading point's position"
-msgstr "Extreu informació sobre la càmera i com es relaciona amb la posició actual del punt d'aspectació"
+msgstr "Extreu informació sobre la càmera i com es relaciona amb la posició actual del punt d'aspecció"
 
 
 msgid "Clamp a value between a minimum and a maximum"
@@ -48643,7 +48639,7 @@ msgstr "Xifrat efímer del bytecode compilat, per a comprovar ràpid la igualtat
 
 
 msgid "Shader script path"
-msgstr "Ruta del protocol d'aspectació"
+msgstr "Ruta del protocol d'aspecció"
 
 
 msgid "Script Source"
@@ -49715,7 +49711,7 @@ msgstr "Volum postulat"
 
 
 msgid "Combine all volume shading components into a single easy to use node"
-msgstr "[Principled Volume]: Combina tots els components d'aspectació de volum en un sol node de fàcil ús"
+msgstr "[Principled Volume]: Combina tots els components d'aspecció de volum en un sol node de fàcil ús"
 
 
 msgid "Volume Scatter"
@@ -63246,7 +63242,7 @@ msgstr "[Principled]: Aspector postulat"
 
 
 msgid "Shadeless"
-msgstr "Sense aspectació"
+msgstr "Sense aspecció"
 
 
 msgid "Only visible to camera and reflections"
@@ -63539,7 +63535,7 @@ msgstr "Usar dades de normals"
 
 
 msgid "Flat Shading"
-msgstr "Aspectació aplanada"
+msgstr "Aspecció aplanada"
 
 
 msgid "Import WebP textures"
@@ -82461,11 +82457,11 @@ msgstr "Tipus d'aspector a permutar"
 
 
 msgid "Toggle wireframe shading"
-msgstr "Permutar aspectació de tramat"
+msgstr "Permutar aspecció de tramat"
 
 
 msgid "Toggle solid shading"
-msgstr "Permutar aspectació sòlida"
+msgstr "Permutar aspecció sòlida"
 
 
 msgid "Material Preview"
@@ -82473,11 +82469,11 @@ msgstr "Previsionar material"
 
 
 msgid "Toggle material preview shading"
-msgstr "Permuta el previsionat d'aspectació de material"
+msgstr "Permuta el previsionat d'aspecció de material"
 
 
 msgid "Toggle rendered shading"
-msgstr "Permutar aspectació de revelat"
+msgstr "Permutar aspecció de revelat"
 
 
 msgctxt "Operator"
@@ -82948,7 +82944,7 @@ msgstr "Exporta sistemes de partícules que no són pèl"
 
 
 msgid "Export per face shading group assignments"
-msgstr "Exportar per a les assignacions de grup d'aspectació de cares"
+msgstr "Exportar per a les assignacions de grup d'aspecció de cares"
 
 
 msgid "Flatten Hierarchy"
@@ -89995,7 +89991,7 @@ msgstr "Resolució de previsionat de nodes"
 
 
 msgid "Resolution used for Shader node previews (should be changed for performance convenience)"
-msgstr "Resolució emprada per a previsionar nodes d'aspectació (cal canviar-la d'acord amb les necessitats de processament)"
+msgstr "Resolució emprada per a previsionar nodes d'aspecció (cal canviar-la d'acord amb les necessitats de processament)"
 
 
 msgid "Auto-offset"
@@ -90451,11 +90447,11 @@ msgstr "[Sculpt Mode Tilt Support]: Suport per a accions d'inclinació del pen d
 
 
 msgid "Shader Node Previews"
-msgstr "Previsionats de nodes d'aspectació"
+msgstr "Previsionats de nodes d'aspecció"
 
 
 msgid "Enables previews in the shader node editor"
-msgstr "Activa previsionats en l'editor de nodes d'aspectació"
+msgstr "Activa previsionats en l'editor de nodes d'aspecció"
 
 
 msgid "Undo Legacy"
@@ -91569,7 +91565,7 @@ msgstr "Llums sòlides"
 
 
 msgid "Lights used to display objects in solid shading mode"
-msgstr "[Solid Lights]: Llums usades per a mostrar objectes en el mode d'aspectació sòlida"
+msgstr "[Solid Lights]: Llums usades per a mostrar objectes en el mode d'aspecció sòlida"
 
 
 msgid "Texture Collection Rate"
@@ -92999,7 +92995,7 @@ msgstr "[Shadow Terminator Geometry Offset]: Desvia els rajos de superfície per
 
 
 msgid "Shadow Terminator Shading Offset"
-msgstr "Desviació d'aspectació d'anul·lar ombres"
+msgstr "Desviació d'aspecció d'anul·lar ombres"
 
 
 msgid "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
@@ -93979,7 +93975,7 @@ msgstr "Arbre de llum"
 
 
 msgid "Sample multiple lights more efficiently based on estimated contribution at every shading point"
-msgstr "[Light Tree]: Mostreja múltiples llums de forma més eficient en funció de la contribució estimada en cada punt d'aspectació"
+msgstr "[Light Tree]: Mostreja múltiples llums de forma més eficient en funció de la contribució estimada en cada punt d'aspecció"
 
 
 msgid "Automatically reduce the number of samples per pixel based on estimated noise level, for viewport renders"
@@ -94247,7 +94243,7 @@ msgstr "Mètode d'interpolació per als volums"
 
 
 msgid "Distance between volume shader samples when rendering the volume (lower values give more accurate and detailed results, but also increased render time)"
-msgstr "Distància entre les mostres d'aspectació de volum en revelar el volum (els valors més baixos donen resultats més precisos i detallats, però també major temps de revelat)"
+msgstr "Distància entre les mostres d'aspecció de volum en revelar el volum (els valors més baixos donen resultats més precisos i detallats, però també major temps de revelat)"
 
 
 msgid "Keep Animation"
@@ -95168,7 +95164,7 @@ msgstr "Nombre de mostres utilitzades per al precuinat de l'oclusió ambiental d
 
 
 msgid "Choose shading information to bake into the image"
-msgstr "Triar informació d'aspectació a precuinar en la imatge"
+msgstr "Triar informació d'aspecció a precuinar en la imatge"
 
 
 msgid "Bake normals"
@@ -95431,7 +95427,7 @@ msgstr "Nombre de píxels verticals en la imatge revelada"
 
 
 msgid "Sequencer Preview Shading"
-msgstr "Aspectació de previsionat del seqüenciador"
+msgstr "Aspecció de previsionat del seqüenciador"
 
 
 msgid "Display method used in the sequencer view"
@@ -100902,15 +100898,15 @@ msgstr "[Shader Type]: Tipus de dades des d'on s'ha d'agafar l'aspector"
 
 
 msgid "Edit shader nodes from Object"
-msgstr "Editar nodes d'aspectació des d'objecte"
+msgstr "Editar nodes d'aspecció des d'objecte"
 
 
 msgid "Edit shader nodes from World"
-msgstr "Editar nodes d'aspectació des del món"
+msgstr "Editar nodes d'aspecció des del món"
 
 
 msgid "Edit shader nodes from Line Style"
-msgstr "Editar nodes d'aspectació des del lineament"
+msgstr "Editar nodes d'aspecció des del lineament"
 
 
 msgid "Use active Viewer Node output as backdrop for compositing nodes"
@@ -101907,7 +101903,7 @@ msgstr "[Quad View Regions]: Regions 3D (la tercera defineix la configuració de
 
 
 msgid "Settings for shading in the 3D viewport"
-msgstr "Paràmetres d'aspectació del mirador 3D"
+msgstr "Paràmetres d'aspecció del mirador 3D"
 
 
 msgid "Show 3D Marker Names"
@@ -106262,10 +106258,6 @@ msgid "Use Remote"
 msgstr "Emprar remot"
 
 
-msgid "Synchonize the repository with a remote URL/path"
-msgstr "Sincronitza el repositori amb una ruta/URL remota"
-
-
 msgid "User Extension Repositories"
 msgstr "Repositoris d'extensions de la usuària"
 
@@ -106279,7 +106271,7 @@ msgstr "Llum sòlida"
 
 
 msgid "Light used for Studio lighting in solid shading mode"
-msgstr "Llum usada per a il·luminació d'estudi en mode d'aspectació sòlida"
+msgstr "Llum usada per a il·luminació d'estudi en mode d'aspecció sòlida"
 
 
 msgid "Color of the light's diffuse highlight"
@@ -106299,7 +106291,7 @@ msgstr "Color del ressaltat especular de la llum"
 
 
 msgid "Enable this light in solid shading mode"
-msgstr "Activa aquesta llum en mode d'aspectació sòlida"
+msgstr "Activa aquesta llum en mode d'aspecció sòlida"
 
 
 msgid "Group of vertices, used for armature deform and other purposes"
@@ -106567,7 +106559,7 @@ msgstr "Mostrar centres de cares"
 
 
 msgid "Display face center when face selection is enabled in solid shading modes"
-msgstr "Mostra el centre de les cares quan la selecció de cares està activada en els modes d'aspectació sòlida"
+msgstr "Mostra el centre de les cares quan la selecció de cares està activada en els modes d'aspecció sòlida"
 
 
 msgid "Display Normals"
@@ -106939,7 +106931,7 @@ msgstr "Opacitat en la selecció d'ossos"
 
 
 msgid "3D View Shading Settings"
-msgstr "Configuració d'aspectació de vista 3D"
+msgstr "Configuració d'aspecció de vista 3D"
 
 
 msgid "Shader AOV Name"
@@ -107008,7 +107000,7 @@ msgstr "Tipus de cavitat"
 
 
 msgid "Way to display the cavity shading"
-msgstr "Manera de mostrar l'aspectació de cavitats"
+msgstr "Manera de mostrar l'aspecció de cavitats"
 
 
 msgid "Cavity shading computed in world space, useful for larger-scale occlusion"
@@ -107021,7 +107013,7 @@ msgstr "Pantalla"
 
 
 msgid "Curvature-based shading, useful for making fine details more visible"
-msgstr "Aspectació basada en curvatura, útil per a fer més visibles els detalls fins"
+msgstr "Aspecció basada en curvatura, útil per a fer més visibles els detalls fins"
 
 
 msgctxt "View3D"
@@ -107086,7 +107078,7 @@ msgstr "Paràmetres de Cycles"
 
 
 msgid "Lighting Method for Solid/Texture Viewport Shading"
-msgstr "Mètode d'il·luminació per a aspectació sòlida/de textura al mirador"
+msgstr "Mètode d'il·luminació per a aspecció sòlida/de textura al mirador"
 
 
 msgid "Display using studio lighting"
@@ -108770,11 +108762,11 @@ msgstr "Fa que seleccionar tot (tecla «A») desseleccioni en cas que hi hagi un
 
 
 msgid "Extra Shading Pie Menu Items"
-msgstr "Aspectació extra d'elements de menú circular"
+msgstr "Aspecció extra d'elements de menú circular"
 
 
 msgid "Show additional options in the shading menu ('Z')"
-msgstr "[Extra Shading Pie Menu Items]: Mostra opcions addicionals al menú d'aspectació («Z»)"
+msgstr "[Extra Shading Pie Menu Items]: Mostra opcions addicionals al menú d'aspecció («Z»)"
 
 
 msgid "Tab for Pie Menu"
@@ -111538,7 +111530,7 @@ msgstr "Desplaçament de geometria"
 
 
 msgid "Shading Offset"
-msgstr "Desplaçament d'aspectació"
+msgstr "Desplaçament d'aspecció"
 
 
 msgid "Show In"
@@ -113744,6 +113736,14 @@ msgstr "Multiplicació de funda"
 
 msgid "Radius Head"
 msgstr "Cap del radi"
+
+
+msgid "Cannot figure out which object this bone belongs to."
+msgstr "No es pot esbrinar a quin objecte pertany aquest os."
+
+
+msgid "Please file a bug report."
+msgstr "Sisplau, informeu d'aquest error."
 
 
 msgid "Not assigned to any bone collection."
@@ -125922,6 +125922,10 @@ msgid "File must be saved before baking"
 msgstr "S'ha de desar el document abans de precuinar"
 
 
+msgid "Cache has to be enabled"
+msgstr "S'ha d'activar la memòria cau"
+
+
 msgid "Skipped some collections because of cycle detected"
 msgstr "S'han omès algunes col·leccions per haver-se detectat un cicle"
 
@@ -135614,7 +135618,7 @@ msgstr "No és un arbre de nodes aspector"
 
 
 msgid "Not a shader or geometry node tree"
-msgstr "No és un arbre de nodes d'aspectació o geometria"
+msgstr "No és un arbre de nodes d'aspecció o geometria"
 
 
 msgid "AO"

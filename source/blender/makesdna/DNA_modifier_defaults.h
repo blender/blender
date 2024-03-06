@@ -1011,4 +1011,38 @@
     .segment_repeat = 1, \
   }
 
+#define _DNA_DEFAULT_GreasePencilEnvelopeModifierData \
+  { \
+    .spread = 10, \
+    .mode = MOD_GREASE_PENCIL_ENVELOPE_SEGMENTS, \
+    .mat_nr = -1, \
+    .thickness = 1.0f, \
+    .strength = 1.0f, \
+    .skip = 0, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilOutlineModifierData \
+  { \
+    .flag = MOD_GREASE_PENCIL_OUTLINE_KEEP_SHAPE, \
+    .thickness = 1, \
+    .sample_length = 0.0f, \
+    .subdiv = 3, \
+    .outline_material = NULL, \
+  }
+
+#define _DNA_DEFAULT_GreasePencilShrinkwrapModifierData \
+  { \
+    .target = NULL, \
+    .aux_target = NULL, \
+    .keep_dist = 0.05f, \
+    .shrink_type = MOD_SHRINKWRAP_NEAREST_SURFACE, \
+    .shrink_opts = MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR, \
+    .shrink_mode = MOD_SHRINKWRAP_ON_SURFACE, \
+    .proj_limit = 0.0f, \
+    .proj_axis = MOD_SHRINKWRAP_PROJECT_OVER_NORMAL, \
+    .subsurf_levels = 0, \
+    .smooth_factor = 0.05f, \
+    .smooth_step = 1, \
+  }
+
 /* clang-format off */

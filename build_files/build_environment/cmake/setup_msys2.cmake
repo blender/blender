@@ -58,7 +58,7 @@ if((NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd") AND
   # Do initial upgrade of pacman packages (only required for initial setup, to get
   # latest packages as opposed to to what the installer comes with)
   execute_process(
-    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -Syu --noconfirm && exit"
+    COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -Sy --noconfirm && exit"
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
   )
 endif()

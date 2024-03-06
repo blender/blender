@@ -357,18 +357,18 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
 
 /* foreach iterators */
 
-void meshobject_foreachScreenVert(ViewContext *vc,
+void meshobject_foreachScreenVert(const ViewContext *vc,
                                   void (*func)(void *user_data,
                                                const float screen_co[2],
                                                int index),
                                   void *user_data,
                                   eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
-    ViewContext *vc,
+    const ViewContext *vc,
     void (*func)(void *user_data, BMVert *eve, const float screen_co[2], int index),
     void *user_data,
     eV3DProjTest clip_flag);
-void mesh_foreachScreenEdge(ViewContext *vc,
+void mesh_foreachScreenEdge(const ViewContext *vc,
                             void (*func)(void *user_data,
                                          BMEdge *eed,
                                          const float screen_co_a[2],
@@ -381,7 +381,7 @@ void mesh_foreachScreenEdge(ViewContext *vc,
  * A version of #mesh_foreachScreenEdge that clips the segment when
  * there is a clipping bounding box.
  */
-void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
+void mesh_foreachScreenEdge_clip_bb_segment(const ViewContext *vc,
                                             void (*func)(void *user_data,
                                                          BMEdge *eed,
                                                          const float screen_co_a[2],
@@ -391,11 +391,11 @@ void mesh_foreachScreenEdge_clip_bb_segment(ViewContext *vc,
                                             eV3DProjTest clip_flag);
 
 void mesh_foreachScreenFace(
-    ViewContext *vc,
+    const ViewContext *vc,
     void (*func)(void *user_data, BMFace *efa, const float screen_co[2], int index),
     void *user_data,
     eV3DProjTest clip_flag);
-void nurbs_foreachScreenVert(ViewContext *vc,
+void nurbs_foreachScreenVert(const ViewContext *vc,
                              void (*func)(void *user_data,
                                           Nurb *nu,
                                           BPoint *bp,
@@ -408,18 +408,18 @@ void nurbs_foreachScreenVert(ViewContext *vc,
 /**
  * #ED_view3d_init_mats_rv3d must be called first.
  */
-void mball_foreachScreenElem(ViewContext *vc,
+void mball_foreachScreenElem(const ViewContext *vc,
                              void (*func)(void *user_data, MetaElem *ml, const float screen_co[2]),
                              void *user_data,
                              eV3DProjTest clip_flag);
-void lattice_foreachScreenVert(ViewContext *vc,
+void lattice_foreachScreenVert(const ViewContext *vc,
                                void (*func)(void *user_data, BPoint *bp, const float screen_co[2]),
                                void *user_data,
                                eV3DProjTest clip_flag);
 /**
  * #ED_view3d_init_mats_rv3d must be called first.
  */
-void armature_foreachScreenBone(ViewContext *vc,
+void armature_foreachScreenBone(const ViewContext *vc,
                                 void (*func)(void *user_data,
                                              EditBone *ebone,
                                              const float screen_co_a[2],
@@ -430,7 +430,7 @@ void armature_foreachScreenBone(ViewContext *vc,
 /**
  * ED_view3d_init_mats_rv3d must be called first.
  */
-void pose_foreachScreenBone(ViewContext *vc,
+void pose_foreachScreenBone(const ViewContext *vc,
                             void (*func)(void *user_data,
                                          bPoseChannel *pchan,
                                          const float screen_co_a[2],
@@ -832,7 +832,7 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
  */
 int ED_view3d_backbuf_sample_size_clamp(ARegion *region, float dist);
 
-void ED_view3d_select_id_validate(ViewContext *vc);
+void ED_view3d_select_id_validate(const ViewContext *vc);
 
 /** Check if the last auto-dist can be used. */
 bool ED_view3d_autodist_last_check(wmWindow *win, const wmEvent *event);
@@ -906,18 +906,18 @@ void view3d_opengl_select_cache_end();
 /**
  * \note (vc->obedit == NULL) can be set to explicitly skip edit-object selection.
  */
-int view3d_opengl_select_ex(ViewContext *vc,
+int view3d_opengl_select_ex(const ViewContext *vc,
                             GPUSelectBuffer *buffer,
                             const rcti *input,
                             eV3DSelectMode select_mode,
                             eV3DSelectObjectFilter select_filter,
                             bool do_material_slot_selection);
-int view3d_opengl_select(ViewContext *vc,
+int view3d_opengl_select(const ViewContext *vc,
                          GPUSelectBuffer *buffer,
                          const rcti *input,
                          eV3DSelectMode select_mode,
                          eV3DSelectObjectFilter select_filter);
-int view3d_opengl_select_with_id_filter(ViewContext *vc,
+int view3d_opengl_select_with_id_filter(const ViewContext *vc,
                                         GPUSelectBuffer *buffer,
                                         const rcti *input,
                                         eV3DSelectMode select_mode,
