@@ -1456,15 +1456,15 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
                                                            gesture::GestureData *gesture_data)
 {
   switch (gesture_data->shape_type) {
-    case gesture::SCULPT_GESTURE_SHAPE_LINE:
+    case gesture::ShapeType::Line:
       threading::parallel_for(gesture_data->nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
           project_line_gesture_apply_task(gesture_data, gesture_data->nodes[i]);
         }
       });
       break;
-    case gesture::SCULPT_GESTURE_SHAPE_LASSO:
-    case gesture::SCULPT_GESTURE_SHAPE_BOX:
+    case gesture::ShapeType::Lasso:
+    case gesture::ShapeType::Box:
       /* Gesture shape projection not implemented yet. */
       BLI_assert(false);
       break;
