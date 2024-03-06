@@ -108,7 +108,7 @@ const StringRefNull IDRemapper::result_to_string(const IDRemapperApplyResult res
   return "";
 }
 
-void IDRemapper::print(void) const
+void IDRemapper::print() const
 {
   auto print_cb = [](ID *old_id, ID *new_id, void * /*user_data*/) {
     if (old_id != nullptr && new_id != nullptr) {

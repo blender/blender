@@ -282,14 +282,14 @@ class IDRemapper {
   bool allow_idtype_mismatch = false;
 
  public:
-  void clear(void)
+  void clear()
   {
     mappings_.clear();
     never_null_users_.clear();
     source_types_ = 0;
   }
 
-  bool is_empty(void) const
+  bool is_empty() const
   {
     return mappings_.is_empty();
   }
@@ -343,7 +343,7 @@ class IDRemapper {
   static const StringRefNull result_to_string(const IDRemapperApplyResult result);
 
   /** Print out the rules inside the given id_remapper. Can be used for debugging purposes. */
-  void print(void) const;
+  void print() const;
 };
 
 }  // namespace blender::bke::id
