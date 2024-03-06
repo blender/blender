@@ -216,7 +216,7 @@ static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 
   const IDRemapperApplyResult expected_mapping_result = id_remapper.get_mapping_result(
       *id_p, id_remapper_options, id_self);
-  /* Exit, when no modifications will be done; ensuring id->runtime counters won't changed. */
+  /* Exit when no modifications will be done, ensuring id->runtime counters won't changed. */
   if (ELEM(expected_mapping_result,
            ID_REMAP_RESULT_SOURCE_UNAVAILABLE,
            ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE))

@@ -808,8 +808,8 @@ static void action_id_remap(ScrArea * /*area*/,
 {
   SpaceAction *sact = (SpaceAction *)slink;
 
-  mappings.apply((ID **)&sact->action, ID_REMAP_APPLY_DEFAULT);
-  mappings.apply((ID **)&sact->ads.filter_grp, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sact->action), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sact->ads.filter_grp), ID_REMAP_APPLY_DEFAULT);
   mappings.apply(&sact->ads.source, ID_REMAP_APPLY_DEFAULT);
 }
 
