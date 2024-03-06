@@ -389,6 +389,11 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_ARMATURE,
      "Armature",
      "Deform stroke points using armature object"},
+    {eModifierType_GreasePencilShrinkwrap,
+     "GREASE_PENCIL_SHRINKWRAP",
+     ICON_MOD_SHRINKWRAP,
+     "Shrinkwrap",
+     "Project the shape onto another object"},
 
     RNA_ENUM_ITEM_HEADING(N_("Physics"), nullptr),
     {eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
@@ -1022,6 +1027,8 @@ RNA_MOD_OBJECT_SET(GreasePencilWeightProximity, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilHook, object, OB_EMPTY);
 RNA_MOD_OBJECT_SET(GreasePencilArmature, object, OB_ARMATURE);
 RNA_MOD_OBJECT_SET(GreasePencilOutline, object, OB_EMPTY);
+RNA_MOD_OBJECT_SET(GreasePencilShrinkwrap, target, OB_MESH);
+RNA_MOD_OBJECT_SET(GreasePencilShrinkwrap, aux_target, OB_MESH);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
@@ -1961,6 +1968,7 @@ RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilWeightProximity);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilHook);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilEnvelope);
 RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilOutline);
+RNA_MOD_GREASE_PENCIL_MATERIAL_FILTER_SET(GreasePencilShrinkwrap);
 
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOffset);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilOpacity);
@@ -1974,6 +1982,7 @@ RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilWeightProximity);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilHook);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilArmature);
 RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilEnvelope);
+RNA_MOD_GREASE_PENCIL_VERTEX_GROUP_SET(GreasePencilShrinkwrap);
 
 static void rna_GreasePencilLineartModifier_material_set(PointerRNA *ptr,
                                                          PointerRNA value,
@@ -2182,6 +2191,20 @@ static void rna_GreasePencilOutlineModifier_outline_material_set(PointerRNA *ptr
 {
   GreasePencilOutlineModifierData *omd = static_cast<GreasePencilOutlineModifierData *>(ptr->data);
   rna_GreasePencilModifier_material_set(ptr, value, reports, &omd->outline_material);
+}
+
+static int rna_GreasePencilShrinkwrapModifier_face_cull_get(PointerRNA *ptr)
+{
+  const GreasePencilShrinkwrapModifierData *smd =
+      static_cast<GreasePencilShrinkwrapModifierData *>(ptr->data);
+  return smd->shrink_opts & MOD_SHRINKWRAP_CULL_TARGET_MASK;
+}
+
+static void rna_GreasePencilShrinkwrapModifier_face_cull_set(PointerRNA *ptr, int value)
+{
+  GreasePencilShrinkwrapModifierData *smd = static_cast<GreasePencilShrinkwrapModifierData *>(
+      ptr->data);
+  smd->shrink_opts = (smd->shrink_opts & ~MOD_SHRINKWRAP_CULL_TARGET_MASK) | value;
 }
 
 #else
@@ -10271,6 +10294,152 @@ static void rna_def_modifier_grease_pencil_outline(BlenderRNA *brna)
   RNA_define_lib_overridable(false);
 }
 
+static void rna_def_modifier_grease_pencil_shrinkwrap(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilShrinkwrapModifier", "Modifier");
+  RNA_def_struct_ui_text(srna,
+                         "Shrinkwrap Modifier",
+                         "Shrink wrapping modifier to shrink wrap an object to a target");
+  RNA_def_struct_sdna(srna, "GreasePencilShrinkwrapModifierData");
+  RNA_def_struct_ui_icon(srna, ICON_MOD_SHRINKWRAP);
+
+  rna_def_modifier_grease_pencil_layer_filter(srna);
+  rna_def_modifier_grease_pencil_material_filter(
+      srna, "rna_GreasePencilShrinkwrapModifier_material_filter_set");
+  rna_def_modifier_grease_pencil_vertex_group(
+      srna, "rna_GreasePencilShrinkwrapModifier_vertex_group_name_set");
+
+  rna_def_modifier_panel_open_prop(srna, "open_influence_panel", 0);
+
+  RNA_define_lib_overridable(true);
+
+  prop = RNA_def_property(srna, "wrap_method", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "shrink_type");
+  RNA_def_property_enum_items(prop, rna_enum_shrinkwrap_type_items);
+  RNA_def_property_ui_text(prop, "Wrap Method", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "wrap_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "shrink_mode");
+  RNA_def_property_enum_items(prop, rna_enum_modifier_shrinkwrap_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Snap Mode", "Select how vertices are constrained to the target surface");
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "cull_face", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "shrink_opts");
+  RNA_def_property_enum_items(prop, rna_enum_shrinkwrap_face_cull_items);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_GreasePencilShrinkwrapModifier_face_cull_get",
+                              "rna_GreasePencilShrinkwrapModifier_face_cull_set",
+                              nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Face Cull",
+      "Stop vertices from projecting to a face on the target when facing towards/away");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Target", "Mesh target to shrink to");
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 "rna_GreasePencilShrinkwrapModifier_target_set",
+                                 nullptr,
+                                 "rna_Mesh_object_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "auxiliary_target", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "aux_target");
+  RNA_def_property_ui_text(prop, "Auxiliary Target", "Additional mesh target to shrink to");
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 "rna_GreasePencilShrinkwrapModifier_aux_target_set",
+                                 nullptr,
+                                 "rna_Mesh_object_poll");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+  RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+  prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "keep_dist");
+  RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+  RNA_def_property_ui_range(prop, -100, 100, 1, 2);
+  RNA_def_property_ui_text(prop, "Offset", "Distance to keep from the target");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "project_limit", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_float_sdna(prop, nullptr, "proj_limit");
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0, 100, 1, 2);
+  RNA_def_property_ui_text(
+      prop, "Project Limit", "Limit the distance used for projection (zero disables)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_project_x", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "proj_axis", MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS);
+  RNA_def_property_ui_text(prop, "X", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_project_y", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "proj_axis", MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS);
+  RNA_def_property_ui_text(prop, "Y", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_project_z", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "proj_axis", MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS);
+  RNA_def_property_ui_text(prop, "Z", "");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "subsurf_levels", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "subsurf_levels");
+  RNA_def_property_range(prop, 0, 6);
+  RNA_def_property_ui_range(prop, 0, 6, 1, -1);
+  RNA_def_property_ui_text(
+      prop,
+      "Subdivision Levels",
+      "Number of subdivisions that must be performed before extracting vertices' "
+      "positions and normals");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_negative_direction", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "shrink_opts", MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR);
+  RNA_def_property_ui_text(
+      prop, "Negative", "Allow vertices to move in the negative direction of axis");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_positive_direction", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "shrink_opts", MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR);
+  RNA_def_property_ui_text(
+      prop, "Positive", "Allow vertices to move in the positive direction of axis");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_invert_cull", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "shrink_opts", MOD_SHRINKWRAP_INVERT_CULL_TARGET);
+  RNA_def_property_ui_text(
+      prop, "Invert Cull", "When projecting in the negative direction invert the face cull mode");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "smooth_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "smooth_factor");
+  RNA_def_property_range(prop, 0, 1);
+  RNA_def_property_ui_text(prop, "Smooth Factor", "Amount of smoothing to apply");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "smooth_step", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "smooth_step");
+  RNA_def_property_range(prop, 1, 10);
+  RNA_def_property_ui_text(
+      prop, "Steps", "Number of times to apply smooth (high numbers can reduce FPS)");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  RNA_define_lib_overridable(false);
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -10462,6 +10631,7 @@ void RNA_def_modifier(BlenderRNA *brna)
   rna_def_modifier_grease_pencil_time(brna);
   rna_def_modifier_grease_pencil_envelope(brna);
   rna_def_modifier_grease_pencil_outline(brna);
+  rna_def_modifier_grease_pencil_shrinkwrap(brna);
 }
 
 #endif

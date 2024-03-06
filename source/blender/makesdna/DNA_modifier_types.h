@@ -117,6 +117,7 @@ typedef enum ModifierType {
   eModifierType_GreasePencilTime = 80,
   eModifierType_GreasePencilEnvelope = 81,
   eModifierType_GreasePencilOutline = 82,
+  eModifierType_GreasePencilShrinkwrap = 83,
   NUM_MODIFIER_TYPES,
 } ModifierType;
 
@@ -3273,3 +3274,39 @@ typedef struct GreasePencilOutlineModifierData {
 typedef enum GreasePencilOutlineModifierFlag {
   MOD_GREASE_PENCIL_OUTLINE_KEEP_SHAPE = (1 << 0),
 } GreasePencilOutlineModifierFlag;
+
+typedef struct GreasePencilShrinkwrapModifierData {
+  ModifierData modifier;
+  GreasePencilModifierInfluenceData influence;
+
+  /** Shrink target. */
+  struct Object *target;
+  /** Additional shrink target. */
+  struct Object *aux_target;
+  /** Distance offset to keep from mesh/projection point. */
+  float keep_dist;
+  /** Shrink type projection. */
+  short shrink_type;
+  /** Shrink options. */
+  char shrink_opts;
+  /** Shrink to surface mode. */
+  char shrink_mode;
+  /** Limit the projection ray cast. */
+  float proj_limit;
+  /** Axis to project over. */
+  char proj_axis;
+
+  /**
+   * If using projection over vertex normal this controls the level of subsurface that must be
+   * done before getting the vertex coordinates and normal.
+   */
+  char subsurf_levels;
+  char _pad[2];
+  /** Factor of smooth. */
+  float smooth_factor;
+  /** How many times apply smooth. */
+  int smooth_step;
+
+  /** Runtime only. */
+  struct ShrinkwrapTreeData *cache_data;
+} GreasePencilShrinkwrapModifierData;
