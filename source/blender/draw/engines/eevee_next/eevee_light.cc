@@ -97,6 +97,7 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
       /* Reuse shape radius as near clip plane. */
       /* This assumes `shape_parameters_set` has already set `radius_squared`. */
       float radius = math::sqrt(this->radius_squared);
+#if 0 /* UNUSED. */
       float shadow_radius = la->shadow_softness_factor * radius;
       if (ELEM(la->type, LA_LOCAL, LA_SPOT)) {
         /* `shape_parameters_set` can increase the radius of point and spot lights to ensure a
@@ -107,6 +108,7 @@ void Light::sync(ShadowModule &shadows, const Object *ob, float threshold)
          * So we use the original light radius instead. */
         shadow_radius = la->shadow_softness_factor * la->radius;
       }
+#endif
       this->punctual->sync(this->type,
                            this->object_mat,
                            la->spotsize,
