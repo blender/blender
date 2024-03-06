@@ -270,21 +270,6 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
   inputs_to_linked_outputs_map_.add_new(input_identifier, output_socket);
 }
 
-static DOutputSocket find_preview_output_socket(const DNode &node)
-{
-  if (!is_node_preview_needed(node)) {
-    return DOutputSocket();
-  }
-
-  for (const bNodeSocket *output : node->output_sockets()) {
-    if (output->is_logically_linked()) {
-      return DOutputSocket(node.context(), output);
-    }
-  }
-
-  return DOutputSocket();
-}
-
 void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *material)
 {
   const DOutputSocket preview_output = find_preview_output_socket(node);

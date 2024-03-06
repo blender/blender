@@ -162,6 +162,11 @@ class CompileState {
    *   compiled. */
   bool should_compile_shader_compile_unit(DNode node);
 
+  /* Computes the number of shader operation outputs that will be added for this node in the
+   * current shader compile unit. This is essentially the number of outputs that will be added for
+   * the node in ShaderOperation::populate_results_for_node. */
+  int compute_shader_node_operation_outputs_count(DNode node);
+
  private:
   /* Compute the node domain of the given shader node. This is analogous to the
    * Operation::compute_domain method, except it is computed from the node itself as opposed to a
