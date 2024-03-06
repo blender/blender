@@ -198,8 +198,8 @@ static void vert_hide_update(Object &object,
 }
 
 static void partialvis_all_update_mesh(Object &object,
-                                          const VisAction action,
-                                          const Span<PBVHNode *> nodes)
+                                       const VisAction action,
+                                       const Span<PBVHNode *> nodes)
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
@@ -356,9 +356,9 @@ static void grid_hide_update(Depsgraph &depsgraph,
 }
 
 static void partialvis_all_update_grids(Depsgraph &depsgraph,
-                                           Object &object,
-                                           const VisAction action,
-                                           const Span<PBVHNode *> nodes)
+                                        Object &object,
+                                        const VisAction action,
+                                        const Span<PBVHNode *> nodes)
 {
   switch (action) {
     case VisAction::Hide:
@@ -513,8 +513,8 @@ static void partialvis_masked_update_bmesh(Object *ob,
 }
 
 static void partialvis_all_update_bmesh(Object *ob,
-                                           const VisAction action,
-                                           const Span<PBVHNode *> nodes)
+                                        const VisAction action,
+                                        const Span<PBVHNode *> nodes)
 {
   partialvis_update_bmesh_nodes(ob, nodes, action, [](const BMVert * /*vert*/) { return true; });
 }
@@ -677,7 +677,7 @@ static int hide_show_gesture_box_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void hide_show_operator_properties(wmOperatorType *ot)
+static void hide_show_operator_properties(wmOperatorType *ot)
 {
   static const EnumPropertyItem action_items[] = {
       {int(VisAction::Hide), "HIDE", 0, "Hide", "Hide vertices"},
@@ -693,7 +693,7 @@ void hide_show_operator_properties(wmOperatorType *ot)
                "Whether to hide or show vertices");
 }
 
-void hide_show_operator_gesture_properties(wmOperatorType *ot)
+static void hide_show_operator_gesture_properties(wmOperatorType *ot)
 {
   static const EnumPropertyItem area_items[] = {
       {int(gesture::SelectionType::Outside),
