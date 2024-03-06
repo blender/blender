@@ -40,8 +40,10 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
       .max(1000.0f)
       .default_value(2.0f)
       .description("The scale of a Perlin noise octave relative to that of the previous octave");
-  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f).default_value(0.0f);
-  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f).default_value(0.0f).make_available(
+      [](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; });
+  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f).make_available(
+      [](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; });
   b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(0.0f);
   b.add_output<decl::Float>("Fac").no_muted_links();
   b.add_output<decl::Color>("Color").no_muted_links();
