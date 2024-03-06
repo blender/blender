@@ -1,8 +1,9 @@
-diff -Naur orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packages.cmake
---- orig/cmake/defaults/Packages.cmake	2022-10-27 12:56:33 -0600
-+++ external_usd/cmake/defaults/Packages.cmake	2022-10-27 13:05:08 -0600
-@@ -129,7 +129,7 @@
- endif()
+diff --git a/cmake/defaults/Packages.cmake b/cmake/defaults/Packages.cmake
+index 2bb1f30d0..adcc7422e 100644
+--- a/cmake/defaults/Packages.cmake
++++ b/cmake/defaults/Packages.cmake
+@@ -152,7 +152,7 @@ endif()
+ 
  
  # --TBB
 -find_package(TBB REQUIRED COMPONENTS tbb)
@@ -10,10 +11,11 @@ diff -Naur orig/cmake/defaults/Packages.cmake external_usd/cmake/defaults/Packag
  add_definitions(${TBB_DEFINITIONS})
  
  # --math
-diff -Naur orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/defaults/msvcdefaults.cmake
---- orig/cmake/defaults/msvcdefaults.cmake	2022-10-27 12:56:33 -0600
-+++ external_usd/cmake/defaults/msvcdefaults.cmake	2022-10-27 13:05:08 -0600
-@@ -120,9 +120,6 @@
+diff --git a/cmake/defaults/msvcdefaults.cmake b/cmake/defaults/msvcdefaults.cmake
+index 0f7fb7ef6..a467341ed 100644
+--- a/cmake/defaults/msvcdefaults.cmake
++++ b/cmake/defaults/msvcdefaults.cmake
+@@ -140,9 +140,6 @@ _add_define("WIN32_LEAN_AND_MEAN")
  # for all translation units.
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /bigobj")
  
@@ -23,10 +25,49 @@ diff -Naur orig/cmake/defaults/msvcdefaults.cmake external_usd/cmake/defaults/ms
  # Enable multiprocessor builds.
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /MP")
  set(_PXR_CXX_FLAGS "${_PXR_CXX_FLAGS} /Gm-")
-diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
---- orig/pxr/base/arch/timing.h	2022-10-27 12:56:34 -0600
-+++ external_usd/pxr/base/arch/timing.h	2022-10-27 13:05:08 -0600
-@@ -84,6 +84,10 @@
+diff --git a/pxr/base/arch/defines.h b/pxr/base/arch/defines.h
+index cb6ad44c5..c6c1a604b 100644
+--- a/pxr/base/arch/defines.h
++++ b/pxr/base/arch/defines.h
+@@ -49,7 +49,8 @@
+ #if defined(i386) || defined(__i386__) || defined(__x86_64__) || \
+     defined(_M_IX86) || defined(_M_X64)
+ #define ARCH_CPU_INTEL
+-#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM)
++#elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || \
++    defined(_M_ARM64)
+ #define ARCH_CPU_ARM
+ #endif
+ 
+@@ -57,7 +58,8 @@
+ // Bits
+ //
+ 
+-#if defined(__x86_64__) || defined(__aarch64__) || defined(_M_X64)
++#if defined(__x86_64__) || defined(__aarch64__) || defined(_M_X64) || \
++    defined(_M_ARM64)
+ #define ARCH_BITS_64
+ #else
+ #error "Unsupported architecture.  x86_64 or ARM64 required."
+diff --git a/pxr/base/arch/timing.h b/pxr/base/arch/timing.h
+index d78598a84..2f44a5f89 100644
+--- a/pxr/base/arch/timing.h
++++ b/pxr/base/arch/timing.h
+@@ -69,7 +69,13 @@ ArchGetTickTime()
+     return __rdtsc();
+ #elif defined (ARCH_CPU_ARM)
+     uint64_t result;
++    #if defined(ARCH_COMPILER_MSVC)
++    // MSVC does not support inline assembly on ARM64 platforms
++    // 0x5F02 == ARM64_CNTVCT - manually calculated value avoids <windows.h>
++    result = _ReadStatusReg(0x5F02);
++    #else
+     __asm __volatile("mrs	%0, CNTVCT_EL0" : "=&r" (result));
++    #endif
+     return result;
+ #else
+ #error Unknown architecture.
+@@ -84,6 +90,10 @@ ArchGetTickTime()
  inline uint64_t
  ArchGetStartTickTime()
  {
@@ -37,7 +78,7 @@ diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
      uint64_t t;
  #if defined (ARCH_OS_DARWIN)
      return ArchGetTickTime();
-@@ -116,6 +120,7 @@
+@@ -116,6 +126,7 @@ ArchGetStartTickTime()
  #error "Unsupported architecture."
  #endif
    return t;
@@ -45,7 +86,7 @@ diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
  }
  
  /// Get a "stop" tick time for measuring an interval of time.  See
-@@ -125,6 +130,10 @@
+@@ -125,6 +136,10 @@ ArchGetStartTickTime()
  inline uint64_t
  ArchGetStopTickTime()
  {
@@ -56,7 +97,7 @@ diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
      uint64_t t;
  #if defined (ARCH_OS_DARWIN)
      return ArchGetTickTime();
-@@ -155,11 +164,11 @@
+@@ -155,11 +170,11 @@ ArchGetStopTickTime()
  #error "Unsupported architecture."
  #endif
    return t;
@@ -71,10 +112,37 @@ diff -Naur orig/pxr/base/arch/timing.h external_usd/pxr/base/arch/timing.h
  
  /// A simple timer class for measuring an interval of time using the
  /// ArchTickTimer facilities.
-diff -Naur orig/pxr/imaging/hioOpenVDB/CMakeLists.txt external_usd/pxr/imaging/hioOpenVDB/CMakeLists.txt
---- orig/pxr/imaging/hioOpenVDB/CMakeLists.txt	2022-10-27 12:56:35 -0600
-+++ external_usd/pxr/imaging/hioOpenVDB/CMakeLists.txt	2022-10-27 13:05:08 -0600
-@@ -20,6 +20,12 @@
+diff --git a/pxr/base/tf/pxrDoubleConversion/utils.h b/pxr/base/tf/pxrDoubleConversion/utils.h
+index 547ac1110..10fd96cf9 100644
+--- a/pxr/base/tf/pxrDoubleConversion/utils.h
++++ b/pxr/base/tf/pxrDoubleConversion/utils.h
+@@ -78,7 +78,7 @@ inline void abort_noreturn() { abort(); }
+     defined(__sparc__) || defined(__sparc) || defined(__s390__) || \
+     defined(__SH4__) || defined(__alpha__) || \
+     defined(_MIPS_ARCH_MIPS32R2) || \
+-    defined(__AARCH64EL__) || defined(__aarch64__) || \
++    defined(__AARCH64EL__) || defined(__aarch64__) || defined (_M_ARM64) || \
+     defined(__riscv)
+ #define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
+ #elif defined(__mc68000__)
+diff --git a/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h b/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h
+index 459fb3084..c1f98f160 100644
+--- a/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h
++++ b/pxr/imaging/hio/OpenEXR/OpenEXRCore/internal_dwa_simd.h
+@@ -18,7 +18,7 @@
+ // aligned. Unaligned pointers may risk seg-faulting.
+ //
+ 
+-#if defined __SSE2__ || (_MSC_VER >= 1300 && !_M_CEE_PURE)
++#if defined __SSE2__ || (_MSC_VER >= 1300 && !_M_CEE_PURE && !defined(_M_ARM64))
+ #    define IMF_HAVE_SSE2 1
+ #    include <emmintrin.h>
+ #    include <mmintrin.h>
+diff --git a/pxr/imaging/hioOpenVDB/CMakeLists.txt b/pxr/imaging/hioOpenVDB/CMakeLists.txt
+index e32762cea..d2c08d3da 100644
+--- a/pxr/imaging/hioOpenVDB/CMakeLists.txt
++++ b/pxr/imaging/hioOpenVDB/CMakeLists.txt
+@@ -20,6 +20,12 @@ else()
      LIST(APPEND __VDB_IMATH_LIBS ${OPENEXR_Half_LIBRARY})
  endif()
  
@@ -87,10 +155,11 @@ diff -Naur orig/pxr/imaging/hioOpenVDB/CMakeLists.txt external_usd/pxr/imaging/h
  pxr_library(hioOpenVDB
      LIBRARIES
          ar
-diff -Naur orig/pxr/usdImaging/CMakeLists.txt external_usd/pxr/usdImaging/CMakeLists.txt
---- orig/pxr/usdImaging/CMakeLists.txt	2022-10-27 12:56:37 -0600
-+++ external_usd/pxr/usdImaging/CMakeLists.txt	2022-10-27 13:05:08 -0600
-@@ -7,7 +7,7 @@
+diff --git a/pxr/usdImaging/CMakeLists.txt b/pxr/usdImaging/CMakeLists.txt
+index 53c026689..e99a5ac17 100644
+--- a/pxr/usdImaging/CMakeLists.txt
++++ b/pxr/usdImaging/CMakeLists.txt
+@@ -7,7 +7,7 @@ set(DIRS
      usdVolImaging
      usdAppUtils
      usdviewq

@@ -7,9 +7,14 @@ if(WIN32)
     -DFLEX_EXECUTABLE=${LIBDIR}/flexbison/win_flex.exe
     -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe
     -DM4_EXECUTABLE=${DOWNLOAD_DIR}/msys2/msys64/usr/bin/m4.exe
-    -DARM_ENABLED=Off
     -DPython3_FIND_REGISTRY=NEVER
   )
+
+  if(BLENDER_PLATFORM_ARM)
+    set(ISPC_EXTRA_ARGS_WIN ${ISPC_EXTRA_ARGS_WIN} -DARM_ENABLED=On)
+  else()
+    set(ISPC_EXTRA_ARGS_WIN ${ISPC_EXTRA_ARGS_WIN} -DARM_ENABLED=Off)
+  endif()
 elseif(APPLE)
   # Use bison and flex installed via Homebrew.
   # The ones that come with Xcode toolset are too old.

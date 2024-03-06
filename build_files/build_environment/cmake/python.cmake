@@ -9,12 +9,23 @@ if(BUILD_MODE STREQUAL Debug)
 endif()
 
 if(WIN32)
-  set(PYTHON_BINARY_INTERNAL ${BUILD_DIR}/python/src/external_python/PCBuild/amd64/python${PYTHON_POSTFIX}.exe)
   set(PYTHON_BINARY ${LIBDIR}/python/python${PYTHON_POSTFIX}.exe)
   set(PYTHON_SRC ${BUILD_DIR}/python/src/external_python/)
   macro(cmake_to_dos_path MsysPath ResultingPath)
     string(REPLACE "/" "\\" ${ResultingPath} "${MsysPath}")
   endmacro()
+
+  if(BLENDER_PLATFORM_ARM)
+    set(PYTHON_BINARY_INTERNAL ${BUILD_DIR}/python/src/external_python/PCBuild/arm64/python${PYTHON_POSTFIX}.exe)
+    set(PYTHON_BAT_ARCH arm64)
+    set(PYTHON_INSTALL_ARCH_FOLDER ${PYTHON_SRC}/PCbuild/arm64)
+    set(PYTHON_PATCH_FILE python_windows_arm64.diff)
+  else()
+    set(PYTHON_BINARY_INTERNAL ${BUILD_DIR}/python/src/external_python/PCBuild/amd64/python${PYTHON_POSTFIX}.exe)
+    set(PYTHON_BAT_ARCH x64)
+    set(PYTHON_INSTALL_ARCH_FOLDER ${PYTHON_SRC}/PCbuild/amd64)
+    set(PYTHON_PATCH_FILE python_windows_x64.diff)
+  endif()
 
   set(PYTHON_EXTERNALS_FOLDER ${BUILD_DIR}/python/src/external_python/externals)
   set(ZLIB_SOURCE_FOLDER ${BUILD_DIR}/zlib/src/external_zlib)
@@ -44,7 +55,7 @@ if(WIN32)
         ${PYTHON_EXTERNALS_FOLDER}/zlib-1.2.13/zconf.h &&
       ${PATCH_CMD} --verbose -p1 -d
         ${BUILD_DIR}/python/src/external_python <
-        ${PATCH_DIR}/python_windows.diff
+        ${PATCH_DIR}/${PYTHON_PATCH_FILE}
 
     CONFIGURE_COMMAND echo "."
 
@@ -53,10 +64,10 @@ if(WIN32)
       set IncludeTkinter=false &&
       set LDFLAGS=/DEBUG &&
       call prepare_ssl.bat &&
-      call build.bat -e -p x64 -c ${BUILD_MODE}
+      call build.bat -e -p ${PYTHON_BAT_ARCH} -c ${BUILD_MODE}
 
     INSTALL_COMMAND ${PYTHON_BINARY_INTERNAL} ${PYTHON_SRC}/PC/layout/main.py
-      -b ${PYTHON_SRC}/PCbuild/amd64
+      -b ${PYTHON_INSTALL_ARCH_FOLDER}
       -s ${PYTHON_SRC}
       -t ${PYTHON_SRC}/tmp/
       --include-stable

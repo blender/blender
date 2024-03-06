@@ -23,8 +23,8 @@ if(WIN32)
 
   if(BLENDER_PLATFORM_ARM)
     # ARM64 requires a min of vc142
-    set(VPX_EXTRA_FLAGS --target=arm64-win64-vs16 --as=nasm)
-    set(VPX_INCL_ARCH nopost-nodocs-arm64)
+    set(VPX_EXTRA_FLAGS --target=arm64-win64-vs16 --as=nasm --disable-neon_dotprod --disable-neon_i8mm)
+    set(VPX_INCL_ARCH nopost-nodocs-arm64-win64)
   else()
     set(VPX_EXTRA_FLAGS --target=x86_64-win64-${VPX_COMPILER_STRING} --as=nasm)
     set(VPX_INCL_ARCH nodocs-x86_64-win64)
