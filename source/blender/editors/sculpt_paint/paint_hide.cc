@@ -729,7 +729,6 @@ void PAINT_OT_hide_show_masked(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  WM_operator_properties_border(ot);
   hide_show_operator_properties(ot);
 }
 
@@ -745,7 +744,6 @@ void PAINT_OT_hide_show_all(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  WM_operator_properties_border(ot);
   hide_show_operator_properties(ot);
 }
 
