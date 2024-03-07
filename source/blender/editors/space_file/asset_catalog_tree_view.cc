@@ -36,7 +36,6 @@
 
 #include <fmt/format.h>
 
-using namespace blender;
 using namespace blender::asset_system;
 
 namespace blender::ed::asset_browser {
@@ -681,11 +680,7 @@ bool AssetCatalogTreeViewUnassignedItem::DropTarget::on_drop(bContext *C,
       C, this->get_view<AssetCatalogTreeView>(), drag.drag_data, CatalogID{});
 }
 
-}  // namespace blender::ed::asset_browser
-
 /* ---------------------------------------------------------------------- */
-
-namespace blender::ed::asset_browser {
 
 class AssetCatalogFilterSettings {
  public:
@@ -695,32 +690,22 @@ class AssetCatalogFilterSettings {
   std::unique_ptr<AssetCatalogFilter> catalog_filter;
 };
 
-}  // namespace blender::ed::asset_browser
-
-using namespace blender::ed::asset_browser;
-
-FileAssetCatalogFilterSettingsHandle *file_create_asset_catalog_filter_settings()
+AssetCatalogFilterSettings *file_create_asset_catalog_filter_settings()
 {
-  AssetCatalogFilterSettings *filter_settings = MEM_new<AssetCatalogFilterSettings>(__func__);
-  return reinterpret_cast<FileAssetCatalogFilterSettingsHandle *>(filter_settings);
+  return MEM_new<AssetCatalogFilterSettings>(__func__);
 }
 
-void file_delete_asset_catalog_filter_settings(
-    FileAssetCatalogFilterSettingsHandle **filter_settings_handle)
+void file_delete_asset_catalog_filter_settings(AssetCatalogFilterSettings **filter_settings)
 {
-  AssetCatalogFilterSettings **filter_settings = reinterpret_cast<AssetCatalogFilterSettings **>(
-      filter_settings_handle);
   MEM_delete(*filter_settings);
   *filter_settings = nullptr;
 }
 
 bool file_set_asset_catalog_filter_settings(
-    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
+    AssetCatalogFilterSettings *filter_settings,
     eFileSel_Params_AssetCatalogVisibility catalog_visibility,
-    ::bUUID catalog_id)
+    const ::bUUID &catalog_id)
 {
-  AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
-      filter_settings_handle);
   bool needs_update = false;
 
   if (filter_settings->asset_catalog_visibility != catalog_visibility) {
@@ -738,12 +723,9 @@ bool file_set_asset_catalog_filter_settings(
   return needs_update;
 }
 
-void file_ensure_updated_catalog_filter_data(
-    FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const asset_system::AssetLibrary *asset_library)
+void file_ensure_updated_catalog_filter_data(AssetCatalogFilterSettings *filter_settings,
+                                             const asset_system::AssetLibrary *asset_library)
 {
-  AssetCatalogFilterSettings *filter_settings = reinterpret_cast<AssetCatalogFilterSettings *>(
-      filter_settings_handle);
   const AssetCatalogService &catalog_service = asset_library->catalog_service();
 
   if (filter_settings->asset_catalog_visibility != FILE_SHOW_ASSETS_ALL_CATALOGS) {
@@ -753,12 +735,8 @@ void file_ensure_updated_catalog_filter_data(
 }
 
 bool file_is_asset_visible_in_catalog_filter_settings(
-    const FileAssetCatalogFilterSettingsHandle *filter_settings_handle,
-    const AssetMetaData *asset_data)
+    const AssetCatalogFilterSettings *filter_settings, const AssetMetaData *asset_data)
 {
-  const AssetCatalogFilterSettings *filter_settings =
-      reinterpret_cast<const AssetCatalogFilterSettings *>(filter_settings_handle);
-
   switch (filter_settings->asset_catalog_visibility) {
     case FILE_SHOW_ASSETS_WITHOUT_CATALOG:
       return !filter_settings->catalog_filter->is_known(asset_data->catalog_id);
@@ -792,3 +770,5 @@ void file_create_asset_catalog_tree_view_in_layout(asset_system::AssetLibrary *a
 
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }
+
+}  // namespace blender::ed::asset_browser
