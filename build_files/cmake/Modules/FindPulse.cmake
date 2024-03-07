@@ -59,3 +59,5 @@ mark_as_advanced(
   LIBPULSE_INCLUDE_DIR
   LIBPULSE_LIBRARY
 )
+
+unset(_pulse_SEARCH_DIRS)

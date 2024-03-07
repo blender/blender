@@ -66,6 +66,8 @@ foreach(_component ${FFMPEG_FIND_COMPONENTS})
   list(APPEND _ffmpeg_LIBRARIES ${FFMPEG_${_upper_COMPONENT}_LIBRARY})
   mark_as_advanced(FFMPEG_${_upper_COMPONENT}_LIBRARY)
 endforeach()
+unset(_component)
+unset(_upper_COMPONENT)
 
 # handle the QUIETLY and REQUIRED arguments and set FFMPEG_FOUND to TRUE if
 # all listed variables are TRUE

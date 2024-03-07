@@ -89,3 +89,7 @@ mark_as_advanced(
   WEBP_WEBP_LIBRARY
   WEBP_SHARPYUV_LIBRARY
 )
+
+unset(_webp_FIND_COMPONENTS)
+unset(_webp_LIBRARIES)
+unset(_webp_SEARCH_DIRS)
