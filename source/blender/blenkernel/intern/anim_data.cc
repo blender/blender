@@ -292,6 +292,7 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->animation, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->action, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->tmpact, IDWALK_CB_USER);
 

@@ -1118,6 +1118,8 @@ static const char *template_id_browse_tip(const StructRNA *type)
         return N_("Browse Armature data to be linked");
       case ID_AC:
         return N_("Browse Action to be linked");
+      case ID_AN:
+        return N_("Browse Animation to be linked");
       case ID_NT:
         return N_("Browse Node Tree to be linked");
       case ID_BR:
