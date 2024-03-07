@@ -2994,7 +2994,8 @@ static uiBut *ui_item_menu(uiLayout *layout,
   }
 
   uiTextIconPadFactor pad_factor = ui_text_pad_compact;
-  if (layout->root->type == UI_LAYOUT_HEADER) { /* Ugly! */
+  /* Ugly! Extra padding in specific circumstances. */
+  if (layout->root->type == UI_LAYOUT_HEADER || force_menu) {
     if (icon == ICON_NONE && force_menu) {
       /* pass */
     }
