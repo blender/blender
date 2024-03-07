@@ -110,15 +110,14 @@ const StringRefNull IDRemapper::result_to_string(const IDRemapperApplyResult res
 
 void IDRemapper::print() const
 {
-  auto print_cb = [](ID *old_id, ID *new_id, void * /*user_data*/) {
+  this->iter([](ID *old_id, ID *new_id) {
     if (old_id != nullptr && new_id != nullptr) {
       printf("Remap %s(%p) to %s(%p)\n", old_id->name, old_id, new_id->name, new_id);
     }
     if (old_id != nullptr && new_id == nullptr) {
       printf("Unassign %s(%p)\n", old_id->name, old_id);
     }
-  };
-  this->iter(print_cb, nullptr);
+  });
 }
 
 }  // namespace blender::bke::id

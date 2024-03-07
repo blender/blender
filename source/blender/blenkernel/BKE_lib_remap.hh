@@ -21,6 +21,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -332,10 +333,10 @@ class IDRemapper {
   }
 
   /** Iterate over all remapping pairs in the remapper, and call the callback function on them. */
-  void iter(IDRemapperIterFunction func, void *user_data) const
+  void iter(FunctionRef<void(ID *old_id, ID *new_id)> func) const
   {
     for (auto item : mappings_.items()) {
-      func(item.key, item.value, user_data);
+      func(item.key, item.value);
     }
   }
 
