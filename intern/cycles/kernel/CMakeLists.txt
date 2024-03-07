@@ -1152,7 +1152,7 @@ if(WITH_COMPILER_ASAN)
     # GCC hangs compiling the big kernel files with asan and release, so disable by default.
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=all")
     string(APPEND CMAKE_CXX_FLAGS_DEBUG " -fno-sanitize=vptr")
-  elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     # With OSL, Cycles disables rtti in some modules, which then breaks at linking
     # when trying to use vptr sanitizer (included into 'undefined' general option).
     string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -fno-sanitize=vptr")
@@ -1171,7 +1171,7 @@ if(CXX_HAS_AVX2)
 endif()
 
 # Warnings to avoid using doubles in the kernel.
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   add_check_cxx_compiler_flags(
     CMAKE_CXX_FLAGS
     _has_cxxflag_float_conversion "-Werror=float-conversion"

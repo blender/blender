@@ -14,7 +14,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   remove_cc_flag(
     "-Wmisleading-indentation"
   )
-elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
   remove_cc_flag(
     "-Weverything"
   )

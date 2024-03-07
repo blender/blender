@@ -542,7 +542,7 @@ macro(TEST_SSE_SUPPORT
   include(CheckCSourceRuns)
 
   # message(STATUS "Detecting SSE support")
-  if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+  if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID STREQUAL "Clang"))
     set(${_sse_flags} "-msse")
     set(${_sse2_flags} "-msse2")
   elseif(MSVC)
@@ -554,7 +554,7 @@ macro(TEST_SSE_SUPPORT
       set(${_sse_flags} "/arch:SSE")
       set(${_sse2_flags} "/arch:SSE2")
     endif()
-  elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+  elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     set(${_sse_flags} "")  # icc defaults to -msse
     set(${_sse2_flags} "")  # icc defaults to -msse2
   else()
@@ -679,7 +679,7 @@ macro(remove_strict_flags)
     add_cxx_flag("${CXX_REMOVE_STRICT_FLAGS}")
   endif()
 
-  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     remove_cc_flag(
       "-Wunused-parameter"
       "-Wunused-variable"
@@ -710,7 +710,7 @@ macro(remove_extra_strict_flags)
     )
   endif()
 
-  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     remove_cc_flag(
       "-Wunused-parameter"
     )
@@ -731,7 +731,7 @@ macro(remove_strict_c_flags_file
   filenames)
   foreach(_SOURCE ${ARGV})
     if(CMAKE_COMPILER_IS_GNUCC OR
-       (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+       (CMAKE_C_COMPILER_ID STREQUAL "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
         COMPILE_FLAGS "${C_REMOVE_STRICT_FLAGS}"
@@ -749,7 +749,7 @@ macro(remove_strict_cxx_flags_file
   remove_strict_c_flags_file(${filenames} ${ARHV})
   foreach(_SOURCE ${ARGV})
     if(CMAKE_COMPILER_IS_GNUCC OR
-       (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+       (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
       set_source_files_properties(
         ${_SOURCE} PROPERTIES
         COMPILE_FLAGS "${CXX_REMOVE_STRICT_FLAGS}"
@@ -765,8 +765,8 @@ endmacro()
 # External libs may need 'signed char' to be default.
 macro(remove_cc_flag_unsigned_char)
   if(CMAKE_COMPILER_IS_GNUCC OR
-     (CMAKE_C_COMPILER_ID MATCHES "Clang") OR
-     (CMAKE_C_COMPILER_ID MATCHES "Intel"))
+     (CMAKE_C_COMPILER_ID STREQUAL "Clang") OR
+     (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
     remove_cc_flag("-funsigned-char")
   elseif(MSVC)
     remove_cc_flag("/J")

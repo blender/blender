@@ -649,7 +649,7 @@ if(CMAKE_DL_LIBS)
   list(APPEND PLATFORM_LINKLIBS ${CMAKE_DL_LIBS})
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(NOT WITH_PYTHON_MODULE)
     # binreloc is linux only
     set(BINRELOC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/binreloc/include)
@@ -997,7 +997,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   endif()
 
 # CLang is the same as GCC for now.
-elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)
@@ -1043,7 +1043,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   endif()
 
 # Intel C++ Compiler
-elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
   # think these next two are broken
   find_program(XIAR xiar)
   if(XIAR)

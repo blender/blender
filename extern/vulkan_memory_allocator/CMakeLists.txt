@@ -27,7 +27,7 @@ set(LIB
 
 blender_add_lib(extern_vulkan_memory_allocator "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   target_compile_options(extern_vulkan_memory_allocator
     PRIVATE "-Wno-nullability-completeness"
   )

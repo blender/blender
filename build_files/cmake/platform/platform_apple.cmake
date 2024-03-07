@@ -350,7 +350,7 @@ endif()
 
 # CMake FindOpenMP doesn't know about AppleClang before 3.12, so provide custom flags.
 if(WITH_OPENMP)
-  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     # Use OpenMP from our precompiled libraries.
     message(STATUS "Using ${LIBDIR}/openmp for OpenMP")
     set(OPENMP_CUSTOM ON)
@@ -408,7 +408,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 if(CMAKE_OSX_ARCHITECTURES MATCHES "x86_64" OR CMAKE_OSX_ARCHITECTURES MATCHES "i386")
   set(CMAKE_CXX_FLAGS_RELEASE "-O2 -mdynamic-no-pic -msse -msse2 -msse3 -mssse3")
   set(CMAKE_C_FLAGS_RELEASE "-O2 -mdynamic-no-pic  -msse -msse2 -msse3 -mssse3")
-  if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+  if(NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
     string(APPEND CMAKE_C_FLAGS_RELEASE " -ftree-vectorize  -fvariable-expansion-in-unroller")
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " -ftree-vectorize  -fvariable-expansion-in-unroller")
   endif()
