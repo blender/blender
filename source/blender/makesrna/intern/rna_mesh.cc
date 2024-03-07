@@ -1219,13 +1219,14 @@ static void rna_MeshSkinVertexLayer_data_begin(CollectionPropertyIterator *iter,
 {
   Mesh *mesh = rna_mesh(ptr);
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-  rna_iterator_array_begin(iter, layer->data, sizeof(MVertSkin), mesh->verts_num, 0, nullptr);
+  rna_iterator_array_begin(
+      iter, layer->data, sizeof(MVertSkin), (mesh->edit_mesh) ? 0 : mesh->verts_num, 0, nullptr);
 }
 
 static int rna_MeshSkinVertexLayer_data_length(PointerRNA *ptr)
 {
   Mesh *mesh = rna_mesh(ptr);
-  return mesh->verts_num;
+  return (mesh->edit_mesh) ? 0 : mesh->verts_num;
 }
 
 /* End skin vertices */
