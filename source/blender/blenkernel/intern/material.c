@@ -1184,7 +1184,7 @@ void BKE_object_material_array_assign(Main *bmain,
 
   /* now we have the right number of slots */
   for (int i = 0; i < totcol; i++) {
-    if (to_object_only && ob->matbits[i] == 0) {
+    if (to_object_only && ob->matbits && ob->matbits[i] == 0) {
       /* If we only assign to object, and that slot uses obdata material, do nothing. */
       continue;
     }
