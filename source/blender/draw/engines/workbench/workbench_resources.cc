@@ -21,7 +21,7 @@ static bool get_matcap_tx(Texture &matcap_tx, StudioLight &studio_light)
   if (matcap_diffuse && matcap_diffuse->float_buffer.data) {
     int layers = 1;
     float *buffer = matcap_diffuse->float_buffer.data;
-    Vector<float> combined_buffer = {};
+    Vector<float> combined_buffer;
 
     if (matcap_specular && matcap_specular->float_buffer.data) {
       int size = matcap_diffuse->x * matcap_diffuse->y * 4;

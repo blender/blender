@@ -474,7 +474,7 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   }
   const Span<float3> tangents = curves_info.main.evaluated_tangents();
   const Span<float3> normals = curves_info.main.evaluated_normals();
-  Span<float> radii_eval = {};
+  Span<float> radii_eval;
   if (const GVArray radii = *curves_info.main.attributes().lookup("radius", AttrDomain::Point)) {
     radii_eval = evaluate_attribute(radii, curves_info.main, eval_buffer).typed<float>();
   }
