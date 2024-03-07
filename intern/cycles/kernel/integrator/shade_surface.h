@@ -138,19 +138,8 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
 
   /* Evaluate emissive closure. */
   Spectrum L = surface_shader_emission(sd);
-  float mis_weight = 1.0f;
 
-  const bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
-                       (sd->flag & ((sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
-
-#ifdef __HAIR__
-  if (has_mis && (sd->type & PRIMITIVE_TRIANGLE))
-#else
-  if (has_mis)
-#endif
-  {
-    mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, sd);
-  }
+  const float mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, sd);
 
   guiding_record_surface_emission(kg, state, L, mis_weight);
   film_write_surface_emission(
@@ -338,12 +327,8 @@ ccl_device
 
     /* Evaluate BSDF. */
     const float bsdf_pdf = surface_shader_bsdf_eval(kg, state, sd, ls.D, &bsdf_eval, ls.shader);
-    bsdf_eval_mul(&bsdf_eval, light_eval / ls.pdf);
-
-    if (ls.shader & SHADER_USE_MIS) {
-      const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
-      bsdf_eval_mul(&bsdf_eval, mis_weight);
-    }
+    const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);
+    bsdf_eval_mul(&bsdf_eval, light_eval / ls.pdf * mis_weight);
 
     /* Path termination. */
     const float terminate = path_state_rng_light_termination(kg, rng_state);

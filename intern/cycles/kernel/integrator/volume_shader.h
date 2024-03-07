@@ -249,7 +249,8 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
                                           ccl_private const ShaderData *sd,
                                           ccl_private const ShaderVolumePhases *phases,
                                           const float3 wo,
-                                          ccl_private BsdfEval *phase_eval)
+                                          ccl_private BsdfEval *phase_eval,
+                                          const uint light_shader_flags)
 {
   bsdf_eval_init(phase_eval, zero_spectrum());
 
@@ -262,6 +263,12 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
     pdf = (guiding_sampling_prob * guide_pdf) + (1.0f - guiding_sampling_prob) * pdf;
   }
 #  endif
+
+  /* If the light does not use MIS, then it is only sampled via NEE, so the probability of hitting
+   * the light using BSDF sampling is zero. */
+  if (!(light_shader_flags & SHADER_USE_MIS)) {
+    pdf = 0.0f;
+  }
 
   return pdf;
 }

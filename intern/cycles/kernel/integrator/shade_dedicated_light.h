@@ -110,9 +110,7 @@ ccl_device bool shadow_linking_shade_light(KernelGlobals kg,
   }
 
   /* MIS weighting. */
-  if (!(path_flag & PATH_RAY_MIS_SKIP)) {
-    mis_weight = shadow_linking_light_sample_mis_weight(kg, state, path_flag, &ls, ray.P);
-  }
+  mis_weight = shadow_linking_light_sample_mis_weight(kg, state, path_flag, &ls, ray.P);
 
   bsdf_spectrum = light_eval * mis_weight *
                   INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
@@ -152,18 +150,7 @@ ccl_device bool shadow_linking_shade_surface_emission(KernelGlobals kg,
 
   const Spectrum L = surface_shader_emission(emission_sd);
 
-  const bool has_mis = !(path_flag & PATH_RAY_MIS_SKIP) &&
-                       (emission_sd->flag &
-                        ((emission_sd->flag & SD_BACKFACING) ? SD_MIS_BACK : SD_MIS_FRONT));
-
-#  ifdef __HAIR__
-  if (has_mis && (emission_sd->type & PRIMITIVE_TRIANGLE))
-#  else
-  if (has_mis)
-#  endif
-  {
-    mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, emission_sd);
-  }
+  mis_weight = light_sample_mis_weight_forward_surface(kg, state, path_flag, emission_sd);
 
   bsdf_spectrum = L * mis_weight * INTEGRATOR_STATE(state, shadow_link, dedicated_light_weight);
   light_group = object_lightgroup(kg, emission_sd->object);
