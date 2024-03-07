@@ -440,8 +440,6 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
                    nullptr,
                    0,
                    0,
-                   0,
-                   0,
                    "");
   }
 
