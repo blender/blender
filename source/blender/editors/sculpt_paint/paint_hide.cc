@@ -537,7 +537,11 @@ static void hide_show_begin(bContext *C, gesture::GestureData * /*gesture_data*/
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
+#ifndef NDEBUG
   BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
+#else
+  (void)pbvh;
+#endif
 }
 
 static void hide_show_apply_for_symmetry_pass(bContext *C, gesture::GestureData *gesture_data)
