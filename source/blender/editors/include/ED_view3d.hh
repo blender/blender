@@ -211,7 +211,7 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
                                   double depth,
                                   float r_location_world[3]);
 
-bool view3d_has_depth_buffer_being_used(const Depsgraph *depsgraph, const View3D *v3d);
+bool ED_view3d_has_depth_buffer_being_used(const Depsgraph *depsgraph, const View3D *v3d);
 
 /**
  * Utilities to perform navigation.
