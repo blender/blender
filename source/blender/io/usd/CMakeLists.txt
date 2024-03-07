@@ -113,13 +113,13 @@ set(SRC
   intern/usd_reader_material.cc
   intern/usd_reader_mesh.cc
   intern/usd_reader_nurbs.cc
+  intern/usd_reader_pointinstancer.cc
   intern/usd_reader_prim.cc
   intern/usd_reader_shape.cc
   intern/usd_reader_skeleton.cc
   intern/usd_reader_stage.cc
   intern/usd_reader_volume.cc
   intern/usd_reader_xform.cc
-  intern/usd_reader_pointinstancer.cc
   intern/usd_skel_convert.cc
   intern/usd_skel_root_utils.cc
 
@@ -153,13 +153,13 @@ set(SRC
   intern/usd_reader_material.hh
   intern/usd_reader_mesh.hh
   intern/usd_reader_nurbs.hh
+  intern/usd_reader_pointinstancer.hh
   intern/usd_reader_prim.hh
   intern/usd_reader_shape.hh
   intern/usd_reader_skeleton.hh
   intern/usd_reader_stage.hh
   intern/usd_reader_volume.hh
   intern/usd_reader_xform.hh
-  intern/usd_reader_pointinstancer.hh
   intern/usd_skel_convert.hh
   intern/usd_skel_root_utils.hh
 )
