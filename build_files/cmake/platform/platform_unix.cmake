@@ -997,7 +997,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
   endif()
 
 # CLang is the same as GCC for now.
-elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
   if(WITH_LINKER_MOLD AND _IS_LINKER_DEFAULT)

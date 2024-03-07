@@ -18,7 +18,7 @@ add_definitions(-DBOOST_ALL_NO_LIB)
 # which lead to an incompatible ABI for Clang. Using those extensions with
 # Clang as well works around the issue.
 if(UNIX AND NOT APPLE)
-  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_C_COMPILER_ID MATCHES "Clang")
     if(DEFINED LIBDIR)
       add_definitions(-DARCH_HAS_GNU_STL_EXTENSIONS)
     endif()

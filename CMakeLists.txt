@@ -123,7 +123,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 The minimum supported version of GCC is 11.0.0, found ${CMAKE_C_COMPILER_VERSION}"
     )
   endif()
-elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(CMAKE_COMPILER_IS_GNUCC AND ("${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "8.0"))
     message(FATAL_ERROR "\
 The minimum supported version of CLANG is 8.0, found ${CMAKE_C_COMPILER_VERSION}"
@@ -913,7 +913,7 @@ if(UNIX)
     option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
     mark_as_advanced(WITH_LINKER_GOLD)
   endif()
-  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     option(WITH_LINKER_LLD "Use ld.lld linker which is usually faster than ld.gold" OFF)
     mark_as_advanced(WITH_LINKER_LLD)
     option(WITH_LINKER_MOLD "Use ld.mold linker which is usually faster than ld.gold & ld.lld" OFF)
@@ -933,7 +933,7 @@ Can cause linking issues due to too large binary size."
 )
 mark_as_advanced(WITH_COMPILER_ASAN_EXTERN)
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   if(WITH_COMPILER_ASAN)
     set(_asan_defaults "\
 -fsanitize=address \
@@ -1008,7 +1008,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
   endif()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   option(WITH_COMPILER_SHORT_FILE_MACRO "\
 Make paths in macros like __FILE__ relative to top level source and build directories."
     ON
@@ -1941,7 +1941,8 @@ if(CMAKE_COMPILER_IS_GNUCC)
     )
   endif()
 
-elseif(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+  # Matches both "Clang" & "AppleClang" on macOS.
 
   add_check_c_compiler_flags(
     C_WARNINGS
@@ -2174,7 +2175,7 @@ endif()
 # Clang on windows copies this behavior and does not support these switches
 if(
   CMAKE_COMPILER_IS_GNUCC OR
-  (CMAKE_C_COMPILER_ID STREQUAL "Clang" AND (NOT MSVC)) OR
+  (CMAKE_C_COMPILER_ID MATCHES "Clang" AND (NOT MSVC)) OR
   (CMAKE_C_COMPILER_ID STREQUAL "Intel")
 )
   # Use C11 + GNU extensions, works with GCC, Clang, ICC

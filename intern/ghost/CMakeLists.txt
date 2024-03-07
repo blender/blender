@@ -382,7 +382,7 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
         DEPENDS ${INC_DST}/${_name}-client-protocol.h
       )
 
-      if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+      if(CMAKE_C_COMPILER_ID MATCHES "Clang")
         # Prevent warnings/failure to compile with generated `WL_PRIVATE` declarations.
         set_source_files_properties(
           "${INC_DST}/${_name}-client-protocol.c"
