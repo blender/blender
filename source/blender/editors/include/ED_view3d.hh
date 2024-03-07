@@ -188,6 +188,8 @@ enum eV3DDepthOverrideMode {
 };
 /**
  * Redraw the viewport depth buffer.
+ * Call #view3d_has_depth_buffer_being_used if you want to check if the viewport already has depth
+ * buffer updated.
  */
 void ED_view3d_depth_override(Depsgraph *depsgraph,
                               ARegion *region,
@@ -208,6 +210,8 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
                                   const int mval[2],
                                   double depth,
                                   float r_location_world[3]);
+
+bool view3d_has_depth_buffer_being_used(const Depsgraph *depsgraph, const View3D *v3d);
 
 /**
  * Utilities to perform navigation.
@@ -850,18 +854,16 @@ void ED_view3d_autodist_last_clear(wmWindow *win);
 
 /**
  * Get the world-space 3d location from a screen-space 2d point.
- * TODO: Implement #alphaoverride. We don't want to zoom into billboards.
+ * It may be useful to call #ED_view3d_depth_override before.
  *
  * \param mval: Input screen-space pixel location.
  * \param mouse_worldloc: Output world-space location.
  * \param fallback_depth_pt: Use this points depth when no depth can be found.
  */
-bool ED_view3d_autodist(Depsgraph *depsgraph,
-                        ARegion *region,
+bool ED_view3d_autodist(ARegion *region,
                         View3D *v3d,
                         const int mval[2],
                         float mouse_worldloc[3],
-                        bool alphaoverride,
                         const float fallback_depth_pt[3]);
 
 /**
