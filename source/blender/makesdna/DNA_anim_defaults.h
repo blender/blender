@@ -10,7 +10,6 @@
 
 #include <math.h>
 
-/* Struct members on own line. */
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */

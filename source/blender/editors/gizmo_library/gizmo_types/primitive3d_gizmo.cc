@@ -10,7 +10,7 @@
  * 3D Gizmo
  *
  * \brief Gizmo with primitive drawing type (plane, cube, etc.).
- * Currently only plane primitive supported without own handling, use with operator only.
+ * Currently only plane primitive supported without its own handling, use with operator only.
  */
 
 #include "MEM_guardedalloc.h"

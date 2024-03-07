@@ -76,7 +76,7 @@ wmDragActiveDropState::~wmDragActiveDropState() = default;
 
 /* drop box maps are stored global for now */
 /* these are part of blender's UI/space specs, and not like keymaps */
-/* when editors become configurable, they can add own dropbox definitions */
+/* when editors become configurable, they can add their own dropbox definitions */
 
 struct wmDropBoxMap {
   wmDropBoxMap *next, *prev;

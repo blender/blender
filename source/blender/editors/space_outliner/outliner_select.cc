@@ -81,7 +81,7 @@ namespace blender::ed::outliner {
 /**
  * \note changes to selection are by convention and not essential.
  *
- * \note Handles own undo push.
+ * \note Handles its own undo push.
  */
 static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *base)
 {
@@ -114,7 +114,7 @@ static void do_outliner_item_editmode_toggle(bContext *C, Scene *scene, Base *ba
 /**
  * \note changes to selection are by convention and not essential.
  *
- * \note Handles own undo push.
+ * \note Handles its own undo push.
  */
 static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *base)
 {
@@ -158,7 +158,7 @@ static void do_outliner_item_posemode_toggle(bContext *C, Scene *scene, Base *ba
  * If we didn't want to touch selection we could add an option to the operators
  * not to do multi-object editing.
  *
- * \note Handles own undo push.
+ * \note Handles its own undo push.
  */
 static void do_outliner_item_mode_toggle_generic(bContext *C, TreeViewContext *tvc, Base *base)
 {

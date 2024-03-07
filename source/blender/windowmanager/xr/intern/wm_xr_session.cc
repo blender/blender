@@ -113,8 +113,8 @@ static void wm_xr_session_begin_info_create(wmXrData *xr_data,
    * after the session is created but before it is started. */
   r_begin_info->create_fn = wm_xr_session_create_cb;
 
-  /* WM-XR exit function, does some own stuff and calls callback passed to wm_xr_session_toggle(),
-   * to allow external code to execute its own session-exit logic. */
+  /* WM-XR exit function, does some of its own stuff and calls callback passed to
+   * wm_xr_session_toggle(), to allow external code to execute its own session-exit logic. */
   r_begin_info->exit_fn = wm_xr_session_exit_cb;
   r_begin_info->exit_customdata = xr_data;
 }
@@ -231,7 +231,7 @@ wmWindow *wm_xr_session_root_window_or_fallback_get(const wmWindowManager *wm,
  * started from) if still available. If it's not available, use some fallback window.
  *
  * It's important that the VR session follows some existing window, otherwise it would need to have
- * an own depsgraph, which is an expense we should avoid.
+ * its own depsgraph, which is an expense we should avoid.
  */
 static void wm_xr_session_scene_and_depsgraph_get(const wmWindowManager *wm,
                                                   Scene **r_scene,

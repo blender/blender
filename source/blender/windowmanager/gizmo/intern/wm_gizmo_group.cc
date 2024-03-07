@@ -8,7 +8,7 @@
  * \name Gizmo-Group
  *
  * Gizmo-groups store and manage groups of gizmos. They can be
- * attached to modal handlers and have own keymaps.
+ * attached to modal handlers and have their own keymaps.
  */
 
 #include <cstdlib>

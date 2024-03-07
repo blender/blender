@@ -138,7 +138,7 @@ void wm_event_free_handler(wmEventHandler *handler);
 void wm_event_do_handlers(bContext *C);
 
 /**
- * Windows store own event queues #wmWindow.event_queue (no #bContext here).
+ * Windows store their own event queues #wmWindow.event_queue (no #bContext here).
  */
 void wm_event_add_ghostevent(wmWindowManager *wm,
                              wmWindow *win,

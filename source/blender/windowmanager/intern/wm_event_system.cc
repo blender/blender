@@ -1187,7 +1187,7 @@ static void wm_operator_finished(bContext *C,
     }
 
     if (do_register) {
-      /* Take ownership of reports (in case python provided own). */
+      /* Take ownership of reports (in case python provided its own). */
       op->reports->flag |= RPT_FREE;
 
       wm_operator_register(C, op);
@@ -1582,7 +1582,7 @@ static int wm_operator_invoke(bContext *C,
       wm_operator_finished(C, op, false, store, has_undo_step, has_register);
     }
     else if (retval & OPERATOR_RUNNING_MODAL) {
-      /* Take ownership of reports (in case python provided own). */
+      /* Take ownership of reports (in case python provided its own). */
       op->reports->flag |= RPT_FREE;
 
       /* Grab cursor during blocking modal operators (X11)

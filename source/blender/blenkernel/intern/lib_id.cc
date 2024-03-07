@@ -685,7 +685,7 @@ ID *BKE_id_copy_in_lib(Main *bmain,
   BKE_library_foreach_ID_link(bmain, newid, id_copy_libmanagement_cb, &data, IDWALK_NOP);
 
   /* Do not make new copy local in case we are copying outside of main...
-   * XXX TODO: is this behavior OK, or should we need own flag to control that? */
+   * XXX TODO: is this behavior OK, or should we need a separate flag to control that? */
   if ((flag & LIB_ID_CREATE_NO_MAIN) == 0) {
     BLI_assert(!owner_library || newid->lib == *owner_library);
     if (!ID_IS_LINKED(newid)) {

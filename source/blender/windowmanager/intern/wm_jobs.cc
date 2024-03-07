@@ -60,7 +60,7 @@ struct wmJob {
   /** Job originating from, keep track of this when deleting windows */
   wmWindow *win;
 
-  /** Should store entire own context, for start, update, free */
+  /** Should store entirely owned context, for start, update, free */
   void *customdata;
   /**
    * To prevent cpu overhead, use this one which only gets called when job really starts.
@@ -98,7 +98,7 @@ struct wmJob {
    */
   void (*canceled)(void *);
 
-  /** Running jobs each have own timer */
+  /** Running jobs each have their own timer */
   double time_step;
   wmTimer *wt;
   /** Only start job after specified time delay */
@@ -661,7 +661,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
       if (wm_job->ready) {
         wm_job_end(wm, wm_job);
 
-        /* free own data */
+        /* free owned data */
         wm_job->run_free(wm_job->run_customdata);
         wm_job->run_customdata = nullptr;
         wm_job->run_free = nullptr;

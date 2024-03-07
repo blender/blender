@@ -3151,7 +3151,7 @@ void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop,
 
     UI_but_func_set(but, ui_but_anim_decorate_cb, but, nullptr);
     but->flag |= UI_BUT_UNDO | UI_BUT_DRAG_LOCK;
-    /* Decorators have own RNA data, using the normal #uiBut RNA members has many side-effects. */
+    /* Decorators have their own RNA data, using the normal #uiBut RNA members has many side-effects. */
     but->decorated_rnapoin = *ptr;
     but->decorated_rnaprop = prop;
     /* ui_def_but_rna() sets non-array buttons to have a RNA index of 0. */

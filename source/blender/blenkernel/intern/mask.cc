@@ -1509,7 +1509,7 @@ void BKE_mask_parent_init(MaskParent *parent)
   parent->id_type = ID_MC;
 }
 
-/* *** own animation/shape-key implementation ***
+/* *** animation/shape-key implementation ***
  * BKE_mask_layer_shape_XXX */
 
 int BKE_mask_layer_shape_totvert(MaskLayer *masklay)

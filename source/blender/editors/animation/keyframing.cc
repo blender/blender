@@ -1314,7 +1314,7 @@ static bool object_frame_has_keyframe(Object *ob, float frame)
     return false;
   }
 
-  /* check own animation data - specifically, the action it contains */
+  /* check its own animation data - specifically, the action it contains */
   if ((ob->adt) && (ob->adt->action)) {
     /* #41525 - When the active action is a NLA strip being edited,
      * we need to correct the frame number to "look inside" the

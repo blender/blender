@@ -147,7 +147,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
       /* For each shape-key in destination mesh:
        * - if there's a matching one, copy it across
        *   (will need to transform vertices into new space...).
-       * - otherwise, just copy own coordinates of mesh
+       * - otherwise, just copy its own coordinates of mesh
        *   (no need to transform vertex coordinates into new space).
        */
       if (key) {

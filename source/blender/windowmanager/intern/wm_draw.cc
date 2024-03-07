@@ -716,7 +716,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
     }
     else {
       /* Allocate off-screen buffer if it does not exist. This one has no
-       * depth or multi-sample buffers. 3D view creates own buffers with
+       * depth or multi-sample buffers. 3D view creates its own buffers with
        * the data it needs. */
       GPUOffScreen *offscreen = GPU_offscreen_create(region->winx,
                                                      region->winy,
@@ -928,7 +928,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
   wmWindowManager *wm = CTX_wm_manager(C);
   bScreen *screen = WM_window_get_active_screen(win);
 
-  /* Draw screen areas into own frame buffer. */
+  /* Draw screen areas into their own frame buffer. */
   ED_screen_areas_iter (win, screen, area) {
     CTX_wm_area_set(C, area);
     GPU_debug_group_begin(wm_area_name(area));

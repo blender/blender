@@ -1052,7 +1052,7 @@ typedef enum eTransformLimits_Flags2 {
   LIMIT_TRANSFORM = (1 << 1),
 } eTransformLimits_Flags2;
 
-/* transform limiting constraints -> flag (own flags). */
+/* transform limiting constraints -> flag. */
 typedef enum eTransformLimits_Flags {
   LIMIT_XMIN = (1 << 0),
   LIMIT_XMAX = (1 << 1),
@@ -1062,7 +1062,7 @@ typedef enum eTransformLimits_Flags {
   LIMIT_ZMAX = (1 << 5),
 } eTransformLimits_Flags;
 
-/* limit rotation constraint -> flag (own flags). */
+/* limit rotation constraint -> flag. */
 typedef enum eRotLimit_Flags {
   LIMIT_XROT = (1 << 0),
   LIMIT_YROT = (1 << 1),

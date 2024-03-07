@@ -39,7 +39,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
                               GPUOffScreen *ofs,
                               GPUViewport *viewport);
 /**
- * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen). Similar too
+ * Creates separate fake 3d views (wrapping #ED_view3d_draw_offscreen). Similar too
  * #ED_view_draw_offscreen_imbuf_simple, but takes view/projection matrices as arguments.
  */
 void ED_view3d_draw_offscreen_simple(Depsgraph *depsgraph,
@@ -87,7 +87,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                       GPUViewport *viewport,
                                       char err_out[256]);
 /**
- * Creates own fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
+ * Creates separate fake 3d views (wrapping #ED_view3d_draw_offscreen_imbuf)
  *
  * \param ofs: Optional off-screen buffer can be NULL.
  * (avoids re-creating when doing multiple GL renders).

@@ -53,7 +53,7 @@ class AbstractView {
 
   bool is_reconstructed_ = false;
   /**
-   * Only one item can be renamed at a time. So rather than giving each item an own rename buffer
+   * Only one item can be renamed at a time. So rather than giving each item its own rename buffer
    * (which just adds unused memory in most cases), have one here that is managed by the view.
    *
    * This fixed-size buffer is needed because that's what the rename button requires. In future we

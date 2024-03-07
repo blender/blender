@@ -8,7 +8,6 @@
 
 #pragma once
 
-/* Struct members on own line. */
 /* clang-format off */
 
 #define _DNA_DEFAULT_ArmatureModifierData \
@@ -800,7 +799,7 @@
     .flag = MOD_WIREFRAME_REPLACE | MOD_WIREFRAME_OFS_EVEN, \
     .mat_ofs = 0, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilOpacityModifierData \
   { \
     .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
@@ -812,7 +811,7 @@
   { \
     .level = 1, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilColorModifierData \
   { \
     .color_mode = MOD_GREASE_PENCIL_COLOR_BOTH, \
@@ -859,7 +858,7 @@
     .step = 4, \
     .seed = 1, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilMirrorModifierData \
   { \
     .flag = MOD_GREASE_PENCIL_MIRROR_AXIS_X, \
@@ -895,7 +894,7 @@
     .opacity = 1.0f, \
     .mat_nr = -1, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilMultiModifierData \
   { \
     .flag = 0, \
@@ -928,7 +927,7 @@
     .flag = 0, \
     .axis = 1, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilArrayModifierData \
   { \
     .object = NULL, \
@@ -950,7 +949,7 @@
     .dist_start = 0.0f, \
     .dist_end = 20.0f, \
   }
-  
+
 #define _DNA_DEFAULT_GreasePencilHookModifierData \
   { \
     .object = NULL, \

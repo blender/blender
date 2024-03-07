@@ -531,7 +531,7 @@ struct StructRNA {
 
   /* various options */
   int flag;
-  /* Each StructRNA type can define own tags which properties can set
+  /* Each StructRNA type can define its own tags which properties can set
    * (PropertyRNA.tags) for changed behavior based on struct-type. */
   const EnumPropertyItem *prop_tag_defines;
 

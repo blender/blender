@@ -724,7 +724,7 @@ bool ui_but_rna_equals_ex(const uiBut *but,
 static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
   if (but->identity_cmp_func) {
-    /* If the buttons have own identity comparator callbacks (and they match), use this to
+    /* If the buttons have their own identity comparator callbacks (and they match), use this to
      * determine equality. */
     if (but->identity_cmp_func && (but->type == oldbut->type) &&
         (but->identity_cmp_func == oldbut->identity_cmp_func))

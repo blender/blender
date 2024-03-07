@@ -10,7 +10,6 @@
 
 /* Note that some struct members for color-mapping and color-bands are not initialized here. */
 
-/* Struct members on own line. */
 /* clang-format off */
 
 #define _DNA_DEFAULT_ArmatureGpencilModifierData \

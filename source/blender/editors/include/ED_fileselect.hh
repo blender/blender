@@ -56,7 +56,7 @@ struct FileAttributeColumn {
 };
 
 struct FileLayout {
-  /* view settings - XXX: move into own struct. */
+  /* view settings - XXX: move into its own struct. */
   int offset_top;
   /* Height of the header for the different FileAttributeColumn's. */
   int attribute_column_header_h;

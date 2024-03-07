@@ -3566,7 +3566,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "Snap to Same Target",
       "Snap only to target that source was initially near (Face Nearest Only)");
 
-  /* node editor uses own set of snap modes */
+  /* node editor uses its own set of snap modes */
   prop = RNA_def_property(srna, "snap_node_element", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_node_mode");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
@@ -3596,7 +3596,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
-  /* image editor uses own set of snap modes */
+  /* image editor uses its own set of snap modes */
   prop = RNA_def_property(srna, "snap_uv_element", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_uv_mode");
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);

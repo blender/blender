@@ -10,7 +10,6 @@
 
 #include "DNA_vec_defaults.h"
 
-/* Struct members on own line. */
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */

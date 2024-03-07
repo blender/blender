@@ -3035,7 +3035,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 
 static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *con)
 {
-  /* unless button has own callback, it adds this callback to button */
+  /* unless button has its own callback, it adds this callback to button */
   uiBlock *block = uiLayoutGetBlock(layout);
   UI_block_func_set(block, constraint_active_func, ob, con);
 

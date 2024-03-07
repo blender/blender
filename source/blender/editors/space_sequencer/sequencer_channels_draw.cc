@@ -190,7 +190,7 @@ static rctf label_rect_init(const SeqChannelDrawContext *context,
   float margin_x = icon_width_get(context) * 0.65;
   float width = max_ff(0.0f, context->v2d->cur.xmax / context->scale - used_width);
 
-  /* Text input has own margin. Prevent text jumping around and use as much space as possible. */
+  /* Text input has its own margin. Prevent text jumping around and use as much space as possible. */
   if (channel_is_being_renamed(CTX_wm_space_seq(context->C), channel_index)) {
     float input_box_margin = icon_width_get(context) * 0.5f;
     margin_x -= input_box_margin;

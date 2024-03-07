@@ -1098,7 +1098,7 @@ static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *e
   auto finish = [&]() {
     wmWindowManager *wm = CTX_wm_manager(C);
 
-    /* Remove own cursor. */
+    /* Remove cursor. */
     WM_paint_cursor_end(static_cast<wmPaintCursor *>(op_data.cursor));
     /* Restore original paint cursors. */
     wm->paintcursors = op_data.orig_paintcursors;

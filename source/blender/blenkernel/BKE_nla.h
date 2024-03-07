@@ -432,11 +432,11 @@ void BKE_nlastrip_validate_name(struct AnimData *adt, struct NlaStrip *strip);
 /* ............ */
 
 /**
- * Check if the given NLA-Track has any strips with own F-Curves.
+ * Check if the given NLA-Track has any strips with their own F-Curves.
  */
 bool BKE_nlatrack_has_animated_strips(struct NlaTrack *nlt);
 /**
- * Check if given NLA-Tracks have any strips with own F-Curves.
+ * Check if given NLA-Tracks have any strips with their own F-Curves.
  */
 bool BKE_nlatracks_have_animated_strips(ListBase *tracks);
 /**

@@ -763,7 +763,7 @@ uiLayout *UI_pie_menu_layout(uiPieMenu *pie);
 /* Popup Blocks
  *
  * Functions used to create popup blocks. These are like popup menus
- * but allow using all button types and creating an own layout. */
+ * but allow using all button types and creating their own layout. */
 using uiBlockCreateFunc = uiBlock *(*)(bContext *C, ARegion *region, void *arg1);
 using uiBlockCancelFunc = void (*)(bContext *C, void *arg1);
 

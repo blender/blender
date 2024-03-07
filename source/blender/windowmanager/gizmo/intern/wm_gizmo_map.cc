@@ -433,7 +433,7 @@ static void gizmos_draw_list(const wmGizmoMap *gzmap, const bContext *C, ListBas
     return;
   }
 
-  /* TODO(@ideasman42): This will need it own shader probably?
+  /* TODO(@ideasman42): This will need its own shader probably?
    * Don't think it can be handled from that point though. */
   // const bool use_lighting = (U.gizmo_flag & V3D_GIZMO_SHADED) != 0;
 

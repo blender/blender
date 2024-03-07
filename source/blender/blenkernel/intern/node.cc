@@ -160,7 +160,7 @@ static void ntree_copy_data(Main * /*bmain*/,
   bNodeTree *ntree_dst = reinterpret_cast<bNodeTree *>(id_dst);
   const bNodeTree *ntree_src = reinterpret_cast<const bNodeTree *>(id_src);
 
-  /* We never handle user-count here for own data. */
+  /* We never handle user-count here for owned data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
   ntree_dst->runtime = MEM_new<bNodeTreeRuntime>(__func__);

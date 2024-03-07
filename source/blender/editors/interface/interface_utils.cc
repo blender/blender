@@ -380,7 +380,7 @@ static bool add_collection_search_item(CollItemSearch &cis,
                                        uiSearchItems *items)
 {
 
-  /* If no item has an own icon to display, libraries can use the library icons rather than the
+  /* If no item has its own icon to display, libraries can use the library icons rather than the
    * name prefix for showing the library status. */
   int name_prefix_offset = cis.name_prefix_offset;
   if (!has_id_icon && cis.is_id && !requires_exact_data_name) {

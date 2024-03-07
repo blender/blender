@@ -10,7 +10,7 @@
  * 3D Gizmo
  *
  * \brief Circle shaped gizmo for circular interaction.
- * Currently no own handling, use with operator only.
+ * Currently no separate handling, use with operator only.
  *
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` is 'up' when DialGizmo.use_start_y_axis is set.

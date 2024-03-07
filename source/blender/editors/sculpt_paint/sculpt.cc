@@ -5775,7 +5775,7 @@ void SCULPT_OT_brush_stroke(wmOperatorType *ot)
   ot->cancel = sculpt_brush_stroke_cancel;
   ot->ui = sculpt_redo_empty_ui;
 
-  /* Flags (sculpt does own undo? (ton)). */
+  /* Flags (sculpt does its own undo? (ton)). */
   ot->flag = OPTYPE_BLOCKING;
 
   /* Properties. */

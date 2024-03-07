@@ -435,7 +435,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   }
   td->ext->rotOrder = pchan->rotmode;
 
-  /* proper way to get parent transform + own transform + constraints transform */
+  /* proper way to get parent transform + our own transform + constraints transform */
   copy_m3_m4(omat, ob->object_to_world().ptr());
 
   /* New code, using "generic" BKE_bone_parent_transform_calc_from_pchan(). */
@@ -486,7 +486,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
     }
   }
 
-  /* For `axismtx` we use bone's own transform. */
+  /* For `axismtx` we use the bone's own transform. */
   copy_m3_m4(pmat, pchan->pose_mat);
   mul_m3_m3m3(td->axismtx, omat, pmat);
   normalize_m3(td->axismtx);
