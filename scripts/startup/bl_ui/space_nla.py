@@ -17,8 +17,6 @@ class NLA_HT_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        st = context.space_data
-
         layout.template_header()
 
         NLA_MT_editor_menus.draw_collapsible(context, layout)

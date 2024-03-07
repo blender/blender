@@ -330,7 +330,6 @@ class VIEWLAYER_PT_filter(ViewLayerButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         scene = context.scene
-        rd = scene.render
         view_layer = context.view_layer
 
         col = layout.column(heading="Include")
