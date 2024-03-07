@@ -176,7 +176,7 @@ AssetLibrary::AssetLibrary(eAssetLibraryType library_type, StringRef name, Strin
 AssetLibrary::~AssetLibrary()
 {
   if (on_save_callback_store_.func) {
-    on_blend_save_handler_unregister();
+    this->on_blend_save_handler_unregister();
   }
 }
 

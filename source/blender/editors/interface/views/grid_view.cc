@@ -79,7 +79,7 @@ void AbstractGridView::update_children_from_old(const AbstractView &old_view)
 {
   const AbstractGridView &old_grid_view = dynamic_cast<const AbstractGridView &>(old_view);
 
-  foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
+  this->foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
     const AbstractGridViewItem *matching_old_item = find_matching_item(new_item, old_grid_view);
     if (!matching_old_item) {
       return;

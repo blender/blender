@@ -75,7 +75,7 @@ bool AllAssetLibrary::is_catalogs_dirty() const
 
 void AllAssetLibrary::refresh_catalogs()
 {
-  rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/true);
+  this->rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/true);
 }
 
 }  // namespace blender::asset_system
