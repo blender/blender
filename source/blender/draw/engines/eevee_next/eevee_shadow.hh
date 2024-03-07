@@ -395,8 +395,10 @@ class ShadowPunctual : public NonCopyable, NonMovable {
   int tilemaps_needed_;
   /** Scaling factor to the light shape for shadow ray casting. */
   float softness_factor_;
-  /** radius * softness_factor (Bypasses LightModule radius modifications to avoid unnecesary
-   * padding in the shadow projection). */
+  /**
+   * `radius * softness_factor` (Bypasses LightModule radius modifications
+   * to avoid unnecessary padding in the shadow projection).
+   */
   float shadow_radius_;
 
  public:
