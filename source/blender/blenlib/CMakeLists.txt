@@ -521,8 +521,8 @@ if(WITH_GTESTS)
     tests/BLI_kdopbvh_test.cc
     tests/BLI_kdtree_test.cc
     tests/BLI_length_parameterize_test.cc
-    tests/BLI_linear_allocator_test.cc
     tests/BLI_linear_allocator_chunked_list_test.cc
+    tests/BLI_linear_allocator_test.cc
     tests/BLI_linklist_lockfree_test.cc
     tests/BLI_listbase_test.cc
     tests/BLI_map_test.cc

@@ -1161,8 +1161,8 @@ static void clip_id_remap(ScrArea * /*area*/,
     return;
   }
 
-  mappings.apply((ID **)&sclip->clip, ID_REMAP_APPLY_ENSURE_REAL);
-  mappings.apply((ID **)&sclip->mask_info.mask, ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply(reinterpret_cast<ID **>(&sclip->clip), ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply(reinterpret_cast<ID **>(&sclip->mask_info.mask), ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 static void clip_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

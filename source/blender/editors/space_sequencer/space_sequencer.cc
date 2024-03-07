@@ -915,7 +915,7 @@ static void sequencer_id_remap(ScrArea * /*area*/,
                                const blender::bke::id::IDRemapper &mappings)
 {
   SpaceSeq *sseq = (SpaceSeq *)slink;
-  mappings.apply((ID **)&sseq->gpd, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sseq->gpd), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void sequencer_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

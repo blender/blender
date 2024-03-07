@@ -45,7 +45,7 @@ bool AssetStorage::remove_asset(AssetRepresentation &asset)
 
 void AssetStorage::remap_ids_and_remove_invalid(const blender::bke::id::IDRemapper &mappings)
 {
-  Set<AssetRepresentation *> removed_assets{};
+  Set<AssetRepresentation *> removed_assets;
 
   for (auto &asset_ptr : local_id_assets_) {
     AssetRepresentation &asset = *asset_ptr;

@@ -10,25 +10,24 @@
 
 #pragma once
 
-#include <cstdint>
+#include "BLI_hash.hh"
 
 #include "DNA_asset_types.h"
 
-namespace blender::ed::asset {
+inline bool operator==(const AssetLibraryReference &a, const AssetLibraryReference &b)
+{
+  return (a.type == b.type) &&
+         ((a.type == ASSET_LIBRARY_CUSTOM) ? (a.custom_library_index == b.custom_library_index) :
+                                             true);
+}
 
-/**
- * Wrapper to add logic to the AssetLibraryReference DNA struct.
- */
-class AssetLibraryReferenceWrapper : public AssetLibraryReference {
- public:
-  /* Intentionally not `explicit`, allow implicit conversion for convenience. Might have to be
-   * NOLINT */
-  AssetLibraryReferenceWrapper(const AssetLibraryReference &reference);
-  ~AssetLibraryReferenceWrapper() = default;
+namespace blender {
 
-  friend bool operator==(const AssetLibraryReferenceWrapper &a,
-                         const AssetLibraryReferenceWrapper &b);
-  uint64_t hash() const;
+template<> struct DefaultHash<AssetLibraryReference> {
+  uint64_t operator()(const AssetLibraryReference &value) const
+  {
+    return get_default_hash(value.type, value.custom_library_index);
+  }
 };
 
-}  // namespace blender::ed::asset
+}  // namespace blender

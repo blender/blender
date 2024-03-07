@@ -23,7 +23,7 @@
 #include "GPU_index_buffer.h"
 #include "GPU_shader.h"
 #include "GPU_storage_buffer.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_vertex_buffer.h"
 
 #define GPU_BATCH_VBO_MAX_LEN 16

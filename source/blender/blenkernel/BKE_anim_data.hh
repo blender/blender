@@ -88,11 +88,11 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data);
 /**
  * Make a copy of the given AnimData - to be used when copying data-blocks.
  *
- * \note: Regarding handling of IDs managed by the #AnimData struct, this function follows the
- * behaviors of the generic #BKE_id_copy_ex, please see its documetation for more details.
+ * \note Regarding handling of IDs managed by the #AnimData struct, this function follows the
+ * behaviors of the generic #BKE_id_copy_ex, please see its documentation for more details.
  *
  * \param flag: Control ID pointers management, see LIB_ID_CREATE_.../LIB_ID_COPY_... flags in
- * #BKE_lib_id.hh
+ * `BKE_lib_id.hh`.
  *
  * \return The copied animdata.
  */

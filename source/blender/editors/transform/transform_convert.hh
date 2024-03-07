@@ -48,22 +48,34 @@ struct TransConvertTypeInfo {
  * Structure used for Edge Slide operation.
  */
 struct TransDataEdgeSlideVert {
-  struct BMVert *v;
-  blender::float3 v_co_orig;
-  blender::float3 dir_side[2];
-  float edge_len;
-  int loop_nr;
+  TransData *td;
+  blender::float3 dir_side[2]; /* Directional vectors on the sides.*/
+  float edge_len;              /* Distance between vectors. */
+  int loop_nr;                 /* Number that identifies the group of connected edges. */
+
+  const float *v_co_orig() const
+  {
+    return this->td->iloc;
+  }
 };
 
 /**
  * Structure used for Vert Slide operation.
  */
 struct TransDataVertSlideVert {
-  BMVert *v;
-  blender::float3 co_orig_3d;
-  blender::float3 *co_link_orig_3d;
-  int co_link_tot;
+  TransData *td;
+  blender::Span<blender::float3> co_link_orig_3d; /* Target locations.*/
   int co_link_curr;
+
+  const float *co_orig_3d() const
+  {
+    return this->td->iloc;
+  }
+
+  const blender::float3 &co_dest_3d() const
+  {
+    return this->co_link_orig_3d[this->co_link_curr];
+  }
 };
 
 /* `transform_convert.cc` */
@@ -262,13 +274,11 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      TransData *r_td);
 void transform_convert_mesh_crazyspace_free(TransMeshDataCrazySpace *r_crazyspace_data);
 
-TransDataVertSlideVert *transform_mesh_vert_slide_data_create(const TransDataContainer *tc,
-                                                              int *r_sv_len);
+blender::Array<TransDataVertSlideVert> transform_mesh_vert_slide_data_create(
+    const TransDataContainer *tc, blender::Vector<blender::float3> &r_loc_dst_buffer);
 
-TransDataEdgeSlideVert *transform_mesh_edge_slide_data_create(const TransDataContainer *tc,
-                                                              const bool use_double_side,
-                                                              int *r_group_len,
-                                                              int *r_sv_len);
+blender::Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(
+    const TransDataContainer *tc, int *r_group_len);
 
 /* `transform_convert_mesh_edge.cc` */
 

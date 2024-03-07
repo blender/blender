@@ -554,7 +554,7 @@ macro(TEST_SSE_SUPPORT
       set(${_sse_flags} "/arch:SSE")
       set(${_sse2_flags} "/arch:SSE2")
     endif()
-  elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+  elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
     set(${_sse_flags} "")  # icc defaults to -msse
     set(${_sse2_flags} "")  # icc defaults to -msse2
   else()
@@ -766,7 +766,7 @@ endmacro()
 macro(remove_cc_flag_unsigned_char)
   if(CMAKE_COMPILER_IS_GNUCC OR
      (CMAKE_C_COMPILER_ID MATCHES "Clang") OR
-     (CMAKE_C_COMPILER_ID MATCHES "Intel"))
+     (CMAKE_C_COMPILER_ID STREQUAL "Intel"))
     remove_cc_flag("-funsigned-char")
   elseif(MSVC)
     remove_cc_flag("/J")

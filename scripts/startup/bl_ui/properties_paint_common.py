@@ -1434,10 +1434,7 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
 
 
 def brush_basic_grease_pencil_paint_settings(layout, context, brush, *, compact=False):
-    tool_settings = context.tool_settings
-    settings = tool_settings.gpencil_paint
     gp_settings = brush.gpencil_settings
-    tool = context.workspace.tools.from_space_view3d_mode(context.mode, create=False)
     if gp_settings is None:
         return
 

@@ -12,6 +12,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_interp.hh"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
 #include <cstring>
@@ -199,6 +200,20 @@ class MemoryBuffer {
   void read_elem_checked(float x, float y, float *out) const
   {
     read_elem_checked(floor_x(x), floor_y(y), out);
+  }
+
+  /* Equivalent to the GLSL texture() function with bilinear interpolation and extended boundary
+   * conditions. The coordinates are thus expected to have half-pixels offsets. For float buffers,
+   * the green and green channels will be zero and the alpha will be one. */
+  float4 texture_bilinear_extend(float2 coordinates) const
+  {
+    const int2 size = int2(get_width(), get_height());
+    const float2 texel_coordinates = (coordinates * float2(size)) - 0.5f;
+
+    float4 result = float4(0.0f, 0.0f, 0.0f, 1.0f);
+    math::interpolate_bilinear_fl(
+        buffer_, result, size.x, size.y, num_channels_, texel_coordinates.x, texel_coordinates.y);
+    return result;
   }
 
   void read_elem_bilinear(float x, float y, float *out) const

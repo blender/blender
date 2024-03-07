@@ -128,7 +128,7 @@ void BKE_lib_libblock_session_uid_renew(ID *id);
  */
 void *BKE_id_new(Main *bmain, short type, const char *name);
 /**
- * Same as for #BKE_id_new, but allows creating a data-block for (whithin) a given owner library.
+ * Same as for #BKE_id_new, but allows creating a data-block for (within) a given owner library.
  *
  * \param owner_library the Library to 'assign' the newly created ID to. Use `nullptr` to make ID
  * not use any library (i.e. become a local ID). Use `std::nullopt` for default behavior (i.e.

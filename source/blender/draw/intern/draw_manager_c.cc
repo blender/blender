@@ -62,7 +62,7 @@
 #include "GPU_platform.h"
 #include "GPU_shader_shared.h"
 #include "GPU_state.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_viewport.h"
 
 #include "RE_engine.h"

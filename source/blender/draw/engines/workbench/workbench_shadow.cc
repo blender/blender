@@ -96,8 +96,8 @@ void ShadowPass::ShadowView::setup(View &view, float3 light_direction, bool forc
   float4 frustum_planes[6];
   DRW_culling_frustum_planes_get(nullptr, (float(*)[4])frustum_planes);
 
-  Vector<float4> faces_result = {};
-  Vector<float3> corners_result = {};
+  Vector<float4> faces_result;
+  Vector<float3> corners_result;
 
   /* "Unlit" frustum faces are left "as-is" */
 

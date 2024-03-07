@@ -116,12 +116,14 @@ else()
   endif()
   set(PYTHON_BINARY ${LIBDIR}/python/bin/python${PYTHON_SHORT_VERSION})
 
-  # Various flags to convince Python to use our own versions of ffi, sqlite, ssl, bzip2, lzma and zlib.
+  # Various flags to convince Python to use our own versions of:
+  # `ffi`, `sqlite`, `ssl`, `bzip2`, `lzma` and `zlib`.
   # Using pkg-config is only supported for some, and even then we need to work around issues.
   set(PYTHON_CONFIGURE_EXTRA_ARGS --with-openssl=${LIBDIR}/ssl)
   set(PYTHON_CFLAGS "${PLATFORM_CFLAGS} ")
-  # Manually specify some library paths. For ffi there is no other way, for sqlite is needed because
-  # LIBSQLITE3_LIBS does not work, and ssl because it uses the wrong ssl/lib dir instead of ssl/lib64.
+  # Manually specify some library paths. For ffi there is no other way,
+  # for sqlite is needed because LIBSQLITE3_LIBS does not work,
+  # and ssl because it uses the wrong ssl/lib dir instead of ssl/lib64.
   set(PYTHON_LDFLAGS "-L${LIBDIR}/ffi/lib -L${LIBDIR}/sqlite/lib -L${LIBDIR}/ssl/lib -L${LIBDIR}/ssl/lib64 ${PLATFORM_LDFLAGS} ")
   set(PYTHON_CONFIGURE_EXTRA_ENV
     export CFLAGS=${PYTHON_CFLAGS} &&

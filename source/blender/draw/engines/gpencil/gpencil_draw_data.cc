@@ -16,7 +16,7 @@
 #include "BLI_math_color.h"
 #include "BLI_memblock.h"
 
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 #include "IMB_imbuf_types.hh"
 

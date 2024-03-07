@@ -24,7 +24,7 @@
 #include "GPU_drawlist.h"
 #include "GPU_framebuffer.h"
 #include "GPU_shader.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_viewport.h"
 
 #include "draw_instance_data.h"

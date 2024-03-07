@@ -62,7 +62,7 @@ else()
   set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME_LOWER}-${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-git${CPACK_DATE}.${BUILD_REV}-${PACKAGE_ARCH})
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # RPM packages
   include(build_files/cmake/RpmBuild.cmake)
   if(RPMBUILD_FOUND)

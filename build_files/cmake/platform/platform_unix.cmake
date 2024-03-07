@@ -649,7 +649,7 @@ if(CMAKE_DL_LIBS)
   list(APPEND PLATFORM_LINKLIBS ${CMAKE_DL_LIBS})
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   if(NOT WITH_PYTHON_MODULE)
     # binreloc is linux only
     set(BINRELOC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/binreloc/include)
@@ -1043,7 +1043,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   endif()
 
 # Intel C++ Compiler
-elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
   # think these next two are broken
   find_program(XIAR xiar)
   if(XIAR)
@@ -1136,8 +1136,12 @@ if(PLATFORM_BUNDLED_LIBRARIES)
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
-  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}:$LD_LIBRARY_PATH\"")
-  set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
+  set(PLATFORM_ENV_BUILD
+    "LD_LIBRARY_PATH=\"${_library_paths}:$LD_LIBRARY_PATH\""
+  )
+  set(PLATFORM_ENV_INSTALL
+    "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH"
+  )
   unset(_library_paths)
 else()
   # Quiet unused variable warnings, unfortunately this can't be empty.

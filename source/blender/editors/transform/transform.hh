@@ -716,7 +716,7 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name TransData Creation and General Handling
+/** \name General Utils
  * \{ */
 
 void transform_view_vector_calc(const TransInfo *t, const float focus[3], float r_vec[3]);

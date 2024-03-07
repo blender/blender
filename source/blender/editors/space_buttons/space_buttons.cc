@@ -901,7 +901,7 @@ static void buttons_id_remap(ScrArea * /*area*/,
 
   if (sbuts->texuser) {
     ButsContextTexture *ct = static_cast<ButsContextTexture *>(sbuts->texuser);
-    mappings.apply((ID **)&ct->texture, ID_REMAP_APPLY_DEFAULT);
+    mappings.apply(reinterpret_cast<ID **>(&ct->texture), ID_REMAP_APPLY_DEFAULT);
     BLI_freelistN(&ct->users);
     ct->user = nullptr;
   }

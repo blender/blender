@@ -394,7 +394,7 @@ static void text_id_remap(ScrArea * /*area*/,
                           const blender::bke::id::IDRemapper &mappings)
 {
   SpaceText *stext = (SpaceText *)slink;
-  mappings.apply((ID **)&stext->text, ID_REMAP_APPLY_ENSURE_REAL);
+  mappings.apply(reinterpret_cast<ID **>(&stext->text), ID_REMAP_APPLY_ENSURE_REAL);
 }
 
 static void text_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

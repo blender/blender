@@ -2440,6 +2440,28 @@ void ED_view3d_depths_free(ViewDepths *depths)
   MEM_freeN(depths);
 }
 
+bool ED_view3d_has_depth_buffer_being_used(const Depsgraph *depsgraph, const View3D *v3d)
+{
+  const char *engine_name = DEG_get_evaluated_scene(depsgraph)->r.engine;
+  RenderEngineType *engine_type = RE_engines_find(engine_name);
+
+  bool is_viewport_wire_no_xray = v3d->shading.type < OB_SOLID && !XRAY_ENABLED(v3d);
+  bool is_viewport_preview_solid = v3d->shading.type == OB_SOLID;
+  bool is_viewport_preview_material = v3d->shading.type == OB_MATERIAL;
+  bool is_viewport_render_eevee = v3d->shading.type == OB_RENDER &&
+                                  (STREQ(engine_name, RE_engine_id_BLENDER_EEVEE) ||
+                                   STREQ(engine_name, RE_engine_id_BLENDER_EEVEE_NEXT));
+  bool is_viewport_render_workbench = v3d->shading.type == OB_RENDER &&
+                                      STREQ(engine_name, RE_engine_id_BLENDER_WORKBENCH);
+  bool is_viewport_render_external_with_overlay = v3d->shading.type == OB_RENDER &&
+                                                  !(engine_type->flag & RE_INTERNAL) &&
+                                                  !(v3d->flag2 & V3D_HIDE_OVERLAYS);
+
+  return is_viewport_preview_solid || is_viewport_preview_material || is_viewport_wire_no_xray ||
+         is_viewport_render_eevee || is_viewport_render_workbench ||
+         is_viewport_render_external_with_overlay;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -33,7 +33,7 @@
 #include "GPU_material.hh"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 #include "DRW_engine.hh"
 

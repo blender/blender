@@ -35,14 +35,22 @@ static const char *oidn_device_type_to_string(const OIDNDeviceType type)
       return "DEFAULT";
     case OIDN_DEVICE_TYPE_CPU:
       return "CPU";
+
+      /* The initial GPU support was added in OIDN 2.0. */
+#  if OIDN_VERSION_MAJOR >= 2
     case OIDN_DEVICE_TYPE_SYCL:
       return "SYCL";
     case OIDN_DEVICE_TYPE_CUDA:
       return "CUDA";
     case OIDN_DEVICE_TYPE_HIP:
       return "HIP";
+#  endif
+
+      /* The Metal support was added in OIDN 2.2.*/
+#  if (OIDN_VERSION_MAJOR > 2) || ((OIDN_VERSION_MAJOR == 2) && (OIDN_VERSION_MINOR >= 2))
     case OIDN_DEVICE_TYPE_METAL:
       return "METAL";
+#  endif
   }
   return "UNKNOWN";
 }

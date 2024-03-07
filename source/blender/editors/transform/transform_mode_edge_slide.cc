@@ -9,14 +9,11 @@
 #include "BLI_math_matrix.h"
 #include "BLI_string.h"
 
-#include "BKE_editmesh.hh"
-#include "BKE_editmesh_bvh.h"
 #include "BKE_unit.hh"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
-#include "ED_mesh.hh"
 #include "ED_screen.hh"
 #include "ED_transform_snap_object_context.hh"
 
@@ -25,6 +22,7 @@
 #include "RNA_access.hh"
 
 #include "UI_interface.hh"
+#include "UI_view2d.hh"
 
 #include "BLT_translation.hh"
 
@@ -41,11 +39,44 @@ using namespace blender;
  * \{ */
 
 struct EdgeSlideData {
-  TransDataEdgeSlideVert *sv;
-  int totsv;
+  Array<TransDataEdgeSlideVert> sv;
 
   int mval_start[2], mval_end[2];
   int curr_sv_index;
+
+ private:
+  float4x4 proj_mat;
+  float2 win_half;
+
+ public:
+  void update_proj_mat(TransInfo *t, const TransDataContainer *tc)
+  {
+    ARegion *region = t->region;
+    this->win_half = {region->winx / 2.0f, region->winy / 2.0f};
+
+    if (t->spacetype == SPACE_VIEW3D) {
+      RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+      this->proj_mat = ED_view3d_ob_project_mat_get(rv3d, tc->obedit);
+
+      for (int i = 0; i < 4; i++) {
+        this->proj_mat[i][0] *= this->win_half[0];
+        this->proj_mat[i][1] *= this->win_half[1];
+      }
+    }
+    else {
+      const View2D *v2d = static_cast<View2D *>(t->view);
+      UI_view2d_view_to_region_m4(v2d, this->proj_mat.ptr());
+      this->proj_mat.location()[0] -= this->win_half[0];
+      this->proj_mat.location()[1] -= this->win_half[1];
+    }
+  }
+
+  void project(const TransDataEdgeSlideVert *svert, float2 &r_sco_a, float2 &r_sco_b) const
+  {
+    float3 iloc = svert->v_co_orig();
+    r_sco_a = math::project_point(this->proj_mat, iloc + svert->dir_side[0]).xy() + this->win_half;
+    r_sco_b = math::project_point(this->proj_mat, iloc + svert->dir_side[1]).xy() + this->win_half;
+  }
 };
 
 struct EdgeSlideParams {
@@ -124,37 +155,6 @@ static void interp_line_v3_v3v3v3(
   }
 }
 
-static blender::float4x4 edge_slide_projmat_get(TransInfo *t, TransDataContainer *tc)
-{
-  RegionView3D *rv3d = nullptr;
-
-  if (t->spacetype == SPACE_VIEW3D) {
-    /* Background mode support. */
-    rv3d = static_cast<RegionView3D *>(t->region ? t->region->regiondata : nullptr);
-  }
-
-  if (!rv3d) {
-    /* Ok, let's try to survive this. */
-    return blender::float4x4::identity();
-  }
-  return ED_view3d_ob_project_mat_get(rv3d, tc->obedit);
-}
-
-static void edge_slide_pair_project(TransDataEdgeSlideVert *sv,
-                                    ARegion *region,
-                                    const float projectMat[4][4],
-                                    float r_sco_a[3],
-                                    float r_sco_b[3])
-{
-  BMVert *v = sv->v;
-
-  add_v3_v3v3(r_sco_b, v->co, sv->dir_side[1]);
-  ED_view3d_project_float_v3_m4(region, r_sco_b, r_sco_b, projectMat);
-
-  add_v3_v3v3(r_sco_a, v->co, sv->dir_side[0]);
-  ED_view3d_project_float_v3_m4(region, r_sco_a, r_sco_a, projectMat);
-}
-
 static void edge_slide_data_init_mval(MouseInput *mi, EdgeSlideData *sld, float *mval_dir)
 {
   /* Possible all of the edge loops are pointing directly at the view. */
@@ -184,10 +184,11 @@ static bool is_vert_slide_visible(TransInfo *t,
                                   TransDataEdgeSlideVert *sv,
                                   const float4 &plane_near)
 {
+  const float3 &v_co_orig = sv->v_co_orig();
   float3 points[3] = {
-      sv->v_co_orig,
-      sv->v_co_orig + sv->dir_side[0] * 0.9f,
-      sv->v_co_orig + sv->dir_side[1] * 0.9f,
+      v_co_orig,
+      v_co_orig + sv->dir_side[0] * 0.9f,
+      v_co_orig + sv->dir_side[1] * 0.9f,
   };
 
   float3 hit_loc;
@@ -239,18 +240,12 @@ static bool is_vert_slide_visible(TransInfo *t,
  * Calculate screen-space `mval_start` / `mval_end`, optionally slide direction.
  */
 static void calcEdgeSlide_mval_range(TransInfo *t,
-                                     TransDataContainer *tc,
                                      EdgeSlideData *sld,
                                      const int loop_nr,
-                                     const blender::float2 &mval,
+                                     const float2 &mval,
                                      const bool use_calc_direction)
 {
-  /* only for use_calc_direction */
-  float(*loop_dir)[3] = nullptr, *loop_maxdist = nullptr;
-
-  float mval_dir[3], dist_best_sq;
-
-  /* Use for visibility checks. */
+  /* use for visibility checks */
   SnapObjectContext *snap_context = nullptr;
   bool use_occlude_geometry = false;
   float4 plane_near;
@@ -262,21 +257,23 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
     snap_context = ED_transform_snap_object_context_create(t->scene, 0);
   }
 
-  const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
-
   /* find mouse vectors, the global one, and one per loop in case we have
    * multiple loops selected, in case they are oriented different */
-  zero_v3(mval_dir);
-  dist_best_sq = -1.0f;
+  float2 mval_dir = float2(0);
+  float dist_best_sq = FLT_MAX;
+
+  /* only for use_calc_direction */
+  float2 *loop_dir = nullptr;
+  float *loop_maxdist = nullptr;
 
   if (use_calc_direction) {
-    loop_dir = static_cast<float(*)[3]>(MEM_callocN(sizeof(float[3]) * loop_nr, "sv loop_dir"));
+    loop_dir = static_cast<float2 *>(MEM_callocN(sizeof(float2) * loop_nr, "sv loop_dir"));
     loop_maxdist = static_cast<float *>(MEM_mallocN(sizeof(float) * loop_nr, "sv loop_maxdist"));
-    copy_vn_fl(loop_maxdist, loop_nr, -1.0f);
+    copy_vn_fl(loop_maxdist, loop_nr, FLT_MAX);
   }
 
-  TransDataEdgeSlideVert *sv = &sld->sv[0];
-  for (int i = 0; i < sld->totsv; i++, sv++) {
+  for (int i : sld->sv.index_range()) {
+    TransDataEdgeSlideVert *sv = &sld->sv[i];
     bool is_visible = !use_occlude_geometry ||
                       is_vert_slide_visible(t, snap_context, sv, plane_near);
 
@@ -285,44 +282,38 @@ static void calcEdgeSlide_mval_range(TransInfo *t,
       continue;
     }
 
+    /* Search cross edges for visible edge to the mouse cursor,
+     * then use the shared vertex to calculate screen vector. */
     /* screen-space coords */
-    float sco_a[3], sco_b[3];
-    float dist_sq;
-    int l_nr;
-
-    edge_slide_pair_project(sv, t->region, projection.ptr(), sco_a, sco_b);
+    float2 sco_a, sco_b;
+    sld->project(sv, sco_a, sco_b);
 
     /* global direction */
-    dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
+    float dist_sq = dist_squared_to_line_segment_v2(mval, sco_b, sco_a);
     if (is_visible) {
-      if ((dist_best_sq == -1.0f) ||
-          /* intentionally use 2d size on 3d vector */
-          (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)))
-      {
+      if (dist_sq < dist_best_sq && (len_squared_v2v2(sco_b, sco_a) > 0.1f)) {
         dist_best_sq = dist_sq;
-        sub_v3_v3v3(mval_dir, sco_b, sco_a);
+        mval_dir = sco_b - sco_a;
         sld->curr_sv_index = i;
       }
     }
 
     if (use_calc_direction) {
       /* per loop direction */
-      l_nr = sv->loop_nr;
-      if (loop_maxdist[l_nr] == -1.0f || dist_sq < loop_maxdist[l_nr]) {
+      int l_nr = sv->loop_nr;
+      if (dist_sq < loop_maxdist[l_nr]) {
         loop_maxdist[l_nr] = dist_sq;
-        sub_v3_v3v3(loop_dir[l_nr], sco_b, sco_a);
+        loop_dir[l_nr] = sco_b - sco_a;
       }
     }
   }
 
   if (use_calc_direction) {
-    int i;
-    sv = &sld->sv[0];
-    for (i = 0; i < sld->totsv; i++, sv++) {
+    for (TransDataEdgeSlideVert &sv : sld->sv) {
       /* switch a/b if loop direction is different from global direction */
-      int l_nr = sv->loop_nr;
-      if (dot_v3v3(loop_dir[l_nr], mval_dir) < 0.0f) {
-        swap_v3_v3(sv->dir_side[0], sv->dir_side[1]);
+      int l_nr = sv.loop_nr;
+      if (math::dot(loop_dir[l_nr], mval_dir) < 0.0f) {
+        swap_v3_v3(sv.dir_side[0], sv.dir_side[1]);
       }
     }
 
@@ -341,18 +332,48 @@ static EdgeSlideData *createEdgeSlideVerts(TransInfo *t,
                                            TransDataContainer *tc,
                                            const bool use_double_side)
 {
-  int loop_nr;
-  EdgeSlideData *sld = static_cast<EdgeSlideData *>(MEM_callocN(sizeof(*sld), "sld"));
-  sld->curr_sv_index = 0;
+  int group_len;
+  EdgeSlideData *sld = MEM_new<EdgeSlideData>("sld");
+  sld->sv = transform_mesh_edge_slide_data_create(tc, &group_len);
 
-  sld->sv = transform_mesh_edge_slide_data_create(tc, use_double_side, &loop_nr, &sld->totsv);
-
-  if (sld->sv == nullptr) {
-    MEM_freeN(sld);
+  if (sld->sv.is_empty()) {
+    MEM_delete(sld);
     return nullptr;
   }
 
-  calcEdgeSlide_mval_range(t, tc, sld, loop_nr, t->mval, use_double_side);
+  if (!use_double_side) {
+    /* Single Side Case.
+     * Used by #MESH_OT_offset_edge_loops_slide.
+     * It only slides to the side with the longest length. */
+    struct TMP {
+      float2 accum;
+      int count;
+    } zero{};
+
+    Array<TMP> array_len(group_len, zero);
+    for (TransDataEdgeSlideVert &sv : sld->sv) {
+      array_len[sv.loop_nr].accum += float2(math::length(sv.dir_side[0]),
+                                            math::length(sv.dir_side[1]));
+      array_len[sv.loop_nr].count++;
+    }
+
+    for (TMP &accum : array_len) {
+      accum.accum /= accum.count;
+    }
+
+    for (TransDataEdgeSlideVert &sv : sld->sv) {
+      if (array_len[sv.loop_nr].accum[1] > array_len[sv.loop_nr].accum[0]) {
+        sv.dir_side[0] = sv.dir_side[1];
+      }
+      sv.dir_side[1] = float3(0);
+      sv.edge_len = math::length(sv.dir_side[0]);
+    }
+  }
+
+  sld->curr_sv_index = 0;
+  sld->update_proj_mat(t, tc);
+
+  calcEdgeSlide_mval_range(t, sld, group_len, t->mval, use_double_side);
 
   return sld;
 }
@@ -367,8 +388,7 @@ static void freeEdgeSlideVerts(TransInfo * /*t*/,
     return;
   }
 
-  MEM_freeN(sld->sv);
-  MEM_freeN(sld);
+  MEM_delete(sld);
 
   custom_data->data = nullptr;
 }
@@ -427,47 +447,51 @@ static void drawEdgeSlide(TransInfo *t)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  GPU_matrix_push();
-  GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr());
+  if (t->spacetype == SPACE_VIEW3D) {
+    GPU_matrix_push();
+    GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->object_to_world().ptr());
+  }
 
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+  TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+  const float3 &curr_sv_co_orig = curr_sv->v_co_orig();
+
   if (slp->use_even == true) {
     /* Even mode */
     float co_a[3], co_b[3], co_mark[3];
-    TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
     const float fac = (slp->perc + 1.0f) / 2.0f;
     const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
     const float guide_size = ctrl_size - 0.5f;
     const int alpha_shade = -30;
 
-    add_v3_v3v3(co_a, curr_sv->v_co_orig, curr_sv->dir_side[0]);
-    add_v3_v3v3(co_b, curr_sv->v_co_orig, curr_sv->dir_side[1]);
+    add_v3_v3v3(co_a, curr_sv_co_orig, curr_sv->dir_side[0]);
+    add_v3_v3v3(co_b, curr_sv_co_orig, curr_sv->dir_side[1]);
 
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBeginAtMost(GPU_PRIM_LINES, 4);
-    if (!is_zero_v3(curr_sv->dir_side[0])) {
+    if (!math::is_zero(curr_sv->dir_side[0])) {
       immVertex3fv(pos, co_a);
-      immVertex3fv(pos, curr_sv->v_co_orig);
+      immVertex3fv(pos, curr_sv_co_orig);
     }
-    if (!is_zero_v3(curr_sv->dir_side[1])) {
+    if (!math::is_zero(curr_sv->dir_side[1])) {
       immVertex3fv(pos, co_b);
-      immVertex3fv(pos, curr_sv->v_co_orig);
+      immVertex3fv(pos, curr_sv_co_orig);
     }
     immEnd();
 
     {
       float *co_test = nullptr;
       if (slp->flipped) {
-        if (!is_zero_v3(curr_sv->dir_side[1])) {
+        if (!math::is_zero(curr_sv->dir_side[1])) {
           co_test = co_b;
         }
       }
       else {
-        if (!is_zero_v3(curr_sv->dir_side[0])) {
+        if (!math::is_zero(curr_sv->dir_side[0])) {
           co_test = co_a;
         }
       }
@@ -484,36 +508,35 @@ static void drawEdgeSlide(TransInfo *t)
     immUniformThemeColorShadeAlpha(TH_SELECT, 255, alpha_shade);
     GPU_point_size(guide_size);
     immBegin(GPU_PRIM_POINTS, 1);
-    interp_line_v3_v3v3v3(co_mark, co_b, curr_sv->v_co_orig, co_a, fac);
+    interp_line_v3_v3v3v3(co_mark, co_b, curr_sv_co_orig, co_a, fac);
     immVertex3fv(pos, co_mark);
     immEnd();
   }
   else if (is_clamp == false) {
     const int side_index = slp->curr_side_unclamp;
-    TransDataEdgeSlideVert *sv;
-    int i;
     const int alpha_shade = -160;
 
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
-    immBegin(GPU_PRIM_LINES, sld->totsv * 2);
+    immBegin(GPU_PRIM_LINES, sld->sv.size() * 2);
 
     /* TODO(@ideasman42): Loop over all verts. */
-    sv = sld->sv;
-    for (i = 0; i < sld->totsv; i++, sv++) {
+    for (TransDataEdgeSlideVert &sv : sld->sv) {
       float a[3], b[3];
 
-      if (!is_zero_v3(sv->dir_side[side_index])) {
-        copy_v3_v3(a, sv->dir_side[side_index]);
+      if (!is_zero_v3(sv.dir_side[side_index])) {
+        copy_v3_v3(a, sv.dir_side[side_index]);
       }
       else {
-        copy_v3_v3(a, sv->dir_side[!side_index]);
+        copy_v3_v3(a, sv.dir_side[!side_index]);
       }
 
       mul_v3_fl(a, 100.0f);
       negate_v3_v3(b, a);
-      add_v3_v3(a, sv->v_co_orig);
-      add_v3_v3(b, sv->v_co_orig);
+
+      const float3 &sv_co_orig = sv.v_co_orig();
+      add_v3_v3(a, sv_co_orig);
+      add_v3_v3(b, sv_co_orig);
 
       immVertex3fv(pos, a);
       immVertex3fv(pos, b);
@@ -522,27 +545,27 @@ static void drawEdgeSlide(TransInfo *t)
   }
   else {
     /* Common case. */
-    TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
     const int alpha_shade = -160;
 
     float co_dir[3];
-    add_v3_v3v3(co_dir, curr_sv->v_co_orig, curr_sv->dir_side[slp->curr_side_unclamp]);
+    add_v3_v3v3(co_dir, curr_sv_co_orig, curr_sv->dir_side[slp->curr_side_unclamp]);
 
     GPU_line_width(line_size);
     immUniformThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
     immBeginAtMost(GPU_PRIM_LINES, 2);
-    immVertex3fv(pos, curr_sv->v_co_orig);
+    immVertex3fv(pos, curr_sv_co_orig);
     immVertex3fv(pos, co_dir);
     immEnd();
   }
 
   immUnbindProgram();
 
-  GPU_matrix_pop();
+  if (t->spacetype == SPACE_VIEW3D) {
+    GPU_matrix_pop();
+    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
+  }
 
   GPU_blend(GPU_BLEND_NONE);
-
-  GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
 }
 
 static void edge_slide_snap_apply(TransInfo *t, float *value)
@@ -551,11 +574,11 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
   EdgeSlideData *sld_active = static_cast<EdgeSlideData *>(tc->custom.mode.data);
   TransDataEdgeSlideVert *sv = &sld_active->sv[sld_active->curr_sv_index];
-  float snap_point[3], co_orig[3], co_dest[2][3], dvec[3];
+  float3 co_orig, co_dest[2], dvec, snap_point;
+  co_orig = sv->v_co_orig();
+  co_dest[0] = co_orig + sv->dir_side[0];
+  co_dest[1] = co_orig + sv->dir_side[1];
 
-  copy_v3_v3(co_orig, sv->v_co_orig);
-  add_v3_v3v3(co_dest[0], co_orig, sv->dir_side[0]);
-  add_v3_v3v3(co_dest[1], co_orig, sv->dir_side[1]);
   if (tc->use_local_mat) {
     mul_m4_v3(tc->mat, co_orig);
     mul_m4_v3(tc->mat, co_dest[0]);
@@ -575,7 +598,10 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
       side_index = perc < 0.0f;
     }
     else {
-      side_index = slp->curr_side_unclamp;
+      /* Use the side indicated in `EdgeSlideParams::curr_side_unclamp` as long as that side is not
+       * zero length. */
+      side_index = int(slp->curr_side_unclamp ==
+                       !math::is_zero(sv->dir_side[slp->curr_side_unclamp]));
     }
   }
   else {
@@ -628,7 +654,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
   *value = perc;
 }
 
-static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
+static void edge_slide_apply_elem(const TransDataEdgeSlideVert &sv,
                                   const float fac,
                                   const float curr_length_fac,
                                   const int curr_side_unclamp,
@@ -637,21 +663,21 @@ static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
                                   const bool use_flip,
                                   float r_co[3])
 {
-  copy_v3_v3(r_co, sv->v_co_orig);
+  copy_v3_v3(r_co, sv.v_co_orig());
 
   if (use_even == false) {
     if (use_clamp) {
       const int side_index = (fac < 0.0f);
       const float fac_final = fabsf(fac);
-      madd_v3_v3fl(r_co, sv->dir_side[side_index], fac_final);
+      madd_v3_v3fl(r_co, sv.dir_side[side_index], fac_final);
     }
     else {
       int side_index = curr_side_unclamp;
-      if (is_zero_v3(sv->dir_side[side_index])) {
-        side_index = !side_index;
+      if (is_zero_v3(sv.dir_side[side_index])) {
+        side_index = int(!side_index);
       }
       const float fac_final = (side_index == (fac < 0.0f) ? fabsf(fac) : -fabsf(fac));
-      madd_v3_v3fl(r_co, sv->dir_side[side_index], fac_final);
+      madd_v3_v3fl(r_co, sv.dir_side[side_index], fac_final);
     }
   }
   else {
@@ -665,18 +691,18 @@ static void edge_slide_apply_elem(const TransDataEdgeSlideVert *sv,
      * is the same as the distance between the original vert locations,
      * same goes for the lines below.
      */
-    if (sv->edge_len > FLT_EPSILON) {
+    if (sv.edge_len > FLT_EPSILON) {
       float co_a[3], co_b[3];
-      const float fac_final = min_ff(sv->edge_len, curr_length_fac) / sv->edge_len;
+      const float fac_final = min_ff(sv.edge_len, curr_length_fac) / sv.edge_len;
 
-      add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
-      add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
+      add_v3_v3v3(co_a, r_co, sv.dir_side[0]);
+      add_v3_v3v3(co_b, r_co, sv.dir_side[1]);
 
       if (use_flip) {
-        interp_line_v3_v3v3v3(r_co, co_b, sv->v_co_orig, co_a, fac_final);
+        interp_line_v3_v3v3v3(r_co, co_b, r_co, co_a, fac_final);
       }
       else {
-        interp_line_v3_v3v3v3(r_co, co_a, sv->v_co_orig, co_b, fac_final);
+        interp_line_v3_v3v3v3(r_co, co_a, r_co, co_b, fac_final);
       }
     }
   }
@@ -710,10 +736,9 @@ static void doEdgeSlide(TransInfo *t, float perc)
       continue;
     }
 
-    TransDataEdgeSlideVert *sv = sld->sv;
-    for (int i = 0; i < sld->totsv; i++, sv++) {
+    for (TransDataEdgeSlideVert &sv : sld->sv) {
       edge_slide_apply_elem(
-          sv, perc, curr_length_fac, curr_side_unclamp, use_clamp, use_even, use_flip, sv->v->co);
+          sv, perc, curr_length_fac, curr_side_unclamp, use_clamp, use_even, use_flip, sv.td->loc);
     }
   }
 }
@@ -780,14 +805,14 @@ static void edge_slide_transform_matrix_fn(TransInfo *t, float mat_xform[4][4])
   EdgeSlideParams *slp = static_cast<EdgeSlideParams *>(t->custom.mode.data);
   TransDataContainer *tc = edge_slide_container_first_ok(t);
   EdgeSlideData *sld_active = static_cast<EdgeSlideData *>(tc->custom.mode.data);
-  TransDataEdgeSlideVert *sv_active = &sld_active->sv[sld_active->curr_sv_index];
+  TransDataEdgeSlideVert &sv_active = sld_active->sv[sld_active->curr_sv_index];
 
-  copy_v3_v3(orig_co, sv_active->v_co_orig);
+  copy_v3_v3(orig_co, sv_active.v_co_orig());
 
   const float fac = t->values_final[0];
   float curr_length_fac = 0.0f;
   if (slp->use_even) {
-    curr_length_fac = sv_active->edge_len * (((slp->flipped ? fac : -fac) + 1.0f) / 2.0f);
+    curr_length_fac = sv_active.edge_len * (((slp->flipped ? fac : -fac) + 1.0f) / 2.0f);
   }
 
   edge_slide_apply_elem(sv_active,
@@ -885,18 +910,15 @@ static void initEdgeSlide(TransInfo *t, wmOperator *op)
 
 void transform_mode_edge_slide_reproject_input(TransInfo *t)
 {
-  ARegion *region = t->region;
-
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     EdgeSlideData *sld = static_cast<EdgeSlideData *>(tc->custom.mode.data);
     if (sld) {
-      const blender::float4x4 projection = edge_slide_projmat_get(t, tc);
-
+      sld->update_proj_mat(t, tc);
       TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 
-      float mval_dir[3], sco_a[3], sco_b[3];
-      edge_slide_pair_project(curr_sv, region, projection.ptr(), sco_a, sco_b);
-      sub_v3_v3v3(mval_dir, sco_b, sco_a);
+      float2 sco_a, sco_b;
+      sld->project(curr_sv, sco_a, sco_b);
+      float2 mval_dir = sco_b - sco_a;
       edge_slide_data_init_mval(&t->mouse, sld, mval_dir);
     }
   }

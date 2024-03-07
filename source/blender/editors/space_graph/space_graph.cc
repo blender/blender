@@ -821,8 +821,8 @@ static void graph_id_remap(ScrArea * /*area*/,
     return;
   }
 
-  mappings.apply((ID **)&sgraph->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
-  mappings.apply((ID **)&sgraph->ads->source, ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sgraph->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
+  mappings.apply(reinterpret_cast<ID **>(&sgraph->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void graph_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)

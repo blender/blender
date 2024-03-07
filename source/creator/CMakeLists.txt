@@ -1350,7 +1350,7 @@ elseif(WIN32)
       endif()
 
       # this will exist for 4.1 lib folders
-      if(CMAKE_SYSTEM_PROCESSOR MATCHES ARM64)
+      if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
         set(_openvdb_arch arm64)
       else()
         set(_openvdb_arch amd64)

@@ -28,7 +28,7 @@
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 #include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"

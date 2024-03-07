@@ -95,7 +95,8 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # grained control and the speedup we get here is too big to ignore.
   set(CYCLES_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 
-  # "jumptablerdata" improves performance when there is contention in large switch statements such as in svm.h
+  # "jumptablerdata" improves performance when there is contention in large switch statements
+  # such as in `svm.h`.
   # This flag is supported starting with MSVC 17.7 preview 3:
   # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.37.32820)
@@ -149,7 +150,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
     string(APPEND CMAKE_CXX_FLAGS " ${CYCLES_KERNEL_FLAGS}")
   endif()
 
-elseif(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+elseif(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(/QxSSE4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(/arch:AVX CXX_HAS_AVX)
   check_cxx_compiler_flag(/QxCORE-AVX2 CXX_HAS_AVX2)
@@ -161,7 +162,7 @@ elseif(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Intel")
       set(CYCLES_AVX2_KERNEL_FLAGS "/QxCORE-AVX2")
     endif()
   endif()
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   check_cxx_compiler_flag(-xsse4.2 CXX_HAS_SSE42)
   check_cxx_compiler_flag(-xavx CXX_HAS_AVX)
   check_cxx_compiler_flag(-xcore-avx2 CXX_HAS_AVX2)

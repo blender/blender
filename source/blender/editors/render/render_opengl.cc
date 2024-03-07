@@ -616,6 +616,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_SCR: /* Screen */
     case ID_GR:  /* Group */
     case ID_AC:  /* bAction */
+    case ID_AN:  /* Animation */
     case ID_BR:  /* Brush */
     case ID_WM:  /* WindowManager */
     case ID_LS:  /* FreestyleLineStyle */
