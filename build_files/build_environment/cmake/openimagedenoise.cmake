@@ -52,6 +52,21 @@ else()
   set(OIDN_CMAKE_FLAGS ${DEFAULT_CMAKE_FLAGS})
 endif()
 
+set(ODIN_PATCH_COMMAND
+  ${PATCH_CMD} --verbose -p 1 -N -d
+  ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+  ${PATCH_DIR}/oidn.diff
+)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Replace `attrib.memoryType` with `attrib.type`.
+  # See: https://github.com/ROCm/HIP/pull/2164
+  set(ODIN_PATCH_COMMAND ${ODIN_PATCH_COMMAND} &&
+    sed -i "s/(attrib\\.memoryType)/(attrib.type)/g"
+    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise/devices/hip/hip_device.cpp
+  )
+endif()
+
 ExternalProject_Add(external_openimagedenoise
   URL file://${PACKAGE_DIR}/${OIDN_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -59,9 +74,11 @@ ExternalProject_Add(external_openimagedenoise
   PREFIX ${BUILD_DIR}/openimagedenoise
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimagedenoise ${OIDN_CMAKE_FLAGS} ${OIDN_EXTRA_ARGS}
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise < ${PATCH_DIR}/oidn.diff
+  PATCH_COMMAND ${ODIN_PATCH_COMMAND}
   INSTALL_DIR ${LIBDIR}/openimagedenoise
 )
+
+unset(ODIN_PATCH_COMMAND)
 
 add_dependencies(
   external_openimagedenoise
