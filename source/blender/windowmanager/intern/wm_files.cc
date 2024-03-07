@@ -2798,8 +2798,8 @@ void WM_OT_read_homefile(wmOperatorType *ot)
                          "use_factory_startup",
                          false,
                          "Factory Startup",
-                         "Load the default ('factory startup') blend file. This is independent of "
-                         "the normal start-up file that the user can save");
+                         "Load the default ('factory startup') blend file. "
+                         "This is independent of the normal start-up file that the user can save");
   RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
   read_factory_reset_props(ot);
 
@@ -2830,10 +2830,9 @@ static int wm_read_factory_settings_invoke(bContext *C, wmOperator *op, const wm
       C,
       op,
       title.c_str(),
-      unsaved ? IFACE_("To make changes to Preferences permanent, use \"Save "
-                       "Preferences\"\nWarning: Your file is "
-                       "unsaved! Proceeding will abandon your changes.") :
-                IFACE_("To make changes to Preferences permanent, use \"Save Preferences.\""),
+      unsaved ? IFACE_("To make changes to Preferences permanent, use \"Save Preferences\".\n"
+                       "Warning: Your file is unsaved! Proceeding will abandon your changes.") :
+                IFACE_("To make changes to Preferences permanent, use \"Save Preferences\"."),
       IFACE_("Load"),
       ALERT_ICON_WARNING,
       false);
