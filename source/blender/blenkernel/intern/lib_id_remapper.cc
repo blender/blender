@@ -65,7 +65,8 @@ IDRemapperApplyResult IDRemapper::apply(ID **r_id_ptr,
     return ID_REMAP_RESULT_SOURCE_NOT_MAPPABLE;
   }
 
-  if (!mappings_.contains(*r_id_ptr)) {
+  ID *const *new_id = mappings_.lookup_ptr(*r_id_ptr);
+  if (new_id == nullptr) {
     return ID_REMAP_RESULT_SOURCE_UNAVAILABLE;
   }
 
@@ -73,7 +74,7 @@ IDRemapperApplyResult IDRemapper::apply(ID **r_id_ptr,
     id_us_min(*r_id_ptr);
   }
 
-  *r_id_ptr = mappings_.lookup(*r_id_ptr);
+  *r_id_ptr = *new_id;
   if (options & ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF && *r_id_ptr == id_self) {
     *r_id_ptr = nullptr;
   }
