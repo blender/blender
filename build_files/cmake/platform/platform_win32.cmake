@@ -119,7 +119,11 @@ remove_cc_flag("/GR")
 add_definitions(-D_WIN32_WINNT=0x603)
 
 # First generate the manifest for tests since it will not need the dependency on the CRT.
-configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest @ONLY)
+configure_file(
+  ${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in
+  ${CMAKE_CURRENT_BINARY_DIR}/tests.exe.manifest
+  @ONLY
+)
 
 # Always detect CRT paths, but only manually install with WITH_WINDOWS_BUNDLE_CRT.
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
@@ -152,7 +156,11 @@ endif()
 if(NOT WITH_PYTHON_MODULE)
   set(BUNDLECRT "${BUNDLECRT}<dependency><dependentAssembly><assemblyIdentity type=\"win32\" name=\"blender.shared\" version=\"1.0.0.0\" /></dependentAssembly></dependency>")
 endif()
-configure_file(${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest @ONLY)
+configure_file(
+  ${CMAKE_SOURCE_DIR}/release/windows/manifest/blender.exe.manifest.in
+  ${CMAKE_CURRENT_BINARY_DIR}/blender.exe.manifest
+  @ONLY
+)
 
 remove_cc_flag(
   "/MDd"
@@ -328,7 +336,10 @@ foreach(child ${children})
 endforeach()
 
 if(WITH_PUGIXML)
-  set(PUGIXML_LIBRARIES optimized ${LIBDIR}/pugixml/lib/pugixml.lib debug ${LIBDIR}/pugixml/lib/pugixml_d.lib)
+  set(PUGIXML_LIBRARIES
+    optimized ${LIBDIR}/pugixml/lib/pugixml.lib
+    debug ${LIBDIR}/pugixml/lib/pugixml_d.lib
+  )
   set(PUGIXML_INCLUDE_DIR ${LIBDIR}/pugixml/include)
 endif()
 
@@ -386,7 +397,10 @@ if(WITH_HARFBUZZ)
   windows_find_package(Harfbuzz)
   if(NOT Harfbuzz_FOUND)
     set(LIBHARFBUZZ_INCLUDE_DIRS ${LIBDIR}/harfbuzz/include)
-    set(LIBHARFBUZZ_LIBRARIES optimized ${LIBDIR}/harfbuzz/lib/libharfbuzz.lib debug ${LIBDIR}/harfbuzz/lib/libharfbuzz_d.lib)
+    set(LIBHARFBUZZ_LIBRARIES
+      optimized ${LIBDIR}/harfbuzz/lib/libharfbuzz.lib
+      debug ${LIBDIR}/harfbuzz/lib/libharfbuzz_d.lib
+    )
     set(Harfbuzz_FOUND ON)
   endif()
 endif()
@@ -522,7 +536,11 @@ if(WITH_IMAGE_OPENEXR)
     warn_hardcoded_paths(OpenEXR)
     set(OPENEXR ${LIBDIR}/openexr)
     set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
-    set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${IMATH_INCLUDE_DIRS} ${OPENEXR_INCLUDE_DIR}/OpenEXR)
+    set(OPENEXR_INCLUDE_DIRS
+      ${OPENEXR_INCLUDE_DIR}
+      ${IMATH_INCLUDE_DIRS}
+      ${OPENEXR_INCLUDE_DIR}/OpenEXR
+    )
     set(OPENEXR_LIBPATH ${OPENEXR}/lib)
     # Check if the blender 3.3 lib static library eixts
     # if not assume this is a 3.4+ dynamic version.
@@ -558,7 +576,10 @@ if(WITH_JACK)
     ${LIBDIR}/jack/include/jack
     ${LIBDIR}/jack/include
   )
-  set(JACK_LIBRARIES optimized ${LIBDIR}/jack/lib/libjack.lib debug ${LIBDIR}/jack/lib/libjack_d.lib)
+  set(JACK_LIBRARIES
+    optimized ${LIBDIR}/jack/lib/libjack.lib
+    debug ${LIBDIR}/jack/lib/libjack_d.lib
+  )
 endif()
 
 set(_PYTHON_VERSION "3.11")
@@ -592,7 +613,10 @@ if(WITH_PYTHON)
   set(NUMPY_FOUND ON)
   # uncached vars
   set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
-  set(PYTHON_LIBRARIES debug "${PYTHON_LIBRARY_DEBUG}" optimized "${PYTHON_LIBRARY}" )
+  set(PYTHON_LIBRARIES
+    debug "${PYTHON_LIBRARY_DEBUG}"
+    optimized "${PYTHON_LIBRARY}"
+  )
 endif()
 
 if(NOT WITH_WINDOWS_FIND_MODULES)
@@ -696,8 +720,14 @@ if(NOT OpenImageIO_FOUND)
   set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
   set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
   set(OPENIMAGEIO_INCLUDE_DIRS ${OPENIMAGEIO_INCLUDE_DIR})
-  set(OIIO_OPTIMIZED optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib)
-  set(OIIO_DEBUG debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib)
+  set(OIIO_OPTIMIZED
+    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO.lib
+    optimized ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util.lib
+  )
+  set(OIIO_DEBUG
+    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_d.lib
+    debug ${OPENIMAGEIO_LIBPATH}/OpenImageIO_Util_d.lib
+  )
   set(OPENIMAGEIO_LIBRARIES ${OIIO_OPTIMIZED} ${OIIO_DEBUG})
   set(OPENIMAGEIO_TOOL "${OPENIMAGEIO}/bin/oiiotool.exe")
 endif()
@@ -761,7 +791,10 @@ if(WITH_OPENVDB)
     set(OPENVDB ${LIBDIR}/openVDB)
     set(OPENVDB_LIBPATH ${OPENVDB}/lib)
     set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include)
-    set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib )
+    set(OPENVDB_LIBRARIES
+      optimized ${OPENVDB_LIBPATH}/openvdb.lib
+      debug ${OPENVDB_LIBPATH}/openvdb_d.lib
+    )
   endif()
   set(OPENVDB_DEFINITIONS -DNOMINMAX -D_USE_MATH_DEFINES)
 endif()
@@ -785,7 +818,10 @@ if(WITH_OPENIMAGEDENOISE)
       get_target_property(OPENIMAGEDENOISE_LIBRARIES_RELEASE OpenImageDenoise IMPORTED_IMPLIB_RELEASE)
       get_target_property(OPENIMAGEDENOISE_LIBRARIES_DEBUG OpenImageDenoise IMPORTED_IMPLIB_DEBUG)
       if(EXISTS ${OPENIMAGEDENOISE_LIBRARIES_DEBUG})
-        set(OPENIMAGEDENOISE_LIBRARIES optimized ${OPENIMAGEDENOISE_LIBRARIES_RELEASE} debug ${OPENIMAGEDENOISE_LIBRARIES_DEBUG})
+        set(OPENIMAGEDENOISE_LIBRARIES
+          optimized ${OPENIMAGEDENOISE_LIBRARIES_RELEASE}
+          debug ${OPENIMAGEDENOISE_LIBRARIES_DEBUG}
+        )
       else()
         if(EXISTS ${OPENIMAGEDENOISE_LIBRARIES_RELEASE})
           set(OPENIMAGEDENOISE_LIBRARIES ${OPENIMAGEDENOISE_LIBRARIES_RELEASE})
@@ -820,7 +856,10 @@ if(WITH_ALEMBIC)
   set(ALEMBIC_INCLUDE_DIR ${ALEMBIC}/include)
   set(ALEMBIC_INCLUDE_DIRS ${ALEMBIC_INCLUDE_DIR})
   set(ALEMBIC_LIBPATH ${ALEMBIC}/lib)
-  set(ALEMBIC_LIBRARIES optimized ${ALEMBIC}/lib/Alembic.lib debug ${ALEMBIC}/lib/Alembic_d.lib)
+  set(ALEMBIC_LIBRARIES
+    optimized ${ALEMBIC}/lib/Alembic.lib
+    debug ${ALEMBIC}/lib/Alembic_d.lib
+  )
   set(ALEMBIC_FOUND 1)
 endif()
 
@@ -870,11 +909,17 @@ endif()
 if(WITH_TBB)
   windows_find_package(TBB)
   if(NOT TBB_FOUND)
-    set(TBB_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbb.lib debug ${LIBDIR}/tbb/lib/tbb_debug.lib)
+    set(TBB_LIBRARIES
+      optimized ${LIBDIR}/tbb/lib/tbb.lib
+      debug ${LIBDIR}/tbb/lib/tbb_debug.lib
+    )
     set(TBB_INCLUDE_DIR ${LIBDIR}/tbb/include)
     set(TBB_INCLUDE_DIRS ${TBB_INCLUDE_DIR})
     if(WITH_TBB_MALLOC_PROXY)
-      set(TBB_MALLOC_LIBRARIES optimized ${LIBDIR}/tbb/lib/tbbmalloc.lib debug ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib)
+      set(TBB_MALLOC_LIBRARIES
+        optimized ${LIBDIR}/tbb/lib/tbbmalloc.lib
+        debug ${LIBDIR}/tbb/lib/tbbmalloc_debug.lib
+      )
       add_definitions(-DWITH_TBB_MALLOC)
     endif()
   endif()
@@ -1126,9 +1171,15 @@ if(WITH_XR_OPENXR)
   # support the transition between the old and new lib versions
   # this can be removed after the next lib update.
   if(EXISTS ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
-    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib)
+    set(XR_OPENXR_SDK_LIBRARIES
+      optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib
+      debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loader_d.lib
+    )
   else()
-    set(XR_OPENXR_SDK_LIBRARIES optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib)
+    set(XR_OPENXR_SDK_LIBRARIES
+      optimized ${XR_OPENXR_SDK_LIBPATH}/openxr_loader.lib
+      debug ${XR_OPENXR_SDK_LIBPATH}/openxr_loaderd.lib
+    )
   endif()
 endif()
 
@@ -1139,7 +1190,10 @@ if(WITH_GMP)
   else()
     set(GMP_DLL_LIB_NAME libgmp-10.lib)
   endif()
-  set(GMP_LIBRARIES ${LIBDIR}/gmp/lib/${GMP_DLL_LIB_NAME} optimized ${LIBDIR}/gmp/lib/libgmpxx.lib debug ${LIBDIR}/gmp/lib/libgmpxx_d.lib)
+  set(GMP_LIBRARIES ${LIBDIR}/gmp/lib/${GMP_DLL_LIB_NAME}
+    optimized ${LIBDIR}/gmp/lib/libgmpxx.lib
+    debug ${LIBDIR}/gmp/lib/libgmpxx_d.lib
+  )
   set(GMP_ROOT_DIR ${LIBDIR}/gmp)
   set(GMP_FOUND ON)
 endif()
@@ -1193,7 +1247,10 @@ if(WITH_CYCLES AND WITH_CYCLES_PATH_GUIDING)
   if(openpgl_FOUND)
     get_target_property(OPENPGL_LIBRARIES_RELEASE openpgl::openpgl LOCATION_RELEASE)
     get_target_property(OPENPGL_LIBRARIES_DEBUG openpgl::openpgl LOCATION_DEBUG)
-    set(OPENPGL_LIBRARIES optimized ${OPENPGL_LIBRARIES_RELEASE} debug ${OPENPGL_LIBRARIES_DEBUG})
+    set(OPENPGL_LIBRARIES
+      optimized ${OPENPGL_LIBRARIES_RELEASE}
+      debug ${OPENPGL_LIBRARIES_DEBUG}
+    )
     get_target_property(OPENPGL_INCLUDE_DIR openpgl::openpgl INTERFACE_INCLUDE_DIRECTORIES)
   else()
     set(WITH_CYCLES_PATH_GUIDING OFF)
@@ -1232,7 +1289,10 @@ if(WITH_CYCLES AND (WITH_CYCLES_DEVICE_ONEAPI OR (WITH_CYCLES_EMBREE AND EMBREE_
   list(APPEND PLATFORM_BUNDLED_LIBRARIES ${_sycl_runtime_libraries})
   unset(_sycl_runtime_libraries)
 
-  set(SYCL_LIBRARIES optimized ${SYCL_LIBRARY} debug ${SYCL_LIBRARY_DEBUG})
+  set(SYCL_LIBRARIES
+    optimized ${SYCL_LIBRARY}
+    debug ${SYCL_LIBRARY_DEBUG}
+  )
 endif()
 
 
@@ -1240,6 +1300,7 @@ endif()
 list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ";" _library_paths)
 set(PLATFORM_ENV_BUILD_DIRS "${LIBDIR}/epoxy/bin\;${LIBDIR}/tbb/bin\;${LIBDIR}/OpenImageIO/bin\;${LIBDIR}/boost/lib\;${LIBDIR}/openexr/bin\;${LIBDIR}/imath/bin\;${LIBDIR}/shaderc/bin\;${PATH}")
 set(PLATFORM_ENV_BUILD "PATH=${PLATFORM_ENV_BUILD_DIRS}")
-# Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like idiff and abcls use the release mode dlls
+# Install needs the additional folders from PLATFORM_ENV_BUILD_DIRS as well, as tools like:
+# `idiff` and `abcls` use the release mode dlls.
 set(PLATFORM_ENV_INSTALL "PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/blender.shared/\;${PLATFORM_ENV_BUILD_DIRS}\;$ENV{PATH}")
 unset(_library_paths)

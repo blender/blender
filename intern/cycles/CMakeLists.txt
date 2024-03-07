@@ -95,7 +95,8 @@ elseif(WIN32 AND MSVC AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # grained control and the speedup we get here is too big to ignore.
   set(CYCLES_KERNEL_FLAGS "/fp:fast -D_CRT_SECURE_NO_WARNINGS /GS-")
 
-  # "jumptablerdata" improves performance when there is contention in large switch statements such as in svm.h
+  # "jumptablerdata" improves performance when there is contention in large switch statements
+  # such as in `svm.h`.
   # This flag is supported starting with MSVC 17.7 preview 3:
   # https://learn.microsoft.com/en-us/cpp/build/reference/jump-table-rdata
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.37.32820)

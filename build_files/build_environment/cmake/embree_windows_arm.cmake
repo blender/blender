@@ -43,15 +43,18 @@ set(EMBREE_EXTRA_ARGS
 
 # We want the VS2019 tools for embree, as they are stable.
 # We cannot use VS2022 easily, unless we specify an older (unsupported) toolset such as 17.35,
-# as the newer toolsets mandate LLVM 16, which we cannot use currently, due to lack of support in OSL and ISPC.
+# as the newer toolsets mandate LLVM 16, which we cannot use currently,
+# due to lack of support in OSL and ISPC.
 set(EMBREE_VCTOOLS_REQUIRED_VERSION 14.29)
 
-# Extract the list of installed tools that match the required version from the `VCToolsInstallDir` env var
+# Extract the list of installed tools that match the required version from the
+# `VCToolsInstallDir` env var
 file(TO_CMAKE_PATH $ENV{VCToolsInstallDir} EMBREE_VCTOOLSINSTALLDIR_PATH)
 cmake_path(GET EMBREE_VCTOOLSINSTALLDIR_PATH PARENT_PATH EMBREE_VCTOOLSDIR_PATH)
 file(GLOB EMBREE_INSTALLED_VCTOOLS RELATIVE ${EMBREE_VCTOOLSDIR_PATH} ${EMBREE_VCTOOLSDIR_PATH}/${EMBREE_VCTOOLS_REQUIRED_VERSION}*)
 
-# Check that at least one the installed tool versions (there may be different subversions) is present
+# Check that at least one the installed tool versions
+# (there may be different subversions) is present.
 if(NOT EMBREE_INSTALLED_VCTOOLS)
   message(FATAL_ERROR "When building for Windows ARM64 platforms, embree requires VC Tools ${EMBREE_VCTOOLS_REQUIRED_VERSION} to be installed alongside the current version.")
 endif()
@@ -60,15 +63,26 @@ endif()
 list(SORT EMBREE_INSTALLED_VCTOOLS)
 list(GET EMBREE_INSTALLED_VCTOOLS -1 EMBREE_VCTOOLS_VERSION)
 
-# Configure our in file and temporarily store it in the build dir (with modified extension so nothing else picks it up)
-# This feels icky, but boost does something similar, and we haven't called ExternalProject_Add yet, so the embree dir does not yet exist
-configure_file(${PATCH_DIR}/embree_Directory.Build.Props.in ${BUILD_DIR}/embree_Directory.Build.Props_temp)
+# Configure our in file and temporarily store it in the build dir
+# (with modified extension so nothing else picks it up)
+# This feels icky, but boost does something similar, and we haven't called
+# `ExternalProject_Add` yet, so the embree dir does not yet exist.
+configure_file(
+  ${PATCH_DIR}/embree_Directory.Build.Props.in
+  ${BUILD_DIR}/embree_Directory.Build.Props_temp
+)
 
 # Update the patch command to copy the configured build props file in
-set(EMBREE_PATCH_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/embree_Directory.Build.Props_temp ${BUILD_DIR}/embree/src/external_embree-build/Directory.Build.Props && ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff)
+set(EMBREE_PATCH_COMMAND
+  COMMAND ${CMAKE_COMMAND} -E copy
+    ${BUILD_DIR}/embree_Directory.Build.Props_temp
+    ${BUILD_DIR}/embree/src/external_embree-build/Directory.Build.Props &&
+    ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/embree/src/external_embree < ${PATCH_DIR}/embree.diff
+)
 
-# This all only works if we use the VS generator (with clangcl toolset), so switch back to that 
-# Note: there is literally no way to get ninja to use a different toolset other than manually overwriting every env var, or calling a nested vcvarsall, both of which are *messy*
+# This all only works if we use the VS generator (with `clangcl` toolset), so switch back to that
+# Note: there is literally no way to get ninja to use a different toolset other than manually
+# overwriting every env var, or calling a nested `vcvarsall`, both of which are *messy*.
 set(EMBREE_GENERATOR ${CMAKE_GENERATOR})
 set(EMBREE_GENERATOR_TOOLSET ClangCL)
 
@@ -99,16 +113,30 @@ add_dependencies(
 
 if(BUILD_MODE STREQUAL Release)
   ExternalProject_Add_Step(external_embree after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree/include ${HARVEST_TARGET}/embree/include
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree/lib ${HARVEST_TARGET}/embree/lib
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/embree/share ${HARVEST_TARGET}/embree/share
-    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/bin/embree4.dll ${HARVEST_TARGET}/embree/bin/embree4.dll
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/embree/include
+      ${HARVEST_TARGET}/embree/include
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/embree/lib
+      ${HARVEST_TARGET}/embree/lib
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${LIBDIR}/embree/share
+      ${HARVEST_TARGET}/embree/share
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${LIBDIR}/embree/bin/embree4.dll
+      ${HARVEST_TARGET}/embree/bin/embree4.dll
+
     DEPENDEES install
   )
 else()
   ExternalProject_Add_Step(external_embree after_install
-    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/bin/embree4_d.dll ${HARVEST_TARGET}/embree/bin/embree4_d.dll
-    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/embree/lib/embree4_d.lib ${HARVEST_TARGET}/embree/lib/embree4_d.lib
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${LIBDIR}/embree/bin/embree4_d.dll
+      ${HARVEST_TARGET}/embree/bin/embree4_d.dll
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${LIBDIR}/embree/lib/embree4_d.lib
+      ${HARVEST_TARGET}/embree/lib/embree4_d.lib
+
     DEPENDEES install
   )
 endif()

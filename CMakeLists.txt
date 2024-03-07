@@ -797,9 +797,19 @@ endif()
 
 # Unit testing
 option(WITH_GTESTS "Enable GTest unit testing" OFF)
-option(WITH_GPU_RENDER_TESTS "Enable GPU render related unit testing (EEVEE, Workbench and Grease Pencil)" OFF)
-option(WITH_GPU_RENDER_TESTS_SILENT "Run GPU render tests silently (finished tests will pass). Generated report will show failing tests" ON)
-option(WITH_GPU_DRAW_TESTS "Enable GPU drawing related unit testing (GPU backends and draw manager)" OFF)
+option(WITH_GPU_RENDER_TESTS "\
+Enable GPU render related unit testing (EEVEE, Workbench and Grease Pencil)"
+  OFF
+)
+option(WITH_GPU_RENDER_TESTS_SILENT "\
+Run GPU render tests silently (finished tests will pass). \
+Generated report will show failing tests"
+  ON
+)
+option(WITH_GPU_DRAW_TESTS "\
+Enable GPU drawing related unit testing (GPU backends and draw manager)"
+  OFF
+)
 option(WITH_COMPOSITOR_REALTIME_TESTS "Enable regression testing for realtime compositor" OFF)
 if(UNIX AND NOT (APPLE OR HAIKU))
   option(WITH_UI_TESTS "\
@@ -816,7 +826,10 @@ endif()
 # Enabled by default for typical use cases to speed up development cycles. However, when looking
 # into threading or memory related issues (in dependency graph, out-of-bounds, etc) forcing single
 # test per Blender instance could give much better clues about the root of the problem.
-option(WITH_TESTS_BATCHED "Run multiple tests in a single Blender invocation, for faster test execution" ON)
+option(WITH_TESTS_BATCHED "\
+Run multiple tests in a single Blender invocation, for faster test execution"
+  ON
+)
 mark_as_advanced(WITH_TESTS_BATCHED)
 
 option(WITH_TESTS_SINGLE_BINARY "\
@@ -1354,7 +1367,7 @@ if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
       # affect on the printed backtrace, and exception handling was correct as well.
       #
       # Related discussion:
-      #  https://stackoverflow.com/questions/26300819/why-gcc-compiled-c-program-needs-eh-frame-section
+      #  https://stackoverflow.com/questions/26300819
       add_compile_options("$<${_is_CONFIG_DEBUG}:-fno-unwind-tables>")
       add_compile_options("$<${_is_CONFIG_DEBUG}:-fno-asynchronous-unwind-tables>")
 
@@ -1675,12 +1688,14 @@ if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
     # but this also accounts for the part of the physical RAM being used by other unrelated
     # processes on the system, and the part being used by the 'regular' compile and linking jobs.
     #
-    # Also always cap heavy jobs amount to `number of available threads - 1`, to ensure that even if
-    # there would be enough RAM, the machine never ends up handling only heavy jobs at some point.
-    # This can have annoying sides effects, like lack of output in the console for several minutes,
-    # which can lead to a wrong detection of 'unresponsive' state by the buildbots e.g.
+    # Also always cap heavy jobs amount to `number of available threads - 1`,
+    # to ensure that even if there would be enough RAM, the machine never ends up
+    # handling only heavy jobs at some point.
+    # This can have annoying sides effects, like lack of output in the console for several
+    # minutes, which can lead to a wrong detection of 'unresponsive' state by the build-bots e.g.
     #
-    # Currently, these settings applied to a 64GB/16threads linux machine will use, for a full build:
+    # Currently, these settings applied to a 64GB/16threads linux machine will use,
+    # for a full build:
     #   - release build:
     #      * RAM: typically less than 20%, with some peaks at 25%.
     #      * CPU: over 90% of usage on average over the whole build time.

@@ -87,7 +87,8 @@ if(EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/perl.exe")
   )
 endif()
 
-# Strip out the copy of link that comes with some packages if it exists, otherwise meson builds break
+# Strip out the copy of link that comes with some packages if it exists,
+# otherwise meson builds break.
 if(EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/link.exe")
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E rm ${DOWNLOAD_DIR}/msys2/msys64/usr/bin/link.exe

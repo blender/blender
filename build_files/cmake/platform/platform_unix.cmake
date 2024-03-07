@@ -1136,8 +1136,12 @@ if(PLATFORM_BUNDLED_LIBRARIES)
 
   # Environment variables to run precompiled executables that needed libraries.
   list(JOIN PLATFORM_BUNDLED_LIBRARY_DIRS ":" _library_paths)
-  set(PLATFORM_ENV_BUILD "LD_LIBRARY_PATH=\"${_library_paths}:$LD_LIBRARY_PATH\"")
-  set(PLATFORM_ENV_INSTALL "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH")
+  set(PLATFORM_ENV_BUILD
+    "LD_LIBRARY_PATH=\"${_library_paths}:$LD_LIBRARY_PATH\""
+  )
+  set(PLATFORM_ENV_INSTALL
+    "LD_LIBRARY_PATH=${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/lib/;$LD_LIBRARY_PATH"
+  )
   unset(_library_paths)
 else()
   # Quiet unused variable warnings, unfortunately this can't be empty.
