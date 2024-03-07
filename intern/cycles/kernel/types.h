@@ -1217,7 +1217,9 @@ typedef enum KernelBVHLayout {
 } KernelBVHLayout;
 
 /* Specialized struct that can become constants in dynamic compilation. */
-#define KERNEL_STRUCT_BEGIN(name, parent) ccl_align(16) struct name {
+#define KERNEL_STRUCT_BEGIN(name, parent) \
+  struct ccl_align(16) name \
+  {
 #define KERNEL_STRUCT_END(name) \
   } \
   ; \
@@ -1259,7 +1261,8 @@ typedef struct KernelLightLinkSet {
   uint light_tree_root;
 } KernelLightLinkSet;
 
-typedef ccl_align(16) struct KernelData {
+typedef struct ccl_align(16) KernelData
+{
   /* Features and limits. */
   uint kernel_features;
   uint max_closures;
@@ -1294,7 +1297,8 @@ typedef ccl_align(16) struct KernelData {
 #  endif
 #endif
   int pad2, pad3;
-} KernelData;
+}
+KernelData;
 static_assert_align(KernelData, 16);
 
 /* Kernel data structures. */
