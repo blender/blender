@@ -30,6 +30,14 @@ CCL_NAMESPACE_BEGIN
 
 bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
+  if (device.type == DEVICE_MULTI) {
+    for (const DeviceInfo &multi_device : device.multi_devices) {
+      if (multi_device.type != DEVICE_CPU && is_device_supported(multi_device)) {
+        return true;
+      }
+    }
+  }
+
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
   switch (device.type) {
 #  ifdef OIDN_DEVICE_SYCL
