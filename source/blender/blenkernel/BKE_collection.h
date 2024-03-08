@@ -283,6 +283,11 @@ bool BKE_collection_has_collection(const struct Collection *parent,
                                    const struct Collection *collection);
 
 /**
+ * Return parent collection which is not linked.
+ */
+struct Collection *BKE_collection_parent_editable_find_recursive(
+    const struct ViewLayer *view_layer, struct Collection *collection);
+/**
  * Rebuild parent relationships from child ones, for all children of given \a collection.
  *
  * \note Given collection is assumed to already have valid parents.
