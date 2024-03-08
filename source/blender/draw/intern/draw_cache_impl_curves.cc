@@ -511,7 +511,7 @@ static bool curves_ensure_attributes(const Curves &curves,
   for (const int i : IndexRange(final_cache.attr_used.num_requests)) {
     const DRW_AttributeRequest &request = final_cache.attr_used.requests[i];
 
-    if (cache.curves_cache.proc_attributes_buf[i] != nullptr) {
+    if (cache.curves_cache.final[subdiv].attributes_buf[i] != nullptr) {
       continue;
     }
 
