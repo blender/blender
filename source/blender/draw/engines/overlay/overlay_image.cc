@@ -295,7 +295,7 @@ void OVERLAY_image_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const View3D *v3d = draw_ctx->v3d;
   const Scene *scene = draw_ctx->scene;
-  Camera *cam = static_cast<Camera *>(ob->data);
+  const Camera *cam = static_cast<Camera *>(ob->data);
 
   const bool show_frame = BKE_object_empty_image_frame_is_visible_in_view3d(ob, draw_ctx->rv3d);
 

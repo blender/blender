@@ -3615,7 +3615,7 @@ static LineartData *lineart_create_render_buffer_v3(Scene *scene,
   if (!scene || !camera || !lc) {
     return nullptr;
   }
-  Camera *c = static_cast<Camera *>(camera->data);
+  const Camera *c = static_cast<Camera *>(camera->data);
   double clipping_offset = 0;
 
   if (lmd->calculation_flags & MOD_LINEART_ALLOW_CLIPPING_BOUNDARIES) {

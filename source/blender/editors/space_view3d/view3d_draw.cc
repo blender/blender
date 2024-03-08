@@ -1219,8 +1219,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
     default:
       if (rv3d->persp == RV3D_CAMOB) {
         if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
-          Camera *cam;
-          cam = static_cast<Camera *>(v3d->camera->data);
+          const Camera *cam = static_cast<const Camera *>(v3d->camera->data);
           if (cam->type == CAM_PERSP) {
             name = IFACE_("Camera Perspective");
           }
