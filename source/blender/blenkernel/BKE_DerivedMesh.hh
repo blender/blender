@@ -58,7 +58,6 @@ struct CCGElem;
 struct CCGKey;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct MFace;
 struct Mesh;
 struct ModifierData;
 struct Object;

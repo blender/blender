@@ -16,7 +16,6 @@
 #include "BLI_sys_types.h"
 
 struct BMEditMesh;
-struct BoundBox;
 struct BPoint;
 struct Depsgraph;
 struct Lattice;

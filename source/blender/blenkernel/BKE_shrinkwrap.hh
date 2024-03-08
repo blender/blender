@@ -29,7 +29,6 @@
  */
 
 struct BVHTree;
-struct GreasePencilShrinkwrapModifierData;
 struct MDeformVert;
 struct Mesh;
 struct ModifierEvalContext;

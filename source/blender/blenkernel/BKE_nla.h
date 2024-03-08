@@ -28,7 +28,6 @@ struct Speaker;
 struct bAction;
 
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct PointerRNA;
 struct PropertyRNA;

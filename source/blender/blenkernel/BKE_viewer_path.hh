@@ -26,9 +26,7 @@
 
 struct BlendWriter;
 struct BlendDataReader;
-struct BlendLibReader;
 struct LibraryForeachIDData;
-struct Library;
 
 namespace blender::bke::id {
 class IDRemapper;

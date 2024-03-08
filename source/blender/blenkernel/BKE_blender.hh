@@ -12,7 +12,6 @@
 
 struct Main;
 struct UserDef;
-struct bContext;
 
 /**
  * Only to be called on exit Blender.

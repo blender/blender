@@ -20,12 +20,9 @@
 struct BLI_Iterator;
 struct Base;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct Collection;
-struct Depsgraph;
 struct ID;
-struct Library;
 struct Main;
 struct Object;
 struct Scene;

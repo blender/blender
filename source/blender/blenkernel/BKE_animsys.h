@@ -18,7 +18,6 @@ extern "C" {
 
 struct AnimData;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct Depsgraph;
 struct FCurve;

@@ -14,7 +14,6 @@
 
 struct AnimData;
 struct BlendDataReader;
-struct BlendLibReader;
 struct BlendWriter;
 struct ID;
 struct Library;
