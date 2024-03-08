@@ -2250,7 +2250,16 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
       continue;
     }
     if (CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL)) {
+      /* Auto-smooth disabled sharp edge tagging when the evaluated mesh had custom normals.
+       * When the original mesh has custom normals, that's a good sign the evaluated mesh will
+       * have custom normals as well. */
       continue;
+    }
+    if (ModifierData *last_md = static_cast<ModifierData *>(object->modifiers.last)) {
+      if (ELEM(last_md->type, eModifierType_WeightedNormal, eModifierType_NormalEdit)) {
+        /* These modifiers always generate custom normals which disabled sharp edge tagging. */
+        continue;
+      }
     }
     if (!auto_smooth_node_tree) {
       auto_smooth_node_tree = add_auto_smooth_node_tree(bmain);
