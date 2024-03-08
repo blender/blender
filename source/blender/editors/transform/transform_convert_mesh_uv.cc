@@ -31,43 +31,43 @@
  * \{ */
 
 static void UVsToTransData(const float aspect[2],
-                           TransData *td,
-                           TransData2D *td2d,
                            float *uv,
                            const float *center,
-                           float calc_dist,
-                           bool selected)
+                           const float calc_dist,
+                           const bool selected,
+                           TransData *r_td,
+                           TransData2D *r_td2d)
 {
   /* UV coords are scaled by aspects. this is needed for rotations and
    * proportional editing to be consistent with the stretched UV coords
    * that are displayed. this also means that for display and number-input,
    * and when the UV coords are flushed, these are converted each time. */
-  td2d->loc[0] = uv[0] * aspect[0];
-  td2d->loc[1] = uv[1] * aspect[1];
-  td2d->loc[2] = 0.0f;
-  td2d->loc2d = uv;
+  r_td2d->loc[0] = uv[0] * aspect[0];
+  r_td2d->loc[1] = uv[1] * aspect[1];
+  r_td2d->loc[2] = 0.0f;
+  r_td2d->loc2d = uv;
 
-  td->flag = 0;
-  td->loc = td2d->loc;
-  copy_v2_v2(td->center, center ? center : td->loc);
-  td->center[2] = 0.0f;
-  copy_v3_v3(td->iloc, td->loc);
+  r_td->flag = 0;
+  r_td->loc = r_td2d->loc;
+  copy_v2_v2(r_td->center, center ? center : r_td->loc);
+  r_td->center[2] = 0.0f;
+  copy_v3_v3(r_td->iloc, r_td->loc);
 
-  memset(td->axismtx, 0, sizeof(td->axismtx));
-  td->axismtx[2][2] = 1.0f;
+  memset(r_td->axismtx, 0, sizeof(r_td->axismtx));
+  r_td->axismtx[2][2] = 1.0f;
 
-  td->ext = nullptr;
-  td->val = nullptr;
+  r_td->ext = nullptr;
+  r_td->val = nullptr;
 
   if (selected) {
-    td->flag |= TD_SELECTED;
-    td->dist = 0.0;
+    r_td->flag |= TD_SELECTED;
+    r_td->dist = 0.0;
   }
   else {
-    td->dist = calc_dist;
+    r_td->dist = calc_dist;
   }
-  unit_m3(td->mtx);
-  unit_m3(td->smtx);
+  unit_m3(r_td->mtx);
+  unit_m3(r_td->smtx);
 }
 
 /**
@@ -380,7 +380,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         }
 
         luv = (float(*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-        UVsToTransData(t->aspect, td++, td2d++, *luv, center, prop_distance, selected);
+        UVsToTransData(t->aspect, *luv, center, prop_distance, selected, td++, td2d++);
       }
     }
 
