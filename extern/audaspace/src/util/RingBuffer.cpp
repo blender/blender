@@ -116,6 +116,11 @@ size_t RingBuffer::write(data_t* source, size_t size)
 	return size;
 }
 
+void RingBuffer::clear()
+{
+	m_read = m_write;
+}
+
 void RingBuffer::reset()
 {
 	m_read = 0;
