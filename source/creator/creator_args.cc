@@ -946,6 +946,9 @@ static int arg_handle_command_set(int argc, const char **argv, void * /*data*/)
     BLI_assert_unreachable();
   }
 
+  /* Application "info" messages get in the way of command line output, suppress them. */
+  G.quiet = true;
+
   background_mode_set();
 
   app_state.command.argc = argc - 1;

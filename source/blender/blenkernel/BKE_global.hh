@@ -66,6 +66,14 @@ struct Global {
   bool background;
 
   /**
+   * When true, suppress any non-error print messages such as files saves, loaded, quitting etc.
+   * This is used so command line tools can control output without unnecessary noise.
+   *
+   * \note This should only be used to suppress printing (not reports or other kinds of logging).
+   */
+  bool quiet;
+
+  /**
    * Skip reading the startup file and user preferences.
    * Also disable saving the preferences on exit (see #G_FLAG_USERPREF_NO_SAVE_ON_EXIT),
    * see via the command line argument: `--factory-startup`.

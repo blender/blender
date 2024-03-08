@@ -1046,7 +1046,9 @@ BlendFileData *BKE_blendfile_read(const char *filepath,
 {
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
-    printf("Read blend: \"%s\"\n", filepath);
+    if (!G.quiet) {
+      printf("Read blend: \"%s\"\n", filepath);
+    }
   }
 
   BlendFileData *bfd = BLO_read_from_file(filepath, eBLOReadSkip(params->skip_flags), reports);
@@ -1332,12 +1334,18 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
       /* Also save app-template preferences. */
       BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
-      printf("Writing userprefs app-template: \"%s\" ", filepath);
+      if (!G.quiet) {
+        printf("Writing userprefs app-template: \"%s\" ", filepath);
+      }
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {
-        printf("ok\n");
+        if (!G.quiet) {
+          printf("ok\n");
+        }
       }
       else {
-        printf("fail\n");
+        if (!G.quiet) {
+          printf("fail\n");
+        }
         ok = false;
       }
     }

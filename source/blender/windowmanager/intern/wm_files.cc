@@ -2330,7 +2330,9 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
 
   BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_STARTUP_FILE);
 
-  printf("Writing homefile: \"%s\" ", filepath);
+  if (!G.quiet) {
+    printf("Writing homefile: \"%s\" ", filepath);
+  }
 
   ED_editors_flush_edits(bmain);
 
@@ -2351,11 +2353,15 @@ static int wm_homefile_write_exec(bContext *C, wmOperator *op)
   BKE_callback_exec_string(bmain, success ? BKE_CB_EVT_SAVE_POST : BKE_CB_EVT_SAVE_POST_FAIL, "");
 
   if (success) {
-    printf("ok\n");
+    if (!G.quiet) {
+      printf("ok\n");
+    }
     BKE_report(op->reports, RPT_INFO, "Startup file saved");
     return OPERATOR_FINISHED;
   }
-  printf("fail\n");
+  if (!G.quiet) {
+    printf("fail\n");
+  }
   return OPERATOR_CANCELLED;
 }
 
