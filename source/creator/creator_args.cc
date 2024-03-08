@@ -768,7 +768,7 @@ static void print_help(bArgs *ba, bool all)
   PRINT("  $BLENDER_SYSTEM_PYTHON     Directory for system Python libraries.\n");
 
   if (defs.with_ocio) {
-    PRINT("  $OCIO                     Path to override the OpenColorIO config file.\n");
+    PRINT("  $OCIO                      Path to override the OpenColorIO configuration file.\n");
   }
   if (defs.win32 || all) {
     PRINT("  $TEMP                      Store temporary files here (MS-Windows).\n");
@@ -848,7 +848,8 @@ static const char arg_handle_python_set_doc_enable[] =
     "Enable automatic Python script execution" PY_ENABLE_AUTO ".";
 static const char arg_handle_python_set_doc_disable[] =
     "\n\t"
-    "Disable automatic Python script execution (pydrivers & startup scripts)" PY_DISABLE_AUTO ".";
+    "Disable automatic Python script execution "
+    "(Python-drivers & startup scripts)" PY_DISABLE_AUTO ".";
 #  undef PY_ENABLE_AUTO
 #  undef PY_DISABLE_AUTO
 
@@ -1114,7 +1115,7 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_pretty[] =
     "Enable colors for dependency graph debug messages.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uid[] =
     "\n\t"
-    "Verify validness of session-wide identifiers assigned to ID datablocks.";
+    "Verify validness of session-wide identifiers assigned to ID data-blocks.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
     "\n\t"
     "Enable workarounds for typical GPU issues and disable all GPU extensions.";
@@ -1216,7 +1217,7 @@ static int arg_handle_debug_gpu_set(int /*argc*/, const char ** /*argv*/, void *
 
 static const char arg_handle_debug_gpu_compile_shaders_set_doc[] =
     "\n"
-    "\tCompile all staticly defined shaders to test platform compatibility.";
+    "\tCompile all statically defined shaders to test platform compatibility.";
 static int arg_handle_debug_gpu_compile_shaders_set(int /*argc*/,
                                                     const char ** /*argv*/,
                                                     void * /*data*/)
@@ -1461,7 +1462,7 @@ static int arg_handle_with_borders(int /*argc*/, const char ** /*argv*/, void * 
 
 static const char arg_handle_without_borders_doc[] =
     "\n\t"
-    "Force opening in fullscreen mode.";
+    "Force opening in full-screen mode.";
 static int arg_handle_without_borders(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   WM_init_state_fullscreen_set();
