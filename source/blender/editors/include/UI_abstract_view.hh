@@ -37,7 +37,6 @@ struct bContext;
 struct uiBlock;
 struct uiButViewItem;
 struct uiLayout;
-struct uiViewItemHandle;
 struct ViewLink;
 struct wmDrag;
 struct wmNotifier;
@@ -251,9 +250,6 @@ class AbstractViewItem {
   void end_renaming();
   void rename_apply(const bContext &C);
 
-  template<typename ToType = AbstractViewItem>
-  static ToType *from_item_handle(uiViewItemHandle *handle);
-
  protected:
   AbstractViewItem() = default;
 
@@ -302,14 +298,6 @@ class AbstractViewItem {
    */
   void add_rename_button(uiBlock &block);
 };
-
-template<typename ToType> ToType *AbstractViewItem::from_item_handle(uiViewItemHandle *handle)
-{
-  static_assert(std::is_base_of<AbstractViewItem, ToType>::value,
-                "Type must derive from and implement the AbstractViewItem interface");
-
-  return dynamic_cast<ToType *>(reinterpret_cast<AbstractViewItem *>(handle));
-}
 
 /* ---------------------------------------------------------------------- */
 /** \name Drag 'n Drop

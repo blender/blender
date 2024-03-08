@@ -388,8 +388,8 @@ struct uiButScrollBar : public uiBut {
 };
 
 struct uiButViewItem : public uiBut {
-  /* C-Handle to the view item this button was created for. */
-  uiViewItemHandle *view_item = nullptr;
+  /* The view item this button was created for. */
+  blender::ui::AbstractViewItem *view_item = nullptr;
   /* Some items want to have a fixed size for drawing, differing from the interaction rectangle
    * (e.g. so highlights are drawn smaller). */
   int draw_width = 0;
@@ -1538,15 +1538,16 @@ void ui_block_free_views(uiBlock *block);
 void ui_block_views_bounds_calc(const uiBlock *block);
 void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params);
 void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block);
-uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
-                                                       const uiViewHandle *new_view);
+blender::ui::AbstractView *ui_block_view_find_matching_in_old_block(
+    const uiBlock &new_block, const blender::ui::AbstractView &new_view);
 
 uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
-    const uiBlock *new_block, const uiViewItemHandle *new_item_handle);
+    const uiBlock &new_block, const blender::ui::AbstractViewItem &new_item);
 
 /* abstract_view_item.cc */
 
-void ui_view_item_swap_button_pointers(uiViewItemHandle *a_handle, uiViewItemHandle *b_handle);
+void ui_view_item_swap_button_pointers(blender::ui::AbstractViewItem &a,
+                                       blender::ui::AbstractViewItem &b);
 
 /* interface_templates.cc */
 

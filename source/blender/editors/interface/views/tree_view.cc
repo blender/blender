@@ -300,10 +300,10 @@ void AbstractTreeViewItem::tree_row_click_fn(bContext *C, void *but_arg1, void *
 void AbstractTreeViewItem::add_treerow_button(uiBlock &block)
 {
   /* For some reason a width > (UI_UNIT_X * 2) make the layout system use all available width. */
-  view_item_but_ = (uiButViewItem *)uiDefBut(
-      &block, UI_BTYPE_VIEW_ITEM, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nullptr, 0, 0, "");
+  view_item_but_ = reinterpret_cast<uiButViewItem *>(uiDefBut(
+      &block, UI_BTYPE_VIEW_ITEM, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, nullptr, 0, 0, ""));
 
-  view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
+  view_item_but_->view_item = this;
   view_item_but_->draw_height = unpadded_item_height();
   UI_but_func_set(view_item_but_, tree_row_click_fn, view_item_but_, nullptr);
 }
@@ -341,10 +341,10 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
 
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
-  uiViewItemHandle *hovered_item_handle = UI_region_views_find_item_at(region,
-                                                                       win->eventstate->xy);
+  AbstractViewItem *hovered_abstract_item = UI_region_views_find_item_at(*region,
+                                                                         win->eventstate->xy);
 
-  AbstractTreeViewItem *hovered_item = from_item_handle<AbstractTreeViewItem>(hovered_item_handle);
+  auto *hovered_item = reinterpret_cast<AbstractTreeViewItem *>(hovered_abstract_item);
   BLI_assert(hovered_item != nullptr);
 
   hovered_item->toggle_collapsed_from_view(*C);
@@ -491,11 +491,10 @@ bool AbstractTreeViewItem::is_hovered() const
   BLI_assert_msg(view_item_but_ != nullptr,
                  "Hovered state can't be queried before the tree row is being built");
 
-  const uiViewItemHandle *this_item_handle = reinterpret_cast<const uiViewItemHandle *>(this);
   /* The new layout hasn't finished construction yet, so the final state of the button is unknown.
    * Get the matching button from the previous redraw instead. */
   uiButViewItem *old_item_but = ui_block_view_find_matching_view_item_but_in_old_block(
-      view_item_but_->block, this_item_handle);
+      *view_item_but_->block, *this);
   return old_item_but && (old_item_but->flag & UI_HOVER);
 }
 
