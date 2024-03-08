@@ -274,6 +274,11 @@ bool BKE_collection_cycles_fix(Main *bmain, Collection *collection);
 bool BKE_collection_has_collection(const Collection *parent, const Collection *collection);
 
 /**
+ * Return parent collection which is not linked.
+ */
+Collection *BKE_collection_parent_editable_find_recursive(const ViewLayer *view_layer,
+                                                          Collection *collection);
+/**
  * Rebuild parent relationships from child ones, for all children of given \a collection.
  *
  * \note Given collection is assumed to already have valid parents.
