@@ -895,15 +895,9 @@ static int arg_handle_debug_exit_on_error(int /*argc*/, const char ** /*argv*/, 
   return 0;
 }
 
-static const char arg_handle_background_mode_set_doc[] =
-    "\n"
-    "\tRun in background (often used for UI-less rendering).\n"
-    "\n"
-    "\tThe audio device is disabled in background-mode by default\n"
-    "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
-static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+/** Shared by `--background` & `--command`. */
+static void background_mode_set()
 {
-  print_version_short();
   G.background = true;
 
   /* Background Mode Defaults:
@@ -922,7 +916,18 @@ static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, 
    * - A quiet but audible click when Blender starts & configures its audio device.
    */
   BKE_sound_force_device("None");
+}
 
+static const char arg_handle_background_mode_set_doc[] =
+    "\n"
+    "\tRun in background (often used for UI-less rendering).\n"
+    "\n"
+    "\tThe audio device is disabled in background-mode by default\n"
+    "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
+static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+{
+  print_version_short();
+  background_mode_set();
   return 0;
 }
 
@@ -941,9 +946,7 @@ static int arg_handle_command_set(int argc, const char **argv, void * /*data*/)
     BLI_assert_unreachable();
   }
 
-  /* See `--background` implementation. */
-  G.background = true;
-  BKE_sound_force_device("None");
+  background_mode_set();
 
   app_state.command.argc = argc - 1;
   app_state.command.argv = argv + 1;
