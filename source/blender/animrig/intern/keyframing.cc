@@ -1067,6 +1067,7 @@ void insert_key_rna(PointerRNA *rna_pointer,
                                           key_type,
                                           successful_remaps);
   }
+  BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   if (insert_key_count == 0) {
     BKE_reportf(reports, RPT_ERROR, "Failed to insert any keys");
