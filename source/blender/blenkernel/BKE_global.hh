@@ -16,6 +16,13 @@
 
 struct Main;
 
+/**
+ * Global data, typically accessed from #G.
+ * See: #BKE_blender_globals_init & #BKE_blender_globals_clear.
+ *
+ * \note This is run-time only but some global data is written
+ * to #FileGlobal which is used to initialize members of #Global.
+ */
 struct Global {
 
   /**
