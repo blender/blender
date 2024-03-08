@@ -5,13 +5,16 @@
 #include "integrator/denoiser.h"
 
 #include "device/device.h"
+
 #include "integrator/denoiser_oidn.h"
 #ifdef WITH_OPENIMAGEDENOISE
 #  include "integrator/denoiser_oidn_gpu.h"
 #endif
 #include "integrator/denoiser_optix.h"
 #include "session/buffers.h"
+
 #include "util/log.h"
+#include "util/openimagedenoise.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
@@ -20,14 +23,8 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
 {
   DCHECK(params.use);
 
-#ifdef WITH_OPTIX
-  if (params.type == DENOISER_OPTIX && Device::available_devices(DEVICE_MASK_OPTIX).size()) {
-    return make_unique<OptiXDenoiser>(path_trace_device, params);
-  }
-#endif
-
 #ifdef WITH_OPENIMAGEDENOISE
-  /* If available and allowed, then we will use OpenImageDenoise on GPU, otherwise on CPU. */
+  /* If available and allowed, then we will use OpenImageDenoise on GPU. */
   if (params.type == DENOISER_OPENIMAGEDENOISE && params.use_gpu &&
       path_trace_device->info.type != DEVICE_CPU &&
       OIDNDenoiserGPU::is_device_supported(path_trace_device->info))
@@ -36,10 +33,33 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
   }
 #endif
 
-  /* Always fallback to OIDN. */
+#ifdef WITH_OPTIX
+  /* Use OptiX on GPU if supported. */
+  if (params.type == DENOISER_OPTIX && Device::available_devices(DEVICE_MASK_OPTIX).size()) {
+    return make_unique<OptiXDenoiser>(path_trace_device, params);
+  }
+#endif
+
+  /* Always fallback to OIDN on CPU. */
   DenoiseParams oidn_params = params;
   oidn_params.type = DENOISER_OPENIMAGEDENOISE;
   return make_unique<OIDNDenoiser>(path_trace_device, oidn_params);
+}
+
+DenoiserType Denoiser::automatic_viewport_denoiser_type(const DeviceInfo &path_trace_device_info)
+{
+  if (OIDNDenoiserGPU::is_device_supported(path_trace_device_info)) {
+    return DENOISER_OPENIMAGEDENOISE;
+  }
+  else if (!Device::available_devices(DEVICE_MASK_OPTIX).empty()) {
+    return DENOISER_OPTIX;
+  }
+  else if (openimagedenoise_supported()) {
+    return DENOISER_OPENIMAGEDENOISE;
+  }
+  else {
+    return DENOISER_NONE;
+  }
 }
 
 Denoiser::Denoiser(Device *path_trace_device, const DenoiseParams &params)
