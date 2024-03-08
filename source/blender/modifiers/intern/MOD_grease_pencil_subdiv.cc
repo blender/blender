@@ -164,7 +164,6 @@ static void panel_draw(const bContext *C, Panel *panel)
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
-    modifier::greasepencil::draw_vertex_group_settings(C, influence_panel, ptr);
   }
 
   modifier_panel_end(layout, ptr);
