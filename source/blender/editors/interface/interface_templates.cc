@@ -104,7 +104,7 @@ using blender::Vector;
 // #define USE_OP_RESET_BUT
 
 /* defines for templateID/TemplateSearch */
-#define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 6)
+#define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 4)
 #define TEMPLATE_SEARCH_TEXTBUT_HEIGHT UI_UNIT_Y
 
 /* -------------------------------------------------------------------- */
@@ -142,7 +142,7 @@ static int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop
 
   /* Clamp to some min/max width. */
   return std::clamp(
-      estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 3);
+      estimated_width, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH, TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH * 4);
 }
 
 static int template_search_textbut_height()
@@ -1351,8 +1351,13 @@ static void template_ID(const bContext *C,
     char name[UI_MAX_NAME_STR];
     const bool user_alert = (id->us <= 0);
 
-    const int width = template_search_textbut_width(&idptr,
-                                                    RNA_struct_find_property(&idptr, "name"));
+    int width = template_search_textbut_width(&idptr, RNA_struct_find_property(&idptr, "name"));
+
+    if ((template_ui->idcode == ID_SCE) && (template_ui->ptr.type == &RNA_Window)) {
+      /* More room needed for "pin" icon. */
+      width += UI_UNIT_X;
+    }
+
     const int height = template_search_textbut_height();
 
     // text_idbutton(id, name);
