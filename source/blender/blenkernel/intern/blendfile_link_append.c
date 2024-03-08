@@ -509,11 +509,13 @@ static void loose_data_instantiate_ensure_active_collection(
   Scene *scene = instantiate_context->lapp_context->params->context.scene;
   ViewLayer *view_layer = instantiate_context->lapp_context->params->context.view_layer;
 
-  /* Find or add collection as needed. */
+  /* Find or add collection as needed. When `active_collection` is non-null, it is assumed to be
+   * editable. */
   if (instantiate_context->active_collection == NULL) {
     if (lapp_context->params->flag & FILE_ACTIVE_COLLECTION) {
       LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
-      instantiate_context->active_collection = lc->collection;
+      instantiate_context->active_collection = BKE_collection_parent_editable_find_recursive(
+          view_layer, lc->collection);
     }
     else {
       if (lapp_context->params->flag & FILE_LINK) {
