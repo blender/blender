@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
 from bpy.types import Panel, Menu
+from rna_prop_ui import PropertyPanel
 
 
 class DataButtonsPanel:
@@ -149,11 +150,17 @@ class DATA_PT_grease_pencil_layer_relations(LayerDataButtonsPanel, Panel):
         col.prop(layer, "pass_index")
 
 
+class DATA_PT_grease_pencil_custom_props(DataButtonsPanel, PropertyPanel, Panel):
+    _context_path = "object.data"
+    _property_type = bpy.types.GreasePencilv3
+
+
 classes = (
     DATA_PT_context_grease_pencil,
     DATA_PT_grease_pencil_layers,
     DATA_PT_grease_pencil_layer_transform,
     DATA_PT_grease_pencil_layer_relations,
+    DATA_PT_grease_pencil_custom_props,
     GREASE_PENCIL_MT_grease_pencil_add_layer_extra,
 )
 
