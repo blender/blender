@@ -51,6 +51,7 @@
 
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
+#include "BKE_blender_cli_command.hh"
 #include "BKE_mask.h"     /* free mask clipboard */
 #include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_studiolight.h"
@@ -534,6 +535,14 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
     BPY_run_string_eval(C, imports, "addon_utils.disable_all()");
   }
 #endif
+
+  /* Perform this early in case commands reference other data freed later in this function.
+   * This most run:
+   * - After add-ons are disabled because they may unregister commands.
+   * - Before Python exits so Python objects can be de-referenced.
+   * - Before #BKE_blender_atexit runs they free the `argv` on WIN32.
+   */
+  BKE_blender_cli_command_free_all();
 
   BLI_timer_free();
 

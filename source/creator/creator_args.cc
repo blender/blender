@@ -698,6 +698,8 @@ static void print_help(bArgs *ba, bool all)
   PRINT("\n");
   BLI_args_print_arg_doc(ba, "-noaudio");
   BLI_args_print_arg_doc(ba, "-setaudio");
+  PRINT("\n");
+  BLI_args_print_arg_doc(ba, "--command");
 
   PRINT("\n");
 
@@ -922,6 +924,32 @@ static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, 
   BKE_sound_force_device("None");
 
   return 0;
+}
+
+static const char arg_handle_command_set_doc[] =
+    "<command>\n"
+    "\tRun a command which consumes all remaining arguments.\n"
+    "\tUse '-c help' to list all other commands.\n"
+    "\tPass '--help' after the command to see its help text.\n"
+    "\n"
+    "\tThis implies '--background' mode.";
+static int arg_handle_command_set(int argc, const char **argv, void * /*data*/)
+{
+  if (argc < 2) {
+    fprintf(stderr, "%s requires at least one argument\n", argv[0]);
+    exit(EXIT_FAILURE);
+    BLI_assert_unreachable();
+  }
+
+  /* See `--background` implementation. */
+  G.background = true;
+  BKE_sound_force_device("None");
+
+  app_state.command.argc = argc - 1;
+  app_state.command.argv = argv + 1;
+
+  /* Consume remaining arguments. */
+  return argc - 1;
 }
 
 static const char arg_handle_log_level_set_doc[] =
@@ -2374,6 +2402,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
       ba, nullptr, "--disable-abort-handler", CB(arg_handle_abort_handler_disable), nullptr);
 
   BLI_args_add(ba, "-b", "--background", CB(arg_handle_background_mode_set), nullptr);
+  /* Command implies background mode. */
+  BLI_args_add(ba, "-c", "--command", CB(arg_handle_command_set), nullptr);
 
   BLI_args_add(ba, "-a", nullptr, CB(arg_handle_playback_mode), nullptr);
 

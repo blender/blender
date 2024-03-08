@@ -76,6 +76,7 @@ set(SRC
   intern/bake_items_serialize.cc
   intern/bake_items_socket.cc
   intern/blender.cc
+  intern/blender_cli_command.cc
   intern/blender_copybuffer.cc
   intern/blender_undo.cc
   intern/blender_user_menu.cc
@@ -345,6 +346,7 @@ set(SRC
   BKE_bake_items_serialize.hh
   BKE_bake_items_socket.hh
   BKE_blender.hh
+  BKE_blender_cli_command.hh
   BKE_blender_copybuffer.hh
   BKE_blender_undo.hh
   BKE_blender_user_menu.hh
