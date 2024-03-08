@@ -36,6 +36,32 @@
 #define float3x4 mat3x4
 #define float4x4 mat4x4
 
+/* Small types are unavailable in GLSL (or badly supported), promote them to bigger type. */
+#define char int
+#define char2 int2
+#define char3 int3
+#define char4 int4
+#define short int
+#define short2 int2
+#define short3 int3
+#define short4 int4
+#define uchar uint
+#define uchar2 uint2
+#define uchar3 uint3
+#define uchar4 uint4
+#define ushort uint
+#define ushort2 uint2
+#define ushort3 uint3
+#define ushort4 uint4
+#define half float
+#define half2 float2
+#define half3 float3
+#define half4 float4
+
+/* Aliases for supported fixed width types. */
+#define int32_t int
+#define uint32_t uint
+
 /* Fast store variant macro. In GLSL this is the same as imageStore, but assumes no bounds
  * checking. */
 #define imageStoreFast imageStore
