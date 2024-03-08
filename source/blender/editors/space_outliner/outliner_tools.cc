@@ -3016,6 +3016,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
   }
 
   /* set notifier that things have changed */
+  DEG_id_tag_update(te->store_elem->id, ID_RECALC_ANIMATION);
   WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, nullptr);
   ED_undo_push(C, "Set action");
 
