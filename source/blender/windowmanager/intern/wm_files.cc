@@ -1310,11 +1310,12 @@ void wm_homefile_read_ex(bContext *C,
     else if (!use_factory_settings && BLI_exists(filepath_userdef)) {
       UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, nullptr);
       if (userdef != nullptr) {
+        CLOG_INFO(&LOG, 0, "read prefs: \"%s\"", filepath_userdef);
+
         BKE_blender_userdef_data_set_and_free(userdef);
         userdef = nullptr;
 
         skip_flags |= BLO_READ_SKIP_USERDEF;
-        printf("Read prefs: \"%s\"\n", filepath_userdef);
       }
     }
   }
@@ -1365,6 +1366,8 @@ void wm_homefile_read_ex(bContext *C,
       BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
 
       if (bfd != nullptr) {
+        CLOG_INFO(&LOG, 0, "read startup: \"%s\"", filepath_startup);
+
         /* Frees the current main and replaces it with the new one read from file. */
         BKE_blendfile_read_setup_readfile(C,
                                           bfd,
@@ -1439,6 +1442,9 @@ void wm_homefile_read_ex(bContext *C,
       /* just avoids missing file warning */
       if (BLI_exists(temp_path)) {
         userdef_template = BKE_blendfile_userdef_read(temp_path, nullptr);
+        if (userdef_template) {
+          CLOG_INFO(&LOG, 0, "read prefs from app-template: \"%s\"", temp_path);
+        }
       }
       if (userdef_template == nullptr) {
         /* we need to have preferences load to overwrite preferences from previous template */
