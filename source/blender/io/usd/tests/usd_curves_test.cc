@@ -127,7 +127,7 @@ TEST_F(UsdCurvesTest, usd_export_curves)
     std::string prim_name = pxr::TfMakeValidIdentifier("BezierCircle");
     pxr::UsdPrim test_prim = stage->GetPrimAtPath(pxr::SdfPath("/BezierCircle/" + prim_name));
     EXPECT_TRUE(test_prim.IsValid());
-    check_bezier_curve(test_prim, true, 13);
+    check_bezier_curve(test_prim, true, 12);
   }
 
   {

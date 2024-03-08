@@ -213,10 +213,8 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
                                  positions[last_point_index][1],
                                  positions[last_point_index][2]));
 
-    /* For USD representation of periodic bezier curve, one of the curve's points must be
-     * repeated to close the curve. The repeated point is the first point. Since the curve is
-     * closed, we now need to include the right handle of the last point and the left handle of
-     * the first point.
+    /* For USD periodic bezier curves, since the curve is closed, we need to include
+     * the right handle of the last point and the left handle of the first point.
      */
     if (is_cyclic) {
       const blender::float3 right_handle = handles_r[last_point_index];
@@ -224,10 +222,6 @@ static void populate_curve_verts_for_bezier(const bke::CurvesGeometry &geometry,
 
       const blender::float3 left_handle = handles_l[start_point_index];
       verts.push_back(pxr::GfVec3f(left_handle[0], left_handle[1], left_handle[2]));
-
-      verts.push_back(pxr::GfVec3f(positions[start_point_index][0],
-                                   positions[start_point_index][1],
-                                   positions[start_point_index][2]));
     }
 
     const int tot_points = verts.size() - start_verts_count;
