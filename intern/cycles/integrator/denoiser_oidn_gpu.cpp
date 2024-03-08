@@ -527,4 +527,3 @@ void OIDNDenoiserGPU::release_all_resources()
 CCL_NAMESPACE_END
 
 #endif
-
