@@ -1355,7 +1355,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
       ss_fragment << "float2 gl_PointCoord;" << std::endl;
     }
     if (msl_iface.uses_gl_FrontFacing) {
-      ss_fragment << "MTLBOOL gl_FrontFacing;" << std::endl;
+      ss_fragment << "bool gl_FrontFacing;" << std::endl;
     }
     if (msl_iface.uses_gl_PrimitiveID) {
       ss_fragment << "uint gl_PrimitiveID;" << std::endl;
@@ -2616,7 +2616,7 @@ std::string MSLGeneratorInterface::generate_msl_fragment_inputs_string()
   }
   if (this->uses_gl_FrontFacing) {
     out << parameter_delimiter(is_first_parameter)
-        << "\n\tconst MTLBOOL gl_FrontFacing [[front_facing]]";
+        << "\n\tconst bool gl_FrontFacing [[front_facing]]";
   }
   if (this->uses_gl_PrimitiveID) {
     out << parameter_delimiter(is_first_parameter)

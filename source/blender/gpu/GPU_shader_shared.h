@@ -37,8 +37,8 @@ struct NodeLinkData {
   /* bezierPts Is actually a float2, but due to std140 each element needs to be aligned to 16
    * bytes. */
   float4 bezierPts[4];
-  bool1 doArrow;
-  bool1 doMuted;
+  bool32_t doArrow;
+  bool32_t doMuted;
   float dim_factor;
   float thickness;
   float4 dash_params;
@@ -64,8 +64,8 @@ struct GPencilStrokeData {
   int xraymode;
   int caps_start;
   int caps_end;
-  bool1 keep_size;
-  bool1 fill_stroke;
+  bool32_t keep_size;
+  bool32_t fill_stroke;
   float2 _pad;
 };
 BLI_STATIC_ASSERT_ALIGN(struct GPencilStrokeData, 16)
