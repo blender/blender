@@ -2246,7 +2246,7 @@ static bool bm_loop_calc_opposite_co(const BMLoop *l_tmp, const float plane_no[3
   BMLoop *l_first = l_tmp->next;
   BMLoop *l_last = l_tmp->prev;
   BMLoop *l_iter;
-  float dist = FLT_MAX;
+  float dist_sq_best = FLT_MAX;
   bool found = false;
 
   l_iter = l_first;
@@ -2259,10 +2259,10 @@ static bool bm_loop_calc_opposite_co(const BMLoop *l_tmp, const float plane_no[3
         /* likelihood of multiple intersections per ngon is quite low,
          * it would have to loop back on itself, but better support it
          * so check for the closest opposite edge */
-        const float tdist = len_v3v3(l_tmp->v->co, tvec);
-        if (tdist < dist) {
+        const float dist_sq_test = len_squared_v3v3(l_tmp->v->co, tvec);
+        if (dist_sq_test < dist_sq_best) {
           copy_v3_v3(r_co, tvec);
-          dist = tdist;
+          dist_sq_best = dist_sq_test;
           found = true;
         }
       }
@@ -2277,8 +2277,8 @@ static float3 isect_face_dst(const BMLoop *l)
   BMFace *f = l->f;
   BMLoop *l_next = l->next;
   if (f->len == 4) {
-    /* we could use code below, but in this case
-     * sliding diagonally across the quad works well */
+    /* We could use code below, but in this case
+     * sliding diagonally across the quad works well. */
     return l_next->next->v->co;
   }
 
