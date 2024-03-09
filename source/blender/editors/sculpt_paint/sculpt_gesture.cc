@@ -97,15 +97,15 @@ static void lasso_px_cb(int x, int x_end, int y, void *user_data)
 
 GestureData *init_from_lasso(bContext *C, wmOperator *op)
 {
-  GestureData *gesture_data = MEM_new<GestureData>(__func__);
-  gesture_data->shape_type = ShapeType::Lasso;
-
-  init_common(C, op, gesture_data);
-
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
   if (mcoords.size() <= 1) {
     return nullptr;
   }
+
+  GestureData *gesture_data = MEM_new<GestureData>(__func__);
+  gesture_data->shape_type = ShapeType::Lasso;
+
+  init_common(C, op, gesture_data);
 
   gesture_data->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(gesture_data->vc.rv3d,
                                                                     gesture_data->vc.obact);
