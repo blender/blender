@@ -717,11 +717,6 @@ static void sculpt_gesture_lasso_px_cb(int x, int x_end, int y, void *user_data)
 
 static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOperator *op)
 {
-  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
-  sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LASSO;
-
-  sculpt_gesture_context_init_common(C, op, sgcontext);
-
   int mcoords_len;
   const int(*mcoords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcoords_len);
 
@@ -735,6 +730,10 @@ static SculptGestureContext *sculpt_gesture_init_from_lasso(bContext *C, wmOpera
     return nullptr;
   }
 
+  SculptGestureContext *sgcontext = MEM_new<SculptGestureContext>(__func__);
+  sgcontext->shape_type = SCULPT_GESTURE_SHAPE_LASSO;
+
+  sculpt_gesture_context_init_common(C, op, sgcontext);
   sgcontext->lasso.projviewobjmat = ED_view3d_ob_project_mat_get(sgcontext->vc.rv3d,
                                                                  sgcontext->vc.obact);
   BLI_lasso_boundbox(&sgcontext->lasso.boundbox, mcoords, mcoords_len);
