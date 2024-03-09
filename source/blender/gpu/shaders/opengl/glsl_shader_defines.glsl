@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** Type aliases. */
-/** IMPORTANT: Be warry of size and alignment matching for types that are present
+/** IMPORTANT: Be wary of size and alignment matching for types that are present
  * in C++ shared code. */
 
 /* Boolean in GLSL are 32bit in interface structs. */

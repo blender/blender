@@ -1060,7 +1060,7 @@ static void rna_ID_update_tag(ID *id, Main *bmain, ReportList *reports, int flag
         allow_flag = OB_RECALC_ALL | PSYS_RECALC;
         break;
 #  endif
-      case ID_AC: /* Fallthrough. */
+      case ID_AC: /* Fall-through. */
       case ID_AN:
         allow_flag = ID_RECALC_ANIMATION;
         break;

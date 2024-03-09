@@ -1718,7 +1718,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     /* WORKAROUND: The transform operators rely on looptris being up-to-date.
      * However, this is not always the case, especially when called from scripts.
      * If this happens, to prevent update issues, make sure the size of #BMEditMesh::looptris
-     * arrays aligns with the number lootris to update. */
+     * arrays aligns with the number looptris to update. */
     const bool looptri_is_dirty = em->tottri != poly_to_tri_count(bm->totface, bm->totloop);
     if (looptri_is_dirty) {
       BKE_editmesh_looptris_calc(em);
