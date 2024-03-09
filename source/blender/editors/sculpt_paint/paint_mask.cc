@@ -568,21 +568,21 @@ struct SculptGestureFaceSetOperation {
   int new_face_set_id;
 };
 
-static void sculpt_gesture_face_set_begin(bContext *C, gesture::GestureData *gesture_data)
+static void sculpt_gesture_face_set_begin(bContext &C, gesture::GestureData &gesture_data)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data->vc.obact, false);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
+  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
 }
 
-static void face_set_gesture_apply_mesh(gesture::GestureData *gesture_data,
+static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
                                         const Span<PBVHNode *> nodes)
 {
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data->operation;
+                                                          gesture_data.operation;
   const int new_face_set = face_set_operation->new_face_set_id;
-  Object &object = *gesture_data->vc.obact;
-  SculptSession &ss = *gesture_data->ss;
-  const PBVH &pbvh = *gesture_data->ss->pbvh;
+  Object &object = *gesture_data.vc.obact;
+  SculptSession &ss = *gesture_data.ss;
+  const PBVH &pbvh = *gesture_data.ss->pbvh;
 
   const Span<float3> positions = ss.vert_positions;
   const OffsetIndices<int> faces = ss.faces;
@@ -590,9 +590,9 @@ static void face_set_gesture_apply_mesh(gesture::GestureData *gesture_data,
   const bool *hide_poly = ss.hide_poly;
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
-  threading::parallel_for(gesture_data->nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(gesture_data->vc.obact, node, undo::Type::FaceSet);
+      undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
 
       bool any_updated = false;
       for (const int face : BKE_pbvh_node_calc_face_indices(pbvh, *node)) {
@@ -617,19 +617,19 @@ static void face_set_gesture_apply_mesh(gesture::GestureData *gesture_data,
   face_sets.finish();
 }
 
-static void face_set_gesture_apply_bmesh(gesture::GestureData *gesture_data,
+static void face_set_gesture_apply_bmesh(gesture::GestureData &gesture_data,
                                          const Span<PBVHNode *> nodes)
 {
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data->operation;
+                                                          gesture_data.operation;
   const int new_face_set = face_set_operation->new_face_set_id;
-  SculptSession &ss = *gesture_data->ss;
+  SculptSession &ss = *gesture_data.ss;
   BMesh *bm = ss.bm;
   const int offset = CustomData_get_offset_named(&bm->pdata, CD_PROP_INT32, ".sculpt_face_set");
 
-  threading::parallel_for(gesture_data->nodes.index_range(), 1, [&](const IndexRange range) {
+  threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
     for (PBVHNode *node : nodes.slice(range)) {
-      undo::push_node(gesture_data->vc.obact, node, undo::Type::FaceSet);
+      undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
 
       bool any_updated = false;
       for (BMFace *face : BKE_pbvh_bmesh_node_faces(node)) {
@@ -652,32 +652,32 @@ static void face_set_gesture_apply_bmesh(gesture::GestureData *gesture_data,
   });
 }
 
-static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext * /*C*/,
-                                                            gesture::GestureData *gesture_data)
+static void sculpt_gesture_face_set_apply_for_symmetry_pass(bContext & /*C*/,
+                                                            gesture::GestureData &gesture_data)
 {
-  switch (BKE_pbvh_type(gesture_data->ss->pbvh)) {
+  switch (BKE_pbvh_type(gesture_data.ss->pbvh)) {
     case PBVH_GRIDS:
     case PBVH_FACES:
-      face_set_gesture_apply_mesh(gesture_data, gesture_data->nodes);
+      face_set_gesture_apply_mesh(gesture_data, gesture_data.nodes);
       break;
     case PBVH_BMESH:
-      face_set_gesture_apply_bmesh(gesture_data, gesture_data->nodes);
+      face_set_gesture_apply_bmesh(gesture_data, gesture_data.nodes);
   }
 }
 
-static void sculpt_gesture_face_set_end(bContext * /*C*/, gesture::GestureData * /*gesture_data*/)
+static void sculpt_gesture_face_set_end(bContext & /*C*/, gesture::GestureData & /*gesture_data*/)
 {
 }
 
-static void sculpt_gesture_init_face_set_properties(gesture::GestureData *gesture_data,
-                                                    wmOperator * /*op*/)
+static void sculpt_gesture_init_face_set_properties(gesture::GestureData &gesture_data,
+                                                    wmOperator & /*op*/)
 {
-  Object &object = *gesture_data->vc.obact;
-  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+  Object &object = *gesture_data.vc.obact;
+  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_cnew<SculptGestureFaceSetOperation>(__func__));
 
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
-                                                          gesture_data->operation;
+                                                          gesture_data.operation;
 
   face_set_operation->op.begin = sculpt_gesture_face_set_begin;
   face_set_operation->op.apply_for_symmetry_pass = sculpt_gesture_face_set_apply_for_symmetry_pass;
@@ -695,30 +695,30 @@ struct SculptGestureMaskOperation {
   float value;
 };
 
-static void sculpt_gesture_mask_begin(bContext *C, gesture::GestureData *gesture_data)
+static void sculpt_gesture_mask_begin(bContext &C, gesture::GestureData &gesture_data)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data->vc.obact, false);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
+  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
 }
 
-static void mask_gesture_apply_task(gesture::GestureData *gesture_data,
+static void mask_gesture_apply_task(gesture::GestureData &gesture_data,
                                     const SculptMaskWriteInfo mask_write,
                                     PBVHNode *node)
 {
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)
-                                                   gesture_data->operation;
-  Object *ob = gesture_data->vc.obact;
+                                                   gesture_data.operation;
+  Object *ob = gesture_data.vc.obact;
 
-  const bool is_multires = BKE_pbvh_type(gesture_data->ss->pbvh) == PBVH_GRIDS;
+  const bool is_multires = BKE_pbvh_type(gesture_data.ss->pbvh) == PBVH_GRIDS;
 
   PBVHVertexIter vd;
   bool any_masked = false;
   bool redraw = false;
 
-  BKE_pbvh_vertex_iter_begin (gesture_data->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];
-    const float *co = SCULPT_vertex_co_get(gesture_data->ss, vd.vertex);
-    SCULPT_vertex_normal_get(gesture_data->ss, vd.vertex, vertex_normal);
+    const float *co = SCULPT_vertex_co_get(gesture_data.ss, vd.vertex);
+    SCULPT_vertex_normal_get(gesture_data.ss, vd.vertex, vertex_normal);
 
     if (gesture::is_affected(gesture_data, co, vertex_normal)) {
       float prevmask = vd.mask;
@@ -746,47 +746,47 @@ static void mask_gesture_apply_task(gesture::GestureData *gesture_data,
   }
 }
 
-static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext * /*C*/,
-                                                        gesture::GestureData *gesture_data)
+static void sculpt_gesture_mask_apply_for_symmetry_pass(bContext & /*C*/,
+                                                        gesture::GestureData &gesture_data)
 {
-  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(gesture_data->ss);
-  threading::parallel_for(gesture_data->nodes.index_range(), 1, [&](const IndexRange range) {
+  const SculptMaskWriteInfo mask_write = SCULPT_mask_get_for_write(gesture_data.ss);
+  threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
     for (const int i : range) {
-      mask_gesture_apply_task(gesture_data, mask_write, gesture_data->nodes[i]);
+      mask_gesture_apply_task(gesture_data, mask_write, gesture_data.nodes[i]);
     }
   });
 }
 
-static void sculpt_gesture_mask_end(bContext *C, gesture::GestureData *gesture_data)
+static void sculpt_gesture_mask_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  if (BKE_pbvh_type(gesture_data->ss->pbvh) == PBVH_GRIDS) {
-    multires_mark_as_modified(depsgraph, gesture_data->vc.obact, MULTIRES_COORDS_MODIFIED);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
+  if (BKE_pbvh_type(gesture_data.ss->pbvh) == PBVH_GRIDS) {
+    multires_mark_as_modified(depsgraph, gesture_data.vc.obact, MULTIRES_COORDS_MODIFIED);
   }
-  blender::bke::pbvh::update_mask(*gesture_data->ss->pbvh);
+  blender::bke::pbvh::update_mask(*gesture_data.ss->pbvh);
 }
 
-static void sculpt_gesture_init_mask_properties(bContext *C,
-                                                gesture::GestureData *gesture_data,
-                                                wmOperator *op)
+static void sculpt_gesture_init_mask_properties(bContext &C,
+                                                gesture::GestureData &gesture_data,
+                                                wmOperator &op)
 {
-  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_cnew<SculptGestureMaskOperation>(__func__));
 
   SculptGestureMaskOperation *mask_operation = (SculptGestureMaskOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
 
-  Object *object = gesture_data->vc.obact;
-  MultiresModifierData *mmd = BKE_sculpt_multires_active(gesture_data->vc.scene, object);
+  Object *object = gesture_data.vc.obact;
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(gesture_data.vc.scene, object);
   BKE_sculpt_mask_layers_ensure(
-      CTX_data_depsgraph_pointer(C), CTX_data_main(C), gesture_data->vc.obact, mmd);
+      CTX_data_depsgraph_pointer(&C), CTX_data_main(&C), gesture_data.vc.obact, mmd);
 
   mask_operation->op.begin = sculpt_gesture_mask_begin;
   mask_operation->op.apply_for_symmetry_pass = sculpt_gesture_mask_apply_for_symmetry_pass;
   mask_operation->op.end = sculpt_gesture_mask_end;
 
-  mask_operation->mode = PaintMaskFloodMode(RNA_enum_get(op->ptr, "mode"));
-  mask_operation->value = RNA_float_get(op->ptr, "value");
+  mask_operation->mode = PaintMaskFloodMode(RNA_enum_get(op.ptr, "mode"));
+  mask_operation->value = RNA_float_get(op.ptr, "value");
 }
 
 static void paint_mask_gesture_operator_properties(wmOperatorType *ot)
@@ -879,10 +879,10 @@ struct SculptGestureTrimOperation {
   eSculptTrimExtrudeMode extrude_mode;
 };
 
-static void sculpt_gesture_trim_normals_update(gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_normals_update(gesture::GestureData &gesture_data)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(trim_mesh);
@@ -914,12 +914,12 @@ static void sculpt_gesture_trim_normals_update(gesture::GestureData *gesture_dat
 
 /* Get the origin and normal that are going to be used for calculating the depth and position the
  * trimming geometry. */
-static void sculpt_gesture_trim_shape_origin_normal_get(gesture::GestureData *gesture_data,
+static void sculpt_gesture_trim_shape_origin_normal_get(gesture::GestureData &gesture_data,
                                                         float *r_origin,
                                                         float *r_normal)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
   /* Use the view origin and normal in world space. The trimming mesh coordinates are
    * calculated in world space, aligned to the view, and then converted to object space to
    * store them in the final trimming mesh which is going to be used in the boolean operation.
@@ -927,30 +927,30 @@ static void sculpt_gesture_trim_shape_origin_normal_get(gesture::GestureData *ge
   switch (trim_operation->orientation) {
     case SCULPT_GESTURE_TRIM_ORIENTATION_VIEW:
       mul_v3_m4v3(r_origin,
-                  gesture_data->vc.obact->object_to_world().ptr(),
-                  gesture_data->ss->gesture_initial_location);
-      copy_v3_v3(r_normal, gesture_data->world_space_view_normal);
+                  gesture_data.vc.obact->object_to_world().ptr(),
+                  gesture_data.ss->gesture_initial_location);
+      copy_v3_v3(r_normal, gesture_data.world_space_view_normal);
       negate_v3(r_normal);
       break;
     case SCULPT_GESTURE_TRIM_ORIENTATION_SURFACE:
       mul_v3_m4v3(r_origin,
-                  gesture_data->vc.obact->object_to_world().ptr(),
-                  gesture_data->ss->gesture_initial_location);
+                  gesture_data.vc.obact->object_to_world().ptr(),
+                  gesture_data.ss->gesture_initial_location);
       /* Transforming the normal does not take non uniform scaling into account. Sculpt mode is not
        * expected to work on object with non uniform scaling. */
-      copy_v3_v3(r_normal, gesture_data->ss->gesture_initial_normal);
-      mul_mat3_m4_v3(gesture_data->vc.obact->object_to_world().ptr(), r_normal);
+      copy_v3_v3(r_normal, gesture_data.ss->gesture_initial_normal);
+      mul_mat3_m4_v3(gesture_data.vc.obact->object_to_world().ptr(), r_normal);
       break;
   }
 }
 
-static void sculpt_gesture_trim_calculate_depth(gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_calculate_depth(gesture::GestureData &gesture_data)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
 
-  SculptSession *ss = gesture_data->ss;
-  ViewContext *vc = &gesture_data->vc;
+  SculptSession *ss = gesture_data.ss;
+  ViewContext *vc = &gesture_data.vc;
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -1028,14 +1028,14 @@ static void sculpt_gesture_trim_calculate_depth(gesture::GestureData *gesture_da
   }
 }
 
-static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_data)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
-  ViewContext *vc = &gesture_data->vc;
+                                                   gesture_data.operation;
+  ViewContext *vc = &gesture_data.vc;
   ARegion *region = vc->region;
 
-  const Span<float2> screen_points = gesture_data->gesture_points;
+  const Span<float2> screen_points = gesture_data.gesture_points;
   BLI_assert(screen_points.size() > 1);
 
   const int trim_totverts = screen_points.size() * 2;
@@ -1201,10 +1201,10 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData *gesture_
   sculpt_gesture_trim_normals_update(gesture_data);
 }
 
-static void sculpt_gesture_trim_geometry_free(gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_geometry_free(gesture::GestureData &gesture_data)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
   BKE_id_free(nullptr, trim_operation->mesh);
   MEM_freeN(trim_operation->true_mesh_co);
 }
@@ -1214,11 +1214,11 @@ static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
   return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
 }
 
-static void sculpt_gesture_apply_trim(gesture::GestureData *gesture_data)
+static void sculpt_gesture_apply_trim(gesture::GestureData &gesture_data)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
-  Mesh *sculpt_mesh = BKE_mesh_from_object(gesture_data->vc.obact);
+                                                   gesture_data.operation;
+  Mesh *sculpt_mesh = BKE_mesh_from_object(gesture_data.vc.obact);
   Mesh *trim_mesh = trim_operation->mesh;
 
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
@@ -1303,39 +1303,39 @@ static void sculpt_gesture_apply_trim(gesture::GestureData *gesture_data)
 
   BM_mesh_free(bm);
   BKE_mesh_nomain_to_mesh(
-      result, static_cast<Mesh *>(gesture_data->vc.obact->data), gesture_data->vc.obact);
+      result, static_cast<Mesh *>(gesture_data.vc.obact->data), gesture_data.vc.obact);
 }
 
-static void sculpt_gesture_trim_begin(bContext *C, gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_begin(bContext &C, gesture::GestureData &gesture_data)
 {
-  Object *object = gesture_data->vc.obact;
+  Object *object = gesture_data.vc.obact;
   SculptSession *ss = object->sculpt;
 
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
   sculpt_gesture_trim_calculate_depth(gesture_data);
   sculpt_gesture_trim_geometry_generate(gesture_data);
   SCULPT_topology_islands_invalidate(ss);
-  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data->vc.obact, false);
-  undo::push_node(gesture_data->vc.obact, nullptr, undo::Type::Geometry);
+  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
+  undo::push_node(gesture_data.vc.obact, nullptr, undo::Type::Geometry);
 }
 
-static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext * /*C*/,
-                                                        gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_apply_for_symmetry_pass(bContext & /*C*/,
+                                                        gesture::GestureData &gesture_data)
 {
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
   Mesh *trim_mesh = trim_operation->mesh;
   MutableSpan<float3> positions = trim_mesh->vert_positions_for_write();
   for (int i = 0; i < trim_mesh->verts_num; i++) {
-    flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], gesture_data->symmpass);
+    flip_v3_v3(positions[i], trim_operation->true_mesh_co[i], gesture_data.symmpass);
   }
   sculpt_gesture_trim_normals_update(gesture_data);
   sculpt_gesture_apply_trim(gesture_data);
 }
 
-static void sculpt_gesture_trim_end(bContext * /*C*/, gesture::GestureData *gesture_data)
+static void sculpt_gesture_trim_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 {
-  Object *object = gesture_data->vc.obact;
+  Object *object = gesture_data.vc.obact;
   Mesh *mesh = (Mesh *)object->data;
   const bke::AttributeAccessor attributes = mesh->attributes_for_write();
   if (attributes.contains(".sculpt_face_set")) {
@@ -1346,32 +1346,31 @@ static void sculpt_gesture_trim_end(bContext * /*C*/, gesture::GestureData *gest
 
   sculpt_gesture_trim_geometry_free(gesture_data);
 
-  undo::push_node(gesture_data->vc.obact, nullptr, undo::Type::Geometry);
+  undo::push_node(gesture_data.vc.obact, nullptr, undo::Type::Geometry);
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
-  DEG_id_tag_update(&gesture_data->vc.obact->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&gesture_data.vc.obact->id, ID_RECALC_GEOMETRY);
 }
 
-static void sculpt_gesture_init_trim_properties(gesture::GestureData *gesture_data, wmOperator *op)
+static void sculpt_gesture_init_trim_properties(gesture::GestureData &gesture_data, wmOperator &op)
 {
-  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_cnew<SculptGestureTrimOperation>(__func__));
 
   SculptGestureTrimOperation *trim_operation = (SculptGestureTrimOperation *)
-                                                   gesture_data->operation;
+                                                   gesture_data.operation;
 
   trim_operation->op.begin = sculpt_gesture_trim_begin;
   trim_operation->op.apply_for_symmetry_pass = sculpt_gesture_trim_apply_for_symmetry_pass;
   trim_operation->op.end = sculpt_gesture_trim_end;
 
-  trim_operation->mode = eSculptTrimOperationType(RNA_enum_get(op->ptr, "trim_mode"));
-  trim_operation->use_cursor_depth = RNA_boolean_get(op->ptr, "use_cursor_depth");
+  trim_operation->mode = eSculptTrimOperationType(RNA_enum_get(op.ptr, "trim_mode"));
+  trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
   trim_operation->orientation = eSculptTrimOrientationType(
-      RNA_enum_get(op->ptr, "trim_orientation"));
-  trim_operation->extrude_mode = eSculptTrimExtrudeMode(
-      RNA_enum_get(op->ptr, "trim_extrude_mode"));
+      RNA_enum_get(op.ptr, "trim_orientation"));
+  trim_operation->extrude_mode = eSculptTrimExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
-  if (!gesture_data->ss->gesture_initial_hit) {
+  if (!gesture_data.ss->gesture_initial_hit) {
     trim_operation->orientation = SCULPT_GESTURE_TRIM_ORIENTATION_VIEW;
   }
 }
@@ -1410,30 +1409,30 @@ struct SculptGestureProjectOperation {
   gesture::Operation operation;
 };
 
-static void sculpt_gesture_project_begin(bContext *C, gesture::GestureData *gesture_data)
+static void sculpt_gesture_project_begin(bContext &C, gesture::GestureData &gesture_data)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data->vc.obact, false);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
+  BKE_sculpt_update_object_for_edit(depsgraph, gesture_data.vc.obact, false);
 }
 
-static void project_line_gesture_apply_task(gesture::GestureData *gesture_data, PBVHNode *node)
+static void project_line_gesture_apply_task(gesture::GestureData &gesture_data, PBVHNode *node)
 {
   PBVHVertexIter vd;
   bool any_updated = false;
 
-  undo::push_node(gesture_data->vc.obact, node, undo::Type::Position);
+  undo::push_node(gesture_data.vc.obact, node, undo::Type::Position);
 
-  BKE_pbvh_vertex_iter_begin (gesture_data->ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+  BKE_pbvh_vertex_iter_begin (gesture_data.ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     float vertex_normal[3];
-    const float *co = SCULPT_vertex_co_get(gesture_data->ss, vd.vertex);
-    SCULPT_vertex_normal_get(gesture_data->ss, vd.vertex, vertex_normal);
+    const float *co = SCULPT_vertex_co_get(gesture_data.ss, vd.vertex);
+    SCULPT_vertex_normal_get(gesture_data.ss, vd.vertex, vertex_normal);
 
     if (!gesture::is_affected(gesture_data, co, vertex_normal)) {
       continue;
     }
 
     float projected_pos[3];
-    closest_to_plane_v3(projected_pos, gesture_data->line.plane, vd.co);
+    closest_to_plane_v3(projected_pos, gesture_data.line.plane, vd.co);
 
     float disp[3];
     sub_v3_v3v3(disp, projected_pos, vd.co);
@@ -1452,14 +1451,14 @@ static void project_line_gesture_apply_task(gesture::GestureData *gesture_data, 
   }
 }
 
-static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
-                                                           gesture::GestureData *gesture_data)
+static void sculpt_gesture_project_apply_for_symmetry_pass(bContext & /*C*/,
+                                                           gesture::GestureData &gesture_data)
 {
-  switch (gesture_data->shape_type) {
+  switch (gesture_data.shape_type) {
     case gesture::ShapeType::Line:
-      threading::parallel_for(gesture_data->nodes.index_range(), 1, [&](const IndexRange range) {
+      threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
         for (const int i : range) {
-          project_line_gesture_apply_task(gesture_data, gesture_data->nodes[i]);
+          project_line_gesture_apply_task(gesture_data, gesture_data.nodes[i]);
         }
       });
       break;
@@ -1471,26 +1470,26 @@ static void sculpt_gesture_project_apply_for_symmetry_pass(bContext * /*C*/,
   }
 }
 
-static void sculpt_gesture_project_end(bContext *C, gesture::GestureData *gesture_data)
+static void sculpt_gesture_project_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SculptSession *ss = gesture_data->ss;
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  SculptSession *ss = gesture_data.ss;
+  Sculpt *sd = CTX_data_tool_settings(&C)->sculpt;
   if (ss->deform_modifiers_active || ss->shapekey_active) {
-    SCULPT_flush_stroke_deform(sd, gesture_data->vc.obact, true);
+    SCULPT_flush_stroke_deform(sd, gesture_data.vc.obact, true);
   }
 
-  SCULPT_flush_update_step(C, SCULPT_UPDATE_COORDS);
-  SCULPT_flush_update_done(C, gesture_data->vc.obact, SCULPT_UPDATE_COORDS);
+  SCULPT_flush_update_step(&C, SCULPT_UPDATE_COORDS);
+  SCULPT_flush_update_done(&C, gesture_data.vc.obact, SCULPT_UPDATE_COORDS);
 }
 
-static void sculpt_gesture_init_project_properties(gesture::GestureData *gesture_data,
-                                                   wmOperator * /*op*/)
+static void sculpt_gesture_init_project_properties(gesture::GestureData &gesture_data,
+                                                   wmOperator & /*op*/)
 {
-  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_cnew<SculptGestureFaceSetOperation>(__func__));
 
   SculptGestureProjectOperation *project_operation = (SculptGestureProjectOperation *)
-                                                         gesture_data->operation;
+                                                         gesture_data.operation;
 
   project_operation->operation.begin = sculpt_gesture_project_begin;
   project_operation->operation.apply_for_symmetry_pass =
@@ -1500,37 +1499,34 @@ static void sculpt_gesture_init_project_properties(gesture::GestureData *gesture
 
 static int paint_mask_gesture_box_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_box(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_mask_properties(C, gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_mask_properties(*C, *gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
 static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_lasso(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_lasso(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_mask_properties(C, gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_mask_properties(*C, *gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
 static int paint_mask_gesture_line_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_line(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_line(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_mask_properties(C, gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_mask_properties(*C, *gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
@@ -1547,13 +1543,12 @@ static int face_set_gesture_box_invoke(bContext *C, wmOperator *op, const wmEven
 
 static int face_set_gesture_box_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_box(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_face_set_properties(gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_face_set_properties(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
@@ -1570,13 +1565,12 @@ static int face_set_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEv
 
 static int face_set_gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_lasso(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_lasso(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_face_set_properties(gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_face_set_properties(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
@@ -1594,14 +1588,13 @@ static int sculpt_trim_gesture_box_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  gesture::GestureData *gesture_data = gesture::init_from_box(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
 
-  sculpt_gesture_init_trim_properties(gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_trim_properties(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
@@ -1646,13 +1639,12 @@ static int sculpt_trim_gesture_lasso_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  gesture::GestureData *gesture_data = gesture::init_from_lasso(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_lasso(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_trim_properties(gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_trim_properties(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
@@ -1692,13 +1684,12 @@ static int project_line_gesture_invoke(bContext *C, wmOperator *op, const wmEven
 
 static int project_gesture_line_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_line(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_line(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  sculpt_gesture_init_project_properties(gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  sculpt_gesture_init_project_properties(*gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 

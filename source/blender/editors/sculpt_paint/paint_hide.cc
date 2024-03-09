@@ -247,12 +247,12 @@ static void partialvis_masked_update_mesh(Object &object,
   }
 }
 
-static void partialvis_gesture_update_mesh(gesture::GestureData *gesture_data)
+static void partialvis_gesture_update_mesh(gesture::GestureData &gesture_data)
 {
-  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data->operation);
-  Object *object = gesture_data->vc.obact;
+  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data.operation);
+  Object *object = gesture_data.vc.obact;
   const VisAction action = operation->action;
-  const Span<PBVHNode *> nodes = gesture_data->nodes;
+  const Span<PBVHNode *> nodes = gesture_data.nodes;
 
   PBVH *pbvh = object->sculpt->pbvh;
   Mesh *mesh = static_cast<Mesh *>(object->data);
@@ -407,12 +407,12 @@ static void partialvis_masked_update_grids(Depsgraph &depsgraph,
 }
 
 static void partialvis_gesture_update_grids(Depsgraph &depsgraph,
-                                            gesture::GestureData *gesture_data)
+                                            gesture::GestureData &gesture_data)
 {
-  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data->operation);
-  Object *object = gesture_data->vc.obact;
+  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data.operation);
+  Object *object = gesture_data.vc.obact;
   const VisAction action = operation->action;
-  const Span<PBVHNode *> nodes = gesture_data->nodes;
+  const Span<PBVHNode *> nodes = gesture_data.nodes;
 
   PBVH *pbvh = object->sculpt->pbvh;
   SubdivCCG *subdiv_ccg = object->sculpt->subdiv_ccg;
@@ -519,36 +519,31 @@ static void partialvis_all_update_bmesh(Object *ob,
   partialvis_update_bmesh_nodes(ob, nodes, action, [](const BMVert * /*vert*/) { return true; });
 }
 
-static void partialvis_gesture_update_bmesh(gesture::GestureData *gesture_data)
+static void partialvis_gesture_update_bmesh(gesture::GestureData &gesture_data)
 {
   const auto selection_test_fn = [&](const BMVert *v) {
     return gesture::is_affected(gesture_data, v->co, v->no);
   };
 
-  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data->operation);
+  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data.operation);
 
   partialvis_update_bmesh_nodes(
-      gesture_data->vc.obact, gesture_data->nodes, operation->action, selection_test_fn);
+      gesture_data.vc.obact, gesture_data.nodes, operation->action, selection_test_fn);
 }
 
-static void hide_show_begin(bContext *C, gesture::GestureData * /*gesture_data*/)
+static void hide_show_begin(bContext &C, gesture::GestureData & /*gesture_data*/)
 {
-  Object *ob = CTX_data_active_object(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *ob = CTX_data_active_object(&C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(&C);
 
-  PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
-#ifndef NDEBUG
-  BLI_assert(BKE_object_sculpt_pbvh_get(ob) == pbvh);
-#else
-  (void)pbvh;
-#endif
+  BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 }
 
-static void hide_show_apply_for_symmetry_pass(bContext *C, gesture::GestureData *gesture_data)
+static void hide_show_apply_for_symmetry_pass(bContext &C, gesture::GestureData &gesture_data)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
 
-  switch (BKE_pbvh_type(gesture_data->ss->pbvh)) {
+  switch (BKE_pbvh_type(gesture_data.ss->pbvh)) {
     case PBVH_FACES:
       partialvis_gesture_update_mesh(gesture_data);
       break;
@@ -560,27 +555,27 @@ static void hide_show_apply_for_symmetry_pass(bContext *C, gesture::GestureData 
       break;
   }
 }
-static void hide_show_end(bContext *C, gesture::GestureData *gesture_data)
+static void hide_show_end(bContext &C, gesture::GestureData &gesture_data)
 {
-  SCULPT_topology_islands_invalidate(gesture_data->vc.obact->sculpt);
-  tag_update_visibility(*C);
+  SCULPT_topology_islands_invalidate(gesture_data.vc.obact->sculpt);
+  tag_update_visibility(C);
 }
 
-static void hide_show_init_properties(bContext * /*C*/,
-                                      gesture::GestureData *gesture_data,
-                                      wmOperator *op)
+static void hide_show_init_properties(bContext & /*C*/,
+                                      gesture::GestureData &gesture_data,
+                                      wmOperator &op)
 {
-  gesture_data->operation = reinterpret_cast<gesture::Operation *>(
+  gesture_data.operation = reinterpret_cast<gesture::Operation *>(
       MEM_cnew<HideShowOperation>(__func__));
 
-  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data->operation);
+  HideShowOperation *operation = reinterpret_cast<HideShowOperation *>(gesture_data.operation);
 
   operation->op.begin = hide_show_begin;
   operation->op.apply_for_symmetry_pass = hide_show_apply_for_symmetry_pass;
   operation->op.end = hide_show_end;
 
-  operation->action = VisAction(RNA_enum_get(op->ptr, "action"));
-  gesture_data->selection_type = gesture::SelectionType(RNA_enum_get(op->ptr, "area"));
+  operation->action = VisAction(RNA_enum_get(op.ptr, "action"));
+  gesture_data.selection_type = gesture::SelectionType(RNA_enum_get(op.ptr, "area"));
 }
 
 static int hide_show_all_exec(bContext *C, wmOperator *op)
@@ -671,13 +666,12 @@ static int hide_show_masked_exec(bContext *C, wmOperator *op)
 
 static int hide_show_gesture_box_exec(bContext *C, wmOperator *op)
 {
-  gesture::GestureData *gesture_data = gesture::init_from_box(C, op);
+  std::unique_ptr<gesture::GestureData> gesture_data = gesture::init_from_box(C, op);
   if (!gesture_data) {
     return OPERATOR_CANCELLED;
   }
-  hide_show_init_properties(C, gesture_data, op);
-  gesture::apply(C, gesture_data, op);
-  gesture::free_data(gesture_data);
+  hide_show_init_properties(*C, *gesture_data, *op);
+  gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
 
