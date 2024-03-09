@@ -2158,19 +2158,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Do not enable compiler specific language extensions.
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Make MSVC properly report the value of the __cplusplus preprocessor macro
-# Available MSVC 15.7 (1914) and up, without this it reports 199711L regardless
-# of the C++ standard chosen above.
-# In addition, for ARM64 devices, we need to tell MSVC to use the new preprocessor
-# This is because sse2neon requires it.
-if(MSVC)
-  string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-    string(APPEND CMAKE_CXX_FLAGS " /Zc:preprocessor")
-    string(APPEND CMAKE_C_FLAGS " /Zc:preprocessor")
-  endif()
-endif()
-
 # Visual Studio has all standards it supports available by default
 # Clang on windows copies this behavior and does not support these switches
 if(
