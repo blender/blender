@@ -5543,7 +5543,7 @@ static CLG_LogRef LOG_WL_SEAT = {"ghost.wl.handle.seat"};
 
 static bool gwl_seat_capability_pointer_multitouch_check(const GWL_Seat *seat, const bool fallback)
 {
-  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
   if (pointer_gestures == nullptr) {
     return fallback;
   }

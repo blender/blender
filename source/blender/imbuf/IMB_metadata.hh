@@ -39,7 +39,7 @@ void IMB_metadata_free(IDProperty *metadata);
  * \param len: length of value buffer allocated by user.
  * \return 1 (true) if metadata is present and value for the key found, 0 (false) otherwise.
  */
-bool IMB_metadata_get_field(IDProperty *metadata,
+bool IMB_metadata_get_field(const IDProperty *metadata,
                             const char *key,
                             char *value,
                             size_t value_maxncpy);
