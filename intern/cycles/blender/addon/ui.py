@@ -239,7 +239,6 @@ class CYCLES_RENDER_PT_sampling_viewport_denoise(CyclesButtonsPanel, Panel):
 
         has_oidn_gpu = has_oidn_gpu_devices(context)
         effective_preview_denoiser = get_effective_preview_denoiser(context, has_oidn_gpu)
-        print(has_oidn_gpu, effective_preview_denoiser)
         if effective_preview_denoiser == 'OPENIMAGEDENOISE':
             col.prop(cscene, "preview_denoising_prefilter", text="Prefilter")
 
