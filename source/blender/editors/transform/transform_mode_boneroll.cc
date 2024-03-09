@@ -56,7 +56,7 @@ static void applyBoneRoll(TransInfo *t)
     SNPRINTF(str, IFACE_("Roll: %.2f"), RAD2DEGF(final));
   }
 
-  /* set roll values */
+  /* Set roll values. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {

@@ -26,7 +26,7 @@ struct TransInfo;
 struct bContext;
 
 struct TransConvertTypeInfo {
-  int flags; /* eTFlag */
+  int flags; /* #eTFlag. */
 
   /**
    * Allocate and initialize `t->data`.
@@ -300,7 +300,7 @@ extern TransConvertTypeInfo TransConvertType_MeshVertCData;
 
 extern TransConvertTypeInfo TransConvertType_NLA;
 
-/* transform_convert_node.cc */
+/* `transform_convert_node.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Node;
 
@@ -320,7 +320,7 @@ extern TransConvertTypeInfo TransConvertType_PaintCurve;
 
 extern TransConvertTypeInfo TransConvertType_Particle;
 
-/* transform_convert_sculpt.cc */
+/* `transform_convert_sculpt.cc` */
 
 extern TransConvertTypeInfo TransConvertType_Sculpt;
 

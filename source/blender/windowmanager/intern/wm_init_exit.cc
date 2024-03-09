@@ -52,14 +52,14 @@
 #include "BKE_addon.h"
 #include "BKE_appdir.hh"
 #include "BKE_blender_cli_command.hh"
-#include "BKE_mask.h"     /* free mask clipboard */
-#include "BKE_material.h" /* BKE_material_copybuf_clear */
+#include "BKE_mask.h"     /* Free mask clipboard. */
+#include "BKE_material.h" /* #BKE_material_copybuf_clear. */
 #include "BKE_studiolight.h"
 #include "BKE_subdiv.hh"
-#include "BKE_tracking.h" /* free tracking clipboard */
+#include "BKE_tracking.h" /* Free tracking clipboard. */
 
 #include "RE_engine.h"
-#include "RE_pipeline.h" /* RE_ free stuff */
+#include "RE_pipeline.h" /* `RE_` free stuff. */
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern_python.h"
@@ -422,7 +422,7 @@ static void wm_init_scripts_extensions_once(bContext *C)
 #endif
 }
 
-/* free strings of open recent files */
+/* Free strings of open recent files. */
 static void free_openrecent()
 {
   LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
@@ -451,7 +451,7 @@ void wm_exit_schedule_delayed(const bContext *C)
    * Could add separate WM handlers or so, but probably not worth it. */
   WM_event_add_ui_handler(
       C, &win->modalhandlers, wm_exit_handler, nullptr, nullptr, eWM_EventHandlerFlag(0));
-  WM_event_add_mousemove(win); /* ensure handler actually gets called */
+  WM_event_add_mousemove(win); /* Ensure handler actually gets called. */
 }
 
 void UV_clipboard_free();
@@ -467,8 +467,8 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
    * Saving #BLENDER_QUIT_FILE is also not likely to be desired either. */
   BLI_assert(G.background ? (do_user_exit_actions == false) : true);
 
-  /* first wrap up running stuff, we assume only the active WM is running */
-  /* modal handlers are on window level freed, others too? */
+  /* First wrap up running stuff, we assume only the active WM is running. */
+  /* Modal handlers are on window level freed, others too? */
   /* NOTE: same code copied in `wm_files.cc`. */
   if (C && wm) {
     if (do_user_exit_actions) {
@@ -492,7 +492,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
     WM_jobs_kill_all(wm);
 
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-      CTX_wm_window_set(C, win); /* needed by operator close callbacks */
+      CTX_wm_window_set(C, win); /* Needed by operator close callbacks. */
       WM_event_remove_handlers(C, &win->handlers);
       WM_event_remove_handlers(C, &win->modalhandlers);
       ED_screen_exit(C, win, WM_window_get_active_screen(win));
@@ -559,7 +559,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   wm_dropbox_free();
   WM_menutype_free();
 
-  /* all non-screen and non-space stuff editors did, like editmode */
+  /* All non-screen and non-space stuff editors did, like edit-mode. */
   if (C) {
     Main *bmain = CTX_data_main(C);
     ED_editors_exit(bmain, true);
@@ -569,11 +569,11 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   BKE_mball_cubeTable_free();
 
-  /* render code might still access databases */
+  /* Render code might still access databases. */
   RE_FreeAllRender();
   RE_engines_exit();
 
-  ED_preview_free_dbase(); /* frees a Main dbase, before BKE_blender_free! */
+  ED_preview_free_dbase(); /* Frees a Main dbase, before #BKE_blender_free! */
   ED_preview_restart_queue_free();
   ed::asset::list::storage_exit();
 
@@ -615,7 +615,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   ED_gpencil_anim_copybuf_free();
   ED_gpencil_strokes_copybuf_free();
 
-  /* free gizmo-maps after freeing blender,
+  /* Free gizmo-maps after freeing blender,
    * so no deleted data get accessed during cleaning up of areas. */
   wm_gizmomaptypes_free();
   wm_gizmogrouptype_free();
@@ -665,7 +665,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   BKE_blender_userdef_data_free(&U, false);
 
-  RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
+  RNA_exit(); /* Should be after #BPY_python_end so struct python slots are cleared. */
 
   wm_ghost_exit();
 

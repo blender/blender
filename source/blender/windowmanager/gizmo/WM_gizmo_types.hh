@@ -30,7 +30,7 @@ struct wmKeyConfig;
 struct wmOperatorType;
 
 /* -------------------------------------------------------------------- */
-/* Enum Typedef's */
+/* Enum Typedef's. */
 
 /**
  * #wmGizmo.state
@@ -93,12 +93,12 @@ ENUM_OPERATORS(eWM_GizmoFlag, WM_GIZMO_NO_TOOLTIP);
  * Flags that influence the behavior of all gizmos in the group.
  */
 enum eWM_GizmoFlagGroupTypeFlag {
-  /** Mark gizmo-group as being 3D */
+  /** Mark gizmo-group as being 3D. */
   WM_GIZMOGROUPTYPE_3D = (1 << 0),
   /** Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
    * NOTE: currently only for 3D views, 2D support needs adding. */
   WM_GIZMOGROUPTYPE_SCALE = (1 << 1),
-  /** Gizmos can be depth culled with scene objects (covered by other geometry - TODO) */
+  /** Gizmos can be depth culled with scene objects (covered by other geometry - TODO). */
   WM_GIZMOGROUPTYPE_DEPTH_3D = (1 << 2),
   /** Gizmos can be selected. */
   WM_GIZMOGROUPTYPE_SELECT = (1 << 3),
@@ -180,7 +180,7 @@ enum eWM_GizmoFlagMapTypeUpdateFlag {
 ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag, WM_GIZMOMAPTYPE_KEYMAP_INIT)
 
 /* -------------------------------------------------------------------- */
-/* wmGizmo */
+/* #wmGizmo. */
 
 /**
  * \brief Gizmo tweak flag.
@@ -206,7 +206,7 @@ struct wmGizmoOpElem {
   bool is_redo;
 };
 
-/* gizmos are set per region by registering them on gizmo-maps */
+/* Gizmos are set per region by registering them on gizmo-maps. */
 struct wmGizmo {
   wmGizmo *next, *prev;
 
@@ -220,7 +220,7 @@ struct wmGizmo {
   /** Pointer back to group this gizmo is in (just for quick access). */
   wmGizmoGroup *parent_gzgroup;
 
-  /** Optional keymap to use for this gizmo (overrides #wmGizmoGroupType.keymap) */
+  /** Optional keymap to use for this gizmo (overrides #wmGizmoGroupType.keymap). */
   wmKeyMap *keymap;
 
   void *py_instance;
@@ -230,7 +230,7 @@ struct wmGizmo {
 
   /** Flags that influence the behavior or how the gizmos are drawn. */
   eWM_GizmoFlag flag;
-  /** State flags (active, highlighted, selected) */
+  /** State flags (active, highlighted, selected). */
   eWM_GizmoFlagState state;
 
   /** Optional ID for highlighting different parts of this gizmo.
@@ -288,7 +288,7 @@ struct wmGizmo {
     float f;
   } temp;
 
-  /* over alloc target_properties after 'wmGizmoType.struct_size' */
+  /* Over alloc target_properties after #wmGizmoType::struct_size. */
 };
 
 /** Similar to #PropertyElemRNA, but has an identifier. */
@@ -315,10 +315,10 @@ struct wmGizmoPropertyType {
   int data_type;
   int array_length;
 
-  /* index within 'wmGizmoType' */
+  /** Index within #wmGizmoType. */
   int index_in_type;
 
-  /** over alloc. */
+  /** Over allocate. */
   char idname[0];
 };
 
@@ -336,7 +336,7 @@ struct wmGizmoMapType_Params {
 
 struct wmGizmoType {
 
-  const char *idname; /* MAX_NAME */
+  const char *idname; /* #MAX_NAME. */
 
   /** Set to 'sizeof(wmGizmo)' or larger for instances of this type,
    * use so we can cast to other types without the hassle of a custom-data pointer. */
@@ -403,7 +403,7 @@ struct wmGizmoType {
 };
 
 /* -------------------------------------------------------------------- */
-/* wmGizmoGroup */
+/* #wmGizmoGroup. */
 
 /** Factory class for a gizmo-group type, gets called every time a new area is spawned. */
 struct wmGizmoGroupTypeRef {
@@ -411,12 +411,12 @@ struct wmGizmoGroupTypeRef {
   wmGizmoGroupType *type;
 };
 
-/* factory class for a gizmo-group type, gets called every time a new area is spawned */
+/* Factory class for a gizmo-group type, gets called every time a new area is spawned. */
 struct wmGizmoGroupType {
-  const char *idname; /* MAX_NAME */
+  const char *idname; /* #MAX_NAME. */
   /** Gizmo-group name - displayed in UI (keymap editor). */
   const char *name;
-  char owner_id[64]; /* MAX_NAME */
+  char owner_id[64]; /* #MAX_NAME. */
 
   /** Poll if gizmo-map should be visible. */
   wmGizmoGroupFnPoll poll;
@@ -499,7 +499,7 @@ struct wmGizmoGroup {
 };
 
 /* -------------------------------------------------------------------- */
-/* wmGizmoMap */
+/* #wmGizmoMap. */
 
 /**
  * Pass a value of this enum to #WM_gizmomap_draw to tell it what to draw.

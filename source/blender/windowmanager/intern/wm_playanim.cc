@@ -268,7 +268,7 @@ struct PlayState {
   GhostData ghost_data;
 };
 
-/* for debugging */
+/* For debugging. */
 #if 0
 static void print_ps(PlayState *ps)
 {
@@ -300,26 +300,26 @@ static void playanim_gpu_matrix()
   GPU_matrix_ortho_set(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
 }
 
-/* implementation */
+/* Implementation. */
 static void playanim_event_qual_update(GhostData *ghost_data)
 {
   bool val;
 
-  /* Shift */
+  /* Shift. */
   GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftShift, &val);
   SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LSHIFT);
 
   GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightShift, &val);
   SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RSHIFT);
 
-  /* Control */
+  /* Control. */
   GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftControl, &val);
   SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LCTRL);
 
   GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightControl, &val);
   SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RCTRL);
 
-  /* Alt */
+  /* Alt. */
   GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftAlt, &val);
   SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LALT);
 
@@ -506,7 +506,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
   force_fallback |= (ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL);
   force_fallback |= (ibuf->dither != 0.0f);
 
-  /* Default */
+  /* Default. */
   *r_format = GPU_RGBA8;
   *r_data = GPU_DATA_UBYTE;
 
@@ -1642,7 +1642,7 @@ static GHOST_WindowHandle playanim_window_open(
 static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
 {
   int size[2];
-  // int ofs[2]; /* UNUSED */
+  // int ofs[2]; /* UNUSED. */
 
   if (ps->zoom + zoom_offset > 0.0f) {
     ps->zoom += zoom_offset;
@@ -1650,12 +1650,12 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
 
   // playanim_window_get_position(&ofs[0], &ofs[1]);
   // playanim_window_get_size(ps->ghost_data.window, &size[0], &size[1]);
-  // ofs[0] += size[0] / 2; /* UNUSED */
-  // ofs[1] += size[1] / 2; /* UNUSED */
+  // ofs[0] += size[0] / 2; /* UNUSED. */
+  // ofs[1] += size[1] / 2; /* UNUSED. */
   size[0] = ps->zoom * ps->ibuf_size[0];
   size[1] = ps->zoom * ps->ibuf_size[1];
-  // ofs[0] -= size[0] / 2; /* UNUSED */
-  // ofs[1] -= size[1] / 2; /* UNUSED */
+  // ofs[0] -= size[0] / 2; /* UNUSED. */
+  // ofs[1] -= size[1] / 2; /* UNUSED. */
   // window_set_position(ps->ghost_data.window, size[0], size[1]);
   GHOST_SetClientSize(ps->ghost_data.window, size[0], size[1]);
 }
@@ -2016,7 +2016,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
           STRNCPY(ibuf->filepath, ps.picture->filepath);
         }
 
-/* why only windows? (from 2.4x) - campbell */
+/* NOTE(@ideasman42): why only windows? (from 2.4x). */
 #ifdef _WIN32
         GHOST_SetTitle(ps.ghost_data.window, ps.picture->filepath);
 #endif
@@ -2116,7 +2116,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
     MEM_freeN(ps.picture);
   }
 
-/* cleanup */
+/* Cleanup. */
 #ifndef USE_IMB_CACHE
   if (ibuf) {
     IMB_freeImBuf(ibuf);

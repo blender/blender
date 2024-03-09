@@ -37,7 +37,7 @@ struct wmWindowManager;
 #include "wm_gizmo_fn.hh"
 
 /* -------------------------------------------------------------------- */
-/* wmGizmo */
+/* #wmGizmo. */
 
 wmGizmo *WM_gizmo_new_ptr(const wmGizmoType *gzt, wmGizmoGroup *gzgroup, PointerRNA *properties);
 /**
@@ -207,7 +207,7 @@ wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(wmGizmoMapType *gzmap_typ
 
 /* `wm_gizmo_map.cc` */
 
-/* Dynamic Updates (for RNA runtime registration) */
+/* Dynamic Updates (for RNA runtime registration). */
 void WM_gizmoconfig_update_tag_group_type_init(wmGizmoMapType *gzmap_type, wmGizmoGroupType *gzgt);
 void WM_gizmoconfig_update_tag_group_type_remove(wmGizmoMapType *gzmap_type,
                                                  wmGizmoGroupType *gzgt);
@@ -219,7 +219,7 @@ void WM_gizmoconfig_update(Main *bmain);
 
 void WM_gizmoconfig_update_tag_group_remove(wmGizmoMap *gzmap);
 
-/* wm_maniulator_target_props.c */
+/* `wm_gizmo_target_props.cc`. */
 
 wmGizmoProperty *WM_gizmo_target_property_array(wmGizmo *gz);
 wmGizmoProperty *WM_gizmo_target_property_at_index(wmGizmo *gz, int index);
@@ -292,9 +292,9 @@ void WM_gizmo_target_property_anim_autokey(bContext *C,
                                            wmGizmoProperty *gz_prop);
 
 /* -------------------------------------------------------------------- */
-/* wmGizmoGroup */
+/* #wmGizmoGroup. */
 
-/* Callbacks for 'wmGizmoGroupType.setup_keymap' */
+/* Callbacks for #wmGizmoGroupType::setup_keymap. */
 wmKeyMap *WM_gizmogroup_setup_keymap_generic(const wmGizmoGroupType *gzgt, wmKeyConfig *kc);
 wmKeyMap *WM_gizmogroup_setup_keymap_generic_select(const wmGizmoGroupType *gzgt, wmKeyConfig *kc);
 wmKeyMap *WM_gizmogroup_setup_keymap_generic_drag(const wmGizmoGroupType *gzgt, wmKeyConfig *kc);
@@ -329,7 +329,7 @@ int WM_gizmo_cmp_temp_fl(const void *gz_a_ptr, const void *gz_b_ptr);
 int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr);
 
 /* -------------------------------------------------------------------- */
-/* wmGizmoMap */
+/* #wmGizmoMap. */
 
 /**
  * Creates a gizmo-map with all registered gizmos for that type
@@ -376,7 +376,7 @@ ARegion *WM_gizmomap_tooltip_init(
     bContext *C, ARegion *region, int *pass, double *pass_delay, bool *r_exit_on_event);
 
 /* -------------------------------------------------------------------- */
-/* wmGizmoMapType */
+/* #wmGizmoMapType. */
 
 wmGizmoMapType *WM_gizmomaptype_find(const wmGizmoMapType_Params *gzmap_params);
 wmGizmoMapType *WM_gizmomaptype_ensure(const wmGizmoMapType_Params *gzmap_params);
@@ -410,9 +410,9 @@ void WM_gizmomaptype_group_unlink(bContext *C,
 void WM_gizmomaptype_group_free(wmGizmoGroupTypeRef *gzgt);
 
 /* -------------------------------------------------------------------- */
-/* GizmoGroup */
+/* #GizmoGroup. */
 
-/* Add/Ensure/Remove (High level API) */
+/* Add/Ensure/Remove (High level API). */
 
 void WM_gizmo_group_type_add_ptr_ex(wmGizmoGroupType *gzgt, wmGizmoMapType *gzmap_type);
 void WM_gizmo_group_type_add_ptr(wmGizmoGroupType *gzgt);
@@ -451,7 +451,7 @@ void WM_gizmo_group_type_reinit_ptr_ex(Main *bmain,
 void WM_gizmo_group_type_reinit_ptr(Main *bmain, wmGizmoGroupType *gzgt);
 void WM_gizmo_group_type_reinit(Main *bmain, const char *idname);
 
-/* Utilities */
+/* Utilities. */
 
 bool WM_gizmo_context_check_drawstep(const bContext *C, eWM_GizmoFlagMapDrawStep step);
 

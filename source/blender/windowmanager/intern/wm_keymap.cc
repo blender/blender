@@ -86,7 +86,7 @@ static wmKeyMapItem *wm_keymap_item_copy(wmKeyMapItem *kmi)
 
 static void wm_keymap_item_free_data(wmKeyMapItem *kmi)
 {
-  /* not kmi itself */
+  /* Not the `kmi` itself. */
   if (kmi->ptr) {
     WM_operator_properties_free(kmi->ptr);
     MEM_freeN(kmi->ptr);
@@ -137,7 +137,7 @@ static void wm_keymap_item_properties_update_ot(wmKeyMapItem *kmi, const bool ke
     wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
     if (ot) {
       if (ot->srna != kmi->ptr->type) {
-        /* matches wm_keymap_item_properties_set but doesn't alloc new ptr */
+        /* Matches #wm_keymap_item_properties_set but doesn't alloc new ptr. */
         WM_operator_properties_create_ptr(kmi->ptr, ot);
         /* 'kmi->ptr->data' nullptr'd above, keep using existing properties.
          * NOTE: the operators property types may have changed,
@@ -367,21 +367,21 @@ static wmKeyConfig *WM_keyconfig_active(wmWindowManager *wm)
 {
   wmKeyConfig *keyconf;
 
-  /* first try from preset */
+  /* First try from preset. */
   keyconf = static_cast<wmKeyConfig *>(
       BLI_findstring(&wm->keyconfigs, U.keyconfigstr, offsetof(wmKeyConfig, idname)));
   if (keyconf) {
     return keyconf;
   }
 
-  /* otherwise use default */
+  /* Otherwise use default. */
   return wm->defaultconf;
 }
 
 void WM_keyconfig_set_active(wmWindowManager *wm, const char *idname)
 {
-  /* setting a different key configuration as active: we ensure all is
-   * updated properly before and after making the change */
+  /* Setting a different key configuration as active:
+   * we ensure all is updated properly before and after making the change. */
 
   WM_keyconfig_update(wm);
 
@@ -539,7 +539,7 @@ static void keymap_item_set_id(wmKeyMap *keymap, wmKeyMapItem *kmi)
     kmi->id = keymap->kmi_id;
   }
   else {
-    kmi->id = -keymap->kmi_id; /* User defined keymap entries have negative ids */
+    kmi->id = -keymap->kmi_id; /* User defined keymap entries have negative ids. */
   }
 }
 
@@ -640,14 +640,14 @@ static void wm_keymap_diff(
     wmKeyMapItem *to_kmi = WM_keymap_item_find_id(to_km, kmi->id);
 
     if (!to_kmi) {
-      /* remove item */
+      /* Remove item. */
       wmKeyMapDiffItem *kmdi = static_cast<wmKeyMapDiffItem *>(
           MEM_callocN(sizeof(wmKeyMapDiffItem), "wmKeyMapDiffItem"));
       kmdi->remove_item = wm_keymap_item_copy(kmi);
       BLI_addtail(&diff_km->diff_items, kmdi);
     }
     else if (to_kmi && !wm_keymap_item_equals(kmi, to_kmi)) {
-      /* replace item */
+      /* Replace item. */
       wmKeyMapDiffItem *kmdi = static_cast<wmKeyMapDiffItem *>(
           MEM_callocN(sizeof(wmKeyMapDiffItem), "wmKeyMapDiffItem"));
       kmdi->remove_item = wm_keymap_item_copy(kmi);
@@ -672,7 +672,7 @@ static void wm_keymap_diff(
 
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &to_km->items) {
     if (kmi->id < 0) {
-      /* add item */
+      /* Add item. */
       wmKeyMapDiffItem *kmdi = static_cast<wmKeyMapDiffItem *>(
           MEM_callocN(sizeof(wmKeyMapDiffItem), "wmKeyMapDiffItem"));
       kmdi->add_item = wm_keymap_item_copy(kmi);
@@ -684,7 +684,7 @@ static void wm_keymap_diff(
 static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 {
   LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &diff_km->diff_items) {
-    /* find item to remove */
+    /* Find item to remove. */
     wmKeyMapItem *kmi_remove = nullptr;
     if (kmdi->remove_item) {
       kmi_remove = wm_keymap_find_item_equals(km, kmdi->remove_item);
@@ -693,7 +693,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
       }
     }
 
-    /* add item */
+    /* Add item. */
     if (kmdi->add_item) {
       /* Do not re-add an already existing keymap item! See #42088. */
       /* We seek only for exact copy here! See #42137. */
@@ -718,7 +718,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
       if (kmi_add != nullptr && kmi_add == kmi_remove) {
         kmi_remove = nullptr;
       }
-      /* only if nothing to remove or item to remove found */
+      /* Only if nothing to remove or item to remove found. */
       else if (!kmi_add && (!kmdi->remove_item || kmi_remove)) {
         kmi_add = wm_keymap_item_copy(kmdi->add_item);
         kmi_add->flag |= KMI_USER_MODIFIED;
@@ -736,7 +736,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
       }
     }
 
-    /* remove item */
+    /* Remove item. */
     if (kmi_remove) {
       wm_keymap_item_free_data(kmi_remove);
       BLI_freelinkN(&km->items, kmi_remove);
@@ -751,7 +751,7 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb,
 {
   int expanded = 0;
 
-  /* remove previous keymap in list, we will replace it */
+  /* Remove previous keymap in list, we will replace it. */
   wmKeyMap *km = WM_keymap_list_find(
       lb, defaultmap->idname, defaultmap->spaceid, defaultmap->regionid);
   if (km) {
@@ -760,14 +760,14 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb,
     BLI_freelinkN(lb, km);
   }
 
-  /* copy new keymap from an existing one */
+  /* Copy new keymap from an existing one. */
   if (usermap && !(usermap->flag & KEYMAP_DIFF)) {
-    /* for compatibility with old user preferences with non-diff
-     * keymaps we override the original entirely */
+    /* For compatibility with old user preferences with non-diff
+     * keymaps we override the original entirely. */
 
     km = wm_keymap_copy(usermap);
 
-    /* try to find corresponding id's for items */
+    /* Try to find corresponding id's for items. */
     LISTBASE_FOREACH (wmKeyMapItem *, kmi, &km->items) {
       wmKeyMapItem *orig_kmi = wm_keymap_find_item_equals(defaultmap, kmi);
       if (!orig_kmi) {
@@ -782,29 +782,29 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb,
       }
     }
 
-    km->flag |= KEYMAP_UPDATE; /* update again to create diff */
+    km->flag |= KEYMAP_UPDATE; /* Update again to create diff. */
   }
   else {
     km = wm_keymap_copy(defaultmap);
   }
 
-  /* add addon keymap items */
+  /* Add addon keymap items. */
   if (addonmap) {
     wm_keymap_addon_add(km, addonmap);
   }
 
-  /* tag as being user edited */
+  /* Tag as being user edited. */
   if (usermap) {
     km->flag |= KEYMAP_USER_MODIFIED;
   }
   km->flag |= KEYMAP_USER | expanded;
 
-  /* apply user changes of diff keymap */
+  /* Apply user changes of diff keymap. */
   if (usermap && (usermap->flag & KEYMAP_DIFF)) {
     wm_keymap_patch(km, usermap);
   }
 
-  /* add to list */
+  /* Add to list. */
   BLI_addtail(lb, km);
 
   return km;
@@ -815,7 +815,7 @@ static void wm_keymap_diff_update(ListBase *lb,
                                   wmKeyMap *addonmap,
                                   wmKeyMap *km)
 {
-  /* create temporary default + addon keymap for diff */
+  /* Create temporary default + addon keymap for diff. */
   wmKeyMap *origmap = defaultmap;
 
   if (addonmap) {
@@ -823,14 +823,14 @@ static void wm_keymap_diff_update(ListBase *lb,
     wm_keymap_addon_add(defaultmap, addonmap);
   }
 
-  /* remove previous diff keymap in list, we will replace it */
+  /* Remove previous diff keymap in list, we will replace it. */
   wmKeyMap *prevmap = WM_keymap_list_find(lb, km->idname, km->spaceid, km->regionid);
   if (prevmap) {
     WM_keymap_clear(prevmap);
     BLI_freelinkN(lb, prevmap);
   }
 
-  /* create diff keymap */
+  /* Create diff keymap. */
   wmKeyMap *diffmap = wm_keymap_new(km->idname, km->spaceid, km->regionid);
   diffmap->flag |= KEYMAP_DIFF;
   if (defaultmap->flag & KEYMAP_MODAL) {
@@ -838,7 +838,7 @@ static void wm_keymap_diff_update(ListBase *lb,
   }
   wm_keymap_diff(diffmap, defaultmap, km, origmap, addonmap);
 
-  /* add to list if not empty */
+  /* Add to list if not empty. */
   if (diffmap->diff_items.first) {
     BLI_addtail(lb, diffmap);
   }
@@ -847,7 +847,7 @@ static void wm_keymap_diff_update(ListBase *lb,
     MEM_freeN(diffmap);
   }
 
-  /* free temporary default map */
+  /* Free temporary default map. */
   if (addonmap) {
     WM_keymap_clear(defaultmap);
     MEM_freeN(defaultmap);
@@ -937,7 +937,7 @@ wmKeyMap *WM_modalkeymap_ensure(wmKeyConfig *keyconf,
   wmKeyMap *km = WM_keymap_ensure(keyconf, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
   km->flag |= KEYMAP_MODAL;
 
-  /* init modal items from default config */
+  /* Initialize modal items from default configuration. */
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->defaultconf && wm->defaultconf != keyconf) {
     wmKeyMap *defaultkm = WM_keymap_list_find(
@@ -1044,8 +1044,8 @@ void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 
 static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
 {
-  /* here we convert propvalue string values delayed, due to python keymaps
-   * being created before the actual modal keymaps, so no modal_items */
+  /* Here we convert propvalue string values delayed, due to python keymaps
+   * being created before the actual modal keymaps, so no modal_items. */
 
   if (km && (km->flag & KEYMAP_MODAL) && !km->modal_items) {
     if (wm->defaultconf == nullptr) {
@@ -1301,7 +1301,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
                                                    const wmKeyMapItemFind_Params *params)
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
-    /* skip disabled keymap items [#38447] */
+    /* Skip disabled keymap items, see: #38447. */
     if (kmi->flag & KMI_INACTIVE) {
       continue;
     }
@@ -1311,7 +1311,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
 
     bool kmi_match = false;
     if (properties) {
-/* example of debugging keymaps */
+/* Example of debugging keymaps. */
 #if 0
       if (kmi->ptr) {
         if (STREQ("MESH_OT_rip_move", opname)) {
@@ -1333,7 +1333,7 @@ static wmKeyMapItem *wm_keymap_item_find_in_keymap(wmKeyMap *keymap,
         if (is_strict && kmi->ptr) {
           wmOperatorType *ot = WM_operatortype_find(opname, true);
           if (ot) {
-            /* make a copy of the properties and set unset ones to their default values. */
+            /* Make a copy of the properties and set unset ones to their default values. */
             IDProperty *properties_default = IDP_CopyProperty(
                 static_cast<const IDProperty *>(kmi->ptr->data));
 
@@ -1388,7 +1388,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
                                                   const wmKeyMapItemFind_Params *params,
                                                   wmKeyMap **r_keymap)
 {
-  /* find keymap item in handlers */
+  /* Find keymap item in handlers. */
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
       wmEventHandler_Keymap *handler = (wmEventHandler_Keymap *)handler_base;
@@ -1409,7 +1409,7 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C,
       }
     }
   }
-  /* ensure un-initialized keymap is never used */
+  /* Ensure un-initialized keymap is never used. */
   if (r_keymap) {
     *r_keymap = nullptr;
   }
@@ -1430,7 +1430,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C,
   ARegion *region = CTX_wm_region(C);
   wmKeyMapItem *found = nullptr;
 
-  /* look into multiple handler lists to find the item */
+  /* Look into multiple handler lists to find the item. */
   if (win) {
     found = wm_keymap_item_find_handlers(C,
                                          wm,
@@ -1560,7 +1560,7 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
    */
   if (!found && properties) {
     if (ot && ot->prop) { /* XXX Shall we also check ot->prop is actually an enum? */
-      /* make a copy of the properties and unset the 'ot->prop' one if set. */
+      /* Make a copy of the properties and unset the 'ot->prop' one if set. */
       IDProperty *properties_temp = IDP_CopyProperty(properties);
 
       PointerRNA opptr = RNA_pointer_create(nullptr, ot->srna, properties_temp);
@@ -1582,7 +1582,7 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C,
   if (G.debug & G_DEBUG_WM) {
     if (!found && is_strict && properties) {
       if (ot) {
-        /* make a copy of the properties and set unset ones to their default values. */
+        /* Make a copy of the properties and set unset ones to their default values. */
         IDProperty *properties_default = IDP_CopyProperty(properties);
 
         PointerRNA opptr = RNA_pointer_create(nullptr, ot->srna, properties_default);
@@ -1697,7 +1697,7 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
     return false;
   }
 
-  /* take event mapping into account */
+  /* Take event mapping into account. */
   int k1type = WM_userdef_event_map(k1->type);
   int k2type = WM_userdef_event_map(k2->type);
 
@@ -1706,7 +1706,7 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
   }
 
   if (k1->val != KM_ANY && k2->val != KM_ANY) {
-    /* take click, press, release conflict into account */
+    /* Take click, press, release conflict into account. */
     if (k1->val == KM_CLICK && ELEM(k2->val, KM_PRESS, KM_RELEASE, KM_CLICK) == 0) {
       return false;
     }
@@ -1754,11 +1754,11 @@ bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2)
  * the changes to the user preferences.
  * \{ */
 
-/* so operator removal can trigger update */
+/* So operator removal can trigger update. */
 enum {
   WM_KEYMAP_UPDATE_RECONFIGURE = (1 << 0),
 
-  /* ensure all wmKeyMap have their operator types validated after removing an operator */
+  /* Ensure all wmKeyMap have their operator types validated after removing an operator. */
   WM_KEYMAP_UPDATE_OPERATORTYPE = (1 << 1),
 
   WM_KEYMAP_UPDATE_POSTPONE = (1 << 2),
@@ -1773,7 +1773,7 @@ static int8_t wm_keymap_update_suppress_count = 0;
 
 void WM_keyconfig_update_tag(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
-  /* quick tag to do delayed keymap updates */
+  /* Quick tag to do delayed keymap updates. */
   wm_keymap_update_flag |= WM_KEYMAP_UPDATE_RECONFIGURE;
 
   if (keymap) {
@@ -1889,7 +1889,7 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
   }
 
   if (wm_keymap_update_flag & WM_KEYMAP_UPDATE_RECONFIGURE) {
-    /* update operator properties for non-modal user keymaps */
+    /* Update operator properties for non-modal user keymaps. */
     LISTBASE_FOREACH (wmKeyMap *, km, &U.user_keymaps) {
       if ((km->flag & KEYMAP_MODAL) == 0) {
         LISTBASE_FOREACH (wmKeyMapDiffItem *, kmdi, &km->diff_items) {
@@ -1907,25 +1907,25 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
       }
     }
 
-    /* update U.user_keymaps with user key configuration changes */
+    /* Update `U.user_keymaps` with user key configuration changes. */
     LISTBASE_FOREACH (wmKeyMap *, km, &wm->userconf->keymaps) {
-      /* only diff if the user keymap was modified */
+      /* Only diff if the user keymap was modified. */
       if (wm_keymap_test_and_clear_update(km)) {
-        /* find keymaps */
+        /* Find keymaps. */
         wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
         wmKeyMap *addonmap = WM_keymap_list_find(
             &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
 
-        /* diff */
+        /* Diff. */
         if (defaultmap) {
           wm_keymap_diff_update(&U.user_keymaps, defaultmap, addonmap, km);
         }
       }
     }
 
-    /* create user key configuration from preset + addon + user preferences */
+    /* Create user key configuration from preset + addon + user preferences. */
     LISTBASE_FOREACH (wmKeyMap *, km, &wm->defaultconf->keymaps) {
-      /* find keymaps */
+      /* Find keymaps. */
       wmKeyMap *defaultmap = wm_keymap_preset(wm, km);
       wmKeyMap *addonmap = WM_keymap_list_find(
           &wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
@@ -1936,7 +1936,7 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
        * if we support modal keymaps for 'addonmap', these will need to be enabled too. */
       wm_user_modal_keymap_set_items(wm, defaultmap);
 
-      /* add */
+      /* Add. */
       wmKeyMap *kmn = wm_keymap_patch_update(
           &wm->userconf->keymaps, defaultmap, addonmap, usermap);
 
@@ -1946,7 +1946,7 @@ void WM_keyconfig_update_ex(wmWindowManager *wm, bool keep_properties)
         kmn->poll_modal_item = km->poll_modal_item;
       }
 
-      /* in case of old non-diff keymaps, force extra update to create diffs */
+      /* In case of old non-diff keymaps, force extra update to create diffs. */
       compat_update = compat_update || (usermap && !(usermap->flag & KEYMAP_DIFF));
     }
 
@@ -2007,7 +2007,7 @@ wmKeyMap *WM_keymap_active(const wmWindowManager *wm, wmKeyMap *keymap)
     return nullptr;
   }
 
-  /* first user defined keymaps */
+  /* First user defined keymaps. */
   wmKeyMap *km = WM_keymap_list_find(
       &wm->userconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 
@@ -2032,7 +2032,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     return;
   }
 
-  /* construct default keymap from preset + addons */
+  /* Construct default keymap from preset + addons. */
   wmKeyMap *defaultmap = wm_keymap_preset(wm, keymap);
   wmKeyMap *addonmap = WM_keymap_list_find(
       &wm->addonconf->keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
@@ -2042,11 +2042,11 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     wm_keymap_addon_add(defaultmap, addonmap);
   }
 
-  /* find original item */
+  /* Find original item. */
   wmKeyMapItem *orig = WM_keymap_item_find_id(defaultmap, kmi->id);
 
   if (orig) {
-    /* restore to original */
+    /* Restore to original. */
     if (!STREQ(orig->idname, kmi->idname)) {
       STRNCPY(kmi->idname, orig->idname);
       WM_keymap_item_properties_reset(kmi, nullptr);
@@ -2079,7 +2079,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
     WM_keyconfig_update_tag(keymap, kmi);
   }
 
-  /* free temporary keymap */
+  /* Free temporary keymap. */
   if (addonmap) {
     WM_keymap_clear(defaultmap);
     MEM_freeN(defaultmap);
@@ -2088,7 +2088,7 @@ void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wm
 
 void WM_keymap_restore_to_default(wmKeyMap *keymap, wmWindowManager *wm)
 {
-  /* remove keymap from U.user_keymaps and update */
+  /* Remove keymap from U.user_keymaps and update. */
   wmKeyMap *usermap = WM_keymap_list_find(
       &U.user_keymaps, keymap->idname, keymap->spaceid, keymap->regionid);
 

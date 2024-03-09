@@ -429,7 +429,7 @@ void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappi
 
 static void wm_notifier_clear(wmNotifier *note)
 {
-  /* nullptr the entire notifier, only leaving (`next`, `prev`) members intact. */
+  /* Clear the entire notifier, only leaving (`next`, `prev`) members intact. */
   memset(((char *)note) + sizeof(Link), 0, sizeof(*note) - sizeof(Link));
   note->category = NOTE_CATEGORY_TAG_CLEARED;
 }
@@ -461,7 +461,7 @@ void wm_event_do_depsgraph(bContext *C, bool is_after_open_file)
     Scene *scene = WM_window_get_active_scene(win);
     ViewLayer *view_layer = WM_window_get_active_view_layer(win);
     Main *bmain = CTX_data_main(C);
-    /* Copied to set's in scene_update_tagged_recursive() */
+    /* Copied to set's in #scene_update_tagged_recursive(). */
     scene->customdata_mask = win_combine_v3d_datamask;
     /* XXX, hack so operators can enforce data-masks #26482, GPU render. */
     CustomData_MeshMasks_update(&scene->customdata_mask, &scene->customdata_mask_modal);
@@ -2071,7 +2071,7 @@ static void wm_handler_op_context_get_if_valid(bContext *C,
   }
 
   if (handler->context.area == nullptr) {
-    /* Pass */
+    /* Pass. */
   }
   else {
     ScrArea *area = nullptr;
@@ -2595,7 +2595,7 @@ static eHandlerActionFlag wm_handler_operator_call(bContext *C,
                   wmGizmoGroup *gzgroup = WM_gizmomaptype_group_init_runtime_with_region(
                       gzmap_type, gzgt, region);
                   /* We can't rely on drawing to initialize gizmo's since disabling
-                   * overlays/gizmos will prevent pre-drawing setup calls. (see #60905) */
+                   * overlays/gizmos will prevent pre-drawing setup calls, see #60905. */
                   WM_gizmogroup_ensure_init(C, gzgroup);
                 }
               }
@@ -2995,7 +2995,7 @@ static eHandlerActionFlag wm_handlers_do_keymap_with_keymap_handler(
 }
 
 static eHandlerActionFlag wm_handlers_do_keymap_with_gizmo_handler(
-    /* From 'wm_handlers_do_intern' */
+    /* From #wm_handlers_do_intern. */
     bContext *C,
     wmEvent *event,
     ListBase *handlers,
@@ -3730,7 +3730,7 @@ static eHandlerActionFlag wm_event_drag_and_drop_test(wmWindowManager *wm,
     /* Clear drop icon. */
     screen->do_draw_drag = true;
 
-    /* Restore cursor (disabled, see `wm_dragdrop.cc`) */
+    /* Restore cursor (disabled, see `wm_dragdrop.cc`). */
     // WM_cursor_modal_restore(win);
   }
 

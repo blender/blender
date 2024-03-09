@@ -116,7 +116,7 @@ struct VertSlideData {
    */
   void update_active_vert(TransInfo * /*t*/, const float2 &mval_fl)
   {
-    /* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
+    /* Set the vertex to use as a reference for the mouse direction `curr_sv_index`. */
     float dist_min_sq = FLT_MAX;
 
     for (int i : this->sv.index_range()) {
@@ -169,9 +169,9 @@ static void calcVertSlideCustomPoints(TransInfo *t)
 {
   vert_slide_update_input(t);
 
-  /* setCustomPoints isn't normally changing as the mouse moves,
+  /* #setCustomPoints isn't normally changing as the mouse moves,
    * in this case apply mouse input immediately so we don't refresh
-   * with the value from the previous points */
+   * with the value from the previous points. */
   applyMouseInput(t, &t->mouse, t->mval, t->values);
 }
 
@@ -227,7 +227,7 @@ static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
         }
         break;
       case EVT_CKEY:
-        /* use like a modifier key */
+        /* Use like a modifier key. */
         if (event->val == KM_PRESS) {
           t->flag ^= T_ALT_TRANSFORM;
           calcVertSlideCustomPoints(t);
@@ -235,7 +235,7 @@ static eRedrawFlag handleEventVertSlide(TransInfo *t, const wmEvent *event)
         }
         break;
       case MOUSEMOVE: {
-        /* don't recalculate the best edge */
+        /* Don't recalculate the best edge. */
         const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
         if (is_clamp) {
           const TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
@@ -260,7 +260,7 @@ static void drawVertSlide(TransInfo *t)
     const VertSlideParams *slp = static_cast<const VertSlideParams *>(t->custom.mode.data);
     const bool is_clamp = !(t->flag & T_ALT_TRANSFORM);
 
-    /* Non-Prop mode */
+    /* Non-Prop mode. */
     {
       TransDataVertSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 
@@ -325,7 +325,7 @@ static void drawVertSlide(TransInfo *t)
 
       GPU_matrix_pop();
 
-      /* direction from active vertex! */
+      /* Direction from active vertex! */
       if (!compare_v2v2(t->mval, t->mouse.imval, FLT_EPSILON)) {
         /* 2D Pixel Space. */
         GPU_matrix_push_projection();
@@ -353,7 +353,7 @@ static void drawVertSlide(TransInfo *t)
         GPU_viewport_size_get_f(viewport_size);
         immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-        immUniform1i("colors_len", 0); /* "simple" mode */
+        immUniform1i("colors_len", 0); /* "simple" mode. */
         immUniformColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         immUniform1f("dash_width", 6.0f);
         immUniform1f("udash_factor", 0.5f);
@@ -478,7 +478,7 @@ static void applyVertSlide(TransInfo *t)
     transform_snap_increment(t, &final);
   }
 
-  /* only do this so out of range values are not displayed */
+  /* Only do this so out of range values are not displayed. */
   if (is_constrained) {
     CLAMP(final, 0.0f, 1.0f);
   }
@@ -487,7 +487,7 @@ static void applyVertSlide(TransInfo *t)
 
   t->values_final[0] = final;
 
-  /* header string */
+  /* Header string. */
   ofs += BLI_strncpy_rlen(str + ofs, IFACE_("Vertex Slide: "), sizeof(str) - ofs);
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
@@ -505,9 +505,9 @@ static void applyVertSlide(TransInfo *t)
   }
   ofs += BLI_snprintf_rlen(
       str + ofs, sizeof(str) - ofs, IFACE_("Alt or (C)lamp: %s"), WM_bool_as_string(is_clamp));
-  /* done with header string */
+  /* Done with header string. */
 
-  /* do stuff here */
+  /* Do stuff here. */
   doVertSlide(t, final);
 
   recalc_data(t);
@@ -581,7 +581,7 @@ static void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use
     return;
   }
 
-  /* set custom point first if you want value to be initialized by init */
+  /* Set custom point first if you want value to be initialized by init. */
   calcVertSlideCustomPoints(t);
   initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
 

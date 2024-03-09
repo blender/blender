@@ -1303,7 +1303,7 @@ void wm_xr_session_controller_data_clear(wmXrSessionState *state)
   }
 }
 
-/** \} */ /* XR-Session Actions */
+/** \} */ /* XR-Session Actions. */
 
 /* -------------------------------------------------------------------- */
 /** \name XR-Session Surface
@@ -1501,7 +1501,7 @@ void *wm_xr_session_gpu_binding_context_create()
 
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle /*context*/)
 {
-  if (g_xr_surface) { /* Might have been freed already */
+  if (g_xr_surface) { /* Might have been freed already. */
     wm_surface_remove(g_xr_surface);
   }
 
@@ -1522,4 +1522,4 @@ ARegionType *WM_xr_surface_controller_region_type_get()
   return nullptr;
 }
 
-/** \} */ /* XR-Session Surface */
+/** \} */ /* XR-Session Surface. */

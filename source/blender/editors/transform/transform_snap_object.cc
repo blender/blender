@@ -585,7 +585,7 @@ bool raycast_tri_backface_culling_test(
 }
 
 /**
- * \note Duplicate args here are documented at #snapObjectsRay
+ * \note Duplicate args here are documented at #snapObjectsRay.
  */
 static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
                                 Object *ob_eval,
@@ -875,7 +875,7 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
 }
 
 /**
- * \note Duplicate args here are documented at #snapObjectsRay
+ * \note Duplicate args here are documented at #snapObjectsRay.
  */
 static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
                              Object *ob_eval,
@@ -894,7 +894,7 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
   }
 
   if (ob_eval->dt == OB_BOUNDBOX) {
-    /* Do not snap to objects that are in bounding box display mode */
+    /* Do not snap to objects that are in bounding box display mode. */
     return SCE_SNAP_TO_NONE;
   }
 
@@ -1185,7 +1185,7 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
     if (sort) {
       BLI_listbase_sort(r_hit_list, hit_depth_cmp);
     }
-    /* meant to be readonly for 'all' hits, ensure it is */
+    /* Meant to be read-only for 'all' hits, ensure it is. */
 #ifndef NDEBUG
     BLI_assert(ray_depth_prev == sctx->ret.ray_depth_max);
 #endif

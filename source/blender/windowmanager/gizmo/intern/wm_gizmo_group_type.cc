@@ -19,7 +19,7 @@
 
 #include "WM_types.hh"
 
-/* own includes */
+/* Own includes. */
 #include "wm_gizmo_intern.hh"
 #include "wm_gizmo_wmapi.hh"
 
@@ -80,7 +80,7 @@ static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
 
   gzgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
 
-  /* if not set, use default */
+  /* If not set, use default. */
   if (gzgt->setup_keymap == nullptr) {
     if (gzgt->flag & WM_GIZMOGROUPTYPE_SELECT) {
       gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_select;
@@ -173,7 +173,7 @@ void wm_gizmogrouptype_free()
 
 void wm_gizmogrouptype_init()
 {
-  /* reserve size is set based on blender default setup */
+  /* Reserve size is set based on blender default setup. */
   global_gizmogrouptype_hash = BLI_ghash_str_new_ex("wm_gizmogrouptype_init gh", 128);
 }
 

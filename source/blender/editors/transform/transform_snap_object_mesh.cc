@@ -94,7 +94,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   float3 ray_normal_local = math::transform_direction(imat, sctx->runtime.ray_dir);
   float local_scale, local_depth, len_diff = 0.0f;
 
-  /* local scale in normal direction */
+  /* Local scale in normal direction. */
   ray_normal_local = math::normalize_and_get_length(ray_normal_local, local_scale);
 
   const bool is_in_front = sctx->runtime.params.use_occlusion_test &&
@@ -105,9 +105,9 @@ static bool raycastMesh(SnapObjectContext *sctx,
     local_depth *= local_scale;
   }
 
-  /* Test bounding box */
+  /* Test bounding box. */
   const Bounds<float3> bounds = *me_eval->bounds_min_max();
-  /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+  /* Was #BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
   if (!isect_ray_aabb_v3_simple(
           ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
   {
@@ -221,7 +221,7 @@ class SnapData_Mesh : public SnapData {
  public:
   const float3 *vert_positions;
   const float3 *vert_normals;
-  const int2 *edges; /* only used for #BVHTreeFromMeshEdges */
+  const int2 *edges; /* Only used for #BVHTreeFromMeshEdges. */
   const int *corner_verts;
   const int *corner_edges;
   const int3 *corner_tris;
@@ -480,7 +480,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   if (bvhtree[1]) {
     BLI_assert(snap_to & SCE_SNAP_TO_POINT);
-    /* snap to loose verts */
+    /* Snap to loose verts. */
     BLI_bvhtree_find_nearest_projected(bvhtree[1],
                                        nearest2d.pmat_local.ptr(),
                                        sctx->runtime.win_size,

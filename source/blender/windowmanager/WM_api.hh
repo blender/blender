@@ -330,7 +330,7 @@ void WM_system_gpu_context_dispose(void *context);
 void WM_system_gpu_context_activate(void *context);
 void WM_system_gpu_context_release(void *context);
 
-/* #WM_window_open alignment */
+/** #WM_window_open alignment. */
 enum eWindowAlignment {
   WIN_ALIGN_ABSOLUTE = 0,
   WIN_ALIGN_LOCATION_CENTER,
@@ -365,7 +365,7 @@ void WM_window_set_dpi(const wmWindow *win);
 
 bool WM_stereo3d_enabled(wmWindow *win, bool only_fullscreen_test);
 
-/* wm_files.cc */
+/* `wm_files.cc`. */
 
 void WM_file_autoexec_init(const char *filepath);
 bool WM_file_read(bContext *C, const char *filepath, ReportList *reports);
@@ -580,14 +580,14 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers);
 
 wmEventHandler_Dropbox *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
 
-/* mouse */
+/* Mouse. */
 void WM_event_add_mousemove(wmWindow *win);
 
 #ifdef WITH_INPUT_NDOF
-/* 3D mouse */
+/* 3D mouse. */
 void WM_ndof_deadzone_set(float deadzone);
 #endif
-/* notifiers */
+/* Notifiers. */
 void WM_event_add_notifier_ex(wmWindowManager *wm,
                               const wmWindow *win,
                               unsigned int type,
@@ -600,7 +600,8 @@ void WM_main_add_notifier(unsigned int type, void *reference);
 void WM_main_remove_notifier_reference(const void *reference);
 void WM_main_remap_editor_id_reference(const blender::bke::id::IDRemapper &mappings);
 
-/* reports */
+/* Reports. */
+
 /**
  * Show the report in the info header.
  * \param win: When NULL, a best-guess is used.
@@ -720,7 +721,7 @@ int WM_operator_confirm_ex(bContext *C,
  */
 int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *event);
 bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData *im_format);
-/** Callback for #wmOperatorType.poll */
+/** Callback for #wmOperatorType.poll. */
 bool WM_operator_winactive(bContext *C);
 /**
  * Invoke callback, exec + redo popup.
@@ -823,7 +824,7 @@ int WM_operator_name_call_ptr(bContext *C,
                               wmOperatorCallContext context,
                               PointerRNA *properties,
                               const wmEvent *event);
-/** See #WM_operator_name_call_ptr */
+/** See #WM_operator_name_call_ptr. */
 int WM_operator_name_call(bContext *C,
                           const char *opstring,
                           wmOperatorCallContext context,
@@ -1047,7 +1048,8 @@ void WM_operator_properties_select_walk_direction(wmOperatorType *ot);
 void WM_operator_properties_generic_select(wmOperatorType *ot);
 
 struct CheckerIntervalParams {
-  int nth; /* bypass when set to zero */
+  /** Bypass when set to zero. */
+  int nth;
   int skip;
   int offset;
 };
@@ -1306,7 +1308,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_straightline_cancel(bContext *C, wmOperator *op);
 
-/* Gesture manager API */
+/* Gesture manager API. */
 
 /**
  * Context checked on having screen, window and area.
@@ -1411,7 +1413,7 @@ void WM_drag_draw_default_fn(bContext *C, wmWindow *win, wmDrag *drag, const int
  */
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
-/* ID drag and drop */
+/* ID drag and drop. */
 
 /**
  * \param flag_extra: Additional linking flags (from #eFileSel_Params_Flag).
@@ -1430,7 +1432,7 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode);
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int /* #eAssetImportMethod */ import_method);
+                                       int /*eAssetImportMethod*/ import_method);
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode);
 AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode);
@@ -1496,19 +1498,19 @@ bool WM_drag_has_path_file_type(const wmDrag *drag, int file_type);
  * type-bits set, so `ELEM()` like comparison is possible. To check all paths or to do a bit-flag
  * check use `WM_drag_has_path_file_type(drag, file_type)` instead.
  */
-int /* #eFileSel_File_Types */ WM_drag_get_path_file_type(const wmDrag *drag);
+int /*eFileSel_File_Types*/ WM_drag_get_path_file_type(const wmDrag *drag);
 
 const std::string &WM_drag_get_string(const wmDrag *drag);
 std::string WM_drag_get_string_firstline(const wmDrag *drag);
 
-/* Set OpenGL viewport and scissor */
+/* Set OpenGL viewport and scissor. */
 void wmViewport(const rcti *winrct);
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
 void wmWindowViewport(wmWindow *win);
 
-/* OpenGL utilities with safety check */
+/* OpenGL utilities with safety check. */
 void wmOrtho2(float x1, float x2, float y1, float y2);
-/* use for conventions (avoid hard-coded offsets all over) */
+/* Use for conventions (avoid hard-coded offsets all over). */
 
 /**
  * Default pixel alignment for regions.
@@ -1517,7 +1519,7 @@ void wmOrtho2_region_pixelspace(const ARegion *region);
 void wmOrtho2_pixelspace(float x, float y);
 void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct);
 
-/* threaded Jobs Manager */
+/* Threaded Jobs Manager. */
 enum eWM_JobFlag {
   WM_JOB_PRIORITY = (1 << 0),
   WM_JOB_EXCL_RENDER = (1 << 1),
@@ -1534,9 +1536,9 @@ enum eWM_JobType {
 
   WM_JOB_TYPE_COMPOSITE,
   WM_JOB_TYPE_RENDER,
-  WM_JOB_TYPE_RENDER_PREVIEW, /* UI preview */
+  WM_JOB_TYPE_RENDER_PREVIEW, /* UI preview. */
   /** Job for the UI to load previews from the file system (uses OS thumbnail cache). */
-  WM_JOB_TYPE_LOAD_PREVIEW, /* UI preview */
+  WM_JOB_TYPE_LOAD_PREVIEW, /* UI preview. */
   WM_JOB_TYPE_OBJECT_SIM_OCEAN,
   WM_JOB_TYPE_OBJECT_SIM_FLUID,
   WM_JOB_TYPE_OBJECT_BAKE_TEXTURE,
@@ -1563,8 +1565,8 @@ enum eWM_JobType {
   WM_JOB_TYPE_CALCULATE_SIMULATION_NODES,
   WM_JOB_TYPE_BAKE_GEOMETRY_NODES,
   WM_JOB_TYPE_UV_PACK,
-  /* add as needed, bake, seq proxy build
-   * if having hard coded values is a problem */
+  /* Add as needed, bake, seq proxy build
+   * if having hard coded values is a problem. */
 };
 
 /**
@@ -1676,12 +1678,12 @@ ImBuf *WM_clipboard_image_get();
  */
 bool WM_clipboard_image_set(ImBuf *ibuf) ATTR_NONNULL(1);
 
-/* progress */
+/* Progress. */
 
 void WM_progress_set(wmWindow *win, float progress);
 void WM_progress_clear(wmWindow *win);
 
-/* Draw (for screenshot) */
+/* Draw (for screenshot). */
 
 void *WM_draw_cb_activate(wmWindow *win,
                           void (*draw)(const wmWindow *win, void *customdata),
@@ -1703,7 +1705,7 @@ void WM_draw_region_viewport_ensure(Scene *scene, ARegion *region, short space_t
 void WM_draw_region_viewport_bind(ARegion *region);
 void WM_draw_region_viewport_unbind(ARegion *region);
 
-/* Region drawing */
+/* Region drawing. */
 
 void WM_draw_region_free(ARegion *region);
 GPUViewport *WM_draw_region_get_viewport(ARegion *region);
@@ -1911,7 +1913,7 @@ void WM_xr_session_state_navigation_reset(wmXrSessionState *state);
 
 ARegionType *WM_xr_surface_controller_region_type_get();
 
-/* wm_xr_actions.c */
+/* `wm_xr_actions.cc`. */
 
 /* XR action functions to be called pre-XR session start.
  * NOTE: The "destroy" functions can also be called post-session start. */

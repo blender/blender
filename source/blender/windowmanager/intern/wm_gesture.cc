@@ -64,7 +64,7 @@ wmGesture *WM_gesture_new(wmWindow *window, const ARegion *region, const wmEvent
     rect->xmin = xy[0] - gesture->winrct.xmin;
     rect->ymin = xy[1] - gesture->winrct.ymin;
     if (type == WM_GESTURE_CIRCLE) {
-      /* caller is responsible for initializing 'xmax' to radius. */
+      /* Caller is responsible for initializing 'xmax' to radius. */
     }
     else {
       rect->xmax = xy[0] - gesture->winrct.xmin;
@@ -182,7 +182,7 @@ static void wm_gesture_draw_line(wmGesture *gt)
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-  immUniform1i("colors_len", 2); /* "advanced" mode */
+  immUniform1i("colors_len", 2); /* "advanced" mode. */
   immUniform4f("color", 0.4f, 0.4f, 0.4f, 1.0f);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 8.0f);
@@ -225,7 +225,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-  immUniform1i("colors_len", 2); /* "advanced" mode */
+  immUniform1i("colors_len", 2); /* "advanced" mode. */
   immUniform4f("color", 0.4f, 0.4f, 0.4f, 1.0f);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 8.0f);
@@ -236,7 +236,7 @@ static void wm_gesture_draw_rect(wmGesture *gt)
 
   immUnbindProgram();
 
-  /* draws a diagonal line in the lined box to test wm_gesture_draw_line */
+  /* Draws a diagonal line in the lined box to test #wm_gesture_draw_line. */
   // wm_gesture_draw_line(gt);
 }
 
@@ -264,7 +264,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-  immUniform1i("colors_len", 2); /* "advanced" mode */
+  immUniform1i("colors_len", 2); /* "advanced" mode. */
   immUniform4f("color", 0.4f, 0.4f, 0.4f, 1.0f);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 4.0f);
@@ -365,7 +365,7 @@ static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-  immUniform1i("colors_len", 2); /* "advanced" mode */
+  immUniform1i("colors_len", 2); /* "advanced" mode. */
   immUniform4f("color", 0.4f, 0.4f, 0.4f, 1.0f);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 2.0f);
@@ -399,7 +399,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
   GPU_viewport_size_get_f(viewport_size);
   immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
 
-  immUniform1i("colors_len", 2); /* "advanced" mode */
+  immUniform1i("colors_len", 2); /* "advanced" mode. */
   immUniform4f("color", 0.4f, 0.4f, 0.4f, 1.0f);
   immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 8.0f);

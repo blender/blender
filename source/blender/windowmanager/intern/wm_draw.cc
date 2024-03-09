@@ -505,7 +505,7 @@ static void wm_region_test_render_do_draw(const Scene *scene,
                                           ScrArea *area,
                                           ARegion *region)
 {
-  /* tag region for redraw from render engine preview running inside of it */
+  /* Tag region for redraw from render engine preview running inside of it. */
   if (area->spacetype == SPACE_VIEW3D && region->regiontype == RGN_TYPE_WINDOW) {
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
     RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
@@ -515,7 +515,7 @@ static void wm_region_test_render_do_draw(const Scene *scene,
       View3D *v3d = static_cast<View3D *>(area->spacedata.first);
       rcti border_rect;
 
-      /* do partial redraw when possible */
+      /* Do partial redraw when possible. */
       if (ED_view3d_calc_render_border(scene, depsgraph, v3d, region, &border_rect)) {
         ED_region_tag_redraw_partial(region, &border_rect, false);
       }
@@ -834,7 +834,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     alpha = 1.0f;
   }
 
-  /* wmOrtho for the screen has this same offset */
+  /* #wmOrtho for the screen has this same offset. */
   const float halfx = GLA_PIXEL_OFS / (BLI_rcti_size_x(&region->winrct) + 1);
   const float halfy = GLA_PIXEL_OFS / (BLI_rcti_size_y(&region->winrct) + 1);
 
@@ -851,7 +851,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
   float alpha_easing = 1.0f - alpha;
   alpha_easing = 1.0f - alpha_easing * alpha_easing;
 
-  /* Slide vertical panels */
+  /* Slide vertical panels. */
   float ofs_x = BLI_rcti_size_x(&region->winrct) * (1.0f - alpha_easing);
   if (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT) {
     rect_geo.xmin += ofs_x;
@@ -874,7 +874,7 @@ void wm_draw_region_blend(ARegion *region, int view, bool blend)
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
-  /* setup actual texture */
+  /* Setup actual texture. */
   GPUTexture *texture = wm_draw_region_texture(region, view);
 
   GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
@@ -1105,7 +1105,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
   wmWindowViewport(win);
 
-  /* Blend in overlapping area regions */
+  /* Blend in overlapping area regions. */
   ED_screen_areas_iter (win, screen, area) {
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       if (!region->visible) {
@@ -1131,7 +1131,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
     wm_draw_region_blend(region, 0, true);
   }
 
-  /* always draw, not only when screen tagged */
+  /* Always draw, not only when screen tagged. */
   if (win->gesture.first) {
     wm_gesture_draw(win);
     wmWindowViewport(win);
@@ -1253,7 +1253,7 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
 
   GPU_context_end_frame(surface->blender_gpu_context);
 
-  /* Avoid interference with window drawable */
+  /* Avoid interference with window drawable. */
   wm_surface_clear_drawable();
 }
 
@@ -1429,7 +1429,7 @@ bool WM_desktop_cursor_sample_read(float r_col[3])
 /** \name Main Update Call
  * \{ */
 
-/* quick test to prevent changing window drawable */
+/* Quick test to prevent changing window drawable. */
 static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
 {
   const wmWindowManager *wm = CTX_wm_manager(C);
@@ -1549,10 +1549,8 @@ void wm_draw_update(bContext *C)
         static_cast<GHOST_WindowHandle>(win->ghostwin));
 
     if (state == GHOST_kWindowStateMinimized) {
-      /* do not update minimized windows, gives issues on Intel (see #33223)
-       * and AMD (see #50856). it seems logical to skip update for invisible
-       * window anyway.
-       */
+      /* Do not update minimized windows, gives issues on Intel (see #33223)
+       * and AMD (see #50856). it seems logical to skip update for invisible window anyway. */
       continue;
     }
 #endif
@@ -1562,10 +1560,10 @@ void wm_draw_update(bContext *C)
     if (wm_draw_update_test_window(bmain, C, win)) {
       bScreen *screen = WM_window_get_active_screen(win);
 
-      /* sets context window+screen */
+      /* Sets context window+screen. */
       wm_window_make_drawable(wm, win);
 
-      /* notifiers for screen redraw */
+      /* Notifiers for screen redraw. */
       ED_screen_ensure_updated(C, wm, win, screen);
 
       wm_draw_window(C, win);
@@ -1577,7 +1575,7 @@ void wm_draw_update(bContext *C)
 
   CTX_wm_window_set(C, nullptr);
 
-  /* Draw non-windows (surfaces) */
+  /* Draw non-windows (surfaces). */
   wm_surfaces_iter(C, wm_draw_surface);
 
   GPU_render_end();

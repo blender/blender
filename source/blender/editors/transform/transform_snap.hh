@@ -17,7 +17,7 @@
 bool peelObjectsTransform(TransInfo *t,
                           const float mval[2],
                           bool use_peel_object,
-                          /* return args */
+                          /* Return args. */
                           float r_loc[3],
                           float r_no[3],
                           float *r_thickness);
@@ -25,12 +25,12 @@ bool peelObjectsTransform(TransInfo *t,
 eSnapMode snapObjectsTransform(TransInfo *t,
                                const float mval[2],
                                float *dist_px,
-                               /* return args */
+                               /* Return args. */
                                float r_loc[3],
                                float r_no[3]);
 bool snapNodesTransform(TransInfo *t,
                         const blender::float2 &mval,
-                        /* return args */
+                        /* Return args. */
                         float r_loc[2],
                         float *r_dist_px,
                         char *r_node_border);
@@ -75,12 +75,12 @@ void transform_snap_sequencer_data_free(TransSeqSnapData *data);
 bool transform_snap_sequencer_calc(TransInfo *t);
 void transform_snap_sequencer_apply_translate(TransInfo *t, float *vec);
 
-/* transform_snap_animation.cc */
+/* `transform_snap_animation.cc` */
 void snapFrameTransform(
     TransInfo *t, eSnapMode autosnap, float val_initial, float val_final, float *r_val_final);
 /**
  * This function is used by Animation Editor specific transform functions to do
- * the Snap Keyframe to Nearest Frame/Marker
+ * the Snap Keyframe to Nearest Frame/Marker.
  */
 void transform_snap_anim_flush_data(TransInfo *t,
                                     TransData *td,

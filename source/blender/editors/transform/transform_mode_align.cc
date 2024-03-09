@@ -30,7 +30,7 @@ static void applyAlign(TransInfo *t)
   int i;
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    /* saving original center */
+    /* Saving original center. */
     copy_v3_v3(center, tc->center_local);
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
@@ -40,7 +40,7 @@ static void applyAlign(TransInfo *t)
         continue;
       }
 
-      /* around local centers */
+      /* Around local centers. */
       if (t->options & (CTX_OBJECT | CTX_POSE_BONE)) {
         copy_v3_v3(tc->center_local, td->center);
       }
@@ -56,7 +56,7 @@ static void applyAlign(TransInfo *t)
 
       ElementRotation(t, tc, td, mat, t->around);
     }
-    /* restoring original center */
+    /* Restoring original center. */
     copy_v3_v3(tc->center_local, center);
   }
 

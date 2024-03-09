@@ -145,7 +145,7 @@ static void mesh_customdata_free_fn(TransInfo * /*t*/,
  * \{ */
 
 struct TransCustomDataMergeGroup {
-  /** map {BMVert: TransCustomDataLayerVert} */
+  /** Map {#BMVert: #TransCustomDataLayerVert}. */
   LinkNode **cd_loop_groups;
 };
 
@@ -161,12 +161,12 @@ struct TransCustomDataLayer {
 
   /* Optionally merge custom-data groups (this keeps UVs connected for example). */
   struct {
-    /** map {BMVert: TransDataBasic} */
+    /** Map {#BMVert: #TransDataBasic}. */
     GHash *origverts;
     TransCustomDataMergeGroup *data;
     int data_len;
     /** Array size of 'layer_math_map_len'
-     * maps #TransCustomDataLayerVert.cd_group index to absolute #CustomData layer index */
+     * maps #TransCustomDataLayerVert.cd_group index to absolute #CustomData layer index. */
     int *customdatalayer_map;
     /** Number of math BMLoop layers. */
     int customdatalayer_map_len;
@@ -382,8 +382,8 @@ static TransCustomDataLayer *mesh_customdatacorrect_create_impl(TransDataContain
 
   if (bm->shapenr > 1) {
     /* Don't do this at all for non-basis shape keys, too easy to
-     * accidentally break uv maps or vertex colors then */
-    /* create copies of faces for custom-data projection. */
+     * accidentally break uv maps or vertex colors then. */
+    /* Create copies of faces for custom-data projection. */
     return nullptr;
   }
   if (!CustomData_has_math(&bm->ldata) && !CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -539,7 +539,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
   const bool is_moved = (len_squared_v3v3(v->co, co_orig_3d) > FLT_EPSILON);
   const bool do_loop_weight = is_moved && tcld->merge_group.customdatalayer_map_len;
   const float *v_proj_axis = v->no;
-  /* original (l->prev, l, l->next) projections for each loop ('l' remains unchanged) */
+  /* Original (`l->prev`, `l`, `l->next`) projections for each loop ('l' remains unchanged). */
   float v_proj[3][3];
 
   if (do_loop_weight) {
@@ -552,7 +552,7 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
   loop_weights = do_loop_weight ? static_cast<float *>(BLI_array_alloca(loop_weights, l_num)) :
                                   nullptr;
   for (j = 0; j < l_num; j++) {
-    BMFace *f_copy; /* the copy of 'f' */
+    BMFace *f_copy; /* The copy of 'f'. */
     BMLoop *l = static_cast<BMLoop *>(BM_iter_step(&liter));
 
     f_copy = static_cast<BMFace *>(BLI_ghash_lookup(tcld->origfaces, l->f));
@@ -565,11 +565,11 @@ static void mesh_customdatacorrect_apply_vert(TransCustomDataLayer *tcld,
     }
 #endif
 
-    /* only loop data, no vertex data since that contains shape keys,
-     * and we do not want to mess up other shape keys */
+    /* Only loop data, no vertex data since that contains shape keys,
+     * and we do not want to mess up other shape keys. */
     BM_loop_interp_from_face(bm, l, f_copy, false, false);
 
-    /* weight the loop */
+    /* Weight the loop. */
     if (do_loop_weight) {
       const float eps = 1.0e-8f;
       const BMLoop *l_prev = l->prev;
@@ -754,7 +754,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
   char itype;
   int i;
 
-  /* group vars */
+  /* Group variables. */
   int *groups_array = nullptr;
   int(*group_index)[2] = nullptr;
 
@@ -765,7 +765,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
   data.island_vert_map = static_cast<int *>(
       MEM_mallocN(sizeof(*data.island_vert_map) * bm->totvert, __func__));
-  /* we shouldn't need this, but with incorrect selection flushing
+  /* We shouldn't need this, but with incorrect selection flushing
    * its possible we have a selected vertex that's not in a face,
    * for now best not crash in that case. */
   copy_vn_i(data.island_vert_map, bm->totvert, -1);
@@ -780,7 +780,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
       htype = BM_EDGE;
       itype = BM_VERTS_OF_EDGE;
     }
-    else { /* (bm->selectmode & SCE_SELECT_FACE) */
+    else { /* `bm->selectmode & SCE_SELECT_FACE`. */
       groups_array = static_cast<int *>(
           MEM_mallocN(sizeof(*groups_array) * bm->totfacesel, __func__));
       data.island_tot = BM_mesh_calc_face_groups(
@@ -808,7 +808,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
     BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-    /* may be an edge OR a face array */
+    /* May be an edge OR a face array. */
     for (i = 0; i < data.island_tot; i++) {
       BMEditSelection ese = {nullptr};
 
@@ -823,9 +823,9 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
       ese.htype = htype;
 
-      /* loop on each face or edge in this group:
-       * - assign r_vert_map
-       * - calculate (co, no)
+      /* Loop on each face or edge in this group:
+       * - Assign `r_vert_map`.
+       * - Calculate (`co`, `no`).
        */
       for (j = 0; j < fg_len; j++) {
         ese.ele = static_cast<BMElem *>(ele_array[groups_array[fg_sta + j]]);
@@ -845,11 +845,11 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
         }
 
         {
-          /* setup vertex map */
+          /* Setup vertex map. */
           BMIter iter;
           BMVert *v;
 
-          /* connected edge-verts */
+          /* Connected edge-verts. */
           BM_ITER_ELEM (v, &iter, ese.ele, itype) {
             data.island_vert_map[BM_elem_index_get(v)] = i;
           }
@@ -862,7 +862,7 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
 
       if (data.axismtx) {
         if (createSpaceNormalTangent(data.axismtx[i], no, tangent)) {
-          /* pass */
+          /* Pass. */
         }
         else {
           if (normalize_v3(no) != 0.0f) {
@@ -880,8 +880,8 @@ void transform_convert_mesh_islands_calc(BMEditMesh *em,
     MEM_freeN(group_index);
   }
 
-  /* for proportional editing we need islands of 1 so connected vertices can use it with
-   * V3D_AROUND_LOCAL_ORIGINS */
+  /* For proportional editing we need islands of 1 so connected vertices can use it with
+   * #V3D_AROUND_LOCAL_ORIGINS. */
   if (calc_single_islands) {
     BMIter viter;
     BMVert *v;
@@ -951,7 +951,7 @@ void transform_convert_mesh_islanddata_free(TransIslandData *island_data)
 static bool bmesh_test_dist_add(BMVert *v0,
                                 BMVert *v1,
                                 BMVert *v2,
-                                float *dists, /* optionally track original index */
+                                float *dists, /* Optionally track original index. */
                                 int *index,
                                 const float mtx[3][3])
 {
@@ -1028,7 +1028,7 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
 {
   BLI_LINKSTACK_DECLARE(queue, BMEdge *);
 
-  /* any BM_ELEM_TAG'd edge is in 'queue_next', so we don't add in twice */
+  /* Any BM_ELEM_TAG'd edge is in 'queue_next', so we don't add in twice. */
   const int tag_queued = BM_ELEM_TAG;
   const int tag_loose = BM_ELEM_TAG_ALT;
 
@@ -1348,8 +1348,8 @@ void transform_convert_mesh_crazyspace_detect(TransInfo *t,
       Scene *scene_eval = (Scene *)DEG_get_evaluated_id(t->depsgraph, &t->scene->id);
       Object *obedit_eval = (Object *)DEG_get_evaluated_id(t->depsgraph, &tc->obedit->id);
       BMEditMesh *em_eval = BKE_editmesh_from_object(obedit_eval);
-      /* check if we can use deform matrices for modifier from the
-       * start up to stack, they are more accurate than quats */
+      /* Check if we can use deform matrices for modifier from the
+       * start up to stack, they are more accurate than quats. */
       totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(
           t->depsgraph, scene_eval, obedit_eval, em_eval, r_crazyspace_data->defmats, defcos);
     }
@@ -1380,7 +1380,7 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float quat[4],
                                                      TransData *r_td)
 {
-  /* CrazySpace */
+  /* CrazySpace. */
   if (quat || defmat) {
     float mat[3][3], qmat[3][3], imat[3][3];
 
@@ -1436,7 +1436,7 @@ static void mesh_transdata_center_copy(const TransIslandData *island_data,
   }
 }
 
-/* way to overwrite what data is edited with transform */
+/* Way to overwrite what data is edited with transform. */
 static void VertsToTransData(TransInfo *t,
                              TransData *td,
                              TransDataExtension *tx,
@@ -1473,7 +1473,7 @@ static void VertsToTransData(TransInfo *t,
     createSpaceNormal(td->axismtx, no);
   }
   else {
-    /* Setting normals */
+    /* Setting normals. */
     copy_v3_v3(td->axismtx[2], no);
     td->axismtx[0][0] = td->axismtx[0][1] = td->axismtx[0][2] = td->axismtx[1][0] =
         td->axismtx[1][1] = td->axismtx[1][2] = 0.0f;
@@ -1570,8 +1570,8 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     }
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
-    /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
-     * matrix inversion still works and we can still moving along the other */
+    /* We use a pseudo-inverse so that when one of the axes is scaled to 0,
+     * matrix inversion still works and we can still moving along the other. */
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     /* Original index of our connected vertex when connected distances are calculated.
@@ -1619,10 +1619,10 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     tc->data = static_cast<TransData *>(
         MEM_callocN(data_len * sizeof(TransData), "TransObData(Mesh EditMode)"));
     if (t->mode == TFM_SHRINKFATTEN) {
-      /* warning, this is overkill, we only need 2 extra floats,
+      /* Warning: this is overkill, we only need 2 extra floats,
        * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
        * since we may not use the 'alt' transform mode to maintain shell thickness,
-       * but with generic transform code its hard to lazy init vars */
+       * but with generic transform code its hard to lazy init variables. */
       tx = tc->data_ext = static_cast<TransDataExtension *>(
           MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObData ext"));
     }
@@ -1665,7 +1665,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
           tx++;
         }
 
-        /* selected */
+        /* Selected. */
         if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
           tob->flag |= TD_SELECTED;
         }
@@ -1679,7 +1679,7 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
           }
         }
 
-        /* CrazySpace */
+        /* CrazySpace. */
         transform_convert_mesh_crazyspace_transdata_set(
             mtx,
             smtx,
@@ -2161,7 +2161,7 @@ static void special_aftertrans_update__mesh(bContext * /*C*/, TransInfo *t)
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-    /* table needs to be created for each edit command, since vertices can move etc */
+    /* Table needs to be created for each edit command, since vertices can move etc. */
     ED_mesh_mirror_spatial_table_end(tc->obedit);
     /* TODO(@ideasman42): xform: We need support for many mirror objects at once! */
     break;
@@ -2251,7 +2251,7 @@ static bool mesh_vert_is_inner(BMVert *v)
  */
 static bool bm_loop_calc_opposite_co(const BMLoop *l_tmp, const float plane_no[3], float r_co[3])
 {
-  /* skip adjacent edges */
+  /* Skip adjacent edges. */
   BMLoop *l_first = l_tmp->next;
   BMLoop *l_last = l_tmp->prev;
   BMLoop *l_iter;
@@ -2263,11 +2263,11 @@ static bool bm_loop_calc_opposite_co(const BMLoop *l_tmp, const float plane_no[3
     float tvec[3];
     if (isect_line_plane_v3(tvec, l_iter->v->co, l_iter->next->v->co, l_tmp->v->co, plane_no)) {
       const float fac = line_point_factor_v3(tvec, l_iter->v->co, l_iter->next->v->co);
-      /* allow some overlap to avoid missing the intersection because of float precision */
+      /* Allow some overlap to avoid missing the intersection because of float precision. */
       if ((fac > -FLT_EPSILON) && (fac < 1.0f + FLT_EPSILON)) {
-        /* likelihood of multiple intersections per ngon is quite low,
+        /* Likelihood of multiple intersections per ngon is quite low,
          * it would have to loop back on itself, but better support it
-         * so check for the closest opposite edge */
+         * so check for the closest opposite edge. */
         const float dist_sq_test = len_squared_v3v3(l_tmp->v->co, tvec);
         if (dist_sq_test < dist_sq_best) {
           copy_v3_v3(r_co, tvec);

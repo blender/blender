@@ -17,7 +17,7 @@
 
 struct EnumPropertyItem;
 
-/* Key Configuration */
+/* Key Configuration. */
 
 void WM_keyconfig_init(bContext *C);
 void WM_keyconfig_reload(bContext *C);
@@ -46,19 +46,19 @@ void WM_keyconfig_update_suppress_end();
 void WM_keyconfig_update_postpone_begin();
 void WM_keyconfig_update_postpone_end();
 
-/* Keymap */
+/** Keymap. */
 
 /** Parameters for matching events, passed into functions that create key-map items. */
 struct KeyMapItem_Params {
-  /** #wmKeyMapItem.type */
+  /** #wmKeyMapItem.type. */
   int16_t type;
-  /** #wmKeyMapItem.val */
+  /** #wmKeyMapItem.val. */
   int8_t value;
-  /** #wmKeyMapItem `ctrl, shift, alt, oskey` */
+  /** #wmKeyMapItem `ctrl, shift, alt, oskey`. */
   int8_t modifier;
-  /** #wmKeyMapItem.keymodifier */
+  /** #wmKeyMapItem.keymodifier. */
   int16_t keymodifier;
-  /** #wmKeyMapItem.direction */
+  /** #wmKeyMapItem.direction. */
   int8_t direction;
 };
 
@@ -93,9 +93,9 @@ bool WM_keymap_poll(bContext *C, wmKeyMap *keymap);
 wmKeyMapItem *WM_keymap_item_find_id(wmKeyMap *keymap, int id);
 bool WM_keymap_item_compare(const wmKeyMapItem *k1, const wmKeyMapItem *k2);
 
-/* keymap_utils.c */
+/* `wm_keymap_utils.cc`. */
 
-/* Wrappers for #WM_keymap_add_item */
+/* Wrappers for #WM_keymap_add_item. */
 
 /**
  * Menu wrapper for #WM_keymap_add_item.
@@ -135,7 +135,7 @@ bool WM_keymap_uses_event_modifier(const wmKeyMap *keymap, int event_modifier);
 
 void WM_keymap_fix_linking();
 
-/* Modal Keymap */
+/* Modal Keymap. */
 
 std::optional<std::string> WM_modalkeymap_items_to_string(const wmKeyMap *km,
                                                           int propvalue,
@@ -155,7 +155,7 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km,
 const wmKeyMapItem *WM_modalkeymap_find_propvalue(const wmKeyMap *km, int propvalue);
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
 
-/* Keymap Editor */
+/* Keymap Editor. */
 
 void WM_keymap_restore_to_default(wmKeyMap *keymap, wmWindowManager *wm);
 /**
@@ -165,7 +165,7 @@ void WM_keymap_item_properties_reset(wmKeyMapItem *kmi, IDProperty *properties);
 void WM_keymap_item_restore_to_default(wmWindowManager *wm, wmKeyMap *keymap, wmKeyMapItem *kmi);
 int WM_keymap_item_map_type_get(const wmKeyMapItem *kmi);
 
-/* Key Event */
+/* Key Event. */
 
 const char *WM_key_event_string(short type, bool compact);
 std::optional<std::string> WM_keymap_item_raw_to_string(short shift,
