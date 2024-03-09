@@ -303,7 +303,7 @@ static void replace_outvars(std::string &str)
             /* Generate out-variable pattern for arrays, of form
              * `OUT(vec2,samples,CRYPTOMATTE_LEVELS_MAX)`
              * replacing original `out vec2 samples[SAMPLE_LEN]`
-             * using 'OUT' macro declared in mtl_shader_defines.msl*/
+             * using 'OUT' macro declared in `mtl_shader_defines.msl`. */
             char *array_end = strchr(word_base2 + len2, ']');
             if (array_end != nullptr) {
               *start = 'O';

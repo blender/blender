@@ -1595,7 +1595,7 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       }
     }
     else if (base_color_sock->link) {
-      /* Metallic Mix is a no-op and equivalent to Base Color*/
+      /* Metallic Mix is a no-op and equivalent to Base Color. */
       metallic_mix_out = base_color_sock->link->fromsock;
       metallic_mix_node = base_color_sock->link->fromnode;
     }

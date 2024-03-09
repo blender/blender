@@ -329,7 +329,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   /* Enable Soft Shadows by default. */
   scene->eevee.flag |= SCE_EEVEE_SHADOW_SOFT;
 
-  /* Default Rotate Increment*/
+  /* Default Rotate Increment. */
   const float default_snap_angle_increment = DEG2RADF(15.0f);
   scene->toolsettings->snap_angle_increment_2d = default_snap_angle_increment;
   scene->toolsettings->snap_angle_increment_3d = default_snap_angle_increment;

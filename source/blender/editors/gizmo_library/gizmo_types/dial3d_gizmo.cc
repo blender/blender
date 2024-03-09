@@ -236,7 +236,7 @@ static void dial_ghostarc_draw_incremental_angle(const float incremental_angle,
 
   /* Chop off excess full circles, draw an arc of ticks centered at current increment;
    * if there's no even division of circle by increment,
-   * ends of the arc will move with the rotation */
+   * ends of the arc will move with the rotation. */
   const float start_offset = fmodf(
       offset + incremental_angle * (current_increment - total_increment / 2), M_PI * 2.0f);
 
