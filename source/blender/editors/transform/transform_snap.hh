@@ -51,6 +51,7 @@ bool validSnap(const TransInfo *t);
 
 void initSnapping(TransInfo *t, wmOperator *op);
 void freeSnapping(TransInfo *t);
+void initSnapAngleIncrements(TransInfo *t);
 bool transform_snap_project_individual_is_active(const TransInfo *t);
 void transform_snap_project_individual_apply(TransInfo *t);
 void transform_snap_mixed_apply(TransInfo *t, float *vec);

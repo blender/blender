@@ -961,6 +961,18 @@ void freeSnapping(TransInfo *t)
   }
 }
 
+void initSnapAngleIncrements(TransInfo *t)
+{
+  if (t->spacetype == SPACE_VIEW3D) {
+    t->snap[0] = t->settings->snap_angle_increment_3d;
+    t->snap[1] = t->settings->snap_angle_increment_3d_precision;
+  }
+  else {
+    t->snap[0] = t->settings->snap_angle_increment_2d;
+    t->snap[1] = t->settings->snap_angle_increment_2d_precision;
+  }
+}
+
 static void setSnappingCallback(TransInfo *t)
 {
   if (t->spacetype == SPACE_VIEW3D) {
