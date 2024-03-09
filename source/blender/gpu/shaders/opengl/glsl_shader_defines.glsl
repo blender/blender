@@ -21,7 +21,7 @@
 #define uint2 uvec2
 #define uint3 uvec3
 #define uint4 uvec4
-/* GLSL already follows the packed alignement / size rules for vec3. */
+/* GLSL already follows the packed alignment / size rules for vec3. */
 #define packed_float3 float3
 #define packed_int3 int3
 #define packed_uint3 uint3
