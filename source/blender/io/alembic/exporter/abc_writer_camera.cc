@@ -9,10 +9,9 @@
 #include "abc_writer_camera.h"
 #include "abc_hierarchy_iterator.h"
 
-#include "BKE_camera.h"
 #include "BKE_scene.hh"
 
-#include "BLI_assert.h"
+#include "DEG_depsgraph_query.hh"
 
 #include "DNA_camera_types.h"
 #include "DNA_scene_types.h"

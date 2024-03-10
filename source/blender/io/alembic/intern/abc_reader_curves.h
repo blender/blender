@@ -7,8 +7,9 @@
  * \ingroup balembic
  */
 
-#include "abc_reader_mesh.h"
 #include "abc_reader_object.h"
+
+#include <Alembic/AbcGeom/ICurves.h>
 
 struct Curves;
 

@@ -8,38 +8,33 @@
 
 #include "abc_reader_mesh.h"
 #include "abc_axis_conversion.h"
-#include "abc_reader_transform.h"
+#include "abc_customdata.h"
 #include "abc_util.h"
-
-#include <algorithm>
-
-#include "MEM_guardedalloc.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
+
 #include "DNA_object_types.h"
 
 #include "BLI_compiler_compat.h"
-#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
-#include "BLI_math_geom.h"
+#include "BLI_map.hh"
+#include "BLI_math_vector.h"
 #include "BLI_ordered_edge.hh"
 
 #include "BLT_translation.hh"
 
-#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_material.h"
 #include "BKE_mesh.hh"
-#include "BKE_modifier.hh"
 #include "BKE_object.hh"
 
 using Alembic::Abc::FloatArraySamplePtr;
 using Alembic::Abc::Int32ArraySamplePtr;
-using Alembic::Abc::IV3fArrayProperty;
 using Alembic::Abc::P3fArraySamplePtr;
 using Alembic::Abc::PropertyHeader;
 using Alembic::Abc::V3fArraySamplePtr;

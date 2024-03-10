@@ -6,14 +6,18 @@
 
 #include "BKE_blender_version.h"
 #include "BKE_main.hh"
-#include "BKE_scene.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 #include "DNA_scene_types.h"
 
-#include <Alembic/AbcCoreOgawa/All.h>
-#include <Alembic/AbcGeom/All.h>
+#include <Alembic/Abc/ArchiveInfo.h>
+#include <Alembic/Abc/ErrorHandler.h>
+#include <Alembic/Abc/Foundation.h>
+#include <Alembic/Abc/OArchive.h>
+#include <Alembic/AbcCoreAbstract/MetaData.h>
+#include <Alembic/AbcCoreAbstract/TimeSampling.h>
+#include <Alembic/AbcCoreAbstract/TimeSamplingType.h>
+#include <Alembic/AbcCoreOgawa/ReadWrite.h>
+#include <Alembic/AbcGeom/ArchiveBounds.h>
 
 #ifdef WIN32
 #  include "BLI_path_util.h"

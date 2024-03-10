@@ -7,8 +7,9 @@
  * \ingroup balembic
  */
 
-#include "abc_customdata.h"
 #include "abc_reader_object.h"
+
+#include <Alembic/AbcGeom/IPoints.h>
 
 namespace blender::io::alembic {
 

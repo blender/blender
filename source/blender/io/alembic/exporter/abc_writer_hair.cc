@@ -9,19 +9,14 @@
 #include "abc_writer_hair.h"
 #include "intern/abc_axis_conversion.h"
 
-#include <cstdio>
-
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.hh"
-#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"

@@ -4,13 +4,7 @@
 #include "abc_writer_abstract.h"
 #include "abc_hierarchy_iterator.h"
 
-#include "BKE_animsys.h"
-#include "BKE_key.hh"
 #include "BKE_object.hh"
-
-#include "DNA_modifier_types.h"
-
-#include "DEG_depsgraph.hh"
 
 #include <Alembic/AbcGeom/Visibility.h>
 

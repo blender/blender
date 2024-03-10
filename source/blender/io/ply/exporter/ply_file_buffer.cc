@@ -8,7 +8,10 @@
 
 #include "ply_file_buffer.hh"
 
+#include "BLI_fileops.hh"
+
 #include <iostream>
+#include <system_error>
 
 namespace blender::io::ply {
 

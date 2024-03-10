@@ -8,14 +8,14 @@
 
 #pragma once
 
-#include "BKE_lib_id.hh"
-
 #include "BLI_utility_mixins.hh"
 
 #include "obj_import_mtl.hh"
 #include "obj_import_objects.hh"
 
+struct Main;
 struct Material;
+struct Object;
 
 namespace blender::io::obj {
 

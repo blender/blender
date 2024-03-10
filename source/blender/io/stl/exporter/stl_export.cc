@@ -11,7 +11,6 @@
 #include <string>
 
 #include "BKE_context.hh"
-#include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
@@ -19,11 +18,11 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
