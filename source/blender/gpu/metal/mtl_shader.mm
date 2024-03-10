@@ -658,15 +658,43 @@ void MTLShader::uniform_int(int location, int comp_len, int array_size, const in
   uint8_t *ptr = (uint8_t *)push_constant_data_;
   ptr += uniform.byte_offset;
 
+  /** Determine size of data to copy. */
+  const char *data_to_copy = (char *)data;
+  uint data_size_to_copy = sizeof(int) * comp_len * array_size;
+
+  /* Special cases for small types support where storage is shader push constant buffer is smaller
+   * than the incoming data. */
+  ushort us;
+  uchar uc;
+  if (uniform.size_in_bytes == 1) {
+    /* Convert integer storage value down to uchar. */
+    data_size_to_copy = uniform.size_in_bytes;
+    uc = *data;
+    data_to_copy = (char *)&uc;
+  }
+  else if (uniform.size_in_bytes == 2) {
+    /* Convert integer storage value down to ushort. */
+    data_size_to_copy = uniform.size_in_bytes;
+    us = *data;
+    data_to_copy = (char *)&us;
+  }
+  else {
+    BLI_assert_msg(
+        (mtl_get_data_type_alignment(uniform.type) % sizeof(int)) == 0,
+        "When uniform inputs are provided as integers, the underlying type must adhere "
+        "to alignment per-component. If this test fails, the input data cannot be directly copied "
+        "to the buffer. e.g. Array of small types uchar/bool/ushort etc; are currently not "
+        "handled.");
+  }
+
   /* Copy data into local block. Only flag UBO as modified if data is different
    * This can avoid re-binding of unmodified local uniform data, reducing
    * the total number of copy operations needed and data transfers between
    * CPU and GPU. */
-  bool data_changed = (memcmp((void *)ptr, (void *)data, sizeof(int) * comp_len * array_size) !=
-                       0);
+  bool data_changed = (memcmp((void *)ptr, (void *)data_to_copy, data_size_to_copy) != 0);
   if (data_changed) {
     this->push_constant_bindstate_mark_dirty(true);
-    memcpy((void *)ptr, (void *)data, sizeof(int) * comp_len * array_size);
+    memcpy((void *)ptr, (void *)data_to_copy, data_size_to_copy);
   }
 }
 
