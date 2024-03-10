@@ -1316,8 +1316,16 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   float cmat[3][3], tmat[3][3];
   float vec[3];
 
+  bArmature *arm = (bArmature*)ob->data;
+  const bool do_custom_transform = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM) &&
+                                   (pchan->custom_tx);
+  if (do_custom_transform) {
+    copy_v3_v3(td->center, pchan->custom_tx->pose_mat[3]);
+  }
+  else {
   copy_v3_v3(vec, pchan->pose_mat[3]);
   copy_v3_v3(td->center, vec);
+  }
 
   td->ob = ob;
   td->flag = TD_SELECTED;

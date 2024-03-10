@@ -104,7 +104,15 @@ bool ED_object_calc_active_center_for_posemode(Object *ob,
 {
   bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
   if (pchan && (!select_only || (pchan->bone->flag & BONE_SELECTED))) {
-    copy_v3_v3(r_center, pchan->pose_head);
+    bArmature *arm = (bArmature *)ob->data;
+    const bool do_custom_transform = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM) &&
+                                     (pchan->custom_tx);
+    if (do_custom_transform) {
+      copy_v3_v3(r_center, pchan->custom_tx->pose_mat[3]);
+    }
+    else {
+      copy_v3_v3(r_center, pchan->pose_head);
+    }
     return true;
   }
   return false;
