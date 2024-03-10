@@ -632,7 +632,7 @@ static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attribute
 
     const int index = socket->index();
     bke::SocketValueVariant &value_variant = *output_values[index].get<bke::SocketValueVariant>();
-    const fn::GField field = value_variant.extract<fn::GField>();
+    const fn::GField field = value_variant.get<fn::GField>();
 
     const bNodeTreeInterfaceSocket *interface_socket = tree.interface_outputs()[index];
     const bke::AttrDomain domain = bke::AttrDomain(interface_socket->attribute_domain);
@@ -650,7 +650,8 @@ static MultiValueMap<bke::AttrDomain, OutputAttributeInfo> find_output_attribute
  */
 static Vector<OutputAttributeToStore> compute_attributes_to_store(
     const bke::GeometrySet &geometry,
-    const MultiValueMap<bke::AttrDomain, OutputAttributeInfo> &outputs_by_domain)
+    const MultiValueMap<bke::AttrDomain, OutputAttributeInfo> &outputs_by_domain,
+    const bool do_instances)
 {
   Vector<OutputAttributeToStore> attributes_to_store;
   for (const auto component_type : {bke::GeometryComponent::Type::Mesh,
@@ -659,6 +660,9 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
                                     bke::GeometryComponent::Type::Instance})
   {
     if (!geometry.has(component_type)) {
+      continue;
+    }
+    if (!do_instances && component_type == bke::GeometryComponent::Type::Instance) {
       continue;
     }
     const bke::GeometryComponent &component = *geometry.get_component(component_type);
@@ -739,14 +743,15 @@ static void store_computed_output_attributes(
 static void store_output_attributes(bke::GeometrySet &geometry,
                                     const bNodeTree &tree,
                                     const IDProperty *properties,
-                                    Span<GMutablePointer> output_values)
+                                    Span<GMutablePointer> output_values,
+                                    const bool do_instances)
 {
   /* All new attribute values have to be computed before the geometry is actually changed. This is
    * necessary because some fields might depend on attributes that are overwritten. */
   MultiValueMap<bke::AttrDomain, OutputAttributeInfo> outputs_by_domain =
       find_output_attributes_to_store(tree, properties, output_values);
   Vector<OutputAttributeToStore> attributes_to_store = compute_attributes_to_store(
-      geometry, outputs_by_domain);
+      geometry, outputs_by_domain, do_instances);
   store_computed_output_attributes(geometry, attributes_to_store);
 }
 
@@ -843,7 +848,11 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
   }
 
   bke::GeometrySet output_geometry = std::move(*param_outputs[0].get<bke::GeometrySet>());
-  store_output_attributes(output_geometry, btree, properties, param_outputs);
+  output_geometry.modify_geometry_sets([&](bke::GeometrySet &geometry) {
+    /* Instance attributes should only be created for the top-level geometry. */
+    const bool do_instances = &output_geometry == &geometry;
+    store_output_attributes(geometry, btree, properties, param_outputs, do_instances);
+  });
 
   for (const int i : IndexRange(num_outputs)) {
     if (param_set_outputs[i]) {
