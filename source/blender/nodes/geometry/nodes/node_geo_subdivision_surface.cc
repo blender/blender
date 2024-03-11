@@ -206,7 +206,9 @@ static void node_rna(StructRNA *srna)
                     "Controls how smoothing is applied to UVs",
                     rna_enum_subdivision_uv_smooth_items,
                     NOD_storage_enum_accessors(uv_smooth),
-                    SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES);
+                    SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES,
+                    nullptr,
+                    true);
 
   RNA_def_node_enum(srna,
                     "boundary_smooth",
@@ -214,7 +216,9 @@ static void node_rna(StructRNA *srna)
                     "Controls how open boundaries are smoothed",
                     rna_enum_subdivision_boundary_smooth_items,
                     NOD_storage_enum_accessors(boundary_smooth),
-                    SUBSURF_BOUNDARY_SMOOTH_ALL);
+                    SUBSURF_BOUNDARY_SMOOTH_ALL,
+                    nullptr,
+                    true);
 }
 
 static void node_register()

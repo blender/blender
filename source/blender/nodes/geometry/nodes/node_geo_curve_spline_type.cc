@@ -93,7 +93,9 @@ static void node_rna(StructRNA *srna)
                     "The curve type to change the selected curves to",
                     rna_enum_curves_type_items,
                     NOD_storage_enum_accessors(spline_type),
-                    CURVE_TYPE_POLY);
+                    CURVE_TYPE_POLY,
+                    nullptr,
+                    true);
 }
 
 static void node_register()
