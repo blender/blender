@@ -447,9 +447,10 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   SnapData_Mesh nearest2d(sctx, mesh_eval, obmat);
 
   if (ob_eval->data == mesh_eval) {
-    const Bounds<float3> bounds = *mesh_eval->bounds_min_max();
-    if (!nearest2d.snap_boundbox(bounds.min, bounds.max)) {
-      return SCE_SNAP_TO_NONE;
+    if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
+      if (!nearest2d.snap_boundbox(bounds->min, bounds->max)) {
+        return SCE_SNAP_TO_NONE;
+      }
     }
   }
 
