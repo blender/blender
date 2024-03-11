@@ -3795,7 +3795,7 @@ static int dash_modifier_segment_add_exec(bContext *C, wmOperator *op)
   MEM_SAFE_FREE(dmd->segments_array);
   dmd->segments_array = new_segments;
   dmd->segments_num++;
-  dmd->segment_active_index++;
+  dmd->segment_active_index = new_active_index;
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY | ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
