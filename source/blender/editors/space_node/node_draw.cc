@@ -699,6 +699,9 @@ static void node_update_panel_items_visibility_recursive(int num_items,
 
       node_update_panel_items_visibility_recursive(
           item.panel_decl->num_child_decls, is_collapsed, *item.state, state);
+      if (item.panel_decl->draw_buttons) {
+        item.state->flag |= NODE_PANEL_CONTENT_VISIBLE;
+      }
       if (item.state->flag & NODE_PANEL_CONTENT_VISIBLE) {
         /* If child panel is visible so is the parent panel. */
         parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
