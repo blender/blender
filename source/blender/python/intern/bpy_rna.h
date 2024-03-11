@@ -96,6 +96,16 @@ extern PyTypeObject pyrna_func_Type;
   } \
   (void)0
 
+#define PYRNA_STRUCT_CHECK_OBJ_UNLESS(obj, unless) \
+  { \
+    const BPy_StructRNA *_obj = obj; \
+    if (UNLIKELY(pyrna_struct_validity_check_only(_obj) == -1) && !(unless)) { \
+      pyrna_struct_validity_exception_only(_obj); \
+      return NULL; \
+    } \
+  } \
+  (void)0
+
 #define PYRNA_STRUCT_IS_VALID(pysrna) (LIKELY(((BPy_StructRNA *)(pysrna))->ptr.type != NULL))
 #define PYRNA_PROP_IS_VALID(pysrna) (LIKELY(((BPy_PropertyRNA *)(pysrna))->ptr.type != NULL))
 
@@ -256,8 +266,12 @@ bool pyrna_write_check(void);
 void pyrna_write_set(bool val);
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self);
-int pyrna_struct_validity_check(BPy_StructRNA *pysrna);
-int pyrna_prop_validity_check(BPy_PropertyRNA *self);
+
+int pyrna_struct_validity_check_only(const BPy_StructRNA *pysrna);
+void pyrna_struct_validity_exception_only(const BPy_StructRNA *pysrna);
+int pyrna_struct_validity_check(const BPy_StructRNA *pysrna);
+
+int pyrna_prop_validity_check(const BPy_PropertyRNA *self);
 
 /* bpy.utils.(un)register_class */
 extern PyMethodDef meth_bpy_register_class;
