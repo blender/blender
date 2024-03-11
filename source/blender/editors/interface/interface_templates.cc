@@ -1206,6 +1206,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                                       StructRNA *type,
                                       const char *const newop,
                                       const bool editable,
+                                      const bool id_open,
                                       const bool use_tab_but,
                                       int but_height)
 {
@@ -1253,8 +1254,11 @@ static uiBut *template_id_def_new_but(uiBlock *block,
   const char *button_text = (id) ? "" : CTX_IFACE_(template_id_context(type), "New");
   const int icon = (id && !use_tab_but) ? ICON_DUPLICATE : ICON_ADD;
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-  const int w = id ? UI_UNIT_X :
-                     UI_fontstyle_string_width(fstyle, button_text) + (UI_UNIT_X * 1.5);
+
+  int w = id ? UI_UNIT_X : id_open ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
+  if (!id) {
+    w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int((UI_UNIT_X * 1.5f)), w);
+  }
 
   if (newop) {
     but = uiDefIconTextButO(block,
@@ -1510,7 +1514,8 @@ static void template_ID(const bContext *C,
   }
 
   if ((flag & UI_ID_ADD_NEW) && (hide_buttons == false)) {
-    template_id_def_new_but(block, id, template_ui, type, newop, editable, false, UI_UNIT_X);
+    template_id_def_new_but(
+        block, id, template_ui, type, newop, editable, flag & UI_ID_OPEN, false, UI_UNIT_X);
   }
 
   /* Due to space limit in UI - skip the "open" icon for packed data, and allow to unpack.
@@ -1534,8 +1539,11 @@ static void template_ID(const bContext *C,
   else if (flag & UI_ID_OPEN) {
     const char *button_text = (id) ? "" : IFACE_("Open");
     const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-    const int w = id ? UI_UNIT_X :
-                       UI_fontstyle_string_width(fstyle, button_text) + (UI_UNIT_X * 1.5);
+
+    int w = id ? UI_UNIT_X : (flag & UI_ID_ADD_NEW) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
+    if (!id) {
+      w = std::max(UI_fontstyle_string_width(fstyle, button_text) + int((UI_UNIT_X * 1.5f)), w);
+    }
 
     if (openop) {
       but = uiDefIconTextButO(block,
@@ -1702,6 +1710,7 @@ static void template_ID_tabs(const bContext *C,
                                   type,
                                   newop,
                                   editable,
+                                  flag & UI_ID_OPEN,
                                   true,
                                   but_height);
     UI_but_drawflag_enable(but, but_align);
