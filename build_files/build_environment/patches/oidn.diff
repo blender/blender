@@ -52,3 +52,24 @@ diff -Naur oidn-2.2.0/devices/CMakeLists.txt external_openimagedenoise/devices/C
      BUILD_ALWAYS TRUE
      DEPENDS
        OpenImageDenoise_core
+diff --git a/devices/hip/hip_device.cpp b/devices/hip/hip_device.cpp
+index ae14ced..a49e131 100644
+--- a/devices/hip/hip_device.cpp
++++ b/devices/hip/hip_device.cpp
+@@ -93,10 +93,16 @@ OIDN_NAMESPACE_BEGIN
+   {
+     const std::string name = getArchName(prop);
+ 
++    // BLENDER: this comment is meant to generate a merge conflict if the code
++    // here changes, so we know that hipSupportsDeviceOIDN should be updated.
+     if (name == "gfx1030")
+       return HIPArch::DL;
++    // BLENDER: this comment is meant to generate a merge conflict if the code
++    // here changes, so we know that hipSupportsDeviceOIDN should be updated.
+     if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102")
+       return HIPArch::WMMA;
++    // BLENDER: this comment is meant to generate a merge conflict if the code
++    // here changes, so we know that hipSupportsDeviceOIDN should be updated.
+     else
+       return HIPArch::Unknown;
+   }

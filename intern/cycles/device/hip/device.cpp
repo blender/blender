@@ -184,7 +184,9 @@ void device_hip_info(vector<DeviceInfo> &devices)
 
     info.denoisers = 0;
 #  if defined(WITH_OPENIMAGEDENOISE)
-    if (OIDNDenoiserGPU::is_device_supported(info)) {
+    /* Check first if OIDN supports it, not doing so can crash the HIP driver with
+     * "hipErrorNoBinaryForGpu: Unable to find code object for all current devices". */
+    if (hipSupportsDeviceOIDN(num) && OIDNDenoiserGPU::is_device_supported(info)) {
       info.denoisers |= DENOISER_OPENIMAGEDENOISE;
     }
 #  endif

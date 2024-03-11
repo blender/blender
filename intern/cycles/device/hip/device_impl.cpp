@@ -227,19 +227,11 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   int major, minor;
   hipDeviceGetAttribute(&major, hipDeviceAttributeComputeCapabilityMajor, hipDevId);
   hipDeviceGetAttribute(&minor, hipDeviceAttributeComputeCapabilityMinor, hipDevId);
-  hipDeviceProp_t props;
-  hipGetDeviceProperties(&props, hipDevId);
-
-  /* gcnArchName can contain tokens after the arch name with features, ie.
-   * `gfx1010:sramecc-:xnack-` so we tokenize it to get the first part. */
-  char *arch = strtok(props.gcnArchName, ":");
-  if (arch == NULL) {
-    arch = props.gcnArchName;
-  }
+  const std::string arch = hipDeviceArch(hipDevId);
 
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
-    const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, arch));
+    const string fatbin = path_get(string_printf("lib/%s_%s.fatbin", name, arch.c_str()));
     VLOG_INFO << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
       VLOG_INFO << "Using precompiled kernel.";
@@ -267,10 +259,11 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
 #  ifndef NDEBUG
   options.append(" -save-temps");
 #  endif
-  options.append(" --amdgpu-target=").append(arch);
+  options.append(" --amdgpu-target=").append(arch.c_str());
 
   const string include_path = source_path;
-  const string fatbin_file = string_printf("cycles_%s_%s_%s", name, arch, kernel_md5.c_str());
+  const string fatbin_file = string_printf(
+      "cycles_%s_%s_%s", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
   VLOG_INFO << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
