@@ -427,12 +427,14 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
       do_restore = false;
     }
 
-    if (self->ctx_init.region_is_set || is_container_set) {
-      CTX_wm_region_set(C, self->ctx_init.region);
-      is_container_set = true;
-    }
-    else if (self->ctx_temp.region_is_set) {
-      is_container_set = true;
+    if (do_restore) {
+      if (self->ctx_init.region_is_set || is_container_set) {
+        CTX_wm_region_set(C, self->ctx_init.region);
+        is_container_set = true;
+      }
+      else if (self->ctx_temp.region_is_set) {
+        is_container_set = true;
+      }
     }
   }
   UNUSED_VARS(is_container_set);
