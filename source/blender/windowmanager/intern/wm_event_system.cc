@@ -1978,7 +1978,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
     }
   }
 
-  if ((flag & OPTYPE_DEPENDS_ON_CURSOR) == 0) {
+  if (!WM_operator_depends_on_cursor(*C, *ot, properties)) {
     WM_operator_name_call_ptr(C, ot, opcontext, properties, event);
     return;
   }

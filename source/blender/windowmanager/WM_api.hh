@@ -1190,6 +1190,9 @@ std::string WM_operatortype_description_or_name(bContext *C,
                                                 wmOperatorType *ot,
                                                 PointerRNA *properties);
 
+/** Check the #OPTYPE_DEPENDS_ON_CURSOR flag and the callback. */
+bool WM_operator_depends_on_cursor(bContext &C, wmOperatorType &ot, PointerRNA *properties);
+
 /* `wm_operator_utils.cc` */
 
 /**
