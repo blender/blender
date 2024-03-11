@@ -2488,14 +2488,17 @@ bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node)
 {
   ntree->ensure_topology_cache();
   BLI_assert(node_tree_runtime::topology_cache_is_available(*ntree));
-  BLI_assert(!ntree->has_available_link_cycle());
 
   const bNode *iter_node = node;
-  if (!iter_node->is_reroute()) {
-    return false;
-  }
-
+  Set<const bNode *> visited_nodes;
   while (true) {
+    if (!iter_node->is_reroute()) {
+      return false;
+    }
+    if (!visited_nodes.add(iter_node)) {
+      /* Treat cycle of reroute as dangling reroute branch. */
+      return true;
+    }
     const Span<const bNodeLink *> links = iter_node->input_socket(0).directly_linked_links();
     BLI_assert(links.size() <= 1);
     if (links.is_empty()) {
@@ -2509,9 +2512,6 @@ bool nodeIsDanglingReroute(const bNodeTree *ntree, const bNode *node)
       return false;
     }
     iter_node = link.fromnode;
-    if (!iter_node->is_reroute()) {
-      return false;
-    }
   }
 }
 
