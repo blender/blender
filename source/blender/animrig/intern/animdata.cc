@@ -6,6 +6,7 @@
  * \ingroup animrig
  */
 
+#include "ANIM_animation.hh"
 #include "ANIM_animdata.hh"
 
 #include "BKE_action.h"
@@ -172,6 +173,48 @@ void reevaluate_fcurve_errors(bAnimContext *ac)
   if (filtering_enabled) {
     ac->ads->filterflag |= ADS_FILTER_ONLY_ERRORS;
   }
+}
+
+const FCurve *fcurve_find_by_rna_path(const Animation &anim,
+                                      const ID &animated_id,
+                                      const StringRefNull rna_path,
+                                      const int array_index)
+{
+  const Binding *binding = anim.binding_for_id(animated_id);
+  if (!binding) {
+    /* No need to inspect anything if this ID does not have an animation Binding. */
+    return nullptr;
+  }
+
+  /* Iterate the layers top-down, as higher-up animation overrides (or at least can override)
+   * lower-down animation. */
+  for (int layer_idx = anim.layer_array_num - 1; layer_idx >= 0; layer_idx--) {
+    const Layer *layer = anim.layer(layer_idx);
+
+    /* TODO: refactor this into something nicer once we have different strip types. */
+    for (const Strip *strip : layer->strips()) {
+      switch (strip->type()) {
+        case Strip::Type::Keyframe: {
+          const KeyframeStrip &key_strip = strip->as<KeyframeStrip>();
+          const ChannelBag *channelbag_for_binding = key_strip.channelbag_for_binding(*binding);
+          if (!channelbag_for_binding) {
+            continue;
+          }
+          const FCurve *fcu = channelbag_for_binding->fcurve_find(rna_path, array_index);
+          if (!fcu) {
+            continue;
+          }
+
+          /* This code assumes that there is only one strip, and that it's infinite. When that
+           * changes, this code needs to be expanded to check for strip boundaries. */
+          return fcu;
+        }
+      }
+      /* Explicit lack of 'default' clause, to get compiler warnings when strip types are added. */
+    }
+  }
+
+  return nullptr;
 }
 
 }  // namespace blender::animrig

@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 struct ID;
 struct Main;
 
@@ -19,6 +21,8 @@ struct FCurve;
 struct bAction;
 
 namespace blender::animrig {
+
+class Animation;
 
 /**
  * Get (or add relevant data to be able to do so) the Active Action for the given
@@ -43,5 +47,28 @@ void reevaluate_fcurve_errors(bAnimContext *ac);
  * come from a NLA Strip being tweaked.
  */
 bool animdata_remove_empty_action(AnimData *adt);
+
+/**
+ * Compatibility helper function for `BKE_animadata_fcurve_find_by_rna_path()`.
+ *
+ * Searches each layer (top to bottom) to find an FCurve that matches the given
+ * RNA path & index.
+ *
+ * \see BKE_animadata_fcurve_find_by_rna_path
+ *
+ * \note The returned FCurve should NOT be used for keyframe manipulation. Its
+ * existence is an indicator for "this property is animated".
+ *
+ * This function should probably be limited to the active layer (for the given
+ * property, once pinning to layers is there), so that the "this is keyed" color
+ * is more accurate.
+ *
+ * Again, this is just to hook up the new Animation data-block to the old
+ * Blender UI code.
+ */
+const FCurve *fcurve_find_by_rna_path(const Animation &anim,
+                                      const ID &animated_id,
+                                      StringRefNull rna_path,
+                                      int array_index);
 
 }  // namespace blender::animrig
