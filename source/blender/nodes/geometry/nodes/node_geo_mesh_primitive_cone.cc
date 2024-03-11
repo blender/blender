@@ -148,7 +148,9 @@ static void node_rna(StructRNA *srna)
                     "",
                     rna_enum_node_geometry_mesh_circle_fill_type_items,
                     NOD_storage_enum_accessors(fill_type),
-                    GEO_NODE_MESH_CIRCLE_FILL_NGON);
+                    GEO_NODE_MESH_CIRCLE_FILL_NGON,
+                    nullptr,
+                    true);
 }
 
 static void node_register()
