@@ -107,7 +107,7 @@ void export_frame(Depsgraph *depsgraph,
     mul_m4_m3m4(xform, axes_transform, obj_eval->object_to_world().ptr());
     /* mul_m4_m3m4 does not transform last row of obmat, i.e. location data. */
     mul_v3_m3v3(xform[3], axes_transform, obj_eval->object_to_world().location());
-    xform[3][3] = obj_eval->object_to_world().location()[3];
+    xform[3][3] = obj_eval->object_to_world()[3][3];
 
     /* Write triangles. */
     const Span<float3> positions = mesh->vert_positions();
