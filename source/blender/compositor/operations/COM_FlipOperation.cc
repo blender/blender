@@ -17,7 +17,7 @@ FlipOperation::FlipOperation()
 }
 
 void FlipOperation::get_area_of_interest(const int input_idx,
-                                         const rcti &/*output_area*/,
+                                         const rcti & /*output_area*/,
                                          rcti &r_input_area)
 {
   BLI_assert(input_idx == 0);
