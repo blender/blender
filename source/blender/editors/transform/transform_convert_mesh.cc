@@ -2438,7 +2438,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           return 1;
         }
 
-        if (e_prev && this->fdata[0].f || this->fdata[1].f) {
+        if (e_prev && (this->fdata[0].f || this->fdata[1].f)) {
           /* Find the best direction checking the edges that share faces between them. */
           int best_dir = -1;
           const BMLoop *l_edge = l_src->next->v == v_dst ? l_src : l_src->prev;
