@@ -16,6 +16,18 @@ FlipOperation::FlipOperation()
   flags_.can_be_constant = true;
 }
 
+void FlipOperation::get_area_of_interest(const int input_idx,
+                                         const rcti &/*output_area*/,
+                                         rcti &r_input_area)
+{
+  BLI_assert(input_idx == 0);
+  UNUSED_VARS_NDEBUG(input_idx);
+
+  /* The full input image should be flipped to avoid cropping effects caused by previous scaling or
+   * translating, or a smaller output area. */
+  r_input_area = get_canvas();
+}
+
 void FlipOperation::update_memory_buffer_partial(MemoryBuffer *output,
                                                  const rcti &area,
                                                  Span<MemoryBuffer *> inputs)
