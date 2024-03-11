@@ -375,7 +375,14 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
         is_container_set = true;
       }
       else if (self->ctx_temp.win_is_set) {
-        is_container_set = true;
+        if (self->ctx_init.win == CTX_wm_window(C)) {
+          is_container_set = true;
+        }
+        else {
+          /* If the context changed, it's incorrect to attempt to restored nested members,
+           * in this case leave the context as-is, see: #119202. */
+          do_restore = false;
+        }
       }
     }
   }
@@ -393,7 +400,12 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
         is_container_set = true;
       }
       else if (self->ctx_temp.screen_is_set) {
-        is_container_set = true;
+        if (self->ctx_init.screen == CTX_wm_screen(C)) {
+          is_container_set = true;
+        }
+        else {
+          do_restore = false;
+        }
       }
     }
   }
@@ -413,7 +425,12 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
         is_container_set = true;
       }
       else if (self->ctx_temp.area_is_set) {
-        is_container_set = true;
+        if (self->ctx_init.area == CTX_wm_area(C)) {
+          is_container_set = true;
+        }
+        else {
+          do_restore = false;
+        }
       }
     }
   }
@@ -432,12 +449,18 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
         CTX_wm_region_set(C, self->ctx_init.region);
         is_container_set = true;
       }
-      else if (self->ctx_temp.region_is_set) {
-        is_container_set = true;
+      /* Enable is there is ever data nested within the region.  */
+      else if (false && self->ctx_temp.region_is_set) {
+        if (self->ctx_init.region == CTX_wm_region(C)) {
+          is_container_set = true;
+        }
+        else {
+          do_restore = false;
+        }
       }
     }
   }
-  UNUSED_VARS(is_container_set);
+  UNUSED_VARS(is_container_set, do_restore);
 
   /* Finished restoring the context. */
 
