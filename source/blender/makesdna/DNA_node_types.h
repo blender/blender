@@ -2546,6 +2546,7 @@ typedef enum CMPNodeGlareType {
   CMP_NODE_GLARE_FOG_GLOW = 1,
   CMP_NODE_GLARE_STREAKS = 2,
   CMP_NODE_GLARE_GHOST = 3,
+  CMP_NODE_GLARE_BLOOM = 4,
 } CMPNodeGlareType;
 
 /* Kuwahara Node. Stored in variation */

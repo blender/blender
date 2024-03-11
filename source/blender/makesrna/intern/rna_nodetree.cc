@@ -7333,6 +7333,7 @@ static void def_cmp_glare(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem type_items[] = {
+      {CMP_NODE_GLARE_BLOOM, "BLOOM", 0, "Bloom", ""},
       {CMP_NODE_GLARE_GHOST, "GHOSTS", 0, "Ghosts", ""},
       {CMP_NODE_GLARE_STREAKS, "STREAKS", 0, "Streaks", ""},
       {CMP_NODE_GLARE_FOG_GLOW, "FOG_GLOW", 0, "Fog Glow", ""},
