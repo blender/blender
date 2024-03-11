@@ -904,81 +904,6 @@ class DupliOffsetFromObject(Operator):
         return {'FINISHED'}
 
 
-class LoadImageAsEmpty:
-    bl_options = {'REGISTER', 'UNDO'}
-
-    filepath: StringProperty(
-        subtype='FILE_PATH'
-    )
-
-    filter_image: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_movie: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-    filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
-
-    view_align: BoolProperty(
-        name="Align to View",
-        default=True,
-    )
-
-    @classmethod
-    def poll(cls, context):
-        return context.mode == 'OBJECT'
-
-    def invoke(self, context, _event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-    def execute(self, context):
-        scene = context.scene
-        cursor = scene.cursor.location
-
-        try:
-            image = bpy.data.images.load(self.filepath, check_existing=True)
-        except RuntimeError as ex:
-            self.report({'ERROR'}, str(ex))
-            return {'CANCELLED'}
-
-        bpy.ops.object.empty_add(
-            'INVOKE_REGION_WIN',
-            type='IMAGE',
-            location=cursor,
-            align=('VIEW' if self.view_align else 'WORLD'),
-        )
-
-        view_layer = context.view_layer
-        obj = view_layer.objects.active
-        obj.data = image
-        obj.empty_display_size = 5.0
-        self.set_settings(context, obj)
-        return {'FINISHED'}
-
-    def set_settings(self, context, obj):
-        pass
-
-
-class LoadBackgroundImage(LoadImageAsEmpty, Operator):
-    """Add a reference image into the background behind objects"""
-    bl_idname = "object.load_background_image"
-    bl_label = "Load Background Image"
-
-    def set_settings(self, context, obj):
-        obj.empty_image_depth = 'BACK'
-        obj.empty_image_side = 'FRONT'
-
-        if context.space_data.type == 'VIEW_3D':
-            if not context.space_data.region_3d.is_perspective:
-                obj.show_empty_image_perspective = False
-
-
-class LoadReferenceImage(LoadImageAsEmpty, Operator):
-    """Add a reference image into the scene between objects"""
-    bl_idname = "object.load_reference_image"
-    bl_label = "Load Reference Image"
-
-    def set_settings(self, context, obj):
-        pass
-
-
 class OBJECT_OT_assign_property_defaults(Operator):
     """Assign the current values of custom properties as their defaults, """ \
         """for use as part of the rest pose state in NLA track mixing"""
@@ -1030,8 +955,6 @@ classes = (
     DupliOffsetFromObject,
     IsolateTypeRender,
     JoinUVs,
-    LoadBackgroundImage,
-    LoadReferenceImage,
     MakeDupliFace,
     SelectCamera,
     SelectHierarchy,

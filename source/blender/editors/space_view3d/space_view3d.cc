@@ -969,13 +969,13 @@ static void view3d_dropboxes()
                  WM_drag_free_imported_drag_ID,
                  view3d_geometry_nodes_drop_tooltip);
   WM_dropbox_add(lb,
-                 "VIEW3D_OT_background_image_add",
+                 "VIEW3D_OT_camera_background_image_add",
                  view3d_ima_bg_drop_poll,
                  view3d_id_path_drop_copy,
                  WM_drag_free_imported_drag_ID,
                  nullptr);
   WM_dropbox_add(lb,
-                 "OBJECT_OT_drop_named_image",
+                 "OBJECT_OT_empty_image_add",
                  view3d_ima_empty_drop_poll,
                  view3d_id_path_drop_copy,
                  WM_drag_free_imported_drag_ID,

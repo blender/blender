@@ -307,7 +307,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
         use_multiview = context.scene.render.use_multiview
 
         col = layout.column()
-        col.operator("view3d.background_image_add", text="Add Image")
+        col.operator("view3d.camera_background_image_add", text="Add Image")
 
         for i, bg in enumerate(cam.background_images):
             layout.active = cam.show_background_images
@@ -331,7 +331,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                 icon='RESTRICT_VIEW_OFF' if bg.show_background_image else 'RESTRICT_VIEW_ON',
             )
 
-            row.operator("view3d.background_image_remove", text="", emboss=False, icon='X').index = i
+            row.operator("view3d.camera_background_image_remove", text="", emboss=False, icon='X').index = i
 
             if bg.show_expanded:
                 row = box.row()
