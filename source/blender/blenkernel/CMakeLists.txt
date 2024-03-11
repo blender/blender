@@ -198,7 +198,6 @@ set(SRC
   intern/mball.cc
   intern/mball_tessellate.cc
   intern/mesh.cc
-  intern/mesh_boolean_convert.cc
   intern/mesh_calc_edges.cc
   intern/mesh_compare.cc
   intern/mesh_convert.cc
@@ -446,7 +445,6 @@ set(SRC
   BKE_mball_tessellate.hh
   BKE_mesh.h
   BKE_mesh.hh
-  BKE_mesh_boolean_convert.hh
   BKE_mesh_compare.hh
   BKE_mesh_fair.hh
   BKE_mesh_iterators.hh
@@ -819,14 +817,6 @@ if(WITH_TBB)
 
   list(APPEND LIB
     ${TBB_LIBRARIES}
-  )
-endif()
-
-if(WITH_GMP)
-  add_definitions(-DWITH_GMP)
-
-  list(APPEND INC_SYS
-    ${GMP_INCLUDE_DIRS}
   )
 endif()
 
