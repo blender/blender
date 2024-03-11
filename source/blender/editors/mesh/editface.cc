@@ -79,11 +79,11 @@ void paintface_flush_flags(bContext *C,
   bke::AttributeAccessor attributes_me = mesh->attributes();
   Mesh *me_orig = (Mesh *)ob_eval->runtime->data_orig;
   bke::MutableAttributeAccessor attributes_orig = me_orig->attributes_for_write();
-  Mesh *me_eval = (Mesh *)ob_eval->runtime->data_eval;
-  bke::MutableAttributeAccessor attributes_eval = me_eval->attributes_for_write();
+  Mesh *mesh_eval = (Mesh *)ob_eval->runtime->data_eval;
+  bke::MutableAttributeAccessor attributes_eval = mesh_eval->attributes_for_write();
   bool updated = false;
 
-  if (me_orig != nullptr && me_eval != nullptr && me_orig->faces_num == mesh->faces_num) {
+  if (me_orig != nullptr && mesh_eval != nullptr && me_orig->faces_num == mesh->faces_num) {
     /* Update the evaluated copy of the mesh. */
     if (flush_hidden) {
       const VArray<bool> hide_poly_me = *attributes_me.lookup_or_default<bool>(
@@ -105,14 +105,14 @@ void paintface_flush_flags(bContext *C,
     }
 
     /* Mesh faces => Final derived faces */
-    if ((index_array = (const int *)CustomData_get_layer(&me_eval->face_data, CD_ORIGINDEX))) {
+    if ((index_array = (const int *)CustomData_get_layer(&mesh_eval->face_data, CD_ORIGINDEX))) {
       if (flush_hidden) {
         const VArray<bool> hide_poly_orig = *attributes_orig.lookup_or_default<bool>(
             ".hide_poly", bke::AttrDomain::Face, false);
         bke::SpanAttributeWriter<bool> hide_poly_eval =
             attributes_eval.lookup_or_add_for_write_only_span<bool>(".hide_poly",
                                                                     bke::AttrDomain::Face);
-        for (const int i : IndexRange(me_eval->faces_num)) {
+        for (const int i : IndexRange(mesh_eval->faces_num)) {
           const int orig_face_index = index_array[i];
           if (orig_face_index != ORIGINDEX_NONE) {
             hide_poly_eval.span[i] = hide_poly_orig[orig_face_index];
@@ -126,7 +126,7 @@ void paintface_flush_flags(bContext *C,
         bke::SpanAttributeWriter<bool> select_poly_eval =
             attributes_eval.lookup_or_add_for_write_only_span<bool>(".select_poly",
                                                                     bke::AttrDomain::Face);
-        for (const int i : IndexRange(me_eval->faces_num)) {
+        for (const int i : IndexRange(mesh_eval->faces_num)) {
           const int orig_face_index = index_array[i];
           if (orig_face_index != ORIGINDEX_NONE) {
             select_poly_eval.span[i] = select_poly_orig[orig_face_index];
@@ -141,10 +141,10 @@ void paintface_flush_flags(bContext *C,
 
   if (updated) {
     if (flush_hidden) {
-      BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag(mesh_eval, BKE_MESH_BATCH_DIRTY_ALL);
     }
     else {
-      BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_SELECT_PAINT);
+      BKE_mesh_batch_cache_dirty_tag(mesh_eval, BKE_MESH_BATCH_DIRTY_SELECT_PAINT);
     }
 
     DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
@@ -823,7 +823,7 @@ void paintvert_flush_flags(Object *ob)
 {
   using namespace blender;
   Mesh *mesh = BKE_mesh_from_object(ob);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
+  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
   if (mesh == nullptr) {
     return;
   }
@@ -832,14 +832,14 @@ void paintvert_flush_flags(Object *ob)
    * since this could become slow for realtime updates (circle-select for eg) */
   bke::mesh_select_vert_flush(*mesh);
 
-  if (me_eval == nullptr) {
+  if (mesh_eval == nullptr) {
     return;
   }
 
   const bke::AttributeAccessor attributes_orig = mesh->attributes();
-  bke::MutableAttributeAccessor attributes_eval = me_eval->attributes_for_write();
+  bke::MutableAttributeAccessor attributes_eval = mesh_eval->attributes_for_write();
 
-  const int *orig_indices = (const int *)CustomData_get_layer(&me_eval->vert_data, CD_ORIGINDEX);
+  const int *orig_indices = (const int *)CustomData_get_layer(&mesh_eval->vert_data, CD_ORIGINDEX);
 
   const VArray<bool> hide_vert_orig = *attributes_orig.lookup_or_default<bool>(
       ".hide_vert", bke::AttrDomain::Point, false);

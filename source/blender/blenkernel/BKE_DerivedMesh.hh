@@ -210,7 +210,7 @@ void DM_interp_vert_data(const DerivedMesh *source,
                          int count,
                          int dest_index);
 
-void mesh_get_mapped_verts_coords(Mesh *me_eval, blender::MutableSpan<blender::float3> r_cos);
+void mesh_get_mapped_verts_coords(Mesh *mesh_eval, blender::MutableSpan<blender::float3> r_cos);
 
 /**
  * Same as above but won't use render settings.

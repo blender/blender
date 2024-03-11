@@ -2660,21 +2660,21 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
 
   /* Use evaluated data to get mesh with all modifiers on top. */
   Object *ob_eval = (Object *)DEG_get_evaluated_object(depsgraph, ob_mesh);
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  const Span<float3> positions = me_eval->vert_positions();
-  const OffsetIndices faces = me_eval->faces();
-  const Span<int> corner_verts = me_eval->corner_verts();
-  int faces_len = me_eval->faces_num;
+  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  const Span<float3> positions = mesh_eval->vert_positions();
+  const OffsetIndices faces = mesh_eval->faces();
+  const Span<int> corner_verts = mesh_eval->corner_verts();
+  int faces_len = mesh_eval->faces_num;
   char element_name[200];
 
   /* Need at least an edge. */
-  if (me_eval->edges_num < 1) {
+  if (mesh_eval->edges_num < 1) {
     return false;
   }
 
   /* Create matching vertex groups. */
-  BKE_defgroup_copy_list(&gpd->vertex_group_names, &me_eval->vertex_group_names);
-  gpd->vertex_group_active_index = me_eval->vertex_group_active_index;
+  BKE_defgroup_copy_list(&gpd->vertex_group_names, &mesh_eval->vertex_group_names);
+  gpd->vertex_group_active_index = mesh_eval->vertex_group_active_index;
 
   const float default_colors[2][4] = {{0.0f, 0.0f, 0.0f, 1.0f}, {0.7f, 0.7f, 0.7f, 1.0f}};
   /* Lookup existing stroke material on gp object. */
@@ -2700,7 +2700,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
         gpl_fill, scene->r.cfra + frame_offset, GP_GETFRAME_ADD_NEW);
     int i;
 
-    const VArray<int> mesh_material_indices = *me_eval->attributes().lookup_or_default<int>(
+    const VArray<int> mesh_material_indices = *mesh_eval->attributes().lookup_or_default<int>(
         "material_index", AttrDomain::Face, 0);
     for (i = 0; i < faces_len; i++) {
       const IndexRange face = faces[i];
@@ -2727,7 +2727,7 @@ bool BKE_gpencil_convert_mesh(Main *bmain,
       gps_fill->flag |= GP_STROKE_CYCLIC;
 
       /* Create dvert data. */
-      const Span<MDeformVert> dverts = me_eval->deform_verts();
+      const Span<MDeformVert> dverts = mesh_eval->deform_verts();
       if (use_vgroups && !dverts.is_empty()) {
         gps_fill->dvert = (MDeformVert *)MEM_callocN(sizeof(MDeformVert) * face.size(),
                                                      "gp_fill_dverts");

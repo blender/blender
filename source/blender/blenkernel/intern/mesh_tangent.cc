@@ -569,7 +569,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
   }
 }
 
-void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
+void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
                                  bool calc_active_tangent,
                                  const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                  int tangent_names_len)
@@ -577,30 +577,30 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
   /* TODO(@ideasman42): store in Mesh.runtime to avoid recalculation. */
   using namespace blender;
   using namespace blender::bke;
-  const blender::Span<int3> corner_tris = me_eval->corner_tris();
-  const bke::AttributeAccessor attributes = me_eval->attributes();
+  const blender::Span<int3> corner_tris = mesh_eval->corner_tris();
+  const bke::AttributeAccessor attributes = mesh_eval->attributes();
   const VArraySpan sharp_face = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
-      reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),
-      me_eval->faces(),
-      me_eval->corner_verts().data(),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->vert_positions().data()),
+      mesh_eval->faces(),
+      mesh_eval->corner_verts().data(),
       corner_tris.data(),
-      me_eval->corner_tri_faces().data(),
+      mesh_eval->corner_tri_faces().data(),
       uint(corner_tris.size()),
       sharp_face,
-      &me_eval->corner_data,
+      &mesh_eval->corner_data,
       calc_active_tangent,
       tangent_names,
       tangent_names_len,
-      reinterpret_cast<const float(*)[3]>(me_eval->vert_normals().data()),
-      reinterpret_cast<const float(*)[3]>(me_eval->face_normals().data()),
-      reinterpret_cast<const float(*)[3]>(me_eval->corner_normals().data()),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->vert_normals().data()),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->face_normals().data()),
+      reinterpret_cast<const float(*)[3]>(mesh_eval->corner_normals().data()),
       /* may be nullptr */
-      static_cast<const float(*)[3]>(CustomData_get_layer(&me_eval->vert_data, CD_ORCO)),
+      static_cast<const float(*)[3]>(CustomData_get_layer(&mesh_eval->vert_data, CD_ORCO)),
       /* result */
-      &me_eval->corner_data,
-      uint(me_eval->corners_num),
+      &mesh_eval->corner_data,
+      uint(mesh_eval->corners_num),
       &tangent_mask);
 }
 

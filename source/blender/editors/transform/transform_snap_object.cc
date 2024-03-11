@@ -368,7 +368,7 @@ static ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_
 
   switch (ob_eval->type) {
     case OB_MESH: {
-      Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+      Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
       if (BKE_object_is_in_editmode(ob_eval)) {
         if (edit_mode_type == SNAP_GEOM_EDIT) {
           return nullptr;
@@ -384,14 +384,14 @@ static ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_
           if (editmesh_eval->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) {
             return nullptr;
           }
-          me_eval = editmesh_eval;
+          mesh_eval = editmesh_eval;
           use_hide = true;
         }
       }
       if (r_use_hide) {
         *r_use_hide = use_hide;
       }
-      return (ID *)me_eval;
+      return (ID *)mesh_eval;
     }
     default:
       break;

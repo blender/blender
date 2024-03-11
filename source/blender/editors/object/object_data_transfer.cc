@@ -180,28 +180,28 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   else if (data_type == DT_TYPE_UV) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
-    if (!me_eval) {
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
+    if (!mesh_eval) {
       RNA_enum_item_end(&item, &totitem);
       *r_free = true;
       return item;
     }
-    int num_data = CustomData_number_of_layers(&me_eval->corner_data, CD_PROP_FLOAT2);
+    int num_data = CustomData_number_of_layers(&mesh_eval->corner_data, CD_PROP_FLOAT2);
 
     RNA_enum_item_add_separator(&item, &totitem);
 
     for (int i = 0; i < num_data; i++) {
       tmp_item.value = i;
       tmp_item.identifier = tmp_item.name = CustomData_get_layer_name(
-          &me_eval->corner_data, CD_PROP_FLOAT2, i);
+          &mesh_eval->corner_data, CD_PROP_FLOAT2, i);
       RNA_enum_item_add(&item, &totitem, &tmp_item);
     }
   }
   else if (data_type & DT_TYPE_VCOL_ALL) {
     const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
-    const Mesh *me_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
-    if (!me_eval) {
+    const Mesh *mesh_eval = BKE_object_get_evaluated_mesh_no_subsurf(ob_src_eval);
+    if (!mesh_eval) {
       RNA_enum_item_end(&item, &totitem);
       *r_free = true;
       return item;
@@ -223,10 +223,10 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
     }
 
     if (data_type & (DT_TYPE_MLOOPCOL_VERT | DT_TYPE_MPROPCOL_VERT)) {
-      dt_add_vcol_layers(&me_eval->vert_data, cddata_masks.vmask, &item, &totitem);
+      dt_add_vcol_layers(&mesh_eval->vert_data, cddata_masks.vmask, &item, &totitem);
     }
     if (data_type & (DT_TYPE_MLOOPCOL_LOOP | DT_TYPE_MPROPCOL_LOOP)) {
-      dt_add_vcol_layers(&me_eval->corner_data, cddata_masks.lmask, &item, &totitem);
+      dt_add_vcol_layers(&mesh_eval->corner_data, cddata_masks.lmask, &item, &totitem);
     }
   }
 
