@@ -1,6 +1,5 @@
 """
-Using Python Argument Parsing
------------------------------
+**Using Python Argument Parsing**
 
 This example shows how the Python ``argparse`` module can be used with a custom command.
 
