@@ -129,7 +129,10 @@ void VKBackend::delete_resources() {}
 
 void VKBackend::samplers_update()
 {
-  NOT_YET_IMPLEMENTED
+  VKDevice &device = VKBackend::get().device_;
+  if (device.is_initialized()) {
+    device.reinit();
+  }
 }
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)

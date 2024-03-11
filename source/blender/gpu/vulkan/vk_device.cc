@@ -27,6 +27,12 @@ extern "C" char datatoc_glsl_shader_defines_glsl[];
 
 namespace blender::gpu {
 
+void VKDevice::reinit()
+{
+  samplers_.free();
+  samplers_.init();
+}
+
 void VKDevice::deinit()
 {
   VK_ALLOCATION_CALLBACKS
