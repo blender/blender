@@ -537,7 +537,10 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
     Vector<int> &face_indices = all_face_indices.local();
     for (PBVHNode *node : nodes.slice(range)) {
-      const Span<int> faces = bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, face_indices);
+      const Span<int> faces =
+          (BKE_pbvh_type(&pbvh) == PBVH_FACES) ?
+              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, face_indices);
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
             return face_sets[face] != default_face_set;
           }))
