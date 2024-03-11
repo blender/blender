@@ -2425,6 +2425,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
       int find_best_dir(const BMFace *f_curr,
                         const BMLoop *l_src,
                         const BMVert *v_dst,
+                        const BMEdge *e_prev,
                         bool *r_do_isect_curr_dirs) const
       {
         *r_do_isect_curr_dirs = false;
@@ -2437,7 +2438,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           return 1;
         }
 
-        if (this->fdata[0].f || this->fdata[1].f) {
+        if (e_prev && this->fdata[0].f || this->fdata[1].f) {
           /* Find the best direction checking the edges that share faces between them. */
           int best_dir = -1;
           const BMLoop *l_edge = l_src->next->v == v_dst ? l_src : l_src->prev;
@@ -2452,6 +2453,9 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
               break;
             }
             l_other = (l_other->v == this->v ? l_other->prev : l_other->next)->radial_next;
+            if (ELEM(l_other->e, this->e, e_prev)) {
+              break;
+            }
           }
 
           if (best_dir != -1) {
@@ -2550,7 +2554,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           bool isect_curr_dirs = false;
 
           /* Identify the slot to slide according to the directions already computed in `curr`. */
-          int best_dir = curr.find_best_dir(f_curr, l1, v1_dst, &isect_curr_dirs);
+          int best_dir = curr.find_best_dir(f_curr, l1, v1_dst, prev.e, &isect_curr_dirs);
 
           if (curr.fdata[best_dir].f == nullptr) {
             curr.fdata[best_dir].f = f_curr;
