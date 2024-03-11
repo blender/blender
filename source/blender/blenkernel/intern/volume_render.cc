@@ -105,6 +105,14 @@ bool BKE_volume_grid_dense_floats(const Volume *volume,
   if (bbox.empty()) {
     return false;
   }
+  const std::array<int64_t, 6> bbox_indices = {UNPACK3(openvdb::math::Abs(bbox.min())),
+                                               UNPACK3(openvdb::math::Abs(bbox.max()))};
+  const int64_t max_bbox_index = *std::max_element(bbox_indices.begin(), bbox_indices.end());
+  if (max_bbox_index > (1 << 30)) {
+    /* There is an integer overflow when trying to extract dense voxels when the indices are very
+     * large. */
+    return false;
+  }
 
   const openvdb::Vec3i resolution = bbox.dim().asVec3i();
   const int64_t num_voxels = int64_t(resolution[0]) * int64_t(resolution[1]) *
