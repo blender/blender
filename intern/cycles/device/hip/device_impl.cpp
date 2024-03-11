@@ -126,7 +126,9 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
 HIPDevice::~HIPDevice()
 {
   texture_info.free();
-
+  if (hipModule) {
+    hip_assert(hipModuleUnload(hipModule));
+  }
   hip_assert(hipCtxDestroy(hipContext));
 }
 
