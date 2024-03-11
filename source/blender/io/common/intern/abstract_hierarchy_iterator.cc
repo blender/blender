@@ -619,24 +619,33 @@ void AbstractHierarchyIterator::determine_duplication_references(
         /* The original was not found, so mark this instance as "the original". */
         context->mark_as_not_instanced();
         duplisource_export_path_[source_id] = context->export_path;
-      }
-      else {
-        context->mark_as_instance_of(it->second);
-        prototypes_.insert(source_id);
-      }
 
-      if (context->object->data) {
-        ID *source_data_id = (ID *)context->object->data;
-        const ExportPathMap::const_iterator &it = duplisource_export_path_.find(source_data_id);
+        if (context->object->data) {
+          ID* source_data_id = (ID*)context->object->data;
+          const ExportPathMap::const_iterator& it = duplisource_export_path_.find(source_data_id);
 
-        if (it == duplisource_export_path_.end()) {
-          /* The original was not found, so mark this instance as "original". */
-          std::string data_path = get_object_data_path(context);
-          context->mark_as_not_instanced();
-          duplisource_export_path_[source_id] = context->export_path;
-          duplisource_export_path_[source_data_id] = data_path;
+          if (it == duplisource_export_path_.end()) {
+            /* The original data was not found, so mark this instance data as "original". */
+            std::string data_path = get_object_data_path(context);
+            duplisource_export_path_[source_data_id] = data_path;
+          }
         }
       }
+      else {
+        /* Mark this as an instance of the original, but be careful
+         * to handle the case where this instance was previously marked
+         * as "the original", per the logic in the "if" clause above.
+         * I.e., if we are animating and if the instance source_id
+         * was marked as "the original" in a previous frame, then
+         * we should not mark this context as an instance. We can
+         * prevent this from happening by ensuring that we never pass
+         * the context's export path as an argument to mark_as_instance_of(). */
+        if (context->export_path != it->second) {
+          context->mark_as_instance_of(it->second);
+        }
+      }
+
+      prototypes_.insert(source_id);
     }
 
     determine_duplication_references(context, indent + "  ");
