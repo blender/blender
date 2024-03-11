@@ -376,12 +376,27 @@ static GSpan evaluate_attribute(const GVArray &src,
                                 const CurvesGeometry &curves,
                                 Vector<std::byte> &buffer)
 {
-  if (curves.is_single_type(CURVE_TYPE_POLY) && src.is_span()) {
-    return src.get_internal_span();
+  /* Poly curves evaluated points match the curve points, no need to interpolate. */
+  if (curves.is_single_type(CURVE_TYPE_POLY)) {
+    if (src.is_span()) {
+      return src.get_internal_span();
+    }
+    buffer.reinitialize(curves.points_num() * src.type().size());
+    src.materialize(buffer.data());
+    GMutableSpan eval{src.type(), buffer.data(), curves.points_num()};
+    return eval;
   }
+
+  if (src.is_span()) {
+    buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
+    GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
+    curves.interpolate_to_evaluated(src.get_internal_span(), eval);
+    return eval;
+  }
+  GVArraySpan src_buffer(src);
   buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
   GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
-  curves.interpolate_to_evaluated(src.get_internal_span(), eval);
+  curves.interpolate_to_evaluated(src_buffer, eval);
   return eval;
 }
 
@@ -843,6 +858,9 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   Vector<std::byte> eval_buffer;
 
+  /* Make sure curve attributes can be interpolated. */
+  main.ensure_can_interpolate_to_evaluated();
+
   build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
 
   mesh->tag_overlapping_none();
@@ -908,6 +926,9 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
     return true;
   });
+
+  /* Make sure profile attributes can be interpolated. */
+  profile.ensure_can_interpolate_to_evaluated();
 
   const AttributeAccessor profile_attributes = profile.attributes();
   profile_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
