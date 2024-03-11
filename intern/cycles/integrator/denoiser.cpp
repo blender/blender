@@ -48,20 +48,27 @@ unique_ptr<Denoiser> Denoiser::create(Device *path_trace_device, const DenoisePa
 
 DenoiserType Denoiser::automatic_viewport_denoiser_type(const DeviceInfo &path_trace_device_info)
 {
+#ifdef WITH_OPENIMAGEDENOISE
   if (path_trace_device_info.type != DEVICE_CPU &&
       OIDNDenoiserGPU::is_device_supported(path_trace_device_info))
   {
     return DENOISER_OPENIMAGEDENOISE;
   }
-  else if (!Device::available_devices(DEVICE_MASK_OPTIX).empty()) {
+#endif
+
+#ifdef WITH_OPTIX
+  if (!Device::available_devices(DEVICE_MASK_OPTIX).empty()) {
     return DENOISER_OPTIX;
   }
-  else if (openimagedenoise_supported()) {
+#endif
+
+#ifdef WITH_OPENIMAGEDENOISE
+  if (openimagedenoise_supported()) {
     return DENOISER_OPENIMAGEDENOISE;
   }
-  else {
-    return DENOISER_NONE;
-  }
+#endif
+
+  return DENOISER_NONE;
 }
 
 Denoiser::Denoiser(Device *path_trace_device, const DenoiseParams &params)
