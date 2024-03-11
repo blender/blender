@@ -36,6 +36,8 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
         return true;
       }
     }
+
+    return false;
   }
 
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
