@@ -25,7 +25,7 @@
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
 
-#include "GEO_mesh_boolean_convert.hh"
+#include "GEO_mesh_boolean.hh"
 
 namespace blender::meshintersect {
 
