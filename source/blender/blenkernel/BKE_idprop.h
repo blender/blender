@@ -367,6 +367,13 @@ void IDP_ui_data_free_unique_contents(struct IDPropertyUIData *ui_data,
                                       const struct IDPropertyUIData *other);
 struct IDPropertyUIData *IDP_ui_data_ensure(struct IDProperty *prop);
 struct IDPropertyUIData *IDP_ui_data_copy(const struct IDProperty *prop);
+/**
+ * Convert UI data like default arrays from the old type to the new type as possible.
+ * Takes ownership of the input data; it can return it directly if the types match.
+ */
+struct IDPropertyUIData *IDP_TryConvertUIData(struct IDPropertyUIData *src,
+                                              eIDPropertyUIDataType src_type,
+                                              eIDPropertyUIDataType dst_type);
 
 #ifdef __cplusplus
 }
