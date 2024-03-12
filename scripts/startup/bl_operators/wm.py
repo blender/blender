@@ -2723,6 +2723,25 @@ class WM_OT_batch_rename(Operator):
             if id.library is None
         ]))
 
+    @staticmethod
+    def _selected_actions_from_outliner(context):
+        # Actions are a special case because they can be accessed directly or via animation-data.
+        from bpy.types import Action
+
+        def action_from_any_id(id_data):
+            if isinstance(id_data, Action):
+                return id_data
+            # Not all ID's have animation data.
+            if (animation_data := getattr(id_data, "animation_data", None)) is not None:
+                return animation_data.action
+            return None
+
+        return tuple(set(
+            action for id in context.selected_ids
+            if (action := action_from_any_id(id)) is not None
+            if action.library is None
+        ))
+
     @classmethod
     def _data_from_context(cls, context, data_type, only_selected, *, check_context=False):
 
@@ -2866,12 +2885,7 @@ class WM_OT_batch_rename(Operator):
                 data = (
                     (
                         # Outliner.
-                        tuple(set(
-                            action for id in context.selected_ids
-                            if (((animation_data := id.animation_data) is not None) and
-                                ((action := animation_data.action) is not None) and
-                                (action.library is None))
-                        ))
+                        cls._selected_actions_from_outliner(context)
                         if space_type == 'OUTLINER' else
                         # 3D View (default).
                         tuple(set(
