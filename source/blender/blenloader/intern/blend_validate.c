@@ -202,7 +202,7 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
   return is_valid;
 }
 
-void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports*/)
+void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList *UNUSED(reports))
 {
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
