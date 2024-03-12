@@ -2248,16 +2248,14 @@ static ModifierData *create_auto_smooth_modifier(Object &object,
   md->node_group = get_node_group();
 
   md->settings.properties = idprop::create_group("Nodes Modifier Settings").release();
-  IDProperty *angle_prop = idprop::create(DATA_("Socket_1"), angle).release();
+  IDProperty *angle_prop = idprop::create("Socket_1", angle).release();
   auto *ui_data = reinterpret_cast<IDPropertyUIDataFloat *>(IDP_ui_data_ensure(angle_prop));
   ui_data->base.rna_subtype = PROP_ANGLE;
   ui_data->soft_min = 0.0f;
   ui_data->soft_max = DEG2RADF(180.0f);
   IDP_AddToGroup(md->settings.properties, angle_prop);
-  IDP_AddToGroup(md->settings.properties,
-                 idprop::create(DATA_("Input_1_use_attribute"), 0).release());
-  IDP_AddToGroup(md->settings.properties,
-                 idprop::create(DATA_("Input_1_attribute_name"), "").release());
+  IDP_AddToGroup(md->settings.properties, idprop::create("Socket_1_use_attribute", 0).release());
+  IDP_AddToGroup(md->settings.properties, idprop::create("Socket_1_attribute_name", "").release());
 
   BKE_modifiers_persistent_uid_init(object, md->modifier);
   return &md->modifier;
