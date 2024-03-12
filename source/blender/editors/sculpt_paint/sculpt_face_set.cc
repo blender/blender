@@ -1675,13 +1675,15 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
                                                           gesture_data.operation;
   const int new_face_set = face_set_operation->new_face_set_id;
   Object &object = *gesture_data.vc.obact;
+  Mesh &mesh = *static_cast<Mesh *>(object.data);
+  bke::AttributeAccessor attributes = mesh.attributes();
   SculptSession &ss = *gesture_data.ss;
   const PBVH &pbvh = *gesture_data.ss->pbvh;
 
   const Span<float3> positions = ss.vert_positions;
-  const OffsetIndices<int> faces = ss.faces;
-  const Span<int> corner_verts = ss.corner_verts;
-  const bool *hide_poly = ss.hide_poly;
+  const OffsetIndices<int> faces = mesh.faces();
+  const Span<int> corner_verts = mesh.corner_verts();
+  const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
   threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
@@ -1690,7 +1692,7 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
 
       bool any_updated = false;
       for (const int face : BKE_pbvh_node_calc_face_indices(pbvh, *node)) {
-        if (hide_poly && hide_poly[face]) {
+        if (!hide_poly.is_empty() && hide_poly[face]) {
           continue;
         }
         const Span<int> face_verts = corner_verts.slice(faces[face]);
