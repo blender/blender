@@ -19,7 +19,7 @@
 
 namespace blender::compositor {
 
-void upsample(const MemoryBuffer &input, MemoryBuffer &output)
+static void upsample(const MemoryBuffer &input, MemoryBuffer &output)
 {
   const int2 output_size = int2(output.get_width(), output.get_height());
 
