@@ -7654,6 +7654,12 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
       pyrna = (BPy_StructRNA *)PyObject_New(BPy_StructRNA, &pyrna_struct_Type);
 #endif
 
+#ifdef USE_PYRNA_STRUCT_REFERENCE
+      /* #PyType_GenericAlloc will have set tracking.
+       * We only want tracking when `StructRNA.reference` has been set. */
+      PyObject_GC_UnTrack(pyrna);
+#endif
+
 #ifdef USE_WEAKREFS
       if (pyrna != nullptr) {
         pyrna->in_weakreflist = nullptr;
