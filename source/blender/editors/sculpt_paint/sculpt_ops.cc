@@ -1319,7 +1319,7 @@ void ED_operatortypes_sculpt()
   WM_operatortype_append(face_set::SCULPT_OT_face_set_box_gesture);
   WM_operatortype_append(trim::SCULPT_OT_trim_box_gesture);
   WM_operatortype_append(trim::SCULPT_OT_trim_lasso_gesture);
-  WM_operatortype_append(mask::SCULPT_OT_project_line_gesture);
+  WM_operatortype_append(project::SCULPT_OT_project_line_gesture);
 
   WM_operatortype_append(SCULPT_OT_sample_color);
   WM_operatortype_append(color::SCULPT_OT_color_filter);

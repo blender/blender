@@ -1781,10 +1781,8 @@ void apply(bContext &C, GestureData &gesture_data, wmOperator &op);
 
 }
 
-namespace blender::ed::sculpt_paint::mask {
-
+namespace blender::ed::sculpt_paint::project {
 void SCULPT_OT_project_line_gesture(wmOperatorType *ot);
-
 }
 
 namespace blender::ed::sculpt_paint::trim {
