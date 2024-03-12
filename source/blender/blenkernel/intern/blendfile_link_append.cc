@@ -47,6 +47,7 @@
 #include "BKE_main.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.h"
+#include "BKE_mesh_legacy_convert.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 #include "BKE_rigidbody.h"
@@ -1377,6 +1378,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   blendfile_link_append_proxies_convert(bmain, reports);
+  BKE_main_mesh_legacy_convert_auto_smooth(*bmain);
 }
 
 void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *reports)
