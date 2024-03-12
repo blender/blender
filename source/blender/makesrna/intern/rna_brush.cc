@@ -936,6 +936,18 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  /* gpencil sculpt */
+  static const EnumPropertyItem prop_pinch_items[] = {
+      {0, "ADD", ICON_ADD, "Pinch", "Add effect of brush"},
+      {BRUSH_DIR_IN, "SUBTRACT", ICON_REMOVE, "Inflate", "Subtract effect of brush"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+  static const EnumPropertyItem prop_twist_items[] = {
+      {0, "ADD", ICON_ADD, "Counter-Clockwise", "Add effect of brush"},
+      {BRUSH_DIR_IN, "SUBTRACT", ICON_REMOVE, "Clockwise", "Subtract effect of brush"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   Brush *me = (Brush *)(ptr->data);
 
   switch (mode) {
@@ -996,6 +1008,25 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
         case CURVES_SCULPT_TOOL_GROW_SHRINK:
         case CURVES_SCULPT_TOOL_SELECTION_PAINT:
         case CURVES_SCULPT_TOOL_PINCH:
+          return prop_direction_items;
+        default:
+          return rna_enum_dummy_DEFAULT_items;
+      }
+    case PaintMode::SculptGPencil:
+      switch (me->gpencil_sculpt_tool) {
+        case GPSCULPT_TOOL_THICKNESS:
+        case GPSCULPT_TOOL_STRENGTH:
+          return prop_direction_items;
+        case GPSCULPT_TOOL_TWIST:
+          return prop_twist_items;
+        case GPSCULPT_TOOL_PINCH:
+          return prop_pinch_items;
+        default:
+          return rna_enum_dummy_DEFAULT_items;
+      }
+    case PaintMode::WeightGPencil:
+      switch (me->gpencil_weight_tool) {
+        case GPWEIGHT_TOOL_DRAW:
           return prop_direction_items;
         default:
           return rna_enum_dummy_DEFAULT_items;
@@ -1974,13 +2005,6 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_boolean_default(prop, false);
   RNA_def_property_ui_text(prop, "Outline", "Convert stroke to perimeter");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
-  prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "sculpt_flag");
-  RNA_def_property_enum_items(prop, prop_direction_items);
-  RNA_def_property_ui_text(prop, "Direction", "");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 
   prop = RNA_def_property(srna, "use_edit_position", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(

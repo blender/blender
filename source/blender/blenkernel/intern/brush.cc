@@ -1151,7 +1151,6 @@ void BKE_gpencil_brush_preset_set(Main *bmain, Brush *brush, const short type)
 
       brush->gpencil_settings->draw_strength = 0.3f;
       brush->gpencil_settings->flag |= GP_BRUSH_USE_STRENGTH_PRESSURE;
-      brush->gpencil_settings->sculpt_flag = GP_SCULPT_FLAGMODE_APPLY_THICKNESS;
       brush->gpencil_settings->sculpt_mode_flag |= GP_SCULPT_FLAGMODE_APPLY_POSITION;
 
       break;

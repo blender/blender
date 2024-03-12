@@ -2896,6 +2896,16 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 21)) {
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      /* The `sculpt_flag` was used to store the `BRUSH_DIR_IN`
+       * With the fix for #115313 this is now just using the `brush->flag`.*/
+      if (brush->gpencil_settings && (brush->gpencil_settings->sculpt_flag & BRUSH_DIR_IN) != 0) {
+        brush->flag |= BRUSH_DIR_IN;
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.
