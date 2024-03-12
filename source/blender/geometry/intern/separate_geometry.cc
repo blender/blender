@@ -180,7 +180,7 @@ void separate_geometry(bke::GeometrySet &geometry_set,
     }
   }
   if (const Mesh *mesh = geometry_set.get_mesh()) {
-    if (ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face, AttrDomain::Corner)) {
+    if (ELEM(domain, AttrDomain::Point, AttrDomain::Edge, AttrDomain::Face)) {
       std::optional<Mesh *> dst_mesh = separate_mesh_selection(
           *mesh, selection, domain, mode, propagation_info);
       if (dst_mesh) {
