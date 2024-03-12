@@ -589,6 +589,8 @@ void PaintOperation::process_stroke_end(const bContext &C, bke::greasepencil::Dr
   else if (selection_domain == bke::AttrDomain::Point) {
     ed::curves::fill_selection_false(selection.span.slice(points));
   }
+
+  selection.finish();
 }
 
 void PaintOperation::on_stroke_done(const bContext &C)
