@@ -10,20 +10,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_vec_types.h"
 
 #include "BLI_array_utils.hh"
 #include "BLI_bit_span_ops.hh"
-#include "BLI_bitmap_draw_2d.h"
 #include "BLI_enumerable_thread_specific.hh"
-#include "BLI_lasso_2d.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_rect.h"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -33,16 +26,12 @@
 #include "BKE_ccg.h"
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_multires.hh"
 #include "BKE_paint.hh"
 #include "BKE_pbvh_api.hh"
-#include "BKE_scene.hh"
 #include "BKE_subdiv_ccg.hh"
 #include "BKE_subsurf.hh"
-
-#include "DEG_depsgraph.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -51,14 +40,10 @@
 #include "WM_types.hh"
 
 #include "ED_sculpt.hh"
-#include "ED_view3d.hh"
 
 #include "bmesh.hh"
-#include "tools/bmesh_boolean.hh"
 
 #include "paint_intern.hh"
-
-/* For undo push. */
 #include "sculpt_intern.hh"
 
 namespace blender::ed::sculpt_paint::mask {
