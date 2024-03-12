@@ -2410,7 +2410,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
      *  |   prev.e   |   curr.e   |   next.e   |
      * prev.v ---- curr.v ---- next.v ---- next_next.v
      */
-    struct {
+    struct SlideTempDataMesh {
       int i; /* The #TransDataEdgeSlideVert index. */
       TransDataEdgeSlideVert *sv;
       BMVert *v;
@@ -2421,41 +2421,45 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
         float3 dst;
       } fdata[2];
       bool vert_is_edge_pair;
-
-      int find_best_dir(const BMFace *f_curr,
+      /**
+       * Find the best direction to slide among the ones already computed.
+       *
+       * \param curr_side_other: previous state of the #SlideTempDataMesh where the faces are
+                                 linked to the previous edge.
+       * \param l_src: the source corner in the edge to slide.
+       * \param l_dst: the current destination corner.
+       */
+      int find_best_dir(const SlideTempDataMesh *curr_side_other,
+                        const BMFace *f_curr,
                         const BMLoop *l_src,
                         const BMVert *v_dst,
-                        const BMEdge *e_prev,
                         bool *r_do_isect_curr_dirs) const
       {
         *r_do_isect_curr_dirs = false;
 
-        if (f_curr == this->fdata[0].f || v_dst == this->fdata[0].v_dst) {
+        if (f_curr == curr_side_other->fdata[0].f || v_dst == curr_side_other->fdata[0].v_dst) {
           return 0;
         }
 
-        if (f_curr == this->fdata[1].f || v_dst == this->fdata[1].v_dst) {
+        if (f_curr == curr_side_other->fdata[1].f || v_dst == curr_side_other->fdata[1].v_dst) {
           return 1;
         }
 
-        if (e_prev && (this->fdata[0].f || this->fdata[1].f)) {
+        if (curr_side_other->fdata[0].f || curr_side_other->fdata[1].f) {
           /* Find the best direction checking the edges that share faces between them. */
           int best_dir = -1;
           const BMLoop *l_edge = l_src->next->v == v_dst ? l_src : l_src->prev;
           const BMLoop *l_other = l_edge->radial_next;
           while (l_other != l_edge) {
-            if (l_other->f == this->fdata[0].f) {
+            if (l_other->f == curr_side_other->fdata[0].f) {
               best_dir = 0;
               break;
             }
-            if (l_other->f == this->fdata[1].f) {
+            if (l_other->f == curr_side_other->fdata[1].f) {
               best_dir = 1;
               break;
             }
             l_other = (l_other->v == this->v ? l_other->prev : l_other->next)->radial_next;
-            if (ELEM(l_other->e, this->e, e_prev)) {
-              break;
-            }
           }
 
           if (best_dir != -1) {
@@ -2498,7 +2502,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
         float dot1 = math::dot(dir_curr, dir1);
         return int(dot0 < dot1);
       }
-    } prev = {}, curr = {}, next = {}, next_next = {};
+    } prev = {}, curr = {}, next = {}, next_next = {}, tmp = {};
 
     next.i = td_connected[i_curr][0] != i_prev ? td_connected[i_curr][0] : td_connected[i_curr][1];
     next.sv = &r_sv[next.i];
@@ -2524,6 +2528,8 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           next_next.vert_is_edge_pair = mesh_vert_is_inner(next_next.v);
           next.e = BM_edge_exists(next.v, next_next.v);
         }
+
+        tmp = curr;
 
         BMLoop *l;
         BM_ITER_ELEM (l, &iter, curr.e, BM_LOOPS_OF_EDGE) {
@@ -2554,7 +2560,7 @@ Array<TransDataEdgeSlideVert> transform_mesh_edge_slide_data_create(const TransD
           bool isect_curr_dirs = false;
 
           /* Identify the slot to slide according to the directions already computed in `curr`. */
-          int best_dir = curr.find_best_dir(f_curr, l1, v1_dst, prev.e, &isect_curr_dirs);
+          int best_dir = curr.find_best_dir(&tmp, f_curr, l1, v1_dst, &isect_curr_dirs);
 
           if (curr.fdata[best_dir].f == nullptr) {
             curr.fdata[best_dir].f = f_curr;
