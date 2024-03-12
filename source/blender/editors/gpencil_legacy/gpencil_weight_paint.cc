@@ -796,7 +796,7 @@ static bool gpencil_weightpaint_brush_init(bContext *C, wmOperator *op)
   }
 
   /* Draw tool: add or subtract weight? */
-  gso->subtract = (gso->brush->gpencil_settings->sculpt_flag & BRUSH_DIR_IN);
+  gso->subtract = (gso->brush->flag & BRUSH_DIR_IN);
 
   /* Setup auto-normalize. */
   gso->auto_normalize = (ts->auto_normalize && gso->vrgroup != -1);
@@ -1521,7 +1521,7 @@ static int gpencil_weight_toggle_direction_invoke(bContext *C,
   Paint *paint = &ts->gp_weightpaint->paint;
 
   /* Toggle Add/Subtract flag. */
-  paint->brush->gpencil_settings->sculpt_flag ^= BRUSH_DIR_IN;
+  paint->brush->flag ^= BRUSH_DIR_IN;
 
   /* Update tool settings. */
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, nullptr);
