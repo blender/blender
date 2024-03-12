@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
-"PO-Revision-Date: 2024-03-02 10:56+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-03-12 05:27+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -4020,12 +4020,20 @@ msgid "Bones in this collection will be visible in pose/object mode"
 msgstr "このコレクション内のボーンはポーズ/オブジェクトモードで表示されます"
 
 
+msgid "Ancestors Effectively Visible"
+msgstr "先祖を完全に可視"
+
+
 msgid "True when all of the ancestors of this bone collection are marked as visible; always True for root bone collections"
 msgstr "このボーンコレクションのすべての先祖が可視とマークされている時に True．ルートボーンコレクションは常に True"
 
 
+msgid "Effective Visibility"
+msgstr "完全に可視"
+
+
 msgid "Whether this bone collection is effectively visible in the viewport. This is True when this bone collection and all of its ancestors are visible, or when it is marked as 'solo'"
-msgstr "このボーンコレクションをビューポートで効率的に可視設定するかどうか．このボーンコレクションとそのすべての先祖が表示中なら True"
+msgstr "このボーンコレクションをビューポートで完全に可視表示するかどうか．このボーンコレクションとそのすべての先祖が表示中，もしくは「ソロ」とマークされている時に True"
 
 
 msgid "Unique within the Armature"
@@ -4078,6 +4086,10 @@ msgstr "アーマチュアのアクティブボーンコレクションの名前
 
 msgid "Solo Active"
 msgstr "ソロアクティブ"
+
+
+msgid "Read-only flag that indicates there is at least one bone collection marked as 'solo'"
+msgstr "「ソロ」とマークされているボーンコレクションが最低一つあるかどうかを示す，読み込み専用フラグ"
 
 
 msgid "Theme color or custom color of a bone"
@@ -10195,6 +10207,14 @@ msgstr "データブロックフィルターを表示"
 
 msgid "Show options for whether channels related to certain types of data are included"
 msgstr "含まれるデータタイプによってチャンネル表示をON/OFFするオプションを表示します"
+
+
+msgid "Variable Fallback As Error"
+msgstr "変数フォールバックをエラー表示"
+
+
+msgid "Include drivers that relied on any fallback values for their evaluation in the Only Show Errors filter, even if the driver evaluation succeeded"
+msgstr "「エラーのみ表示」フィルター内での評価時，フォールバック値を当てにしているドライバーを，評価が成功していても表示します"
 
 
 msgid "Collapse Summary"
@@ -20186,7 +20206,7 @@ msgstr "自動的に各ストロークに適用されるスムージングの量
 
 
 msgid "Propagation Steps"
-msgstr "伝播ステップ"
+msgstr "伝播ステップ数"
 
 
 msgid "Distance where boundary edge automasking is going to protect vertices from the fully masked edge"
@@ -25008,6 +25028,10 @@ msgid "Use Multiple Views (when available)"
 msgstr "マルチビューを（可能なら）使用します"
 
 
+msgid "View as Render"
+msgstr "ビューにも適用"
+
+
 msgid "Apply render part of display transformation when displaying this image on the screen"
 msgstr "この画像をスクリーン上に表示している時，レンダリングの表示変換を適用します"
 
@@ -26186,6 +26210,10 @@ msgid "Texture Slots"
 msgstr "テクスチャスロット"
 
 
+msgid "Backface Culling"
+msgstr "裏面を非表示"
+
+
 msgid "Use back face culling to hide the back side of faces"
 msgstr "背面カリングを使用し，面の裏側を隠します"
 
@@ -26256,6 +26284,13 @@ msgstr ""
 
 msgid "Accurate"
 msgstr "高精度"
+
+
+msgid "Faces are considered as medium interface only when they have different consecutive facing. Gives correct results as long as the max ray depth is not exceeded. Have significant memory overhead compared to the fast method"
+msgstr ""
+"違う媒質が連続して向き合う時のみ，面を媒質の接合部とみなします．\n"
+"最大レイ深度を超えない限り正しい結果を与えます．\n"
+"「高速」に比べ，大幅なメモリオーバーヘッドがあります"
 
 
 msgid "Mesh data-block defining geometric surfaces"
@@ -39169,6 +39204,10 @@ msgid "Factor of opacity"
 msgstr "不透明度の係数"
 
 
+msgid "Hardness Factor"
+msgstr "ハードネス係数"
+
+
 msgid "Replace the stroke opacity instead of modulating each point"
 msgstr "ストロークの不透明度を各ポイントで変更する代わりに置き換えます"
 
@@ -40746,6 +40785,10 @@ msgstr "頂点グループ係数"
 
 msgid "Thickness factor to use for zero vertex group influence"
 msgstr "頂点グループの影響が0の部分の厚み係数"
+
+
+msgid "Even Thickness"
+msgstr "均一"
 
 
 msgid "Maintain thickness by adjusting for sharp corners (slow, disable when not needed)"
@@ -44646,6 +44689,10 @@ msgid "Shadow"
 msgstr "影"
 
 
+msgid "Flip X"
+msgstr "X軸逆転"
+
+
 msgid "Flip Y"
 msgstr "Y軸逆転"
 
@@ -47112,6 +47159,10 @@ msgstr "最短辺パス"
 
 msgid "Find the shortest paths along mesh edges to selected end vertices, with customizable cost per edge"
 msgstr "メッシュの辺に沿った最短パスを探し，最後の頂点を選択します（辺毎のコストを設定可能）"
+
+
+msgid "Is Spline Cyclic"
+msgstr "スプラインループフラグ"
 
 
 msgid "Retrieve whether each spline endpoint connects to the beginning"
@@ -50341,6 +50392,14 @@ msgstr "リンクをミュートし無視できるようにします"
 
 msgid "Link is valid"
 msgstr "リンク有効"
+
+
+msgid "Multi Input Sort ID"
+msgstr "複数入力ソートID"
+
+
+msgid "Used to sort multiple links coming into the same input. The highest ID is at the top"
+msgstr "同じ入力に来る複数のリンクのソートに使用．最も大きい ID がトップ"
 
 
 msgid "To node"
@@ -57542,24 +57601,6 @@ msgid "Output format. Binary is most efficient, but JSON may be easier to edit l
 msgstr "出力フォーマット．バイナリが最も効率的ですが，JSON の方が後で編集しやすいです"
 
 
-msgid "glTF Binary (.glb)"
-msgstr "glTFバイナリ (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr ""
-"単一ファイルでエクスポートし，全データがバイナリ形式で同梱されます．\n"
-"最も効率的かつポータブルですが，後での編集がしづらいです"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF Separate (.gltf + .bin + テクスチャ)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "複数のファイルにエクスポートし，JSON，バイナリ，テクスチャデータになります．後での編集が最もしやすいです"
-
-
 msgid "Limit to Playback Range"
 msgstr "再生範囲に限定"
 
@@ -57935,6 +57976,10 @@ msgstr "単一の glTF アニメーション名をエクスポートします"
 
 msgid "Export vertex normals with meshes"
 msgstr "頂点の法線をメッシュと共にエクスポートします"
+
+
+msgid "Force keeping channels for bones"
+msgstr "ボーンチャンネルを強制最適化"
 
 
 msgid "If all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
@@ -61098,7 +61143,7 @@ msgstr "最後方に移動"
 
 msgctxt "Operator"
 msgid "Set Caps Mode"
-msgstr "端の設定"
+msgstr "端のモードを設定"
 
 
 msgid "Change stroke caps mode (rounded or flat)"
@@ -61389,6 +61434,11 @@ msgstr "フィルの頂点カラーのみリセット"
 
 msgid "Reset Vertex Color to Stroke and Fill"
 msgstr "ストロークとフィルの頂点カラーをリセット"
+
+
+msgctxt "Operator"
+msgid "Sample Stroke"
+msgstr "ストロークをサンプリング"
 
 
 msgid "Sample stroke points to predefined segment length"
@@ -65762,6 +65812,11 @@ msgstr "選択中の四角面のテッセレーションを反転します"
 
 msgid "Hide (un)selected vertices, edges or faces"
 msgstr "(非)選択状態の頂点，辺，面を隠す"
+
+
+msgctxt "Operator"
+msgid "Inset Faces"
+msgstr "面を差し込む"
 
 
 msgid "Inset new faces into selected faces"
@@ -82015,6 +82070,10 @@ msgid "Axis-aligned (Horizontal)"
 msgstr "軸に整列（水平）"
 
 
+msgid "Rotate islands to be aligned horizontally"
+msgstr "アイランドが横に整列するよう回転します"
+
+
 msgid "Axis-aligned (Vertical)"
 msgstr "軸に整列（垂直）"
 
@@ -86171,6 +86230,10 @@ msgid "Best Match"
 msgstr "ベストマッチ"
 
 
+msgid "Subdivision scheme = Catmull-Clark, when possible. Reverts to exporting the subdivided mesh for the Simple subdivision type"
+msgstr "可能なら細分化スキーム＝カトマルクラーク，シンプルサブディビジョンタイプは細分化後のメッシュを元に戻してエクスポートします"
+
+
 msgid "Export Textures"
 msgstr "テクスチャをエクスポート"
 
@@ -89049,6 +89112,11 @@ msgstr "ラインマスク"
 
 
 msgctxt "Operator"
+msgid "Box Hide"
+msgstr "ボックスで隠す"
+
+
+msgctxt "Operator"
 msgid "Box Face Set"
 msgstr "ボックス面セット"
 
@@ -91392,10 +91460,6 @@ msgstr "サウンドファイルのデフォルトディレクトリ"
 
 msgid "Temporary Directory"
 msgstr "一時ディレクトリ"
-
-
-msgid "The directory for storing temporary save files"
-msgstr "一時保存ファイルの保存先"
 
 
 msgid ""
@@ -99682,6 +99746,10 @@ msgid "Cubic B-Spline filter (blurry but no ringing) on 4×4 samples"
 msgstr "4×4サンプルの三次 B スプラインフィルター（ぼやけるがリンギングなし）"
 
 
+msgid "Averages source image samples that fall under destination pixel"
+msgstr "目的のピクセルに該当する元画像のサンプルを平均化します"
+
+
 msgid "Move along X axis"
 msgstr "X 軸に沿って移動"
 
@@ -101287,6 +101355,10 @@ msgstr "グラフエディタースペースデータ"
 
 msgid "Auto-Lock Key Axis"
 msgstr "キーの軸を自動ロック"
+
+
+msgid "Automatically locks the movement of keyframes to the dominant axis"
+msgstr "キーフレームの移動を適切な軸に自動的にロックします"
 
 
 msgid "Cursor X-Value"
@@ -107114,6 +107186,10 @@ msgid "Use Remote"
 msgstr "リモートを使用"
 
 
+msgid "Synchronize the repository with a remote URL/path"
+msgstr "リモート URL/パスでリポジトリを同期します"
+
+
 msgid "User Extension Repositories"
 msgstr "エクステンションリポジトリを使用"
 
@@ -109950,8 +110026,13 @@ msgstr "3Dビューツール：メッシュ編集，カーソルへ押し出し�
 
 
 msgctxt "WindowManager"
+msgid "3D View Tool: Edit Mesh, Inset Faces"
+msgstr "3Dビューツール：メッシュ編集，面を差し込む"
+
+
+msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Inset Faces (fallback)"
-msgstr "3Dビューツール：メッシュ編集，面をインセット（予備）"
+msgstr "3Dビューツール：メッシュ編集，面を差し込む（予備）"
 
 
 msgctxt "WindowManager"
@@ -110305,6 +110386,11 @@ msgstr "3Dビューツール：ポーズ，ブレイクダウナー（予備）"
 
 
 msgctxt "WindowManager"
+msgid "3D View Tool: Pose, Push"
+msgstr "3Dビューツール：ポーズ，プッシュ"
+
+
+msgctxt "WindowManager"
 msgid "3D View Tool: Pose, Push (fallback)"
 msgstr "3Dビューツール：ポーズ，プッシュ（予備）"
 
@@ -110410,8 +110496,13 @@ msgstr "3Dビューツール：スカルプト，ラインマスク（予備）"
 
 
 msgctxt "WindowManager"
+msgid "3D View Tool: Sculpt, Box Hide"
+msgstr "3Dビューツール：スカルプト，ボックスで隠す"
+
+
+msgctxt "WindowManager"
 msgid "3D View Tool: Sculpt, Box Hide (fallback)"
-msgstr "3Dビューツール：スカルプト，ボックスハイド（予備）"
+msgstr "3Dビューツール：スカルプト，ボックスで隠す（予備）"
 
 
 msgctxt "WindowManager"
@@ -113810,22 +113901,6 @@ msgid "Current frame not within strip framerange"
 msgstr "現在のフレームはストリップのフレーム範囲内ではありません"
 
 
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "テキストエディターの引数フォーマットは，プリファレンスの「ファイルパス→アプリケーション」の入力フィールドのツールチップにあります"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "テキストエディターの引数フォーマットには「$filepath」が必要です"
-
-
-msgid "Exception parsing template: %r"
-msgstr "テンプレート解析の例外：%r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "外部エディターの実行例外：%r"
-
-
 msgid "Reload Start-Up file to restore settings"
 msgstr "設定を戻すにはスタートアップファイルを再読み込みしてください"
 
@@ -115296,6 +115371,10 @@ msgstr "カスタム遮蔽"
 
 msgid "Unsupported displacement method"
 msgstr "未対応のディスプレイスメント方法"
+
+
+msgid "Transparency Overlap"
+msgstr "透過で重ね合わせ"
 
 
 msgid "Raytraced Refraction"
@@ -121063,12 +121142,12 @@ msgstr "ロールを設定"
 
 msgctxt "Operator"
 msgid "With Empty Groups"
-msgstr "   空のグループで"
+msgstr "空のグループで"
 
 
 msgctxt "Operator"
 msgid "With Automatic Weights"
-msgstr "   自動のウェイトで"
+msgstr "自動のウェイトで"
 
 
 msgctxt "Operator"
@@ -122185,6 +122264,10 @@ msgstr "ライブラリオーバーライドテンプレートが削除されま
 
 msgid "Data corruption: data-block '%s' is using itself as library override reference, removing all override data"
 msgstr "データエラー：データブロック「%s」が自分自身をライブラリオーバーライドの参照に使用しているため，全オーバーライドデータを削除します"
+
+
+msgid "Data corruption: data-block '%s' is using another local data-block ('%s') as library override reference, removing all override data"
+msgstr "データエラー：データブロック「%s」が他のローカルデータブロック「%s」をライブラリオーバーライドの参照に使用しているため，全オーバーライドデータを削除します"
 
 
 msgid "libraries"
@@ -123330,10 +123413,6 @@ msgid "No keyframes to focus on"
 msgstr "フォーカスするキーフレームがありません"
 
 
-msgid "Nothing selected"
-msgstr "何も選択していません"
-
-
 msgid "No open Graph Editor window found"
 msgstr "開いているグラフエディターウィンドウがありません"
 
@@ -123688,8 +123767,16 @@ msgid "Cannot add bone collections to a linked Armature without an override"
 msgstr "オーバーライドのないリンク中のアーマチュアにはボーンコレクションを追加できません"
 
 
+msgid "Cannot add bone collections to a linked Armature with a system override; explicitly create an override on the Armature"
+msgstr "システムオーバーライドのあるリンク中のアーマチュアにボーンコレクションを追加できません．アーマチュアにオーバーライドを明示的に作成してください"
+
+
 msgid "Bone collections can only be edited on an Armature"
 msgstr "ボーンコレクションはアーマチュアでのみ編集できます"
+
+
+msgid "Cannot update a linked Armature with a system override; explicitly create an override on the Armature"
+msgstr "システムオーバーライドのあるリンク中アーマチュアは更新できません．アーマチュアにオーバーライドを明示的に作成してください"
 
 
 msgid "Armature has no active bone collection, select one first"
@@ -123702,6 +123789,10 @@ msgstr "他の blend ファイルからリンク中のボーンコレクショ�
 
 msgid "Cannot edit bone collections on linked Armatures without override"
 msgstr "オーバーライドのない，リンク中のアーマチュアのボーンコレクションは編集できません"
+
+
+msgid "Cannot edit bone collections on a linked Armature with a system override; explicitly create an override on the Armature"
+msgstr "システムオーバーライドのあるリンク中のアーマチュアで，ボーンコレクションは編集できません．アーマチュアにオーバーライドを明示的に作成してください"
 
 
 msgid "Linked bone collections are not editable"
@@ -124259,6 +124350,10 @@ msgid "Asset is not a geometry node group"
 msgstr "アセットがジオメトリノードグループではありません"
 
 
+msgid "Mesh shape key data removed"
+msgstr "メッシュのシェイプキーデータは削除済みです"
+
+
 msgid "Cannot evaluate node group"
 msgstr "ノードグループが評価できません"
 
@@ -124469,6 +124564,10 @@ msgstr "カーブ編集モードに未対応です"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "レイヤー一つのみのオブジェクトは分離できません"
+
+
+msgid "Nothing selected"
+msgstr "何も選択していません"
 
 
 msgid "No active area"
@@ -129749,6 +129848,10 @@ msgid "{} (Integer)"
 msgstr "{}（整数）"
 
 
+msgid "{:.10} (Float)"
+msgstr "{:.10}（Float）"
+
+
 msgid "{} (Float)"
 msgstr "{}（Float）"
 
@@ -132097,6 +132200,10 @@ msgid "Group"
 msgstr "グループ"
 
 
+msgid "PLY Export: Cannot open file '%s'"
+msgstr "PLY Export: ファイル「%s」が開けません"
+
+
 msgid "PLY Importer: failed importing, unknown error"
 msgstr "PLY Importer: インポート失敗．未知のエラーです"
 
@@ -132107,6 +132214,22 @@ msgstr "PLY Importer: インポート失敗．頂点がありません"
 
 msgid "PLY Importer: %s: %s"
 msgstr "PLY Importer: %s: %s"
+
+
+msgid "STL Export: Cannot open file '%s'"
+msgstr "STL Export: ファイル「%s」が開けません"
+
+
+msgid "STL Import: Cannot open file '%s'"
+msgstr "STL Import: ファイル「%s」が開けません"
+
+
+msgid "STL Import: Failed to read file '%s'"
+msgstr "STL Import: ファイル「%s」の読み込みに失敗しました"
+
+
+msgid "STL Import: Failed to import mesh from file '%s'"
+msgstr "STL Import: ファイル「%s」からメッシュのインポートに失敗しました"
 
 
 msgid "%s: Couldn't determine package-relative file name from path %s"
@@ -132357,6 +132480,10 @@ msgid "%s: Error creating deform group data for mesh %s"
 msgstr "%s: メッシュ「%s」のデフォームグループデータの作成でエラー"
 
 
+msgid "%s: Couldn't find a common Xform ancestor for skinned prim %s and skeleton %s to convert to a USD SkelRoot. This can be addressed by setting a root primitive in the export options"
+msgstr "%s: スキン Prim「%s」とスケルトン「%s」から USD SkelRoot に変換する共通 Xform ancestor を見つけることができません．これはエクスポートオプションのルートプリミティブ設定で解決できます"
+
+
 msgid "USD Export: no bounds could be computed for %s"
 msgstr "USD Export:「%s」を計算する境界がありません"
 
@@ -132415,6 +132542,18 @@ msgstr "USD Export: オブジェクト「%s」の .vdb ファイルを解決で�
 
 msgid "USD Export: couldn't construct relative file path for .vdb file, absolute path will be used instead"
 msgstr "USD Export: .vdb ファイルへの相対パスが生成できません．代わりに絶対パスを使用します"
+
+
+msgid "OBJ Export: Cannot open file '%s'"
+msgstr "OBJ Export: ファイル「%s」が開けません"
+
+
+msgid "OBJ Export: Cannot create mtl file for '%s'"
+msgstr "OBJ Export: 「%s」用の mtl ファイルが作成できません"
+
+
+msgid "OBJ Import: Cannot open file '%s'"
+msgstr "OBJ Import: ファイル「%s」が開けません"
 
 
 msgid "Linked data-blocks cannot be renamed"
@@ -133295,6 +133434,10 @@ msgstr "ソケットの入出力方向が同じです"
 
 msgid "Unable to locate link in node tree"
 msgstr "ノードツリー内にリンクがありません"
+
+
+msgid "The links must be siblings"
+msgstr "リンクは兄弟（同階層）でなければなりません"
 
 
 msgid "Cannot add socket to built-in node"
@@ -136394,6 +136537,14 @@ msgid "UV Unwrap Field"
 msgstr "UV展開フィールド"
 
 
+msgid "No color overlay"
+msgstr "カラーオーバーレイなし"
+
+
+msgid "Rotation values can only be displayed with the text overlay in the 3D view"
+msgstr "回転値は3Dビューポートのテキストオーバーレイにのみ表示可能です"
+
+
 msgid "Resolution must be greater than 1"
 msgstr "解像度は２以上必要です．"
 
@@ -138661,6 +138812,14 @@ msgid "Surface UV map used for attachment"
 msgstr "植え付けに使用するサーフェス UV マップ"
 
 
+msgid "Surface Rest Position"
+msgstr "サーフェスのレスト位置"
+
+
+msgid "Set the surface mesh into its rest position before attachment"
+msgstr "植え付け前にサーフェスメッシュをレスト位置にセットします"
+
+
 msgid "Sample Attachment UV"
 msgstr "植え付けUVを取得"
 
@@ -139229,6 +139388,10 @@ msgid "Offset of the curves to round the tip"
 msgstr "先端の周囲のカーブのオフセット"
 
 
+msgid "Keep an even thickness of the distribution of duplicates"
+msgstr "配置した複製の太さを均等にします"
+
+
 msgid "Deforms hair curves using a random vector per point to frizz them"
 msgstr "ポイント毎にランダムベクトルを使用し，ヘアーカーブを縮れ毛に変形します"
 
@@ -139439,6 +139602,10 @@ msgstr "既存の制御点を各カーブに沿って均等に再配置します
 
 msgid "Feature Awareness"
 msgstr "特徴認識"
+
+
+msgid "Use simple feature awareness to keep feature definition"
+msgstr "特徴の定義を維持するのにシンプルな特徴認識を使用します"
 
 
 msgid "Restore Curve Segment Length"

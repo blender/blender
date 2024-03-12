@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
-"PO-Revision-Date: 2024-02-27 14:47+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-03-11 06:45+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -4063,6 +4063,10 @@ msgstr "Názov aktívnej kolekcie kostí armatúry; prázdne, ak neexistuje žia
 
 msgid "Solo Active"
 msgstr "Sólo aktívne"
+
+
+msgid "Read-only flag that indicates there is at least one bone collection marked as 'solo'"
+msgstr "Príznak len na čítanie, ktorý označuje, že existuje aspoň jedna kolekcia kostí označená ako \"sólo\""
 
 
 msgid "Theme color or custom color of a bone"
@@ -49915,6 +49919,14 @@ msgid "Link is valid"
 msgstr "Prepojenie je platné"
 
 
+msgid "Multi Input Sort ID"
+msgstr "ID triedenia viacerých vstupov"
+
+
+msgid "Used to sort multiple links coming into the same input. The highest ID is at the top"
+msgstr "Slúži na triedenie viacerých odkazov prichádzajúcich do toho istého vstupu. Najvyššie ID je na vrchu"
+
+
 msgid "To node"
 msgstr "Do uzla"
 
@@ -57027,22 +57039,6 @@ msgstr "Použije presnímkovanie na všetky animácie"
 
 msgid "Output format. Binary is most efficient, but JSON may be easier to edit later"
 msgstr "Výstupný formát. Binárny je najefektívnejší, ale JSON sa môže neskôr ľahšie upravovať"
-
-
-msgid "glTF Binary (.glb)"
-msgstr "glTF Binary (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "Exportuje jeden súbor so všetkými údajmi zabalenými v binárnej forme. Najefektívnejšie a prenosné, ale neskôr ťažšie upraviteľné"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF oddelený (.gltf + .bin + textúry)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "Exportuje viacero súborov, s oddeleným JSON, binárny a údajmi textúry. Najjednoduchšie na neskoršiu úpravu"
 
 
 msgid "Limit to Playback Range"
@@ -90674,10 +90670,6 @@ msgid "Temporary Directory"
 msgstr "Dočasný priečinok"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "Priečinok na skladovanie dočasne uložených súborov"
-
-
 msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
@@ -106258,6 +106250,10 @@ msgid "Use Remote"
 msgstr "Použiť vzdialené"
 
 
+msgid "Synchronize the repository with a remote URL/path"
+msgstr "Synchronizuje úložisko so vzdialenou adresou URL/cestou"
+
+
 msgid "User Extension Repositories"
 msgstr "Úložiská užívateľských rozšírení"
 
@@ -112939,22 +112935,6 @@ msgstr "Nie sú vybrané žiadne sekvencie"
 
 msgid "Current frame not within strip framerange"
 msgstr "Aktuálna snímka sa nenachádza v rozsahu pásov"
-
-
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "Poskytuje formát argumentov textového editora v nastaveniach Cesta súboru/Aplikácie, viac informácií nájdete v nápovede k vstupnému poľu"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "Formát argumentov textového editora musí obsahovať $filepath"
-
-
-msgid "Exception parsing template: %r"
-msgstr "Výnimka pri analyzovaní šablóny: %r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "Výnimka pri spustení externého editora: %r"
 
 
 msgid "Reload Start-Up file to restore settings"
@@ -122467,10 +122447,6 @@ msgid "No keyframes to focus on"
 msgstr "Žiadne kľúčové snímky na zameranie"
 
 
-msgid "Nothing selected"
-msgstr "Nič vybraté"
-
-
 msgid "No open Graph Editor window found"
 msgstr "Nenašlo sa žiadne otvorené okno Editora grafu"
 
@@ -123406,6 +123382,10 @@ msgid "Asset is not a geometry node group"
 msgstr "Aktívum nie je skupina uzlov geometrie"
 
 
+msgid "Mesh shape key data removed"
+msgstr "Odstránené údaje kľúčového tvaru povrchovej siete"
+
+
 msgid "Cannot evaluate node group"
 msgstr "Skupina uzlov nemožno vyhodnotiť"
 
@@ -123616,6 +123596,10 @@ msgstr "Režim editácie krivky nie je podporovaný"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Nemožno oddeliť objekt iba s jednou vrstvou"
+
+
+msgid "Nothing selected"
+msgstr "Nič vybraté"
 
 
 msgid "No active area"
@@ -128888,6 +128872,10 @@ msgid "{} (Integer)"
 msgstr "{} (celé číslo)"
 
 
+msgid "{:.10} (Float)"
+msgstr "{:.10} (na pohyblivej čiarke)"
+
+
 msgid "{} (Float)"
 msgstr "{} (hodnota na pohyblivej čiarke)"
 
@@ -131236,6 +131224,10 @@ msgid "Group"
 msgstr "Skupina"
 
 
+msgid "PLY Export: Cannot open file '%s'"
+msgstr "Export PLY : Nemožno otvoriť súbor '%s'"
+
+
 msgid "PLY Importer: failed importing, unknown error"
 msgstr "Importér PLY: neúspešný import, neznáma chyba"
 
@@ -131246,6 +131238,22 @@ msgstr "Importér PLY: neúspešný import, žiadne vrcholy"
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importér PLY: %s: %s"
+
+
+msgid "STL Export: Cannot open file '%s'"
+msgstr "Export STL: Nemožno otvoriť súbor '%s'"
+
+
+msgid "STL Import: Cannot open file '%s'"
+msgstr "Import STL: Nemožno otvoriť súbor '%s'"
+
+
+msgid "STL Import: Failed to read file '%s'"
+msgstr "Import STL: Nepodarilo sa načítať súbor '%s'"
+
+
+msgid "STL Import: Failed to import mesh from file '%s'"
+msgstr "Import STL: Nepodarilo sa importovať povrchovú sieť zo súboru '%s'"
 
 
 msgid "%s: Couldn't determine package-relative file name from path %s"
@@ -131558,6 +131566,18 @@ msgstr "USD Export: nepodarilo sa vyriešiť súbor .vdb pre objekt: %s"
 
 msgid "USD Export: couldn't construct relative file path for .vdb file, absolute path will be used instead"
 msgstr "USD Export: nebolo možné vytvoriť relatívnu cestu súboru pre súbor .vdb, namiesto toho sa použije absolútna cesta"
+
+
+msgid "OBJ Export: Cannot open file '%s'"
+msgstr "Export OBJ: Nemožno otvoriť súbor '%s'"
+
+
+msgid "OBJ Export: Cannot create mtl file for '%s'"
+msgstr "Export OBJ: Nemožno vytvoriť mtl súbor pre '%s'"
+
+
+msgid "OBJ Import: Cannot open file '%s'"
+msgstr "Import OBJ: Nemožno otvoriť súbor '%s'"
 
 
 msgid "Linked data-blocks cannot be renamed"
@@ -132438,6 +132458,10 @@ msgstr "Rovnaký smer vstupu/výstupu zásuviek"
 
 msgid "Unable to locate link in node tree"
 msgstr "Nepodarilo sa nájsť prepojenie v strome uzla"
+
+
+msgid "The links must be siblings"
+msgstr "Odkazy musia byť súrodenecké"
 
 
 msgid "Cannot add socket to built-in node"
@@ -135519,6 +135543,14 @@ msgstr "UV súradnice medzi 0 a 1 pre každý roh plôšky vo vybraných plôšk
 
 msgid "UV Unwrap Field"
 msgstr "Pole rozvinutých UV"
+
+
+msgid "No color overlay"
+msgstr "Bez farby prekrytia"
+
+
+msgid "Rotation values can only be displayed with the text overlay in the 3D view"
+msgstr "Hodnoty rotácie sa dajú zobraziť len s textovým prekrytím v 3D zábere"
 
 
 msgid "Resolution must be greater than 1"
