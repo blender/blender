@@ -602,12 +602,21 @@ std::string get_relative_path(const std::string& path, const std::string& anchor
   }
 
   /* Replace the common prefix up to the last slash with
-   * a fake root directory to allow computing the relative path. */
+   * a fake root directory to allow computing the relative path
+   * excluding the URI.  We omit the URI because it might not
+   * be handled correctly by the standard filesystem path
+   * computaions. */
   resolved_path = "/root" + resolved_path.substr(last_slash_pos);
   resolved_anchor = "/root" + resolved_anchor.substr(last_slash_pos);
 
   fs::path path_obj(resolved_path);
   fs::path anchor_obj(resolved_anchor);
+
+  anchor_obj = anchor_obj.parent_path();
+
+  if (anchor_obj.empty()) {
+    return path;
+  }
 
   std::string rel_path = fs::relative(path_obj, anchor_obj).generic_string();
   if (!rel_path.empty()) {
