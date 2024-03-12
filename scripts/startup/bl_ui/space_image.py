@@ -531,6 +531,16 @@ class IMAGE_MT_uvs_context_menu(Menu):
 
         # UV Edit Mode
         if sima.show_uvedit:
+            ts = context.tool_settings
+            if ts.use_uv_select_sync:
+                is_vert_mode, is_edge_mode, _ = ts.mesh_select_mode
+            else:
+                uv_select_mode = ts.uv_select_mode
+                is_vert_mode = uv_select_mode == 'VERTEX'
+                is_edge_mode = uv_select_mode == 'EDGE'
+                # is_face_mode = uv_select_mode == 'FACE'
+                # is_island_mode = uv_select_mode == 'ISLAND'
+
             # Add
             layout.operator("uv.unwrap")
             layout.operator("uv.follow_active_quads")
@@ -551,6 +561,16 @@ class IMAGE_MT_uvs_context_menu(Menu):
             layout.separator()
 
             layout.operator_enum("uv.align", "axis")  # W, 2/3/4.
+
+            layout.operator_context = 'INVOKE_DEFAULT'
+
+            if is_vert_mode:
+                layout.operator("transform.vert_slide")
+
+            if is_edge_mode:
+                layout.operator("transform.edge_slide")
+
+            layout.operator_context = 'EXEC_REGION_WIN'
 
             layout.separator()
 

@@ -178,7 +178,12 @@ static void calcVertSlideCustomPoints(TransInfo *t)
 static VertSlideData *createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
 {
   VertSlideData *sld = MEM_new<VertSlideData>(__func__);
-  sld->sv = transform_mesh_vert_slide_data_create(tc, sld->targets_buffer);
+  if (t->data_type == &TransConvertType_MeshUV) {
+    sld->sv = transform_mesh_uv_vert_slide_data_create(t, tc, sld->targets_buffer);
+  }
+  else {
+    sld->sv = transform_mesh_vert_slide_data_create(tc, sld->targets_buffer);
+  }
 
   if (sld->sv.is_empty()) {
     MEM_delete(sld);
