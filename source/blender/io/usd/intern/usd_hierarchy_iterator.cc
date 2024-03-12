@@ -26,8 +26,11 @@
 #include <pxr/base/tf/stringUtils.h>
 
 #include "BKE_duplilist.hh"
+#include "BKE_material.h"
 
 #include "BLI_assert.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
 #include "DEG_depsgraph_query.hh"
@@ -47,6 +50,14 @@ USDHierarchyIterator::USDHierarchyIterator(Main *bmain,
                                            const USDExportParams &params)
     : AbstractHierarchyIterator(bmain, depsgraph), stage_(stage), params_(params)
 {
+  DEGObjectIterSettings deg_iter_settings{};
+  deg_iter_settings.depsgraph = depsgraph_;
+  deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+                            DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
+    process_names_for_object(object);
+  }
+  DEG_OBJECT_ITER_END;
 }
 
 bool USDHierarchyIterator::mark_as_weak_export(const Object *object) const
@@ -65,6 +76,20 @@ void USDHierarchyIterator::release_writer(AbstractHierarchyWriter *writer)
 std::string USDHierarchyIterator::make_valid_name(const std::string &name) const
 {
   return pxr::TfMakeValidIdentifier(name);
+}
+
+std::string USDHierarchyIterator::get_id_name(const ID* id) const
+{
+  if (id == nullptr) {
+    return "";
+  }
+
+  std::string name = find_name(id);
+  if (!name.empty()) {
+    return name;
+  }
+
+  return make_valid_name(std::string(id->name + 2));
 }
 
 void USDHierarchyIterator::process_usd_skel() const
@@ -138,7 +163,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
 
   switch (context->object->type) {
     case OB_MESH:
-      if (usd_export_context.export_params.export_meshes) {      
+      if (usd_export_context.export_params.export_meshes) {
         data_writer = new USDMeshWriter(usd_export_context);
       }
       else
@@ -277,5 +302,168 @@ void USDHierarchyIterator::add_usd_skel_export_mapping(const Object *obj, const 
     skinned_mesh_export_map_.add(obj, path);
   }
 }
+
+bool USDHierarchyIterator::id_needs_display_name(const ID *id) const
+{
+  size_t length_in_bytes = 0;
+  const std::string id_name(id->name + 2);
+  const size_t length_in_characters = BLI_strlen_utf8_ex(id_name.c_str(), &length_in_bytes);
+  if (length_in_bytes != length_in_characters) {
+    /* Length is shorter likely due to unicode characters. */
+    return true;
+  }
+
+  if (id_name != pxr::TfMakeValidIdentifier(id_name)) {
+    /* Something invalid was converted into an underscore. */
+    return true;
+  }
+
+  return false;
+}
+
+bool USDHierarchyIterator::object_needs_display_name(const Object *object) const
+{
+  return id_needs_display_name(reinterpret_cast<const ID *>(object));
+}
+
+bool USDHierarchyIterator::object_data_needs_display_name(const Object *object) const
+{
+  if (!object->data) {
+    return false;
+  }
+
+  return id_needs_display_name(reinterpret_cast<const ID *>(object->data));
+}
+
+std::string USDHierarchyIterator::generate_unique_name(const std::string token)
+{
+  char name[64];
+  int count = 0;
+  BLI_snprintf(name, 64, "%s", token.c_str());
+
+  while (prim_names_.contains(name)) {
+    count += 1;
+    BLI_snprintf(name, 64, "%s_%03d", token.c_str(), count);
+  }
+
+  return std::string(name);
+}
+
+void USDHierarchyIterator::store_name(const ID *id, const std::string name)
+{
+  prim_names_map_.add(id, name);
+  prim_names_.add(name);
+}
+
+std::string USDHierarchyIterator::find_name(const ID *id) const
+{
+  return prim_names_map_.lookup_default(id, std::string());
+}
+
+void USDHierarchyIterator::process_names_for_object(const Object *object)
+{
+  const short id_code = (object->data ? GS(reinterpret_cast<const ID *>(object->data)->name) :
+                                        GS(object->id.name));
+  const std::string token(BKE_idtype_idcode_to_name(id_code));
+
+  if (object_needs_display_name(object)) {
+    const std::string obj_name = generate_unique_name(token);
+    store_name(&object->id, obj_name);
+
+    if (object->totcol) {
+      process_materials(const_cast<const Material **>(object->mat), object->totcol);
+    }
+  }
+
+  if (object->data) {
+    if (object_data_needs_display_name(object)) {
+      ID* object_data = static_cast<ID*>(object->data);
+      const std::string data_name = generate_unique_name(token + "_Data");
+      store_name(object_data, data_name);
+    }
+
+    const Material **data_mats = get_materials_from_data(object);
+    size_t data_count = get_materials_count_from_data(object);
+    process_materials(data_mats, data_count);
+  }
+}
+
+void USDHierarchyIterator::process_materials(const Material **materials, const size_t count)
+{
+  for (int m = 0; m < count; m++) {
+    const Material *mat = materials[m];
+    if (!mat) {
+      continue;
+    }
+
+    if (id_needs_display_name(&mat->id)) {
+      const std::string data_name = generate_unique_name("Material");
+      store_name(&mat->id, data_name);
+    }
+  }
+}
+
+std::string USDHierarchyIterator::get_object_computed_name(const Object *object) const
+{
+  if (!object) {
+    return "";
+  }
+  return find_name(&object->id);
+}
+
+std::string USDHierarchyIterator::get_object_data_computed_name(const Object *object) const
+{
+  if (!(object && object->data)) {
+    return "";
+  }
+
+  ID* object_data = static_cast<ID*>(object->data);
+  return find_name(object_data);
+}
+
+const Material** USDHierarchyIterator::get_materials_from_data(const Object* object) const
+{
+  switch (object->type) {
+  case OB_MESH: {
+    const Mesh* mesh = reinterpret_cast<const Mesh*>(object->data);
+    return const_cast<const Material**>(mesh->mat);
+  }
+
+  case OB_CURVES:
+  case OB_CURVES_LEGACY: {
+    const Curves* curves = reinterpret_cast<const Curves*>(object->data);
+    return const_cast<const Material**>(curves->mat);
+  }
+
+                       /*
+                        * !TODO: Additional supported object types
+                        */
+
+  default: {
+    return nullptr;
+  }
+  }
+}
+
+size_t USDHierarchyIterator::get_materials_count_from_data(const Object* object) const
+{
+  switch (object->type) {
+  case OB_MESH: {
+    const Mesh* mesh = reinterpret_cast<const Mesh*>(object->data);
+    return mesh->totcol;
+  }
+
+  case OB_CURVES:
+  case OB_CURVES_LEGACY: {
+    const Curves* curves = reinterpret_cast<const Curves*>(object->data);
+    return curves->totcol;
+  }
+
+  default: {
+    return 0;
+  }
+  }
+}
+
 
 }  // namespace blender::io::usd

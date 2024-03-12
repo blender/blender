@@ -79,9 +79,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   void write_id_properties(pxr::UsdPrim &prim,
                            const ID &id,
                            pxr::UsdTimeCode = pxr::UsdTimeCode::Default());
-  void write_user_properties(pxr::UsdPrim &prim,
-                             IDProperty *properties,
-                             pxr::UsdTimeCode = pxr::UsdTimeCode::Default());
+  void write_user_properties(pxr::UsdPrim &prim, const ID &id, pxr::UsdTimeCode timecode);
 
   void write_visibility(const HierarchyContext &context,
                         const pxr::UsdTimeCode timecode,

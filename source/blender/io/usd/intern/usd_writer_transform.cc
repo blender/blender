@@ -102,8 +102,7 @@ bool USDTransformWriter::is_proto_root(const HierarchyContext &context) const
     return false;
   }
   bool is_proto = is_prototype(context.object);
-  bool parent_is_proto = context.export_parent &&
-                         is_prototype(context.export_parent);
+  bool parent_is_proto = context.export_parent && is_prototype(context.export_parent);
 
   return is_proto && !parent_is_proto;
 }
@@ -160,6 +159,10 @@ void USDTransformWriter::do_write(HierarchyContext &context)
     {
       set_xform_ops(parent_relative_matrix, xform);
     }
+  }
+
+  if (!hierarchy_iterator_->get_object_computed_name(context.object).empty()) {
+    xform.GetPrim().SetDisplayName(context.object->id.name + 2);
   }
 
   if (usd_export_context_.export_params.export_custom_properties && context.object) {

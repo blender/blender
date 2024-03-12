@@ -578,6 +578,10 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context,
           pxr::UsdGeomMesh(usd_export_context_.stage->OverridePrim(usd_export_context_.usd_path)) :
           pxr::UsdGeomMesh::Define(usd_export_context_.stage, usd_export_context_.usd_path);
 
+  if (!hierarchy_iterator_->get_object_data_computed_name(context.object).empty()) {
+    usd_mesh.GetPrim().SetDisplayName(mesh->id.name + 2);
+  }
+
   write_visibility(context, timecode, usd_mesh);
 
   USDMeshData usd_mesh_data;
