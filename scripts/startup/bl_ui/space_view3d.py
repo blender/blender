@@ -995,7 +995,11 @@ class VIEW3D_HT_header(Header):
             row = layout.row()
             row.ui_units_x = 9
             row.popover(panel="VIEW3D_PT_slots_projectpaint", icon=icon)
-            row.popover(panel="VIEW3D_PT_mask", icon=VIEW3D_HT_header._texture_mask_icon(tool_settings.image_paint), text="")
+            row.popover(
+                panel="VIEW3D_PT_mask",
+                icon=VIEW3D_HT_header._texture_mask_icon(
+                    tool_settings.image_paint),
+                text="")
         else:
             # Transform settings depending on tool header visibility
             VIEW3D_HT_header.draw_xform_template(layout, context)
