@@ -301,7 +301,7 @@ blender::Span<int> BKE_pbvh_node_get_grid_indices(const PBVHNode &node);
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node);
 blender::Span<int> BKE_pbvh_node_get_vert_indices(const PBVHNode *node);
 blender::Span<int> BKE_pbvh_node_get_unique_vert_indices(const PBVHNode *node);
-blender::Span<int> BKE_pbvh_node_get_loops(const PBVHNode *node);
+blender::Span<int> BKE_pbvh_node_get_corner_indices(const PBVHNode *node);
 
 namespace blender::bke::pbvh {
 

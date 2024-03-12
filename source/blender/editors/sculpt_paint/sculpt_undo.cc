@@ -1206,7 +1206,7 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
   const bool need_faces = ELEM(type, Type::FaceSet, Type::HideFace);
 
   if (need_loops) {
-    unode->corner_indices = BKE_pbvh_node_get_loops(node);
+    unode->corner_indices = BKE_pbvh_node_get_corner_indices(node);
     unode->mesh_corners_num = static_cast<Mesh *>(ob->data)->corners_num;
 
     usculpt->undo_size += unode->corner_indices.as_span().size_in_bytes();
