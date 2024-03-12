@@ -24,6 +24,8 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "UI_interface_icons.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -243,6 +245,20 @@ static int delete_track_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int delete_track_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete selected tracks?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return delete_track_exec(C, op);
+}
+
 void CLIP_OT_delete_track(wmOperatorType *ot)
 {
   /* identifiers */
@@ -251,7 +267,7 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
   ot->description = "Delete selected tracks";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = delete_track_invoke;
   ot->exec = delete_track_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -309,6 +325,20 @@ static int delete_marker_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int delete_marker_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete marker for current frame from selected tracks?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return delete_marker_exec(C, op);
+}
+
 void CLIP_OT_delete_marker(wmOperatorType *ot)
 {
   /* identifiers */
@@ -317,7 +347,7 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
   ot->description = "Delete marker for current frame from selected tracks";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = delete_marker_invoke;
   ot->exec = delete_marker_exec;
   ot->poll = ED_space_clip_tracking_poll;
 

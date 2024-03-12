@@ -15,6 +15,8 @@
 #include "BKE_context.hh"
 #include "BKE_mask.h"
 
+#include "BLT_translation.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
@@ -31,6 +33,8 @@
 #include "ED_select_utils.hh"
 
 #include "ANIM_keyframing.hh"
+
+#include "UI_interface_icons.hh"
 
 #include "RNA_access.hh"
 #include "RNA_define.hh"
@@ -1498,6 +1502,20 @@ static int delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete selected control points and splines?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return delete_exec(C, op);
+}
+
 void MASK_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1506,7 +1524,7 @@ void MASK_OT_delete(wmOperatorType *ot)
   ot->idname = "MASK_OT_delete";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = delete_invoke;
   ot->exec = delete_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 

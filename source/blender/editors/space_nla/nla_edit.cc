@@ -37,6 +37,8 @@
 #include "RNA_enum_types.hh"
 #include "RNA_prototypes.h"
 
+#include "UI_interface_icons.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -2090,6 +2092,20 @@ static int nlaedit_make_single_user_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int nlaedit_make_single_user_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Make each action single-user in the selected strips?"),
+                                  nullptr,
+                                  IFACE_("Make Single"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return nlaedit_make_single_user_exec(C, op);
+}
+
 void NLA_OT_make_single_user(wmOperatorType *ot)
 {
   /* identifiers */
@@ -2098,7 +2114,7 @@ void NLA_OT_make_single_user(wmOperatorType *ot)
   ot->description = "Ensure that each action is only used once in the set of strips selected";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = nlaedit_make_single_user_invoke;
   ot->exec = nlaedit_make_single_user_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 

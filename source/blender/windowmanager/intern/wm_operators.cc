@@ -1160,42 +1160,47 @@ int WM_operator_confirm_message_ex(bContext *C,
                                    const char *title,
                                    const int icon,
                                    const char *message,
-                                   const wmOperatorCallContext opcontext)
+                                   const wmOperatorCallContext /*opcontext*/)
 {
-  IDProperty *properties = static_cast<IDProperty *>(op->ptr->data);
-
-  if (properties && properties->len) {
-    properties = IDP_CopyProperty(static_cast<const IDProperty *>(op->ptr->data));
+  int alert_icon = ALERT_ICON_QUESTION;
+  switch (icon) {
+    case ICON_NONE:
+      alert_icon = ALERT_ICON_NONE;
+      break;
+    case ICON_ERROR:
+      alert_icon = ALERT_ICON_WARNING;
+      break;
+    case ICON_QUESTION:
+      alert_icon = ALERT_ICON_QUESTION;
+      break;
+    case ICON_CANCEL:
+      alert_icon = ALERT_ICON_ERROR;
+      break;
+    case ICON_INFO:
+      alert_icon = ALERT_ICON_INFO;
+      break;
   }
-  else {
-    properties = nullptr;
-  }
-
-  uiPopupMenu *pup = UI_popup_menu_begin(C, title, icon);
-  uiLayout *layout = UI_popup_menu_layout(pup);
-  uiItemFullO_ptr(
-      layout, op->type, message, ICON_NONE, properties, opcontext, UI_ITEM_O_DEPRESS, nullptr);
-  UI_popup_menu_end(C, pup);
-
-  return OPERATOR_INTERFACE;
+  return WM_operator_confirm_ex(C, op, IFACE_(title), nullptr, IFACE_(message), alert_icon, false);
 }
 
 int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message)
 {
-  return WM_operator_confirm_message_ex(
-      C, op, IFACE_("OK?"), ICON_QUESTION, message, WM_OP_EXEC_REGION_WIN);
+  return WM_operator_confirm_ex(
+      C, op, IFACE_(message), nullptr, IFACE_("OK"), ALERT_ICON_NONE, false);
 }
 
 int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
-  return WM_operator_confirm_message(C, op, nullptr);
+  return WM_operator_confirm_ex(
+      C, op, IFACE_(op->type->name), nullptr, IFACE_("OK"), ALERT_ICON_NONE, false);
 }
 
 int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   const bool confirm = RNA_boolean_get(op->ptr, "confirm");
   if (confirm) {
-    return WM_operator_confirm_message(C, op, nullptr);
+    return WM_operator_confirm_ex(
+        C, op, IFACE_(op->type->name), nullptr, IFACE_("OK"), ALERT_ICON_NONE, false);
   }
   return op->type->exec(C, op);
 }
@@ -1535,7 +1540,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 
-  uiItemS_ex(layout, small ? 0.4f : 2.0f);
+  uiItemS_ex(layout, small ? 0.1f : 2.0f);
 
   /* Clear so the OK button is left alone. */
   UI_block_func_set(block, nullptr, nullptr, nullptr);

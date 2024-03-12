@@ -1680,6 +1680,20 @@ static int ed_marker_delete_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
+static int ed_marker_delete_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Delete selected markers?"),
+                                  nullptr,
+                                  IFACE_("Delete"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return ed_marker_delete_exec(C, op);
+}
+
 static void MARKER_OT_delete(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1688,7 +1702,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
   ot->idname = "MARKER_OT_delete";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = ed_marker_delete_invoke;
   ot->exec = ed_marker_delete_exec;
   ot->poll = ed_markers_poll_selected_no_locked_markers;
 

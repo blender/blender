@@ -286,6 +286,20 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 #undef INDEX_UNSET
 }
 
+static int vertex_parent_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Parent selected objects to the selected vertices?"),
+                                  nullptr,
+                                  IFACE_("Parent"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return vertex_parent_set_exec(C, op);
+}
+
 void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -294,7 +308,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_vertex_parent_set";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = vertex_parent_set_invoke;
   ot->poll = vertex_parent_set_poll;
   ot->exec = vertex_parent_set_exec;
 
@@ -1107,6 +1121,20 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static int parent_noinv_set_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+{
+  if (RNA_boolean_get(op->ptr, "confirm")) {
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Make Parent without inverse correction?"),
+                                  nullptr,
+                                  IFACE_("Parent"),
+                                  ALERT_ICON_NONE,
+                                  false);
+  }
+  return parent_noinv_set_exec(C, op);
+}
+
 void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 {
   /* identifiers */
@@ -1115,7 +1143,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_parent_no_inverse_set";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm_or_exec;
+  ot->invoke = parent_noinv_set_invoke;
   ot->exec = parent_noinv_set_exec;
   ot->poll = ED_operator_object_active_editable;
 

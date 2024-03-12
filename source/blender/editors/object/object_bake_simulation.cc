@@ -12,6 +12,8 @@
 #include "BLI_string.h"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -663,7 +665,13 @@ static int bake_simulation_invoke(bContext *C, wmOperator *op, const wmEvent * /
     return OPERATOR_CANCELLED;
   }
   if (has_existing_bake_data) {
-    return WM_operator_confirm_message(C, op, "Overwrite existing bake data");
+    return WM_operator_confirm_ex(C,
+                                  op,
+                                  IFACE_("Overwrite existing bake data?"),
+                                  nullptr,
+                                  IFACE_("Bake"),
+                                  ALERT_ICON_NONE,
+                                  false);
   }
   Vector<NodeBakeRequest> requests = bake_simulation_gather_requests(C, op);
   return start_bake_job(C, std::move(requests), op, BakeRequestsMode::Async);

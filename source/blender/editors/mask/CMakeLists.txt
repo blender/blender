@@ -5,6 +5,7 @@
 set(INC
   ../include
   ../../blenkernel
+  ../../blentranslation
   ../../gpu
   ../../makesrna
   ../../windowmanager
