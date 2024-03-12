@@ -1135,37 +1135,36 @@ static void sculpt_gesture_trim_geometry_generate(gesture::GestureData &gesture_
   }
 
   /* Get the triangulation for the front/back poly. */
-  const int tot_tris_face = screen_points.size() - 2;
-  uint(*r_tris)[3] = static_cast<uint(*)[3]>(
-      MEM_malloc_arrayN(tot_tris_face, sizeof(uint[3]), "tris"));
-  BLI_polyfill_calc(
-      reinterpret_cast<const float(*)[2]>(screen_points.data()), screen_points.size(), 0, r_tris);
+  const int face_tris_num = bke::mesh::face_triangles_num(screen_points.size());
+  Array<uint3> tris(face_tris_num);
+  BLI_polyfill_calc(reinterpret_cast<const float(*)[2]>(screen_points.data()),
+                    screen_points.size(),
+                    0,
+                    reinterpret_cast<uint(*)[3]>(tris.data()));
 
   /* Write the front face triangle indices. */
   MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
   int face_index = 0;
   int loop_index = 0;
-  for (int i = 0; i < tot_tris_face; i++) {
+  for (const int i : tris.index_range()) {
     face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = r_tris[i][0];
-    corner_verts[loop_index + 1] = r_tris[i][1];
-    corner_verts[loop_index + 2] = r_tris[i][2];
+    corner_verts[loop_index + 0] = tris[i][0];
+    corner_verts[loop_index + 1] = tris[i][1];
+    corner_verts[loop_index + 2] = tris[i][2];
     face_index++;
     loop_index += 3;
   }
 
   /* Write the back face triangle indices. */
-  for (int i = 0; i < tot_tris_face; i++) {
+  for (const int i : tris.index_range()) {
     face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = r_tris[i][0] + screen_points.size();
-    corner_verts[loop_index + 1] = r_tris[i][1] + screen_points.size();
-    corner_verts[loop_index + 2] = r_tris[i][2] + screen_points.size();
+    corner_verts[loop_index + 0] = tris[i][0] + screen_points.size();
+    corner_verts[loop_index + 1] = tris[i][1] + screen_points.size();
+    corner_verts[loop_index + 2] = tris[i][2] + screen_points.size();
     face_index++;
     loop_index += 3;
   }
-
-  MEM_freeN(r_tris);
 
   /* Write the indices for the lateral triangles. */
   for (const int i : screen_points.index_range()) {
