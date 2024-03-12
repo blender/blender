@@ -223,18 +223,20 @@ static void store_result_geometry(
         new_mesh->attributes_for_write().remove_anonymous();
 
         BKE_object_material_from_eval_data(&bmain, &object, &new_mesh->id);
-        BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+        if (object.mode == OB_MODE_EDIT) {
+          EDBM_mesh_make_from_mesh(&object, new_mesh, scene.toolsettings->selectmode, true);
+          BKE_editmesh_looptris_and_normals_calc(mesh.edit_mesh);
+        }
+        else {
+          BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+        }
       }
 
       if (has_shape_keys && !mesh.key) {
         BKE_report(op.reports, RPT_WARNING, "Mesh shape key data removed");
       }
 
-      if (object.mode == OB_MODE_EDIT) {
-        EDBM_mesh_make(&object, scene.toolsettings->selectmode, true);
-        BKE_editmesh_looptris_and_normals_calc(mesh.edit_mesh);
-      }
-      else if (object.mode == OB_MODE_SCULPT) {
+      if (object.mode == OB_MODE_SCULPT) {
         sculpt_paint::undo::geometry_end(&object);
       }
       break;
