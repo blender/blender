@@ -218,8 +218,7 @@ void BLO_main_validate_embedded_liboverrides(Main *bmain, ReportList * /*reports
     if (GS(id_iter->name) == ID_SCE) {
       Scene *scene = (Scene *)id_iter;
       if (scene->master_collection &&
-          (scene->master_collection->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE))
-      {
+          (scene->master_collection->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE)) {
         scene->master_collection->id.flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;
       }
     }
