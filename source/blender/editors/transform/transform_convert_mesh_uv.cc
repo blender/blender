@@ -485,8 +485,8 @@ struct UVGroups {
   int sd_len;
 
  private:
-  Vector<int> groups_offs_buffer;
-  Vector<int> groups_offs_indices;
+  Vector<int> groups_offs_buffer_;
+  Vector<int> groups_offs_indices_;
 
  public:
   void init(const TransDataContainer *tc, BMesh *bm, const BMUVOffsets &offsets)
@@ -518,8 +518,8 @@ struct UVGroups {
     bm->elem_index_dirty |= BM_LOOP;
 
     /* Create the groups. */
-    this->groups_offs_buffer.reserve(this->sd_len);
-    this->groups_offs_indices.reserve((this->sd_len / 4) + 2);
+    groups_offs_buffer_.reserve(this->sd_len);
+    groups_offs_indices_.reserve((this->sd_len / 4) + 2);
 
     td = tc->data;
     for (int i = 0; i < tc->data_len; i++, td++) {
@@ -530,7 +530,7 @@ struct UVGroups {
       }
 
       const float2 &uv_orig = BM_ELEM_CD_GET_FLOAT_P(l_orig, offsets.uv);
-      this->groups_offs_indices.append(this->groups_offs_buffer.size());
+      groups_offs_indices_.append(groups_offs_buffer_.size());
 
       BMIter liter;
       BMLoop *l_iter;
@@ -547,21 +547,21 @@ struct UVGroups {
           continue;
         }
 
-        this->groups_offs_buffer.append(BM_elem_index_get(l_iter));
+        groups_offs_buffer_.append(BM_elem_index_get(l_iter));
         BM_elem_index_set(l_iter, -1);
       }
     }
-    this->groups_offs_indices.append(this->groups_offs_buffer.size());
+    groups_offs_indices_.append(groups_offs_buffer_.size());
   }
 
   OffsetIndices<int> groups() const
   {
-    return OffsetIndices<int>(this->groups_offs_indices);
+    return OffsetIndices<int>(groups_offs_indices_);
   }
 
   Span<int> td_indices_get(const int group_index) const
   {
-    return this->groups_offs_buffer.as_span().slice(this->groups()[group_index]);
+    return groups_offs_buffer_.as_span().slice(this->groups()[group_index]);
   }
 
   Array<TransDataVertSlideVert> sd_array_create_and_init(TransDataContainer *tc)
