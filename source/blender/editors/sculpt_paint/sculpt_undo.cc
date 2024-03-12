@@ -1213,7 +1213,12 @@ static Node *alloc_node(Object *ob, PBVHNode *node, Type type)
   }
 
   if (need_faces) {
-    unode->face_indices = BKE_pbvh_node_calc_face_indices(*ss->pbvh, *node);
+    if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
+      bke::pbvh::node_face_indices_calc_mesh(*ss->pbvh, *node, unode->face_indices);
+    }
+    else {
+      bke::pbvh::node_face_indices_calc_grids(*ss->pbvh, *node, unode->face_indices);
+    }
     usculpt->undo_size += unode->face_indices.as_span().size_in_bytes();
   }
 

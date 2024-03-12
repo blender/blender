@@ -1834,26 +1834,6 @@ Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, V
 
 }  // namespace blender::bke::pbvh
 
-blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node)
-{
-  using namespace blender::bke::pbvh;
-  Vector<int> faces;
-  switch (pbvh.header.type) {
-    case PBVH_FACES: {
-      node_face_indices_calc_mesh(pbvh, node, faces);
-      break;
-    }
-    case PBVH_GRIDS: {
-      node_face_indices_calc_grids(pbvh, node, faces);
-      break;
-    }
-    case PBVH_BMESH:
-      BLI_assert_unreachable();
-      break;
-  }
-  return faces;
-}
-
 int BKE_pbvh_node_num_unique_verts(const PBVH &pbvh, const PBVHNode &node)
 {
   switch (pbvh.header.type) {

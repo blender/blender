@@ -319,8 +319,6 @@ Span<int> node_face_indices_calc_grids(const PBVH &pbvh, const PBVHNode &node, V
 
 }  // namespace blender::bke::pbvh
 
-blender::Vector<int> BKE_pbvh_node_calc_face_indices(const PBVH &pbvh, const PBVHNode &node);
-
 blender::Bounds<blender::float3> BKE_pbvh_node_get_BB(const PBVHNode *node);
 blender::Bounds<blender::float3> BKE_pbvh_node_get_original_BB(const PBVHNode *node);
 

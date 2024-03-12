@@ -539,7 +539,7 @@ static void clear_face_sets(Object &object, const Span<PBVHNode *> nodes)
     Vector<int> &face_indices = all_face_indices.local();
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
-          (BKE_pbvh_type(&pbvh) == PBVH_FACES) ?
+          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
               bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, face_indices);
       if (std::any_of(faces.begin(), faces.end(), [&](const int face) {
@@ -1000,7 +1000,7 @@ static void face_hide_update(Object &object,
     TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
       const Span<int> faces =
-          (BKE_pbvh_type(&pbvh) == PBVH_FACES) ?
+          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
               bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
               bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
@@ -1686,12 +1686,22 @@ static void face_set_gesture_apply_mesh(gesture::GestureData &gesture_data,
   const VArraySpan<bool> hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
   bke::SpanAttributeWriter<int> face_sets = face_set::ensure_face_sets_mesh(object);
 
+  struct TLS {
+    Vector<int> face_indices;
+  };
+
+  threading::EnumerableThreadSpecific<TLS> all_tls;
   threading::parallel_for(gesture_data.nodes.index_range(), 1, [&](const IndexRange range) {
+    TLS &tls = all_tls.local();
     for (PBVHNode *node : nodes.slice(range)) {
       undo::push_node(gesture_data.vc.obact, node, undo::Type::FaceSet);
+      const Span<int> node_faces =
+          BKE_pbvh_type(&pbvh) == PBVH_FACES ?
+              bke::pbvh::node_face_indices_calc_mesh(pbvh, *node, tls.face_indices) :
+              bke::pbvh::node_face_indices_calc_grids(pbvh, *node, tls.face_indices);
 
       bool any_updated = false;
-      for (const int face : BKE_pbvh_node_calc_face_indices(pbvh, *node)) {
+      for (const int face : node_faces) {
         if (!hide_poly.is_empty() && hide_poly[face]) {
           continue;
         }
