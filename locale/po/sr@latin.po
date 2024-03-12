@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -21367,10 +21367,6 @@ msgid "The default directory to search for sounds"
 msgstr "Osnovni direktorijum sa zvucima"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "Direktorijum za čuvanje privremenih datoteka"
-
-
 msgid "The default directory to search for textures"
 msgstr "Osnovni direktorijum sa teksturama"
 
@@ -25878,10 +25874,6 @@ msgid "Basic"
 msgstr "Osnovno"
 
 
-msgid "Nothing selected"
-msgstr "Ništa nije izabrano"
-
-
 msgid "Scene not found"
 msgstr "Brzina zvuka"
 
@@ -25964,6 +25956,10 @@ msgstr "Tekst je previše dugačak"
 
 msgid "No active frame to delete"
 msgstr "Modifikator vrednosti F-krive"
+
+
+msgid "Nothing selected"
+msgstr "Ništa nije izabrano"
 
 
 msgid "Pin"

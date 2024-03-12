@@ -7892,6 +7892,21 @@ def km_3d_view_tool_sculpt_box_hide(params):
     )
 
 
+def km_3d_view_tool_sculpt_lasso_hide(params):
+    return (
+        "3D View Tool: Sculpt, Lasso Hide",
+        {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
+        {"items": [
+            ("paint.hide_show_lasso_gesture", params.tool_maybe_tweak_event,
+             {"properties": [("action", 'HIDE')]}),
+            ("paint.hide_show_lasso_gesture", {**params.tool_maybe_tweak_event, "ctrl": True},
+             {"properties": [("action", 'SHOW')]}),
+            ("paint.hide_show_all", {"type": params.select_mouse, "value": params.select_mouse_value},
+             {"properties": [("action", 'SHOW')]}),
+        ]},
+    )
+
+
 def km_3d_view_tool_sculpt_box_mask(params):
     return (
         "3D View Tool: Sculpt, Box Mask",
@@ -8737,6 +8752,7 @@ def generate_keymaps(params=None):
         km_3d_view_tool_edit_curve_extrude_to_cursor(params),
         km_3d_view_tool_edit_curves_draw(params),
         km_3d_view_tool_sculpt_box_hide(params),
+        km_3d_view_tool_sculpt_lasso_hide(params),
         km_3d_view_tool_sculpt_box_mask(params),
         km_3d_view_tool_sculpt_lasso_mask(params),
         km_3d_view_tool_sculpt_box_face_set(params),

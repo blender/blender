@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
-"PO-Revision-Date: 2024-02-20 05:29+0000\n"
-"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-03-05 22:56+0000\n"
+"Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
 "Language: zh_HANT\n"
 "MIME-Version: 1.0\n"
@@ -1581,6 +1581,10 @@ msgstr "蠟筆分層的特性"
 
 msgid "Is Internal"
 msgstr "屬於內部"
+
+
+msgid "Is Required"
+msgstr "是必要項目"
 
 
 msgid "Whether the attribute can be removed or renamed"
@@ -6464,6 +6468,10 @@ msgid "Copy the rotation of the target"
 msgstr "複製目標的旋轉"
 
 
+msgid "Euler Order"
+msgstr "尤拉順序"
+
+
 msgid "Default"
 msgstr "預設"
 
@@ -6502,6 +6510,18 @@ msgstr "反轉 Y 軸旋轉"
 
 msgid "Invert the Z rotation"
 msgstr "反轉 Z 軸旋轉"
+
+
+msgid "Before Original"
+msgstr "原始前"
+
+
+msgid "After Original"
+msgstr "原始後"
+
+
+msgid "Offset (Legacy)"
+msgstr "偏移 (舊版本)"
 
 
 msgid "Copy the target's X rotation"
@@ -7531,6 +7551,10 @@ msgstr "Z 軸來源運動的底端範圍"
 
 msgid "Auto Euler"
 msgstr "自動尤拉"
+
+
+msgid "Quaternion rotation"
+msgstr "四元數旋轉"
 
 
 msgid "Map From"
@@ -48133,10 +48157,6 @@ msgid "Temporary Directory"
 msgstr "暫存目錄"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "儲藏暫存檔用的目錄"
-
-
 msgid "The default directory to search for textures"
 msgstr "搜尋紋理用的預設目錄"
 
@@ -59680,10 +59700,6 @@ msgid "Does F-Curve contribute to result"
 msgstr "F 曲線是否會影響結果"
 
 
-msgid "Nothing selected"
-msgstr "未有選取"
-
-
 msgid "<invalid>"
 msgstr "<無效>"
 
@@ -60020,6 +60036,10 @@ msgstr "無蠟筆資料"
 
 msgid "No active frame to delete"
 msgstr "無作用中框幀可刪除"
+
+
+msgid "Nothing selected"
+msgstr "未有選取"
 
 
 msgid "No active area"

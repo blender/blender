@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
-"PO-Revision-Date: 2024-03-02 19:55+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-03-12 05:27+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -4063,6 +4063,10 @@ msgstr "L'índex de la col·lecció d'ossos activa de l'esquelet; buit quan no h
 
 msgid "Solo Active"
 msgstr "En solitari actiu"
+
+
+msgid "Read-only flag that indicates there is at least one bone collection marked as 'solo'"
+msgstr "Indicador de només lectura que indica que hi ha almenys una col·lecció d'ossos marcada com a \"en solitari\""
 
 
 msgid "Theme color or custom color of a bone"
@@ -37633,7 +37637,7 @@ msgstr "Combinar les malles d'una manera additiva"
 
 
 msgid "Combine meshes in a subtractive way"
-msgstr "Combinar les malles d'una manera substractiva"
+msgstr "Combinar les malles d'una manera subtractiva"
 
 
 msgid "Method for calculating booleans"
@@ -49915,6 +49919,14 @@ msgid "Link is valid"
 msgstr "L'enllaç és vàlid"
 
 
+msgid "Multi Input Sort ID"
+msgstr "ID d'ordenació de multiingressions"
+
+
+msgid "Used to sort multiple links coming into the same input. The highest ID is at the top"
+msgstr "S'empra per ordenar una multiplicitat d'enllaços de la mateixa ingressió. L'ID més alt queda al capdamunt"
+
+
 msgid "To node"
 msgstr "Al node"
 
@@ -57027,22 +57039,6 @@ msgstr "[Always Sample Animations]: Aplica el mostreig a totes les animacions"
 
 msgid "Output format. Binary is most efficient, but JSON may be easier to edit later"
 msgstr "Format d'egressió. El més eficient és el binari, però el JSON pot ser més fàcil d'editar posteriorment"
-
-
-msgid "glTF Binary (.glb)"
-msgstr "glTF binari (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "Exporta un sol document, amb totes les dades empaquetades en format binari. Més eficient i portable, però més difícil d'editar posteriorment"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF separat (.gltf + .bin + textures)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "Exporta múltiples documents, amb dades JSON, binàries i de textura per separat. Més fàcil d'editar posteriorment"
 
 
 msgid "Limit to Playback Range"
@@ -90674,10 +90670,6 @@ msgid "Temporary Directory"
 msgstr "Directori temporal"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "El directori per emmagatzemar documents temporals desats"
-
-
 msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
@@ -106258,6 +106250,10 @@ msgid "Use Remote"
 msgstr "Emprar remot"
 
 
+msgid "Synchronize the repository with a remote URL/path"
+msgstr "Sincronitza el repositori amb una ruta/URL remota"
+
+
 msgid "User Extension Repositories"
 msgstr "Repositoris d'extensions de la usuària"
 
@@ -112939,22 +112935,6 @@ msgstr "No hi ha seqüències seleccionades"
 
 msgid "Current frame not within strip framerange"
 msgstr "El fotograma actual no està dins del rang dels segments"
-
-
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "Facilitar format d'argument per editor de text a Rutes de documents/Preferències d'aplicacions, vegeu la informació del camp d'ingressió per a més informació"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "El format d'arguments de l'editor de textos ha d'incloure $filepath"
-
-
-msgid "Exception parsing template: %r"
-msgstr "Excepció d'análisi de plantilla: %r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "Excepció en executar editor extern: %r"
 
 
 msgid "Reload Start-Up file to restore settings"
@@ -122467,10 +122447,6 @@ msgid "No keyframes to focus on"
 msgstr "No hi ha fotofites on projectar-se"
 
 
-msgid "Nothing selected"
-msgstr "No hi ha res seleccionat"
-
-
 msgid "No open Graph Editor window found"
 msgstr "No s'ha trobat cap finestra d'Editor de gràfiques"
 
@@ -123406,6 +123382,10 @@ msgid "Asset is not a geometry node group"
 msgstr "El recurs no és un grup de nodes de geometria"
 
 
+msgid "Mesh shape key data removed"
+msgstr "Suprimides les dades de morfofites de malla"
+
+
 msgid "Cannot evaluate node group"
 msgstr "No es pot avaluar el grup de nodes"
 
@@ -123616,6 +123596,10 @@ msgstr "El mode d'edició de corba no és compatible"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "No es pot separar un objecte amb només una capa"
+
+
+msgid "Nothing selected"
+msgstr "No hi ha res seleccionat"
 
 
 msgid "No active area"
@@ -128888,6 +128872,10 @@ msgid "{} (Integer)"
 msgstr "{} (enter)"
 
 
+msgid "{:.10} (Float)"
+msgstr "{:.10} (Flotant)"
+
+
 msgid "{} (Float)"
 msgstr "{} (flotant)"
 
@@ -129561,7 +129549,7 @@ msgstr "Sobreseïment additiu"
 
 
 msgid "Subtractive override"
-msgstr "Sobreseïment substractiu"
+msgstr "Sobreseïment subtractiu"
 
 
 msgid "Multiplicative override"
@@ -131236,6 +131224,10 @@ msgid "Group"
 msgstr "Grup"
 
 
+msgid "PLY Export: Cannot open file '%s'"
+msgstr "Exportació PLY: No es pot obrir el document '%s'"
+
+
 msgid "PLY Importer: failed importing, unknown error"
 msgstr "Importador PLY: ha fallat la importació, error desconegut"
 
@@ -131246,6 +131238,22 @@ msgstr "Importador PLY: ha fallat la importació, no hi ha vèrtexs"
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importador PLY: %s: %s"
+
+
+msgid "STL Export: Cannot open file '%s'"
+msgstr "Exportació STL: No es pot obrir el document '%s'"
+
+
+msgid "STL Import: Cannot open file '%s'"
+msgstr "Importació STL: No es pot obrir el document '%s'"
+
+
+msgid "STL Import: Failed to read file '%s'"
+msgstr "Importació STL: No es pot llegir el document '%s'"
+
+
+msgid "STL Import: Failed to import mesh from file '%s'"
+msgstr "Importació STL: No es pot importar malles del document '%s'"
 
 
 msgid "%s: Couldn't determine package-relative file name from path %s"
@@ -131558,6 +131566,18 @@ msgstr "Exportació USD: no s'ha pogut resoldre el document .vdb per a l'objecte
 
 msgid "USD Export: couldn't construct relative file path for .vdb file, absolute path will be used instead"
 msgstr "Exportació USD: no s'ha pogut construir la ruta relativa per al document .vdb, s'utilitzarà la ruta absoluta"
+
+
+msgid "OBJ Export: Cannot open file '%s'"
+msgstr "Exportació OBJ: No es pot obrir el document '%s'"
+
+
+msgid "OBJ Export: Cannot create mtl file for '%s'"
+msgstr "Exportació OBJ: No es pot crear un document mtl per a '%s'"
+
+
+msgid "OBJ Import: Cannot open file '%s'"
+msgstr "Importació OBJ: No es pot obrir el document '%s'"
 
 
 msgid "Linked data-blocks cannot be renamed"
@@ -132438,6 +132458,10 @@ msgstr "La mateixa direcció d'entrada/sortida dels borns"
 
 msgid "Unable to locate link in node tree"
 msgstr "No s'ha pogut localitzar l'enllaç en l'arbre de nodes"
+
+
+msgid "The links must be siblings"
+msgstr "Els enllaços han de ser germans"
 
 
 msgid "Cannot add socket to built-in node"
@@ -135519,6 +135543,14 @@ msgstr "Coordenades UV entre 0 i 1 per a cada cantell de cares de les cares sele
 
 msgid "UV Unwrap Field"
 msgstr "Camp desembolcallar UV"
+
+
+msgid "No color overlay"
+msgstr "Sense sobreimpressió de color"
+
+
+msgid "Rotation values can only be displayed with the text overlay in the 3D view"
+msgstr "Els valors de rotació només es poden mostrar amb la bambolina de text de la vista 3D"
 
 
 msgid "Resolution must be greater than 1"

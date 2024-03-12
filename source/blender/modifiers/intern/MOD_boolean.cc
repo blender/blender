@@ -44,7 +44,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GEO_mesh_boolean_convert.hh"
+#include "GEO_mesh_boolean.hh"
 #include "GEO_randomize.hh"
 
 #include "bmesh.hh"

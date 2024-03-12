@@ -3573,6 +3573,12 @@ class VIEW3D_MT_sculpt(Menu):
         props = layout.operator("paint.hide_show", text="Box Show")
         props.action = 'SHOW'
 
+        props = layout.operator("paint.hide_show_lasso_gesture", text="Lasso Hide")
+        props.action = 'HIDE'
+
+        props = layout.operator("paint.hide_show_lasso_gesture", text="Lasso Show")
+        props.action = 'SHOW'
+
         layout.separator()
 
         props = layout.operator("sculpt.face_set_change_visibility", text="Toggle Visibility")

@@ -334,7 +334,12 @@ static EdgeSlideData *createEdgeSlideVerts(TransInfo *t,
 {
   int group_len;
   EdgeSlideData *sld = MEM_new<EdgeSlideData>("sld");
-  sld->sv = transform_mesh_edge_slide_data_create(tc, &group_len);
+  if (t->data_type == &TransConvertType_MeshUV) {
+    sld->sv = transform_mesh_uv_edge_slide_data_create(t, tc, &group_len);
+  }
+  else {
+    sld->sv = transform_mesh_edge_slide_data_create(tc, &group_len);
+  }
 
   if (sld->sv.is_empty()) {
     MEM_delete(sld);

@@ -4213,6 +4213,7 @@ static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "GRAPH_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "NODE_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "UV_OT_select_lasso");
+  WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show_lasso_gesture");
 }
 
 /* Zoom to border modal operators. */

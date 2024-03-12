@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-12-04 11:07+0000\n"
 "Last-Translator: Mohamad Rido <mohamadrido@mail.ru>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -24789,10 +24789,6 @@ msgid "Loops are not connected by wire/boundary edges"
 msgstr "Loop tidak terkoneksi oleh tepi kabel/batas"
 
 
-msgid "Nothing selected"
-msgstr "Tidak ada yang terseleksi"
-
-
 msgid "Cannot re-link markers into the same scene"
 msgstr "Adegan"
 
@@ -24903,6 +24899,10 @@ msgstr "Tidak ada frame aktif untuk dihapus"
 
 msgid "No active frame(s) to delete"
 msgstr "Tidak ada frame-frame aktif untuk dihapus"
+
+
+msgid "Nothing selected"
+msgstr "Tidak ada yang terseleksi"
 
 
 msgid "GPencil Interpolation: "

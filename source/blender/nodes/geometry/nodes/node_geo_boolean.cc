@@ -13,7 +13,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
-#include "GEO_mesh_boolean_convert.hh"
+#include "GEO_mesh_boolean.hh"
 #include "GEO_randomize.hh"
 
 #include "node_geometry_util.hh"
