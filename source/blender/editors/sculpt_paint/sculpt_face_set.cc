@@ -293,7 +293,8 @@ static void do_draw_face_sets_brush_grids(Object *ob,
                                                                     &automask_data);
 
         if (fade > FACE_SET_BRUSH_MIN_FADE) {
-          const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg, vd.g);
+          const int face_index = BKE_subdiv_ccg_grid_to_face_index(subdiv_ccg,
+                                                                   vd.grid_indices[vd.g]);
           face_sets[face_index] = ss->cache->paint_face_set;
           changed = true;
         }
