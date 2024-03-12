@@ -317,6 +317,8 @@ class ZoneOperator:
     @classmethod
     def get_node(cls, context):
         node = context.active_node
+        if node is None:
+            return None
         if node.bl_idname == cls.output_node_type:
             return node
         if node.bl_idname == cls.input_node_type:
@@ -337,6 +339,8 @@ class NodeOperator:
     @classmethod
     def get_node(cls, context):
         node = context.active_node
+        if node is None:
+            return None
         if node.bl_idname == cls.node_type:
             return node
 

@@ -21,7 +21,7 @@
 #include "ED_mesh.hh"
 #include "ED_uvedit.hh"
 
-#include "WM_api.hh" /* for WM_event_add_notifier to deal with stabilization nodes */
+#include "WM_api.hh" /* For #WM_event_add_notifier to deal with stabilization nodes. */
 
 #include "transform.hh"
 #include "transform_convert.hh"
@@ -31,43 +31,43 @@
  * \{ */
 
 static void UVsToTransData(const float aspect[2],
-                           TransData *td,
-                           TransData2D *td2d,
                            float *uv,
                            const float *center,
-                           float calc_dist,
-                           bool selected)
+                           const float calc_dist,
+                           const bool selected,
+                           TransData *r_td,
+                           TransData2D *r_td2d)
 {
   /* UV coords are scaled by aspects. this is needed for rotations and
    * proportional editing to be consistent with the stretched UV coords
    * that are displayed. this also means that for display and number-input,
    * and when the UV coords are flushed, these are converted each time. */
-  td2d->loc[0] = uv[0] * aspect[0];
-  td2d->loc[1] = uv[1] * aspect[1];
-  td2d->loc[2] = 0.0f;
-  td2d->loc2d = uv;
+  r_td2d->loc[0] = uv[0] * aspect[0];
+  r_td2d->loc[1] = uv[1] * aspect[1];
+  r_td2d->loc[2] = 0.0f;
+  r_td2d->loc2d = uv;
 
-  td->flag = 0;
-  td->loc = td2d->loc;
-  copy_v2_v2(td->center, center ? center : td->loc);
-  td->center[2] = 0.0f;
-  copy_v3_v3(td->iloc, td->loc);
+  r_td->flag = 0;
+  r_td->loc = r_td2d->loc;
+  copy_v2_v2(r_td->center, center ? center : r_td->loc);
+  r_td->center[2] = 0.0f;
+  copy_v3_v3(r_td->iloc, r_td->loc);
 
-  memset(td->axismtx, 0, sizeof(td->axismtx));
-  td->axismtx[2][2] = 1.0f;
+  memset(r_td->axismtx, 0, sizeof(r_td->axismtx));
+  r_td->axismtx[2][2] = 1.0f;
 
-  td->ext = nullptr;
-  td->val = nullptr;
+  r_td->ext = nullptr;
+  r_td->val = nullptr;
 
   if (selected) {
-    td->flag |= TD_SELECTED;
-    td->dist = 0.0;
+    r_td->flag |= TD_SELECTED;
+    r_td->dist = 0.0;
   }
   else {
-    td->dist = calc_dist;
+    r_td->dist = calc_dist;
   }
-  unit_m3(td->mtx);
-  unit_m3(td->smtx);
+  unit_m3(r_td->mtx);
+  unit_m3(r_td->smtx);
 }
 
 /**
@@ -219,7 +219,7 @@ static void uv_set_connectivity_distance(const ToolSettings *ts,
   } while (BLI_LINKSTACK_SIZE(queue));
 
 #ifndef NDEBUG
-  /* Check that we didn't leave any loops tagged */
+  /* Check that we didn't leave any loops tagged. */
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     /* Visible faces was tagged in #createTransUVs. */
     if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
@@ -267,9 +267,9 @@ static void createTransUVs(bContext *C, TransInfo *t)
       continue;
     }
 
-    /* count */
+    /* Count. */
     if (is_island_center) {
-      /* create element map with island information */
+      /* Create element map with island information. */
       elementmap = BM_uv_element_map_create(em->bm, scene, true, false, true, true);
       if (elementmap == nullptr) {
         continue;
@@ -331,8 +331,8 @@ static void createTransUVs(bContext *C, TransInfo *t)
     tc->data_len = (is_prop_edit) ? count : countsel;
     tc->data = static_cast<TransData *>(
         MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(UV Editing)"));
-    /* for each 2d uv coord a 3d vector is allocated, so that they can be
-     * treated just as if they were 3d verts */
+    /* For each 2d uv coord a 3d vector is allocated, so that they can be
+     * treated just as if they were 3d verts. */
     tc->data_2d = static_cast<TransData2D *>(
         MEM_callocN(tc->data_len * sizeof(TransData2D), "TransObData2D(UV Editing)"));
 
@@ -380,7 +380,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
         }
 
         luv = (float(*)[2])BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
-        UVsToTransData(t->aspect, td++, td2d++, *luv, center, prop_distance, selected);
+        UVsToTransData(t->aspect, *luv, center, prop_distance, selected, td++, td2d++);
       }
     }
 
@@ -427,7 +427,7 @@ static void flushTransUVs(TransInfo *t)
       size[1] = size_i[1];
     }
 
-    /* flush to 2d vector from internally used 3d vector */
+    /* Flush to 2d vector from internally used 3d vector. */
     for (a = 0, td = tc->data_2d; a < tc->data_len; a++, td++) {
       td->loc2d[0] = td->loc[0] * aspect_inv[0];
       td->loc2d[1] = td->loc[1] * aspect_inv[1];

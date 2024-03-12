@@ -6,6 +6,7 @@
 
 #include "COM_PlaneTrackOperation.h"
 #include "COM_SMAAOperation.h"
+#include "COM_SetAlphaMultiplyOperation.h"
 
 namespace blender::compositor {
 

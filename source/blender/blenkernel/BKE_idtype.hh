@@ -10,6 +10,8 @@
  * ID type structure, helping to factorize common operations and data for all data-block types.
  */
 
+#include <optional>
+
 #include "BLI_sys_types.h"
 
 struct AssetTypeInfo;
@@ -18,6 +20,7 @@ struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;
 struct ID;
+struct Library;
 struct LibraryForeachIDData;
 struct Main;
 
@@ -63,7 +66,8 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v);
 using IDTypeInitDataFunction = void (*)(ID *id);
 
 /** \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more). */
-using IDTypeCopyDataFunction = void (*)(Main *bmain, ID *id_dst, const ID *id_src, int flag);
+using IDTypeCopyDataFunction = void (*)(
+    Main *bmain, std::optional<Library *> owner_library, ID *id_dst, const ID *id_src, int flag);
 
 using IDTypeFreeDataFunction = void (*)(ID *id);
 
@@ -269,6 +273,7 @@ extern IDTypeInfo IDType_ID_CV;
 extern IDTypeInfo IDType_ID_PT;
 extern IDTypeInfo IDType_ID_VO;
 extern IDTypeInfo IDType_ID_GP;
+extern IDTypeInfo IDType_ID_AN;
 
 /** Empty shell mostly, but needed for read code. */
 extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
@@ -276,7 +281,7 @@ extern IDTypeInfo IDType_ID_LINK_PLACEHOLDER;
 /* ********** Helpers/Utils API. ********** */
 
 /* Module initialization. */
-void BKE_idtype_init(void);
+void BKE_idtype_init();
 
 /* General helpers. */
 const IDTypeInfo *BKE_idtype_get_info_from_idtype_index(const int idtype_index);

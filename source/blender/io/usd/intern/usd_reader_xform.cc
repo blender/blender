@@ -19,6 +19,7 @@
 #include "DNA_object_types.h"
 
 #include <pxr/base/gf/matrix4f.h>
+#include <pxr/usd/usdGeom/xformable.h>
 
 #include <string>
 

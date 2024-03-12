@@ -1008,7 +1008,7 @@ static float camera_offaxis_shiftx_get(Scene *scene,
                                        const OVERLAY_CameraInstanceData *instdata,
                                        bool right_eye)
 {
-  Camera *cam = static_cast<Camera *>(ob->data);
+  const Camera *cam = static_cast<const Camera *>(ob->data);
   if (cam->stereo.convergence_mode == CAM_S3D_OFFAXIS) {
     const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
     const float shiftx = BKE_camera_multiview_shift_x(&scene->r, ob, viewnames[right_eye]);
@@ -1030,7 +1030,7 @@ static void camera_stereoscopy_extra(OVERLAY_ExtraCallBuffers *cb,
                                      const OVERLAY_CameraInstanceData *instdata)
 {
   OVERLAY_CameraInstanceData stereodata = *instdata;
-  Camera *cam = static_cast<Camera *>(ob->data);
+  const Camera *cam = static_cast<const Camera *>(ob->data);
   const bool is_select = DRW_state_is_select();
   const char *viewnames[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
@@ -1134,8 +1134,8 @@ void OVERLAY_camera_cache_populate(OVERLAY_Data *vedata, Object *ob)
   Scene *scene = draw_ctx->scene;
   RegionView3D *rv3d = draw_ctx->rv3d;
 
-  Camera *cam = static_cast<Camera *>(ob->data);
-  Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
+  const Camera *cam = static_cast<Camera *>(ob->data);
+  const Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
   const bool is_select = DRW_state_is_select();
   const bool is_active = (ob == camera_object);
   const bool look_through = (is_active && (rv3d->persp == RV3D_CAMOB));

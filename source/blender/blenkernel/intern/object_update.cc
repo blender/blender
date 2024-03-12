@@ -139,25 +139,25 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
       CustomData_MeshMasks cddata_masks = scene->customdata_mask;
       CustomData_MeshMasks_update(&cddata_masks, &CD_MASK_BAREMESH);
       /* Custom attributes should not be removed automatically. They might be used by the render
-       * engine or scripts. They can still be removed explicitly using geometry nodes. Crease and
-       * vertex groups can be used in arbitrary situations with geometry nodes as well. */
+       * engine or scripts. They can still be removed explicitly using geometry nodes.
+       * Vertex groups can be used in arbitrary situations with geometry nodes as well. */
       cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_MDEFORMVERT;
       cddata_masks.emask |= CD_MASK_PROP_ALL;
       cddata_masks.fmask |= CD_MASK_PROP_ALL;
       cddata_masks.pmask |= CD_MASK_PROP_ALL;
       cddata_masks.lmask |= CD_MASK_PROP_ALL;
 
-      /* Make sure Freestyle edge/face marks appear in DM for render (see #40315).
+      /* Make sure Freestyle edge/face marks appear in evaluated mesh (see #40315).
        * Due to Line Art implementation, edge marks should also be shown in viewport. */
 #ifdef WITH_FREESTYLE
       cddata_masks.emask |= CD_MASK_FREESTYLE_EDGE;
       cddata_masks.pmask |= CD_MASK_FREESTYLE_FACE;
 #endif
       if (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER) {
-        /* Always compute UVs, vertex colors as orcos for render. */
+        /* Always compute orcos for render. */
         cddata_masks.vmask |= CD_MASK_ORCO;
       }
-      makeDerivedMesh(depsgraph, scene, ob, &cddata_masks); /* was CD_MASK_BAREMESH */
+      makeDerivedMesh(depsgraph, scene, ob, &cddata_masks);
       break;
     }
     case OB_ARMATURE:

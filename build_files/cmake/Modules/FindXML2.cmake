@@ -59,3 +59,5 @@ mark_as_advanced(
   XML2_INCLUDE_DIR
   XML2_LIBRARY
 )
+
+unset(_xml2_SEARCH_DIRS)

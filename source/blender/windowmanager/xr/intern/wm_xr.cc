@@ -62,7 +62,7 @@ bool wm_xr_init(wmWindowManager *wm)
   }
   static wmXrErrorHandlerData error_customdata;
 
-  /* Set up error handling */
+  /* Set up error handling. */
   error_customdata.wm = wm;
   GHOST_XrErrorHandler(wm_xr_error_handler, &error_customdata);
 
@@ -95,7 +95,7 @@ bool wm_xr_init(wmWindowManager *wm)
       return false;
     }
 
-    /* Set up context callbacks */
+    /* Set up context callbacks. */
     GHOST_XrGraphicsContextBindFuncs(context,
                                      wm_xr_session_gpu_binding_context_create,
                                      wm_xr_session_gpu_binding_context_destroy);
@@ -132,7 +132,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
       wm_xr_session_actions_update(wm);
     }
 
-    /* wm_window_events_process() uses the return value to determine if it can put the main thread
+    /* #wm_window_events_process() uses the return value to determine if it can put the main thread
      * to sleep for some milliseconds. We never want that to happen while the VR session runs on
      * the main thread. So always return true. */
     return true;
@@ -179,4 +179,4 @@ void wm_xr_runtime_data_free(wmXrRuntimeData **runtime)
   MEM_SAFE_FREE(*runtime);
 }
 
-/** \} */ /* XR Runtime Data */
+/** \} */ /* XR Runtime Data. */

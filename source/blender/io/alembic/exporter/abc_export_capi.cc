@@ -13,10 +13,8 @@
 #include "DEG_depsgraph_build.hh"
 #include "DEG_depsgraph_query.hh"
 
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_blender_version.h"
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_main.hh"
@@ -33,7 +31,6 @@
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.alembic"};
 
-#include <algorithm>
 #include <memory>
 
 struct ExportJobData {

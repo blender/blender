@@ -1699,9 +1699,7 @@ typedef struct SpaceConsole {
   char _pad0[6];
   /* End 'SpaceLink' header. */
 
-  /* space vars */
-  int lheight;
-  char _pad[4];
+  /* Space variables. */
 
   /** ConsoleLine; output. */
   ListBase scrollback;
@@ -1710,6 +1708,11 @@ typedef struct SpaceConsole {
   char prompt[256];
   /** Multiple consoles are possible, not just python. */
   char language[32];
+
+  int lheight;
+
+  /** Index into history of most recent up/down arrow keys. */
+  int history_index;
 
   /** Selection offset in bytes. */
   int sel_start;

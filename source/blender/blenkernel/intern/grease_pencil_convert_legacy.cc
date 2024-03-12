@@ -717,6 +717,13 @@ static ModifierData &legacy_object_modifier_common(Object &object,
   /* Convert animation data if needed. */
   AnimData *anim_data = BKE_animdata_from_id(&object.id);
   if (anim_data) {
+    char legacy_name_esc[MAX_NAME * 2];
+    BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
+    const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
+                                                     legacy_name_esc);
+    char new_name_esc[MAX_NAME * 2];
+    BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
+
     auto modifier_path_update = [&](FCurve *fcurve) -> bool {
       /* NOTE: This logic will likely need to be re-used in other similar conditions for other
        * areas, should be put into its own util then. */
@@ -724,15 +731,9 @@ static ModifierData &legacy_object_modifier_common(Object &object,
         return false;
       }
       StringRefNull rna_path = fcurve->rna_path;
-      char legacy_name_esc[MAX_NAME * 2];
-      BLI_str_escape(legacy_name_esc, legacy_md.name, sizeof(legacy_name_esc));
-      const std::string legacy_root_path = fmt::format("grease_pencil_modifiers[\"{}\"]",
-                                                       legacy_name_esc);
       if (!rna_path.startswith(legacy_root_path)) {
         return false;
       }
-      char new_name_esc[MAX_NAME * 2];
-      BLI_str_escape(new_name_esc, new_md.name, sizeof(new_name_esc));
       const std::string new_rna_path = fmt::format(
           "modifiers[\"{}\"]{}", new_name_esc, rna_path.substr(int64_t(legacy_root_path.size())));
       MEM_freeN(fcurve->rna_path);
@@ -1324,6 +1325,82 @@ static void legacy_object_modifier_opacity(Object &object, GpencilModifierData &
                                    legacy_md_opacity.flag & GP_OPACITY_CUSTOM_CURVE);
 }
 
+static void legacy_object_modifier_outline(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilOutline, legacy_md);
+  auto &md_outline = reinterpret_cast<GreasePencilOutlineModifierData &>(md);
+  auto &legacy_md_outline = reinterpret_cast<OutlineGpencilModifierData &>(legacy_md);
+
+  md_outline.flag = 0;
+  if (legacy_md_outline.flag & GP_OUTLINE_KEEP_SHAPE) {
+    md_outline.flag |= MOD_GREASE_PENCIL_OUTLINE_KEEP_SHAPE;
+  }
+  md_outline.object = legacy_md_outline.object;
+  legacy_md_outline.object = nullptr;
+  md_outline.outline_material = legacy_md_outline.outline_material;
+  legacy_md_outline.outline_material = nullptr;
+  md_outline.sample_length = legacy_md_outline.sample_length;
+  md_outline.subdiv = legacy_md_outline.subdiv;
+  md_outline.thickness = legacy_md_outline.thickness;
+
+  legacy_object_modifier_influence(md_outline.influence,
+                                   legacy_md_outline.layername,
+                                   legacy_md_outline.layer_pass,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_LAYER,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_LAYERPASS,
+                                   &legacy_md_outline.material,
+                                   legacy_md_outline.pass_index,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_MATERIAL,
+                                   legacy_md_outline.flag & GP_OUTLINE_INVERT_PASS,
+                                   "",
+                                   false,
+                                   nullptr,
+                                   false);
+}
+
+static void legacy_object_modifier_shrinkwrap(Object &object, GpencilModifierData &legacy_md)
+{
+  ModifierData &md = legacy_object_modifier_common(
+      object, eModifierType_GreasePencilShrinkwrap, legacy_md);
+  auto &md_shrinkwrap = reinterpret_cast<GreasePencilShrinkwrapModifierData &>(md);
+  auto &legacy_md_shrinkwrap = reinterpret_cast<ShrinkwrapGpencilModifierData &>(legacy_md);
+
+  /* Shrinkwrap enums and flags do not have named types. */
+  /* MOD_SHRINKWRAP_NEAREST_SURFACE etc. */
+  md_shrinkwrap.shrink_type = legacy_md_shrinkwrap.shrink_type;
+  /* MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR etc. */
+  md_shrinkwrap.shrink_opts = legacy_md_shrinkwrap.shrink_opts;
+  /* MOD_SHRINKWRAP_ON_SURFACE etc. */
+  md_shrinkwrap.shrink_mode = legacy_md_shrinkwrap.shrink_mode;
+  /* MOD_SHRINKWRAP_PROJECT_OVER_NORMAL etc. */
+  md_shrinkwrap.proj_axis = legacy_md_shrinkwrap.proj_axis;
+
+  md_shrinkwrap.target = legacy_md_shrinkwrap.target;
+  legacy_md_shrinkwrap.target = nullptr;
+  md_shrinkwrap.aux_target = legacy_md_shrinkwrap.aux_target;
+  legacy_md_shrinkwrap.aux_target = nullptr;
+  md_shrinkwrap.keep_dist = legacy_md_shrinkwrap.keep_dist;
+  md_shrinkwrap.proj_limit = legacy_md_shrinkwrap.proj_limit;
+  md_shrinkwrap.subsurf_levels = legacy_md_shrinkwrap.subsurf_levels;
+  md_shrinkwrap.smooth_factor = legacy_md_shrinkwrap.smooth_factor;
+  md_shrinkwrap.smooth_step = legacy_md_shrinkwrap.smooth_step;
+
+  legacy_object_modifier_influence(md_shrinkwrap.influence,
+                                   legacy_md_shrinkwrap.layername,
+                                   legacy_md_shrinkwrap.layer_pass,
+                                   legacy_md_shrinkwrap.flag & GP_SHRINKWRAP_INVERT_LAYER,
+                                   legacy_md_shrinkwrap.flag & GP_SHRINKWRAP_INVERT_LAYERPASS,
+                                   &legacy_md_shrinkwrap.material,
+                                   legacy_md_shrinkwrap.pass_index,
+                                   legacy_md_shrinkwrap.flag & GP_SHRINKWRAP_INVERT_MATERIAL,
+                                   legacy_md_shrinkwrap.flag & GP_SHRINKWRAP_INVERT_PASS,
+                                   legacy_md_shrinkwrap.vgname,
+                                   legacy_md_shrinkwrap.flag & GP_SHRINKWRAP_INVERT_VGROUP,
+                                   nullptr,
+                                   false);
+}
+
 static void legacy_object_modifier_smooth(Object &object, GpencilModifierData &legacy_md)
 {
   ModifierData &md = legacy_object_modifier_common(
@@ -1697,6 +1774,12 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_Opacity:
         legacy_object_modifier_opacity(object, *gpd_md);
         break;
+      case eGpencilModifierType_Outline:
+        legacy_object_modifier_outline(object, *gpd_md);
+        break;
+      case eGpencilModifierType_Shrinkwrap:
+        legacy_object_modifier_shrinkwrap(object, *gpd_md);
+        break;
       case eGpencilModifierType_Smooth:
         legacy_object_modifier_smooth(object, *gpd_md);
         break;
@@ -1718,15 +1801,12 @@ static void legacy_object_modifiers(Main & /*bmain*/, Object &object)
       case eGpencilModifierType_WeightProximity:
         legacy_object_modifier_weight_proximity(object, *gpd_md);
         break;
-
-      case eGpencilModifierType_Build:
-      case eGpencilModifierType_Simplify:
-      case eGpencilModifierType_Texture:
       case eGpencilModifierType_Lineart:
         legacy_object_modifier_weight_lineart(object, *gpd_md);
         break;
-      case eGpencilModifierType_Shrinkwrap:
-      case eGpencilModifierType_Outline:
+      case eGpencilModifierType_Build:
+      case eGpencilModifierType_Simplify:
+      case eGpencilModifierType_Texture:
         break;
     }
 

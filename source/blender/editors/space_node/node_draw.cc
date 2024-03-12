@@ -699,6 +699,9 @@ static void node_update_panel_items_visibility_recursive(int num_items,
 
       node_update_panel_items_visibility_recursive(
           item.panel_decl->num_child_decls, is_collapsed, *item.state, state);
+      if (item.panel_decl->draw_buttons) {
+        item.state->flag |= NODE_PANEL_CONTENT_VISIBLE;
+      }
       if (item.state->flag & NODE_PANEL_CONTENT_VISIBLE) {
         /* If child panel is visible so is the parent panel. */
         parent_state.flag |= NODE_PANEL_CONTENT_VISIBLE;
@@ -2141,7 +2144,7 @@ static void node_draw_panels_background(const bNode &node, uiBlock &block)
   const nodes::NodeDeclaration &decl = *node.declaration();
   const rctf &rct = node.runtime->totr;
   float color_panel[4];
-  UI_GetThemeColorBlend4f(TH_BACK, TH_NODE, 0.2f, color_panel);
+  UI_GetThemeColorShade4fv(TH_NODE, -15, color_panel);
 
   /* True if the last panel is open, draw bottom gap as background. */
   bool is_last_panel_visible = false;

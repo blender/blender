@@ -49,7 +49,7 @@ static void transdata_elem_shrink_fatten(const TransInfo *t,
   /* Get the final offset. */
   float tdistance = distance * td->factor;
   if (td->ext && (t->flag & T_ALT_TRANSFORM) != 0) {
-    tdistance *= td->ext->isize[0]; /* shell factor */
+    tdistance *= td->ext->isize[0]; /* Shell factor. */
   }
 
   madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
@@ -100,7 +100,7 @@ static void applyShrinkFatten(TransInfo *t)
 
   t->values_final[0] = distance;
 
-  /* header print for NumInput */
+  /* Header print for NumInput. */
   fmt::format_to(fmt::appender(str), IFACE_("Shrink/Fatten: "));
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
@@ -108,7 +108,7 @@ static void applyShrinkFatten(TransInfo *t)
     fmt::format_to(fmt::appender(str), c);
   }
   else {
-    /* default header print */
+    /* Default header print. */
     if (unit != nullptr) {
       char unit_str[64];
       BKE_unit_value_as_string(
@@ -133,7 +133,7 @@ static void applyShrinkFatten(TransInfo *t)
   fmt::format_to(fmt::appender(str),
                  IFACE_(" or Alt) Even Thickness {}"),
                  WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
-  /* done with header string */
+  /* Done with header string. */
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     if (tc->data_len < TRANSDATA_THREAD_LIMIT) {

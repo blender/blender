@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
-"PO-Revision-Date: 2024-02-19 21:51+0000\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"PO-Revision-Date: 2024-03-04 10:05+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -4063,10 +4063,6 @@ msgstr "El nombre de la colección del hueso activo del esqueleto; estará vací
 
 msgid "Solo Active"
 msgstr "Solo está activo"
-
-
-msgid "Read-ony flag that indicates there is at least one bone collection marked as 'solo'"
-msgstr "Indicador de sólo lectura que especifica cuando al menos una colección de huesos se encuentre marcada como 'solo'"
 
 
 msgid "Theme color or custom color of a bone"
@@ -45764,18 +45760,6 @@ msgid "Rotate Euler"
 msgstr "Rotar (Euler)"
 
 
-msgid "Base orientation for rotation"
-msgstr "Orientación base para la rotación"
-
-
-msgid "Rotate the input rotation in the local space of the object"
-msgstr "Realiza la rotación indicada en el espacio local del objeto"
-
-
-msgid "Rotate the input rotation in its local space"
-msgstr "Realiza la rotación indicada en su propio espacio local"
-
-
 msgid "Method used to describe the rotation"
 msgstr "Método usado para describir la rotación"
 
@@ -45786,6 +45770,18 @@ msgstr "Rotar un cierto ángulo en torno a un eje"
 
 msgid "Rotate around the X, Y, and Z axes"
 msgstr "Rotar en torno a los ejes X, Y y Z"
+
+
+msgid "Base orientation for rotation"
+msgstr "Orientación base para la rotación"
+
+
+msgid "Rotate the input rotation in the local space of the object"
+msgstr "Realiza la rotación indicada en el espacio local del objeto"
+
+
+msgid "Rotate the input rotation in its local space"
+msgstr "Realiza la rotación indicada en su propio espacio local"
 
 
 msgid "Rotate Rotation"
@@ -71352,11 +71348,11 @@ msgstr "Permite crear una nueva Forma clave a partir de la mezcla de las formas 
 
 msgctxt "Operator"
 msgid "Clear Shape Keys"
-msgstr "Eliminar Formas clave"
+msgstr "Restablecer Formas clave"
 
 
 msgid "Clear weights for all shape keys"
-msgstr "Permite eliminar influencias de todas las Formas clave"
+msgstr "Restablece a cero las influencias de todas las Formas clave"
 
 
 msgctxt "Operator"
@@ -71421,7 +71417,7 @@ msgstr "Aplicar mezcla actual de Formas clave a la geometría antes de removerla
 
 msgctxt "Operator"
 msgid "Re-Time Shape Keys"
-msgstr "Cambiar tiempo de Formas clave"
+msgstr "Retemporizar Formas clave"
 
 
 msgid "Resets the timing for absolute shape keys"
@@ -86968,7 +86964,7 @@ msgstr "Archivo OpenVDB"
 
 
 msgid "Create Pose Asset"
-msgstr "Crear recurso de poses"
+msgstr "Crear recurso de pose"
 
 
 msgid "Filters"
@@ -106262,10 +106258,6 @@ msgid "Use Remote"
 msgstr "Usar remota"
 
 
-msgid "Synchonize the repository with a remote URL/path"
-msgstr "Sincronizará el repositorio con una ruta/URL remota"
-
-
 msgid "User Extension Repositories"
 msgstr "Repositorios de extensiones de usuario"
 
@@ -112181,7 +112173,7 @@ msgstr "Se necesita un objeto de esqueleto activo en modo Pose"
 
 
 msgid "Asset Browser must be set to the Current File library"
-msgstr "El Explorador de recursos debe ser configurado para la biblioteca del archivo actual"
+msgstr "El Explorador de recursos debe ser configurado para mostrar los recursos del Archivo actual"
 
 
 msgid "No keyframes were found for this pose"
@@ -113744,6 +113736,14 @@ msgstr "Multiplicar envolvente"
 
 msgid "Radius Head"
 msgstr "Radio  Cabeza"
+
+
+msgid "Cannot figure out which object this bone belongs to."
+msgstr "No es posible descifrar a que objeto pertenece este hueso."
+
+
+msgid "Please file a bug report."
+msgstr "Por favor, enviar un reporte de error."
 
 
 msgid "Not assigned to any bone collection."
@@ -125920,6 +125920,10 @@ msgstr "No fue posible eliminar el directorio de captura %s"
 
 msgid "File must be saved before baking"
 msgstr "El archivo debe estar guardado antes de poder capturar"
+
+
+msgid "Cache has to be enabled"
+msgstr "El caché debe estar habilitado"
 
 
 msgid "Skipped some collections because of cycle detected"

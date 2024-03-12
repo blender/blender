@@ -17,15 +17,22 @@ if(APPLE)
 else()
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
-    -DOIDN_DEVICE_SYCL=ON
-    -DOIDN_DEVICE_SYCL_AOT=OFF
-    -DOIDN_DEVICE_CUDA=ON
-    -DOIDN_DEVICE_HIP=ON
+    -DOIDN_DEVICE_CPU=ON
     -DLEVEL_ZERO_ROOT=${LIBDIR}/level-zero
   )
+
+  # x64 platforms support SyCL, ARM64 don't
+  if(NOT BLENDER_PLATFORM_WINDOWS_ARM)
+    set(OIDN_EXTRA_ARGS
+      ${OIDN_EXTRA_ARGS}
+      -DOIDN_DEVICE_SYCL=ON
+      -DOIDN_DEVICE_SYCL_AOT=OFF
+      -DOIDN_DEVICE_CUDA=ON
+      -DOIDN_DEVICE_HIP=ON)
+  endif()
 endif()
 
-if(WIN32)
+if(WIN32 AND NOT BLENDER_PLATFORM_WINDOWS_ARM)
   set(OIDN_EXTRA_ARGS
     ${OIDN_EXTRA_ARGS}
     -DTBB_DEBUG_LIBRARY=${LIBDIR}/tbb/lib/tbb.lib
@@ -41,7 +48,7 @@ if(WIN32)
     -DCMAKE_EXE_LINKER_FLAGS=-L"${LIBDIR}/dpcpp/lib"
   )
 else()
-  if(NOT APPLE)
+  if(NOT (APPLE OR BLENDER_PLATFORM_WINDOWS_ARM))
     set(OIDN_EXTRA_ARGS
       ${OIDN_EXTRA_ARGS}
       -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++
@@ -50,6 +57,21 @@ else()
     )
   endif()
   set(OIDN_CMAKE_FLAGS ${DEFAULT_CMAKE_FLAGS})
+endif()
+
+set(ODIN_PATCH_COMMAND
+  ${PATCH_CMD} --verbose -p 1 -N -d
+  ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+  ${PATCH_DIR}/oidn.diff
+)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Replace `attrib.memoryType` with `attrib.type`.
+  # See: https://github.com/ROCm/HIP/pull/2164
+  set(ODIN_PATCH_COMMAND ${ODIN_PATCH_COMMAND} &&
+    sed -i "s/(attrib\\.memoryType)/(attrib.type)/g"
+    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise/devices/hip/hip_device.cpp
+  )
 endif()
 
 ExternalProject_Add(external_openimagedenoise
@@ -64,12 +86,11 @@ ExternalProject_Add(external_openimagedenoise
     ${OIDN_CMAKE_FLAGS}
     ${OIDN_EXTRA_ARGS}
 
-  PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d
-    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-    ${PATCH_DIR}/oidn.diff
-
+  PATCH_COMMAND ${ODIN_PATCH_COMMAND}
   INSTALL_DIR ${LIBDIR}/openimagedenoise
 )
+
+unset(ODIN_PATCH_COMMAND)
 
 add_dependencies(
   external_openimagedenoise

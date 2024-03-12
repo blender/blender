@@ -557,6 +557,10 @@ void DepsgraphNodeBuilder::build_id(ID *id, const bool force_be_visible)
     case ID_AC:
       build_action((bAction *)id);
       break;
+    case ID_AN:
+      /* TODO: actually handle this ID type properly, will be done in a followup commit. */
+      build_generic_id(id);
+      break;
     case ID_AR:
       build_armature((bArmature *)id);
       break;

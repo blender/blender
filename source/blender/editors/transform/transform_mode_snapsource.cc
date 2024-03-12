@@ -172,7 +172,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator * /*op*/)
   }
 
   if (ELEM(t->mode, TFM_INIT, TFM_DUMMY)) {
-    /* Fallback */
+    /* Fallback. */
     transform_mode_init(t, nullptr, TFM_TRANSLATION);
   }
 

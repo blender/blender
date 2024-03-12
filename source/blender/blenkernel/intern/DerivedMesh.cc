@@ -462,14 +462,14 @@ static void mesh_calc_finalize(const Mesh *mesh_input, Mesh *mesh_eval)
   mesh_eval->edit_mesh = mesh_input->edit_mesh;
 }
 
-void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *me_eval)
+void BKE_mesh_wrapper_deferred_finalize_mdata(Mesh *mesh_eval)
 {
-  if (me_eval->runtime->wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
-    editbmesh_calc_modifier_final_normals(me_eval);
-    me_eval->runtime->wrapper_type_finalize = eMeshWrapperType(
-        me_eval->runtime->wrapper_type_finalize & ~(1 << ME_WRAPPER_TYPE_BMESH));
+  if (mesh_eval->runtime->wrapper_type_finalize & (1 << ME_WRAPPER_TYPE_BMESH)) {
+    editbmesh_calc_modifier_final_normals(mesh_eval);
+    mesh_eval->runtime->wrapper_type_finalize = eMeshWrapperType(
+        mesh_eval->runtime->wrapper_type_finalize & ~(1 << ME_WRAPPER_TYPE_BMESH));
   }
-  BLI_assert(me_eval->runtime->wrapper_type_finalize == 0);
+  BLI_assert(mesh_eval->runtime->wrapper_type_finalize == 0);
 }
 
 /**
@@ -1607,18 +1607,18 @@ static void make_vertexcos__mapFunc(void *user_data,
   }
 }
 
-void mesh_get_mapped_verts_coords(Mesh *me_eval, blender::MutableSpan<blender::float3> r_cos)
+void mesh_get_mapped_verts_coords(Mesh *mesh_eval, blender::MutableSpan<blender::float3> r_cos)
 {
-  if (me_eval->runtime->deformed_only == false) {
+  if (mesh_eval->runtime->deformed_only == false) {
     MappedUserData user_data;
     r_cos.fill(float3(0));
     user_data.vertexcos = reinterpret_cast<float(*)[3]>(r_cos.data());
     user_data.vertex_visit = BLI_BITMAP_NEW(r_cos.size(), "vertexcos flags");
-    BKE_mesh_foreach_mapped_vert(me_eval, make_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
+    BKE_mesh_foreach_mapped_vert(mesh_eval, make_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
     MEM_freeN(user_data.vertex_visit);
   }
   else {
-    r_cos.copy_from(me_eval->vert_positions());
+    r_cos.copy_from(mesh_eval->vert_positions());
   }
 }
 

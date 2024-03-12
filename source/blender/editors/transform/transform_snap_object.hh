@@ -25,7 +25,7 @@ struct SnapObjectContext {
   };
   blender::Map<const ID *, std::unique_ptr<SnapCache>> editmesh_caches;
 
-  /* Filter data, returns true to check this value */
+  /* Filter data, returns true to check this value. */
   struct {
     struct {
       bool (*test_vert_fn)(BMVert *, void *user_data);
@@ -49,14 +49,14 @@ struct SnapObjectContext {
     blender::float3 init_co;
     blender::float3 curr_co;
 
-    blender::float2 win_size; /* win x and y */
+    blender::float2 win_size; /* Win x and y. */
     blender::float2 mval;
 
     blender::Vector<blender::float4, MAX_CLIPPLANE_LEN> clip_planes;
     blender::float4 occlusion_plane;
     blender::float4 occlusion_plane_in_front;
 
-    /* read/write */
+    /* Read/write. */
     uint object_index;
 
     bool has_occlusion_plane;
@@ -93,7 +93,7 @@ struct SnapObjectContext {
 struct RayCastAll_Data {
   void *bvhdata;
 
-  /* internal vars for adding depths */
+  /* Internal vars for adding depths. */
   BVHTree_RayCastCallback raycast_callback;
 
   const blender::float4x4 *obmat;
@@ -103,7 +103,7 @@ struct RayCastAll_Data {
 
   uint ob_uuid;
 
-  /* output data */
+  /* Output data. */
   ListBase *hit_list;
 };
 
@@ -150,7 +150,7 @@ class SnapData {
   virtual void copy_vert_no(const int /*index*/, float /*r_no*/[3]){};
 };
 
-/* transform_snap_object.cc */
+/* `transform_snap_object.cc` */
 
 void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
@@ -183,25 +183,25 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
                              const blender::float4x4 &obmat,
                              eSnapMode snap_to_flag);
 
-/* transform_snap_object_armature.cc */
+/* `transform_snap_object_armature.cc` */
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
                        Object *ob_eval,
                        const blender::float4x4 &obmat,
                        bool is_object_active);
 
-/* transform_snap_object_camera.cc */
+/* `transform_snap_object_camera.cc` */
 
 eSnapMode snapCamera(SnapObjectContext *sctx,
                      Object *object,
                      const blender::float4x4 &obmat,
                      eSnapMode snap_to_flag);
 
-/* transform_snap_object_curve.cc */
+/* `transform_snap_object_curve.cc` */
 
 eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const blender::float4x4 &obmat);
 
-/* transform_snap_object_editmesh.cc */
+/* `transform_snap_object_editmesh.cc` */
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,
@@ -210,7 +210,7 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                eSnapMode snap_to_flag,
                                bool use_hide);
 
-/* transform_snap_object_mesh.cc */
+/* `transform_snap_object_mesh.cc` */
 
 eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            Object *ob_eval,

@@ -29,7 +29,7 @@
 #include "BKE_armature.hh"
 #include "BKE_blender.hh"
 #include "BKE_collection.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_key.hh"
@@ -253,11 +253,17 @@ static ID *lib_override_library_create_from(Main *bmain,
                                             const int lib_id_copy_flags)
 {
   /* NOTE: do not copy possible override data from the reference here. */
-  ID *local_id = BKE_id_copy_ex(bmain,
-                                reference_id,
-                                nullptr,
-                                LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE |
-                                    lib_id_copy_flags);
+  ID *local_id = BKE_id_copy_in_lib(
+      bmain,
+      owner_library,
+      reference_id,
+      nullptr,
+      (LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE | lib_id_copy_flags));
+  if (local_id == nullptr) {
+    return nullptr;
+  }
+  BLI_assert(local_id->lib == owner_library);
+  id_us_min(local_id);
 
   /* In case we could not get an override ID with the exact same name as its linked reference,
    * ensure we at least get a uniquely named override ID over the whole current Main data, to
@@ -271,16 +277,14 @@ static ID *lib_override_library_create_from(Main *bmain,
     id_sort_by_name(which_libbase(bmain, GS(local_id->name)), local_id, nullptr);
   }
 
-  if (local_id == nullptr) {
-    return nullptr;
-  }
-  id_us_min(local_id);
-
-  /* TODO: Handle this properly in LIB_NO_MAIN case as well (i.e. resync case). Or offload to
-   * generic ID copy code? Would probably be better to have a version of #BKE_id_copy_ex that takes
-   * an extra `target_lib` parameter. */
-  local_id->lib = owner_library;
-  if ((lib_id_copy_flags & LIB_ID_CREATE_NO_MAIN) != 0 && owner_library == nullptr) {
+  /* In `NO_MAIN` case, generic `BKE_id_copy` code won't call this.
+   * In liboverride resync case however, the currently not-in-Main new IDs will be added back to
+   * Main later, so ensure that their linked dependencies and paths are properly handled here.
+   *
+   * NOTE: This is likely not the best place to do this. Ideally, #BKE_libblock_management_main_add
+   * e.g. should take care of this. But for the time being, this works and has been battle-proofed.
+   */
+  if ((lib_id_copy_flags & LIB_ID_CREATE_NO_MAIN) != 0 && !ID_IS_LINKED(local_id)) {
     lib_id_copy_ensure_local(bmain, reference_id, local_id, 0);
   }
 
@@ -2666,7 +2670,7 @@ static bool lib_override_library_resync(Main *bmain,
   return success;
 }
 
-/** Clenup: Remove unused 'place holder' linked IDs. */
+/** Cleanup: Remove unused 'place holder' linked IDs. */
 static void lib_override_cleanup_after_resync(Main *bmain)
 {
   LibQueryUnusedIDsData parameters;
@@ -4236,7 +4240,7 @@ void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
     liboverride = BKE_lib_override_library_get(bmain, id, nullptr, &liboverride_id);
     if (!liboverride) {
       /* Happens in case the given ID is a liboverride-embedded one (actual embedded ID like
-       * NodeTree or master collection, or shapekeys), used by a totally not-liboverride owner ID.
+       * NodeTree or master collection, or shape-keys), used by a totally not-liboverride owner ID.
        * Just clear the relevant ID flag.
        */
       id->flag &= ~LIB_EMBEDDED_DATA_LIB_OVERRIDE;

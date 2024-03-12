@@ -7,10 +7,21 @@
  * \ingroup balembic
  */
 
-#include <Alembic/Abc/All.h>
-#include <Alembic/AbcGeom/All.h>
+#include "abc_reader_object.h"
 
+#include <Alembic/Abc/Foundation.h>
+#include <Alembic/Abc/ICompoundProperty.h>
+#include <Alembic/Abc/IObject.h>
+#include <Alembic/Abc/ISampleSelector.h>
+#include <Alembic/Abc/TypedArraySample.h>
+#include <Alembic/AbcCoreAbstract/Foundation.h>
+#include <Alembic/AbcCoreAbstract/TimeSampling.h>
+#include <Alembic/AbcGeom/IXform.h>
+
+#include <fstream>
 #include <optional>
+#include <string>
+#include <vector>
 
 using Alembic::Abc::chrono_t;
 using Alembic::Abc::V3fArraySamplePtr;

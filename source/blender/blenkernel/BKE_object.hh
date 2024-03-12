@@ -336,7 +336,7 @@ void BKE_object_where_is_calc_time(Depsgraph *depsgraph, Scene *scene, Object *o
  */
 void BKE_object_where_is_calc_mat4(Object *ob, float r_obmat[4][4]);
 
-/* Possibly belong in own module? */
+/* Possibly belong in its own module? */
 
 void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float max[3]);
 void BKE_boundbox_minmax(const BoundBox *bb,

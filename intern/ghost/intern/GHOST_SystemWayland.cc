@@ -108,6 +108,9 @@ static bool has_libdecor = true;
 #  endif
 #endif
 
+#include "IMB_imbuf.hh"
+#include "IMB_imbuf_types.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name Forward Declarations
  * \{ */
@@ -5543,7 +5546,7 @@ static CLG_LogRef LOG_WL_SEAT = {"ghost.wl.handle.seat"};
 
 static bool gwl_seat_capability_pointer_multitouch_check(const GWL_Seat *seat, const bool fallback)
 {
-  zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
+  const zwp_pointer_gestures_v1 *pointer_gestures = seat->system->wp_pointer_gestures_get();
   if (pointer_gestures == nullptr) {
     return fallback;
   }
@@ -7473,6 +7476,148 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool selection) const
   }
 }
 
+static constexpr const char *ghost_wl_mime_img_png = "image/png";
+
+GHOST_TSuccess GHOST_SystemWayland::hasClipboardImage(void) const
+{
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
+    return GHOST_kFailure;
+  }
+
+  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
+  if (data_offer) {
+    if (data_offer->types.count(ghost_wl_mime_img_png)) {
+      return GHOST_kSuccess;
+    }
+  }
+
+  return GHOST_kFailure;
+}
+
+uint *GHOST_SystemWayland::getClipboardImage(int *r_width, int *r_height) const
+{
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
+    return nullptr;
+  }
+
+  std::mutex &mutex = seat->data_offer_copy_paste_mutex;
+  mutex.lock();
+  bool mutex_locked = true;
+
+  uint *rgba = nullptr;
+
+  GWL_DataOffer *data_offer = seat->data_offer_copy_paste;
+  if (data_offer) {
+    /* Check if the source offers a supported mime type.
+     * This check could be skipped, because the paste option is not supposed to be enabled
+     * otherwise. */
+    if (data_offer->types.count(ghost_wl_mime_img_png)) {
+      /* Receive the clipboard in a thread, performing round-trips while waiting,
+       * so pasting content from own `primary->data_source` doesn't hang. */
+      struct ThreadResult {
+        char *data = nullptr;
+        size_t data_len = 0;
+        std::atomic<bool> done = false;
+      } thread_result;
+
+      auto read_clipboard_fn = [](GWL_DataOffer *data_offer,
+                                  const char *mime_receive,
+                                  std::mutex *mutex,
+                                  ThreadResult *thread_result) {
+        thread_result->data = read_buffer_from_data_offer(
+            data_offer, mime_receive, mutex, false, &thread_result->data_len);
+        thread_result->done = true;
+      };
+      std::thread read_thread(
+          read_clipboard_fn, data_offer, ghost_wl_mime_img_png, &mutex, &thread_result);
+      read_thread.detach();
+
+      while (!thread_result.done) {
+        wl_display_roundtrip(display_->wl.display);
+      }
+
+      if (thread_result.data) {
+        /* Generate the image buffer with the received data. */
+        ImBuf *ibuf = IMB_ibImageFromMemory((uint8_t *)thread_result.data,
+                                            thread_result.data_len,
+                                            IB_rect,
+                                            nullptr,
+                                            "<clipboard>");
+        if (ibuf) {
+          *r_width = ibuf->x;
+          *r_height = ibuf->y;
+          const size_t byte_count = size_t(ibuf->x) * size_t(ibuf->y) * 4;
+          rgba = (uint *)malloc(byte_count);
+          std::memcpy(rgba, ibuf->byte_buffer.data, byte_count);
+          IMB_freeImBuf(ibuf);
+        }
+      }
+
+      /* After reading the data offer, the mutex gets unlocked. */
+      mutex_locked = false;
+    }
+  }
+
+  if (mutex_locked) {
+    mutex.unlock();
+  }
+  return rgba;
+}
+
+GHOST_TSuccess GHOST_SystemWayland::putClipboardImage(uint *rgba, int width, int height) const
+{
+#ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_server_guard{*server_mutex};
+#endif
+
+  /* Create a #wl_data_source object. */
+  GWL_Seat *seat = gwl_display_seat_active_get(display_);
+  if (UNLIKELY(!seat)) {
+    return GHOST_kFailure;
+  }
+  std::lock_guard lock(seat->data_source_mutex);
+
+  GWL_DataSource *data_source = seat->data_source;
+
+  /* Load buffer into an #ImBuf and convert to PNG. */
+  ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
+  ibuf->ftype = IMB_FTYPE_PNG;
+  ibuf->foptions.quality = 15;
+  if (!IMB_saveiff(ibuf, "<memory>", IB_rect | IB_mem)) {
+    IMB_freeImBuf(ibuf);
+    return GHOST_kFailure;
+  }
+
+  /* Copy #ImBuf encoded_buffer to data source. */
+  GWL_SimpleBuffer *imgbuffer = &data_source->buffer_out;
+  gwl_simple_buffer_free_data(imgbuffer);
+  imgbuffer->data_size = ibuf->encoded_buffer_size;
+  char *data = static_cast<char *>(malloc(imgbuffer->data_size));
+  std::memcpy(data, ibuf->encoded_buffer.data, ibuf->encoded_buffer_size);
+  imgbuffer->data = data;
+
+  data_source->wl.source = wl_data_device_manager_create_data_source(
+      display_->wl.data_device_manager);
+  wl_data_source_add_listener(data_source->wl.source, &data_source_listener, seat);
+
+  /* Advertise the mime types supported. */
+  wl_data_source_offer(data_source->wl.source, ghost_wl_mime_img_png);
+
+  if (seat->wl.data_device) {
+    wl_data_device_set_selection(
+        seat->wl.data_device, data_source->wl.source, seat->data_source_serial);
+  }
+
+  IMB_freeImBuf(ibuf);
+  return GHOST_kSuccess;
+}
+
 uint8_t GHOST_SystemWayland::getNumDisplays() const
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
@@ -8048,9 +8193,7 @@ GHOST_TCapabilityFlag GHOST_SystemWayland::getCapabilities() const
            * is negligible. */
           GHOST_kCapabilityGPUReadFrontBuffer |
           /* This WAYLAND back-end has not yet implemented desktop color sample. */
-          GHOST_kCapabilityDesktopSample |
-          /* This WAYLAND back-end has not yet implemented image copy/paste. */
-          GHOST_kCapabilityClipboardImages));
+          GHOST_kCapabilityDesktopSample));
 }
 
 bool GHOST_SystemWayland::cursor_grab_use_software_display_get(const GHOST_TGrabCursorMode mode)
@@ -8114,8 +8257,10 @@ void GHOST_SystemWayland::setMultitouchGestures(const bool use)
   }
   m_multitouchGestures = use;
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
   /* Ensure this listeners aren't removed while events are generated. */
   std::lock_guard lock_server_guard{*server_mutex};
+#endif
   for (GWL_Seat *seat : display_->seats) {
     if (use == gwl_seat_capability_pointer_multitouch_check(seat, use)) {
       continue;

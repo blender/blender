@@ -373,7 +373,7 @@ static void get_vertexcos__mapFunc(void *user_data,
   }
 }
 
-void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *me_eval,
+void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *mesh_eval,
                                              float (*r_cos)[3],
                                              const int totcos)
 {
@@ -381,6 +381,6 @@ void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *me_eval,
   memset(r_cos, 0, sizeof(*r_cos) * totcos);
   user_data.vertexcos = r_cos;
   user_data.vertex_visit = BLI_BITMAP_NEW(totcos, __func__);
-  BKE_mesh_foreach_mapped_vert(me_eval, get_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
+  BKE_mesh_foreach_mapped_vert(mesh_eval, get_vertexcos__mapFunc, &user_data, MESH_FOREACH_NOP);
   MEM_freeN(user_data.vertex_visit);
 }

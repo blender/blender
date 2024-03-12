@@ -8,10 +8,8 @@
 #include "abc_hierarchy_iterator.h"
 
 #include <Alembic/Abc/OObject.h>
-#include <vector>
 
-#include "DEG_depsgraph_query.hh"
-#include "DNA_material_types.h"
+#include <memory>
 
 struct IDProperty;
 struct Object;

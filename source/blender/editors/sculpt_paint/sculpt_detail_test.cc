@@ -1,3 +1,11 @@
+/* SPDX-FileCopyrightText: 2024 Blender Authors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+/** \file
+ * \ingroup edsculpt
+ */
+
 #include "sculpt_intern.hh"
 
 #include "BKE_object_types.hh"

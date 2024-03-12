@@ -77,7 +77,7 @@ string system_cpu_brand_string()
   if (sysctlbyname("machdep.cpu.brand_string", &modelname, &bufferlen, NULL, 0) == 0) {
     return modelname;
   }
-#elif defined(WIN32) || defined(__x86_64__) || defined(__i386__)
+#elif (defined(WIN32) || defined(__x86_64__) || defined(__i386__)) && !defined(_M_ARM64)
   /* Get from intrinsics on Windows and x86. */
   char buf[49] = {0};
   int result[4] = {0};
@@ -95,6 +95,19 @@ string system_cpu_brand_string()
     brand = string_remove_trademark(brand);
 
     return brand;
+  }
+#elif defined(_M_ARM64)
+  DWORD vendorIdentifierLength = 255;
+  char vendorIdentifier[255];
+  if (RegGetValueA(HKEY_LOCAL_MACHINE,
+                   "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+                   "VendorIdentifier",
+                   RRF_RT_REG_SZ,
+                   nullptr,
+                   &vendorIdentifier,
+                   &vendorIdentifierLength) == ERROR_SUCCESS)
+  {
+    return vendorIdentifier;
   }
 #else
   /* Get from /proc/cpuinfo on Unix systems. */

@@ -53,7 +53,7 @@ static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
 {
   NodeGlare *ndg = MEM_cnew<NodeGlare>(__func__);
   ndg->quality = 1;
-  ndg->type = 2;
+  ndg->type = CMP_NODE_GLARE_STREAKS;
   ndg->iter = 3;
   ndg->colmod = 0.25;
   ndg->mix = 0;
@@ -71,35 +71,38 @@ static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, Pointer
   uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
-  if (RNA_enum_get(ptr, "glare_type") != 1) {
+  const int glare_type = RNA_enum_get(ptr, "glare_type");
+  if (ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS)) {
     uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
 
-    if (RNA_enum_get(ptr, "glare_type") != 0) {
-      uiItemR(layout,
-              ptr,
-              "color_modulation",
-              UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-              nullptr,
-              ICON_NONE);
-    }
+  if (ELEM(glare_type, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS)) {
+    uiItemR(layout,
+            ptr,
+            "color_modulation",
+            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+            nullptr,
+            ICON_NONE);
   }
 
   uiItemR(layout, ptr, "mix", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
 
-  if (RNA_enum_get(ptr, "glare_type") == 2) {
+  if (glare_type == CMP_NODE_GLARE_STREAKS) {
     uiItemR(layout, ptr, "streaks", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
     uiItemR(layout, ptr, "angle_offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
-  if (RNA_enum_get(ptr, "glare_type") == 0 || RNA_enum_get(ptr, "glare_type") == 2) {
+
+  if (ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_STREAKS)) {
     uiItemR(
         layout, ptr, "fade", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-
-    if (RNA_enum_get(ptr, "glare_type") == 0) {
-      uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    }
   }
-  if (RNA_enum_get(ptr, "glare_type") == 1) {
+
+  if (glare_type == CMP_NODE_GLARE_SIMPLE_STAR) {
+    uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  }
+
+  if (ELEM(glare_type, CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM)) {
     uiItemR(layout, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   }
 }
@@ -148,6 +151,8 @@ class GlareOperation : public NodeOperation {
         return execute_streaks(highlights_result);
       case CMP_NODE_GLARE_GHOST:
         return execute_ghost(highlights_result);
+      case CMP_NODE_GLARE_BLOOM:
+        return execute_bloom(highlights_result);
       default:
         BLI_assert_unreachable();
         return context().create_temporary_result(ResultType::Color);
@@ -687,16 +692,16 @@ class GlareOperation : public NodeOperation {
     return 1.0f - get_color_modulation_factor();
   }
 
-  /* ---------------
-   * Fog Glow Glare.
-   * --------------- */
+  /* ------------
+   * Bloom Glare.
+   * ------------ */
 
-  /* Fog glow is computed by first progressively half-down-sampling the highlights down to a
-   * certain size, then progressively double-up-sampling the last down-sampled result up to the
-   * original size of the highlights, adding the down-sampled result of the same size in each
-   * up-sampling step. This can be illustrated as follows:
+  /* Bloom is computed by first progressively half-down-sampling the highlights down to a certain
+   * size, then progressively double-up-sampling the last down-sampled result up to the original
+   * size of the highlights, adding the down-sampled result of the same size in each up-sampling
+   * step. This can be illustrated as follows:
    *
-   *             Highlights   ---+---> Fog Glare
+   *             Highlights   ---+--->  Bloom
    *                  |                   |
    *             Down-sampled ---+---> Up-sampled
    *                  |                   |
@@ -714,7 +719,7 @@ class GlareOperation : public NodeOperation {
    * Smaller down-sampled results contribute to larger glare size, so controlling the size can be
    * done by stopping down-sampling down to a certain size, where the maximum possible size is
    * achieved when down-sampling happens down to the smallest size of 2. */
-  Result execute_fog_glow(Result &highlights_result)
+  Result execute_bloom(Result &highlights_result)
   {
     /* The maximum possible glare size is achieved when we down-sampled down to the smallest size
      * of 2, which would result in a down-sampling chain length of the binary logarithm of the
@@ -725,14 +730,14 @@ class GlareOperation : public NodeOperation {
     const int2 glare_size = get_glare_size();
     const int smaller_glare_dimension = math::min(glare_size.x, glare_size.y);
     const int chain_length = int(std::log2(smaller_glare_dimension)) -
-                             compute_fog_glare_size_halving_count();
+                             compute_bloom_size_halving_count();
 
-    Array<Result> downsample_chain = compute_fog_glow_downsample_chain(highlights_result,
-                                                                       chain_length);
+    Array<Result> downsample_chain = compute_bloom_downsample_chain(highlights_result,
+                                                                    chain_length);
 
     /* Notice that for a chain length of n, we need (n - 1) up-sampling passes. */
     const IndexRange upsample_passes_range(chain_length - 1);
-    GPUShader *shader = context().get_shader("compositor_glare_fog_glow_upsample");
+    GPUShader *shader = context().get_shader("compositor_glare_bloom_upsample");
     GPU_shader_bind(shader);
 
     for (const int i : upsample_passes_range) {
@@ -761,7 +766,7 @@ class GlareOperation : public NodeOperation {
    * expected not to exceed the binary logarithm of the smaller dimension of the given result,
    * because that would result in down-sampling passes that produce useless textures with just
    * one pixel. */
-  Array<Result> compute_fog_glow_downsample_chain(Result &highlights_result, int chain_length)
+  Array<Result> compute_bloom_downsample_chain(Result &highlights_result, int chain_length)
   {
     const Result downsampled_result = context().create_temporary_result(ResultType::Color);
     Array<Result> downsample_chain(chain_length, downsampled_result);
@@ -779,11 +784,11 @@ class GlareOperation : public NodeOperation {
        * more information. Later passes use a simple average down-sampling filter because fireflies
        * doesn't service the first pass. */
       if (i == downsample_passes_range.first()) {
-        shader = context().get_shader("compositor_glare_fog_glow_downsample_karis_average");
+        shader = context().get_shader("compositor_glare_bloom_downsample_karis_average");
         GPU_shader_bind(shader);
       }
       else {
-        shader = context().get_shader("compositor_glare_fog_glow_downsample_simple_average");
+        shader = context().get_shader("compositor_glare_bloom_downsample_simple_average");
         GPU_shader_bind(shader);
       }
 
@@ -805,19 +810,32 @@ class GlareOperation : public NodeOperation {
     return downsample_chain;
   }
 
-  /* The fog glow has a maximum possible size when the fog glow size is equal to MAX_GLARE_SIZE and
-   * halves for every unit decrement of the fog glow size. This method computes the number of
-   * halving that should take place, which is simply the difference to MAX_GLARE_SIZE. */
-  int compute_fog_glare_size_halving_count()
+  /* The bloom has a maximum possible size when the bloom size is equal to MAX_GLARE_SIZE and
+   * halves for every unit decrement of the bloom size. This method computes the number of halving
+   * that should take place, which is simply the difference to MAX_GLARE_SIZE. */
+  int compute_bloom_size_halving_count()
   {
-    return MAX_GLARE_SIZE - get_fog_glow_size();
+    return MAX_GLARE_SIZE - get_bloom_size();
   }
 
-  /* The size of the fog glow relative to its maximum possible size, see the
-   * compute_fog_glare_size_halving_count() method for more information. */
-  int get_fog_glow_size()
+  /* The size of the bloom relative to its maximum possible size, see the
+   * compute_bloom_size_halving_count() method for more information. */
+  int get_bloom_size()
   {
     return node_storage(bnode()).size;
+  }
+
+  /* ---------------
+   * Fog Glow Glare.
+   * --------------- */
+
+  Result execute_fog_glow(Result &highlights_result)
+  {
+    context().set_info_message("Fog Glow Glare not supported in GPU compositor.");
+    Result fog_glow_result = context().create_temporary_result(ResultType::Color);
+    fog_glow_result.allocate_texture(highlights_result.domain());
+    GPU_texture_copy(fog_glow_result.texture(), highlights_result.texture());
+    return fog_glow_result;
   }
 
   /* ----------

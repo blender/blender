@@ -78,7 +78,7 @@ static void transform_snap_anim_flush_data_ex(
   AnimData *adt = static_cast<AnimData *>(!ELEM(t->spacetype, SPACE_NLA, SPACE_SEQ) ? td->extra :
                                                                                       nullptr);
 
-  /* Convert frame to nla-action time (if needed) */
+  /* Convert frame to nla-action time (if needed). */
   if (adt) {
     val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_MAP);
     ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);

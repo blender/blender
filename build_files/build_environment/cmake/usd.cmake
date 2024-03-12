@@ -5,6 +5,9 @@
 if(WIN32)
   # OIIO and OSL are statically linked for us, but USD doesn't know
   set(USD_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DOIIO_STATIC_DEFINE /DOSL_STATIC_DEFINE")
+  if(BLENDER_PLATFORM_ARM)
+    set(USD_CXX_FLAGS "${USD_CXX_FLAGS} /DOIIO_NO_SSE")
+  endif()
   if(BUILD_MODE STREQUAL Debug)
     # USD does not look for debug libs, nor does it link them
     # when building static, so this is just to keep find_package happy

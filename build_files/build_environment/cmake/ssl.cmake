@@ -5,7 +5,8 @@
 set(SSL_CONFIGURE_COMMAND ./Configure)
 
 if(WIN32)
-  # Python will build this with its preferred build options and patches. We only need to unpack openssl
+  # Python will build this with its preferred build options and patches.
+  # We only need to unpack openssl.
   ExternalProject_Add(external_ssl
     URL file://${PACKAGE_DIR}/${SSL_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}

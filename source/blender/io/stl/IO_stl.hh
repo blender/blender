@@ -8,9 +8,11 @@
 
 #pragma once
 
-#include "BKE_context.hh"
 #include "BLI_path_util.h"
 #include "IO_orientation.hh"
+
+struct bContext;
+struct ReportList;
 
 struct STLImportParams {
   /** Full path to the source STL file to import. */

@@ -45,6 +45,7 @@
 #include "BLF_api.hh"
 #include "BLT_translation.hh"
 
+#include "UI_abstract_view.hh"
 #include "UI_interface.hh"
 #include "UI_interface_icons.hh"
 #include "UI_string_search.hh"
@@ -724,7 +725,7 @@ bool ui_but_rna_equals_ex(const uiBut *but,
 static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
   if (but->identity_cmp_func) {
-    /* If the buttons have own identity comparator callbacks (and they match), use this to
+    /* If the buttons have their own identity comparator callbacks (and they match), use this to
      * determine equality. */
     if (but->identity_cmp_func && (but->type == oldbut->type) &&
         (but->identity_cmp_func == oldbut->identity_cmp_func))
@@ -779,7 +780,7 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     uiButViewItem *but_item = (uiButViewItem *)but;
     uiButViewItem *oldbut_item = (uiButViewItem *)oldbut;
     if (!but_item->view_item || !oldbut_item->view_item ||
-        !UI_view_item_matches(but_item->view_item, oldbut_item->view_item))
+        !UI_view_item_matches(*but_item->view_item, *oldbut_item->view_item))
     {
       return false;
     }
@@ -927,7 +928,8 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     case UI_BTYPE_VIEW_ITEM: {
       uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
       uiButViewItem *view_item_newbut = (uiButViewItem *)but;
-      ui_view_item_swap_button_pointers(view_item_newbut->view_item, view_item_oldbut->view_item);
+      ui_view_item_swap_button_pointers(*view_item_newbut->view_item,
+                                        *view_item_oldbut->view_item);
       std::swap(view_item_newbut->view_item, view_item_oldbut->view_item);
       break;
     }
@@ -2244,7 +2246,7 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 
         is_push = -1;
         if (view_item_but->view_item) {
-          is_push = UI_view_item_is_active(view_item_but->view_item);
+          is_push = view_item_but->view_item->is_active();
         }
         break;
       }

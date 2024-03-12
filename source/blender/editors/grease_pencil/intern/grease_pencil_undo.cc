@@ -290,6 +290,11 @@ class StepObject {
   }
 
  public:
+  ~StepObject()
+  {
+    CustomData_free(&layers_data_, layers_num_);
+  }
+
   void encode(Object *ob, StepEncodeStatus &encode_status)
   {
     const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);

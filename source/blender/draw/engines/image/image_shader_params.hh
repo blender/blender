@@ -36,7 +36,7 @@ struct ShaderParameters {
     use_premul_alpha = BKE_image_has_gpu_texture_premultiplied_alpha(image, image_buffer);
 
     if (scene->camera && scene->camera->type == OB_CAMERA) {
-      Camera *camera = static_cast<Camera *>(scene->camera->data);
+      const Camera *camera = static_cast<const Camera *>(scene->camera->data);
       copy_v2_fl2(far_near, camera->clip_end, camera->clip_start);
     }
     space->get_shader_parameters(*this, image_buffer);

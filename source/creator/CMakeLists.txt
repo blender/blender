@@ -619,6 +619,11 @@ if(WIN32)
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise.dll
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_core.dll
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_cpu.dll
+    )
+  endif()
+  if(EXISTS ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll) # Platforms that have SyCL support
+    windows_install_shared_manifest(
+      FILES
         ${LIBDIR}/OpenImageDenoise/bin/OpenImageDenoise_device_sycl.dll
     )
   endif()
@@ -1345,14 +1350,20 @@ elseif(WIN32)
       endif()
 
       # this will exist for 4.1 lib folders
-      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_amd64.pyd)
+      if(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+        set(_openvdb_arch arm64)
+      else()
+        set(_openvdb_arch amd64)
+      endif()
+
+      if(EXISTS ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openvdb_arch}.pyd)
         install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_amd64.pyd
+          FILES ${LIBDIR}/openvdb/python/pyopenvdb_d.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openvdb_arch}.pyd
           DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
           CONFIGURATIONS Debug
         )
         install(
-          FILES ${LIBDIR}/openvdb/python/pyopenvdb.cp${_PYTHON_VERSION_NO_DOTS}-win_amd64.pyd
+          FILES ${LIBDIR}/openvdb/python/pyopenvdb.cp${_PYTHON_VERSION_NO_DOTS}-win_${_openvdb_arch}.pyd
           DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         )

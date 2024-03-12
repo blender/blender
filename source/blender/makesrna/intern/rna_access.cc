@@ -36,7 +36,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_collection.hh"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.h"
 #include "BKE_idtype.hh"
@@ -2190,10 +2190,26 @@ bool RNA_property_editable_index(const PointerRNA *ptr, PropertyRNA *prop, const
   return rna_property_editable_do(ptr, prop, index, nullptr);
 }
 
-bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop)
+bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop_orig)
 {
   /* check that base ID-block can support animation data */
   if (!id_can_have_animdata(ptr->owner_id)) {
+    return false;
+  }
+
+  PropertyRNA *prop_ensured = rna_ensure_property(prop_orig);
+
+  if (!(prop_ensured->flag & PROP_ANIMATABLE)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool RNA_property_anim_editable(const PointerRNA *ptr, PropertyRNA *prop_orig)
+{
+  /* check that base ID-block can support animation data */
+  if (!RNA_property_animateable(ptr, prop_orig)) {
     return false;
   }
 
@@ -2207,18 +2223,12 @@ bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop)
     }
   }
 
-  prop = rna_ensure_property(prop);
-
-  if (!(prop->flag & PROP_ANIMATABLE)) {
-    return false;
-  }
-
-  return RNA_property_editable(const_cast<PointerRNA *>(ptr), prop);
+  return rna_property_editable_do(ptr, prop_orig, -1, nullptr);
 }
 
-bool RNA_property_drivable(const PointerRNA *ptr, PropertyRNA *prop)
+bool RNA_property_driver_editable(const PointerRNA *ptr, PropertyRNA *prop)
 {
-  if (!RNA_property_animateable(ptr, prop)) {
+  if (!RNA_property_anim_editable(ptr, prop)) {
     return false;
   }
 

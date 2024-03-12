@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'e938b516a994')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-26 11:48+0000\n"
-"PO-Revision-Date: 2023-12-17 02:53+0000\n"
-"Last-Translator: Jad Musallam <rubber.444332@gmail.com>\n"
+"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"PO-Revision-Date: 2024-03-01 16:11+0000\n"
+"Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -411,6 +411,10 @@ msgid "glTFpack file path"
 msgstr "Percorso file glTFpack"
 
 
+msgid "Path to gltfpack binary"
+msgstr "Percorso del binario gltfpack"
+
+
 msgid "Displays glTF Material Output node in Shader Editor (Menu Add > Output)"
 msgstr "Visualizza il nodo Output Materiale glTF nell'Editor Ombreggiatori (Menu Aggiungi > Output)"
 
@@ -649,6 +653,14 @@ msgstr "Impostazioni Percorso del Movimento"
 
 msgid "Motion Path settings for animation visualization"
 msgstr "Impostazioni del Percorso di Movimento per la visualizzazione dell'animazione"
+
+
+msgid "Bake to active Camera"
+msgstr "Bake sulla Camera Attiva"
+
+
+msgid "Motion path points will be baked into the camera space of the active camera. This means they will only look right when looking through that camera. Switching cameras using markers is not supported"
+msgstr "I punti del percorso di movimento verranno inseriti nello spazio della camera attiva. Ciò significa che sembreranno giusti solo quando guarderanno attraverso quella camera. Il passaggio da una camera all'altra utilizzando i marcatori non è supportato"
 
 
 msgid "Bake Location"
@@ -1103,6 +1115,14 @@ msgid "Catalog Path"
 msgstr "Percorso del Catalogo"
 
 
+msgid "User Asset Libraries"
+msgstr "Librerie Risorse Utente"
+
+
+msgid "Collection of user asset libraries"
+msgstr "Raccolta di librerie risorse utente"
+
+
 msgid "Asset Library Reference"
 msgstr "Riferimento alla Libreria degli Assets"
 
@@ -1475,6 +1495,10 @@ msgid "ID Name"
 msgstr "Nome ID"
 
 
+msgid "If this is set, the asset gets a custom ID, otherwise it takes the name of the class used to define the asset (for example, if the class name is \"OBJECT_AST_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_AST_hello\")"
+msgstr "Se impostato, la risorsa ottiene un ID personalizzato, altrimenti prende il nome della classe utilizzata per definire la risorsa (ad esempio, se il nome della classe è \"OBJECT_AST_hello\" e bl_idname non è impostato dallo script, allora bl_idname = \"OBJECT_AST_hello\")"
+
+
 msgid "Options"
 msgstr "Opzioni"
 
@@ -1485,6 +1509,10 @@ msgstr "Opzioni per questo tipo di scaffale delle risorse"
 
 msgid "No Asset Dragging"
 msgstr "Nessun Trascinamento di Risorse"
+
+
+msgid "Disable the default asset dragging on drag events. Useful for implementing custom dragging via custom key-map items"
+msgstr "Disabilita il trascinamento predefinito delle risorse negli eventi di trascinamento. Utile per implementare il trascinamento personalizzato tramite elementi della key-map personalizzata"
 
 
 msgid "Space Type"
@@ -1671,16 +1699,32 @@ msgid "Face"
 msgstr "Faccia"
 
 
+msgid "Attribute on mesh faces"
+msgstr "Attributo sulle facce mesh"
+
+
 msgid "Face Corner"
 msgstr "Angolo della Faccia"
+
+
+msgid "Attribute on mesh face corner"
+msgstr "Attributo sull'angolo della faccia mesh"
 
 
 msgid "Spline"
 msgstr "Spline"
 
 
+msgid "Attribute on spline"
+msgstr "Attributo sulla spline"
+
+
 msgid "Instance"
 msgstr "Istanza"
+
+
+msgid "Attribute on instance"
+msgstr "Attributo sull'istanza"
 
 
 msgid "Layer"
@@ -1695,6 +1739,18 @@ msgid "Is Internal"
 msgstr "È Interno"
 
 
+msgid "The attribute is meant for internal use by Blender"
+msgstr "L'attributo è pensato per uso interno da Blender"
+
+
+msgid "Is Required"
+msgstr "È Obbligatorio"
+
+
+msgid "Whether the attribute can be removed or renamed"
+msgstr "Se l'attributo può essere rimosso o rinominato"
+
+
 msgid "Name of the Attribute"
 msgstr "Nome dell'Attributo"
 
@@ -1703,48 +1759,112 @@ msgid "Bool Attribute"
 msgstr "Attributo Bool"
 
 
+msgid "Geometry attribute that stores booleans"
+msgstr "Attributo geometrico che memorizza valori booleani"
+
+
 msgid "Byte Color Attribute"
 msgstr "Attributo Colore Byte"
+
+
+msgid "Geometry attribute that stores RGBA colors as positive integer values using 8-bits per channel"
+msgstr "Attributo geometrico che memorizza i colori RGBA come valori interi positivi utilizzando 8 bit per canale"
 
 
 msgid "8-bit Integer Attribute"
 msgstr "Attributo Intero a 8 bit"
 
 
+msgid "Geometry attribute that stores 8-bit integers"
+msgstr "Attributo geometrico che memorizza numeri interi a 8 bit"
+
+
 msgid "Float2 Attribute"
 msgstr "Attributo Float2"
+
+
+msgid "Geometry attribute that stores floating-point 2D vectors"
+msgstr "Attributo geometrico che memorizza vettori 2D a virgola mobile"
 
 
 msgid "Float Attribute"
 msgstr "Attributo Mobile"
 
 
+msgid "Geometry attribute that stores floating-point values"
+msgstr "Attributo geometrico che memorizza valori a virgola mobile"
+
+
 msgid "Float Color Attribute"
 msgstr "Attributo Colore Mobile"
+
+
+msgid "Geometry attribute that stores RGBA colors as floating-point values using 32-bits per channel"
+msgstr "Attributo geometrico che memorizza i colori RGBA come valori a virgola mobile utilizzando 32 bit per canale"
+
+
+msgid "Float Vector Attribute"
+msgstr "Attributo Vettoriale a virgola Mobile"
+
+
+msgid "Geometry attribute that stores floating-point 3D vectors"
+msgstr "Attributo geometrico che memorizza vettori 3D a virgola mobile"
 
 
 msgid "2D Integer Vector Attribute"
 msgstr "Attributo del Vettore Intero 2D"
 
 
+msgid "Geometry attribute that stores 2D integer vectors"
+msgstr "Attributo geometrico che memorizza vettori 2D a numeri interi"
+
+
 msgid "Integer Attribute"
 msgstr "Attributo Intero"
+
+
+msgid "Geometry attribute that stores integer values"
+msgstr "Attributo geometrico che memorizza valori interi"
 
 
 msgid "Quaternion Attribute"
 msgstr "Attributo Quaternione"
 
 
+msgid "Geometry attribute that stores rotation"
+msgstr "Attributo geometrico che memorizza la rotazione"
+
+
 msgid "String Attribute"
 msgstr "Attributo Stringa"
+
+
+msgid "Geometry attribute that stores strings"
+msgstr "Attributo geometrico che memorizza stringhe"
 
 
 msgid "Attribute Group"
 msgstr "Gruppo di Attributi"
 
 
+msgid "Group of geometry attributes"
+msgstr "Gruppo di attributi geometrici"
+
+
+msgid "Active Attribute"
+msgstr "Attributo Attivo"
+
+
+msgid "Active attribute"
+msgstr "Attributo attivo"
+
+
 msgid "Active Color"
 msgstr "Colore Attivo"
+
+
+msgid "Active color attribute for display and editing"
+msgstr "Attributo di colore attivo per la visualizzazione e modifica"
 
 
 msgid "Active Color Index"
@@ -1997,6 +2117,10 @@ msgstr "Camera Attiva"
 
 msgid "Use the active camera's position to cast rays"
 msgstr "Utilizza la posizione della telecamera attiva per proiettare raggi"
+
+
+msgid "Bézier Curve Point"
+msgstr "Punto Curva Bézier"
 
 
 msgid "Control Point"
@@ -26154,6 +26278,10 @@ msgstr "Info Oggetto"
 
 msgid "Z Up"
 msgstr "Z In Alto"
+
+
+msgid "Sort Elements"
+msgstr "Ordina Elementi"
 
 
 msgid "Selection"
@@ -56653,6 +56781,10 @@ msgid "Reference Point"
 msgstr "Punto di Riferimento"
 
 
+msgid "No Materials"
+msgstr "Nessun Materiale"
+
+
 msgctxt "Operator"
 msgid "Frame Selected (Quad View)"
 msgstr "Fotogramma Selezionato (4 Viste)"
@@ -57757,8 +57889,20 @@ msgid "Internal error!"
 msgstr "Errore Interno!"
 
 
+msgid "Tool Keymap:"
+msgstr "Keymap Strumento:"
+
+
 msgid "(Shift-Click/Drag to select multiple)"
 msgstr "(Shift-Click/Trascina per selezione multipla)"
+
+
+msgid "Value: {}"
+msgstr "Valore: {}"
+
+
+msgid "Expression: {}"
+msgstr "Espressione: {}"
 
 
 msgctxt "Operator"

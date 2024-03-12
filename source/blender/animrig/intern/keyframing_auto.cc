@@ -8,7 +8,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_scene.hh"
 
 #include "BLI_listbase.h"

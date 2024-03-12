@@ -18,7 +18,7 @@
  * comments: (ton)
  *
  * This system needs recode, a node system should rely on the stack, and
- * callbacks for nodes only should evaluate own node, not recursively go
+ * callbacks for nodes only should evaluate their own node, not recursively go
  * over other previous ones.
  */
 

@@ -151,7 +151,7 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
   eRedrawFlag status = TREDRAW_NOTHING;
 
   if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
-    /* Use custom.mode.data pointer to signal Shear direction */
+    /* Use custom.mode.data pointer to signal Shear direction. */
     do {
       t->orient_axis_ortho = (t->orient_axis_ortho + 1) % 3;
     } while (t->orient_axis_ortho == t->orient_axis);
@@ -264,7 +264,7 @@ static bool clip_uv_transform_shear(const TransInfo *t, float *vec, float *vec_i
     /* Binary search. */
     const float value_mid = (value_inside_bounds + value) / 2.0f;
     if (ELEM(value_mid, value_inside_bounds, value)) {
-      break; /* float precision reached. */
+      break; /* Float precision reached. */
     }
     if (uv_shear_in_clip_bounds_test(t, value_mid)) {
       value_inside_bounds = value_mid;
@@ -302,14 +302,14 @@ static void apply_shear(TransInfo *t)
   recalc_data(t);
 
   char str[UI_MAX_DRAW_STR];
-  /* header print for NumInput */
+  /* Header print for NumInput. */
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
     outputNumInput(&(t->num), c, &t->scene->unit);
     SNPRINTF(str, IFACE_("Shear: %s %s"), c, t->proptext);
   }
   else {
-    /* default header print */
+    /* Default header print. */
     SNPRINTF(str, IFACE_("Shear: %.3f %s (Press X or Y to set shear axis)"), value, t->proptext);
   }
 

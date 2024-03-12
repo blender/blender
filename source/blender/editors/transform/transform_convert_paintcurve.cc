@@ -19,7 +19,7 @@
 #include "transform_convert.hh"
 
 struct TransDataPaintCurve {
-  PaintCurvePoint *pcp; /* initial curve point */
+  PaintCurvePoint *pcp; /* Initial curve point. */
   char id;
 };
 

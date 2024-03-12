@@ -12,6 +12,7 @@
 #include "CLG_log.h"
 
 #include <cstring>
+#include <optional>
 
 #include "BLI_blenlib.h"
 #include "BLI_iterator.h"
@@ -132,7 +133,11 @@ static void collection_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.hh's LIB_ID_COPY_... flags for more).
  */
-static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
+static void collection_copy_data(Main *bmain,
+                                 std::optional<Library *> /*owner_library*/,
+                                 ID *id_dst,
+                                 const ID *id_src,
+                                 const int flag)
 {
   Collection *collection_dst = (Collection *)id_dst;
   const Collection *collection_src = (const Collection *)id_src;
@@ -929,12 +934,14 @@ Collection *BKE_collection_master_add(Scene *scene)
   BLI_assert(scene != nullptr && scene->master_collection == nullptr);
 
   /* Not an actual datablock, but owned by scene. */
-  Collection *master_collection = static_cast<Collection *>(
-      BKE_libblock_alloc(nullptr, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN));
+  Collection *master_collection = static_cast<Collection *>(BKE_libblock_alloc_in_lib(
+      nullptr, scene->id.lib, ID_GR, BKE_SCENE_COLLECTION_NAME, LIB_ID_CREATE_NO_MAIN));
   master_collection->id.flag |= LIB_EMBEDDED_DATA;
   master_collection->owner_id = &scene->id;
   master_collection->flag |= COLLECTION_IS_MASTER;
   master_collection->color_tag = COLLECTION_COLOR_NONE;
+
+  BLI_assert(scene->id.lib == master_collection->id.lib);
 
   return master_collection;
 }
@@ -1232,8 +1239,8 @@ static void collection_gobject_assert_internal_consistency(Collection *collectio
   }
 }
 
-static Collection *collection_parent_editable_find_recursive(const ViewLayer *view_layer,
-                                                             Collection *collection)
+Collection *BKE_collection_parent_editable_find_recursive(const ViewLayer *view_layer,
+                                                          Collection *collection)
 {
   if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
       (view_layer == nullptr || BKE_view_layer_has_collection(view_layer, collection)))
@@ -1258,7 +1265,7 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
       }
       return collection_parent->collection;
     }
-    Collection *editable_collection = collection_parent_editable_find_recursive(
+    Collection *editable_collection = BKE_collection_parent_editable_find_recursive(
         view_layer, collection_parent->collection);
     if (editable_collection != nullptr) {
       return editable_collection;
@@ -1386,7 +1393,7 @@ bool BKE_collection_viewlayer_object_add(Main *bmain,
     return false;
   }
 
-  collection = collection_parent_editable_find_recursive(view_layer, collection);
+  collection = BKE_collection_parent_editable_find_recursive(view_layer, collection);
 
   if (collection == nullptr) {
     return false;

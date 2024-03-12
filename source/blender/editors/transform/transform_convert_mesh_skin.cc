@@ -128,8 +128,8 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
     }
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
-    /* we use a pseudo-inverse so that when one of the axes is scaled to 0,
-     * matrix inversion still works and we can still moving along the other */
+    /* We use a pseudo-inverse so that when one of the axes is scaled to 0,
+     * matrix inversion still works and we can still moving along the other. */
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
     /* Original index of our connected vertex when connected distances are calculated.
@@ -210,7 +210,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
           createSpaceNormal(td->axismtx, eve->no);
         }
         else {
-          /* Setting normals */
+          /* Setting normals. */
           copy_v3_v3(td->axismtx[2], eve->no);
           td->axismtx[0][0] = td->axismtx[0][1] = td->axismtx[0][2] = td->axismtx[1][0] =
               td->axismtx[1][1] = td->axismtx[1][2] = 0.0f;
@@ -225,7 +225,7 @@ static void createTransMeshSkin(bContext * /*C*/, TransInfo *t)
           }
         }
 
-        /* CrazySpace */
+        /* CrazySpace. */
         transform_convert_mesh_crazyspace_transdata_set(
             mtx,
             smtx,
@@ -272,7 +272,7 @@ static void mesh_skin_apply_to_mirror(TransInfo *t)
 static void recalcData_mesh_skin(TransInfo *t)
 {
   bool is_canceling = t->state == TRANS_CANCEL;
-  /* mirror modifier clipping? */
+  /* Mirror modifier clipping? */
   if (!is_canceling) {
     if (!(t->flag & T_NO_MIRROR)) {
       mesh_skin_apply_to_mirror(t);

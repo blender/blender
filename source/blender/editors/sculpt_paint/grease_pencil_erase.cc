@@ -382,6 +382,17 @@ struct EraseOperationExecutor {
     float factor;
     bool is_src_point;
     bool is_cut;
+
+    /**
+     * Source point is the last of the curve.
+     */
+    bool is_src_end_point() const
+    {
+      /* The src_next_point index increments for all points except the last, where it is set to the
+       * first point index. This can be used to detect the curve end from the source index alone.
+       */
+      return is_src_point && src_point >= src_next_point;
+    }
   };
 
   /**
@@ -547,18 +558,16 @@ struct EraseOperationExecutor {
       threading::parallel_for(dst.curves_range(), 4096, [&](const IndexRange dst_curves) {
         for (const int dst_curve : dst_curves) {
           const IndexRange dst_curve_points = dst_points_by_curve[dst_curve];
-          if (dst_transfer_data[dst_curve_points.first()].is_cut) {
+          const PointTransferData &start_point_transfer =
+              dst_transfer_data[dst_curve_points.first()];
+          const PointTransferData &end_point_transfer = dst_transfer_data[dst_curve_points.last()];
+
+          if (start_point_transfer.is_cut) {
             dst_start_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
           }
-
-          if (dst_curve == dst_curves.last()) {
-            continue;
-          }
-
-          const PointTransferData &next_point_transfer =
-              dst_transfer_data[dst_points_by_curve[dst_curve + 1].first()];
-
-          if (next_point_transfer.is_cut) {
+          /* The is_cut flag does not work for end points, but any end point that isn't the source
+           * point must also be a cut. */
+          if (!end_point_transfer.is_src_end_point()) {
             dst_end_caps.span[dst_curve] = GP_STROKE_CAP_TYPE_FLAT;
           }
         }
@@ -798,6 +807,9 @@ struct EraseOperationExecutor {
 
     if (self.active_layer_only) {
       /* Erase only on the drawing at the current frame of the active layer. */
+      if (!grease_pencil.has_active_layer()) {
+        return;
+      }
       const Layer &active_layer = *grease_pencil.get_active_layer();
       Drawing *drawing = grease_pencil.get_editable_drawing_at(active_layer, scene->r.cfra);
 
@@ -806,7 +818,7 @@ struct EraseOperationExecutor {
       }
 
       execute_eraser_on_drawing(
-          active_layer.drawing_index_at(scene->r.cfra), scene->r.cfra, *drawing);
+          *grease_pencil.get_layer_index(active_layer), scene->r.cfra, *drawing);
     }
     else {
       /* Erase on all editable drawings. */

@@ -40,7 +40,7 @@
 namespace blender::ed::space_node {
 
 /* -------------------------------------------------------------------- */
-/** \name Local Funcitons
+/** \name Local Functions
  * \{ */
 
 static bool space_node_active_view_poll(bContext *C)

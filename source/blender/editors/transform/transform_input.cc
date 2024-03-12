@@ -30,13 +30,13 @@ using namespace blender;
 /** \name Callbacks for #MouseInput.apply
  * \{ */
 
-/** Callback for #INPUT_VECTOR */
+/** Callback for #INPUT_VECTOR. */
 static void InputVector(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   convertViewVec(t, output, mval[0] - mi->imval[0], mval[1] - mi->imval[1]);
 }
 
-/** Callback for #INPUT_SPRING */
+/** Callback for #INPUT_SPRING. */
 static void InputSpring(TransInfo * /*t*/, MouseInput *mi, const double mval[2], float output[3])
 {
   double dx, dy;
@@ -49,13 +49,13 @@ static void InputSpring(TransInfo * /*t*/, MouseInput *mi, const double mval[2],
   output[0] = ratio;
 }
 
-/** Callback for #INPUT_SPRING_FLIP */
+/** Callback for #INPUT_SPRING_FLIP. */
 static void InputSpringFlip(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputSpring(t, mi, mval, output);
 
-  /* flip scale */
-  /* values can become really big when zoomed in so use longs #26598. */
+  /* Flip scale. */
+  /* Values can become really big when zoomed in so use longs #26598. */
   if ((int64_t(int(mi->center[0]) - mval[0]) * int64_t(int(mi->center[0]) - mi->imval[0]) +
        int64_t(int(mi->center[1]) - mval[1]) * int64_t(int(mi->center[1]) - mi->imval[1])) < 0)
   {
@@ -63,14 +63,14 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, const double mval[2], 
   }
 }
 
-/** Callback for #INPUT_SPRING_DELTA */
+/** Callback for #INPUT_SPRING_DELTA. */
 static void InputSpringDelta(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputSpring(t, mi, mval, output);
   output[0] -= 1.0f;
 }
 
-/** Callback for #INPUT_TRACKBALL */
+/** Callback for #INPUT_TRACKBALL. */
 static void InputTrackBall(TransInfo * /*t*/,
                            MouseInput *mi,
                            const double mval[2],
@@ -83,7 +83,7 @@ static void InputTrackBall(TransInfo * /*t*/,
   output[1] *= mi->factor;
 }
 
-/** Callback for #INPUT_HORIZONTAL_RATIO */
+/** Callback for #INPUT_HORIZONTAL_RATIO. */
 static void InputHorizontalRatio(TransInfo *t,
                                  MouseInput *mi,
                                  const double mval[2],
@@ -94,7 +94,7 @@ static void InputHorizontalRatio(TransInfo *t,
   output[0] = ((mval[0] - mi->imval[0]) / winx) * 2.0f;
 }
 
-/** Callback for #INPUT_HORIZONTAL_ABSOLUTE */
+/** Callback for #INPUT_HORIZONTAL_ABSOLUTE. */
 static void InputHorizontalAbsolute(TransInfo *t,
                                     MouseInput *mi,
                                     const double mval[2],
@@ -116,7 +116,7 @@ static void InputVerticalRatio(TransInfo *t, MouseInput *mi, const double mval[2
   output[0] = ((mval[1] - mi->imval[1]) / winy) * 2.0f;
 }
 
-/** Callback for #INPUT_VERTICAL_ABSOLUTE */
+/** Callback for #INPUT_VERTICAL_ABSOLUTE. */
 static void InputVerticalAbsolute(TransInfo *t,
                                   MouseInput *mi,
                                   const double mval[2],
@@ -131,7 +131,7 @@ static void InputVerticalAbsolute(TransInfo *t,
   output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
-/** Callback for #INPUT_CUSTOM_RATIO_FLIP */
+/** Callback for #INPUT_CUSTOM_RATIO_FLIP. */
 static void InputCustomRatioFlip(TransInfo * /*t*/,
                                  MouseInput *mi,
                                  const double mval[2],
@@ -158,7 +158,7 @@ static void InputCustomRatioFlip(TransInfo * /*t*/,
   }
 }
 
-/** Callback for #INPUT_CUSTOM_RATIO */
+/** Callback for #INPUT_CUSTOM_RATIO. */
 static void InputCustomRatio(TransInfo *t, MouseInput *mi, const double mval[2], float output[3])
 {
   InputCustomRatioFlip(t, mi, mval, output);
@@ -170,7 +170,7 @@ struct InputAngle_Data {
   double mval_prev[2];
 };
 
-/** Callback for #INPUT_ANGLE */
+/** Callback for #INPUT_ANGLE. */
 static void InputAngle(TransInfo * /*t*/, MouseInput *mi, const double mval[2], float output[3])
 {
   InputAngle_Data *data = static_cast<InputAngle_Data *>(mi->data);
@@ -284,7 +284,7 @@ static void calcSpringFactor(MouseInput *mi)
   mi->factor = len_v2(mdir);
 
   if (mi->factor == 0.0f) {
-    mi->factor = 1.0f; /* prevent Inf */
+    mi->factor = 1.0f; /* Prevent inf. */
   }
 }
 
@@ -338,7 +338,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
     }
     case INPUT_TRACKBALL:
       mi->precision_factor = 1.0f / 30.0f;
-      /* factor has to become setting or so */
+      /* Factor has to become setting or so. */
       mi->factor = 0.01f;
       mi->apply = InputTrackBall;
       t->helpline = HLP_TRACKBALL;
@@ -373,12 +373,12 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       break;
   }
 
-  /* setup for the mouse cursor: either set a custom one,
-   * or hide it if it will be drawn with the helpline */
+  /* Setup for the mouse cursor: either set a custom one,
+   * or hide it if it will be drawn with the helpline. */
   wmWindow *win = CTX_wm_window(t->context);
   switch (t->helpline) {
     case HLP_NONE:
-      /* INPUT_VECTOR, INPUT_CUSTOM_RATIO, INPUT_CUSTOM_RATIO_FLIP */
+      /* INPUT_VECTOR, INPUT_CUSTOM_RATIO, INPUT_CUSTOM_RATIO_FLIP. */
       if (t->flag & T_MODAL) {
         t->flag |= T_MODAL_CURSOR_SET;
         WM_cursor_modal_set(win, WM_CURSOR_NSEW_SCROLL);
@@ -399,8 +399,8 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
       break;
   }
 
-  /* if we've allocated new data, free the old data
-   * less hassle than checking before every alloc above */
+  /* If we've allocated new data, free the old data
+   * less hassle than checking before every alloc above. */
   if (mi_data_prev && (mi_data_prev != mi->data)) {
     MEM_freeN(mi_data_prev);
   }
@@ -416,7 +416,7 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const float2 &mval, float out
   double mval_db[2];
 
   if (mi->use_virtual_mval) {
-    /* update accumulator */
+    /* Update accumulator. */
     double mval_delta[2];
 
     mval_delta[0] = (mval[0] - mi->imval[0]) - mi->virtual_mval.prev[0];

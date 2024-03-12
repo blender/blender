@@ -21,6 +21,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
@@ -265,14 +266,14 @@ using IDTypeFilter = uint64_t;
 namespace blender::bke::id {
 
 class IDRemapper {
-  blender::Map<ID *, ID *> mappings_;
+  Map<ID *, ID *> mappings_;
   IDTypeFilter source_types_ = 0;
 
   /**
    * Store all IDs using another ID with the 'NEVER_NULL' flag, which have (or
    * should have been) remapped to `nullptr`.
    */
-  blender::Set<ID *> never_null_users_;
+  Set<ID *> never_null_users_;
 
  public:
   /**
@@ -282,14 +283,14 @@ class IDRemapper {
   bool allow_idtype_mismatch = false;
 
  public:
-  void clear(void)
+  void clear()
   {
     mappings_.clear();
     never_null_users_.clear();
     source_types_ = 0;
   }
 
-  bool is_empty(void) const
+  bool is_empty() const
   {
     return mappings_.is_empty();
   }
@@ -326,24 +327,24 @@ class IDRemapper {
     never_null_users_.add(id);
   }
 
-  const blender::Set<ID *> &never_null_users(void) const
+  const Set<ID *> &never_null_users() const
   {
     return never_null_users_;
   }
 
   /** Iterate over all remapping pairs in the remapper, and call the callback function on them. */
-  void iter(IDRemapperIterFunction func, void *user_data) const
+  void iter(FunctionRef<void(ID *old_id, ID *new_id)> func) const
   {
     for (auto item : mappings_.items()) {
-      func(item.key, item.value, user_data);
+      func(item.key, item.value);
     }
   }
 
   /** Return a readable string for the given result. Can be used for debugging purposes. */
-  static const blender::StringRefNull result_to_string(const IDRemapperApplyResult result);
+  static const StringRefNull result_to_string(const IDRemapperApplyResult result);
 
   /** Print out the rules inside the given id_remapper. Can be used for debugging purposes. */
-  void print(void) const;
+  void print() const;
 };
 
 }  // namespace blender::bke::id

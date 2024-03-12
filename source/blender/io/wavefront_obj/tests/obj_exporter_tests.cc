@@ -143,7 +143,7 @@ class ObjExporterWriterTest : public testing::Test {
  protected:
   void SetUp() override
   {
-    BKE_tempdir_init("");
+    BKE_tempdir_init(nullptr);
   }
 
   void TearDown() override

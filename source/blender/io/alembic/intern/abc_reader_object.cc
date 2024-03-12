@@ -13,7 +13,7 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_space_types.h" /* for FILE_MAX */
+#include "DNA_object_types.h"
 
 #include "BKE_constraint.h"
 #include "BKE_lib_id.hh"
@@ -22,12 +22,10 @@
 #include "BKE_object_types.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 using Alembic::AbcGeom::IObject;
 using Alembic::AbcGeom::IXform;

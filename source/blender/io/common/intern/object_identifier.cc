@@ -5,12 +5,6 @@
 
 #include "BKE_duplilist.hh"
 
-extern "C" {
-#include <climits> /* For INT_MAX. */
-}
-#include <cstring>
-#include <sstream>
-
 namespace blender::io {
 
 ObjectIdentifier::ObjectIdentifier(Object *object,

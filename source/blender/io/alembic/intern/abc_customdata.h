@@ -9,12 +9,18 @@
 
 #include "BLI_math_vector_types.hh"
 
-#include <Alembic/Abc/All.h>
-#include <Alembic/AbcGeom/All.h>
+#include <Alembic/Abc/ICompoundProperty.h>
+#include <Alembic/Abc/ISampleSelector.h>
+#include <Alembic/Abc/OCompoundProperty.h>
+#include <Alembic/Abc/TypedArraySample.h>
+#include <Alembic/AbcCoreAbstract/Foundation.h>
+#include <Alembic/AbcGeom/GeometryScope.h>
+#include <Alembic/AbcGeom/OGeomParam.h>
 
+#include <cstdint>
 #include <map>
-
-#include "BLI_math_vector_types.hh"
+#include <string>
+#include <vector>
 
 struct CustomData;
 struct Mesh;

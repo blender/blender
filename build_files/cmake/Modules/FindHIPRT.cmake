@@ -57,3 +57,5 @@ find_package_handle_standard_args(HIPRT DEFAULT_MSG
 mark_as_advanced(
   HIPRT_INCLUDE_DIR
 )
+
+unset(_hiprt_SEARCH_DIRS)

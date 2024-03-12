@@ -9,8 +9,10 @@
 
 #include "BLI_span.hh"
 
-#include "abc_customdata.h"
 #include "abc_reader_object.h"
+
+#include <Alembic/AbcGeom/IPolyMesh.h>
+#include <Alembic/AbcGeom/ISubD.h>
 
 struct Mesh;
 

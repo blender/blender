@@ -28,13 +28,13 @@ using namespace blender;
 /** \name Snap Object Data
  * \{ */
 
-static void snap_object_data_mesh_get(const Mesh *me_eval,
+static void snap_object_data_mesh_get(const Mesh *mesh_eval,
                                       bool use_hide,
                                       BVHTreeFromMesh *r_treedata)
 {
   /* The BVHTree from corner_tris is always required. */
   BKE_bvhtree_from_mesh_get(r_treedata,
-                            me_eval,
+                            mesh_eval,
                             use_hide ? BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN :
                                        BVHTREE_FROM_CORNER_TRIS,
                             4);
@@ -78,14 +78,14 @@ static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
 
 static bool raycastMesh(SnapObjectContext *sctx,
                         Object *ob_eval,
-                        const Mesh *me_eval,
+                        const Mesh *mesh_eval,
                         const float4x4 &obmat,
                         const uint ob_index,
                         bool use_hide)
 {
   bool retval = false;
 
-  if (me_eval->faces_num == 0) {
+  if (mesh_eval->faces_num == 0) {
     return retval;
   }
 
@@ -94,7 +94,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   float3 ray_normal_local = math::transform_direction(imat, sctx->runtime.ray_dir);
   float local_scale, local_depth, len_diff = 0.0f;
 
-  /* local scale in normal direction */
+  /* Local scale in normal direction. */
   ray_normal_local = math::normalize_and_get_length(ray_normal_local, local_scale);
 
   const bool is_in_front = sctx->runtime.params.use_occlusion_test &&
@@ -105,9 +105,9 @@ static bool raycastMesh(SnapObjectContext *sctx,
     local_depth *= local_scale;
   }
 
-  /* Test bounding box */
-  const Bounds<float3> bounds = *me_eval->bounds_min_max();
-  /* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
+  /* Test bounding box. */
+  const Bounds<float3> bounds = *mesh_eval->bounds_min_max();
+  /* Was #BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
   if (!isect_ray_aabb_v3_simple(
           ray_start_local, ray_normal_local, bounds.min, bounds.max, &len_diff, nullptr))
   {
@@ -128,9 +128,9 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   BVHTreeFromMesh treedata;
-  snap_object_data_mesh_get(me_eval, use_hide, &treedata);
+  snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
 
-  const blender::Span<int> tri_faces = me_eval->corner_tri_faces();
+  const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
 
   if (treedata.tree == nullptr) {
     return retval;
@@ -175,7 +175,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
         hit.index = tri_faces[hit.index];
         retval = true;
       }
-      SnapData::register_result_raycast(sctx, ob_eval, &me_eval->id, obmat, &hit, is_in_front);
+      SnapData::register_result_raycast(sctx, ob_eval, &mesh_eval->id, obmat, &hit, is_in_front);
     }
   }
 
@@ -190,12 +190,12 @@ static bool raycastMesh(SnapObjectContext *sctx,
 
 static bool nearest_world_mesh(SnapObjectContext *sctx,
                                Object *ob_eval,
-                               const Mesh *me_eval,
+                               const Mesh *mesh_eval,
                                const float4x4 &obmat,
                                bool use_hide)
 {
   BVHTreeFromMesh treedata;
-  snap_object_data_mesh_get(me_eval, use_hide, &treedata);
+  snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
   if (treedata.tree == nullptr) {
     return false;
   }
@@ -205,7 +205,7 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
   if (nearest_world_tree(
           sctx, treedata.tree, treedata.nearest_callback, obmat, &treedata, &nearest))
   {
-    SnapData::register_result(sctx, ob_eval, &me_eval->id, obmat, &nearest);
+    SnapData::register_result(sctx, ob_eval, &mesh_eval->id, obmat, &nearest);
     return true;
   }
   return false;
@@ -221,7 +221,7 @@ class SnapData_Mesh : public SnapData {
  public:
   const float3 *vert_positions;
   const float3 *vert_normals;
-  const int2 *edges; /* only used for #BVHTreeFromMeshEdges */
+  const int2 *edges; /* Only used for #BVHTreeFromMeshEdges. */
   const int *corner_verts;
   const int *corner_edges;
   const int3 *corner_tris;
@@ -438,34 +438,35 @@ static eSnapMode mesh_snap_mode_supported(const Mesh *mesh)
 
 static eSnapMode snapMesh(SnapObjectContext *sctx,
                           Object *ob_eval,
-                          const Mesh *me_eval,
+                          const Mesh *mesh_eval,
                           const float4x4 &obmat,
                           bool use_hide,
                           eSnapMode snap_to)
 {
   BLI_assert(snap_to != SCE_SNAP_TO_FACE);
-  SnapData_Mesh nearest2d(sctx, me_eval, obmat);
+  SnapData_Mesh nearest2d(sctx, mesh_eval, obmat);
 
-  if (ob_eval->data == me_eval) {
-    const Bounds<float3> bounds = *me_eval->bounds_min_max();
-    if (!nearest2d.snap_boundbox(bounds.min, bounds.max)) {
-      return SCE_SNAP_TO_NONE;
+  if (ob_eval->data == mesh_eval) {
+    if (std::optional<Bounds<float3>> bounds = mesh_eval->bounds_min_max()) {
+      if (!nearest2d.snap_boundbox(bounds->min, bounds->max)) {
+        return SCE_SNAP_TO_NONE;
+      }
     }
   }
 
-  snap_to &= mesh_snap_mode_supported(me_eval) & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT);
+  snap_to &= mesh_snap_mode_supported(mesh_eval) & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT);
   if (snap_to == SCE_SNAP_TO_NONE) {
     return SCE_SNAP_TO_NONE;
   }
 
   BVHTreeFromMesh treedata, treedata_dummy;
-  snap_object_data_mesh_get(me_eval, use_hide, &treedata);
+  snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
 
   BVHTree *bvhtree[2] = {nullptr};
-  bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_dummy, me_eval, BVHTREE_FROM_LOOSEEDGES, 2);
+  bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_dummy, mesh_eval, BVHTREE_FROM_LOOSEEDGES, 2);
   BLI_assert(treedata_dummy.cached);
   if (snap_to & SCE_SNAP_TO_POINT) {
-    bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_dummy, me_eval, BVHTREE_FROM_LOOSEVERTS, 2);
+    bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_dummy, mesh_eval, BVHTREE_FROM_LOOSEVERTS, 2);
     BLI_assert(treedata_dummy.cached);
   }
 
@@ -480,7 +481,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   if (bvhtree[1]) {
     BLI_assert(snap_to & SCE_SNAP_TO_POINT);
-    /* snap to loose verts */
+    /* Snap to loose verts. */
     BLI_bvhtree_find_nearest_projected(bvhtree[1],
                                        nearest2d.pmat_local.ptr(),
                                        sctx->runtime.win_size,
@@ -567,7 +568,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   if (nearest.index != -1) {
     nearest2d.nearest_point = nearest;
-    nearest2d.register_result(sctx, ob_eval, &me_eval->id);
+    nearest2d.register_result(sctx, ob_eval, &mesh_eval->id);
     return elem;
   }
 

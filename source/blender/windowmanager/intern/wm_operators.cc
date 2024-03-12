@@ -63,7 +63,7 @@
 #include "BKE_preview_image.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_screen.hh" /* BKE_ST_MAXNAME */
+#include "BKE_screen.hh" /* #BKE_ST_MAXNAME. */
 #include "BKE_unit.hh"
 
 #include "BKE_idtype.hh"
@@ -174,7 +174,7 @@ bool WM_operator_py_idname_ok_or_report(ReportList *reports,
   int i;
   for (i = 0; *ch; i++, ch++) {
     if ((*ch >= 'a' && *ch <= 'z') || (*ch >= '0' && *ch <= '9') || *ch == '_') {
-      /* pass */
+      /* Pass. */
     }
     else if (*ch == '.') {
       dot++;
@@ -222,10 +222,10 @@ std::string WM_operator_pystring_ex(bContext *C,
 {
   char idname_py[OP_MAX_TYPENAME];
 
-  /* for building the string */
+  /* For building the string. */
   std::stringstream ss;
 
-  /* arbitrary, but can get huge string with stroke painting otherwise */
+  /* Arbitrary, but can get huge string with stroke painting otherwise. */
   int max_prop_length = 10;
 
   WM_operator_py_idname(idname_py, ot->idname);
@@ -261,7 +261,7 @@ std::string WM_operator_pystring_ex(bContext *C,
     }
   }
   else {
-    /* only to get the original props for comparisons */
+    /* Only to get the original props for comparisons. */
     PointerRNA opptr_default;
     const bool macro_args_test = ot->macro.first ? macro_args : true;
 
@@ -327,14 +327,14 @@ std::string WM_operator_pystring_abbreviate(std::string str, int str_len_max)
   return str.substr(0, comma_first) + end_str;
 }
 
-/* return nullptr if no match is found */
+/* Return nullptr if no match is found. */
 #if 0
 static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr, bool *r_is_id)
 {
-  /* loop over all context items and do 2 checks
+  /* Loop over all context items and do 2 checks
    *
-   * - see if the pointer is in the context.
-   * - see if the pointers ID is in the context.
+   * - See if the pointer is in the context.
+   * - See if the pointers ID is in the context.
    */
 
   /* Don't get from the context store since this is normally
@@ -358,7 +358,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
     if (ptr->owner_id == ctx_item_ptr.owner_id) {
       const bool is_id = RNA_struct_is_ID(ctx_item_ptr.type);
       if ((ptr->data == ctx_item_ptr.data) && (ptr->type == ctx_item_ptr.type)) {
-        /* found! */
+        /* Found! */
         member_found = identifier;
         member_found_is_id = is_id;
         break;
@@ -386,7 +386,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
 
 #else
 
-/* use hard coded checks for now */
+/* Use hard coded checks for now. */
 
 /**
  * \param: r_is_id:
@@ -488,7 +488,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
         CTX_TEST_PTR_ID(C, "object", ptr->owner_id);
         break;
       }
-      /* from rna_Main_objects_new */
+      /* From #rna_Main_objects_new. */
       case OB_DATA_SUPPORT_ID_CASE: {
 
         if (ptr_id_type == ID_AR) {
@@ -610,7 +610,7 @@ std::optional<std::string> WM_context_path_resolve_property_full(const bContext 
       if (prop != nullptr) {
         std::string prop_str = RNA_path_property_py(ptr, prop, index);
         if (prop_str[0] == '[') {
-          member_id_data_path = fmt::format("{}.{}", *data_path, prop_str);
+          member_id_data_path = fmt::format("{}.{}{}", member_id, *data_path, prop_str);
         }
         else {
           member_id_data_path = fmt::format("{}.{}.{}", member_id, *data_path, prop_str);
@@ -737,7 +737,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
       case PROP_POINTER: {
         StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
 
-        /* recurse into operator properties */
+        /* Recurse into operator properties. */
         if (RNA_struct_is_a(ptype, &RNA_OperatorProperties)) {
           PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
           WM_operator_properties_sanitize(&opptr, no_context);
@@ -810,7 +810,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 
   if (properties) {
     IDP_FreeProperty(properties);
-    ptr->data = nullptr; /* just in case */
+    ptr->data = nullptr; /* Just in case. */
   }
 }
 
@@ -820,7 +820,7 @@ void WM_operator_properties_free(PointerRNA *ptr)
 /** \name Operator Last Properties API
  * \{ */
 
-#if 1 /* may want to disable operator remembering previous state for testing */
+#if 1 /* May want to disable operator remembering previous state for testing. */
 
 static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_properties)
 {
@@ -833,18 +833,18 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
     PropertyRNA *prop = static_cast<PropertyRNA *>(itemptr.data);
     if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
-      if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
+      if (!RNA_property_is_set(op->ptr, prop)) { /* Don't override a setting already set. */
         const char *identifier = RNA_property_identifier(prop);
         IDProperty *idp_src = IDP_GetPropertyFromGroup(last_properties, identifier);
         if (idp_src) {
           IDProperty *idp_dst = IDP_CopyProperty(idp_src);
 
           /* NOTE: in the future this may need to be done recursively,
-           * but for now RNA doesn't access nested operators */
+           * but for now RNA doesn't access nested operators. */
           idp_dst->flag |= IDP_FLAG_GHOST;
 
-          /* add to temporary group instead of immediate replace,
-           * because we are iterating over this group */
+          /* Add to temporary group instead of immediate replace,
+           * because we are iterating over this group. */
           IDP_AddToGroup(replaceprops, idp_dst);
           changed = true;
         }
@@ -934,7 +934,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
   const short init_event_type = short(POINTER_AS_INT(op->customdata));
   int ret_value = 0;
 
-  /* get settings from RNA properties for operator */
+  /* Get settings from RNA properties for operator. */
   const int mval[2] = {RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y")};
 
   if (init_event_type == 0) {
@@ -1010,15 +1010,15 @@ void WM_operator_view3d_unit_defaults(bContext *C, wmOperator *op)
     const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, nullptr) :
                             ED_scene_grid_scale(scene, nullptr);
 
-    /* always run, so the values are initialized,
-     * otherwise we may get differ behavior when (dia != 1.0) */
+    /* Always run, so the values are initialized,
+     * otherwise we may get differ behavior when `dia != 1.0`. */
     RNA_STRUCT_BEGIN (op->ptr, prop) {
       if (RNA_property_type(prop) == PROP_FLOAT) {
         PropertySubType pstype = RNA_property_subtype(prop);
         if (pstype == PROP_DISTANCE) {
-          /* we don't support arrays yet */
+          /* We don't support arrays yet. */
           BLI_assert(RNA_property_array_check(prop) == false);
-          /* initialize */
+          /* Initialize. */
           if (!RNA_property_is_set_ex(op->ptr, prop, false)) {
             const float value = RNA_property_float_get_default(op->ptr, prop) * dia;
             RNA_property_float_set(op->ptr, prop, value);
@@ -1057,7 +1057,7 @@ int WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opconte
     uiPopupMenu *pup = UI_popup_menu_begin(
         C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
     uiLayout *layout = UI_popup_menu_layout(pup);
-    /* set this so the default execution context is the same as submenus */
+    /* Set this so the default execution context is the same as submenus. */
     uiLayoutSetOperatorContext(layout, opcontext);
     uiItemsFullEnumO(layout,
                      op->type->idname,
@@ -1078,7 +1078,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 }
 
 struct EnumSearchMenu {
-  wmOperator *op; /* the operator that will be executed when selecting an item */
+  wmOperator *op; /* The operator that will be executed when selecting an item. */
 };
 
 /** Generic enum search invoke popup. */
@@ -1087,7 +1087,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   EnumSearchMenu *search_menu = static_cast<EnumSearchMenu *>(arg);
   wmWindow *win = CTX_wm_window(C);
   wmOperator *op = search_menu->op;
-  /* template_ID uses 4 * widget_unit for width,
+  /* `template_ID` uses `4 * widget_unit` for width,
    * we use a bit more, some items may have a suffix to show. */
   const int width = UI_searchbox_size_x();
   const int height = UI_searchbox_size_y();
@@ -1098,7 +1098,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   search[0] = '\0';
-#if 0 /* ok, this isn't so easy... */
+#if 0 /* Ok, this isn't so easy. */
   uiDefBut(block,
            UI_BTYPE_LABEL,
            0,
@@ -1125,7 +1125,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *region, void *arg)
                                    UI_UNIT_Y,
                                    "");
 
-  /* fake button, it holds space for search items */
+  /* Fake button, it holds space for search items. */
   uiDefBut(block,
            UI_BTYPE_LABEL,
            0,
@@ -1203,7 +1203,7 @@ int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent * /*e
 int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-    return WM_operator_call_notest(C, op); /* call exec direct */
+    return WM_operator_call_notest(C, op); /* Call exec direct. */
   }
   WM_event_add_fileselect(C, op);
   return OPERATOR_RUNNING_MODAL;
@@ -1244,7 +1244,7 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  /* only for operators that are registered and did an undo push */
+  /* Only for operators that are registered and did an undo push. */
   LISTBASE_FOREACH_BACKWARD (wmOperator *, op, &wm->operators) {
     if ((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO)) {
       return op;
@@ -1274,7 +1274,7 @@ ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
   Main *bmain = CTX_data_main(C);
   ID *id = nullptr;
 
-  /* check input variables */
+  /* Check input variables. */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
     char filepath[FILE_MAX];
@@ -1346,11 +1346,11 @@ static void wm_block_redo_cb(bContext *C, void *arg_op, int /*arg_event*/)
   wmOperator *op = static_cast<wmOperator *>(arg_op);
 
   if (op == WM_operator_last_redo(C)) {
-    /* operator was already executed once? undo & repeat */
+    /* Operator was already executed once? undo & repeat. */
     ED_undo_operator_repeat(C, op);
   }
   else {
-    /* operator not executed yet, call it */
+    /* Operator not executed yet, call it. */
     ED_undo_push_op(C, op);
     wm_operator_register(C, op);
 
@@ -1362,7 +1362,7 @@ static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
 {
   wmOperator *op = static_cast<wmOperator *>(arg_op);
 
-  /* if operator never got executed, free it */
+  /* If operator never got executed, free it. */
   if (op != WM_operator_last_redo(C)) {
     WM_operator_free(op);
   }
@@ -1378,11 +1378,11 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   UI_block_flag_disable(block, UI_BLOCK_LOOP);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
-  /* UI_BLOCK_NUMSELECT for layer buttons */
+  /* #UI_BLOCK_NUMSELECT for layer buttons. */
   UI_block_flag_enable(block, UI_BLOCK_NUMSELECT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
 
-  /* if register is not enabled, the operator gets freed on OPERATOR_FINISHED
-   * ui_apply_but_funcs_after calls ED_undo_operator_repeate_cb and crashes */
+  /* If register is not enabled, the operator gets freed on #OPERATOR_FINISHED
+   * ui_apply_but_funcs_after calls #ED_undo_operator_repeate_cb and crashes. */
   BLI_assert(op->type->flag & OPTYPE_REGISTER);
 
   UI_block_func_handle_set(block, wm_block_redo_cb, arg_op);
@@ -1419,7 +1419,7 @@ struct wmOpPopUp {
   bool include_properties;
 };
 
-/* Only invoked by OK button in popups created with wm_block_dialog_create() */
+/* Only invoked by OK button in popups created with #wm_block_dialog_create(). */
 static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 {
   wmOperator *op;
@@ -1447,7 +1447,7 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 
 static void wm_operator_ui_popup_cancel(bContext *C, void *user_data);
 
-/* Only invoked by Cancel button in popups created with wm_block_dialog_create() */
+/* Only invoked by Cancel button in popups created with #wm_block_dialog_create(). */
 static void dialog_cancel_cb(bContext *C, void *arg1, void *arg2)
 {
   wm_operator_ui_popup_cancel(C, arg1);
@@ -1457,7 +1457,9 @@ static void dialog_cancel_cb(bContext *C, void *arg1, void *arg2)
   UI_popup_block_close(C, win, block);
 }
 
-/* Dialogs are popups that require user verification (click OK) before exec */
+/**
+ * Dialogs are popups that require user verification (click OK) before exec.
+ */
 static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_data)
 {
   wmOpPopUp *data = static_cast<wmOpPopUp *>(user_data);
@@ -1535,7 +1537,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   uiItemS_ex(layout, small ? 0.4f : 2.0f);
 
-  /* clear so the OK button is left alone */
+  /* Clear so the OK button is left alone. */
   UI_block_func_set(block, nullptr, nullptr, nullptr);
 
 #ifdef _WIN32
@@ -1544,7 +1546,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   const bool windows_layout = false;
 #endif
 
-  /* new column so as not to interfere with custom layouts #26436. */
+  /* New column so as not to interfere with custom layouts, see: #26436. */
   {
     uiLayout *col = uiLayoutColumn(layout, false);
     uiBlock *col_block = uiLayoutGetBlock(col);
@@ -1624,7 +1626,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *user_d
   uiLayout *layout = UI_block_layout(
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, 0, 0, style);
 
-  /* since ui is defined the auto-layout args are not used */
+  /* Since UI is defined the auto-layout args are not used. */
   uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_COLUMN, 0);
 
   UI_block_func_set(block, nullptr, nullptr, nullptr);
@@ -1698,7 +1700,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
   wmOpPopUp *data = MEM_new<wmOpPopUp>(__func__);
   data->op = op;
   data->width = width * UI_SCALE_FAC;
-  data->free_op = true; /* if this runs and gets registered we may want not to free it */
+  data->free_op = true; /* If this runs and gets registered we may want not to free it. */
   UI_popup_block_ex(C, wm_operator_ui_create, nullptr, wm_operator_ui_popup_cancel, data, op);
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1731,8 +1733,8 @@ static int wm_operator_props_popup_ex(bContext *C,
     }
   }
 
-  /* if we don't have global undo, we can't do undo push for automatic redo,
-   * so we require manual OK clicking in this popup */
+  /* If we don't have global undo, we can't do undo push for automatic redo,
+   * so we require manual OK clicking in this popup. */
   if (!do_redo || !(U.uiflag & USER_GLOBALUNDO)) {
     return WM_operator_props_dialog_popup(C, op, 300);
   }
@@ -1771,7 +1773,7 @@ int WM_operator_props_dialog_popup(bContext *C,
   data->op = op;
   data->width = int(float(width) * UI_SCALE_FAC * UI_style_get()->widgetlabel.points /
                     UI_DEFAULT_TEXT_POINTS);
-  data->free_op = true; /* if this runs and gets registered we may want not to free it */
+  data->free_op = true; /* If this runs and gets registered we may want not to free it. */
   data->title = title ? std::move(*title) : WM_operatortype_name(op->type, op->ptr);
   data->confirm_text = confirm_text ? std::move(*confirm_text) : IFACE_("OK");
   data->icon = ALERT_ICON_NONE;
@@ -1790,7 +1792,7 @@ int WM_operator_props_dialog_popup(bContext *C,
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
 {
-  /* CTX_wm_reports(C) because operator is on stack, not active in event system */
+  /* `CTX_wm_reports(C)` because operator is on stack, not active in event system. */
   if ((op->type->flag & OPTYPE_REGISTER) == 0) {
     BKE_reportf(CTX_wm_reports(C),
                 RPT_ERROR,
@@ -1842,7 +1844,8 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
   ot->exec = wm_debug_menu_exec;
   ot->poll = WM_operator_winactive;
 
-  RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
+  ot->prop = RNA_def_int(
+      ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
 /** \} */
@@ -1864,7 +1867,7 @@ static int wm_operator_defaults_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-/* used by operator preset menu. pre-2.65 this was a 'Reset' button */
+/* Used by operator preset menu. pre-2.65 this was a 'Reset' button. */
 static void WM_OT_operator_defaults(wmOperatorType *ot)
 {
   ot->name = "Restore Operator Defaults";
@@ -1931,7 +1934,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *region, void *userdat
 
   UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
 
-  /* fake button, it holds space for search items */
+  /* Fake button, it holds space for search items. */
   uiDefBut(block,
            UI_BTYPE_LABEL,
            0,
@@ -2190,8 +2193,10 @@ static void WM_OT_call_panel(wmOperatorType *ot)
 /** \name Window/Screen Operators
  * \{ */
 
-/* this poll functions is needed in place of WM_operator_winactive
- * while it crashes on full screen */
+/**
+ * This poll functions is needed in place of #WM_operator_winactive
+ * while it crashes on full screen.
+ */
 static bool wm_operator_winactive_normal(bContext *C)
 {
   wmWindow *win = CTX_wm_window(C);
@@ -2228,7 +2233,7 @@ static bool wm_operator_winactive_not_full(bContext *C)
   return true;
 }
 
-/* included for script-access */
+/* Included for script-access. */
 static void WM_OT_window_close(wmOperatorType *ot)
 {
   ot->name = "Close Window";
@@ -2538,7 +2543,7 @@ static void radial_control_set_tex(RadialControl *rc)
 static void radial_control_paint_tex(RadialControl *rc, float radius, float alpha)
 {
 
-  /* set fill color */
+  /* Set fill color. */
   float col[3] = {0, 0, 0};
   if (rc->fill_col_prop) {
     PointerRNA *fill_ptr;
@@ -2564,7 +2569,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
   if (rc->texture) {
     uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-    /* set up rotation if available */
+    /* Set up rotation if available. */
     if (rc->rot_prop) {
       float rot = RNA_property_float_get(&rc->rot_ptr, rc->rot_prop);
       GPU_matrix_push();
@@ -2576,7 +2581,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
     immUniformColor3fvAlpha(col, alpha);
     immBindTexture("image", rc->texture);
 
-    /* draw textured quad */
+    /* Draw textured quad. */
     immBegin(GPU_PRIM_TRI_FAN, 4);
 
     immAttr2f(texCoord, 0, 0);
@@ -2595,13 +2600,13 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 
     GPU_texture_unbind(rc->texture);
 
-    /* undo rotation */
+    /* Undo rotation. */
     if (rc->rot_prop) {
       GPU_matrix_pop();
     }
   }
   else {
-    /* flat color if no texture available */
+    /* Flat color if no texture available. */
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor3fvAlpha(col, alpha);
     imm_draw_circle_fill_2d(pos, 0.0f, 0.0f, radius, 40);
@@ -2683,12 +2688,12 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
 
   if (rc->subtype == PROP_ANGLE) {
     /* Use the initial mouse position to draw the rotation preview. This avoids starting the
-     * rotation in a random direction */
+     * rotation in a random direction. */
     x = rc->initial_mouse[0];
     y = rc->initial_mouse[1];
   }
   else {
-    /* Keep cursor in the original place */
+    /* Keep cursor in the original place. */
     x = rc->initial_co[0];
     y = rc->initial_co[1];
   }
@@ -2697,7 +2702,7 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
   GPU_blend(GPU_BLEND_ALPHA);
   GPU_line_smooth(true);
 
-  /* apply zoom if available */
+  /* Apply zoom if available. */
   if (rc->zoom_prop) {
     RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
     GPU_matrix_scale_2fv(zoom);
@@ -2706,10 +2711,10 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
   /* Apply scale correction (used by grease pencil brushes). */
   GPU_matrix_scale_2f(rc->scale_fac, rc->scale_fac);
 
-  /* draw rotated texture */
+  /* Draw rotated texture. */
   radial_control_paint_tex(rc, tex_radius, alpha);
 
-  /* set line color */
+  /* Set line color. */
   if (rc->col_prop) {
     RNA_property_float_get_array(&rc->col_ptr, rc->col_prop, col);
   }
@@ -2722,14 +2727,14 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
   if (rc->subtype == PROP_ANGLE) {
     GPU_matrix_push();
 
-    /* draw original angle line */
+    /* Draw original angle line. */
     GPU_matrix_rotate_3f(RAD2DEGF(rc->initial_value), 0.0f, 0.0f, 1.0f);
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE), 0.0f);
     immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_SIZE), 0.0f);
     immEnd();
 
-    /* draw new angle line */
+    /* Draw new angle line. */
     GPU_matrix_rotate_3f(RAD2DEGF(rc->current_value - rc->initial_value), 0.0f, 0.0f, 1.0f);
     immBegin(GPU_PRIM_LINES, 2);
     immVertex2f(pos, float(WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE), 0.0f);
@@ -2739,7 +2744,7 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
     GPU_matrix_pop();
   }
 
-  /* draw circles on top */
+  /* Draw circles on top. */
   GPU_line_width(2.0f);
   immUniformColor3fvAlpha(col, 0.8f);
   imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r1, 80);
@@ -2748,7 +2753,7 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
   immUniformColor3fvAlpha(col, 0.5f);
   imm_draw_circle_wire_2d(pos, 0.0f, 0.0f, r2, 80);
   if (rmin > 0.0f) {
-    /* Inner fill circle to increase the contrast of the value */
+    /* Inner fill circle to increase the contrast of the value. */
     const float black[3] = {0.0f};
     immUniformColor3fvAlpha(black, 0.2f);
     imm_draw_circle_fill_2d(pos, 0.0, 0.0f, rmin, 80);
@@ -2757,7 +2762,7 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
     imm_draw_circle_wire_2d(pos, 0.0, 0.0f, rmin, 80);
   }
 
-  /* draw curve falloff preview */
+  /* Draw curve falloff preview. */
   if (RNA_type_to_ID_code(rc->image_id_ptr.type) == ID_BR && rc->subtype == PROP_FACTOR) {
     Brush *br = static_cast<Brush *>(rc->image_id_ptr.data);
     if (br) {
@@ -2771,7 +2776,7 @@ static void radial_control_paint_cursor(bContext * /*C*/, int x, int y, void *cu
   UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 
-  /* draw value */
+  /* Draw value. */
   BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
   BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
   BLF_draw(fontid, str, strdrawlen);
@@ -2801,13 +2806,13 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
 {
   PropertyRNA *unused_prop;
 
-  /* check flags */
+  /* Check flags. */
   if ((flags & RC_PROP_REQUIRE_BOOL) && (flags & RC_PROP_REQUIRE_FLOAT)) {
     BKE_report(op->reports, RPT_ERROR, "Property cannot be both boolean and float");
     return 0;
   }
 
-  /* get an rna string path from the operator's properties */
+  /* Get an rna string path from the operator's properties. */
   char *str;
   if (!(str = RNA_string_get_alloc(op->ptr, name, nullptr, 0, nullptr))) {
     return 1;
@@ -2825,7 +2830,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     r_prop = &unused_prop;
   }
 
-  /* get rna from path */
+  /* Get rna from path. */
   if (!RNA_path_resolve(ctx_ptr, str, r_ptr, r_prop)) {
     MEM_freeN(str);
     if (flags & RC_PROP_ALLOW_MISSING) {
@@ -2835,7 +2840,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     return 0;
   }
 
-  /* check property type */
+  /* Check property type. */
   if (flags & (RC_PROP_REQUIRE_BOOL | RC_PROP_REQUIRE_FLOAT)) {
     PropertyType prop_type = RNA_property_type(*r_prop);
 
@@ -2848,7 +2853,7 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     }
   }
 
-  /* check property's array length */
+  /* Check property's array length. */
   int len;
   if (*r_prop && (len = RNA_property_array_length(r_ptr, *r_prop)) != req_length) {
     MEM_freeN(str);
@@ -2861,19 +2866,19 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     return 0;
   }
 
-  /* success */
+  /* Success. */
   MEM_freeN(str);
   return 1;
 }
 
-/* initialize the rna pointers and properties using rna paths */
+/* Initialize the rna pointers and properties using rna paths. */
 static int radial_control_get_properties(bContext *C, wmOperator *op)
 {
   RadialControl *rc = static_cast<RadialControl *>(op->customdata);
 
   PointerRNA ctx_ptr = RNA_pointer_create(nullptr, &RNA_Context, C);
 
-  /* check if we use primary or secondary path */
+  /* Check if we use primary or secondary path. */
   PointerRNA use_secondary_ptr;
   PropertyRNA *use_secondary_prop = nullptr;
   if (!radial_control_get_path(&ctx_ptr,
@@ -2899,7 +2904,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
     return 0;
   }
 
-  /* data path is required */
+  /* Data path is required. */
   if (!rc->prop) {
     return 0;
   }
@@ -2948,9 +2953,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
     return 0;
   }
 
-  /* slightly ugly; allow this property to not resolve
-   * correctly. needed because 3d texture paint shares the same
-   * keymap as 2d image paint */
+  /* Slightly ugly; allow this property to not resolve correctly.
+   * Needed because 3d texture paint shares the same key-map as 2d image paint. */
   if (!radial_control_get_path(&ctx_ptr,
                                op,
                                "zoom_path",
@@ -2968,7 +2972,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
     return 0;
   }
   if (rc->image_id_ptr.data) {
-    /* extra check, pointer must be to an ID */
+    /* Extra check, pointer must be to an ID. */
     if (!RNA_struct_is_ID(rc->image_id_ptr.type)) {
       BKE_report(op->reports, RPT_ERROR, "Pointer from path image_id is not an ID");
       return 0;
@@ -2996,7 +3000,7 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
     return OPERATOR_CANCELLED;
   }
 
-  /* get type, initial, min, and max values of the property */
+  /* Get type, initial, min, and max values of the property. */
   switch (rc->type = RNA_property_type(rc->prop)) {
     case PROP_INT: {
       int value, min, max, step;
@@ -3026,14 +3030,14 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
       return OPERATOR_CANCELLED;
   }
 
-  /* initialize numerical input */
+  /* Initialize numerical input. */
   initNumInput(&rc->num_input);
   rc->num_input.idx_max = 0;
   rc->num_input.val_flag[0] |= NUM_NO_NEGATIVE;
   rc->num_input.unit_sys = USER_UNIT_NONE;
   rc->num_input.unit_type[0] = RNA_SUBTYPE_UNIT_VALUE(RNA_property_unit(rc->prop));
 
-  /* get subtype of property */
+  /* Get subtype of property. */
   rc->subtype = RNA_property_subtype(rc->prop);
   if (!ELEM(rc->subtype,
             PROP_NONE,
@@ -3056,12 +3060,12 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
   rc->init_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  /* temporarily disable other paint cursors */
+  /* Temporarily disable other paint cursors. */
   wm = CTX_wm_manager(C);
   rc->orig_paintcursors = wm->paintcursors;
   BLI_listbase_clear(&wm->paintcursors);
 
-  /* add radial control paint cursor */
+  /* Add radial control paint cursor. */
   rc->cursor = WM_paint_cursor_activate(
       SPACE_TYPE_ANY, RGN_TYPE_ANY, op->type->poll, radial_control_paint_cursor, rc);
 
@@ -3096,12 +3100,12 @@ static void radial_control_cancel(bContext *C, wmOperator *op)
 
   WM_paint_cursor_end(static_cast<wmPaintCursor *>(rc->cursor));
 
-  /* restore original paint cursors */
+  /* Restore original paint cursors. */
   wm->paintcursors = rc->orig_paintcursors;
 
-  /* not sure if this is a good notifier to use;
+  /* Not sure if this is a good notifier to use;
    * intended purpose is to update the UI so that the
-   * new value is displayed in sliders/numfields */
+   * new value is displayed in sliders/number-fields. */
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   if (rc->texture != nullptr) {
@@ -3121,7 +3125,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   const bool has_numInput = hasNumInput(&rc->num_input);
   bool handled = false;
   float numValue;
-  /* TODO: fix hardcoded events */
+  /* TODO: fix hard-coded events. */
 
   bool snap = (event->modifier & KM_CTRL) != 0;
 
@@ -3150,7 +3154,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   switch (event->type) {
     case EVT_ESCKEY:
     case RIGHTMOUSE:
-      /* canceled; restore original value */
+      /* Canceled; restore original value. */
       radial_control_set_value(rc, rc->initial_value);
       ret = OPERATOR_CANCELLED;
       break;
@@ -3158,7 +3162,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
     case LEFTMOUSE:
     case EVT_PADENTER:
     case EVT_RETKEY:
-      /* done; value already set */
+      /* Done; value already set. */
       RNA_property_update(C, &rc->ptr, rc->prop);
       ret = OPERATOR_FINISHED;
       break;
@@ -3167,11 +3171,11 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
       if (!has_numInput) {
         if (rc->slow_mode) {
           if (rc->subtype == PROP_ANGLE) {
-            /* calculate the initial angle here first */
+            /* Calculate the initial angle here first. */
             delta[0] = rc->initial_mouse[0] - rc->slow_mouse[0];
             delta[1] = rc->initial_mouse[1] - rc->slow_mouse[1];
 
-            /* precision angle gets calculated from dial and gets added later */
+            /* Precision angle gets calculated from dial and gets added later. */
             angle_precision = -0.1f * BLI_dial_angle(rc->dial,
                                                      blender::float2{float(event->xy[0]),
                                                                      float(event->xy[1])});
@@ -3235,7 +3239,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
             if (snap) {
               new_value = (int(ceil(new_value * 10.0f)) * 10.0f) / 100.0f;
             }
-            /* Invert new value to increase the factor moving the mouse to the right */
+            /* Invert new value to increase the factor moving the mouse to the right. */
             new_value = 1 - new_value;
             break;
           case PROP_ANGLE:
@@ -3249,11 +3253,11 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
             }
             break;
           default:
-            new_value = dist; /* dummy value, should this ever happen? - campbell */
+            new_value = dist; /* NOTE(@ideasman42): Dummy value, should this ever happen? */
             break;
         }
 
-        /* clamp and update */
+        /* Clamp and update. */
         CLAMP(new_value, rc->min_value, rc->max_value);
         radial_control_set_value(rc, new_value);
         rc->current_value = new_value;
@@ -3273,7 +3277,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
                                              float(rc->initial_mouse[1])};
           const float current_position[2] = {float(rc->slow_mouse[0]), float(rc->slow_mouse[1])};
           rc->dial = BLI_dial_init(initial_position, 0.0f);
-          /* immediately set the position to get a an initial direction */
+          /* Immediately set the position to get a an initial direction. */
           BLI_dial_angle(rc->dial, current_position);
         }
         handled = true;
@@ -3346,7 +3350,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_BLOCKING;
 
-  /* all paths relative to the context */
+  /* All paths relative to the context. */
   PropertyRNA *prop;
   prop = RNA_def_string(ot->srna,
                         "data_path_primary",
@@ -3436,7 +3440,7 @@ static void WM_OT_radial_control(wmOperatorType *ot)
  * Use for simple benchmarks.
  * \{ */
 
-/* uses no type defines, fully local testing function anyway... ;) */
+/* Uses no type defines, fully local testing function anyway. */
 
 static void redraw_timer_window_swap(bContext *C)
 {
@@ -3525,7 +3529,7 @@ static void redraw_timer_step(bContext *C,
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
   else if (type == eRTAnimationPlay) {
-    /* play anim, return on same frame as started with */
+    /* Play anim, return on same frame as started with. */
     int tot = (scene->r.efra - scene->r.sfra) + 1;
 
     while (tot--) {
@@ -3539,7 +3543,7 @@ static void redraw_timer_step(bContext *C,
       redraw_timer_window_swap(C);
     }
   }
-  else { /* eRTUndo */
+  else { /* #eRTUndo. */
     /* Undo and redo, including depsgraph update since that can be a
      * significant part of the cost. */
     ED_undo_pop(C);
@@ -3795,7 +3799,7 @@ static const EnumPropertyItem preview_id_type_items[] = {
     {PREVIEW_FILTER_WORLD, "WORLD", 0, "Worlds", ""},
     {PREVIEW_FILTER_TEXTURE, "TEXTURE", 0, "Textures", ""},
     {PREVIEW_FILTER_IMAGE, "IMAGE", 0, "Images", ""},
-#if 0 /* XXX TODO */
+#if 0 /* XXX: TODO. */
     {PREVIEW_FILTER_BRUSH, "BRUSH", 0, "Brushes", ""},
 #endif
     {0, nullptr, 0, nullptr, nullptr},
@@ -3925,12 +3929,12 @@ static int doc_view_manual_ui_context_exec(bContext *C, wmOperator * /*op*/)
 
 static void WM_OT_doc_view_manual_ui_context(wmOperatorType *ot)
 {
-  /* identifiers */
+  /* Identifiers. */
   ot->name = "View Online Manual";
   ot->idname = "WM_OT_doc_view_manual_ui_context";
   ot->description = "View a context based online manual in a web browser";
 
-  /* callbacks */
+  /* Callbacks. */
   ot->poll = ED_operator_regionactive;
   ot->exec = doc_view_manual_ui_context_exec;
 }
@@ -4049,7 +4053,7 @@ void wm_operatortypes_register()
   wm_xr_operatortypes_register();
 #endif
 
-  /* gizmos */
+  /* Gizmos. */
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_select);
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
@@ -4081,7 +4085,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
   keymap = WM_modalkeymap_ensure(keyconf, "View3D Gesture Circle", modal_items);
 
-  /* assign map to operators */
+  /* Assign map to operators. */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
   WM_modalkeymap_assign(keymap, "UV_OT_select_circle");
   WM_modalkeymap_assign(keymap, "CLIP_OT_select_circle");
@@ -4092,7 +4096,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "ACTION_OT_select_circle");
 }
 
-/* straight line modal operators */
+/* Straight line modal operators. */
 static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -4114,7 +4118,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 
   keymap = WM_modalkeymap_ensure(keyconf, "Gesture Straight Line", modal_items);
 
-  /* assign map to operators */
+  /* Assign map to operators. */
   WM_modalkeymap_assign(keymap, "IMAGE_OT_sample_line");
   WM_modalkeymap_assign(keymap, "PAINT_OT_weight_gradient");
   WM_modalkeymap_assign(keymap, "MESH_OT_bisect");
@@ -4122,7 +4126,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "SCULPT_OT_project_line_gesture");
 }
 
-/* box_select-like modal operators */
+/* Box_select-like modal operators. */
 static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -4143,7 +4147,7 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
 
   keymap = WM_modalkeymap_ensure(keyconf, "Gesture Box", modal_items);
 
-  /* assign map to operators */
+  /* Assign map to operators. */
   WM_modalkeymap_assign(keymap, "ACTION_OT_select_box");
   WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_box");
   WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
@@ -4179,7 +4183,7 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_box");
 }
 
-/* lasso modal operators */
+/* Lasso modal operators. */
 static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -4196,7 +4200,7 @@ static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
 
   keymap = WM_modalkeymap_ensure(keyconf, "Gesture Lasso", modal_items);
 
-  /* assign map to operators */
+  /* Assign map to operators. */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "GPENCIL_OT_stroke_cutter");
   WM_modalkeymap_assign(keymap, "GPENCIL_OT_select_lasso");
@@ -4211,7 +4215,7 @@ static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "UV_OT_select_lasso");
 }
 
-/* zoom to border modal operators */
+/* Zoom to border modal operators. */
 static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
@@ -4231,7 +4235,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 
   keymap = WM_modalkeymap_ensure(keyconf, "Gesture Zoom Border", modal_items);
 
-  /* assign map to operators */
+  /* Assign map to operators. */
   WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
@@ -4266,7 +4270,7 @@ static bool rna_id_enum_filter_single(const ID *id, void *user_data)
   return (id != user_data);
 }
 
-/* Generic itemf's for operators that take library args */
+/* Generic itemf's for operators that take library args. */
 static const EnumPropertyItem *rna_id_itemf(bool *r_free,
                                             ID *id,
                                             bool local,
@@ -4315,7 +4319,7 @@ const EnumPropertyItem *RNA_action_itemf(bContext *C,
   return rna_id_itemf(
       r_free, C ? (ID *)CTX_data_main(C)->actions.first : nullptr, false, nullptr, nullptr);
 }
-#if 0 /* UNUSED */
+#if 0 /* UNUSED. */
 const EnumPropertyItem *RNA_action_local_itemf(bContext *C,
                                                PointerRNA * /*ptr*/,
                                                PropertyRNA * /*prop*/,

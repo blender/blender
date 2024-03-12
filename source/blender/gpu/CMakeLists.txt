@@ -108,7 +108,7 @@ set(SRC
   GPU_state.h
   GPU_storage_buffer.h
   GPU_texture.h
-  GPU_uniform_buffer.h
+  GPU_uniform_buffer.hh
   GPU_vertex_buffer.h
   GPU_vertex_format.h
   GPU_viewport.h

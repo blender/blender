@@ -12,7 +12,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"

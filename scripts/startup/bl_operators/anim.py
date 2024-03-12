@@ -289,6 +289,11 @@ class NLA_OT_bake(Operator):
         else:
             objects = context.selected_editable_objects
             if bake_options.do_pose and not bake_options.do_object:
+                pose_object = getattr(context, 'pose_object', None)
+                if pose_object and pose_object not in objects:
+                    # The active object might not be selected, but it is the one in pose mode.
+                    # It can be assumed this pose needs baking.
+                    objects.append(context.pose_object)
                 objects = [obj for obj in objects if obj.pose is not None]
 
         object_action_pairs = (

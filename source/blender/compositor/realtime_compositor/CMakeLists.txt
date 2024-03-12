@@ -150,8 +150,8 @@ set(GLSL_SRC
   shaders/compositor_ellipse_mask.glsl
   shaders/compositor_filter.glsl
   shaders/compositor_flip.glsl
-  shaders/compositor_glare_fog_glow_downsample.glsl
-  shaders/compositor_glare_fog_glow_upsample.glsl
+  shaders/compositor_glare_bloom_downsample.glsl
+  shaders/compositor_glare_bloom_upsample.glsl
   shaders/compositor_glare_ghost_accumulate.glsl
   shaders/compositor_glare_ghost_base.glsl
   shaders/compositor_glare_highlights.glsl

@@ -6,14 +6,11 @@
  * \ingroup stl
  */
 
-#include <cstdint>
 #include <cstdio>
-
-#include "BKE_mesh.hh"
+#include <system_error>
 
 #include "BLI_fileops.hh"
 #include "BLI_memory_utils.hh"
-#include "BLI_string_ref.hh"
 
 #include "DNA_mesh_types.h"
 
@@ -25,7 +22,6 @@
  * the minimum spec, use an external library. */
 #include "fast_float.h"
 
-#include "stl_import.hh"
 #include "stl_import_ascii_reader.hh"
 #include "stl_import_mesh.hh"
 

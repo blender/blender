@@ -225,7 +225,7 @@ struct ARegionType {
 
   /* register operator types on startup */
   void (*operatortypes)();
-  /* add own items to keymap */
+  /* add items to keymap */
   void (*keymap)(wmKeyConfig *keyconf);
   /* allows default cursor per region */
   void (*cursor)(wmWindow *win, ScrArea *area, ARegion *region);

@@ -53,7 +53,7 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"

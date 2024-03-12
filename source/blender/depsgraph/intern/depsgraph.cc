@@ -132,7 +132,7 @@ static void clear_id_nodes_conditional(Depsgraph::IDDepsNodes *id_nodes, const F
   for (IDNode *id_node : *id_nodes) {
     if (id_node->id_cow == nullptr) {
       /* This means builder "stole" ownership of the evaluated
-       * datablock for her own dirty needs. */
+       * datablock for its own dirty needs. */
       continue;
     }
     if (id_node->id_cow == id_node->id_orig) {

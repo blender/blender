@@ -15,7 +15,6 @@
 
 #include "fast_float.h"
 
-#include <algorithm>
 #include <charconv>
 
 static bool is_whitespace(char c)

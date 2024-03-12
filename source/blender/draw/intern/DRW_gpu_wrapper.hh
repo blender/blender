@@ -75,7 +75,7 @@
 #include "GPU_framebuffer.h"
 #include "GPU_storage_buffer.h"
 #include "GPU_texture.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 
 namespace blender::draw {
 

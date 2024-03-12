@@ -28,8 +28,48 @@
 
 CCL_NAMESPACE_BEGIN
 
+static const char *oidn_device_type_to_string(const OIDNDeviceType type)
+{
+  switch (type) {
+    case OIDN_DEVICE_TYPE_DEFAULT:
+      return "DEFAULT";
+    case OIDN_DEVICE_TYPE_CPU:
+      return "CPU";
+
+      /* The initial GPU support was added in OIDN 2.0. */
+#  if OIDN_VERSION_MAJOR >= 2
+    case OIDN_DEVICE_TYPE_SYCL:
+      return "SYCL";
+    case OIDN_DEVICE_TYPE_CUDA:
+      return "CUDA";
+    case OIDN_DEVICE_TYPE_HIP:
+      return "HIP";
+#  endif
+
+      /* The Metal support was added in OIDN 2.2.*/
+#  if (OIDN_VERSION_MAJOR > 2) || ((OIDN_VERSION_MAJOR == 2) && (OIDN_VERSION_MINOR >= 2))
+    case OIDN_DEVICE_TYPE_METAL:
+      return "METAL";
+#  endif
+  }
+  return "UNKNOWN";
+}
+
 bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 {
+  if (device.type == DEVICE_MULTI) {
+    for (const DeviceInfo &multi_device : device.multi_devices) {
+      if (multi_device.type != DEVICE_CPU && is_device_supported(multi_device)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  VLOG_DEBUG << "Checking device " << device.description << " (" << device.id
+             << ") for OIDN GPU support";
+
   int device_type = OIDN_DEVICE_TYPE_DEFAULT;
   switch (device.type) {
 #  ifdef OIDN_DEVICE_SYCL
@@ -50,15 +90,21 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 #  endif
 #  ifdef OIDN_DEVICE_METAL
     case DEVICE_METAL: {
-      int num_devices = oidnGetNumPhysicalDevices();
+      const int num_devices = oidnGetNumPhysicalDevices();
+      VLOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
       for (int i = 0; i < num_devices; i++) {
-        if (oidnGetPhysicalDeviceUInt(i, "type") == OIDN_DEVICE_TYPE_METAL) {
-          const char *name = oidnGetPhysicalDeviceString(i, "name");
+        const int type = oidnGetPhysicalDeviceInt(i, "type");
+        const char *name = oidnGetPhysicalDeviceString(i, "name");
+        VLOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+                   << "\", type=" << oidn_device_type_to_string(OIDNDeviceType(type));
+        if (type == OIDN_DEVICE_TYPE_METAL) {
           if (device.id.find(name) != std::string::npos) {
+            VLOG_DEBUG << "OIDN device name matches the Cycles device name";
             return true;
           }
         }
       }
+      VLOG_DEBUG << "No matched OIDN device found";
       return false;
     }
 #  endif
@@ -71,20 +117,30 @@ bool OIDNDenoiserGPU::is_device_supported(const DeviceInfo &device)
 
   /* Match GPUs by their PCI ID. */
   const int num_devices = oidnGetNumPhysicalDevices();
+  VLOG_DEBUG << "Found " << num_devices << " OIDN device(s)";
   for (int i = 0; i < num_devices; i++) {
-    if (oidnGetPhysicalDeviceInt(i, "type") == device_type) {
+    const int type = oidnGetPhysicalDeviceInt(i, "type");
+    const char *name = oidnGetPhysicalDeviceString(i, "name");
+    VLOG_DEBUG << "OIDN device " << i << ": name=\"" << name
+               << "\" type=" << oidn_device_type_to_string(OIDNDeviceType(type));
+    if (type == device_type) {
       if (oidnGetPhysicalDeviceBool(i, "pciAddressSupported")) {
         unsigned int pci_domain = oidnGetPhysicalDeviceInt(i, "pciDomain");
         unsigned int pci_bus = oidnGetPhysicalDeviceInt(i, "pciBus");
         unsigned int pci_device = oidnGetPhysicalDeviceInt(i, "pciDevice");
         string pci_id = string_printf("%04x:%02x:%02x", pci_domain, pci_bus, pci_device);
+        VLOG_INFO << "OIDN device PCI-e identifier: " << pci_id;
         if (device.id.find(pci_id) != string::npos) {
+          VLOG_DEBUG << "OIDN device PCI-e identifier matches the Cycles device ID";
           return true;
         }
       }
+      else {
+        VLOG_DEBUG << "Device does not support pciAddressSupported";
+      }
     }
   }
-
+  VLOG_DEBUG << "No matched OIDN device found";
   return false;
 }
 

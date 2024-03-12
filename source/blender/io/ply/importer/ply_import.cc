@@ -8,7 +8,6 @@
 
 #include "BKE_context.hh"
 #include "BKE_layer.hh"
-#include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
 #include "BKE_object.hh"
 #include "BKE_report.hh"
@@ -20,7 +19,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
-#include "BLI_memory_utils.hh"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 
 #include "DEG_depsgraph.hh"

@@ -8,12 +8,13 @@
 #include "MEM_guardedalloc.h"
 
 #include <cstring>
+#include <optional>
 
 #include "BKE_action.h"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
@@ -291,6 +292,7 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_fcurve_foreach_id(fcu, data));
   }
 
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->animation, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->action, IDWALK_CB_USER);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, adt->tmpact, IDWALK_CB_USER);
 
@@ -303,7 +305,10 @@ void BKE_animdata_foreach_id(AnimData *adt, LibraryForeachIDData *data)
 
 /* Copying -------------------------------------------- */
 
-AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
+AnimData *BKE_animdata_copy_in_lib(Main *bmain,
+                                   std::optional<Library *> owner_library,
+                                   AnimData *adt,
+                                   const int flag)
 {
   AnimData *dadt;
 
@@ -333,8 +338,10 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
                                  flag;
     BLI_assert(bmain != nullptr);
     BLI_assert(dadt->action == nullptr || dadt->action != dadt->tmpact);
-    dadt->action = (bAction *)BKE_id_copy_ex(bmain, (ID *)dadt->action, nullptr, id_copy_flag);
-    dadt->tmpact = (bAction *)BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, nullptr, id_copy_flag);
+    dadt->action = reinterpret_cast<bAction *>(BKE_id_copy_in_lib(
+        bmain, owner_library, reinterpret_cast<ID *>(dadt->action), nullptr, id_copy_flag));
+    dadt->tmpact = reinterpret_cast<bAction *>(BKE_id_copy_in_lib(
+        bmain, owner_library, reinterpret_cast<ID *>(dadt->tmpact), nullptr, id_copy_flag));
   }
   else if (do_id_user) {
     id_us_plus((ID *)dadt->action);
@@ -353,6 +360,11 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
 
   /* return */
   return dadt;
+}
+
+AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const int flag)
+{
+  return BKE_animdata_copy_in_lib(bmain, std::nullopt, adt, flag);
 }
 
 bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const int flag)
@@ -1450,7 +1462,7 @@ void BKE_animdata_blend_write(BlendWriter *writer, ID *id)
   BLO_write_struct(writer, AnimData, adt);
 
   /* write drivers */
-  BKE_fcurve_blend_write(writer, &adt->drivers);
+  BKE_fcurve_blend_write_listbase(writer, &adt->drivers);
 
   /* write overrides */
   /* FIXME: are these needed? */
@@ -1480,7 +1492,7 @@ void BKE_animdata_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* link drivers */
   BLO_read_list(reader, &adt->drivers);
-  BKE_fcurve_blend_read_data(reader, &adt->drivers);
+  BKE_fcurve_blend_read_data_listbase(reader, &adt->drivers);
   adt->driver_array = nullptr;
 
   /* link overrides */

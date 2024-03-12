@@ -8,21 +8,20 @@
 
 #include "abc_util.h"
 
-#include "abc_axis_conversion.h"
 #include "abc_reader_camera.h"
 #include "abc_reader_curves.h"
 #include "abc_reader_mesh.h"
-#include "abc_reader_nurbs.h"
 #include "abc_reader_points.h"
 #include "abc_reader_transform.h"
 
+#include <Alembic/AbcGeom/ILight.h>
+#include <Alembic/AbcGeom/INuPatch.h>
 #include <Alembic/AbcMaterial/IMaterial.h>
 
 #include <algorithm>
 
 #include "DNA_object_types.h"
 
-#include "BLI_math_geom.h"
 #include "BLI_time.h"
 
 using Alembic::Abc::IV3fArrayProperty;
@@ -125,7 +124,8 @@ V3fArraySamplePtr get_velocity_prop(const Alembic::Abc::ICompoundProperty &schem
     const PropertyHeader &header = schema.getPropertyHeader(i);
 
     if (header.isCompound()) {
-      const ICompoundProperty &prop = ICompoundProperty(schema, header.getName());
+      const Alembic::Abc::ICompoundProperty &prop = Alembic::Abc::ICompoundProperty(
+          schema, header.getName());
 
       if (has_property(prop, name)) {
         /* Header cannot be null here, as its presence is checked via has_property, so it is safe

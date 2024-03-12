@@ -69,7 +69,7 @@ ShadowSampleParams debug_shadow_sample_get(vec3 P, LightData light)
     return shadow_directional_sample_params_get(shadow_tilemaps_tx, light, P);
   }
   else {
-    return shadow_punctual_sample_params_get(shadow_tilemaps_tx, light, P);
+    return shadow_punctual_sample_params_get(light, P);
   }
 }
 

@@ -1120,7 +1120,7 @@ static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type 
    * in FFmpeg 4.3.1. It got fixed later on, but for compatibility reasons is
    * still best to avoid crash.
    *
-   * This is achieved by using own allocation call rather than relying on
+   * This is achieved by using a separate allocation call rather than relying on
    * IMB_allocImBuf() to do so since the IMB_allocImBuf() is not guaranteed
    * to perform aligned allocation.
    *

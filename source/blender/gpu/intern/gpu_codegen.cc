@@ -30,7 +30,7 @@
 #include "GPU_context.h"
 #include "GPU_material.hh"
 #include "GPU_shader.h"
-#include "GPU_uniform_buffer.h"
+#include "GPU_uniform_buffer.hh"
 #include "GPU_vertex_format.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */

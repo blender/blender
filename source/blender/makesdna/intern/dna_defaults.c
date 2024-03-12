@@ -75,6 +75,7 @@
 
 #include "DNA_defaults.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_asset_types.h"
 #include "DNA_brush_types.h"
@@ -108,6 +109,7 @@
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
+#include "DNA_anim_defaults.h"
 #include "DNA_armature_defaults.h"
 #include "DNA_asset_defaults.h"
 #include "DNA_brush_defaults.h"
@@ -141,6 +143,10 @@
 
 #define SDNA_DEFAULT_DECL_STRUCT(struct_name) \
   static const struct_name DNA_DEFAULT_##struct_name = _DNA_DEFAULT_##struct_name
+
+/* DNA_anim_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(AnimationLayer);
+SDNA_DEFAULT_DECL_STRUCT(AnimationStrip);
 
 /* DNA_asset_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(AssetMetaData);
@@ -350,6 +356,8 @@ SDNA_DEFAULT_DECL_STRUCT(GreasePencilArmatureModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilTimeModifierSegment);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilTimeModifierData);
 SDNA_DEFAULT_DECL_STRUCT(GreasePencilEnvelopeModifierData);
+SDNA_DEFAULT_DECL_STRUCT(GreasePencilOutlineModifierData);
+SDNA_DEFAULT_DECL_STRUCT(GreasePencilShrinkwrapModifierData);
 
 #undef SDNA_DEFAULT_DECL_STRUCT
 
@@ -378,6 +386,10 @@ extern const bTheme U_theme_default;
 /* NOTE: Keep headers sorted. */
 
 const void *DNA_default_table[SDNA_TYPE_MAX] = {
+
+    /* DNA_anim_defaults.h */
+    SDNA_DEFAULT_DECL(AnimationLayer),
+    SDNA_DEFAULT_DECL(AnimationStrip),
 
     /* DNA_asset_defaults.h */
     SDNA_DEFAULT_DECL(AssetMetaData),
@@ -619,6 +631,8 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL(GreasePencilTimeModifierSegment),
     SDNA_DEFAULT_DECL(GreasePencilTimeModifierData),
     SDNA_DEFAULT_DECL(GreasePencilEnvelopeModifierData),
+    SDNA_DEFAULT_DECL(GreasePencilOutlineModifierData),
+    SDNA_DEFAULT_DECL(GreasePencilShrinkwrapModifierData),
 };
 #undef SDNA_DEFAULT_DECL
 #undef SDNA_DEFAULT_DECL_EX

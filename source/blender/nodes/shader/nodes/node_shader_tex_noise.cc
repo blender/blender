@@ -28,21 +28,45 @@ static void sh_node_tex_noise_declare(NodeDeclarationBuilder &b)
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
   });
-  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>("Detail").min(0.0f).max(15.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f).description(
+      "Scale of the base noise octave");
+  b.add_input<decl::Float>("Detail").min(0.0f).max(15.0f).default_value(2.0f).description(
+      "The number of noise octaves. Higher values give more detailed noise but increase render "
+      "time");
   b.add_input<decl::Float>("Roughness")
       .min(0.0f)
       .max(1.0f)
       .default_value(0.5f)
-      .subtype(PROP_FACTOR);
+      .subtype(PROP_FACTOR)
+      .description(
+          "Blend factor between an octave and its previous one. A value of zero corresponds to "
+          "zero detail");
   b.add_input<decl::Float>("Lacunarity")
       .min(0.0f)
       .max(1000.0f)
       .default_value(2.0f)
-      .description("The scale of a Perlin noise octave relative to that of the previous octave");
-  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f).default_value(0.0f);
-  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
-  b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(0.0f);
+      .description(
+          "The difference between the scale of each two consecutive octaves. Larger values "
+          "corresponds to larger scale for higher octaves");
+  b.add_input<decl::Float>("Offset")
+      .min(-1000.0f)
+      .max(1000.0f)
+      .default_value(0.0f)
+      .make_available([](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; })
+      .description(
+          "An added offset to each octave, determines the level where the highest octave will "
+          "appear");
+  b.add_input<decl::Float>("Gain")
+      .min(0.0f)
+      .max(1000.0f)
+      .default_value(1.0f)
+      .make_available([](bNode &node) { node_storage(node).type = SHD_NOISE_RIDGED_MULTIFRACTAL; })
+      .description("An extra multiplier to tune the magnitude of octaves");
+  b.add_input<decl::Float>("Distortion")
+      .min(-1000.0f)
+      .max(1000.0f)
+      .default_value(0.0f)
+      .description("Amount of distortion");
   b.add_output<decl::Float>("Fac").no_muted_links();
   b.add_output<decl::Color>("Color").no_muted_links();
 }

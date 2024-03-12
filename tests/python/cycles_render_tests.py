@@ -53,6 +53,7 @@ BLACKLIST_GPU = [
     "hair_transmission.blend",
     'principled_hair_.*.blend',
     'transparent_shadow_hair.*.blend',
+    "microfacet_hair_orientation.blend",
     # Inconsistent handling of overlapping objects.
     "T41143.blend",
     "visibility_particles.blend",

@@ -51,7 +51,7 @@ set(SRC
   intern/bit_ref.cc
   intern/bit_span.cc
   intern/bitmap.c
-  intern/bitmap_draw_2d.c
+  intern/bitmap_draw_2d.cc
   intern/boxpack_2d.c
   intern/buffer.c
   intern/cache_mutex.cc
@@ -88,7 +88,7 @@ set(SRC
   intern/kdtree_2d.c
   intern/kdtree_3d.c
   intern/kdtree_4d.c
-  intern/lasso_2d.c
+  intern/lasso_2d.cc
   intern/lazy_threading.cc
   intern/length_parameterize.cc
   intern/listbase.cc
@@ -259,7 +259,7 @@ set(SRC
   BLI_kdopbvh.h
   BLI_kdtree.h
   BLI_kdtree_impl.h
-  BLI_lasso_2d.h
+  BLI_lasso_2d.hh
   BLI_lazy_threading.hh
   BLI_length_parameterize.hh
   BLI_linear_allocator.hh
@@ -521,8 +521,8 @@ if(WITH_GTESTS)
     tests/BLI_kdopbvh_test.cc
     tests/BLI_kdtree_test.cc
     tests/BLI_length_parameterize_test.cc
-    tests/BLI_linear_allocator_test.cc
     tests/BLI_linear_allocator_chunked_list_test.cc
+    tests/BLI_linear_allocator_test.cc
     tests/BLI_linklist_lockfree_test.cc
     tests/BLI_listbase_test.cc
     tests/BLI_map_test.cc

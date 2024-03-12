@@ -80,18 +80,18 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     return VArray<bool>::ForContainer(std::move(selection));
   };
 
-  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const final
   {
     start_size_.node().for_each_field_input_recursive(fn);
     end_size_.node().for_each_field_input_recursive(fn);
   }
 
-  uint64_t hash() const override
+  uint64_t hash() const final
   {
     return get_default_hash(start_size_, end_size_);
   }
 
-  bool is_equal_to(const fn::FieldNode &other) const override
+  bool is_equal_to(const fn::FieldNode &other) const final
   {
     if (const EndpointFieldInput *other_endpoint = dynamic_cast<const EndpointFieldInput *>(
             &other))
@@ -101,7 +101,7 @@ class EndpointFieldInput final : public bke::CurvesFieldInput {
     return false;
   }
 
-  std::optional<AttrDomain> preferred_domain(const CurvesGeometry & /*curves*/) const
+  std::optional<AttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
   {
     return AttrDomain::Point;
   }

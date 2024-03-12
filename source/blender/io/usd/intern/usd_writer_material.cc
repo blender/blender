@@ -77,6 +77,7 @@ static const pxr::TfToken Shader("Shader", pxr::TfToken::Immortal);
 static const pxr::TfToken black("black", pxr::TfToken::Immortal);
 static const pxr::TfToken clamp("clamp", pxr::TfToken::Immortal);
 static const pxr::TfToken repeat("repeat", pxr::TfToken::Immortal);
+static const pxr::TfToken mirror("mirror", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapS("wrapS", pxr::TfToken::Immortal);
 static const pxr::TfToken wrapT("wrapT", pxr::TfToken::Immortal);
 static const pxr::TfToken in("in", pxr::TfToken::Immortal);
@@ -693,6 +694,9 @@ static pxr::TfToken get_node_tex_image_wrap(bNode *node)
       break;
     case SHD_IMAGE_EXTENSION_CLIP:
       wrap = usdtokens::black;
+      break;
+    case SHD_IMAGE_EXTENSION_MIRROR:
+      wrap = usdtokens::mirror;
       break;
   }
 

@@ -8,7 +8,7 @@
  * Utility functions for primitive drawing operations.
  */
 
-#include <limits.h>
+#include <climits>
 
 #include "MEM_guardedalloc.h"
 
@@ -19,6 +19,9 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_strict_flags.h" /* Keep last. */
+
+using blender::int2;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Draw Line
@@ -146,7 +149,7 @@ void BLI_bitmap_draw_2d_line_v2v2i(const int p1[2],
 
 static float inv_slope(const int a[2], const int b[2])
 {
-  return ((float)(a[0] - b[0]) / (float)(a[1] - b[1]));
+  return float(a[0] - b[0]) / float(a[1] - b[1]);
 }
 
 /**
@@ -163,13 +166,13 @@ static void draw_tri_flat_max(const int p[2],
                               void (*callback)(int x, int x_end, int y, void *),
                               void *user_data)
 {
-  float cur_x1 = (float)p[0];
+  float cur_x1 = float(p[0]);
   float cur_x2 = cur_x1;
   /* start-end inclusive */
   const int min_y = p[1];
   const int max_y_end = max_y + 1;
   for (int scanline_y = min_y; scanline_y != max_y_end; scanline_y += 1) {
-    callback((int)cur_x1, 1 + (int)cur_x2, scanline_y, user_data);
+    callback(int(cur_x1), 1 + int(cur_x2), scanline_y, user_data);
     cur_x1 += inv_slope1;
     cur_x2 += inv_slope2;
   }
@@ -189,13 +192,13 @@ static void draw_tri_flat_min(const int p[2],
                               void (*callback)(int x, int x_end, int y, void *),
                               void *user_data)
 {
-  float cur_x1 = (float)p[0];
+  float cur_x1 = float(p[0]);
   float cur_x2 = cur_x1;
   /* start-end inclusive */
   const int max_y = p[1];
   const int min_y_end = min_y - 1;
   for (int scanline_y = max_y; scanline_y != min_y_end; scanline_y -= 1) {
-    callback((int)cur_x1, 1 + (int)cur_x2, scanline_y, user_data);
+    callback(int(cur_x1), 1 + int(cur_x2), scanline_y, user_data);
     cur_x1 -= inv_slope1;
     cur_x2 -= inv_slope2;
   }
@@ -281,9 +284,9 @@ void BLI_bitmap_draw_2d_tri_v2i(
 /* sort edge-segments on y, then x axis */
 static int draw_poly_v2i_n__span_y_sort(const void *a_p, const void *b_p, void *verts_p)
 {
-  const int(*verts)[2] = verts_p;
-  const int *a = a_p;
-  const int *b = b_p;
+  const int(*verts)[2] = static_cast<const int(*)[2]>(verts_p);
+  const int *a = static_cast<const int *>(a_p);
+  const int *b = static_cast<const int *>(b_p);
   const int *co_a = verts[a[0]];
   const int *co_b = verts[b[0]];
 
@@ -317,18 +320,18 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
                                    const int ymin,
                                    const int xmax,
                                    const int ymax,
-                                   const int verts[][2],
-                                   const int verts_len,
+                                   const Span<int2> verts,
                                    void (*callback)(int x, int x_end, int y, void *),
                                    void *user_data)
 {
   /* Originally by Darel Rex Finley, 2007.
    * Optimized by Campbell Barton, 2016 to track sorted intersections. */
 
-  int(*span_y)[2] = MEM_mallocN(sizeof(*span_y) * (size_t)verts_len, __func__);
+  int(*span_y)[2] = static_cast<int(*)[2]>(
+      MEM_mallocN(sizeof(*span_y) * size_t(verts.size()), __func__));
   int span_y_len = 0;
 
-  for (int i_curr = 0, i_prev = verts_len - 1; i_curr < verts_len; i_prev = i_curr++) {
+  for (int i_curr = 0, i_prev = int(verts.size() - 1); i_curr < verts.size(); i_prev = i_curr++) {
     const int *co_prev = verts[i_prev];
     const int *co_curr = verts[i_curr];
 
@@ -350,13 +353,17 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
     }
   }
 
-  BLI_qsort_r(
-      span_y, (size_t)span_y_len, sizeof(*span_y), draw_poly_v2i_n__span_y_sort, (void *)verts);
+  BLI_qsort_r(span_y,
+              size_t(span_y_len),
+              sizeof(*span_y),
+              draw_poly_v2i_n__span_y_sort,
+              (void *)verts.data());
 
   struct NodeX {
     int span_y_index;
     int x;
-  } *node_x = MEM_mallocN(sizeof(*node_x) * (size_t)(verts_len + 1), __func__);
+  } *node_x = static_cast<NodeX *>(
+      MEM_mallocN(sizeof(*node_x) * size_t(verts.size() + 1), __func__));
   int node_x_len = 0;
 
   int span_y_index = 0;
@@ -364,7 +371,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
     while ((span_y_index < span_y_len) && (verts[span_y[span_y_index][0]][1] < ymin)) {
       BLI_assert(verts[span_y[span_y_index][0]][1] < verts[span_y[span_y_index][1]][1]);
       if (verts[span_y[span_y_index][1]][1] >= ymin) {
-        struct NodeX *n = &node_x[node_x_len++];
+        NodeX *n = &node_x[node_x_len++];
         n->span_y_index = span_y_index;
       }
       span_y_index += 1;
@@ -377,7 +384,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
     bool do_remove = false;
 
     for (int i = 0, x_ix_prev = INT_MIN; i < node_x_len; i++) {
-      struct NodeX *n = &node_x[i];
+      NodeX *n = &node_x[i];
       const int *s = span_y[n->span_y_index];
       const int *co_prev = verts[s[0]];
       const int *co_curr = verts[s[1]];
@@ -387,7 +394,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
       const double x = (co_prev[0] - co_curr[0]);
       const double y = (co_prev[1] - co_curr[1]);
       const double y_px = (pixel_y - co_curr[1]);
-      const int x_ix = (int)((double)co_curr[0] + ((y_px / y) * x));
+      const int x_ix = int(double(co_curr[0]) + ((y_px / y) * x));
       n->x = x_ix;
 
       if (is_sorted && (x_ix_prev > x_ix)) {
@@ -405,7 +412,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
       const int node_x_end = node_x_len - 1;
       while (i < node_x_end) {
         if (node_x[i].x > node_x[i + 1].x) {
-          SWAP(struct NodeX, node_x[i], node_x[i + 1]);
+          SWAP(NodeX, node_x[i], node_x[i + 1]);
           if (i != 0) {
             i -= 1;
           }
@@ -463,7 +470,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(const int xmin,
        * not ideal but sorting once will resolve. */
 
       /* x is initialized for the next pixel_y */
-      struct NodeX *n = &node_x[node_x_len++];
+      NodeX *n = &node_x[node_x_len++];
       n->span_y_index = span_y_index;
       span_y_index += 1;
     }

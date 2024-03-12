@@ -95,7 +95,7 @@ inline bAction *bc_getSceneCameraAction(Object *ob)
     return NULL;
   }
 
-  Camera *camera = (Camera *)ob->data;
+  const Camera *camera = (const Camera *)ob->data;
   return (camera->adt && camera->adt->action) ? camera->adt->action : NULL;
 }
 

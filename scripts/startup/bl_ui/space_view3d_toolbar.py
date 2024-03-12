@@ -2665,7 +2665,6 @@ class VIEW3D_PT_tools_grease_pencil_v3_brush_mix_palette(View3DPanel, Panel):
         layout.use_property_decorate = False
         tool_settings = context.tool_settings
         settings = tool_settings.gpencil_paint
-        brush = settings.brush
 
         col = layout.column()
         col.enabled = settings.color_mode == 'VERTEXCOLOR'

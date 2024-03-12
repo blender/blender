@@ -129,7 +129,10 @@ void VKBackend::delete_resources() {}
 
 void VKBackend::samplers_update()
 {
-  NOT_YET_IMPLEMENTED
+  VKDevice &device = VKBackend::get().device_;
+  if (device.is_initialized()) {
+    device.reinit();
+  }
 }
 
 void VKBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len)
@@ -263,6 +266,7 @@ void VKBackend::capabilities_init(VKDevice &device)
   GCaps.max_textures_geom = limits.maxPerStageDescriptorSampledImages;
   GCaps.max_textures_frag = limits.maxPerStageDescriptorSampledImages;
   GCaps.max_samplers = limits.maxSamplerAllocationCount;
+  GCaps.max_images = limits.maxPerStageDescriptorStorageImages;
   for (int i = 0; i < 3; i++) {
     GCaps.max_work_group_count[i] = limits.maxComputeWorkGroupCount[i];
     GCaps.max_work_group_size[i] = limits.maxComputeWorkGroupSize[i];

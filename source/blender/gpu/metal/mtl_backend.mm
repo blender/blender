@@ -413,6 +413,8 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.max_textures_geom = 0; /* N/A geometry shaders not supported. */
   GCaps.max_textures_frag = GCaps.max_textures;
 
+  GCaps.max_images = GCaps.max_textures;
+
   /* Conservative uniform data limit is 4KB per-stage -- This is the limit of setBytes.
    * MTLBuffer path is also supported but not as efficient. */
   GCaps.max_uniforms_vert = 1024;

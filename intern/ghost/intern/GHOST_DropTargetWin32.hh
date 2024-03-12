@@ -23,8 +23,8 @@ class GHOST_DropTargetWin32 : public IDropTarget {
    * methods in IUnknown are the first entries in the VTable for every interface.
    */
   HRESULT __stdcall QueryInterface(REFIID riid, void **ppv_obj);
-  ULONG __stdcall AddRef(void);
-  ULONG __stdcall Release(void);
+  ULONG __stdcall AddRef();
+  ULONG __stdcall Release();
 
   /* IDropTarget implementation
    * + The IDropTarget interface is one of the interfaces you implement to
@@ -50,7 +50,7 @@ class GHOST_DropTargetWin32 : public IDropTarget {
                               POINTL pt,
                               DWORD *pdw_effect);
   HRESULT __stdcall DragOver(DWORD grf_key_state, POINTL pt, DWORD *pdw_effect);
-  HRESULT __stdcall DragLeave(void);
+  HRESULT __stdcall DragLeave();
   HRESULT __stdcall Drop(IDataObject *p_data_object,
                          DWORD grf_key_state,
                          POINTL pt,

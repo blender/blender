@@ -79,7 +79,7 @@ void AbstractGridView::update_children_from_old(const AbstractView &old_view)
 {
   const AbstractGridView &old_grid_view = dynamic_cast<const AbstractGridView &>(old_view);
 
-  foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
+  this->foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
     const AbstractGridViewItem *matching_old_item = find_matching_item(new_item, old_grid_view);
     if (!matching_old_item) {
       return;
@@ -156,7 +156,7 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
                                              0,
                                              "");
 
-  view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
+  view_item_but_->view_item = this;
   UI_but_func_set(view_item_but_, grid_tile_click_fn, view_item_but_, nullptr);
 }
 

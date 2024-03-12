@@ -66,7 +66,7 @@ void BKE_mesh_calc_loop_tangent_ex(const float (*vert_positions)[3],
                                    uint loopdata_out_len,
                                    short *tangent_mask_curr_p);
 
-void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
+void BKE_mesh_calc_loop_tangents(Mesh *mesh_eval,
                                  bool calc_active_tangent,
                                  const char (*tangent_names)[MAX_CUSTOMDATA_LAYER_NAME],
                                  int tangent_names_len);

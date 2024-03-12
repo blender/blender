@@ -20,21 +20,21 @@ layout(std140) uniform common_block
   vec4 volCoordScale; /* To convert volume uvs to screen uvs */
   float volHistoryAlpha;
   float volShadowSteps;
-  bool volUseLights;
-  bool volUseSoftShadows;
+  bool32_t volUseLights;
+  bool32_t volUseSoftShadows;
   /* Screen Space Reflections */
   vec4 ssrParameters;
   float ssrBorderFac;
   float ssrMaxRoughness;
   float ssrFireflyFac;
   float ssrBrdfBias;
-  bool ssrToggle;
-  bool ssrefractToggle;
+  bool32_t ssrToggle;
+  bool32_t ssrefractToggle;
   /* SubSurface Scattering */
   float sssJitterThreshold;
-  bool sssToggle;
+  bool32_t sssToggle;
   /* Specular */
-  bool specToggle;
+  bool32_t specToggle;
   /* Lights */
   int laNumLight;
   /* Probes */

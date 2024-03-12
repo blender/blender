@@ -27,7 +27,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
 #include "BKE_context.hh"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
 #include "BKE_lib_id.hh"
@@ -897,7 +897,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
   }
 
-  if ((ptr.owner_id && ptr.data && prop) && RNA_property_animateable(&ptr, prop)) {
+  if ((ptr.owner_id && ptr.data && prop) && RNA_property_anim_editable(&ptr, prop)) {
     if (ptr.type == &RNA_NlaStrip) {
       /* Handle special properties for NLA Strips, whose F-Curves are stored on the
        * strips themselves. These are stored separately or else the properties will
@@ -999,7 +999,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
     }
   }
   else {
-    if (prop && !RNA_property_animateable(&ptr, prop)) {
+    if (prop && !RNA_property_anim_editable(&ptr, prop)) {
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "\"%s\" property cannot be animated",
@@ -1314,7 +1314,7 @@ static bool object_frame_has_keyframe(Object *ob, float frame)
     return false;
   }
 
-  /* check own animation data - specifically, the action it contains */
+  /* check its own animation data - specifically, the action it contains */
   if ((ob->adt) && (ob->adt->action)) {
     /* #41525 - When the active action is a NLA strip being edited,
      * we need to correct the frame number to "look inside" the

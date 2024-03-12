@@ -1,4 +1,8 @@
-set BUILD_VS_LIBDIR=lib/windows_x64
+if "%BUILD_ARCH%" == "arm64" (
+	set BUILD_VS_LIBDIR=lib/windows_arm64
+) else (
+	set BUILD_VS_LIBDIR=lib/windows_x64
+)
 
 if NOT "%verbose%" == "" (
 	echo Library Directory = "%BUILD_VS_LIBDIR%"

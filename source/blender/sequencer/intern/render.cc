@@ -28,7 +28,7 @@
 
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
-#include "BKE_fcurve.h"
+#include "BKE_fcurve.hh"
 #include "BKE_global.hh"
 #include "BKE_image.h"
 #include "BKE_layer.hh"

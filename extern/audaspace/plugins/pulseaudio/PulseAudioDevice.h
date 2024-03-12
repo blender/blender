@@ -60,6 +60,11 @@ private:
 	 */
 	volatile bool m_playback;
 
+	/**
+	 * Set when playback is paused in order to later clear the ring buffer when the playback starts again.
+	 */
+	volatile bool m_clear;
+
 	pa_threaded_mainloop* m_mainloop;
 	pa_context* m_context;
 	pa_stream* m_stream;

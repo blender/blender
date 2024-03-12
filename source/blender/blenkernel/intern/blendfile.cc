@@ -1046,7 +1046,9 @@ BlendFileData *BKE_blendfile_read(const char *filepath,
 {
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
-    printf("Read blend: \"%s\"\n", filepath);
+    if (!G.quiet) {
+      printf("Read blend: \"%s\"\n", filepath);
+    }
   }
 
   BlendFileData *bfd = BLO_read_from_file(filepath, eBLOReadSkip(params->skip_flags), reports);
@@ -1063,13 +1065,13 @@ BlendFileData *BKE_blendfile_read(const char *filepath,
   return bfd;
 }
 
-BlendFileData *BKE_blendfile_read_from_memory(const void *filebuf,
-                                              int filelength,
+BlendFileData *BKE_blendfile_read_from_memory(const void *file_buf,
+                                              int file_buf_size,
                                               const BlendFileReadParams *params,
                                               ReportList *reports)
 {
   BlendFileData *bfd = BLO_read_from_memory(
-      filebuf, filelength, eBLOReadSkip(params->skip_flags), reports);
+      file_buf, file_buf_size, eBLOReadSkip(params->skip_flags), reports);
   if (bfd && bfd->main->is_read_invalid) {
     BLO_blendfiledata_free(bfd);
     bfd = nullptr;
@@ -1167,15 +1169,15 @@ UserDef *BKE_blendfile_userdef_read(const char *filepath, ReportList *reports)
   return userdef;
 }
 
-UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
-                                                int filelength,
+UserDef *BKE_blendfile_userdef_read_from_memory(const void *file_buf,
+                                                int file_buf_size,
                                                 ReportList *reports)
 {
   BlendFileData *bfd;
   UserDef *userdef = nullptr;
 
   bfd = BLO_read_from_memory(
-      filebuf, filelength, BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF, reports);
+      file_buf, file_buf_size, BLO_READ_SKIP_ALL & ~BLO_READ_SKIP_USERDEF, reports);
   if (bfd) {
     if (bfd->user) {
       userdef = bfd->user;
@@ -1332,12 +1334,18 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
       /* Also save app-template preferences. */
       BLI_path_join(filepath, sizeof(filepath), cfgdir->c_str(), BLENDER_USERPREF_FILE);
 
-      printf("Writing userprefs app-template: \"%s\" ", filepath);
+      if (!G.quiet) {
+        printf("Writing userprefs app-template: \"%s\" ", filepath);
+      }
       if (BKE_blendfile_userdef_write(filepath, reports) != 0) {
-        printf("ok\n");
+        if (!G.quiet) {
+          printf("ok\n");
+        }
       }
       else {
-        printf("fail\n");
+        if (!G.quiet) {
+          printf("fail\n");
+        }
         ok = false;
       }
     }
@@ -1360,8 +1368,8 @@ bool BKE_blendfile_userdef_write_all(ReportList *reports)
  * \{ */
 
 WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath,
-                                                             const void *filebuf,
-                                                             int filelength,
+                                                             const void *file_buf,
+                                                             int file_buf_size,
                                                              ReportList *reports)
 {
   BlendFileData *bfd;
@@ -1373,7 +1381,7 @@ WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepat
     bfd = BLO_read_from_file(filepath, BLO_READ_SKIP_USERDEF, &blend_file_read_reports);
   }
   else {
-    bfd = BLO_read_from_memory(filebuf, filelength, BLO_READ_SKIP_USERDEF, reports);
+    bfd = BLO_read_from_memory(file_buf, file_buf_size, BLO_READ_SKIP_USERDEF, reports);
   }
 
   if (bfd) {

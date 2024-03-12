@@ -37,6 +37,7 @@
 /* Mostly initialization functions. */
 #include "BKE_appdir.hh"
 #include "BKE_blender.hh"
+#include "BKE_blender_cli_command.hh"
 #include "BKE_brush.hh"
 #include "BKE_cachefile.hh"
 #include "BKE_callbacks.hh"
@@ -566,8 +567,23 @@ int main(int argc,
 
 #ifndef WITH_PYTHON_MODULE
   if (G.background) {
+    int exit_code;
+    if (app_state.command.argv) {
+      const char *id = app_state.command.argv[0];
+      if (STREQ(id, "help")) {
+        BKE_blender_cli_command_print_help();
+        exit_code = EXIT_SUCCESS;
+      }
+      else {
+        exit_code = BKE_blender_cli_command_exec(
+            C, id, app_state.command.argc - 1, app_state.command.argv + 1);
+      }
+    }
+    else {
+      exit_code = G.is_break ? EXIT_FAILURE : EXIT_SUCCESS;
+    }
     /* Using window-manager API in background-mode is a bit odd, but works fine. */
-    WM_exit(C, G.is_break ? EXIT_FAILURE : EXIT_SUCCESS);
+    WM_exit(C, exit_code);
   }
   else {
     /* Shows the splash as needed. */

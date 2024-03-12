@@ -467,7 +467,10 @@ void mesh_show_all(Object &object, Span<PBVHNode *> nodes);
 void grids_show_all(Depsgraph &depsgraph, Object &object, Span<PBVHNode *> nodes);
 void tag_update_visibility(const bContext &C);
 
+void PAINT_OT_hide_show_masked(wmOperatorType *ot);
+void PAINT_OT_hide_show_all(wmOperatorType *ot);
 void PAINT_OT_hide_show(wmOperatorType *ot);
+
 void PAINT_OT_visibility_invert(wmOperatorType *ot);
 }  // namespace blender::ed::sculpt_paint::hide
 

@@ -9,11 +9,9 @@
 #include <cstdint>
 #include <cstdio>
 
-#include "BKE_main.hh"
 #include "BKE_mesh.hh"
 
 #include "BLI_array.hh"
-#include "BLI_memory_utils.hh"
 
 #include "DNA_mesh_types.h"
 

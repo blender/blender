@@ -56,7 +56,7 @@ static void applyBoneRoll(TransInfo *t)
     SNPRINTF(str, IFACE_("Roll: %.2f"), RAD2DEGF(final));
   }
 
-  /* set roll values */
+  /* Set roll values. */
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     for (i = 0; i < tc->data_len; i++, td++) {
@@ -81,8 +81,7 @@ static void initBoneRoll(TransInfo *t, wmOperator * /*op*/)
 
   t->idx_max = 0;
   t->num.idx_max = 0;
-  t->snap[0] = DEG2RAD(5.0);
-  t->snap[1] = DEG2RAD(1.0);
+  initSnapAngleIncrements(t);
 
   copy_v3_fl(t->num.val_inc, t->snap[0]);
   t->num.unit_sys = t->scene->unit.system;
