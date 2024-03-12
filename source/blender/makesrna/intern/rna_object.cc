@@ -3525,8 +3525,8 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "empty_image_flag", OB_EMPTY_IMAGE_USE_ALPHA_BLEND);
   RNA_def_property_ui_text(
       prop,
-      "Use Alpha",
-      "Use alpha blending instead of alpha test (can produce sorting artifacts)");
+      "Turn on opacity/transparency",
+      "Enables the options to use Alpha Blending on the image with a given intensity.");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
   static EnumPropertyItem prop_empty_image_side_items[] = {
@@ -3560,7 +3560,9 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_ui_text(
-      prop, "Color", "Object color and alpha, used when the Object Color mode is enabled");
+      prop,
+      "Intensity",
+      "The value of intensity of alpha that affects the transparency of the image.");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   /* physics */
