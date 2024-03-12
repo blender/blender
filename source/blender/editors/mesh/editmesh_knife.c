@@ -3249,7 +3249,9 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
       vc.mval[0] = (int)kcd->curr.mval[0];
       vc.mval[1] = (int)kcd->curr.mval[1];
 
-      f = EDBM_face_find_nearest(&vc, &dist);
+      if (BKE_object_is_visible_in_viewport(vc.v3d, vc.obact)) {
+        f = EDBM_face_find_nearest(&vc, &dist);
+      }
 
       /* Cheat for now; just put in the origin instead
        * of a true coordinate on the face.
