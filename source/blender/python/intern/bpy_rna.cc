@@ -1173,6 +1173,14 @@ static void pyrna_struct_dealloc(BPy_StructRNA *self)
     PyObject_GC_UnTrack(self);
     pyrna_struct_clear(self);
   }
+  else {
+    PyTypeObject *base = Py_TYPE(self)->tp_base;
+    /* Python temporarily tracks these types when freeing, see Python bug 26617. */
+    if (base && PyType_IS_GC(base)) {
+      PyObject_GC_UnTrack(self);
+    }
+    BLI_assert(!PyObject_GC_IsTracked((PyObject *)self));
+  }
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
   /* NOTE: for subclassed PyObjects calling PyObject_DEL() directly crashes. */
