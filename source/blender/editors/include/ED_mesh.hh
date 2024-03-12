@@ -77,6 +77,8 @@ void EDBM_mesh_clear(BMEditMesh *em);
 
 void EDBM_selectmode_to_scene(bContext *C);
 void EDBM_mesh_make(Object *ob, int select_mode, bool add_key_index);
+/** Replaces the edit-mesh in the object with a new one based on the given mesh. */
+void EDBM_mesh_make_from_mesh(Object *ob, Mesh *src_mesh, int select_mode, bool add_key_index);
 /**
  * Should only be called on the active edit-mesh, otherwise call #BKE_editmesh_free_data.
  */
