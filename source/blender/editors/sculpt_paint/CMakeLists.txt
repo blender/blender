@@ -85,6 +85,7 @@ set(SRC
   sculpt_pose.cc
   sculpt_smooth.cc
   sculpt_transform.cc
+  sculpt_trim.cc
   sculpt_undo.cc
   sculpt_uv.cc
 
