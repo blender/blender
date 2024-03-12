@@ -8114,8 +8114,10 @@ void GHOST_SystemWayland::setMultitouchGestures(const bool use)
   }
   m_multitouchGestures = use;
 
+#ifdef USE_EVENT_BACKGROUND_THREAD
   /* Ensure this listeners aren't removed while events are generated. */
   std::lock_guard lock_server_guard{*server_mutex};
+#endif
   for (GWL_Seat *seat : display_->seats) {
     if (use == gwl_seat_capability_pointer_multitouch_check(seat, use)) {
       continue;
