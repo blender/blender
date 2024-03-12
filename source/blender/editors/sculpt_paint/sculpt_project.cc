@@ -133,6 +133,7 @@ static int project_gesture_line_exec(bContext *C, wmOperator *op)
   gesture::apply(*C, *gesture_data, *op);
   return OPERATOR_FINISHED;
 }
+
 void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
 {
   ot->name = "Project Line Gesture";
@@ -147,8 +148,8 @@ void SCULPT_OT_project_line_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* Properties. */
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   gesture::operator_properties(ot);
 }
+
 }  // namespace blender::ed::sculpt_paint::project

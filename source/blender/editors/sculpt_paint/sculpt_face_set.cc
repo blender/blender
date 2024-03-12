@@ -1840,7 +1840,6 @@ void SCULPT_OT_face_set_lasso_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_DEPENDS_ON_CURSOR;
 
-  /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   gesture::operator_properties(ot);
 }
@@ -1859,7 +1858,6 @@ void SCULPT_OT_face_set_box_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* Properties. */
   WM_operator_properties_border(ot);
   gesture::operator_properties(ot);
 }

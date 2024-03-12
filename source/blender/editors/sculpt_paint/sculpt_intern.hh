@@ -56,8 +56,6 @@ struct wmKeyMap;
 struct wmOperator;
 struct wmOperatorType;
 
-/* Updates */
-
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Types
  * \{ */
@@ -133,8 +131,6 @@ enum eBoundaryAutomaskMode {
   AUTOMASK_INIT_BOUNDARY_EDGES = 1,
   AUTOMASK_INIT_BOUNDARY_FACE_SETS = 2,
 };
-
-/* Undo */
 
 namespace blender::ed::sculpt_paint::undo {
 
@@ -755,8 +751,6 @@ void SCULPT_tag_update_overlays(bContext *C);
 /* -------------------------------------------------------------------- */
 /** \name Stroke Functions
  * \{ */
-
-/* Stroke */
 
 /**
  * Do a ray-cast in the tree to find the 3d brush location
@@ -1820,8 +1814,6 @@ void SCULPT_OT_set_pivot_position(wmOperatorType *ot);
 /** \name Filter Operators
  * \{ */
 
-/* Mesh Filter. */
-
 namespace blender::ed::sculpt_paint::filter {
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot);
@@ -1832,8 +1824,6 @@ wmKeyMap *modal_keymap(wmKeyConfig *keyconf);
 namespace blender::ed::sculpt_paint::cloth {
 void SCULPT_OT_cloth_filter(wmOperatorType *ot);
 }
-
-/* Color Filter. */
 
 namespace blender::ed::sculpt_paint::color {
 void SCULPT_OT_color_filter(wmOperatorType *ot);
@@ -1877,8 +1867,6 @@ void SCULPT_OT_dynamic_topology_toggle(wmOperatorType *ot);
 /** \name Brushes
  * \{ */
 
-/* Pose Brush. */
-
 namespace blender::ed::sculpt_paint::pose {
 
 /**
@@ -1905,8 +1893,6 @@ SculptPoseIKChain *ik_chain_init(
 void ik_chain_free(SculptPoseIKChain *ik_chain);
 
 }
-
-/* Boundary Brush. */
 
 namespace blender::ed::sculpt_paint::boundary {
 

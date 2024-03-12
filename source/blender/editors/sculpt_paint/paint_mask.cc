@@ -16,7 +16,6 @@
 #include "BLI_bit_span_ops.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_math_base.hh"
-#include "BLI_math_geom.h"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
@@ -711,7 +710,6 @@ void PAINT_OT_mask_lasso_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_DEPENDS_ON_CURSOR;
 
-  /* Properties. */
   WM_operator_properties_gesture_lasso(ot);
   gesture::operator_properties(ot);
 
@@ -732,7 +730,6 @@ void PAINT_OT_mask_box_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* Properties. */
   WM_operator_properties_border(ot);
   gesture::operator_properties(ot);
 
@@ -753,7 +750,6 @@ void PAINT_OT_mask_line_gesture(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER;
 
-  /* Properties. */
   WM_operator_properties_gesture_straightline(ot, WM_CURSOR_EDIT);
   gesture::operator_properties(ot);
 
