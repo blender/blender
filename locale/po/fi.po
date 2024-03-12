@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8748,10 +8748,6 @@ msgid "Workbench"
 msgstr "Työtila"
 
 
-msgid "Nothing selected"
-msgstr "Mitään ei ole valittu"
-
-
 msgid "y = (Ax + B)"
 msgstr "y = (Ax + B)"
 
@@ -8800,6 +8796,10 @@ msgstr "Pupillit"
 
 msgid "Grey"
 msgstr "Harnaa"
+
+
+msgid "Nothing selected"
+msgstr "Mitään ei ole valittu"
 
 
 msgid "Stroke: ON"

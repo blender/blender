@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-12-12 02:28+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -21938,10 +21938,6 @@ msgid "Apply sampling to all animations"
 msgstr "Použít vzorkování pro všechny animace"
 
 
-msgid "glTF Binary (.glb)"
-msgstr "glTF Binary (.glb)"
-
-
 msgid "JPEG Format (.jpg)"
 msgstr "Formát JPEG (.jpg)"
 
@@ -43818,10 +43814,6 @@ msgid "Select ID"
 msgstr "Vybrat ID"
 
 
-msgid "Nothing selected"
-msgstr "Není nic vybrané"
-
-
 msgid "Scene not found"
 msgstr "Zvuk"
 
@@ -44072,6 +44064,10 @@ msgstr "Automaticky vkládat klíče objektu a Action Ipo křivky"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "Objekt nelze oddělit pouze s jednou vrstvou"
+
+
+msgid "Nothing selected"
+msgstr "Není nic vybrané"
 
 
 msgid "No active area"

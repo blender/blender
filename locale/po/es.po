@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
-"PO-Revision-Date: 2024-03-04 10:05+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-03-12 05:27+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -640,7 +640,7 @@ msgstr "Opciones de visualización de movimiento"
 
 
 msgid "Motion Paths"
-msgstr "Trayectorias movimiento"
+msgstr "Trayectorias de movimiento"
 
 
 msgid "Motion Path settings for visualization"
@@ -3096,7 +3096,7 @@ msgstr "Porcentaje de la velocidad máxima"
 
 
 msgid "Wander"
-msgstr "Deambular"
+msgstr "Deriva"
 
 
 msgid "How fast velocity's direction is randomized"
@@ -4063,6 +4063,10 @@ msgstr "El nombre de la colección del hueso activo del esqueleto; estará vací
 
 msgid "Solo Active"
 msgstr "Solo está activo"
+
+
+msgid "Read-only flag that indicates there is at least one bone collection marked as 'solo'"
+msgstr "Indicador de sólo lectura que mostrará cuando exista al menos una colección de huesos marcada como 'solo'"
 
 
 msgid "Theme color or custom color of a bone"
@@ -6461,7 +6465,7 @@ msgstr "Codificación de imagen básica de AgX para un dispositivo sRGB"
 
 
 msgid "AgX Log"
-msgstr "AgX Logarítmico"
+msgstr "AgX logarítmico"
 
 
 msgid "Log Encoding with Chroma inset and rotation, and with 25 Stops of Dynamic Range"
@@ -6477,15 +6481,15 @@ msgstr "Display P3 de Apple con función de transferencia de codificación sRGB 
 
 
 msgid "Filmic Log"
-msgstr "Log fílmico"
+msgstr "Fílmica logarítmica"
 
 
 msgid "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"
-msgstr "Conformador fílmico de tipo logarítmico con 16.5 paradas de latitud y 25 paradas de rango dinámico"
+msgstr "Transformación fílmica de tipo logarítmico con 16.5 paradas de latitud y 25 paradas de rango dinámico"
 
 
 msgid "Filmic sRGB"
-msgstr "sRGB fílmico"
+msgstr "Fílmica sRGB"
 
 
 msgid "sRGB display space with Filmic view transform"
@@ -6541,7 +6545,7 @@ msgstr "BT.709 lineal con punto de blanco iluminante D65"
 
 
 msgid "Non-Color"
-msgstr "No es color"
+msgstr "Datos"
 
 
 msgid "Generic data that is not color, will not apply any color transform (e.g. normal maps)"
@@ -6633,7 +6637,7 @@ msgstr "Alto rango dinámico"
 
 
 msgid "Enable high dynamic range display in rendered viewport, uncapping display brightness. This requires a monitor with HDR support and a view transform designed for HDR. 'Filmic' and 'AgX' do not generate HDR colors"
-msgstr "Activa la visualización de alto rango dinámico en las vistas procesadas, quitando los límites al brillo en el dispositivo. Esto requiere un monitor con soporte para HDR y una transformación de visualización diseñada para HDR. 'Fílmico' y 'AgX' no generan colores HDR"
+msgstr "Activa la visualización de alto rango dinámico en las vistas procesadas, quitando los límites al brillo en el dispositivo. Esto requiere un monitor con soporte para HDR y una transformación de visualización diseñada para HDR. 'Fílmica' y 'AgX' no generarán colores HDR"
 
 
 msgid "View Transform"
@@ -6645,7 +6649,7 @@ msgstr "Convierte las imágenes al espacio donde serán visualizadas finalmente"
 
 
 msgid "Do not perform any color transform on display, use old non-color managed technique for display"
-msgstr "No realizar ningún ajuste del color para la visualización en pantalla, usar la antigua técnica de administración para representar en pantalla datos que no son colores"
+msgstr "No realiza ninguna transformación de color para visualización en pantalla, usa la antigua técnica de administración para representar en pantalla datos que no son colores"
 
 
 msgid "Color Mapping"
@@ -13981,7 +13985,7 @@ msgstr "Interpolación suave de alta calidad, pero más lenta"
 
 
 msgid "Closest"
-msgstr "+Cercano"
+msgstr "Más cercano"
 
 
 msgid "No interpolation"
@@ -14273,7 +14277,7 @@ msgstr "Muestreo completo"
 
 
 msgid "Nearest"
-msgstr "+Cercano"
+msgstr "Más cercano"
 
 
 msgid "Lower Concavity"
@@ -35522,7 +35526,7 @@ msgstr "Consola"
 
 
 msgid "Languages..."
-msgstr "Lenguajes..."
+msgstr "Lenguajes"
 
 
 msgid "Add Attribute"
@@ -49915,6 +49919,14 @@ msgid "Link is valid"
 msgstr "La conexión es válida"
 
 
+msgid "Multi Input Sort ID"
+msgstr "Ordenar ID de entradas múltiples"
+
+
+msgid "Used to sort multiple links coming into the same input. The highest ID is at the top"
+msgstr "Usado para ordenar múltiples conexiones que confluyan hacia el mismo conector. El ID más alto se encontrará más arriba"
+
+
 msgid "To node"
 msgstr "Nodo de destino"
 
@@ -57029,22 +57041,6 @@ msgid "Output format. Binary is most efficient, but JSON may be easier to edit l
 msgstr "Formato de salida. El formato binario es más eficiente, sin embargo el JSON puede ser más sencillo de editar posteriormente"
 
 
-msgid "glTF Binary (.glb)"
-msgstr "glTF binario (.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "Exporta un único archivo conteniendo todos los datos empacados en forma binaria. Es más eficiente y portable, pero más difícil de editar luego"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF separado (.gltf + .bin + textures)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "Exporta varios archivos, con datos JSON, binarios y de texturas. Más sencillo de editar luego"
-
-
 msgid "Limit to Playback Range"
 msgstr "Limitar a rango de reproducción"
 
@@ -63047,7 +63043,7 @@ msgstr "Importar imágenes como planos"
 
 
 msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
-msgstr "Crea planos poligonales a partir de las imágenes, con la proporción apropiada"
+msgstr "Crea uno o más planos poligonales (con la proporción que corresponda) a partir de archivos de imagen"
 
 
 msgid "How to align the planes"
@@ -69704,11 +69700,11 @@ msgstr "Permite unir los objetos seleccionados en el objeto activo"
 
 msgctxt "Operator"
 msgid "Join as Shapes"
-msgstr "Unir como Forma clave"
+msgstr "Transferir mezcla como Forma clave"
 
 
 msgid "Copy the current resulting shape of another selected object to this one"
-msgstr "Copia la forma actual resultante de otro objeto seleccionado a este objeto"
+msgstr "Copia la forma resultante actual de otro objeto seleccionado a este objeto"
 
 
 msgctxt "Operator"
@@ -90674,10 +90670,6 @@ msgid "Temporary Directory"
 msgstr "Directorio temporal"
 
 
-msgid "The directory for storing temporary save files"
-msgstr "El directorio donde almacenar temporalmente archivos"
-
-
 msgid ""
 "Command to launch the text editor, either a full path or a command in $PATH.\n"
 "Use the internal editor when left blank"
@@ -102283,11 +102275,11 @@ msgstr "Mostrar el consumo de tiempo de la última ejecución de cada nodo"
 
 
 msgid "Show Wire Colors"
-msgstr "Estructuras coloreadas"
+msgstr "Mostrar conexiones coloreadas"
 
 
 msgid "Color node links based on their connected sockets"
-msgstr "Muestra las conexiones entre nodos en color, basado en los tipos de conectores"
+msgstr "Mostrar las conexiones entre nodos con colores, basados en los tipos de conectores"
 
 
 msgid "Space UV Editor"
@@ -106256,6 +106248,10 @@ msgstr "Almacenar los paquetes en un caché local, en caso contrario los archivo
 
 msgid "Use Remote"
 msgstr "Usar remota"
+
+
+msgid "Synchronize the repository with a remote URL/path"
+msgstr "Sincronizará el repositorio con una ruta/URL remota"
 
 
 msgid "User Extension Repositories"
@@ -112941,22 +112937,6 @@ msgid "Current frame not within strip framerange"
 msgstr "El fotograma actual no se encuentra dentro del rango de fotogramas del clip"
 
 
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "Proporcionar formato de argumentos del editor de textos en Rutas de archivo/Preferencias de aplicaciones, ver descripción del campo de ingreso para más información"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "El formato de argumentos del Editor de texto debe contener $filepath"
-
-
-msgid "Exception parsing template: %r"
-msgstr "Excepción al analizar la plantilla: %r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "Excepción al ejecutar el editor externo: %r"
-
-
 msgid "Reload Start-Up file to restore settings"
 msgstr "Recargar el archivo de inicio para restablecer las opciones"
 
@@ -116751,7 +116731,7 @@ msgstr "Sobreimpresos editor nodos"
 
 
 msgid "Wire Colors"
-msgstr "Colores de estructuras"
+msgstr "Colores de conexiones"
 
 
 msgid "Context Path"
@@ -122467,10 +122447,6 @@ msgid "No keyframes to focus on"
 msgstr "Ningún clave sobre el cual poner foco"
 
 
-msgid "Nothing selected"
-msgstr "Nada seleccionado"
-
-
 msgid "No open Graph Editor window found"
 msgstr "No se encontró ninguna ventana del Editor de curvas"
 
@@ -123406,6 +123382,10 @@ msgid "Asset is not a geometry node group"
 msgstr "El recurso no es un grupo de nodos de geometría"
 
 
+msgid "Mesh shape key data removed"
+msgstr "Datos de forma clave de malla eliminados"
+
+
 msgid "Cannot evaluate node group"
 msgstr "No es posible evaluar el grupo de nodos"
 
@@ -123616,6 +123596,10 @@ msgstr "Modo Editar como curva no soportado"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "No es posible separar un objeto con sólo una capa"
+
+
+msgid "Nothing selected"
+msgstr "Nada seleccionado"
 
 
 msgid "No active area"
@@ -124505,11 +124489,11 @@ msgstr "Restablecer vista"
 
 
 msgid "Extend Horizontal"
-msgstr "Extender horizontal"
+msgstr "Extensión horizontal"
 
 
 msgid "Extend Extrapolated"
-msgstr "Extender extrapolado"
+msgstr "Extensión extrapolada"
 
 
 msgid "Reset Curve"
@@ -125120,7 +125104,7 @@ msgstr "Grupos de objetos"
 
 
 msgid "Material Groups"
-msgstr "Grupos de material"
+msgstr "Grupos de materiales"
 
 
 msgid "Smooth Groups"
@@ -128888,6 +128872,10 @@ msgid "{} (Integer)"
 msgstr "{} (Entero)"
 
 
+msgid "{:.10} (Float)"
+msgstr "{:.10} (Decimal)"
+
+
 msgid "{} (Float)"
 msgstr "{} (Decimal)"
 
@@ -131236,6 +131224,10 @@ msgid "Group"
 msgstr "Agrupar"
 
 
+msgid "PLY Export: Cannot open file '%s'"
+msgstr "Exportación a PLY: No es posible abrir el archivo '%s'"
+
+
 msgid "PLY Importer: failed importing, unknown error"
 msgstr "Importador de PLY: importación fallida, error desconocido"
 
@@ -131246,6 +131238,22 @@ msgstr "Importador de PLY: importación fallida, no hay vértices"
 
 msgid "PLY Importer: %s: %s"
 msgstr "Importador de PLY: %s: %s"
+
+
+msgid "STL Export: Cannot open file '%s'"
+msgstr "Exportación a STL: No es posible abrir el archivo '%s'"
+
+
+msgid "STL Import: Cannot open file '%s'"
+msgstr "Importación de STL: No es posible abrir el archivo '%s'"
+
+
+msgid "STL Import: Failed to read file '%s'"
+msgstr "Importación de STL: Falla al abrir el archivo '%s'"
+
+
+msgid "STL Import: Failed to import mesh from file '%s'"
+msgstr "Importación de STL: Falla al importar malla desde el archivo '%s'"
 
 
 msgid "%s: Couldn't determine package-relative file name from path %s"
@@ -131558,6 +131566,18 @@ msgstr "Exportación de USD: Falla al resolver archivo .vdb para el objeto: %s"
 
 msgid "USD Export: couldn't construct relative file path for .vdb file, absolute path will be used instead"
 msgstr "Exportación de USD: No fue posible construir una ruta relativa para el archivo .vdb, se usará una ruta absoluta"
+
+
+msgid "OBJ Export: Cannot open file '%s'"
+msgstr "Exportación a OBJ: No es posible abrir el archivo '%s'"
+
+
+msgid "OBJ Export: Cannot create mtl file for '%s'"
+msgstr "Exportación a OBJ: No es posible crear el archivo mtl '%s'"
+
+
+msgid "OBJ Import: Cannot open file '%s'"
+msgstr "Importación de OBJ: No es posible abrir archivo '%s'"
 
 
 msgid "Linked data-blocks cannot be renamed"
@@ -132437,7 +132457,11 @@ msgstr "Conectores con la misma dirección (de entrada o salida)"
 
 
 msgid "Unable to locate link in node tree"
-msgstr "No es posible localizar el vínculo en el árbol de nodos"
+msgstr "No es posible localizar el enlace en el árbol de nodos"
+
+
+msgid "The links must be siblings"
+msgstr "Los enlaces deben estar al mismo nivel jerárquico"
 
 
 msgid "Cannot add socket to built-in node"
@@ -135521,6 +135545,14 @@ msgid "UV Unwrap Field"
 msgstr "Campo de Desplegar UV"
 
 
+msgid "No color overlay"
+msgstr "No superponer color"
+
+
+msgid "Rotation values can only be displayed with the text overlay in the 3D view"
+msgstr "Los valores de rotación sólo pueden ser mostrados junto con el texto sobreimpreso en la Vista 3D"
+
+
 msgid "Resolution must be greater than 1"
 msgstr "La resolución debe ser mayor que 1"
 
@@ -137376,7 +137408,7 @@ msgstr "Importa y exporta glTF 2.0"
 
 
 msgid "3D-Print Toolbox"
-msgstr "Barra de herramientas de impresión 3D"
+msgstr "Barra de herramientas de Impresión 3D"
 
 
 msgid "3D View > Sidebar"

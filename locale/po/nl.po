@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -8821,10 +8821,6 @@ msgid "Hidden %d"
 msgstr "Verborgen %d"
 
 
-msgid "Nothing selected"
-msgstr "Niets geselecteerd"
-
-
 msgid "Delete Modifier"
 msgstr "Verwijder Aanpasser"
 
@@ -8893,6 +8889,10 @@ msgstr "Niets om te gummen"
 
 msgid "Object created"
 msgstr "Object gecreëerd"
+
+
+msgid "Nothing selected"
+msgstr "Niets geselecteerd"
 
 
 msgid "Pin"

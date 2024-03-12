@@ -1,11 +1,11 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.1.0 Beta (b'7e9a36c1fa37')\n"
+"Project-Id-Version: Blender 4.1.0 Beta (b'4b7cc5b6608a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 10:17+0000\n"
-"PO-Revision-Date: 2024-03-03 20:55+0000\n"
-"Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
+"POT-Creation-Date: 2020-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-03-12 05:27+0000\n"
+"Last-Translator: 李隆基 <mikufsgen@outlook.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
 "MIME-Version: 1.0\n"
@@ -3947,8 +3947,20 @@ msgid "Bones assigned to this bone collection. In armature edit mode this will a
 msgstr "骨骼被分配到此骨骼集合，在骨架编辑模式下此将永远返回一个空的骨骼列表，因为骨骼集合成员资格仅在退出编辑模式时同步"
 
 
+msgid "Child Number"
+msgstr "子级编号"
+
+
+msgid "Index of this collection into its parent's list of children. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "该集合在其父级的子级列表中的编号。需注意，搜寻此编号需要扫描所有骨骼集合，因此访问时应慎重"
+
+
 msgid "Index"
 msgstr "编号"
+
+
+msgid "Index of this bone collection in the armature.collections_all array. Note that finding this index requires a scan of all the bone collections, so do access this with care"
+msgstr "该骨骼集合在 armature.collections_all 阵列中的编号。需注意，搜寻此编号需要扫描所有骨骼集合，因此访问时应慎重"
 
 
 msgid "Is Editable"
@@ -4037,6 +4049,10 @@ msgstr "骨架的活动骨骼集合"
 
 msgid "Active Collection Index"
 msgstr "活动集合索引"
+
+
+msgid "The index of the Armature's active bone collection; -1 when there is no active collection. Note that this is indexing the underlying array of bone collections, which may not be in the order you expect. Root collections are listed first, and siblings are always sequential. Apart from that, bone collections can be in any order, and thus incrementing or decrementing this index can make the active bone collection jump around in unexpected ways. For a more predictable interface, use `active` or `active_name`"
+msgstr "返回骨架下活动骨骼的编号集合；当没有活动集合时返回-1。注意这个编号是按骨骼集合底层数组排序的，可能会和你期待的顺序有所不同。根集合会优先列出，而同级集合总是会次第列出。除了这两点之外，骨骼集合可能会以任何顺序列出，所以对序号进行自增或者自减操作都有可能让骨骼集合以意料之外的方式瞬移。如果要使用一个更加可预料的编号接口，请使用\"active\"或者\"active_name\""
 
 
 msgid "Active Collection Name"
@@ -9373,7 +9389,7 @@ msgstr "电影向"
 
 
 msgid "Clip"
-msgstr "剪辑(裁切)"
+msgstr "裁切"
 
 
 msgid "Force the curve view to fit a defined boundary"
@@ -10080,6 +10096,14 @@ msgstr "显示数据块过滤器"
 
 msgid "Show options for whether channels related to certain types of data are included"
 msgstr "显示通道里数据包含何种类型的选项"
+
+
+msgid "Variable Fallback As Error"
+msgstr "变量回退视为错误"
+
+
+msgid "Include drivers that relied on any fallback values for their evaluation in the Only Show Errors filter, even if the driver evaluation succeeded"
+msgstr "在“仅显示错误”过滤器中包含返回值发生回退的驱动，即使它们已经评估成功"
 
 
 msgid "Collapse Summary"
@@ -19646,6 +19670,10 @@ msgid "Session UID"
 msgstr "会话UID"
 
 
+msgid "A session-wide unique identifier for the data block that remains the same across renames and internal reallocations. It does change when reloading the file"
+msgstr "数据块的一个可在重命名操作以及内部重分配操作下保持不变的会话间唯一标识符。这个值会在每次重新加载文件的时候发生变化"
+
+
 msgid "Tag"
 msgstr "标签"
 
@@ -20817,6 +20845,10 @@ msgid "Mask"
 msgstr "遮罩"
 
 
+msgid "Number of input samples to average together to smooth the brush stroke"
+msgstr "平滑笔画的多重采样数量"
+
+
 msgid "Invert Pressure for Density"
 msgstr "反转压力对密度的作用"
 
@@ -21049,7 +21081,7 @@ msgstr "跟随光标旋转的拖拽量"
 
 
 msgid "Rate"
-msgstr "*Rate"
+msgstr "比率"
 
 
 msgid "Interval between paints for Airbrush"
@@ -25369,7 +25401,7 @@ msgstr "反转集合"
 
 
 msgid "Invert visibility collection"
-msgstr "反转可见性集合"
+msgstr "反转可见集合"
 
 
 msgid "Parallax Radius"
@@ -25457,19 +25489,19 @@ msgstr "在方差阴影映射(VSM)降低灯光出血的偏移量"
 
 
 msgid "Visibility Blur"
-msgstr "可见性模糊"
+msgstr "可见模糊"
 
 
 msgid "Filter size of the visibility blur"
-msgstr "可见性模糊的过滤尺寸"
+msgstr "可见模糊的过滤尺寸"
 
 
 msgid "Visibility Bias"
-msgstr "可见性"
+msgstr "可见偏移"
 
 
 msgid "Visibility Collection"
-msgstr "可见性集合"
+msgstr "可见集合"
 
 
 msgid "Restrict objects visible for this probe"
@@ -33831,7 +33863,7 @@ msgstr "为插帧集插入关键帧的ID块的目标添加位置 (仅用于专�
 
 
 msgid "Entire Array"
-msgstr "全部帧列"
+msgstr "全部阵列"
 
 
 msgid "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used"
@@ -36686,6 +36718,10 @@ msgid "The active modifier in the list"
 msgstr "列表中的活动修改器"
 
 
+msgid "Uniquely identifies the modifier within the modifier stack that it is part of"
+msgstr "修改器在其所属堆栈中的唯一标识符"
+
+
 msgid "On Cage"
 msgstr "显示罩体"
 
@@ -37023,7 +37059,7 @@ msgstr "向物体的几何结构添加类似波纹的运动"
 
 
 msgid "Volume Displace"
-msgstr "体积l置换"
+msgstr "体积置换"
 
 
 msgid "Deform volume based on noise or other vector fields"
@@ -49495,7 +49531,7 @@ msgstr "缩放"
 
 
 msgid "A multiplied by Scale"
-msgstr "A乘以比例"
+msgstr "A乘以缩放值"
 
 
 msgctxt "NodeTree"
@@ -49733,6 +49769,10 @@ msgid "Value to Normal"
 msgstr "值转法线"
 
 
+msgid "Definition of an enumeration for nodes"
+msgstr "节点枚举的定义"
+
+
 msgid "Active Item"
 msgstr "活动项"
 
@@ -49743,6 +49783,10 @@ msgstr "活动项"
 
 msgid "Enum Definition Items"
 msgstr "枚举定义项目"
+
+
+msgid "Collection of items that make up an enum"
+msgstr "组成枚举的项目集合"
 
 
 msgid "Enum Item"
@@ -50443,6 +50487,10 @@ msgstr "节点修改器烘焙"
 
 msgid "Bake ID"
 msgstr "烘焙ID"
+
+
+msgid "Identifier for this bake which remains unchanged even when the bake node is renamed, grouped or ungrouped"
+msgstr "该烘焙的标识符，即使烘焙节点重命名、分组或取消分组，该标识符也保持不变"
 
 
 msgid "Bake Mode"
@@ -56945,22 +56993,6 @@ msgstr "应用采样到所有动画"
 
 msgid "Output format. Binary is most efficient, but JSON may be easier to edit later"
 msgstr "输出格式，二进制是最有效的，但JSON以后可能更容易编辑"
-
-
-msgid "glTF Binary (.glb)"
-msgstr "glTF二进制(.glb)"
-
-
-msgid "Exports a single file, with all data packed in binary form. Most efficient and portable, but more difficult to edit later"
-msgstr "将全部数据打包为二进制格式.，导出单个文件。高效并便携, 但不方便之后编辑"
-
-
-msgid "glTF Separate (.gltf + .bin + textures)"
-msgstr "glTF分离(.gltf+.bin+纹理)"
-
-
-msgid "Exports multiple files, with separate JSON, binary and texture data. Easiest to edit later"
-msgstr "区分JSON，二进制和纹理数据，导出多个文件，更易于之后编辑"
 
 
 msgid "Limit to Playback Range"
@@ -64688,11 +64720,11 @@ msgstr "复制网格并移动"
 
 msgctxt "Operator"
 msgid "Collapse Edges & Faces"
-msgstr "塌陷边线&面"
+msgstr "塌陷边和面"
 
 
 msgid "Collapse isolated edge and face regions, merging data such as UVs and color attributes. This can collapse edge-rings as well as regions of connected faces into vertices"
-msgstr "塌陷隔离的边&面区域，合并UV和颜色属性等数据。这可以将循环边以及相连的面区域塌陷到顶点"
+msgstr "塌陷隔离的边和面区域，合并UV和颜色属性等数据。这可以将循环边以及相连的面区域塌陷到顶点"
 
 
 msgctxt "Operator"
@@ -67323,7 +67355,7 @@ msgstr "清除约束"
 
 
 msgid "Remove all constraints from keyed object/bones, and do 'visual' keying"
-msgstr "移除所选骨骼的所有 IK 约束"
+msgstr "移除已插帧物体/骨骼的所有约束，并执行 '可视' 插帧"
 
 
 msgid "Clear Parents"
@@ -67331,7 +67363,7 @@ msgstr "清除父级"
 
 
 msgid "Bake animation onto the object then clear parents (objects only)"
-msgstr "将动画烘焙到物体上，然后清除父级(仅对象)"
+msgstr "将动画烘焙到物体上，然后清除父级(仅物体)"
 
 
 msgid "Only Selected Bones"
@@ -67990,9 +68022,17 @@ msgid "Add Item"
 msgstr "添加项目"
 
 
+msgid "Add an enum item to the definition"
+msgstr "向定义中添加枚举项目"
+
+
 msgctxt "Operator"
 msgid "Move Item"
 msgstr "移动条目"
+
+
+msgid "Remove the selected enum item from the definition"
+msgstr "从定义中移除所选枚举项目"
 
 
 msgid "Move up or down"
@@ -71089,7 +71129,7 @@ msgstr "将被视为平滑的面法线之间的最大角度"
 
 
 msgid "Only add sharp edges instead of clearing existing tags first"
-msgstr "仅添加锐边而不是先清除已存在的标记"
+msgstr "仅新增锐边，而不是先清除已存在的锐边标记"
 
 
 msgctxt "Operator"
@@ -73188,6 +73228,10 @@ msgstr "隐藏 / 显示"
 
 msgid "Hide/show some vertices"
 msgstr "隐藏或显示一些顶点"
+
+
+msgid "Visibility Action"
+msgstr "可见动作"
 
 
 msgid "Whether to hide or show vertices"
@@ -78181,8 +78225,21 @@ msgid "Add freeze frame"
 msgstr "添加冻结帧"
 
 
+msgctxt "Operator"
+msgid "Add Speed Transition And Slide"
+msgstr "添加速度过渡并滑移"
+
+
+msgid "Add smooth transition between 2 retimed segments and change its duration"
+msgstr "在两个重定时区间内添加平滑过渡并更改其持续时间"
+
+
+msgid "Add Speed Transition"
+msgstr "添加速度过渡"
+
+
 msgid "Add smooth transition between 2 retimed segments"
-msgstr "在两个重定时的区间内添加平滑变换"
+msgstr "在两个重定时区间内添加平滑过渡"
 
 
 msgctxt "Operator"
@@ -78226,7 +78283,7 @@ msgstr "设置速度"
 
 
 msgid "Set speed of retimed segment"
-msgstr "设定重定时的片段速度"
+msgstr "设置重定时的片段速度"
 
 
 msgid "Preserve Current Retiming"
@@ -84284,6 +84341,10 @@ msgid "Clean Up Operator Presets"
 msgstr "清理操作项预设"
 
 
+msgid "Remove outdated operator properties from presets that may cause problems"
+msgstr "删除预设中可能导致问题的过时的操作符属性"
+
+
 msgid "Disable add-on for workspace"
 msgstr "禁用工作区的插件"
 
@@ -84765,6 +84826,10 @@ msgid "Load factory default startup file and preferences. To make changes perman
 msgstr "还原启动文件和默认偏好设置。使用\"保存启动文件\"和\"保存偏好设置\"来永久保存修改"
 
 
+msgid "After loading, remove everything except scenes, windows, and workspaces. This makes it possible to load the startup file with its scene configuration and window layout intact, but no objects, materials, animations, ..."
+msgstr "加载后，将删除除场景、窗口和工作区之外的所有内容。这样就可以在加载启动文件时保留场景配置和窗口布局，但不保留物体、材质、动画......"
+
+
 msgid "Factory Startup App-Template Only"
 msgstr "仅初始启动应用模板"
 
@@ -84805,7 +84870,11 @@ msgstr "从.blend工程文件中加载用户界面设置"
 
 
 msgid "Factory Startup"
-msgstr "出厂启动"
+msgstr "初始启动"
+
+
+msgid "Load the default ('factory startup') blend file. This is independent of the normal start-up file that the user can save"
+msgstr "加载默认 (\"初始启动\") blend文件。它独立于用户可以保存的正常启动文件"
 
 
 msgctxt "Operator"
@@ -90532,10 +90601,6 @@ msgstr "配置默认的音频文件库路经"
 
 msgid "Temporary Directory"
 msgstr "临时文件夹"
-
-
-msgid "The directory for storing temporary save files"
-msgstr "配置临时文件的保存路径"
 
 
 msgid ""
@@ -100281,6 +100346,10 @@ msgid "Graph Editor space data"
 msgstr "曲线编辑器空间数据"
 
 
+msgid "Auto-Lock Key Axis"
+msgstr "自动锁定关键帧轴向"
+
+
 msgid "Automatically locks the movement of keyframes to the dominant axis"
 msgstr "自动将关键帧的移动锁定在主导轴上"
 
@@ -102290,6 +102359,10 @@ msgstr "曲线元素, NURBS, 贝塞尔或多边形, 或文本物体式字符"
 
 msgid "Bézier Points"
 msgstr "贝塞尔控制点"
+
+
+msgid "Collection of points for Bézier curves only"
+msgstr "仅含贝塞尔曲线控制点的集合"
 
 
 msgid "Character Index"
@@ -108111,7 +108184,7 @@ msgstr "动作对应的控制器目标在世界空间中的位置"
 
 
 msgid "Controller Location Other"
-msgstr "控制器位置其他"
+msgstr "控制器位置-其他"
 
 
 msgid "Controller aim location of the other user path for bimanual actions"
@@ -108127,7 +108200,7 @@ msgstr "动作对应控制器目标在世界空间中的旋转"
 
 
 msgid "Controller Rotation Other"
-msgstr "控制器旋转其他"
+msgstr "控制器旋转-其他"
 
 
 msgid "Controller aim rotation of the other user path for bimanual actions"
@@ -110765,12 +110838,12 @@ msgstr "遮罩编辑"
 
 msgctxt "WindowManager"
 msgid "Frames"
-msgstr "帧数"
+msgstr "帧"
 
 
 msgctxt "WindowManager"
 msgid "Markers"
-msgstr "标记数"
+msgstr "标记"
 
 
 msgctxt "WindowManager"
@@ -112763,22 +112836,6 @@ msgstr "无选中序列"
 
 msgid "Current frame not within strip framerange"
 msgstr "当前帧不在片段帧范围内"
-
-
-msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
-msgstr "在文件路径/应用设置中提供的文本编辑器参数格式，详细信息见于输入字段的工具提示"
-
-
-msgid "Text Editor Args Format must contain $filepath"
-msgstr "文本编辑器参数格式必须包含 $filepath"
-
-
-msgid "Exception parsing template: %r"
-msgstr "模板语法分析异常: %r"
-
-
-msgid "Exception running external editor: %r"
-msgstr "外部编辑器运行异常: %r"
 
 
 msgid "Reload Start-Up file to restore settings"
@@ -122287,10 +122344,6 @@ msgid "No keyframes to focus on"
 msgstr "没有要聚焦的关键帧"
 
 
-msgid "Nothing selected"
-msgstr "未选中任何项"
-
-
 msgid "No open Graph Editor window found"
 msgstr "找不到开启的“曲线编辑器”窗口"
 
@@ -123424,6 +123477,10 @@ msgstr "不支持曲线编辑模式"
 
 msgid "Cannot separate an object with one layer only"
 msgstr "不能仅用一个图层分隔对象"
+
+
+msgid "Nothing selected"
+msgstr "未选中任何项"
 
 
 msgid "No active area"
@@ -124881,6 +124938,10 @@ msgstr "导出过短出现错误 (见控制台)"
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "文档中的解析错误 (查看 Blender 控制台)"
+
+
+msgid "Multiple file handlers can be used, drop to pick which to use"
+msgstr "多个文件句柄可用，下拉选择要使用的一项"
 
 
 msgid "Export Options"
@@ -128208,6 +128269,10 @@ msgid "Cannot find keys to operate on"
 msgstr "找不到要操作的关键帧"
 
 
+msgid "Decimate: Skipping non linear/Bézier keyframes!"
+msgstr "精简：跳过非线性/贝塞尔关键帧！"
+
+
 msgid "You need at least 2 keys to the right side of the selection"
 msgstr "选择部分右侧至少需要2个关键帧"
 
@@ -129572,8 +129637,20 @@ msgid "Select movie or image strips"
 msgstr "选择影片或图像片段"
 
 
+msgid "Cannot create key inside of speed transition"
+msgstr "无法在速度过渡内部创建关键帧"
+
+
 msgid "Cannot create freeze frame"
 msgstr "无法创建冻结帧"
+
+
+msgid "Cannot create transition from first or last key"
+msgstr "无法从第一个或最后一个关键帧创建过渡"
+
+
+msgid "Cannot create transition"
+msgstr "无法创建过渡"
 
 
 msgid "Retiming key must be selected"
@@ -134505,7 +134582,7 @@ msgstr "孤岛数量"
 
 
 msgid "The index of the each vertex's island. Indices are based on the lowest vertex index contained in each island"
-msgstr "各个顶点孤岛的编号。编号是基于各孤岛所包含的最小顶点编号"
+msgstr "各顶点所属孤岛的编号。该编号是基于各孤岛所包含的最小顶点编号"
 
 
 msgid "The total number of mesh islands"
@@ -135778,11 +135855,11 @@ msgstr "系数(非均匀)"
 
 
 msgid "Color1"
-msgstr "色彩 1"
+msgstr "颜色 1"
 
 
 msgid "Color2"
-msgstr "色彩 2"
+msgstr "颜色 2"
 
 
 msgid "Object Index"
