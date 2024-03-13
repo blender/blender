@@ -226,7 +226,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
 
     if (kw && PyDict_Size(kw)) {
       error_val = pyrna_pydict_to_props(
-          &ptr, kw, false, "Converting py args to operator properties: ");
+          &ptr, kw, false, "Converting py args to operator properties:");
     }
 
     if (error_val == 0) {
@@ -366,7 +366,7 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
 
   if (kw && PyDict_Size(kw)) {
     error_val = pyrna_pydict_to_props(
-        &ptr, kw, false, "Converting py args to operator properties: ");
+        &ptr, kw, false, "Converting py args to operator properties:");
   }
 
   std::string op_string;
