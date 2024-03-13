@@ -607,6 +607,12 @@ static bool transform_poll_property(const bContext *C, wmOperator *op, const Pro
     return RNA_boolean_get(op->ptr, "snap");
   }
 
+  /* #P_CORRECT_UV. */
+  if (STREQ(prop_id, "correct_uv")) {
+    ScrArea *area = CTX_wm_area(C);
+    return area->spacetype == SPACE_VIEW3D;
+  }
+
   return true;
 }
 

@@ -316,6 +316,11 @@ class IMAGE_MT_uvs_transform(Menu):
 
         layout.separator()
 
+        layout.operator("transform.vert_slide")
+        layout.operator("transform.edge_slide")
+
+        layout.separator()
+
         layout.operator("uv.randomize_uv_transform")
 
 
@@ -562,17 +567,19 @@ class IMAGE_MT_uvs_context_menu(Menu):
 
             layout.operator_enum("uv.align", "axis")  # W, 2/3/4.
 
-            layout.operator_context = 'INVOKE_DEFAULT'
-
-            if is_vert_mode:
-                layout.operator("transform.vert_slide")
-
-            if is_edge_mode:
-                layout.operator("transform.edge_slide")
-
-            layout.operator_context = 'EXEC_REGION_WIN'
-
             layout.separator()
+
+            if is_vert_mode or is_edge_mode:
+                layout.operator_context = 'INVOKE_DEFAULT'
+
+                if is_vert_mode:
+                    layout.operator("transform.vert_slide")
+
+                if is_edge_mode:
+                    layout.operator("transform.edge_slide")
+
+                layout.operator_context = 'EXEC_REGION_WIN'
+                layout.separator()
 
             # Remove
             layout.menu("IMAGE_MT_uvs_merge")
