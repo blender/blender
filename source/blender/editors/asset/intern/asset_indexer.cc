@@ -140,30 +140,17 @@ class BlendFile : public AbstractFile {
  *
  * NOTE: id and name are encoded like #ID.name
  */
-static void add_id_name(DictionaryValue::Items &result,
-                        const short idcode,
-                        const StringRefNull name)
+static void add_id_name(DictionaryValue &result, const short idcode, const StringRefNull name)
 {
   char idcode_prefix[2];
   /* Similar to `BKE_libblock_alloc`. */
   *((short *)idcode_prefix) = idcode;
   std::string name_with_idcode = std::string(idcode_prefix, sizeof(idcode_prefix)) + name;
 
-  result.append_as(std::pair(ATTRIBUTE_ENTRIES_NAME, new StringValue(name_with_idcode)));
+  result.append_str(ATTRIBUTE_ENTRIES_NAME, name_with_idcode);
 }
 
-static void add_tags(DictionaryValue::Items &result, const ListBase /* AssetTag */ *asset_tags)
-{
-  ArrayValue *tags = new ArrayValue();
-  result.append_as(std::pair(ATTRIBUTE_ENTRIES_TAGS, tags));
-  ArrayValue::Items &tag_items = tags->elements();
-
-  LISTBASE_FOREACH (AssetTag *, tag, asset_tags) {
-    tag_items.append_as(new StringValue(tag->name));
-  }
-}
-
-static void init_value_from_file_indexer_entry(DictionaryValue::Items &result,
+static void init_value_from_file_indexer_entry(DictionaryValue &result,
                                                const FileIndexerEntry *indexer_entry)
 {
   const BLODataBlockInfo &datablock_info = indexer_entry->datablock_info;
@@ -171,31 +158,32 @@ static void init_value_from_file_indexer_entry(DictionaryValue::Items &result,
   add_id_name(result, indexer_entry->idcode, datablock_info.name);
 
   const AssetMetaData &asset_data = *datablock_info.asset_data;
-  result.append_as(std::pair(ATTRIBUTE_ENTRIES_CATALOG_ID,
-                             new StringValue(CatalogID(asset_data.catalog_id).str())));
-  result.append_as(
-      std::pair(ATTRIBUTE_ENTRIES_CATALOG_NAME, new StringValue(asset_data.catalog_simple_name)));
+  result.append_str(ATTRIBUTE_ENTRIES_CATALOG_ID, CatalogID(asset_data.catalog_id).str());
+  result.append_str(ATTRIBUTE_ENTRIES_CATALOG_NAME, asset_data.catalog_simple_name);
 
   if (const char *description = asset_data.description) {
-    result.append_as(std::pair(ATTRIBUTE_ENTRIES_DESCRIPTION, new StringValue(description)));
+    result.append_str(ATTRIBUTE_ENTRIES_DESCRIPTION, description);
   }
   if (const char *author = asset_data.author) {
-    result.append_as(std::pair(ATTRIBUTE_ENTRIES_AUTHOR, new StringValue(author)));
+    result.append_str(ATTRIBUTE_ENTRIES_AUTHOR, author);
   }
   if (const char *copyright = asset_data.copyright) {
-    result.append_as(std::pair(ATTRIBUTE_ENTRIES_COPYRIGHT, new StringValue(copyright)));
+    result.append_str(ATTRIBUTE_ENTRIES_COPYRIGHT, copyright);
   }
   if (const char *license = asset_data.license) {
-    result.append_as(std::pair(ATTRIBUTE_ENTRIES_LICENSE, new StringValue(license)));
+    result.append_str(ATTRIBUTE_ENTRIES_LICENSE, license);
   }
 
   if (!BLI_listbase_is_empty(&asset_data.tags)) {
-    add_tags(result, &asset_data.tags);
+    ArrayValue &tags = *result.append_array(ATTRIBUTE_ENTRIES_TAGS);
+    LISTBASE_FOREACH (AssetTag *, tag, &asset_data.tags) {
+      tags.append_str(tag->name);
+    }
   }
 
   if (const IDProperty *properties = asset_data.properties) {
     if (std::unique_ptr<Value> value = convert_to_serialize_values(properties)) {
-      result.append_as(std::pair(ATTRIBUTE_ENTRIES_PROPERTIES, value.release()));
+      result.append(ATTRIBUTE_ENTRIES_PROPERTIES, std::move(value));
     }
   }
 }
@@ -203,8 +191,7 @@ static void init_value_from_file_indexer_entry(DictionaryValue::Items &result,
 static void init_value_from_file_indexer_entries(DictionaryValue &result,
                                                  const FileIndexerEntries &indexer_entries)
 {
-  ArrayValue *entries = new ArrayValue();
-  ArrayValue::Items &items = entries->elements();
+  auto entries = std::make_shared<ArrayValue>();
 
   for (LinkNode *ln = indexer_entries.entries; ln; ln = ln->next) {
     const FileIndexerEntry *indexer_entry = static_cast<const FileIndexerEntry *>(ln->link);
@@ -213,26 +200,22 @@ static void init_value_from_file_indexer_entries(DictionaryValue &result,
     if (indexer_entry->datablock_info.asset_data == nullptr) {
       continue;
     }
-    DictionaryValue *entry = new DictionaryValue();
-    init_value_from_file_indexer_entry(entry->elements(), indexer_entry);
-    items.append_as(entry);
+    init_value_from_file_indexer_entry(*entries->append_dict(), indexer_entry);
   }
 
   /* When no entries to index, we should not store the entries attribute as this would make the
    * size bigger than the #MIN_FILE_SIZE_WITH_ENTRIES. */
-  if (items.is_empty()) {
-    delete entries;
+  if (entries->elements().is_empty()) {
     return;
   }
 
-  DictionaryValue::Items &attributes = result.elements();
-  attributes.append_as(std::pair(ATTRIBUTE_ENTRIES, entries));
+  result.append(ATTRIBUTE_ENTRIES, entries);
 }
 
 static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
-                                          const DictionaryValue::Lookup &entry)
+                                          const DictionaryValue &entry)
 {
-  const StringRef idcode_name = entry.lookup(ATTRIBUTE_ENTRIES_NAME)->as_string_value()->value();
+  const StringRef idcode_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_NAME);
 
   indexer_entry.idcode = GS(idcode_name.data());
 
@@ -242,39 +225,32 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
   indexer_entry.datablock_info.asset_data = asset_data;
   indexer_entry.datablock_info.free_asset_data = true;
 
-  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_DESCRIPTION)) {
-    const StringRef description = value->get()->as_string_value()->value();
-    asset_data->description = BLI_strdupn(description.data(), description.size());
+  if (const std::optional<StringRef> value = entry.lookup_str(ATTRIBUTE_ENTRIES_DESCRIPTION)) {
+    asset_data->description = BLI_strdupn(value->data(), value->size());
   }
-  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_AUTHOR)) {
-    const StringRef author = value->get()->as_string_value()->value();
-    asset_data->author = BLI_strdupn(author.data(), author.size());
+  if (const std::optional<StringRef> value = entry.lookup_str(ATTRIBUTE_ENTRIES_AUTHOR)) {
+    asset_data->author = BLI_strdupn(value->data(), value->size());
   }
-  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_COPYRIGHT)) {
-    const StringRef copyright = value->get()->as_string_value()->value();
-    asset_data->copyright = BLI_strdupn(copyright.data(), copyright.size());
+  if (const std::optional<StringRef> value = entry.lookup_str(ATTRIBUTE_ENTRIES_COPYRIGHT)) {
+    asset_data->copyright = BLI_strdupn(value->data(), value->size());
   }
-  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_LICENSE)) {
-    const StringRef license = value->get()->as_string_value()->value();
-    asset_data->license = BLI_strdupn(license.data(), license.size());
+  if (const std::optional<StringRef> value = entry.lookup_str(ATTRIBUTE_ENTRIES_LICENSE)) {
+    asset_data->license = BLI_strdupn(value->data(), value->size());
   }
 
-  const StringRefNull catalog_name =
-      entry.lookup(ATTRIBUTE_ENTRIES_CATALOG_NAME)->as_string_value()->value();
+  const StringRefNull catalog_name = *entry.lookup_str(ATTRIBUTE_ENTRIES_CATALOG_NAME);
   STRNCPY_UTF8(asset_data->catalog_simple_name, catalog_name.c_str());
 
-  const StringRefNull catalog_id =
-      entry.lookup(ATTRIBUTE_ENTRIES_CATALOG_ID)->as_string_value()->value();
+  const StringRefNull catalog_id = *entry.lookup_str(ATTRIBUTE_ENTRIES_CATALOG_ID);
   asset_data->catalog_id = CatalogID(catalog_id);
 
-  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_TAGS)) {
-    const ArrayValue *array_value = value->get()->as_array_value();
-    for (const ArrayValue::Item &item : array_value->elements()) {
+  if (const ArrayValue *array_value = entry.lookup_array(ATTRIBUTE_ENTRIES_TAGS)) {
+    for (const std::shared_ptr<Value> &item : array_value->elements()) {
       BKE_asset_metadata_tag_add(asset_data, item->as_string_value()->value().c_str());
     }
   }
 
-  if (const std::shared_ptr<Value> *value = entry.lookup_ptr(ATTRIBUTE_ENTRIES_PROPERTIES)) {
+  if (const std::shared_ptr<Value> *value = entry.lookup(ATTRIBUTE_ENTRIES_PROPERTIES)) {
     asset_data->properties = convert_from_serialize_value(*value->get());
   }
 }
@@ -282,20 +258,17 @@ static void init_indexer_entry_from_value(FileIndexerEntry &indexer_entry,
 static int init_indexer_entries_from_value(FileIndexerEntries &indexer_entries,
                                            const DictionaryValue &value)
 {
-  const DictionaryValue::Lookup attributes = value.create_lookup();
-  const DictionaryValue::LookupValue *entries_value = attributes.lookup_ptr(ATTRIBUTE_ENTRIES);
-  BLI_assert(entries_value != nullptr);
-
-  if (entries_value == nullptr) {
+  const ArrayValue *entries = value.lookup_array(ATTRIBUTE_ENTRIES);
+  BLI_assert(entries != nullptr);
+  if (entries == nullptr) {
     return 0;
   }
 
   int num_entries_read = 0;
-  const ArrayValue::Items elements = (*entries_value)->as_array_value()->elements();
-  for (ArrayValue::Item element : elements) {
+  for (const std::shared_ptr<Value> &element : entries->elements()) {
     FileIndexerEntry *entry = static_cast<FileIndexerEntry *>(
         MEM_callocN(sizeof(FileIndexerEntry), __func__));
-    init_indexer_entry_from_value(*entry, element->as_dictionary_value()->create_lookup());
+    init_indexer_entry_from_value(*entry, *element->as_dictionary_value());
 
     BLI_linklist_prepend(&indexer_entries.entries, entry);
     num_entries_read += 1;
@@ -519,12 +492,8 @@ struct AssetIndex {
     if (root == nullptr) {
       return UNKNOWN_VERSION;
     }
-    const DictionaryValue::Lookup attributes = root->create_lookup();
-    const DictionaryValue::LookupValue *version_value = attributes.lookup_ptr(ATTRIBUTE_VERSION);
-    if (version_value == nullptr) {
-      return UNKNOWN_VERSION;
-    }
-    return (*version_value)->as_int_value()->value();
+    const std::optional<int64_t> version_value = root->lookup_int(ATTRIBUTE_VERSION);
+    return version_value.value_or(UNKNOWN_VERSION);
   }
 
   bool is_latest_version() const
