@@ -188,7 +188,7 @@ enum eV3DDepthOverrideMode {
 };
 /**
  * Redraw the viewport depth buffer.
- * Call #view3d_has_depth_buffer_being_used if you want to check if the viewport already has depth
+ * Call #ED_view3d_has_depth_buffer_updated if you want to check if the viewport already has depth
  * buffer updated.
  */
 void ED_view3d_depth_override(Depsgraph *depsgraph,
@@ -211,7 +211,7 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
                                   double depth,
                                   float r_location_world[3]);
 
-bool ED_view3d_has_depth_buffer_being_used(const Depsgraph *depsgraph, const View3D *v3d);
+bool ED_view3d_has_depth_buffer_updated(const Depsgraph *depsgraph, const View3D *v3d);
 
 /**
  * Utilities to perform navigation.
