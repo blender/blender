@@ -226,6 +226,7 @@ static void store_result_geometry(
         if (object.mode == OB_MODE_EDIT) {
           EDBM_mesh_make_from_mesh(&object, new_mesh, scene.toolsettings->selectmode, true);
           BKE_editmesh_looptris_and_normals_calc(mesh.edit_mesh);
+          BKE_id_free(nullptr, new_mesh);
         }
         else {
           BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
