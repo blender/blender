@@ -125,7 +125,6 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
 
   virtual void build_idproperties(IDProperty *id_property);
 
-  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);

@@ -88,7 +88,9 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
 
   build_layer_collections(&view_layer->layer_collections);
 
-  build_scene_camera(scene);
+  if (scene->camera != nullptr) {
+    build_object(scene->camera);
+  }
   /* Rigidbody. */
   if (scene->rigidbody_world != nullptr) {
     build_rigidbody(scene);
