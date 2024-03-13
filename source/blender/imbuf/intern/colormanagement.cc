@@ -458,28 +458,24 @@ static void colormanage_role_color_space_name_get(OCIO_ConstConfigRcPtr *config,
 
   ociocs = OCIO_configGetColorSpace(config, role);
 
-  if (!ociocs && backup_role) {
+  if (ociocs == nullptr && backup_role) {
     ociocs = OCIO_configGetColorSpace(config, backup_role);
   }
 
-  if (ociocs) {
-    const char *name = OCIO_colorSpaceGetName(ociocs);
+  if (ociocs == nullptr) {
+    printf("Color management: Error, could not find role \"%s\"\n", role);
+    return;
+  }
 
-    /* assume function was called with buffer properly allocated to MAX_COLORSPACE_NAME chars */
-    BLI_strncpy(colorspace_name, name, MAX_COLORSPACE_NAME);
-    OCIO_colorSpaceRelease(ociocs);
-  }
-  else {
-    printf("Color management: Error could not find role %s role.\n", role);
-  }
+  const char *name = OCIO_colorSpaceGetName(ociocs);
+
+  /* assume function was called with buffer properly allocated to MAX_COLORSPACE_NAME chars */
+  BLI_strncpy(colorspace_name, name, MAX_COLORSPACE_NAME);
+  OCIO_colorSpaceRelease(ociocs);
 }
 
 static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 {
-  int tot_colorspace, tot_display, tot_display_view, tot_looks;
-  int index, viewindex, viewindex2;
-  const char *name;
-
   /* get roles */
   colormanage_role_color_space_name_get(config, global_role_data, OCIO_ROLE_DATA, nullptr);
   colormanage_role_color_space_name_get(
@@ -496,18 +492,14 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
       config, global_role_default_float, OCIO_ROLE_DEFAULT_FLOAT, OCIO_ROLE_SCENE_LINEAR);
 
   /* load colorspaces */
-  tot_colorspace = OCIO_configGetNumColorSpaces(config);
-  for (index = 0; index < tot_colorspace; index++) {
-    OCIO_ConstColorSpaceRcPtr *ocio_colorspace;
-    const char *description;
-    bool is_invertible, is_data;
+  const int tot_colorspace = OCIO_configGetNumColorSpaces(config);
+  for (int index = 0; index < tot_colorspace; index++) {
+    const char *name = OCIO_configGetColorSpaceNameByIndex(config, index);
 
-    name = OCIO_configGetColorSpaceNameByIndex(config, index);
-
-    ocio_colorspace = OCIO_configGetColorSpace(config, name);
-    description = OCIO_colorSpaceGetDescription(ocio_colorspace);
-    is_invertible = OCIO_colorSpaceIsInvertible(ocio_colorspace);
-    is_data = OCIO_colorSpaceIsData(ocio_colorspace);
+    OCIO_ConstColorSpaceRcPtr *ocio_colorspace = OCIO_configGetColorSpace(config, name);
+    const char *description = OCIO_colorSpaceGetDescription(ocio_colorspace);
+    const bool is_invertible = OCIO_colorSpaceIsInvertible(ocio_colorspace);
+    const bool is_data = OCIO_colorSpaceIsData(ocio_colorspace);
 
     ColorSpace *colorspace = colormanage_colorspace_add(name, description, is_invertible, is_data);
 
@@ -526,34 +518,27 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
   }
 
   /* load displays */
-  viewindex2 = 0;
-  tot_display = OCIO_configGetNumDisplays(config);
+  const int tot_display = OCIO_configGetNumDisplays(config);
+  int viewindex2 = 0;
 
-  for (index = 0; index < tot_display; index++) {
-    const char *displayname;
-    ColorManagedDisplay *display;
+  for (int index = 0; index < tot_display; index++) {
+    const char *displayname = OCIO_configGetDisplay(config, index);
 
-    displayname = OCIO_configGetDisplay(config, index);
-
-    display = colormanage_display_add(displayname);
+    ColorManagedDisplay *display = colormanage_display_add(displayname);
 
     /* load views */
-    tot_display_view = OCIO_configGetNumViews(config, displayname);
-    for (viewindex = 0; viewindex < tot_display_view; viewindex++, viewindex2++) {
-      const char *viewname;
-      ColorManagedView *view;
-      LinkData *display_view;
-
-      viewname = OCIO_configGetView(config, displayname, viewindex);
+    const int tot_display_view = OCIO_configGetNumViews(config, displayname);
+    for (int viewindex = 0; viewindex < tot_display_view; viewindex++, viewindex2++) {
+      const char *viewname = OCIO_configGetView(config, displayname, viewindex);
 
       /* first check if view transform with given name was already loaded */
-      view = colormanage_view_get_named(viewname);
+      ColorManagedView *view = colormanage_view_get_named(viewname);
 
       if (!view) {
         view = colormanage_view_add(viewname);
       }
 
-      display_view = BLI_genericNodeN(view);
+      LinkData *display_view = BLI_genericNodeN(view);
 
       BLI_addtail(&display->views, display_view);
     }
@@ -562,15 +547,12 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
   global_tot_display = tot_display;
 
   /* load looks */
-  tot_looks = OCIO_configGetNumLooks(config);
+  const int tot_looks = OCIO_configGetNumLooks(config);
   colormanage_look_add("None", "", true);
-  for (index = 0; index < tot_looks; index++) {
-    OCIO_ConstLookRcPtr *ocio_look;
-    const char *process_space;
-
-    name = OCIO_configGetLookNameByIndex(config, index);
-    ocio_look = OCIO_configGetLook(config, name);
-    process_space = OCIO_lookGetProcessSpace(ocio_look);
+  for (int index = 0; index < tot_looks; index++) {
+    const char *name = OCIO_configGetLookNameByIndex(config, index);
+    OCIO_ConstLookRcPtr *ocio_look = OCIO_configGetLook(config, name);
+    const char *process_space = OCIO_lookGetProcessSpace(ocio_look);
     OCIO_lookRelease(ocio_look);
 
     colormanage_look_add(name, process_space, false);
@@ -652,13 +634,12 @@ static void colormanage_free_config()
 
 void colormanagement_init()
 {
-  const char *ocio_env;
-  char configfile[FILE_MAX];
   OCIO_ConstConfigRcPtr *config = nullptr;
 
   OCIO_init();
 
-  ocio_env = BLI_getenv("OCIO");
+  /* First try config from environment variable. */
+  const char *ocio_env = BLI_getenv("OCIO");
 
   if (ocio_env && ocio_env[0] != '\0') {
     config = OCIO_configCreateFromEnv();
@@ -667,19 +648,22 @@ void colormanagement_init()
     }
   }
 
+  /* Then try bunded config file. */
   if (config == nullptr) {
     const std::optional<std::string> configdir = BKE_appdir_folder_id(BLENDER_DATAFILES,
                                                                       "colormanagement");
 
     if (configdir.has_value()) {
+      char configfile[FILE_MAX];
       BLI_path_join(configfile, sizeof(configfile), configdir->c_str(), BCM_CONFIG_FILE);
 
       config = OCIO_configCreateFromFile(configfile);
     }
   }
 
+  /* Then use fallback. */
   if (config == nullptr) {
-    printf("Color management: using fallback mode for management\n");
+    printf("Color management: Using fallback mode for management\n");
 
     config = OCIO_configCreateFallback();
   }
@@ -694,7 +678,7 @@ void colormanagement_init()
 
   /* If there are no valid display/views, use fallback mode. */
   if (global_tot_display == 0 || global_tot_view == 0) {
-    printf("Color management: no displays/views in the config, using fallback mode instead\n");
+    printf("Color management: No displays/views in the config, using fallback mode instead\n");
 
     /* Free old config. */
     colormanage_free_config();
