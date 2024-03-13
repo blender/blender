@@ -107,6 +107,11 @@ vec3 coordinate_incoming(vec3 P)
   return vec3(0.0);
 }
 
+float film_scaling_factor_get()
+{
+  return 1.0;
+}
+
 float attr_load_temperature_post(float attr)
 {
   return attr;

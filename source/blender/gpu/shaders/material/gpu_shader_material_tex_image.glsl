@@ -56,7 +56,16 @@ void point_map_to_tube(vec3 vin, out vec3 vout)
 
 void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
+#ifdef GPU_FRAGMENT_SHADER
+  vec2 scaling_factor = vec2(film_scaling_factor_get());
+  vec2 dx = dFdx(co.xy) / scaling_factor;
+  vec2 dy = dFdy(co.xy) / scaling_factor;
+
+  color = safe_color(textureGrad(ima, co.xy, dx, dy));
+#else
   color = safe_color(texture(ima, co.xy));
+#endif
+
   alpha = color.a;
 }
 
