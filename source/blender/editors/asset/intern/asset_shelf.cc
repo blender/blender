@@ -713,18 +713,17 @@ static void add_catalog_tabs(AssetShelf &shelf, uiLayout &layout)
   uiItemS(&layout);
 
   /* Regular catalog tabs. */
-  settings_foreach_enabled_catalog_path(
-      shelf, [&](const asset_system::AssetCatalogPath &path) {
-        uiBut *but = add_tab_button(*block, path.name());
+  settings_foreach_enabled_catalog_path(shelf, [&](const asset_system::AssetCatalogPath &path) {
+    uiBut *but = add_tab_button(*block, path.name());
 
-        UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
-          settings_set_active_catalog(shelf_settings, path);
-          send_redraw_notifier(C);
-        });
-        UI_but_func_pushed_state_set(but, [&shelf_settings, path](const uiBut &) -> bool {
-          return settings_is_active_catalog(shelf_settings, path);
-        });
-      });
+    UI_but_func_set(but, [&shelf_settings, path](bContext &C) {
+      settings_set_active_catalog(shelf_settings, path);
+      send_redraw_notifier(C);
+    });
+    UI_but_func_pushed_state_set(but, [&shelf_settings, path](const uiBut &) -> bool {
+      return settings_is_active_catalog(shelf_settings, path);
+    });
+  });
 }
 
 /** \} */
